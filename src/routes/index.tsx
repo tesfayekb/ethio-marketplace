@@ -4,9 +4,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "ethio.com — coming soon" },
-      { name: "description", content: "Ethiopia's marketplace is launching soon." },
+      { name: "description", content: "Ethiopia's marketplace — coming soon." },
       { property: "og:title", content: "ethio.com — coming soon" },
-      { property: "og:description", content: "Ethiopia's marketplace is launching soon." },
+      { property: "og:description", content: "Ethiopia's marketplace — coming soon." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
