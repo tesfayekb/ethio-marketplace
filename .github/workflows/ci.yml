@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-check:
+    name: Build, typecheck, lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Lint
+        run: bun run lint
+      - name: Build
+        run: bun run build
+      - name: Bundle report
+        run: |
+          echo "=== Client JS bundle report ==="
+          if [ -d ".output/public" ]; then
+            find .output/public -type f -name "*.js" | xargs du -ch 2>/dev/null | tail -n 1
+          elif [ -d "dist" ]; then
+            find dist -type f -name "*.js" | xargs du -ch 2>/dev/null | tail -n 1
+          else
+            echo "No known build output directory found (.output/public or dist)."
+          fi
+
+  secrets-scan:
+    name: Gitleaks secrets scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  migration-lint:
+    name: Migration linter (with self-test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run migration guard
+        run: bash scripts/check-migrations.sh
+
+  string-scan:
+    name: Hardcoded string scan (WARN MODE)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run string scan
+        run: bash scripts/check-hardcoded-strings.sh
