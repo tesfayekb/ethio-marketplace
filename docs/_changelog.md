@@ -11,3 +11,4 @@
 2026-07-30 — i18n: keyed scaffold error/not-found strings (INC-002); string-scanner promoted to fail-mode
 2026-07-30 — auth: email sign-in door (signup, signin, email verification, callback) — Phase 1 P1-c
 2026-07-30 — auth: browser client set to PKCE flow (detectSessionInUrl) for reliable email-link session exchange (INC-004 follow-up)
+2026-07-30 — auth: revert to implicit flow; fix callback success/session logic (INC-004) and check-email sign-in navigation (BUG 2)

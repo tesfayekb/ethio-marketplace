@@ -51,7 +51,11 @@ function createSupabaseClient() {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
     },
     auth: {
-      flowType: "pkce",
+      // Implicit, not PKCE: an email confirmation link is often opened in a
+      // different browser/app than the one that signed up, where the PKCE
+      // code_verifier does not exist. Implicit returns hash tokens any browser
+      // can consume.
+      flowType: "implicit",
       detectSessionInUrl: true,
       storage: typeof window !== "undefined" ? localStorage : undefined,
       persistSession: true,

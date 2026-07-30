@@ -48,8 +48,16 @@ const primaryButtonClass =
 function AuthCallback() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  /** "checking" until the landing URL has been processed and a session re-checked. */
-  const [status, setStatus] = useState<"checking" | "confirmed" | "failed">("checking");
+  /**
+   * "checking" until the landing URL has been processed and a session re-checked.
+   * "confirmed"  — verification succeeded AND/OR a session exists here.
+   * "noSession"  — nothing conclusive: no error param, but no session in this
+   *                browser (link likely opened elsewhere). NOT a bad link.
+   * "failed"     — the URL carried a real error param and no session exists.
+   */
+  const [status, setStatus] = useState<"checking" | "confirmed" | "noSession" | "failed">(
+    "checking",
+  );
 
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -87,7 +95,8 @@ function AuthCallback() {
 
       if (cancelled) return;
       setDebug(JSON.stringify(snapshot, null, 2));
-      setStatus(result.ok ? "confirmed" : "failed");
+      // "invalid or expired" requires a genuine error param AND no session.
+      setStatus(result.ok ? "confirmed" : result.hadError ? "failed" : "noSession");
     })();
 
     return () => {
@@ -137,6 +146,23 @@ function AuthCallback() {
           className={`${primaryButtonClass} mt-6`}
         >
           {t("auth.continue")}
+        </button>
+        {debugPanel}
+      </main>
+    );
+  }
+
+  if (status === "noSession") {
+    return (
+      <main className="mx-auto w-full max-w-sm px-4 py-10">
+        <h1 className="text-xl font-semibold text-foreground">{t("auth.noSessionTitle")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("auth.noSessionBody")}</p>
+        <button
+          type="button"
+          onClick={() => void navigate({ to: "/auth" })}
+          className={`${primaryButtonClass} mt-6`}
+        >
+          {t("auth.backToSignIn")}
         </button>
         {debugPanel}
       </main>
