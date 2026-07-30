@@ -26,11 +26,20 @@ screen.
    `emailRedirectTo` is `${window.location.origin}/auth/callback`, computed at call time so
    preview, published, and custom-domain origins all work. The screen then shows the
    "check your email" state with a resend button.
-2. **Confirm** — the emailed link returns to `/auth/callback`. Supabase's client establishes the
-   session from the link; the page waits for `loading` to clear and shows
-   "Email confirmed / You're signed in" with a Continue action to `/`. If the URL carries an
-   `error` (query or fragment) or no session results, it shows the invalid/expired state with an
-   email field and a resend action.
+2. **Confirm** — the emailed link returns to `/auth/callback`, which calls
+   `completeEmailVerification()` (in `auth-service.ts`). Supabase can return the session in three
+   shapes, and all three are handled:
+   - PKCE — `?code=...` → `exchangeCodeForSession(code)`
+   - implicit — `#access_token=...&refresh_token=...&type=...` → `setSession(...)`
+   - OTP link — `?token_hash=...&type=...` → `verifyOtp(...)`
+
+   Failures arrive as `?error=`/`#error=` (with `error_code` / `error_description`).
+
+   After processing, the callback **always re-reads `getSession()`**: if a session exists the page
+   shows "Email confirmed / You're signed in" with a Continue action to `/`, regardless of which
+   format the link used. The invalid/expired state (with the email field and resend action) renders
+   only when no session can be established. This ordering is the INC-004 fix — previously a
+   successful verification could render as "invalid or has expired" (success shown as failure).
 3. **Sign in** — `signInWithPassword`; success navigates to `/`. Failures render a translated
    message. `email_not_confirmed` additionally reveals a resend button inline.
 4. **Sign out** — header button calls `signOut()` then navigates to `/`.
