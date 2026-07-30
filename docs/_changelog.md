@@ -16,3 +16,4 @@
 2026-07-30 — auth: remove editable resend-to input (D-004 drift, abuse vector); URL-driven sign-in/sign-up mode (BUG 2c)
 2026-07-30 — auth: check-email view live-detects confirmation (same-browser) + forward guidance (cross-device); no more dead-end (INC-005 completion)
 2026-07-30 — auth: consolidate check-email actions (D-005)
+2026-07-30 — auth: iOS same-browser confirmation detection via storage rehydration (INC-005 final)
