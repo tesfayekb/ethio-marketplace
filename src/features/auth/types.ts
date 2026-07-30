@@ -23,3 +23,10 @@ export type AuthUser = {
   email: string | null;
   displayName: string | null;
 };
+
+/**
+ * Outcome of processing an email-verification landing URL.
+ * `hadError` marks a genuine `error`/`error_code` param, as opposed to
+ * simply arriving with no recoverable link data.
+ */
+export type VerificationResult = { ok: true } | { ok: false; hadError: boolean };
