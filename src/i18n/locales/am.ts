@@ -11,6 +11,12 @@ export const am: Messages = {
   "common.error": "የሆነ ስህተት ተከስቷል",
   "common.retry": "እንደገና ይሞክሩ",
   "common.empty": "እስካሁን ምንም የለም",
+  "common.goHome": "ወደ መነሻ ይሂዱ",
+  "common.tryAgain": "እንደገና ይሞክሩ",
+  "error.pageNotFound": "ገጹ አልተገኘም",
+  "error.pageNotFoundBody": "የሚፈልጉት ገጽ የለም ወይም ተዛውሯል።",
+  "error.pageFailed": "ይህ ገጽ አልተጫነም",
+  "error.pageFailedBody": "በእኛ በኩል የሆነ ስህተት ተከስቷል። እንደገና ማደስ ወይም ወደ መነሻ መመለስ ይችላሉ።",
 };
 
 export default am;
