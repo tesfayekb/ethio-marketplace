@@ -100,40 +100,12 @@ function AuthCallback() {
       <h1 className="text-xl font-semibold text-foreground">{t("auth.linkInvalid")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{t("auth.linkInvalidBody")}</p>
 
-      <div className="mt-6 flex flex-col gap-1">
-        <label htmlFor="resend-email" className="text-sm font-medium text-foreground">
-          {t("auth.resendEmailLabel")}
-        </label>
-        <input
-          id="resend-email"
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder={t("auth.emailPlaceholder")}
-          className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
-      </div>
-
-      {errorKey ? (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          {t(errorKey)}
-        </p>
-      ) : null}
-      {resendSent ? (
-        <p role="status" className="mt-4 text-sm text-muted-foreground">
-          {t("auth.resendNeutral")}
-        </p>
-      ) : null}
-
       <button
         type="button"
-        onClick={handleResend}
-        disabled={busy}
+        onClick={() => void navigate({ to: "/auth", search: {} })}
         className={`${primaryButtonClass} mt-6`}
       >
-        {busy ? t("auth.working") : t("auth.resend")}
+        {t("auth.backToSignIn")}
       </button>
     </main>
   );
