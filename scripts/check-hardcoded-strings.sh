@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Hardcoded user-facing string scan (WARN MODE — never fails the workflow).
+# Hardcoded user-facing string scan (ENFORCING — non-zero exit on findings).
 # Scans .tsx files under src/routes and src/features for JSX text content and
 # common user-facing string props (title, label, placeholder, alt, aria-label).
 set -uo pipefail
 
 echo "================================================================"
-echo " WARN MODE: hardcoded string scan — findings do NOT fail the run"
+echo " ENFORCING: hardcoded string scan — findings FAIL the run"
 echo "================================================================"
 
 targets=()
@@ -36,4 +36,8 @@ if [ -s "$tmp" ]; then
 fi
 
 echo "findings: $findings"
+if [ "$findings" -gt 0 ]; then
+  echo "FAIL: user-visible strings must use i18n keys (law D1)."
+  exit 1
+fi
 exit 0

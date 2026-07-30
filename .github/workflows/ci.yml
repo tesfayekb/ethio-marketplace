@@ -54,7 +54,7 @@ jobs:
         run: bash scripts/check-migrations.sh
 
   string-scan:
-    name: Hardcoded string scan (WARN MODE)
+    name: Hardcoded string scan (enforcing)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
