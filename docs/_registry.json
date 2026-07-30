@@ -1,1 +1,19 @@
-{"docs-foundation": ["docs/governance/system-state.md", "docs/architecture/overview.md", "docs/conventions.md", "docs/_changelog.md", "docs/_registry.json", "docs/tracking/action-tracker.md", "docs/tracking/incidental-findings.md"], "project-specification": ["docs/spec/spec-ledger.md", "docs/spec/tos-privacy-source.md", "docs/spec/capability-census.md", "docs/spec/census-results.md", "docs/governance/governance.md", "docs/governance/phase0-spec.md"]}
+{
+  "docs-foundation": [
+    "docs/governance/system-state.md",
+    "docs/architecture/overview.md",
+    "docs/conventions.md",
+    "docs/_changelog.md",
+    "docs/_registry.json",
+    "docs/tracking/action-tracker.md",
+    "docs/tracking/incidental-findings.md"
+  ],
+  "project-specification": [
+    "docs/spec/spec-ledger.md",
+    "docs/spec/tos-privacy-source.md",
+    "docs/spec/capability-census.md",
+    "docs/spec/census-results.md",
+    "docs/governance/governance.md",
+    "docs/governance/phase0-spec.md"
+  ]
+}
