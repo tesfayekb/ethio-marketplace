@@ -79,22 +79,27 @@ export async function signOut(): Promise<AuthResult> {
 /**
  * Finish an email-verification landing at /auth/callback.
  *
- * Supabase can hand the session back in three shapes, so we handle all of them
- * and only declare failure when no session exists afterwards (law F4, inverted:
- * a real success must never render as an error):
- *   - PKCE:     `?code=...`                         → exchangeCodeForSession
- *   - implicit: `#access_token=...&refresh_token=`  → setSession
+ * Two facts are kept apart on purpose:
+ *   - verification succeeded (the account is now confirmed)
+ *   - a session was established in THIS browser
+ * The first can be true while the second is false (link opened elsewhere).
+ * We only report failure when the URL carries a genuine error param and no
+ * session can be obtained. "No session yet" alone is never treated as a bad
+ * link (law F4, inverted: a real success must never render as an error).
+ *
+ * Shapes handled:
+ *   - implicit: `#access_token=...&refresh_token=`  → detectSessionInUrl / setSession
  *   - OTP link: `?token_hash=...&type=...`          → verifyOtp
- * Errors arrive as `?error=`/`#error=` (with `error_code`/`error_description`).
+ *   - legacy PKCE: `?code=...`                      → exchangeCodeForSession (best effort)
  */
 export async function completeEmailVerification(): Promise<VerificationResult> {
   const url = new URL(window.location.href);
   const hash = new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : "");
   const hasErrorParam = Boolean(
     url.searchParams.get("error") ||
-    url.searchParams.get("error_code") ||
-    hash.get("error") ||
-    hash.get("error_code"),
+      url.searchParams.get("error_code") ||
+      hash.get("error") ||
+      hash.get("error_code"),
   );
 
   const code = url.searchParams.get("code");
@@ -103,17 +108,34 @@ export async function completeEmailVerification(): Promise<VerificationResult> {
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type") ?? hash.get("type");
 
-  if (code) {
-    await supabase.auth.exchangeCodeForSession(code);
-  } else if (accessToken && refreshToken) {
+  // 1. detectSessionInUrl may already have consumed the hash tokens.
+  let session = (await supabase.auth.getSession()).data.session;
+  if (session) return { ok: true };
+
+  // 2. Explicit hash-token handling when the SDK did not pick them up.
+  if (!session && accessToken && refreshToken) {
     await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-  } else if (tokenHash && type) {
-    await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType });
+    session = (await supabase.auth.getSession()).data.session;
+    if (session) return { ok: true };
   }
 
-  // Re-check before concluding anything: detectSessionInUrl may already have
-  // established the session on its own.
-  const { data } = await supabase.auth.getSession();
-  if (data.session) return { ok: true };
+  // 3. OTP link fallback: a clean verifyOtp IS verification success, even if
+  //    the session read below were to lag behind.
+  if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: type as EmailOtpType,
+    });
+    if (!error) return { ok: true };
+  }
+
+  // 4. Legacy PKCE links (best effort; fails without a local code_verifier).
+  if (code) {
+    await supabase.auth.exchangeCodeForSession(code);
+  }
+
+  session = (await supabase.auth.getSession()).data.session;
+  if (session) return { ok: true };
+
   return { ok: false, hadError: hasErrorParam };
 }
