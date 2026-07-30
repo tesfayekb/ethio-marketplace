@@ -26,21 +26,23 @@ const primaryButtonClass =
 function AuthCallback() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  /** "checking" until the landing URL has been processed and a session re-checked. */
+  const [status, setStatus] = useState<"checking" | "confirmed" | "failed">("checking");
 
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
-  // Supabase reports link failures in the URL fragment.
-  const [linkError, setLinkError] = useState(false);
 
   useEffect(() => {
-    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
-    const params = new URLSearchParams(hash);
-    if (params.get("error") || new URL(window.location.href).searchParams.get("error")) {
-      setLinkError(true);
-    }
+    let cancelled = false;
+    void completeEmailVerification().then((result) => {
+      if (cancelled) return;
+      setStatus(result.ok ? "confirmed" : "failed");
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleResend() {
