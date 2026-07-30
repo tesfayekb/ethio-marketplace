@@ -59,7 +59,7 @@ function AuthCallback() {
     else setErrorKey(result.errorKey);
   }
 
-  if (loading) {
+  if (status === "checking") {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
         <p className="text-sm text-muted-foreground">{t("auth.checking")}</p>
@@ -67,7 +67,7 @@ function AuthCallback() {
     );
   }
 
-  if (user && !linkError) {
+  if (status === "confirmed") {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
         <h1 className="text-xl font-semibold text-foreground">{t("auth.confirmedTitle")}</h1>

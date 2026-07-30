@@ -92,9 +92,9 @@ export async function completeEmailVerification(): Promise<VerificationResult> {
   const hash = new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : "");
   const hasErrorParam = Boolean(
     url.searchParams.get("error") ||
-      url.searchParams.get("error_code") ||
-      hash.get("error") ||
-      hash.get("error_code"),
+    url.searchParams.get("error_code") ||
+    hash.get("error") ||
+    hash.get("error_code"),
   );
 
   const code = url.searchParams.get("code");
