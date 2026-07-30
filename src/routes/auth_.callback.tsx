@@ -52,9 +52,6 @@ function AuthCallback() {
     };
   }, []);
 
-
-
-
   if (status === "checking") {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
