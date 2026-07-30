@@ -92,8 +92,10 @@ function AuthScreen() {
   }, [cooldown]);
 
   /**
-   * INC-005 completion: three local detection mechanisms while the check-email
-   * view is shown — auth state change, focus/visibility recheck, and a 5s poll.
+   * INC-005 completion: local detection mechanisms while the check-email view
+   * is shown — auth state change, focus/visibility recheck, a 5s poll, and a
+   * pageshow listener for bfcache restores. Every recheck goes through
+   * `hasSessionRehydrating`, which repairs a stale in-memory client on iOS.
    * No server-side "is this email confirmed" lookup (enumeration protection).
    */
   const onCheckEmailRef = useRef(onCheckEmail);
@@ -109,8 +111,7 @@ function AuthScreen() {
     };
 
     const recheck = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) markConfirmed();
+      if (await hasSessionRehydrating()) markConfirmed();
     };
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -120,8 +121,10 @@ function AuthScreen() {
     const onFocus = () => {
       if (document.visibilityState === "visible") void recheck();
     };
+    const onPageShow = () => void recheck();
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("pageshow", onPageShow);
 
     const poll = window.setInterval(() => {
       if (document.visibilityState === "visible") void recheck();
@@ -134,6 +137,7 @@ function AuthScreen() {
       data.subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("pageshow", onPageShow);
       window.clearInterval(poll);
     };
   }, [onCheckEmail]);
