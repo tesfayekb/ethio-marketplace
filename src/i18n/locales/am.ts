@@ -36,8 +36,7 @@ export const am: Messages = {
   "auth.resendSent": "የማረጋገጫ ኢሜይል ተልኳል።",
   "auth.resendNeutral": "ኢሜይልዎ ገና ካልተረጋገጠ፣ አዲስ ሊንክ በመንገድ ላይ ነው።",
   "auth.resendCooldown": "እንደገና ለመላክ በ{s} ሰከንድ ውስጥ ይቻላል",
-  "auth.resendLimitReached":
-    "የመላክ ገደብ ደርሷል — ጥቂት ደቂቃዎች ይጠብቁ። ኢሜይልዎ ተረጋግጧል? ይግቡ።",
+  "auth.resendLimitReached": "የመላክ ገደብ ደርሷል — ጥቂት ደቂቃዎች ይጠብቁ። ኢሜይልዎ ተረጋግጧል? ይግቡ።",
   "auth.confirmedInline": "✓ ኢሜይልዎ ተረጋግጧል",
   "auth.alreadyConfirmedSignIn": "አስቀድሞ ተረጋግጧል? ይግቡ",
   "auth.confirmedTitle": "ኢሜይል ተረጋግጧል",

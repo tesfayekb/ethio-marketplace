@@ -138,7 +138,6 @@ function AuthScreen() {
     };
   }, [onCheckEmail]);
 
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorKey(null);
