@@ -9,6 +9,12 @@ export const en = {
   "common.error": "Something went wrong",
   "common.retry": "Retry",
   "common.empty": "Nothing here yet",
+  "common.goHome": "Go home",
+  "common.tryAgain": "Try again",
+  "error.pageNotFound": "Page not found",
+  "error.pageNotFoundBody": "The page you're looking for doesn't exist or has been moved.",
+  "error.pageFailed": "This page didn't load",
+  "error.pageFailedBody": "Something went wrong on our end. You can try refreshing or head back home.",
 } as const;
 
 export default en;
