@@ -52,19 +52,8 @@ function AuthCallback() {
     };
   }, []);
 
-  async function handleResend() {
-    setErrorKey(null);
-    setResendSent(false);
-    if (!email.trim()) {
-      setErrorKey("auth.errorMissingFields");
-      return;
-    }
-    setBusy(true);
-    const result = await resendConfirmation(email.trim());
-    setBusy(false);
-    if (result.ok) setResendSent(true);
-    else setErrorKey(result.errorKey);
-  }
+
+
 
   if (status === "checking") {
     return (
