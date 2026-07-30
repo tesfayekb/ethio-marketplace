@@ -110,6 +110,22 @@ function AuthScreen() {
         >
           {busy ? t("auth.working") : t("auth.resend")}
         </button>
+        {/* BUG 2: a same-route <Link to="/auth"> no-ops because this screen is
+            local state. Reset that state explicitly instead. */}
+        <button
+          type="button"
+          onClick={() => {
+            setAwaitingConfirmation(false);
+            setMode("signIn");
+            setErrorKey(null);
+            setCanResend(false);
+            setResendSent(false);
+            setPassword("");
+          }}
+          className="mt-4 min-h-11 w-full rounded-md border border-input px-4 text-sm font-medium text-foreground hover:bg-accent"
+        >
+          {t("auth.backToSignIn")}
+        </button>
       </main>
     );
   }

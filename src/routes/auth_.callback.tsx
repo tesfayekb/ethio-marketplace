@@ -152,6 +152,24 @@ function AuthCallback() {
     );
   }
 
+  if (status === "noSession") {
+    return (
+      <main className="mx-auto w-full max-w-sm px-4 py-10">
+        <h1 className="text-xl font-semibold text-foreground">{t("auth.noSessionTitle")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("auth.noSessionBody")}</p>
+        <button
+          type="button"
+          onClick={() => void navigate({ to: "/auth" })}
+          className={`${primaryButtonClass} mt-6`}
+        >
+          {t("auth.backToSignIn")}
+        </button>
+        {debugPanel}
+      </main>
+    );
+  }
+
+
   return (
     <main className="mx-auto w-full max-w-sm px-4 py-10">
       <h1 className="text-xl font-semibold text-foreground">{t("auth.linkInvalid")}</h1>
