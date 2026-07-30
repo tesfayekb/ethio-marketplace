@@ -48,8 +48,16 @@ const primaryButtonClass =
 function AuthCallback() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  /** "checking" until the landing URL has been processed and a session re-checked. */
-  const [status, setStatus] = useState<"checking" | "confirmed" | "failed">("checking");
+  /**
+   * "checking" until the landing URL has been processed and a session re-checked.
+   * "confirmed"  — verification succeeded AND/OR a session exists here.
+   * "noSession"  — nothing conclusive: no error param, but no session in this
+   *                browser (link likely opened elsewhere). NOT a bad link.
+   * "failed"     — the URL carried a real error param and no session exists.
+   */
+  const [status, setStatus] = useState<"checking" | "confirmed" | "noSession" | "failed">(
+    "checking",
+  );
 
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
