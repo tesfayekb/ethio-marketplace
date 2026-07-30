@@ -2,20 +2,30 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { useAuth } from "@/features/auth/use-auth";
-import type { AuthMode } from "@/features/auth/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
-/** BUG 2b: the check-email view lives in the URL, not in hidden local state. */
-type AuthView = "signIn" | "check-email";
+/**
+ * BUG 2b/2c: the view lives in the URL, never in hidden local state.
+ * Plain /auth is ALWAYS the sign-in form.
+ */
+type AuthView = "sign-up" | "check-email";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 const MAX_RESENDS_PER_VISIT = 3;
 
+/** D-004: the resend target is only ever the email captured at sign-up. */
+const PENDING_EMAIL_KEY = "ethio.auth.pendingEmail";
+
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { view?: AuthView } => ({
-    view: search.view === "check-email" ? "check-email" : undefined,
+    view:
+      search.view === "check-email"
+        ? "check-email"
+        : search.view === "sign-up"
+          ? "sign-up"
+          : undefined,
   }),
   head: () => ({
     meta: [
@@ -51,7 +61,6 @@ function AuthScreen() {
   const { view } = Route.useSearch();
   const { signIn, signUp, resendConfirmation } = useAuth();
 
-  const [mode, setMode] = useState<AuthMode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -65,8 +74,16 @@ function AuthScreen() {
   const [resendCount, setResendCount] = useState(0);
   // INC-005c: same-browser confirmation while this screen is open.
   const [confirmed, setConfirmed] = useState(false);
+  // D-004: read-only, session-scoped sign-up email.
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   const onCheckEmail = view === "check-email";
+  const isSignIn = view !== "sign-up";
+
+  useEffect(() => {
+    if (!onCheckEmail) return;
+    setPendingEmail(window.sessionStorage.getItem(PENDING_EMAIL_KEY));
+  }, [onCheckEmail]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -96,11 +113,11 @@ function AuthScreen() {
       return;
     }
 
+    const address = email.trim();
     setBusy(true);
-    const result =
-      mode === "signIn"
-        ? await signIn({ email: email.trim(), password })
-        : await signUp({ email: email.trim(), password });
+    const result = isSignIn
+      ? await signIn({ email: address, password })
+      : await signUp({ email: address, password });
     setBusy(false);
 
     if (!result.ok) {
@@ -109,23 +126,25 @@ function AuthScreen() {
       return;
     }
 
-    if (mode === "signUp") {
+    if (!isSignIn) {
+      window.sessionStorage.setItem(PENDING_EMAIL_KEY, address);
       void navigate({ to: "/auth", search: { view: "check-email" } });
       return;
     }
     void navigate({ to: "/" });
   }
 
-  async function handleResend() {
+  /** Resends to `address` only: the form's own email, or the stored sign-up email. */
+  async function handleResend(address: string) {
     setErrorKey(null);
     setResendSent(false);
-    if (!email.trim()) {
+    if (!address) {
       setErrorKey("auth.errorMissingFields");
       return;
     }
     if (cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT) return;
     setBusy(true);
-    const result = await resendConfirmation(email.trim());
+    const result = await resendConfirmation(address);
     setBusy(false);
     if (result.ok) {
       setResendSent(true);
@@ -163,23 +182,11 @@ function AuthScreen() {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
         <h1 className="text-xl font-semibold text-foreground">{t("auth.checkEmail")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("auth.checkEmailBody")}</p>
-
-        <div className="mt-6 flex flex-col gap-1">
-          <label htmlFor="resend-email" className="text-sm font-medium text-foreground">
-            {t("auth.resendEmailLabel")}
-          </label>
-          <input
-            id="resend-email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={t("auth.emailPlaceholder")}
-            className={fieldClass}
-          />
-        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {pendingEmail
+            ? t("auth.checkEmailSentTo").replace("{email}", pendingEmail)
+            : t("auth.checkEmailBody")}
+        </p>
 
         {errorKey ? (
           <p role="alert" className="mt-4 text-sm text-destructive">
@@ -199,14 +206,18 @@ function AuthScreen() {
           </p>
         ) : null}
 
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={busy || cooldown > 0 || limitReached}
-          className={`${primaryButtonClass} mt-6`}
-        >
-          {resendLabel}
-        </button>
+        {/* D-004: no editable address. Without a stored sign-up email there is
+            nothing safe to resend to, so no resend action is offered. */}
+        {pendingEmail ? (
+          <button
+            type="button"
+            onClick={() => void handleResend(pendingEmail)}
+            disabled={busy || cooldown > 0 || limitReached}
+            className={`${primaryButtonClass} mt-6`}
+          >
+            {resendLabel}
+          </button>
+        ) : null}
 
         <button
           type="button"
@@ -218,8 +229,6 @@ function AuthScreen() {
       </main>
     );
   }
-
-  const isSignIn = mode === "signIn";
 
   return (
     <main className="mx-auto w-full max-w-sm px-4 py-10">
@@ -287,7 +296,7 @@ function AuthScreen() {
         {canResend ? (
           <button
             type="button"
-            onClick={handleResend}
+            onClick={() => void handleResend(email.trim())}
             disabled={busy || cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT}
             className="min-h-11 rounded-md border border-input px-4 text-sm text-foreground hover:bg-accent disabled:opacity-60"
           >
@@ -305,10 +314,10 @@ function AuthScreen() {
       <button
         type="button"
         onClick={() => {
-          setMode(isSignIn ? "signUp" : "signIn");
           setErrorKey(null);
           setCanResend(false);
           setResendSent(false);
+          void navigate({ to: "/auth", search: isSignIn ? { view: "sign-up" } : {} });
         }}
         className="mt-4 min-h-11 w-full rounded-md text-sm font-medium text-primary underline underline-offset-4"
       >

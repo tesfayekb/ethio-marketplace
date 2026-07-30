@@ -31,6 +31,7 @@ export const am: Messages = {
   "auth.toggleToSignIn": "አካውንት አለዎት? ይግቡ",
   "auth.checkEmail": "ኢሜይልዎን ይመልከቱ",
   "auth.checkEmailBody": "የማረጋገጫ ሊንክ ልከንልዎታል። አካውንትዎን ለመጨረስ ይክፈቱት።",
+  "auth.checkEmailSentTo": "ወደ {email} ሊንክ ልከንልዎታል። አካውንትዎን ለመጨረስ ይክፈቱት።",
   "auth.resend": "የማረጋገጫ ኢሜይል እንደገና ላክ",
   "auth.resendSent": "የማረጋገጫ ኢሜይል ተልኳል።",
   "auth.resendNeutral": "ኢሜይልዎ ገና ካልተረጋገጠ፣ አዲስ ሊንክ በመንገድ ላይ ነው።",
