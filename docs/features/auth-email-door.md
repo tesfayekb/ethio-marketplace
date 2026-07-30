@@ -154,4 +154,3 @@ user on the screen they were on. The in-page "Back to sign in" button navigates 
 
 The temporary DEBUG panel and its console logging on `/auth/callback` have been removed; BUG 1 was
 verified live.
-
