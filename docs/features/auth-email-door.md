@@ -192,3 +192,22 @@ never shown together.
 
 Throttle (60s), max 3 resends per visit, and the neutral resend message are unchanged for the
 not-yet-confirmed path.
+
+### iOS stale-client fix (INC-005 final, 2026-07-30)
+
+On iOS Safari a suspended background tab misses the cross-tab storage event, so
+`supabase.auth.getSession()` keeps answering `null` from client memory even though
+the confirmation tab already wrote a valid session into `localStorage` — the
+check-email view never flipped.
+
+All recheck paths now go through `hasSessionRehydrating()` in `auth-service.ts`:
+
+1. `getSession()` — if a session exists, advance to confirmed (unchanged).
+2. Otherwise read the client's auth storage key (`sb-<project-ref>-auth-token`)
+   straight from `localStorage`; if it holds `access_token` + `refresh_token`,
+   call `setSession(...)` to rehydrate this tab and re-read `getSession()`.
+3. Neither → stay in the check-email state.
+
+A `pageshow` listener was added alongside `focus`, `visibilitychange` and the 5s
+visible-poll so bfcache restores also trigger the recheck. Throttle, resend limit,
+button hierarchy and the confirmed+Continue swap are unchanged; no new strings.
