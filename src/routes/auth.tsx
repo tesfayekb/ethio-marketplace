@@ -1,12 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { useAuth } from "@/features/auth/use-auth";
 import type { AuthMode } from "@/features/auth/types";
+import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
+/** BUG 2b: the check-email view lives in the URL, not in hidden local state. */
+type AuthView = "signIn" | "check-email";
+
+const RESEND_COOLDOWN_SECONDS = 60;
+const MAX_RESENDS_PER_VISIT = 3;
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): { view?: AuthView } => ({
+    view: search.view === "check-email" ? "check-email" : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — ethio.com" },
@@ -31,9 +41,14 @@ const primaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +
   "font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60";
 
+const secondaryButtonClass =
+  "min-h-11 w-full rounded-md border border-input px-4 text-sm font-medium text-foreground " +
+  "hover:bg-accent disabled:opacity-60";
+
 function AuthScreen() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const { view } = Route.useSearch();
   const { signIn, signUp, resendConfirmation } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>("signIn");
@@ -44,7 +59,31 @@ function AuthScreen() {
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [canResend, setCanResend] = useState(false);
   const [resendSent, setResendSent] = useState(false);
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+
+  // INC-005a: client-side throttle. Supabase's own limit remains the backstop.
+  const [cooldown, setCooldown] = useState(0);
+  const [resendCount, setResendCount] = useState(0);
+  // INC-005c: same-browser confirmation while this screen is open.
+  const [confirmed, setConfirmed] = useState(false);
+
+  const onCheckEmail = view === "check-email";
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
+
+  // Auto-advance when the user confirms in another tab of this same browser.
+  const onCheckEmailRef = useRef(onCheckEmail);
+  onCheckEmailRef.current = onCheckEmail;
+  useEffect(() => {
+    if (!onCheckEmail) return;
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session && onCheckEmailRef.current) setConfirmed(true);
+    });
+    return () => data.subscription.unsubscribe();
+  }, [onCheckEmail]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,7 +110,7 @@ function AuthScreen() {
     }
 
     if (mode === "signUp") {
-      setAwaitingConfirmation(true);
+      void navigate({ to: "/auth", search: { view: "check-email" } });
       return;
     }
     void navigate({ to: "/" });
@@ -80,49 +119,99 @@ function AuthScreen() {
   async function handleResend() {
     setErrorKey(null);
     setResendSent(false);
+    if (!email.trim()) {
+      setErrorKey("auth.errorMissingFields");
+      return;
+    }
+    if (cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT) return;
     setBusy(true);
     const result = await resendConfirmation(email.trim());
     setBusy(false);
-    if (result.ok) setResendSent(true);
-    else setErrorKey(result.errorKey);
+    if (result.ok) {
+      setResendSent(true);
+      setResendCount((n) => n + 1);
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+    } else {
+      setErrorKey(result.errorKey);
+    }
   }
 
-  if (awaitingConfirmation) {
+  if (onCheckEmail && confirmed) {
+    return (
+      <main className="mx-auto w-full max-w-sm px-4 py-10">
+        <h1 className="text-xl font-semibold text-foreground">{t("auth.confirmedTitle")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirmedBody")}</p>
+        <button
+          type="button"
+          onClick={() => void navigate({ to: "/" })}
+          className={`${primaryButtonClass} mt-6`}
+        >
+          {t("auth.continue")}
+        </button>
+      </main>
+    );
+  }
+
+  if (onCheckEmail) {
+    const limitReached = resendCount >= MAX_RESENDS_PER_VISIT;
+    const resendLabel = busy
+      ? t("auth.working")
+      : cooldown > 0
+        ? t("auth.resendCooldown").replace("{s}", String(cooldown))
+        : t("auth.resend");
+
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
         <h1 className="text-xl font-semibold text-foreground">{t("auth.checkEmail")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{t("auth.checkEmailBody")}</p>
+
+        <div className="mt-6 flex flex-col gap-1">
+          <label htmlFor="resend-email" className="text-sm font-medium text-foreground">
+            {t("auth.resendEmailLabel")}
+          </label>
+          <input
+            id="resend-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t("auth.emailPlaceholder")}
+            className={fieldClass}
+          />
+        </div>
+
         {errorKey ? (
           <p role="alert" className="mt-4 text-sm text-destructive">
             {t(errorKey)}
           </p>
         ) : null}
+        {/* INC-005b: neutral wording — never reveals whether the account exists
+            or is already confirmed. */}
         {resendSent ? (
           <p role="status" className="mt-4 text-sm text-muted-foreground">
-            {t("auth.resendSent")}
+            {t("auth.resendNeutral")}
           </p>
         ) : null}
+        {limitReached ? (
+          <p role="status" className="mt-4 text-sm text-muted-foreground">
+            {t("auth.resendLimitReached")}
+          </p>
+        ) : null}
+
         <button
           type="button"
           onClick={handleResend}
-          disabled={busy}
+          disabled={busy || cooldown > 0 || limitReached}
           className={`${primaryButtonClass} mt-6`}
         >
-          {busy ? t("auth.working") : t("auth.resend")}
+          {resendLabel}
         </button>
-        {/* BUG 2: a same-route <Link to="/auth"> no-ops because this screen is
-            local state. Reset that state explicitly instead. */}
+
         <button
           type="button"
-          onClick={() => {
-            setAwaitingConfirmation(false);
-            setMode("signIn");
-            setErrorKey(null);
-            setCanResend(false);
-            setResendSent(false);
-            setPassword("");
-          }}
-          className="mt-4 min-h-11 w-full rounded-md border border-input px-4 text-sm font-medium text-foreground hover:bg-accent"
+          onClick={() => void navigate({ to: "/auth", search: {} })}
+          className={`${secondaryButtonClass} mt-4`}
         >
           {t("auth.backToSignIn")}
         </button>
@@ -192,17 +281,19 @@ function AuthScreen() {
         ) : null}
         {resendSent ? (
           <p role="status" className="text-sm text-muted-foreground">
-            {t("auth.resendSent")}
+            {t("auth.resendNeutral")}
           </p>
         ) : null}
         {canResend ? (
           <button
             type="button"
             onClick={handleResend}
-            disabled={busy}
+            disabled={busy || cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT}
             className="min-h-11 rounded-md border border-input px-4 text-sm text-foreground hover:bg-accent disabled:opacity-60"
           >
-            {t("auth.resend")}
+            {cooldown > 0
+              ? t("auth.resendCooldown").replace("{s}", String(cooldown))
+              : t("auth.resend")}
           </button>
         ) : null}
 
