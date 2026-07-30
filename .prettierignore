@@ -12,3 +12,7 @@ src/integrations/supabase/types.ts
 # Ratified records: imported verbatim, bytes must not churn under tooling (see INC-007)
 docs/spec/
 docs/governance/
+
+# Empty placeholder files have no parser
+.gitkeep
+**/.gitkeep
