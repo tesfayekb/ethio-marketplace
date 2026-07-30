@@ -130,9 +130,28 @@ The callback renders three outcomes:
   a bad link.
 - **invalid** — only when the URL carries a genuine `error`/`error_code` param AND no session.
 
-## Check-your-email screen (BUG 2)
+## Check-your-email screen (BUG 2 / BUG 2b, INC-005)
 
-`awaitingConfirmation` is local state, so a same-route `<Link to="/auth">` no-ops. The screen now
-has an explicit `auth.backToSignIn` button that resets that state and returns to the sign-in form.
+The view is **URL-driven**: `/auth?view=check-email` renders the check-email screen, plain `/auth`
+always renders the sign-in form. `validateSearch` on the route accepts only `view=check-email`;
+anything else normalises to the sign-in form. Sign-up navigates to `/auth?view=check-email`, so the
+header "Sign in" link (a plain `/auth` navigation) is no longer a no-op, and a refresh keeps the
+user on the screen they were on. The in-page "Back to sign in" button navigates to `/auth`.
 
-The DEBUG panel on `/auth/callback` is still present and is removed after the live re-test.
+### Resend hardening (INC-005)
+
+- **Throttle** — after each successful resend the button is disabled for 60 seconds and shows a
+  translated countdown (`auth.resendCooldown`, `{s}` substituted in the component). At most 3
+  resends per check-email visit; after that the button stays disabled and `auth.resendLimitReached`
+  is shown. Supabase's server-side rate limit remains the backstop and its 429 still surfaces as
+  `auth.errorRateLimited`.
+- **Neutral messaging** — a successful resend renders `auth.resendNeutral` ("If your email isn't
+  confirmed yet, a new link is on its way"), which never reveals whether an account exists or is
+  already confirmed (no enumeration leak). The old `auth.resendSent` wording is retired from the UI.
+- **Auto-advance** — while the check-email view is open, the screen subscribes to
+  `supabase.auth.onAuthStateChange`; if a session appears (the user confirmed in another tab of the
+  same browser) it switches to the confirmed state with a Continue-to-home action.
+
+The temporary DEBUG panel and its console logging on `/auth/callback` have been removed; BUG 1 was
+verified live.
+
