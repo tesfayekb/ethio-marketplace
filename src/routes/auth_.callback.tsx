@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { completeEmailVerification } from "@/features/auth/auth-service";
 import { useI18n } from "@/i18n";
 
-
 export const Route = createFileRoute("/auth_/callback")({
   head: () => ({
     meta: [

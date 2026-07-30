@@ -25,3 +25,4 @@
 2026-07-30 — docs: format slip fixed (INC-008 follow-up)
 2026-07-30 — ci: pin prettier exact + deterministic format:check script (INC-009)
 2026-07-30 — security: adversarial auth test pass documented (P1-c capstone)
+2026-07-30 — security: remove arbitrary-email resend abuse vector from /auth/callback (INC-010a)
