@@ -35,12 +35,97 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          contact_prefs: Json
+          country_source: string
+          created_at: string
+          display_name: string
+          home_country_code: string
+          notification_prefs: Json
+          preferred_language: string
+          updated_at: string
+          user_id: string
+          viewing_location: Json | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          contact_prefs?: Json
+          country_source?: string
+          created_at?: string
+          display_name: string
+          home_country_code: string
+          notification_prefs?: Json
+          preferred_language?: string
+          updated_at?: string
+          user_id: string
+          viewing_location?: Json | null
+        }
+        Update: {
+          avatar_url?: string | null
+          contact_prefs?: Json
+          country_source?: string
+          created_at?: string
+          display_name?: string
+          home_country_code?: string
+          notification_prefs?: Json
+          preferred_language?: string
+          updated_at?: string
+          user_id?: string
+          viewing_location?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      user_directory: {
+        Row: {
+          account_status: string
+          country_source: string
+          created_at: string
+          handle: string | null
+          home_country_code: string
+          user_id: string
+        }
+        Insert: {
+          account_status?: string
+          country_source?: string
+          created_at?: string
+          handle?: string | null
+          home_country_code: string
+          user_id: string
+        }
+        Update: {
+          account_status?: string
+          country_source?: string
+          created_at?: string
+          handle?: string | null
+          home_country_code?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_directory_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      confirm_home_country: { Args: { p_country: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
