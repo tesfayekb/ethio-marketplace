@@ -1,10 +1,18 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 
 export function AppHeader() {
   const { t } = useI18n();
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    await signOut();
+    void navigate({ to: "/" });
+  }
 
   return (
     <header className="w-full border-b border-border bg-background">
@@ -18,7 +26,30 @@ export function AppHeader() {
         >
           {t("app.name")}
         </Link>
-        <LanguageSwitcher />
+        <div className="flex flex-wrap items-center gap-2">
+          <LanguageSwitcher />
+          {loading ? null : user ? (
+            <>
+              <span className="max-w-[10rem] truncate text-sm text-muted-foreground">
+                {user.displayName ?? t("auth.signedInAs")}
+              </span>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {t("auth.signOut")}
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/auth"
+              className="inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {t("auth.signIn")}
+            </Link>
+          )}
+        </div>
       </nav>
     </header>
   );
