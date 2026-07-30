@@ -9,3 +9,4 @@
 2026-07-30 — db: identity function hardening; deny-proofs D1–D7 executed and recorded
 2026-07-30 — i18n: runtime + en/am locales + language switcher (Phase 1 P1-b)
 2026-07-30 — i18n: keyed scaffold error/not-found strings (INC-002); string-scanner promoted to fail-mode
+2026-07-30 — auth: email sign-in door (signup, signin, email verification, callback) — Phase 1 P1-c
