@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { completeEmailVerification, resendConfirmation } from "@/features/auth/auth-service";
+import { completeEmailVerification } from "@/features/auth/auth-service";
 import { useI18n } from "@/i18n";
-import type { MessageKey } from "@/i18n";
+
 
 export const Route = createFileRoute("/auth_/callback")({
   head: () => ({
