@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { resendConfirmation } from "@/features/auth/auth-service";
-import { useAuth } from "@/features/auth/use-auth";
+import { completeEmailVerification, resendConfirmation } from "@/features/auth/auth-service";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
