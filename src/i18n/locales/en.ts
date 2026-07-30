@@ -30,6 +30,7 @@ export const en = {
   "auth.toggleToSignIn": "Already have an account? Sign in",
   "auth.checkEmail": "Check your email",
   "auth.checkEmailBody": "We sent a confirmation link. Open it to finish creating your account.",
+  "auth.checkEmailSentTo": "We sent a link to {email}. Open it to finish creating your account.",
   "auth.resend": "Resend confirmation email",
   "auth.resendSent": "Confirmation email sent.",
   "auth.resendNeutral": "If your email isn't confirmed yet, a new link is on its way.",
