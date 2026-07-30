@@ -291,7 +291,8 @@ function AuthScreen() {
         {pendingEmail ? (
           <button
             type="button"
-            onClick={() => void navigate({ to: "/auth", search: {} })}
+            onClick={() => void handleAlreadyConfirmed()}
+            disabled={busy}
             className={`${secondaryButtonClass} mt-4`}
           >
             {t("auth.alreadyConfirmedSignIn")}
