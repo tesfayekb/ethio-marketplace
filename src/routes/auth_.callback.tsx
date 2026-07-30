@@ -104,7 +104,6 @@ function AuthCallback() {
     </section>
   ) : null;
 
-
   async function handleResend() {
     setErrorKey(null);
     setResendSent(false);
@@ -186,6 +185,5 @@ function AuthCallback() {
       </button>
       {debugPanel}
     </main>
-
   );
 }
