@@ -22,3 +22,4 @@
 2026-07-30 — docs: formatting debt resolved; records exempted from tooling, living docs CI-covered (INC-007)
 2026-07-30 — fix: format-check red main (CI-exact command) — INC-007 final
 2026-07-30 — deps: audit ruled dev-only-accepted; no change (Bun override not scopeable); eslint upgrade + audit-gate tracked (INC-008)
+2026-07-30 — docs: format slip fixed (INC-008 follow-up)
