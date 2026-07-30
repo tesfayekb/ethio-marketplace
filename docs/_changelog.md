@@ -13,3 +13,4 @@
 2026-07-30 — auth: browser client set to PKCE flow (detectSessionInUrl) for reliable email-link session exchange (INC-004 follow-up)
 2026-07-30 — auth: revert to implicit flow; fix callback success/session logic (INC-004) and check-email sign-in navigation (BUG 2)
 2026-07-30 — auth: resend throttle + honest states (INC-005), URL-driven auth views (BUG 2b), DEBUG panel removed
+2026-07-30 — auth: remove editable resend-to input (D-004 drift, abuse vector); URL-driven sign-in/sign-up mode (BUG 2c)

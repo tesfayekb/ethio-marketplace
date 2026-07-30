@@ -154,3 +154,18 @@ user on the screen they were on. The in-page "Back to sign in" button navigates 
 
 The temporary DEBUG panel and its console logging on `/auth/callback` have been removed; BUG 1 was
 verified live.
+
+### Resend target and URL-driven mode (D-004, BUG 2c)
+
+- **No editable resend address (D-004)** — the check-email view has no email input. The resend
+  target is only the address captured when sign-up succeeded, stored in `sessionStorage` under
+  `ethio.auth.pendingEmail` (never in the URL) and displayed read-only via `auth.checkEmailSentTo`.
+  If the view loads with no stored email (cold refresh or direct link), only "Back to sign in" is
+  offered — no resend button and no input — so nobody can trigger confirmation mail to an arbitrary
+  address. In the sign-in form, the conditional resend (shown when Supabase reports an unconfirmed
+  email) still targets the address the user just typed into that form.
+- **Mode lives in the URL (BUG 2c)** — plain `/auth` always renders the sign-in form;
+  create-account is `/auth?view=sign-up`; `/auth?view=check-email` is unchanged. The in-form toggle
+  navigates between the two search params instead of holding local mode state, so the header
+  "Sign in" link always lands on the sign-in form.
+- Throttle, resend limit and auto-advance behaviour are unchanged.
