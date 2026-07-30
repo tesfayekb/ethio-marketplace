@@ -5,13 +5,13 @@ pull request targeting `main`. All jobs run in parallel.
 
 ## Jobs
 
-| Job              | Purpose                                                                 | Status     |
-| ---------------- | ----------------------------------------------------------------------- | ---------- |
-| build-and-check  | `bun install` → `bun run typecheck` → `bun run lint` → `bun run build`. | **FAIL**   |
-| bundle-report    | Prints total client JS output size after build (informational).         | log-only   |
-| secrets-scan     | `gitleaks/gitleaks-action@v2` — scans repo history for leaked secrets.  | **FAIL**   |
-| migration-lint   | Runs `scripts/check-migrations.sh` (see below).                         | **FAIL**   |
-| string-scan      | Runs `scripts/check-hardcoded-strings.sh`.                              | **WARN**   |
+| Job             | Purpose                                                                 | Status   |
+| --------------- | ----------------------------------------------------------------------- | -------- |
+| build-and-check | `bun install` → `bun run typecheck` → `bun run lint` → `bun run build`. | **FAIL** |
+| bundle-report   | Prints total client JS output size after build (informational).         | log-only |
+| secrets-scan    | `gitleaks/gitleaks-action@v2` — scans repo history for leaked secrets.  | **FAIL** |
+| migration-lint  | Runs `scripts/check-migrations.sh` (see below).                         | **FAIL** |
+| string-scan     | Runs `scripts/check-hardcoded-strings.sh`.                              | **WARN** |
 
 "FAIL" jobs block merge on failure; "WARN" jobs print findings but always
 exit 0 for now.

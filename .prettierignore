@@ -8,3 +8,7 @@ bun.lock
 routeTree.gen.ts
 src/routeTree.gen.ts
 src/integrations/supabase/types.ts
+
+# Ratified records: imported verbatim, bytes must not churn under tooling (see INC-007)
+docs/spec/
+docs/governance/

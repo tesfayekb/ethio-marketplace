@@ -19,6 +19,8 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Typecheck
         run: bun run typecheck
+      - name: Format check (src + docs; .prettierignore exempts ratified records)
+        run: bunx prettier --check "src/**" "docs/**" "*.{json,js,ts,md}"
       - name: Lint
         run: bun run lint
       - name: Build
