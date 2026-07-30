@@ -77,6 +77,46 @@ export async function signOut(): Promise<AuthResult> {
 }
 
 /**
+ * True when a session exists for THIS browser, rehydrating from storage first
+ * if the in-memory client is stale.
+ *
+ * iOS Safari suspends background tabs, so a tab sitting on the check-email view
+ * misses the cross-tab storage event written by the confirmation tab; its
+ * `getSession()` then keeps answering null from client memory even though
+ * localStorage already holds a valid session. Reading the auth storage key
+ * directly and calling `setSession` rehydrates this tab (INC-005 final).
+ */
+export async function hasSessionRehydrating(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+
+  const direct = (await supabase.auth.getSession()).data.session;
+  if (direct) return true;
+
+  const projectRef = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.match(
+    /https?:\/\/([^.]+)\./,
+  )?.[1];
+  if (!projectRef) return false;
+
+  let stored: unknown;
+  try {
+    const raw = window.localStorage.getItem(`sb-${projectRef}-auth-token`);
+    if (!raw) return false;
+    stored = JSON.parse(raw);
+  } catch {
+    return false;
+  }
+
+  const tokens = stored as { access_token?: string; refresh_token?: string } | null;
+  if (!tokens?.access_token || !tokens?.refresh_token) return false;
+
+  await supabase.auth.setSession({
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+  });
+  return Boolean((await supabase.auth.getSession()).data.session);
+}
+
+/**
  * Finish an email-verification landing at /auth/callback.
  *
  * Two facts are kept apart on purpose:
