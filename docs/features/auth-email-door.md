@@ -48,6 +48,26 @@ screen.
 No profile rows are created from client code — the `handle_new_user` trigger owns
 `user_directory` + `profiles` (see `identity-schema.md`).
 
+## Browser client configuration
+
+`src/integrations/supabase/client.ts` configures the browser Supabase client with PKCE
+explicitly enabled:
+
+```ts
+auth: {
+  flowType: "pkce",
+  detectSessionInUrl: true,
+  storage: typeof window !== "undefined" ? localStorage : undefined,
+  persistSession: true,
+  autoRefreshToken: true,
+},
+```
+
+`flowType: "pkce"` plus `detectSessionInUrl: true` means a `?code=...` confirmation link is
+auto-detected and exchangeable, and the callback's `completeEmailVerification()` can safely
+re-check `getSession()` to confirm success. This is the INC-004 follow-up that makes the
+email-link session exchange reliable across preview, published, and custom-domain origins.
+
 ## Session exposure
 
 `useAuth` subscribes to `supabase.auth.onAuthStateChange` and seeds from `getSession()`, so no
