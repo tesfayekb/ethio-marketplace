@@ -40,6 +40,7 @@ screen.
    format the link used. The invalid/expired state (with the email field and resend action) renders
    only when no session can be established. This ordering is the INC-004 fix — previously a
    successful verification could render as "invalid or has expired" (success shown as failure).
+
 3. **Sign in** — `signInWithPassword`; success navigates to `/`. Failures render a translated
    message. `email_not_confirmed` additionally reveals a resend button inline.
 4. **Sign out** — header button calls `signOut()` then navigates to `/`.
