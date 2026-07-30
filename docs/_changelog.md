@@ -7,3 +7,4 @@
 2026-07-29 — db: countries reference table (migration 0001, applied + verified); migrations rulebook added
 2026-07-29 — governance: Phase 0 gate CLOSED; Knowledge v3.1 mirrored to repo; Phase 1 spec session open
 2026-07-30 — db: identity function hardening; deny-proofs D1–D7 executed and recorded
+2026-07-30 — i18n: runtime + en/am locales + language switcher (Phase 1 P1-b)
