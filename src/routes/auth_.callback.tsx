@@ -184,6 +184,8 @@ function AuthCallback() {
       >
         {busy ? t("auth.working") : t("auth.resend")}
       </button>
+      {debugPanel}
     </main>
+
   );
 }
