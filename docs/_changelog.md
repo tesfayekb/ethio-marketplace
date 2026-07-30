@@ -17,3 +17,4 @@
 2026-07-30 — auth: check-email view live-detects confirmation (same-browser) + forward guidance (cross-device); no more dead-end (INC-005 completion)
 2026-07-30 — auth: consolidate check-email actions (D-005)
 2026-07-30 — auth: iOS same-browser confirmation detection via storage rehydration (INC-005 final)
+2026-07-30 — auth: session-smart already-confirmed path; INC-005 closed with best-effort auto-flip ruling

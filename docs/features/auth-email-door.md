@@ -211,3 +211,19 @@ All recheck paths now go through `hasSessionRehydrating()` in `auth-service.ts`:
 A `pageshow` listener was added alongside `focus`, `visibilitychange` and the 5s
 visible-poll so bfcache restores also trigger the recheck. Throttle, resend limit,
 button hierarchy and the confirmed+Continue swap are unchanged; no new strings.
+
+### Session-smart already-confirmed path (INC-005 close, 2026-07-30)
+
+Two guarantees now do not depend on the best-effort auto-flip:
+
+- **"Already confirmed? Sign in"** first calls `hasSessionRehydrating()`. If a session exists in
+  this browser the user goes straight to `/` (the pending-email entry is cleared) — no sign-in form
+  is shown to an already-signed-in user. Only when no session can be established does it navigate
+  to `/auth`.
+- **The sign-in view** runs the same check once on mount and redirects to `/` when a session
+  already exists, whatever route the user arrived from.
+
+The auto-flip mechanisms (auth state change, focus/visibility recheck, 5s visible poll, pageshow)
+are unchanged and remain explicitly **best-effort**: iOS suspends background tabs, so no local
+mechanism can be guaranteed to observe a confirmation. Cross-device confirmation still shows the
+neutral, non-enumerating message by design.

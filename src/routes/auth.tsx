@@ -86,6 +86,34 @@ function AuthScreen() {
     setPendingEmail(window.sessionStorage.getItem(PENDING_EMAIL_KEY));
   }, [onCheckEmail]);
 
+  /**
+   * Sign-in view: never show a sign-in form to someone who already has a
+   * session in this browser (INC-005 close). One check on mount.
+   */
+  useEffect(() => {
+    if (onCheckEmail) return;
+    let active = true;
+    void (async () => {
+      if ((await hasSessionRehydrating()) && active) void navigate({ to: "/" });
+    })();
+    return () => {
+      active = false;
+    };
+  }, [onCheckEmail, navigate]);
+
+  /** Session-smart: if already signed in, go home instead of to a sign-in form. */
+  async function handleAlreadyConfirmed() {
+    setBusy(true);
+    const signedIn = await hasSessionRehydrating();
+    setBusy(false);
+    if (signedIn) {
+      window.sessionStorage.removeItem(PENDING_EMAIL_KEY);
+      void navigate({ to: "/" });
+      return;
+    }
+    void navigate({ to: "/auth", search: {} });
+  }
+
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = window.setTimeout(() => setCooldown((s) => s - 1), 1000);
@@ -263,7 +291,8 @@ function AuthScreen() {
         {pendingEmail ? (
           <button
             type="button"
-            onClick={() => void navigate({ to: "/auth", search: {} })}
+            onClick={() => void handleAlreadyConfirmed()}
+            disabled={busy}
             className={`${secondaryButtonClass} mt-4`}
           >
             {t("auth.alreadyConfirmedSignIn")}
