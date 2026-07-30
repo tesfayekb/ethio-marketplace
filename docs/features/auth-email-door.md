@@ -104,3 +104,35 @@ codes, and status numbers never reach the DOM.
 (`auth.googleSlot`, `auth.telegramSlot`). P1-d replaces the Google slot with the Lovable OAuth
 broker call; P1-e replaces the Telegram slot. Nothing else on the screen needs to move: both doors
 reuse `useAuth` for the resulting session and the same `/auth/callback` landing.
+
+## Flow correction (INC-004 fix, 2026-07-30)
+
+The browser client uses `flowType: "implicit"`, not PKCE. An email confirmation link is
+frequently opened in a different browser or in-app webview than the one that signed up, where the
+PKCE `code_verifier` does not exist — so `exchangeCodeForSession` could never succeed and a
+genuine confirmation rendered as "invalid or expired". Implicit returns `#access_token=&refresh_token=`
+hash tokens that any browser can consume.
+
+`completeEmailVerification()` now keeps two facts apart:
+
+- **verification succeeded** — the account is confirmed (a clean `verifyOtp` proves this).
+- **session established** — a session exists _in this browser_.
+
+Order: read `getSession()` (detectSessionInUrl may already have consumed the hash) → `setSession`
+from hash tokens → `verifyOtp` for `?token_hash=&type=` → best-effort `exchangeCodeForSession` for
+legacy `?code=` links → final `getSession()` re-check.
+
+The callback renders three outcomes:
+
+- **confirmed** — a session exists, or `verifyOtp` succeeded.
+- **noSession** — no error param and no session: the link was likely opened elsewhere. Shows
+  `auth.noSessionTitle`/`auth.noSessionBody` and a "Back to sign in" action. This is never labelled
+  a bad link.
+- **invalid** — only when the URL carries a genuine `error`/`error_code` param AND no session.
+
+## Check-your-email screen (BUG 2)
+
+`awaitingConfirmation` is local state, so a same-route `<Link to="/auth">` no-ops. The screen now
+has an explicit `auth.backToSignIn` button that resets that state and returns to the sign-in form.
+
+The DEBUG panel on `/auth/callback` is still present and is removed after the live re-test.

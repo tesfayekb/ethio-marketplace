@@ -169,7 +169,6 @@ function AuthCallback() {
     );
   }
 
-
   return (
     <main className="mx-auto w-full max-w-sm px-4 py-10">
       <h1 className="text-xl font-semibold text-foreground">{t("auth.linkInvalid")}</h1>

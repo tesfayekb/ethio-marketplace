@@ -41,8 +41,7 @@ export const am: Messages = {
   "auth.resendEmailLabel": "እንደገና የሚላክበት ኢሜይል",
   "auth.backToSignIn": "ወደ መግቢያ ተመለስ",
   "auth.noSessionTitle": "ጥቂት ቀርቷል",
-  "auth.noSessionBody":
-    "ሊንኩን በሌላ መሣሪያ ወይም አሳሽ ከከፈቱት፣ አካውንትዎ እዚያ ተረጋግጧል። ለመቀጠል እዚህ ይግቡ።",
+  "auth.noSessionBody": "ሊንኩን በሌላ መሣሪያ ወይም አሳሽ ከከፈቱት፣ አካውንትዎ እዚያ ተረጋግጧል። ለመቀጠል እዚህ ይግቡ።",
   "auth.signOut": "ይውጡ",
   "auth.signedInAs": "ገብተዋል",
   "auth.checking": "ክፍለ ጊዜዎን በመፈተሽ ላይ…",
