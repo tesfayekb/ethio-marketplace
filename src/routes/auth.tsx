@@ -91,16 +91,53 @@ function AuthScreen() {
     return () => window.clearTimeout(timer);
   }, [cooldown]);
 
-  // Auto-advance when the user confirms in another tab of this same browser.
+  /**
+   * INC-005 completion: three local detection mechanisms while the check-email
+   * view is shown — auth state change, focus/visibility recheck, and a 5s poll.
+   * No server-side "is this email confirmed" lookup (enumeration protection).
+   */
   const onCheckEmailRef = useRef(onCheckEmail);
   onCheckEmailRef.current = onCheckEmail;
   useEffect(() => {
     if (!onCheckEmail) return;
+    let active = true;
+
+    const markConfirmed = () => {
+      if (!active) return;
+      setConfirmed(true);
+      window.sessionStorage.removeItem(PENDING_EMAIL_KEY);
+    };
+
+    const recheck = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) markConfirmed();
+    };
+
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session && onCheckEmailRef.current) setConfirmed(true);
+      if (session && onCheckEmailRef.current) markConfirmed();
     });
-    return () => data.subscription.unsubscribe();
+
+    const onFocus = () => {
+      if (document.visibilityState === "visible") void recheck();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+
+    const poll = window.setInterval(() => {
+      if (document.visibilityState === "visible") void recheck();
+    }, 5000);
+
+    void recheck();
+
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.clearInterval(poll);
+    };
   }, [onCheckEmail]);
+
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
