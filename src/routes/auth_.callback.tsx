@@ -139,6 +139,7 @@ function AuthCallback() {
         >
           {t("auth.continue")}
         </button>
+        {debugPanel}
       </main>
     );
   }
