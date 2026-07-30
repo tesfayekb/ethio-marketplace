@@ -242,8 +242,8 @@ function AuthScreen() {
           </p>
         ) : null}
 
-        {/* D-004: no editable address. Without a stored sign-up email there is
-            nothing safe to resend to, so no resend action is offered. */}
+        {/* D-005: exactly one primary resend + one secondary sign-in action;
+            cold load (no stored email) offers only the back-to-sign-in path. */}
         {pendingEmail ? (
           <button
             type="button"
@@ -255,23 +255,23 @@ function AuthScreen() {
           </button>
         ) : null}
 
-        {/* Cross-device: the link may have been opened elsewhere, so always
-            offer a forward path instead of dead-ending on resend. */}
-        <button
-          type="button"
-          onClick={() => void navigate({ to: "/auth", search: {} })}
-          className={`${primaryButtonClass} mt-4`}
-        >
-          {t("auth.alreadyConfirmedSignIn")}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => void navigate({ to: "/auth", search: {} })}
-          className={`${secondaryButtonClass} mt-4`}
-        >
-          {t("auth.backToSignIn")}
-        </button>
+        {pendingEmail ? (
+          <button
+            type="button"
+            onClick={() => void navigate({ to: "/auth", search: {} })}
+            className={`${secondaryButtonClass} mt-4`}
+          >
+            {t("auth.alreadyConfirmedSignIn")}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void navigate({ to: "/auth", search: {} })}
+            className={`${secondaryButtonClass} mt-6`}
+          >
+            {t("auth.backToSignIn")}
+          </button>
+        )}
       </main>
     );
   }

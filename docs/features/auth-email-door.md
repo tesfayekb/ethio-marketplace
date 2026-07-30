@@ -184,9 +184,11 @@ check-email UI (resend button, countdown, limit message, read-only address) is r
 `ethio.auth.pendingEmail` entry is cleared from `sessionStorage`.
 
 Cross-device confirmation cannot be detected locally, and no server-side "is this email confirmed"
-lookup is added — that would be an enumeration oracle. Instead the view always renders a permanent
-`auth.alreadyConfirmedSignIn` ("Already confirmed? Sign in") action to `/auth`, and the
-limit-reached message points forward to signing in rather than only stating the limit.
+lookup is added — that would be an enumeration oracle. Instead the view renders a permanent
+`auth.alreadyConfirmedSignIn` ("Already confirmed? Sign in") action as the **secondary** action
+when a pending sign-up email exists, and `auth.backToSignIn` only when the view was loaded with no
+stored email (cold load). The two "Back to sign in" and "Already confirmed? Sign in" buttons are
+never shown together.
 
 Throttle (60s), max 3 resends per visit, and the neutral resend message are unchanged for the
 not-yet-confirmed path.
