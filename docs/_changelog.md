@@ -24,3 +24,5 @@
 2026-07-30 — deps: audit ruled dev-only-accepted; no change (Bun override not scopeable); eslint upgrade + audit-gate tracked (INC-008)
 2026-07-30 — docs: format slip fixed (INC-008 follow-up)
 2026-07-30 — ci: pin prettier exact + deterministic format:check script (INC-009)
+
+2026-07-30 — security: adversarial auth test pass documented (P1-c capstone)
