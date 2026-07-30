@@ -20,3 +20,4 @@
 2026-07-30 — auth: session-smart already-confirmed path; INC-005 closed with best-effort auto-flip ruling
 2026-07-30 — security: scan rulings documented in-schema; function grants re-verified (INC-006)
 2026-07-30 — docs: formatting debt resolved; records exempted from tooling, living docs CI-covered (INC-007)
+2026-07-30 — fix: format-check red main (CI-exact command) — INC-007 final
