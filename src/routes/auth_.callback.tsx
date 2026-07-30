@@ -37,11 +37,6 @@ function AuthCallback() {
     "checking",
   );
 
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [resendSent, setResendSent] = useState(false);
-  const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
-
   useEffect(() => {
     let cancelled = false;
 
