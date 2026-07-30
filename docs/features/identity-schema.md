@@ -113,3 +113,22 @@ any reason to care is friction without payoff. **The UI for `confirm_home_countr
 first contribution surface** (the first screen where a user posts or contacts), where the country
 actually determines what happens. Until then the function exists, is proven, and is unreachable
 from the UI by design — not by oversight.
+
+## Security scan rulings
+
+Recorded 2026-07-30 (INC-006). Verified against live `ethio-prod` read-backs.
+
+1. **Missing INSERT policies on `profiles` / `user_directory` — INTENTIONAL.** Rows are created
+   exclusively by the `handle_new_user()` trigger on `auth.users`. A user INSERT policy would let a
+   client forge identity rows. The rationale is now attached in-schema as table comments
+   (`COMMENT ON TABLE`), so reviewers and scanners read it where the objects live. Live read-back
+   confirms policies: `profiles_owner_read` (SELECT), `profiles_owner_update` (UPDATE),
+   `directory_owner_read` (SELECT) — and nothing else.
+2. **SECURITY DEFINER warnings on `handle_new_user` / `confirm_home_country` — intended design.**
+   Both must write system-owned rows no client role can write directly. Default `PUBLIC`/`anon`
+   EXECUTE was revoked in the function-hardening migration. Live `proacl` read-back:
+   `handle_new_user {postgres=X/postgres}` (no client role can call it) and
+   `confirm_home_country {postgres=X/postgres,authenticated=X/postgres}` — the `authenticated`
+   grant is the feature, not a gap.
+3. **Leaked-password protection disabled — Supabase Pro-gated.** Not available on the current plan;
+   deferred to the launch-gate list rather than silently ignored.
