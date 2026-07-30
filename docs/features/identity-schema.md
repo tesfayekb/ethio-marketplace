@@ -37,7 +37,7 @@ Both tables carry `home_country_code` per Knowledge E3.
 
 ## The column-grant mechanism
 
-RLS decides *which rows* a caller may touch. It does not decide *which columns*. Row-scoped
+RLS decides _which rows_ a caller may touch. It does not decide _which columns_. Row-scoped
 UPDATE alone would let a user rewrite their own `home_country_code` or `country_source` and
 defeat the one-shot country-confirmation rule.
 
@@ -51,7 +51,7 @@ notification_prefs, contact_prefs, updated_at
 
 Live ACL (`pg_attribute.attacl`) confirms `{authenticated=w/postgres}` on those seven columns and
 nothing else; the table ACL grants `authenticated` only `r` (SELECT). An UPDATE that names any
-other column fails with `42501 permission denied for table profiles` *before* RLS runs — proven
+other column fails with `42501 permission denied for table profiles` _before_ RLS runs — proven
 by D4. `user_directory` has no column ACLs at all, so every UPDATE is refused (D6).
 
 Two layers, two jobs: grants gate the columns, RLS gates the rows.
