@@ -195,7 +195,7 @@ function AuthScreen() {
   if (onCheckEmail && confirmed) {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
-        <h1 className="text-xl font-semibold text-foreground">{t("auth.confirmedTitle")}</h1>
+        <h1 className="text-xl font-semibold text-foreground">{t("auth.confirmedInline")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirmedBody")}</p>
         <button
           type="button"
@@ -255,6 +255,16 @@ function AuthScreen() {
             {resendLabel}
           </button>
         ) : null}
+
+        {/* Cross-device: the link may have been opened elsewhere, so always
+            offer a forward path instead of dead-ending on resend. */}
+        <button
+          type="button"
+          onClick={() => void navigate({ to: "/auth", search: {} })}
+          className={`${primaryButtonClass} mt-4`}
+        >
+          {t("auth.alreadyConfirmedSignIn")}
+        </button>
 
         <button
           type="button"
