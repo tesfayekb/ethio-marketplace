@@ -2,8 +2,30 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { completeEmailVerification, resendConfirmation } from "@/features/auth/auth-service";
+import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
+
+/** TEMPORARY (INC-005 diagnosis). Remove before launch. */
+const DEBUG_LABEL = "DEBUG — remove before launch";
+
+/** Which shape the landing URL carries. Diagnosis only; no logic depends on it. */
+function detectBranch(search: URLSearchParams, hash: URLSearchParams): string {
+  if (search.get("error") || search.get("error_code") || hash.get("error")) return "error";
+  if (search.get("code")) return "code";
+  if (hash.get("access_token") && hash.get("refresh_token")) return "access_token";
+  if (search.get("token_hash") && (search.get("type") || hash.get("type"))) return "token_hash";
+  return "none";
+}
+
+function paramMap(params: URLSearchParams): Record<string, string> {
+  const out: Record<string, string> = {};
+  params.forEach((value, key) => {
+    // Never print token material; only its presence and length.
+    out[key] = /token|code/i.test(key) ? `<${value.length} chars>` : value;
+  });
+  return out;
+}
 
 export const Route = createFileRoute("/auth_/callback")({
   head: () => ({
@@ -33,17 +55,54 @@ function AuthCallback() {
   const [busy, setBusy] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  /** TEMPORARY (INC-005). Diagnostic snapshot of the landing URL + session. */
+  const [debug, setDebug] = useState<string>("");
 
   useEffect(() => {
     let cancelled = false;
-    void completeEmailVerification().then((result) => {
+
+    void (async () => {
+      const url = new URL(window.location.href);
+      const hash = new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : "");
+      const before = await supabase.auth.getSession();
+      const snapshot: Record<string, unknown> = {
+        href: url.href.replace(/(code|token|token_hash)=[^&]+/g, "$1=<redacted>"),
+        search: url.search.replace(/(code|token|token_hash)=[^&]+/g, "$1=<redacted>"),
+        hash: url.hash.replace(/(access_token|refresh_token|token_hash)=[^&]+/g, "$1=<redacted>"),
+        searchParams: paramMap(url.searchParams),
+        hashParams: paramMap(hash),
+        branch: detectBranch(url.searchParams, hash),
+        sessionBeforeExchange: Boolean(before.data.session),
+        sessionBeforeError: before.error?.message ?? null,
+      };
+      console.info("[INC-005 callback] before exchange", snapshot);
+
+      const result = await completeEmailVerification();
+      const after = await supabase.auth.getSession();
+      snapshot.verificationResult = result;
+      snapshot.sessionAfterExchange = Boolean(after.data.session);
+      snapshot.sessionAfterError = after.error?.message ?? null;
+      snapshot.userAfter = after.data.session?.user?.email ?? null;
+      console.info("[INC-005 callback] after exchange", snapshot);
+
       if (cancelled) return;
+      setDebug(JSON.stringify(snapshot, null, 2));
       setStatus(result.ok ? "confirmed" : "failed");
-    });
+    })();
+
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const debugPanel = debug ? (
+    <section className="mt-8 rounded-md border border-dashed border-border p-3">
+      <p className="text-xs font-semibold uppercase text-destructive">{DEBUG_LABEL}</p>
+      <pre className="mt-2 overflow-x-auto text-[11px] leading-snug text-muted-foreground">
+        {debug}
+      </pre>
+    </section>
+  ) : null;
 
   async function handleResend() {
     setErrorKey(null);
@@ -79,6 +138,7 @@ function AuthCallback() {
         >
           {t("auth.continue")}
         </button>
+        {debugPanel}
       </main>
     );
   }
@@ -123,6 +183,7 @@ function AuthCallback() {
       >
         {busy ? t("auth.working") : t("auth.resend")}
       </button>
+      {debugPanel}
     </main>
   );
 }
