@@ -169,3 +169,24 @@ verified live.
   navigates between the two search params instead of holding local mode state, so the header
   "Sign in" link always lands on the sign-in form.
 - Throttle, resend limit and auto-advance behaviour are unchanged.
+
+### Live confirmation detection (INC-005 completion, 2026-07-30)
+
+While `/auth?view=check-email` is shown, three **local** mechanisms look for a session:
+
+1. `supabase.auth.onAuthStateChange` (in-tab),
+2. a `focus` / `visibilitychange` handler that re-reads `getSession()` when the tab regains focus,
+3. a 5-second poll that runs only while the document is visible.
+
+All three are cleaned up on unmount or when the view changes. If any finds a session, the entire
+check-email UI (resend button, countdown, limit message, read-only address) is replaced by
+`auth.confirmedInline` ("✓ Your email is confirmed") plus a Continue action to `/`, and the
+`ethio.auth.pendingEmail` entry is cleared from `sessionStorage`.
+
+Cross-device confirmation cannot be detected locally, and no server-side "is this email confirmed"
+lookup is added — that would be an enumeration oracle. Instead the view always renders a permanent
+`auth.alreadyConfirmedSignIn` ("Already confirmed? Sign in") action to `/auth`, and the
+limit-reached message points forward to signing in rather than only stating the limit.
+
+Throttle (60s), max 3 resends per visit, and the neutral resend message are unchanged for the
+not-yet-confirmed path.

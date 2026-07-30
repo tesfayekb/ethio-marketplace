@@ -35,7 +35,10 @@ export const en = {
   "auth.resendSent": "Confirmation email sent.",
   "auth.resendNeutral": "If your email isn't confirmed yet, a new link is on its way.",
   "auth.resendCooldown": "Resend available in {s}s",
-  "auth.resendLimitReached": "Resend limit reached — try signing in, or wait a few minutes.",
+  "auth.resendLimitReached":
+    "Resend limit reached — wait a few minutes. Already confirmed your email? Sign in.",
+  "auth.confirmedInline": "✓ Your email is confirmed",
+  "auth.alreadyConfirmedSignIn": "Already confirmed? Sign in",
   "auth.confirmedTitle": "Email confirmed",
   "auth.confirmedBody": "You're signed in and ready to go.",
   "auth.continue": "Continue",
