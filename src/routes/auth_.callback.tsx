@@ -2,8 +2,30 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { completeEmailVerification, resendConfirmation } from "@/features/auth/auth-service";
+import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
+
+/** TEMPORARY (INC-005 diagnosis). Remove before launch. */
+const DEBUG_LABEL = "DEBUG — remove before launch";
+
+/** Which shape the landing URL carries. Diagnosis only; no logic depends on it. */
+function detectBranch(search: URLSearchParams, hash: URLSearchParams): string {
+  if (search.get("error") || search.get("error_code") || hash.get("error")) return "error";
+  if (search.get("code")) return "code";
+  if (hash.get("access_token") && hash.get("refresh_token")) return "access_token";
+  if (search.get("token_hash") && (search.get("type") || hash.get("type"))) return "token_hash";
+  return "none";
+}
+
+function paramMap(params: URLSearchParams): Record<string, string> {
+  const out: Record<string, string> = {};
+  params.forEach((value, key) => {
+    // Never print token material; only its presence and length.
+    out[key] = /token|code/i.test(key) ? `<${value.length} chars>` : value;
+  });
+  return out;
+}
 
 export const Route = createFileRoute("/auth_/callback")({
   head: () => ({
