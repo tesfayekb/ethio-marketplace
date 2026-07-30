@@ -38,6 +38,10 @@ export const en = {
   "auth.linkInvalid": "This link is invalid or has expired",
   "auth.linkInvalidBody": "Request a new confirmation email and try again.",
   "auth.resendEmailLabel": "Email to resend to",
+  "auth.backToSignIn": "Back to sign in",
+  "auth.noSessionTitle": "Almost there",
+  "auth.noSessionBody":
+    "If you opened the link on another device or browser, your account is confirmed there. Sign in here to continue.",
   "auth.signOut": "Sign out",
   "auth.signedInAs": "Signed in",
   "auth.checking": "Checking your session…",
