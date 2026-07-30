@@ -95,7 +95,8 @@ function AuthCallback() {
 
       if (cancelled) return;
       setDebug(JSON.stringify(snapshot, null, 2));
-      setStatus(result.ok ? "confirmed" : "failed");
+      // "invalid or expired" requires a genuine error param AND no session.
+      setStatus(result.ok ? "confirmed" : result.hadError ? "failed" : "noSession");
     })();
 
     return () => {
