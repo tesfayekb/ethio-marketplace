@@ -55,17 +55,55 @@ function AuthCallback() {
   const [busy, setBusy] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  /** TEMPORARY (INC-005). Diagnostic snapshot of the landing URL + session. */
+  const [debug, setDebug] = useState<string>("");
 
   useEffect(() => {
     let cancelled = false;
-    void completeEmailVerification().then((result) => {
+
+    void (async () => {
+      const url = new URL(window.location.href);
+      const hash = new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : "");
+      const before = await supabase.auth.getSession();
+      const snapshot: Record<string, unknown> = {
+        href: url.href.replace(/(code|token|token_hash)=[^&]+/g, "$1=<redacted>"),
+        search: url.search.replace(/(code|token|token_hash)=[^&]+/g, "$1=<redacted>"),
+        hash: url.hash.replace(/(access_token|refresh_token|token_hash)=[^&]+/g, "$1=<redacted>"),
+        searchParams: paramMap(url.searchParams),
+        hashParams: paramMap(hash),
+        branch: detectBranch(url.searchParams, hash),
+        sessionBeforeExchange: Boolean(before.data.session),
+        sessionBeforeError: before.error?.message ?? null,
+      };
+      console.info("[INC-005 callback] before exchange", snapshot);
+
+      const result = await completeEmailVerification();
+      const after = await supabase.auth.getSession();
+      snapshot.verificationResult = result;
+      snapshot.sessionAfterExchange = Boolean(after.data.session);
+      snapshot.sessionAfterError = after.error?.message ?? null;
+      snapshot.userAfter = after.data.session?.user?.email ?? null;
+      console.info("[INC-005 callback] after exchange", snapshot);
+
       if (cancelled) return;
+      setDebug(JSON.stringify(snapshot, null, 2));
       setStatus(result.ok ? "confirmed" : "failed");
-    });
+    })();
+
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const debugPanel = debug ? (
+    <section className="mt-8 rounded-md border border-dashed border-border p-3">
+      <p className="text-xs font-semibold uppercase text-destructive">{DEBUG_LABEL}</p>
+      <pre className="mt-2 overflow-x-auto text-[11px] leading-snug text-muted-foreground">
+        {debug}
+      </pre>
+    </section>
+  ) : null;
+
 
   async function handleResend() {
     setErrorKey(null);
