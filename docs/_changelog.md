@@ -10,3 +10,4 @@
 2026-07-30 — i18n: runtime + en/am locales + language switcher (Phase 1 P1-b)
 2026-07-30 — i18n: keyed scaffold error/not-found strings (INC-002); string-scanner promoted to fail-mode
 2026-07-30 — auth: email sign-in door (signup, signin, email verification, callback) — Phase 1 P1-c
+2026-07-30 — fix: /auth/callback success/failure detection — PKCE code, hash tokens, token_hash all handled; session re-checked before failure (INC-004)

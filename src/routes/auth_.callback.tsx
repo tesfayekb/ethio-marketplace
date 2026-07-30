@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { resendConfirmation } from "@/features/auth/auth-service";
-import { useAuth } from "@/features/auth/use-auth";
+import { completeEmailVerification, resendConfirmation } from "@/features/auth/auth-service";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -27,21 +26,23 @@ const primaryButtonClass =
 function AuthCallback() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  /** "checking" until the landing URL has been processed and a session re-checked. */
+  const [status, setStatus] = useState<"checking" | "confirmed" | "failed">("checking");
 
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
-  // Supabase reports link failures in the URL fragment.
-  const [linkError, setLinkError] = useState(false);
 
   useEffect(() => {
-    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
-    const params = new URLSearchParams(hash);
-    if (params.get("error") || new URL(window.location.href).searchParams.get("error")) {
-      setLinkError(true);
-    }
+    let cancelled = false;
+    void completeEmailVerification().then((result) => {
+      if (cancelled) return;
+      setStatus(result.ok ? "confirmed" : "failed");
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleResend() {
@@ -58,7 +59,7 @@ function AuthCallback() {
     else setErrorKey(result.errorKey);
   }
 
-  if (loading) {
+  if (status === "checking") {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
         <p className="text-sm text-muted-foreground">{t("auth.checking")}</p>
@@ -66,7 +67,7 @@ function AuthCallback() {
     );
   }
 
-  if (user && !linkError) {
+  if (status === "confirmed") {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
         <h1 className="text-xl font-semibold text-foreground">{t("auth.confirmedTitle")}</h1>
