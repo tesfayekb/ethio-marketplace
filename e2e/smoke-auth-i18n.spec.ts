@@ -36,9 +36,15 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
     .fill(user.password);
   await page.getByRole("button", { name: /^sign in$/i }).click();
 
-  // 4. Header shows the signed-in identity.
+  // 4. Wait for the definitive signed-in signal before asserting identity.
+  //    The Sign out button only renders in the signed-in header branch, so its
+  //    visibility gates the submit-vs-assert race (no arbitrary sleeps).
+  const signOutButton = page.getByRole("button", { name: /sign out/i });
+  await signOutButton.waitFor({ state: "visible", timeout: 15000 });
+  await expect(signOutButton).toBeVisible();
+
+  // Then the display name, which the signed-in header renders alongside it.
   await expect(page.getByText(user.displayName, { exact: false })).toBeVisible();
-  await expect(page.getByRole("button", { name: /sign out/i })).toBeVisible();
 
   // 5. Switch to Amharic — assert against the locale source of truth, not a literal.
   await page.getByRole("button", { name: am["language.amharic"] }).click();
