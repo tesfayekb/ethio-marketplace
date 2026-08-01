@@ -15,12 +15,12 @@ how expensive the item becomes if it is not designed for now:
 
 ## Tier 1 — adopted
 
-| Item                                   | Landed as        |
-| -------------------------------------- | ---------------- |
-| Server-side EXIF/GPS strip on uploads  | DEC-009, REQ-036 |
-| CAPTCHA-ready auth (Turnstile seam)    | DEC-010, REQ-037 |
-| Reputation/ratings seam                | DEC-011          |
-| Search-indexability + rate-limiting    | REQ-038          |
+| Item                                  | Landed as        |
+| ------------------------------------- | ---------------- |
+| Server-side EXIF/GPS strip on uploads | DEC-009, REQ-036 |
+| CAPTCHA-ready auth (Turnstile seam)   | DEC-010, REQ-037 |
+| Reputation/ratings seam               | DEC-011          |
+| Search-indexability + rate-limiting   | REQ-038          |
 
 ## Tier 2 — tracked (seam planned, build later)
 
