@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check \"src/**\" \"docs/**\" \"*.{json,js,ts,md}\"",
-    "format:write": "prettier --write \"src/**\" \"docs/**\" \"*.{json,js,ts,md}\""
+    "format:write": "prettier --write \"src/**\" \"docs/**\" \"*.{json,js,ts,md}\"",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
