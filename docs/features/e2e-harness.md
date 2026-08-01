@@ -5,15 +5,31 @@ Approach frozen by `docs/decisions/e2e-testing-investigation.md`.
 
 ## What exists
 
-| File                          | Role                                                                                    |
-| ----------------------------- | --------------------------------------------------------------------------------------- |
-| `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = built app        |
-| `e2e/global-setup.ts`         | Mints ONE pre-confirmed user via the Supabase Admin API; writes `e2e/.state/` (ignored) |
-| `e2e/global-teardown.ts`      | Deletes the user and verifies deletion                                                  |
-| `e2e/smoke-auth-i18n.spec.ts` | The frozen first spec                                                                   |
-| `.github/workflows/ci.yml`    | `e2e` job — cached Chromium, fresh build, report artifact on failure                    |
+| File                          | Role                                                                                          |
+| ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = built app via wrangler |
+| `e2e/global-setup.ts`         | Mints ONE pre-confirmed user via the Supabase Admin API; writes `e2e/.state/` (ignored)       |
+| `e2e/global-teardown.ts`      | Deletes the user and verifies deletion                                                        |
+| `e2e/smoke-auth-i18n.spec.ts` | The frozen first spec                                                                         |
+| `.github/workflows/ci.yml`    | `e2e` job — cached Chromium, fresh build, report artifact on failure                          |
 
-Scripts: `bun run test:e2e`, `bun run test:e2e:install`.
+Scripts: `bun run test:e2e`, `bun run test:e2e:install`, `bun run preview:built`.
+
+## Serving the production build in CI
+
+`vite preview` cannot serve this app: the TanStack preview plugin imports
+`dist/server/server.js`, while Nitro's `cloudflare-module` preset emits
+`dist/server/index.mjs` (a Worker module). The build's own documented preview is wrangler.
+
+Working command (verified locally, responds 200 on `/`):
+
+```
+bun run build
+bun run preview:built --port 4173   # bunx wrangler@4.118.0 --cwd ./dist dev --ip 127.0.0.1
+```
+
+Playwright's `webServer` runs exactly this, with `url` = `http://127.0.0.1:4173`
+(wrangler binds 127.0.0.1, not `localhost`/::1) and a 180s start timeout.
 
 ## Target
 
