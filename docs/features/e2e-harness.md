@@ -64,7 +64,6 @@ fails at setup with a named cause instead of a downstream test timeout on an emp
    `profile row not created … check staging schema/trigger` if it never appears.
 5. **Only then** the credentials file is written and the suite proceeds.
 
-
 ## Environment
 
 | Name                            | Where                  | Notes                                                   |
