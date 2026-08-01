@@ -34,3 +34,4 @@
 2026-08-01 — test: E2E spec waits for signed-in state (Sign out button) before identity assertions (mobile-360 race)
 2026-08-01 — test: E2E global-setup made self-verifying and fail-fast (preflight log, create/read-back/profile-trigger proofs)
 2026-08-01 — test: E2E global-setup removes RLS-protected profiles-row check; trigger correctness covered by P1-a deny-tests
+2026-08-01 — test: E2E sign-in fills are self-checking (toHaveValue guards, anchored locators) — empty-email submit fixed

@@ -29,11 +29,29 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
   await expectNoHorizontalOverflow(page);
 
   // 3. Sign in through the real form.
-  await page.getByLabel(/email/i).fill(user.email);
-  await page
-    .getByLabel(/password/i, { exact: false })
-    .first()
-    .fill(user.password);
+  //    Fills are self-checking: a fill that lands before hydration is silently
+  //    discarded when React mounts the controlled input, which previously
+  //    submitted an EMPTY email. toHaveValue fails here instead of downstream.
+  const emailInput = page.getByRole("textbox", { name: /email/i });
+  const passwordInput = page.locator("#auth-password");
+
+  await emailInput.waitFor({ state: "visible" });
+  await emailInput.click();
+  await emailInput.fill("");
+  await emailInput.fill(user.email);
+  await expect(emailInput, "email field did not accept the test email").toHaveValue(user.email);
+
+  await passwordInput.click();
+  await passwordInput.fill("");
+  await passwordInput.fill(user.password);
+  await expect(passwordInput, "password field did not accept the test password").toHaveValue(
+    user.password,
+  );
+
+  // Re-assert email immediately before submit: proves nothing cleared it.
+  await expect(emailInput).toHaveValue(user.email);
+
+  // Anchored: excludes "Create an account" toggle and the disabled OAuth slots.
   await page.getByRole("button", { name: /^sign in$/i }).click();
 
   // 4. Wait for the definitive signed-in signal before asserting identity.
