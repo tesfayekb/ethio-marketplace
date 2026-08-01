@@ -60,9 +60,13 @@ fails at setup with a named cause instead of a downstream test timeout on an emp
    missing user id, quoting the Supabase message and status.
 3. **Read-back** — `admin.getUserById`; throws if the user is absent or `email_confirmed_at`
    is unset (sign-in would fail).
-4. **Trigger proof** — polls `profiles` by `user_id` for up to 10s (500ms backoff); throws
-   `profile row not created … check staging schema/trigger` if it never appears.
-5. **Only then** the credentials file is written and the suite proceeds.
+4. **Only then** the credentials file is written and the suite proceeds.
+
+Note: global-setup does not verify the `handle_new_user` trigger-created `profiles` row. The admin
+Auth client uses the `sb_secret_` key, which is not the Postgres `service_role` role that bypasses
+RLS, so a direct `profiles` read would be denied by the owner-only policy. Trigger correctness is
+already deny-proved in P1-a (`scripts/deny-tests/phase1-identity.md`, D1–D7); the E2E test itself
+exercises the profile read through the correct owner-authenticated path.
 
 ## Environment
 
