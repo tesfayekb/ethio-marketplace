@@ -13,6 +13,34 @@ async function expectNoHorizontalOverflow(page: import("@playwright/test").Page)
   expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
 }
 
+async function fillUntilStable(
+  input: import("@playwright/test").Locator,
+  value: string,
+  fieldName: string,
+) {
+  await expect(input, `${fieldName} field is not editable`).toBeEditable();
+
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    await input.fill("");
+    await input.fill(value);
+
+    try {
+      await expect(input, `${fieldName} fill attempt ${attempt} did not stick`).toHaveValue(value, {
+        timeout: 500,
+      });
+      await input.page().waitForTimeout(150);
+      await expect(input, `${fieldName} was cleared after fill attempt ${attempt}`).toHaveValue(
+        value,
+        { timeout: 500 },
+      );
+      return;
+    } catch (error) {
+      if (attempt === 5) throw error;
+      await input.page().waitForTimeout(150);
+    }
+  }
+}
+
 test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out", async ({
   page,
 }) => {
@@ -25,34 +53,35 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
 
   // 2. /auth always opens in sign-in mode (BUG 2c regression guard).
   await page.goto("/auth");
-  await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
+  const signInButton = page.getByRole("button", { name: /^sign in$/i });
+  await expect(signInButton).toBeVisible();
+  await expect(signInButton).toBeEnabled();
   await expectNoHorizontalOverflow(page);
 
   // 3. Sign in through the real form.
-  //    Fills are self-checking: a fill that lands before hydration is silently
-  //    discarded when React mounts the controlled input, which previously
-  //    submitted an EMPTY email. toHaveValue fails here instead of downstream.
+  //    Cold-start SSR can expose editable inputs before React hydrates them. Wait
+  //    for React to attach, then retry each fill until its value remains stable.
   const emailInput = page.getByRole("textbox", { name: /email/i });
   const passwordInput = page.locator("#auth-password");
 
-  await emailInput.waitFor({ state: "visible" });
-  await emailInput.click();
-  await emailInput.fill("");
-  await emailInput.fill(user.email);
-  await expect(emailInput, "email field did not accept the test email").toHaveValue(user.email);
-
-  await passwordInput.click();
-  await passwordInput.fill("");
-  await passwordInput.fill(user.password);
-  await expect(passwordInput, "password field did not accept the test password").toHaveValue(
-    user.password,
+  await page.waitForFunction(
+    () => {
+      const input = document.querySelector('input[type="email"]');
+      return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
+    },
+    undefined,
+    { timeout: 15000 },
   );
 
-  // Re-assert email immediately before submit: proves nothing cleared it.
+  await fillUntilStable(emailInput, user.email, "email");
+  await fillUntilStable(passwordInput, user.password, "password");
+
+  // Verify both controlled values together immediately before submit.
   await expect(emailInput).toHaveValue(user.email);
+  await expect(passwordInput).toHaveValue(user.password);
 
   // Anchored: excludes "Create an account" toggle and the disabled OAuth slots.
-  await page.getByRole("button", { name: /^sign in$/i }).click();
+  await signInButton.click();
 
   // 4. Wait for the definitive signed-in signal before asserting identity.
   //    The Sign out button only renders in the signed-in header branch, so its

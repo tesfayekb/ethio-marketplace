@@ -99,22 +99,22 @@ any identity. Sign-in is async, so asserting the display name straight after the
 raced the submit (mobile-360 runs first and lost the race; desktop won it). The gate uses
 Playwright's built-in waiting only; there are no fixed sleeps.
 
-## Self-checking form fills
+## Hydration-safe form fills
 
-The spec previously submitted `/auth` with an **empty email** (password present) in both
-viewports, so sign-in was rejected and the Sign-out gate timed out. Finding: the email is
-the `autoFocus` field and was filled first, immediately after `page.goto`. A fill that lands
-on the server-rendered input before React hydrates is discarded when the controlled input
-mounts with its empty initial state; the password fill, running a moment later, survived.
-The old `getByLabel(/password/i).first()` locator was also ambiguous with the show/hide
-password control.
+The first-running mobile project previously submitted `/auth` with **both fields empty**,
+while the second, warm desktop project passed. On a cold dev-server start, Playwright could
+fill the server-rendered inputs before React hydrated them. An immediate `toHaveValue` passed
+transiently, then hydration mounted the controlled inputs with empty state and discarded both
+values before submit.
 
-The fill sequence is now self-checking and unambiguous:
+The fill sequence now targets that cold-start window explicitly:
 
 - email via `getByRole('textbox', { name: /email/i })`, password via its `#auth-password` id;
-- each field is waited for, clicked, cleared, filled with `fill()`, then asserted with
-  `toHaveValue(...)` — a fill that did not take fails **at the fill** with a named message;
-- email is re-asserted immediately before submit, proving nothing cleared it;
+- the anchored Sign-in submit button must be visible and enabled, and the test waits until
+  React has attached its props to the email input before filling;
+- `fillUntilStable` clears and fills each field, checks the value immediately, waits 150 ms,
+  and checks it again; a hydration-cleared value is retried up to five times with named errors;
+- both email and password are asserted together immediately before submit;
 - submit uses the anchored `getByRole('button', { name: /^sign in$/i })`, which cannot match
   the "create an account" toggle or the disabled OAuth slots.
 
