@@ -39,8 +39,6 @@ export function adminClient() {
   });
 }
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export default async function globalSetup() {
   // 1. Loud, non-sensitive preflight. URL is not secret; the key never is printed.
   const url = process.env["E2E_SUPABASE_URL"] ?? "";
@@ -92,30 +90,11 @@ export default async function globalSetup() {
   }
   console.log(`[e2e:setup] verified user confirmed at ${readBack.user.email_confirmed_at}`);
 
-  // 4. Prove the signup trigger produced the profile row (staging schema check, per run).
-  const deadline = Date.now() + 10_000;
-  let profileFound = false;
-  let lastProfileError: string | undefined;
-  while (Date.now() < deadline) {
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("user_id")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (profileError) lastProfileError = profileError.message;
-    if (profile) {
-      profileFound = true;
-      break;
-    }
-    await sleep(500);
-  }
-  if (!profileFound) {
-    throw new Error(
-      `[e2e:setup] profile row not created for ${userId} — check staging schema/trigger (handle_new_user).` +
-        (lastProfileError ? ` Last read error: ${lastProfileError}` : ""),
-    );
-  }
-  console.log(`[e2e:setup] profile row present for ${userId}`);
+  // 4. We do NOT poll the RLS-protected profiles table here. The admin Auth client uses the
+  //    sb_secret_ key, which is not the Postgres service_role role that bypasses RLS, so a
+  //    direct PostgREST read would be denied. The handle_new_user trigger's row creation is
+  //    already deny-proved in P1-a (scripts/deny-tests/phase1-identity.md, D1–D7). The actual
+  //    E2E test exercises the profile read through the correct owner-authenticated path.
 
   // 5. Only now hand credentials to the spec.
   // handle_new_user() derives display_name from the local part of the email.
