@@ -7,7 +7,7 @@ Approach frozen by `docs/decisions/e2e-testing-investigation.md`.
 
 | File                          | Role                                                                                          |
 | ----------------------------- | --------------------------------------------------------------------------------------------- |
-| `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = built app via wrangler |
+| `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = Vite dev server |
 | `e2e/global-setup.ts`         | Mints ONE pre-confirmed user via the Supabase Admin API; writes `e2e/.state/` (ignored)       |
 | `e2e/global-teardown.ts`      | Deletes the user and verifies deletion                                                        |
 | `e2e/smoke-auth-i18n.spec.ts` | The frozen first spec                                                                         |
