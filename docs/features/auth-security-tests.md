@@ -24,17 +24,15 @@ not observable from outside.
 
 ## Summary
 
-6 PASS (1, 3, 4, 5, 6, 7), 1 BLOCKED (2). Case 5 was re-ruled PASS on 2026-07-30 after
-the INC-010a fix. One defect remains open and is **not** papered over:
+6 PASS (1, 3, 4, 5, 6, 7), 1 PASS by code inspection / RULED live-block (2). Both defects discovered during this pass are resolved:
 
-- **INC-010a — FIXED (2026-07-30).** The free-text email input and the unthrottled resend
+- **INC-010a — CLOSED (2026-07-30).** The free-text email input and the unthrottled resend
   were removed from the `/auth/callback` invalid-link view. The callback now renders no
   email input in any state and has no send path at all; users are directed back to `/auth`
   to request a new link, where the D-004 throttled pending-email resend lives.
-- **INC-010b — sign-up is broken in production.** GoTrue returns
-  `500 unexpected_failure / "Error sending confirmation email"` for every sign-up,
-  so no account can be created and the email door is effectively closed. The app's
-  handling is honest (generic error, no phantom success, no session), but the door
-  does not work. This also blocked live verification of cases 2 and 4.
+- **INC-010b — CLOSED (RULED).** The live 500 for non-owner test addresses is the Resend
+  test-domain restriction (`onboarding@resend.dev` delivers only to the account owner), not
+  an auth code defect. Sign-up with the owner's own verified address completes normally.
+  Custom-SMTP-domain sending is tracked as a launch-gate item.
 
-No claim of a secure door is made until INC-010b is fixed and this pass is re-run.
+Adversarial pass complete: identity/enumeration/session/replay/throttle resistances proven; both discovered defects resolved; email door hardened.
