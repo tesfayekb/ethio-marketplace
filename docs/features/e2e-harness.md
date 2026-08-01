@@ -5,34 +5,42 @@ Approach frozen by `docs/decisions/e2e-testing-investigation.md`.
 
 ## What exists
 
-| File                          | Role                                                                                          |
-| ----------------------------- | --------------------------------------------------------------------------------------------- |
-| `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = built app via wrangler |
-| `e2e/global-setup.ts`         | Mints ONE pre-confirmed user via the Supabase Admin API; writes `e2e/.state/` (ignored)       |
-| `e2e/global-teardown.ts`      | Deletes the user and verifies deletion                                                        |
-| `e2e/smoke-auth-i18n.spec.ts` | The frozen first spec                                                                         |
-| `.github/workflows/ci.yml`    | `e2e` job — cached Chromium, fresh build, report artifact on failure                          |
+| File                          | Role                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
+| `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = Vite dev server  |
+| `e2e/global-setup.ts`         | Mints ONE pre-confirmed user via the Supabase Admin API; writes `e2e/.state/` (ignored) |
+| `e2e/global-teardown.ts`      | Deletes the user and verifies deletion                                                  |
+| `e2e/smoke-auth-i18n.spec.ts` | The frozen first spec                                                                   |
+| `.github/workflows/ci.yml`    | `e2e` job — cached Chromium, fresh build, report artifact on failure                    |
 
-Scripts: `bun run test:e2e`, `bun run test:e2e:install`, `bun run preview:built`.
+Scripts: `bun run test:e2e`, `bun run test:e2e:install`, `bun run serve:e2e`.
 
-## Serving the production build in CI
+## Serving the app in CI — dev-server mode (Option B)
 
-`vite preview` cannot serve this app: the TanStack preview plugin imports
-`dist/server/server.js`, while Nitro's `cloudflare-module` preset emits
-`dist/server/index.mjs` (a Worker module). The build's own documented preview is wrangler. Wrangler must be pointed at the
-generated config explicitly (`-c dist/server/wrangler.json`, whose `main` is `index.mjs`
-and whose assets dir is `../client`); `--cwd ./dist` resolves the worker relative to the
-repo root in a fresh checkout and fails with `Missing file or directory: <repo root>`.
+CI E2E runs against the **Vite dev server** (`vite dev`), not the Cloudflare-worker
+production bundle. This is a deliberate, evidence-based choice:
 
-Working command (verified locally, responds 200 on `/`):
+- `vite preview` cannot serve this app — the TanStack preview plugin imports
+  `dist/server/server.js`, while Nitro's `cloudflare-module` preset emits
+  `dist/server/index.mjs`.
+- Wrangler can serve the local build (`-c dist/server/wrangler.json`), but the GitHub
+  runner's `bun run build` does **not** produce `dist/server/wrangler.json` — a debug
+  step running after the build showed the file absent, and wrangler died with `ENOENT`.
+  The production worker bundle therefore does not reproduce in CI.
+
+Dev mode serves the same SSR app and exercises routing, i18n, auth and UI faithfully,
+starts in seconds, and needs no production build. Production-Cloudflare-bundle behaviour
+is verified separately by the post-deploy manual/staging smoke check
+(investigation report §2). The `build-and-check` CI job still validates `bun run build`;
+the `e2e` job no longer builds.
+
+Command Playwright's `webServer` runs (180s timeout, `reuseExistingServer` locally):
 
 ```
-bun run build
-bun run preview:built --port 4173   # bunx wrangler@4.118.0 dev -c dist/server/wrangler.json --ip 127.0.0.1
+bun run serve:e2e --port 4173   # vite dev --host 127.0.0.1 --strictPort
 ```
 
-Playwright's `webServer` runs exactly this, with `url` = `http://127.0.0.1:4173`
-(wrangler binds 127.0.0.1, not `localhost`/::1) and a 180s start timeout.
+`url` / `baseURL` = `http://127.0.0.1:4173`.
 
 ## Target
 

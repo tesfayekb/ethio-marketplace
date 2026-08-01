@@ -30,3 +30,4 @@
 2026-08-01 — test: add Playwright E2E harness (staging-targeted) + CI e2e job; frozen first spec
 2026-08-01 — ci: fix E2E webServer — serve the built Worker with wrangler instead of `vite preview`
 2026-08-01 — ci: point E2E wrangler serve at dist/server/wrangler.json (fixes fresh-checkout startup failure)
+2026-08-01 — ci: E2E webServer switched to dev-server mode (Option B); e2e job no longer builds; debug step removed
