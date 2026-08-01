@@ -70,6 +70,14 @@ The staging database must carry the same schema as ethio-prod (`countries`, `use
 step — see the changelog entry and the task hand-off; migrations remain append-only and
 unchanged.
 
+## Sign-in timing gate
+
+After submitting the sign-in form the spec waits for the **Sign out** button to become
+visible — the unconditional element of the signed-in header branch — before asserting
+any identity. Sign-in is async, so asserting the display name straight after the click
+raced the submit (mobile-360 runs first and lost the race; desktop won it). The gate uses
+Playwright's built-in waiting only; there are no fixed sleeps.
+
 ## Pass bar (unchanged from the decision report)
 
 Both viewport projects green in GitHub Actions on push to `main`; under 5 minutes added;

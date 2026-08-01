@@ -31,3 +31,4 @@
 2026-08-01 — ci: fix E2E webServer — serve the built Worker with wrangler instead of `vite preview`
 2026-08-01 — ci: point E2E wrangler serve at dist/server/wrangler.json (fixes fresh-checkout startup failure)
 2026-08-01 — ci: E2E webServer switched to dev-server mode (Option B); e2e job no longer builds; debug step removed
+2026-08-01 — test: E2E spec waits for signed-in state (Sign out button) before identity assertions (mobile-360 race)
