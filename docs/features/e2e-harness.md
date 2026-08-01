@@ -99,6 +99,25 @@ any identity. Sign-in is async, so asserting the display name straight after the
 raced the submit (mobile-360 runs first and lost the race; desktop won it). The gate uses
 Playwright's built-in waiting only; there are no fixed sleeps.
 
+## Self-checking form fills
+
+The spec previously submitted `/auth` with an **empty email** (password present) in both
+viewports, so sign-in was rejected and the Sign-out gate timed out. Finding: the email is
+the `autoFocus` field and was filled first, immediately after `page.goto`. A fill that lands
+on the server-rendered input before React hydrates is discarded when the controlled input
+mounts with its empty initial state; the password fill, running a moment later, survived.
+The old `getByLabel(/password/i).first()` locator was also ambiguous with the show/hide
+password control.
+
+The fill sequence is now self-checking and unambiguous:
+
+- email via `getByRole('textbox', { name: /email/i })`, password via its `#auth-password` id;
+- each field is waited for, clicked, cleared, filled with `fill()`, then asserted with
+  `toHaveValue(...)` — a fill that did not take fails **at the fill** with a named message;
+- email is re-asserted immediately before submit, proving nothing cleared it;
+- submit uses the anchored `getByRole('button', { name: /^sign in$/i })`, which cannot match
+  the "create an account" toggle or the disabled OAuth slots.
+
 ## Pass bar (unchanged from the decision report)
 
 Both viewport projects green in GitHub Actions on push to `main`; under 5 minutes added;
