@@ -5,8 +5,8 @@ Approach frozen by `docs/decisions/e2e-testing-investigation.md`.
 
 ## What exists
 
-| File                          | Role                                                                                   |
-| ----------------------------- | -------------------------------------------------------------------------------------- |
+| File                          | Role                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
 | `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = built app        |
 | `e2e/global-setup.ts`         | Mints ONE pre-confirmed user via the Supabase Admin API; writes `e2e/.state/` (ignored) |
 | `e2e/global-teardown.ts`      | Deletes the user and verifies deletion                                                  |
@@ -22,12 +22,12 @@ Scripts: `bun run test:e2e`, `bun run test:e2e:install`.
 
 ## Environment
 
-| Name                            | Where                        | Notes                                                  |
-| ------------------------------- | ---------------------------- | ------------------------------------------------------ |
-| `E2E_SUPABASE_URL`              | workflow env (literal)       | Staging URL, non-secret                                |
-| `E2E_SUPABASE_PUBLISHABLE_KEY`  | Actions **variable**         | Publishable/anon key, non-secret                       |
-| `E2E_SUPABASE_SERVICE_ROLE_KEY` | Actions **secret**           | Admin API only; setup/teardown, never a browser context |
-| `E2E_USER_PASSWORD`             | optional                     | Generated per run when unset (preferred)               |
+| Name                            | Where                  | Notes                                                   |
+| ------------------------------- | ---------------------- | ------------------------------------------------------- |
+| `E2E_SUPABASE_URL`              | workflow env (literal) | Staging URL, non-secret                                 |
+| `E2E_SUPABASE_PUBLISHABLE_KEY`  | Actions **variable**   | Publishable/anon key, non-secret                        |
+| `E2E_SUPABASE_SERVICE_ROLE_KEY` | Actions **secret**     | Admin API only; setup/teardown, never a browser context |
+| `E2E_USER_PASSWORD`             | optional               | Generated per run when unset (preferred)                |
 
 ## Test data isolation
 

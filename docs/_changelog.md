@@ -27,3 +27,4 @@
 2026-07-30 — security: adversarial auth test pass documented (P1-c capstone)
 2026-07-30 — security: remove arbitrary-email resend abuse vector from /auth/callback (INC-010a)
 2026-07-30 — security: auth adversarial capstone finalized — all pass or ruled; INC-010a fixed, INC-010b ruled (P1-c capstone)
+2026-08-01 — test: add Playwright E2E harness (staging-targeted) + CI e2e job; frozen first spec
