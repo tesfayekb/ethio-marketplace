@@ -40,7 +40,8 @@ export default async function globalSetup() {
   const supabase = adminClient();
   const runId = process.env["GITHUB_RUN_ID"] ?? randomBytes(4).toString("hex");
   const email = testEmail(runId, 1);
-  const password = process.env["E2E_USER_PASSWORD"] ?? `Pw-${randomBytes(18).toString("base64url")}`;
+  const password =
+    process.env["E2E_USER_PASSWORD"] ?? `Pw-${randomBytes(18).toString("base64url")}`;
 
   const { data, error } = await supabase.auth.admin.createUser({
     email,

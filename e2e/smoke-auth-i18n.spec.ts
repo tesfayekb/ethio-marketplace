@@ -30,7 +30,10 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
 
   // 3. Sign in through the real form.
   await page.getByLabel(/email/i).fill(user.email);
-  await page.getByLabel(/password/i, { exact: false }).first().fill(user.password);
+  await page
+    .getByLabel(/password/i, { exact: false })
+    .first()
+    .fill(user.password);
   await page.getByRole("button", { name: /^sign in$/i }).click();
 
   // 4. Header shows the signed-in identity.
