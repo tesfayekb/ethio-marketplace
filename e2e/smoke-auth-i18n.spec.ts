@@ -5,8 +5,6 @@ import { expect, test } from "@playwright/test";
 import { am } from "../src/i18n/locales/am";
 import { STATE_FILE, type E2EUser } from "./global-setup";
 
-const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
-
 async function expectNoHorizontalOverflow(page: import("@playwright/test").Page) {
   const overflow = await page.evaluate(() => {
     const el = document.documentElement;
@@ -18,6 +16,8 @@ async function expectNoHorizontalOverflow(page: import("@playwright/test").Page)
 test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out", async ({
   page,
 }) => {
+  const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+
   // 1. Home renders.
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("ethio.com");
