@@ -36,3 +36,4 @@
 2026-08-01 — test: E2E global-setup removes RLS-protected profiles-row check; trigger correctness covered by P1-a deny-tests
 2026-08-01 — test: E2E sign-in fills are self-checking (toHaveValue guards, anchored locators) — empty-email submit fixed
 2026-08-01 — test: E2E cold-start sign-in waits for hydration and retry-fills both controlled fields until stable
+2026-08-01 — docs: catch-up — P1-c closure + INCs, DEC-009/010/011 + REQ-036/037/038, gap analysis, E2E harness acceptance, launch-gate checklist, system-state to current, v1.3 recorded
