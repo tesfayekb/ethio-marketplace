@@ -8,6 +8,9 @@ import { createClient } from "@supabase/supabase-js";
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const STATE_FILE = join(HERE, ".state", "test-user.json");
 
+const PROD_REF = "zwmvxvzzvjvtdcfcwiuf";
+const STAGING_REF = "jatpuhfdjfzctjipklmk";
+
 export type E2EUser = {
   id: string;
   email: string;
@@ -28,7 +31,7 @@ export function adminClient() {
       "E2E_SUPABASE_URL and E2E_SUPABASE_SERVICE_ROLE_KEY must be set (staging project only).",
     );
   }
-  if (url.includes("zwmvxvzzvjvtdcfcwiuf")) {
+  if (url.includes(PROD_REF)) {
     throw new Error("Refusing to run E2E against ethio-prod. Point E2E_SUPABASE_URL at staging.");
   }
   return createClient(url, serviceRoleKey, {
@@ -36,26 +39,88 @@ export function adminClient() {
   });
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export default async function globalSetup() {
+  // 1. Loud, non-sensitive preflight. URL is not secret; the key never is printed.
+  const url = process.env["E2E_SUPABASE_URL"] ?? "";
+  const keyLength = (process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "").length;
+  console.log(`[e2e:setup] E2E_SUPABASE_URL = ${url || "(unset)"}`);
+  console.log(
+    `[e2e:setup] E2E_SUPABASE_SERVICE_ROLE_KEY present = ${keyLength > 0} (length ${keyLength})`,
+  );
+  console.log(`[e2e:setup] target ref is staging (${STAGING_REF}) = ${url.includes(STAGING_REF)}`);
+  if (!url.includes(STAGING_REF)) {
+    throw new Error(
+      `[e2e:setup] E2E_SUPABASE_URL does not point at ethio-staging (${STAGING_REF}). Got: ${url || "(unset)"}`,
+    );
+  }
+
   const supabase = adminClient();
   const runId = process.env["GITHUB_RUN_ID"] ?? randomBytes(4).toString("hex");
   const email = testEmail(runId, 1);
   const password =
     process.env["E2E_USER_PASSWORD"] ?? `Pw-${randomBytes(18).toString("base64url")}`;
 
+  // 2. Create — any error or missing id fails the job HERE.
   const { data, error } = await supabase.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
     user_metadata: { country_guess: "ET" },
   });
-  if (error || !data.user) {
-    throw new Error(`Failed to mint pre-confirmed test user: ${error?.message ?? "no user"}`);
+  if (error || !data?.user?.id) {
+    throw new Error(
+      `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+        (error?.status ? ` (status ${error.status})` : ""),
+    );
   }
+  const userId = data.user.id;
+  console.log(`[e2e:setup] created user ${userId} (${email})`);
 
+  // 3. Read the user back and prove it is confirmed.
+  const { data: readBack, error: readError } = await supabase.auth.admin.getUserById(userId);
+  if (readError || !readBack?.user) {
+    throw new Error(
+      `[e2e:setup] user ${userId} not found after create: ${readError?.message ?? "no user returned"}`,
+    );
+  }
+  if (!readBack.user.email_confirmed_at) {
+    throw new Error(
+      `[e2e:setup] user ${userId} exists but email_confirmed_at is not set — sign-in would fail.`,
+    );
+  }
+  console.log(`[e2e:setup] verified user confirmed at ${readBack.user.email_confirmed_at}`);
+
+  // 4. Prove the signup trigger produced the profile row (staging schema check, per run).
+  const deadline = Date.now() + 10_000;
+  let profileFound = false;
+  let lastProfileError: string | undefined;
+  while (Date.now() < deadline) {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (profileError) lastProfileError = profileError.message;
+    if (profile) {
+      profileFound = true;
+      break;
+    }
+    await sleep(500);
+  }
+  if (!profileFound) {
+    throw new Error(
+      `[e2e:setup] profile row not created for ${userId} — check staging schema/trigger (handle_new_user).` +
+        (lastProfileError ? ` Last read error: ${lastProfileError}` : ""),
+    );
+  }
+  console.log(`[e2e:setup] profile row present for ${userId}`);
+
+  // 5. Only now hand credentials to the spec.
   // handle_new_user() derives display_name from the local part of the email.
   const user: E2EUser = {
-    id: data.user.id,
+    id: userId,
     email,
     password,
     displayName: email.split("@")[0]!,
@@ -63,4 +128,5 @@ export default async function globalSetup() {
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
+  console.log(`[e2e:setup] state written; setup complete`);
 }
