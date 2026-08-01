@@ -45,7 +45,24 @@ bun run serve:e2e --port 4173   # vite dev --host 127.0.0.1 --strictPort
 ## Target
 
 **ethio-staging only** (`jatpuhfdjfzctjipklmk`). `e2e/global-setup.ts` hard-refuses to run when
-`E2E_SUPABASE_URL` contains the ethio-prod ref — the harness can never write to production.
+`E2E_SUPABASE_URL` contains the ethio-prod ref, and also refuses when the URL is not the staging
+ref — the harness can never write to production.
+
+## Self-verifying setup (fail-fast)
+
+`e2e/global-setup.ts` proves its own preconditions before any spec runs, so a broken environment
+fails at setup with a named cause instead of a downstream test timeout on an empty `/auth` form:
+
+1. **Preflight log** — prints `E2E_SUPABASE_URL` (non-secret), whether the service-role key is
+   present and its length only (never the value), and whether the ref is staging. Throws if not
+   staging.
+2. **Create** — `admin.createUser({ email_confirm: true })`; throws immediately on any error or
+   missing user id, quoting the Supabase message and status.
+3. **Read-back** — `admin.getUserById`; throws if the user is absent or `email_confirmed_at`
+   is unset (sign-in would fail).
+4. **Trigger proof** — polls `profiles` by `user_id` for up to 10s (500ms backoff); throws
+   `profile row not created … check staging schema/trigger` if it never appears.
+5. **Only then** the credentials file is written and the suite proceeds.
 
 ## Environment
 
