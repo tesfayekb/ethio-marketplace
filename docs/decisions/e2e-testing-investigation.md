@@ -12,14 +12,14 @@ pinned exact at 3.8.3.
 
 **Recommendation: Playwright (`@playwright/test`), current 1.x line, exact-pinned like prettier.**
 
-| Criterion             | Playwright                                                                                                                                                | Cypress                                                                                                             | Verdict           |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| SSR compatibility     | Framework-agnostic: drives a real browser against a real HTTP server. Sees the server-rendered HTML *and* hydration. Can assert on the pre-hydration DOM. | Same in principle, but Cypress runs the test code *inside* the page, which complicates SSR/hydration timing. | Playwright        |
-| Bun compatibility     | Runs on its own Node-based runner; installs cleanly with `bun add -D`. The runner does not need Bun to execute tests, so no Bun/Node runtime friction.    | Also installs, but its binary + Electron bundle is heavier and its own runner is stricter about the Node env.       | Playwright        |
-| GitHub Actions        | First-party `mcr.microsoft.com/playwright` image or `npx playwright install --with-deps chromium`; caching well documented; official CI recipes.            | Needs `cypress/github-action` or manual binary cache; larger cache.                                                 | Playwright        |
-| Multi-viewport        | Native `projects` with per-project `viewport` — 360px mobile and desktop in one run, no plugin.                                                            | `cy.viewport()` per test; workable but not a first-class matrix.                                                    | Playwright        |
-| Flakiness reputation  | Auto-waiting on actionability + web-first assertions (`expect(locator).toHaveText`) + trace viewer; the low-flake default in 2026.                          | Historically more retry/`cy.wait` discipline required.                                                              | Playwright        |
-| Already in the loop   | The Lovable agent already drives Playwright for live verification of this project (auth deny-proofs, INC-005/INC-010 passes) — same tool, same selectors.  | New tool, new idioms.                                                                                               | Playwright        |
+| Criterion            | Playwright                                                                                                                                                | Cypress                                                                                                       | Verdict    |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------- |
+| SSR compatibility    | Framework-agnostic: drives a real browser against a real HTTP server. Sees the server-rendered HTML _and_ hydration. Can assert on the pre-hydration DOM. | Same in principle, but Cypress runs the test code _inside_ the page, which complicates SSR/hydration timing.  | Playwright |
+| Bun compatibility    | Runs on its own Node-based runner; installs cleanly with `bun add -D`. The runner does not need Bun to execute tests, so no Bun/Node runtime friction.    | Also installs, but its binary + Electron bundle is heavier and its own runner is stricter about the Node env. | Playwright |
+| GitHub Actions       | First-party `mcr.microsoft.com/playwright` image or `npx playwright install --with-deps chromium`; caching well documented; official CI recipes.          | Needs `cypress/github-action` or manual binary cache; larger cache.                                           | Playwright |
+| Multi-viewport       | Native `projects` with per-project `viewport` — 360px mobile and desktop in one run, no plugin.                                                           | `cy.viewport()` per test; workable but not a first-class matrix.                                              | Playwright |
+| Flakiness reputation | Auto-waiting on actionability + web-first assertions (`expect(locator).toHaveText`) + trace viewer; the low-flake default in 2026.                        | Historically more retry/`cy.wait` discipline required.                                                        | Playwright |
+| Already in the loop  | The Lovable agent already drives Playwright for live verification of this project (auth deny-proofs, INC-005/INC-010 passes) — same tool, same selectors. | New tool, new idioms.                                                                                         | Playwright |
 
 Other options considered and rejected: **WebdriverIO** (more config, no benefit here), **Puppeteer**
 (no test runner, no multi-viewport projects, Chromium-only), **Vitest + Testing Library** (valuable
@@ -68,15 +68,15 @@ shard or trim.
 
 **Fresh build in CI vs. live published app**
 
-| Target                    | Pros                                                                                                                                        | Cons                                                                                                                                                                            |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fresh build in CI (**recommended**) | Tests the exact commit; blocks a bad merge *before* deploy; hermetic; no dependence on Lovable deploy timing; no risk of testing a stale deployment. | Does not exercise the real CDN/edge/deploy path or real production env vars.                                                                                                    |
-| Live published app        | Exercises the true production environment, real domain, real SSR edge runtime, real Supabase config (redirect URLs, SMTP).                  | Tests whatever is deployed, not the commit being pushed — a race; failures are unattributable; writes real data to the production Supabase; cannot gate a merge.                 |
+| Target                              | Pros                                                                                                                                                 | Cons                                                                                                                                                             |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fresh build in CI (**recommended**) | Tests the exact commit; blocks a bad merge _before_ deploy; hermetic; no dependence on Lovable deploy timing; no risk of testing a stale deployment. | Does not exercise the real CDN/edge/deploy path or real production env vars.                                                                                     |
+| Live published app                  | Exercises the true production environment, real domain, real SSR edge runtime, real Supabase config (redirect URLs, SMTP).                           | Tests whatever is deployed, not the commit being pushed — a race; failures are unattributable; writes real data to the production Supabase; cannot gate a merge. |
 
 **Ruling:** CI on push to `main` runs against the **fresh build**. The live app is checked by a
 separate, manually triggered (or scheduled post-deploy) smoke run with a small read-only subset —
-kept explicitly out of the merge gate. Note that the CI build still talks to the *real external
-Supabase* (there is no local Supabase in this project), which is exactly why §3 and §5 matter.
+kept explicitly out of the merge gate. Note that the CI build still talks to the _real external
+Supabase_ (there is no local Supabase in this project), which is exactly why §3 and §5 matter.
 
 ---
 
@@ -104,7 +104,7 @@ delivers to the account owner. Email delivery therefore **cannot** be in the CI 
 
 **What stays outside CI:** the delivery hop itself — Supabase → SMTP provider → inbox → link click
 → `/auth/callback`. That is a manual/staging check, and it is already the tracked custom-SMTP-domain
-launch-gate item (INC-010b). The callback's *link-handling logic* can still be tested in CI by
+launch-gate item (INC-010b). The callback's _link-handling logic_ can still be tested in CI by
 navigating to `/auth/callback` with synthetic query/hash params (error params, `token_hash`,
 garbage) and asserting the three documented outcomes — everything except a genuinely emailed token.
 
@@ -121,7 +121,7 @@ prove SSR serves the route, not just the client router.
 `viewport: { width: 360, height: 740 }` runs the whole suite at phone width. Assertable
 mechanically: **no horizontal overflow** (`document.documentElement.scrollWidth <= clientWidth`),
 **touch-target size** (bounding box ≥ 44×44 for primary actions), element visibility, and that
-nothing depends on hover. Not assertable: whether the layout *looks* right.
+nothing depends on hover. Not assertable: whether the layout _looks_ right.
 
 **(c) Multilingual — YES.** Click the language switcher, wait for the lazy Amharic bundle, assert a
 specific Amharic string is rendered, and assert `<html lang>` flipped. Stronger still: assert
@@ -136,7 +136,7 @@ highest-value category and the main reason to build the harness.
 **(e) LIMITS — stays manual, plainly:**
 
 - **Visual "does it look good."** E2E asserts structure, not taste. Screenshot/visual-regression
-  diffing can catch *unintended change* but never judges quality, and it is notoriously flaky
+  diffing can catch _unintended change_ but never judges quality, and it is notoriously flaky
   across font rendering on CI runners — not recommended for the gate.
 - **iOS Safari quirks.** The exact class of bug behind the INC-005 fix (suspended background tabs,
   stale client memory, bfcache) is **not reproducible** in headless Chromium, and only partially in
@@ -153,12 +153,12 @@ highest-value category and the main reason to build the harness.
 Secrets CI would need, all as **GitHub Actions repository secrets — never in the repo, never in a
 committed `.env`, never printed to logs** (law F1):
 
-| Secret                      | Why                                                | Exposure                                             |
-| --------------------------- | -------------------------------------------------- | ---------------------------------------------------- |
-| `SUPABASE_URL`              | Target project                                     | Non-secret in practice, but keep it a CI variable     |
-| `SUPABASE_PUBLISHABLE_KEY`  | Build-time client key                              | Publishable — safe                                    |
+| Secret                          | Why                                               | Exposure                                                                                                                                                   |
+| ------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`                  | Target project                                    | Non-secret in practice, but keep it a CI variable                                                                                                          |
+| `SUPABASE_PUBLISHABLE_KEY`      | Build-time client key                             | Publishable — safe                                                                                                                                         |
 | `E2E_SUPABASE_SERVICE_ROLE_KEY` | Admin API: create/delete pre-confirmed test users | **Highest sensitivity.** Used only in `globalSetup`/`globalTeardown`, never in browser context, never in a test file that could log it. Masked by Actions. |
-| `E2E_USER_PASSWORD`         | Password for minted test users                     | Generated per run is better than a stored constant    |
+| `E2E_USER_PASSWORD`             | Password for minted test users                    | Generated per run is better than a stored constant                                                                                                         |
 
 Isolation rules:
 
@@ -167,7 +167,7 @@ Isolation rules:
 - Every test user is created and destroyed inside a single run. No shared long-lived fixture user.
 - Tests must never mutate rows they did not create. Any future listing/feed tests scope to
   test-owned rows and delete them in teardown.
-- **Open risk to decide before building:** the CI run writes to the *production* Supabase project,
+- **Open risk to decide before building:** the CI run writes to the _production_ Supabase project,
   because there is no separate environment today. Two mitigations, in order of preference:
   (1) stand up a dedicated `ethio-staging` Supabase project for CI and point the E2E job at it;
   (2) accept production writes but confine them to the reserved namespace with guaranteed teardown.
