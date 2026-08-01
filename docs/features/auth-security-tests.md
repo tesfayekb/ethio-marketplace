@@ -8,7 +8,7 @@ code: `src/features/auth/auth-service.ts`, `src/routes/auth.tsx`,
 probes with the publishable key from the page context; code inspection where a case is
 not observable from outside.
 
-## Result: NOT ALL PASS — 2 defects found (see INC-010). The door is NOT declared secure.
+## Result: ALL PASS or RULED. 7 adversarial cases: 6 PASS; case 2 (unconfirmed sign-in) verified correct by code inspection but not live-exercisable on the Resend TEST domain — RULED (see INC-010b), not a code defect. Both defects found by this pass are resolved: INC-010a (callback resend abuse) FIXED; INC-010b (signup 500) RULED as Resend test-domain restriction.
 
 ## Results table
 
