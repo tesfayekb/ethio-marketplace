@@ -35,13 +35,16 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
   ],
-  // `vite preview` cannot serve this build: the TanStack preview plugin looks for
-  // dist/server/server.js, while Nitro's cloudflare-module preset emits
-  // dist/server/index.mjs. The build's own documented preview is wrangler.
+  // Option B (evidence-based): CI serves the app with the Vite dev server.
+  // The Cloudflare-worker production bundle does not reproduce in the GitHub
+  // runner (dist/server/wrangler.json is absent there), so wrangler can never
+  // start. Dev mode serves the same SSR app and exercises routing, i18n, auth
+  // and UI faithfully; production-bundle behaviour is covered by the separate
+  // post-deploy staging smoke check.
   webServer: process.env["E2E_BASE_URL"]
     ? undefined
     : {
-        command: `bun run preview:built --port ${PORT}`,
+        command: `bun run serve:e2e --port ${PORT}`,
         url: BASE_URL,
         reuseExistingServer: !process.env["CI"],
         timeout: 180_000,
