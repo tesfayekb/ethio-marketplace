@@ -19,13 +19,16 @@ Scripts: `bun run test:e2e`, `bun run test:e2e:install`, `bun run preview:built`
 
 `vite preview` cannot serve this app: the TanStack preview plugin imports
 `dist/server/server.js`, while Nitro's `cloudflare-module` preset emits
-`dist/server/index.mjs` (a Worker module). The build's own documented preview is wrangler.
+`dist/server/index.mjs` (a Worker module). The build's own documented preview is wrangler. Wrangler must be pointed at the
+generated config explicitly (`-c dist/server/wrangler.json`, whose `main` is `index.mjs`
+and whose assets dir is `../client`); `--cwd ./dist` resolves the worker relative to the
+repo root in a fresh checkout and fails with `Missing file or directory: <repo root>`.
 
 Working command (verified locally, responds 200 on `/`):
 
 ```
 bun run build
-bun run preview:built --port 4173   # bunx wrangler@4.118.0 --cwd ./dist dev --ip 127.0.0.1
+bun run preview:built --port 4173   # bunx wrangler@4.118.0 dev -c dist/server/wrangler.json --ip 127.0.0.1
 ```
 
 Playwright's `webServer` runs exactly this, with `url` = `http://127.0.0.1:4173`
