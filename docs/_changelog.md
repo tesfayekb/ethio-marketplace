@@ -29,3 +29,4 @@
 2026-07-30 — security: auth adversarial capstone finalized — all pass or ruled; INC-010a fixed, INC-010b ruled (P1-c capstone)
 2026-08-01 — test: add Playwright E2E harness (staging-targeted) + CI e2e job; frozen first spec
 2026-08-01 — ci: fix E2E webServer — serve the built Worker with wrangler instead of `vite preview`
+2026-08-01 — ci: point E2E wrangler serve at dist/server/wrangler.json (fixes fresh-checkout startup failure)
