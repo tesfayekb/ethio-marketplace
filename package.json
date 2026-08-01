@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "preview:built": "bunx wrangler@4.118.0 dev -c dist/server/wrangler.json --ip 127.0.0.1",
+    "serve:e2e": "vite dev --host 127.0.0.1 --strictPort",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
