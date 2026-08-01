@@ -35,12 +35,17 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
   ],
+  // `vite preview` cannot serve this build: the TanStack preview plugin looks for
+  // dist/server/server.js, while Nitro's cloudflare-module preset emits
+  // dist/server/index.mjs. The build's own documented preview is wrangler.
   webServer: process.env["E2E_BASE_URL"]
     ? undefined
     : {
-        command: `bun run preview --port ${PORT} --strictPort`,
+        command: `bun run preview:built --port ${PORT}`,
         url: BASE_URL,
         reuseExistingServer: !process.env["CI"],
-        timeout: 120_000,
+        timeout: 180_000,
+        stdout: "pipe",
+        stderr: "pipe",
       },
 });
