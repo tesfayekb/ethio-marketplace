@@ -33,3 +33,4 @@
 2026-08-01 — ci: E2E webServer switched to dev-server mode (Option B); e2e job no longer builds; debug step removed
 2026-08-01 — test: E2E spec waits for signed-in state (Sign out button) before identity assertions (mobile-360 race)
 2026-08-01 — test: E2E global-setup made self-verifying and fail-fast (preflight log, create/read-back/profile-trigger proofs)
+2026-08-01 — test: E2E global-setup removes RLS-protected profiles-row check; trigger correctness covered by P1-a deny-tests
