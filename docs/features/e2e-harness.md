@@ -5,13 +5,13 @@ Approach frozen by `docs/decisions/e2e-testing-investigation.md`.
 
 ## What exists
 
-| File                          | Role                                                                                          |
-| ----------------------------- | --------------------------------------------------------------------------------------------- |
-| `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = Vite dev server |
-| `e2e/global-setup.ts`         | Mints ONE pre-confirmed user via the Supabase Admin API; writes `e2e/.state/` (ignored)       |
-| `e2e/global-teardown.ts`      | Deletes the user and verifies deletion                                                        |
-| `e2e/smoke-auth-i18n.spec.ts` | The frozen first spec                                                                         |
-| `.github/workflows/ci.yml`    | `e2e` job — cached Chromium, fresh build, report artifact on failure                          |
+| File                          | Role                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
+| `playwright.config.ts`        | Two viewport projects (360×740, 1280×800), `retries: 0`, `webServer` = Vite dev server  |
+| `e2e/global-setup.ts`         | Mints ONE pre-confirmed user via the Supabase Admin API; writes `e2e/.state/` (ignored) |
+| `e2e/global-teardown.ts`      | Deletes the user and verifies deletion                                                  |
+| `e2e/smoke-auth-i18n.spec.ts` | The frozen first spec                                                                   |
+| `.github/workflows/ci.yml`    | `e2e` job — cached Chromium, fresh build, report artifact on failure                    |
 
 Scripts: `bun run test:e2e`, `bun run test:e2e:install`, `bun run serve:e2e`.
 
@@ -41,7 +41,6 @@ bun run serve:e2e --port 4173   # vite dev --host 127.0.0.1 --strictPort
 ```
 
 `url` / `baseURL` = `http://127.0.0.1:4173`.
-
 
 ## Target
 
