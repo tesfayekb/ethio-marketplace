@@ -95,6 +95,8 @@ jobs:
         run: bunx playwright install --with-deps chromium
       - name: Build (staging-targeted)
         run: bun run build
+      - name: Diagnose CI build output (temporary)
+        run: echo "=== dist tree in CI ===" && find dist -maxdepth 3 -type f | head -50 && echo "=== does wrangler.json exist? ===" && ls -la dist/server/wrangler.json || echo "MISSING"
       - name: Run E2E
         run: bunx playwright test
       - name: Upload report on failure
