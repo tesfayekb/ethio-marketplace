@@ -22,6 +22,18 @@ async function signUpFresh(page: import("@playwright/test").Page, n: number) {
   return email;
 }
 
+/**
+ * Diagnostic: if sign-up failed, surface the app's own error text instead of a
+ * bare "heading not found". Adds no tolerance — a clean run is unaffected.
+ */
+async function assertNoSignUpError(page: import("@playwright/test").Page) {
+  const alertRegion = page.getByRole("alert");
+  if (await alertRegion.count()) {
+    const alertText = await alertRegion.first().innerText();
+    expect(alertText, `sign-up surfaced an error instead of check-email`).toBe("");
+  }
+}
+
 const EMAIL_SINK = process.env["E2E_EMAIL_SINK"] === "1";
 
 test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () => {
