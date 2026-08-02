@@ -4,16 +4,20 @@ Phase: 1 (Identity) — IN PROGRESS. Email door (P1-c) CLOSED. Next build step: 
 
 E2E harness: ACCEPTED 2026-08-01 (Playwright, staging-targeted, runs on every push).
 
+Auth-door E2E coverage: sign-up/check-email/throttle (A-1..A-3), sign-in errors and
+enumeration indistinguishability (B-1..B-4), callback/replay/already-confirmed and
+the INC-010a abuse-vector guard (C-1..C-4). See docs/features/auth-e2e-tests.md.
+
 Gates closed: Phase 0 (Foundation). Phase 1 remaining doors: P1-d Google, P1-e Telegram, P1-f settings, P1-g gate.
 
-Governing instructions: Claude Project v1.3 (in project settings; mirrored intent in governance.md). Lovable Knowledge: v3.1 + H2 (docs/governance/lovable-knowledge.md).
+Governing instructions: Claude Project v1.4 (in project settings; mirrored intent in governance.md). Lovable Knowledge: v3.1 + H2 (docs/governance/lovable-knowledge.md).
 
-Immediate open work: (1) backfill auth-door E2E tests (sign-up/check-email/throttle/errors) under the harness; (2) P1-d Google door — thread the DEC-010 Turnstile token seam during auth work.
+Immediate open work: (1) P1-d Google door — thread the DEC-010 Turnstile token seam during auth work; (2) run the step-10 guard proof for B-3/C-4 on a machine with staging credentials and record the failure messages in docs/features/auth-e2e-tests.md.
 
 Launch-gate items: see docs/governance/launch-gate.md.
 
 HEAD at this update: the commit this change lands as.
 
-Updated: 2026-08-01
-
 CI observability: CI results are readable from the repo at docs/tracking/ci-status.md, written automatically by the CI Status Reporter workflow (docs/features/ci-status-reporter.md). The supervisor reads it on every verification clone as the primary CI check.
+
+Updated: 2026-08-02

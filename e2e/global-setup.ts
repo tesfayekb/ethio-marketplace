@@ -16,6 +16,8 @@ export type E2EUser = {
   email: string;
   password: string;
   displayName: string;
+  /** Persisted so the teardown sweep can scope deletions to this run. */
+  runId: string;
 };
 
 /** Reserved, non-deliverable namespace — sweepable, never a real address. */
@@ -103,6 +105,7 @@ export default async function globalSetup() {
     email,
     password,
     displayName: email.split("@")[0]!,
+    runId,
   };
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });

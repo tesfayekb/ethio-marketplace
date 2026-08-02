@@ -33,6 +33,13 @@ export default defineConfig({
     {
       name: "desktop-1280",
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
+      // Operator ruling (2026-08-02): auth logic/error cases run on mobile-360
+      // only; the smoke spec keeps both viewports.
+      testIgnore: [
+        "**/auth-signup.spec.ts",
+        "**/auth-signin-errors.spec.ts",
+        "**/auth-callback.spec.ts",
+      ],
     },
   ],
   // Option B (evidence-based): CI serves the app with the Vite dev server.
