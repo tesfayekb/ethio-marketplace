@@ -498,6 +498,16 @@ TRACKED (Tier-2 — plan the seam now, build later):
 
 - **S.. (2026-08-02):** INC-013 RESOLVED — ethio-staging SMTP repointed at a Mailtrap sandbox inbox (operator-approved spend: free tier), staging email rate limit raised to 100/hr, E2E_EMAIL_SINK repository variable wired into the E2E job. Sign-up cases A-1..A-3 now execute against the real sign-up path. Prod SMTP untouched; the Resend custom-domain item remains on the launch gate. Email CONTENT assertions (template correctness, Amharic auth emails) noted as newly POSSIBLE but not implemented — a separate decision when the Amharic templates are built.
 
+- **S.. (2026-08-02):** Mailtrap sandbox CONFIRMED working — A-1 green, real
+  confirmation emails delivered with a functioning confirm link; 11 of 13 E2E cases
+  passing. Two open faults: INC-015 (A-3 virtual clock froze the supabase-js timers,
+  fixed by installing the clock after sign-up and using fastForward) and INC-016
+  (A-2 sign-up failed with no email and no error on a path identical to the passing
+  A-1 — cause unknown, diagnostics added). Supervisor correction: an earlier
+  send-rate-throttling hypothesis was DISPROVED by the Mailtrap inbox, which showed
+  the third send succeeding after the second failed. Both A-cases remain Phase 1
+  gate blockers.
+
 ## Deviation ledger
 
 (D-001..D-005 are recorded inline in the session log entries above.)
