@@ -44,3 +44,4 @@
 2026-08-02 — test: gate sign-up E2E cases behind E2E_EMAIL_SINK (INC-013); restore routeTree SSR types; drop orphan i18n key (INC-012)
 2026-08-02 — fix: relocate SSR Register type augmentation out of generated routeTree (INC-014)
 2026-08-02 — ci: enable sign-up E2E cases via E2E_EMAIL_SINK; staging SMTP now a Mailtrap sandbox (INC-013 resolved)
+2026-08-02 — test: fix A-3 virtual-clock mechanism (INC-015); add sign-up error diagnostics (INC-016)
