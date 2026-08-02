@@ -468,8 +468,25 @@ TRACKED (Tier-2 — plan the seam now, build later):
 - **S.. (2026-08-01):** Gold-standard gap analysis conducted (operator-requested forward-scan). Tier-1 adopted: DEC-009 EXIF strip, DEC-010 CAPTCHA seam, DEC-011 reputation seam, REQ-036/037/038. Tier-2 tracked (notifications pipeline, user-reporting, a11y). Tier-3 deferred (payments already archived, favorites, multi-currency, KYC, third-party API, disputes). Instructions amended to v1.3 (G13 phase-gate completeness, G14 publish-before-retest, G15 E2E-per-feature).
 - **S.. (2026-08-02):** CI STATUS REPORTER landed (operator-directed, out of the usual prompt loop — logged as D-006). Supervisor verification by fresh clone: three loop-safety guards confirmed byte-level; ci.yml's five jobs untouched; scope diff exactly four files. DISPOSITION: DRIFT — the reporter's generated table fails the pinned prettier gate (INC-011), a red-main trap that had never been graded because the status commit is [skip ci] + paths-ignored. Fixed by generated-file exemption in .prettierignore. Standing change: docs/tracking/ci-status.md is now the supervisor's primary §8 CI check on every verification clone, read together with a SHA-currency cross-check (the file lags HEAD by the status commit; the reporter does not report its own health).
 
+- **S.. (2026-08-02):** AUTH-DOOR E2E BACKFILL shipped (Tier B), closing the G15 gap
+  left by P1-c. Ten cases across three specs guard the INC-005 resend hardening, the
+  enumeration-indistinguishability capstone case (now mechanized as a text-equality
+  assertion), the callback replay/already-confirmed honesty paths, and the INC-010a
+  arbitrary-recipient abuse vector. Shared helpers extracted to e2e/helpers/ so the
+  Google and Telegram doors extend rather than copy-paste. Operator rulings: logic
+  cases mobile-360 only (smoke keeps both viewports); throttle asserted at UI level,
+  no real-clock wait; Turnstile test-keys decided now, implemented at P1-d.
+  Supervisor decisions logged under G17: teardown moved from single-user delete to a
+  namespace sweep with 24h orphan reaping (the old teardown would have leaked every
+  user these tests create); helpers located at e2e/helpers/. Instructions amended to
+  v1.4 (G16 prompt-integrity, G17 operator-bandwidth).
+
 ## Deviation ledger
 
 (D-001..D-005 are recorded inline in the session log entries above.)
 
 D-006 — CI status reporter built without a supervisor-authored execution prompt. Rationale: operator-directed infrastructure, delivered as a fait accompli and authorized by the operator's standing authority. Verified after the fact by fresh clone; one defect found and fixed (INC-011). Filed for honesty, not as a fault.
+
+D-007 — system-state.md CI-observability line originally landed below the doc's
+"Updated:" footer and the footer date was left stale, because the prompt specified
+neither placement nor a date roll. Supervisor omission; corrected in this task.
