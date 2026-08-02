@@ -44,7 +44,6 @@ export const am: Messages = {
   "auth.continue": "ይቀጥሉ",
   "auth.linkInvalid": "ይህ ሊንክ ልክ ያልሆነ ወይም ጊዜው ያለፈበት ነው",
   "auth.linkInvalidBody": "አዲስ የማረጋገጫ ኢሜይል ይጠይቁና እንደገና ይሞክሩ።",
-  "auth.resendEmailLabel": "እንደገና የሚላክበት ኢሜይል",
   "auth.backToSignIn": "ወደ መግቢያ ተመለስ",
   "auth.noSessionTitle": "ጥቂት ቀርቷል",
   "auth.noSessionBody": "ሊንኩን በሌላ መሣሪያ ወይም አሳሽ ከከፈቱት፣ አካውንትዎ እዚያ ተረጋግጧል። ለመቀጠል እዚህ ይግቡ።",

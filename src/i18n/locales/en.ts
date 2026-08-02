@@ -44,7 +44,6 @@ export const en = {
   "auth.continue": "Continue",
   "auth.linkInvalid": "This link is invalid or has expired",
   "auth.linkInvalidBody": "Request a new confirmation email and try again.",
-  "auth.resendEmailLabel": "Email to resend to",
   "auth.backToSignIn": "Back to sign in",
   "auth.noSessionTitle": "Almost there",
   "auth.noSessionBody":

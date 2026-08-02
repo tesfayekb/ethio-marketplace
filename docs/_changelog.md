@@ -41,3 +41,4 @@
 2026-08-02 — ci: add CI status reporter workflow (workflow_run of CI → writes docs/tracking/ci-status.md, [skip ci]); CI push trigger ignores the status file
 2026-08-02 — ci: exempt machine-generated docs/tracking/ci-status.md from prettier (INC-011); document CI status reporter capability
 2026-08-02 — test: auth-door E2E backfill (A-1..A-3, B-1..B-4, C-1..C-4); shared e2e helpers; namespace-sweep teardown
+2026-08-02 — test: gate sign-up E2E cases behind E2E_EMAIL_SINK (INC-013); restore routeTree SSR types; drop orphan i18n key (INC-012)
