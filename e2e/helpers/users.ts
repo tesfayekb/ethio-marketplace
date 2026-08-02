@@ -1,0 +1,70 @@
+import { randomBytes } from "node:crypto";
+
+import { adminClient, testEmail } from "../global-setup";
+
+export { adminClient } from "../global-setup";
+
+export type TestUser = {
+  id: string;
+  email: string;
+  password: string;
+  displayName: string;
+};
+
+function runId(): string {
+  return process.env["GITHUB_RUN_ID"] ?? "local";
+}
+
+function baseUrl(): string {
+  return process.env["E2E_BASE_URL"] ?? "http://127.0.0.1:4173";
+}
+
+/**
+ * Mints a user in the reserved '@ethio-e2e.invalid' namespace so the
+ * teardown sweep can always reap it. Fails loudly — never returns a
+ * half-made user.
+ */
+export async function createUser({ confirmed }: { confirmed: boolean }): Promise<TestUser> {
+  const supabase = adminClient();
+  const email = testEmail(runId(), Date.now() % 1_000_000);
+  const password = `Pw-${randomBytes(18).toString("base64url")}`;
+
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: confirmed,
+    user_metadata: { country_guess: "ET" },
+  });
+  if (error || !data?.user?.id) {
+    throw new Error(
+      `[e2e:users] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}`,
+    );
+  }
+
+  // handle_new_user() derives display_name from the local part of the email.
+  return { id: data.user.id, email, password, displayName: email.split("@")[0]!, };
+}
+
+/**
+ * Mints a real signup confirmation link without sending mail. Depends on the
+ * staging project allow-listing <baseURL>/auth/callback as a redirect URL.
+ */
+export async function mintConfirmationLink(user: {
+  email: string;
+  password: string;
+}): Promise<string> {
+  const supabase = adminClient();
+  const { data, error } = await supabase.auth.admin.generateLink({
+    type: "signup",
+    email: user.email,
+    password: user.password,
+    options: { redirectTo: `${baseUrl()}/auth/callback` },
+  });
+  const link = data?.properties?.action_link;
+  if (error || !link) {
+    throw new Error(
+      `[e2e:users] generateLink failed for ${user.email}: ${error?.message ?? "no action_link returned"}`,
+    );
+  }
+  return link;
+}
