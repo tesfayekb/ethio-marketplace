@@ -73,7 +73,9 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     for (let i = 0; i < 3; i += 1) {
       await page.getByRole("button", { name: en["auth.resend"] }).click();
       if (i === 2) break;
-      await expect(page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") })).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") }),
+      ).toBeVisible();
       await page.clock.runFor(61_000);
       await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeEnabled();
     }
