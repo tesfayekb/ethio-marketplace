@@ -47,7 +47,6 @@ succeeded. Cause UNKNOWN, under investigation. Diagnostic assertions now surface
 app's own rendered error text (`role="alert"`) immediately after each sign-up submit
 in this file, so the next run self-reports. A-2 remains a Phase 1 gate blocker.
 
-
 ## Viewport scoping
 
 `playwright.config.ts` keeps both projects. The `desktop-1280` project carries a
