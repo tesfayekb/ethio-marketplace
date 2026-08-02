@@ -16,3 +16,7 @@ docs/governance/
 # Empty placeholder files have no parser
 .gitkeep
 **/.gitkeep
+
+# Machine-generated CI status (written by .github/workflows/ci-status-report.yml).
+# Generated-file exemption, same class as routeTree.gen.ts / types.ts (INC-001, Knowledge E5).
+docs/tracking/ci-status.md

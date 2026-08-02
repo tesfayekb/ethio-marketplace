@@ -39,3 +39,4 @@
 2026-08-01 — docs: catch-up — P1-c closure + INCs, DEC-009/010/011 + REQ-036/037/038, gap analysis, E2E harness acceptance, launch-gate checklist, system-state to current, v1.3 recorded
 2026-08-01 — governance: Thread 1 handoff imported to handoffs/ (Phase 1, P1-c closed, E2E harness accepted, pre-P1-d)
 2026-08-02 — ci: add CI status reporter workflow (workflow_run of CI → writes docs/tracking/ci-status.md, [skip ci]); CI push trigger ignores the status file
+2026-08-02 — ci: exempt machine-generated docs/tracking/ci-status.md from prettier (INC-011); document CI status reporter capability

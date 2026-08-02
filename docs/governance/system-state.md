@@ -15,3 +15,5 @@ Launch-gate items: see docs/governance/launch-gate.md.
 HEAD at this update: the commit this change lands as.
 
 Updated: 2026-08-01
+
+CI observability: CI results are readable from the repo at docs/tracking/ci-status.md, written automatically by the CI Status Reporter workflow (docs/features/ci-status-reporter.md). The supervisor reads it on every verification clone as the primary CI check.
