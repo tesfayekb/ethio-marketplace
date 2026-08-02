@@ -4,42 +4,7 @@ import { expect, test } from "@playwright/test";
 
 import { am } from "../src/i18n/locales/am";
 import { STATE_FILE, type E2EUser } from "./global-setup";
-
-async function expectNoHorizontalOverflow(page: import("@playwright/test").Page) {
-  const overflow = await page.evaluate(() => {
-    const el = document.documentElement;
-    return { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth };
-  });
-  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
-}
-
-async function fillUntilStable(
-  input: import("@playwright/test").Locator,
-  value: string,
-  fieldName: string,
-) {
-  await expect(input, `${fieldName} field is not editable`).toBeEditable();
-
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
-    await input.fill("");
-    await input.fill(value);
-
-    try {
-      await expect(input, `${fieldName} fill attempt ${attempt} did not stick`).toHaveValue(value, {
-        timeout: 500,
-      });
-      await input.page().waitForTimeout(150);
-      await expect(input, `${fieldName} was cleared after fill attempt ${attempt}`).toHaveValue(
-        value,
-        { timeout: 500 },
-      );
-      return;
-    } catch (error) {
-      if (attempt === 5) throw error;
-      await input.page().waitForTimeout(150);
-    }
-  }
-}
+import { expectNoHorizontalOverflow, fillUntilStable } from "./helpers/ui";
 
 test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out", async ({
   page,
