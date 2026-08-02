@@ -42,7 +42,7 @@ export async function createUser({ confirmed }: { confirmed: boolean }): Promise
   }
 
   // handle_new_user() derives display_name from the local part of the email.
-  return { id: data.user.id, email, password, displayName: email.split("@")[0]!, };
+  return { id: data.user.id, email, password, displayName: email.split("@")[0]! };
 }
 
 /**

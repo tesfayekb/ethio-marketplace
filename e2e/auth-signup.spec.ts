@@ -65,9 +65,7 @@ test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
   for (let i = 0; i < 3; i += 1) {
     await page.getByRole("button", { name: en["auth.resend"] }).click();
     if (i === 2) break;
-    await expect(
-      page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") })).toBeVisible();
     await page.clock.runFor(61_000);
     await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeEnabled();
   }
@@ -75,5 +73,7 @@ test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
   await expect(page.getByText(en["auth.resendLimitReached"])).toBeVisible({ timeout: 15000 });
   // Further attempts are refused: the control stays disabled past the cooldown.
   await page.clock.runFor(61_000);
-  await expect(page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") }),
+  ).toBeDisabled();
 });
