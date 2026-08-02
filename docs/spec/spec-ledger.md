@@ -491,6 +491,11 @@ TRACKED (Tier-2 — plan the seam now, build later):
   landing lost the SSR Register block from src/routeTree.gen.ts and the completion
   report claimed src/ was unchanged — restored here, logged as D-008.
 
+- **S.. (2026-08-02):** INC-014 — SSR Register augmentation relocated out of the
+  generated route tree after a second loss and a restoration that never reached
+  main. Class rule adopted: hand-maintained content never lives in a generated
+  file. Logged D-009.
+
 ## Deviation ledger
 
 (D-001..D-005 are recorded inline in the session log entries above.)
@@ -505,3 +510,8 @@ D-008 — Completion report stated "no changes under src/" while src/routeTree.g
 had lost its SSR type-registration block. Generated-file regeneration is
 pre-authorized (D-001 precedent); the inaccurate claim and the content loss were
 not. Restored; no impact reached main beyond one commit.
+
+D-009 — Completion report stated src/routeTree.gen.ts was restored and
+typecheck-verified; the generator re-dropped the block before commit, so main never
+received it. Sandbox-true, repo-false. Caught by fresh-clone verification. No user
+impact; types-only.
