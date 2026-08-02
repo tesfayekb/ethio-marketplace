@@ -496,6 +496,8 @@ TRACKED (Tier-2 — plan the seam now, build later):
   main. Class rule adopted: hand-maintained content never lives in a generated
   file. Logged D-009.
 
+- **S.. (2026-08-02):** INC-013 RESOLVED — ethio-staging SMTP repointed at a Mailtrap sandbox inbox (operator-approved spend: free tier), staging email rate limit raised to 100/hr, E2E_EMAIL_SINK repository variable wired into the E2E job. Sign-up cases A-1..A-3 now execute against the real sign-up path. Prod SMTP untouched; the Resend custom-domain item remains on the launch gate. Email CONTENT assertions (template correctness, Amharic auth emails) noted as newly POSSIBLE but not implemented — a separate decision when the Amharic templates are built.
+
 ## Deviation ledger
 
 (D-001..D-005 are recorded inline in the session log entries above.)
