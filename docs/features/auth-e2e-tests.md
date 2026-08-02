@@ -26,6 +26,28 @@ in the specs (translation law D1 applies to tests too).
 
 A-1..A-3 now run when the E2E job receives `E2E_EMAIL_SINK=1` (set as a repository variable). ethio-staging SMTP is configured to use a Mailtrap sandbox inbox, which accepts any recipient and delivers to no real mailbox; the staging email rate limit has been raised to 100/hr to cover repeated runs. Email CONTENT assertions (template correctness, Amharic translation of auth emails) are NOT yet covered and are a separate future decision — the sink makes them possible, but this task does not implement them.
 
+**Sink status: CONFIRMED WORKING (2026-08-02, run 30732211479).** A-1 passed against
+the real sign-up path and Mailtrap received genuine confirmation emails with a
+functioning confirm link.
+
+## Virtual-clock constraint (INC-015)
+
+`page.clock.install()` must NOT be active while a Supabase request is in flight: it
+freezes the timers supabase-js relies on, so the request never completes and the UI
+shows no email, no cooldown, and no error. A-3 therefore completes sign-up on real
+timers, installs the clock only after the check-email view is visible, and advances
+the cooldown with `page.clock.fastForward()` (which skips time without running the
+intervening timer callbacks) rather than `runFor()`.
+
+## Open failure: A-2 (INC-016)
+
+A-2's sign-up (-102) produced no email and no check-email view in the same run where
+the identical A-1 path passed. A rate limiter is ruled out — the later -103 send
+succeeded. Cause UNKNOWN, under investigation. Diagnostic assertions now surface the
+app's own rendered error text (`role="alert"`) immediately after each sign-up submit
+in this file, so the next run self-reports. A-2 remains a Phase 1 gate blocker.
+
+
 ## Viewport scoping
 
 `playwright.config.ts` keeps both projects. The `desktop-1280` project carries a
