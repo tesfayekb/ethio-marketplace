@@ -1,0 +1,64 @@
+name: CI Status Report
+
+# Loop-safety:
+#  - triggers ONLY on workflow_run of "CI" (never on push), so its own commit
+#    cannot re-trigger it;
+#  - the commit message carries [skip ci];
+#  - CI's push trigger ignores docs/tracking/ci-status.md.
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+
+jobs:
+  report:
+    name: Write CI status to repo
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build status file
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const run = context.payload.workflow_run;
+            const jobs = await github.paginate(
+              github.rest.actions.listJobsForWorkflowRun,
+              { owner: context.repo.owner, repo: context.repo.repo, run_id: run.id, per_page: 100 }
+            );
+            const sha = run.head_sha;
+            const lines = [
+              '# CI Status (auto-generated — do not edit by hand)',
+              '',
+              `- Commit: \`${sha}\` (short \`${sha.slice(0, 7)}\`)`,
+              `- Conclusion: **${String(run.conclusion || 'unknown').toUpperCase()}**`,
+              `- Completed (UTC): ${run.updated_at}`,
+              `- Run: ${run.html_url}`,
+              '',
+              '## Jobs',
+              '',
+              '| Job | Conclusion |',
+              '| --- | ---------- |',
+              ...jobs.map((j) => `| ${j.name} | ${j.conclusion ?? j.status} |`),
+              '',
+            ];
+            fs.mkdirSync('docs/tracking', { recursive: true });
+            fs.writeFileSync('docs/tracking/ci-status.md', lines.join('\n'));
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/tracking/ci-status.md
+          if git diff --cached --quiet; then
+            echo "No status change; nothing to commit."
+            exit 0
+          fi
+          git commit -m "ci: update CI status report [skip ci]"
+          git push origin HEAD:main
