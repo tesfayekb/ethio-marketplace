@@ -44,6 +44,7 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
 
   test("A-1: sign-up reaches the check-email view and echoes the address", async ({ page }) => {
     const email = await signUpFresh(page, 101);
+    await assertNoSignUpError(page);
 
     await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
       timeout: 15000,
@@ -57,6 +58,7 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
 
   test("A-2: resend throttle engages after one click", async ({ page }) => {
     await signUpFresh(page, 102);
+    await assertNoSignUpError(page);
     await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
       timeout: 15000,
     });
@@ -72,13 +74,17 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
   });
 
   test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
-    // Virtual clock: the 60s cooldown is advanced with fake timers, never a
-    // real-clock wait (operator ruling 2026-08-02).
-    await page.clock.install();
+    // Sign-up runs on REAL timers: installing the virtual clock beforehand froze
+    // the timers supabase-js depends on and the request never completed (INC-015).
     await signUpFresh(page, 103);
+    await assertNoSignUpError(page);
     await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
       timeout: 15000,
     });
+
+    // Only now: virtual clock to skip the 60s cooldown, never a real-clock wait
+    // (operator ruling 2026-08-02).
+    await page.clock.install();
 
     const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
 
@@ -88,13 +94,13 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
       await expect(
         page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") }),
       ).toBeVisible();
-      await page.clock.runFor(61_000);
+      await page.clock.fastForward(61_000);
       await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeEnabled();
     }
 
     await expect(page.getByText(en["auth.resendLimitReached"])).toBeVisible({ timeout: 15000 });
     // Further attempts are refused: the control stays disabled past the cooldown.
-    await page.clock.runFor(61_000);
+    await page.clock.fastForward(61_000);
     await expect(
       page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") }),
     ).toBeDisabled();
