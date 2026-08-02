@@ -22,6 +22,10 @@ app behaviour is changed by this suite.
 All assertions read the `en` locale catalog; no English literals are hard-coded
 in the specs (translation law D1 applies to tests too).
 
+## Mail sink for sign-up cases (A-1..A-3)
+
+A-1..A-3 now run when the E2E job receives `E2E_EMAIL_SINK=1` (set as a repository variable). ethio-staging SMTP is configured to use a Mailtrap sandbox inbox, which accepts any recipient and delivers to no real mailbox; the staging email rate limit has been raised to 100/hr to cover repeated runs. Email CONTENT assertions (template correctness, Amharic translation of auth emails) are NOT yet covered and are a separate future decision — the sink makes them possible, but this task does not implement them.
+
 ## Viewport scoping
 
 `playwright.config.ts` keeps both projects. The `desktop-1280` project carries a
