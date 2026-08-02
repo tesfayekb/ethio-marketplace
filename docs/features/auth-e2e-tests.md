@@ -67,12 +67,16 @@ that entry is missing, Supabase rewrites the redirect and C-1 fails.
 
 ## Proving the guards bite
 
-Step 10 of the task requires temporarily breaking B-3 and C-4 and observing the
-failures. That proof **could not be executed in the authoring sandbox**: it has no
-`E2E_SUPABASE_URL`/service-role credentials for ethio-staging (and the setup
-prod-guard correctly refuses the only project available). The proof must be run on
-a machine with staging credentials, and its observed failure messages appended
-here before this suite is treated as proven.
+First CI run (30730144529): **10 of 13 cases GREEN**, including the B-3
+enumeration-indistinguishability equality assertion and the C-4 INC-010a
+arbitrary-recipient guard. A-1..A-3 did not pass — they are gated behind
+`E2E_EMAIL_SINK=1` pending INC-013 (ethio-staging's Resend test domain rejects
+non-owner recipients, so real sign-up cannot complete). They remain visible as
+skipped in the run output.
+
+The two proof-of-bite checks (temporarily breaking B-3 and C-4 and observing the
+failures) are still **OUTSTANDING**; they must be run and their observed failure
+messages recorded here before the Phase 1 gate closes.
 
 Expected shapes:
 

@@ -22,58 +22,67 @@ async function signUpFresh(page: import("@playwright/test").Page, n: number) {
   return email;
 }
 
-test("A-1: sign-up reaches the check-email view and echoes the address", async ({ page }) => {
-  const email = await signUpFresh(page, 101);
+const EMAIL_SINK = process.env["E2E_EMAIL_SINK"] === "1";
 
-  await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
-    timeout: 15000,
+test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () => {
+  test.skip(
+    !EMAIL_SINK,
+    "INC-013: ethio-staging SMTP (Resend test domain) rejects non-owner recipients, so real sign-up cannot complete. Set E2E_EMAIL_SINK=1 once staging points at a mail sink.",
+  );
+
+  test("A-1: sign-up reaches the check-email view and echoes the address", async ({ page }) => {
+    const email = await signUpFresh(page, 101);
+
+    await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
+      timeout: 15000,
+    });
+
+    const sentTo = en["auth.checkEmailSentTo"].replace("{email}", email);
+    await expect(page.getByText(sentTo, { exact: false })).toBeVisible();
+
+    await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeVisible();
   });
 
-  const sentTo = en["auth.checkEmailSentTo"].replace("{email}", email);
-  await expect(page.getByText(sentTo, { exact: false })).toBeVisible();
+  test("A-2: resend throttle engages after one click", async ({ page }) => {
+    await signUpFresh(page, 102);
+    await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
+      timeout: 15000,
+    });
 
-  await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeVisible();
-});
+    const resend = page.getByRole("button", { name: en["auth.resend"] });
+    await resend.click();
 
-test("A-2: resend throttle engages after one click", async ({ page }) => {
-  await signUpFresh(page, 102);
-  await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
-    timeout: 15000,
+    // Cooldown copy replaces the label and the control refuses further clicks.
+    const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
+    const throttled = page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") });
+    await expect(throttled).toBeVisible({ timeout: 15000 });
+    await expect(throttled).toBeDisabled();
   });
 
-  const resend = page.getByRole("button", { name: en["auth.resend"] });
-  await resend.click();
+  test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
+    // Virtual clock: the 60s cooldown is advanced with fake timers, never a
+    // real-clock wait (operator ruling 2026-08-02).
+    await page.clock.install();
+    await signUpFresh(page, 103);
+    await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
+      timeout: 15000,
+    });
 
-  // Cooldown copy replaces the label and the control refuses further clicks.
-  const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
-  const throttled = page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") });
-  await expect(throttled).toBeVisible({ timeout: 15000 });
-  await expect(throttled).toBeDisabled();
-});
+    const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
 
-test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
-  // Virtual clock: the 60s cooldown is advanced with fake timers, never a
-  // real-clock wait (operator ruling 2026-08-02).
-  await page.clock.install();
-  await signUpFresh(page, 103);
-  await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
-    timeout: 15000,
-  });
+    for (let i = 0; i < 3; i += 1) {
+      await page.getByRole("button", { name: en["auth.resend"] }).click();
+      if (i === 2) break;
+      await expect(page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") })).toBeVisible();
+      await page.clock.runFor(61_000);
+      await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeEnabled();
+    }
 
-  const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
-
-  for (let i = 0; i < 3; i += 1) {
-    await page.getByRole("button", { name: en["auth.resend"] }).click();
-    if (i === 2) break;
-    await expect(page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") })).toBeVisible();
+    await expect(page.getByText(en["auth.resendLimitReached"])).toBeVisible({ timeout: 15000 });
+    // Further attempts are refused: the control stays disabled past the cooldown.
     await page.clock.runFor(61_000);
-    await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeEnabled();
-  }
-
-  await expect(page.getByText(en["auth.resendLimitReached"])).toBeVisible({ timeout: 15000 });
-  // Further attempts are refused: the control stays disabled past the cooldown.
-  await page.clock.runFor(61_000);
-  await expect(
-    page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") }),
-  ).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") }),
+    ).toBeDisabled();
+  });
 });

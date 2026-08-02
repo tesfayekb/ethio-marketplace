@@ -481,6 +481,16 @@ TRACKED (Tier-2 — plan the seam now, build later):
   user these tests create); helpers located at e2e/helpers/. Instructions amended to
   v1.4 (G16 prompt-integrity, G17 operator-bandwidth).
 
+- **S.. (2026-08-02):** AUTH-DOOR E2E BACKFILL — first CI run: 10 of 13 cases GREEN,
+  including the mechanized enumeration-indistinguishability assertion (B-3) and the
+  INC-010a arbitrary-recipient guard (C-4). A-1..A-3 failed on an environment limit,
+  not a defect: the Resend test domain rejects non-owner recipients (INC-010b), so
+  real sign-up cannot complete on staging. Gated behind E2E_EMAIL_SINK as a named
+  deferral (INC-013) and recorded as a Phase 1 gate blocker rather than skipped
+  silently or weakened. INC-012 orphan key removed. Supervisor slip: the previous
+  landing lost the SSR Register block from src/routeTree.gen.ts and the completion
+  report claimed src/ was unchanged — restored here, logged as D-008.
+
 ## Deviation ledger
 
 (D-001..D-005 are recorded inline in the session log entries above.)
@@ -490,3 +500,8 @@ D-006 — CI status reporter built without a supervisor-authored execution promp
 D-007 — system-state.md CI-observability line originally landed below the doc's
 "Updated:" footer and the footer date was left stale, because the prompt specified
 neither placement nor a date roll. Supervisor omission; corrected in this task.
+
+D-008 — Completion report stated "no changes under src/" while src/routeTree.gen.ts
+had lost its SSR type-registration block. Generated-file regeneration is
+pre-authorized (D-001 precedent); the inaccurate claim and the content loss were
+not. Restored; no impact reached main beyond one commit.

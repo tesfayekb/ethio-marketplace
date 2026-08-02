@@ -8,6 +8,11 @@ Auth-door E2E coverage: sign-up/check-email/throttle (A-1..A-3), sign-in errors 
 enumeration indistinguishability (B-1..B-4), callback/replay/already-confirmed and
 the INC-010a abuse-vector guard (C-1..C-4). See docs/features/auth-e2e-tests.md.
 
+Phase 1 gate blockers: (a) INC-013 — sign-up E2E cases A-1..A-3 gated behind
+E2E_EMAIL_SINK until ethio-staging SMTP accepts arbitrary recipients; (b) the B-3
+and C-4 proof-of-bite checks are not yet executed. Both must clear before Phase 1
+closes (G13).
+
 Gates closed: Phase 0 (Foundation). Phase 1 remaining doors: P1-d Google, P1-e Telegram, P1-f settings, P1-g gate.
 
 Governing instructions: Claude Project v1.4 (in project settings; mirrored intent in governance.md). Lovable Knowledge: v3.1 + H2 (docs/governance/lovable-knowledge.md).
