@@ -4,21 +4,29 @@ import { en } from "../src/i18n/locales/en";
 import { waitForHydration } from "./helpers/ui";
 
 /**
- * P1-d wiring guard. A real Google round-trip cannot run in CI, so the
- * authorization request is intercepted and aborted — Google is never loaded.
+ * P1-d wiring guard.
+ *
+ * The FIRST hop is ours: signInWithGoogle() navigates to
+ * <project>.supabase.co/auth/v1/authorize?provider=google&scopes=... — that URL is
+ * built from our code, so it is the only layer our commits can regress, and the only
+ * layer a scope-creep guard should watch. The second hop (Supabase → accounts.google.com)
+ * is constructed server-side by Supabase, is not interceptable in Playwright (route
+ * handlers fire on the request as initiated, not on server-redirect hops), and is
+ * covered instead by the manual pre-launch round-trip check (Q-2 ruling).
+ *
+ * The intercepted request is FULFILLED (204), never aborted, so the click's navigation
+ * resolves cleanly and Google is never loaded.
  */
-const GOOGLE_AUTH_GLOB = "https://accounts.google.com/**";
+const AUTHORIZE_GLOB = "**/auth/v1/authorize*";
 
-const EXPECTED_SCOPES = ["email", "profile", "openid"];
+const EXPECTED_SCOPES = ["email", "openid", "profile"];
 
-test("G-1: the Google authorization request carries only the three intended scopes", async ({
-  page,
-}) => {
-  let authorizationUrl: string | null = null;
+test("G-1: our authorization request carries only the three intended scopes", async ({ page }) => {
+  let authorizeUrl: string | null = null;
 
-  await page.route(GOOGLE_AUTH_GLOB, async (route) => {
-    authorizationUrl = route.request().url();
-    await route.abort();
+  await page.route(AUTHORIZE_GLOB, async (route) => {
+    authorizeUrl = route.request().url();
+    await route.fulfill({ status: 204, body: "" });
   });
 
   await page.goto("/auth");
@@ -26,18 +34,19 @@ test("G-1: the Google authorization request carries only the three intended scop
 
   await page.getByRole("button", { name: en["auth.continueWithGoogle"] }).click();
 
-  await expect.poll(() => authorizationUrl, { timeout: 15000 }).not.toBeNull();
+  await expect.poll(() => authorizeUrl, { timeout: 15000 }).not.toBeNull();
 
-  const url = new URL(authorizationUrl as unknown as string);
-  expect(url.host).toBe("accounts.google.com");
+  const url = new URL(authorizeUrl as unknown as string);
+  expect(url.pathname.endsWith("/auth/v1/authorize")).toBe(true);
+  expect(url.host.endsWith(".supabase.co")).toBe(true);
+  expect(url.searchParams.get("provider")).toBe("google");
 
-  const redirectUri = url.searchParams.get("redirect_uri") ?? "";
-  expect(redirectUri).toContain("/auth/v1/callback");
-  expect(new URL(redirectUri).host).toContain(".supabase.co");
-
-  const scopes = (url.searchParams.get("scope") ?? "").split(/[\s+]+/).filter(Boolean);
+  const scopes = (url.searchParams.get("scopes") ?? "").split(/[\s+]+/).filter(Boolean);
   // Scope-creep guard: exactly the three intended scopes, nothing more.
   expect(scopes.slice().sort()).toEqual(EXPECTED_SCOPES.slice().sort());
+
+  // The return target is our own callback route, not a third-party destination.
+  expect(url.searchParams.get("redirect_to") ?? "").toContain("/auth/callback");
 });
 
 test("G-2: the Google button is present in both sign-in and sign-up modes", async ({ page }) => {

@@ -54,9 +54,20 @@ Google call carries none.
 
 ## Tests
 
-- **G-1** — intercepts and aborts the `accounts.google.com` navigation; asserts host, a
-  `redirect_uri` on the Supabase project's `/auth/v1/callback`, and exactly the three scopes.
+- **G-1** — intercepts the **first hop**, `**/auth/v1/authorize*`: the request our own code
+  constructs. It is **fulfilled** with a 204 (never aborted, so the click's navigation resolves
+  cleanly), and the captured URL is asserted to be on `*.supabase.co/auth/v1/authorize` with
+  `provider=google`, exactly the three scopes `email`, `openid`, `profile`, and a `redirect_to`
+  pointing at our own `/auth/callback`.
+
+  Rationale: Playwright route handlers fire on the request as initiated, not on server-redirect
+  hops, so the Supabase→`accounts.google.com` hop can never be intercepted; and that URL is built
+  server-side by Supabase, so it cannot regress through our commits. The first hop is the only
+  layer a scope-creep guard can meaningfully watch. The real Supabase→Google round trip stays a
+  manual pre-launch check (Q-2 ruling).
+
 - **G-2** — the button is present with the `auth.continueWithGoogle` accessible name in both
   sign-in and sign-up modes.
 
-Both run per push on `mobile-360`, consistent with the other logic specs. Google is never loaded.
+Both run per push on `mobile-360` only, consistent with the other logic specs. Google is never
+loaded.

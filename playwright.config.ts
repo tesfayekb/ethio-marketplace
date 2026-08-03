@@ -42,6 +42,7 @@ export default defineConfig({
         "**/auth-signup.spec.ts",
         "**/auth-signin-errors.spec.ts",
         "**/auth-callback.spec.ts",
+        "**/auth-google.spec.ts",
       ],
     },
   ],
