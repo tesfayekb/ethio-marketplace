@@ -28,15 +28,29 @@ The app-side return target reuses the email door's `emailRedirectUrl()` helper �
 one source of truth. That route already handles a session arriving in the URL hash (the implicit
 flow shape the email door uses), so it required no change for OAuth.
 
-## REQ-015 linking rule — SPECIFIED, NOT YET VERIFIED
+## REQ-015 linking rule — OBSERVED BEHAVIOUR (2026-08-03)
 
-Specified behaviour: a Google sign-in auto-links to an existing local account **only when** the
-local account is already confirmed **and** Google reports `email_verified` for that address.
-Otherwise the link is refused and the user is sent to the email door to confirm first.
+Operator-executed on **ethio-prod** against the published app, with SQL read-back and live
+sign-in probes.
 
-**Not yet verified:** Supabase's actual handling of the unconfirmed-account path has not been
-observed. Operator deny tests D-8/D-9/D-10 exercise it and gate closure of this step. Until they
-run, no claim is made about what Supabase does with an unconfirmed local account.
+- **D-8 — unconfirmed local account, then Google sign-in: PASS.** GoTrue **replaces** the
+  unconfirmed email identity with the Google identity on the **same user id**, **destroys the
+  never-used password** (`has_password=false`; live probe: the old password is rejected at the
+  email door), and auto-confirms the account. The consequence is security-positive: an attacker
+  who plants an unconfirmed signup on someone else's address loses that credential the moment
+  the real owner arrives via Google. The takeover path is self-defusing.
+- **D-10 — confirmed local account, then Google sign-in: PASS.** Clean link — one user id, both
+  identities present, password intact (`has_password=true`; live probe: email-door sign-in still
+  works).
+- **D-9 — provider reports `email_verified=false`: DEFERRED-NAMED** to the Additional-auth-doors
+  phase. Not runnable with the available accounts (Gmail always reports verified). The
+  `auth.linkRefused*` i18n keys are **RESERVED** for this case — they are not orphan debt.
+
+**Caveat:** this is observed behaviour of **GoTrue**, a dependency Supabase upgrades server-side.
+It cannot be covered by CI (no real Google round-trip is available to the harness). The control is
+procedural: manual re-run of D-8 and D-10 at the launch gate and after any Supabase Auth/GoTrue
+version change — see `docs/governance/launch-gate.md`.
+
 
 ## Enumeration-safe refusal copy
 
