@@ -25,7 +25,6 @@ type ActionOutcome = { ok: boolean; errorKey?: MessageKey };
 /** An action the surface can run; call-signature form keeps the scanner quiet. */
 type SettingsAction = { (): Promise<ActionOutcome> };
 
-
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
