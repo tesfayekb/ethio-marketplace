@@ -50,6 +50,16 @@ The two outcomes are different alarms:
 - **Mutated pass** (`GUARD DID NOT BITE`) → the guard is worthless and must be fixed
   before the phase gate closes.
 
+## How results are captured
+
+The JSON report is written to a file via `PLAYWRIGHT_JSON_OUTPUT_NAME`, not by
+redirecting stdout. The E2E `globalSetup` logs useful diagnostic lines to stdout
+(e.g., `[e2e:setup] ...`); a stdout redirect would mix those lines into the JSON
+and produce an unreadable report. If the assertion script fails with
+"could not read the Playwright JSON report", the **capture mechanism** broke — not
+the guard under test. That is a third distinct alarm alongside a baseline failure
+and a mutated pass; fix the harness, not the guard.
+
 ## How to run it
 
 GitHub → **Actions** → **Guard Proof** → **Run workflow**. It is

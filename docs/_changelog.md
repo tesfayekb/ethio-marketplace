@@ -50,3 +50,4 @@
 2026-08-03 — test: A-3 resend exhaustion moves to a nightly real-time E2E job with heartbeat (INC-020)
 2026-08-03 — test: guard-proof workflow proves B-3 and C-4 bite against mutation fixtures
 2026-08-03 — test: guard-proof now proves both directions per guard via JSON-parsed A/B (INC-021)
+2026-08-03 — fix: guard-proof writes JSON report via PLAYWRIGHT_JSON_OUTPUT_NAME (INC-021 follow-up)

@@ -54,32 +54,36 @@ jobs:
       - name: Proof — B-3 (baseline must PASS on clean source)
         run: |
           set -e
-          bunx playwright test --grep "B-3" --project=mobile-360 \
-            --reporter=json > /tmp/b3-baseline.json || true
+          # PLAYWRIGHT_JSON_OUTPUT_NAME makes the reporter write the file directly.
+          # A stdout redirect does not work here: globalSetup logs to stdout and
+          # corrupts the JSON. Exit code is ignored on purpose — the JSON assertion
+          # is the judge.
+          PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/b3-baseline.json \
+            bunx playwright test --grep "B-3" --project=mobile-360 --reporter=json || true
           node scripts/assert-playwright-result.mjs /tmp/b3-baseline.json pass "B-3 baseline"
 
       - name: Proof — B-3 (mutated source must FAIL)
         run: |
           set -e
           git apply e2e/proofs/b3-enumeration.patch
-          bunx playwright test --grep "B-3" --project=mobile-360 \
-            --reporter=json > /tmp/b3-mutated.json || true
+          PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/b3-mutated.json \
+            bunx playwright test --grep "B-3" --project=mobile-360 --reporter=json || true
           node scripts/assert-playwright-result.mjs /tmp/b3-mutated.json fail "B-3 mutated"
           git checkout -- src/
 
       - name: Proof — C-4 (baseline must PASS on clean source)
         run: |
           set -e
-          bunx playwright test --grep "C-4" --project=mobile-360 \
-            --reporter=json > /tmp/c4-baseline.json || true
+          PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/c4-baseline.json \
+            bunx playwright test --grep "C-4" --project=mobile-360 --reporter=json || true
           node scripts/assert-playwright-result.mjs /tmp/c4-baseline.json pass "C-4 baseline"
 
       - name: Proof — C-4 (mutated source must FAIL)
         run: |
           set -e
           git apply e2e/proofs/c4-arbitrary-recipient.patch
-          bunx playwright test --grep "C-4" --project=mobile-360 \
-            --reporter=json > /tmp/c4-mutated.json || true
+          PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/c4-mutated.json \
+            bunx playwright test --grep "C-4" --project=mobile-360 --reporter=json || true
           node scripts/assert-playwright-result.mjs /tmp/c4-mutated.json fail "C-4 mutated"
           git checkout -- src/
 
