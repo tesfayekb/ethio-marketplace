@@ -72,6 +72,42 @@ A linked Google identity cannot be minted headlessly, so these are operator-run:
   present on the user row, that is a live credential with no visible sign-in method — a
   finding to report immediately, NOT to patch with a trigger.
 
+## Deny-test results — executed 2026-08-03 against ethio-prod
+
+Executed by `scripts/deny-tests/p1f-identity-unlink.ts` (bun, service-role key from env
+only — no secret is hardcoded, committed, or printed). The operator performed the
+OAuth-consent steps CI cannot: unlink Google via the UI, then re-link via consent.
+
+- **U-1 — PASS (guard bites server-side).** A throwaway single-identity user calling
+  `DELETE /auth/v1/user/identities/{id}` on its sole identity is refused with HTTP 422,
+  `{"code":422,"error_code":"single_identity_not_deletable","msg":"User must have at
+least 1 identity after unlinking"}`. The throwaway user was deleted afterwards.
+- **U-2 — PASS.** After the operator's UI unlink + OAuth re-link, `getUserById` shows
+  both `email` and `google` identities on the same user id, and the password was alive.
+- **U-3 — FINDING: GHOST DOOR CONFIRMED.** The `email` identity was unlinked (HTTP 200)
+  leaving `google` only. Read-back afterwards:
+  `auth.identities → [google]` while `auth.users.encrypted_password IS NOT NULL` is
+  still **true**. The password survives the removal of the identity that created it: a
+  working credential that no sign-in-methods list shows and no user can manage.
+  Reported to the supervisor; **not patched here** (this task observes only).
+
+### Password-presence mechanism (which field was used)
+
+GoTrue's admin API returns **no** password field — `encrypted_password` is never
+exposed on the admin user object. The sign-in error taxonomy cannot substitute for it:
+GoTrue answers `invalid_credentials` / "Invalid login credentials" for both _wrong
+password_ and _no password on this user_. The script therefore records the wrong-password
+probe as evidence only and prints **OPERATOR PROBE REQUIRED**; the authoritative fact was
+read outside the script with SQL on the connected project:
+`select encrypted_password is not null from auth.users where email = …` → `true`.
+
+### State warning
+
+The operator's account (`tesfayekb@gmail.com`) is now **google-only**. Re-linking email
+requires the operator to set a password via the reset flow or re-link through the
+settings surface. No automatic restore was attempted — the admin API cannot recreate an
+email identity without the password.
+
 ## E2E coverage vs manual
 
 Automated (mobile-360 only; desktop `testIgnore`):

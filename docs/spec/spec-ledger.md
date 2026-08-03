@@ -668,3 +668,17 @@ under-specification, harmless, corrected here.
 D-013 — src/features/auth/types.ts was edited during P1-f although the prompt's
 named-file list did not include it; the IdentitySummary/IdentitiesResult types are a
 natural companion to the service changes. Logged, not absorbed.
+
+- **S.. (2026-08-03):** U-1/U-2/U-3 executed by executor script against ethio-prod
+  (operator performed the OAuth-consent steps CI cannot). U-1: last-identity unlink
+  refused server-side on a throwaway single-identity user — HTTP 422
+  `single_identity_not_deletable`, "User must have at least 1 identity after
+  unlinking". U-2: operator's UI unlink+relink verified — both identities present,
+  password alive. U-3: email identity removed with google remaining; password status:
+  **ALIVE = ghost door, finding open** — `auth.identities` shows `[google]` only while
+  `auth.users.encrypted_password` is still non-null. The admin API exposes no password
+  field and GoTrue's `invalid_credentials` cannot distinguish wrong-password from
+  no-password, so the script prints OPERATOR PROBE REQUIRED and the fact was settled by
+  SQL read-back. Not patched — reported. Operator account is now google-only; no
+  automatic restore attempted. Script at scripts/deny-tests/p1f-identity-unlink.ts,
+  secrets via env only.
