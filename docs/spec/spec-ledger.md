@@ -607,3 +607,23 @@ baseline plus JSON-parsed assertions.
   is now honest-at-rest; the user confirms it at first post (feed-phase UI), and
   anonymous/browsing geolocation is a session concern for the feed phase, never
   written to identity rows. Tier A: live-DB read-back required before CLEAN.
+
+- **S.. (2026-08-03):** INC-022 CLOSED with live evidence from both databases: prod
+  shows zero ip_guess rows, two corrected to unknown/NULL, and one pre-existing
+  user_confirmed/ET row correctly untouched (stronger provenance is never overwritten);
+  staging migrated by operator. G-1 red diagnosed and fixed (INC-023, supervisor
+  test-design defect): interception moved from the untouchable Google redirect hop to
+  the first-hop authorize request we actually construct, fulfilled rather than aborted.
+  Google spec scoped to mobile-360 (D-012: the original prompt stated mobile-only but
+  did not name the desktop testIgnore edit, so the spec ran on both viewports —
+  supervisor under-specification, harmless, corrected here).
+  DESIGN NOTE pinned (operator-ruled): viewing-location resolution ladder for the feed
+  phase — signed-in: profiles.viewing_location (writes back on change); logged-out same
+  device: device-local memory of last viewing location, feed preference only, never
+  identity data, never account lookup; new visitor: session IP guess, visibly labelled,
+  one-tap override. home_country_code is never involved in browsing and is confirmed
+  only at first post.
+
+D-012 — The Google spec ran on both viewports because the original prompt stated
+mobile-only but did not name the desktop-1280 testIgnore edit; supervisor
+under-specification, harmless, corrected here.
