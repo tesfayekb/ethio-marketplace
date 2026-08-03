@@ -42,7 +42,7 @@ export type Database = {
           country_source: string
           created_at: string
           display_name: string
-          home_country_code: string
+          home_country_code: string | null
           notification_prefs: Json
           preferred_language: string
           updated_at: string
@@ -55,7 +55,7 @@ export type Database = {
           country_source?: string
           created_at?: string
           display_name: string
-          home_country_code: string
+          home_country_code?: string | null
           notification_prefs?: Json
           preferred_language?: string
           updated_at?: string
@@ -68,7 +68,7 @@ export type Database = {
           country_source?: string
           created_at?: string
           display_name?: string
-          home_country_code?: string
+          home_country_code?: string | null
           notification_prefs?: Json
           preferred_language?: string
           updated_at?: string
@@ -91,7 +91,7 @@ export type Database = {
           country_source: string
           created_at: string
           handle: string | null
-          home_country_code: string
+          home_country_code: string | null
           user_id: string
         }
         Insert: {
@@ -99,7 +99,7 @@ export type Database = {
           country_source?: string
           created_at?: string
           handle?: string | null
-          home_country_code: string
+          home_country_code?: string | null
           user_id: string
         }
         Update: {
@@ -107,7 +107,7 @@ export type Database = {
           country_source?: string
           created_at?: string
           handle?: string | null
-          home_country_code?: string
+          home_country_code?: string | null
           user_id?: string
         }
         Relationships: [
