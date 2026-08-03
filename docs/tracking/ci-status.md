@@ -1,16 +1,16 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `206ff4ac36e393e4912d1bc8062d0151320f1f21` (short `206ff4a`)
+- Commit: `e206250ae7eed611263f16998321f73bfe65c5dc` (short `e206250`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-08-03T03:15:42Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/30781315385
+- Completed (UTC): 2026-08-03T06:25:07Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/30789976147
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| E2E (Playwright, ethio-staging) | success |
-| Hardcoded string scan (enforcing) | success |
 | Build, typecheck, lint | success |
 | Gitleaks secrets scan | success |
 | Migration linter (with self-test) | success |
+| Hardcoded string scan (enforcing) | success |
+| E2E (Playwright, ethio-staging) | success |
