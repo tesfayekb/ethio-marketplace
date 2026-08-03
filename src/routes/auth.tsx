@@ -257,7 +257,6 @@ function AuthScreen() {
     }
   }
 
-
   if (onCheckEmail && confirmed) {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
@@ -462,7 +461,6 @@ function AuthScreen() {
           </button>
         </div>
       </section>
-
     </main>
   );
 }

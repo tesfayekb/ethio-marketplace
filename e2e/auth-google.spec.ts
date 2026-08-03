@@ -26,9 +26,7 @@ test("G-1: the Google authorization request carries only the three intended scop
 
   await page.getByRole("button", { name: en["auth.continueWithGoogle"] }).click();
 
-  await expect
-    .poll(() => authorizationUrl, { timeout: 15000 })
-    .not.toBeNull();
+  await expect.poll(() => authorizationUrl, { timeout: 15000 }).not.toBeNull();
 
   const url = new URL(authorizationUrl as unknown as string);
   expect(url.host).toBe("accounts.google.com");

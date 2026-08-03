@@ -104,7 +104,6 @@ export async function resendConfirmation(email: string): Promise<AuthResult> {
   return { ok: true };
 }
 
-
 export async function signOut(): Promise<AuthResult> {
   const { error } = await supabase.auth.signOut();
   if (error) return failure(error);
