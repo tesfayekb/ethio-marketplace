@@ -1,9 +1,9 @@
-import type { EmailOtpType } from "@supabase/supabase-js";
+import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 
-import type { AuthResult, Credentials, VerificationResult } from "./types";
+import type { AuthResult, Credentials, IdentitiesResult, VerificationResult } from "./types";
 
 /** Where Supabase sends the user after they click the confirmation link. */
 export function emailRedirectUrl(): string {
@@ -26,9 +26,13 @@ function toErrorKey(error: { message: string; code?: string; status?: number }):
   if (code === "user_already_exists" || /already registered/i.test(message)) {
     return "auth.errorEmailInUse";
   }
+  if (code === "single_identity_not_deletable" || /at least 1 identity/i.test(message)) {
+    return "auth.errorLastMethod";
+  }
   if (code === "weak_password" || /password should be/i.test(message)) {
     return "auth.errorWeakPassword";
   }
+
   if (code === "validation_failed" || /invalid email|email address/i.test(message)) {
     return "auth.errorInvalidEmail";
   }
@@ -106,6 +110,111 @@ export async function resendConfirmation(email: string): Promise<AuthResult> {
 
 export async function signOut(): Promise<AuthResult> {
   const { error } = await supabase.auth.signOut();
+  if (error) return failure(error);
+  return { ok: true };
+}
+
+/**
+ * Ends every OTHER session for this user; this browser stays signed in.
+ * Server-side revocation — the only authority (law F3).
+ */
+export async function signOutOtherDevices(): Promise<AuthResult> {
+  const { error } = await supabase.auth.signOut({ scope: "others" });
+  if (error) return failure(error);
+  return { ok: true };
+}
+
+/** Linked sign-in methods, flattened. Read-only. */
+export async function getIdentities(): Promise<IdentitiesResult> {
+  const { data, error } = await supabase.auth.getUserIdentities();
+  if (error || !data) return { ok: false, errorKey: toErrorKey(error ?? { message: "" }) };
+  return {
+    ok: true,
+    identities: data.identities.map((identity) => ({
+      identityId: identity.identity_id,
+      provider: identity.provider,
+      lastUsedAt: identity.last_sign_in_at ?? null,
+    })),
+  };
+}
+
+/**
+ * Adds Google as a second sign-in method for the CURRENT user. Same minimal
+ * scopes and same return target as the sign-in door — one source of truth.
+ */
+export async function linkGoogleIdentity(): Promise<AuthResult> {
+  const { error } = await supabase.auth.linkIdentity({
+    provider: "google",
+    options: { redirectTo: emailRedirectUrl(), scopes: "email profile openid" },
+  });
+  if (error) return failure(error);
+  return { ok: true };
+}
+
+/**
+ * Removes a sign-in method. GoTrue refuses to delete the last identity
+ * (`single_identity_not_deletable`); that server refusal is the real guard and
+ * is surfaced through `auth.errorLastMethod`.
+ */
+export async function unlinkProviderIdentity(identityId: string): Promise<AuthResult> {
+  const { data, error: readError } = await supabase.auth.getUserIdentities();
+  if (readError || !data) return failure(readError ?? { message: "" });
+
+  const identity = data.identities.find((item) => item.identity_id === identityId);
+  if (!identity) return { ok: false, errorKey: "auth.errorGeneric" };
+
+  const { error } = await supabase.auth.unlinkIdentity(identity as UserIdentity);
+  if (error) return failure(error);
+  return { ok: true };
+}
+
+/**
+ * Current-password verification mechanism.
+ *
+ * "Secure password change" (enabled in P1-c) makes GoTrue require a
+ * reauthentication NONCE only when the session is older than 24h — it never
+ * accepts a current password. We therefore verify the current password
+ * ourselves, on a THROWAWAY client that persists nothing: a wrong password
+ * fails there and `updateUser` is never reached, so nothing changes. The
+ * throwaway client cannot disturb the signed-in session in this browser.
+ */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<AuthResult> {
+  const { data: userData } = await supabase.auth.getUser();
+  const email = userData.user?.email;
+  if (!email) return { ok: false, errorKey: "auth.errorGeneric" };
+
+  const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+  if (!url || !key) return { ok: false, errorKey: "auth.errorGeneric" };
+
+  const verifier = createClient(url, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+  const { error: verifyError } = await verifier.auth.signInWithPassword({
+    email,
+    password: currentPassword,
+  });
+  await verifier.auth.signOut({ scope: "local" });
+  if (verifyError) return { ok: false, errorKey: "auth.errorWrongCurrentPassword" };
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) return failure(error);
+  return { ok: true };
+}
+
+/**
+ * Starts an email change. GoTrue's double confirmation is server-enforced:
+ * links go to BOTH the old and the new address, and neither address changes
+ * until both are opened.
+ */
+export async function changeEmail(newEmail: string): Promise<AuthResult> {
+  const { error } = await supabase.auth.updateUser(
+    { email: newEmail },
+    { emailRedirectTo: emailRedirectUrl() },
+  );
   if (error) return failure(error);
   return { ok: true };
 }

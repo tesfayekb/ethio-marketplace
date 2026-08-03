@@ -30,3 +30,18 @@ export type AuthUser = {
  * simply arriving with no recoverable link data.
  */
 export type VerificationResult = { ok: true } | { ok: false; hadError: boolean };
+
+/**
+ * One linked sign-in method, flattened for the settings surface.
+ * `lastUsedAt` is GoTrue's `identities[].last_sign_in_at` (may be absent).
+ */
+export type IdentitySummary = {
+  identityId: string;
+  provider: string;
+  lastUsedAt: string | null;
+};
+
+/** Result of a read that returns data, with the same never-raw-error contract. */
+export type IdentitiesResult =
+  | { ok: true; identities: IdentitySummary[] }
+  | { ok: false; errorKey: MessageKey };
