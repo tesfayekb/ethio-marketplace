@@ -112,7 +112,8 @@ runner's working tree, asserts the guarded test FAILS, and discards the mutation
 - C-4 mutation — `e2e/proofs/c4-arbitrary-recipient.patch`; expected failure shape
   `expect(locator).toHaveCount(0)` receiving `1` for `input[type="email"]`.
 
-**First successful proof run: PENDING** (operator runs it after this lands).
+**First successful proof run: first proven 2026-08-03 via Guard Proof #3 (A/B,
+JSON-asserted).**
 
 ## Turnstile
 
