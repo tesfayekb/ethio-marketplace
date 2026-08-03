@@ -640,3 +640,18 @@ baseline plus JSON-parsed assertions.
 D-012 — The Google spec ran on both viewports because the original prompt stated
 mobile-only but did not name the desktop-1280 testIgnore edit; supervisor
 under-specification, harmless, corrected here.
+
+- **S.. (2026-08-03):** P1-f BUILT, trimmed per DEC-012. Operator rulings applied:
+  sessions reduced to "sign out other devices" (no device list); display-name editing
+  excluded until the REQ-021 screening gateway. Current-password verification uses a
+  throwaway non-persisting Supabase client rather than GoTrue's reauthentication nonce
+  (the nonce proves mailbox possession, not knowledge of the current password, and
+  depends on email delivery, a launch-gate item). Known limit surfaced, not hidden:
+  sessions older than 24h will be refused by GoTrue with a nonce demand, rendered as a
+  translated error. Last-method removal is refused by GoTrue
+  (single_identity_not_deletable); the disabled Unlink control is honesty only, never
+  authorization. Automated S-1/S-2/S-3 (mobile-360); U-1/U-2/U-3 remain operator deny
+  tests because a linked Google identity cannot be minted headlessly — U-3 hunts a
+  ghost password surviving an unlinked email identity. Debt named: the relative-time
+  formatter sits in the route pending its /src/lib home (law B2), and /settings has no
+  navigation entry yet — app-header.tsx was outside this task's named files.

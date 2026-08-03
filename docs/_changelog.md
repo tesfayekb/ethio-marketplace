@@ -57,3 +57,4 @@
 2026-08-03 — fix: country_source gains 'unknown'; remove US sentinel from handle_new_user; correct fabricated rows (INC-022)
 2026-08-03 — fix: G-1 intercepts our first-hop authorize request, fulfilled not aborted (INC-023); Google spec mobile-only
 2026-08-03 — docs: P1-d closed — D-8/D-10 deny evidence recorded, D-9 deferred-named, launch-gate re-run item added
+2026-08-03 — feat: P1-f settings surface — identity read-only, sign-in methods with server-enforced last-method guard, password/email change, sign out other devices
