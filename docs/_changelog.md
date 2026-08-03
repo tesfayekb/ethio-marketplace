@@ -54,3 +54,4 @@
 2026-08-03 — docs: guard proof recorded as passed; thread 2 handoff imported
 2026-08-03 — governance: DEC-012 re-scopes the phase ladder; Telegram door moves to a later named phase
 2026-08-03 — feat: Google door (P1-d) — minimal scopes, enumeration-safe link refusal, Turnstile seam, scope-creep E2E guard
+2026-08-03 — fix: country_source gains 'unknown'; remove US sentinel from handle_new_user; correct fabricated rows (INC-022)
