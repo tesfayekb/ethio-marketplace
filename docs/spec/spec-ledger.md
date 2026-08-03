@@ -578,3 +578,9 @@ D-011 — The guard-proof harness as specified by the supervisor could return GR
 proving nothing, because it inferred "test failed correctly" from a process exit code.
 Caught on verification of the executor's correct implementation. Corrected by A/B
 baseline plus JSON-parsed assertions.
+
+- **S.. (2026-08-03):** Guard-proof JSON capture fixed (INC-021 follow-up): report now
+  written via PLAYWRIGHT_JSON_OUTPUT_NAME rather than a stdout redirect that
+  globalSetup's logging corrupted. Third supervisor design defect in this harness,
+  each caught by the harness's own assertions rather than by a green run — the
+  intended behaviour.
