@@ -72,7 +72,9 @@ if (ran === 0) {
   die(`${label}: NO TEST MATCHED — the proof harness is not testing anything`);
 }
 if (ran > 1) {
-  die(`${label}: ${ran} tests ran, expected exactly 1 — the grep is too broad to prove anything precise`);
+  die(
+    `${label}: ${ran} tests ran, expected exactly 1 — the grep is too broad to prove anything precise`,
+  );
 }
 if (skipped === 1) {
   die(`${label}: the test was SKIPPED — a skipped test proves neither direction`);
