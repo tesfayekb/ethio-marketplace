@@ -1,0 +1,79 @@
+name: Guard Proof
+
+# Proves that the B-3 and C-4 E2E guards FAIL when their guarded behaviour is broken
+# (§8 proven-guard rule). Mutations live as inert .patch files and are applied only to
+# the runner's working tree — never committed. See docs/features/guard-proof.md.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard-proof:
+    name: Guard proof (mutation fixtures, ethio-staging)
+    runs-on: ubuntu-latest
+    env:
+      # ethio-staging — publishable values only; the service-role key is a secret.
+      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
+      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+
+      # A failing `git apply` is information, not noise: the source moved and the
+      # fixture is stale. The step fails loudly (set -e, no `|| true`).
+      - name: Proof — B-3 (enumeration indistinguishability)
+        run: |
+          set -e
+          git apply e2e/proofs/b3-enumeration.patch
+          if bunx playwright test --grep "B-3" --project=mobile-360; then
+            echo "::error::GUARD DID NOT BITE — B-3 passed against broken code"
+            exit 1
+          else
+            echo "B-3 correctly FAILED against the mutation"
+          fi
+          git checkout -- src/
+
+      - name: Proof — C-4 (INC-010a arbitrary-recipient guard)
+        run: |
+          set -e
+          git apply e2e/proofs/c4-arbitrary-recipient.patch
+          if bunx playwright test --grep "C-4" --project=mobile-360; then
+            echo "::error::GUARD DID NOT BITE — C-4 passed against broken code"
+            exit 1
+          else
+            echo "C-4 correctly FAILED against the mutation"
+          fi
+          git checkout -- src/
+
+      - name: Assert src/ is clean (no mutation survives this job)
+        if: always()
+        run: |
+          git checkout -- src/ || true
+          if [ -n "$(git status --porcelain src/)" ]; then
+            echo "::error::src/ is dirty after the proof run"
+            git status --porcelain src/
+            exit 1
+          fi
+          echo "src/ is clean"
