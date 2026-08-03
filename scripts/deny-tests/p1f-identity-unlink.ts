@@ -332,7 +332,11 @@ async function recheckPhase2(): Promise<void> {
     process.exit(1);
   }
   const providers = providersOf(user);
-  check("email identity removed, account alive on another door", !providers.includes("email"), `providers = [${providers.join(", ")}]`);
+  check(
+    "email identity removed, account alive on another door",
+    !providers.includes("email"),
+    `providers = [${providers.join(", ")}]`,
+  );
 
   const dead = await passwordSignIn(email, password);
   check(
@@ -381,4 +385,3 @@ run().catch((error: unknown) => {
   );
   process.exit(1);
 });
-

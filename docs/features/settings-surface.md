@@ -102,12 +102,11 @@ Removing the email identity **kills its password**. `public.handle_email_identit
 runs AFTER DELETE ON `auth.identities` WHEN `OLD.provider = 'email'` and nulls
 `auth.users.encrypted_password` **only when another identity remains** — a full account
 deletion, which empties identities, is left alone. GoTrue already behaves this way in the
-identity *replace* path (D-8); the trigger extends the same semantics to *unlink*, so the
+identity _replace_ path (D-8); the trigger extends the same semantics to _unlink_, so the
 sign-in-methods list is the whole truth. A one-time correction in the same migration
 nulled every password that had no email identity (the operator's account, proven live).
 
 Operator ruling 2026-08-03: option A — unlink tells the truth.
-
 
 ### Password-presence mechanism (which field was used)
 
