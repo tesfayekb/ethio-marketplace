@@ -59,3 +59,4 @@
 2026-08-03 — docs: P1-d closed — D-8/D-10 deny evidence recorded, D-9 deferred-named, launch-gate re-run item added
 2026-08-03 — feat: P1-f settings surface — identity read-only, sign-in methods with server-enforced last-method guard, password/email change, sign out other devices
 2026-08-03 — fix: anchor sign-out locators (S-3); settings nav entry; relative-time formatter to lib
+2026-08-03 — test: U-1..U-3 identity-unlink deny evidence via admin script (P1-f)
