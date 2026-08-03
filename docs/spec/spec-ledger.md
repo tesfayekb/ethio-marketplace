@@ -527,3 +527,14 @@ D-009 — Completion report stated src/routeTree.gen.ts was restored and
 typecheck-verified; the generator re-dropped the block before commit, so main never
 received it. Sandbox-true, repo-false. Caught by fresh-clone verification. No user
 impact; types-only.
+
+- **S.. (2026-08-02):** Playwright traces gave server-level ground truth on the two
+  remaining E2E failures. A-3: resend 429 over_email_send_rate_limit — Supabase
+  enforces ~60s per address, independent of the hourly quota. A-2: sign-up 500
+  "Error sending confirmation email" — Mailtrap free-tier send-rate refusal, not a
+  rate limit at either Supabase or the app. Real defect found by A-3 and fixed
+  (INC-017): the resend cooldown armed only on success, leaving a refused resend
+  freely repeatable — operator ruled cooldown-on-click. Supervisor corrections
+  logged: an earlier send-throttling hypothesis was abandoned on evidence that in
+  fact supported it, and a claimed 429-to-generic-error defect was retracted as
+  never having existed.
