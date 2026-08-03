@@ -37,6 +37,7 @@ Ambiguous ⇒ Tier A. Promotion records become Tier A the day money attaches.
 4. **Listings & screening:** posting flow (REQ-018/019/020), REQ-021 gateway v1, screening pipeline + two-track enforcement + audit queue (REQ-009/010/011), lifecycle machine (REQ-022).
 5. **Discovery:** feed + widening + category row learning (REQ-023), search incl. cross-language + fuzzy (REQ-025), promotions free-mode (REQ-024).
 6. **Contact:** messaging (REQ-026), block/report, storefronts (REQ-008/027), scam defense.
+- **Additional auth doors** (added by DEC-012, 2026-08-03; runs after the marketplace-core phases above and before launch): Telegram door (custom flow, BotFather bot, edge-function HMAC verification, freshness window, tampered/stale/replayed deny tests) plus any settings behaviour that requires a third door. REQ-014 is unchanged — all three doors ship before launch.
 7. **i18n completion:** Amharic to 100% via dashboard; Ge'ez fonts within budget; RTL verification.
 8. **Ops:** notifications matrix (REQ-031), backups+drill #1, watchdogs (REQ-032), admin console completion, GDPR rights (export/deletion).
 9. **Hardening & launch gates:** performance budgets measured on real device, security review, 2FA enforcement ON, Ethiopia partition decision executed per counsel (Q-014), soft launch (DEC-005).
