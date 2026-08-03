@@ -394,6 +394,14 @@ Throttling only partially covers mass-signup and email-quota-exhaustion. Ruling:
 ### DEC-011 — Reputation/ratings seam (directional)
 Listing and messaging designs MUST leave a stable rateable-interaction reference so a future rating ("buyer rates seller for listing X") is a feature addition, not a schema rebuild. Ratings trigger off contact / marked-complete, not purchase (no payments in v1). Ratings themselves are a planned later phase; this entry is a forward-scan checklist item binding the Phase 3/5 listing + messaging specs. Operator adopted 2026-08-01.
 
+### DEC-012 (2026-08-03) — Phase ladder re-scoped: additional auth doors deferred to a named later phase
+Phase 1 (Identity) is re-scoped to: identity schema, i18n runtime, EMAIL door, GOOGLE door, the REQ-015 linking rule, and a settings surface covering what exists with two doors (sessions list, step-up, last-used, last-method-unremovable guard). The TELEGRAM door and any multi-door settings behaviour that requires a third door move to a new phase "Additional auth doors", scheduled BEFORE launch and AFTER the marketplace core (listings, categories, geography, feed, messaging).
+
+Rationale: Telegram is a custom flow (BotFather bot, edge-function HMAC verification, freshness window, tampered/stale/replayed deny tests) whose login widget is bound to a production domain the project does not yet control. It teaches nothing architectural that the email and Google doors do not already settle, so it is implementation work that can sequence later. Google stays in Phase 1 because the REQ-015 verified-to-verified linking rule carries account-takeover risk and is cheapest to prove now, while the auth surface is fresh and fully guarded.
+
+REQ-014 (three doors: email + Google + Telegram, no SMS) is UNCHANGED — all three still ship before launch. Only the sequencing moves. Supersedes nothing; amends the phase ladder in docs/governance/governance.md.
+
+
 Numbering note: this ledger's previous highest decision entry is DEC-007; DEC-008 is not recorded here (it is referenced in the launch-gate list as the Ethiopia-entity/ECA milestone, sourced from REQ-035). The entries above intentionally keep their operator-assigned numbers DEC-009..011 so external references stay stable; DEC-008 remains reserved.
 
 ### REQ-036 — EXIF/GPS strip (implements DEC-009)
