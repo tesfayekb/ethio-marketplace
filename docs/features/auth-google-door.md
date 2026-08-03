@@ -3,7 +3,6 @@
 Status: CLOSED 2026-08-03 — built, E2E-guarded, and REQ-015 linking behaviour proven by
 operator deny tests D-8 and D-10. D-9 is deferred-named to the Additional-auth-doors phase.
 
-
 ## Scopes
 
 The authorization request asks for exactly three scopes: `email`, `profile`, `openid`.
@@ -50,7 +49,6 @@ sign-in probes.
 It cannot be covered by CI (no real Google round-trip is available to the harness). The control is
 procedural: manual re-run of D-8 and D-10 at the launch gate and after any Supabase Auth/GoTrue
 version change — see `docs/governance/launch-gate.md`.
-
 
 ## Enumeration-safe refusal copy
 
