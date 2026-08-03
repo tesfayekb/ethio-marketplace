@@ -22,7 +22,6 @@ const MIN_PASSWORD_LENGTH = 8;
 /** Shared shape of every settings action result (see law F4). */
 type ActionOutcome = { ok: boolean; errorKey?: MessageKey };
 
-
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
@@ -143,7 +142,6 @@ function SettingsScreen() {
 
   /** INC-017 precedent: busy engages on INITIATION, before the request leaves. */
   async function run(action: () => Promise<ActionOutcome>, done: MessageKey) {
-
     if (busy) return false;
     reset();
     setBusy(true);
