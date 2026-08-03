@@ -683,7 +683,7 @@ natural companion to the service changes. Logged, not absorbed.
   automatic restore attempted. Script at scripts/deny-tests/p1f-identity-unlink.ts,
   secrets via env only.
 
-- **S18 (2026-08-03):** INC-024 GHOST DOOR — U-3's operator probe proved a password
+- **S.. (2026-08-03):** INC-024 GHOST DOOR — U-3's operator probe proved a password
   survives its email identity's unlink and still signs in, invisible to the
   settings method list. Operator ruled option A: unlink tells the truth. Fixed
   Tier A: AFTER DELETE trigger on auth.identities nulls the password when an email
