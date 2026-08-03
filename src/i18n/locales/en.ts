@@ -67,6 +67,7 @@ export const en = {
   "auth.errorRateLimited": "Too many attempts. Wait a moment and try again.",
   "auth.errorMissingFields": "Enter your email and password.",
   "auth.errorGeneric": "Something went wrong. Please try again.",
+  "settings.navLabel": "Settings",
   "settings.title": "Settings",
   "settings.identity": "Your account",
   "settings.displayName": "Name",

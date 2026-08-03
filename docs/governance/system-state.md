@@ -36,9 +36,7 @@ Additional-auth-doors phase: Telegram door, device/session list, multi-door sett
 
 Governing instructions: Claude Project v1.4 (in project settings; mirrored intent in governance.md). Lovable Knowledge: v3.1 + H2 (docs/governance/lovable-knowledge.md).
 
-Immediate open work: (1) give /settings a navigation entry (app-header.tsx was outside
-P1-f's named files); (2) move the relative-time formatter out of settings.tsx into
-/src/lib when a second surface needs it (law B2); (3) dispatch
+Immediate open work: (1) dispatch
 .github/workflows/guard-proof.yml once and record the first successful run date in
 docs/features/guard-proof.md and docs/features/auth-e2e-tests.md.
 

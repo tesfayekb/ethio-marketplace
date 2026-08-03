@@ -30,9 +30,18 @@ export function AppHeader() {
           <LanguageSwitcher />
           {loading ? null : user ? (
             <>
-              <span className="max-w-[10rem] truncate text-sm text-muted-foreground">
+              {/* At 360px the name yields width first: it truncates harder and
+                  the existing flex-wrap row lets Settings and Sign out drop to a
+                  second line rather than shrink below their 44px targets. */}
+              <span className="max-w-[6rem] truncate text-sm text-muted-foreground sm:max-w-[10rem]">
                 {user.displayName ?? t("auth.signedInAs")}
               </span>
+              <Link
+                to="/settings"
+                className="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {t("settings.navLabel")}
+              </Link>
               <button
                 type="button"
                 onClick={handleSignOut}

@@ -14,6 +14,7 @@ import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
+import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
 
 /** Mirrors the server's password rule; the server remains the authority. */
@@ -55,29 +56,6 @@ const secondaryButtonClass =
   "text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60";
 
 const sectionClass = "mt-8 border-t border-border pt-6";
-
-/**
- * Relative "last used" rendering. Intl only — no locale strings are built by
- * hand and no date library is added. If a second surface needs this, it moves
- * to a single /src/lib formatter (law B2).
- */
-function relativeTime(iso: string, language: string): string {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "";
-  const seconds = Math.round((then - Date.now()) / 1000);
-  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-    ["year", 31_536_000],
-    ["month", 2_592_000],
-    ["day", 86_400],
-    ["hour", 3_600],
-    ["minute", 60],
-  ];
-  const formatter = new Intl.RelativeTimeFormat(language, { numeric: "auto" });
-  for (const [unit, size] of units) {
-    if (Math.abs(seconds) >= size) return formatter.format(Math.round(seconds / size), unit);
-  }
-  return formatter.format(Math.round(seconds), "second");
-}
 
 function providerLabelKey(provider: string): MessageKey {
   return provider === "google" ? "settings.providerGoogle" : "settings.providerEmail";

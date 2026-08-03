@@ -86,9 +86,17 @@ Automated (mobile-360 only; desktop `testIgnore`):
 Manual: U-1/U-2/U-3 (Google linking), and the email-change double-confirmation flow,
 which needs two real mailboxes — blocked on the custom SMTP launch-gate item.
 
-## Known follow-up
+## Navigation and shared code
 
-The relative "last used" formatter lives inside `settings.tsx` (Intl only, no new
-dependency). Law B2 requires one date formatter in `/src/lib`; that move is due the
-moment a second surface needs relative time, and `/src/lib` was outside this task's
-scope.
+- Entry point: the app header renders a **Settings** link to `/settings` for signed-in
+  users, immediately before Sign out (`settings.navLabel`, EN/AM). At 360px the display
+  name truncates harder (`max-w-[6rem]`) and the header's existing flex-wrap row lets the
+  two controls drop to a second line rather than shrink below their 44px targets.
+- Relative "last used" formatting lives in `src/lib/relative-time.ts` — the single law-B2
+  source of truth. Intl only, no date dependency.
+
+## Locator note (S-3)
+
+"Sign out other devices" collides with any unanchored `/sign out/i` probe. The spec and
+the shared `expectSignedIn`/`expectSignedOut` helpers use the anchored `/^sign out$/i`;
+keep new sign-out-adjacent labels in mind when writing session probes.

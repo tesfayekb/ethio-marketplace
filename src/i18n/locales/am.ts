@@ -66,6 +66,7 @@ export const am: Messages = {
   "auth.errorRateLimited": "ብዙ ሙከራዎች ተደርገዋል። ትንሽ ቆይተው እንደገና ይሞክሩ።",
   "auth.errorMissingFields": "ኢሜይልዎንና የይለፍ ቃልዎን ያስገቡ።",
   "auth.errorGeneric": "የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።",
+  "settings.navLabel": "ቅንብሮች",
   "settings.title": "ቅንብሮች",
   "settings.identity": "የእርስዎ አካውንት",
   "settings.displayName": "ስም",

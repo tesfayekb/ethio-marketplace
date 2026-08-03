@@ -655,3 +655,16 @@ under-specification, harmless, corrected here.
   ghost password surviving an unlinked email identity. Debt named: the relative-time
   formatter sits in the route pending its /src/lib home (law B2), and /settings has no
   navigation entry yet — app-header.tsx was outside this task's named files.
+
+- **S.. (2026-08-03):** S-3 red diagnosed from the strict-mode error: the new
+  "Sign out other devices" control collided with the /sign out/i session probe —
+  locator precision fix in the spec and in the shared expectSignedIn/Out helpers
+  (anchored ^sign out$). Security assertions had already passed. /settings nav
+  entry added; relative-time formatter moved to its law-B2 home
+  (src/lib/relative-time.ts). D-013: types.ts was modified outside the P1-f
+  prompt's named scope — accepted as a natural companion to the service changes,
+  logged not absorbed.
+
+D-013 — src/features/auth/types.ts was edited during P1-f although the prompt's
+named-file list did not include it; the IdentitySummary/IdentitiesResult types are a
+natural companion to the service changes. Logged, not absorbed.
