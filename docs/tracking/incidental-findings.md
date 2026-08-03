@@ -26,3 +26,5 @@
 RETRACTED — an earlier supervisor claim that sign-up mapped a 429 to a generic error
 was WRONG. The sign-up received a 500, and the generic message is correct for it. No
 defect existed; the claim was inferred from a screenshot rather than a status code.
+
+| INC-020 | 2026-08-03 | A-3 could not be made to pass under Playwright virtual time. Three mechanisms failed: `clock.install()` before navigation froze the timers supabase-js needs (INC-015); `clock.fastForward` left the 1s cooldown countdown stuck; `clock.runFor` did the same. The countdown does not reach zero under a virtual clock in this app. Class: virtual time incompatible with the component's countdown and client stack. | RESOLVED STRUCTURALLY — A-3 moved to a nightly scheduled job using real elapsed time; per-push coverage of the ruled cooldown-on-click behaviour is retained by A-2. No assertion weakened, no test-only seam added to application code. |

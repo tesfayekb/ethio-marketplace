@@ -549,3 +549,13 @@ D-010 — The supervisor instructed replacing runFor with fastForward while diag
 INC-015. The swap was wrong for an interval-driven countdown and went undetected
 because A-3 failed earlier in the test at the time, so the changed line was never
 executed. Corrected here.
+
+- **S.. (2026-08-03):** A-3 moved to a NIGHTLY scheduled E2E job with real elapsed
+  time (INC-020) after virtual time proved unworkable across three mechanisms. Per-push
+  suite now 12/12 green; A-2 retains per-push coverage of the operator-ruled
+  cooldown-on-click behaviour. Options considered and rejected: real waits on every
+  push (a ~2min tax per commit) and a test-only cooldown override (a seam shortening a
+  security throttle). The nightly job writes a completion heartbeat per the REQ-032 ops
+  invariant so a schedule that silently stops is detectable. Supervisor record: three
+  successive mechanism diagnoses for A-3 were wrong (fastForward, runFor, and an
+  in-flight-guard hypothesis); the structural fix was adopted rather than a fourth guess.
