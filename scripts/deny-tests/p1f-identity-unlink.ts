@@ -117,7 +117,10 @@ async function wrongPasswordProbe(email: string): Promise<{ code?: string; messa
     email,
     password: `definitely-not-the-password-${crypto.randomUUID()}`,
   });
-  return { code: error?.code, message: error?.message ?? "NO ERROR — sign-in unexpectedly SUCCEEDED" };
+  return {
+    code: error?.code,
+    message: error?.message ?? "NO ERROR — sign-in unexpectedly SUCCEEDED",
+  };
 }
 
 async function main(): Promise<void> {
@@ -210,17 +213,13 @@ async function main(): Promise<void> {
   );
 
   block("U-3d — THE PROBE: is the password alive or dead?");
-  console.log(
-    "Mechanism available to this script: sign-in error taxonomy only. GoTrue returns",
-  );
+  console.log("Mechanism available to this script: sign-in error taxonomy only. GoTrue returns");
   console.log(
     "`invalid_credentials` for BOTH 'wrong password' and 'user has no password', so this",
   );
   console.log("probe CANNOT distinguish life from death.");
   console.log("OPERATOR PROBE REQUIRED");
-  console.log(
-    "Authoritative alternative (executor-side, outside this script): read",
-  );
+  console.log("Authoritative alternative (executor-side, outside this script): read");
   console.log("`auth.users.encrypted_password IS NOT NULL` for the operator via SQL.");
 
   block("U-3e — operator identities AFTER");
@@ -232,14 +231,10 @@ async function main(): Promise<void> {
     providersAfter.includes("google") && !providersAfter.includes("email"),
     `providers = [${providersAfter.join(", ")}]`,
   );
-  console.log(
-    "password-presence fact: NOT DETERMINABLE from this script — see U-3d.",
-  );
+  console.log("password-presence fact: NOT DETERMINABLE from this script — see U-3d.");
 
   block("U-3f — STATE WARNING");
-  console.log(
-    "STATE: operator account is now google-only. Re-linking email requires the operator",
-  );
+  console.log("STATE: operator account is now google-only. Re-linking email requires the operator");
   console.log(
     "to set a password via the reset flow or re-link. DO NOT attempt to restore automatically.",
   );
@@ -250,6 +245,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  console.error(`FAIL — unhandled error: ${error instanceof Error ? error.message : String(error)}`);
+  console.error(
+    `FAIL — unhandled error: ${error instanceof Error ? error.message : String(error)}`,
+  );
   process.exit(1);
 });

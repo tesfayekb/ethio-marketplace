@@ -81,7 +81,7 @@ OAuth-consent steps CI cannot: unlink Google via the UI, then re-link via consen
 - **U-1 — PASS (guard bites server-side).** A throwaway single-identity user calling
   `DELETE /auth/v1/user/identities/{id}` on its sole identity is refused with HTTP 422,
   `{"code":422,"error_code":"single_identity_not_deletable","msg":"User must have at
-  least 1 identity after unlinking"}`. The throwaway user was deleted afterwards.
+least 1 identity after unlinking"}`. The throwaway user was deleted afterwards.
 - **U-2 — PASS.** After the operator's UI unlink + OAuth re-link, `getUserById` shows
   both `email` and `google` identities on the same user id, and the password was alive.
 - **U-3 — FINDING: GHOST DOOR CONFIRMED.** The `email` identity was unlinked (HTTP 200)
@@ -95,8 +95,8 @@ OAuth-consent steps CI cannot: unlink Google via the UI, then re-link via consen
 
 GoTrue's admin API returns **no** password field — `encrypted_password` is never
 exposed on the admin user object. The sign-in error taxonomy cannot substitute for it:
-GoTrue answers `invalid_credentials` / "Invalid login credentials" for both *wrong
-password* and *no password on this user*. The script therefore records the wrong-password
+GoTrue answers `invalid_credentials` / "Invalid login credentials" for both _wrong
+password_ and _no password on this user_. The script therefore records the wrong-password
 probe as evidence only and prints **OPERATOR PROBE REQUIRED**; the authoritative fact was
 read outside the script with SQL on the connected project:
 `select encrypted_password is not null from auth.users where email = …` → `true`.
