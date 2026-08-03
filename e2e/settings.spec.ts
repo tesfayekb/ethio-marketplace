@@ -62,7 +62,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await submit.click();
   await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("alert")).toHaveText(en["auth.errorWrongCurrentPassword"]);
-  await expect(page.getByRole("button", { name: /sign out/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^sign out$/i })).toBeVisible();
 
   // Correct current password: success feedback.
   await current.fill(user.password);
@@ -70,7 +70,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await submit.click();
   await expect(page.getByText(en["settings.passwordChanged"])).toBeVisible({ timeout: 15000 });
 
-  await page.getByRole("button", { name: /sign out/i }).click();
+  await page.getByRole("button", { name: /^sign out$/i }).click();
   await expectSignedOut(page);
 
   // Old password no longer works.

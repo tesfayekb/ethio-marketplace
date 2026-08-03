@@ -68,12 +68,12 @@ export async function signIn(page: Page, email: string, password: string) {
 }
 
 export async function expectSignedIn(page: Page, displayName: string) {
-  const signOutButton = page.getByRole("button", { name: /sign out/i });
+  const signOutButton = page.getByRole("button", { name: /^sign out$/i });
   await signOutButton.waitFor({ state: "visible", timeout: 15000 });
   await expect(signOutButton).toBeVisible();
   await expect(page.getByText(displayName, { exact: false })).toBeVisible();
 }
 
 export async function expectSignedOut(page: Page) {
-  await expect(page.getByRole("button", { name: /sign out/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^sign out$/i })).toHaveCount(0);
 }
