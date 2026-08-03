@@ -1,10 +1,12 @@
 # System State
 
 Phase: 1 (Identity) — IN PROGRESS. Email door (P1-c) CLOSED. Google door (P1-d) CLOSED
-2026-08-03. Settings surface (P1-f) BUILT 2026-08-03, trimmed per DEC-012 (sign out
-other devices, link/unlink methods with last-used, server-enforced last-method guard,
-password and email change; no device list, no display-name editing). Next build step:
-the Phase 1 gate (P1-g) — RLS posture review, dependency audit, guard-proof re-run.
+2026-08-03. Settings surface (P1-f) CLOSED 2026-08-03 — built, E2E-guarded
+(S-1..S-3), deny-proven (U-1 server refusal, U-2 unlink/relink, U-3 ghost door found
+and fixed as INC-024 with scripted recheck). Next: P1-g Phase 1 gate — RLS posture
+review of all Phase 1 tables with deny-case evidence, dependency-audit prompt,
+guard-proof re-run, polish sweep (Google-link callback copy; email-unlink
+password-deletion warning), then phase closure.
 
 Phase ladder amended by DEC-012 (2026-08-03): Telegram and multi-door settings moved to a
 later "Additional auth doors" phase; Phase 1 closes after the Google door and the trimmed
