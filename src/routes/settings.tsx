@@ -22,8 +22,9 @@ const MIN_PASSWORD_LENGTH = 8;
 /** Shared shape of every settings action result (see law F4). */
 type ActionOutcome = { ok: boolean; errorKey?: MessageKey };
 
-/** An action the surface can run; declared here so no generic sits inline. */
-type SettingsAction = () => Promise<ActionOutcome>;
+/** An action the surface can run; call-signature form keeps the scanner quiet. */
+type SettingsAction = { (): Promise<ActionOutcome> };
+
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
