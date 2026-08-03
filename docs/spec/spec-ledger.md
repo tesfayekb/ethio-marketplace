@@ -624,6 +624,19 @@ baseline plus JSON-parsed assertions.
   one-tap override. home_country_code is never involved in browsing and is confirmed
   only at first post.
 
+- **S.. (2026-08-03):** P1-d CLOSED. D-8 and D-10 executed by the operator on
+  ethio-prod against the published app with SQL read-back and live sign-in probes.
+  D-8: GoTrue replaces an unconfirmed email identity with the incoming Google
+  identity on the same user id and destroys the never-used password — the takeover
+  path is self-defusing; planted credentials are rejected afterwards. D-10: confirmed
+  accounts link cleanly, one user id, two identities, password intact. Directory
+  uniqueness verified by structure (single user id; trigger fires per auth.users
+  insert). D-9 deferred-named to the Additional-auth-doors phase (supervisor decision
+  under G17, operator may overrule): requires email_verified=false, unproducible with
+  gmail; linkRefused* keys reserved for it. Standing caveat: linking behaviour is
+  GoTrue's, uncoverable by CI — manual re-run pinned to the launch gate and to any
+  Supabase Auth change.
+
 D-012 — The Google spec ran on both viewports because the original prompt stated
 mobile-only but did not name the desktop-1280 testIgnore edit; supervisor
 under-specification, harmless, corrected here.
