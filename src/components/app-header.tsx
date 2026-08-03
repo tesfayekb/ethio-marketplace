@@ -30,11 +30,10 @@ export function AppHeader() {
           <LanguageSwitcher />
           {loading ? null : user ? (
             <>
-              {/* At 360px the name is the first thing to yield: it is hidden on
-                  the narrowest screens (the same truncate-then-hide pattern the
-                  header already uses) so Settings and Sign out both keep their
-                  44px targets on one row. */}
-              <span className="hidden max-w-[10rem] truncate text-sm text-muted-foreground sm:inline">
+              {/* At 360px the name yields width first: it truncates harder and
+                  the existing flex-wrap row lets Settings and Sign out drop to a
+                  second line rather than shrink below their 44px targets. */}
+              <span className="max-w-[6rem] truncate text-sm text-muted-foreground sm:max-w-[10rem]">
                 {user.displayName ?? t("auth.signedInAs")}
               </span>
               <Link
