@@ -682,3 +682,12 @@ natural companion to the service changes. Logged, not absorbed.
   SQL read-back. Not patched — reported. Operator account is now google-only; no
   automatic restore attempted. Script at scripts/deny-tests/p1f-identity-unlink.ts,
   secrets via env only.
+
+- **S.. (2026-08-03):** INC-024 GHOST DOOR — U-3's operator probe proved a password
+  survives its email identity's unlink and still signs in, invisible to the
+  settings method list. Operator ruled option A: unlink tells the truth. Fixed
+  Tier A: AFTER DELETE trigger on auth.identities nulls the password when an email
+  identity is unlinked while other identities remain (mirroring GoTrue's own D-8
+  replace semantics); one-time correction killed all existing ghosts including the
+  operator's. Proven by scripted recheck + operator-account read-back. Joins
+  D-8/D-10 on the launch-gate dependency-behaviour re-run list.

@@ -84,12 +84,29 @@ OAuth-consent steps CI cannot: unlink Google via the UI, then re-link via consen
 least 1 identity after unlinking"}`. The throwaway user was deleted afterwards.
 - **U-2 — PASS.** After the operator's UI unlink + OAuth re-link, `getUserById` shows
   both `email` and `google` identities on the same user id, and the password was alive.
-- **U-3 — FINDING: GHOST DOOR CONFIRMED.** The `email` identity was unlinked (HTTP 200)
-  leaving `google` only. Read-back afterwards:
-  `auth.identities → [google]` while `auth.users.encrypted_password IS NOT NULL` is
-  still **true**. The password survives the removal of the identity that created it: a
-  working credential that no sign-in-methods list shows and no user can manage.
-  Reported to the supervisor; **not patched here** (this task observes only).
+- **U-3 — FIXED 2026-08-03 (was: GHOST DOOR CONFIRMED, INC-024).** The `email` identity
+  was unlinked (HTTP 200) leaving `google` only. Read-back afterwards:
+  `auth.identities → [google]` while `auth.users.encrypted_password IS NOT NULL` was
+  still **true**, and the operator signed in live with that password — a working
+  credential that no sign-in-methods list shows and no user can manage.
+  Closed by migration `20260803100407_…` (see "Unlink semantics" below). Recheck
+  evidence, `--recheck` phases 1 and 2 against ethio-prod:
+  password signs in before the unlink → after the email identity is deleted with a
+  second identity remaining, the same password returns `invalid_credentials`, and
+  `has_password` reads **false**; operator-account read-back `has_password = false`.
+
+## Unlink semantics (INC-024)
+
+Removing the email identity **kills its password**. `public.handle_email_identity_unlink()`
+(SECURITY DEFINER, `search_path = public`, EXECUTE revoked from PUBLIC/anon/authenticated)
+runs AFTER DELETE ON `auth.identities` WHEN `OLD.provider = 'email'` and nulls
+`auth.users.encrypted_password` **only when another identity remains** — a full account
+deletion, which empties identities, is left alone. GoTrue already behaves this way in the
+identity _replace_ path (D-8); the trigger extends the same semantics to _unlink_, so the
+sign-in-methods list is the whole truth. A one-time correction in the same migration
+nulled every password that had no email identity (the operator's account, proven live).
+
+Operator ruling 2026-08-03: option A — unlink tells the truth.
 
 ### Password-presence mechanism (which field was used)
 

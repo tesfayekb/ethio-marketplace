@@ -60,3 +60,4 @@
 2026-08-03 — feat: P1-f settings surface — identity read-only, sign-in methods with server-enforced last-method guard, password/email change, sign out other devices
 2026-08-03 — fix: anchor sign-out locators (S-3); settings nav entry; relative-time formatter to lib
 2026-08-03 — test: U-1..U-3 identity-unlink deny evidence via admin script (P1-f)
+2026-08-03 — fix: unlinking the email identity now kills its password; existing ghost credentials corrected (INC-024)
