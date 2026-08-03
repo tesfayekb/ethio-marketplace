@@ -47,3 +47,4 @@
 2026-08-02 — test: fix A-3 virtual-clock mechanism (INC-015); add sign-up error diagnostics (INC-016)
 2026-08-02 — fix: resend cooldown engages on click, not on success (INC-017); pace E2E sign-up sends (INC-018)
 2026-08-03 — test: A-3 uses clock.runFor, not fastForward, so the cooldown countdown completes (INC-019)
+2026-08-03 — test: A-3 resend exhaustion moves to a nightly real-time E2E job with heartbeat (INC-020)
