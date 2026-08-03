@@ -1,6 +1,12 @@
 # System State
 
-Phase: 1 (Identity) — IN PROGRESS. Email door (P1-c) CLOSED. Next build step: P1-d (Google door).
+Phase: 1 (Identity) — IN PROGRESS. Email door (P1-c) CLOSED. Google door (P1-d) CLOSED
+2026-08-03 — built, E2E-guarded (G-1 scope-creep guard, G-2 presence), REQ-015 linking
+proven by operator deny tests D-8/D-10 with live-DB evidence; D-9 deferred-named per
+DEC-012 phase. Next build step: P1-f settings surface (trimmed per DEC-012: sessions
+list, step-up, last-used, last-method-unremovable guard), then the Phase 1 gate (P1-g):
+RLS posture review, dependency audit, guard-proof re-run.
+
 
 Phase ladder amended by DEC-012 (2026-08-03): Telegram and multi-door settings moved to a
 later "Additional auth doors" phase; Phase 1 closes after the Google door and the trimmed
