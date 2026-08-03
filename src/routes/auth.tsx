@@ -419,18 +419,20 @@ function AuthScreen() {
         {isSignIn ? t("auth.toggleToSignUp") : t("auth.toggleToSignIn")}
       </button>
 
-      {/* Slots only — Google (P1-d) and Telegram (P1-e) doors ship in later tasks. */}
+      {/* P1-d: real Google door below the email form (mobile-first order).
+          Telegram (P1-e) remains a slot until its own named phase. */}
       <section aria-labelledby="auth-providers" className="mt-8 border-t border-border pt-6">
         <h2 id="auth-providers" className="text-xs uppercase text-muted-foreground">
-          {t("auth.orContinueWith")}
+          {t("auth.orSeparator")}
         </h2>
         <div className="mt-3 flex flex-col gap-2">
           <button
             type="button"
-            disabled
-            className="min-h-11 w-full rounded-md border border-dashed border-border px-4 text-sm text-muted-foreground"
+            onClick={() => void handleGoogle()}
+            disabled={busy}
+            className={secondaryButtonClass}
           >
-            {t("auth.googleSlot")}
+            {t("auth.continueWithGoogle")}
           </button>
           <button
             type="button"
@@ -441,6 +443,7 @@ function AuthScreen() {
           </button>
         </div>
       </section>
+
     </main>
   );
 }
