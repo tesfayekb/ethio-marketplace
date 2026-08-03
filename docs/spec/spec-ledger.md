@@ -508,6 +508,12 @@ TRACKED (Tier-2 — plan the seam now, build later):
   the third send succeeding after the second failed. Both A-cases remain Phase 1
   gate blockers.
 
+- **S.. (2026-08-03):** Cooldown-on-click (INC-017) VERIFIED in CI — A-2 passes,
+  guarding the ruled security behaviour end-to-end; 12 of 13 cases green. A-3's
+  remaining failure traced to the virtual-time API, not the product: fastForward
+  fires due timers at most once, so the 1s cooldown countdown never reached zero
+  (INC-019, reverted to runFor). Logged D-010.
+
 ## Deviation ledger
 
 (D-001..D-005 are recorded inline in the session log entries above.)
@@ -538,3 +544,8 @@ impact; types-only.
   logged: an earlier send-throttling hypothesis was abandoned on evidence that in
   fact supported it, and a claimed 429-to-generic-error defect was retracted as
   never having existed.
+
+D-010 — The supervisor instructed replacing runFor with fastForward while diagnosing
+INC-015. The swap was wrong for an interval-driven countdown and went undetected
+because A-3 failed earlier in the test at the time, so the changed line was never
+executed. Corrected here.

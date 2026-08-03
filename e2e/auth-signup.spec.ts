@@ -91,7 +91,9 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     });
 
     // Only now: virtual clock to skip the 60s cooldown, never a real-clock wait
-    // (operator ruling 2026-08-02).
+    // (operator ruling 2026-08-02). Use runFor() here, not fastForward(): the 1s
+    // countdown interval fires each intervening timer, which fastForward() skips
+    // (it fires due timers at most once), leaving the cooldown label stuck.
     await page.clock.install();
 
     const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
@@ -102,13 +104,13 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
       await expect(
         page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") }),
       ).toBeVisible();
-      await page.clock.fastForward(61_000);
+      await page.clock.runFor(61_000);
       await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeEnabled();
     }
 
     await expect(page.getByText(en["auth.resendLimitReached"])).toBeVisible({ timeout: 15000 });
     // Further attempts are refused: the control stays disabled past the cooldown.
-    await page.clock.fastForward(61_000);
+    await page.clock.runFor(61_000);
     await expect(
       page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") }),
     ).toBeDisabled();
