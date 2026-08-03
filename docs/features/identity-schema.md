@@ -8,6 +8,9 @@ Migrations:
   grants, trigger, `confirm_home_country`.
 - `supabase/migrations/20260730021240_a0dbaf49-19a0-4761-a3f3-2a1f85117528.sql` — function
   hardening (deny-by-default EXECUTE).
+- `supabase/migrations/20260803075756_47bf56ca-eb85-4c8b-8e62-1f95cb9af2a6.sql` — INC-022:
+  `country_source` gains `'unknown'`, defaults flip, `home_country_code` becomes NULLable,
+  fabricated rows corrected, trigger fallback removed, `confirm_home_country` widened.
 
 Deny-proofs: `scripts/deny-tests/phase1-identity.md` (D1–D7, all PASS).
 
@@ -61,14 +64,16 @@ Two layers, two jobs: grants gate the columns, RLS gates the rows.
 ### `handle_new_user() → trigger`
 
 Fires on `auth.users` insert. Derives a display name (`full_name` → `name` → email local part →
-`'user'`) and a home country from `raw_user_meta_data.country_guess`, falling back to `'US'` when
-the code is absent or not present in `public.countries`. Inserts one `user_directory` row and one
+`'user'`) and a home country from `raw_user_meta_data.country_guess`, recording it with
+`country_source = 'ip_guess'` only when the code is present AND exists in
+`public.countries`; otherwise it writes `home_country_code = NULL` with
+`country_source = 'unknown'` (INC-022 — there is no fabricated fallback). Inserts one `user_directory` row and one
 `profiles` row. `SECURITY DEFINER` with `search_path = public`.
 
 ### `confirm_home_country(p_country char) → void`
 
 The user's one-shot correction of the IP-guessed country. Raises on no session, raises on an
-unknown country code, then updates `user_directory` **only where `country_source = 'ip_guess'`**
+unknown country code, then updates `user_directory` **only where `country_source IN ('ip_guess','unknown')`**
 and raises `country already confirmed` if that matched nothing; on success it mirrors the value
 into `profiles` and sets `country_source = 'user_confirmed'`. `SECURITY DEFINER` with
 `search_path = public` — it must write `user_directory`, which no client role can write directly.
@@ -92,6 +97,31 @@ ACLs: `handle_new_user {postgres=X}`, `confirm_home_country {postgres=X,authenti
 
 The function's internal `auth.uid() IS NULL` guard stays as defence in depth, but the privilege
 layer now refuses anonymous callers first (D7).
+
+## Country provenance lifecycle (INC-022)
+
+`country_source` has exactly three values and only ever moves toward stronger provenance:
+
+```
+unknown  ──(never automatic)──▶  user_confirmed
+ip_guess ──confirm_home_country──▶ user_confirmed
+```
+
+- **`unknown`** — the default. `home_country_code` is `NULL`. No guess has been made.
+- **`ip_guess`** — a real country hint arrived at signup (`raw_user_meta_data.country_guess`)
+  and resolved against `public.countries`.
+- **`user_confirmed`** — terminal. Only `confirm_home_country()` sets it, and it accepts
+  rows in either weaker state.
+
+**Unknown representation:** `NULL` in `home_country_code`. The column is NULLable on both
+tables; the FK to `public.countries` accepts NULL and nothing structurally required NOT NULL.
+A sentinel code such as `'XX'` was rejected — it would be another fabricated country value on
+a geography path, which is the very defect INC-022 removes.
+
+**The rule:** `home_country_code` is never fabricated. It stays unknown until a real guess
+arrives at signup or the user confirms it. Confirmation is required at first post; that
+picker is feed-phase UI, pre-filled from the user's viewing location. Viewing location for
+browsing is a session concern and is never written to identity rows.
 
 ## DEC-008 extraction seam
 
