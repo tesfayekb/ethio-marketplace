@@ -24,3 +24,6 @@ docs/tracking/ci-status.md
 # Machine-generated nightly E2E heartbeat (written by .github/workflows/nightly-e2e.yml).
 # Generated-file exemption, same class as ci-status.md (INC-011, Knowledge E5).
 docs/tracking/nightly-status.md
+
+# Guard-proof mutation fixtures — unified diffs, not source (see docs/features/guard-proof.md).
+e2e/proofs/*.patch

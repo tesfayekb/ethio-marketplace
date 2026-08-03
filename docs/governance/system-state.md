@@ -13,8 +13,9 @@ and runs NIGHTLY via .github/workflows/nightly-e2e.yml (06:00 UTC, plus
 workflow_dispatch); its completion heartbeat is docs/tracking/nightly-status.md — a
 timestamp older than ~48h means the schedule stopped. See docs/features/nightly-e2e.md.
 
-Phase 1 gate blockers: (b) the B-3 and C-4 proof-of-bite checks are not yet executed.
-They must clear before Phase 1 closes (G13).
+Phase 1 gate blockers: (b) B-3/C-4 proof-of-bite mechanism in place
+(.github/workflows/guard-proof.yml); awaiting first successful run. It must clear
+before Phase 1 closes (G13). See docs/features/guard-proof.md.
 
 Gates closed: Phase 0 (Foundation). Phase 1 remaining doors: P1-d Google, P1-e Telegram, P1-f settings, P1-g gate.
 
