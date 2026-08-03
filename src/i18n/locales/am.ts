@@ -52,7 +52,11 @@ export const am: Messages = {
   "auth.checking": "ክፍለ ጊዜዎን በመፈተሽ ላይ…",
   "auth.working": "እባክዎ ይጠብቁ…",
   "auth.orContinueWith": "ወይም በሚከተለው ይቀጥሉ",
-  "auth.googleSlot": "በGoogle ይቀጥሉ (በቅርቡ)",
+  "auth.orSeparator": "ወይም በሚከተለው ይቀጥሉ",
+  "auth.continueWithGoogle": "በGoogle ይቀጥሉ",
+  "auth.linkRefusedTitle": "መጀመሪያ ይህን አድራሻ ያረጋግጡ",
+  "auth.linkRefusedBody":
+    "ይህ አድራሻ ከGoogle ጋር ከመያያዙ በፊት በኢሜይል መረጋገጥ አለበት። በኢሜይል ቅጹ ይቀጥሉና የምንልክልዎን የማረጋገጫ ሊንክ ይክፈቱ።",
   "auth.telegramSlot": "በTelegram ይቀጥሉ (በቅርቡ)",
   "auth.errorInvalidCredentials": "ኢሜይሉና የይለፍ ቃሉ አይዛመዱም።",
   "auth.errorEmailNotConfirmed": "ከመግባትዎ በፊት ኢሜይልዎን ያረጋግጡ።",
