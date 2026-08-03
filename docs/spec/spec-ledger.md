@@ -600,3 +600,10 @@ baseline plus JSON-parsed assertions.
   scopes — a guard against silent scope creep — without loading Google. REQ-015 linking
   behaviour is SPECIFIED but NOT YET VERIFIED against Supabase's actual handling of the
   unconfirmed-account path; deny tests D-8/D-9/D-10 gate step closure.
+
+- **S.. (2026-08-03):** INC-022 — the P1-a country sentinel ('US' + fabricated
+  'ip_guess' provenance) removed per operator ruling: country_source gains 'unknown',
+  defaults flip, the trigger fallback is gone, existing rows corrected. Home country
+  is now honest-at-rest; the user confirms it at first post (feed-phase UI), and
+  anonymous/browsing geolocation is a session concern for the feed phase, never
+  written to identity rows. Tier A: live-DB read-back required before CLEAN.
