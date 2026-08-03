@@ -170,14 +170,18 @@ async function phase2(): Promise<void> {
     deadCheck.ok ? "sign-in still succeeded" : deadCheck.why,
   );
 
-  block("PHASE 2b — CENSUS 2: does recovery email SEND for a passwordless, email-identity-less user?");
+  block(
+    "PHASE 2b — CENSUS 2: does recovery email SEND for a passwordless, email-identity-less user?",
+  );
   const { error: resetError } = await anonClient().auth.resetPasswordForEmail(state.email, {
     redirectTo: `${BASE_URL}/auth/reset`,
   });
   check(
     "resetPasswordForEmail returned without error",
     !resetError,
-    resetError ? `${resetError.code ?? "error"} / ${resetError.message}` : "no error (send accepted)",
+    resetError
+      ? `${resetError.code ?? "error"} / ${resetError.message}`
+      : "no error (send accepted)",
   );
 
   block("PHASE 2c — CENSUS 3: complete recovery and set a password");
