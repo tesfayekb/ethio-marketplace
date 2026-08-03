@@ -30,9 +30,19 @@ export function AppHeader() {
           <LanguageSwitcher />
           {loading ? null : user ? (
             <>
-              <span className="max-w-[10rem] truncate text-sm text-muted-foreground">
+              {/* At 360px the name is the first thing to yield: it is hidden on
+                  the narrowest screens (the same truncate-then-hide pattern the
+                  header already uses) so Settings and Sign out both keep their
+                  44px targets on one row. */}
+              <span className="hidden max-w-[10rem] truncate text-sm text-muted-foreground sm:inline">
                 {user.displayName ?? t("auth.signedInAs")}
               </span>
+              <Link
+                to="/settings"
+                className="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {t("settings.navLabel")}
+              </Link>
               <button
                 type="button"
                 onClick={handleSignOut}
@@ -41,6 +51,7 @@ export function AppHeader() {
                 {t("auth.signOut")}
               </button>
             </>
+
           ) : (
             <Link
               to="/auth"
