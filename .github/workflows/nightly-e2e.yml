@@ -4,7 +4,7 @@ name: Nightly E2E
 # docs/features/nightly-e2e.md. Deliberately NOT triggered on push.
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: "0 6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Mirrors the CI e2e job's env block; the nightly job sets the sink itself.
-      E2E_EMAIL_SINK: '1'
+      E2E_EMAIL_SINK: "1"
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}

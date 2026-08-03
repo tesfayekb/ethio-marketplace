@@ -5,19 +5,19 @@ app behaviour is changed by this suite.
 
 ## Case inventory
 
-| ID  | Behaviour guarded                                                | Spec file                        |
-| --- | ---------------------------------------------------------------- | -------------------------------- |
-| A-1 | Sign-up reaches check-email and echoes the captured address      | `e2e/auth-signup.spec.ts`        |
-| A-2 | Resend throttle engages (disabled control + cooldown copy)       | `e2e/auth-signup.spec.ts`        |
+| ID  | Behaviour guarded                                                | Spec file                                              |
+| --- | ---------------------------------------------------------------- | ------------------------------------------------------ |
+| A-1 | Sign-up reaches check-email and echoes the captured address      | `e2e/auth-signup.spec.ts`                              |
+| A-2 | Resend throttle engages (disabled control + cooldown copy)       | `e2e/auth-signup.spec.ts`                              |
 | A-3 | Per-visit resend limit (3) is reached and further sends refused  | `e2e/nightly/auth-resend-exhaustion.spec.ts` (NIGHTLY) |
-| B-1 | Wrong password: error shown, no session                          | `e2e/auth-signin-errors.spec.ts` |
-| B-2 | Unknown email: error shown, no session                           | `e2e/auth-signin-errors.spec.ts` |
-| B-3 | Enumeration indistinguishability (identical text + controls)     | `e2e/auth-signin-errors.spec.ts` |
-| B-4 | Unconfirmed account cannot sign in                               | `e2e/auth-signin-errors.spec.ts` |
-| C-1 | A fresh confirmation link signs the user in                      | `e2e/auth-callback.spec.ts`      |
-| C-2 | A replayed link fails honestly (no fabricated success)           | `e2e/auth-callback.spec.ts`      |
-| C-3 | Already-confirmed user gets the honest already-confirmed surface | `e2e/auth-callback.spec.ts`      |
-| C-4 | INC-010a: no arbitrary-recipient resend on the callback surface  | `e2e/auth-callback.spec.ts`      |
+| B-1 | Wrong password: error shown, no session                          | `e2e/auth-signin-errors.spec.ts`                       |
+| B-2 | Unknown email: error shown, no session                           | `e2e/auth-signin-errors.spec.ts`                       |
+| B-3 | Enumeration indistinguishability (identical text + controls)     | `e2e/auth-signin-errors.spec.ts`                       |
+| B-4 | Unconfirmed account cannot sign in                               | `e2e/auth-signin-errors.spec.ts`                       |
+| C-1 | A fresh confirmation link signs the user in                      | `e2e/auth-callback.spec.ts`                            |
+| C-2 | A replayed link fails honestly (no fabricated success)           | `e2e/auth-callback.spec.ts`                            |
+| C-3 | Already-confirmed user gets the honest already-confirmed surface | `e2e/auth-callback.spec.ts`                            |
+| C-4 | INC-010a: no arbitrary-recipient resend on the callback surface  | `e2e/auth-callback.spec.ts`                            |
 
 All assertions read the `en` locale catalog; no English literals are hard-coded
 in the specs (translation law D1 applies to tests too).

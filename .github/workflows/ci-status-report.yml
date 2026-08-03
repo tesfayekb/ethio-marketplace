@@ -7,7 +7,7 @@ name: CI Status Report
 #  - CI's push trigger ignores docs/tracking/ci-status.md.
 on:
   workflow_run:
-    workflows: ['CI']
+    workflows: ["CI"]
     types: [completed]
 
 jobs:

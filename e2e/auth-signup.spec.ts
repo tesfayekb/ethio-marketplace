@@ -77,4 +77,3 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     await expect(throttled).toBeDisabled();
   });
 });
-

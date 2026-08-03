@@ -66,5 +66,7 @@ test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
   await expect(page.getByText(en["auth.resendLimitReached"])).toBeVisible({ timeout: 15000 });
   // Further attempts are refused: the control stays disabled past the cooldown.
   await page.waitForTimeout(61_000);
-  await expect(page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") }),
+  ).toBeDisabled();
 });

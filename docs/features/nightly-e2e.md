@@ -4,9 +4,9 @@
 
 Only cases that require **real elapsed time**. Today that is exactly one case:
 
-| ID  | Behaviour guarded                                        | Spec file                                     |
-| --- | -------------------------------------------------------- | --------------------------------------------- |
-| A-3 | Per-visit resend limit (3) reached; further sends refused | `e2e/nightly/auth-resend-exhaustion.spec.ts`  |
+| ID  | Behaviour guarded                                         | Spec file                                    |
+| --- | --------------------------------------------------------- | -------------------------------------------- |
+| A-3 | Per-visit resend limit (3) reached; further sends refused | `e2e/nightly/auth-resend-exhaustion.spec.ts` |
 
 A-3 must sit out two 60-second resend cooldowns. Playwright's virtual clock cannot
 substitute for that in this app: three mechanisms were tried and all failed
