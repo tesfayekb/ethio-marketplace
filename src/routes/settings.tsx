@@ -22,6 +22,9 @@ const MIN_PASSWORD_LENGTH = 8;
 /** Shared shape of every settings action result (see law F4). */
 type ActionOutcome = { ok: boolean; errorKey?: MessageKey };
 
+/** An action the surface can run; declared here so no generic sits inline. */
+type SettingsAction = () => Promise<ActionOutcome>;
+
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
@@ -141,7 +144,7 @@ function SettingsScreen() {
   }
 
   /** INC-017 precedent: busy engages on INITIATION, before the request leaves. */
-  async function run(action: () => Promise<ActionOutcome>, done: MessageKey) {
+  async function run(action: SettingsAction, done: MessageKey) {
     if (busy) return false;
     reset();
     setBusy(true);
