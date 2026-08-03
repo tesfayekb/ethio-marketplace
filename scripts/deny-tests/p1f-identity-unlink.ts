@@ -58,7 +58,12 @@ async function findUserByEmail(email: string): Promise<AdminUser | null> {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
     if (error) throw new Error(`listUsers failed: ${error.message}`);
     const hit = data.users.find((u) => (u.email ?? "").toLowerCase() === email.toLowerCase());
-    if (hit) return hit as unknown as AdminUser;
+    if (hit) {
+      // listUsers omits `identities`; getUserById returns them.
+      const { data: full, error: getError } = await admin.auth.admin.getUserById(hit.id);
+      if (getError || !full.user) throw new Error(`getUserById failed: ${getError?.message}`);
+      return full.user as unknown as AdminUser;
+    }
     if (data.users.length < 200) return null;
   }
   return null;
