@@ -44,18 +44,52 @@ function failure(error: { message: string; code?: string; status?: number }): Au
   };
 }
 
+/**
+ * DEC-010 Turnstile SEAM — structure only, no CAPTCHA today.
+ *
+ * Cloudflare Turnstile is enabled at launch; staging will use Cloudflare's
+ * always-pass test keys. Until then this returns undefined, which Supabase
+ * treats as "no captcha token supplied". No widget, no dependency, no network
+ * call is introduced by this helper.
+ */
+export function getCaptchaToken(): string | undefined {
+  return undefined;
+}
+
 export async function signUp({ email, password }: Credentials): Promise<AuthResult> {
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: emailRedirectUrl() },
+    options: { emailRedirectTo: emailRedirectUrl(), captchaToken: getCaptchaToken() },
   });
   if (error) return failure(error);
   return { ok: true };
 }
 
 export async function signInWithPassword({ email, password }: Credentials): Promise<AuthResult> {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+    options: { captchaToken: getCaptchaToken() },
+  });
+  if (error) return failure(error);
+  return { ok: true };
+}
+
+/**
+ * Google door (P1-d). Scopes are passed explicitly so the request is
+ * self-documenting even though the provider is configured server-side; they
+ * stay minimal (email, profile, openid) — nothing else is ever requested.
+ * The redirect target reuses the email door's helper: one source of truth.
+ */
+export async function signInWithGoogle(): Promise<AuthResult> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: emailRedirectUrl(),
+      scopes: "email profile openid",
+    },
+  });
   if (error) return failure(error);
   return { ok: true };
 }
@@ -64,11 +98,12 @@ export async function resendConfirmation(email: string): Promise<AuthResult> {
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
-    options: { emailRedirectTo: emailRedirectUrl() },
+    options: { emailRedirectTo: emailRedirectUrl(), captchaToken: getCaptchaToken() },
   });
   if (error) return failure(error);
   return { ok: true };
 }
+
 
 export async function signOut(): Promise<AuthResult> {
   const { error } = await supabase.auth.signOut();
