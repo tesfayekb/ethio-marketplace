@@ -261,9 +261,124 @@ async function main(): Promise<void> {
   process.exit(failures === 0 ? 0 : 1);
 }
 
-main().catch((error: unknown) => {
+// ---------------------------------------------------------------- INC-024 recheck
+
+async function passwordSignIn(
+  email: string,
+  password: string,
+): Promise<{ ok: boolean; code?: string; message: string }> {
+  const { data, error } = await anonClient().auth.signInWithPassword({ email, password });
+  return {
+    ok: Boolean(data?.session),
+    code: error?.code,
+    message: error?.message ?? "signed in",
+  };
+}
+
+async function recheckPhase1(): Promise<void> {
+  block("INC-024 RECHECK — phase 1: mint a throwaway email user and prove the password is ALIVE");
+  const email = `recheck-inc024-${crypto.randomUUID()}@example.com`;
+  const password = `Ghost-${crypto.randomUUID()}`;
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+  if (error || !data.user) throw new Error(`createUser failed: ${error?.message}`);
+  console.log(`throwaway user id: ${data.user.id}`);
+  console.log(`providers: [${(data.user.identities ?? []).map((i) => i.provider).join(", ")}]`);
+
+  const alive = await passwordSignIn(email, password);
+  check("password ALIVE before unlink (positive sign-in)", alive.ok, alive.message);
+
+  block("EXECUTOR SQL — run these, then re-run with --phase 2");
+  console.log(`-- 1) synthetic second identity so the trigger's remaining-identity guard fires`);
+  console.log(
+    `insert into auth.identities (id, user_id, provider, provider_id, identity_data, created_at, updated_at)\n` +
+      `values (gen_random_uuid(), '${data.user.id}', 'google', 'synthetic-${data.user.id}',\n` +
+      `        jsonb_build_object('sub','synthetic-${data.user.id}','email','${email}'), now(), now());`,
+  );
+  console.log(`-- 2) the unlink under test`);
+  console.log(
+    `delete from auth.identities where user_id = '${data.user.id}' and provider = 'email';`,
+  );
+  console.log(`-- 3) read-back predicate`);
+  console.log(
+    `select (encrypted_password is not null and encrypted_password <> '') as has_password\n` +
+      `from auth.users where id = '${data.user.id}';`,
+  );
+  console.log("");
+  console.log(`RECHECK_EMAIL=${email}`);
+  console.log(`RECHECK_PASSWORD=${password}`);
+  console.log(`RECHECK_USER_ID=${data.user.id}`);
+
+  block("RESULT (phase 1)");
+  console.log(failures === 0 ? "ALL CHECKS PASS" : `${failures} CHECK(S) FAILED`);
+  process.exit(failures === 0 ? 0 : 1);
+}
+
+async function recheckPhase2(): Promise<void> {
+  const email = process.env["RECHECK_EMAIL"];
+  const password = process.env["RECHECK_PASSWORD"];
+  if (!email || !password) {
+    console.error("FAIL: --phase 2 needs RECHECK_EMAIL and RECHECK_PASSWORD from phase 1.");
+    process.exit(1);
+  }
+
+  block("INC-024 RECHECK — phase 2: the email identity is gone; the password must be DEAD");
+  const user = await findUserByEmail(email);
+  if (!user) {
+    console.error("FAIL: throwaway user not found.");
+    process.exit(1);
+  }
+  const providers = providersOf(user);
+  check("email identity removed, account alive on another door", !providers.includes("email"), `providers = [${providers.join(", ")}]`);
+
+  const dead = await passwordSignIn(email, password);
+  check(
+    "old password NO LONGER signs in (ghost door closed)",
+    !dead.ok,
+    `code=${dead.code ?? "none"} message="${dead.message}"`,
+  );
+
+  block("CLEANUP — throwaway user deleted");
+  await admin.auth.admin.deleteUser(user.id);
+  console.log("deleted");
+
+  block("OPERATOR ACCOUNT READ-BACK (executor SQL, predicate documented in the header)");
+  console.log(
+    `select (encrypted_password is not null and encrypted_password <> '') as has_password\n` +
+      `from auth.users where email = '${OPERATOR_EMAIL}';   -- must be FALSE after the 1c correction`,
+  );
+
+  block("RESULT (phase 2)");
+  console.log(failures === 0 ? "ALL CHECKS PASS" : `${failures} CHECK(S) FAILED`);
+  process.exit(failures === 0 ? 0 : 1);
+}
+
+const argv = process.argv.slice(2);
+
+async function run(): Promise<void> {
+  if (argv.includes("--recheck")) {
+    const phase = argv[argv.indexOf("--phase") + 1];
+    if (phase === "2") return recheckPhase2();
+    return recheckPhase1();
+  }
+  if (!argv.includes("--force")) {
+    console.error(
+      "REFUSED: the U-1..U-3 run is destructive to a real account and already executed\n" +
+        "(2026-08-03, results in docs/features/settings-surface.md). Pass --force to repeat,\n" +
+        "or use --recheck for the INC-024 post-fix verification.",
+    );
+    process.exit(1);
+  }
+  return main();
+}
+
+run().catch((error: unknown) => {
   console.error(
     `FAIL — unhandled error: ${error instanceof Error ? error.message : String(error)}`,
   );
   process.exit(1);
 });
+
