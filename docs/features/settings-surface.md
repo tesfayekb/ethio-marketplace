@@ -1,6 +1,6 @@
 # Settings surface (P1-f)
 
-Status: BUILT 2026-08-03. Trimmed per DEC-012.
+Status: CLOSED 2026-08-03. Trimmed per DEC-012.
 
 Route: `src/routes/settings.tsx` (auth-required, 360px primary).
 Service: `src/features/auth/auth-service.ts`.
@@ -153,3 +153,12 @@ which needs two real mailboxes — blocked on the custom SMTP launch-gate item.
 "Sign out other devices" collides with any unanchored `/sign out/i` probe. The spec and
 the shared `expectSignedIn`/`expectSignedOut` helpers use the anchored `/^sign out$/i`;
 keep new sign-out-adjacent labels in mind when writing session probes.
+
+## Final semantics
+
+The sign-in-methods list is the whole truth: unlinking the email identity deletes the
+password (INC-024 trigger on `auth.identities`), the last method is unremovable
+server-side (U-1, HTTP 422 `single_identity_not_deletable`), and the disabled Unlink
+control is honesty only, never authorization. The P1-g polish sweep still owes the UI
+copy warning before an email unlink (the password deletion is real and not recoverable
+without re-linking or reset).

@@ -691,3 +691,10 @@ natural companion to the service changes. Logged, not absorbed.
   replace semantics); one-time correction killed all existing ghosts including the
   operator's. Proven by scripted recheck + operator-account read-back. Joins
   D-8/D-10 on the launch-gate dependency-behaviour re-run list.
+
+- **S.. (2026-08-03):** P1-f CLOSED. Settings surface deny-proven end to end; the
+  U-3 ghost door became INC-024 and its fix (trigger on auth.identities) is the
+  project's first accepted-risk control on a Supabase-reserved schema — detection is
+  the scripted `--recheck`, pinned to the launch gate and any Supabase Auth change.
+  Staging migrated by operator; operator probe confirms the old password is dead.
+  Phase 1 has one step remaining: the P1-g gate.

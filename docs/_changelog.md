@@ -61,3 +61,4 @@
 2026-08-03 — fix: anchor sign-out locators (S-3); settings nav entry; relative-time formatter to lib
 2026-08-03 — test: U-1..U-3 identity-unlink deny evidence via admin script (P1-f)
 2026-08-03 — fix: unlinking the email identity now kills its password; existing ghost credentials corrected (INC-024)
+2026-08-03 — docs: P1-f closed — settings surface deny-proven; INC-024 fix verified on both databases
