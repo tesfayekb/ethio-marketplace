@@ -19,6 +19,10 @@ import type { MessageKey } from "@/i18n";
 /** Mirrors the server's password rule; the server remains the authority. */
 const MIN_PASSWORD_LENGTH = 8;
 
+/** Shared shape of every settings action result (see law F4). */
+type ActionOutcome = { ok: boolean; errorKey?: MessageKey };
+
+
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
