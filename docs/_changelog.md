@@ -48,3 +48,4 @@
 2026-08-02 — fix: resend cooldown engages on click, not on success (INC-017); pace E2E sign-up sends (INC-018)
 2026-08-03 — test: A-3 uses clock.runFor, not fastForward, so the cooldown countdown completes (INC-019)
 2026-08-03 — test: A-3 resend exhaustion moves to a nightly real-time E2E job with heartbeat (INC-020)
+2026-08-03 — test: guard-proof workflow proves B-3 and C-4 bite against mutation fixtures
