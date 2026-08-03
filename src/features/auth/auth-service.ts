@@ -33,9 +33,13 @@ function toErrorKey(error: { message: string; code?: string; status?: number }):
   if (code === "user_already_exists" || /already registered/i.test(message)) {
     return "auth.errorEmailInUse";
   }
+  if (code === "single_identity_not_deletable" || /at least 1 identity/i.test(message)) {
+    return "auth.errorLastMethod";
+  }
   if (code === "weak_password" || /password should be/i.test(message)) {
     return "auth.errorWeakPassword";
   }
+
   if (code === "validation_failed" || /invalid email|email address/i.test(message)) {
     return "auth.errorInvalidEmail";
   }
