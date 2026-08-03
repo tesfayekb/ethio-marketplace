@@ -77,6 +77,8 @@ function AuthScreen() {
   const [confirmed, setConfirmed] = useState(false);
   // D-004: read-only, session-scoped sign-up email.
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  // INC-017: guards against concurrent resend submits (see handleResend).
+  const resendInFlightRef = useRef(false);
 
   const onCheckEmail = view === "check-email";
   const isSignIn = view !== "sign-up";
