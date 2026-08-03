@@ -88,7 +88,8 @@ export const am: Messages = {
   "settings.passwordChanged": "የይለፍ ቃልዎ ተቀይሯል።",
   "settings.changeEmail": "ኢሜይል ይቀይሩ",
   "settings.newEmail": "አዲስ የኢሜይል አድራሻ",
-  "settings.emailChangeSent": "የማረጋገጫ አገናኞች ወደ አሁኑም ወደ አዲሱም አድራሻዎ ተልከዋል። ሁለቱንም ሲከፍቱ ብቻ ኢሜይልዎ ይቀየራል።",
+  "settings.emailChangeSent":
+    "የማረጋገጫ አገናኞች ወደ አሁኑም ወደ አዲሱም አድራሻዎ ተልከዋል። ሁለቱንም ሲከፍቱ ብቻ ኢሜይልዎ ይቀየራል።",
   "settings.signOutOthers": "ከሌሎች መሣሪያዎች ይውጡ",
   "settings.signOutOthersConfirm": "ከዚህ መሣሪያ በስተቀር ከሁሉም ቦታ ይውጡ?",
   "settings.signOutOthersConfirmYes": "አዎ፣ ያስወጣቸው",

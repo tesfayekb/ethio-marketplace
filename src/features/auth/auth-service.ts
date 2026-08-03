@@ -3,14 +3,7 @@ import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/su
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 
-import type {
-  AuthResult,
-  Credentials,
-  IdentitiesResult,
-  VerificationResult,
-} from "./types";
-
-
+import type { AuthResult, Credentials, IdentitiesResult, VerificationResult } from "./types";
 
 /** Where Supabase sends the user after they click the confirmation link. */
 export function emailRedirectUrl(): string {
@@ -225,7 +218,6 @@ export async function changeEmail(newEmail: string): Promise<AuthResult> {
   if (error) return failure(error);
   return { ok: true };
 }
-
 
 /**
  * True when a session exists for THIS browser, rehydrating from storage first

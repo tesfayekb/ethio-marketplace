@@ -45,4 +45,3 @@ export type IdentitySummary = {
 export type IdentitiesResult =
   | { ok: true; identities: IdentitySummary[] }
   | { ok: false; errorKey: MessageKey };
-

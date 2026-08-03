@@ -44,7 +44,6 @@ export default defineConfig({
         "**/auth-callback.spec.ts",
         "**/auth-google.spec.ts",
         "**/settings.spec.ts",
-
       ],
     },
   ],

@@ -138,7 +138,10 @@ function SettingsScreen() {
   }
 
   /** INC-017 precedent: busy engages on INITIATION, before the request leaves. */
-  async function run(action: () => Promise<{ ok: boolean; errorKey?: MessageKey }>, done: MessageKey) {
+  async function run(
+    action: () => Promise<{ ok: boolean; errorKey?: MessageKey }>,
+    done: MessageKey,
+  ) {
     if (busy) return false;
     reset();
     setBusy(true);

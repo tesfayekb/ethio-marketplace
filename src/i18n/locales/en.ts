@@ -81,7 +81,8 @@ export const en = {
   "settings.linkGoogle": "Link Google",
   "settings.unlink": "Unlink",
   "settings.unlinked": "Sign-in method removed.",
-  "settings.lastMethodGuard": "This is your only sign-in method. Add another one before removing it.",
+  "settings.lastMethodGuard":
+    "This is your only sign-in method. Add another one before removing it.",
   "settings.security": "Security",
   "settings.changePassword": "Change password",
   "settings.currentPassword": "Current password",
@@ -89,7 +90,8 @@ export const en = {
   "settings.passwordChanged": "Your password has been changed.",
   "settings.changeEmail": "Change email",
   "settings.newEmail": "New email address",
-  "settings.emailChangeSent": "Confirmation links were sent to both your current and your new address. Your email changes only after you open both.",
+  "settings.emailChangeSent":
+    "Confirmation links were sent to both your current and your new address. Your email changes only after you open both.",
   "settings.signOutOthers": "Sign out other devices",
   "settings.signOutOthersConfirm": "Sign out everywhere except this device?",
   "settings.signOutOthersConfirmYes": "Yes, sign them out",
