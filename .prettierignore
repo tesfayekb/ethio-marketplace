@@ -20,3 +20,7 @@ docs/governance/
 # Machine-generated CI status (written by .github/workflows/ci-status-report.yml).
 # Generated-file exemption, same class as routeTree.gen.ts / types.ts (INC-001, Knowledge E5).
 docs/tracking/ci-status.md
+
+# Machine-generated nightly E2E heartbeat (written by .github/workflows/nightly-e2e.yml).
+# Generated-file exemption, same class as ci-status.md (INC-011, Knowledge E5).
+docs/tracking/nightly-status.md

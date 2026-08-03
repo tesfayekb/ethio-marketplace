@@ -29,6 +29,8 @@ export default defineConfig({
     {
       name: "mobile-360",
       use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 740 } },
+      // Nightly specs need real elapsed time; they never run per push (INC-020).
+      testIgnore: ["**/nightly/**"],
     },
     {
       name: "desktop-1280",
@@ -36,6 +38,7 @@ export default defineConfig({
       // Operator ruling (2026-08-02): auth logic/error cases run on mobile-360
       // only; the smoke spec keeps both viewports.
       testIgnore: [
+        "**/nightly/**",
         "**/auth-signup.spec.ts",
         "**/auth-signin-errors.spec.ts",
         "**/auth-callback.spec.ts",

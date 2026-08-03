@@ -5,19 +5,19 @@ app behaviour is changed by this suite.
 
 ## Case inventory
 
-| ID  | Behaviour guarded                                                | Spec file                        |
-| --- | ---------------------------------------------------------------- | -------------------------------- |
-| A-1 | Sign-up reaches check-email and echoes the captured address      | `e2e/auth-signup.spec.ts`        |
-| A-2 | Resend throttle engages (disabled control + cooldown copy)       | `e2e/auth-signup.spec.ts`        |
-| A-3 | Per-visit resend limit (3) is reached and further sends refused  | `e2e/auth-signup.spec.ts`        |
-| B-1 | Wrong password: error shown, no session                          | `e2e/auth-signin-errors.spec.ts` |
-| B-2 | Unknown email: error shown, no session                           | `e2e/auth-signin-errors.spec.ts` |
-| B-3 | Enumeration indistinguishability (identical text + controls)     | `e2e/auth-signin-errors.spec.ts` |
-| B-4 | Unconfirmed account cannot sign in                               | `e2e/auth-signin-errors.spec.ts` |
-| C-1 | A fresh confirmation link signs the user in                      | `e2e/auth-callback.spec.ts`      |
-| C-2 | A replayed link fails honestly (no fabricated success)           | `e2e/auth-callback.spec.ts`      |
-| C-3 | Already-confirmed user gets the honest already-confirmed surface | `e2e/auth-callback.spec.ts`      |
-| C-4 | INC-010a: no arbitrary-recipient resend on the callback surface  | `e2e/auth-callback.spec.ts`      |
+| ID  | Behaviour guarded                                                | Spec file                                              |
+| --- | ---------------------------------------------------------------- | ------------------------------------------------------ |
+| A-1 | Sign-up reaches check-email and echoes the captured address      | `e2e/auth-signup.spec.ts`                              |
+| A-2 | Resend throttle engages (disabled control + cooldown copy)       | `e2e/auth-signup.spec.ts`                              |
+| A-3 | Per-visit resend limit (3) is reached and further sends refused  | `e2e/nightly/auth-resend-exhaustion.spec.ts` (NIGHTLY) |
+| B-1 | Wrong password: error shown, no session                          | `e2e/auth-signin-errors.spec.ts`                       |
+| B-2 | Unknown email: error shown, no session                           | `e2e/auth-signin-errors.spec.ts`                       |
+| B-3 | Enumeration indistinguishability (identical text + controls)     | `e2e/auth-signin-errors.spec.ts`                       |
+| B-4 | Unconfirmed account cannot sign in                               | `e2e/auth-signin-errors.spec.ts`                       |
+| C-1 | A fresh confirmation link signs the user in                      | `e2e/auth-callback.spec.ts`                            |
+| C-2 | A replayed link fails honestly (no fabricated success)           | `e2e/auth-callback.spec.ts`                            |
+| C-3 | Already-confirmed user gets the honest already-confirmed surface | `e2e/auth-callback.spec.ts`                            |
+| C-4 | INC-010a: no arbitrary-recipient resend on the callback surface  | `e2e/auth-callback.spec.ts`                            |
 
 All assertions read the `en` locale catalog; no English literals are hard-coded
 in the specs (translation law D1 applies to tests too).
@@ -30,14 +30,17 @@ A-1..A-3 now run when the E2E job receives `E2E_EMAIL_SINK=1` (set as a reposito
 the real sign-up path and Mailtrap received genuine confirmation emails with a
 functioning confirm link.
 
-## Virtual-clock constraint (INC-015)
+## Where A-3 lives now (INC-020)
 
-`page.clock.install()` must NOT be active while a Supabase request is in flight: it
-freezes the timers supabase-js relies on, so the request never completes and the UI
-shows no email, no cooldown, and no error. A-3 therefore completes sign-up on real
-timers, installs the clock only after the check-email view is visible, and advances
-the cooldown with `page.clock.fastForward()` (which skips time without running the
-intervening timer callbacks) rather than `runFor()`.
+A-3 is **no longer in the per-push suite**. Virtual time proved unworkable for it:
+`clock.install()` before navigation froze the timers supabase-js needs (INC-015),
+and neither `fastForward` nor `runFor` let the 1-second cooldown countdown reach
+zero (INC-019). A-3 now runs in the nightly scheduled job with REAL waits — see
+`docs/features/nightly-e2e.md`.
+
+A-1 and A-2 remain per-push. **A-2 is the per-push guard for the operator-ruled
+cooldown-on-click behaviour**; nothing about the throttle was weakened to move A-3.
+The per-push suite therefore collects 12 cases, not 13.
 
 ## Open failure: A-2 (INC-016)
 
@@ -54,6 +57,7 @@ in this file, so the next run self-reports. A-2 remains a Phase 1 gate blocker.
 
 - `smoke-auth-i18n.spec.ts` — both viewports (layout/overflow is viewport-sensitive).
 - `auth-signup`, `auth-signin-errors`, `auth-callback` — `mobile-360` only.
+- Both projects carry `testIgnore: ['**/nightly/**']`, so nightly specs never run per push.
 
 Rationale (operator ruling 2026-08-02): these are logic and error-path cases, not
 layout cases. Running them twice doubles runtime and doubles the Supabase auth
@@ -61,10 +65,9 @@ calls without adding information.
 
 ## Resend throttle: UI-level assertion only
 
-A-2 and A-3 assert the throttle where the user meets it — the control becomes
-disabled and the cooldown copy renders. There is **no real-clock 60-second wait**
-anywhere in the suite. A-3 advances the cooldown with Playwright's virtual clock
-(`page.clock.install()` / `runFor`), which is fake-timer time, not wall time.
+A-2 asserts the throttle where the user meets it — the control becomes disabled and
+the cooldown copy renders. There is **no real-clock 60-second wait** in the per-push
+suite. The real 61-second waits live only in the nightly A-3 spec.
 
 ## Teardown contract: namespace sweep
 

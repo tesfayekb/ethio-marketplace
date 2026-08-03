@@ -76,43 +76,4 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     await expect(throttled).toBeVisible({ timeout: 15000 });
     await expect(throttled).toBeDisabled();
   });
-
-  test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
-    // Sign-up runs on REAL timers: installing the virtual clock beforehand froze
-    // the timers supabase-js depends on and the request never completed (INC-015).
-    // INC-018: Mailtrap's free sandbox refuses sends issued seconds apart, which
-    // surfaces as Supabase 500 "Error sending confirmation email". Environment
-    // pacing only — no assertion is relaxed and no retry is added.
-    await page.waitForTimeout(15_000);
-    await signUpFresh(page, 103);
-    await assertNoSignUpError(page);
-    await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
-      timeout: 15000,
-    });
-
-    // Only now: virtual clock to skip the 60s cooldown, never a real-clock wait
-    // (operator ruling 2026-08-02). Use runFor() here, not fastForward(): the 1s
-    // countdown interval fires each intervening timer, which fastForward() skips
-    // (it fires due timers at most once), leaving the cooldown label stuck.
-    await page.clock.install();
-
-    const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
-
-    for (let i = 0; i < 3; i += 1) {
-      await page.getByRole("button", { name: en["auth.resend"] }).click();
-      if (i === 2) break;
-      await expect(
-        page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") }),
-      ).toBeVisible();
-      await page.clock.runFor(61_000);
-      await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeEnabled();
-    }
-
-    await expect(page.getByText(en["auth.resendLimitReached"])).toBeVisible({ timeout: 15000 });
-    // Further attempts are refused: the control stays disabled past the cooldown.
-    await page.clock.runFor(61_000);
-    await expect(
-      page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") }),
-    ).toBeDisabled();
-  });
 });
