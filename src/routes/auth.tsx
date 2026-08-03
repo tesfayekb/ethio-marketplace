@@ -239,6 +239,25 @@ function AuthScreen() {
     }
   }
 
+  /**
+   * Google door. INC-017 precedent: the in-flight lock engages on INITIATION,
+   * before the request leaves, so a double-tap cannot start two OAuth flows.
+   * On success the browser navigates away; `busy` stays engaged deliberately.
+   */
+  async function handleGoogle() {
+    if (busy) return;
+    setErrorKey(null);
+    setResendSent(false);
+    setCanResend(false);
+    setBusy(true);
+    const result = await signInWithGoogle();
+    if (!result.ok) {
+      setBusy(false);
+      setErrorKey(result.errorKey);
+    }
+  }
+
+
   if (onCheckEmail && confirmed) {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
