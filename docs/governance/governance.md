@@ -31,7 +31,7 @@ Ambiguous ⇒ Tier A. Promotion records become Tier A the day money attaches.
 
 ## §4 Phase ladder (gates; each phase closes with evidence before dependents open)
 0. **Foundation:** repo, CI skeleton + guard scripts (§7), environments, Supabase project(s), auth scaffold (email+Google), RLS baseline, i18n framework + translation dashboard skeleton, design system (mobile-first 360px), partition-key discipline in first schema.
-1. **Identity:** three doors complete (Telegram custom flow), linking rules (REQ-015), sessions/step-up (REQ-016), global directory + home-country assignment.
+1. **Identity:** email door, Google door, linking rules (REQ-015), sessions/step-up (REQ-016) and a settings surface covering what exists with two doors, global directory + home-country assignment. Re-scoped by DEC-012 (2026-08-03): the Telegram door and any multi-door settings behaviour needing a third door move to the "Additional auth doors" phase below.
 2. **RBAC & panels:** REQ-030 full (roles/permissions/scopes/is_system triggers), panel routing, audit log.
 3. **Geography & catalog:** geography tree + admin CRUD, category tree + attribute builder + AI category images, per-country banned lists, collections.
 4. **Listings & screening:** posting flow (REQ-018/019/020), REQ-021 gateway v1, screening pipeline + two-track enforcement + audit queue (REQ-009/010/011), lifecycle machine (REQ-022).
