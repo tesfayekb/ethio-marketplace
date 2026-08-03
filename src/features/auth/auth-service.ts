@@ -1,9 +1,10 @@
-import type { EmailOtpType } from "@supabase/supabase-js";
+import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 
-import type { AuthResult, Credentials, VerificationResult } from "./types";
+import type { AuthResult, Credentials, IdentitySummary, VerificationResult } from "./types";
+
 
 /** Where Supabase sends the user after they click the confirmation link. */
 export function emailRedirectUrl(): string {
