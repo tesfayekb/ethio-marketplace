@@ -45,3 +45,4 @@
 2026-08-02 — fix: relocate SSR Register type augmentation out of generated routeTree (INC-014)
 2026-08-02 — ci: enable sign-up E2E cases via E2E_EMAIL_SINK; staging SMTP now a Mailtrap sandbox (INC-013 resolved)
 2026-08-02 — test: fix A-3 virtual-clock mechanism (INC-015); add sign-up error diagnostics (INC-016)
+2026-08-02 — fix: resend cooldown engages on click, not on success (INC-017); pace E2E sign-up sends (INC-018)

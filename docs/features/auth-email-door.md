@@ -227,3 +227,17 @@ The auto-flip mechanisms (auth state change, focus/visibility recheck, 5s visibl
 are unchanged and remain explicitly **best-effort**: iOS suspends background tabs, so no local
 mechanism can be guaranteed to observe a confirmation. Cross-device confirmation still shows the
 neutral, non-enumerating message by design.
+
+### Resend throttle: cooldown-on-click (INC-017, 2026-08-02)
+
+The 60s cooldown and the max-3-per-visit counter now engage when a resend is
+**initiated**, not when it succeeds. A refused resend (429, network error, anything)
+therefore cannot be retried immediately: the error alert renders as before, alongside
+the now-active cooldown, so the user sees both why it failed and that they must wait.
+A synchronous in-flight ref prevents a double-click from starting two cooldowns or
+consuming two attempts.
+
+Supabase enforces its own ~60s minimum between confirmation emails **per address**
+(`over_email_send_rate_limit`), independent of the project's hourly email quota. The
+client cooldown is set to 60s to align deliberately with that server limit, so the UI
+never invites a request the server will refuse. No message text or i18n key changed.
