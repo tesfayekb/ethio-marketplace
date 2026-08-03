@@ -212,14 +212,27 @@ function AuthScreen() {
       return;
     }
     if (cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT) return;
+    // INC-017: one in-flight resend at a time — a double-click must not start two
+    // cooldowns or consume two attempts. The ref is checked/set synchronously
+    // because React state updates are not visible to a second click in the same tick.
+    if (resendInFlightRef.current) return;
+    resendInFlightRef.current = true;
+
+    // INC-017 (operator ruling 2026-08-02): the cooldown and the per-visit counter
+    // engage when the request is INITIATED, not when it succeeds. The throttle
+    // protects the send endpoint, and a refused request (e.g. Supabase's ~60s
+    // per-address 429) is exactly when a user hammers the button.
+    setResendCount((n) => n + 1);
+    setCooldown(RESEND_COOLDOWN_SECONDS);
+
     setBusy(true);
     const result = await resendConfirmation(address);
     setBusy(false);
+    resendInFlightRef.current = false;
     if (result.ok) {
       setResendSent(true);
-      setResendCount((n) => n + 1);
-      setCooldown(RESEND_COOLDOWN_SECONDS);
     } else {
+      // The error still renders, alongside the now-active cooldown.
       setErrorKey(result.errorKey);
     }
   }
