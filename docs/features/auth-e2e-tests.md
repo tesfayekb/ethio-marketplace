@@ -102,14 +102,17 @@ arbitrary-recipient guard. A-1..A-3 did not pass — they are gated behind
 non-owner recipients, so real sign-up cannot complete). They remain visible as
 skipped in the run output.
 
-The two proof-of-bite checks (temporarily breaking B-3 and C-4 and observing the
-failures) are still **OUTSTANDING**; they must be run and their observed failure
-messages recorded here before the Phase 1 gate closes.
+Proof-of-bite is now mechanised: `.github/workflows/guard-proof.yml`
+(workflow_dispatch only) applies an inert mutation fixture from `e2e/proofs/` to the
+runner's working tree, asserts the guarded test FAILS, and discards the mutation. See
+`docs/features/guard-proof.md`.
 
-Expected shapes:
+- B-3 mutation — `e2e/proofs/b3-enumeration.patch`; expected failure shape
+  `expect(received).toBe(expected)` on the two error strings.
+- C-4 mutation — `e2e/proofs/c4-arbitrary-recipient.patch`; expected failure shape
+  `expect(locator).toHaveCount(0)` receiving `1` for `input[type="email"]`.
 
-- B-3 — `expect(received).toBe(expected)` on the two error strings.
-- C-4 — `expect(locator).toHaveCount(0)` receiving `1` for `input[type="email"]`.
+**First successful proof run: PENDING** (operator runs it after this lands).
 
 ## Turnstile
 

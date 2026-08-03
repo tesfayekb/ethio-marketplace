@@ -1,0 +1,15 @@
+# INTENTIONAL BREAK — mutation fixture for .github/workflows/guard-proof.yml only.
+# Applying this to main is forbidden: it re-introduces an account-enumeration leak by
+# rendering the attempted address inside the sign-in error, making the wrong-password
+# and unknown-email surfaces distinguishable. See docs/features/guard-proof.md.
+diff --git a/src/routes/auth.tsx b/src/routes/auth.tsx
+--- a/src/routes/auth.tsx
++++ b/src/routes/auth.tsx
+@@ -381,5 +381,6 @@
+         {errorKey ? (
+           <p role="alert" className="text-sm text-destructive">
+-            {t(errorKey)}
++            {/* MUTATION: leaks the attempted address into the error copy. */}
++            {`${t(errorKey)} — ${email.trim()}`}
+           </p>
+         ) : null}

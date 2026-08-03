@@ -559,3 +559,11 @@ executed. Corrected here.
   invariant so a schedule that silently stops is detectable. Supervisor record: three
   successive mechanism diagnoses for A-3 were wrong (fastForward, runFor, and an
   in-flight-guard hypothesis); the structural fix was adopted rather than a fourth guess.
+
+- **S.. (2026-08-03):** GUARD PROOF harness added (workflow_dispatch only). Mutation
+  fixtures live as inert .patch files applied to the runner's working tree, never
+  committed; each proof asserts the guarded test FAILS against broken code and the job
+  fails if src/ is dirty afterwards. Closes the §8 proven-guard requirement for B-3
+  (enumeration indistinguishability) and C-4 (INC-010a arbitrary-recipient guard) —
+  the last Phase 1 gate blocker pending its first run. Pattern follows the migration
+  linter's self-test precedent.

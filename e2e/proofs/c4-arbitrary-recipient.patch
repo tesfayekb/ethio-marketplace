@@ -1,0 +1,23 @@
+# INTENTIONAL BREAK — mutation fixture for .github/workflows/guard-proof.yml only.
+# Applying this to main is forbidden: it re-introduces the INC-010a abuse vector, an
+# arbitrary-recipient email input on the /auth/callback surface.
+# See docs/features/guard-proof.md.
+diff --git a/src/routes/auth_.callback.tsx b/src/routes/auth_.callback.tsx
+--- a/src/routes/auth_.callback.tsx
++++ b/src/routes/auth_.callback.tsx
+@@ -80,6 +80,7 @@
+       <main className="mx-auto w-full max-w-sm px-4 py-10">
+         <h1 className="text-xl font-semibold text-foreground">{t("auth.noSessionTitle")}</h1>
+         <p className="mt-2 text-sm text-muted-foreground">{t("auth.noSessionBody")}</p>
++        <input type="email" aria-label="resend to" className="mt-4 w-full" />
+         <button
+           type="button"
+           onClick={() => void navigate({ to: "/auth", search: {} })}
+@@ -96,6 +97,7 @@
+       <h1 className="text-xl font-semibold text-foreground">{t("auth.linkInvalid")}</h1>
+       <p className="mt-2 text-sm text-muted-foreground">{t("auth.linkInvalidBody")}</p>
+ 
++      <input type="email" aria-label="resend to" className="mt-4 w-full" />
+       <button
+         type="button"
+         onClick={() => void navigate({ to: "/auth", search: {} })}
