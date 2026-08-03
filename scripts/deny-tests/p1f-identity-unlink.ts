@@ -8,9 +8,26 @@
  * Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_PUBLISHABLE_KEY are
  * read from the environment at runtime. Nothing is hardcoded and no key is printed.
  *
- * Run:
- *   bun run scripts/deny-tests/p1f-identity-unlink.ts
+ * Run (historical destructive U-1..U-3 run — already executed 2026-08-03):
+ *   bun run scripts/deny-tests/p1f-identity-unlink.ts --force
+ *
+ * INC-024 recheck (post-fix, throwaway user only, non-destructive to real accounts):
+ *   bun run scripts/deny-tests/p1f-identity-unlink.ts --recheck --phase 1
+ *   # executor runs the printed SQL (synthetic second identity + email-identity delete)
+ *   RECHECK_EMAIL=… RECHECK_PASSWORD=… \
+ *     bun run scripts/deny-tests/p1f-identity-unlink.ts --recheck --phase 2
+ *
+ * Why two phases: the trigger's guard only fires when another identity remains, and a
+ * second identity cannot be minted headlessly (OAuth consent). The synthetic identity
+ * row and the email-identity DELETE are therefore executed as SQL by the executor
+ * between the phases; everything else is API-observable and asserted here.
+ *
+ * has_password mechanism: the admin API exposes no password field, so aliveness is
+ * proven POSITIVELY by `signInWithPassword` succeeding (phase 1) and death is proven
+ * by the same call failing (phase 2). The SQL predicate used for read-back is
+ * `encrypted_password IS NOT NULL AND encrypted_password <> ''`.
  */
+
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env["SUPABASE_URL"];
