@@ -51,3 +51,4 @@
 2026-08-03 — test: guard-proof workflow proves B-3 and C-4 bite against mutation fixtures
 2026-08-03 — test: guard-proof now proves both directions per guard via JSON-parsed A/B (INC-021)
 2026-08-03 — fix: guard-proof writes JSON report via PLAYWRIGHT_JSON_OUTPUT_NAME (INC-021 follow-up)
+2026-08-03 — docs: guard proof recorded as passed; thread 2 handoff imported
