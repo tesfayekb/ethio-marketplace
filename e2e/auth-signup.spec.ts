@@ -57,6 +57,10 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
   });
 
   test("A-2: resend throttle engages after one click", async ({ page }) => {
+    // INC-018: Mailtrap's free sandbox refuses sends issued seconds apart, which
+    // surfaces as Supabase 500 "Error sending confirmation email". Environment
+    // pacing only — no assertion is relaxed and no retry is added.
+    await page.waitForTimeout(15_000);
     await signUpFresh(page, 102);
     await assertNoSignUpError(page);
     await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
@@ -76,6 +80,10 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
   test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
     // Sign-up runs on REAL timers: installing the virtual clock beforehand froze
     // the timers supabase-js depends on and the request never completed (INC-015).
+    // INC-018: Mailtrap's free sandbox refuses sends issued seconds apart, which
+    // surfaces as Supabase 500 "Error sending confirmation email". Environment
+    // pacing only — no assertion is relaxed and no retry is added.
+    await page.waitForTimeout(15_000);
     await signUpFresh(page, 103);
     await assertNoSignUpError(page);
     await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
