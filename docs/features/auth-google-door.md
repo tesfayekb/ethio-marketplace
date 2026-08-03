@@ -1,7 +1,8 @@
 # Google door (P1-d)
 
-Status: BUILT — **not closed.** REQ-015 linking behaviour is specified below but **not yet
-verified**; operator deny tests D-8/D-9/D-10 gate step closure.
+Status: CLOSED 2026-08-03 — built, E2E-guarded, and REQ-015 linking behaviour proven by
+operator deny tests D-8 and D-10. D-9 is deferred-named to the Additional-auth-doors phase.
+
 
 ## Scopes
 
