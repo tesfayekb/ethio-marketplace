@@ -592,3 +592,11 @@ baseline plus JSON-parsed assertions.
   globalSetup's logging corrupted. Third supervisor design defect in this harness,
   each caught by the harness's own assertions rather than by a green run — the
   intended behaviour.
+
+- **S.. (2026-08-03):** P1-d Google door built (Tier A): provider enabled on both
+  Supabase projects with scopes limited to email/profile/openid; sign-in entry point,
+  button in both modes, enumeration-safe link-refusal copy, DEC-010 Turnstile seam
+  threaded. E2E G-1 asserts the authorization request carries only the three intended
+  scopes — a guard against silent scope creep — without loading Google. REQ-015 linking
+  behaviour is SPECIFIED but NOT YET VERIFIED against Supabase's actual handling of the
+  unconfirmed-account path; deny tests D-8/D-9/D-10 gate step closure.

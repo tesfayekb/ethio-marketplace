@@ -53,7 +53,11 @@ export const en = {
   "auth.checking": "Checking your session…",
   "auth.working": "Please wait…",
   "auth.orContinueWith": "Or continue with",
-  "auth.googleSlot": "Continue with Google (coming soon)",
+  "auth.orSeparator": "Or continue with",
+  "auth.continueWithGoogle": "Continue with Google",
+  "auth.linkRefusedTitle": "Confirm this address first",
+  "auth.linkRefusedBody":
+    "Before this address can be used with Google, it has to be confirmed by email. Continue with the email form and open the confirmation link we send you.",
   "auth.telegramSlot": "Continue with Telegram (coming soon)",
   "auth.errorInvalidCredentials": "That email and password don't match.",
   "auth.errorEmailNotConfirmed": "Confirm your email before signing in.",
