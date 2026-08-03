@@ -2,6 +2,10 @@
 
 Phase: 1 (Identity) — IN PROGRESS. Email door (P1-c) CLOSED. Next build step: P1-d (Google door).
 
+Phase ladder amended by DEC-012 (2026-08-03): Telegram and multi-door settings moved to a
+later "Additional auth doors" phase; Phase 1 closes after the Google door and the trimmed
+settings surface. REQ-014 unchanged — all three doors still ship before launch.
+
 E2E harness: ACCEPTED 2026-08-01 (Playwright, staging-targeted, runs on every push).
 
 Auth-door E2E coverage: sign-up/check-email/throttle (A-1, A-2), sign-in errors and
