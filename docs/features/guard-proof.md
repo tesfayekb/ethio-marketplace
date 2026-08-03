@@ -26,17 +26,46 @@ non-empty, so no mutation can survive the run.
 Both files are exempt from prettier (`.prettierignore`): they are diffs, and prettier
 cannot infer a parser for `.patch`.
 
+## A/B proof, judged by the JSON reporter (INC-021)
+
+A process exit code cannot distinguish "the test ran and failed for the right reason"
+from "the command broke." An empty `--grep` match, a global-setup failure, or a browser
+launch failure all exit non-zero, so the original exit-code design would have reported a
+GREEN job while proving nothing.
+
+Each guard is therefore proven in both directions:
+
+- **Baseline** — run the test on unmutated source; exactly 1 test must run and PASS.
+  This is what closes the empty-grep hole: if no test matched, the baseline fails.
+- **Mutated** — apply the patch; exactly 1 test must run and FAIL.
+
+Both assertions are made by `scripts/assert-playwright-result.mjs`, which reads
+Playwright's JSON reporter (`stats`, falling back to walking the suite tree) and never
+the exit code. A skipped test fails the assertion in both modes.
+
+The two outcomes are different alarms:
+
+- **Baseline failure** → the harness or the environment is broken; nothing is known
+  about the guard yet.
+- **Mutated pass** (`GUARD DID NOT BITE`) → the guard is worthless and must be fixed
+  before the phase gate closes.
+
 ## How to run it
 
 GitHub → **Actions** → **Guard Proof** → **Run workflow**. It is
 `workflow_dispatch` only — never on push, never scheduled — because it deliberately
 runs failing tests and burns staging auth calls.
 
+Steps run in this order: B-3 baseline, B-3 mutated, C-4 baseline, C-4 mutated.
+
 ## How to read the result
 
-- **Job PASSES** → both guards correctly FAILED against broken code. That is the
-  proof. The log contains `B-3 correctly FAILED against the mutation` and the C-4
-  equivalent.
+- **Job PASSES** → each guard passed on clean source AND failed on broken code. That is
+  the proof.
+- **Job FAILS with `NO TEST MATCHED`** → the grep matches nothing; the harness is not
+  testing anything.
+- **Job FAILS with `baseline FAILED`** → the test does not pass on clean source; fix the
+  harness or environment before reading anything into the mutated run.
 - **Job FAILS with `GUARD DID NOT BITE`** → the test passed against broken code. The
   guard is decoration and must be fixed before the phase gate closes.
 - **Job FAILS at `git apply`** → the patch no longer applies: `src/routes/auth.tsx`

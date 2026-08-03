@@ -41,30 +41,46 @@ jobs:
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
 
+      # INC-021: each guard is proven in BOTH directions (A/B), and the judge is
+      # always Playwright's JSON reporter — never the process exit code, which
+      # cannot tell a real test failure from a broken command.
+      #
+      # `|| true` on the playwright call is CORRECT here and ONLY here: the exit
+      # code is deliberately ignored because the JSON assertion is the judge. It
+      # is not swallowing a failure — assert-playwright-result.mjs fails the step.
+      #
       # A failing `git apply` is information, not noise: the source moved and the
-      # fixture is stale. The step fails loudly (set -e, no `|| true`).
-      - name: Proof — B-3 (enumeration indistinguishability)
+      # fixture is stale. It keeps `set -e` and fails loudly.
+      - name: Proof — B-3 (baseline must PASS on clean source)
+        run: |
+          set -e
+          bunx playwright test --grep "B-3" --project=mobile-360 \
+            --reporter=json > /tmp/b3-baseline.json || true
+          node scripts/assert-playwright-result.mjs /tmp/b3-baseline.json pass "B-3 baseline"
+
+      - name: Proof — B-3 (mutated source must FAIL)
         run: |
           set -e
           git apply e2e/proofs/b3-enumeration.patch
-          if bunx playwright test --grep "B-3" --project=mobile-360; then
-            echo "::error::GUARD DID NOT BITE — B-3 passed against broken code"
-            exit 1
-          else
-            echo "B-3 correctly FAILED against the mutation"
-          fi
+          bunx playwright test --grep "B-3" --project=mobile-360 \
+            --reporter=json > /tmp/b3-mutated.json || true
+          node scripts/assert-playwright-result.mjs /tmp/b3-mutated.json fail "B-3 mutated"
           git checkout -- src/
 
-      - name: Proof — C-4 (INC-010a arbitrary-recipient guard)
+      - name: Proof — C-4 (baseline must PASS on clean source)
+        run: |
+          set -e
+          bunx playwright test --grep "C-4" --project=mobile-360 \
+            --reporter=json > /tmp/c4-baseline.json || true
+          node scripts/assert-playwright-result.mjs /tmp/c4-baseline.json pass "C-4 baseline"
+
+      - name: Proof — C-4 (mutated source must FAIL)
         run: |
           set -e
           git apply e2e/proofs/c4-arbitrary-recipient.patch
-          if bunx playwright test --grep "C-4" --project=mobile-360; then
-            echo "::error::GUARD DID NOT BITE — C-4 passed against broken code"
-            exit 1
-          else
-            echo "C-4 correctly FAILED against the mutation"
-          fi
+          bunx playwright test --grep "C-4" --project=mobile-360 \
+            --reporter=json > /tmp/c4-mutated.json || true
+          node scripts/assert-playwright-result.mjs /tmp/c4-mutated.json fail "C-4 mutated"
           git checkout -- src/
 
       - name: Assert src/ is clean (no mutation survives this job)

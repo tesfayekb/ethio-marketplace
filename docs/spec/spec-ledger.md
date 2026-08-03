@@ -567,3 +567,14 @@ executed. Corrected here.
   (enumeration indistinguishability) and C-4 (INC-010a arbitrary-recipient guard) —
   the last Phase 1 gate blocker pending its first run. Pattern follows the migration
   linter's self-test precedent.
+
+- **S.. (2026-08-03):** GUARD PROOF hardened to A/B (INC-021). The first green run is
+  void as evidence: the original design read exit codes, so any command failure would
+  have read as a guard biting. Each guard now proves BOTH directions — passes on clean
+  source, fails on mutated source — asserted from the JSON reporter. Supervisor design
+  defect, logged as D-011; the executor built exactly what was specified.
+
+D-011 — The guard-proof harness as specified by the supervisor could return GREEN while
+proving nothing, because it inferred "test failed correctly" from a process exit code.
+Caught on verification of the executor's correct implementation. Corrected by A/B
+baseline plus JSON-parsed assertions.
