@@ -100,4 +100,3 @@ which needs two real mailboxes — blocked on the custom SMTP launch-gate item.
 "Sign out other devices" collides with any unanchored `/sign out/i` probe. The spec and
 the shared `expectSignedIn`/`expectSignedOut` helpers use the anchored `/^sign out$/i`;
 keep new sign-out-adjacent labels in mind when writing session probes.
-

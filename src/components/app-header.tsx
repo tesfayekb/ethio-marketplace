@@ -50,7 +50,6 @@ export function AppHeader() {
                 {t("auth.signOut")}
               </button>
             </>
-
           ) : (
             <Link
               to="/auth"
