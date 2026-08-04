@@ -120,7 +120,7 @@ export function AppHeader() {
         {/* 360px has no room for the two-line lockup beside five controls —
             below sm the mark carries the brand alone. */}
         <Logo variant="full" className="hidden sm:inline-flex" />
-        <Logo variant="mark" className="sm:hidden" />
+        <Logo variant="icon" className="sm:hidden" />
       </Link>
 
 
