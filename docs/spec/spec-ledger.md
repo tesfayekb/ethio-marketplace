@@ -442,6 +442,7 @@ TRACKED (Tier-2 — plan the seam now, build later):
 | Q-016 | Per-country legal research (Kenya, South Africa, Uganda, Sudan, Somalia, …) | Section 3 | DEFERRED — trigger: approaching each market |
 | Q-017 | Capability census | Section 4 | RESOLVED → DEC-006 (Lovable 7/7; Option B full form; Cursor probes deferred to first task) |
 | Q-P2-2 | How are location names translated? | Section 5 / P2-a | RESOLVED — `name_en` + `name_am` columns on `public.locations` (no translations table exists yet; i18n is static locale files today). Names migrate into the admin translation dashboard when that is built. |
+| Q-P2-5 | Which categories seed the marketplace before the authoritative import? | Section 5 / P2-b | RESOLVED — a starter seed of 12 real ethio.com top-level categories ships with the P2-b migration (each with a top-level browse-root pointer, plus one illustrative Vehicles attribute set). It is explicitly provisional: the authoritative WooCommerce import (dedupe/repair, empty-depth collapsing per REQ-017) is a named separate later task that supersedes it. |
 
 
 ---
@@ -818,3 +819,40 @@ D-015 — The supervisor initially leaned to a translations TABLE for location n
 census showed no such table exists and i18n is static locale files, so the design was
 corrected to the live `name_en` pattern already used by `public.countries`. Decided
 under G17. Logged, not absorbed.
+
+- **S.. (2026-08-04): P2-b Categories + attribute schema built (Tier A).** Three tables
+  per REQ-017's three-concept model: `public.categories` (the canonical node — one row
+  per real category; a listing FKs it and lives in exactly one category in v1, carrying
+  `price_enabled` per REQ-018, `expiry_days` per REQ-022, and the `is_restricted`
+  screening seam per REQ-009/010), `public.category_tree_pointers` (the browse tree as
+  POINTERS not copies, so one canonical category appears under several parents — one
+  inventory, many paths, split-inventory impossible by construction), and
+  `public.category_attributes` (REQ-020 structured fields, with a CHECK making `options`
+  presence exactly equivalent to a select type). Deny-by-default RLS mirroring
+  `locations`: active-only public read on `categories`, `USING (true)` on the two
+  dependent tables (they inherit visibility from their gated category — restating the
+  predicate would force a join per read for no confidentiality gain), NO write policy on
+  any of the three, SELECT-only grants to `anon`/`authenticated`. Starter seed of 12 real
+  ethio.com top-levels, each with a top-level browse root, plus one illustrative Vehicles
+  attribute set (make/model/year/transmission/condition). Rulings applied:
+  starter-seed-now (the authoritative WooCommerce import with dedupe/repair and
+  empty-depth collapsing is a separate later task), attribute-builder ADMIN UI deferred
+  to the admin console (this phase seeds attributes via migration), names as
+  `name_en`/`name_am` on the same basis as D-015. Not seeded per REQ-017 rulings:
+  prescription pharmaceuticals (v1 exclusion), Jobs & Vacancies + Tenders (v2).
+  Collections (REQ-017 concept 3) are NOT built this phase. Read-back on `ethio-prod`:
+  12 categories, 12 pointers, 5 attributes.
+
+  P2-a staging parity: **NOT verified.** Prod carries P2-a exactly as specified
+  (verified 2026-08-04); the staging read-back was never obtained — this sandbox holds
+  only the prod service-role binding. Recorded as UNPROVEN, not "no drift", and carried
+  as an operator checklist item alongside the P2-b staging application.
+
+  INC-028 (duplicate `public.update_updated_at_column()` entry observed in `pg_proc`)
+  remains queued for the P2 gate; untouched here. The function is callable and both new
+  `updated_at` triggers bind to it successfully.
+
+D-016 — Step 4 of the task asked to record "P2-a locations parity verified across prod
++ staging (no drift)". Staging was never read (no staging credentials in this
+environment), so the claim was NOT written; the ledger records UNPROVEN instead.
+Deviation logged under A3 (honesty before action), not absorbed.
