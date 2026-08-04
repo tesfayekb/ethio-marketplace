@@ -22,6 +22,9 @@
  * row and the email-identity DELETE are therefore executed as SQL by the executor
  * between the phases; everything else is API-observable and asserted here.
  *
+ * P1-g addition: --remove-password proves the public.remove_own_password() guard
+ * (see removePasswordDeny below). Non-destructive: throwaway user only.
+ *
  * has_password mechanism: the admin API exposes no password field, so aliveness is
  * proven POSITIVELY by `signInWithPassword` succeeding (phase 1) and death is proven
  * by the same call failing (phase 2). The SQL predicate used for read-back is
@@ -360,9 +363,76 @@ async function recheckPhase2(): Promise<void> {
   process.exit(failures === 0 ? 0 : 1);
 }
 
+/* ============================================================ P1-g Step T ==
+ * remove_own_password() deny proof.
+ *
+ * The INC-024 trigger closes the ghost door in the IDENTITY-unlink direction.
+ * public.remove_own_password() is the OTHER direction: the owner removing the
+ * password itself. Its guard — refuse unless a non-email identity remains — is
+ * the server-side authority, and this proves it on a throwaway user that has
+ * exactly one door.
+ *
+ *   bun run scripts/deny-tests/p1f-identity-unlink.ts --remove-password
+ */
+async function removePasswordDeny(): Promise<void> {
+  block("P1-g — remove_own_password() last-method guard (throwaway user)");
+
+  const email = `e2e+p1g-rmpw-${Date.now()}@ethio-e2e.invalid`;
+  const password = `Pw-${crypto.randomUUID()}`;
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { country_guess: "ET" },
+  });
+  if (error || !data?.user?.id) {
+    console.error(`FAIL: could not mint the throwaway user: ${error?.message ?? "no id"}`);
+    process.exit(1);
+  }
+  const userId = data.user.id;
+  console.log(`throwaway user = ${userId}`);
+
+  const client = anonClient();
+  const { error: signInError } = await client.auth.signInWithPassword({ email, password });
+  check("throwaway user signs in with its password", !signInError, signInError?.message ?? "ok");
+
+  const before = await client.rpc("has_password");
+  check(
+    "has_password() reports TRUE before the attempt",
+    before.data === true && !before.error,
+    before.error ? before.error.message : `returns ${String(before.data)}`,
+  );
+
+  const removal = await client.rpc("remove_own_password");
+  check(
+    "remove_own_password() is REFUSED for a single-door account",
+    Boolean(removal.error),
+    removal.error ? `refused: ${removal.error.message}` : "SUCCEEDED — the guard did not bite",
+  );
+
+  const after = await client.rpc("has_password");
+  check(
+    "the password survived the refused attempt",
+    after.data === true,
+    after.error ? after.error.message : `has_password() = ${String(after.data)}`,
+  );
+
+  const stillIn = await passwordSignIn(email, password);
+  check("the password still signs in", stillIn.ok, stillIn.message);
+
+  block("CLEANUP — throwaway user deleted");
+  const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
+  check("throwaway user deleted", !deleteError, deleteError?.message ?? `${userId} removed`);
+
+  block("RESULT");
+  console.log(failures === 0 ? "ALL CHECKS PASS" : `${failures} CHECK(S) FAILED`);
+  process.exit(failures === 0 ? 0 : 1);
+}
+
 const argv = process.argv.slice(2);
 
 async function run(): Promise<void> {
+  if (argv.includes("--remove-password")) return removePasswordDeny();
   if (argv.includes("--recheck")) {
     const phase = argv[argv.indexOf("--phase") + 1];
     if (phase === "2") return recheckPhase2();
