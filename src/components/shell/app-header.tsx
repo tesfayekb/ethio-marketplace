@@ -104,7 +104,7 @@ export function AppHeader() {
                 <DropdownMenuItem asChild>
                   <Link to="/settings">
                     <SettingsIcon className="me-2 h-4 w-4" aria-hidden="true" />
-                    {t("nav.settings")}
+                    {t("settings.navLabel")}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

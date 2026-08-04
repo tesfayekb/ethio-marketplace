@@ -55,7 +55,7 @@ export const PANELS: Record<PanelId, Panel> = {
       { id: "ml-listings", labelKey: "nav.myListings", icon: ListChecks },
       { id: "ml-messages", labelKey: "nav.messages", icon: MessageSquare },
       { id: "ml-featured", labelKey: "nav.featured", icon: Sparkles },
-      { id: "ml-settings", labelKey: "nav.settings", icon: Settings, path: "/settings" },
+      { id: "ml-settings", labelKey: "settings.navLabel", icon: Settings, path: "/settings" },
     ],
   },
   account: {
@@ -71,7 +71,7 @@ export const PANELS: Record<PanelId, Panel> = {
       { id: "ac-profile", labelKey: "nav.profile", icon: CircleUser },
       // P1-f already owns this surface — link to it, never rebuild it.
       { id: "ac-security", labelKey: "nav.signInSecurity", icon: KeyRound, path: "/settings" },
-      { id: "ac-settings", labelKey: "nav.settings", icon: Settings, path: "/settings" },
+      { id: "ac-settings", labelKey: "settings.navLabel", icon: Settings, path: "/settings" },
       { id: "ac-help", labelKey: "nav.help", icon: HelpCircle },
     ],
   },
