@@ -45,3 +45,12 @@ export type IdentitySummary = {
 export type IdentitiesResult =
   | { ok: true; identities: IdentitySummary[] }
   | { ok: false; errorKey: MessageKey };
+
+/**
+ * P1-g truth model (R2): whether the current account can be entered with a
+ * password, answered by the server (`public.has_password()`), independently of
+ * whether an 'email' identity row exists.
+ */
+export type PasswordStateResult =
+  | { ok: true; hasPassword: boolean }
+  | { ok: false; errorKey: MessageKey };

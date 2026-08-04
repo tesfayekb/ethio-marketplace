@@ -3,7 +3,13 @@ import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/su
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 
-import type { AuthResult, Credentials, IdentitiesResult, VerificationResult } from "./types";
+import type {
+  AuthResult,
+  Credentials,
+  IdentitiesResult,
+  PasswordStateResult,
+  VerificationResult,
+} from "./types";
 
 /** Where Supabase sends the user after they click the confirmation link. */
 export function emailRedirectUrl(): string {
@@ -321,4 +327,76 @@ export async function completeEmailVerification(): Promise<VerificationResult> {
   if (session) return { ok: true };
 
   return { ok: false, hadError: hasErrorParam };
+}
+
+/* ==================================================================
+ * P1-g — password as a first-class sign-in method (truth model, R2).
+ *
+ * INC-024 established that a password and an 'email' identity row can drift
+ * apart. Rather than hide the drift, the surface RENDERS it: `hasPassword()`
+ * answers "can this account be entered with a password?" independently of the
+ * identity list, and `removeOwnPassword()` gives the owner the second remove
+ * direction (the AFTER DELETE trigger covers the identity-unlink direction).
+ * Both are SECURITY DEFINER functions scoped to auth.uid() — the server is the
+ * authority (law F3); the disabled controls in the UI are honesty only.
+ * ================================================================== */
+
+/** Does the CURRENT user have a usable password? Server-answered. */
+export async function hasPassword(): Promise<PasswordStateResult> {
+  const { data, error } = await supabase.rpc("has_password");
+  if (error) return { ok: false, errorKey: toErrorKey(error) };
+  return { ok: true, hasPassword: Boolean(data) };
+}
+
+/**
+ * Removes the CURRENT user's password. The server refuses when no non-email
+ * identity remains; that refusal is surfaced as `auth.errorLastMethod`.
+ */
+export async function removeOwnPassword(): Promise<AuthResult> {
+  const { error } = await supabase.rpc("remove_own_password");
+  if (!error) return { ok: true };
+  if (/last sign-in method/i.test(error.message ?? "")) {
+    return { ok: false, errorKey: "auth.errorLastMethod" };
+  }
+  return failure(error);
+}
+
+/** Where Supabase sends the user after they click a password-reset link. */
+export function resetRedirectUrl(): string {
+  return `${window.location.origin}/auth/reset`;
+}
+
+/**
+ * Requests a password-reset email.
+ *
+ * NEUTRAL-ALWAYS (ruling R4, B-3 enumeration guard): the caller learns nothing
+ * about whether the address exists, so this resolves `ok` whatever GoTrue
+ * answers. This is not a phantom success (law F4): the promise made to the user
+ * is the neutral one — "if an account exists, a link is on its way" — and that
+ * statement is true in every branch. Real failures are still logged for
+ * operators; only the enumeration signal is withheld.
+ */
+export async function requestPasswordReset(email: string): Promise<AuthResult> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: resetRedirectUrl(),
+    captchaToken: getCaptchaToken(),
+  });
+  if (error) {
+    console.warn("[auth] password reset request did not send", error.code ?? error.message);
+  }
+  return { ok: true };
+}
+
+/**
+ * Finishes a reset: sets the new password on the RECOVERY session that the
+ * link established. Without such a session GoTrue refuses, and that refusal is
+ * surfaced — never swallowed.
+ */
+export async function completePasswordReset(newPassword: string): Promise<AuthResult> {
+  const session = (await supabase.auth.getSession()).data.session;
+  if (!session) return { ok: false, errorKey: "auth.errorResetLinkInvalid" };
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) return failure(error);
+  return { ok: true };
 }

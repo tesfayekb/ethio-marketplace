@@ -102,6 +102,30 @@ export const en = {
   "auth.errorWrongCurrentPassword": "That current password is not correct.",
   "auth.errorLastMethod": "You can't remove your only sign-in method. Add another one first.",
   "auth.errorPasswordTooShort": "Use at least 8 characters.",
+  "auth.forgotPassword": "Forgot your password?",
+  "auth.resetTitle": "Reset your password",
+  "auth.resetBody": "Enter the email address on your account and we'll send you a reset link.",
+  "auth.resetSend": "Send reset link",
+  "auth.resetNeutral":
+    "If an account exists for that address, a password reset link is on its way.",
+  "auth.resetNewTitle": "Choose a new password",
+  "auth.resetNewBody": "Enter a new password for your account.",
+  "auth.resetSubmit": "Save new password",
+  "auth.resetDone": "Your password has been updated. You can sign in with it now.",
+  "auth.resetLinkInvalid": "This reset link is invalid or has expired",
+  "auth.resetLinkInvalidBody": "Request a new reset link and try again.",
+  "auth.errorResetLinkInvalid": "This reset link is invalid or has expired. Request a new one.",
+  "settings.passwordMethod": "Password",
+  "settings.passwordMethodPresent": "You can sign in with a password",
+  "settings.passwordMethodAbsent": "No password set",
+  "settings.setPasswordHint":
+    "To set one, use \u201cForgot your password?\u201d on the sign-in page.",
+  "settings.removePassword": "Remove password",
+  "settings.removePasswordConfirm":
+    "Remove your password? You will then sign in with your other methods only.",
+  "settings.removePasswordConfirmYes": "Yes, remove my password",
+  "settings.passwordRemoved": "Your password has been removed.",
+  "settings.passwordStateError": "We couldn't check whether you have a password.",
 } as const;
 
 export default en;

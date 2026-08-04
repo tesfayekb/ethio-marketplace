@@ -1,7 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
-import { hasSessionRehydrating, signInWithGoogle } from "@/features/auth/auth-service";
+import {
+  hasSessionRehydrating,
+  requestPasswordReset,
+  signInWithGoogle,
+} from "@/features/auth/auth-service";
 import { useAuth } from "@/features/auth/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
@@ -10,8 +14,9 @@ import type { MessageKey } from "@/i18n";
 /**
  * BUG 2b/2c: the view lives in the URL, never in hidden local state.
  * Plain /auth is ALWAYS the sign-in form.
+ * P1-g adds "forgot": the reset REQUEST view (the reset FORM is /auth/reset).
  */
-type AuthView = "sign-up" | "check-email";
+type AuthView = "sign-up" | "check-email" | "forgot";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 const MAX_RESENDS_PER_VISIT = 3;
@@ -26,8 +31,11 @@ export const Route = createFileRoute("/auth")({
         ? "check-email"
         : search.view === "sign-up"
           ? "sign-up"
-          : undefined,
+          : search.view === "forgot"
+            ? "forgot"
+            : undefined,
   }),
+
   head: () => ({
     meta: [
       { title: "Sign in — ethio.com" },
@@ -79,9 +87,13 @@ function AuthScreen() {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   // INC-017: guards against concurrent resend submits (see handleResend).
   const resendInFlightRef = useRef(false);
+  // P1-g: the reset request is neutral-always, so this is the only feedback.
+  const [resetRequested, setResetRequested] = useState(false);
 
   const onCheckEmail = view === "check-email";
+  const onForgot = view === "forgot";
   const isSignIn = view !== "sign-up";
+
 
   useEffect(() => {
     if (!onCheckEmail) return;
@@ -257,6 +269,80 @@ function AuthScreen() {
     }
   }
 
+  /**
+   * P1-g reset request (ruling R4). The answer is NEUTRAL-ALWAYS: the same
+   * message renders whether or not an account exists, so this screen cannot be
+   * used to enumerate addresses (the B-3 guard). The in-flight lock engages on
+   * INITIATION, per the INC-017 precedent.
+   */
+  async function handleForgotSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorKey(null);
+    const address = email.trim();
+    if (!address) {
+      setErrorKey("auth.errorMissingFields");
+      return;
+    }
+    if (busy) return;
+    setBusy(true);
+    await requestPasswordReset(address);
+    setBusy(false);
+    setResetRequested(true);
+  }
+
+  if (onForgot) {
+    return (
+      <main className="mx-auto w-full max-w-sm px-4 py-10">
+        <h1 className="text-xl font-semibold text-foreground">{t("auth.resetTitle")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetBody")}</p>
+
+        <form onSubmit={handleForgotSubmit} className="mt-6 flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="reset-email" className="text-sm font-medium text-foreground">
+              {t("auth.email")}
+            </label>
+            <input
+              id="reset-email"
+              name="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("auth.emailPlaceholder")}
+              className={fieldClass}
+            />
+          </div>
+
+          {errorKey ? (
+            <p role="alert" className="text-sm text-destructive">
+              {t(errorKey)}
+            </p>
+          ) : null}
+          {resetRequested ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t("auth.resetNeutral")}
+            </p>
+          ) : null}
+
+          <button type="submit" disabled={busy} className={primaryButtonClass}>
+            {busy ? t("auth.working") : t("auth.resetSend")}
+          </button>
+        </form>
+
+        <button
+          type="button"
+          onClick={() => void navigate({ to: "/auth", search: {} })}
+          className={`${secondaryButtonClass} mt-4`}
+        >
+          {t("auth.backToSignIn")}
+        </button>
+      </main>
+    );
+  }
+
+
   if (onCheckEmail && confirmed) {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
@@ -423,6 +509,23 @@ function AuthScreen() {
           {busy ? t("auth.working") : isSignIn ? t("auth.signInButton") : t("auth.signUpButton")}
         </button>
       </form>
+
+      {/* P1-g: the recovery entry point, sign-in view only. */}
+      {isSignIn ? (
+        <button
+          type="button"
+          onClick={() => {
+            setErrorKey(null);
+            setResetRequested(false);
+            void navigate({ to: "/auth", search: { view: "forgot" } });
+          }}
+          className="mt-4 min-h-11 w-full rounded-md text-sm font-medium text-primary underline underline-offset-4"
+        >
+          {t("auth.forgotPassword")}
+        </button>
+      ) : null}
+
+
 
       <button
         type="button"

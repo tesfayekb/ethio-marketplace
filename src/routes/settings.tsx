@@ -5,8 +5,10 @@ import {
   changeEmail,
   changePassword,
   getIdentities,
+  hasPassword,
   hasSessionRehydrating,
   linkGoogleIdentity,
+  removeOwnPassword,
   signOutOtherDevices,
   unlinkProviderIdentity,
 } from "@/features/auth/auth-service";
@@ -16,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
+
 
 /** Mirrors the server's password rule; the server remains the authority. */
 const MIN_PASSWORD_LENGTH = 8;
@@ -79,6 +82,11 @@ function SettingsScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [confirmingSignOutOthers, setConfirmingSignOutOthers] = useState(false);
+  // P1-g truth model (R2): the password is its own sign-in method, reported by
+  // the server, independent of whether an 'email' identity row exists.
+  const [passwordPresent, setPasswordPresent] = useState<boolean | null>(null);
+  const [passwordStateErrorKey, setPasswordStateErrorKey] = useState<MessageKey | null>(null);
+  const [confirmingRemovePassword, setConfirmingRemovePassword] = useState(false);
 
   /** Auth-required. The server refuses everything anyway; this is the UX. */
   useEffect(() => {
@@ -111,10 +119,22 @@ function SettingsScreen() {
     setIdentities(result.identities);
   }, []);
 
+  const loadPasswordState = useCallback(async () => {
+    const result = await hasPassword();
+    if (!result.ok) {
+      setPasswordPresent(null);
+      setPasswordStateErrorKey("settings.passwordStateError");
+      return;
+    }
+    setPasswordStateErrorKey(null);
+    setPasswordPresent(result.hasPassword);
+  }, []);
+
   useEffect(() => {
     if (checkingSession) return;
     void loadIdentities();
-  }, [checkingSession, loadIdentities]);
+    void loadPasswordState();
+  }, [checkingSession, loadIdentities, loadPasswordState]);
 
   function reset() {
     setErrorKey(null);
@@ -138,8 +158,27 @@ function SettingsScreen() {
 
   async function handleUnlink(identity: IdentitySummary) {
     const ok = await run(() => unlinkProviderIdentity(identity.identityId), "settings.unlinked");
-    if (ok) await loadIdentities();
+    if (ok) {
+      await loadIdentities();
+      // INC-024: unlinking the email identity also kills the password. Re-read
+      // instead of assuming — the list must keep telling the whole truth.
+      await loadPasswordState();
+    }
   }
+
+  /**
+   * P1-g (R2/R3): the second remove direction. The server refuses unless a
+   * non-email identity remains; the disabled control below is honesty only.
+   */
+  async function handleRemovePassword() {
+    setConfirmingRemovePassword(false);
+    const ok = await run(() => removeOwnPassword(), "settings.passwordRemoved");
+    if (ok) {
+      await loadPasswordState();
+      await loadIdentities();
+    }
+  }
+
 
   async function handleLinkGoogle() {
     if (busy) return;
@@ -195,7 +234,14 @@ function SettingsScreen() {
     );
   }
 
+  // GoTrue's own rule: the last IDENTITY cannot be unlinked (U-1, HTTP 422).
   const onlyOneMethod = (identities?.length ?? 0) <= 1;
+  // The password is a door in its own right ONLY when no email identity backs
+  // it — an email identity's door IS its password (INC-024 ties them together).
+  const hasFallbackIdentity = (identities ?? []).some((i) => i.provider !== "email");
+  // Mirrors public.remove_own_password()'s guard. The server is the authority.
+  const canRemovePassword = passwordPresent === true && hasFallbackIdentity;
+
 
   return (
     <main className="mx-auto w-full max-w-sm px-4 py-10">
@@ -287,9 +333,81 @@ function SettingsScreen() {
           </ul>
         )}
 
+        {/* P1-g TRUTH MODEL (R2): the password row. It renders whatever the
+            server says — a password with no email identity is shown here
+            rather than hidden, which is exactly the INC-024 ghost shape. */}
+        {passwordStateErrorKey ? (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            {t(passwordStateErrorKey)}
+          </p>
+        ) : null}
+
+        {passwordPresent === null && !passwordStateErrorKey ? (
+          <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+        ) : null}
+
+        {passwordPresent !== null ? (
+          <div
+            data-testid="password-method"
+            className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
+          >
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-foreground">
+                {t("settings.passwordMethod")}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {passwordPresent
+                  ? t("settings.passwordMethodPresent")
+                  : t("settings.passwordMethodAbsent")}
+              </span>
+            </div>
+            {passwordPresent ? (
+              <button
+                type="button"
+                onClick={() => {
+                  reset();
+                  setConfirmingRemovePassword(true);
+                }}
+                disabled={busy || !canRemovePassword}
+                title={canRemovePassword ? undefined : t("settings.lastMethodGuard")}
+                className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+              >
+                {t("settings.removePassword")}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {passwordPresent === false ? (
+          <p className="mt-2 text-xs text-muted-foreground">{t("settings.setPasswordHint")}</p>
+        ) : null}
+
+        {confirmingRemovePassword ? (
+          <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
+            <p className="text-sm text-foreground">{t("settings.removePasswordConfirm")}</p>
+            <button
+              type="button"
+              onClick={() => void handleRemovePassword()}
+              disabled={busy}
+              className={primaryButtonClass}
+            >
+              {busy ? t("auth.working") : t("settings.removePasswordConfirmYes")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmingRemovePassword(false)}
+              disabled={busy}
+              className={secondaryButtonClass}
+            >
+              {t("settings.cancel")}
+            </button>
+          </div>
+        ) : null}
+
         {onlyOneMethod && identities !== null ? (
           <p className="mt-3 text-xs text-muted-foreground">{t("settings.lastMethodGuard")}</p>
         ) : null}
+
 
         {identities !== null && !identities.some((i) => i.provider === "google") ? (
           <button
@@ -309,7 +427,18 @@ function SettingsScreen() {
           {t("settings.security")}
         </h2>
 
-        <form onSubmit={handleChangePassword} className="mt-4 flex flex-col gap-3">
+        {/* P1-g: with no password there is nothing to change. The recovery flow
+            is the way to set one, so the hint points there instead of showing a
+            form that could only ever fail. */}
+        {passwordPresent === false ? (
+          <p className="mt-4 text-sm text-muted-foreground">{t("settings.setPasswordHint")}</p>
+        ) : null}
+
+        <form
+          onSubmit={handleChangePassword}
+          hidden={passwordPresent === false}
+          className="mt-4 flex flex-col gap-3"
+        >
           <h3 className="text-sm font-medium text-foreground">{t("settings.changePassword")}</h3>
           <div className="flex flex-col gap-1">
             <label htmlFor="current-password" className="text-sm text-muted-foreground">
