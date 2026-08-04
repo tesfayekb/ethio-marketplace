@@ -61,7 +61,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggle = useCallback(() => {
-    const current = document.documentElement.getAttribute("data-mode") === "dark" ? "dark" : "light";
+    const current =
+      document.documentElement.getAttribute("data-mode") === "dark" ? "dark" : "light";
     setMode(current === "dark" ? "light" : "dark");
   }, [setMode]);
 
