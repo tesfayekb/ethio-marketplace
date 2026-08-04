@@ -75,7 +75,7 @@ Create or edit. It:
    `number`/`boolean`/`text`/`select` type conformance, and `select` values
    inside the declared options (see D-017 below);
 5. **screening stub** — a marked pass-through where the REQ-021 AI gateway lands
-   at P2-d, evaluated *before* any row is written;
+   at P2-d, evaluated _before_ any row is written;
 6. computes `expires_at` from the category's `expiry_days` when publishing, and
    sets `published_at` on first draft→active.
 

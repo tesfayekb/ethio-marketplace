@@ -869,3 +869,54 @@ duplicate stacking was never mechanically available. Future migrations that must
 re-application need guarded DDL + `ON CONFLICT DO NOTHING` seeds, not explicit
 transaction wrapping. Staging parity stays UNPROVEN per D-016 until the operator runs the
 diagnostic block against ethio-staging.
+
+- **S.. (2026-08-04): P2-c Listings core + lifecycle + screening seam built (Tier A).**
+  `public.listings` (REQ-019) — the marketplace's central object and, by its `id`, the
+  rateable-interaction anchor (REQ-011); `public.listing_photos` with the `exif_stripped`
+  DEC-009 gate. Two `SECURITY DEFINER` seam functions are the ONLY write paths:
+  `public.submit_listing(...)` (ownership assert, active category/location validation,
+  price-mode and `price_enabled` rules per REQ-018, attribute validation against
+  `category_attributes`, `expires_at` computed from `categories.expiry_days` per REQ-022,
+  `published_at` on first draft→active, and a MARKED PASS-THROUGH STUB where the REQ-021
+  screening gateway lands at P2-d) and `public.transition_listing(id, status)` (the whole
+  state machine — draft→active→expired|sold|removed, active→active renewal resets expiry,
+  illegal moves refused; §7 anti-state-scatter). `public.expire_stale_listings()` is
+  AUTHORED but NOT SCHEDULED — the pg_cron/external wiring is a named follow-up.
+  RLS deny-by-default: SELECT-only grants, active-only public read plus seller-own read on
+  both tables, no INSERT/UPDATE/DELETE policy anywhere. Private `listing-photos` bucket
+  (never public) with path-prefix ownership on `storage.objects` and public read gated on
+  `exif_stripped` + active parent. CI job "Listing-write seam guard (with self-test)" runs
+  `scripts/check-listing-writes.sh` against `src/` (passes, 0 findings) and against
+  `scripts/fixtures/bad-listing-write-example.ts.txt` (fails, 2 findings) — proven in both
+  directions. Rulings applied: photos stored-not-surfaced pending the EXIF strip (DEC-009,
+  P2-c-photos is the immediate next pass); the seam is enforced by CI guard; the state
+  machine exactly as specified. No `src/` change; no existing migration edited.
+
+**Standing rule adopted (2026-08-04): IDEMPOTENT MIGRATIONS.** Every migration from this
+one onward must be re-runnable — `CREATE TABLE/INDEX IF NOT EXISTS`, constraints added
+inside `DO $$ ... EXCEPTION WHEN duplicate_object` blocks, `DROP POLICY/FUNCTION IF EXISTS`
+before `CREATE`, `ON CONFLICT DO NOTHING` on all seeds — so applying it to a database that
+already carries it is a no-op rather than an abort. Follows directly from the INC-029
+re-runnability finding. P2-c is the first migration written under this rule.
+
+D-017 — Attribute validation in `submit_listing` is IMPLEMENTED, not deferred, but at a
+documented depth: required-key presence, `number`/`boolean`/`text`/`select` JSON-type
+conformance, and `select` membership in the declared `options`. Not covered yet:
+cross-field/conditional rules, numeric ranges, and unit coercion — these land with the
+attribute builder at P2-d. Logged as a scope note, not a silent gap.
+
+D-018 — The `listing-photos` bucket row was created through the platform's storage-bucket
+tool rather than an `INSERT INTO storage.buckets` statement inside the migration (that SQL
+path is rejected by the toolchain). The bucket's RLS — the security-bearing part — IS in
+the migration. Consequence: a replay of this migration on a fresh database recreates the
+policies but not the bucket row; the operator checklist therefore includes creating the
+private `listing-photos` bucket on staging before applying.
+
+D-019 — The post-migration security linter reported 8 WARNs. Seven are the pre-existing
+"SECURITY DEFINER function is executable" class and are BY DESIGN here: `submit_listing`
+and `transition_listing` are definer-by-necessity (they are the write gate over a
+deny-by-default table) and are granted to `authenticated` only, revoked from
+`anon`/`PUBLIC`; `expire_stale_listings` is `service_role` only. The single anon-executable
+definer function is the platform-owned `public.rls_auto_enable` event-trigger helper, not
+ours. WARN 8 (leaked-password protection disabled) is a pre-existing Auth console toggle,
+carried to the operator checklist. No new finding was introduced by P2-c.
