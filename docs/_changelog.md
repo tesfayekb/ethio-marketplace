@@ -75,3 +75,4 @@
 2026-08-04 — ci: nightly heartbeat push regenerates after fetch and retries; test outcome alone decides the job (INC-027)
 2026-08-04 — feat: P2-a geography — locations tree (active-only RLS, ET+US shallow seed); Phase 2 opened
 2026-08-04 — feat: P2-b categories + attribute schema (three-concept model, starter ethio.com seed)
+2026-08-04 — docs: INC-029 — reported staging locations drift dismissed (prod is 32 rows: 2/12/18; "18" was the city count); no cleanup, re-runnability lesson recorded
