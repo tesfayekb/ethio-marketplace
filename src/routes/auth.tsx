@@ -336,9 +336,22 @@ function AuthScreen() {
               {t("auth.resetNeutral")}
             </p>
           ) : null}
+          {resetLimitReached ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t("auth.resetLimit")}
+            </p>
+          ) : null}
 
-          <button type="submit" disabled={busy} className={primaryButtonClass}>
-            {busy ? t("auth.working") : t("auth.resetSend")}
+          <button
+            type="submit"
+            disabled={busy || cooldown > 0 || resetLimitReached}
+            className={primaryButtonClass}
+          >
+            {busy
+              ? t("auth.working")
+              : cooldown > 0
+                ? t("auth.resendCooldown").replace("{s}", String(cooldown))
+                : t("auth.resetSend")}
           </button>
         </form>
 
