@@ -5,11 +5,11 @@ Migration: `supabase/migrations/20260804152522_4390ce57-1901-4239-8e26-301f70df3
 
 ## The three concepts, and why they are three tables
 
-| Concept          | Table                             | Answers                        |
-| ---------------- | --------------------------------- | ------------------------------ |
-| Canonical node   | `public.categories`               | _What_ the category is         |
-| Browse tree      | `public.category_tree_pointers`   | _Where_ you browse it          |
-| Structured field | `public.category_attributes`      | _What it asks_ of a listing    |
+| Concept          | Table                           | Answers                     |
+| ---------------- | ------------------------------- | --------------------------- |
+| Canonical node   | `public.categories`             | _What_ the category is      |
+| Browse tree      | `public.category_tree_pointers` | _Where_ you browse it       |
+| Structured field | `public.category_attributes`    | _What it asks_ of a listing |
 
 **`categories` — the canonical node.** One row per real category. A listing (built
 later) FKs `categories.id` and lives in **exactly one** category in v1. Because the
