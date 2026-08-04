@@ -77,3 +77,5 @@
 2026-08-04 — feat: P2-b categories + attribute schema (three-concept model, starter ethio.com seed)
 2026-08-04 — docs: INC-029 — reported staging locations drift dismissed (prod is 32 rows: 2/12/18; "18" was the city count); no cleanup, re-runnability lesson recorded
 2026-08-04 — feat: P2-c listings core — state machine, screening seam + bypass guard, private photo bucket (strip-gated), per-category expiry
+2026-08-04 — feat: listings.tier column (LIVE v1 ranking lever) + partial feed-order index (P2-c-tier)
+2026-08-04 — feat: design foundation — unified AppShell, config-driven permission-gated panels, coffee-on-cool-slate oklch tokens, Inter/Bricolage/Noto Sans Ethiopic, brand mark + spinner, Marketplace feed shape

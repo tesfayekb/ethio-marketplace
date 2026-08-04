@@ -920,3 +920,72 @@ deny-by-default table) and are granted to `authenticated` only, revoked from
 definer function is the platform-owned `public.rls_auto_enable` event-trigger helper, not
 ours. WARN 8 (leaked-password protection disabled) is a pre-existing Auth console toggle,
 carried to the operator checklist. No new finding was introduced by P2-c.
+
+## Session — 2026-08-04 — Design foundation (P2-design)
+
+Built the ethio.com house style, the first substantial frontend build; every later page
+inherits from it. Delivered: the unified `AppShell` (header / rail / body / footer slots,
+one skeleton at every breakpoint, rail collapsing to a `ui/sheet` drawer below `lg`); the
+config-driven, permission-gated panel system (`src/config/panels.ts` + `panels.types.ts`,
+`PANELS` / `panelsForUser` / `visibleItems`, Marketplace always first and always present);
+the coffee-on-cool-slate palette as oklch values inside the existing `@theme inline`
+structure with measured WCAG ratios; Inter + Bricolage Grotesque + Noto Sans Ethiopic with
+the per-glyph Ge'ez fallback; dark mode across every token; the tibeb woven-diamond brand
+mark and loading spinner (inline SVG, `prefers-reduced-motion` respected); and the
+Marketplace feed's SHAPE — ranked grid, listing card, loading/empty/error states.
+
+**Tier is LIVE.** A Tier-A idempotent migration added `public.listings.tier`
+(`text NOT NULL DEFAULT 'regular'`, CHECK `premium|featured|regular`, added inside a
+`DO $$ ... EXCEPTION WHEN duplicate_object` block) plus the partial index
+`listings_feed_order_idx ON (tier, published_at DESC) WHERE status = 'active'`, which
+serves the feed ordering exactly. `tier` is an operator lever: admin → premium, user
+self-serve → featured, both free in v1. No backfill needed (default covers all rows; there
+are 0 listings). **Operator action: apply this migration to `ethio-staging` too.**
+
+Documented seams (NOT live): `view_count` (no column; view tracking is a separate
+pre-launch feature — every listing reports 0 and the ascending-view sort is a live no-op)
+and location scope (`ctx.locationScope` accepted, never narrowed; city→region→country→world
+widening is a separate pre-launch feature). Both are commented at their definition in
+`src/features/feed/ranking.ts`.
+
+Stubs / TODOs recorded explicitly:
+- TODO(rbac) — `isAdmin: false`, `permissions: []` in `src/components/app-shell.tsx`; the
+  roles/permissions tables are a later feature. Law F3 unaffected: gating is UI-only.
+- TODO(search) — the header search input is visual; submit is a deliberate no-op, there is
+  no `/search` route yet.
+- TODO(footer-links) — About / How it works / Safety / Contact / Terms / Privacy render as
+  text; those pages do not exist yet.
+- Category tree: **wired live** (reads `public.categories` + `category_tree_pointers`), not
+  stubbed. Category filter on the feed: **wired live**.
+
+D-020 — `index.html` does not exist on this stack. Font `<link>` tags were placed in
+`src/routes/__root.tsx`'s `head().links` (the only `<head>` composer) instead; a remote
+`@import` in `src/styles.css` would break the Lightning CSS build. Deviation from the
+task's stated scope path, same intent.
+
+D-021 — Light `--muted-foreground` was darkened from the specified `#7A828C` (3.63:1 on
+`#F6F7F9`, below WCAG AA) to `#686F78` (4.74:1). Dark mode `--primary` uses the lighter
+leaf `#7FC9A6` with near-black text: the deep `#1E5A43` scores 8.08:1 against white text
+but only ~1.5:1 against the `#14181C` page, so filled controls would disappear.
+
+D-022 — The rail is built on `ui/sheet` (the same primitive `ui/sidebar` uses internally
+for its mobile mode) plus a plain `<aside>` at `lg`, rather than `SidebarProvider`. The
+sidebar primitive's cookie-persisted icon-collapse model is more machinery than the two
+states this shell has; no collapse logic was reinvented.
+
+D-023 — The active panel is client state in the shell context, not a route segment: the
+non-Marketplace panels have no routes yet. Their bodies render the "coming in its own
+feature" placeholder.
+
+D-024 — `e2e/shell.spec.ts` could not be executed through the Playwright harness in the
+build sandbox: `e2e/global-setup.ts` hard-refuses to run without
+`E2E_SUPABASE_URL`/`E2E_SUPABASE_SERVICE_ROLE_KEY` pointing at `ethio-staging`, and those
+secrets live in CI only. Every assertion in the spec was instead executed directly against
+the running app at both 360px and 1280px and passed (evidence in the completion report).
+CI is the authoritative run.
+
+Launch-gate additions: the brand mark is a WORKING logo pending professional trademark
+clearance before commercial use. The motif-neutrality rule (religiously neutral tibeb
+geometry only, never a cross or faith iconography of any tradition; motif only as logo,
+spinner and empty-state mark) is recorded as a STANDING design rule in
+`docs/features/panels.md`.

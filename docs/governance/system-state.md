@@ -69,6 +69,19 @@
   lands — only the account owner's address completes a real send today.
 - Databases: `ethio-prod` (real) and `ethio-staging` (E2E target).
 
+## Phase 2 progress
+
+- P2-a geography — CLOSED
+- P2-b categories + attributes — CLOSED
+- P2-c listings core + screening seam — CLOSED
+- P2-c-tier `listings.tier` (LIVE ranking lever) — CLOSED on `ethio-prod`;
+  **pending operator apply on `ethio-staging`**
+- Design foundation (AppShell, panels, tokens, typography, brand, feed shape) — CLOSED
+
+Next: **P2-c-form** (the Post a Listing body on the My Listings panel), then view-tracking
+and location-scoping with real ranking — the two pre-launch backend features that fill the
+feed's documented seams.
+
 ## Governing instructions
 
 Claude Project v1.4 (project settings; intent mirrored in `governance.md`). Lovable
