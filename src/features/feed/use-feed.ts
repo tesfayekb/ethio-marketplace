@@ -86,24 +86,34 @@ export function useFeed({ categoryId = null, locationScope = "all-active" }: Use
 
     if (categoryId) query = query.eq("category_id", categoryId);
 
-    void query.then(({ data, error: queryError }) => {
-      if (cancelled) return;
-      if (queryError) {
-        // Law F4: no phantom success — a failed read surfaces as an error state.
+    // CONTAINMENT (INC-031): this feature's data errors — a missing column on a
+    // database that has not yet received a migration, a network failure, an RLS
+    // refusal — resolve to a VISIBLE in-panel error state. Nothing throws past
+    // this hook, so a feed-level backend gap can never again cascade through the
+    // shell-wrapped root and take down unrelated routes (auth, settings).
+    // This is containment, NOT catch-and-hide (law F4): `error` is surfaced.
+    void query
+      .then(({ data, error: queryError }) => {
+        if (cancelled) return;
+        if (queryError) {
+          // Law F4: no phantom success — a failed read surfaces as an error state.
+          setError(true);
+          setListings([]);
+          setIsLoading(false);
+          return;
+        }
+        const rows = (data ?? []) as unknown as ListingRow[];
+        setListings(rankListings(rows.map(toFeedListing), { locationScope }));
+        setIsLoading(false);
+      })
+      .catch(() => {
+        // A rejected promise (transport-level) is the same honest failure.
+        if (cancelled) return;
         setError(true);
         setListings([]);
         setIsLoading(false);
-        return;
-      }
-      const rows = (data ?? []) as unknown as ListingRow[];
-      setListings(rankListings(rows.map(toFeedListing), { locationScope }));
-      setIsLoading(false);
-    });
+      });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [categoryId, locationScope, reloadToken]);
 
   return { listings, isLoading, error, retry };
 }
