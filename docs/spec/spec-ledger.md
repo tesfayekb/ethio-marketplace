@@ -989,3 +989,8 @@ clearance before commercial use. The motif-neutrality rule (religiously neutral 
 geometry only, never a cross or faith iconography of any tradition; motif only as logo,
 spinner and empty-state mark) is recorded as a STANDING design rule in
 `docs/features/panels.md`.
+
+Session 2026-08-04 (design-foundation CI reds): INC-030 gitleaks prose false positive
+resolved by single-fingerprint `.gitleaksignore` (rule stays armed). INC-031 records the
+blast-radius rule now in force — an always-mounted panel MUST fail soft and visibly
+inside its own body; no feature's backend gap may cascade through the shell-wrapped root.
