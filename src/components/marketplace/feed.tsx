@@ -23,34 +23,48 @@ export function Feed() {
           <div className="flex justify-center py-12">
             <Spinner label={t("feed.loading")} />
           </div>
-        ) : error ? (
-          <div className="rounded-lg border border-border bg-card p-6 text-center">
-            <h2 className="text-base font-semibold text-foreground">{t("feed.errorTitle")}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t("feed.errorBody")}</p>
-            <Button type="button" className="mt-4 min-h-11" onClick={retry}>
-              {t("common.retry")}
-            </Button>
-          </div>
-        ) : listings.length === 0 ? (
-          <div
-            data-testid="feed-empty"
-            className="flex flex-col items-center rounded-lg border border-border bg-card p-10 text-center"
-          >
-            {/* Allowed motif placement: logo, spinner, empty state. */}
-            <WovenMark className="h-10 w-10" />
-            <h2 className="mt-4 text-base font-semibold text-foreground">{t("feed.emptyTitle")}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t("feed.emptyBody")}</p>
-          </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {listings.map((listing) => (
-              <li key={listing.id}>
-                <ListingCard listing={listing} />
-              </li>
-            ))}
-          </ul>
+          <>
+            {/* Law F4: a soft failure stays VISIBLE — contained to this panel,
+                never thrown to the shell. */}
+            {error ? (
+              <div
+                role="alert"
+                className="mb-4 rounded-lg border border-border bg-card p-6 text-center"
+              >
+                <h2 className="text-base font-semibold text-foreground">{t("feed.errorTitle")}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{t("feed.errorBody")}</p>
+                <Button type="button" className="mt-4 min-h-11" onClick={retry}>
+                  {t("common.retry")}
+                </Button>
+              </div>
+            ) : null}
+
+            {listings.length === 0 ? (
+              <div
+                data-testid="feed-empty"
+                className="flex flex-col items-center rounded-lg border border-border bg-card p-10 text-center"
+              >
+                {/* Allowed motif placement: logo, spinner, empty state. */}
+                <WovenMark className="h-10 w-10" />
+                <h2 className="mt-4 text-base font-semibold text-foreground">
+                  {t("feed.emptyTitle")}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">{t("feed.emptyBody")}</p>
+              </div>
+            ) : (
+              <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {listings.map((listing) => (
+                  <li key={listing.id}>
+                    <ListingCard listing={listing} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </div>
+
     </section>
   );
 }
