@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition.
+ * Design system definition — the ethio.com house style ("coffee on cool slate").
  *
  * The @theme inline block maps CSS custom properties to Tailwind utility
  * classes (e.g. --color-primary -> bg-primary, text-primary).
@@ -16,6 +16,27 @@
  * To add a new semantic color:
  * 1. Add the variable to :root (light value) and .dark (dark value)
  * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ *
+ * WCAG contrast (measured, sRGB, computed from the source hexes):
+ *   LIGHT  foreground/background        #1E2329 on #F6F7F9  14.76:1  AAA
+ *          muted-foreground/background  #686F78 on #F6F7F9   4.74:1  AA
+ *          primary-foreground/primary   #FFFFFF on #1E5A43    8.08:1  AAA
+ *          accent-foreground/accent     #3D2A08 on #C98A2B    4.67:1  AA
+ *          primary on rail-active       #1E5A43 on #EDF3EF    7.18:1  AAA
+ *   DARK   foreground/background        #E6E8EB on #14181C  14.53:1  AAA
+ *          muted-foreground/background  #8A9299 on #14181C    5.65:1  AA
+ *          primary-foreground/primary   #0B1A13 on #7FC9A6    9.23:1  AAA
+ *          accent-foreground/accent     #221704 on #E0A94A    8.34:1  AAA
+ *          primary on rail-active       #7FC9A6 on #22302A    7.09:1  AAA
+ *
+ * Dark-mode primary decision: the light-mode deep coffee-leaf green (#1E5A43)
+ * with white text scores 8.08:1, but as a SURFACE on the #14181C background it
+ * is nearly invisible (1.5:1 against the page). The lighter leaf #7FC9A6 with
+ * near-black text scores 9.23:1 on itself and separates cleanly from the page,
+ * so dark mode uses the lighter green.
+ *
+ * Flat surfaces only: no background images, no gradients anywhere (performance
+ * stance — see docs/features/design-foundation.md).
  */
 
 @theme inline {
@@ -26,6 +47,13 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  /*
+   * Typography. Inter carries Latin; Noto Sans Ethiopic carries Ge'ez —
+   * Inter has NO Ethiopic glyphs, so Amharic (and any Ge'ez codepoint in mixed
+   * text) falls through to Noto per-glyph automatically.
+   */
+  --font-sans: "Inter", "Noto Sans Ethiopic", system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Noto Sans Ethiopic", system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -63,73 +91,75 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+  /* #F6F7F9 cool-slate near-white */
+  --background: oklch(0.976 0.003 264.5);
+  --foreground: oklch(0.254 0.014 253.1); /* #1E2329 */
+  --card: oklch(1 0 89.9); /* #FFFFFF */
+  --card-foreground: oklch(0.254 0.014 253.1);
+  --popover: oklch(1 0 89.9);
+  --popover-foreground: oklch(0.254 0.014 253.1);
+  --primary: oklch(0.422 0.073 164.4); /* #1E5A43 deep coffee-leaf green */
+  --primary-foreground: oklch(1 0 89.9); /* #FFFFFF */
+  --secondary: oklch(0.945 0.006 255.5); /* #EAEDF1 */
+  --secondary-foreground: oklch(0.254 0.014 253.1);
+  --muted: oklch(0.96 0.005 258.3); /* #F0F2F5 */
+  /* #686F78 — the spec's #7A828C measured 3.63:1 (below AA); darkened to 4.74:1 */
+  --muted-foreground: oklch(0.539 0.016 254.7);
+  --accent: oklch(0.681 0.13 72.5); /* #C98A2B honey-gold */
+  --accent-foreground: oklch(0.301 0.055 77.9); /* #3D2A08 gold-brown */
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --destructive-foreground: oklch(1 0 89.9);
+  --border: oklch(0.939 0.006 255.5); /* #E8EBEF */
+  --input: oklch(0.939 0.006 255.5);
+  --ring: oklch(0.422 0.073 164.4); /* primary green */
+  --chart-1: oklch(0.422 0.073 164.4);
+  --chart-2: oklch(0.681 0.13 72.5);
+  --chart-3: oklch(0.539 0.016 254.7);
+  --chart-4: oklch(0.777 0.09 162.9);
+  --chart-5: oklch(0.769 0.128 78.3);
+  --sidebar: oklch(1 0 89.9); /* #FFFFFF */
+  --sidebar-foreground: oklch(0.254 0.014 253.1);
+  --sidebar-primary: oklch(0.422 0.073 164.4);
+  --sidebar-primary-foreground: oklch(1 0 89.9);
+  --sidebar-accent: oklch(0.958 0.008 157.1); /* #EDF3EF rail active bg */
+  --sidebar-accent-foreground: oklch(0.422 0.073 164.4);
+  --sidebar-border: oklch(0.939 0.006 255.5);
+  --sidebar-ring: oklch(0.422 0.073 164.4);
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  --background: oklch(0.207 0.01 248.3); /* #14181C */
+  --foreground: oklch(0.93 0.005 258.3); /* #E6E8EB */
+  --card: oklch(0.236 0.012 248.3); /* #1A1F24 */
+  --card-foreground: oklch(0.93 0.005 258.3);
+  --popover: oklch(0.236 0.012 248.3);
+  --popover-foreground: oklch(0.93 0.005 258.3);
+  --primary: oklch(0.777 0.09 162.9); /* #7FC9A6 */
+  --primary-foreground: oklch(0.202 0.025 162.8); /* #0B1A13 */
+  --secondary: oklch(0.277 0.016 248.4); /* #222930 */
+  --secondary-foreground: oklch(0.93 0.005 258.3);
+  --muted: oklch(0.277 0.016 248.4);
+  --muted-foreground: oklch(0.656 0.014 244.4); /* #8A9299 */
+  --accent: oklch(0.769 0.128 78.3); /* #E0A94A honey-gold for dark */
+  --accent-foreground: oklch(0.214 0.037 79.9); /* #221704 */
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --destructive-foreground: oklch(0.93 0.005 258.3);
+  --border: oklch(0.29 0.014 248.3); /* #262C32 */
+  --input: oklch(0.29 0.014 248.3);
+  --ring: oklch(0.777 0.09 162.9);
+  --chart-1: oklch(0.777 0.09 162.9);
+  --chart-2: oklch(0.769 0.128 78.3);
+  --chart-3: oklch(0.656 0.014 244.4);
+  --chart-4: oklch(0.422 0.073 164.4);
+  --chart-5: oklch(0.681 0.13 72.5);
+  --sidebar: oklch(0.236 0.012 248.3); /* #1A1F24 */
+  --sidebar-foreground: oklch(0.93 0.005 258.3);
+  --sidebar-primary: oklch(0.777 0.09 162.9);
+  --sidebar-primary-foreground: oklch(0.202 0.025 162.8);
+  --sidebar-accent: oklch(0.294 0.022 166.7); /* #22302A rail active bg */
+  --sidebar-accent-foreground: oklch(0.777 0.09 162.9);
+  --sidebar-border: oklch(0.29 0.014 248.3);
+  --sidebar-ring: oklch(0.777 0.09 162.9);
 }
 
 @layer base {
@@ -140,5 +170,12 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
   }
 }
