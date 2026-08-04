@@ -94,7 +94,6 @@ function AuthScreen() {
   const onForgot = view === "forgot";
   const isSignIn = view !== "sign-up";
 
-
   useEffect(() => {
     if (!onCheckEmail) return;
     setPendingEmail(window.sessionStorage.getItem(PENDING_EMAIL_KEY));
@@ -342,7 +341,6 @@ function AuthScreen() {
     );
   }
 
-
   if (onCheckEmail && confirmed) {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
@@ -524,8 +522,6 @@ function AuthScreen() {
           {t("auth.forgotPassword")}
         </button>
       ) : null}
-
-
 
       <button
         type="button"

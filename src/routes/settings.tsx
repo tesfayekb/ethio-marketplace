@@ -19,7 +19,6 @@ import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
 
-
 /** Mirrors the server's password rule; the server remains the authority. */
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -179,7 +178,6 @@ function SettingsScreen() {
     }
   }
 
-
   async function handleLinkGoogle() {
     if (busy) return;
     reset();
@@ -241,7 +239,6 @@ function SettingsScreen() {
   const hasFallbackIdentity = (identities ?? []).some((i) => i.provider !== "email");
   // Mirrors public.remove_own_password()'s guard. The server is the authority.
   const canRemovePassword = passwordPresent === true && hasFallbackIdentity;
-
 
   return (
     <main className="mx-auto w-full max-w-sm px-4 py-10">
@@ -407,7 +404,6 @@ function SettingsScreen() {
         {onlyOneMethod && identities !== null ? (
           <p className="mt-3 text-xs text-muted-foreground">{t("settings.lastMethodGuard")}</p>
         ) : null}
-
 
         {identities !== null && !identities.some((i) => i.provider === "google") ? (
           <button
