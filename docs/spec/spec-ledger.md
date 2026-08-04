@@ -856,3 +856,16 @@ D-016 — Step 4 of the task asked to record "P2-a locations parity verified acr
 + staging (no drift)". Staging was never read (no staging credentials in this
 environment), so the claim was NOT written; the ledger records UNPROVEN instead.
 Deviation logged under A3 (honesty before action), not absorbed.
+
+INC-029 (2026-08-04) — Reported staging locations drift investigated and DISMISSED as a
+measurement error. Prod `public.locations` = 32 rows (country 2 / region 12 / city 18),
+0 duplicate natural keys, all P2-a constraints and indexes present. The "18" in the
+report is the city count; staging's 32 equals prod's 32. No cleanup SQL executed and
+none needed; no migration written (prod is correct, and a data cleanup would in any case
+be staging-only operator SQL, never a committed migration). Root-cause finding on
+re-runnability: P2-a's CREATE TABLE and seed INSERTs share one migration file applied in
+a single implicit transaction, so a failed re-apply rolls the seed back with the DDL —
+duplicate stacking was never mechanically available. Future migrations that must survive
+re-application need guarded DDL + `ON CONFLICT DO NOTHING` seeds, not explicit
+transaction wrapping. Staging parity stays UNPROVEN per D-016 until the operator runs the
+diagnostic block against ethio-staging.
