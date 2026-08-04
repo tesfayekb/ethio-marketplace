@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/app-shell";
 import { I18nProvider, useI18n } from "../i18n";
+import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 
 function NotFoundContent() {
   const { t } = useI18n();
@@ -122,6 +123,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;600&display=swap&subset=ethiopic",
       },
     ],
+    // NO FLASH OF WRONG THEME: this runs in <head>, before the body paints, so
+    // data-mode + the .dark class are already correct on the first frame.
+    scripts: [{ children: THEME_INIT_SCRIPT }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -131,7 +135,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -149,10 +153,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        <AppShell>
+        <ThemeProvider>
+          <AppShell>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </AppShell>
+            <Outlet />
+          </AppShell>
+        </ThemeProvider>
       </I18nProvider>
     </QueryClientProvider>
   );

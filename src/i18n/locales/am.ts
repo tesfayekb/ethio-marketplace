@@ -136,6 +136,7 @@ export const am: Messages = {
   "navSection.content": "ይዘት",
   "navSection.support": "ድጋፍ",
   "navSection.system": "ሲስተም",
+  "navSection.manage": "አስተዳደር",
   "nav.dashboard": "ዳሽቦርድ",
   "nav.postListing": "ማስታወቂያ ይለጥፉ",
   "nav.myListings": "የእኔ ማስታወቂያዎች",
