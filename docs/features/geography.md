@@ -13,17 +13,17 @@ features (posting flow, "add my city", feed) consume this table.
 - `country_code` references `public.countries(code)` on every row, so any node
   answers "which country?" without walking to the root
 
-| Column                     | Notes                                                            |
-| -------------------------- | ---------------------------------------------------------------- |
-| id                         | uuid PK — listings FK this, regardless of activation state       |
-| parent_id                  | self-FK; NULL at country level                                    |
-| level                      | country / region / city                                           |
-| country_code               | char(2) → `countries.code`                                        |
-| name_en / name_am          | display names (see Names, below)                                  |
-| slug                       | unique within a parent; root slugs globally unique (partial index) |
-| center_lat / center_lng    | center point for maps + nearest-first (REQ-005); NULL at country  |
-| is_active                  | visibility gate — see RLS                                         |
-| created_at / updated_at    | timestamptz (UTC); `updated_at` maintained by trigger             |
+| Column                  | Notes                                                              |
+| ----------------------- | ------------------------------------------------------------------ |
+| id                      | uuid PK — listings FK this, regardless of activation state         |
+| parent_id               | self-FK; NULL at country level                                     |
+| level                   | country / region / city                                            |
+| country_code            | char(2) → `countries.code`                                         |
+| name_en / name_am       | display names (see Names, below)                                   |
+| slug                    | unique within a parent; root slugs globally unique (partial index) |
+| center_lat / center_lng | center point for maps + nearest-first (REQ-005); NULL at country   |
+| is_active               | visibility gate — see RLS                                          |
+| created_at / updated_at | timestamptz (UTC); `updated_at` maintained by trigger              |
 
 Uniqueness: `UNIQUE (parent_id, slug)` plus a partial unique index on `(slug)
 WHERE parent_id IS NULL`, because Postgres does not constrain NULL parents in a
