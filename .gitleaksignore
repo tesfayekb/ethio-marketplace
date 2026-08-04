@@ -1,0 +1,12 @@
+# Gitleaks false positives (machine-flagged, human-ruled benign).
+# Format: <commit>:<path>:<rule>:<line>
+#
+# docs/_changelog.md line 81 is the design-foundation changelog sentence
+# ("...coffee-on-cool-slate oklch tokens, Inter/Bricolage/Noto Sans Ethiopic,
+# brand mark and spinner..."). The generic-api-key entropy heuristic scored the
+# long hyphenated prose run as a key. It is human prose; the changelog never
+# carries credentials (standing rule INC-000).
+#
+# Scope note: this is a single-fingerprint exemption — the generic-api-key rule
+# stays fully armed everywhere, including on any FUTURE changelog line.
+6cdcca71aa8536a676142b7ec7109d45632b9110:docs/_changelog.md:generic-api-key:81
