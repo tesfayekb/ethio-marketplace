@@ -1,56 +1,52 @@
 # System State
 
-Phase: 1 (Identity) — IN PROGRESS. Email door (P1-c) CLOSED. Google door (P1-d) CLOSED
-2026-08-03. Settings surface (P1-f) CLOSED 2026-08-03 — built, E2E-guarded
-(S-1..S-3), deny-proven (U-1 server refusal, U-2 unlink/relink, U-3 ghost door found
-and fixed as INC-024 with scripted recheck). P1-g BUILT 2026-08-03: the identity
-truth model (has_password/remove_own_password), password recovery, the
-neutral-always reset request, the production RLS/ACL deny re-proof and the
-enforcing dependency-audit gate all landed. Remaining before P1-g CLOSES: the
-staging recovery-identity probe run (workflow_dispatch, needs E2E_SUPABASE_DB_URL)
-and the production SMTP launch-gate item. Superseded next line: P1-g gate — RLS posture
-review of all Phase 1 tables with deny-case evidence, dependency-audit prompt,
-guard-proof re-run, polish sweep (Google-link callback copy; email-unlink
-password-deletion warning), then phase closure.
+## Phases
 
-Phase ladder amended by DEC-012 (2026-08-03): Telegram and multi-door settings moved to a
-later "Additional auth doors" phase; Phase 1 closes after the Google door and the trimmed
-settings surface. REQ-014 unchanged — all three doors still ship before launch.
+- **Phase 0 (Foundation) — CLOSED 2026-07-29.** Docs foundation, CI guard skeleton,
+  migration rulebook, migration 0001 (`public.countries`).
+- **Phase 1 (Identity) — CLOSED 2026-08-04.**
+  - P1-a identity schema (`user_directory`, `profiles`, signup trigger,
+    `confirm_home_country`) — closed 2026-07-30; deny-proofs D1–D7.
+  - P1-b i18n runtime (EN + AM, lazy locales, language switcher) — closed 2026-07-30.
+  - P1-c email door (sign-up, sign-in, verification, callback, resend hardening) —
+    closed 2026-07-30; E2E A/B/C classes.
+  - P1-d Google door (minimal scopes, REQ-015 linking semantics, D-8/D-10 evidence) —
+    closed 2026-08-03.
+  - P1-f settings surface (identity summary, sign-in methods, last-method server
+    guard, INC-024 ghost-door fix) — closed 2026-08-03.
+  - P1-g gate (identity truth model, password recovery, prod RLS/ACL re-proof,
+    enforcing dependency-audit gate, guard-proof fixture refresh) — closed 2026-08-04.
+  - Deferred by DEC-012 to the **Additional auth doors** phase: Telegram door,
+    device/session list, multi-door settings.
+- **Phase 2 (marketplace core) — NEXT, spec NOT STARTED.** Scope: listings,
+  categories, geography per the GEO pre-decision (one canonical locations tree with
+  `is_active` + RLS active-only visibility; the world list is an admin-side picking
+  source, never a table), and the geo-scoped feed. Pass-2 spec opens in a new thread.
 
-E2E harness: ACCEPTED 2026-08-01 (Playwright, staging-targeted, runs on every push).
+## The three standing supervisor reads
 
-Auth-door E2E coverage: sign-up/check-email/throttle (A-1, A-2), sign-in errors and
-enumeration indistinguishability (B-1..B-4), callback/replay/already-confirmed and
-the INC-010a abuse-vector guard (C-1..C-4), Google first-hop scope-creep and presence
-guards (G-1, G-2), settings gate/sections/password rotation (S-1..S-3). See
-docs/features/auth-e2e-tests.md and docs/features/settings-surface.md.
+1. `docs/tracking/ci-status.md` — the two-step SHA check: read the file, then confirm
+   its recorded commit matches the HEAD you cloned. A stale SHA means the verdict
+   belongs to an older commit and proves nothing about the current one.
+2. `docs/tracking/nightly-status.md` — the 48h staleness rule: a timestamp older than
+   ~48 hours means the nightly schedule stopped, which is itself a failure.
+3. **Guard Proof** (`.github/workflows/guard-proof.yml`) — dispatched and green at
+   every phase gate; it proves the B-3 and C-4 guards fail against mutation fixtures,
+   not merely that they pass on clean source.
 
-A-3 (resend exhaustion) needs real elapsed time and runs NIGHTLY via
-.github/workflows/nightly-e2e.yml (06:00 UTC, plus workflow_dispatch); its completion
-heartbeat is docs/tracking/nightly-status.md — a timestamp older than ~48h means the
-schedule stopped. See docs/features/nightly-e2e.md.
+## Standing environment facts
 
-Manual-only coverage (cannot run in CI): REQ-015 linking deny tests D-8/D-10 (D-9
-deferred-named), settings deny tests U-1/U-2/U-3, and the email-change double
-confirmation. All are pinned to the launch gate.
+- Staging E2E mail sink: **Ethereal** (ruling R1). `E2E_EMAIL_SINK=1` gates the
+  sign-up/recovery E2E cases.
+- Production SMTP: Resend **test** domain until the launch-gate custom sending domain
+  lands — only the account owner's address completes a real send today.
+- Databases: `ethio-prod` (real) and `ethio-staging` (E2E target).
 
-Phase 1 gate blockers: NONE outstanding. Guard proof first passed 2026-08-03 (Guard
-Proof #3): B-3 and C-4 each proven in both directions — passing on clean source,
-failing against mutation fixtures.
+## Governing instructions
 
-Gates closed: Phase 0 (Foundation). Phase 1 remaining: P1-g close-out (staging probe run + production SMTP). Deferred to the
-Additional-auth-doors phase: Telegram door, device/session list, multi-door settings.
+Claude Project v1.4 (project settings; intent mirrored in `governance.md`). Lovable
+Knowledge: v3.1 + H2 (`docs/governance/lovable-knowledge.md`).
 
-Governing instructions: Claude Project v1.4 (in project settings; mirrored intent in governance.md). Lovable Knowledge: v3.1 + H2 (docs/governance/lovable-knowledge.md).
+Launch-gate items: see `docs/governance/launch-gate.md`.
 
-Immediate open work: (1) dispatch
-.github/workflows/guard-proof.yml once and record the first successful run date in
-docs/features/guard-proof.md and docs/features/auth-e2e-tests.md.
-
-Launch-gate items: see docs/governance/launch-gate.md.
-
-HEAD at this update: the commit this change lands as.
-
-CI observability: CI results are readable from the repo at docs/tracking/ci-status.md, written automatically by the CI Status Reporter workflow (docs/features/ci-status-reporter.md). The supervisor reads it on every verification clone as the primary CI check.
-
-Updated: 2026-08-03
+Updated: 2026-08-04
