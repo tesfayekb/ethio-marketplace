@@ -94,7 +94,7 @@
     "vite": "^8.0.16"
   },
   "overrides": {
-    "brace-expansion": ">=1.1.17",
+    "brace-expansion": ">=1.1.17 <2 || >=5.0.9",
     "postcss": ">=8.5.18",
     "js-yaml": ">=4.3.0"
   }
