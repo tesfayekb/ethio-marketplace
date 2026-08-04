@@ -1,7 +1,13 @@
 import { expect, test } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
-import { expectSignedIn, expectSignedOut, signIn, waitForHydration } from "./helpers/ui";
+import {
+  expectSignedIn,
+  expectSignedOut,
+  signIn,
+  signOutViaMenu,
+  waitForHydration,
+} from "./helpers/ui";
 import { createUser, identityProviders, mintRecoveryLink } from "./helpers/users";
 
 /**
@@ -66,7 +72,7 @@ test("R-3: a recovery link sets a new password, and the old one stops working", 
   await expect(page.getByText(en["auth.resetDone"])).toBeVisible({ timeout: 20000 });
 
   await page.getByRole("button", { name: en["auth.continue"] }).click();
-  await page.getByRole("button", { name: /^sign out$/i }).click();
+  await signOutViaMenu(page);
   await expectSignedOut(page);
 
   // The old password is dead.

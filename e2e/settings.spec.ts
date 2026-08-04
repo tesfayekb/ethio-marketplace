@@ -1,7 +1,13 @@
 import { expect, test } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
-import { expectSignedIn, expectSignedOut, signIn, waitForHydration } from "./helpers/ui";
+import {
+  expectSignedIn,
+  expectSignedOut,
+  signIn,
+  signOutViaMenu,
+  waitForHydration,
+} from "./helpers/ui";
 import { createUser } from "./helpers/users";
 
 /**
@@ -62,7 +68,9 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await submit.click();
   await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("alert")).toHaveText(en["auth.errorWrongCurrentPassword"]);
-  await expect(page.getByRole("button", { name: /^sign out$/i })).toBeVisible();
+  // Session intact: the header account menu (the shell's authenticated-branch
+  // control, successor to the old header sign-out button) is still present.
+  await expect(page.getByRole("button", { name: en["shell.accountMenu"] })).toBeVisible();
 
   // Correct current password: success feedback.
   await current.fill(user.password);
@@ -70,7 +78,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await submit.click();
   await expect(page.getByText(en["settings.passwordChanged"])).toBeVisible({ timeout: 15000 });
 
-  await page.getByRole("button", { name: /^sign out$/i }).click();
+  await signOutViaMenu(page);
   await expectSignedOut(page);
 
   // Old password no longer works.

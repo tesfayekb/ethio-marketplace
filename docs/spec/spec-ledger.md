@@ -994,3 +994,21 @@ Session 2026-08-04 (design-foundation CI reds): INC-030 gitleaks prose false pos
 resolved by single-fingerprint `.gitleaksignore` (rule stays armed). INC-031 records the
 blast-radius rule now in force — an always-mounted panel MUST fail soft and visibly
 inside its own body; no feature's backend gap may cascade through the shell-wrapped root.
+
+Session 2026-08-04 (post-design-foundation E2E green + mobile/perf/security pass): all
+eleven CI reds were stale-selector test debt from before the AppShell (INC-032) plus a
+hydration race that made two of them look like app bugs (INC-033); the application was
+healthy in both cases. Mobile pass found and fixed one real law-C2 violation (INC-034)
+and converted the 360px rules — no horizontal overflow, ≥44px tap targets, no sub-11px
+text, rail-is-drawer below `lg` and persistent above, grid reflow — into assertions.
+Performance pass: fonts load `display=swap` with Noto Sans Ethiopic subset to `ethiopic`
+and Inter to `latin`; listing cards reserve a fixed `aspect-4/3` box so the
+loading→empty/error transition costs no CLS; the marketplace module graph (28 modules)
+imports no chart/map/3D library, now guarded by `scripts/check-marketplace-imports.mjs`
+in CI. Security pass: the feed is read-only (`status = 'active'` filter over the public
+RLS policy, no insert/update/delete anywhere in the feed or card modules), the browser
+holds only the publishable key, the search input is inert and builds no query, and the
+admin panel is UI-gated only — NEW LAUNCH-GATE NOTE: admin route bodies and admin data
+reads MUST carry server-side RLS/RBAC before they ship; the `isAdmin` panel flag is
+convenience, never authorization (law F3). Nothing admin-scoped is fetched today, so
+there is nothing to leak yet.

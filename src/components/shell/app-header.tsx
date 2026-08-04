@@ -38,7 +38,7 @@ export function AppHeader() {
           <Link
             to="/"
             aria-label={t("app.name")}
-            className="shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Logo variant="full" className="hidden sm:inline-flex" />
             <Logo variant="mark" className="sm:hidden" />

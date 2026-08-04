@@ -85,6 +85,18 @@ jobs:
           fi
           echo "Self-test OK: bad fixture correctly flagged."
 
+  marketplace-weight:
+    name: Marketplace weight guard (no heavy deps on the first-paint path)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Guard the marketplace module graph
+        run: node scripts/check-marketplace-imports.mjs
+
+
   dependency-audit:
     name: Dependency vulnerability audit (enforcing on high/critical)
     runs-on: ubuntu-latest

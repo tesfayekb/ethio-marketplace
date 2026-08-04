@@ -1,5 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
+import { en } from "../../src/i18n/locales/en";
+
 /** Lifted verbatim from smoke-auth-i18n.spec.ts (P1-c). */
 export async function expectNoHorizontalOverflow(page: Page) {
   const overflow = await page.evaluate(() => {
@@ -35,18 +37,67 @@ export async function fillUntilStable(input: Locator, value: string, fieldName: 
 }
 
 /**
- * Cold-start SSR can expose editable inputs before React hydrates them.
- * Lifted verbatim from the smoke spec's inline waitForFunction.
+ * Cold-start SSR serves interactive-LOOKING markup before React attaches. A
+ * click on that markup lands on a handler-less element and silently does
+ * nothing — the failure then surfaces as a timed-out assertion downstream.
+ *
+ * This is a readiness signal, NOT a retry: it waits for React to have attached
+ * props to a real control, which is the moment the page genuinely becomes
+ * interactive. The original P1-c version keyed off input[type=email], which
+ * only exists on /auth; the shell put interactive chrome on every route, so the
+ * probe now accepts any attached control.
  */
 export async function waitForHydration(page: Page) {
   await page.waitForFunction(
     () => {
-      const input = document.querySelector('input[type="email"]');
-      return input && Object.keys(input).some((key) => key.startsWith("__reactProps$"));
+      const controls = document.querySelectorAll("button, input, a[href]");
+      return Array.from(controls).some((el) =>
+        Object.keys(el).some((key) => key.startsWith("__reactProps$")),
+      );
     },
     undefined,
     { timeout: 15000 },
   );
+}
+
+/** Navigate and wait for the page to be genuinely interactive. */
+export async function gotoReady(page: Page, path: string) {
+  await page.goto(path);
+  await waitForHydration(page);
+}
+
+/**
+ * The shell moved the signed-in controls (identity, profile, settings, sign
+ * out) into the header account menu. Opening it is now a prerequisite for
+ * asserting any of them.
+ */
+export async function openAccountMenu(page: Page, label: string = en["shell.accountMenu"]) {
+  await waitForHydration(page);
+  const trigger = page.getByRole("button", { name: label });
+  await trigger.waitFor({ state: "visible", timeout: 15000 });
+  await trigger.click();
+  return trigger;
+}
+
+/** Signed-in identity + the sign-out affordance, both inside the account menu. */
+export async function expectSignedIn(page: Page, displayName: string) {
+  const trigger = await openAccountMenu(page);
+  await expect(page.getByRole("menuitem", { name: en["auth.signOut"] })).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(page.getByText(displayName, { exact: false })).toBeVisible();
+  // Leave the page as we found it so later interactions are not blocked.
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeVisible();
+}
+
+/** Sign out through the account menu. `labels` allows the Amharic pass. */
+export async function signOutViaMenu(
+  page: Page,
+  labels: { accountMenu?: string; signOut?: string } = {},
+) {
+  await openAccountMenu(page, labels.accountMenu ?? en["shell.accountMenu"]);
+  await page.getByRole("menuitem", { name: labels.signOut ?? en["auth.signOut"] }).click();
 }
 
 /** Drives the real sign-in form. Asserts nothing about the outcome. */
@@ -67,13 +118,11 @@ export async function signIn(page: Page, email: string, password: string) {
   await page.getByRole("button", { name: /^sign in$/i }).click();
 }
 
-export async function expectSignedIn(page: Page, displayName: string) {
-  const signOutButton = page.getByRole("button", { name: /^sign out$/i });
-  await signOutButton.waitFor({ state: "visible", timeout: 15000 });
-  await expect(signOutButton).toBeVisible();
-  await expect(page.getByText(displayName, { exact: false })).toBeVisible();
-}
-
+/**
+ * Signed out = no account menu anywhere. (Pre-shell this asserted the absence
+ * of a header sign-out button; the account menu is that button's successor and
+ * only renders on the authenticated branch, so the guarantee is identical.)
+ */
 export async function expectSignedOut(page: Page) {
-  await expect(page.getByRole("button", { name: /^sign out$/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: en["shell.accountMenu"] })).toHaveCount(0);
 }
