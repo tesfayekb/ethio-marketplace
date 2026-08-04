@@ -74,7 +74,7 @@ for (const file of html) {
 // No prerendered HTML (SSR-only output): fall back to the entry-named chunks.
 const isEntry = (f) => {
   const base = f.split("/").pop();
-  return referenced.size > 0 ? referenced.has(base) : /^(client|entry|index|main)[.-]/.test(base);
+  return referenced.size > 0 ? referenced.has(base) : /^(client|entry|index|main|styles)[.-]/.test(base);
 };
 
 const totals = { js: 0, css: 0 };
