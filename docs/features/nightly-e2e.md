@@ -55,7 +55,7 @@ never masked by a successful bookkeeping commit.
 
 The push is not rebased — it is **regenerated**, up to 3 attempts: fetch origin main,
 `reset --hard` onto it, re-write the status file from this run's own data, commit,
-push. Why regenerate rather than rebase or merge: the status file is *derived state*.
+push. Why regenerate rather than rebase or merge: the status file is _derived state_.
 Every field (conclusion, SHA, timestamp, run URL) belongs to the run that is writing
 it, so rewriting on top of whatever main now holds is always correct and can never
 conflict. The file content comes from one shell function used on every attempt, so
@@ -66,4 +66,3 @@ retries` and exits 0. The file then lags, which the staleness rule above catches
 
 The file is machine-generated and is exempt from the prettier gate in
 `.prettierignore`, same class as `docs/tracking/ci-status.md` (INC-011).
-
