@@ -96,6 +96,22 @@ jobs:
       - name: Guard the marketplace module graph
         run: node scripts/check-marketplace-imports.mjs
 
+  bundle-budget:
+    name: First-paint bundle budget (gzipped ceiling)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build
+        run: bun run build
+      # Ratchet, not a suggestion: raising the ceiling is a deliberate commit.
+      - name: Check the first-paint budget
+        run: node scripts/check-bundle-size.mjs
+
 
   dependency-audit:
     name: Dependency vulnerability audit (enforcing on high/critical)
