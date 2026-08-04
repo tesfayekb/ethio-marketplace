@@ -114,6 +114,10 @@ export function useFeed({ categoryId = null, locationScope = "all-active" }: Use
         setIsLoading(false);
       });
 
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId, locationScope, reloadToken]);
 
   return { listings, isLoading, error, retry };
 }
