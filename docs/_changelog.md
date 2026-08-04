@@ -81,3 +81,5 @@
 2026-08-04 — feat: design foundation — unified AppShell, config-driven permission-gated panels, coffee-on-cool-slate oklch tokens, Inter/Bricolage/Noto Sans Ethiopic, brand mark + spinner, Marketplace feed shape
 2026-08-04 — fix: gitleaks prose false positive fingerprinted (INC-030); feed fails soft and contained so no feature outage cascades through the shell (INC-031)
 2026-08-04 — fix: E2E specs repointed at the AppShell's real structure + hydration-aware navigation helpers (INC-032, INC-033); 44px tap-target floor enforced on header/footer chrome (INC-034); mobile/perf/security assertions added to shell.spec; marketplace weight guard added to CI
+2026-08-04 — feat: layout revision — warm/cream purge to cool slate (gold restricted to logo dot + Featured badge), corner-block grid, exact logo lockup FIT, minimal top bar with expandable search, 3-column centered footer, recursive rail submenus, pre-paint dark-mode toggle
+2026-08-04 — ci: first-paint bundle budget guard (gzipped JS/CSS ceiling, ratcheted)

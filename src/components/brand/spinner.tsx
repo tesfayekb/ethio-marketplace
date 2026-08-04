@@ -35,7 +35,7 @@ export function Spinner({ label, className }: { label: string; className?: strin
           strokeWidth="2.5"
           strokeLinecap="round"
         />
-        <path d="M16 12.5 19.5 16 16 19.5 12.5 16Z" className="fill-accent" />
+        <path d="M16 12.5 19.5 16 16 19.5 12.5 16Z" className="fill-gold" />
       </svg>
       <span className="text-sm text-muted-foreground">{label}</span>
     </span>

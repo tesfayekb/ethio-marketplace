@@ -117,3 +117,89 @@ search control is inert and builds no query. The admin panel is hidden by an
 `isAdmin` flag that is UI convenience only; per law F3 its routes and data reads
 must carry server-side RLS/RBAC when their bodies are built. Nothing admin-scoped is
 fetched today.
+
+## Layout revision (2026-08-04)
+
+### Surface law: cool slate only
+
+The palette census found the warm/cream leak was structural, not cosmetic: the
+gold hue sat on `--accent`, and `--accent` is what shadcn hovers, dropdown
+highlights, muted panels and sidebar selection all resolve to — so a token
+intended for one badge tinted the whole interface warm.
+
+The fix separates the two jobs:
+
+- `--accent` / `--accent-foreground` are now **cool-slate neutral**, and every
+  generic hover, highlight and inactive surface uses them.
+- `--gold` / `--gold-foreground` are new, dedicated tokens with exactly **two**
+  sanctioned placements: the dot inside the logo mark, and the Featured badge
+  on a listing card. Nothing else may consume them.
+
+Selection emphasis is GREEN (`--sidebar-accent`), never a cream tint. There are
+no warm surfaces left in `src/styles.css`.
+
+### The corner-block grid
+
+Desktop (`lg` and up) is one CSS grid, not nested flex rows:
+
+```text
++----------------+-------------------------------------+
+| logo cell      | top bar                             |  row 1 (fixed height)
++----------------+-------------------------------------+
+| rail           | content (breadcrumbs + body)        |  row 2 (1fr)
++----------------+-------------------------------------+
+| footer (spans both columns)                          |  row 3
++------------------------------------------------------+
+```
+
+The logo cell and the rail share column 1, so the sidebar edge is a single
+continuous hairline and the logo block sits exactly above the rail — asserted
+numerically in `shell.spec` (same x, same width, bar starts where the cell
+ends). Below `lg` the grid collapses to one column, the logo moves into the top
+bar, and the rail becomes the drawer.
+
+### Logo lockup FIT rule
+
+"MARKETPLACE" renders exactly as wide as "ethio.com" above it, at any size. The
+lockup is a flex column (both lines share the wider line's measured width) and
+the sub-line is a flex row of individual letters with `justify-between`, so the
+browser computes the tracking. There is no letter-spacing constant to drift.
+Below `sm` the top bar shows the mark alone — 360px has no room for the
+two-line lockup beside five controls.
+
+### Minimal top bar
+
+Every item is icon-sized or compact: search is an icon that expands into an
+inline field (and collapses on blur or Escape), the language switcher renders
+short codes with the full language name as its accessible name, and the theme
+toggle and account control are icon buttons. Breadcrumbs deliberately live on
+the content's top line, not in the bar. All controls keep the 44px floor.
+
+### Dark mode
+
+`src/providers/theme-provider.tsx` owns the mode; the toggle only calls it.
+`THEME_INIT_SCRIPT` runs in `<head>` before the body paints, so `data-mode` and
+the `.dark` class are already correct on the first frame — there is no flash of
+the wrong theme, and the choice survives a reload (asserted in `shell.spec`).
+
+### Nested rail submenus
+
+One recursive `RailRow` renders every rail node at any depth: a node with
+children becomes an expand/collapse submenu (`ui/collapsible`), a node without
+children is a leaf row. Depth adds start-padding only, so the 44px target and
+the 360px fit hold all the way down. Admin's former flat sections are now
+parent items with `children`; a parent whose every child is permission-filtered
+away disappears entirely rather than leaving an empty heading. Law F3 is
+untouched — this shapes UI, it does not authorize anything.
+
+Marketplace categories use the same renderer but stay one level deep until the
+category-children read lands with its own feature.
+
+### Bundle budget
+
+`scripts/check-bundle-size.mjs` (CI job `bundle-budget`) measures the gzipped
+first-paint JS and CSS and fails over a declared ceiling — currently 320 KiB JS
+/ 40 KiB CSS, against a measured 149.8 KiB / 12.8 KiB. It complements the
+weight guard: that one catches a banned library, this one catches a hundred
+small additions doing the same damage. The ceiling is a ratchet — raising it is
+a deliberate commit that says why.

@@ -41,9 +41,50 @@ export function WovenMark({ className }: { className?: string }) {
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      {/* Inner gold diamond */}
-      <path d="M16 11.5 20.5 16 16 20.5 11.5 16Z" className="fill-accent" />
+      {/* Inner gold diamond — one of only TWO sanctioned gold placements. */}
+      <path d="M16 11.5 20.5 16 16 20.5 11.5 16Z" className="fill-gold" />
     </svg>
+  );
+}
+
+/** The sub-line letters. Brand typography, not user-facing copy. */
+const SUBLINE = "MARKETPLACE".split("");
+
+/**
+ * The two-line lockup.
+ *
+ * FIT RULE: "MARKETPLACE" must render EXACTLY as wide as "ethio.com" above it —
+ * not wider, not narrower — at every logo size.
+ *
+ * How the fit is exact rather than hand-tuned: the lockup is a flex COLUMN, so
+ * both lines share one measured width — the width of the wider line, which is
+ * always the wordmark (the sub-line is set small enough that its natural width
+ * is shorter). The sub-line is then a flex ROW of individual letters with
+ * `justify-between`, so the browser distributes the leftover space as tracking
+ * and the row fills the column edge-to-edge. Scale the wordmark and the
+ * tracking recomputes itself; no magic letter-spacing constant exists to drift.
+ */
+function Lockup({ className }: { className?: string }) {
+  return (
+    <span className={cn("inline-flex flex-col leading-none", className)}>
+      <span
+        data-testid="logo-wordmark"
+        className="font-display text-xl font-semibold tracking-tight"
+      >
+        <span className="text-primary">ethio</span>
+        <span className="text-gold">.</span>
+        <span className="text-primary">com</span>
+      </span>
+      <span
+        aria-hidden="true"
+        data-testid="logo-subline"
+        className="mt-1 flex w-full justify-between text-[0.6875rem] font-medium uppercase text-muted-foreground"
+      >
+        {SUBLINE.map((letter, index) => (
+          <span key={`${letter}-${index}`}>{letter}</span>
+        ))}
+      </span>
+    </span>
   );
 }
 
@@ -51,19 +92,17 @@ export function Logo({
   variant = "full",
   className,
 }: {
-  /** "mark" = the woven diamond alone; "full" = mark + wordmark. */
-  variant?: "mark" | "full";
+  /** "icon" = the woven diamond alone (collapsed rail); "full" = mark + lockup. */
+  variant?: "icon" | "full";
   className?: string;
 }) {
+  if (variant === "icon") {
+    return <WovenMark className={cn("h-7 w-7", className)} />;
+  }
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
-      <WovenMark />
-      {variant === "full" ? (
-        <span className="font-display text-lg font-semibold tracking-tight">
-          <span className="text-primary">ethio</span>
-          <span className="text-muted-foreground">.com</span>
-        </span>
-      ) : null}
+      <WovenMark className="h-8 w-8 shrink-0" />
+      <Lockup />
     </span>
   );
 }

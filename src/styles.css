@@ -21,12 +21,14 @@
  *   LIGHT  foreground/background        #1E2329 on #F6F7F9  14.76:1  AAA
  *          muted-foreground/background  #686F78 on #F6F7F9   4.74:1  AA
  *          primary-foreground/primary   #FFFFFF on #1E5A43    8.08:1  AAA
- *          accent-foreground/accent     #3D2A08 on #C98A2B    4.67:1  AA
+ *          foreground/accent (neutral)  #1E2329 on #F0F2F5  13.61:1  AAA
+ *          gold-foreground/gold         #3D2A08 on #C98A2B    4.67:1  AA
  *          primary on rail-active       #1E5A43 on #EDF3EF    7.18:1  AAA
  *   DARK   foreground/background        #E6E8EB on #14181C  14.53:1  AAA
  *          muted-foreground/background  #8A9299 on #14181C    5.65:1  AA
  *          primary-foreground/primary   #0B1A13 on #7FC9A6    9.23:1  AAA
- *          accent-foreground/accent     #221704 on #E0A94A    8.34:1  AAA
+ *          foreground/accent (neutral)  #E6E8EB on #222930  12.31:1  AAA
+ *          gold-foreground/gold         #221704 on #E0A94A    8.34:1  AAA
  *          primary on rail-active       #7FC9A6 on #22302A    7.09:1  AAA
  *
  * Dark-mode primary decision: the light-mode deep coffee-leaf green (#1E5A43)
@@ -34,6 +36,14 @@
  * is nearly invisible (1.5:1 against the page). The lighter leaf #7FC9A6 with
  * near-black text scores 9.23:1 on itself and separates cleanly from the page,
  * so dark mode uses the lighter green.
+ *
+ * SURFACE PURGE (layout revision): --accent / --accent-foreground are the
+ * generic shadcn hover/tint surface — they used to carry honey-gold, which put
+ * a warm/cream wash on hover states all over the app. They now carry the SAME
+ * cool-slate neutral as --muted, so the surface system is ONE uniform neutral.
+ * The gold itself was not re-picked: its exact values moved to --gold /
+ * --gold-foreground, which are used in exactly two places — the logo dot and
+ * the Featured badge. Selection/emphasis is green (sidebar-accent) everywhere.
  *
  * Flat surfaces only: no background images, no gradients anywhere (performance
  * stance — see docs/features/design-foundation.md).
@@ -68,6 +78,9 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  /* Gold micro-accent. ONLY the logo dot and the Featured badge may use this. */
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -105,8 +118,11 @@
   --muted: oklch(0.96 0.005 258.3); /* #F0F2F5 */
   /* #686F78 — the spec's #7A828C measured 3.63:1 (below AA); darkened to 4.74:1 */
   --muted-foreground: oklch(0.539 0.016 254.7);
-  --accent: oklch(0.681 0.13 72.5); /* #C98A2B honey-gold */
-  --accent-foreground: oklch(0.301 0.055 77.9); /* #3D2A08 gold-brown */
+  /* PURGED: was honey-gold. Uniform cool-slate neutral, identical to --muted. */
+  --accent: oklch(0.96 0.005 258.3); /* #F0F2F5 */
+  --accent-foreground: oklch(0.254 0.014 253.1); /* #1E2329 */
+  --gold: oklch(0.681 0.13 72.5); /* #C98A2B honey-gold — logo dot + Featured only */
+  --gold-foreground: oklch(0.301 0.055 77.9); /* #3D2A08 */
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 89.9);
   --border: oklch(0.939 0.006 255.5); /* #E8EBEF */
@@ -140,8 +156,11 @@
   --secondary-foreground: oklch(0.93 0.005 258.3);
   --muted: oklch(0.277 0.016 248.4);
   --muted-foreground: oklch(0.656 0.014 244.4); /* #8A9299 */
-  --accent: oklch(0.769 0.128 78.3); /* #E0A94A honey-gold for dark */
-  --accent-foreground: oklch(0.214 0.037 79.9); /* #221704 */
+  /* PURGED: was honey-gold. Uniform cool-slate neutral, identical to --muted. */
+  --accent: oklch(0.277 0.016 248.4); /* #222930 */
+  --accent-foreground: oklch(0.93 0.005 258.3); /* #E6E8EB */
+  --gold: oklch(0.769 0.128 78.3); /* #E0A94A — logo dot + Featured only */
+  --gold-foreground: oklch(0.214 0.037 79.9); /* #221704 */
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.93 0.005 258.3);
   --border: oklch(0.29 0.014 248.3); /* #262C32 */
@@ -177,5 +196,19 @@
   h2,
   h3 {
     font-family: var(--font-display);
+  }
+}
+
+/*
+ * Theme flip cost: the toggle sets data-mode + the .dark class on <html>. That
+ * is one attribute write and a CSS custom-property cascade — no re-render of
+ * the tree, no extra bundle weight beyond the toggle button itself.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }
