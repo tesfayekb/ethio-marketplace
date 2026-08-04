@@ -79,10 +79,18 @@ jobs:
       # and are listed here explicitly — never as a blanket "|| true".
       - name: Audit
         run: |
-          set -o pipefail
-          bun audit --audit-level=high | tee /tmp/audit.txt || AUDIT_FAILED=1
-          echo "=== audit output above ==="
-          if [ "${AUDIT_FAILED:-0}" = "1" ]; then
+          set +e
+          bun audit --audit-level=high >/tmp/audit.txt 2>&1
+          STATUS=$?
+          cat /tmp/audit.txt
+          # A transport failure is NOT a clean bill of health and NOT a finding.
+          # It is reported as its own distinct red so nobody reads a broken
+          # registry call as "no vulnerabilities" (law F4).
+          if grep -qi "audit request failed" /tmp/audit.txt; then
+            echo "::error::'bun audit' could not reach the advisory service. This gate did NOT run."
+            exit 1
+          fi
+          if [ "$STATUS" -ne 0 ]; then
             echo "::error::High or critical vulnerabilities reported by 'bun audit'."
             echo "Review docs/features/dependency-audit.md, then remediate or record a ruling."
             exit 1
