@@ -743,3 +743,21 @@ natural companion to the service changes. Logged, not absorbed.
   `c4-arbitrary-recipient.patch` applies clean unchanged; `b3-enumeration.patch` was
   regenerated (the sign-in error block moved ~102 lines during P1-g), same mutation
   intent, forbidden-on-main header kept.
+
+- **S.. (2026-08-04): PHASE 1 (IDENTITY) CLOSED.** Gate evidence: RLS/ACL deny
+  re-proof executed against prod (signed-out refusals, cross-user isolation,
+  function ACLs); dependency-audit CI gate landed, PROVEN failing on 8 real high
+  findings on its debut, then clean after same-major overrides; Guard Proof green
+  on regenerated fixtures against the moved auth surface; full E2E suite green
+  under the Ethereal sink; recovery flow walked live on production by the operator
+  (forgot-password → email → reset → truth-model row restored → new-password
+  sign-in). Phase 1 delivered: identity schema with partition seams and honest
+  country provenance (INC-022), i18n runtime, email door with resend hardening
+  (INC-005/017), Google door with proven REQ-015 linking semantics (D-8/D-10),
+  settings surface on the truth model (R2), password recovery (INC-025), and the
+  guard infrastructure that caught its own defects: CI status reporter, nightly
+  real-time job, guard-proof A/B harness, audit gate. Incidents INC-011..INC-025
+  all resolved or deferred-named; supervisor deviations D-006..D-014 logged.
+  Telegram + device-list remain in the DEC-012 Additional-auth-doors phase.
+  NEXT: Phase 2 (marketplace core) — spec work opens in a new thread per the
+  pipelined model.
