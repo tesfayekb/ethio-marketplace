@@ -46,7 +46,7 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
             </span>
           ) : null}
           {listing.tier === "featured" ? (
-            <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
+            <span className="shrink-0 rounded-full bg-gold px-2 py-0.5 text-xs font-medium text-gold-foreground">
               {t("tier.featured")}
             </span>
           ) : null}
