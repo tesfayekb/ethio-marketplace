@@ -26,7 +26,17 @@
   P2-d) → feed/home → search → storefronts → messaging.
   - P2-a geography (`public.locations` tree, active-only RLS, shallow ET+US seed) —
     built 2026-08-04; applied to `ethio-prod`. Staging application is an operator
-    checklist item. See `docs/features/geography.md`.
+    checklist item, and staging parity is **UNPROVEN** (never read from here).
+    See `docs/features/geography.md`.
+  - P2-b categories + attribute schema (`public.categories`,
+    `public.category_tree_pointers`, `public.category_attributes`; REQ-017 three-concept
+    model, REQ-020 attributes, deny-by-default RLS, 12 real top-level starter seed +
+    one illustrative Vehicles attribute set) — built 2026-08-04; applied to
+    `ethio-prod`. Staging application is an operator checklist item. The authoritative
+    WooCommerce import and the attribute-builder admin UI are named later tasks.
+    See `docs/features/categories.md`.
+  - Queued for the P2 gate: INC-028 (duplicate `public.update_updated_at_column()`
+    entry in `pg_proc`).
 
 
 ## The three standing supervisor reads

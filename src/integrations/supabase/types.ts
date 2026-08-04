@@ -14,6 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          display_order: number
+          expiry_days: number
+          id: string
+          is_active: boolean
+          is_restricted: boolean
+          name_am: string | null
+          name_en: string
+          price_enabled: boolean
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          expiry_days?: number
+          id?: string
+          is_active?: boolean
+          is_restricted?: boolean
+          name_am?: string | null
+          name_en: string
+          price_enabled?: boolean
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          expiry_days?: number
+          id?: string
+          is_active?: boolean
+          is_restricted?: boolean
+          name_am?: string | null
+          name_en?: string
+          price_enabled?: boolean
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      category_attributes: {
+        Row: {
+          attr_key: string
+          attr_type: string
+          category_id: string
+          created_at: string
+          display_order: number
+          id: string
+          is_required: boolean
+          name_am: string | null
+          name_en: string
+          options: Json | null
+          updated_at: string
+        }
+        Insert: {
+          attr_key: string
+          attr_type: string
+          category_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_required?: boolean
+          name_am?: string | null
+          name_en: string
+          options?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          attr_key?: string
+          attr_type?: string
+          category_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_required?: boolean
+          name_am?: string | null
+          name_en?: string
+          options?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_attributes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      category_tree_pointers: {
+        Row: {
+          child_id: string
+          created_at: string
+          display_order: number
+          id: string
+          parent_id: string | null
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          parent_id?: string | null
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_tree_pointers_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_tree_pointers_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       countries: {
         Row: {
           code: string
