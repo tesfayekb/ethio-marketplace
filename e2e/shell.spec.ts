@@ -98,6 +98,83 @@ test.describe("app shell", () => {
   });
 });
 
+test.describe("corner-block grid", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "desktop only");
+
+  test("logo cell sits exactly above the rail and beside the top bar", async ({ page }) => {
+    await gotoReady(page, "/");
+
+    const box = async (testId: string) => {
+      const b = await page.getByTestId(testId).boundingBox();
+      expect(b, `${testId} has no box`).not.toBeNull();
+      return b!;
+    };
+    const logo = await box("shell-logo-cell");
+    const bar = await box("shell-topbar");
+    const rail = await box("app-rail");
+
+    // Logo cell owns the corner: same start edge and width as the rail...
+    expect(Math.round(logo.x)).toBe(Math.round(rail.x));
+    expect(Math.round(logo.width)).toBe(Math.round(rail.width));
+    // ...and the same height/top as the bar it sits next to.
+    expect(Math.round(logo.y)).toBe(Math.round(bar.y));
+    expect(Math.round(logo.height)).toBe(Math.round(bar.height));
+    // The bar starts where the logo cell ends — no gap, no overlap.
+    expect(Math.round(bar.x)).toBe(Math.round(logo.x + logo.width));
+    // The rail starts where the logo cell ends vertically.
+    expect(Math.round(rail.y)).toBe(Math.round(logo.y + logo.height));
+  });
+
+  test("the lockup's second line spans the wordmark exactly", async ({ page }) => {
+    await gotoReady(page, "/");
+    const cell = page.getByTestId("shell-logo-cell");
+    const word = await cell.getByTestId("logo-wordmark").boundingBox();
+    const sub = await cell.getByTestId("logo-subline").boundingBox();
+    expect(word).not.toBeNull();
+    expect(sub).not.toBeNull();
+    // FIT rule: same start edge, same width (1px tolerance for subpixel layout).
+    expect(Math.abs(word!.x - sub!.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(word!.width - sub!.width)).toBeLessThanOrEqual(1);
+  });
+
+  test("rail submenus expand and collapse", async ({ page }) => {
+    await gotoReady(page, "/");
+    const triggers = page.getByTestId("rail-submenu-trigger");
+    const count = await triggers.count();
+    // Marketplace's rail is flat until category children land; the submenu
+    // mechanism is only asserted where a panel actually declares children.
+    if (count === 0) return;
+
+    const first = triggers.first();
+    const expanded = (await first.getAttribute("aria-expanded")) === "true";
+    await first.click();
+    await expect(first).toHaveAttribute("aria-expanded", expanded ? "false" : "true");
+  });
+});
+
+test.describe("dark mode", () => {
+  test("the toggle flips the mode and the surfaces actually change", async ({ page }) => {
+    await gotoReady(page, "/");
+    const html = page.locator("html");
+    const before = await html.getAttribute("data-mode");
+    const bgBefore = await page.evaluate(
+      () => getComputedStyle(document.body).backgroundColor,
+    );
+
+    await page.getByRole("button", { name: en["shell.themeToggle"] }).click();
+
+    const after = before === "dark" ? "light" : "dark";
+    await expect(html).toHaveAttribute("data-mode", after);
+    const bgAfter = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(bgAfter).not.toBe(bgBefore);
+
+    // The choice must survive a reload with NO flash: the pre-paint script
+    // has already applied it by the time the first frame exists.
+    await page.reload();
+    await expect(html).toHaveAttribute("data-mode", after);
+  });
+});
+
 test.describe("mobile chrome", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) > 400, "mobile-360 only");
 
@@ -111,6 +188,13 @@ test.describe("mobile chrome", () => {
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
     await expect(drawer.getByText(en["panel.marketplace"], { exact: true })).toBeVisible();
+  });
+
+  test("expanding search keeps the bar within 360px", async ({ page }) => {
+    await gotoReady(page, "/");
+    await page.getByTestId("search-toggle").click();
+    await expect(page.getByTestId("search-input")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
   });
 
   test("no horizontal overflow and text stays legible at 360", async ({ page }) => {
@@ -147,6 +231,16 @@ test.describe("mobile chrome", () => {
       "language",
     );
     await expectTapTarget(page, page.getByRole("link", { name: en["nav.home"] }), "footer home");
+    await expectTapTarget(
+      page,
+      page.getByRole("button", { name: en["shell.themeToggle"] }),
+      "theme toggle",
+    );
+    await expectTapTarget(
+      page,
+      page.getByRole("button", { name: en["shell.searchLabel"] }),
+      "search toggle",
+    );
 
     // Category rows inside the drawer are targets too.
     await page.getByRole("button", { name: en["shell.openMenu"] }).click();
