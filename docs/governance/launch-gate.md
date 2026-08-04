@@ -26,6 +26,12 @@
 - EXIF strip live before any image-upload feature ships (DEC-009 — phase-gate, tracked here for visibility).
 - ECA registration / Ethiopia data partition — Ethiopia-entity milestone (DEC-008), ~year 1.
 
+## Brand
+
+- **Professional trademark clearance of the ethio.com woven-diamond mark and wordmark before commercial use.** The mark in `src/components/brand/logo.tsx` is a WORKING logo and must not be represented as cleared.
+- STANDING DESIGN RULE (not a gate item, recorded here for visibility): the tibeb motif is religiously neutral geometry only — no cross or faith iconography of any tradition, ever; it appears only as logo, spinner and empty-state mark. See `docs/features/panels.md`.
+- Native-speaker review of the new shell/panel/feed Amharic copy is folded into the Content/compliance review above.
+
 ## WATCH
 
 - Ethereal accounts are **ephemeral**. If staging E2E mail fails unexpectedly, re-create the Ethereal credentials FIRST — before diagnosing the app, the harness, or Supabase.
