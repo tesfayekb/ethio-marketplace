@@ -117,8 +117,12 @@ export function AppHeader() {
         aria-label={t("app.name")}
         className="inline-flex min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
       >
-        <Logo variant="full" />
+        {/* 360px has no room for the two-line lockup beside five controls —
+            below sm the mark carries the brand alone. */}
+        <Logo variant="full" className="hidden sm:inline-flex" />
+        <Logo variant="mark" className="sm:hidden" />
       </Link>
+
 
       <div className="hidden min-w-0 flex-1 lg:block">
         <PanelSwitcher />
