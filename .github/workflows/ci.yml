@@ -112,7 +112,6 @@ jobs:
       - name: Check the first-paint budget
         run: node scripts/check-bundle-size.mjs
 
-
   dependency-audit:
     name: Dependency vulnerability audit (enforcing on high/critical)
     runs-on: ubuntu-latest
