@@ -141,6 +141,7 @@ export const en = {
   "navSection.content": "Content",
   "navSection.support": "Support",
   "navSection.system": "System",
+  "navSection.manage": "Manage",
   "nav.dashboard": "Dashboard",
   "nav.postListing": "Post a listing",
   "nav.myListings": "My listings",
