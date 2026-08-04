@@ -1,12 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { Feed } from "@/components/marketplace/feed";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ethio.com — coming soon" },
-      { name: "description", content: "Ethiopia's marketplace — coming soon." },
-      { property: "og:title", content: "ethio.com — coming soon" },
-      { property: "og:description", content: "Ethiopia's marketplace — coming soon." },
+      { title: "ethio.com — Ethiopia's marketplace" },
+      {
+        name: "description",
+        content: "Browse listings from sellers near you. Free to post, free to browse.",
+      },
+      { property: "og:title", content: "ethio.com — Ethiopia's marketplace" },
+      {
+        property: "og:description",
+        content: "Browse listings from sellers near you. Free to post, free to browse.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -15,11 +23,5 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <h1 className="text-center text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-        ethio.com — coming soon
-      </h1>
-    </div>
-  );
+  return <Feed />;
 }
