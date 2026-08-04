@@ -15,8 +15,12 @@ jobs:
     name: Nightly E2E (Playwright, real time, ethio-staging)
     runs-on: ubuntu-latest
     env:
-      # Mirrors the CI e2e job's env block; the nightly job sets the sink itself.
-      E2E_EMAIL_SINK: "1"
+      # INC-018 (recurrence, 2026-08-04): this block MUST mirror ci.yml's e2e job
+      # exactly. It previously pinned the sink flag to "1" while ci.yml read it
+      # from the repository variable, so when staging SMTP moved from Mailtrap to
+      # Ethereal (ruling R1) the nightly kept sending against the retired sink and
+      # every sign-up 500'd. One source of truth: the same variable ci.yml reads.
+      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
