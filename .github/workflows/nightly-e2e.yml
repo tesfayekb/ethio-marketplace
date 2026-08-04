@@ -134,4 +134,3 @@ jobs:
             exit 1
           fi
           echo "Nightly E2E suite passed."
-

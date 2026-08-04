@@ -1,0 +1,20 @@
+// KNOWN-BAD FIXTURE — not application code, not compiled, not linted.
+// Stored with a .txt suffix so typecheck/lint never see it.
+// It exists so the listing-write seam guard can prove it bites: running
+// scripts/check-listing-writes.sh against scripts/fixtures/ MUST fail.
+
+import { supabase } from "@/integrations/supabase/client";
+
+export async function illegalCreate() {
+  // Bypasses the REQ-021 screening chokepoint — this is the violation.
+  return supabase.from("listings").insert({ title: "bypass" });
+}
+
+export async function illegalStatusChange(id: string) {
+  // Bypasses the REQ-022 state machine.
+  return supabase.from("listings").update({ status: "active" }).eq("id", id);
+}
+
+export async function legalRead() {
+  return supabase.from("listings").select("*");
+}

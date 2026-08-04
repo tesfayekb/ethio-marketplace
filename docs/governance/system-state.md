@@ -35,6 +35,17 @@
     `ethio-prod`. Staging application is an operator checklist item. The authoritative
     WooCommerce import and the attribute-builder admin UI are named later tasks.
     See `docs/features/categories.md`.
+  - P2-c listings core (`public.listings`, `public.listing_photos`;
+    `submit_listing`/`transition_listing` as the sole write paths with the REQ-021
+    screening pass-through stub; `expire_stale_listings` authored, schedule deferred;
+    private strip-gated `listing-photos` bucket; deny-by-default RLS with active-only
+    public read + seller-own; CI bypass guard proven in both directions) — built
+    2026-08-04; applied to `ethio-prod`. Photos are stored but NOT surfaced until
+    P2-c-photos ships the EXIF/GPS strip (DEC-009). Staging application (and creating the
+    private bucket there) is an operator checklist item.
+    See `docs/features/listings.md`.
+  - Standing rule from 2026-08-04: **migrations must be idempotent** (guarded DDL,
+    `DROP ... IF EXISTS` before `CREATE`, `ON CONFLICT DO NOTHING` seeds).
   - Queued for the P2 gate: INC-028 (duplicate `public.update_updated_at_column()`
     entry in `pg_proc`).
 
