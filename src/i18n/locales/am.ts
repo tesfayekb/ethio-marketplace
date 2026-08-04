@@ -105,6 +105,7 @@ export const am: Messages = {
   "auth.resetBody": "በመለያዎ ላይ ያለውን ኢሜይል ያስገቡ፤ የዳግም ማስጀመሪያ አገናኝ እንልክልዎታለን።",
   "auth.resetSend": "የዳግም ማስጀመሪያ አገናኝ ላክ",
   "auth.resetNeutral": "ለዚያ አድራሻ መለያ ካለ፣ የይለፍ ቃል ዳግም ማስጀመሪያ አገናኝ በመንገድ ላይ ነው።",
+  "auth.resetLimit": "የጥያቄ ገደብ ደርሷል — እንደገና ከመሞከርዎ በፊት ጥቂት ደቂቃዎች ይጠብቁ።",
   "auth.resetNewTitle": "አዲስ የይለፍ ቃል ይምረጡ",
   "auth.resetNewBody": "ለመለያዎ አዲስ የይለፍ ቃል ያስገቡ።",
   "auth.resetSubmit": "አዲሱን የይለፍ ቃል አስቀምጥ",
