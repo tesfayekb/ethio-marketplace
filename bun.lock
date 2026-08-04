@@ -82,7 +82,7 @@
     },
   },
   "overrides": {
-    "brace-expansion": ">=1.1.17 <2 || >=5.0.9",
+    "brace-expansion": ">=1.1.17",
     "js-yaml": ">=4.3.0",
     "postcss": ">=8.5.18",
   },
