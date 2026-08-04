@@ -67,3 +67,6 @@
 2026-08-03 — test: A-1+A-2 merged to one sign-up; nightly A-3 gated on E2E_EMAIL_SINK; remove_own_password deny proof added
 2026-08-03 — ci: enforcing dependency-audit job (fails on high/critical, and separately on an unreachable advisory service)
 2026-08-03 — fix: P1-g probe workflow re-raises a failing phase-2 verdict instead of masking it (Step P)
+2026-08-04 — chore: same-major overrides clear the 8 high dependency-audit findings (INC-025)
+2026-08-04 — chore: recovery-identity probe retired (superseded by ruling R2; guarded by E2E R-2/S-4)
+2026-08-04 — test: b3 guard-proof fixture regenerated against the moved auth surface
