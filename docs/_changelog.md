@@ -70,3 +70,4 @@
 2026-08-04 — chore: same-major overrides clear the 8 high dependency-audit findings (INC-025)
 2026-08-04 — chore: recovery-identity probe retired (superseded by ruling R2; guarded by E2E R-2/S-4)
 2026-08-04 — test: b3 guard-proof fixture regenerated against the moved auth surface
+2026-08-04 — governance: PHASE 1 CLOSED — gate evidence recorded; handoff #3 imported; launch-gate swept
