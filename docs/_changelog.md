@@ -62,3 +62,8 @@
 2026-08-03 — test: U-1..U-3 identity-unlink deny evidence via admin script (P1-f)
 2026-08-03 — fix: unlinking the email identity now kills its password; existing ghost credentials corrected (INC-024)
 2026-08-03 — docs: P1-f closed — settings surface deny-proven; INC-024 fix verified on both databases
+2026-08-03 — feat: P1-g truth model — has_password()/remove_own_password(), password as its own sign-in method, neutral-always reset request
+2026-08-03 — feat: P1-g password recovery — /auth forgot view, /auth/reset landing, R-2/R-3/S-4 E2E
+2026-08-03 — test: A-1+A-2 merged to one sign-up; nightly A-3 gated on E2E_EMAIL_SINK; remove_own_password deny proof added
+2026-08-03 — ci: enforcing dependency-audit job (fails on high/critical, and separately on an unreachable advisory service)
+2026-08-03 — fix: P1-g probe workflow re-raises a failing phase-2 verdict instead of masking it (Step P)
