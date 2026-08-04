@@ -80,3 +80,4 @@
 2026-08-04 — feat: listings.tier column (LIVE v1 ranking lever) + partial feed-order index (P2-c-tier)
 2026-08-04 — feat: design foundation — unified AppShell, config-driven permission-gated panels, coffee-on-cool-slate oklch tokens, Inter/Bricolage/Noto Sans Ethiopic, brand mark + spinner, Marketplace feed shape
 2026-08-04 — fix: gitleaks prose false positive fingerprinted (INC-030); feed fails soft and contained so no feature outage cascades through the shell (INC-031)
+2026-08-04 — fix: E2E specs repointed at the AppShell's real structure + hydration-aware navigation helpers (INC-032, INC-033); 44px tap-target floor enforced on header/footer chrome (INC-034); mobile/perf/security assertions added to shell.spec; marketplace weight guard added to CI

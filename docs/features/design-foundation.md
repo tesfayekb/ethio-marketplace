@@ -94,3 +94,26 @@ logical properties only (`ps-*`, `pe-*`, `me-*`, `text-start`).
 
 See `docs/features/panels.md`. In short: religiously neutral tibeb geometry
 only, and it appears in exactly three places — logo, spinner, feed empty state.
+
+## Verified posture (2026-08-04)
+
+Mobile (360 primary, 768, 1280): no horizontal overflow on `/` or the feed at any
+of the three widths; every visible button and link ≥ 44px; no text under 11px; the
+rail is a drawer below `lg` and persistent above; the feed grid reflows 1→2→3→4
+without clipping. All five are `shell.spec` assertions, not claims.
+
+Performance: fonts are `display=swap`, Noto Sans Ethiopic subset to `ethiopic` and
+Inter to `latin`, so neither pulls the other's glyphs and none blocks first paint.
+Listing cards reserve a fixed `aspect-4/3` box, so the loading→empty/error
+transition costs no layout shift; when the photo strip lands the image goes in that
+box `loading="lazy"` with explicit dimensions. The marketplace module graph is 28
+modules and contains no chart, map or 3D library — enforced by
+`scripts/check-marketplace-imports.mjs` in CI. No background image, no gradient.
+
+Security: the feed is strictly read-only — it filters `status = 'active'` on top of
+the table's public-read RLS policy rather than in place of it, and no write call
+exists in any feed or card module. The browser holds the publishable key only. The
+search control is inert and builds no query. The admin panel is hidden by an
+`isAdmin` flag that is UI convenience only; per law F3 its routes and data reads
+must carry server-side RLS/RBAC when their bodies are built. Nothing admin-scoped is
+fetched today.
