@@ -35,3 +35,13 @@
 ## WATCH
 
 - Ethereal accounts are **ephemeral**. If staging E2E mail fails unexpectedly, re-create the Ethereal credentials FIRST — before diagnosing the app, the harness, or Supabase.
+
+## Deferred quality gates (design foundation)
+
+- [ ] **Lighthouse budget on the marketplace path.** The bundle-budget job
+      measures bytes, which is a proxy. Real LCP/CLS/TBT on a throttled mobile
+      profile has not been measured and must be before real users.
+- [ ] **Visual-regression baselines for the shell.** Grid geometry, the logo
+      FIT rule and dark mode are asserted numerically, which catches structural
+      breakage but not visual drift (spacing, weight, colour). Screenshot
+      baselines at 360/768/1280 in both modes are still owed.
