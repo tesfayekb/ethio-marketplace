@@ -441,6 +441,8 @@ TRACKED (Tier-2 — plan the seam now, build later):
 | Q-015 | Wingu/Raxio pricing quotes for Ethiopia partition | Section 3/4 | OPEN — deferred to pre-launch |
 | Q-016 | Per-country legal research (Kenya, South Africa, Uganda, Sudan, Somalia, …) | Section 3 | DEFERRED — trigger: approaching each market |
 | Q-017 | Capability census | Section 4 | RESOLVED → DEC-006 (Lovable 7/7; Option B full form; Cursor probes deferred to first task) |
+| Q-P2-2 | How are location names translated? | Section 5 / P2-a | RESOLVED — `name_en` + `name_am` columns on `public.locations` (no translations table exists yet; i18n is static locale files today). Names migrate into the admin translation dashboard when that is built. |
+
 
 ---
 
