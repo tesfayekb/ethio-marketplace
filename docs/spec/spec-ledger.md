@@ -761,3 +761,21 @@ natural companion to the service changes. Logged, not absorbed.
   Telegram + device-list remain in the DEC-012 Additional-auth-doors phase.
   NEXT: Phase 2 (marketplace core) — spec work opens in a new thread per the
   pipelined model.
+
+- **S.. (2026-08-04): Recovery resubmit throttle + nightly sink reconciliation (INC-026).**
+  The forgot-password submit now reuses the sign-up resend's single cooldown timer and
+  per-visit counter (`RESEND_COOLDOWN_SECONDS`, `MAX_RESENDS_PER_VISIT`) — no second
+  timer system — engaged on INITIATION per the INC-017 ruling, behind the same
+  synchronous in-flight ref so a double-click cannot start two cooldowns. Past the cap
+  the control stays disabled under a neutral `auth.resetLimit` message (new key, EN+AM).
+  The neutral-always response (ruling R4, guard B-3) is untouched: identical copy for
+  existing, unknown and error. New E2E R-4 asserts the disabled state and the cooldown
+  affordance after one submit, mobile-360, no real-clock wait and no mail send (the
+  probe address is unregistered, so GoTrue issues nothing). The nightly E2E job's only
+  divergence from the green main E2E job was the sink flag: it hard-coded
+  `E2E_EMAIL_SINK: "1"` where ci.yml reads `vars.E2E_EMAIL_SINK`; every other env value
+  (staging URL, publishable key, service-role secret, VITE_*/SUPABASE_* build vars) was
+  already identical, and the workflow sets no SMTP of its own. The duplicated literal is
+  what let the Mailtrap → Ethereal swap (R1) pass the nightly by. Reconciled to the
+  shared variable; next scheduled run is the verification.
+
