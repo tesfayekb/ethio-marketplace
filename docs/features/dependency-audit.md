@@ -38,3 +38,27 @@ not two: clean, findings, and _advisory service unreachable_. The last one fails
 with its own distinct message, because a 404 from the advisory service is not a
 clean bill of health. `bun audit` cannot reach that service from the build
 sandbox, so CI is the authoritative run.
+
+## 2026-08-04 Audit — 8 high findings, REMEDIATED (INC-025)
+
+Three transitive dev/build-chain packages, cleared by `package.json` `overrides`:
+
+```json
+"overrides": {
+  "brace-expansion": "^1.1.17",
+  "postcss": ">=8.5.18",
+  "js-yaml": ">=4.3.0"
+}
+```
+
+Resolved: `brace-expansion@1.1.18`, `postcss@8.5.25`, `js-yaml@5.2.3`.
+
+`brace-expansion` is pinned inside 1.x deliberately. The obvious flat floor
+`>=1.1.17` resolves the entire tree to 5.x, whose API is incompatible with
+`minimatch@3` — `eslint .` then dies with `TypeError: expand is not a function`.
+Bun has no scoped/nested overrides, so 1.1.18 for everyone is the only expressible
+fix that is both patched and working. This supersedes the INC-008 acceptance.
+
+Zero runtime exposure: none of the three is in the production dependency tree.
+Typecheck, lint, build and format:check all pass on the regenerated lockfile.
+The clean-audit verdict itself comes only from CI — `bun audit` 404s in the sandbox.
