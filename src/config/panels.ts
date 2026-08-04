@@ -55,7 +55,14 @@ export const PANELS: Record<PanelId, Panel> = {
       { id: "ml-listings", labelKey: "nav.myListings", icon: ListChecks },
       { id: "ml-messages", labelKey: "nav.messages", icon: MessageSquare },
       { id: "ml-featured", labelKey: "nav.featured", icon: Sparkles },
-      { id: "ml-settings", labelKey: "settings.navLabel", icon: Settings, path: "/settings" },
+      {
+        id: "ml-manage",
+        labelKey: "navSection.manage",
+        icon: Settings,
+        children: [
+          { id: "ml-settings", labelKey: "settings.navLabel", icon: Settings, path: "/settings" },
+        ],
+      },
     ],
   },
   account: {
@@ -79,111 +86,152 @@ export const PANELS: Record<PanelId, Panel> = {
     id: "admin",
     labelKey: "panel.admin",
     icon: Shield,
+    /**
+     * Admin nav is NESTED, not flat: each former `section` is now a parent
+     * item carrying its members as `children`, so the rail renders it as an
+     * expand/collapse submenu. Parents hold no permission of their own — a
+     * parent disappears automatically once every child it owns is filtered
+     * out (see visibleItems). Law F3 is untouched: this is UI shaping only.
+     */
     items: [
       {
         id: "ad-dashboard",
         labelKey: "nav.dashboard",
         icon: LayoutDashboard,
-        section: "navSection.menu",
         requiredPermission: "admin.dashboard.view",
       },
       {
-        id: "ad-users",
-        labelKey: "nav.users",
+        id: "ad-identity",
+        labelKey: "navSection.identity",
         icon: Users,
-        section: "navSection.identity",
-        requiredPermission: "identity.users.view",
+        children: [
+          {
+            id: "ad-users",
+            labelKey: "nav.users",
+            icon: Users,
+            requiredPermission: "identity.users.view",
+          },
+          {
+            id: "ad-verification",
+            labelKey: "nav.verification",
+            icon: BadgeCheck,
+            requiredPermission: "identity.verification.view",
+          },
+        ],
       },
       {
-        id: "ad-verification",
-        labelKey: "nav.verification",
-        icon: BadgeCheck,
-        section: "navSection.identity",
-        requiredPermission: "identity.verification.view",
-      },
-      {
-        id: "ad-roles",
-        labelKey: "nav.roles",
+        id: "ad-access",
+        labelKey: "navSection.accessControl",
         icon: ShieldCheck,
-        section: "navSection.accessControl",
-        requiredPermission: "access.roles.view",
+        children: [
+          {
+            id: "ad-roles",
+            labelKey: "nav.roles",
+            icon: ShieldCheck,
+            requiredPermission: "access.roles.view",
+          },
+          {
+            id: "ad-permissions",
+            labelKey: "nav.permissions",
+            icon: KeyRound,
+            requiredPermission: "access.permissions.view",
+          },
+        ],
       },
       {
-        id: "ad-permissions",
-        labelKey: "nav.permissions",
-        icon: KeyRound,
-        section: "navSection.accessControl",
-        requiredPermission: "access.permissions.view",
-      },
-      {
-        id: "ad-reports",
-        labelKey: "nav.reports",
+        id: "ad-moderation",
+        labelKey: "navSection.moderation",
         icon: Flag,
-        section: "navSection.moderation",
-        requiredPermission: "moderation.reports.view",
+        children: [
+          {
+            id: "ad-reports",
+            labelKey: "nav.reports",
+            icon: Flag,
+            requiredPermission: "moderation.reports.view",
+          },
+          {
+            id: "ad-screening",
+            labelKey: "nav.screeningQueue",
+            icon: ShieldCheck,
+            requiredPermission: "moderation.screening.view",
+          },
+        ],
       },
       {
-        id: "ad-screening",
-        labelKey: "nav.screeningQueue",
-        icon: ShieldCheck,
-        section: "navSection.moderation",
-        requiredPermission: "moderation.screening.view",
-      },
-      {
-        id: "ad-listings",
-        labelKey: "nav.allListings",
+        id: "ad-marketplace",
+        labelKey: "navSection.marketplace",
         icon: ShoppingBag,
-        section: "navSection.marketplace",
-        requiredPermission: "marketplace.listings.view",
+        children: [
+          {
+            id: "ad-listings",
+            labelKey: "nav.allListings",
+            icon: ShoppingBag,
+            requiredPermission: "marketplace.listings.view",
+          },
+          {
+            id: "ad-categories",
+            labelKey: "nav.categories",
+            icon: FolderTree,
+            requiredPermission: "marketplace.categories.view",
+          },
+          {
+            id: "ad-locations",
+            labelKey: "nav.locations",
+            icon: Globe2,
+            requiredPermission: "marketplace.locations.view",
+          },
+        ],
       },
       {
-        id: "ad-categories",
-        labelKey: "nav.categories",
-        icon: FolderTree,
-        section: "navSection.marketplace",
-        requiredPermission: "marketplace.categories.view",
-      },
-      {
-        id: "ad-locations",
-        labelKey: "nav.locations",
-        icon: Globe2,
-        section: "navSection.marketplace",
-        requiredPermission: "marketplace.locations.view",
-      },
-      {
-        id: "ad-pages",
-        labelKey: "nav.pages",
+        id: "ad-content",
+        labelKey: "navSection.content",
         icon: BookOpen,
-        section: "navSection.content",
-        requiredPermission: "content.pages.view",
+        children: [
+          {
+            id: "ad-pages",
+            labelKey: "nav.pages",
+            icon: BookOpen,
+            requiredPermission: "content.pages.view",
+          },
+          {
+            id: "ad-translations",
+            labelKey: "nav.translations",
+            icon: Globe2,
+            requiredPermission: "content.translations.view",
+          },
+        ],
       },
       {
-        id: "ad-translations",
-        labelKey: "nav.translations",
-        icon: Globe2,
-        section: "navSection.content",
-        requiredPermission: "content.translations.view",
-      },
-      {
-        id: "ad-tickets",
-        labelKey: "nav.supportTickets",
+        id: "ad-support",
+        labelKey: "navSection.support",
         icon: LifeBuoy,
-        section: "navSection.support",
-        requiredPermission: "support.tickets.view",
+        children: [
+          {
+            id: "ad-tickets",
+            labelKey: "nav.supportTickets",
+            icon: LifeBuoy,
+            requiredPermission: "support.tickets.view",
+          },
+        ],
       },
       {
-        id: "ad-organisation",
-        labelKey: "nav.organisation",
-        icon: Building2,
-        section: "navSection.system",
-        requiredPermission: "system.organisation.view",
-      },
-      {
-        id: "ad-system-settings",
-        labelKey: "nav.systemSettings",
+        id: "ad-system",
+        labelKey: "navSection.system",
         icon: Cog,
-        section: "navSection.system",
-        requiredPermission: "system.settings.view",
+        children: [
+          {
+            id: "ad-organisation",
+            labelKey: "nav.organisation",
+            icon: Building2,
+            requiredPermission: "system.organisation.view",
+          },
+          {
+            id: "ad-system-settings",
+            labelKey: "nav.systemSettings",
+            icon: Cog,
+            requiredPermission: "system.settings.view",
+          },
+        ],
       },
     ],
   },
@@ -215,5 +263,8 @@ export function visibleItems(items: readonly NavItem[], auth: PanelAuthContext):
     )
     .map((item) =>
       item.children ? { ...item, children: visibleItems(item.children, auth) } : item,
-    );
+    )
+    // A group whose every member was filtered out is not an empty heading —
+    // it disappears entirely.
+    .filter((item) => !item.children || item.children.length > 0);
 }
