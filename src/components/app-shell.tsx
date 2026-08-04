@@ -1,8 +1,11 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 
+import { Logo } from "@/components/brand/logo";
 import { AppFooter } from "@/components/shell/app-footer";
 import { AppHeader } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
+import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { useAuth } from "@/features/auth/use-auth";
 import type { AuthUser } from "@/features/auth/types";
@@ -40,8 +43,30 @@ function PanelPlaceholder() {
 }
 
 /**
- * The ONE shell: header (top) / rail (start) / body / footer (bottom).
- * Same skeleton at every breakpoint; below lg the rail becomes a drawer.
+ * THE CORNER-BLOCK GRID.
+ *
+ * From lg up the shell is a two-column CSS grid whose first column is the rail
+ * width (16rem) and whose first row is the top-bar height (4rem):
+ *
+ *   ┌──────────┬─────────────────────────┐
+ *   │ LOGO     │ top bar                 │  row 1 = 4rem
+ *   ├──────────┼─────────────────────────┤
+ *   │ rail     │ body                    │  row 2 = 1fr
+ *   ├──────────┴─────────────────────────┤
+ *   │ footer (spans both columns)        │  row 3 = auto
+ *   └────────────────────────────────────┘
+ *
+ * Alignment is EXACT, not approximate, because the logo cell and the rail are
+ * the SAME grid column (so identical width by construction) and the logo cell
+ * and the top bar are the SAME grid row (so identical height by construction).
+ * Both column-1 cells carry `border-e`, which makes the sidebar's edge ONE
+ * continuous vertical hairline running from the very top of the logo cell
+ * straight down past the rail — the logo sits ABOVE the sidebar, not inside
+ * the top bar.
+ *
+ * Below lg the grid collapses to a single column: the logo cell is dropped
+ * (the mobile header row carries hamburger + logo + actions) and the rail
+ * becomes a drawer.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
@@ -74,21 +99,46 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellContext.Provider value={value}>
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_1fr_auto] bg-background lg:grid-cols-[16rem_minmax(0,1fr)] lg:grid-rows-[4rem_1fr_auto]">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
         >
           {t("shell.skipToContent")}
         </a>
-        <AppHeader />
-        <div className="mx-auto flex w-full max-w-7xl flex-1 gap-6 px-4 py-6">
-          <AppRail />
-          <main id="main" className="min-w-0 flex-1">
-            {activePanel === "marketplace" ? children : <PanelPlaceholder />}
-          </main>
+
+        {/* Corner block: rail width × top-bar height, above the sidebar. */}
+        <div
+          data-testid="shell-logo-cell"
+          className="hidden border-b border-e border-border bg-card px-4 lg:col-start-1 lg:row-start-1 lg:flex lg:items-center"
+        >
+          <Link
+            to="/"
+            aria-label={t("app.name")}
+            className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Logo variant="full" />
+          </Link>
         </div>
-        <AppFooter />
+
+        <div data-testid="shell-topbar" className="col-start-1 row-start-1 lg:col-start-2">
+          <AppHeader />
+        </div>
+
+        {/* Rail places itself into column 1 / row 2; the drawer is fixed. */}
+        <AppRail />
+
+        <main
+          id="main"
+          className="col-start-1 row-start-2 min-w-0 px-4 py-6 lg:col-start-2 lg:px-6"
+        >
+          <Breadcrumbs />
+          {activePanel === "marketplace" ? children : <PanelPlaceholder />}
+        </main>
+
+        <div className="col-start-1 row-start-3 lg:col-span-2 lg:col-start-1">
+          <AppFooter />
+        </div>
       </div>
     </ShellContext.Provider>
   );
