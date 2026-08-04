@@ -62,7 +62,9 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await submit.click();
   await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("alert")).toHaveText(en["auth.errorWrongCurrentPassword"]);
-  await expect(page.getByRole("button", { name: /^sign out$/i })).toBeVisible();
+  // Session intact: the header account menu (the shell's authenticated-branch
+  // control, successor to the old header sign-out button) is still present.
+  await expect(page.getByRole("button", { name: en["shell.accountMenu"] })).toBeVisible();
 
   // Correct current password: success feedback.
   await current.fill(user.password);
