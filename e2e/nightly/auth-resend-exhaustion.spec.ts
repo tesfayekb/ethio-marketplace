@@ -39,6 +39,14 @@ async function assertNoSignUpError(page: import("@playwright/test").Page) {
   }
 }
 
+// The nightly job sets E2E_EMAIL_SINK=1 itself, but a manual dispatch against a
+// project without a recipient-agnostic sink would fail on the send, not on the
+// behaviour under test. Same gate as the CI sign-up spec (INC-013).
+test.skip(
+  process.env["E2E_EMAIL_SINK"] !== "1",
+  "INC-013: needs a recipient-agnostic mail sink. Set E2E_EMAIL_SINK=1.",
+);
+
 test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
   // INC-018: Mailtrap's free sandbox refuses sends issued seconds apart, which
   // surfaces as Supabase 500 "Error sending confirmation email". Environment

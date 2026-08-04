@@ -42,35 +42,31 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     "INC-013: ethio-staging SMTP (Resend test domain) rejects non-owner recipients, so real sign-up cannot complete. Set E2E_EMAIL_SINK=1 once staging points at a mail sink.",
   );
 
-  test("A-1: sign-up reaches the check-email view and echoes the address", async ({ page }) => {
+  /**
+   * A-1 + A-2 MERGED (P1-g Step T). They were two sign-ups, and every sign-up
+   * costs a real send against the staging sink — the INC-018 pacing that made
+   * them slow was itself the evidence that the second send was the problem.
+   * One sign-up now carries both assertions: the check-email view (A-1) and the
+   * resend throttle on the very next click (A-2). No assertion was dropped.
+   */
+  test("A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle", async ({
+    page,
+  }) => {
     const email = await signUpFresh(page, 101);
     await assertNoSignUpError(page);
 
+    // A-1 — the check-email view, echoing the exact address used.
     await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
       timeout: 15000,
     });
-
     const sentTo = en["auth.checkEmailSentTo"].replace("{email}", email);
     await expect(page.getByText(sentTo, { exact: false })).toBeVisible();
 
-    await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeVisible();
-  });
-
-  test("A-2: resend throttle engages after one click", async ({ page }) => {
-    // INC-018: Mailtrap's free sandbox refuses sends issued seconds apart, which
-    // surfaces as Supabase 500 "Error sending confirmation email". Environment
-    // pacing only — no assertion is relaxed and no retry is added.
-    await page.waitForTimeout(15_000);
-    await signUpFresh(page, 102);
-    await assertNoSignUpError(page);
-    await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible({
-      timeout: 15000,
-    });
-
     const resend = page.getByRole("button", { name: en["auth.resend"] });
-    await resend.click();
+    await expect(resend).toBeVisible();
 
-    // Cooldown copy replaces the label and the control refuses further clicks.
+    // A-2 — the cooldown engages on the first click (INC-017: on initiation).
+    await resend.click();
     const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
     const throttled = page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") });
     await expect(throttled).toBeVisible({ timeout: 15000 });
