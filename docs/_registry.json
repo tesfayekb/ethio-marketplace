@@ -15,5 +15,13 @@
     "docs/spec/census-results.md",
     "docs/governance/governance.md",
     "docs/governance/phase0-spec.md"
+  ],
+  "auth-password-recovery": [
+    "docs/features/auth-password-recovery.md",
+    "src/routes/auth_.reset.tsx",
+    "src/routes/auth.tsx",
+    "src/routes/settings.tsx",
+    "src/features/auth/auth-service.ts",
+    "e2e/auth-reset.spec.ts"
   ]
 }
