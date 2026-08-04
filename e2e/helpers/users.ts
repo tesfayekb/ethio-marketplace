@@ -68,3 +68,33 @@ export async function mintConfirmationLink(user: {
   }
   return link;
 }
+
+/**
+ * Mints a real password-recovery link without sending mail (P1-g). Depends on
+ * the staging project allow-listing <baseURL>/auth/reset as a redirect URL.
+ */
+export async function mintRecoveryLink(email: string): Promise<string> {
+  const supabase = adminClient();
+  const { data, error } = await supabase.auth.admin.generateLink({
+    type: "recovery",
+    email,
+    options: { redirectTo: `${baseUrl()}/auth/reset` },
+  });
+  const link = data?.properties?.action_link;
+  if (error || !link) {
+    throw new Error(
+      `[e2e:users] recovery generateLink failed for ${email}: ${error?.message ?? "no action_link returned"}`,
+    );
+  }
+  return link;
+}
+
+/** Providers currently linked to a user, straight from the admin API. */
+export async function identityProviders(userId: string): Promise<string[]> {
+  const supabase = adminClient();
+  const { data, error } = await supabase.auth.admin.getUserById(userId);
+  if (error || !data?.user) {
+    throw new Error(`[e2e:users] getUserById failed: ${error?.message ?? "no user"}`);
+  }
+  return (data.user.identities ?? []).map((identity) => identity.provider).sort();
+}
