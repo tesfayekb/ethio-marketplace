@@ -40,7 +40,10 @@ export function AppFooter() {
         ))}
         <div className="flex flex-col items-start gap-3">
           <LanguageSwitcher />
-          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            to="/"
+            className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground"
+          >
             {t("nav.home")}
           </Link>
           <p className="text-sm text-muted-foreground">
