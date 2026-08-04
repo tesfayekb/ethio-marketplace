@@ -24,8 +24,12 @@ operator-ruled cooldown-on-click behaviour**; A-3 only adds the exhaustion tail.
 - It does **not** run on push.
 - Config: `playwright.nightly.config.ts` (`testDir: ./e2e/nightly`, one chromium
   project at 360x740, `retries: 0`, `workers: 1`).
-- `E2E_EMAIL_SINK: '1'` is set by the workflow itself, so the nightly spec is not
-  wrapped in the per-push sink gate.
+- The env block mirrors ci.yml's E2E job value-for-value, including
+  `E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}`. It used to pin that flag to `"1"`
+  inline; when staging SMTP moved from Mailtrap to Ethereal (ruling R1) the nightly
+  kept driving sends at the retired sink and every sign-up 500'd (INC-026b). The
+  rule now: this block is a mirror, never a fork — a duplicated environment literal
+  is what let the swap pass the nightly by.
 
 ## Heartbeat: `docs/tracking/nightly-status.md`
 
