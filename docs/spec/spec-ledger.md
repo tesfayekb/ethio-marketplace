@@ -441,6 +441,8 @@ TRACKED (Tier-2 — plan the seam now, build later):
 | Q-015 | Wingu/Raxio pricing quotes for Ethiopia partition | Section 3/4 | OPEN — deferred to pre-launch |
 | Q-016 | Per-country legal research (Kenya, South Africa, Uganda, Sudan, Somalia, …) | Section 3 | DEFERRED — trigger: approaching each market |
 | Q-017 | Capability census | Section 4 | RESOLVED → DEC-006 (Lovable 7/7; Option B full form; Cursor probes deferred to first task) |
+| Q-P2-2 | How are location names translated? | Section 5 / P2-a | RESOLVED — `name_en` + `name_am` columns on `public.locations` (no translations table exists yet; i18n is static locale files today). Names migrate into the admin translation dashboard when that is built. |
+
 
 ---
 
@@ -795,3 +797,24 @@ natural companion to the service changes. Logged, not absorbed.
   ~48h staleness rule remains the backstop. Logged against the REQ-032 ops-invariant
   family as the second "watchdog ignores a moved ref" occurrence.
 
+
+- **S.. (2026-08-04): PHASE 2 OPENED. P2-a Geography built (Tier A).** `public.locations`
+  tree per the frozen GEO pre-decision: one canonical table (country → region → city via
+  self-referencing `parent_id`), active-only RLS mirroring `countries`, partial index on
+  `is_active` plus `parent_id`/`country_code` indexes, shallow ET+US seed. Rulings applied:
+  shared reference data (no partition seam — a diaspora user must read the active country's
+  locations), shallow seed (the "add my city" path covers gaps, so a missing city never
+  blocks a post), names as `name_en`/`name_am` pending the admin translation dashboard.
+  The comprehensive world list stays an admin-side static asset, never a DB table. Listings
+  will FK `locations.id` regardless of activation state. Build order for Phase 2: geography →
+  categories+attribute-builder → listings+lifecycle → screening gateway (seam-first, filled
+  here) → feed/home → search → storefronts → messaging. Seam-first screening ruled by
+  operator (the REQ-021 gateway lands at P2-d; earlier features route writes through a
+  bypass-proof seam). Census note: no `update_updated_at_column()` helper existed in the
+  database — the first migration attempt failed on it (42883) and the retry creates it
+  idempotently before the trigger.
+
+D-015 — The supervisor initially leaned to a translations TABLE for location names;
+census showed no such table exists and i18n is static locale files, so the design was
+corrected to the live `name_en` pattern already used by `public.countries`. Decided
+under G17. Logged, not absorbed.

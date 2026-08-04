@@ -18,10 +18,16 @@
     enforcing dependency-audit gate, guard-proof fixture refresh) — closed 2026-08-04.
   - Deferred by DEC-012 to the **Additional auth doors** phase: Telegram door,
     device/session list, multi-door settings.
-- **Phase 2 (marketplace core) — NEXT, spec NOT STARTED.** Scope: listings,
-  categories, geography per the GEO pre-decision (one canonical locations tree with
-  `is_active` + RLS active-only visibility; the world list is an admin-side picking
-  source, never a table), and the geo-scoped feed. Pass-2 spec opens in a new thread.
+- **Phase 2 (marketplace core) — OPEN (2026-08-04).** Scope: listings, categories,
+  geography per the GEO pre-decision (one canonical locations tree with `is_active` +
+  RLS active-only visibility; the world list is an admin-side picking source, never a
+  table), and the geo-scoped feed. Build order: geography → categories +
+  attribute-builder → listings + lifecycle → screening gateway (seam-first, filled at
+  P2-d) → feed/home → search → storefronts → messaging.
+  - P2-a geography (`public.locations` tree, active-only RLS, shallow ET+US seed) —
+    built 2026-08-04; applied to `ethio-prod`. Staging application is an operator
+    checklist item. See `docs/features/geography.md`.
+
 
 ## The three standing supervisor reads
 
