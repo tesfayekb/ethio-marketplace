@@ -3,7 +3,12 @@
 Phase: 1 (Identity) — IN PROGRESS. Email door (P1-c) CLOSED. Google door (P1-d) CLOSED
 2026-08-03. Settings surface (P1-f) CLOSED 2026-08-03 — built, E2E-guarded
 (S-1..S-3), deny-proven (U-1 server refusal, U-2 unlink/relink, U-3 ghost door found
-and fixed as INC-024 with scripted recheck). Next: P1-g Phase 1 gate — RLS posture
+and fixed as INC-024 with scripted recheck). P1-g BUILT 2026-08-03: the identity
+truth model (has_password/remove_own_password), password recovery, the
+neutral-always reset request, the production RLS/ACL deny re-proof and the
+enforcing dependency-audit gate all landed. Remaining before P1-g CLOSES: the
+staging recovery-identity probe run (workflow_dispatch, needs E2E_SUPABASE_DB_URL)
+and the production SMTP launch-gate item. Superseded next line: P1-g gate — RLS posture
 review of all Phase 1 tables with deny-case evidence, dependency-audit prompt,
 guard-proof re-run, polish sweep (Google-link callback copy; email-unlink
 password-deletion warning), then phase closure.
@@ -33,7 +38,7 @@ Phase 1 gate blockers: NONE outstanding. Guard proof first passed 2026-08-03 (Gu
 Proof #3): B-3 and C-4 each proven in both directions — passing on clean source,
 failing against mutation fixtures.
 
-Gates closed: Phase 0 (Foundation). Phase 1 remaining: P1-g gate. Deferred to the
+Gates closed: Phase 0 (Foundation). Phase 1 remaining: P1-g close-out (staging probe run + production SMTP). Deferred to the
 Additional-auth-doors phase: Telegram door, device/session list, multi-door settings.
 
 Governing instructions: Claude Project v1.4 (in project settings; mirrored intent in governance.md). Lovable Knowledge: v3.1 + H2 (docs/governance/lovable-knowledge.md).

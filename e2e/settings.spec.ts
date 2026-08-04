@@ -82,3 +82,32 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await signIn(page, user.email, newPassword);
   await expectSignedIn(page, user.displayName);
 });
+
+/**
+ * P1-g truth model (S-4). The password is its own row in the sign-in-methods
+ * list, answered by public.has_password(). For a freshly minted email-only user
+ * the row must say a password EXISTS, and Remove must be refused — the account
+ * has no other door. The disabled control is honesty; the server's
+ * remove_own_password() guard is the authority (law F3).
+ */
+test("S-4: the password renders as its own method and cannot be removed alone", async ({
+  page,
+}) => {
+  const user = await createUser({ confirmed: true });
+  await signIn(page, user.email, user.password);
+  await expectSignedIn(page, user.displayName);
+
+  await page.goto("/settings");
+  await expect(page.getByRole("heading", { name: en["settings.title"] })).toBeVisible({
+    timeout: 15000,
+  });
+
+  const passwordRow = page.getByTestId("password-method");
+  await expect(passwordRow).toBeVisible({ timeout: 15000 });
+  await expect(passwordRow).toContainText(en["settings.passwordMethod"]);
+  await expect(passwordRow).toContainText(en["settings.passwordMethodPresent"]);
+
+  const remove = page.getByRole("button", { name: en["settings.removePassword"] });
+  await expect(remove).toHaveCount(1);
+  await expect(remove).toBeDisabled();
+});

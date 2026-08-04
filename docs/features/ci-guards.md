@@ -39,3 +39,9 @@ prevents a broken guard from silently passing every migration. The
 and `src/features` for JSX text content and common user-facing string props
 (`title`, `label`, `placeholder`, `alt`, `aria-label`). Prints findings and
 a final `findings: N` line. Always exits 0 until we flip to fail mode.
+
+## dependency-audit (added 2026-08-03, P1-g)
+
+Enforcing gate on high/critical npm advisories, with a separate red for an
+unreachable advisory service. Details and accepted exceptions:
+`docs/features/dependency-audit.md`.

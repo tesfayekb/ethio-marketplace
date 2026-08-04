@@ -698,3 +698,30 @@ natural companion to the service changes. Logged, not absorbed.
   the scripted `--recheck`, pinned to the launch gate and any Supabase Auth change.
   Staging migrated by operator; operator probe confirms the old password is dead.
   Phase 1 has one step remaining: the P1-g gate.
+
+- **S.. (2026-08-03):** P1-g RULINGS RECORDED. R1 staging mail sink = Ethereal.
+  R2 recovery model = TRUTH MODEL: the sign-in-methods list shows whatever exists;
+  the password is its own row read from `public.has_password()`, never inferred from
+  an `email` identity row. R3 password removal is owner-initiated as well as
+  unlink-driven — `public.remove_own_password()` refuses when it is the last way in.
+  R4 the reset request is NEUTRAL-ALWAYS (B-3 class): registered, unregistered and
+  transport-error all render one identical confirmation, and it never reveals whether
+  an account has a password.
+
+- **S.. (2026-08-03):** P1-g Step A — production RLS/ACL deny re-proof, executed
+  against ethio-prod. Signed out: `countries` readable (intended public reference),
+  `profiles` and `user_directory` refused 401/42501 on read AND insert, and both
+  `has_password` and `remove_own_password` refused "permission denied for function".
+  Signed in as user A (throwaway pair, deleted after): A reads its own profile,
+  reads 0 rows of B's profile and 0 of B's directory, cannot update or delete any
+  profile row (42501 — no UPDATE/DELETE grant on the table at all), and
+  `remove_own_password()` is refused as A's last method. The full-surface answer:
+  personal data is owner-read-only through PostgREST and mutation happens only
+  through the audited SECURITY DEFINER functions.
+
+- **S.. (2026-08-03):** P1-g Step B/D — the dependency audit becomes an enforcing CI
+  job (`dependency-audit`), failing on high/critical. It distinguishes three states
+  rather than two: clean, findings, and *advisory service unreachable* — the last
+  fails with its own message so a broken registry call can never be read as a clean
+  bill of health (law F4). `bun audit` cannot complete from the build sandbox
+  (HTTP 404), so the authoritative result is the CI job's, not a local run's.

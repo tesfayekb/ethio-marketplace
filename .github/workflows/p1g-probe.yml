@@ -43,6 +43,9 @@ jobs:
           cat /tmp/p1g-shape.sql
           psql "$E2E_SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f /tmp/p1g-shape.sql
 
+      # continue-on-error keeps phase 3 (teardown) reachable, but it also hides a
+      # failing probe from the job result. The outcome is therefore re-raised in
+      # the final step, so a red VERDICT is a red run (Step P).
       - name: Phase 2 — census 2/3 probe and VERDICT read-back
         id: verdict
         continue-on-error: true
@@ -52,8 +55,12 @@ jobs:
         if: always()
         run: bun run scripts/deny-tests/p1g-recovery-identity.ts --phase 3
 
-      - name: Report the probe outcome
+      - name: Report the probe outcome (re-raises a failing verdict)
         if: always()
         run: |
           echo "phase 2 outcome = ${{ steps.verdict.outcome }}"
           echo "Read the VERDICT line in the 'Phase 2' step log and paste it into the P1-g report."
+          if [ "${{ steps.verdict.outcome }}" != "success" ]; then
+            echo "::error::P1-g probe phase 2 failed — the VERDICT is not the benign one."
+            exit 1
+          fi

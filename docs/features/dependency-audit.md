@@ -28,3 +28,13 @@ Therefore, the nested 5.0.5 item is also accepted and tracked alongside the majo
 ### Scope Note
 
 No `package.json` or lockfile change was made for this task; only the audit record.
+
+## Now enforced in CI (P1-g Step B/D, 2026-08-03)
+
+The `dependency-audit` job in `.github/workflows/ci.yml` runs
+`bun audit --audit-level=high` on every run and FAILS the build on high or
+critical advisories — law H2, no known-error debt. It reports three outcomes,
+not two: clean, findings, and _advisory service unreachable_. The last one fails
+with its own distinct message, because a 404 from the advisory service is not a
+clean bill of health. `bun audit` cannot reach that service from the build
+sandbox, so CI is the authoritative run.

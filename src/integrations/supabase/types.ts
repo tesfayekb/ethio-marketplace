@@ -126,6 +126,8 @@ export type Database = {
     }
     Functions: {
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
+      has_password: { Args: never; Returns: boolean }
+      remove_own_password: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
