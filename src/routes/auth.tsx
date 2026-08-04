@@ -283,9 +283,21 @@ function AuthScreen() {
       return;
     }
     if (busy) return;
+    // INC-025: the resubmit carries the same throttle apparatus as the sign-up
+    // resend — one shared cooldown timer, one shared per-visit cap, both engaged
+    // on INITIATION (INC-017 rule), plus the synchronous in-flight guard so a
+    // double-click cannot start two cooldowns. The answer itself is unchanged:
+    // still neutral-always (ruling R4 / guard B-3).
+    if (cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT) return;
+    if (resendInFlightRef.current) return;
+    resendInFlightRef.current = true;
+    setResendCount((n) => n + 1);
+    setCooldown(RESEND_COOLDOWN_SECONDS);
+
     setBusy(true);
     await requestPasswordReset(address);
     setBusy(false);
+    resendInFlightRef.current = false;
     setResetRequested(true);
   }
 
