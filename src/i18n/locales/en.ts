@@ -108,6 +108,7 @@ export const en = {
   "auth.resetSend": "Send reset link",
   "auth.resetNeutral":
     "If an account exists for that address, a password reset link is on its way.",
+  "auth.resetLimit": "Reset request limit reached — wait a few minutes before trying again.",
   "auth.resetNewTitle": "Choose a new password",
   "auth.resetNewBody": "Enter a new password for your account.",
   "auth.resetSubmit": "Save new password",

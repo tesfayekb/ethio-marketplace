@@ -52,12 +52,35 @@ password. Callers see one message; failures are logged, not surfaced as
 different text. This is the same anti-enumeration posture as the B-3 sign-up
 guard, and it is guarded by E2E spec R-2.
 
+## Resubmit throttle (INC-026)
+
+The request form carries the same apparatus as the sign-up resend, and shares its
+state — one cooldown timer and one per-visit counter for the whole `/auth` screen,
+not a second timer system:
+
+- 60s cooldown (`RESEND_COOLDOWN_SECONDS`) and the per-visit cap
+  (`MAX_RESENDS_PER_VISIT`) engage when the request is **initiated**, not when it
+  succeeds (the INC-017 ruling: the throttle protects the send endpoint, and a
+  refused request is exactly when a user hammers the button).
+- A synchronous in-flight ref rejects a second click in the same tick, so a
+  double-tap cannot start two cooldowns or consume two attempts.
+- During the cooldown the submit button is disabled and shows the countdown
+  affordance; past the cap it stays disabled under the neutral `auth.resetLimit`
+  message.
+
+This is defense-in-depth, not an enumeration fix: the response was already
+neutral-always and stays byte-identical for existing, unknown and error. GoTrue's
+server-side send limit remains the backstop.
+
 ## E2E coverage
 
 `e2e/auth-reset.spec.ts` (mobile-360 only, like the other auth logic specs):
 
 - **R-2** — a registered and an unregistered address produce byte-identical
   neutral responses; no timing- or copy-based oracle.
+- **R-4** — after one submit the request control is disabled and shows the
+  cooldown affordance. No real-clock wait and no mail send: the probe address is
+  unregistered, so GoTrue issues no message and the neutral answer is unchanged.
 - **R-3** — full recovery path: admin-minted recovery link → `/auth/reset` →
   new password set → the OLD password is rejected and the NEW one signs in.
 

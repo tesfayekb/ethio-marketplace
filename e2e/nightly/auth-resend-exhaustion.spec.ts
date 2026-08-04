@@ -6,7 +6,7 @@ import { fillUntilStable, waitForHydration } from "../helpers/ui";
 
 const RUN_ID = process.env["GITHUB_RUN_ID"] ?? "local";
 
-// This case waits out two REAL 60-second cooldowns plus Mailtrap pacing. The
+// This case waits out two REAL 60-second cooldowns plus sink pacing. The
 // timeout is raised because the test is genuinely slow by design (real elapsed
 // time is the thing under test), NOT to paper over a failure or a flake.
 test.setTimeout(300_000);
@@ -39,18 +39,18 @@ async function assertNoSignUpError(page: import("@playwright/test").Page) {
   }
 }
 
-// The nightly job sets E2E_EMAIL_SINK=1 itself, but a manual dispatch against a
-// project without a recipient-agnostic sink would fail on the send, not on the
-// behaviour under test. Same gate as the CI sign-up spec (INC-013).
+// Same gate as the CI sign-up spec (INC-013): without a recipient-agnostic sink
+// on staging the run would fail on the send, not on the behaviour under test.
+// The flag now comes from the same repository variable ci.yml reads (INC-018).
 test.skip(
   process.env["E2E_EMAIL_SINK"] !== "1",
   "INC-013: needs a recipient-agnostic mail sink. Set E2E_EMAIL_SINK=1.",
 );
 
 test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
-  // INC-018: Mailtrap's free sandbox refuses sends issued seconds apart, which
-  // surfaces as Supabase 500 "Error sending confirmation email". Environment
-  // pacing only — no assertion is relaxed and no retry is added.
+  // INC-018: the staging mail sink (Ethereal, ruling R1) refuses sends issued
+  // seconds apart, which surfaces as Supabase 500 "Error sending confirmation
+  // email". Environment pacing only — no assertion is relaxed, no retry added.
   await page.waitForTimeout(15_000);
   await signUpFresh(page, 103);
   await assertNoSignUpError(page);
