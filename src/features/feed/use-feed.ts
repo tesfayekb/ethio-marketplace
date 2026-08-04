@@ -171,7 +171,6 @@ export function useCategories() {
       }
     })();
 
-
     return () => {
       cancelled = true;
     };
