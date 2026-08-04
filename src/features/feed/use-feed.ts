@@ -142,26 +142,35 @@ export function useCategories() {
     setIsLoading(true);
 
     void (async () => {
-      const [{ data: cats }, { data: pointers }] = await Promise.all([
-        supabase
-          .from("categories")
-          .select("id,name_en,name_am,slug,display_order")
-          .eq("is_active", true)
-          .order("display_order", { ascending: true }),
-        supabase.from("category_tree_pointers").select("child_id,parent_id"),
-      ]);
-      if (cancelled) return;
+      try {
+        const [{ data: cats }, { data: pointers }] = await Promise.all([
+          supabase
+            .from("categories")
+            .select("id,name_en,name_am,slug,display_order")
+            .eq("is_active", true)
+            .order("display_order", { ascending: true }),
+          supabase.from("category_tree_pointers").select("child_id,parent_id"),
+        ]);
+        if (cancelled) return;
 
-      const childOfSomething = new Set(
-        (pointers ?? []).filter((p) => p.parent_id !== null).map((p) => p.child_id),
-      );
-      setCategories(
-        (cats ?? [])
-          .filter((c) => !childOfSomething.has(c.id))
-          .map((c) => ({ id: c.id, nameEn: c.name_en, nameAm: c.name_am, slug: c.slug })),
-      );
-      setIsLoading(false);
+        const childOfSomething = new Set(
+          (pointers ?? []).filter((p) => p.parent_id !== null).map((p) => p.child_id),
+        );
+        setCategories(
+          (cats ?? [])
+            .filter((c) => !childOfSomething.has(c.id))
+            .map((c) => ({ id: c.id, nameEn: c.name_en, nameAm: c.name_am, slug: c.slug })),
+        );
+        setIsLoading(false);
+      } catch {
+        // CONTAINMENT (INC-031): the rail degrades to "no categories" rather than
+        // throwing through the shell. The feed itself stays fully usable.
+        if (cancelled) return;
+        setCategories([]);
+        setIsLoading(false);
+      }
     })();
+
 
     return () => {
       cancelled = true;
