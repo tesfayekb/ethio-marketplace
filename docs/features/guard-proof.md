@@ -92,3 +92,13 @@ callback surface.
 ## First successful run
 
 PENDING — to be filled in by the operator after the first dispatch.
+
+## Fixture refresh — 2026-08-04
+
+The auth surface moved substantially during P1-g, so both fixtures were re-checked
+against current source:
+
+- `c4-arbitrary-recipient.patch` — applies clean, unchanged.
+- `b3-enumeration.patch` — REGENERATED. The sign-in error block shifted ~102 lines;
+  the mutation intent (leak the attempted address into the error copy) and the
+  forbidden-on-main header are unchanged.

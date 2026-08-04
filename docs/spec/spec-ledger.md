@@ -725,3 +725,21 @@ natural companion to the service changes. Logged, not absorbed.
   fails with its own message so a broken registry call can never be read as a clean
   bill of health (law F4). `bun audit` cannot complete from the build sandbox
   (HTTP 404), so the authoritative result is the CI job's, not a local run's.
+
+- **S.. (2026-08-04):** Audit remediation, probe retirement, fixture refresh (Tier B).
+  (1) The 8 high audit findings are cleared by same-major `overrides` on
+  `brace-expansion`, `postcss` and `js-yaml` — all dev/build-chain packages with zero
+  runtime exposure (INC-025). The `brace-expansion` floor stays inside 1.x on purpose:
+  a flat `>=1.1.17` pulls the whole tree to 5.x and breaks `minimatch@3`, i.e. eslint.
+  The authoritative clean verdict is the CI `dependency-audit` job's; the sandbox 404s.
+  (2) The recovery-identity probe is RETIRED — `.github/workflows/p1g-probe.yml` and
+  `scripts/deny-tests/p1g-recovery-identity.ts` deleted. Its census question is
+  answered and recorded (GoTrue sets a password without re-creating the `email`
+  identity); under ruling R2's truth model that state is legitimate and visible, and
+  the invariant is now continuously guarded by E2E R-2 and S-4 rather than by a manual
+  dispatch. The `E2E_SUPABASE_DB_URL` repository secret was single-purpose to that
+  probe and is now dead — operator deletion item.
+  (3) Guard Proof fixtures re-checked against the moved auth surface:
+  `c4-arbitrary-recipient.patch` applies clean unchanged; `b3-enumeration.patch` was
+  regenerated (the sign-in error block moved ~102 lines during P1-g), same mutation
+  intent, forbidden-on-main header kept.

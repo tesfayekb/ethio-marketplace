@@ -2,10 +2,11 @@
 # Applying this to main is forbidden: it re-introduces an account-enumeration leak by
 # rendering the attempted address inside the sign-in error, making the wrong-password
 # and unknown-email surfaces distinguishable. See docs/features/guard-proof.md.
+# Regenerated 2026-08-04 against the post-P1-g src/routes/auth.tsx.
 diff --git a/src/routes/auth.tsx b/src/routes/auth.tsx
 --- a/src/routes/auth.tsx
 +++ b/src/routes/auth.tsx
-@@ -381,5 +381,6 @@
+@@ -483,5 +483,6 @@
          {errorKey ? (
            <p role="alert" className="text-sm text-destructive">
 -            {t(errorKey)}
