@@ -155,7 +155,7 @@ function RootComponent() {
       <I18nProvider>
         <ThemeProvider>
           <AppShell>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </AppShell>
         </ThemeProvider>

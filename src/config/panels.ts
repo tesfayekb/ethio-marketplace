@@ -257,14 +257,16 @@ export function panelsForUser(auth: PanelAuthContext): Panel[] {
 
 /** Items the user may see: anything gated by a permission they lack is dropped. */
 export function visibleItems(items: readonly NavItem[], auth: PanelAuthContext): NavItem[] {
-  return items
-    .filter(
-      (item) => !item.requiredPermission || auth.permissions.includes(item.requiredPermission),
-    )
-    .map((item) =>
-      item.children ? { ...item, children: visibleItems(item.children, auth) } : item,
-    )
-    // A group whose every member was filtered out is not an empty heading —
-    // it disappears entirely.
-    .filter((item) => !item.children || item.children.length > 0);
+  return (
+    items
+      .filter(
+        (item) => !item.requiredPermission || auth.permissions.includes(item.requiredPermission),
+      )
+      .map((item) =>
+        item.children ? { ...item, children: visibleItems(item.children, auth) } : item,
+      )
+      // A group whose every member was filtered out is not an empty heading —
+      // it disappears entirely.
+      .filter((item) => !item.children || item.children.length > 0)
+  );
 }

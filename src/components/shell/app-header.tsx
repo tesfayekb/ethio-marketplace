@@ -123,7 +123,6 @@ export function AppHeader() {
         <Logo variant="icon" className="sm:hidden" />
       </Link>
 
-
       <div className="hidden min-w-0 flex-1 lg:block">
         <PanelSwitcher />
       </div>

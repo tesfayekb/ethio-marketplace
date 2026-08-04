@@ -157,9 +157,7 @@ test.describe("dark mode", () => {
     await gotoReady(page, "/");
     const html = page.locator("html");
     const before = await html.getAttribute("data-mode");
-    const bgBefore = await page.evaluate(
-      () => getComputedStyle(document.body).backgroundColor,
-    );
+    const bgBefore = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
     await page.getByRole("button", { name: en["shell.themeToggle"] }).click();
 

@@ -67,13 +67,17 @@ const SUBLINE = "MARKETPLACE".split("");
 function Lockup({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex flex-col leading-none", className)}>
-      <span className="font-display text-xl font-semibold tracking-tight">
+      <span
+        data-testid="logo-wordmark"
+        className="font-display text-xl font-semibold tracking-tight"
+      >
         <span className="text-primary">ethio</span>
         <span className="text-gold">.</span>
         <span className="text-primary">com</span>
       </span>
       <span
         aria-hidden="true"
+        data-testid="logo-subline"
         className="mt-1 flex w-full justify-between text-[0.6875rem] font-medium uppercase text-muted-foreground"
       >
         {SUBLINE.map((letter, index) => (

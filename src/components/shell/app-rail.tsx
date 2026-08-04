@@ -69,10 +69,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
               {inner}
               <ChevronRight
                 aria-hidden="true"
-                className={cn(
-                  "ms-auto h-4 w-4 shrink-0 transition-transform",
-                  open && "rotate-90",
-                )}
+                className={cn("ms-auto h-4 w-4 shrink-0 transition-transform", open && "rotate-90")}
               />
             </button>
           </CollapsibleTrigger>
