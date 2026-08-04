@@ -29,12 +29,12 @@ trap 'rm -f "$tmp"' EXIT
 # from('listings') / from("listings") followed (same line, or within a short
 # chain across lines) by a mutating method.
 grep -RnE "from\(\s*['\"\`]listings['\"\`]\s*\)[^\n]*\.(insert|update|delete|upsert)\s*\(" \
-  --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' \
+  --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='*.ts.txt' \
   "$TARGET" >>"$tmp" 2>/dev/null || true
 
 # Multi-line chains: a from('listings') line whose next 3 lines start a mutation.
 grep -RnA3 -E "from\(\s*['\"\`]listings['\"\`]\s*\)\s*$" \
-  --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' \
+  --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='*.ts.txt' \
   "$TARGET" 2>/dev/null |
   grep -E "^[^:]+[-:][0-9]+[-:]\s*\.(insert|update|delete|upsert)\s*\(" >>"$tmp" || true
 
