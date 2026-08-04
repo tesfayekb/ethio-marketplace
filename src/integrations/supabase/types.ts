@@ -166,6 +166,120 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_photos: {
+        Row: {
+          created_at: string
+          display_order: number
+          exif_stripped: boolean
+          id: string
+          listing_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          exif_stripped?: boolean
+          id?: string
+          listing_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          exif_stripped?: boolean
+          id?: string
+          listing_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_photos_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          attributes: Json
+          category_id: string
+          created_at: string
+          description: string
+          expires_at: string | null
+          home_country_code: string
+          id: string
+          location_id: string
+          price_amount: number | null
+          price_currency: string | null
+          price_mode: string
+          published_at: string | null
+          seller_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attributes?: Json
+          category_id: string
+          created_at?: string
+          description: string
+          expires_at?: string | null
+          home_country_code: string
+          id?: string
+          location_id: string
+          price_amount?: number | null
+          price_currency?: string | null
+          price_mode?: string
+          published_at?: string | null
+          seller_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attributes?: Json
+          category_id?: string
+          created_at?: string
+          description?: string
+          expires_at?: string | null
+          home_country_code?: string
+          id?: string
+          location_id?: string
+          price_amount?: number | null
+          price_currency?: string | null
+          price_mode?: string
+          published_at?: string | null
+          seller_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "listings_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           center_lat: number | null
@@ -317,8 +431,30 @@ export type Database = {
     }
     Functions: {
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
+      expire_stale_listings: { Args: never; Returns: number }
       has_password: { Args: never; Returns: boolean }
       remove_own_password: { Args: never; Returns: undefined }
+      submit_listing: {
+        Args: {
+          p_attributes?: Json
+          p_category_id: string
+          p_description: string
+          p_home_country_code: string
+          p_listing_id?: string
+          p_location_id: string
+          p_price_amount?: number
+          p_price_currency?: string
+          p_price_mode?: string
+          p_seller_id: string
+          p_status?: string
+          p_title: string
+        }
+        Returns: string
+      }
+      transition_listing: {
+        Args: { p_listing_id: string; p_new_status: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
