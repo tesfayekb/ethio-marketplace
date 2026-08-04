@@ -64,6 +64,27 @@ jobs:
       - name: Run string scan
         run: bash scripts/check-hardcoded-strings.sh
 
+  listing-write-seam:
+    name: Listing-write seam guard (with self-test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Direction 1: the guard must PASS on real source.
+      - name: Guard src/
+        run: bash scripts/check-listing-writes.sh src
+      # Direction 2: the guard must FAIL on the known-bad fixture. A guard that
+      # only ever passes proves nothing (same discipline as the migration linter).
+      - name: Self-test — guard must reject the bad fixture
+        run: |
+          set +e
+          bash scripts/check-listing-writes.sh scripts/fixtures
+          STATUS=$?
+          if [ "$STATUS" -eq 0 ]; then
+            echo "::error::GUARD SELF-TEST FAILED: bad fixture was not flagged."
+            exit 1
+          fi
+          echo "Self-test OK: bad fixture correctly flagged."
+
   dependency-audit:
     name: Dependency vulnerability audit (enforcing on high/critical)
     runs-on: ubuntu-latest
