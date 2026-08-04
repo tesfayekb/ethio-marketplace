@@ -92,7 +92,7 @@ export function useFeed({ categoryId = null, locationScope = "all-active" }: Use
     // this hook, so a feed-level backend gap can never again cascade through the
     // shell-wrapped root and take down unrelated routes (auth, settings).
     // This is containment, NOT catch-and-hide (law F4): `error` is surfaced.
-    void query
+    void Promise.resolve(query)
       .then(({ data, error: queryError }) => {
         if (cancelled) return;
         if (queryError) {
