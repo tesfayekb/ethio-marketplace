@@ -162,3 +162,12 @@ server-side (U-1, HTTP 422 `single_identity_not_deletable`), and the disabled Un
 control is honesty only, never authorization. The P1-g polish sweep still owes the UI
 copy warning before an email unlink (the password deletion is real and not recoverable
 without re-linking or reset).
+
+## Superseded by the P1-g truth model (2026-08-03)
+
+The sign-in-methods list no longer derives the password from the `email` identity
+row. The password is its own row, answered by `public.has_password()`, and it can
+be removed directly via `public.remove_own_password()` when another door exists.
+The INC-024 trigger above still stands — unlinking the email identity still kills
+its password — but it is now one of two paths to a passwordless account rather
+than the only one. See `docs/features/auth-password-recovery.md`.

@@ -16,7 +16,7 @@ was the wrong model:
 
 - unlink the email identity → INC-024's trigger kills the password (both gone);
 - recover a password on an account with no email identity → a password with no
-  email identity row. Under the truth model this is a *state*, not a ghost: the
+  email identity row. Under the truth model this is a _state_, not a ghost: the
   settings list shows it and `remove_own_password()` can remove it.
 
 The ghost door was never "a password without an identity". It was "a credential
@@ -68,6 +68,6 @@ guard, and it is guarded by E2E spec R-2.
 
 ## Known limit
 
-Production SMTP is not yet delivering, so the *send* leg of recovery is proven
+Production SMTP is not yet delivering, so the _send_ leg of recovery is proven
 against staging (Ethereal sink, ruling R1) and by admin-minted links in CI. The
 production send remains a launch-gate item alongside custom SMTP.
