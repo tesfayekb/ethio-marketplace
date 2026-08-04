@@ -301,6 +301,8 @@ function AuthScreen() {
     setResetRequested(true);
   }
 
+  const resetLimitReached = resendCount >= MAX_RESENDS_PER_VISIT;
+
   if (onForgot) {
     return (
       <main className="mx-auto w-full max-w-sm px-4 py-10">
