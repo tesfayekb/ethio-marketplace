@@ -35,6 +35,66 @@ export type Database = {
         }
         Relationships: []
       }
+      locations: {
+        Row: {
+          center_lat: number | null
+          center_lng: number | null
+          country_code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          level: string
+          name_am: string | null
+          name_en: string
+          parent_id: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          center_lat?: number | null
+          center_lng?: number | null
+          country_code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level: string
+          name_am?: string | null
+          name_en: string
+          parent_id?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          center_lat?: number | null
+          center_lng?: number | null
+          country_code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level?: string
+          name_am?: string | null
+          name_en?: string
+          parent_id?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "locations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
