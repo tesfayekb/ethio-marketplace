@@ -12,7 +12,11 @@ import { cn } from "@/lib/utils";
  */
 export function Spinner({ label, className }: { label: string; className?: string }) {
   return (
-    <span role="status" aria-live="polite" className={cn("inline-flex items-center gap-2", className)}>
+    <span
+      role="status"
+      aria-live="polite"
+      className={cn("inline-flex items-center gap-2", className)}
+    >
       <svg
         viewBox="0 0 32 32"
         aria-hidden="true"

@@ -210,6 +210,10 @@ export function panelsForUser(auth: PanelAuthContext): Panel[] {
 /** Items the user may see: anything gated by a permission they lack is dropped. */
 export function visibleItems(items: readonly NavItem[], auth: PanelAuthContext): NavItem[] {
   return items
-    .filter((item) => !item.requiredPermission || auth.permissions.includes(item.requiredPermission))
-    .map((item) => (item.children ? { ...item, children: visibleItems(item.children, auth) } : item));
+    .filter(
+      (item) => !item.requiredPermission || auth.permissions.includes(item.requiredPermission),
+    )
+    .map((item) =>
+      item.children ? { ...item, children: visibleItems(item.children, auth) } : item,
+    );
 }

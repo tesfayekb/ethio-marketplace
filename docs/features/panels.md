@@ -2,7 +2,7 @@
 
 ## Model
 
-A **panel** is a top-level surface. The **rail** always renders the *active*
+A **panel** is a top-level surface. The **rail** always renders the _active_
 panel's items. The **panel switcher** moves between the panels this user may
 see.
 
@@ -11,11 +11,11 @@ see.
 
 Panel sets:
 
-| User                     | Panels                                       |
-| ------------------------ | -------------------------------------------- |
-| logged out               | Marketplace                                   |
-| logged in, non-admin     | Marketplace, My Listings, Account             |
-| admin                    | Marketplace, My Listings, Account, Admin      |
+| User                 | Panels                                   |
+| -------------------- | ---------------------------------------- |
+| logged out           | Marketplace                              |
+| logged in, non-admin | Marketplace, My Listings, Account        |
+| admin                | Marketplace, My Listings, Account, Admin |
 
 Marketplace is always first and always present.
 

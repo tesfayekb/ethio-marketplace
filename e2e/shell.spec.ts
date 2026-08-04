@@ -27,9 +27,7 @@ test.describe("app shell", () => {
     if (testInfo.project.name === "desktop-1280") {
       // Desktop: the rail is persistent and the switcher shows Marketplace.
       await expect(page.getByTestId("app-rail")).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: en["panel.marketplace"] }),
-      ).toBeVisible();
+      await expect(page.getByRole("button", { name: en["panel.marketplace"] })).toBeVisible();
     }
   });
 

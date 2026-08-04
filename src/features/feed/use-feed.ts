@@ -2,7 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 
-import { rankListings, type ListingTier, type LocationScope, type RankableListing } from "./ranking";
+import {
+  rankListings,
+  type ListingTier,
+  type LocationScope,
+  type RankableListing,
+} from "./ranking";
 
 /** One card's worth of listing data. READ ONLY — this feature never writes. */
 export interface FeedListing extends RankableListing {

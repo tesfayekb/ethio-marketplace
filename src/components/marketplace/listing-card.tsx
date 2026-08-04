@@ -17,8 +17,7 @@ function priceLabel(
 export function ListingCard({ listing }: { listing: FeedListing }) {
   const { t, language } = useI18n();
   const locationName =
-    (language === "am" ? listing.locationNameAm : listing.locationNameEn) ??
-    listing.locationNameEn;
+    (language === "am" ? listing.locationNameAm : listing.locationNameEn) ?? listing.locationNameEn;
 
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
