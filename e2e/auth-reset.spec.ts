@@ -112,3 +112,27 @@ test("R-5: a reset URL with no recovery session says so instead of showing a for
   });
   await expect(page.locator("#reset-password")).toHaveCount(0);
 });
+
+/**
+ * R-4 (INC-025) — the resubmit throttle. One submit engages the shared 60s
+ * cooldown on INITIATION, so the control is refused for the rest of the window.
+ * No real-clock wait and no mail send: the address is unknown to the project, so
+ * GoTrue issues no message, and the neutral answer is identical either way (R4).
+ */
+test("R-4: the reset request is throttled after one submit", async ({ page }) => {
+  await page.goto("/auth?view=forgot");
+  await waitForHydration(page);
+
+  const submit = page.getByRole("button", { name: en["auth.resetSend"] });
+  await page.locator("#reset-email").fill(`e2e+p1h-throttle-${Date.now()}@ethio-e2e.invalid`);
+  await submit.click();
+
+  // Neutral answer unchanged...
+  await expect(page.getByRole("status")).toHaveText(en["auth.resetNeutral"], { timeout: 15000 });
+
+  // ...and the cooldown affordance is showing, with the control disabled.
+  const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
+  const cooling = page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") });
+  await expect(cooling).toBeVisible();
+  await expect(cooling).toBeDisabled();
+});
