@@ -40,11 +40,29 @@ the run URL.
 This is the supervisor's read on every verification clone. **A timestamp older than
 ~48h does not mean "nothing changed" — it means the schedule stopped running.** A
 scheduled job that silently dies must be distinguishable from one that ran and
-passed; the heartbeat is what makes that distinction.
+passed; the heartbeat is what makes that distinction. That staleness rule is
+unchanged by anything below.
 
-Note: GitHub disables scheduled workflows automatically after prolonged repository
-inactivity (roughly 60 days without commits). If the heartbeat goes stale, check
-whether the schedule was disabled before investigating the tests.
+### Outcome authority (INC-027)
+
+The job's conclusion is the **test step's** outcome and nothing else. "Run nightly
+E2E" carries `continue-on-error: true` so the heartbeat still runs after a red
+suite; a final "Report test outcome" step re-raises the captured outcome. So a green
+suite with a broken heartbeat push is a green job with a warning, and a red suite is
+never masked by a successful bookkeeping commit.
+
+### Regenerate-after-fetch push
+
+The push is not rebased — it is **regenerated**, up to 3 attempts: fetch origin main,
+`reset --hard` onto it, re-write the status file from this run's own data, commit,
+push. Why regenerate rather than rebase or merge: the status file is _derived state_.
+Every field (conclusion, SHA, timestamp, run URL) belongs to the run that is writing
+it, so rewriting on top of whatever main now holds is always correct and can never
+conflict. The file content comes from one shell function used on every attempt, so
+the retry cannot drift from the first write.
+
+After 3 failed attempts the step emits `::warning::heartbeat push failed after
+retries` and exits 0. The file then lags, which the staleness rule above catches.
 
 The file is machine-generated and is exempt from the prettier gate in
 `.prettierignore`, same class as `docs/tracking/ci-status.md` (INC-011).

@@ -779,3 +779,19 @@ natural companion to the service changes. Logged, not absorbed.
   what let the Mailtrap → Ethereal swap (R1) pass the nightly by. Reconciled to the
   shared variable; next scheduled run is the verification.
 
+- **S.. (2026-08-04): Nightly heartbeat made rebase-safe and non-masking (INC-027).**
+  Two defects in the bookkeeping, none in the tests. (1) The heartbeat pushed without
+  fetching, so a commit landing on main mid-run rejected it; (2) that rejection failed
+  the job, conflating bookkeeping with the test verdict — and left the status file
+  stale at the pre-fix run, which is exactly the staleness the file exists to expose.
+  Restructured: "Run nightly E2E" carries `continue-on-error`, the heartbeat runs with
+  `if: always()`, and a final step re-raises the captured test outcome, so the job
+  fails iff the suite failed and a red suite is never hidden. The push now regenerates
+  rather than merges: fetch origin main, `reset --hard`, re-write the file from this
+  run's own data (one shell function, one source, used on every attempt), commit,
+  push — up to 3 attempts with a short sleep. The status file is derived state, so
+  rewriting on top of a moved ref is always correct and cannot conflict. Three
+  failures emit `::warning::heartbeat push failed after retries` and exit 0; the
+  ~48h staleness rule remains the backstop. Logged against the REQ-032 ops-invariant
+  family as the second "watchdog ignores a moved ref" occurrence.
+
