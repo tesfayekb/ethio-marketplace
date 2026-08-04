@@ -217,6 +217,7 @@ export type Database = {
           published_at: string | null
           seller_id: string
           status: string
+          tier: string
           title: string
           updated_at: string
         }
@@ -235,6 +236,7 @@ export type Database = {
           published_at?: string | null
           seller_id: string
           status?: string
+          tier?: string
           title: string
           updated_at?: string
         }
@@ -253,6 +255,7 @@ export type Database = {
           published_at?: string | null
           seller_id?: string
           status?: string
+          tier?: string
           title?: string
           updated_at?: string
         }
