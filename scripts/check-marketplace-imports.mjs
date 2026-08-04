@@ -11,11 +11,19 @@
  * does not resolve dynamic import() — deliberately, since a dynamic import is
  * the very code-splitting we want to permit.
  */
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const ENTRIES = ["src/routes/index.tsx", "src/components/app-shell.tsx"];
-const FORBIDDEN = ["recharts", "mapbox-gl", "react-map-gl", "leaflet", "react-leaflet", "three", "d3"];
+const FORBIDDEN = [
+  "recharts",
+  "mapbox-gl",
+  "react-map-gl",
+  "leaflet",
+  "react-leaflet",
+  "three",
+  "d3",
+];
 const EXTENSIONS = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx"];
 
 function resolveLocal(spec, fromFile) {
@@ -26,7 +34,7 @@ function resolveLocal(spec, fromFile) {
 
   for (const ext of EXTENSIONS) {
     const candidate = `${base}${ext}`;
-    if (existsSync(candidate) && !candidate.endsWith("/")) return candidate;
+    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
   }
   return null;
 }
@@ -41,7 +49,9 @@ while (queue.length > 0) {
   seen.add(file);
 
   const source = readFileSync(file, "utf8");
-  const specs = [...source.matchAll(/^\s*import\s[^;]*?from\s+["']([^"']+)["']/gm)].map((m) => m[1]);
+  const specs = [...source.matchAll(/^\s*import\s[^;]*?from\s+["']([^"']+)["']/gm)].map(
+    (m) => m[1],
+  );
 
   for (const spec of specs) {
     const bare = spec.split("/")[0].startsWith("@")
