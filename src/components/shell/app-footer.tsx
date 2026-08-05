@@ -34,7 +34,7 @@ export function AppFooter() {
     <footer className="w-full border-t border-border bg-card">
       {/* EXACT thirds: an explicit 3-column grid, not flex-1 guesses. The group
           is centred by the auto margins; each column centres its own content.
-          Rows are pulled together (-my-1) so the stack is visually half as
+          Rows are pulled together (-my-1) so the stack is visually tighter still (INC-047) as
           tall while every link's own box stays a 44px tap target. */}
       <div
         data-testid="footer-columns"
@@ -51,14 +51,14 @@ export function AppFooter() {
             </h2>
             <ul className="flex flex-col items-center">
               {index === 0 ? (
-                <li className="-my-1">
+                <li className="-my-1.5">
                   <Link to="/" className={LINK}>
                     {t("nav.home")}
                   </Link>
                 </li>
               ) : null}
               {column.items.map((item) => (
-                <li key={item} className="-my-1">
+                <li key={item} className="-my-1.5">
                   <span className={LINK}>{t(item)}</span>
                 </li>
               ))}

@@ -184,6 +184,33 @@ test.describe("app shell", () => {
     await expect(page.getByText(en["panel.marketplace"], { exact: true }).first()).toBeVisible();
   });
 
+  test("the marketplace breadcrumb is Home alone — no redundant panel segment", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/");
+    const crumbs = page.getByTestId("breadcrumbs");
+    await expect(crumbs.getByTestId("breadcrumb-home")).toBeVisible();
+    // INC-043: "Home" IS the marketplace, so the Marketplace segment is gone.
+    await expect(crumbs.getByTestId("breadcrumb-panel")).toHaveCount(0);
+    await expect(crumbs.getByText(en["panel.marketplace"], { exact: true })).toHaveCount(0);
+  });
+
+  test("the feed body is centred with equal left and right gutters", async ({ page }) => {
+    await gotoReady(page, "/");
+    const main = page.locator("main#main");
+    const container = page.getByTestId("feed-container");
+    const mainBox = (await main.boundingBox())!;
+    const box = (await container.boundingBox())!;
+    const left = box.x - mainBox.x;
+    const right = mainBox.x + mainBox.width - (box.x + box.width);
+    expect(Math.abs(left - right), "feed container gutters are unequal").toBeLessThanOrEqual(1);
+
+    const empty = (await page.getByTestId("feed-empty").boundingBox())!;
+    const emptyLeft = empty.x - mainBox.x;
+    const emptyRight = mainBox.x + mainBox.width - (empty.x + empty.width);
+    expect(Math.abs(emptyLeft - emptyRight), "empty state is off-centre").toBeLessThanOrEqual(1);
+  });
+
   test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
     // Hold the listings read open so the busy state is observable.
     await page.route("**/rest/v1/listings*", async (route) => {
@@ -400,6 +427,37 @@ test.describe("corner-block grid", () => {
     await page.getByTestId("rail-collapse-toggle").click();
     await expect(html).toHaveAttribute("data-rail", "expanded");
     await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+  });
+
+  test("exactly one collapse toggle, and the wordmark moves into the bar when collapsed", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/");
+    const html = page.locator("html");
+    const bar = page.getByTestId("shell-topbar");
+
+    // INC-046: exactly ONE desktop collapse affordance, and no hamburger here.
+    await expect(page.getByTestId("rail-collapse-toggle")).toHaveCount(1);
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeHidden();
+
+    // Rail OPEN: the wordmark lives in the corner cell only — never twice.
+    await expect(html).toHaveAttribute("data-rail", "expanded");
+    await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toBeVisible();
+    await expect(bar.getByTestId("topbar-wordmark")).toBeHidden();
+
+    await page.getByTestId("rail-collapse-toggle").click();
+    await expect(html).toHaveAttribute("data-rail", "collapsed");
+
+    // Rail COLLAPSED: corner cell is the icon-only mark, the bar carries the
+    // wordmark — after the toggle, before the search field (INC-045).
+    await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toBeHidden();
+    const word = bar.getByTestId("topbar-wordmark");
+    await expect(word).toBeVisible();
+    const toggleBox = (await page.getByTestId("rail-collapse-toggle").boundingBox())!;
+    const wordBox = (await word.boundingBox())!;
+    const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
+    expect(toggleBox.x).toBeLessThan(wordBox.x);
+    expect(wordBox.x).toBeLessThan(searchBox.x);
   });
 
   test("the rail sign-out is absent for a logged-out visitor", async ({ page }) => {

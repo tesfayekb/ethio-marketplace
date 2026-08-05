@@ -284,3 +284,14 @@ the Featured badge. No background image, no gradient.
 - The signed-in identity renders in two places (top-bar trigger, account-menu
   label). The menu label carries `data-testid="account-menu-identity"` so tests
   assert one deterministic element.
+
+## Layout polish round 2 (2026-08-05)
+
+- Feed body is centred with EQUAL left/right gutters (INC-044); the empty-state
+  card is centred inside it.
+- The desktop wordmark follows the rail: corner cell when expanded, top bar
+  (after the collapse toggle, before search) when collapsed (INC-045). Placement
+  keys off `html[data-rail]`, so it never flashes and never renders twice.
+- Exactly ONE sidebar affordance per breakpoint: hamburger below `md`, collapse
+  toggle at `md`+ (INC-046).
+- Footer link rows are tighter; anchors keep their 44px tap boxes (INC-047).

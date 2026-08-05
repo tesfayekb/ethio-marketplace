@@ -43,32 +43,49 @@ export function Breadcrumbs() {
   const selected = categories.find((c) => c.id === selectedCategoryId) ?? null;
   const path = selected ? [selected] : [];
 
+  /**
+   * INC-043: "Home" IS the marketplace, so "Home › Marketplace" said the same
+   * thing twice. On the marketplace panel the chain is Home › <category path>.
+   * On every OTHER panel the panel name is real information about where you
+   * are, so it stays a segment: Home › Account › …
+   */
+  const showPanelSegment = activePanel !== "marketplace";
+
   return (
     <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")} className="mb-3">
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <button type="button" data-testid="breadcrumb-home" onClick={goHome}>
-              {t("nav.home")}
-            </button>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          {path.length > 0 ? (
+          {showPanelSegment || path.length > 0 ? (
             <BreadcrumbLink asChild>
-              <button
-                type="button"
-                data-testid="breadcrumb-panel"
-                onClick={() => setSelectedCategoryId(null)}
-              >
-                {panelLabel}
+              <button type="button" data-testid="breadcrumb-home" onClick={goHome}>
+                {t("nav.home")}
               </button>
             </BreadcrumbLink>
           ) : (
-            <BreadcrumbPage>{panelLabel}</BreadcrumbPage>
+            <BreadcrumbPage data-testid="breadcrumb-home">{t("nav.home")}</BreadcrumbPage>
           )}
         </BreadcrumbItem>
+        {showPanelSegment ? (
+          <>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              {path.length > 0 ? (
+                <BreadcrumbLink asChild>
+                  <button
+                    type="button"
+                    data-testid="breadcrumb-panel"
+                    onClick={() => setSelectedCategoryId(null)}
+                  >
+                    {panelLabel}
+                  </button>
+                </BreadcrumbLink>
+              ) : (
+                <BreadcrumbPage data-testid="breadcrumb-panel">{panelLabel}</BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          </>
+        ) : null}
+
         {path.map((node, index) => {
           const label = language === "am" ? (node.nameAm ?? node.nameEn) : node.nameEn;
           const isLast = index === path.length - 1;

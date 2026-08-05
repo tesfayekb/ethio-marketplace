@@ -129,7 +129,8 @@ export function AppHeader() {
         {/* md+ ONLY: the rail collapse control, top-left of the bar and BEFORE
             the search field (INC-040 — it used to sit at the rail's bottom,
             out of reach on long pages). Below md the drawer/hamburger owns
-            this job, so the toggle does not exist there. */}
+            this job, so the toggle does not exist there — exactly ONE sidebar
+            affordance per breakpoint (INC-046). */}
         <button
           type="button"
           data-testid="rail-collapse-toggle"
@@ -144,6 +145,21 @@ export function AppHeader() {
             <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
           )}
         </button>
+
+        {/* md+ AND collapsed rail ONLY (INC-045): the corner cell shows the
+            icon-only mark when the rail is collapsed, so the wordmark moves
+            into the bar — after the toggle, before search. When the rail is
+            open the corner cell already carries the wordmark and this is
+            hidden, so the wordmark is never duplicated. Layout keys off the
+            attribute, not React state, so there is no first-frame flash. */}
+        <Link
+          to="/"
+          aria-label={t("app.name")}
+          data-testid="topbar-wordmark"
+          className="hidden min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:[html[data-rail=collapsed]_&]:inline-flex"
+        >
+          <Logo variant="wordmark" />
+        </Link>
 
         {/* md+ : the real search field, in the bar. */}
         <form
