@@ -80,10 +80,10 @@ function Wordmark({ size = "lg" }: { size?: "md" | "lg" }) {
   );
 }
 
-function Lockup({ className }: { className?: string }) {
+function Lockup({ className, size = "lg" }: { className?: string; size?: "md" | "lg" }) {
   return (
     <span className={cn("inline-flex flex-col leading-none", className)}>
-      <Wordmark />
+      <Wordmark size={size} />
       <span
         aria-hidden="true"
         data-testid="logo-subline"
