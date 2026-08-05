@@ -105,9 +105,12 @@ export function Logo({
    * "icon"     = the woven diamond alone — RESERVED for the collapsed rail.
    * "wordmark" = mark + "ethio.com" on one line — the mobile top bar, where the
    *              two-line lockup would crowd the other controls at 360px.
+   * "lockup"   = the two-line lockup WITHOUT the mark — the desktop top bar
+   *              when the rail is collapsed, where the corner cell already
+   *              carries the icon, so repeating the mark would duplicate it.
    * "full"     = mark + the two-line lockup.
    */
-  variant?: "icon" | "wordmark" | "full";
+  variant?: "icon" | "wordmark" | "lockup" | "full";
   className?: string;
 }) {
   if (variant === "icon") {
@@ -120,6 +123,9 @@ export function Logo({
         <Wordmark size="md" />
       </span>
     );
+  }
+  if (variant === "lockup") {
+    return <Lockup className={className} />;
   }
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
