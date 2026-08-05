@@ -91,10 +91,33 @@ function PanelPlaceholder() {
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const { user, signOut } = useAuth();
-  const [activePanel, setActivePanel] = useState<PanelId>("marketplace");
+  const [panelChoice, setPanelChoice] = useState<PanelId>("marketplace");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [locationPath, setLocationPath] = useState<LocationNode[]>([]);
   const [navOpen, setNavOpen] = useState(false);
+
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  /**
+   * INC-057 — PANEL/ROUTE DESYNC. `activePanel` used to be pure client state
+   * defaulting to "marketplace", so a real route such as /settings rendered its
+   * page beside the MARKETPLACE category rail. The panel is now DERIVED: a
+   * route that belongs to a panel owns the panel while it is open.
+   */
+  const routePanel: PanelId | null = pathname.startsWith("/settings") ? "account" : null;
+  /** Only "/" is the marketplace feed; every other route renders its own page. */
+  const isFeedRoute = pathname === "/";
+  const activePanel: PanelId = routePanel ?? panelChoice;
+
+  /** Choosing a panel from a route-owned page returns to the feed shell. */
+  const setActivePanel = useCallback(
+    (panel: PanelId) => {
+      setPanelChoice(panel);
+      if (!isFeedRoute) void navigate({ to: "/" });
+    },
+    [isFeedRoute, navigate],
+  );
 
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {
@@ -118,7 +141,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       navOpen,
       setNavOpen,
     };
-  }, [user, signOut, activePanel, selectedCategoryId, locationPath, navOpen]);
+  }, [
+    user,
+    signOut,
+    activePanel,
+    setActivePanel,
+    selectedCategoryId,
+    locationPath,
+    navOpen,
+  ]);
 
   return (
     <ShellContext.Provider value={value}>
