@@ -41,7 +41,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
     <form
       role="search"
       data-testid="search-row"
-      className="w-full border-b border-border bg-card px-3 py-2 lg:px-4"
+      className="w-full border-b border-border bg-card px-3 py-2 md:px-4"
       onSubmit={(event) => event.preventDefault()}
     >
       <label className="relative block">
