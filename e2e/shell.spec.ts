@@ -505,7 +505,6 @@ test.describe("tablet chrome (md = 768px)", () => {
     expect(searchBox.x + searchBox.width).toBeLessThanOrEqual(langBox.x);
     expect(langBox.width).toBeGreaterThan(40);
 
-
     await expectNoHorizontalOverflow(page);
   });
 

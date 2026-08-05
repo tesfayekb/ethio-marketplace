@@ -237,7 +237,9 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
               <li key={`skeleton-${index}`} data-testid="rail-category-skeleton" aria-hidden="true">
                 <div className="flex min-h-11 items-center gap-2 px-3">
                   <span className="h-4 w-4 shrink-0 animate-pulse rounded bg-muted" />
-                  <span className={cn("h-3 w-24 animate-pulse rounded bg-muted", HIDE_WHEN_COLLAPSED)} />
+                  <span
+                    className={cn("h-3 w-24 animate-pulse rounded bg-muted", HIDE_WHEN_COLLAPSED)}
+                  />
                 </div>
               </li>
             ))
