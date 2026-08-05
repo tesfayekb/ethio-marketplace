@@ -100,7 +100,7 @@ export function AppHeader() {
         <Link
           to="/"
           aria-label={t("app.name")}
-          className="inline-flex min-h-11 min-w-0 shrink items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+          className="inline-flex min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
         >
           <Logo variant="wordmark" />
         </Link>
