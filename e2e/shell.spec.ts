@@ -333,11 +333,7 @@ test.describe("mobile chrome", () => {
       page.getByRole("button", { name: en["shell.themeToggle"] }),
       "theme toggle",
     );
-    await expectTapTarget(
-      page,
-      page.getByTestId("search-toggle"),
-      "search toggle",
-    );
+    await expectTapTarget(page, page.getByTestId("search-toggle"), "search toggle");
 
     // Category rows inside the drawer are targets too.
     await page.getByRole("button", { name: en["shell.openMenu"] }).click();
