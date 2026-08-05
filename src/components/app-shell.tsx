@@ -121,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellContext.Provider value={value}>
-      <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_1fr_auto] bg-background lg:grid-cols-[16rem_minmax(0,1fr)] lg:grid-rows-[4rem_1fr_auto]">
+      <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_1fr_auto] bg-background md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[4rem_1fr_auto]">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
