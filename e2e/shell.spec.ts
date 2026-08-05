@@ -431,7 +431,39 @@ test.describe("corner-block grid", () => {
     await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
   });
 
+  test("exactly one collapse toggle, and the wordmark moves into the bar when collapsed", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/");
+    const html = page.locator("html");
+    const bar = page.getByTestId("shell-topbar");
+
+    // INC-046: exactly ONE desktop collapse affordance, and no hamburger here.
+    await expect(page.getByTestId("rail-collapse-toggle")).toHaveCount(1);
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeHidden();
+
+    // Rail OPEN: the wordmark lives in the corner cell only — never twice.
+    await expect(html).toHaveAttribute("data-rail", "expanded");
+    await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toBeVisible();
+    await expect(bar.getByTestId("topbar-wordmark")).toBeHidden();
+
+    await page.getByTestId("rail-collapse-toggle").click();
+    await expect(html).toHaveAttribute("data-rail", "collapsed");
+
+    // Rail COLLAPSED: corner cell is the icon-only mark, the bar carries the
+    // wordmark — after the toggle, before the search field (INC-045).
+    await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toHaveCount(0);
+    const word = bar.getByTestId("topbar-wordmark");
+    await expect(word).toBeVisible();
+    const toggleBox = (await page.getByTestId("rail-collapse-toggle").boundingBox())!;
+    const wordBox = (await word.boundingBox())!;
+    const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
+    expect(toggleBox.x).toBeLessThan(wordBox.x);
+    expect(wordBox.x).toBeLessThan(searchBox.x);
+  });
+
   test("the rail sign-out is absent for a logged-out visitor", async ({ page }) => {
+
     await gotoReady(page, "/");
     await expect(page.getByTestId("rail-sign-out")).toHaveCount(0);
   });
