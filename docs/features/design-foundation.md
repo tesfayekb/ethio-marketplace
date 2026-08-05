@@ -220,7 +220,7 @@ grid (logo cell = rail width × top-bar height, one continuous sidebar hairline)
 Bands 2–4 live in the content column (right of the rail) on desktop and stack
 full-width on mobile. **Spacing rule:** every band is a flat full-width strip
 whose only separator is its own `border-b` hairline, so the gap above a band
-equals the gap below it *by construction* — there is no vertical padding to
+equals the gap below it _by construction_ — there is no vertical padding to
 drift out of symmetry, and a band that renders nothing collapses to zero.
 
 - **Top bar** is minimal and evenly distributed at 360px. Search is an icon that

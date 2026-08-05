@@ -2,14 +2,14 @@
 
 ## Status
 
-| Layer                                                  | State                          |
-| ------------------------------------------------------ | ------------------------------ |
-| `public.locations` tree (country / region / city)      | LIVE (P2-a)                    |
-| Shell location row + cascading picker                  | LIVE (built-visible)           |
-| Chosen area written into shell state / `useFeed`       | LIVE (accepted, not applied)   |
-| IP resolution of the visitor's starting area           | NOT BUILT — this feature       |
-| Automatic city → region → country → world widening     | NOT BUILT — this feature       |
-| Feed / category / subcategory narrowing by area        | NOT BUILT — this feature       |
+| Layer                                              | State                        |
+| -------------------------------------------------- | ---------------------------- |
+| `public.locations` tree (country / region / city)  | LIVE (P2-a)                  |
+| Shell location row + cascading picker              | LIVE (built-visible)         |
+| Chosen area written into shell state / `useFeed`   | LIVE (accepted, not applied) |
+| IP resolution of the visitor's starting area       | NOT BUILT — this feature     |
+| Automatic city → region → country → world widening | NOT BUILT — this feature     |
+| Feed / category / subcategory narrowing by area    | NOT BUILT — this feature     |
 
 The control exists and cascades over real seeded geography; **choosing an area
 does not yet change which listings appear.** That is deliberate and is the
