@@ -110,3 +110,10 @@ consumer reads it through `useRailCollapsed` (`src/providers/rail-state.ts`),
 which subscribes via `MutationObserver`, so the rail, its foot and the drawer can
 never disagree (INC-036). The rail-bottom sign-out is ADDITIONAL to the account
 menu's; both call the same sign-out path and both are absent when logged out.
+
+## Breadcrumb root (2026-08-05, INC-043)
+
+Home IS the marketplace feed, so on the marketplace panel the chain is
+`Home › <category path>` — the "Marketplace" segment is gone. Every other panel
+keeps its name as a real segment (`Home › Account › …`). Home still clears the
+category filter and returns the active panel to marketplace.
