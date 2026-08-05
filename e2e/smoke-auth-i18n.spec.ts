@@ -67,7 +67,6 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
   await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
 
-
   // Sign-out is still reachable, now under the Amharic account-menu label.
   await openAccountMenu(page, am["shell.accountMenu"]);
   await expect(page.getByRole("menuitem", { name: am["auth.signOut"] })).toBeVisible();

@@ -275,3 +275,12 @@ ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
 
 No new colour was introduced: cool slate + green, gold only on the logo dot and
 the Featured badge. No background image, no gradient.
+
+## Stabilization notes (2026-08-05)
+
+- Expandable search positions with the real logical utilities `start-*` / `end-*`.
+  `inset-inline-start-*` is not a Tailwind class and silently emitted nothing,
+  which caused the 360px overflow recorded as INC-037.
+- The signed-in identity renders in two places (top-bar trigger, account-menu
+  label). The menu label carries `data-testid="account-menu-identity"` so tests
+  assert one deterministic element.

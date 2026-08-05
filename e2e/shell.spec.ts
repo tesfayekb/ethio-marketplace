@@ -82,7 +82,6 @@ test.describe("app shell", () => {
     await expect(shown).toHaveText(narrow ? en["language.amShort"] : en["language.amharic"]);
   });
 
-
   test("the vertical stack is ordered: top bar, location row, breadcrumbs, body", async ({
     page,
   }) => {
@@ -348,7 +347,6 @@ test.describe("corner-block grid", () => {
   });
 });
 
-
 test.describe("tablet chrome (md = 768px)", () => {
   // The new full-controls threshold. Run once; the viewport is overridden here
   // rather than adding a third project.
@@ -391,15 +389,15 @@ test.describe("tablet chrome (md = 768px)", () => {
     // paint the logo cell's background.
     const bg = (testId: string) =>
       page.evaluate(
-        (id) =>
-          getComputedStyle(document.querySelector(`[data-testid="${id}"]`)!).backgroundColor,
+        (id) => getComputedStyle(document.querySelector(`[data-testid="${id}"]`)!).backgroundColor,
         testId,
       );
     const cellBg = await bg("shell-logo-cell");
     expect(await bg("shell-topbar")).toBe(cellBg);
     const headerBg = await page.evaluate(
-      () => getComputedStyle(document.querySelector('[data-testid="shell-topbar"] header')!)
-        .backgroundColor,
+      () =>
+        getComputedStyle(document.querySelector('[data-testid="shell-topbar"] header')!)
+          .backgroundColor,
     );
     expect(headerBg).toBe(cellBg);
 
@@ -408,7 +406,6 @@ test.describe("tablet chrome (md = 768px)", () => {
     expect(loc.y).toBeGreaterThanOrEqual(bar.y + bar.height);
   });
 });
-
 
 test.describe("dark mode", () => {
   test("the toggle flips the mode and the surfaces actually change", async ({ page }) => {

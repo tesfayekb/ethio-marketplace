@@ -101,3 +101,12 @@ category children land.
 
 Band 3 is the cascading area picker. It is BUILT-VISIBLE and its filtering is
 STUBBED — see `docs/features/location-scoping.md`.
+
+## Rail collapse state (2026-08-05)
+
+The desktop rail's collapsed/expanded choice lives in ONE place: the `data-rail`
+attribute on `<html>`, persisted to `localStorage` and applied pre-paint. Every
+consumer reads it through `useRailCollapsed` (`src/providers/rail-state.ts`),
+which subscribes via `MutationObserver`, so the rail, its foot and the drawer can
+never disagree (INC-036). The rail-bottom sign-out is ADDITIONAL to the account
+menu's; both call the same sign-out path and both are absent when logged out.

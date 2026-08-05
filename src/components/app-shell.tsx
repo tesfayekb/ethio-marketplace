@@ -14,7 +14,6 @@ import type { AuthUser } from "@/features/auth/types";
 import { useI18n } from "@/i18n";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
-
 /** One node of the chosen geographic path (country -> region -> city -> …). */
 export type LocationNode = {
   id: string;
@@ -168,7 +167,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <AppHeader />
         </div>
-
 
         {/* Rail places itself into column 1 / row 2; the drawer is fixed. */}
         <AppRail />
