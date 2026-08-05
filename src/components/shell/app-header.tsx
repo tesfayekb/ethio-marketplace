@@ -193,7 +193,13 @@ export function AppHeader() {
           </label>
         </form>
 
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5 md:flex-none md:shrink-0 md:gap-2">
+        {/* INC-058: at md+ the capped search field cannot absorb the row's free
+            space, so the cluster used to stop short of the bar's right edge.
+            `md:ms-auto` pushes it flush right (Apex pattern). */}
+        <div
+          data-testid="topbar-controls"
+          className="flex min-w-0 flex-1 items-center justify-end gap-0.5 md:ms-auto md:flex-none md:shrink-0 md:gap-2"
+        >
           {/* Phones only: the icon that opens the full-width row below. */}
           <button
             type="button"
