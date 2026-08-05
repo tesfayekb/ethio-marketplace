@@ -280,9 +280,10 @@ test.describe("tablet chrome (md = 768px)", () => {
   // The new full-controls threshold. Run once; the viewport is overridden here
   // rather than adding a third project.
   test.use({ viewport: { width: 768, height: 1024 } });
-  test.skip((_args, testInfo) => testInfo.project.name !== "desktop-1280", "run once");
 
-  test("tablets get the persistent rail and the FULL controls", async ({ page }) => {
+  test("tablets get the persistent rail and the FULL controls", async ({ page }, testInfo) => {
+    // Run once: the viewport here is fixed, so the second project would repeat it.
+    test.skip(testInfo.project.name !== "desktop-1280", "run once");
     await gotoReady(page, "/");
 
     // Persistent sidebar, not a drawer: no hamburger at all.
@@ -300,7 +301,10 @@ test.describe("tablet chrome (md = 768px)", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("the top bar fills the grid row: same height as the logo cell", async ({ page }) => {
+  test("the top bar fills the grid row: same height as the logo cell", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "run once");
     await gotoReady(page, "/");
     const logo = (await page.getByTestId("shell-logo-cell").boundingBox())!;
     const bar = (await page.getByTestId("shell-topbar").boundingBox())!;
