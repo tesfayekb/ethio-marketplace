@@ -1055,3 +1055,4 @@ controls of fixed size are never crowded by flexible ones: the bar search field 
 per breakpoint. Reference data (category tree) is cached per page session and shows
 skeletons, never an empty rail, on first read.
 - 2026-08-05 session — Tier B layout pass: LocationSelector marketplace-gated (INC-052); marketplace rail confirmed categories-only (INC-053); collapse toggle confirmed md+ only (INC-054). No new colors, no auth/settings/feed behavior change, location filtering still stubbed.
+- 2026-08-05 session — Tier B fix pass: collapse-toggle mobile leak fixed at the class level (INC-055); panel-tabs horizontal overflow removed (INC-056); category caching confirmed (INC-057). No new colors, no auth/settings/feed behavior change.

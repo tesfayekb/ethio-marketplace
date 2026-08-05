@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
+import { cn } from "@/lib/utils";
 import { useShell } from "@/components/app-shell";
 import { useRailCollapsed } from "@/providers/rail-state";
 
@@ -111,7 +112,7 @@ export function AppHeader() {
         <button
           type="button"
           aria-label={t("shell.openMenu")}
-          className={`${ICON_BUTTON} md:hidden`}
+          className={cn(ICON_BUTTON, "md:hidden")}
           onClick={() => setNavOpen(true)}
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
@@ -137,7 +138,12 @@ export function AppHeader() {
           aria-pressed={collapsed === true}
           aria-label={collapsed ? t("shell.expandRail") : t("shell.collapseRail")}
           onClick={toggle}
-          className={`${ICON_BUTTON} hidden md:inline-flex`}
+          // INC-055: ICON_BUTTON sets `inline-flex`, so a raw
+          // `${ICON_BUTTON} hidden md:inline-flex` left TWO base display
+          // utilities on the element and the cascade — not the attribute order
+          // — decided the winner, leaking the toggle onto phones. cn()/twMerge
+          // drops the earlier display class, so `hidden` genuinely wins below md.
+          className={cn(ICON_BUTTON, "hidden md:inline-flex")}
         >
           {collapsed ? (
             <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
@@ -194,7 +200,7 @@ export function AppHeader() {
             aria-label={t("shell.searchLabel")}
             aria-expanded={searchOpen}
             data-testid="search-toggle"
-            className={`${ICON_BUTTON} md:hidden`}
+            className={cn(ICON_BUTTON, "md:hidden")}
             onClick={() => setSearchOpen((open) => !open)}
           >
             <Search className="h-4 w-4" aria-hidden="true" />

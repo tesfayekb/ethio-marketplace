@@ -132,3 +132,10 @@ during the first read so the rail does not jump when the categories arrive.
   (INC-053, verified, no config change).
 - The rail-collapse toggle is md+ only; below md the hamburger/drawer is the
   single sidebar affordance (INC-054/INC-046).
+
+## Panel tabs — fit, never scroll (INC-056)
+
+Band 2 does not scroll horizontally. Tabs share the row (`min-w-0 flex-1`) and their
+labels truncate, so the set fits at 360px and never paints a scrollbar. The Marketplace
+rail stays the live category tree only: no Settings entry in the rail or the mobile
+drawer (INC-053, asserted at both breakpoints).

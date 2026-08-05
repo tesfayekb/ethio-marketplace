@@ -584,10 +584,21 @@ test.describe("mobile chrome", () => {
   });
 
   test("the rail-collapse toggle does not exist on mobile", async ({ page }) => {
-    // INC-054 — below md the drawer/hamburger is the only sidebar affordance.
+    // INC-054/INC-055 — below md the drawer/hamburger is the only sidebar
+    // affordance; the toggle must be display:none, not merely off-screen.
     await gotoReady(page, "/");
     await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeVisible();
     await expect(page.getByTestId("rail-collapse-toggle")).toBeHidden();
+    await expect(page.getByTestId("rail-collapse-toggle")).toHaveCSS("display", "none");
+  });
+
+  test("no Settings item leaks into the mobile category drawer", async ({ page }) => {
+    // INC-053 — the Marketplace rail is the live category tree, drawer included.
+    await gotoReady(page, "/");
+    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+    await expect(drawer.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
 
   test("search opens a full-width row BELOW the bar", async ({ page }) => {
@@ -678,6 +689,25 @@ test.describe("panel-scoped chrome", () => {
 
     await page.getByTestId("panel-tab-marketplace").click();
     await expect(page.getByTestId("location-row")).toBeVisible();
+
+    // INC-056 — the tabs row must FIT at every width: no horizontal scrollbar
+    // under it, and no page-level horizontal overflow it could have caused.
+    const overflow = await page.getByTestId("panel-tabs").evaluate((el) => ({
+      row: el.scrollWidth - el.clientWidth,
+      doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    }));
+    expect(overflow.row).toBeLessThanOrEqual(1);
+    expect(overflow.doc).toBeLessThanOrEqual(1);
+
+    for (const width of [360, 768, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      const per = await page.getByTestId("panel-tabs").evaluate((el) => ({
+        row: el.scrollWidth - el.clientWidth,
+        doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      }));
+      expect(per.row, `panel tabs overflow at ${width}px`).toBeLessThanOrEqual(1);
+      expect(per.doc, `document overflow at ${width}px`).toBeLessThanOrEqual(1);
+    }
   });
 });
 

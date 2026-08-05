@@ -307,3 +307,10 @@ every rail state. Footer links keep a 44px touch box under a visually tight row 
 The location row shares the body's `activePanel === "marketplace"` gate, so the
 vertical stack collapses that band entirely on non-marketplace panels
 (INC-052). Location filtering itself remains stubbed.
+
+## Conflicting utility classes must go through cn() (INC-055)
+
+Shared class constants (e.g. `ICON_BUTTON`) already set a display utility. Appending
+another one as a raw template string leaves both in the class list and lets the CSS
+cascade decide — which is how the rail-collapse toggle leaked onto phones. Compose such
+class strings with `cn()`/twMerge so the last display utility deterministically wins.
