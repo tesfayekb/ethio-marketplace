@@ -141,15 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       navOpen,
       setNavOpen,
     };
-  }, [
-    user,
-    signOut,
-    activePanel,
-    setActivePanel,
-    selectedCategoryId,
-    locationPath,
-    navOpen,
-  ]);
+  }, [user, signOut, activePanel, setActivePanel, selectedCategoryId, locationPath, navOpen]);
 
   return (
     <ShellContext.Provider value={value}>
