@@ -184,6 +184,35 @@ test.describe("app shell", () => {
     await expect(page.getByText(en["panel.marketplace"], { exact: true }).first()).toBeVisible();
   });
 
+  test("the marketplace breadcrumb is Home alone — no redundant panel segment", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/");
+    const crumbs = page.getByTestId("breadcrumbs");
+    await expect(crumbs.getByTestId("breadcrumb-home")).toBeVisible();
+    // INC-043: "Home" IS the marketplace, so the Marketplace segment is gone.
+    await expect(crumbs.getByTestId("breadcrumb-panel")).toHaveCount(0);
+    await expect(crumbs.getByText(en["panel.marketplace"], { exact: true })).toHaveCount(0);
+  });
+
+  test("the feed body is centred with equal left and right gutters", async ({ page }) => {
+    await gotoReady(page, "/");
+    const main = page.locator("main#main");
+    const container = page.getByTestId("feed-container");
+    const mainBox = (await main.boundingBox())!;
+    const box = (await container.boundingBox())!;
+    const left = box.x - mainBox.x;
+    const right = mainBox.x + mainBox.width - (box.x + box.width);
+    expect(Math.abs(left - right), "feed container gutters are unequal").toBeLessThanOrEqual(1);
+
+    const empty = (await page.getByTestId("feed-empty").boundingBox())!;
+    const emptyLeft = empty.x - mainBox.x;
+    const emptyRight = mainBox.x + mainBox.width - (empty.x + empty.width);
+    expect(Math.abs(emptyLeft - emptyRight), "empty state is off-centre").toBeLessThanOrEqual(1);
+  });
+
+
+
   test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
     // Hold the listings read open so the busy state is observable.
     await page.route("**/rest/v1/listings*", async (route) => {
