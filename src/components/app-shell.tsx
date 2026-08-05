@@ -1,5 +1,5 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 
 import { Logo } from "@/components/brand/logo";
 import { AppFooter } from "@/components/shell/app-footer";
