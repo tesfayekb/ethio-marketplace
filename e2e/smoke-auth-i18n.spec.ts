@@ -60,11 +60,13 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
   await expectSignedIn(page, user.displayName);
 
   // 5. Switch to Amharic — assert against the locale source of truth, not a
-  //    literal. The switcher renders in BOTH header and footer, so scope to the
-  //    first (the header copy above sm, the footer copy at 360 where the header
-  //    one is display:none and therefore out of the a11y tree).
-  await page.getByRole("button", { name: am["language.amharic"] }).first().click();
+  //    literal. The shell has exactly ONE language affordance (the top-bar
+  //    switcher); its trigger carries the CURRENT language, and the target
+  //    language is chosen from its menu.
+  await page.getByTestId("language-switcher").click();
+  await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
+
 
   // Sign-out is still reachable, now under the Amharic account-menu label.
   await openAccountMenu(page, am["shell.accountMenu"]);
