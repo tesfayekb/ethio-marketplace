@@ -210,12 +210,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           <PanelTabs />
           {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is
               gated by the SAME condition as the body: no location band on My
-              Listings / Account / Admin (INC-052). */}
-          {activePanel === "marketplace" ? <LocationSelector /> : null}
+              Listings / Account / Admin (INC-052), and none on a route-owned
+              page such as /settings (INC-057). */}
+          {isFeedRoute && activePanel === "marketplace" ? <LocationSelector /> : null}
           {/* Band 4 + 5 */}
           <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
             <Breadcrumbs />
-            {activePanel === "marketplace" ? children : <PanelPlaceholder />}
+            {/* A route-owned page always renders itself; the placeholder is only
+                for panels whose pages do not exist yet (INC-057). */}
+            {!isFeedRoute || activePanel === "marketplace" ? children : <PanelPlaceholder />}
           </main>
         </div>
 
