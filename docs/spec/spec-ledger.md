@@ -1012,3 +1012,15 @@ admin panel is UI-gated only — NEW LAUNCH-GATE NOTE: admin route bodies and ad
 reads MUST carry server-side RLS/RBAC before they ship; the `isAdmin` panel flag is
 convenience, never authorization (law F3). Nothing admin-scoped is fetched today, so
 there is nothing to leak yet.
+
+Session 2026-08-04 (final layout refinement): the shell's presentation is frozen as the
+five-band vertical stack (top bar → panel tabs → location row → breadcrumbs → body)
+inside the unchanged corner-block grid, with band separation carried by hairlines alone
+so band spacing is symmetric by construction. Panel switching moved from a top-bar
+dropdown to a tab row that is ABSENT for logged-out, Marketplace-only visitors, plus the
+drawer list on mobile. The geographic axis of the marketplace is now VISIBLE but not yet
+ENFORCED: the location row cascades the real `public.locations` tree and writes the chosen
+node into `useFeed` alongside `categoryId`, while narrowing, IP resolution and the
+city→region→country→world widening ladder remain the pre-launch location-scoping feature
+(docs/features/location-scoping.md). Category filtering and breadcrumb navigation are
+live. No new colour entered the palette.
