@@ -6,10 +6,21 @@ import { AppFooter } from "@/components/shell/app-footer";
 import { AppHeader } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
+import { LocationSelector } from "@/components/shell/location-selector";
+import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { useAuth } from "@/features/auth/use-auth";
 import type { AuthUser } from "@/features/auth/types";
 import { useI18n } from "@/i18n";
+
+/** One node of the chosen geographic path (country -> region -> city -> …). */
+export type LocationNode = {
+  id: string;
+  name_en: string;
+  name_am: string | null;
+  level: string;
+  parent_id: string | null;
+};
 
 type ShellValue = {
   auth: PanelAuthContext;
@@ -19,6 +30,9 @@ type ShellValue = {
   setActivePanel: (panel: PanelId) => void;
   selectedCategoryId: string | null;
   setSelectedCategoryId: (id: string | null) => void;
+  /** The cascading area selection. SEAM: set here, not yet applied to the feed. */
+  locationPath: LocationNode[];
+  setLocationPath: (path: LocationNode[]) => void;
   navOpen: boolean;
   setNavOpen: (open: boolean) => void;
 };
@@ -43,7 +57,7 @@ function PanelPlaceholder() {
 }
 
 /**
- * THE CORNER-BLOCK GRID.
+ * THE CORNER-BLOCK GRID + THE VERTICAL STACK.
  *
  * From lg up the shell is a two-column CSS grid whose first column is the rail
  * width (16rem) and whose first row is the top-bar height (4rem):
@@ -51,7 +65,10 @@ function PanelPlaceholder() {
  *   ┌──────────┬─────────────────────────┐
  *   │ LOGO     │ top bar                 │  row 1 = 4rem
  *   ├──────────┼─────────────────────────┤
- *   │ rail     │ body                    │  row 2 = 1fr
+ *   │ rail     │ panel tabs              │  row 2 = 1fr
+ *   │          │ location row            │
+ *   │          │ breadcrumbs             │
+ *   │          │ body                    │
  *   ├──────────┴─────────────────────────┤
  *   │ footer (spans both columns)        │  row 3 = auto
  *   └────────────────────────────────────┘
@@ -61,18 +78,21 @@ function PanelPlaceholder() {
  * and the top bar are the SAME grid row (so identical height by construction).
  * Both column-1 cells carry `border-e`, which makes the sidebar's edge ONE
  * continuous vertical hairline running from the very top of the logo cell
- * straight down past the rail — the logo sits ABOVE the sidebar, not inside
- * the top bar.
+ * straight down past the rail.
  *
- * Below lg the grid collapses to a single column: the logo cell is dropped
- * (the mobile header row carries hamburger + logo + actions) and the rail
- * becomes a drawer.
+ * THE STACK (bands 2-4) lives in the content column, right of the rail, and
+ * stacks full-width below the bar on mobile. Their spacing is SYMMETRIC and
+ * tight: each band is a flat full-width strip separated only by its own
+ * hairline `border-b`, so the panel-tab row's gap above (to the bar) equals its
+ * gap below (to the location row) by construction — there is no gap to tune.
+ * Bands that render nothing (panel tabs when logged out) collapse completely.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const { user, signOut } = useAuth();
   const [activePanel, setActivePanel] = useState<PanelId>("marketplace");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [locationPath, setLocationPath] = useState<LocationNode[]>([]);
   const [navOpen, setNavOpen] = useState(false);
 
   const value = useMemo<ShellValue>(() => {
@@ -92,10 +112,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       setActivePanel,
       selectedCategoryId,
       setSelectedCategoryId,
+      locationPath,
+      setLocationPath,
       navOpen,
       setNavOpen,
     };
-  }, [user, signOut, activePanel, selectedCategoryId, navOpen]);
+  }, [user, signOut, activePanel, selectedCategoryId, locationPath, navOpen]);
 
   return (
     <ShellContext.Provider value={value}>
@@ -128,13 +150,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Rail places itself into column 1 / row 2; the drawer is fixed. */}
         <AppRail />
 
-        <main
-          id="main"
-          className="col-start-1 row-start-2 min-w-0 px-4 py-6 lg:col-start-2 lg:px-6"
+        <div
+          data-testid="shell-stack"
+          className="col-start-1 row-start-2 flex min-w-0 flex-col lg:col-start-2"
         >
-          <Breadcrumbs />
-          {activePanel === "marketplace" ? children : <PanelPlaceholder />}
-        </main>
+          {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
+          <PanelTabs />
+          {/* Band 3 */}
+          <LocationSelector />
+          {/* Band 4 + 5 */}
+          <main id="main" className="min-w-0 flex-1 px-3 py-4 lg:px-4">
+            <Breadcrumbs />
+            {activePanel === "marketplace" ? children : <PanelPlaceholder />}
+          </main>
+        </div>
 
         <div className="col-start-1 row-start-3 lg:col-span-2 lg:col-start-1">
           <AppFooter />

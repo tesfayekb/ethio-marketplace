@@ -9,8 +9,12 @@ import { useI18n } from "@/i18n";
 /** The Marketplace body: the ranked feed, narrowed by the rail's category. */
 export function Feed() {
   const { t } = useI18n();
-  const { selectedCategoryId } = useShell();
-  const { listings, isLoading, error, retry } = useFeed({ categoryId: selectedCategoryId });
+  const { selectedCategoryId, locationPath } = useShell();
+  // The two axes travel together: category (applied) x area (accepted, stubbed).
+  const { listings, isLoading, error, retry } = useFeed({
+    categoryId: selectedCategoryId,
+    locationNodeId: locationPath[locationPath.length - 1]?.id ?? null,
+  });
 
   return (
     <section>

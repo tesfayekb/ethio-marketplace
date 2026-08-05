@@ -71,3 +71,33 @@ Never on browse, feed, listing, or category surfaces. Never as a footer band.
 
 The current mark is a **working logo**. It has not been through professional
 trademark clearance. Clearance before commercial use is a launch-gate item.
+
+## Panel switching (revised 2026-08-04)
+
+The top-bar dropdown is retired. Panel switching now happens in two places:
+
+- **Panel tabs** (`src/components/shell/panel-tabs.tsx`) — band 2 of the shell
+  stack, a horizontal tab row of `panelsForUser(auth)`. It renders ONLY when the
+  user is signed in AND holds more than one panel; a logged-out visitor has
+  Marketplace alone, so the band is absent entirely rather than showing a
+  single, choiceless tab.
+- **Drawer list** (`src/components/shell/panel-switcher.tsx`) — the same set as
+  a vertical list inside the mobile drawer. This is now the file's only variant.
+
+Selecting a tab sets `activePanel` through `useShell`, which swaps both the rail
+and the body. Permission gating is unchanged and law F3 still governs: the
+server is the sole authorization authority.
+
+## Breadcrumbs
+
+Band 4 renders `Home › <panel> › <category path>` with every segment a control:
+clicking a category segment sets the feed's `categoryId` to that node (and the
+rail's selection with it), and Home clears the category. This is real
+navigation and works today. The path is one level deep while `useCategories`
+returns top-level categories only; it renders the full chain unchanged once
+category children land.
+
+## Location row
+
+Band 3 is the cascading area picker. It is BUILT-VISIBLE and its filtering is
+STUBBED — see `docs/features/location-scoping.md`.

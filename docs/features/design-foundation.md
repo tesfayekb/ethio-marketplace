@@ -203,3 +203,44 @@ first-paint JS and CSS and fails over a declared ceiling — currently 320 KiB J
 weight guard: that one catches a banned library, this one catches a hundred
 small additions doing the same damage. The ceiling is a ratchet — raising it is
 a deliberate commit that says why.
+
+## The vertical stack (final layout refinement, 2026-08-04)
+
+The shell renders five bands, top to bottom, inside the preserved corner-block
+grid (logo cell = rail width × top-bar height, one continuous sidebar hairline):
+
+```text
+1. TOP BAR       hamburger · wordmark · search · language · theme · account/sign-in
+2. PANEL TABS    signed-in AND >1 panel only — absent entirely when logged out
+3. LOCATION ROW  cascading country → region → city (→ sub-city when seeded)
+4. BREADCRUMBS   Home › panel › category path — every segment clickable
+5. BODY
+```
+
+Bands 2–4 live in the content column (right of the rail) on desktop and stack
+full-width on mobile. **Spacing rule:** every band is a flat full-width strip
+whose only separator is its own `border-b` hairline, so the gap above a band
+equals the gap below it _by construction_ — there is no vertical padding to
+drift out of symmetry, and a band that renders nothing collapses to zero.
+
+- **Top bar** is minimal and evenly distributed at 360px. Search is an icon that
+  opens a FULL-WIDTH row below the bar (room for long queries) rather than a
+  cramped in-bar field. The panel dropdown is gone.
+- **Panel tabs** (`shell/panel-tabs.tsx`) use the locked green for emphasis
+  (underline + text). Mobile users switch panels in the drawer via
+  `panel-switcher.tsx`'s list, which is now that file's only variant.
+- **Language** is ONE affordance at every width: an `EN ▾` trigger whose menu
+  lists every language including the current one, ticked.
+- **Logo**: the two-line lockup's sub-line gap is reduced to a hairline and the
+  FIT rule (MARKETPLACE exactly as wide as ethio.com) still holds. The mobile
+  bar uses the new `wordmark` variant (mark + "ethio.com"); `icon` stays
+  reserved for the collapsed rail.
+- **Spinner** is SELF-DRAWING: the diamond's outline sweeps and loops. Under
+  `prefers-reduced-motion` it holds fully drawn and static — never a spin.
+- **Footer**: three columns centred as a group and centred within themselves,
+  compact line spacing, © row centred. Links keep their 44px tap height.
+- **Rail rows** are visually tighter (row gap 0.5, tighter headings) while the
+  44px tap target is untouched.
+
+No new colour was introduced: cool slate + green, gold only on the logo dot and
+the Featured badge. No background image, no gradient.

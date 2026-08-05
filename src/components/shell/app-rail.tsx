@@ -74,7 +74,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent asChild>
-            <ul data-testid="rail-submenu" className="mt-1 flex flex-col gap-1">
+            <ul data-testid="rail-submenu" className="mt-0.5 flex flex-col gap-0.5">
               {node.children!.map((child) => (
                 <RailRow key={child.key} node={child} depth={depth + 1} />
               ))}
@@ -148,10 +148,10 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <nav aria-label={t("shell.categoriesLabel")}>
-      <h2 className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2 className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {t("shell.categoriesLabel")}
       </h2>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-0.5">
         <RailRow
           node={{
             key: "all",
@@ -198,15 +198,15 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   }
 
   return (
-    <nav aria-label={t("shell.mainNav")} className="flex flex-col gap-4">
+    <nav aria-label={t("shell.mainNav")} className="flex flex-col gap-3">
       {sections.map((section, index) => (
         <div key={section.key ?? `section-${index}`}>
           {section.key ? (
-            <h2 className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t(section.key)}
             </h2>
           ) : null}
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-0.5">
             {section.items.map((item) => (
               <RailRow key={item.id} node={toNode(item)} />
             ))}
