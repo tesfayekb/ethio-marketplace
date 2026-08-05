@@ -105,7 +105,7 @@ function LevelPicker({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          data-testid={`location-level-${labelKey}`}
+          data-testid={`location-level-${labelKey.split(".")[1]}`}
           aria-label={t(labelKey)}
           className={cn(
             "inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm",
