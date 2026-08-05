@@ -73,4 +73,3 @@ the category axis; the location row describes the geographic one.
 
 Nothing else needs to move when the feature lands: the UI, the state, and the
 query seam are already in the shape the backend work expects.
-
