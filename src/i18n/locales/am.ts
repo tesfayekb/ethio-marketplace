@@ -191,6 +191,9 @@ export const am: Messages = {
   "location.empty": "አካባቢዎች የሉም",
   "location.stubNote": "አካባቢ መምረጥ እስካሁን ማስታወቂያዎችን አያጣራም።",
   "shell.searchOpen": "ፍለጋ ክፈት",
+  "shell.collapseRail": "የጎን ዝርዝርን አጥብብ",
+  "shell.expandRail": "የጎን ዝርዝርን አስፋ",
+
   "footer.sectionCompany": "ድርጅት",
   "footer.sectionHelp": "እገዛ",
   "footer.sectionLegal": "ሕጋዊ",
