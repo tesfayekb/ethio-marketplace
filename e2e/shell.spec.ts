@@ -759,7 +759,7 @@ test.describe("panel follows the route", () => {
     await expect(page.getByTestId("location-row")).toBeVisible();
   });
 
-  // INC-058 — the right cluster sits flush to the bar's right edge at md+.
+  // INC-059 — the right cluster sits flush to the bar's right edge at md+.
   test("top-bar controls are right-aligned at desktop width", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await gotoReady(page, "/");

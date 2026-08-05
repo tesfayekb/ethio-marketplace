@@ -314,3 +314,9 @@ Shared class constants (e.g. `ICON_BUTTON`) already set a display utility. Appen
 another one as a raw template string leaves both in the class list and lets the CSS
 cascade decide — which is how the rail-collapse toggle leaked onto phones. Compose such
 class strings with `cn()`/twMerge so the last display utility deterministically wins.
+
+### Top bar alignment (INC-059)
+
+The right-hand cluster (language, theme, account/sign-in) carries `md:ms-auto` so it sits
+flush against the bar's right edge at md+; the search field stays left of centre with its
+per-breakpoint width cap.
