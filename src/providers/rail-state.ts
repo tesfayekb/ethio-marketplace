@@ -31,6 +31,16 @@ export function useRailCollapsed() {
 
   useEffect(() => {
     setCollapsed(readAttribute());
+    // The attribute is the single source of truth, so EVERY hook instance
+    // (the rail, its foot, the drawer) must follow it — otherwise the foot's
+    // toggle updates only its own copy and the rail never learns it collapsed
+    // (INC-032: tooltips never appeared because of exactly that split).
+    const observer = new MutationObserver(() => setCollapsed(readAttribute()));
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-rail"],
+    });
+    return () => observer.disconnect();
   }, []);
 
   const toggle = useCallback(() => {
