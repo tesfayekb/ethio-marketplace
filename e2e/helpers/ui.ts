@@ -85,7 +85,10 @@ export async function expectSignedIn(page: Page, displayName: string) {
   await expect(page.getByRole("menuitem", { name: en["auth.signOut"] })).toBeVisible({
     timeout: 15000,
   });
-  await expect(page.getByText(displayName, { exact: false })).toBeVisible();
+  // The identity now renders in TWO places (the trigger span and the menu
+  // label), so scope the assertion to the opened menu's label — one element,
+  // same intent: the signed-in user's identity is shown (INC-032).
+  await expect(page.getByTestId("account-menu-identity")).toContainText(displayName);
   // Leave the page as we found it so later interactions are not blocked.
   await page.keyboard.press("Escape");
   await expect(trigger).toBeVisible();

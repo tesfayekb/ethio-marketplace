@@ -36,3 +36,7 @@ e2e/.state/
 playwright-report/
 test-results/
 blob-report/
+
+# Local-only Playwright configs (never committed)
+pw.local.ts
+pw.*.local.ts

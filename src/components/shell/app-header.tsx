@@ -172,7 +172,9 @@ export function AppHeader() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user?.displayName ?? t("auth.signedInAs")}</DropdownMenuLabel>
+                <DropdownMenuLabel data-testid="account-menu-identity">
+                  {user?.displayName ?? t("auth.signedInAs")}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/settings">

@@ -131,7 +131,9 @@ test.describe("app shell", () => {
     if ((await page.getByTestId("app-rail").count()) === 0) return;
     if (!(await page.getByTestId("app-rail").isVisible())) return;
 
-    const rows = page.getByTestId("app-rail").getByRole("button");
+    // Only the NAVIGATION rows — the rail foot (collapse toggle, sign out)
+    // holds buttons too and must not be mistaken for a category (INC-032).
+    const rows = page.getByTestId("app-rail").locator("nav").getByRole("button");
     // Row 0 is "All categories"; row 1 is the first real category, if seeded.
     if ((await rows.count()) < 2) return;
     const name = (await rows.nth(1).textContent())!.trim();
