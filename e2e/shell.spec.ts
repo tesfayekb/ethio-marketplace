@@ -12,6 +12,11 @@ import { expectNoHorizontalOverflow, gotoReady, waitForHydration } from "./helpe
  * on a handler-less element. That is a readiness wait, not a retry.
  */
 
+/** Escape a database-sourced name for use inside a RegExp. */
+function escapeRe(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /** Law C2: every real touch target is at least 44px on its short axis. */
 async function expectTapTarget(page: Page, locator: ReturnType<Page["getByRole"]>, name: string) {
   const box = await locator.first().boundingBox();
@@ -101,28 +106,58 @@ test.describe("app shell", () => {
     expect(crumbs).toBeLessThan(heading);
   });
 
-  test("the location row cascades country into its child level", async ({ page }) => {
+  test("the location row cascades Country -> Region -> City, city selectable", async ({ page }) => {
     await gotoReady(page, "/");
-    await expect(page.getByTestId("location-row")).toBeVisible();
-    await expect(page.getByTestId("location-current")).toHaveText(en["location.everywhere"]);
+    const row = page.getByTestId("location-row");
+    await expect(row).toBeVisible();
 
-    const country = page.getByTestId("location-level-country");
-    await country.click();
-    const options = page.getByRole("menuitem");
-    await expect(options.first()).toHaveText(en["location.anyArea"]);
-    const chosen = (await options.nth(1).textContent())!.trim();
-    await options.nth(1).click();
+    // FIX 3: NOTHING precedes Country — the cascade starts at level 1.
+    const levels = page.locator("[data-testid^='location-level-']");
+    await expect(levels).toHaveCount(1);
+    await expect(levels.first()).toHaveAttribute("data-testid", "location-level-country");
 
-    // The chosen area is reflected, and a deeper level has appeared.
-    await expect(page.getByTestId("location-current")).toHaveText(chosen);
-    await expect(page.locator("[data-testid^='location-level-']")).toHaveCount(2);
+    const pick = async (testId: string) => {
+      await page.getByTestId(testId).click();
+      const options = page.getByRole("menuitem");
+      await expect(options.first()).toHaveText(en["location.anyArea"]);
+      const chosen = (await options.nth(1).textContent())!.trim();
+      await options.nth(1).click();
+      await expect(page.getByTestId(testId)).toHaveText(new RegExp(escapeRe(chosen)));
+      return chosen;
+    };
 
-    // FIX 4: the resolved area appears EXACTLY once in the row — the picker
-    // that holds it reads as its level name, never as a second copy of it.
-    const occurrences = await page
-      .getByTestId("location-row")
-      .evaluate((el, text) => (el.textContent ?? "").split(text).length - 1, chosen);
-    expect(occurrences).toBe(1);
+    // Country -> the Region level appears.
+    const country = await pick("location-level-country");
+    await expect(page.getByTestId("location-level-region")).toBeVisible();
+
+    // Region -> the City level appears.
+    const region = await pick("location-level-region");
+    await expect(page.getByTestId("location-level-city")).toBeVisible();
+
+    // City IS selectable, and its selection sticks on its own picker.
+    const city = await pick("location-level-city");
+
+    // No duplicate: each chosen name appears exactly ONCE on its own picker,
+    // and no area label is echoed outside the pickers. (A name may legitimately
+    // occur at two LEVELS — Addis Ababa is both a region and a city — so the
+    // claim is per-picker, not per-row.)
+    for (const [testId, name] of [
+      ["location-level-country", country],
+      ["location-level-region", region],
+      ["location-level-city", city],
+    ] as const) {
+      const occurrences = await page
+        .getByTestId(testId)
+        .evaluate((el, text) => (el.textContent ?? "").split(text).length - 1, name);
+      expect(occurrences, `${name} rendered more than once on ${testId}`).toBe(1);
+    }
+    const outside = await row.evaluate((el) => {
+      const clone = el.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll("[data-testid^='location-level-']").forEach((n) => n.remove());
+      return (clone.textContent ?? "").trim();
+    });
+    // Only the screen-reader-only row label may live outside the pickers.
+    expect(outside, "an area label is echoed outside the pickers").toBe(en["location.label"]);
   });
 
   test("breadcrumb segments navigate the category path", async ({ page }) => {
@@ -299,6 +334,22 @@ test.describe("corner-block grid", () => {
     expect(starts.size).toBe(1);
   });
 
+  test("category rows carry DISTINCT icons, not one repeated glyph", async ({ page }) => {
+    await gotoReady(page, "/");
+    const rows = page.getByTestId("app-rail").locator("nav li > button");
+    const count = await rows.count();
+    // Row 0 is "All categories"; real categories follow. Needs at least two
+    // seeded categories for the claim to mean anything.
+    if (count < 3) return;
+
+    const paths = new Set<string>();
+    for (let i = 1; i < count; i += 1) {
+      const d = await rows.nth(i).locator("svg").first().innerHTML();
+      paths.add(d);
+    }
+    expect(paths.size, "every category icon is identical").toBeGreaterThan(1);
+  });
+
   test("the rail collapses to icons, shows a tooltip, and remembers the choice", async ({
     page,
   }) => {
@@ -306,6 +357,16 @@ test.describe("corner-block grid", () => {
     const rail = page.getByTestId("app-rail");
     const toggle = page.getByTestId("rail-collapse-toggle");
     const html = page.locator("html");
+
+    // FIX 2: the toggle lives in the TOP BAR, before the search field — and
+    // nowhere inside the rail any more.
+    await expect(
+      page.getByTestId("shell-topbar").getByTestId("rail-collapse-toggle"),
+    ).toBeVisible();
+    await expect(rail.getByTestId("rail-collapse-toggle")).toHaveCount(0);
+    const toggleBox = (await toggle.boundingBox())!;
+    const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
+    expect(toggleBox.x).toBeLessThan(searchBox.x);
 
     // Default is EXPANDED: labels visible, full rail width.
     await expect(html).toHaveAttribute("data-rail", "expanded");

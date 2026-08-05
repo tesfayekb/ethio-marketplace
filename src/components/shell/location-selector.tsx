@@ -85,24 +85,19 @@ function useLocationTree() {
 function LevelPicker({
   labelKey,
   options,
-  selectedId,
+  selected,
   onSelect,
   language,
-  suppressName = false,
 }: {
   labelKey: MessageKey;
   options: LocationRow[];
-  selectedId: string | null;
+  selected: LocationRow | null;
   onSelect: (row: LocationRow | null) => void;
   language: string;
-  /** True for the level whose selection IS the resolved area shown in the row:
-   *  the picker then reads as its level name so the area appears exactly once. */
-  suppressName?: boolean;
 }) {
   const { t } = useI18n();
   const name = (row: LocationRow) =>
     language === "am" ? (row.name_am ?? row.name_en) : row.name_en;
-  const selected = options.find((o) => o.id === selectedId) ?? null;
 
   return (
     <DropdownMenu>
@@ -113,15 +108,15 @@ function LevelPicker({
           aria-label={t(labelKey)}
           className={cn(
             "inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             selected
               ? "font-medium text-foreground"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          <span className="max-w-[9rem] truncate">
-            {selected && !suppressName ? name(selected) : t(labelKey)}
-          </span>
+          {/* The picker shows its OWN selection — never a second copy of an
+              area label rendered elsewhere (INC-041). */}
+          <span className="max-w-[9rem] truncate">{selected ? name(selected) : t(labelKey)}</span>
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
@@ -142,33 +137,48 @@ export function LocationSelector() {
   const { locationPath, setLocationPath } = useShell();
   const { rows, isLoading } = useLocationTree();
 
-  // The cascade: level N's options are the children of level N-1's selection.
-  const levels = LEVELS.map((definition, depth) => {
-    const parent = depth === 0 ? null : (locationPath[depth - 1] ?? null);
-    const options = rows.filter(
-      (row) => row.level === definition.level && (depth === 0 || row.parent_id === parent?.id),
-    );
-    return { ...definition, depth, options, enabled: depth === 0 || parent !== null };
-  }).filter((level) => level.enabled && level.options.length > 0);
+  /**
+   * THE CASCADE — Country -> Region -> City -> Sub-city, nothing before it.
+   *
+   * Level N's options are the children of level N-1's SELECTION, so each level
+   * renders only once its parent is chosen. A level with no rows (sub-city
+   * today) is omitted entirely rather than rendered empty. The DEEPEST selected
+   * level IS the chosen area — there is no separate area label to duplicate it.
+   */
+  const levels: {
+    level: string;
+    labelKey: MessageKey;
+    depth: number;
+    options: LocationRow[];
+    selected: LocationRow | null;
+  }[] = [];
 
-  const current = locationPath[locationPath.length - 1] ?? null;
-  const currentLabel = current
-    ? language === "am"
-      ? (current.name_am ?? current.name_en)
-      : current.name_en
-    : t("location.everywhere");
+  for (let depth = 0; depth < LEVELS.length; depth += 1) {
+    const definition = LEVELS[depth]!;
+    const parent = depth === 0 ? null : (locationPath[depth - 1] ?? null);
+    // Beyond the first level, an unselected parent ends the cascade.
+    if (depth > 0 && parent === null) break;
+    const options = rows.filter(
+      (row) => row.level === definition.level && (depth === 0 || row.parent_id === parent!.id),
+    );
+    if (options.length === 0) break;
+    levels.push({
+      level: definition.level,
+      labelKey: definition.labelKey,
+      depth,
+      options,
+      selected: locationPath[depth] ?? null,
+    });
+  }
 
   return (
     <div
       data-testid="location-row"
       className="flex w-full flex-wrap items-center gap-x-1 gap-y-0 border-b border-border bg-card px-3 py-1 md:px-4"
     >
-      <span className="inline-flex min-h-11 shrink-0 items-center gap-2 pe-1 text-sm text-muted-foreground">
+      <span className="inline-flex min-h-11 shrink-0 items-center pe-1 text-muted-foreground">
         <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="sr-only">{t("location.label")}</span>
-        <span data-testid="location-current" className="truncate font-medium text-foreground">
-          {currentLabel}
-        </span>
       </span>
 
       {isLoading ? (
@@ -185,12 +195,13 @@ export function LocationSelector() {
             key={level.level}
             labelKey={level.labelKey}
             options={level.options}
-            selectedId={locationPath[level.depth]?.id ?? null}
+            selected={level.selected}
             language={language}
-            suppressName={current !== null && locationPath[level.depth]?.id === current.id}
             onSelect={(row) =>
               // Choosing at depth N replaces that level and drops everything
               // below it — the cascade can never hold an orphaned child.
+              // SEAM: this writes the scope only; feed-narrowing is the
+              // pre-launch location-scoping feature.
               setLocationPath(
                 row
                   ? [...locationPath.slice(0, level.depth), row]

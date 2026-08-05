@@ -1,5 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { LogOut, Menu, Search, Settings as SettingsIcon, User, X } from "lucide-react";
+import {
+  LogOut,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+  Settings as SettingsIcon,
+  User,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Logo } from "@/components/brand/logo";
@@ -16,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
 import { useShell } from "@/components/app-shell";
+import { useRailCollapsed } from "@/providers/rail-state";
 
 const ICON_BUTTON =
   "inline-flex min-h-11 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -92,6 +102,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
 export function AppHeader() {
   const { t } = useI18n();
   const { auth, user, signOut, setNavOpen } = useShell();
+  const { collapsed, toggle } = useRailCollapsed();
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -114,6 +125,25 @@ export function AppHeader() {
         >
           <Logo variant="wordmark" />
         </Link>
+
+        {/* md+ ONLY: the rail collapse control, top-left of the bar and BEFORE
+            the search field (INC-040 — it used to sit at the rail's bottom,
+            out of reach on long pages). Below md the drawer/hamburger owns
+            this job, so the toggle does not exist there. */}
+        <button
+          type="button"
+          data-testid="rail-collapse-toggle"
+          aria-pressed={collapsed === true}
+          aria-label={collapsed ? t("shell.expandRail") : t("shell.collapseRail")}
+          onClick={toggle}
+          className={`${ICON_BUTTON} hidden md:inline-flex`}
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+          )}
+        </button>
 
         {/* md+ : the real search field, in the bar. */}
         <form

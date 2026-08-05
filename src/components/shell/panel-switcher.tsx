@@ -29,7 +29,7 @@ export function PanelSwitcher({ variant = "list" }: { variant?: "list" }) {
               className={
                 active
                   ? "flex min-h-11 w-full items-center gap-2 rounded-md bg-sidebar-accent px-3 text-sm font-medium text-sidebar-accent-foreground"
-                  : "flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm text-foreground hover:bg-muted"
+                  : "flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-sm text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
               }
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />

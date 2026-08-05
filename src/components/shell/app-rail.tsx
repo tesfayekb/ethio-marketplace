@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, LogOut, PanelLeftClose, PanelLeftOpen, Tag } from "lucide-react";
+import { ChevronRight, LogOut, Tag } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/app-shell";
@@ -8,7 +8,7 @@ import { PanelSwitcher } from "@/components/shell/panel-switcher";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PANELS, visibleItems } from "@/config/panels";
+import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
@@ -33,7 +33,9 @@ const HIDE_WHEN_COLLAPSED = "md:[html[data-rail=collapsed]_&]:hidden";
 const ITEM_BASE =
   "flex min-h-11 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
   "ps-[var(--rail-pad)] md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:ps-0 md:[html[data-rail=collapsed]_&]:pe-0";
-const ITEM_IDLE = "text-foreground hover:bg-muted";
+/** Hover stays on the SIDEBAR token family — bg-muted is a content-surface
+ *  token and read as a foreign grey against bg-sidebar (INC-042). */
+const ITEM_IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
 /** Selection is GREEN, never a cream tint — the one emphasis surface. */
 const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foreground";
 
@@ -189,10 +191,10 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const nodes: RailNode[] = categories.map((category) => ({
     key: category.id,
     label: language === "am" ? (category.nameAm ?? category.nameEn) : category.nameEn,
-    // Categories are DATA, not config: they carry no per-row icon of their own,
-    // so they share the tag glyph. What matters for the collapsed rail is that
-    // every row has a glyph on the same gutter — see docs/features/panels.md.
-    icon: Tag,
+    // Categories are DATA, not config, so their glyph comes from the slug map
+    // in src/config/panels.ts — DISTINCT per category, so the collapsed rail is
+    // readable without hovering (INC-039). Unmapped slugs fall back to Tag.
+    icon: categoryIcon(category.slug),
     active: category.id === selectedCategoryId,
     onSelect: () => {
       setSelectedCategoryId(category.id);
@@ -302,51 +304,36 @@ function RailBody({ onNavigate }: { onNavigate: () => void }) {
  *
  * Sign out here is ADDITIONAL — the account-menu item in the top bar still
  * works and stays the canonical path. Both call the same signOut().
- * The collapse toggle is md+ only: the mobile drawer has no collapsed form.
+ * The collapse toggle USED to live here; it moved to the top bar (INC-040) so
+ * it is reachable without scrolling a long rail.
  */
 function RailFoot({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useI18n();
   const { auth, signOut } = useShell();
-  const { collapsed, toggle } = useRailCollapsed();
   const pad = { "--rail-pad": "0.75rem" } as React.CSSProperties;
+
+  // Nothing but sign-out lives here now, so a logged-out rail has NO foot at
+  // all — no stray hairline under the categories.
+  if (!auth.isAuthenticated) return null;
 
   return (
     <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-2">
-      {auth.isAuthenticated ? (
-        <WithTooltip label={t("auth.signOut")}>
-          <button
-            type="button"
-            data-testid="rail-sign-out"
-            aria-label={t("auth.signOut")}
-            style={pad}
-            onClick={() => {
-              onNavigate();
-              void signOut();
-            }}
-            className={cn(ITEM_BASE, ITEM_IDLE)}
-          >
-            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("auth.signOut")}</span>
-          </button>
-        </WithTooltip>
-      ) : null}
-
-      <button
-        type="button"
-        data-testid="rail-collapse-toggle"
-        aria-pressed={collapsed === true}
-        aria-label={collapsed ? t("shell.expandRail") : t("shell.collapseRail")}
-        style={pad}
-        onClick={toggle}
-        className={cn(ITEM_BASE, ITEM_IDLE, "hidden md:flex")}
-      >
-        {collapsed ? (
-          <PanelLeftOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
-        ) : (
-          <PanelLeftClose className="h-4 w-4 shrink-0" aria-hidden="true" />
-        )}
-        <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("shell.collapseRail")}</span>
-      </button>
+      <WithTooltip label={t("auth.signOut")}>
+        <button
+          type="button"
+          data-testid="rail-sign-out"
+          aria-label={t("auth.signOut")}
+          style={pad}
+          onClick={() => {
+            onNavigate();
+            void signOut();
+          }}
+          className={cn(ITEM_BASE, ITEM_IDLE)}
+        >
+          <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("auth.signOut")}</span>
+        </button>
+      </WithTooltip>
     </div>
   );
 }
