@@ -1,20 +1,20 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `a1d13c5c104d3947f240e5faac8cde16a9d437d7` (short `a1d13c5`)
-- Conclusion: **SUCCESS**
-- Completed (UTC): 2026-08-05T03:57:04Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/30973583496
+- Commit: `2ad6f6d418d29c83c15b4c03f4bcefa671a053e9` (short `2ad6f6d`)
+- Conclusion: **FAILURE**
+- Completed (UTC): 2026-08-05T04:11:37Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/30974255732
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Listing-write seam guard (with self-test) | success |
 | Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| E2E (Playwright, ethio-staging) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Build, typecheck, lint | success |
 | Migration linter (with self-test) | success |
+| Build, typecheck, lint | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
 | Gitleaks secrets scan | success |
+| Listing-write seam guard (with self-test) | success |
+| First-paint bundle budget (gzipped ceiling) | success |
+| E2E (Playwright, ethio-staging) | failure |
 | Hardcoded string scan (enforcing) | success |
