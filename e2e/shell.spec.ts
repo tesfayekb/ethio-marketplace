@@ -137,14 +137,26 @@ test.describe("app shell", () => {
     // City IS selectable, and its selection sticks on its own picker.
     const city = await pick("location-level-city");
 
-    // No duplicate: each chosen name appears exactly once in the row.
-    for (const name of [country, region, city]) {
-      const occurrences = await row.evaluate(
-        (el, text) => (el.textContent ?? "").split(text).length - 1,
-        name,
-      );
-      expect(occurrences, `${name} rendered more than once`).toBe(1);
+    // No duplicate: each chosen name appears exactly ONCE on its own picker,
+    // and no area label is echoed outside the pickers. (A name may legitimately
+    // occur at two LEVELS — Addis Ababa is both a region and a city — so the
+    // claim is per-picker, not per-row.)
+    for (const [testId, name] of [
+      ["location-level-country", country],
+      ["location-level-region", region],
+      ["location-level-city", city],
+    ] as const) {
+      const occurrences = await page
+        .getByTestId(testId)
+        .evaluate((el, text) => (el.textContent ?? "").split(text).length - 1, name);
+      expect(occurrences, `${name} rendered more than once on ${testId}`).toBe(1);
     }
+    const outside = await row.evaluate((el) => {
+      const clone = el.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll("[data-testid^='location-level-']").forEach((n) => n.remove());
+      return (clone.textContent ?? "").trim();
+    });
+    expect(outside, "an area label is echoed outside the pickers").toBe("");
   });
 
   test("breadcrumb segments navigate the category path", async ({ page }) => {
