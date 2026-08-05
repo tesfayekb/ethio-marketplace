@@ -26,7 +26,17 @@ import { useI18n } from "@/i18n";
  */
 export function Breadcrumbs() {
   const { t, language } = useI18n();
-  const { activePanel, selectedCategoryId, setSelectedCategoryId } = useShell();
+  const { activePanel, setActivePanel, selectedCategoryId, setSelectedCategoryId } = useShell();
+
+  /**
+   * Home IS the marketplace feed — there is no separate home page. From any
+   * panel the root crumb returns to the unfiltered Marketplace feed: it sets
+   * the active panel back to marketplace AND clears the category filter.
+   */
+  const goHome = () => {
+    setActivePanel("marketplace");
+    setSelectedCategoryId(null);
+  };
   const { categories } = useCategories();
 
   const panelLabel = t(PANELS[activePanel].labelKey);
@@ -38,11 +48,7 @@ export function Breadcrumbs() {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <button
-              type="button"
-              data-testid="breadcrumb-home"
-              onClick={() => setSelectedCategoryId(null)}
-            >
+            <button type="button" data-testid="breadcrumb-home" onClick={goHome}>
               {t("nav.home")}
             </button>
           </BreadcrumbLink>

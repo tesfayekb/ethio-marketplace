@@ -59,7 +59,7 @@ function PanelPlaceholder() {
 /**
  * THE CORNER-BLOCK GRID + THE VERTICAL STACK.
  *
- * From lg up the shell is a two-column CSS grid whose first column is the rail
+ * From md up the shell is a two-column CSS grid whose first column is the rail
  * width (16rem) and whose first row is the top-bar height (4rem):
  *
  *   ┌──────────┬─────────────────────────┐
@@ -121,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellContext.Provider value={value}>
-      <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_1fr_auto] bg-background lg:grid-cols-[16rem_minmax(0,1fr)] lg:grid-rows-[4rem_1fr_auto]">
+      <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_1fr_auto] bg-background md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[4rem_1fr_auto]">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
@@ -132,7 +132,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Corner block: rail width × top-bar height, above the sidebar. */}
         <div
           data-testid="shell-logo-cell"
-          className="hidden border-b border-e border-border bg-card px-4 lg:col-start-1 lg:row-start-1 lg:flex lg:items-center"
+          className="hidden border-b border-e border-border bg-card px-4 md:col-start-1 md:row-start-1 md:flex md:items-center"
         >
           <Link
             to="/"
@@ -143,7 +143,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
         </div>
 
-        <div data-testid="shell-topbar" className="col-start-1 row-start-1 lg:col-start-2">
+        <div data-testid="shell-topbar" className="col-start-1 row-start-1 md:col-start-2">
           <AppHeader />
         </div>
 
@@ -152,20 +152,20 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div
           data-testid="shell-stack"
-          className="col-start-1 row-start-2 flex min-w-0 flex-col lg:col-start-2"
+          className="col-start-1 row-start-2 flex min-w-0 flex-col md:col-start-2"
         >
           {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
           <PanelTabs />
           {/* Band 3 */}
           <LocationSelector />
           {/* Band 4 + 5 */}
-          <main id="main" className="min-w-0 flex-1 px-3 py-4 lg:px-4">
+          <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
             <Breadcrumbs />
             {activePanel === "marketplace" ? children : <PanelPlaceholder />}
           </main>
         </div>
 
-        <div className="col-start-1 row-start-3 lg:col-span-2 lg:col-start-1">
+        <div className="col-start-1 row-start-3 md:col-span-2 md:col-start-1">
           <AppFooter />
         </div>
       </div>

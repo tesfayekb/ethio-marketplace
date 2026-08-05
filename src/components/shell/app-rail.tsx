@@ -227,9 +227,9 @@ function RailBody({ onNavigate }: { onNavigate: () => void }) {
 }
 
 /**
- * The rail. From lg up it is grid column 1 / row 2 — directly beneath the logo
+ * The rail. From md up it is grid column 1 / row 2 — directly beneath the logo
  * cell, sharing its `border-e` so the sidebar edge is one continuous hairline.
- * Below lg it is a drawer with the logo CENTRED at the top of the panel.
+ * Below md it is a drawer with the logo CENTRED at the top of the panel.
  */
 export function AppRail() {
   const { t } = useI18n();
@@ -239,7 +239,7 @@ export function AppRail() {
     <>
       <aside
         data-testid="app-rail"
-        className="hidden border-e border-border bg-sidebar p-2 lg:col-start-1 lg:row-start-2 lg:block"
+        className="hidden border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:block"
       >
         <RailBody onNavigate={() => undefined} />
       </aside>

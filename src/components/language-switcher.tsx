@@ -21,10 +21,11 @@ const SHORT_KEYS = {
 } as const;
 
 /**
- * ONE language affordance at EVERY width: a compact "EN ▾" control whose menu
- * lists all languages INCLUDING the current one (ticked), so users recognise
- * the same control on a phone and on a desktop and can always see which
- * language they are in. There is deliberately no second, wider variant.
+ * ONE language affordance at EVERY width, in two presentations split at `md`:
+ * phones get the compact code ("EN ▾") because the bar is minimized there;
+ * tablets and up get the language NAME ("English ▾"), so nothing has to be
+ * decoded. Either way the menu lists all languages INCLUDING the current one
+ * (ticked). There is deliberately no second control.
  */
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { language, setLanguage, t } = useI18n();
@@ -43,7 +44,12 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             className,
           )}
         >
-          <span lang={language}>{t(SHORT_KEYS[language])}</span>
+          <span lang={language} className="md:hidden">
+            {t(SHORT_KEYS[language])}
+          </span>
+          <span lang={language} className="hidden md:inline">
+            {t(LABEL_KEYS[language])}
+          </span>
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>

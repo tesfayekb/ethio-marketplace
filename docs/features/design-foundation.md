@@ -85,7 +85,7 @@ value; components use semantic tokens only, never raw colours.
 +--------------------------------------------------+
 ```
 
-Same skeleton at every breakpoint. Below `lg` the rail is hidden and opens as a
+Same skeleton at every breakpoint. Below `md` the rail is hidden and opens as a
 drawer (`ui/sheet`, the same primitive `ui/sidebar` uses for its own mobile
 mode) from the header hamburger. Mobile-first at 360px; all controls ≥ 44px;
 logical properties only (`ps-*`, `pe-*`, `me-*`, `text-start`).
@@ -99,7 +99,7 @@ only, and it appears in exactly three places — logo, spinner, feed empty state
 
 Mobile (360 primary, 768, 1280): no horizontal overflow on `/` or the feed at any
 of the three widths; every visible button and link ≥ 44px; no text under 11px; the
-rail is a drawer below `lg` and persistent above; the feed grid reflows 1→2→3→4
+rail is a drawer below `md` and persistent above; the feed grid reflows 1→2→3→4
 without clipping. All five are `shell.spec` assertions, not claims.
 
 Performance: fonts are `display=swap`, Noto Sans Ethiopic subset to `ethiopic` and
@@ -140,7 +140,7 @@ no warm surfaces left in `src/styles.css`.
 
 ### The corner-block grid
 
-Desktop (`lg` and up) is one CSS grid, not nested flex rows:
+Tablet and desktop (`md` and up) are one CSS grid, not nested flex rows:
 
 ```text
 +----------------+-------------------------------------+
@@ -155,8 +155,14 @@ Desktop (`lg` and up) is one CSS grid, not nested flex rows:
 The logo cell and the rail share column 1, so the sidebar edge is a single
 continuous hairline and the logo block sits exactly above the rail — asserted
 numerically in `shell.spec` (same x, same width, bar starts where the cell
-ends). Below `lg` the grid collapses to one column, the logo moves into the top
+ends). Below `md` the grid collapses to one column, the logo moves into the top
 bar, and the rail becomes the drawer.
+
+**Top-bar height rule:** the bar carries no height of its own from `md` up
+(`md:h-full`); it FILLS grid row 1 (4rem), so its top and bottom edges are the
+logo cell's by construction — one clean aligned top band, asserted numerically
+in `shell.spec`. On phones there is no grid row to fill and the bar is its own
+compact 3.5rem.
 
 ### Logo lockup FIT rule
 
@@ -223,22 +229,47 @@ whose only separator is its own `border-b` hairline, so the gap above a band
 equals the gap below it _by construction_ — there is no vertical padding to
 drift out of symmetry, and a band that renders nothing collapses to zero.
 
-- **Top bar** is minimal and evenly distributed at 360px. Search is an icon that
-  opens a FULL-WIDTH row below the bar (room for long queries) rather than a
-  cramped in-bar field. The panel dropdown is gone.
+### The `md` rule (768px) — phones minimize, nothing else does
+
+ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
+`md` (768px). Tablets are NOT phones.
+
+- **`md` and up** (tablets ~768px, desktops): persistent sidebar + FULL top-bar
+  controls — a real search FIELD with its placeholder text, the language control
+  reading the language NAME ("English"), and a labelled account control /
+  "Sign in" button. No bare icon a non-technical user has to decode. Verified to
+  fit with zero horizontal overflow at exactly 768px.
+- **Below `md`** (phones only): the rail becomes the drawer, the bar minimizes to
+  icons, and search opens the full-width row below the bar. This is the ONLY
+  size that minimizes.
+
+- **Top bar** is minimal and evenly distributed at 360px, full at `md`+. On
+  phones search is an icon that opens a FULL-WIDTH row below the bar (room for
+  long queries) rather than a cramped in-bar field. The panel dropdown is gone.
 - **Panel tabs** (`shell/panel-tabs.tsx`) use the locked green for emphasis
   (underline + text). Mobile users switch panels in the drawer via
   `panel-switcher.tsx`'s list, which is now that file's only variant.
-- **Language** is ONE affordance at every width: an `EN ▾` trigger whose menu
-  lists every language including the current one, ticked.
+- **Language** is ONE affordance at every width, in two presentations: `EN ▾` on
+  phones, `English ▾` (the language NAME) from `md` up. Its menu lists every
+  language including the current one, ticked.
+- **Location row** shows the resolved area EXACTLY ONCE. The area label carries
+  the current selection; the cascade dropdown that holds that same node reads as
+  its LEVEL name ("City") instead of repeating the city, so no name appears
+  twice in the row. Filtering itself stays stubbed (location-scoping.md).
+- **Breadcrumb root** is "Home", and Home IS the marketplace feed — there is no
+  separate home page. Clicking it from any panel returns to the unfiltered
+  Marketplace feed: it sets the active panel back to `marketplace` AND clears the
+  category filter. The panel TAB stays labelled "Marketplace".
 - **Logo**: the two-line lockup's sub-line gap is reduced to a hairline and the
   FIT rule (MARKETPLACE exactly as wide as ethio.com) still holds. The mobile
   bar uses the new `wordmark` variant (mark + "ethio.com"); `icon` stays
   reserved for the collapsed rail.
 - **Spinner** is SELF-DRAWING: the diamond's outline sweeps and loops. Under
   `prefers-reduced-motion` it holds fully drawn and static — never a spin.
-- **Footer**: three columns centred as a group and centred within themselves,
-  compact line spacing, © row centred. Links keep their 44px tap height.
+- **Footer**: an explicit `grid-cols-3` — exactly equal thirds, not `flex-1`
+  guesses — centred as a group and centred within each column, with the row
+  stack pulled together (`-my-1` per row, roughly half the previous height)
+  while every link's own box stays a 44px tap target. © row centred below.
 - **Rail rows** are visually tighter (row gap 0.5, tighter headings) while the
   44px tap target is untouched.
 

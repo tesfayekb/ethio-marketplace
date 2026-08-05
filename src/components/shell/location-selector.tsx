@@ -88,12 +88,16 @@ function LevelPicker({
   selectedId,
   onSelect,
   language,
+  suppressName = false,
 }: {
   labelKey: MessageKey;
   options: LocationRow[];
   selectedId: string | null;
   onSelect: (row: LocationRow | null) => void;
   language: string;
+  /** True for the level whose selection IS the resolved area shown in the row:
+   *  the picker then reads as its level name so the area appears exactly once. */
+  suppressName?: boolean;
 }) {
   const { t } = useI18n();
   const name = (row: LocationRow) =>
@@ -115,7 +119,9 @@ function LevelPicker({
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          <span className="max-w-[9rem] truncate">{selected ? name(selected) : t(labelKey)}</span>
+          <span className="max-w-[9rem] truncate">
+            {selected && !suppressName ? name(selected) : t(labelKey)}
+          </span>
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
@@ -155,7 +161,7 @@ export function LocationSelector() {
   return (
     <div
       data-testid="location-row"
-      className="flex w-full flex-wrap items-center gap-x-1 gap-y-0 border-b border-border bg-card px-3 py-1 lg:px-4"
+      className="flex w-full flex-wrap items-center gap-x-1 gap-y-0 border-b border-border bg-card px-3 py-1 md:px-4"
     >
       <span className="inline-flex min-h-11 shrink-0 items-center gap-2 pe-1 text-sm text-muted-foreground">
         <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -181,6 +187,7 @@ export function LocationSelector() {
             options={level.options}
             selectedId={locationPath[level.depth]?.id ?? null}
             language={language}
+            suppressName={current !== null && locationPath[level.depth]?.id === current.id}
             onSelect={(row) =>
               // Choosing at depth N replaces that level and drops everything
               // below it — the cascade can never hold an orphaned child.
