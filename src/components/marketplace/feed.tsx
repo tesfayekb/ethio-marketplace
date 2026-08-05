@@ -52,8 +52,9 @@ export function Feed() {
             {listings.length === 0 ? (
               <div
                 data-testid="feed-empty"
-                className="flex flex-col items-center rounded-lg border border-border bg-card p-10 text-center"
+                className="mx-auto flex w-full flex-col items-center rounded-lg border border-border bg-card p-10 text-center"
               >
+
                 {/* Allowed motif placement: logo, spinner, empty state. */}
                 <WovenMark className="h-10 w-10" />
                 <h2 className="mt-4 text-base font-semibold text-foreground">
