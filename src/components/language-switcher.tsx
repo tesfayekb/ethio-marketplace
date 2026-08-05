@@ -44,10 +44,13 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             className,
           )}
         >
-          <span lang={language} className="md:hidden">
+          {/* TWO labels, one visible at a time. They are marked so a test (or
+              anything else reading the control) can assert the RENDERED label
+              rather than the button's concatenated text content (INC-033). */}
+          <span lang={language} data-testid="language-switcher-short" className="md:hidden">
             {t(SHORT_KEYS[language])}
           </span>
-          <span lang={language} className="hidden md:inline">
+          <span lang={language} data-testid="language-switcher-full" className="hidden md:inline">
             {t(LABEL_KEYS[language])}
           </span>
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />

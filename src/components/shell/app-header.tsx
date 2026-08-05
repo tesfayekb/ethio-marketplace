@@ -95,8 +95,9 @@ export function AppHeader() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
-    <div className="w-full">
-      <header className="flex h-14 w-full items-center gap-1 border-b border-border bg-card px-2 md:h-full md:gap-2 md:px-4">
+    <div className="w-full min-w-0 md:h-full">
+      <header className="flex h-14 w-full min-w-0 items-center gap-1 border-b border-border bg-card px-2 md:h-full md:gap-2 md:px-4">
+
         <button
           type="button"
           aria-label={t("shell.openMenu")}

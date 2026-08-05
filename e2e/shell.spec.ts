@@ -57,11 +57,16 @@ test.describe("app shell", () => {
   test("language toggle renders Amharic (Ge'ez path)", async ({ page }) => {
     await gotoReady(page, "/");
     // ONE affordance at every width: the same trigger, whose menu shows the
-    // current language alongside the others. Phones read the code, md+ reads
-    // the language name (FIX 2).
+    // current language alongside the others. The trigger carries BOTH labels in
+    // the DOM (one per breakpoint) and CSS shows exactly one, so assert the
+    // VISIBLE label — the button's concatenated text is not what a user reads.
     const trigger = page.getByTestId("language-switcher");
     const narrow = (page.viewportSize()?.width ?? 0) < 768;
-    await expect(trigger).toHaveText(narrow ? en["language.enShort"] : en["language.english"]);
+    const shown = page.getByTestId(narrow ? "language-switcher-short" : "language-switcher-full");
+    const hidden = page.getByTestId(narrow ? "language-switcher-full" : "language-switcher-short");
+    await expect(shown).toBeVisible();
+    await expect(hidden).toBeHidden();
+    await expect(shown).toHaveText(narrow ? en["language.enShort"] : en["language.english"]);
     await trigger.click();
     await expect(page.getByRole("menuitem", { name: en["language.english"] })).toBeVisible();
     await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
@@ -74,10 +79,9 @@ test.describe("app shell", () => {
     expect(/[\u1200-\u137F]/.test(text)).toBe(true);
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
     // The trigger itself now reports the current language.
-    await expect(page.getByTestId("language-switcher")).toHaveText(
-      narrow ? en["language.amShort"] : en["language.amharic"],
-    );
+    await expect(shown).toHaveText(narrow ? en["language.amShort"] : en["language.amharic"]);
   });
+
 
   test("the vertical stack is ordered: top bar, location row, breadcrumbs, body", async ({
     page,
@@ -274,7 +278,74 @@ test.describe("corner-block grid", () => {
     await first.click();
     await expect(first).toHaveAttribute("aria-expanded", expanded ? "false" : "true");
   });
+
+  test("every rail row carries a leading icon on one gutter", async ({ page }) => {
+    await gotoReady(page, "/");
+    const rail = page.getByTestId("app-rail");
+    const rows = rail.locator("li > a, li > button, li > span[aria-disabled]");
+    const count = await rows.count();
+    expect(count).toBeGreaterThan(0);
+
+    const starts = new Set<number>();
+    for (let i = 0; i < count; i += 1) {
+      const row = rows.nth(i);
+      const svg = row.locator("svg").first();
+      await expect(svg, `rail row ${i} has no icon`).toHaveCount(1);
+      const box = (await svg.boundingBox())!;
+      starts.add(Math.round(box.x));
+    }
+    // Top-level rows share ONE gutter (depth adds padding, but this rail is flat).
+    expect(starts.size).toBe(1);
+  });
+
+  test("the rail collapses to icons, shows a tooltip, and remembers the choice", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/");
+    const rail = page.getByTestId("app-rail");
+    const toggle = page.getByTestId("rail-collapse-toggle");
+    const html = page.locator("html");
+
+    // Default is EXPANDED: labels visible, full rail width.
+    await expect(html).toHaveAttribute("data-rail", "expanded");
+    const allCategories = rail.getByText(en["shell.allCategories"], { exact: true });
+    await expect(allCategories).toBeVisible();
+    const wide = (await rail.boundingBox())!.width;
+
+    await toggle.click();
+
+    await expect(html).toHaveAttribute("data-rail", "collapsed");
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect(allCategories).toBeHidden();
+    const narrow = (await rail.boundingBox())!.width;
+    expect(narrow).toBeLessThan(wide);
+    // Icons survive the collapse — that is what makes it usable.
+    await expect(rail.locator("li svg").first()).toBeVisible();
+
+    // Hovering an icon-only row reveals its label.
+    await rail.getByRole("button", { name: en["shell.allCategories"] }).hover();
+    const tip = page.getByTestId("rail-tooltip").first();
+    await expect(tip).toBeVisible();
+    await expect(tip).toContainText(en["shell.allCategories"]);
+
+    // The choice survives a reload, applied before the first paint.
+    await page.reload();
+    await waitForHydration(page);
+    await expect(html).toHaveAttribute("data-rail", "collapsed");
+    expect((await rail.boundingBox())!.width).toBe(narrow);
+
+    // And it expands back.
+    await page.getByTestId("rail-collapse-toggle").click();
+    await expect(html).toHaveAttribute("data-rail", "expanded");
+    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+  });
+
+  test("the rail sign-out is absent for a logged-out visitor", async ({ page }) => {
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("rail-sign-out")).toHaveCount(0);
+  });
 });
+
 
 test.describe("tablet chrome (md = 768px)", () => {
   // The new full-controls threshold. Run once; the viewport is overridden here
@@ -295,13 +366,16 @@ test.describe("tablet chrome (md = 768px)", () => {
     await expect(page.getByTestId("search-toggle")).toBeHidden();
 
     // The language control reads the language NAME, and sign in has text.
-    await expect(page.getByTestId("language-switcher")).toHaveText(en["language.english"]);
+    const fullLabel = page.getByTestId("language-switcher-full");
+    await expect(fullLabel).toBeVisible();
+    await expect(fullLabel).toHaveText(en["language.english"]);
+    await expect(page.getByTestId("language-switcher-short")).toBeHidden();
     await expect(page.getByRole("link", { name: en["auth.signIn"], exact: true })).toBeVisible();
 
     await expectNoHorizontalOverflow(page);
   });
 
-  test("the top bar fills the grid row: same height as the logo cell", async ({
+  test("the top bar is ONE band: logo-cell height AND background, location row separate", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280", "run once");
@@ -310,8 +384,29 @@ test.describe("tablet chrome (md = 768px)", () => {
     const bar = (await page.getByTestId("shell-topbar").boundingBox())!;
     expect(Math.round(bar.y)).toBe(Math.round(logo.y));
     expect(Math.round(bar.height)).toBe(Math.round(logo.height));
+
+    // Same surface, no two-tone split: the band cell AND the header inside it
+    // paint the logo cell's background.
+    const bg = (testId: string) =>
+      page.evaluate(
+        (id) =>
+          getComputedStyle(document.querySelector(`[data-testid="${id}"]`)!).backgroundColor,
+        testId,
+      );
+    const cellBg = await bg("shell-logo-cell");
+    expect(await bg("shell-topbar")).toBe(cellBg);
+    const headerBg = await page.evaluate(
+      () => getComputedStyle(document.querySelector('[data-testid="shell-topbar"] header')!)
+        .backgroundColor,
+    );
+    expect(headerBg).toBe(cellBg);
+
+    // The location picker is its OWN band, strictly below the bar.
+    const loc = (await page.getByTestId("location-row").boundingBox())!;
+    expect(loc.y).toBeGreaterThanOrEqual(bar.y + bar.height);
   });
 });
+
 
 test.describe("dark mode", () => {
   test("the toggle flips the mode and the surfaces actually change", async ({ page }) => {

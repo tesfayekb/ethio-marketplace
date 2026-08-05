@@ -196,6 +196,9 @@ export const en = {
   "location.empty": "No areas available",
   "location.stubNote": "Choosing an area does not narrow listings yet.",
   "shell.searchOpen": "Open search",
+  "shell.collapseRail": "Collapse sidebar",
+  "shell.expandRail": "Expand sidebar",
+
   "footer.sectionCompany": "Company",
   "footer.sectionHelp": "Help",
   "footer.sectionLegal": "Legal",

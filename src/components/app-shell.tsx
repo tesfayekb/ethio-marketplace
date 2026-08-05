@@ -12,6 +12,8 @@ import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { useAuth } from "@/features/auth/use-auth";
 import type { AuthUser } from "@/features/auth/types";
 import { useI18n } from "@/i18n";
+import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
+
 
 /** One node of the chosen geographic path (country -> region -> city -> …). */
 export type LocationNode = {
@@ -121,7 +123,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellContext.Provider value={value}>
-      <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_1fr_auto] bg-background md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[4rem_1fr_auto]">
+      {/* Pre-paint: the persisted rail choice lands on <html> before the first
+          frame, so the rail never renders expanded and then snaps narrow. */}
+      <script dangerouslySetInnerHTML={{ __html: RAIL_INIT_SCRIPT }} />
+      <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_1fr_auto] bg-background md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[4rem_1fr_auto] md:[html[data-rail=collapsed]_&]:grid-cols-[4rem_minmax(0,1fr)]">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
@@ -132,20 +137,38 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Corner block: rail width × top-bar height, above the sidebar. */}
         <div
           data-testid="shell-logo-cell"
-          className="hidden border-b border-e border-border bg-card px-4 md:col-start-1 md:row-start-1 md:flex md:items-center"
+          className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:col-start-1 md:row-start-1 md:flex md:items-center md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
         >
           <Link
             to="/"
             aria-label={t("app.name")}
             className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Logo variant="full" />
+            {/* Collapsed rail = icon-only logo; the two swap by attribute, so
+                the swap is already correct on the first painted frame. */}
+            <span className="inline-flex md:[html[data-rail=collapsed]_&]:hidden">
+              <Logo variant="full" />
+            </span>
+            <span className="hidden md:[html[data-rail=collapsed]_&]:inline-flex">
+              <Logo variant="icon" />
+            </span>
           </Link>
         </div>
 
-        <div data-testid="shell-topbar" className="col-start-1 row-start-1 md:col-start-2">
+        {/*
+          ONE uniform band: the cell itself carries bg-card and the row height,
+          and the header fills it, so there is no two-tone split between the
+          bar and the strip under it. min-w-0 is load-bearing — without it this
+          grid item sizes to the search input's intrinsic minimum and the page
+          overflows horizontally at 360px (INC-032).
+        */}
+        <div
+          data-testid="shell-topbar"
+          className="col-start-1 row-start-1 min-w-0 bg-card md:col-start-2 md:h-16"
+        >
           <AppHeader />
         </div>
+
 
         {/* Rail places itself into column 1 / row 2; the drawer is fixed. */}
         <AppRail />

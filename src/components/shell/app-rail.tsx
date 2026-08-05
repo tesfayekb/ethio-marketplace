@@ -1,24 +1,58 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, LogOut, PanelLeftClose, PanelLeftOpen, Tag } from "lucide-react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/app-shell";
 import { Logo } from "@/components/brand/logo";
 import { PanelSwitcher } from "@/components/shell/panel-switcher";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PANELS, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { useRailCollapsed } from "@/providers/rail-state";
+
+/**
+ * COLLAPSE — an OPTION on md+, never the default and never on mobile.
+ *
+ * Layout keys off `html[data-rail="collapsed"]`, which the pre-paint script in
+ * AppShell has already written, so the collapsed rail is correct on the FIRST
+ * painted frame (no flash). React state only drives behaviour that cannot be
+ * expressed in CSS — the toggle's aria-pressed and whether hovering a row
+ * shows its label as a tooltip.
+ *
+ * Every `md:[html[data-rail=collapsed]_&]:` below is therefore desktop-only by
+ * construction: the mobile drawer keeps full labels at all times.
+ */
+const HIDE_WHEN_COLLAPSED = "md:[html[data-rail=collapsed]_&]:hidden";
 
 const ITEM_BASE =
-  "flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "flex min-h-11 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
+  "ps-[var(--rail-pad)] md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:ps-0 md:[html[data-rail=collapsed]_&]:pe-0";
 const ITEM_IDLE = "text-foreground hover:bg-muted";
 /** Selection is GREEN, never a cream tint — the one emphasis surface. */
 const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foreground";
+
+/** True only after hydration on a collapsed desktop rail. */
+const CollapsedContext = createContext(false);
+
+/** Hover label for the icons-only rail. Expanded rails need no tooltip. */
+function WithTooltip({ label, children }: { label: string; children: ReactNode }) {
+  const collapsed = useContext(CollapsedContext);
+  if (!collapsed) return <>{children}</>;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="right" data-testid="rail-tooltip">
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 /** A node the rail can render: either a config NavItem or a live category. */
 type RailNode = {
@@ -49,29 +83,36 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const inner = (
     <>
       {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
-      <span className="truncate">{node.label}</span>
+      <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{node.label}</span>
     </>
   );
-  const pad = { paddingInlineStart: `${0.75 + depth * 0.75}rem` };
+  const pad = { "--rail-pad": `${0.75 + depth * 0.75}rem` } as React.CSSProperties;
 
   if (hasChildren) {
     return (
       <li>
         <Collapsible open={open} onOpenChange={setOpen}>
           <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              data-testid="rail-submenu-trigger"
-              aria-expanded={open}
-              style={pad}
-              className={cn(ITEM_BASE, containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE, "pe-3")}
-            >
-              {inner}
-              <ChevronRight
-                aria-hidden="true"
-                className={cn("ms-auto h-4 w-4 shrink-0 transition-transform", open && "rotate-90")}
-              />
-            </button>
+            <WithTooltip label={node.label}>
+              <button
+                type="button"
+                data-testid="rail-submenu-trigger"
+                aria-expanded={open}
+                aria-label={node.label}
+                style={pad}
+                className={cn(ITEM_BASE, containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE)}
+              >
+                {inner}
+                <ChevronRight
+                  aria-hidden="true"
+                  className={cn(
+                    "ms-auto h-4 w-4 shrink-0 transition-transform",
+                    open && "rotate-90",
+                    HIDE_WHEN_COLLAPSED,
+                  )}
+                />
+              </button>
+            </WithTooltip>
           </CollapsibleTrigger>
           <CollapsibleContent asChild>
             <ul data-testid="rail-submenu" className="mt-0.5 flex flex-col gap-0.5">
@@ -88,14 +129,17 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   if (node.path) {
     return (
       <li>
-        <Link
-          to={node.path}
-          onClick={node.onSelect}
-          style={pad}
-          className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
-        >
-          {inner}
-        </Link>
+        <WithTooltip label={node.label}>
+          <Link
+            to={node.path}
+            onClick={node.onSelect}
+            aria-label={node.label}
+            style={pad}
+            className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
+          >
+            {inner}
+          </Link>
+        </WithTooltip>
       </li>
     );
   }
@@ -103,15 +147,18 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   if (node.onSelect) {
     return (
       <li>
-        <button
-          type="button"
-          onClick={node.onSelect}
-          aria-current={node.active ? "true" : undefined}
-          style={pad}
-          className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
-        >
-          {inner}
-        </button>
+        <WithTooltip label={node.label}>
+          <button
+            type="button"
+            onClick={node.onSelect}
+            aria-current={node.active ? "true" : undefined}
+            aria-label={node.label}
+            style={pad}
+            className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
+          >
+            {inner}
+          </button>
+        </WithTooltip>
       </li>
     );
   }
@@ -119,9 +166,16 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // No path yet: the item's page is a later feature.
   return (
     <li>
-      <span style={pad} className={cn(ITEM_BASE, "text-muted-foreground")} aria-disabled="true">
-        {inner}
-      </span>
+      <WithTooltip label={node.label}>
+        <span
+          style={pad}
+          className={cn(ITEM_BASE, "text-muted-foreground")}
+          aria-disabled="true"
+          aria-label={node.label}
+        >
+          {inner}
+        </span>
+      </WithTooltip>
     </li>
   );
 }
@@ -135,6 +189,10 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const nodes: RailNode[] = categories.map((category) => ({
     key: category.id,
     label: language === "am" ? (category.nameAm ?? category.nameEn) : category.nameEn,
+    // Categories are DATA, not config: they carry no per-row icon of their own,
+    // so they share the tag glyph. What matters for the collapsed rail is that
+    // every row has a glyph on the same gutter — see docs/features/panels.md.
+    icon: Tag,
     active: category.id === selectedCategoryId,
     onSelect: () => {
       setSelectedCategoryId(category.id);
@@ -148,7 +206,12 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <nav aria-label={t("shell.categoriesLabel")}>
-      <h2 className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2
+        className={cn(
+          "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+          HIDE_WHEN_COLLAPSED,
+        )}
+      >
         {t("shell.categoriesLabel")}
       </h2>
       <ul className="flex flex-col gap-0.5">
@@ -156,6 +219,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
           node={{
             key: "all",
             label: t("shell.allCategories"),
+            icon: Tag,
             active: selectedCategoryId === null,
             onSelect: () => {
               setSelectedCategoryId(null);
@@ -167,7 +231,9 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
           <RailRow key={node.key} node={node} />
         ))}
         {!isLoading && categories.length === 0 ? (
-          <li className="px-3 text-sm text-muted-foreground">{t("shell.categoriesEmpty")}</li>
+          <li className={cn("px-3 text-sm text-muted-foreground", HIDE_WHEN_COLLAPSED)}>
+            {t("shell.categoriesEmpty")}
+          </li>
         ) : null}
       </ul>
     </nav>
@@ -202,7 +268,12 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
       {sections.map((section, index) => (
         <div key={section.key ?? `section-${index}`}>
           {section.key ? (
-            <h2 className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2
+              className={cn(
+                "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+                HIDE_WHEN_COLLAPSED,
+              )}
+            >
               {t(section.key)}
             </h2>
           ) : null}
@@ -227,6 +298,60 @@ function RailBody({ onNavigate }: { onNavigate: () => void }) {
 }
 
 /**
+ * The rail's foot, pinned above the footer line.
+ *
+ * Sign out here is ADDITIONAL — the account-menu item in the top bar still
+ * works and stays the canonical path. Both call the same signOut().
+ * The collapse toggle is md+ only: the mobile drawer has no collapsed form.
+ */
+function RailFoot({ onNavigate }: { onNavigate: () => void }) {
+  const { t } = useI18n();
+  const { auth, signOut } = useShell();
+  const { collapsed, toggle } = useRailCollapsed();
+  const pad = { "--rail-pad": "0.75rem" } as React.CSSProperties;
+
+  return (
+    <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-2">
+      {auth.isAuthenticated ? (
+        <WithTooltip label={t("auth.signOut")}>
+          <button
+            type="button"
+            data-testid="rail-sign-out"
+            aria-label={t("auth.signOut")}
+            style={pad}
+            onClick={() => {
+              onNavigate();
+              void signOut();
+            }}
+            className={cn(ITEM_BASE, ITEM_IDLE)}
+          >
+            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("auth.signOut")}</span>
+          </button>
+        </WithTooltip>
+      ) : null}
+
+      <button
+        type="button"
+        data-testid="rail-collapse-toggle"
+        aria-pressed={collapsed === true}
+        aria-label={collapsed ? t("shell.expandRail") : t("shell.collapseRail")}
+        style={pad}
+        onClick={toggle}
+        className={cn(ITEM_BASE, ITEM_IDLE, "hidden md:flex")}
+      >
+        {collapsed ? (
+          <PanelLeftOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+        ) : (
+          <PanelLeftClose className="h-4 w-4 shrink-0" aria-hidden="true" />
+        )}
+        <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("shell.collapseRail")}</span>
+      </button>
+    </div>
+  );
+}
+
+/**
  * The rail. From md up it is grid column 1 / row 2 — directly beneath the logo
  * cell, sharing its `border-e` so the sidebar edge is one continuous hairline.
  * Below md it is a drawer with the logo CENTRED at the top of the panel.
@@ -234,31 +359,37 @@ function RailBody({ onNavigate }: { onNavigate: () => void }) {
 export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen } = useShell();
+  const { collapsed } = useRailCollapsed();
 
   return (
-    <>
-      <aside
-        data-testid="app-rail"
-        className="hidden border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:block"
-      >
-        <RailBody onNavigate={() => undefined} />
-      </aside>
+    <TooltipProvider delayDuration={150}>
+      <CollapsedContext.Provider value={collapsed === true}>
+        <aside
+          data-testid="app-rail"
+          className="hidden min-w-0 flex-col border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:flex md:[html[data-rail=collapsed]_&]:px-1"
+        >
+          <RailBody onNavigate={() => undefined} />
+          <RailFoot onNavigate={() => undefined} />
+        </aside>
+      </CollapsedContext.Provider>
 
+      {/* The drawer never collapses: labels always, tooltips never. */}
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
-        <SheetContent side="left" className="w-72 bg-sidebar p-4">
+        <SheetContent side="left" className="flex w-72 flex-col bg-sidebar p-4">
           <SheetHeader className="p-0">
             <div className="flex justify-center pb-2">
               <Logo variant="full" />
             </div>
             <SheetTitle className="sr-only">{t("shell.menuTitle")}</SheetTitle>
           </SheetHeader>
-          <div className="mt-4 flex flex-col gap-4">
+          <div className="mt-4 flex flex-1 flex-col gap-4">
             <PanelSwitcher variant="list" />
             <RailBody onNavigate={() => setNavOpen(false)} />
+            <RailFoot onNavigate={() => setNavOpen(false)} />
           </div>
         </SheetContent>
       </Sheet>
-    </>
+    </TooltipProvider>
   );
 }
 
