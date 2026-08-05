@@ -70,7 +70,7 @@ function Wordmark({ size = "lg" }: { size?: "md" | "lg" }) {
       data-testid="logo-wordmark"
       className={cn(
         "font-display font-semibold tracking-tight",
-        size === "lg" ? "text-xl" : "text-lg",
+        size === "lg" ? "text-xl" : "text-base",
       )}
     >
       <span className="text-primary">ethio</span>
@@ -116,7 +116,7 @@ export function Logo({
   if (variant === "wordmark") {
     return (
       <span className={cn("inline-flex items-center gap-1.5", className)}>
-        <WovenMark className="h-7 w-7 shrink-0" />
+        <WovenMark className="h-6 w-6 shrink-0" />
         <Wordmark size="md" />
       </span>
     );

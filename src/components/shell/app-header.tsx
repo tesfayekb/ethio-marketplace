@@ -18,7 +18,7 @@ import { useI18n } from "@/i18n";
 import { useShell } from "@/components/app-shell";
 
 const ICON_BUTTON =
-  "inline-flex min-h-11 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex min-h-11 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
  * Search field. On mobile it is NOT squeezed into the bar: the icon opens a
@@ -86,7 +86,7 @@ export function AppHeader() {
 
   return (
     <div className="w-full">
-      <header className="flex h-14 w-full items-center gap-1 border-b border-border bg-card px-3 lg:h-full lg:gap-2 lg:px-4">
+      <header className="flex h-14 w-full items-center gap-1 border-b border-border bg-card px-2 lg:h-full lg:gap-2 lg:px-4">
         <button
           type="button"
           aria-label={t("shell.openMenu")}
@@ -154,7 +154,7 @@ export function AppHeader() {
           ) : (
             <Link
               to="/auth"
-              className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-primary px-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-primary px-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {t("auth.signIn")}
             </Link>
