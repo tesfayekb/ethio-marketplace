@@ -682,6 +682,8 @@ test.describe("panel-scoped chrome", () => {
 });
 
 test.describe("marketplace rail is categories only", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "persistent rail is md+");
+
   // INC-053 — nothing but the live category tree may appear under
   // "All categories"; Settings belongs to the Account / My Listings panels.
   test("no Settings item leaks into the category rail", async ({ page }) => {
