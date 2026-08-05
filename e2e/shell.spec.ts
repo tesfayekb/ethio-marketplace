@@ -1,7 +1,14 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
-import { expectNoHorizontalOverflow, gotoReady, waitForHydration } from "./helpers/ui";
+import {
+  expectNoHorizontalOverflow,
+  expectSignedIn,
+  gotoReady,
+  signIn,
+  waitForHydration,
+} from "./helpers/ui";
+import { createUser } from "./helpers/users";
 
 /**
  * Shell smoke — the design foundation.
@@ -576,6 +583,13 @@ test.describe("mobile chrome", () => {
     await expect(drawer.getByText(en["panel.marketplace"], { exact: true })).toBeVisible();
   });
 
+  test("the rail-collapse toggle does not exist on mobile", async ({ page }) => {
+    // INC-054 — below md the drawer/hamburger is the only sidebar affordance.
+    await gotoReady(page, "/");
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeVisible();
+    await expect(page.getByTestId("rail-collapse-toggle")).toBeHidden();
+  });
+
   test("search opens a full-width row BELOW the bar", async ({ page }) => {
     await gotoReady(page, "/");
     await page.getByTestId("search-toggle").click();
@@ -637,5 +651,45 @@ test.describe("mobile chrome", () => {
       page.getByRole("button", { name: en["shell.allCategories"] }),
       "all categories",
     );
+  });
+});
+
+test.describe("panel-scoped chrome", () => {
+  /**
+   * INC-052 — the location row is a MARKETPLACE concept: present on the
+   * Marketplace panel, ABSENT on every other panel. Panel tabs only exist for
+   * a signed-in user, so this needs a real session.
+   */
+  test("location row is present on Marketplace and absent on Account", async ({ page }) => {
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await expectSignedIn(page, user.displayName);
+    await gotoReady(page, "/");
+
+    await expect(page.getByTestId("panel-tab-marketplace")).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(page.getByTestId("location-row")).toBeVisible();
+
+    await page.getByTestId("panel-tab-account").click();
+    await expect(page.getByTestId("panel-tab-account")).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("location-row")).toHaveCount(0);
+
+    await page.getByTestId("panel-tab-marketplace").click();
+    await expect(page.getByTestId("location-row")).toBeVisible();
+  });
+});
+
+test.describe("marketplace rail is categories only", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "persistent rail is md+");
+
+  // INC-053 — nothing but the live category tree may appear under
+  // "All categories"; Settings belongs to the Account / My Listings panels.
+  test("no Settings item leaks into the category rail", async ({ page }) => {
+    await gotoReady(page, "/");
+    const rail = page.getByTestId("app-rail");
+    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+    await expect(rail.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
 });

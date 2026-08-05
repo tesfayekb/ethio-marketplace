@@ -301,3 +301,9 @@ language/theme/account cluster (768/1024/1280 all lay out clean, nothing clipped
 desktop rail is collapsed the top bar carries the two-line lockup WITHOUT the mark — the
 corner cell already shows the icon — so the brand is present exactly once, in one form, in
 every rail state. Footer links keep a 44px touch box under a visually tight row rhythm.
+
+### Band 3 is conditional (2026-08-05)
+
+The location row shares the body's `activePanel === "marketplace"` gate, so the
+vertical stack collapses that band entirely on non-marketplace panels
+(INC-052). Location filtering itself remains stubbed.

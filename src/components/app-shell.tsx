@@ -177,8 +177,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
           <PanelTabs />
-          {/* Band 3 */}
-          <LocationSelector />
+          {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is
+              gated by the SAME condition as the body: no location band on My
+              Listings / Account / Admin (INC-052). */}
+          {activePanel === "marketplace" ? <LocationSelector /> : null}
           {/* Band 4 + 5 */}
           <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
             <Breadcrumbs />
