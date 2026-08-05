@@ -23,7 +23,6 @@ export function Feed() {
     // rail edge.
     <section data-testid="feed-container" className="mx-auto w-full max-w-6xl">
       <h1 className="text-xl font-semibold text-foreground">
-
         {t("feed.heading").replace("{location}", t("feed.scopeAll"))}
       </h1>
 
@@ -54,7 +53,6 @@ export function Feed() {
                 data-testid="feed-empty"
                 className="mx-auto flex w-full flex-col items-center rounded-lg border border-border bg-card p-10 text-center"
               >
-
                 {/* Allowed motif placement: logo, spinner, empty state. */}
                 <WovenMark className="h-10 w-10" />
                 <h2 className="mt-4 text-base font-semibold text-foreground">

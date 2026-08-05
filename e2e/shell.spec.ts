@@ -211,8 +211,6 @@ test.describe("app shell", () => {
     expect(Math.abs(emptyLeft - emptyRight), "empty state is off-centre").toBeLessThanOrEqual(1);
   });
 
-
-
   test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
     // Hold the listings read open so the busy state is observable.
     await page.route("**/rest/v1/listings*", async (route) => {
@@ -463,7 +461,6 @@ test.describe("corner-block grid", () => {
   });
 
   test("the rail sign-out is absent for a logged-out visitor", async ({ page }) => {
-
     await gotoReady(page, "/");
     await expect(page.getByTestId("rail-sign-out")).toHaveCount(0);
   });

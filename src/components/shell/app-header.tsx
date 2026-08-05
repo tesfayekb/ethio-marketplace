@@ -161,7 +161,6 @@ export function AppHeader() {
           <Logo variant="wordmark" />
         </Link>
 
-
         {/* md+ : the real search field, in the bar. */}
         <form
           role="search"
