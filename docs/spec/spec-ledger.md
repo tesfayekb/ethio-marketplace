@@ -1038,3 +1038,13 @@ picker holding it reads as its level name). Home is the breadcrumb root only and
 the unfiltered Marketplace feed — clicking it restores the marketplace panel and clears
 the category; the panel tab remains "Marketplace". Presentational only: no new colour, no
 auth/settings/feed behaviour change, location filtering still stubbed.
+
+## Layout polish round 2 (2026-08-05)
+
+Home is the breadcrumb ROOT and, on the marketplace panel, the only chrome segment:
+`Home › <category path>`. Other panels keep their name (`Home › Account › …`). The feed
+body is centred with equal left/right gutters at every width. Exactly one sidebar
+affordance exists per breakpoint — hamburger below `md`, collapse toggle at `md`+ — and
+collapsing the rail moves the wordmark into the top bar so the chrome is never unbranded
+and never shows the wordmark twice. Footer rows are tightened without breaking the 44px
+tap floor. Presentational only: no token, auth, feed or location-scoping behaviour change.
