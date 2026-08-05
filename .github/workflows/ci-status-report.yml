@@ -50,15 +50,43 @@ jobs:
             ];
             fs.mkdirSync('docs/tracking', { recursive: true });
             fs.writeFileSync('docs/tracking/ci-status.md', lines.join('\n'));
+            // Keep a copy outside the worktree so the push step can REGENERATE
+            // the file after every fetch/reset (see below).
+            fs.writeFileSync('/tmp/ci-status.md', lines.join('\n'));
 
+      # Regenerate-after-fetch + retry, mirroring nightly-e2e.yml (INC-027).
+      # The status file is derived state owned entirely by this run, so
+      # rewriting it on top of whatever main now holds is always correct and
+      # can never conflict. A failed push is a warning, never a red job — the
+      # reporter must not redden Actions on its own bookkeeping.
       - name: Commit and push
         run: |
+          set -u
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/tracking/ci-status.md
-          if git diff --cached --quiet; then
-            echo "No status change; nothing to commit."
-            exit 0
+
+          pushed=0
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p docs/tracking
+            cp /tmp/ci-status.md docs/tracking/ci-status.md
+            git add docs/tracking/ci-status.md
+            if git diff --cached --quiet; then
+              echo "No status change; nothing to commit."
+              pushed=1
+              break
+            fi
+            git commit -m "ci: update CI status report [skip ci]"
+            if git push origin HEAD:main; then
+              pushed=1
+              break
+            fi
+            echo "Status push rejected (attempt ${attempt}/3); refetching."
+            sleep 5
+          done
+
+          if [ "$pushed" -ne 1 ]; then
+            echo "::warning::CI status push failed after retries"
           fi
-          git commit -m "ci: update CI status report [skip ci]"
-          git push origin HEAD:main
+          exit 0
