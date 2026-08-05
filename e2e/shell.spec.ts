@@ -37,10 +37,12 @@ test.describe("app shell", () => {
     await expect(page.getByText(en["panel.account"], { exact: true })).toHaveCount(0);
     await expect(page.getByText(en["panel.admin"], { exact: true })).toHaveCount(0);
 
+    // Band 2 is absent entirely for a Marketplace-only visitor.
+    await expect(page.getByTestId("panel-tabs")).toHaveCount(0);
+
     if (testInfo.project.name === "desktop-1280") {
-      // Desktop: the rail is persistent and the switcher shows Marketplace.
+      // Desktop: the rail is persistent.
       await expect(page.getByTestId("app-rail")).toBeVisible();
-      await expect(page.getByRole("button", { name: en["panel.marketplace"] })).toBeVisible();
     }
   });
 
@@ -54,8 +56,13 @@ test.describe("app shell", () => {
 
   test("language toggle renders Amharic (Ge'ez path)", async ({ page }) => {
     await gotoReady(page, "/");
-    // The switcher lives in the footer at every breakpoint.
-    await page.getByRole("button", { name: en["language.amharic"] }).first().click();
+    // ONE affordance at every width: the same trigger, whose menu shows the
+    // current language alongside the others.
+    const trigger = page.getByTestId("language-switcher");
+    await expect(trigger).toHaveText(en["language.enShort"]);
+    await trigger.click();
+    await expect(page.getByRole("menuitem", { name: en["language.english"] })).toBeVisible();
+    await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
 
     const amharicHeading = page.getByRole("heading", { level: 1 });
     await expect(amharicHeading).toBeVisible();
@@ -64,6 +71,96 @@ test.describe("app shell", () => {
     // Ge'ez block U+1200–U+137F must actually be rendered.
     expect(/[\u1200-\u137F]/.test(text)).toBe(true);
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
+    // The trigger itself now reports the current language.
+    await expect(page.getByTestId("language-switcher")).toHaveText(en["language.amShort"]);
+  });
+
+  test("the vertical stack is ordered: top bar, location row, breadcrumbs, body", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/");
+    const y = async (testId: string) => {
+      const box = await page.getByTestId(testId).boundingBox();
+      expect(box, `${testId} has no box`).not.toBeNull();
+      return box!.y;
+    };
+    const bar = await y("shell-topbar");
+    const location = await y("location-row");
+    const crumbs = await y("breadcrumbs");
+    const heading = (await page.getByRole("heading", { level: 1 }).boundingBox())!.y;
+
+    expect(bar).toBeLessThan(location);
+    expect(location).toBeLessThan(crumbs);
+    expect(crumbs).toBeLessThan(heading);
+  });
+
+  test("the location row cascades country into its child level", async ({ page }) => {
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("location-row")).toBeVisible();
+    await expect(page.getByTestId("location-current")).toHaveText(en["location.everywhere"]);
+
+    const country = page.getByTestId("location-level-country");
+    await country.click();
+    const options = page.getByRole("menuitem");
+    await expect(options.first()).toHaveText(en["location.anyArea"]);
+    const chosen = (await options.nth(1).textContent())!.trim();
+    await options.nth(1).click();
+
+    // The chosen area is reflected, and a deeper level has appeared.
+    await expect(page.getByTestId("location-current")).toHaveText(chosen);
+    await expect(page.locator("[data-testid^='location-level-']")).toHaveCount(2);
+  });
+
+  test("breadcrumb segments navigate the category path", async ({ page }) => {
+    await gotoReady(page, "/");
+    if ((await page.getByTestId("app-rail").count()) === 0) return;
+    if (!(await page.getByTestId("app-rail").isVisible())) return;
+
+    const rows = page.getByTestId("app-rail").getByRole("button");
+    // Row 0 is "All categories"; row 1 is the first real category, if seeded.
+    if ((await rows.count()) < 2) return;
+    const name = (await rows.nth(1).textContent())!.trim();
+    await rows.nth(1).click();
+
+    const crumb = page.getByTestId("breadcrumb-category");
+    await expect(crumb).toHaveText(name);
+
+    // Clicking Home walks back up to the unfiltered feed.
+    await page.getByTestId("breadcrumb-home").click();
+    await expect(page.getByTestId("breadcrumb-category")).toHaveCount(0);
+  });
+
+  test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
+    // Hold the listings read open so the busy state is observable.
+    await page.route("**/rest/v1/listings*", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await route.continue();
+    });
+    await page.goto("/");
+    const spinner = page.getByTestId("spinner");
+    await expect(spinner).toBeVisible();
+    // Self-drawing, not rotating: the sweeping stroke path is present and no
+    // spin animation is applied to the mark.
+    await expect(spinner.getByTestId("spinner-draw")).toHaveCount(1);
+    const animation = await spinner
+      .locator("svg")
+      .evaluate((el) => getComputedStyle(el).animationName);
+    expect(animation).toBe("none");
+  });
+
+  test("footer columns are centred as a group and each is centred", async ({ page }) => {
+    await gotoReady(page, "/");
+    const columns = page.getByTestId("footer-columns");
+    const group = (await columns.boundingBox())!;
+    const page_width = page.viewportSize()!.width;
+    // Centred as a group: equal slack on both sides (2px subpixel tolerance).
+    expect(Math.abs(group.x - (page_width - (group.x + group.width)))).toBeLessThanOrEqual(2);
+    // Each column centres its own content.
+    const alignments = await columns
+      .locator("nav")
+      .evaluateAll((els) => els.map((el) => getComputedStyle(el).textAlign));
+    expect(alignments.every((a) => a === "center")).toBe(true);
+    expect(alignments.length).toBe(3);
   });
 
   test("feed grid reflows without clipping and never overflows", async ({ page }) => {
@@ -188,10 +285,16 @@ test.describe("mobile chrome", () => {
     await expect(drawer.getByText(en["panel.marketplace"], { exact: true })).toBeVisible();
   });
 
-  test("expanding search keeps the bar within 360px", async ({ page }) => {
+  test("search opens a full-width row BELOW the bar", async ({ page }) => {
     await gotoReady(page, "/");
     await page.getByTestId("search-toggle").click();
     await expect(page.getByTestId("search-input")).toBeVisible();
+
+    const bar = (await page.locator("header").first().boundingBox())!;
+    const row = (await page.getByTestId("search-row").boundingBox())!;
+    // Below the bar, and the full viewport width — room to type.
+    expect(row.y).toBeGreaterThanOrEqual(bar.y + bar.height - 1);
+    expect(Math.round(row.width)).toBe(page.viewportSize()!.width);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -223,11 +326,7 @@ test.describe("mobile chrome", () => {
       page.getByRole("link", { name: en["auth.signIn"], exact: true }),
       "sign in",
     );
-    await expectTapTarget(
-      page,
-      page.getByRole("button", { name: en["language.amharic"] }),
-      "language",
-    );
+    await expectTapTarget(page, page.getByTestId("language-switcher"), "language");
     await expectTapTarget(page, page.getByRole("link", { name: en["nav.home"] }), "footer home");
     await expectTapTarget(
       page,
@@ -236,7 +335,7 @@ test.describe("mobile chrome", () => {
     );
     await expectTapTarget(
       page,
-      page.getByRole("button", { name: en["shell.searchLabel"] }),
+      page.getByTestId("search-toggle"),
       "search toggle",
     );
 
