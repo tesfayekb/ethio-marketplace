@@ -8,7 +8,7 @@ import { PanelSwitcher } from "@/components/shell/panel-switcher";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PANELS, visibleItems } from "@/config/panels";
+import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
@@ -312,9 +312,13 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
   const { auth, signOut } = useShell();
   const pad = { "--rail-pad": "0.75rem" } as React.CSSProperties;
 
+  // Nothing but sign-out lives here now, so a logged-out rail has NO foot at
+  // all — no stray hairline under the categories.
+  if (!auth.isAuthenticated) return null;
+
   return (
     <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-2">
-      {auth.isAuthenticated ? (
+      {(
         <WithTooltip label={t("auth.signOut")}>
           <button
             type="button"
@@ -331,8 +335,7 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
             <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("auth.signOut")}</span>
           </button>
         </WithTooltip>
-      ) : null}
-
+      )}
     </div>
   );
 }
