@@ -48,11 +48,7 @@ export function Breadcrumbs() {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <button
-              type="button"
-              data-testid="breadcrumb-home"
-              onClick={goHome}
-            >
+            <button type="button" data-testid="breadcrumb-home" onClick={goHome}>
               {t("nav.home")}
             </button>
           </BreadcrumbLink>

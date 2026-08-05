@@ -177,8 +177,8 @@ test.describe("app shell", () => {
     expect(alignments.length).toBe(3);
 
     // FIX 3: exactly three EQUAL columns (an explicit grid, not flex guesses).
-    const tracks = await columns.evaluate(
-      (el) => getComputedStyle(el).gridTemplateColumns.split(" ").map(parseFloat),
+    const tracks = await columns.evaluate((el) =>
+      getComputedStyle(el).gridTemplateColumns.split(" ").map(parseFloat),
     );
     expect(tracks.length).toBe(3);
     expect(Math.max(...tracks) - Math.min(...tracks)).toBeLessThanOrEqual(1);
@@ -280,7 +280,7 @@ test.describe("tablet chrome (md = 768px)", () => {
   // The new full-controls threshold. Run once; the viewport is overridden here
   // rather than adding a third project.
   test.use({ viewport: { width: 768, height: 1024 } });
-  test.skip(({}, testInfo) => testInfo.project.name !== "desktop-1280", "run once");
+  test.skip((_args, testInfo) => testInfo.project.name !== "desktop-1280", "run once");
 
   test("tablets get the persistent rail and the FULL controls", async ({ page }) => {
     await gotoReady(page, "/");

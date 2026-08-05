@@ -187,9 +187,7 @@ export function LocationSelector() {
             options={level.options}
             selectedId={locationPath[level.depth]?.id ?? null}
             language={language}
-            suppressName={
-              current !== null && locationPath[level.depth]?.id === current.id
-            }
+            suppressName={current !== null && locationPath[level.depth]?.id === current.id}
             onSelect={(row) =>
               // Choosing at depth N replaces that level and drops everything
               // below it — the cascade can never hold an orphaned child.
