@@ -93,3 +93,4 @@
 2026-08-05 — fix: CI red + render-walk — collapse toggle genuinely hidden below md via cn()/twMerge display-conflict resolution (INC-055), panel-tabs row fits instead of scrolling (INC-056), category-tree caching re-confirmed (INC-057), marketplace-rail purity re-asserted incl. the mobile drawer (INC-053).
 2026-08-05 — fix: shell panel/route sync — /settings now renders inside the Account panel context, not the marketplace rail (INC-058); top-bar controls right-aligned at md+ (INC-059); admin gating re-confirmed unchanged.
 2026-08-05 — docs: thread-3 handoff + performance strategy + posting-flow spec + posting foundations build plan imported.
+2026-08-05 — ci: CI Status Reporter regenerate-after-fetch + retry (staleness class, third strike; mirrors nightly INC-027 fix)
