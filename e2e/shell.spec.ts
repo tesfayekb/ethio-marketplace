@@ -57,9 +57,11 @@ test.describe("app shell", () => {
   test("language toggle renders Amharic (Ge'ez path)", async ({ page }) => {
     await gotoReady(page, "/");
     // ONE affordance at every width: the same trigger, whose menu shows the
-    // current language alongside the others.
+    // current language alongside the others. Phones read the code, md+ reads
+    // the language name (FIX 2).
     const trigger = page.getByTestId("language-switcher");
-    await expect(trigger).toHaveText(en["language.enShort"]);
+    const narrow = (page.viewportSize()?.width ?? 0) < 768;
+    await expect(trigger).toHaveText(narrow ? en["language.enShort"] : en["language.english"]);
     await trigger.click();
     await expect(page.getByRole("menuitem", { name: en["language.english"] })).toBeVisible();
     await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
@@ -72,7 +74,9 @@ test.describe("app shell", () => {
     expect(/[\u1200-\u137F]/.test(text)).toBe(true);
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
     // The trigger itself now reports the current language.
-    await expect(page.getByTestId("language-switcher")).toHaveText(en["language.amShort"]);
+    await expect(page.getByTestId("language-switcher")).toHaveText(
+      narrow ? en["language.amShort"] : en["language.amharic"],
+    );
   });
 
   test("the vertical stack is ordered: top bar, location row, breadcrumbs, body", async ({
@@ -109,6 +113,13 @@ test.describe("app shell", () => {
     // The chosen area is reflected, and a deeper level has appeared.
     await expect(page.getByTestId("location-current")).toHaveText(chosen);
     await expect(page.locator("[data-testid^='location-level-']")).toHaveCount(2);
+
+    // FIX 4: the resolved area appears EXACTLY once in the row — the picker
+    // that holds it reads as its level name, never as a second copy of it.
+    const occurrences = await page
+      .getByTestId("location-row")
+      .evaluate((el, text) => (el.textContent ?? "").split(text).length - 1, chosen);
+    expect(occurrences).toBe(1);
   });
 
   test("breadcrumb segments navigate the category path", async ({ page }) => {
@@ -125,9 +136,12 @@ test.describe("app shell", () => {
     const crumb = page.getByTestId("breadcrumb-category");
     await expect(crumb).toHaveText(name);
 
-    // Clicking Home walks back up to the unfiltered feed.
+    // Clicking Home walks back up to the unfiltered MARKETPLACE feed: the
+    // category filter clears and the Marketplace panel is the active one.
     await page.getByTestId("breadcrumb-home").click();
     await expect(page.getByTestId("breadcrumb-category")).toHaveCount(0);
+    await expect(page.getByTestId("breadcrumb-panel")).toHaveCount(0);
+    await expect(page.getByText(en["panel.marketplace"], { exact: true }).first()).toBeVisible();
   });
 
   test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
@@ -161,6 +175,19 @@ test.describe("app shell", () => {
       .evaluateAll((els) => els.map((el) => getComputedStyle(el).textAlign));
     expect(alignments.every((a) => a === "center")).toBe(true);
     expect(alignments.length).toBe(3);
+
+    // FIX 3: exactly three EQUAL columns (an explicit grid, not flex guesses).
+    const tracks = await columns.evaluate(
+      (el) => getComputedStyle(el).gridTemplateColumns.split(" ").map(parseFloat),
+    );
+    expect(tracks.length).toBe(3);
+    expect(Math.max(...tracks) - Math.min(...tracks)).toBeLessThanOrEqual(1);
+
+    // Tightened rows: every link still owns a 44px tap box.
+    const heights = await columns
+      .locator("a, span.inline-flex")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
+    expect(Math.min(...heights)).toBeGreaterThanOrEqual(44);
   });
 
   test("feed grid reflows without clipping and never overflows", async ({ page }) => {
@@ -196,7 +223,7 @@ test.describe("app shell", () => {
 });
 
 test.describe("corner-block grid", () => {
-  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "desktop only");
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "md and up only");
 
   test("logo cell sits exactly above the rail and beside the top bar", async ({ page }) => {
     await gotoReady(page, "/");
@@ -246,6 +273,39 @@ test.describe("corner-block grid", () => {
     const expanded = (await first.getAttribute("aria-expanded")) === "true";
     await first.click();
     await expect(first).toHaveAttribute("aria-expanded", expanded ? "false" : "true");
+  });
+});
+
+test.describe("tablet chrome (md = 768px)", () => {
+  // The new full-controls threshold. Run once; the viewport is overridden here
+  // rather than adding a third project.
+  test.use({ viewport: { width: 768, height: 1024 } });
+  test.skip(({}, testInfo) => testInfo.project.name !== "desktop-1280", "run once");
+
+  test("tablets get the persistent rail and the FULL controls", async ({ page }) => {
+    await gotoReady(page, "/");
+
+    // Persistent sidebar, not a drawer: no hamburger at all.
+    await expect(page.getByTestId("app-rail")).toBeVisible();
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toHaveCount(0);
+
+    // A real search FIELD in the bar (no icon-only toggle).
+    await expect(page.getByTestId("search-inline-input")).toBeVisible();
+    await expect(page.getByTestId("search-toggle")).toBeHidden();
+
+    // The language control reads the language NAME, and sign in has text.
+    await expect(page.getByTestId("language-switcher")).toHaveText(en["language.english"]);
+    await expect(page.getByRole("link", { name: en["auth.signIn"], exact: true })).toBeVisible();
+
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("the top bar fills the grid row: same height as the logo cell", async ({ page }) => {
+    await gotoReady(page, "/");
+    const logo = (await page.getByTestId("shell-logo-cell").boundingBox())!;
+    const bar = (await page.getByTestId("shell-topbar").boundingBox())!;
+    expect(Math.round(bar.y)).toBe(Math.round(logo.y));
+    expect(Math.round(bar.height)).toBe(Math.round(logo.height));
   });
 });
 
