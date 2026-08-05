@@ -1,16 +1,22 @@
 import {
+  Baby,
   BadgeCheck,
   Bell,
   BookOpen,
+  Briefcase,
   Building2,
+  Car,
   CircleUser,
   ClipboardList,
   Cog,
+  Cpu,
+  Dumbbell,
   Flag,
   FolderTree,
   Gauge,
   Globe2,
   Heart,
+  Home,
   HelpCircle,
   KeyRound,
   LayoutDashboard,
@@ -18,16 +24,25 @@ import {
   ListChecks,
   MapPin,
   MessageSquare,
+  PawPrint,
   PlusCircle,
   ScrollText,
   Settings,
   Shield,
   ShieldCheck,
+  Shirt,
   ShoppingBag,
+  Smartphone,
+  Sofa,
   Sparkles,
   Store,
+  Tag,
   Users,
+  Wheat,
+  Wrench,
 } from "lucide-react";
+
+import type { LucideIcon } from "lucide-react";
 
 import type { NavItem, Panel, PanelAuthContext, PanelId } from "./panels.types";
 
@@ -269,4 +284,43 @@ export function visibleItems(items: readonly NavItem[], auth: PanelAuthContext):
       // it disappears entirely.
       .filter((item) => !item.children || item.children.length > 0)
   );
+}
+
+/**
+ * PER-CATEGORY ICON MAP (slug -> lucide glyph).
+ *
+ * Categories are DATA (public.categories), so they cannot carry a component in
+ * the database. This map is the presentation layer's opinion about the seeded
+ * top-level slugs, so a collapsed icon-only rail is readable WITHOUT hovering
+ * (INC-039: every category previously rendered the same Tag glyph).
+ *
+ * Unmapped slugs (new categories, subcategories) fall back to Tag — the rail
+ * still has a glyph on the single gutter, so nothing shifts.
+ */
+export const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  vehicles: Car,
+  "real-estate": Home,
+  property: Home,
+  electronics: Cpu,
+  "phones-tablets": Smartphone,
+  "home-furniture": Sofa,
+  "home-garden": Sofa,
+  "fashion-clothing": Shirt,
+  fashion: Shirt,
+  "health-beauty": Sparkles,
+  "baby-kids": Baby,
+  "sports-hobbies": Dumbbell,
+  "pets-animals": PawPrint,
+  "business-industrial": Briefcase,
+  jobs: Briefcase,
+  services: Wrench,
+  agriculture: Wheat,
+  food: Wheat,
+  education: BookOpen,
+  books: BookOpen,
+};
+
+/** The glyph for a category slug; Tag when the slug is not mapped. */
+export function categoryIcon(slug: string | null | undefined): LucideIcon {
+  return (slug ? CATEGORY_ICONS[slug] : undefined) ?? Tag;
 }
