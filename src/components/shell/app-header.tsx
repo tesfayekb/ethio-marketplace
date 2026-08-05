@@ -48,7 +48,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
         <span className="sr-only">{t("shell.searchLabel")}</span>
         <Search
           aria-hidden="true"
-          className="pointer-events-none absolute inset-inline-start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         />
         <input
           ref={inputRef}
@@ -64,7 +64,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
           type="button"
           aria-label={t("shell.searchClose")}
           onClick={onClose}
-          className="absolute inset-inline-end-1 top-1/2 inline-flex h-10 w-9 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:text-foreground"
+          className="absolute end-1 top-1/2 inline-flex h-10 w-9 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:text-foreground"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -127,7 +127,7 @@ export function AppHeader() {
             <span className="sr-only">{t("shell.searchLabel")}</span>
             <Search
               aria-hidden="true"
-              className="pointer-events-none absolute inset-inline-start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             />
             <input
               type="search"
