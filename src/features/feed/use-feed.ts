@@ -25,6 +25,15 @@ export interface UseFeedOptions {
   categoryId?: string | null;
   /** SEAM: accepted, not yet applied — see ranking.ts. */
   locationScope?: LocationScope;
+  /**
+   * SEAM: the concrete area chosen in the shell's location row
+   * (public.locations.id). Accepted and threaded through the same query pass
+   * as categoryId — so the two-dimensional filter (area x category) is
+   * structurally ready — but deliberately NOT applied: narrowing by location
+   * is the pre-launch location-scoping feature
+   * (docs/features/location-scoping.md).
+   */
+  locationNodeId?: string | null;
 }
 
 type ListingRow = {
@@ -63,7 +72,11 @@ function toFeedListing(row: ListingRow): FeedListing {
  * RLS already restricts the public read to status = 'active'; the explicit
  * filter here keeps the intent visible and lets the feed index be used.
  */
-export function useFeed({ categoryId = null, locationScope = "all-active" }: UseFeedOptions = {}) {
+export function useFeed({
+  categoryId = null,
+  locationScope = "all-active",
+  locationNodeId = null,
+}: UseFeedOptions = {}) {
   const [listings, setListings] = useState<FeedListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<boolean>(false);
@@ -84,7 +97,13 @@ export function useFeed({ categoryId = null, locationScope = "all-active" }: Use
       )
       .eq("status", "active");
 
+    // AXIS 1 — category: LIVE.
     if (categoryId) query = query.eq("category_id", categoryId);
+    // AXIS 2 — location: STUBBED. The .eq("location_id", locationNodeId) that
+    // belongs here (plus the city -> region -> country -> world widening ladder)
+    // lands with the location-scoping feature. Referenced so the seam is real
+    // and the hook re-runs when the area changes.
+    void locationNodeId;
 
     // CONTAINMENT (INC-031): this feature's data errors — a missing column on a
     // database that has not yet received a migration, a network failure, an RLS
@@ -117,7 +136,7 @@ export function useFeed({ categoryId = null, locationScope = "all-active" }: Use
     return () => {
       cancelled = true;
     };
-  }, [categoryId, locationScope, reloadToken]);
+  }, [categoryId, locationScope, locationNodeId, reloadToken]);
 
   return { listings, isLoading, error, retry };
 }

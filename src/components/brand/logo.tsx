@@ -78,7 +78,7 @@ function Lockup({ className }: { className?: string }) {
       <span
         aria-hidden="true"
         data-testid="logo-subline"
-        className="mt-1 flex w-full justify-between text-[0.6875rem] font-medium uppercase text-muted-foreground"
+        className="mt-px flex w-full justify-between text-[0.6875rem] font-medium uppercase text-muted-foreground"
       >
         {SUBLINE.map((letter, index) => (
           <span key={`${letter}-${index}`}>{letter}</span>
