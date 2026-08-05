@@ -1,20 +1,20 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `f1217a5d5275dead24c8b46ae4bc2e7282a874e2` (short `f1217a5`)
-- Conclusion: **FAILURE**
-- Completed (UTC): 2026-08-05T03:05:34Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/30971100323
+- Commit: `4ad6b7b55a7fa91637a6899573bfc84af0aaf3bd` (short `4ad6b7b`)
+- Conclusion: **SUCCESS**
+- Completed (UTC): 2026-08-05T03:12:50Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/30971492996
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Migration linter (with self-test) | success |
-| Hardcoded string scan (enforcing) | success |
 | Gitleaks secrets scan | success |
-| E2E (Playwright, ethio-staging) | failure |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Build, typecheck, lint | failure |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Build, typecheck, lint | success |
+| Hardcoded string scan (enforcing) | success |
 | Listing-write seam guard (with self-test) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| First-paint bundle budget (gzipped ceiling) | success |
+| Migration linter (with self-test) | success |
+| E2E (Playwright, ethio-staging) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
