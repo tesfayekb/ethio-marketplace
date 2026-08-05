@@ -146,26 +146,30 @@ export function AppHeader() {
           )}
         </button>
 
-        {/* md+ AND collapsed rail ONLY (INC-045): the corner cell shows the
-            icon-only mark when the rail is collapsed, so the wordmark moves
-            into the bar — after the toggle, before search. When the rail is
-            open the corner cell already carries the wordmark and this is
-            hidden, so the wordmark is never duplicated. Layout keys off the
-            attribute, not React state, so there is no first-frame flash. */}
+        {/* md+ AND collapsed rail ONLY (INC-045/INC-048): the corner cell shows
+            the icon-only mark when the rail is collapsed, so the LOCKUP —
+            "ethio.com" with its MARKETPLACE line — moves into the bar, after
+            the toggle and before search. The bar carries the lockup WITHOUT
+            the mark (the corner already shows it), so the brand appears in
+            exactly ONE place per state and is never duplicated. Layout keys
+            off the attribute, not React state, so there is no first-frame
+            flash. */}
         <Link
           to="/"
           aria-label={t("app.name")}
           data-testid="topbar-wordmark"
           className="hidden min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:[html[data-rail=collapsed]_&]:inline-flex"
         >
-          <Logo variant="wordmark" />
+          <Logo variant="lockup" />
         </Link>
 
-        {/* md+ : the real search field, in the bar. */}
+        {/* md+ : the real search field, in the bar. INC-049: its width is
+            CAPPED per breakpoint so it can never grow into the right-side
+            controls (language, theme, account) at tablet width. */}
         <form
           role="search"
           data-testid="search-inline"
-          className="hidden min-w-0 flex-1 md:block md:max-w-sm"
+          className="hidden min-w-0 flex-1 md:block md:max-w-[13rem] lg:max-w-xs xl:max-w-sm"
           onSubmit={(event) => event.preventDefault()}
         >
           <label className="relative block">
@@ -182,6 +186,7 @@ export function AppHeader() {
             />
           </label>
         </form>
+
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5 md:gap-2">
           {/* Phones only: the icon that opens the full-width row below. */}
