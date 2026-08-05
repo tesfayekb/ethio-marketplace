@@ -723,3 +723,60 @@ test.describe("marketplace rail is categories only", () => {
     await expect(rail.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
 });
+
+test.describe("panel follows the route", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "persistent rail is md+");
+
+  /**
+   * INC-057 — /settings is a real route, but the active panel was pure client
+   * state defaulting to "marketplace", so the settings page rendered BESIDE the
+   * marketplace category rail. The panel is now derived from the route.
+   */
+  test("/settings shows the Account context, and returning shows categories", async ({ page }) => {
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await expectSignedIn(page, user.displayName);
+
+    // Operator's path: land on marketplace first.
+    await gotoReady(page, "/");
+    const rail = page.getByTestId("app-rail");
+    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+
+    await gotoReady(page, "/settings");
+    await expect(page.getByTestId("panel-tab-account")).toHaveAttribute("aria-selected", "true");
+    // Account rail, not the category tree; and no marketplace location row.
+    await expect(rail.getByText(en["nav.overview"], { exact: true })).toBeVisible();
+    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("location-row")).toHaveCount(0);
+    // The settings page itself still renders (no placeholder).
+    await expect(page.getByRole("heading", { name: en["settings.title"] })).toBeVisible();
+
+    // Back to Marketplace: categories again, Settings not among them.
+    await page.getByTestId("panel-tab-marketplace").click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+    await expect(rail.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("location-row")).toBeVisible();
+  });
+
+  // INC-058 — the right cluster sits flush to the bar's right edge at md+.
+  test("top-bar controls are right-aligned at desktop width", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await gotoReady(page, "/");
+    const header = page.getByTestId("shell-topbar");
+    const controls = page.getByTestId("topbar-controls");
+    const headerBox = (await header.boundingBox())!;
+    const controlsBox = (await controls.boundingBox())!;
+    const rightGap = headerBox.x + headerBox.width - (controlsBox.x + controlsBox.width);
+    expect(rightGap).toBeLessThanOrEqual(20);
+  });
+
+  // Law F3 (UI convenience only): the Admin panel is absent for a non-admin.
+  test("admin panel is absent for a normal signed-in user", async ({ page }) => {
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await expectSignedIn(page, user.displayName);
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("panel-tab-admin")).toHaveCount(0);
+  });
+});
