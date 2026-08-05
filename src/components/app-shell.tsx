@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   /**
-   * INC-057 — PANEL/ROUTE DESYNC. `activePanel` used to be pure client state
+   * INC-058 — PANEL/ROUTE DESYNC. `activePanel` used to be pure client state
    * defaulting to "marketplace", so a real route such as /settings rendered its
    * page beside the MARKETPLACE category rail. The panel is now DERIVED: a
    * route that belongs to a panel owns the panel while it is open.
@@ -203,13 +203,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is
               gated by the SAME condition as the body: no location band on My
               Listings / Account / Admin (INC-052), and none on a route-owned
-              page such as /settings (INC-057). */}
+              page such as /settings (INC-058). */}
           {isFeedRoute && activePanel === "marketplace" ? <LocationSelector /> : null}
           {/* Band 4 + 5 */}
           <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
             <Breadcrumbs />
             {/* A route-owned page always renders itself; the placeholder is only
-                for panels whose pages do not exist yet (INC-057). */}
+                for panels whose pages do not exist yet (INC-058). */}
             {!isFeedRoute || activePanel === "marketplace" ? children : <PanelPlaceholder />}
           </main>
         </div>

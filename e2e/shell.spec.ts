@@ -728,7 +728,7 @@ test.describe("panel follows the route", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "persistent rail is md+");
 
   /**
-   * INC-057 — /settings is a real route, but the active panel was pure client
+   * INC-058 — /settings is a real route, but the active panel was pure client
    * state defaulting to "marketplace", so the settings page rendered BESIDE the
    * marketplace category rail. The panel is now derived from the route.
    */

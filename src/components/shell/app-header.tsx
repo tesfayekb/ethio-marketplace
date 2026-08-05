@@ -193,7 +193,7 @@ export function AppHeader() {
           </label>
         </form>
 
-        {/* INC-058: at md+ the capped search field cannot absorb the row's free
+        {/* INC-059: at md+ the capped search field cannot absorb the row's free
             space, so the cluster used to stop short of the bar's right edge.
             `md:ms-auto` pushes it flush right (Apex pattern). */}
         <div
