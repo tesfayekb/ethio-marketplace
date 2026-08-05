@@ -1,28 +1,41 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The woven-diamond loading spinner. Same motif as the logo, rotating.
- * Pure SVG + CSS — no image, no extra bytes over the wire.
+ * The woven-diamond loading spinner — SELF-DRAWING (operator's choice), not
+ * rotating: the diamond's outline draws itself edge by edge and loops.
  *
- * prefers-reduced-motion: the rotation is replaced by a gentle opacity pulse
- * (motion-safe / motion-reduce variants), never a hard spin.
+ * Implemented with a dash-offset sweep. The keyframes and the reduced-motion
+ * rule are scoped inside this component so the spinner stays self-contained —
+ * no global stylesheet edit, no extra bytes on pages that never render it.
  *
- * The label is supplied by the caller as an already-translated string (law D1:
- * this component never holds a literal).
+ * prefers-reduced-motion: the animation is dropped entirely and the mark HOLDS
+ * fully drawn and static (never a spin, never a flash).
+ *
+ * The label arrives already translated (law D1: no literals in here).
  */
+const DRAW_CSS = `
+@keyframes ethio-draw {
+  0%   { stroke-dashoffset: 80; }
+  55%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -80; }
+}
+.ethio-draw { stroke-dasharray: 80; animation: ethio-draw 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .ethio-draw { animation: none; stroke-dashoffset: 0; }
+}
+`;
+
 export function Spinner({ label, className }: { label: string; className?: string }) {
   return (
     <span
       role="status"
       aria-live="polite"
+      data-testid="spinner"
       className={cn("inline-flex items-center gap-2", className)}
     >
-      <svg
-        viewBox="0 0 32 32"
-        aria-hidden="true"
-        focusable="false"
-        className="h-6 w-6 motion-safe:animate-spin motion-reduce:animate-pulse"
-      >
+      <style>{DRAW_CSS}</style>
+      <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false" className="h-6 w-6">
+        {/* The unlit track keeps the shape legible while the stroke sweeps. */}
         <path
           d="M16 2 30 16 16 30 2 16Z"
           className="fill-none stroke-border"
@@ -30,12 +43,13 @@ export function Spinner({ label, className }: { label: string; className?: strin
           strokeLinejoin="round"
         />
         <path
-          d="M16 2 30 16"
-          className="fill-none stroke-primary"
+          d="M16 2 30 16 16 30 2 16Z"
+          data-testid="spinner-draw"
+          className="ethio-draw fill-none stroke-primary"
           strokeWidth="2.5"
+          strokeLinejoin="round"
           strokeLinecap="round"
         />
-        <path d="M16 12.5 19.5 16 16 19.5 12.5 16Z" className="fill-gold" />
       </svg>
       <span className="text-sm text-muted-foreground">{label}</span>
     </span>
