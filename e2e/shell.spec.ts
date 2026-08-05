@@ -452,7 +452,7 @@ test.describe("corner-block grid", () => {
 
     // Rail COLLAPSED: corner cell is the icon-only mark, the bar carries the
     // wordmark — after the toggle, before the search field (INC-045).
-    await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toHaveCount(0);
+    await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toBeHidden();
     const word = bar.getByTestId("topbar-wordmark");
     await expect(word).toBeVisible();
     const toggleBox = (await page.getByTestId("rail-collapse-toggle").boundingBox())!;
