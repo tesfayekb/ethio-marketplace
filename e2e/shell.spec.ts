@@ -498,6 +498,14 @@ test.describe("tablet chrome (md = 768px)", () => {
     await expect(page.getByTestId("language-switcher-short")).toBeHidden();
     await expect(page.getByRole("link", { name: en["auth.signIn"], exact: true })).toBeVisible();
 
+    // INC-049: at tablet width the search field must not run into the language
+    // control — it is capped, so the two never overlap and nothing is clipped.
+    const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
+    const langBox = (await page.getByTestId("language-switcher").boundingBox())!;
+    expect(searchBox.x + searchBox.width).toBeLessThanOrEqual(langBox.x);
+    expect(langBox.width).toBeGreaterThan(40);
+
+
     await expectNoHorizontalOverflow(page);
   });
 
