@@ -17,8 +17,13 @@ export function Feed() {
   });
 
   return (
-    <section>
+    // INC-044: the body column is centred with EQUAL left/right gutters — the
+    // container carries symmetric auto margins, so the empty-state card sits in
+    // the middle of the available space at every width instead of hugging the
+    // rail edge.
+    <section data-testid="feed-container" className="mx-auto w-full max-w-6xl">
       <h1 className="text-xl font-semibold text-foreground">
+
         {t("feed.heading").replace("{location}", t("feed.scopeAll"))}
       </h1>
 
