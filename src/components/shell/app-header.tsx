@@ -74,10 +74,20 @@ function SearchRow({ onClose }: { onClose: () => void }) {
 }
 
 /**
- * The MINIMAL top bar — band 1. Items, evenly distributed on mobile:
- * hamburger · logo · search · language · theme · avatar-or-sign-in.
- * The panel dropdown that used to live here is gone; panel switching is the
- * tab row below (and the drawer's list on mobile).
+ * The top bar — band 1.
+ *
+ * TWO presentations, one markup, split at `md` (768px):
+ *   - BELOW md (phones only): minimized — hamburger · wordmark · search icon ·
+ *     language · theme · avatar/sign-in, with search opening the full-width row
+ *     below the bar. This is the ONLY size that minimizes.
+ *   - md AND UP (tablets, desktops): the rail is persistent and the logo lives
+ *     in the corner cell, so the bar carries FULL controls — a real search
+ *     FIELD with its placeholder, the language control showing the language
+ *     NAME, and a labelled account/sign-in control. No bare icons to decode.
+ *
+ * Height: the bar fills grid row 1 (4rem) from md up (`md:h-full`), so its top
+ * and bottom edges are the logo cell's by construction. On phones there is no
+ * grid row to fill and the bar is its own compact 3.5rem.
  */
 export function AppHeader() {
   const { t } = useI18n();
@@ -86,32 +96,55 @@ export function AppHeader() {
 
   return (
     <div className="w-full">
-      <header className="flex h-14 w-full items-center gap-1 border-b border-border bg-card px-2 lg:h-full lg:gap-2 lg:px-4">
+      <header className="flex h-14 w-full items-center gap-1 border-b border-border bg-card px-2 md:h-full md:gap-2 md:px-4">
         <button
           type="button"
           aria-label={t("shell.openMenu")}
-          className={`${ICON_BUTTON} lg:hidden`}
+          className={`${ICON_BUTTON} md:hidden`}
           onClick={() => setNavOpen(true)}
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
         {/* The wordmark — never icon-only in the bar; the icon-only variant is
-            reserved for the collapsed rail. Desktop shows it in the corner cell. */}
+            reserved for the collapsed rail. md+ shows it in the corner cell. */}
         <Link
           to="/"
           aria-label={t("app.name")}
-          className="inline-flex min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+          className="inline-flex min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
         >
           <Logo variant="wordmark" />
         </Link>
 
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5 lg:gap-2">
+        {/* md+ : the real search field, in the bar. */}
+        <form
+          role="search"
+          data-testid="search-inline"
+          className="hidden min-w-0 flex-1 md:block md:max-w-sm"
+          onSubmit={(event) => event.preventDefault()}
+        >
+          <label className="relative block">
+            <span className="sr-only">{t("shell.searchLabel")}</span>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-inline-start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              type="search"
+              data-testid="search-inline-input"
+              placeholder={t("shell.searchPlaceholder")}
+              className="min-h-11 w-full rounded-md border border-input bg-background ps-9 pe-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+        </form>
+
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5 md:gap-2">
+          {/* Phones only: the icon that opens the full-width row below. */}
           <button
             type="button"
             aria-label={t("shell.searchLabel")}
             aria-expanded={searchOpen}
             data-testid="search-toggle"
-            className={ICON_BUTTON}
+            className={`${ICON_BUTTON} md:hidden`}
             onClick={() => setSearchOpen((open) => !open)}
           >
             <Search className="h-4 w-4" aria-hidden="true" />
@@ -121,12 +154,20 @@ export function AppHeader() {
           {auth.isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button type="button" aria-label={t("shell.accountMenu")} className={ICON_BUTTON}>
+                <button
+                  type="button"
+                  aria-label={t("shell.accountMenu")}
+                  data-testid="account-menu"
+                  className="inline-flex min-h-11 min-w-0 shrink-0 items-center gap-2 rounded-md px-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
                   <Avatar className="h-7 w-7">
                     <AvatarFallback>
                       <User className="h-4 w-4" aria-hidden="true" />
                     </AvatarFallback>
                   </Avatar>
+                  <span className="hidden max-w-[10rem] truncate md:inline">
+                    {user?.displayName ?? t("shell.accountMenu")}
+                  </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -154,7 +195,7 @@ export function AppHeader() {
           ) : (
             <Link
               to="/auth"
-              className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-primary px-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-primary px-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:px-4"
             >
               {t("auth.signIn")}
             </Link>
