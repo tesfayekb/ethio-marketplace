@@ -121,3 +121,14 @@ category filter and returns the active panel to marketplace.
 The Marketplace rail's category tree is READ-ONLY reference data cached for the page
 session (first read shared by all callers, failures never cached), with 44px skeleton rows
 during the first read so the rail does not jump when the categories arrive.
+
+## Panel-scoped chrome (2026-08-05)
+
+- The location row (band 3) renders ONLY on the Marketplace panel — location
+  scoping is a marketplace concept. Other panels show top bar → panel tabs →
+  breadcrumbs → body (INC-052).
+- The Marketplace rail is the live category tree and nothing else; Settings
+  items belong to the Account panel and the My Listings "Manage" submenu
+  (INC-053, verified, no config change).
+- The rail-collapse toggle is md+ only; below md the hamburger/drawer is the
+  single sidebar affordance (INC-054/INC-046).
