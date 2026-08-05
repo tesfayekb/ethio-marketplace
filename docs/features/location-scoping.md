@@ -54,8 +54,13 @@ the category axis; the location row describes the geographic one.
 
 ## What this task stubbed (and where the seam is)
 
-- `src/components/shell/location-selector.tsx` — reads the live tree, cascades
-  it, writes the chosen node into shell state. Contains the comment marking
+- `src/components/shell/location-selector.tsx` — reads the live tree and walks
+  it as a STRICT cascade: `country -> region -> city -> sub_city`, one picker
+  per level, each level's options being the children of the level above's
+  selection. A level whose parent is unselected, or which has no rows in the
+  data (sub-city today), is not rendered at all. The pickers are the ONLY
+  display of the selection — the deepest selected picker IS the chosen area, so
+  no area label is echoed anywhere else (INC-041). Contains the comment marking
   everything above as out of scope.
 - `src/components/app-shell.tsx` — `locationPath` / `setLocationPath` on the
   shell context: the single place the chosen area lives.
@@ -68,3 +73,4 @@ the category axis; the location row describes the geographic one.
 
 Nothing else needs to move when the feature lands: the UI, the state, and the
 query seam are already in the shape the backend work expects.
+
