@@ -26,7 +26,7 @@ export function PanelTabs() {
       data-testid="panel-tabs"
       role="tablist"
       aria-label={t("shell.panelLabel")}
-      className="flex w-full items-stretch gap-1 overflow-x-auto border-b border-border bg-card px-3 lg:px-4"
+      className="flex w-full items-stretch gap-1 overflow-x-auto border-b border-border bg-card px-3 md:px-4"
     >
       {panels.map((panel) => {
         const Icon = panel.icon;

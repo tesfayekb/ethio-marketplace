@@ -155,7 +155,7 @@ export function LocationSelector() {
   return (
     <div
       data-testid="location-row"
-      className="flex w-full flex-wrap items-center gap-x-1 gap-y-0 border-b border-border bg-card px-3 py-1 lg:px-4"
+      className="flex w-full flex-wrap items-center gap-x-1 gap-y-0 border-b border-border bg-card px-3 py-1 md:px-4"
     >
       <span className="inline-flex min-h-11 shrink-0 items-center gap-2 pe-1 text-sm text-muted-foreground">
         <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
