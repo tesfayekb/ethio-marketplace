@@ -117,3 +117,7 @@ Home IS the marketplace feed, so on the marketplace panel the chain is
 `Home › <category path>` — the "Marketplace" segment is gone. Every other panel
 keeps its name as a real segment (`Home › Account › …`). Home still clears the
 category filter and returns the active panel to marketplace.
+
+The Marketplace rail's category tree is READ-ONLY reference data cached for the page
+session (first read shared by all callers, failures never cached), with 44px skeleton rows
+during the first read so the rail does not jump when the categories arrive.

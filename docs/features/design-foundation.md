@@ -295,3 +295,9 @@ the Featured badge. No background image, no gradient.
 - Exactly ONE sidebar affordance per breakpoint: hamburger below `md`, collapse
   toggle at `md`+ (INC-046).
 - Footer link rows are tighter; anchors keep their 44px tap boxes (INC-047).
+
+The bar search field is width-capped per breakpoint so it can never grow into the
+language/theme/account cluster (768/1024/1280 all lay out clean, nothing clipped). When the
+desktop rail is collapsed the top bar carries the two-line lockup WITHOUT the mark — the
+corner cell already shows the icon — so the brand is present exactly once, in one form, in
+every rail state. Footer links keep a 44px touch box under a visually tight row rhythm.
