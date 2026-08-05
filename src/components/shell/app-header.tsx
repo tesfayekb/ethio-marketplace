@@ -112,7 +112,7 @@ export function AppHeader() {
         <button
           type="button"
           aria-label={t("shell.openMenu")}
-          className={`${ICON_BUTTON} md:hidden`}
+          className={cn(ICON_BUTTON, "md:hidden")}
           onClick={() => setNavOpen(true)}
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
@@ -200,7 +200,7 @@ export function AppHeader() {
             aria-label={t("shell.searchLabel")}
             aria-expanded={searchOpen}
             data-testid="search-toggle"
-            className={`${ICON_BUTTON} md:hidden`}
+            className={cn(ICON_BUTTON, "md:hidden")}
             onClick={() => setSearchOpen((open) => !open)}
           >
             <Search className="h-4 w-4" aria-hidden="true" />

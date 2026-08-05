@@ -26,7 +26,11 @@ export function PanelTabs() {
       data-testid="panel-tabs"
       role="tablist"
       aria-label={t("shell.panelLabel")}
-      className="flex w-full items-stretch gap-1 overflow-x-auto border-b border-border bg-card px-3 md:px-4"
+      // INC-056: the row used to scroll horizontally (`overflow-x-auto`), which
+      // put a scrollbar under the tabs at phone widths. Tabs now SHARE the row:
+      // each is `min-w-0 flex-1` and its label truncates, so the set always fits
+      // and no axis ever overflows.
+      className="flex w-full min-w-0 items-stretch gap-1 border-b border-border bg-card px-3 md:px-4"
     >
       {panels.map((panel) => {
         const Icon = panel.icon;
@@ -40,7 +44,7 @@ export function PanelTabs() {
             data-testid={`panel-tab-${panel.id}`}
             onClick={() => setActivePanel(panel.id)}
             className={cn(
-              "inline-flex min-h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-sm transition-colors",
+              "inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 border-b-2 px-2 text-sm transition-colors md:px-3",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               active
                 ? "border-primary font-medium text-primary"
@@ -48,7 +52,7 @@ export function PanelTabs() {
             )}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="whitespace-nowrap">{t(panel.labelKey)}</span>
+            <span className="min-w-0 truncate">{t(panel.labelKey)}</span>
           </button>
         );
       })}
