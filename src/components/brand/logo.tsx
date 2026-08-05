@@ -64,17 +64,26 @@ const SUBLINE = "MARKETPLACE".split("");
  * and the row fills the column edge-to-edge. Scale the wordmark and the
  * tracking recomputes itself; no magic letter-spacing constant exists to drift.
  */
+function Wordmark({ size = "lg" }: { size?: "md" | "lg" }) {
+  return (
+    <span
+      data-testid="logo-wordmark"
+      className={cn(
+        "font-display font-semibold tracking-tight",
+        size === "lg" ? "text-xl" : "text-lg",
+      )}
+    >
+      <span className="text-primary">ethio</span>
+      <span className="text-gold">.</span>
+      <span className="text-primary">com</span>
+    </span>
+  );
+}
+
 function Lockup({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex flex-col leading-none", className)}>
-      <span
-        data-testid="logo-wordmark"
-        className="font-display text-xl font-semibold tracking-tight"
-      >
-        <span className="text-primary">ethio</span>
-        <span className="text-gold">.</span>
-        <span className="text-primary">com</span>
-      </span>
+      <Wordmark />
       <span
         aria-hidden="true"
         data-testid="logo-subline"
@@ -92,12 +101,25 @@ export function Logo({
   variant = "full",
   className,
 }: {
-  /** "icon" = the woven diamond alone (collapsed rail); "full" = mark + lockup. */
-  variant?: "icon" | "full";
+  /**
+   * "icon"     = the woven diamond alone — RESERVED for the collapsed rail.
+   * "wordmark" = mark + "ethio.com" on one line — the mobile top bar, where the
+   *              two-line lockup would crowd the other controls at 360px.
+   * "full"     = mark + the two-line lockup.
+   */
+  variant?: "icon" | "wordmark" | "full";
   className?: string;
 }) {
   if (variant === "icon") {
     return <WovenMark className={cn("h-7 w-7", className)} />;
+  }
+  if (variant === "wordmark") {
+    return (
+      <span className={cn("inline-flex items-center gap-1.5", className)}>
+        <WovenMark className="h-7 w-7 shrink-0" />
+        <Wordmark size="md" />
+      </span>
+    );
   }
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>

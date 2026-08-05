@@ -102,7 +102,7 @@ export function AppHeader() {
           aria-label={t("app.name")}
           className="inline-flex min-h-11 min-w-0 shrink items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
         >
-          <Logo variant="full" />
+          <Logo variant="wordmark" />
         </Link>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5 lg:gap-2">
@@ -154,7 +154,7 @@ export function AppHeader() {
           ) : (
             <Link
               to="/auth"
-              className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-primary px-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {t("auth.signIn")}
             </Link>

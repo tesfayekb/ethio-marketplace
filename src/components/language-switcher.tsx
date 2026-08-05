@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Languages } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -37,13 +37,12 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           data-testid="language-switcher"
           aria-label={t("language.label")}
           className={cn(
-            "inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm font-medium",
+            "inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-md px-1.5 text-sm font-medium",
             "text-muted-foreground hover:bg-muted hover:text-foreground",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             className,
           )}
         >
-          <Languages className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span lang={language}>{t(SHORT_KEYS[language])}</span>
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
