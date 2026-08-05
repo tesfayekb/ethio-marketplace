@@ -110,7 +110,9 @@ function LevelPicker({
           className={cn(
             "inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            selected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
+            selected
+              ? "font-medium text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           <span className="max-w-[9rem] truncate">{selected ? name(selected) : t(labelKey)}</span>
@@ -182,7 +184,11 @@ export function LocationSelector() {
             onSelect={(row) =>
               // Choosing at depth N replaces that level and drops everything
               // below it — the cascade can never hold an orphaned child.
-              setLocationPath(row ? [...locationPath.slice(0, level.depth), row] : locationPath.slice(0, level.depth))
+              setLocationPath(
+                row
+                  ? [...locationPath.slice(0, level.depth), row]
+                  : locationPath.slice(0, level.depth),
+              )
             }
           />
         ))
