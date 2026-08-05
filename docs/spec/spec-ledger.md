@@ -1048,3 +1048,9 @@ affordance exists per breakpoint — hamburger below `md`, collapse toggle at `m
 collapsing the rail moves the wordmark into the top bar so the chrome is never unbranded
 and never shows the wordmark twice. Footer rows are tightened without breaking the 44px
 tap floor. Presentational only: no token, auth, feed or location-scoping behaviour change.
+
+Brand-in-chrome rule: exactly one brand lockup renders per rail state — corner cell when
+the rail is open, mark-less two-line lockup in the top bar when it is collapsed. Chrome
+controls of fixed size are never crowded by flexible ones: the bar search field is capped
+per breakpoint. Reference data (category tree) is cached per page session and shows
+skeletons, never an empty rail, on first read.

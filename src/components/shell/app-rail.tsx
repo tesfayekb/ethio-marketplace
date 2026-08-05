@@ -229,9 +229,21 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
             },
           }}
         />
-        {nodes.map((node) => (
-          <RailRow key={node.key} node={node} />
-        ))}
+        {/* INC-050: while the tree is being read the rail shows placeholder
+            rows at the real 44px row height, so the sidebar does not jump when
+            the categories arrive. Cached reads skip this entirely. */}
+        {isLoading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <li key={`skeleton-${index}`} data-testid="rail-category-skeleton" aria-hidden="true">
+                <div className="flex min-h-11 items-center gap-2 px-3">
+                  <span className="h-4 w-4 shrink-0 animate-pulse rounded bg-muted" />
+                  <span
+                    className={cn("h-3 w-24 animate-pulse rounded bg-muted", HIDE_WHEN_COLLAPSED)}
+                  />
+                </div>
+              </li>
+            ))
+          : nodes.map((node) => <RailRow key={node.key} node={node} />)}
         {!isLoading && categories.length === 0 ? (
           <li className={cn("px-3 text-sm text-muted-foreground", HIDE_WHEN_COLLAPSED)}>
             {t("shell.categoriesEmpty")}

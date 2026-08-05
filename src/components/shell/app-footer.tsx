@@ -52,7 +52,7 @@ export function AppFooter() {
             <ul className="flex flex-col items-center">
               {index === 0 ? (
                 <li className="-my-1.5">
-                  <Link to="/" className={LINK}>
+                  <Link to="/" data-testid="footer-home" className={LINK}>
                     {t("nav.home")}
                   </Link>
                 </li>

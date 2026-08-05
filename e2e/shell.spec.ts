@@ -453,11 +453,18 @@ test.describe("corner-block grid", () => {
     await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toBeHidden();
     const word = bar.getByTestId("topbar-wordmark");
     await expect(word).toBeVisible();
+    // INC-048: the bar lockup carries the MARKETPLACE line too, and it is the
+    // lockup ONLY — the mark stays in the corner cell, never duplicated.
+    await expect(word.getByTestId("logo-subline")).toBeVisible();
+    await expect(word.locator("svg")).toHaveCount(0);
     const toggleBox = (await page.getByTestId("rail-collapse-toggle").boundingBox())!;
     const wordBox = (await word.boundingBox())!;
     const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
     expect(toggleBox.x).toBeLessThan(wordBox.x);
     expect(wordBox.x).toBeLessThan(searchBox.x);
+    // INC-049: search never grows into the right-side controls.
+    const langBox = (await page.getByTestId("language-switcher").boundingBox())!;
+    expect(searchBox.x + searchBox.width).toBeLessThanOrEqual(langBox.x);
   });
 
   test("the rail sign-out is absent for a logged-out visitor", async ({ page }) => {
@@ -490,6 +497,13 @@ test.describe("tablet chrome (md = 768px)", () => {
     await expect(fullLabel).toHaveText(en["language.english"]);
     await expect(page.getByTestId("language-switcher-short")).toBeHidden();
     await expect(page.getByRole("link", { name: en["auth.signIn"], exact: true })).toBeVisible();
+
+    // INC-049: at tablet width the search field must not run into the language
+    // control — it is capped, so the two never overlap and nothing is clipped.
+    const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
+    const langBox = (await page.getByTestId("language-switcher").boundingBox())!;
+    expect(searchBox.x + searchBox.width).toBeLessThanOrEqual(langBox.x);
+    expect(langBox.width).toBeGreaterThan(40);
 
     await expectNoHorizontalOverflow(page);
   });
@@ -604,7 +618,11 @@ test.describe("mobile chrome", () => {
       "sign in",
     );
     await expectTapTarget(page, page.getByTestId("language-switcher"), "language");
-    await expectTapTarget(page, page.getByRole("link", { name: en["nav.home"] }), "footer home");
+    // Scoped to the FOOTER on purpose: shadcn's BreadcrumbPage renders
+    // role="link" for the current page, so an unscoped role query matched the
+    // breadcrumb's 20px "Home" instead of the footer link (INC-051). The 44px
+    // floor is unchanged — this asserts the element the test always meant.
+    await expectTapTarget(page, page.getByTestId("footer-home"), "footer home");
     await expectTapTarget(
       page,
       page.getByRole("button", { name: en["shell.themeToggle"] }),

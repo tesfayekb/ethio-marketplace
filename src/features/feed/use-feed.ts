@@ -149,46 +149,64 @@ export interface FeedCategory {
 }
 
 /**
+ * PROCESS-LIFETIME CACHE (INC-050). The category tree is admin-managed
+ * reference data that every rail render needs, so re-reading it on each mount
+ * (panel switch, drawer open, route change) cost a visible load lag on a slow
+ * mobile connection. The first read is shared by every concurrent caller
+ * (`inFlight`) and its result is remembered for the rest of the page session
+ * (`cache`). Still READ-ONLY: nothing here writes, and a reload re-reads.
+ */
+let cache: FeedCategory[] | null = null;
+let inFlight: Promise<FeedCategory[]> | null = null;
+
+async function readCategories(): Promise<FeedCategory[]> {
+  const [{ data: cats }, { data: pointers }] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id,name_en,name_am,slug,display_order")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true }),
+    supabase.from("category_tree_pointers").select("child_id,parent_id"),
+  ]);
+  const childOfSomething = new Set(
+    (pointers ?? []).filter((p) => p.parent_id !== null).map((p) => p.child_id),
+  );
+  return (cats ?? [])
+    .filter((c) => !childOfSomething.has(c.id))
+    .map((c) => ({ id: c.id, nameEn: c.name_en, nameAm: c.name_am, slug: c.slug }));
+}
+
+/**
  * Live top-level categories for the Marketplace rail.
  * Top level = a category that is not the child of any tree pointer.
  */
 export function useCategories() {
-  const [categories, setCategories] = useState<FeedCategory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<FeedCategory[]>(cache ?? []);
+  const [isLoading, setIsLoading] = useState(cache === null);
 
   useEffect(() => {
+    if (cache !== null) return;
     let cancelled = false;
     setIsLoading(true);
 
-    void (async () => {
-      try {
-        const [{ data: cats }, { data: pointers }] = await Promise.all([
-          supabase
-            .from("categories")
-            .select("id,name_en,name_am,slug,display_order")
-            .eq("is_active", true)
-            .order("display_order", { ascending: true }),
-          supabase.from("category_tree_pointers").select("child_id,parent_id"),
-        ]);
+    inFlight ??= readCategories();
+    void inFlight
+      .then((rows) => {
+        cache = rows;
+        inFlight = null;
         if (cancelled) return;
-
-        const childOfSomething = new Set(
-          (pointers ?? []).filter((p) => p.parent_id !== null).map((p) => p.child_id),
-        );
-        setCategories(
-          (cats ?? [])
-            .filter((c) => !childOfSomething.has(c.id))
-            .map((c) => ({ id: c.id, nameEn: c.name_en, nameAm: c.name_am, slug: c.slug })),
-        );
+        setCategories(rows);
         setIsLoading(false);
-      } catch {
+      })
+      .catch(() => {
         // CONTAINMENT (INC-031): the rail degrades to "no categories" rather than
         // throwing through the shell. The feed itself stays fully usable.
+        // The failure is NOT cached, so the next mount retries.
+        inFlight = null;
         if (cancelled) return;
         setCategories([]);
         setIsLoading(false);
-      }
-    })();
+      });
 
     return () => {
       cancelled = true;
