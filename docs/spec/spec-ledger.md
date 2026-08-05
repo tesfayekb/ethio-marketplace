@@ -1024,3 +1024,17 @@ node into `useFeed` alongside `categoryId`, while narrowing, IP resolution and t
 city→region→country→world widening ladder remain the pre-launch location-scoping feature
 (docs/features/location-scoping.md). Category filtering and breadcrumb navigation are
 live. No new colour entered the palette.
+
+Session 2026-08-05 (layout correction pass): the responsive law is now ONE breakpoint —
+`md` (768px) — for both sidebar collapse and top-bar minimization. Tablets are not
+phones: from `md` up the shell shows the persistent rail and FULL controls (search FIELD
+with placeholder, language NAME, labelled account/sign-in); below `md` (phones only) the
+rail is the drawer and the bar minimizes to icons with the full-width search row beneath.
+Verified at 360/768/1280 with zero horizontal overflow. The top bar carries no intrinsic
+height at `md`+ and fills grid row 1, so bar and logo cell share top and bottom edges by
+construction. The footer is an explicit equal-thirds grid with halved row spacing and
+intact 44px tap boxes. The location row displays the resolved area exactly once (the
+picker holding it reads as its level name). Home is the breadcrumb root only and means
+the unfiltered Marketplace feed — clicking it restores the marketplace panel and clears
+the category; the panel tab remains "Marketplace". Presentational only: no new colour, no
+auth/settings/feed behaviour change, location filtering still stubbed.
