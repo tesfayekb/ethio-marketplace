@@ -453,11 +453,18 @@ test.describe("corner-block grid", () => {
     await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toBeHidden();
     const word = bar.getByTestId("topbar-wordmark");
     await expect(word).toBeVisible();
+    // INC-048: the bar lockup carries the MARKETPLACE line too, and it is the
+    // lockup ONLY — the mark stays in the corner cell, never duplicated.
+    await expect(word.getByTestId("logo-subline")).toBeVisible();
+    await expect(word.locator("svg")).toHaveCount(0);
     const toggleBox = (await page.getByTestId("rail-collapse-toggle").boundingBox())!;
     const wordBox = (await word.boundingBox())!;
     const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
     expect(toggleBox.x).toBeLessThan(wordBox.x);
     expect(wordBox.x).toBeLessThan(searchBox.x);
+    // INC-049: search never grows into the right-side controls.
+    const langBox = (await page.getByTestId("language-switcher").boundingBox())!;
+    expect(searchBox.x + searchBox.width).toBeLessThanOrEqual(langBox.x);
   });
 
   test("the rail sign-out is absent for a logged-out visitor", async ({ page }) => {
