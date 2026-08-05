@@ -319,20 +319,20 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
   return (
     <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-2">
       <WithTooltip label={t("auth.signOut")}>
-          <button
-            type="button"
-            data-testid="rail-sign-out"
-            aria-label={t("auth.signOut")}
-            style={pad}
-            onClick={() => {
-              onNavigate();
-              void signOut();
-            }}
-            className={cn(ITEM_BASE, ITEM_IDLE)}
-          >
-            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("auth.signOut")}</span>
-          </button>
+        <button
+          type="button"
+          data-testid="rail-sign-out"
+          aria-label={t("auth.signOut")}
+          style={pad}
+          onClick={() => {
+            onNavigate();
+            void signOut();
+          }}
+          className={cn(ITEM_BASE, ITEM_IDLE)}
+        >
+          <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("auth.signOut")}</span>
+        </button>
       </WithTooltip>
     </div>
   );

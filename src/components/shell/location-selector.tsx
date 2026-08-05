@@ -109,7 +109,9 @@ function LevelPicker({
           className={cn(
             "inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            selected ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
+            selected
+              ? "font-medium text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           {/* The picker shows its OWN selection — never a second copy of an
@@ -212,6 +214,5 @@ export function LocationSelector() {
     </div>
   );
 }
-
 
 export default LocationSelector;
