@@ -1,5 +1,5 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 
 import { Logo } from "@/components/brand/logo";
 import { AppFooter } from "@/components/shell/app-footer";
@@ -91,10 +91,33 @@ function PanelPlaceholder() {
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const { user, signOut } = useAuth();
-  const [activePanel, setActivePanel] = useState<PanelId>("marketplace");
+  const [panelChoice, setPanelChoice] = useState<PanelId>("marketplace");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [locationPath, setLocationPath] = useState<LocationNode[]>([]);
   const [navOpen, setNavOpen] = useState(false);
+
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  /**
+   * INC-058 — PANEL/ROUTE DESYNC. `activePanel` used to be pure client state
+   * defaulting to "marketplace", so a real route such as /settings rendered its
+   * page beside the MARKETPLACE category rail. The panel is now DERIVED: a
+   * route that belongs to a panel owns the panel while it is open.
+   */
+  const routePanel: PanelId | null = pathname.startsWith("/settings") ? "account" : null;
+  /** Only "/" is the marketplace feed; every other route renders its own page. */
+  const isFeedRoute = pathname === "/";
+  const activePanel: PanelId = routePanel ?? panelChoice;
+
+  /** Choosing a panel from a route-owned page returns to the feed shell. */
+  const setActivePanel = useCallback(
+    (panel: PanelId) => {
+      setPanelChoice(panel);
+      if (!isFeedRoute) void navigate({ to: "/" });
+    },
+    [isFeedRoute, navigate],
+  );
 
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {
@@ -118,7 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       navOpen,
       setNavOpen,
     };
-  }, [user, signOut, activePanel, selectedCategoryId, locationPath, navOpen]);
+  }, [user, signOut, activePanel, setActivePanel, selectedCategoryId, locationPath, navOpen]);
 
   return (
     <ShellContext.Provider value={value}>
@@ -179,12 +202,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           <PanelTabs />
           {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is
               gated by the SAME condition as the body: no location band on My
-              Listings / Account / Admin (INC-052). */}
-          {activePanel === "marketplace" ? <LocationSelector /> : null}
+              Listings / Account / Admin (INC-052), and none on a route-owned
+              page such as /settings (INC-058). */}
+          {isFeedRoute && activePanel === "marketplace" ? <LocationSelector /> : null}
           {/* Band 4 + 5 */}
           <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
             <Breadcrumbs />
-            {activePanel === "marketplace" ? children : <PanelPlaceholder />}
+            {/* A route-owned page always renders itself; the placeholder is only
+                for panels whose pages do not exist yet (INC-058). */}
+            {!isFeedRoute || activePanel === "marketplace" ? children : <PanelPlaceholder />}
           </main>
         </div>
 

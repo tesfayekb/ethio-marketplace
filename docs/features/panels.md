@@ -139,3 +139,15 @@ Band 2 does not scroll horizontally. Tabs share the row (`min-w-0 flex-1`) and t
 labels truncate, so the set fits at 360px and never paints a scrollbar. The Marketplace
 rail stays the live category tree only: no Settings entry in the rail or the mobile
 drawer (INC-053, asserted at both breakpoints).
+
+## Panel selection vs the router (INC-058)
+
+The active panel is DERIVED, not free-floating client state. A route that belongs to a
+panel owns the panel while it is open (`/settings` -> `account`). Only `/` renders the
+marketplace feed shell: on any other route the shell renders the route's own page rather
+than the panel placeholder, and the location row (a marketplace concept) is absent.
+Choosing a panel tab from a route-owned page returns to `/`.
+
+Admin gating is unchanged: `panelsForUser` appends the Admin panel only when
+`auth.isAdmin` is true, which is still stubbed `false` (law F3 — the server remains the
+only authorization authority).
