@@ -78,6 +78,10 @@
   **pending operator apply on `ethio-staging`**
 - Design foundation (AppShell, panels, tokens, typography, brand, feed shape) — CLOSED
 
+Planning documents for the posting epoch (read in this order): `docs/features/performance-strategy.md`,
+`docs/spec/posting-flow-spec.md`, `docs/spec/posting-foundations-build-plan.md`; thread context in
+`docs/governance/handoffs/2026-08-05-thread3-handoff.md`.
+
 Next: **P2-c-form** (the Post a Listing body on the My Listings panel), then view-tracking
 and location-scoping with real ranking — the two pre-launch backend features that fill the
 feed's documented seams.
@@ -89,4 +93,4 @@ Knowledge: v3.1 + H2 (`docs/governance/lovable-knowledge.md`).
 
 Launch-gate items: see `docs/governance/launch-gate.md`.
 
-Updated: 2026-08-04
+Updated: 2026-08-05

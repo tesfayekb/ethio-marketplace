@@ -27,3 +27,6 @@ docs/tracking/nightly-status.md
 
 # Guard-proof mutation fixtures — unified diffs, not source (see docs/features/guard-proof.md).
 e2e/proofs/*.patch
+
+# Verbatim-imported supervisor document (same class as docs/spec/, docs/governance/; INC-007).
+docs/features/performance-strategy.md
