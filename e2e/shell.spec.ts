@@ -156,7 +156,8 @@ test.describe("app shell", () => {
       clone.querySelectorAll("[data-testid^='location-level-']").forEach((n) => n.remove());
       return (clone.textContent ?? "").trim();
     });
-    expect(outside, "an area label is echoed outside the pickers").toBe("");
+    // Only the screen-reader-only row label may live outside the pickers.
+    expect(outside, "an area label is echoed outside the pickers").toBe(en["location.label"]);
   });
 
   test("breadcrumb segments navigate the category path", async ({ page }) => {
