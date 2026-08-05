@@ -604,7 +604,11 @@ test.describe("mobile chrome", () => {
       "sign in",
     );
     await expectTapTarget(page, page.getByTestId("language-switcher"), "language");
-    await expectTapTarget(page, page.getByRole("link", { name: en["nav.home"] }), "footer home");
+    // Scoped to the FOOTER on purpose: shadcn's BreadcrumbPage renders
+    // role="link" for the current page, so an unscoped role query matched the
+    // breadcrumb's 20px "Home" instead of the footer link (INC-051). The 44px
+    // floor is unchanged — this asserts the element the test always meant.
+    await expectTapTarget(page, page.getByTestId("footer-home"), "footer home");
     await expectTapTarget(
       page,
       page.getByRole("button", { name: en["shell.themeToggle"] }),
