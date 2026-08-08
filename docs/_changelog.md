@@ -94,3 +94,4 @@
 2026-08-05 — fix: shell panel/route sync — /settings now renders inside the Account panel context, not the marketplace rail (INC-058); top-bar controls right-aligned at md+ (INC-059); admin gating re-confirmed unchanged.
 2026-08-05 — docs: thread-3 handoff + performance strategy + posting-flow spec + posting foundations build plan imported.
 2026-08-05 — ci: CI Status Reporter regenerate-after-fetch + retry (staleness class, third strike; mirrors nightly INC-027 fix)
+2026-08-07 — docs: DEC-013 resequencing ratified (Phase R RBAC-first; F/G named); REQ-039/040 adopted; gap register created; S25 + INC-060/061 recorded

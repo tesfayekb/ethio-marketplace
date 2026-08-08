@@ -48,6 +48,7 @@
     `DROP ... IF EXISTS` before `CREATE`, `ON CONFLICT DO NOTHING` seeds).
   - Queued for the P2 gate: INC-028 (duplicate `public.update_updated_at_column()`
     entry in `pg_proc`).
+- **DEC-013 (2026-08-07):** marketplace epoch resequenced R→A→B→C→D→F→G; **Phase R (RBAC core) inserted before A1** and is the current build target; Discovery (F) and Contact (G) are named pre-launch phases; the governance 0–9 ladder remains the master map. See spec-ledger DEC-013 + docs/tracking/gap-register.md.
 
 
 ## The three standing supervisor reads
