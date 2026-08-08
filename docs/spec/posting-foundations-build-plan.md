@@ -4,6 +4,7 @@ Status: OPERATOR-DECIDED scope, informed by direct study of the Apex repository
 (github.com/tesfayekb/apex-marketplace). This supersedes the open questions in
 posting-flow-spec.md Part E — all six decisions are now made. This document is the
 executable sequence.
+AMENDED 2026-08-07 by DEC-013: §4 replaced (R→A→B→C→D→F→G); §6 replaced. See spec-ledger DEC-013.
 
 ---
 
@@ -102,69 +103,69 @@ Apex is a production-grade reference for nearly every system we need. Key findin
 
 ---
 
-## 4. The build sequence (foundations first, then the wizard, then AI)
+## 4. The build sequence (DEC-013: R → A → B → C → D → F → G)
 
 Each item = its own Pass-2 spec → operator approval → execution prompt → fresh-clone
 verification → CI green. Serial discipline throughout.
 
+### PHASE R — RBAC core (Tier A; DB layer only, no admin UI) — DEC-013
+Shield-lineage model per REQ-030 (Apex ADR-001 as direct reference — resources →
+permissions → roles → users, Filament Shield heritage; Apex migration 20260105071112 as
+schema donor): tables resources, permissions(resource_id, action), roles (priority,
+is_system), role_permissions, user_roles (+country scope), audit_log; has_permission()
+STABLE SECURITY DEFINER as sole authority; get_role_hierarchy(); is_system DB triggers
+refusing UPDATE/DELETE even for superadmin; last-superadmin protection; requires_step_up
+seam column; seed 3 system roles + superadmin bootstrap (operator account); retrofit
+admin-write policies across all existing tables; deny-case tests; route↔permission CI
+guard armed; panel routing on real permissions, redirect-not-dead-end.
+HARD PERFORMANCE CONSTRAINTS (operator directive 2026-08-07):
+(1) has_permission() never appears in hot public-read policies — the anonymous/regular
+    browse path is unchanged byte-for-byte;
+(2) regular users carry no roles (ownership RLS covers buyers/sellers);
+(3) staff permissions = one cached session fetch (TTL + invalidate-on-role-change;
+    no caching under impersonation);
+(4) the permissions client module code-splits with admin routes — zero marketplace-bundle
+    cost; browse-path files may not import permission hooks (CI-guarded).
+Deliverables: migration set + seeds, deny-case proofs, live-DB read-back,
+route↔permission guard green, panels wired to real permissions, audit_log receiving its
+first entries. E2E: permission-denied redirect path.
+
 ### PHASE A — Data foundations (no AI, no UI; migrations + seeds)
-- **A1 (F1+F5): The real category tree + attributes.** Import the Apex/ethio.com taxonomy
-  (~112 categories, multi-level to leaves) into our pointer model, with per-category
-  lucide icons, and the real per-category attribute definitions. Adds `image_url` (card)
-  + `og_image_url` columns (empty until A4 generates them). Leaf rule: only leaves accept
-  listings.
-- **A2 (F2): Multi-location advertising.** New `listing_locations` relationship (one
-  country v1; multiple regions/cities/subcities). submit_listing extended to accept the
-  set atomically.
-- **A3 (F12+F13): Seller profile foundations.** Alias (validated, unique — later
-  AI-validated via the ai-validate-alias pattern), contact-methods structure, default
-  item location; all prefilled on subsequent posts. Personal-only.
-- **A2b (F10 minor): listings exact-location columns** (lat/lng + map_visible) for the
-  map pin.
+Unchanged content: A1 (F1+F5) real category tree + attributes import → A2 (F2)
+listing_locations → A2b (F10) exact-location columns → A3 (F12+F13) seller profile
+foundations. All new tables write their policies against has_permission() at birth.
 
 ### PHASE B — The posting wizard (v1, manual content, stub screening)
-- **B1: Wizard shell + steps 1–8** adapted from the Apex wizard to our shell/panels/
-  tokens/i18n (EN+AM): Category(leaf-gated)+AdvertisingLocations → Photos(category-image
-  fallback; uploads stored behind the exif_stripped gate) → Specs(+tags if A-seeded) →
-  Title/Description(manual) → Pricing+Duration → ItemLocation(+map pin, code-split) →
-  Contact(prefill) → Review+Preview+Publish. Publish calls submit_listing; screening is
-  the existing pass-through stub QUEUEING for Phase D. Full E2E per feature (G15).
-- **B2 (F3): The image pipeline.** On-device compress/resize → upload → server EXIF/GPS
-  strip → variants → exif_stripped=true → surfaceable. DEC-009 hard gate closes here;
-  photos display in feed/detail only after this lands. The #1 perf lever.
-- **B3 (F15): Listing detail card + review/preview** surfaces (needed by Step 8's preview
-  and by the marketplace browse).
+B1 wizard steps 1–8 (as previously specified) → B2 (F3) image pipeline (DEC-009 gate
+closes) → B3 (F15) listing detail card + review/preview → B4 (DEC-013): per-action rate
+limit on post (REQ-038 first consumer) + ToS/Privacy v1 pages (Step-8 dependency,
+pre-counsel per DEC-013 §6) + My Listings management basics (edit/renew/mark-sold).
 
-### PHASE C — Admin category console (needed for C→D)
-- **C1: Admin categories body** (the first real admin panel feature): tree CRUD,
-  add-subcategory, icons (with suggest-category-icon later), attribute management,
-  visibility. REQUIRES server-side RBAC/RLS FIRST (the launch-gate law F3 item) — a
-  real admin role, enforced in policies, not UI-gating. This is the admin panel's
-  security foundation and gets Tier-A treatment.
-- **C2 (F4): Category image generation.** The generate-category-image adaptation:
-  admin triggers generation → AI produces candidates → admin SELECTS ONE → stored
-  (WebP+PNG, card + OG variants) → used as the listing fallback. Batch mode for
-  categories missing images. OPERATOR ITEM: AI provider account/key.
+### PHASE C — Admin epoch
+C1 admin categories console (RBAC exists — Phase R) → C2 (F4) category image generation
+(OPERATOR ITEM: AI provider account/key) → C3 translation dashboard (REQ-002 S10; Tier A
+surface: step-up, audit-logged, AI pipeline through REQ-021) → C4 Users page + role
+assignment (+narrow impersonation when ruled).
 
-### PHASE D — The AI screening system (three-tier, Tier-A, its own careful build)
-- **D1: The moderation pipeline** adapted from ai-moderate-content/-image with our
-  hardening standards: text+image screening on every submission, three-tier routing
-  (auto-approve / auto-reject-with-appeal / human queue), rule-based fallback when AI
-  is down, full audit logging. Fills the submit_listing screening seam (REQ-021).
-- **D2: Enforcement** adapted from ai-process-strike: graduated strikes, trust score,
-  configurable thresholds, expiration; auto-actions at the severe end, human
-  confirmation at the border; appeal path.
-- **D3: The admin review queue + appeals UI** (small by design — only the ambiguous).
-- Trajectory instrumentation: measure AI accuracy (overturn rates in the queue/appeals)
-  so thresholds can be tightened toward the minimal-human-intervention goal.
+### PHASE D — The AI screening system (three-tier, Tier A)
+Unchanged: D1 moderation pipeline (fills the submit_listing seam, REQ-021) → D2
+enforcement (strikes, trust score) → D3 admin review queue + appeals. Trajectory
+instrumentation toward minimal human intervention.
 
-### PHASE E — Enrichments (each its own pass, post-v1)
-- AI title/description generation (ai-generate-listing-content adaptation).
-- AI field validators in-wizard (alias, category suggestions).
-- Business accounts / storefronts. Multi-country + per-country pricing (v2).
-- SEO generation (ai-generate-seo), OG images, suggest-category-icon.
+### PHASE F — Discovery (pre-launch, DEC-013)
+Real feed + self-learning ranking (REQ-023); geo-scope backend for the location selector
+(REQ-005); search v1 incl. cross-language via the REQ-004 translation layer; promotions
+free-mode seam (REQ-024); SEO implementation items per gap register.
 
----
+### PHASE G — Contact (pre-launch, DEC-013)
+Messaging (REQ-026); block/report; scam defense per REQ-028.
+
+### PHASE E — Enrichments (each its own pass; interleave after D)
+AI title/description generation; AI field validators in-wizard; business accounts /
+storefronts; multi-country + per-country pricing (v2); SEO generation extras.
+
+Then governance ladder Phases 7–9 (i18n completion, Ops incl. REQ-031/032 + REQ-039
+PWA + REQ-040 observability + GDPR rights, Hardening/launch) close out to launch.
 
 ## 5. Standing requirements across every phase (operator directive)
 
@@ -177,4 +178,5 @@ Apex repo directly during execution (the operator has offered it as reference).
 
 ## 6. Immediate next action
 
-Write the **A1 spec (category tree + attributes import)** — everything downstream hangs
+Write the **Phase R spec (RBAC core)** — DEC-013 §1. Everything downstream builds its
+policies on it.
