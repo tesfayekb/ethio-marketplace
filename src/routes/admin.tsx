@@ -32,17 +32,16 @@ function AdminGate() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { user } = useShell();
-  const { permissions, loading, error } = usePermissions();
+  const { permissions, loading } = usePermissions({ enabled: user !== null });
 
   const allowed = permissions.includes(ADMIN_PANEL_PERMISSION);
-  const settled = !loading && (user === null || Boolean(error) || permissions.length > 0 || true);
 
   useEffect(() => {
     if (loading) return;
     if (!allowed) void navigate({ to: "/", replace: true });
   }, [allowed, loading, navigate]);
 
-  if (loading || !settled || !allowed) {
+  if (loading || !allowed) {
     return (
       <div
         role="status"
