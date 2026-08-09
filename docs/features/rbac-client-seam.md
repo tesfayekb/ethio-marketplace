@@ -4,13 +4,13 @@ The client half of the RBAC core built in R1/R1a/R2/R2b.
 
 ## Files
 
-| File                                      | Role                                                               |
-| ----------------------------------------- | ------------------------------------------------------------------ |
-| `src/features/permissions/service.ts`     | `fetchMyPermissions()` → `get_my_permissions()` RPC; `resource:action` slugs. Throws on error (law F4 — a failed read is never "no permissions"). |
-| `src/features/permissions/usePermissions.ts` | TanStack Query wrapper. Key `['my-permissions']`, `staleTime` 5 min, `gcTime` 10 min, `retry` 1, `enabled` opt-out. |
-| `src/routes/admin.tsx`                    | `/admin` landing. Gate = REDIRECT to `/`, never a dead-end denial page. `noindex`. |
-| `scripts/check-browse-imports.sh`         | CI guard: the seam may not be imported outside the allowlist.       |
-| `e2e/rbac.spec.ts`                        | R-1 logged out, R-2 regular user, R-3 staff user.                   |
+| File                                         | Role                                                                                                                                              |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/features/permissions/service.ts`        | `fetchMyPermissions()` → `get_my_permissions()` RPC; `resource:action` slugs. Throws on error (law F4 — a failed read is never "no permissions"). |
+| `src/features/permissions/usePermissions.ts` | TanStack Query wrapper. Key `['my-permissions']`, `staleTime` 5 min, `gcTime` 10 min, `retry` 1, `enabled` opt-out.                               |
+| `src/routes/admin.tsx`                       | `/admin` landing. Gate = REDIRECT to `/`, never a dead-end denial page. `noindex`.                                                                |
+| `scripts/check-browse-imports.sh`            | CI guard: the seam may not be imported outside the allowlist.                                                                                     |
+| `e2e/rbac.spec.ts`                           | R-1 logged out, R-2 regular user, R-3 staff user.                                                                                                 |
 
 ## Gating
 
