@@ -1,0 +1,9 @@
+// KNOWN-BAD FIXTURE — not compiled, not shipped. `.ts.txt` on purpose.
+// A browse-path component that pulls the RBAC permission seam onto the
+// marketplace first-paint path. scripts/check-browse-imports.sh MUST flag it.
+import { usePermissions } from "@/features/permissions/usePermissions";
+
+export function BadFeedCard() {
+  const { permissions } = usePermissions();
+  return permissions.length;
+}
