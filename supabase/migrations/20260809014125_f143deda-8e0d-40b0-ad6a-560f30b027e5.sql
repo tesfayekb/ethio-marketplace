@@ -1,4 +1,5 @@
 -- Phase R2 — additive admin policies via has_permission(). No existing policy altered.
+-- 2026-08-09 INC-064: probe uuids made dynamic for cross-environment apply; policies unchanged.
 
 CREATE POLICY categories_admin_all ON public.categories
   FOR ALL TO authenticated
@@ -53,14 +54,30 @@ GRANT INSERT, UPDATE, DELETE ON public.countries TO authenticated;
 -- performed inside a subtransaction that is deliberately aborted.
 DO $$
 DECLARE
-  v_base uuid := '78e789f8-4c80-4490-9d68-15d3ce95899d'; -- base 'user' role only
-  v_super uuid := 'b3c1e67e-d5a4-4bc2-ac11-169ba5c011e1'; -- operator super_admin
+  v_base uuid;  -- resolved dynamically: a user holding ONLY the base 'user' role
+  v_super uuid; -- resolved dynamically: any super_admin
   v_deny_err text := NULL;
   v_super_ok boolean := false;
   v_anon_count bigint;
   v_before bigint;
   v_after bigint;
 BEGIN
+  v_super := (SELECT ur.user_id FROM public.user_roles ur
+              JOIN public.roles r ON r.id = ur.role_id
+              WHERE r.name = 'super_admin' LIMIT 1);
+  v_base := (SELECT ur.user_id FROM public.user_roles ur
+             JOIN public.roles r ON r.id = ur.role_id
+             WHERE r.name = 'user'
+               AND NOT EXISTS (SELECT 1 FROM public.user_roles ur2
+                               JOIN public.roles r2 ON r2.id = ur2.role_id
+                               WHERE ur2.user_id = ur.user_id AND r2.name <> 'user')
+             LIMIT 1);
+
+  IF v_super IS NULL OR v_base IS NULL THEN
+    RAISE NOTICE 'R2 probes skipped: fixture users absent';
+    RETURN;
+  END IF;
+
   SELECT count(*) INTO v_before FROM public.categories;
 
   -- (a) base user must be denied

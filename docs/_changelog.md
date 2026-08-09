@@ -98,3 +98,4 @@
 2026-08-08 — feat(rbac): Phase R1 — RBAC core schema/functions/triggers/seeds + superadmin bootstrap (DEC-013, REQ-030)
 2026-08-09 — fix(rbac): R1a — lock down log_audit/helper EXECUTE grants (INC-062); cascade-aware base-role guard (INC-063)
 2026-08-09 — feat(rbac): R2 — admin policies retrofit across catalog/listings/profiles via has_permission (Phase R, DEC-013)
+2026-08-09 — feat(rbac): R2b — append-only audit trigger; audit perms pruned to view/export; per-command RBAC policies; INC-064 probe portability; definer-grant CI guard
