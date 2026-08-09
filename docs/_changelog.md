@@ -103,3 +103,4 @@
 - 2026-08-09 — Phase R3: RBAC client seam (`src/features/permissions`), `/admin` route with redirect gate, permission-driven Admin panel tab, browse-path CI guard with self-test, RBAC E2E (`e2e/rbac.spec.ts`), and the function-matrix proof migration applied to ethio-prod. Docs: `docs/features/rbac-client-seam.md`.
 - 2026-08-09 — test(rbac): R3a — assign/revoke success-path + audit write proofs (closes the Phase R function matrix)
 - 2026-08-09 — fix(ci): changelog list-prefix red-main repair; pin bun 1.3.14 (INC-009 determinism; INC-065)
+- 2026-08-09 — docs: Phase R gate record — S26, four-lens close-out review, system-state updated (DEC-013 Phase R complete)
