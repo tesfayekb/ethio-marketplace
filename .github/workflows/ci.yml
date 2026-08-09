@@ -53,6 +53,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Self-tests first: a guard that only ever passes proves nothing.
+      - name: Guard self-tests (RLS fixture + SECURITY DEFINER sample)
+        run: SELF_TEST=1 bash scripts/check-migrations.sh
       - name: Run migration guard
         run: bash scripts/check-migrations.sh
 
