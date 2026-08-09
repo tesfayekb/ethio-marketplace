@@ -96,3 +96,4 @@
 2026-08-05 — ci: CI Status Reporter regenerate-after-fetch + retry (staleness class, third strike; mirrors nightly INC-027 fix)
 2026-08-07 — docs: DEC-013 resequencing ratified (Phase R RBAC-first; F/G named); REQ-039/040 adopted; gap register created; S25 + INC-060/061 recorded
 2026-08-08 — feat(rbac): Phase R1 — RBAC core schema/functions/triggers/seeds + superadmin bootstrap (DEC-013, REQ-030)
+2026-08-09 — fix(rbac): R1a — lock down log_audit/helper EXECUTE grants (INC-062); cascade-aware base-role guard (INC-063)
