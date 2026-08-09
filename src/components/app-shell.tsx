@@ -9,10 +9,10 @@ import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { LocationSelector } from "@/components/shell/location-selector";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
-import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
-import { usePermissions } from "@/features/permissions/usePermissions";
 import { useAuth } from "@/features/auth/use-auth";
 import type { AuthUser } from "@/features/auth/types";
+import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
+import { usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 

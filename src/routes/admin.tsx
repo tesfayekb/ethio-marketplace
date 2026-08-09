@@ -31,17 +31,18 @@ export const Route = createFileRoute("/admin")({
 function AdminGate() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { user } = useShell();
+  const { user, authLoading } = useShell();
   const { permissions, loading } = usePermissions({ enabled: user !== null });
+  const pending = authLoading || loading;
 
   const allowed = permissions.includes(ADMIN_PANEL_PERMISSION);
 
   useEffect(() => {
-    if (loading) return;
+    if (pending) return;
     if (!allowed) void navigate({ to: "/", replace: true });
-  }, [allowed, loading, navigate]);
+  }, [allowed, pending, navigate]);
 
-  if (loading || !allowed) {
+  if (pending || !allowed) {
     return (
       <div
         role="status"
