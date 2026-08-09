@@ -26,6 +26,8 @@ export type LocationNode = {
 type ShellValue = {
   auth: PanelAuthContext;
   user: AuthUser | null;
+  /** True while the session is still unknown (SSR / first load). */
+  authLoading: boolean;
   signOut: () => Promise<unknown>;
   activePanel: PanelId;
   setActivePanel: (panel: PanelId) => void;
