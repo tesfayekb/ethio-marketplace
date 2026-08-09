@@ -101,3 +101,4 @@
 2026-08-09 — feat(rbac): R2b — append-only audit trigger; audit perms pruned to view/export; per-command RBAC policies; INC-064 probe portability; definer-grant CI guard
 
 - 2026-08-09 — Phase R3: RBAC client seam (`src/features/permissions`), `/admin` route with redirect gate, permission-driven Admin panel tab, browse-path CI guard with self-test, RBAC E2E (`e2e/rbac.spec.ts`), and the function-matrix proof migration applied to ethio-prod. Docs: `docs/features/rbac-client-seam.md`.
+2026-08-09 — test(rbac): R3a — assign/revoke success-path + audit write proofs (closes the Phase R function matrix)
