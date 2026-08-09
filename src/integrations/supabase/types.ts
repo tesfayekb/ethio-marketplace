@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          meta: Json
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          meta?: Json
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          meta?: Json
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -343,6 +373,41 @@ export type Database = {
           },
         ]
       }
+      permissions: {
+        Row: {
+          action: string
+          created_at: string
+          description: string | null
+          id: string
+          requires_step_up: boolean
+          resource_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          requires_step_up?: boolean
+          resource_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          requires_step_up?: boolean
+          resource_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permissions_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -393,6 +458,116 @@ export type Database = {
           },
         ]
       }
+      resources: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          conditions: Json | null
+          granted_at: string
+          id: string
+          is_core: boolean
+          permission_id: string
+          role_id: string
+        }
+        Insert: {
+          conditions?: Json | null
+          granted_at?: string
+          id?: string
+          is_core?: boolean
+          permission_id: string
+          role_id: string
+        }
+        Update: {
+          conditions?: Json | null
+          granted_at?: string
+          id?: string
+          is_core?: boolean
+          permission_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string | null
+          id: string
+          is_system: boolean
+          name: string
+          parent_role_id: string | null
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          parent_role_id?: string | null
+          priority?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          parent_role_id?: string | null
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roles_parent_role_id_fkey"
+            columns: ["parent_role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_directory: {
         Row: {
           account_status: string
@@ -428,15 +603,90 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          id: string
+          role_id: string
+          scope_country: string | null
+          scope_type: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role_id: string
+          scope_country?: string | null
+          scope_type?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role_id?: string
+          scope_country?: string | null
+          scope_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      assign_role: {
+        Args: {
+          p_role_name: string
+          p_scope_country?: string
+          p_target_user: string
+        }
+        Returns: undefined
+      }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       expire_stale_listings: { Args: never; Returns: number }
+      get_my_permissions: {
+        Args: never
+        Returns: {
+          permission: string
+        }[]
+      }
+      get_role_hierarchy: { Args: { p_role_id: string }; Returns: string[] }
       has_password: { Args: never; Returns: boolean }
+      has_permission: {
+        Args: { p_action: string; p_resource: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
+      log_audit: {
+        Args: {
+          p_action: string
+          p_entity_id: string
+          p_entity_type: string
+          p_meta: Json
+        }
+        Returns: undefined
+      }
+      promote_to_super_admin: {
+        Args: { p_target_user: string }
+        Returns: undefined
+      }
       remove_own_password: { Args: never; Returns: undefined }
+      revoke_role: {
+        Args: { p_role_name: string; p_target_user: string }
+        Returns: undefined
+      }
       submit_listing: {
         Args: {
           p_attributes?: Json
