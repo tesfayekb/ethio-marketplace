@@ -1,21 +1,21 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `0f8ac4ba9f4d315ad7ef9a255db6a226fc6cfa8a` (short `0f8ac4b`)
+- Commit: `f014fe5b13b9e8b3bc36879988bf22273eb07224` (short `f014fe5`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-08-09T11:04:12Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/31309747796
+- Completed (UTC): 2026-08-09T11:22:44Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/31310505560
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Hardcoded string scan (enforcing) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Gitleaks secrets scan | success |
-| Build, typecheck, lint | success |
 | Migration linter (with self-test) | success |
-| Listing-write seam guard (with self-test) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Hardcoded string scan (enforcing) | success |
 | E2E (Playwright, ethio-staging) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| First-paint bundle budget (gzipped ceiling) | success |
+| Listing-write seam guard (with self-test) | success |
+| Build, typecheck, lint | success |
+| Gitleaks secrets scan | success |
