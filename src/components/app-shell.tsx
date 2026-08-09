@@ -11,6 +11,8 @@ import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { useAuth } from "@/features/auth/use-auth";
 import type { AuthUser } from "@/features/auth/types";
+import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
+import { usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
@@ -26,6 +28,8 @@ export type LocationNode = {
 type ShellValue = {
   auth: PanelAuthContext;
   user: AuthUser | null;
+  /** True while the session is still unknown (SSR / first load). */
+  authLoading: boolean;
   signOut: () => Promise<unknown>;
   activePanel: PanelId;
   setActivePanel: (panel: PanelId) => void;
@@ -90,7 +94,7 @@ function PanelPlaceholder() {
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [panelChoice, setPanelChoice] = useState<PanelId>("marketplace");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [locationPath, setLocationPath] = useState<LocationNode[]>([]);
@@ -105,7 +109,11 @@ export function AppShell({ children }: { children: ReactNode }) {
    * page beside the MARKETPLACE category rail. The panel is now DERIVED: a
    * route that belongs to a panel owns the panel while it is open.
    */
-  const routePanel: PanelId | null = pathname.startsWith("/settings") ? "account" : null;
+  const routePanel: PanelId | null = pathname.startsWith("/settings")
+    ? "account"
+    : pathname.startsWith("/admin")
+      ? "admin"
+      : null;
   /** Only "/" is the marketplace feed; every other route renders its own page. */
   const isFeedRoute = pathname === "/";
   const activePanel: PanelId = routePanel ?? panelChoice;
@@ -119,18 +127,26 @@ export function AppShell({ children }: { children: ReactNode }) {
     [isFeedRoute, navigate],
   );
 
+  /**
+   * RBAC seam (Phase R3). Signed-out visitors issue NO request: `enabled` is
+   * false, so the marketplace first paint costs nothing in RBAC terms. A
+   * signed-in user pays exactly one cached RPC per session.
+   *
+   * Law F3: this only decides whether the Admin TAB renders. Every admin
+   * action is enforced by RLS / has_permission on the server.
+   */
+  const { permissions } = usePermissions({ enabled: user !== null });
+
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {
       isAuthenticated: user !== null,
-      // TODO(rbac): stubbed false. The roles/permissions tables are a later
-      // feature; when they land, read them here. Law F3 still holds — the
-      // server is the only authorization authority; this only hides UI.
-      isAdmin: false,
-      permissions: [],
+      isAdmin: permissions.includes(ADMIN_PANEL_PERMISSION),
+      permissions,
     };
     return {
       auth,
       user,
+      authLoading,
       signOut,
       activePanel,
       setActivePanel,
@@ -141,7 +157,17 @@ export function AppShell({ children }: { children: ReactNode }) {
       navOpen,
       setNavOpen,
     };
-  }, [user, signOut, activePanel, setActivePanel, selectedCategoryId, locationPath, navOpen]);
+  }, [
+    user,
+    authLoading,
+    permissions,
+    signOut,
+    activePanel,
+    setActivePanel,
+    selectedCategoryId,
+    locationPath,
+    navOpen,
+  ]);
 
   return (
     <ShellContext.Provider value={value}>

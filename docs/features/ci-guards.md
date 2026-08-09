@@ -45,3 +45,12 @@ a final `findings: N` line. Always exits 0 until we flip to fail mode.
 Enforcing gate on high/critical npm advisories, with a separate red for an
 unreachable advisory service. Details and accepted exceptions:
 `docs/features/dependency-audit.md`.
+
+## browse-path-guard (added 2026-08-09, Phase R3)
+
+`scripts/check-browse-imports.sh` fails the build when anything outside the
+allowlist imports `src/features/permissions` — the RBAC seam must not sit on
+the marketplace browse path. Allowlist: the seam itself, `src/routes/admin.tsx`,
+and `src/components/app-shell.tsx` (the Admin-tab gate; see
+`docs/features/rbac-client-seam.md`). CI runs it in both directions: PASS on
+`src/`, and it must FAIL on `scripts/fixtures/bad-permission-import-example.ts.txt`.

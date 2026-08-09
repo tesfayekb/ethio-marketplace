@@ -218,6 +218,10 @@ export const am: Messages = {
   "price.contact": "ለዋጋ ያግኙ",
   "tier.premium": "ፕሪሚየም",
   "tier.featured": "የተለየ",
+
+  "admin.title": "አስተዳደር",
+  "admin.body": "የሠራተኞች መሣሪያዎች እያንዳንዱ የአስተዳደር ገጽታ ሲጠናቀቅ እዚህ ይታያሉ።",
+  "admin.loading": "መዳረሻዎን በመፈተሽ ላይ…",
 };
 
 export default am;

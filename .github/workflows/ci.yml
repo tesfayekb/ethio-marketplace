@@ -88,6 +88,26 @@ jobs:
           fi
           echo "Self-test OK: bad fixture correctly flagged."
 
+  browse-path-guard:
+    name: Browse-path guard (no RBAC seam on the marketplace path, with self-test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Direction 1: the guard must PASS on real source.
+      - name: Guard src/
+        run: bash scripts/check-browse-imports.sh src
+      # Direction 2: the guard must FAIL on the known-bad fixture.
+      - name: Self-test — guard must reject the bad fixture
+        run: |
+          set +e
+          bash scripts/check-browse-imports.sh scripts/fixtures
+          STATUS=$?
+          if [ "$STATUS" -eq 0 ]; then
+            echo "::error::GUARD SELF-TEST FAILED: bad fixture was not flagged."
+            exit 1
+          fi
+          echo "Self-test OK: bad fixture correctly flagged."
+
   marketplace-weight:
     name: Marketplace weight guard (no heavy deps on the first-paint path)
     runs-on: ubuntu-latest
