@@ -223,6 +223,10 @@ export const en = {
   "price.contact": "Contact for price",
   "tier.premium": "Premium",
   "tier.featured": "Featured",
+
+  "admin.title": "Admin",
+  "admin.body": "Staff tools land here as each admin feature ships.",
+  "admin.loading": "Checking your access…",
 } as const;
 
 export default en;
