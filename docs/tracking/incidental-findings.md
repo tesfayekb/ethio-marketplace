@@ -89,3 +89,7 @@ Defect: the R1 prompt asserted FK-cascade deletes bypass row triggers; PostgreSQ
 ### INC-064 (2026-08-09) — Migration-embedded probes hardcoded environment uuids (staging apply would abort)
 
 Defect: R2's in-migration impersonation assertions declared literal ethio-prod uuids; on any other environment the superadmin probe fails its assertion and aborts the entire migration, blocking the policy retrofit. Caught in supervisor verification before any staging apply. Fix: probe block made dynamic + skip-with-NOTICE when fixture users are absent (this commit). CLASS RULE: migration-embedded assertions must be environment-agnostic — dynamic lookups, never literal ids; skip loudly when preconditions are absent.
+
+### INC-065 (2026-08-09) — Red main: bare changelog line broke format:check; bun unpinned
+
+Defect: the R3a changelog entry was appended without the "- " list prefix; prettier 3.8.3 flags it as a mis-indented lazy continuation, failing Build/typecheck/lint at 6851c0c. Contributing causes, both logged: executor skipped its pre-commit format:check; supervisor changelog templates omitted the "- " prefix (executor had silently normalized it until this commit). Diagnosis: supervisor local reproduction of the format:check leg at pinned prettier after Actions-API rate limiting. CLASS RULES: changelog append instructions carry the literal "- " prefix verbatim; executor runs format:check before every commit without exception. Rider: bun-version pinned to 1.3.14 (was "latest") per the INC-009 pinned-tooling law — same class, caught during the same diagnosis.
