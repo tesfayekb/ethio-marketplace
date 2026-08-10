@@ -13,8 +13,16 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
+import { Route as AdminImagesRouteImport } from './routes/admin.images'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -36,6 +44,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AuthResetRoute = AuthResetRouteImport.update({
   id: '/auth_/reset',
   path: '/auth/reset',
@@ -46,31 +59,89 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLocationsRoute = AdminLocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminImagesRoute = AdminImagesRouteImport.update({
+  id: '/images',
+  path: '/images',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAttributesRoute = AdminAttributesRouteImport.update({
+  id: '/attributes',
+  path: '/attributes',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/settings': typeof SettingsRoute
+  '/admin/attributes': typeof AdminAttributesRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/images': typeof AdminImagesRoute
+  '/admin/locations': typeof AdminLocationsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/settings': typeof SettingsRoute
+  '/admin/attributes': typeof AdminAttributesRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/images': typeof AdminImagesRoute
+  '/admin/locations': typeof AdminLocationsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/settings': typeof SettingsRoute
+  '/admin/attributes': typeof AdminAttributesRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/images': typeof AdminImagesRoute
+  '/admin/locations': typeof AdminLocationsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/users': typeof AdminUsersRoute
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/reset': typeof AuthResetRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,23 +150,52 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/settings'
+    | '/admin/attributes'
+    | '/admin/audit'
+    | '/admin/categories'
+    | '/admin/images'
+    | '/admin/locations'
+    | '/admin/roles'
+    | '/admin/users'
     | '/auth/callback'
     | '/auth/reset'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/settings' | '/auth/callback' | '/auth/reset'
+  to:
+    | '/'
+    | '/auth'
+    | '/settings'
+    | '/admin/attributes'
+    | '/admin/audit'
+    | '/admin/categories'
+    | '/admin/images'
+    | '/admin/locations'
+    | '/admin/roles'
+    | '/admin/users'
+    | '/auth/callback'
+    | '/auth/reset'
+    | '/admin'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/auth'
     | '/settings'
+    | '/admin/attributes'
+    | '/admin/audit'
+    | '/admin/categories'
+    | '/admin/images'
+    | '/admin/locations'
+    | '/admin/roles'
+    | '/admin/users'
     | '/auth_/callback'
     | '/auth_/reset'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   SettingsRoute: typeof SettingsRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -132,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/auth_/reset': {
       id: '/auth_/reset'
       path: '/auth/reset'
@@ -146,12 +253,85 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/locations': {
+      id: '/admin/locations'
+      path: '/locations'
+      fullPath: '/admin/locations'
+      preLoaderRoute: typeof AdminLocationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/images': {
+      id: '/admin/images'
+      path: '/images'
+      fullPath: '/admin/images'
+      preLoaderRoute: typeof AdminImagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/attributes': {
+      id: '/admin/attributes'
+      path: '/attributes'
+      fullPath: '/admin/attributes'
+      preLoaderRoute: typeof AdminAttributesRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAttributesRoute: typeof AdminAttributesRoute
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminImagesRoute: typeof AdminImagesRoute
+  AdminLocationsRoute: typeof AdminLocationsRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAttributesRoute: AdminAttributesRoute,
+  AdminAuditRoute: AdminAuditRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminImagesRoute: AdminImagesRoute,
+  AdminLocationsRoute: AdminLocationsRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   SettingsRoute: SettingsRoute,
   AuthCallbackRoute: AuthCallbackRoute,
@@ -160,13 +340,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

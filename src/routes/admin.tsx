@@ -1,15 +1,20 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 import { useShell } from "@/components/app-shell";
+import { AdminNav } from "@/features/admin/admin-nav";
+import { AdminShellProvider } from "@/features/admin/admin-context";
+import { sectionForPath } from "@/features/admin/sections";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
 
 /**
- * The admin landing. This route file IS the admin chunk: it is the only place
- * outside src/features/permissions that may import the permission seam
- * (scripts/check-browse-imports.sh).
+ * The admin LAYOUT (Phase U0). This route file IS the admin chunk: it is the
+ * only place outside src/features/permissions that may import the permission
+ * seam (scripts/check-browse-imports.sh), so it reads permissions once — the
+ * same cached read the shell already made — and hands them to the section tree
+ * through AdminShellProvider.
  *
  * Gate semantics: REDIRECT, never a dead-end "denied" page. Law F3 — this is
  * UI convenience; every admin action is independently enforced by RLS /
@@ -35,14 +40,33 @@ function AdminGate() {
   const { permissions, loading } = usePermissions({ enabled: user !== null });
   const pending = authLoading || loading;
 
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const section = sectionForPath(pathname);
+
   const allowed = permissions.includes(ADMIN_PANEL_PERMISSION);
+  /** Deep-link guard: the section route resolves only with its permission. */
+  const sectionAllowed = section === null || permissions.includes(section.permission);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     if (pending) return;
-    if (!allowed) void navigate({ to: "/", replace: true });
-  }, [allowed, pending, navigate]);
+    if (!allowed) {
+      void navigate({ to: "/", replace: true });
+      return;
+    }
+    if (!sectionAllowed) {
+      setAccessDenied(true);
+      void navigate({ to: "/admin", replace: true });
+    }
+  }, [allowed, sectionAllowed, pending, navigate]);
 
-  if (pending || !allowed) {
+  /** Clear the notice once the user moves on to a section they may see. */
+  useEffect(() => {
+    if (section !== null && sectionAllowed) setAccessDenied(false);
+  }, [section, sectionAllowed]);
+
+  // No flash of sections while the permission read settles.
+  if (pending || !allowed || !sectionAllowed) {
     return (
       <div
         role="status"
@@ -55,9 +79,15 @@ function AdminGate() {
   }
 
   return (
-    <section data-testid="admin-panel-root" className="rounded-lg border border-border bg-card p-6">
-      <h1 className="text-lg font-semibold text-foreground">{t("admin.title")}</h1>
-      <p className="mt-2 text-sm text-muted-foreground">{t("admin.body")}</p>
-    </section>
+    <AdminShellProvider permissions={permissions} accessDenied={accessDenied}>
+      <div data-testid="admin-panel-root" className="min-w-0 md:flex md:gap-6">
+        <aside className="hidden w-56 shrink-0 md:block">
+          <AdminNav variant="sidebar" />
+        </aside>
+        <div className="min-w-0 flex-1">
+          <Outlet />
+        </div>
+      </div>
+    </AdminShellProvider>
   );
 }
