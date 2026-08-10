@@ -6,31 +6,31 @@ i18n'd empty-state page per section. No section functionality ships in U0.
 
 ## Routes
 
-| Route              | File                             | Purpose                                    |
-| ------------------ | -------------------------------- | ------------------------------------------ |
-| `/admin`           | `src/routes/admin.tsx`           | Layout: gate, sidebar (md+), `<Outlet />`   |
-| `/admin`           | `src/routes/admin.index.tsx`     | Landing: permitted-section cards or empty   |
-| `/admin/users`     | `src/routes/admin.users.tsx`     | Section empty state (U2)                    |
-| `/admin/roles`     | `src/routes/admin.roles.tsx`     | Section empty state (U2)                    |
-| `/admin/audit`     | `src/routes/admin.audit.tsx`     | Section empty state (U3)                    |
-| `/admin/locations` | `src/routes/admin.locations.tsx` | Section empty state (U4)                    |
-| `/admin/categories`| `src/routes/admin.categories.tsx`| Section empty state (U5)                    |
-| `/admin/attributes`| `src/routes/admin.attributes.tsx`| Section empty state (U6)                    |
-| `/admin/images`    | `src/routes/admin.images.tsx`    | Section empty state (U8)                    |
+| Route               | File                              | Purpose                                   |
+| ------------------- | --------------------------------- | ----------------------------------------- |
+| `/admin`            | `src/routes/admin.tsx`            | Layout: gate, sidebar (md+), `<Outlet />` |
+| `/admin`            | `src/routes/admin.index.tsx`      | Landing: permitted-section cards or empty |
+| `/admin/users`      | `src/routes/admin.users.tsx`      | Section empty state (U2)                  |
+| `/admin/roles`      | `src/routes/admin.roles.tsx`      | Section empty state (U2)                  |
+| `/admin/audit`      | `src/routes/admin.audit.tsx`      | Section empty state (U3)                  |
+| `/admin/locations`  | `src/routes/admin.locations.tsx`  | Section empty state (U4)                  |
+| `/admin/categories` | `src/routes/admin.categories.tsx` | Section empty state (U5)                  |
+| `/admin/attributes` | `src/routes/admin.attributes.tsx` | Section empty state (U6)                  |
+| `/admin/images`     | `src/routes/admin.images.tsx`     | Section empty state (U8)                  |
 
 ## Section → permission map
 
 Source of truth: `src/features/admin/sections.ts` (`ADMIN_SECTIONS`).
 
-| Section id   | Path                | Permission         |
-| ------------ | ------------------- | ------------------ |
-| `users`      | `/admin/users`      | `profiles:view`    |
-| `roles`      | `/admin/roles`      | `roles:view`       |
-| `audit`      | `/admin/audit`      | `audit_logs:view`  |
-| `locations`  | `/admin/locations`  | `locations:manage` |
-| `categories` | `/admin/categories` | `categories:manage`|
-| `attributes` | `/admin/attributes` | `categories:manage`|
-| `images`     | `/admin/images`     | `categories:manage`|
+| Section id   | Path                | Permission          |
+| ------------ | ------------------- | ------------------- |
+| `users`      | `/admin/users`      | `profiles:view`     |
+| `roles`      | `/admin/roles`      | `roles:view`        |
+| `audit`      | `/admin/audit`      | `audit_logs:view`   |
+| `locations`  | `/admin/locations`  | `locations:manage`  |
+| `categories` | `/admin/categories` | `categories:manage` |
+| `attributes` | `/admin/attributes` | `categories:manage` |
+| `images`     | `/admin/images`     | `categories:manage` |
 
 TAGS (REQ-041) is intentionally absent: it gets its own resource and permission
 in U7 and must never be gated on a borrowed permission.
@@ -67,20 +67,20 @@ fixture sees six of the seven sections.
 
 ## Testid inventory
 
-| Testid                          | Rendered by             |
-| ------------------------------- | ----------------------- |
-| `admin-panel-root`              | `admin.tsx` layout      |
-| `admin-nav-cards`               | `admin-nav.tsx` (cards; absent when zero sections) |
-| `admin-nav-sidebar`             | `admin-nav.tsx` (sidebar; absent when zero sections) |
-| `admin-section-link-<id>`       | `admin-nav.tsx` cards   |
-| `admin-nav-link-<id>`           | `admin-nav.tsx` sidebar |
-| `admin-breadcrumb`              | `admin-breadcrumb.tsx`  |
-| `admin-landing`                 | `admin.index.tsx`       |
-| `admin-no-sections`             | `admin.index.tsx`       |
-| `admin-access-notice`           | `admin.index.tsx`       |
-| `admin-section-<id>`            | `section-page.tsx`      |
-| `admin-section-back`            | `section-page.tsx`      |
-| `panel-tab-admin`               | `shell/panel-tabs.tsx` (`panel-tab-${panel.id}`) |
+| Testid                    | Rendered by                                          |
+| ------------------------- | ---------------------------------------------------- |
+| `admin-panel-root`        | `admin.tsx` layout                                   |
+| `admin-nav-cards`         | `admin-nav.tsx` (cards; absent when zero sections)   |
+| `admin-nav-sidebar`       | `admin-nav.tsx` (sidebar; absent when zero sections) |
+| `admin-section-link-<id>` | `admin-nav.tsx` cards                                |
+| `admin-nav-link-<id>`     | `admin-nav.tsx` sidebar                              |
+| `admin-breadcrumb`        | `admin-breadcrumb.tsx`                               |
+| `admin-landing`           | `admin.index.tsx`                                    |
+| `admin-no-sections`       | `admin.index.tsx`                                    |
+| `admin-access-notice`     | `admin.index.tsx`                                    |
+| `admin-section-<id>`      | `section-page.tsx`                                   |
+| `admin-section-back`      | `section-page.tsx`                                   |
+| `panel-tab-admin`         | `shell/panel-tabs.tsx` (`panel-tab-${panel.id}`)     |
 
 ## E2E coverage (`e2e/admin-shell.spec.ts`)
 
