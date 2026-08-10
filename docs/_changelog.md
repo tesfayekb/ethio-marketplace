@@ -109,3 +109,4 @@
 - 2026-08-10 — feat(catalog): A2 — listing_locations with single-country trigger law, owner-managed RLS + admin read, cascade + deny proofs (DEC-013, F2)
 - 2026-08-10 — feat(catalog): A2b — exact-pin columns (lat/lng/map_visible) with pair/visibility/range laws + owner UPDATE; INC-067 policy split (anon path free of has_permission)
 - 2026-08-10 — feat(profile): A3 — seller alias (unique, validated), contact methods (phone/telegram/whatsapp + visibility laws), default post location for prefill; column-grant extension proven (F12/F13, personal-only v1)
+- 2026-08-10 — docs: Phase A gate record — S27, four-lens close-out, system-state updated; Phase R gate stamped (staging addenda)
