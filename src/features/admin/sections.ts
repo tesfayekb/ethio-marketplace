@@ -11,9 +11,9 @@ import type { MessageKey } from "@/i18n";
  * section will later perform.
  *
  * TAGS (REQ-041) is INTENTIONALLY ABSENT until U7 creates its own resource and
- * permission. It must not be gated on a borrowed permission.
+ * permission. It must never be gated on a borrowed permission.
  */
-export type AdminSection = {
+type AdminSectionShape = {
   readonly id: string;
   readonly path: string;
   readonly permission: string;
@@ -71,9 +71,10 @@ export const ADMIN_SECTIONS = [
     titleKey: "admin.section.images.title",
     bodyKey: "admin.section.images.body",
   },
-] as const satisfies readonly AdminSection[];
+] as const satisfies readonly AdminSectionShape[];
 
-export type AdminSectionId = (typeof ADMIN_SECTIONS)[number]["id"];
+export type AdminSection = (typeof ADMIN_SECTIONS)[number];
+export type AdminSectionId = AdminSection["id"];
 
 /** The section that owns a pathname, or null for the landing / unknown paths. */
 export function sectionForPath(pathname: string): AdminSection | null {
@@ -82,4 +83,12 @@ export function sectionForPath(pathname: string): AdminSection | null {
       (section) => pathname === section.path || pathname.startsWith(`${section.path}/`),
     ) ?? null
   );
+}
+
+/** Section id → its page's own section record (used by each section route). */
+export function sectionById(id: AdminSectionId): AdminSection {
+  const found = ADMIN_SECTIONS.find((section) => section.id === id);
+  // Law F4 — a missing section is a programming error, never a silent blank.
+  if (!found) throw new Error(`[admin] unknown section id: ${id}`);
+  return found;
 }
