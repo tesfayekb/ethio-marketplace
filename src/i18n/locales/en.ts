@@ -235,7 +235,8 @@ export const en = {
   "admin.landing.body": "Choose a section to manage.",
   "admin.accessDenied": "You don't have access to that section.",
   "admin.noSections.title": "No admin sections available",
-  "admin.noSections.body": "Your role has no admin sections yet. Ask an administrator if you need access.",
+  "admin.noSections.body":
+    "Your role has no admin sections yet. Ask an administrator if you need access.",
   "admin.comingSoon": "Not built yet",
   "admin.section.users.title": "Users",
   "admin.section.users.body": "User management arrives in U1.",

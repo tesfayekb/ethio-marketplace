@@ -23,7 +23,9 @@ async function grantRole(userId: string, roleName: string) {
     .eq("name", roleName)
     .single();
   if (roleError || !role) {
-    throw new Error(`[e2e:admin-shell] role ${roleName} not found: ${roleError?.message ?? "none"}`);
+    throw new Error(
+      `[e2e:admin-shell] role ${roleName} not found: ${roleError?.message ?? "none"}`,
+    );
   }
   const { error } = await supabase
     .from("user_roles")
@@ -47,7 +49,9 @@ async function permissionsOfRole(roleName: string): Promise<string[]> {
     .eq("name", roleName)
     .single();
   if (error || !data) {
-    throw new Error(`[e2e:admin-shell] reading ${roleName} permissions: ${error?.message ?? "none"}`);
+    throw new Error(
+      `[e2e:admin-shell] reading ${roleName} permissions: ${error?.message ?? "none"}`,
+    );
   }
   type Row = {
     role_permissions: { permissions: { action: string; resources: { name: string } } | null }[];

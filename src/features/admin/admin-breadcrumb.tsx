@@ -21,9 +21,7 @@ export function AdminBreadcrumb({ section }: { section: AdminSection | null }) {
         {section ? (
           <>
             <li aria-hidden="true">/</li>
-            <li className="min-w-0 truncate font-medium text-foreground">
-              {t(section.titleKey)}
-            </li>
+            <li className="min-w-0 truncate font-medium text-foreground">{t(section.titleKey)}</li>
           </>
         ) : null}
       </ol>
