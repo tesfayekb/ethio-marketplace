@@ -106,3 +106,4 @@
 - 2026-08-09 — docs: Phase R gate record — S26, four-lens close-out review, system-state updated (DEC-013 Phase R complete)
 - 2026-08-09 — feat(catalog): A1 — 96-category taxonomy (15 roots) + 54 attribute definitions with pointer-walking inheritance (get_category_attributes), icons + image seats (DEC-013, REQ-017/020; Apex donor, metric adaptations)
 - 2026-08-10 — fix(catalog): A1b — operator-directed restructure: Vehicles intermediate under Automotive carries vehicle attrs (parts no longer inherit them); Computers + Phones under Electronics; 6 legacy dupe roots retired; 13 roots / 97 categories (INC-066)
+- 2026-08-10 — feat(catalog): A2 — listing_locations with single-country trigger law, owner-managed RLS + admin read, cascade + deny proofs (DEC-013, F2)
