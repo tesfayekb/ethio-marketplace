@@ -232,6 +232,42 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_locations: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          location_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          location_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          location_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_locations_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_locations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_photos: {
         Row: {
           created_at: string
