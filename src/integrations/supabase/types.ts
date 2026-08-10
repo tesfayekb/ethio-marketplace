@@ -236,20 +236,29 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          lat: number | null
           listing_id: string
+          lng: number | null
           location_id: string
+          map_visible: boolean
         }
         Insert: {
           created_at?: string
           id?: string
+          lat?: number | null
           listing_id: string
+          lng?: number | null
           location_id: string
+          map_visible?: boolean
         }
         Update: {
           created_at?: string
           id?: string
+          lat?: number | null
           listing_id?: string
+          lng?: number | null
           location_id?: string
+          map_visible?: boolean
         }
         Relationships: [
           {
