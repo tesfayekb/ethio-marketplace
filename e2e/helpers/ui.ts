@@ -144,7 +144,6 @@ export async function signIn(page: Page, email: string, password: string) {
   );
 }
 
-
 /**
  * Signed out = no account menu anywhere. (Pre-shell this asserted the absence
  * of a header sign-out button; the account menu is that button's successor and
