@@ -47,39 +47,54 @@ export type Database = {
       categories: {
         Row: {
           created_at: string
+          description_am: string | null
+          description_en: string | null
           display_order: number
           expiry_days: number
+          icon: string | null
           id: string
+          image_url: string | null
           is_active: boolean
           is_restricted: boolean
           name_am: string | null
           name_en: string
+          og_image_url: string | null
           price_enabled: boolean
           slug: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          description_am?: string | null
+          description_en?: string | null
           display_order?: number
           expiry_days?: number
+          icon?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           is_restricted?: boolean
           name_am?: string | null
           name_en: string
+          og_image_url?: string | null
           price_enabled?: boolean
           slug: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          description_am?: string | null
+          description_en?: string | null
           display_order?: number
           expiry_days?: number
+          icon?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           is_restricted?: boolean
           name_am?: string | null
           name_en?: string
+          og_image_url?: string | null
           price_enabled?: boolean
           slug?: string
           updated_at?: string
@@ -92,39 +107,60 @@ export type Database = {
           attr_type: string
           category_id: string
           created_at: string
+          default_value: Json | null
           display_order: number
+          help_text_am: string | null
+          help_text_en: string | null
           id: string
+          inherit_from_parent: boolean
+          is_filterable: boolean
           is_required: boolean
+          is_searchable: boolean
           name_am: string | null
           name_en: string
           options: Json | null
           updated_at: string
+          validation: Json | null
         }
         Insert: {
           attr_key: string
           attr_type: string
           category_id: string
           created_at?: string
+          default_value?: Json | null
           display_order?: number
+          help_text_am?: string | null
+          help_text_en?: string | null
           id?: string
+          inherit_from_parent?: boolean
+          is_filterable?: boolean
           is_required?: boolean
+          is_searchable?: boolean
           name_am?: string | null
           name_en: string
           options?: Json | null
           updated_at?: string
+          validation?: Json | null
         }
         Update: {
           attr_key?: string
           attr_type?: string
           category_id?: string
           created_at?: string
+          default_value?: Json | null
           display_order?: number
+          help_text_am?: string | null
+          help_text_en?: string | null
           id?: string
+          inherit_from_parent?: boolean
+          is_filterable?: boolean
           is_required?: boolean
+          is_searchable?: boolean
           name_am?: string | null
           name_en?: string
           options?: Json | null
           updated_at?: string
+          validation?: Json | null
         }
         Relationships: [
           {
@@ -656,6 +692,29 @@ export type Database = {
       }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       expire_stale_listings: { Args: never; Returns: number }
+      get_category_attributes: {
+        Args: { p_category_id: string; p_include_inherited?: boolean }
+        Returns: {
+          attr_key: string
+          attr_type: string
+          category_id: string
+          category_name: string
+          default_value: Json
+          display_order: number
+          help_text_am: string
+          help_text_en: string
+          id: string
+          inherited_from: string
+          inherited_from_name: string
+          is_filterable: boolean
+          is_required: boolean
+          is_searchable: boolean
+          name_am: string
+          name_en: string
+          options: Json
+          validation: Json
+        }[]
+      }
       get_my_permissions: {
         Args: never
         Returns: {
