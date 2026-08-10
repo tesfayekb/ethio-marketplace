@@ -50,6 +50,7 @@
     entry in `pg_proc`).
 - **DEC-013 (2026-08-07):** marketplace epoch resequenced R→A→B→C→D→F→G; **Phase R (RBAC core) inserted before A1** and is the current build target; Discovery (F) and Contact (G) are named pre-launch phases; the governance 0–9 ladder remains the master map. See spec-ledger DEC-013 + docs/tracking/gap-register.md.
 - **Phase R (RBAC core) — build COMPLETE 2026-08-09** (R1, R1a, R2, R2b, R3, R3a all CLEAN; CI green incl. RBAC E2E; four-lens review at docs/governance/reviews/phase-r-closeout.md). Gate stamps on the final staging proof-run paste. Next build target: A1 (category taxonomy + attributes import).
+- **Phase A (data foundations) — build COMPLETE 2026-08-10** (A1, A1b, A2, A2b, A3 all CLEAN on prod; CI green throughout; four-lens review at docs/governance/reviews/phase-a-closeout.md). Gate stamps on the consolidated staging paste. Phase R gate STAMPED (staging proofs green, S27 addenda). Next build target: Phase B — posting wizard spec.
 
 
 ## The three standing supervisor reads
