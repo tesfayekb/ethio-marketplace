@@ -108,3 +108,4 @@
 - 2026-08-10 — fix(catalog): A1b — operator-directed restructure: Vehicles intermediate under Automotive carries vehicle attrs (parts no longer inherit them); Computers + Phones under Electronics; 6 legacy dupe roots retired; 13 roots / 97 categories (INC-066)
 - 2026-08-10 — feat(catalog): A2 — listing_locations with single-country trigger law, owner-managed RLS + admin read, cascade + deny proofs (DEC-013, F2)
 - 2026-08-10 — feat(catalog): A2b — exact-pin columns (lat/lng/map_visible) with pair/visibility/range laws + owner UPDATE; INC-067 policy split (anon path free of has_permission)
+- 2026-08-10 — feat(profile): A3 — seller alias (unique, validated), contact methods (phone/telegram/whatsapp + visibility laws), default post location for prefill; column-grant extension proven (F12/F13, personal-only v1)
