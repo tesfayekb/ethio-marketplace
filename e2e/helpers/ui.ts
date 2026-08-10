@@ -103,7 +103,16 @@ export async function signOutViaMenu(
   await page.getByRole("menuitem", { name: labels.signOut ?? en["auth.signOut"] }).click();
 }
 
-/** Drives the real sign-in form. Asserts nothing about the outcome. */
+/**
+ * Drives the real sign-in form and resolves only when the session is
+ * established and persisted — callers may navigate immediately.
+ *
+ * INC-068: the helper used to return on the CLICK, so callers raced the token
+ * exchange. It now terminates on the achieved state: the post-sign-in route
+ * ("/" — src/routes/auth.tsx navigates there on password success), the header's
+ * authenticated-only account menu, and the persisted `sb-<ref>-auth-token`
+ * localStorage entry written by @supabase/supabase-js.
+ */
 export async function signIn(page: Page, email: string, password: string) {
   await page.goto("/auth");
   await waitForHydration(page);
@@ -119,6 +128,20 @@ export async function signIn(page: Page, email: string, password: string) {
 
   // Anchored: excludes "Create an account" toggle and the disabled OAuth slots.
   await page.getByRole("button", { name: /^sign in$/i }).click();
+
+  // 1. The route the auth screen navigates to on password success.
+  await page.waitForURL(/\/$/, { timeout: 15000 });
+  // 2. Authoritative signed-in signal: the account menu trigger renders ONLY on
+  //    the authenticated branch of app-header (stable testid, no hover/open
+  //    prerequisite), unlike the signed-out "Sign in" link whose absence is
+  //    also true mid-render.
+  await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+  // 3. Belt: the session is persisted, so a full navigation rehydrates it.
+  await page.waitForFunction(
+    () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
+    undefined,
+    { timeout: 15000 },
+  );
 }
 
 /**
