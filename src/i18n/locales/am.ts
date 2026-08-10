@@ -222,6 +222,31 @@ export const am: Messages = {
   "admin.title": "አስተዳደር",
   "admin.body": "የሠራተኞች መሣሪያዎች እያንዳንዱ የአስተዳደር ገጽታ ሲጠናቀቅ እዚህ ይታያሉ።",
   "admin.loading": "መዳረሻዎን በመፈተሽ ላይ…",
+
+  // TODO-native-review: provisional Amharic, pending native speaker review.
+  "admin.nav.label": "የአስተዳደር ክፍሎች",
+  "admin.breadcrumb.root": "አስተዳደር",
+  "admin.back": "ወደ አስተዳደር ተመለስ",
+  "admin.landing.title": "አስተዳደር",
+  "admin.landing.body": "የሚያስተዳድሩትን ክፍል ይምረጡ።",
+  "admin.accessDenied": "ወደዚያ ክፍል መዳረሻ የለዎትም።",
+  "admin.noSections.title": "የሚገኝ የአስተዳደር ክፍል የለም",
+  "admin.noSections.body": "የእርስዎ ሚና እስካሁን የአስተዳደር ክፍል የለውም። መዳረሻ ከፈለጉ አስተዳዳሪን ይጠይቁ።",
+  "admin.comingSoon": "እስካሁን አልተሠራም",
+  "admin.section.users.title": "ተጠቃሚዎች",
+  "admin.section.users.body": "የተጠቃሚ አስተዳደር በU1 ይመጣል።",
+  "admin.section.roles.title": "ሚናዎች እና ፈቃዶች",
+  "admin.section.roles.body": "የሚና እና ፈቃድ አስተዳደር በU2 ይመጣል።",
+  "admin.section.audit.title": "ኦዲት እና ደህንነት",
+  "admin.section.audit.body": "የኦዲት እና ደህንነት መሣሪያዎች በU3 ይመጣሉ።",
+  "admin.section.locations.title": "አካባቢዎች",
+  "admin.section.locations.body": "የአካባቢ አስተዳደር በU4 ይመጣል።",
+  "admin.section.categories.title": "ምድቦች",
+  "admin.section.categories.body": "የምድብ አስተዳደር በU5 ይመጣል።",
+  "admin.section.attributes.title": "ባህርያት",
+  "admin.section.attributes.body": "የባህርይ አስተዳደር በU6 ይመጣል።",
+  "admin.section.images.title": "ምስሎች",
+  "admin.section.images.body": "የምስል መሣሪያዎች በU8 ይመጣሉ።",
 };
 
 export default am;
