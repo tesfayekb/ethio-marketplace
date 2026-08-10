@@ -14,7 +14,14 @@ import { adminClient, createUser } from "./helpers/users";
  * here is NOT an authorization proof.
  */
 
-/** Grants a named role via the service role. Idempotent. */
+/**
+ * Grants a named role via the service role — the staff fixture.
+ *
+ * Same shape as e2e/rbac.spec.ts: a plain INSERT. The user_roles UNIQUE is
+ * (user_id, role_id, scope_type, scope_country), so an onConflict list that
+ * omits scope_country is not a valid conflict target. Every fixture user here
+ * is freshly minted, so a plain insert can never collide.
+ */
 async function grantRole(userId: string, roleName: string) {
   const supabase = adminClient();
   const { data: role, error: roleError } = await supabase
@@ -29,10 +36,7 @@ async function grantRole(userId: string, roleName: string) {
   }
   const { error } = await supabase
     .from("user_roles")
-    .upsert(
-      { user_id: userId, role_id: role.id, scope_type: "global" },
-      { onConflict: "user_id,role_id,scope_type", ignoreDuplicates: true },
-    );
+    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
   if (error) throw new Error(`[e2e:admin-shell] granting ${roleName} failed: ${error.message}`);
 }
 
@@ -131,7 +135,9 @@ test.describe("Admin shell (U0)", () => {
     await waitForHydration(page);
     await expect(page.getByTestId("admin-panel-root")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("admin-no-sections")).toBeVisible();
+    // AdminNav returns null for zero sections, so the container is absent (not empty).
     await expect(page.getByTestId("admin-nav-cards")).toHaveCount(0);
+    await expect(page.getByTestId("admin-nav-sidebar")).toHaveCount(0);
 
     await page.goto("/admin/users");
     await waitForHydration(page);
