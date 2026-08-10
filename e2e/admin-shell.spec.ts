@@ -135,7 +135,9 @@ test.describe("Admin shell (U0)", () => {
     await waitForHydration(page);
     await expect(page.getByTestId("admin-panel-root")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("admin-no-sections")).toBeVisible();
+    // AdminNav returns null for zero sections, so the container is absent (not empty).
     await expect(page.getByTestId("admin-nav-cards")).toHaveCount(0);
+    await expect(page.getByTestId("admin-nav-sidebar")).toHaveCount(0);
 
     await page.goto("/admin/users");
     await waitForHydration(page);
