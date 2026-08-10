@@ -492,44 +492,72 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          contact_phone: string | null
           contact_prefs: Json
+          contact_telegram: string | null
+          contact_whatsapp: boolean
           country_source: string
           created_at: string
+          default_post_location_id: string | null
           display_name: string
           home_country_code: string | null
           notification_prefs: Json
           preferred_language: string
+          seller_alias: string | null
+          show_phone: boolean
+          show_telegram: boolean
           updated_at: string
           user_id: string
           viewing_location: Json | null
         }
         Insert: {
           avatar_url?: string | null
+          contact_phone?: string | null
           contact_prefs?: Json
+          contact_telegram?: string | null
+          contact_whatsapp?: boolean
           country_source?: string
           created_at?: string
+          default_post_location_id?: string | null
           display_name: string
           home_country_code?: string | null
           notification_prefs?: Json
           preferred_language?: string
+          seller_alias?: string | null
+          show_phone?: boolean
+          show_telegram?: boolean
           updated_at?: string
           user_id: string
           viewing_location?: Json | null
         }
         Update: {
           avatar_url?: string | null
+          contact_phone?: string | null
           contact_prefs?: Json
+          contact_telegram?: string | null
+          contact_whatsapp?: boolean
           country_source?: string
           created_at?: string
+          default_post_location_id?: string | null
           display_name?: string
           home_country_code?: string | null
           notification_prefs?: Json
           preferred_language?: string
+          seller_alias?: string | null
+          show_phone?: boolean
+          show_telegram?: boolean
           updated_at?: string
           user_id?: string
           viewing_location?: Json | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_default_post_location_id_fkey"
+            columns: ["default_post_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_home_country_code_fkey"
             columns: ["home_country_code"]
