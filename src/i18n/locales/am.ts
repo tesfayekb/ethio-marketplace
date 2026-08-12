@@ -174,6 +174,7 @@ export const am: Messages = {
   "shell.searchClose": "ፍለጋን ዝጋ",
   "shell.themeToggle": "ብሩህ ወይም ጨለማ ገጽታ ቀይር",
   "shell.breadcrumbLabel": "የመንገድ ዱካ",
+  "shell.switchPanel": "ክፍል ቀይር",
   "shell.panelLabel": "ክፍል",
   "shell.mainNav": "ዋና አሰሳ",
   "shell.allCategories": "ሁሉም ምድቦች",

@@ -389,8 +389,12 @@ export function AppRail() {
             </div>
             <SheetTitle className="sr-only">{t("shell.menuTitle")}</SheetTitle>
           </SheetHeader>
+          {/* U0c: the drawer names the ACTIVE panel once and switches panels
+              through a dropdown; the old stacked all-panels list is gone. */}
+          <div className="mt-3 border-b border-border pb-2">
+            <PanelSwitcher />
+          </div>
           <div className="mt-4 flex flex-1 flex-col gap-4">
-            <PanelSwitcher variant="list" />
             <RailBody onNavigate={() => setNavOpen(false)} />
             <RailFoot onNavigate={() => setNavOpen(false)} />
           </div>

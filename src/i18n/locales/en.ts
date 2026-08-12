@@ -179,6 +179,7 @@ export const en = {
   "shell.searchClose": "Close search",
   "shell.themeToggle": "Switch light or dark theme",
   "shell.breadcrumbLabel": "Breadcrumb",
+  "shell.switchPanel": "Switch section",
   "shell.panelLabel": "Section",
   "shell.mainNav": "Main navigation",
   "shell.allCategories": "All categories",
