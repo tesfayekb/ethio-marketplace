@@ -216,6 +216,25 @@ test.describe("Admin shell (U0)", () => {
     await expect(page.getByTestId("admin-access-notice")).toBeVisible({ timeout: 15000 });
   });
 
+  test("A-4 admin TAB from marketplace navigates to /admin (INC-071)", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+
+    await signIn(page, staff.email, staff.password);
+    await waitForHydration(page);
+    await page.goto("/");
+    await waitForHydration(page);
+
+    // U0e: activation IS navigation — the stale state-path placeholder that
+    // used to render here is deleted.
+    await page.getByTestId("panel-tab-admin").click();
+    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page.getByTestId("admin-landing")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("admin-nav-cards")).toBeVisible();
+    await expect(page.getByText(en["shell.placeholderTitle"], { exact: true })).toHaveCount(0);
+    await expect(page.getByText(en["shell.placeholderBody"], { exact: true })).toHaveCount(0);
+  });
+
   test("A-3 regular user: /admin still redirects home", async ({ page }) => {
     const user = await createUser({ confirmed: true });
 
