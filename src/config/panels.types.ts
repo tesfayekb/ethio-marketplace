@@ -38,7 +38,6 @@ export interface Panel {
   items: NavItem[];
 }
 
-
 /**
  * What the panel config is allowed to know about the current user.
  *
