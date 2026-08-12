@@ -234,9 +234,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Band 4 + 5 */}
           <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
             <Breadcrumbs />
-            {/* A route-owned page always renders itself; the placeholder is only
-                for panels whose pages do not exist yet (INC-058). */}
-            {!isFeedRoute || activePanel === "marketplace" ? children : <PanelPlaceholder />}
+            {/* A route-owned page always renders itself. The placeholder is
+                ONLY for a panel with no route at all (My Listings). U0e /
+                INC-071 deleted the state-path Admin body: /admin is the one
+                and only admin rendering. */}
+            {!isFeedRoute || activePanel !== "my-listings" ? children : <PanelPlaceholder />}
           </main>
         </div>
 

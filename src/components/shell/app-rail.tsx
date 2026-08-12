@@ -388,7 +388,11 @@ export function AppRail() {
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
         <SheetContent side="left" className="flex w-72 flex-col bg-sidebar p-4">
           <SheetHeader className="p-0">
-            <div className="flex justify-center pb-2">
+            {/* U0e: the drawer's logo block mirrors the top bar exactly — the
+                same h-14 height and the same `border-b border-border` divider
+                the header carries — so the drawer opens on the same geometry
+                the page already shows. */}
+            <div className="-mx-4 flex h-14 items-center justify-center border-b border-border px-4">
               <Logo variant="full" />
             </div>
             <SheetTitle className="sr-only">{t("shell.menuTitle")}</SheetTitle>
