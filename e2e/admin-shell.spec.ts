@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { ADMIN_SECTIONS } from "../src/features/admin/sections";
+import { ADMIN_SECTIONS, sectionForPath } from "../src/features/admin/sections";
 import { en } from "../src/i18n/locales/en";
 
 import { gotoReady, signIn, waitForHydration } from "./helpers/ui";
@@ -66,6 +66,11 @@ async function permissionsOfRole(roleName: string): Promise<string[]> {
     .map((p) => `${p.resources.name}:${p.action}`);
 }
 
+/** True on the 360px project; the drawer owns nav there, the rail on md+. */
+function isMobile(page: import("@playwright/test").Page): boolean {
+  return (page.viewportSize()?.width ?? 0) < 768;
+}
+
 function expectedSectionIds(permissions: string[]): string[] {
   return ADMIN_SECTIONS.filter((s) => permissions.includes(s.permission)).map((s) => s.id);
 }
@@ -107,6 +112,31 @@ test.describe("Admin shell (U0)", () => {
     await waitForHydration(page);
     await expect(page.getByTestId(`admin-section-${second}`)).toBeVisible({ timeout: 15000 });
 
+    // U0b (INC-069): the SHELL rail/drawer carries the section items, and the
+    // page-internal sidebar is gone on every viewport.
+    await expect(page.getByTestId("admin-nav-sidebar")).toHaveCount(0);
+
+    if (isMobile(page)) {
+      await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+      const drawer = page.getByRole("dialog");
+      for (const id of expected) {
+        await expect(drawer.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
+      }
+      const target = ADMIN_SECTIONS.find((s) => s.id === (expected[1] ?? expected[0]!))!;
+      await drawer.getByTestId(`rail-item-ad-${target.id}`).click();
+      await expect(page).toHaveURL(new RegExp(`${target.path}$`));
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(page.getByTestId(`admin-section-${target.id}`)).toBeVisible();
+    } else {
+      const rail = page.getByTestId("app-rail");
+      for (const id of expected) {
+        await expect(rail.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
+      }
+      // The current section is the highlighted one.
+      const current = sectionForPath(new URL(page.url()).pathname)!;
+      await expect(rail.getByTestId(`rail-item-ad-${current.id}`)).toHaveClass(/bg-sidebar-accent/);
+    }
+
     // A section the admin role does NOT hold is refused, not blank.
     const forbidden = ADMIN_SECTIONS.find((s) => !expected.includes(s.id));
     if (forbidden) {
@@ -138,6 +168,21 @@ test.describe("Admin shell (U0)", () => {
     // AdminNav returns null for zero sections, so the container is absent (not empty).
     await expect(page.getByTestId("admin-nav-cards")).toHaveCount(0);
     await expect(page.getByTestId("admin-nav-sidebar")).toHaveCount(0);
+
+    // U0b: the shell drawer carries zero admin section items for this role.
+    if (isMobile(page)) {
+      await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+      const drawer = page.getByRole("dialog");
+      for (const section of ADMIN_SECTIONS) {
+        await expect(drawer.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
+      }
+      await page.keyboard.press("Escape");
+    } else {
+      const rail = page.getByTestId("app-rail");
+      for (const section of ADMIN_SECTIONS) {
+        await expect(rail.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
+      }
+    }
 
     await page.goto("/admin/users");
     await waitForHydration(page);
