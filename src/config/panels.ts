@@ -1,26 +1,19 @@
 import {
   Baby,
-  BadgeCheck,
   Bell,
   BookOpen,
   Briefcase,
-  Building2,
   Car,
   CircleUser,
   ClipboardList,
-  Cog,
   Cpu,
   Dumbbell,
-  Flag,
-  FolderTree,
   Gauge,
-  Globe2,
   Heart,
   HelpCircle,
   Home,
   KeyRound,
   LayoutDashboard,
-  LifeBuoy,
   ListChecks,
   MapPin,
   MessageSquare,
@@ -29,20 +22,19 @@ import {
   ScrollText,
   Settings,
   Shield,
-  ShieldCheck,
   Shirt,
-  ShoppingBag,
   Smartphone,
   Sofa,
   Sparkles,
   Store,
   Tag,
-  Users,
   Wheat,
   Wrench,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
+
+import { ADMIN_NAV_ITEMS } from "@/features/admin/rail-items";
 
 import type { NavItem, Panel, PanelAuthContext, PanelId } from "./panels.types";
 
@@ -102,153 +94,12 @@ export const PANELS: Record<PanelId, Panel> = {
     labelKey: "panel.admin",
     icon: Shield,
     /**
-     * Admin nav is NESTED, not flat: each former `section` is now a parent
-     * item carrying its members as `children`, so the rail renders it as an
-     * expand/collapse submenu. Parents hold no permission of their own — a
-     * parent disappears automatically once every child it owns is filtered
-     * out (see visibleItems). Law F3 is untouched: this is UI shaping only.
+     * DERIVED from src/features/admin/sections.ts (U0b, INC-069): the admin
+     * panel surfaces its sections through the SAME shell panel-item seam as
+     * Account and My Listings — no panel carries its own parallel navigation.
+     * visibleItems() filters them with the permissions the shell already read.
      */
-    items: [
-      {
-        id: "ad-dashboard",
-        labelKey: "nav.dashboard",
-        icon: LayoutDashboard,
-        requiredPermission: "admin.dashboard.view",
-      },
-      {
-        id: "ad-identity",
-        labelKey: "navSection.identity",
-        icon: Users,
-        children: [
-          {
-            id: "ad-users",
-            labelKey: "nav.users",
-            icon: Users,
-            requiredPermission: "identity.users.view",
-          },
-          {
-            id: "ad-verification",
-            labelKey: "nav.verification",
-            icon: BadgeCheck,
-            requiredPermission: "identity.verification.view",
-          },
-        ],
-      },
-      {
-        id: "ad-access",
-        labelKey: "navSection.accessControl",
-        icon: ShieldCheck,
-        children: [
-          {
-            id: "ad-roles",
-            labelKey: "nav.roles",
-            icon: ShieldCheck,
-            requiredPermission: "access.roles.view",
-          },
-          {
-            id: "ad-permissions",
-            labelKey: "nav.permissions",
-            icon: KeyRound,
-            requiredPermission: "access.permissions.view",
-          },
-        ],
-      },
-      {
-        id: "ad-moderation",
-        labelKey: "navSection.moderation",
-        icon: Flag,
-        children: [
-          {
-            id: "ad-reports",
-            labelKey: "nav.reports",
-            icon: Flag,
-            requiredPermission: "moderation.reports.view",
-          },
-          {
-            id: "ad-screening",
-            labelKey: "nav.screeningQueue",
-            icon: ShieldCheck,
-            requiredPermission: "moderation.screening.view",
-          },
-        ],
-      },
-      {
-        id: "ad-marketplace",
-        labelKey: "navSection.marketplace",
-        icon: ShoppingBag,
-        children: [
-          {
-            id: "ad-listings",
-            labelKey: "nav.allListings",
-            icon: ShoppingBag,
-            requiredPermission: "marketplace.listings.view",
-          },
-          {
-            id: "ad-categories",
-            labelKey: "nav.categories",
-            icon: FolderTree,
-            requiredPermission: "marketplace.categories.view",
-          },
-          {
-            id: "ad-locations",
-            labelKey: "nav.locations",
-            icon: Globe2,
-            requiredPermission: "marketplace.locations.view",
-          },
-        ],
-      },
-      {
-        id: "ad-content",
-        labelKey: "navSection.content",
-        icon: BookOpen,
-        children: [
-          {
-            id: "ad-pages",
-            labelKey: "nav.pages",
-            icon: BookOpen,
-            requiredPermission: "content.pages.view",
-          },
-          {
-            id: "ad-translations",
-            labelKey: "nav.translations",
-            icon: Globe2,
-            requiredPermission: "content.translations.view",
-          },
-        ],
-      },
-      {
-        id: "ad-support",
-        labelKey: "navSection.support",
-        icon: LifeBuoy,
-        children: [
-          {
-            id: "ad-tickets",
-            labelKey: "nav.supportTickets",
-            icon: LifeBuoy,
-            requiredPermission: "support.tickets.view",
-          },
-        ],
-      },
-      {
-        id: "ad-system",
-        labelKey: "navSection.system",
-        icon: Cog,
-        children: [
-          {
-            id: "ad-organisation",
-            labelKey: "nav.organisation",
-            icon: Building2,
-            requiredPermission: "system.organisation.view",
-          },
-          {
-            id: "ad-system-settings",
-            labelKey: "nav.systemSettings",
-            icon: Cog,
-            requiredPermission: "system.settings.view",
-          },
-        ],
-      },
-    ],
+    items: [...ADMIN_NAV_ITEMS],
   },
 };
 
