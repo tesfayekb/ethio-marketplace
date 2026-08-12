@@ -116,3 +116,4 @@
 - 2026-08-10 — fix(e2e): signIn helper waits for established+persisted session (INC-068 root cause of U0 A-1 red); class rules recorded
 - 2026-08-10 — fix(e2e): attemptSignIn split for expected-failure paths (INC-068 addendum) — six mobile-360 auth-negative tests re-anchored; signIn keeps the session contract
 - 2026-08-12 — fix(admin): U0b — admin sections integrate the shell panel rail/drawer like sibling panels; internal sidebar removed; E2E extended (INC-069)
+- 2026-08-12 — fix(shell): U0c — single functional breadcrumb with current-segment emphasis; Back-button removed; drawer redesigned to active-panel + switcher (operator render-walk)
