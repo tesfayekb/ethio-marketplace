@@ -92,8 +92,14 @@ test.describe("Admin shell (U0)", () => {
 
     const cards = page.getByTestId("admin-nav-cards").getByRole("link");
     await expect(cards).toHaveCount(expected.length, { timeout: 15000 });
+    // U0d (INC-070): each card is a real link carrying BOTH the section title
+    // and its description — the landing theme, not a bare list.
     for (const id of expected) {
-      await expect(page.getByTestId(`admin-section-link-${id}`)).toBeVisible();
+      const card = page.getByTestId(`admin-section-link-${id}`);
+      const s = ADMIN_SECTIONS.find((x) => x.id === id)!;
+      await expect(card).toBeVisible();
+      await expect(card).toContainText(en[s.titleKey]);
+      await expect(card).toContainText(en[s.bodyKey]);
     }
 
     // Clicking a permitted section lands on its empty state with breadcrumb.

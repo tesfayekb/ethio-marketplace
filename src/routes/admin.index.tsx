@@ -5,7 +5,14 @@ import { AdminNav } from "@/features/admin/admin-nav";
 import { useAdminSections } from "@/features/admin/use-admin-sections";
 import { useI18n } from "@/i18n";
 
-/** The admin landing: the permitted-sections grid, or an honest empty state. */
+/**
+ * The admin landing: the permitted-sections grid, or an honest empty state.
+ *
+ * U0d (INC-070) — STANDING DESIGN RULE: a panel's landing page presents its
+ * items as clickable cards in the body (AdminNav), permission-filtered, each
+ * card carrying the section title and its "arrives in Un" description. This
+ * theme is applied to every panel as it is built.
+ */
 export const Route = createFileRoute("/admin/")({
   component: AdminLanding,
 });
@@ -17,7 +24,7 @@ function AdminLanding() {
 
   return (
     <div data-testid="admin-landing">
-      <h1 className=" text-lg font-semibold text-foreground">{t("admin.landing.title")}</h1>
+      <h1 className="text-lg font-semibold text-foreground">{t("admin.landing.title")}</h1>
 
       {accessDenied ? (
         <p
