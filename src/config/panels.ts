@@ -50,12 +50,17 @@ export const PANELS: Record<PanelId, Panel> = {
     id: "marketplace",
     labelKey: "panel.marketplace",
     icon: Store,
+    // The feed lives at "/".
+    homePath: "/",
     items: [],
   },
   "my-listings": {
     id: "my-listings",
     labelKey: "panel.myListings",
     icon: ClipboardList,
+    // INC-071 grandfather: My Listings has NO route yet — its pages arrive with
+    // its own build. Until then activation stays on the legacy state path.
+    homePath: null,
     items: [
       { id: "ml-dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
       { id: "ml-post", labelKey: "nav.postListing", icon: PlusCircle },
@@ -76,6 +81,9 @@ export const PANELS: Record<PanelId, Panel> = {
     id: "account",
     labelKey: "panel.account",
     icon: CircleUser,
+    // Censused truth: /settings is the only Account-owned route today, and the
+    // shell already derives the Account panel from it.
+    homePath: "/settings",
     items: [
       { id: "ac-overview", labelKey: "nav.overview", icon: Gauge },
       { id: "ac-saved", labelKey: "nav.saved", icon: Heart },
@@ -93,6 +101,7 @@ export const PANELS: Record<PanelId, Panel> = {
     id: "admin",
     labelKey: "panel.admin",
     icon: Shield,
+    homePath: "/admin",
     /**
      * DERIVED from src/features/admin/sections.ts (U0b, INC-069): the admin
      * panel surfaces its sections through the SAME shell panel-item seam as
