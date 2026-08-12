@@ -804,3 +804,40 @@ test.describe("panel follows the route", () => {
     await expect(page.getByTestId("panel-tab-admin")).toHaveCount(0);
   });
 });
+
+/**
+ * U0d — the panel identity band (name + switcher) is a PERSISTENT band
+ * directly below the logo cell at every viewport. The corner-block invariants
+ * above are untouched: the band lives INSIDE the rail, so the logo cell's
+ * geometry is unchanged.
+ */
+test.describe("panel header band (U0d)", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "md and up only");
+
+  test("the band sits in the rail directly below the logo cell", async ({ page }) => {
+    await gotoReady(page, "/");
+    const header = page.getByTestId("app-rail").getByTestId("panel-header");
+    await expect(header).toBeVisible();
+    await expect(header.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
+
+    const logo = (await page.getByTestId("shell-logo-cell").boundingBox())!;
+    const band = (await header.boundingBox())!;
+    expect(band.y).toBeGreaterThanOrEqual(logo.y + logo.height - 1);
+  });
+
+  test("the desktop rail switcher swaps the active panel's items", async ({ page }) => {
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await gotoReady(page, "/");
+
+    const rail = page.getByTestId("app-rail");
+    await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
+
+    await rail.getByTestId("panel-header-switcher").click();
+    await page.getByTestId("panel-header-option-account").click();
+
+    await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
+    await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible();
+    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
+  });
+});
