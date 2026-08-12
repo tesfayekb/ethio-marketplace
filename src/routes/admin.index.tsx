@@ -43,7 +43,7 @@ function AdminLanding() {
         <>
           <p className="mt-2 text-sm text-muted-foreground">{t("admin.landing.body")}</p>
           <div className="mt-4">
-            <AdminNav variant="cards" />
+            <AdminNav />
           </div>
         </>
       )}
