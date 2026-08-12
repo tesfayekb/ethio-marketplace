@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 import {
+  attemptSignIn,
   expectSignedIn,
   expectSignedOut,
   signIn,
@@ -82,7 +83,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await expectSignedOut(page);
 
   // Old password no longer works.
-  await signIn(page, user.email, user.password);
+  await attemptSignIn(page, user.email, user.password);
   await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
   await expectSignedOut(page);
 

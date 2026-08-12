@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 import {
+  attemptSignIn,
   expectSignedIn,
   expectSignedOut,
   signIn,
@@ -76,7 +77,7 @@ test("R-3: a recovery link sets a new password, and the old one stops working", 
   await expectSignedOut(page);
 
   // The old password is dead.
-  await signIn(page, user.email, user.password);
+  await attemptSignIn(page, user.email, user.password);
   await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
   await expectSignedOut(page);
 

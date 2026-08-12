@@ -145,6 +145,28 @@ export async function signIn(page: Page, email: string, password: string) {
 }
 
 /**
+ * Submits credentials and returns; makes NO claim about the outcome — for
+ * expected-failure and outcome-agnostic paths. For flows that must END signed
+ * in, use signIn.
+ */
+export async function attemptSignIn(page: Page, email: string, password: string) {
+  await page.goto("/auth");
+  await waitForHydration(page);
+
+  const emailInput = page.getByRole("textbox", { name: /email/i });
+  const passwordInput = page.locator("#auth-password");
+
+  await fillUntilStable(emailInput, email, "email");
+  await fillUntilStable(passwordInput, password, "password");
+
+  await expect(emailInput).toHaveValue(email);
+  await expect(passwordInput).toHaveValue(password);
+
+  // Anchored: excludes "Create an account" toggle and the disabled OAuth slots.
+  await page.getByRole("button", { name: /^sign in$/i }).click();
+}
+
+/**
  * Signed out = no account menu anywhere. (Pre-shell this asserted the absence
  * of a header sign-out button; the account menu is that button's successor and
  * only renders on the authenticated branch, so the guarantee is identical.)

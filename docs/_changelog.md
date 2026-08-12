@@ -114,3 +114,4 @@
 - 2026-08-10 — Phase U0: admin shell & navigation — /admin converted to a layout route with permission-gated section nav (7 sections), breadcrumbs, deep-link guard with a translated refusal notice, and i18n'd empty-state pages; new src/features/admin/\*\*, admin child routes, EN+AM strings (AM provisional), e2e/admin-shell.spec.ts. No migrations.
 - 2026-08-10 — fix(e2e): admin-shell setup aligned to user_roles 4-col constraint + assertions matched to real component semantics; docs: admin-shell feature doc (H1)
 - 2026-08-10 — fix(e2e): signIn helper waits for established+persisted session (INC-068 root cause of U0 A-1 red); class rules recorded
+- 2026-08-10 — fix(e2e): attemptSignIn split for expected-failure paths (INC-068 addendum) — six mobile-360 auth-negative tests re-anchored; signIn keeps the session contract
