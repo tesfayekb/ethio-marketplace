@@ -4,7 +4,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/app-shell";
 import { Logo } from "@/components/brand/logo";
-import { PanelSwitcher } from "@/components/shell/panel-switcher";
+import { PanelHeader } from "@/components/shell/panel-header";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -375,6 +375,10 @@ export function AppRail() {
           data-testid="app-rail"
           className="hidden min-w-0 flex-col border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:flex md:[html[data-rail=collapsed]_&]:px-1"
         >
+          {/* U0d: the panel identity band sits directly BELOW the logo cell
+              (grid row 2 starts here), identical to the drawer. Hidden on the
+              collapsed rail, where there is no room for a name. */}
+          <PanelHeader className={cn("mb-2", HIDE_WHEN_COLLAPSED)} />
           <RailBody onNavigate={() => undefined} />
           <RailFoot onNavigate={() => undefined} />
         </aside>
@@ -389,11 +393,9 @@ export function AppRail() {
             </div>
             <SheetTitle className="sr-only">{t("shell.menuTitle")}</SheetTitle>
           </SheetHeader>
-          {/* U0c: the drawer names the ACTIVE panel once and switches panels
-              through a dropdown; the old stacked all-panels list is gone. */}
-          <div className="mt-3 border-b border-border pb-2">
-            <PanelSwitcher />
-          </div>
+          {/* U0d: the SAME panel band as the md+ rail, directly below the
+              logo cell. The old stacked all-panels list is gone (U0c). */}
+          <PanelHeader className="mt-3" />
           <div className="mt-4 flex flex-1 flex-col gap-4">
             <RailBody onNavigate={() => setNavOpen(false)} />
             <RailFoot onNavigate={() => setNavOpen(false)} />
