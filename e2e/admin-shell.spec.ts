@@ -102,9 +102,26 @@ test.describe("Admin shell (U0)", () => {
     await page.getByTestId(`admin-section-link-${first}`).click();
     await expect(page).toHaveURL(new RegExp(`${section.path}$`));
     await expect(page.getByTestId(`admin-section-${first}`)).toBeVisible();
-    const crumb = page.getByTestId("admin-breadcrumb");
-    await expect(crumb).toContainText(en["admin.breadcrumb.root"]);
-    await expect(crumb).toContainText(en[section.titleKey]);
+    // U0c — EXACTLY ONE breadcrumb nav (the shell's) on admin routes, with
+    // route-derived functional segments and an emphasized current segment.
+    await expect(page.getByTestId("admin-breadcrumb")).toHaveCount(0);
+    await expect(page.getByTestId("admin-section-back")).toHaveCount(0);
+    const crumb = page.getByTestId("breadcrumbs");
+    await expect(crumb).toHaveCount(1);
+    await expect(crumb.getByTestId("breadcrumb-home")).toBeVisible();
+    await expect(crumb.getByTestId("breadcrumb-admin")).toBeVisible();
+    const current = crumb.getByTestId("breadcrumb-admin-section");
+    await expect(current).toHaveText(en[section.titleKey]);
+    await expect(current).toHaveAttribute("aria-current", "page");
+    await expect(current).toHaveClass(/underline/);
+
+    // The Admin segment is a real link back to the landing.
+    await crumb.getByTestId("breadcrumb-admin").click();
+    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page.getByTestId("admin-landing")).toBeVisible();
+    await page.goto(section.path);
+    await waitForHydration(page);
+    await expect(page.getByTestId(`admin-section-${first}`)).toBeVisible({ timeout: 15000 });
 
     // Deep link into another permitted section resolves directly.
     const second = expected[1] ?? expected[0]!;
@@ -119,6 +136,8 @@ test.describe("Admin shell (U0)", () => {
     if (isMobile(page)) {
       await page.getByRole("button", { name: en["shell.openMenu"] }).click();
       const drawer = page.getByRole("dialog");
+      // U0c — the drawer heads with the ACTIVE panel and lists its items only.
+      await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.admin"]);
       for (const id of expected) {
         await expect(drawer.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
       }
@@ -173,6 +192,7 @@ test.describe("Admin shell (U0)", () => {
     if (isMobile(page)) {
       await page.getByRole("button", { name: en["shell.openMenu"] }).click();
       const drawer = page.getByRole("dialog");
+      await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.admin"]);
       for (const section of ADMIN_SECTIONS) {
         await expect(drawer.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
       }
