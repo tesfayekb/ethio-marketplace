@@ -579,8 +579,31 @@ test.describe("mobile chrome", () => {
 
     const drawer = page.getByRole("dialog");
     await expect(drawer).toBeVisible();
+    // U0c — the drawer names the ACTIVE panel and lists ONLY its items.
+    await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.marketplace"]);
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
-    await expect(drawer.getByText(en["panel.marketplace"], { exact: true })).toBeVisible();
+    // The old stacked all-panels list is gone: no non-active panel name shows
+    // in the drawer body (the switcher's options live in a portal menu).
+    await expect(drawer.getByText(en["panel.account"], { exact: true })).toHaveCount(0);
+    await expect(drawer.getByText(en["panel.myListings"], { exact: true })).toHaveCount(0);
+  });
+
+  test("the drawer switcher swaps the active panel's items", async ({ page }) => {
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await gotoReady(page, "/");
+
+    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.marketplace"]);
+
+    await page.getByTestId("drawer-panel-switcher").click();
+    await page.getByTestId("drawer-panel-option-account").click();
+
+    // Drawer stays open on the new panel: its items replace marketplace's.
+    await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.account"]);
+    await expect(drawer.getByTestId("rail-item-ac-overview")).toBeVisible();
+    await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
   });
 
   test("the rail-collapse toggle does not exist on mobile", async ({ page }) => {
@@ -597,6 +620,7 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     await page.getByRole("button", { name: en["shell.openMenu"] }).click();
     const drawer = page.getByRole("dialog");
+    await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.marketplace"]);
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
     await expect(drawer.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
