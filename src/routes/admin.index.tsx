@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AdminBreadcrumb } from "@/features/admin/admin-breadcrumb";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { AdminNav } from "@/features/admin/admin-nav";
 import { useAdminSections } from "@/features/admin/use-admin-sections";
@@ -18,8 +17,7 @@ function AdminLanding() {
 
   return (
     <div data-testid="admin-landing">
-      <AdminBreadcrumb section={null} />
-      <h1 className="mt-3 text-lg font-semibold text-foreground">{t("admin.landing.title")}</h1>
+      <h1 className=" text-lg font-semibold text-foreground">{t("admin.landing.title")}</h1>
 
       {accessDenied ? (
         <p
