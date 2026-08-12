@@ -174,6 +174,7 @@ export const am: Messages = {
   "shell.searchClose": "ፍለጋን ዝጋ",
   "shell.themeToggle": "ብሩህ ወይም ጨለማ ገጽታ ቀይር",
   "shell.breadcrumbLabel": "የመንገድ ዱካ",
+  "shell.switchPanel": "ክፍል ቀይር",
   "shell.panelLabel": "ክፍል",
   "shell.mainNav": "ዋና አሰሳ",
   "shell.allCategories": "ሁሉም ምድቦች",
@@ -225,8 +226,6 @@ export const am: Messages = {
 
   // TODO-native-review: provisional Amharic, pending native speaker review.
   "admin.nav.label": "የአስተዳደር ክፍሎች",
-  "admin.breadcrumb.root": "አስተዳደር",
-  "admin.back": "ወደ አስተዳደር ተመለስ",
   "admin.landing.title": "አስተዳደር",
   "admin.landing.body": "የሚያስተዳድሩትን ክፍል ይምረጡ።",
   "admin.accessDenied": "ወደዚያ ክፍል መዳረሻ የለዎትም።",

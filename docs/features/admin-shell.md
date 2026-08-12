@@ -76,19 +76,21 @@ permitted sections → the panel simply shows no items.
 
 ## Testid inventory
 
-| Testid                    | Rendered by                                        |
-| ------------------------- | -------------------------------------------------- |
-| `admin-panel-root`        | `admin.tsx` layout                                 |
-| `admin-nav-cards`         | `admin-nav.tsx` (cards; absent when zero sections) |
-| `admin-section-link-<id>` | `admin-nav.tsx` cards                              |
-| `rail-item-ad-<id>`       | `shell/app-rail.tsx` (rail + drawer section items) |
-| `admin-breadcrumb`        | `admin-breadcrumb.tsx`                             |
-| `admin-landing`           | `admin.index.tsx`                                  |
-| `admin-no-sections`       | `admin.index.tsx`                                  |
-| `admin-access-notice`     | `admin.index.tsx`                                  |
-| `admin-section-<id>`      | `section-page.tsx`                                 |
-| `admin-section-back`      | `section-page.tsx`                                 |
-| `panel-tab-admin`         | `shell/panel-tabs.tsx` (`panel-tab-${panel.id}`)   |
+| Testid                     | Rendered by                                        |
+| -------------------------- | -------------------------------------------------- |
+| `admin-panel-root`         | `admin.tsx` layout                                 |
+| `admin-nav-cards`          | `admin-nav.tsx` (cards; absent when zero sections) |
+| `admin-section-link-<id>`  | `admin-nav.tsx` cards                              |
+| `rail-item-ad-<id>`        | `shell/app-rail.tsx` (rail + drawer section items) |
+| `breadcrumbs`              | `shell/breadcrumbs.tsx` (the ONLY breadcrumb nav)  |
+| `breadcrumb-admin`         | `shell/breadcrumbs.tsx` (Admin segment)            |
+| `breadcrumb-admin-section` | `shell/breadcrumbs.tsx` (current section)          |
+| `drawer-panel-switcher`    | `shell/panel-switcher.tsx` (mobile drawer header)  |
+| `admin-landing`            | `admin.index.tsx`                                  |
+| `admin-no-sections`        | `admin.index.tsx`                                  |
+| `admin-access-notice`      | `admin.index.tsx`                                  |
+| `admin-section-<id>`       | `section-page.tsx`                                 |
+| `panel-tab-admin`          | `shell/panel-tabs.tsx` (`panel-tab-${panel.id}`)   |
 
 ## E2E coverage (`e2e/admin-shell.spec.ts`)
 
@@ -108,3 +110,20 @@ permitted sections → the panel simply shows no items.
 Fixtures are minted per test via the service role; `grantRole` uses a plain
 INSERT (matching `e2e/rbac.spec.ts`) because the `user_roles` UNIQUE is
 `(user_id, role_id, scope_type, scope_country)` and each fixture user is fresh.
+
+## U0c — operator render-walk refinements (2026-08-12)
+
+- **One breadcrumb.** `src/features/admin/admin-breadcrumb.tsx` is DELETED.
+  Admin routes feed the shell breadcrumb seam (`shell/breadcrumbs.tsx`), which
+  derives its segments from the route (INC-058): `Home > Admin` on `/admin`,
+  `Home > Admin > <Section>` inside a section. Home and Admin are links; the
+  current segment is not a link and is emphasized (underline + heavier weight,
+  `aria-current="page"`).
+- **No Back button.** `admin-section-back` is gone at every width — the Admin
+  breadcrumb segment is the way back.
+- **Drawer.** The mobile drawer heads with the ACTIVE panel's name plus a
+  panel-switcher dropdown (auth-filtered exactly like the top tabs, ≥44px
+  target, `shell.switchPanel`). Below it: only the active panel's items
+  (permission filtering unchanged). The stacked all-panels list is removed;
+  sign out stays pinned at the bottom. A single-panel (logged-out) drawer shows
+  the heading without a trigger.

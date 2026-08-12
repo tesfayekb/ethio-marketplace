@@ -179,6 +179,7 @@ export const en = {
   "shell.searchClose": "Close search",
   "shell.themeToggle": "Switch light or dark theme",
   "shell.breadcrumbLabel": "Breadcrumb",
+  "shell.switchPanel": "Switch section",
   "shell.panelLabel": "Section",
   "shell.mainNav": "Main navigation",
   "shell.allCategories": "All categories",
@@ -229,8 +230,6 @@ export const en = {
   "admin.loading": "Checking your access…",
 
   "admin.nav.label": "Admin sections",
-  "admin.breadcrumb.root": "Admin",
-  "admin.back": "Back to Admin",
   "admin.landing.title": "Admin",
   "admin.landing.body": "Choose a section to manage.",
   "admin.accessDenied": "You don't have access to that section.",

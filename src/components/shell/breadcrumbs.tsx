@@ -1,3 +1,6 @@
+import { useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+
 import { useShell } from "@/components/app-shell";
 import {
   Breadcrumb,
@@ -8,6 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { PANELS } from "@/config/panels";
+import { sectionForPath } from "@/features/admin/sections";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 
@@ -24,8 +28,12 @@ import { useI18n } from "@/i18n";
  * categories only; when category children land the same map renders the full
  * chain (Home › Clothing › Child clothing › Shirts) with no change here.
  */
+/** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
+const CURRENT = "font-semibold text-foreground underline underline-offset-4";
+
 export function Breadcrumbs() {
   const { t, language } = useI18n();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { activePanel, setActivePanel, selectedCategoryId, setSelectedCategoryId } = useShell();
 
   /**
@@ -50,6 +58,56 @@ export function Breadcrumbs() {
    * are, so it stays a segment: Home › Account › …
    */
   const showPanelSegment = activePanel !== "marketplace";
+
+  /**
+   * U0c — ADMIN ROUTES feed THIS seam, route-derived (INC-058). The admin
+   * panel no longer carries its own breadcrumb row: exactly one breadcrumb
+   * nav renders on every route, and it is this one.
+   */
+  if (pathname.startsWith("/admin")) {
+    const section = sectionForPath(pathname);
+    return (
+      <Breadcrumb
+        data-testid="breadcrumbs"
+        aria-label={t("shell.breadcrumbLabel")}
+        className="mb-3"
+      >
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/" data-testid="breadcrumb-home">
+                {t("nav.home")}
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            {section ? (
+              <BreadcrumbLink asChild>
+                <Link to="/admin" data-testid="breadcrumb-admin">
+                  {t("panel.admin")}
+                </Link>
+              </BreadcrumbLink>
+            ) : (
+              <BreadcrumbPage data-testid="breadcrumb-admin" className={CURRENT}>
+                {t("panel.admin")}
+              </BreadcrumbPage>
+            )}
+          </BreadcrumbItem>
+          {section ? (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage data-testid="breadcrumb-admin-section" className={CURRENT}>
+                  {t(section.titleKey)}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </>
+          ) : null}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
 
   return (
     <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")} className="mb-3">
