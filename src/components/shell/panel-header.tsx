@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -30,7 +31,10 @@ const BAND = "rounded-md bg-sidebar-accent/40 px-2 py-1";
 
 export function PanelHeader({ className }: { className?: string }) {
   const { t } = useI18n();
-  const { auth, activePanel, setActivePanel } = useShell();
+  const { auth, activePanel } = useShell();
+  // U0e (INC-071): the same navigation helper the top tabs use. The drawer
+  // stays OPEN through the navigation.
+  const switchPanel = useSwitchPanel();
   const panels = panelsForUser(auth);
   const current = panels.find((p) => p.id === activePanel) ?? panels[0]!;
   const label = t(current.labelKey);
@@ -69,7 +73,7 @@ export function PanelHeader({ className }: { className?: string }) {
               <DropdownMenuItem
                 key={panel.id}
                 data-testid={`panel-header-option-${panel.id}`}
-                onSelect={() => setActivePanel(panel.id)}
+                onSelect={() => switchPanel(panel.id)}
                 className="min-h-11 gap-2"
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />

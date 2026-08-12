@@ -147,3 +147,23 @@ INSERT (matching `e2e/rbac.spec.ts`) because the `user_roles` UNIQUE is
   replaced by `PanelHeader`. Test hooks re-anchored: `drawer-panel-title` →
   `panel-header-title`, `drawer-panel-switcher` → `panel-header-switcher`,
   `drawer-panel-option-*` → `panel-header-option-*`.
+
+## U0e — panel activation is navigation (INC-071)
+
+Every panel in `src/config/panels.ts` carries a `homePath`: Marketplace `/`,
+Account `/settings`, Admin `/admin`, My Listings `null` (no route until its own
+build lands). Both activation surfaces — the top panel tabs
+(`src/components/shell/panel-tabs.tsx`) and the rail/drawer panel header
+(`src/components/shell/panel-header.tsx`) — call the single
+`useSwitchPanel()` helper in `src/components/shell/use-switch-panel.ts`, which
+navigates to `homePath`. Only a `null`-homePath panel still uses the legacy
+`setActivePanel` state path, marked with an INC-071 grandfather comment.
+
+Consequence: `/admin` is the ONLY admin rendering. The former state-path admin
+body (the "coming in its own feature" placeholder) is deleted; the placeholder
+now renders solely for My Listings on the feed route.
+
+The mobile drawer stays OPEN through a panel switch: the Sheet closes only when
+`navOpen` is set false, which navigation alone does not do. Its logo block
+mirrors the top bar — same `h-14` height, same `border-b border-border`
+divider.

@@ -588,7 +588,7 @@ test.describe("mobile chrome", () => {
     await expect(drawer.getByText(en["panel.myListings"], { exact: true })).toHaveCount(0);
   });
 
-  test("the drawer switcher swaps the active panel's items", async ({ page }) => {
+  test("the drawer switcher NAVIGATES to the panel's home (U0e)", async ({ page }) => {
     const user = await createUser({ confirmed: true });
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
@@ -600,10 +600,32 @@ test.describe("mobile chrome", () => {
     await page.getByTestId("panel-header-switcher").click();
     await page.getByTestId("panel-header-option-account").click();
 
-    // Drawer stays open on the new panel: its items replace marketplace's.
+    // INC-071: activation IS navigation. The URL is Account's homePath, and
+    // the drawer stays OPEN on the new panel's items.
+    await expect(page).toHaveURL(/\/settings$/);
+    await expect(drawer).toBeVisible();
     await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
     await expect(drawer.getByTestId("rail-item-ac-overview")).toBeVisible();
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
+  });
+
+  // U0e geometry: the drawer's logo block carries the top bar's divider and
+  // exactly the top bar's height.
+  test("the drawer logo block matches the top bar's divider and height", async ({ page }) => {
+    await gotoReady(page, "/");
+    const bar = (await page.locator("header").first().boundingBox())!;
+
+    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    const block = page.getByRole("dialog").getByTestId("drawer-logo-block");
+    await expect(block).toBeVisible();
+    const box = (await block.boundingBox())!;
+    expect(Math.abs(box.height - bar.height)).toBeLessThanOrEqual(1);
+    const border = await block.evaluate((el) => ({
+      width: getComputedStyle(el).borderBottomWidth,
+      style: getComputedStyle(el).borderBottomStyle,
+    }));
+    expect(border.style).toBe("solid");
+    expect(parseFloat(border.width)).toBeGreaterThan(0);
   });
 
   test("the rail-collapse toggle does not exist on mobile", async ({ page }) => {
@@ -825,7 +847,7 @@ test.describe("panel header band (U0d)", () => {
     expect(band.y).toBeGreaterThanOrEqual(logo.y + logo.height - 1);
   });
 
-  test("the desktop rail switcher swaps the active panel's items", async ({ page }) => {
+  test("the desktop rail switcher NAVIGATES to the panel's home (U0e)", async ({ page }) => {
     const user = await createUser({ confirmed: true });
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
@@ -836,6 +858,8 @@ test.describe("panel header band (U0d)", () => {
     await rail.getByTestId("panel-header-switcher").click();
     await page.getByTestId("panel-header-option-account").click();
 
+    // INC-071 — the route, not state, decides the panel.
+    await expect(page).toHaveURL(/\/settings$/);
     await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
     await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible();
     await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);

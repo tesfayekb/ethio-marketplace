@@ -118,3 +118,5 @@
 - 2026-08-12 — fix(admin): U0b — admin sections integrate the shell panel rail/drawer like sibling panels; internal sidebar removed; E2E extended (INC-069)
 - 2026-08-12 — fix(shell): U0c — single functional breadcrumb with current-segment emphasis; Back-button removed; drawer redesigned to active-panel + switcher (operator render-walk)
 - 2026-08-12 — fix(shell): U0d — admin landing cards restored (INC-070); panel-header band (name + switcher) below the logo on all screens; corner-block geometry untouched
+
+- 2026-08-12 — fix(shell): U0e — panel switching navigates (INC-058/071); dead admin state-placeholder removed; drawer logo block divider + top-bar-height restored

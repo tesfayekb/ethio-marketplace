@@ -1,4 +1,5 @@
 import { useShell } from "@/components/app-shell";
+import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,10 @@ import { cn } from "@/lib/utils";
  */
 export function PanelTabs() {
   const { t } = useI18n();
-  const { auth, activePanel, setActivePanel } = useShell();
+  const { auth, activePanel } = useShell();
+  // U0e (INC-071): activation NAVIGATES, through the one shared helper the
+  // rail/drawer switcher also calls — zero divergence between the two.
+  const switchPanel = useSwitchPanel();
   const panels = panelsForUser(auth);
 
   if (!auth.isAuthenticated || panels.length < 2) return null;
@@ -42,7 +46,7 @@ export function PanelTabs() {
             role="tab"
             aria-selected={active}
             data-testid={`panel-tab-${panel.id}`}
-            onClick={() => setActivePanel(panel.id)}
+            onClick={() => switchPanel(panel.id)}
             className={cn(
               "inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 border-b-2 px-2 text-sm transition-colors md:px-3",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
