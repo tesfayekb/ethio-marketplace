@@ -127,3 +127,23 @@ INSERT (matching `e2e/rbac.spec.ts`) because the `user_roles` UNIQUE is
   (permission filtering unchanged). The stacked all-panels list is removed;
   sign out stays pinned at the bottom. A single-panel (logged-out) drawer shows
   the heading without a trigger.
+
+## U0d — landing cards + panel-header band (2026-08-12, INC-070)
+
+- **Landing cards (standing rule).** `/admin` presents its permitted sections
+  as clickable cards in the body (`AdminNav`, `admin-nav-cards`), each carrying
+  the section title and its "arrives in Un" description. A-1 now asserts both
+  texts per card, derived from the live seed permissions.
+- **Panel-header band.** `src/components/shell/panel-header.tsx` is the single
+  panel-identity component: the active panel's name plus the switcher dropdown
+  (`panelsForUser`, ≥44px targets, rail/drawer stays open, heading-only when a
+  single panel is visible). Surface token: `bg-sidebar-accent/40` — the sidebar
+  token family, never `bg-muted` (INC-042).
+- **Placement.** Rendered as its own band directly BELOW the logo cell in the
+  md+ rail and the mobile drawer identically. The logo cell's geometry,
+  background and height are untouched, so the corner-block / one-band top-bar
+  invariants hold unmodified. On the collapsed desktop rail the band is hidden.
+- **Superseded.** `src/components/shell/panel-switcher.tsx` is DELETED — fully
+  replaced by `PanelHeader`. Test hooks re-anchored: `drawer-panel-title` →
+  `panel-header-title`, `drawer-panel-switcher` → `panel-header-switcher`,
+  `drawer-panel-option-*` → `panel-header-option-*`.
