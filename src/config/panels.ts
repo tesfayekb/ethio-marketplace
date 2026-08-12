@@ -1,26 +1,19 @@
 import {
   Baby,
-  BadgeCheck,
   Bell,
   BookOpen,
   Briefcase,
-  Building2,
   Car,
   CircleUser,
   ClipboardList,
-  Cog,
   Cpu,
   Dumbbell,
-  Flag,
-  FolderTree,
   Gauge,
-  Globe2,
   Heart,
   HelpCircle,
   Home,
   KeyRound,
   LayoutDashboard,
-  LifeBuoy,
   ListChecks,
   MapPin,
   MessageSquare,
@@ -29,20 +22,19 @@ import {
   ScrollText,
   Settings,
   Shield,
-  ShieldCheck,
   Shirt,
-  ShoppingBag,
   Smartphone,
   Sofa,
   Sparkles,
   Store,
   Tag,
-  Users,
   Wheat,
   Wrench,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
+
+import { ADMIN_NAV_ITEMS } from "@/features/admin/rail-items";
 
 import type { NavItem, Panel, PanelAuthContext, PanelId } from "./panels.types";
 
