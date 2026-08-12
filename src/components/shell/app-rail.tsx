@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight, LogOut, Tag } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
@@ -59,6 +59,8 @@ function WithTooltip({ label, children }: { label: string; children: ReactNode }
 /** A node the rail can render: either a config NavItem or a live category. */
 type RailNode = {
   key: string;
+  /** Stable hook for tests; config items pass their item id. */
+  testid?: string;
   label: string;
   icon?: NavItem["icon"];
   path?: string;
@@ -135,6 +137,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <Link
             to={node.path}
             onClick={node.onSelect}
+            data-testid={node.testid}
             aria-label={node.label}
             style={pad}
             className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
@@ -259,12 +262,19 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useI18n();
   const { auth, activePanel } = useShell();
   const items = visibleItems(PANELS[activePanel].items, auth);
+  // Active state for routed items — the current section is highlighted the
+  // same way for every panel (U0b).
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const toNode = (item: NavItem): RailNode => ({
     key: item.id,
+    testid: `rail-item-${item.id}`,
     label: t(item.labelKey),
     icon: item.icon,
     path: item.path,
+    active: item.path
+      ? pathname === item.path || pathname.startsWith(`${item.path}/`)
+      : undefined,
     onSelect: item.path ? onNavigate : undefined,
     children: item.children?.map(toNode),
   });

@@ -2,7 +2,6 @@ import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/
 import { useEffect, useState } from "react";
 
 import { useShell } from "@/components/app-shell";
-import { AdminNav } from "@/features/admin/admin-nav";
 import { AdminShellProvider } from "@/features/admin/admin-context";
 import { sectionForPath } from "@/features/admin/sections";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
@@ -80,13 +79,10 @@ function AdminGate() {
 
   return (
     <AdminShellProvider permissions={permissions} accessDenied={accessDenied}>
-      <div data-testid="admin-panel-root" className="min-w-0 md:flex md:gap-6">
-        <aside className="hidden w-56 shrink-0 md:block">
-          <AdminNav variant="sidebar" />
-        </aside>
-        <div className="min-w-0 flex-1">
-          <Outlet />
-        </div>
+      {/* U0b (INC-069): section navigation lives in the SHELL rail/drawer like
+          every sibling panel — this route renders only the section body. */}
+      <div data-testid="admin-panel-root" className="min-w-0">
+        <Outlet />
       </div>
     </AdminShellProvider>
   );
