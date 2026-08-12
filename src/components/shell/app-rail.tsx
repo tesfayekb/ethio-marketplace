@@ -272,9 +272,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     label: t(item.labelKey),
     icon: item.icon,
     path: item.path,
-    active: item.path
-      ? pathname === item.path || pathname.startsWith(`${item.path}/`)
-      : undefined,
+    active: item.path ? pathname === item.path || pathname.startsWith(`${item.path}/`) : undefined,
     onSelect: item.path ? onNavigate : undefined,
     children: item.children?.map(toNode),
   });

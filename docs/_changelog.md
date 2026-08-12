@@ -115,3 +115,4 @@
 - 2026-08-10 — fix(e2e): admin-shell setup aligned to user_roles 4-col constraint + assertions matched to real component semantics; docs: admin-shell feature doc (H1)
 - 2026-08-10 — fix(e2e): signIn helper waits for established+persisted session (INC-068 root cause of U0 A-1 red); class rules recorded
 - 2026-08-10 — fix(e2e): attemptSignIn split for expected-failure paths (INC-068 addendum) — six mobile-360 auth-negative tests re-anchored; signIn keeps the session contract
+- 2026-08-12 — fix(admin): U0b — admin sections integrate the shell panel rail/drawer like sibling panels; internal sidebar removed; E2E extended (INC-069)
