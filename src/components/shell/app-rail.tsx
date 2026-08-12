@@ -392,7 +392,9 @@ export function AppRail() {
                 same h-14 height and the same `border-b border-border` divider
                 the header carries — so the drawer opens on the same geometry
                 the page already shows. */}
-            <div className="-mx-4 flex h-14 items-center justify-center border-b border-border px-4">
+            <div
+              data-testid="drawer-logo-block"
+              className="-mx-4 -mt-4 flex h-14 items-center justify-center border-b border-border px-4">
               <Logo variant="full" />
             </div>
             <SheetTitle className="sr-only">{t("shell.menuTitle")}</SheetTitle>
