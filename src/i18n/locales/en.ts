@@ -230,8 +230,6 @@ export const en = {
   "admin.loading": "Checking your access…",
 
   "admin.nav.label": "Admin sections",
-  "admin.breadcrumb.root": "Admin",
-  "admin.back": "Back to Admin",
   "admin.landing.title": "Admin",
   "admin.landing.body": "Choose a section to manage.",
   "admin.accessDenied": "You don't have access to that section.",

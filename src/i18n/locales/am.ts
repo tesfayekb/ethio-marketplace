@@ -226,8 +226,6 @@ export const am: Messages = {
 
   // TODO-native-review: provisional Amharic, pending native speaker review.
   "admin.nav.label": "የአስተዳደር ክፍሎች",
-  "admin.breadcrumb.root": "አስተዳደር",
-  "admin.back": "ወደ አስተዳደር ተመለስ",
   "admin.landing.title": "አስተዳደር",
   "admin.landing.body": "የሚያስተዳድሩትን ክፍል ይምረጡ።",
   "admin.accessDenied": "ወደዚያ ክፍል መዳረሻ የለዎትም።",
