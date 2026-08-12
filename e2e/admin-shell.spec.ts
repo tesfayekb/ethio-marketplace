@@ -92,8 +92,14 @@ test.describe("Admin shell (U0)", () => {
 
     const cards = page.getByTestId("admin-nav-cards").getByRole("link");
     await expect(cards).toHaveCount(expected.length, { timeout: 15000 });
+    // U0d (INC-070): each card is a real link carrying BOTH the section title
+    // and its description — the landing theme, not a bare list.
     for (const id of expected) {
-      await expect(page.getByTestId(`admin-section-link-${id}`)).toBeVisible();
+      const card = page.getByTestId(`admin-section-link-${id}`);
+      const s = ADMIN_SECTIONS.find((x) => x.id === id)!;
+      await expect(card).toBeVisible();
+      await expect(card).toContainText(en[s.titleKey]);
+      await expect(card).toContainText(en[s.bodyKey]);
     }
 
     // Clicking a permitted section lands on its empty state with breadcrumb.
@@ -137,7 +143,7 @@ test.describe("Admin shell (U0)", () => {
       await page.getByRole("button", { name: en["shell.openMenu"] }).click();
       const drawer = page.getByRole("dialog");
       // U0c — the drawer heads with the ACTIVE panel and lists its items only.
-      await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.admin"]);
+      await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.admin"]);
       for (const id of expected) {
         await expect(drawer.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
       }
@@ -192,7 +198,7 @@ test.describe("Admin shell (U0)", () => {
     if (isMobile(page)) {
       await page.getByRole("button", { name: en["shell.openMenu"] }).click();
       const drawer = page.getByRole("dialog");
-      await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.admin"]);
+      await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.admin"]);
       for (const section of ADMIN_SECTIONS) {
         await expect(drawer.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
       }

@@ -580,7 +580,7 @@ test.describe("mobile chrome", () => {
     const drawer = page.getByRole("dialog");
     await expect(drawer).toBeVisible();
     // U0c — the drawer names the ACTIVE panel and lists ONLY its items.
-    await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.marketplace"]);
+    await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
     // The old stacked all-panels list is gone: no non-active panel name shows
     // in the drawer body (the switcher's options live in a portal menu).
@@ -595,13 +595,13 @@ test.describe("mobile chrome", () => {
 
     await page.getByRole("button", { name: en["shell.openMenu"] }).click();
     const drawer = page.getByRole("dialog");
-    await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.marketplace"]);
+    await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
 
-    await page.getByTestId("drawer-panel-switcher").click();
-    await page.getByTestId("drawer-panel-option-account").click();
+    await page.getByTestId("panel-header-switcher").click();
+    await page.getByTestId("panel-header-option-account").click();
 
     // Drawer stays open on the new panel: its items replace marketplace's.
-    await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.account"]);
+    await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
     await expect(drawer.getByTestId("rail-item-ac-overview")).toBeVisible();
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
   });
@@ -620,7 +620,7 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     await page.getByRole("button", { name: en["shell.openMenu"] }).click();
     const drawer = page.getByRole("dialog");
-    await expect(drawer.getByTestId("drawer-panel-title")).toHaveText(en["panel.marketplace"]);
+    await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
     await expect(drawer.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
@@ -802,5 +802,42 @@ test.describe("panel follows the route", () => {
     await expectSignedIn(page, user.displayName);
     await gotoReady(page, "/");
     await expect(page.getByTestId("panel-tab-admin")).toHaveCount(0);
+  });
+});
+
+/**
+ * U0d — the panel identity band (name + switcher) is a PERSISTENT band
+ * directly below the logo cell at every viewport. The corner-block invariants
+ * above are untouched: the band lives INSIDE the rail, so the logo cell's
+ * geometry is unchanged.
+ */
+test.describe("panel header band (U0d)", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "md and up only");
+
+  test("the band sits in the rail directly below the logo cell", async ({ page }) => {
+    await gotoReady(page, "/");
+    const header = page.getByTestId("app-rail").getByTestId("panel-header");
+    await expect(header).toBeVisible();
+    await expect(header.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
+
+    const logo = (await page.getByTestId("shell-logo-cell").boundingBox())!;
+    const band = (await header.boundingBox())!;
+    expect(band.y).toBeGreaterThanOrEqual(logo.y + logo.height - 1);
+  });
+
+  test("the desktop rail switcher swaps the active panel's items", async ({ page }) => {
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await gotoReady(page, "/");
+
+    const rail = page.getByTestId("app-rail");
+    await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
+
+    await rail.getByTestId("panel-header-switcher").click();
+    await page.getByTestId("panel-header-option-account").click();
+
+    await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
+    await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible();
+    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
   });
 });
