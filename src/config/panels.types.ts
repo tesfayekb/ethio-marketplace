@@ -29,8 +29,15 @@ export interface Panel {
   id: PanelId;
   labelKey: MessageKey;
   icon: LucideIcon;
+  /**
+   * The route this panel OWNS (U0e, INC-071). Activating a panel navigates
+   * here, so the route-derived `activePanel` and the rendered body always
+   * agree. `null` = the panel has no route yet (grandfathered state path).
+   */
+  homePath: string | null;
   items: NavItem[];
 }
+
 
 /**
  * What the panel config is allowed to know about the current user.
