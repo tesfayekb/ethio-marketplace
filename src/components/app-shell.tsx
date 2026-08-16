@@ -266,7 +266,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             (background + border start at x=0, underneath the fixed rail); its
             INNER blocks get a start-inset equal to the rail width at md+ so
             the links and copyright stay in the readable content column. */}
-        <div className="w-full md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&]:[&>footer>*]:ps-16">
+        <div className="w-full md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16">
           <AppFooter />
         </div>
       </div>
