@@ -295,13 +295,47 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}
       <script dangerouslySetInnerHTML={{ __html: RAIL_INIT_SCRIPT }} />
-      {/* U0j — the ONE confirmation, shared by every sign-out affordance. */}
-      <SignOutDialog
-        open={signOutOpen}
-        onOpenChange={setSignOutOpen}
-        onConfirm={() => void confirmSignOut()}
-        busy={signingOut}
-      />
+      {/* U0k — non-modal idle warning. It never traps focus and never blocks
+          the page: any real interaction resets the idle clock anyway. */}
+      {warningSecondsLeft !== null ? (
+        <div
+          data-testid="session-idle-warning"
+          role="status"
+          aria-live="polite"
+          className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p className="text-sm text-foreground">
+            {t("session.idleWarning", { s: String(warningSecondsLeft) })}
+          </p>
+          <button
+            type="button"
+            data-testid="session-stay-signed-in"
+            onClick={extend}
+            className="min-h-11 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t("session.staySignedIn")}
+          </button>
+        </div>
+      ) : null}
+      {/* U0k — the post-expiry notice, shown on the marketplace after the reset. */}
+      {sessionNotice !== null ? (
+        <div
+          data-testid="session-notice"
+          role="status"
+          aria-live="polite"
+          className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-lg border border-border bg-card p-3 shadow-lg"
+        >
+          <p className="text-sm text-foreground">{t(sessionNotice)}</p>
+          <button
+            type="button"
+            data-testid="session-notice-dismiss"
+            onClick={() => setSessionNotice(null)}
+            className="min-h-11 rounded-md px-3 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t("common.dismiss")}
+          </button>
+        </div>
+      ) : null}
       {/* U0g/L3 — the footer is a SIBLING BELOW the grid, not a third grid row.
           A sticky grid item's clamp rectangle is the GRID CONTAINER, so with
           the footer inside the grid the rail could overhang it; ending the
