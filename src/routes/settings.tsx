@@ -58,8 +58,6 @@ const secondaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md border border-input px-4 " +
   "text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60";
 
-const sectionClass = "mt-8 border-t border-border pt-6";
-
 function providerLabelKey(provider: string): MessageKey {
   return provider === "google" ? "settings.providerGoogle" : "settings.providerEmail";
 }
