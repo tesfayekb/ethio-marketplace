@@ -198,6 +198,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (gatedRoute) void navigate({ to: "/", replace: true });
   }, [authLoading, user, gatedRoute, navigate, queryClient]);
 
+  /**
+   * U0j-2 — TEST HOOK, dev-only. The E2E live-guard proof must fire a REAL
+   * same-tab SIGNED_OUT through onAuthStateChange (synthetic storage events are
+   * ignored by supabase-js in the tab that dispatches them). `import.meta.env.DEV`
+   * is false in every production build, so this never ships.
+   */
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") return;
+    (window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase = supabase;
+  }, []);
+
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {
       isAuthenticated: user !== null,
