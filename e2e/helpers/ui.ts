@@ -145,15 +145,14 @@ export async function openRailScope(page: Page) {
 }
 
 /**
- * THE ONE sign-out path for the suite (U0j-2). Opens the affordance, confirms
- * the dialog, and resolves only on the achieved hard reset: URL "/", no account
- * menu, sign-in link visible.
+ * THE ONE sign-out path for the suite (U0k). ONE CLICK: the affordance itself
+ * performs the hard reset — there is no confirmation dialog any more. Resolves
+ * only on the achieved state: URL "/", no account menu, sign-in link visible.
  */
 export async function signOutViaUi(page: Page, labels: { signIn?: string } = {}) {
   const scope = await openRailScope(page);
   await scope.getByTestId("rail-sign-out").click();
-  await expect(page.getByTestId("sign-out-dialog")).toBeVisible();
-  await page.getByTestId("sign-out-confirm").click();
+
 
   await page.waitForURL(/\/$/, { timeout: 15000 });
   await expect(page.getByTestId("account-menu")).toHaveCount(0);
