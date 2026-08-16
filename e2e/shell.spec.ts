@@ -1006,14 +1006,33 @@ test.describe("desktop layout laws (U0g)", () => {
     );
   }
 
-  async function makeTall(page: Page) {
-    await page.evaluate(() => {
+  /**
+   * The premise of L1/L2 is that the PAGE can actually scroll. The spacer goes
+   * into the content column (#main) and grows until the document really has
+   * the requested scroll range — otherwise a "nothing moved" assertion would
+   * pass vacuously.
+   */
+  async function makeTall(page: Page, need = 600) {
+    await page.evaluate((needed) => {
       const main = document.querySelector("#main")!;
-      const spacer = document.createElement("div");
-      spacer.setAttribute("data-testid", "u0g-spacer");
-      spacer.style.height = "3000px";
-      main.appendChild(spacer);
-    });
+      let spacer = main.querySelector<HTMLElement>('[data-testid="u0g-spacer"]');
+      if (!spacer) {
+        spacer = document.createElement("div");
+        spacer.setAttribute("data-testid", "u0g-spacer");
+        main.appendChild(spacer);
+      }
+      let h = 3000;
+      for (let i = 0; i < 6; i += 1) {
+        spacer.style.height = `${h}px`;
+        const el = document.scrollingElement!;
+        if (el.scrollHeight - window.innerHeight >= needed) return;
+        h *= 2;
+      }
+    }, need);
+    const range = await page.evaluate(
+      () => document.scrollingElement!.scrollHeight - window.innerHeight,
+    );
+    expect(range).toBeGreaterThanOrEqual(need);
   }
 
   test("L1/L2: the top band and the rail stay put while content scrolls", async ({
@@ -1041,8 +1060,8 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(Math.abs(logoAfter.y - logoBefore.y)).toBeLessThanOrEqual(1);
     expect(Math.abs(barAfter.y - barBefore.y)).toBeLessThanOrEqual(1);
     expect(logoAfter.y).toBeLessThanOrEqual(1);
-    // Corner-block geometry survives sticky: same x/width, bar starts at the
-    // logo cell's end edge, equal heights.
+    // Corner-block geometry survives the fixed band: same x/width, bar starts
+    // at the logo cell's end edge, equal heights.
     expect(Math.abs(logoAfter.x - logoBefore.x)).toBeLessThanOrEqual(1);
     expect(Math.abs(logoAfter.width - logoBefore.width)).toBeLessThanOrEqual(1);
     expect(Math.abs(barAfter.x - (logoAfter.x + logoAfter.width))).toBeLessThanOrEqual(1);
@@ -1051,6 +1070,17 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(Math.abs(railAfter.y - ROW1)).toBeLessThanOrEqual(1);
     expect(Math.abs(railAfter.height - railBefore.height)).toBeLessThanOrEqual(1);
     expect(railAfter.bottom).toBeLessThanOrEqual((viewport?.height ?? 0) + 1);
+
+    // NAMED REGRESSION (U0g-2): the old sticky rail crept upward at the very
+    // bottom of the page. Fixed positioning must hold there too.
+    await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+    await page.waitForTimeout(200);
+    const railBottomOfPage = await rect(page, "app-rail");
+    expect(Math.abs(railBottomOfPage.y - ROW1)).toBeLessThanOrEqual(1);
+    expect(Math.abs(railBottomOfPage.x - railBefore.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(railBottomOfPage.height - railBefore.height)).toBeLessThanOrEqual(1);
+    const logoBottomOfPage = await rect(page, "shell-logo-cell");
+    expect(logoBottomOfPage.y).toBeLessThanOrEqual(1);
   });
 
   test("L3: the footer is full-width BELOW the rail", async ({ page, viewport }) => {
