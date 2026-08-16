@@ -181,78 +181,78 @@ export function AppShell({ children }: { children: ReactNode }) {
           footer's top. Visually identical on mobile (stacked, full width). */}
       <div className="flex min-h-screen flex-col bg-background">
         <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[4rem_1fr] md:[html[data-rail=collapsed]_&]:grid-cols-[4rem_minmax(0,1fr)]">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
-        >
-          {t("shell.skipToContent")}
-        </a>
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+          >
+            {t("shell.skipToContent")}
+          </a>
 
-        {/* Corner block: rail width × top-bar height, above the sidebar.
+          {/* Corner block: rail width × top-bar height, above the sidebar.
             U0g/L1 — the whole row-1 band is STICKY on md+. A sticky grid item
             is constrained by its grid AREA, so a row-1-only cell would scroll
             away; the cell therefore spans rows 1..-1 with `self-start` and an
             explicit h-16, which keeps the painted geometry identical (same x,
             width, y and height as before) while giving sticky a tall
             containing block. z-30 puts the band above the rail and content. */}
-        <div
-          data-testid="shell-logo-cell"
-          className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:col-start-1 md:row-start-1 md:[grid-row-end:-1] md:flex md:h-16 md:items-center md:self-start md:sticky md:top-0 md:z-30 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
-        >
-          <Link
-            to="/"
-            aria-label={t("app.name")}
-            className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <div
+            data-testid="shell-logo-cell"
+            className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:col-start-1 md:row-start-1 md:[grid-row-end:-1] md:flex md:h-16 md:items-center md:self-start md:sticky md:top-0 md:z-30 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
           >
-            {/* Collapsed rail = icon-only logo; the two swap by attribute, so
+            <Link
+              to="/"
+              aria-label={t("app.name")}
+              className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {/* Collapsed rail = icon-only logo; the two swap by attribute, so
                 the swap is already correct on the first painted frame. */}
-            <span className="inline-flex md:[html[data-rail=collapsed]_&]:hidden">
-              <Logo variant="full" />
-            </span>
-            <span className="hidden md:[html[data-rail=collapsed]_&]:inline-flex">
-              <Logo variant="icon" />
-            </span>
-          </Link>
-        </div>
+              <span className="inline-flex md:[html[data-rail=collapsed]_&]:hidden">
+                <Logo variant="full" />
+              </span>
+              <span className="hidden md:[html[data-rail=collapsed]_&]:inline-flex">
+                <Logo variant="icon" />
+              </span>
+            </Link>
+          </div>
 
-        {/*
+          {/*
           ONE uniform band: the cell itself carries bg-card and the row height,
           and the header fills it, so there is no two-tone split between the
           bar and the strip under it. min-w-0 is load-bearing — without it this
           grid item sizes to the search input's intrinsic minimum and the page
           overflows horizontally at 360px (INC-032).
         */}
-        <div
-          data-testid="shell-topbar"
-          className="col-start-1 row-start-1 min-w-0 bg-card md:col-start-2 md:[grid-row-end:-1] md:h-16 md:self-start md:sticky md:top-0 md:z-30"
-        >
-          <AppHeader />
-        </div>
+          <div
+            data-testid="shell-topbar"
+            className="col-start-1 row-start-1 min-w-0 bg-card md:col-start-2 md:[grid-row-end:-1] md:h-16 md:self-start md:sticky md:top-0 md:z-30"
+          >
+            <AppHeader />
+          </div>
 
-        {/* Rail places itself into column 1 / row 2; the drawer is fixed. */}
-        <AppRail />
+          {/* Rail places itself into column 1 / row 2; the drawer is fixed. */}
+          <AppRail />
 
-        <div
-          data-testid="shell-stack"
-          className="col-start-1 row-start-2 flex min-w-0 flex-col md:col-start-2"
-        >
-          {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
-          <PanelTabs />
-          {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is
+          <div
+            data-testid="shell-stack"
+            className="col-start-1 row-start-2 flex min-w-0 flex-col md:col-start-2"
+          >
+            {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
+            <PanelTabs />
+            {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is
               gated by the SAME condition as the body: no location band on My
               Listings / Account / Admin (INC-052), and none on a route-owned
               page such as /settings (INC-058). */}
-          {isFeedRoute && activePanel === "marketplace" ? <LocationSelector /> : null}
-          {/* Band 4 + 5 */}
-          <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
-            <Breadcrumbs />
-            {/* A route-owned page always renders itself. The placeholder is
+            {isFeedRoute && activePanel === "marketplace" ? <LocationSelector /> : null}
+            {/* Band 4 + 5 */}
+            <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
+              <Breadcrumbs />
+              {/* A route-owned page always renders itself. The placeholder is
                 ONLY for a panel with no route at all (My Listings). U0e /
                 INC-071 deleted the state-path Admin body: /admin is the one
                 and only admin rendering. */}
-            {!isFeedRoute || activePanel !== "my-listings" ? children : <PanelPlaceholder />}
-          </main>
-        </div>
+              {!isFeedRoute || activePanel !== "my-listings" ? children : <PanelPlaceholder />}
+            </main>
+          </div>
         </div>
 
         {/* Full-width footer, beneath the rail's column as well as the content's. */}
