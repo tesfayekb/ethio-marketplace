@@ -68,6 +68,8 @@ type ShellValue = {
   setLocationPath: (path: LocationNode[]) => void;
   navOpen: boolean;
   setNavOpen: (open: boolean) => void;
+  /** U0l-2 (SO-2): true while the hard-reset sign-out sequence is running. */
+  signingOut: boolean;
 };
 
 const ShellContext = createContext<ShellValue | null>(null);
@@ -296,6 +298,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       setLocationPath,
       navOpen,
       setNavOpen,
+      signingOut,
     };
   }, [
     user,
