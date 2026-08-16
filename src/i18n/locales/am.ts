@@ -51,8 +51,6 @@ export const am: Messages = {
   "auth.noSessionTitle": "ጥቂት ቀርቷል",
   "auth.noSessionBody": "ሊንኩን በሌላ መሣሪያ ወይም አሳሽ ከከፈቱት፣ አካውንትዎ እዚያ ተረጋግጧል። ለመቀጠል እዚህ ይግቡ።",
   "auth.signOut": "ይውጡ",
-  "auth.signOutConfirmTitle": "ይውጡ?",
-  "auth.signOutConfirmBody": "ከዚህ መሣሪያ ይወጣሉ እና ወደ ገበያው ይመለሳሉ።",
   "auth.signedInAs": "ገብተዋል",
   "auth.checking": "ክፍለ ጊዜዎን በመፈተሽ ላይ…",
   "auth.working": "እባክዎ ይጠብቁ…",
@@ -249,6 +247,11 @@ export const am: Messages = {
   "admin.section.attributes.body": "የባህርይ አስተዳደር በU6 ይመጣል።",
   "admin.section.images.title": "ምስሎች",
   "admin.section.images.body": "የምስል መሣሪያዎች በU8 ይመጣሉ።",
+  "common.dismiss": "አሰናብት",
+  "session.idleWarning": "እንቅስቃሴ ባለመኖሩ በ{s} ሰከንድ ውስጥ ይወጣሉ",
+  "session.staySignedIn": "ገብቼ ልቆይ",
+  "session.signedOutIdle": "እንቅስቃሴ ባለመኖሩ ወጥተዋል",
+  "session.expired": "የክፍለ ጊዜው ጊዜ አልቋል — እባክዎ እንደገና ይግቡ",
 };
 
 export default am;

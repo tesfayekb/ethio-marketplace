@@ -54,9 +54,7 @@ async function expectSignedOutMarketplace(page: Page) {
 }
 
 test.describe("U0j sign-out hard reset", () => {
-  test("SO-1 admin: cancel keeps the session, confirm resets to the marketplace", async ({
-    page,
-  }) => {
+  test("SO-1 admin: one click signs out and resets to the marketplace", async ({ page }) => {
     const user = await createUser({ confirmed: true });
     await grantRole(user.id, "super_admin");
 
@@ -64,20 +62,11 @@ test.describe("U0j sign-out hard reset", () => {
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-panel-root")).toBeVisible();
 
-    // Cancel — nothing happens (same open logic, scoped to the viewport's rail).
-    const scope = await openRailScope(page);
-    await scope.getByTestId("rail-sign-out").click();
-    await expect(page.getByTestId("sign-out-dialog")).toBeVisible();
-    await page.getByTestId("sign-out-cancel").click();
-    await expect(page.getByTestId("sign-out-dialog")).toHaveCount(0);
-    await expect(page).toHaveURL(/\/admin/);
-    await expect(page.getByTestId("admin-panel-root")).toBeVisible();
-    await expect(page.getByTestId("account-menu")).toBeVisible();
-
-    // Confirm — the hard reset.
+    // U0k — ONE CLICK. No dialog exists any more; the affordance IS the reset.
     await signOutViaUi(page);
 
     await expectSignedOutMarketplace(page);
+    await expect(page.getByTestId("sign-out-dialog")).toHaveCount(0);
     await expect(page.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
 
     // Back must not re-enter a gated page (replace-navigation).
@@ -157,5 +146,82 @@ test.describe("U0j sign-out hard reset", () => {
     await expect(scope.getByTestId("rail-sign-out")).toHaveCount(0);
     await expect(scope.getByText(en["admin.nav.label"], { exact: true })).toHaveCount(0);
     await expect(scope.getByText(en["panel.account"], { exact: true })).toHaveCount(0);
+  });
+});
+
+/**
+ * U0k — SESSION POLICY. The real limits are minutes/hours, so the specs drive
+ * the DEV-only override (window.__ethioSessionPolicy, same guard as the
+ * supabase test hook) via addInitScript, which lands before any app code runs.
+ */
+async function overridePolicy(
+  page: Page,
+  policy: { idleMs?: number; warnMs?: number; absoluteMs?: number },
+) {
+  await page.addInitScript((p) => {
+    (window as unknown as { __ethioSessionPolicy?: unknown }).__ethioSessionPolicy = p;
+  }, policy);
+}
+
+test.describe("U0k session policy", () => {
+  test("SP-1 idle: the warning appears, then the session is hard-reset", async ({ page }) => {
+    await overridePolicy(page, { idleMs: 4000, warnMs: 2500, absoluteMs: 600_000 });
+    const user = await createUser({ confirmed: true });
+
+    await signIn(page, user.email, user.password);
+    await expect(page.getByTestId("session-idle-warning")).toBeVisible({ timeout: 15000 });
+
+    // No interaction: the policy must finish the job on its own.
+    await expect(page.getByTestId("account-menu")).toHaveCount(0, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByTestId("session-notice")).toBeVisible();
+  });
+
+  test("SP-2 stay signed in extends past the original deadline", async ({ page }) => {
+    await overridePolicy(page, { idleMs: 6000, warnMs: 4000, absoluteMs: 600_000 });
+    const user = await createUser({ confirmed: true });
+
+    await signIn(page, user.email, user.password);
+    await expect(page.getByTestId("session-idle-warning")).toBeVisible({ timeout: 15000 });
+    await page.getByTestId("session-stay-signed-in").click();
+    await expect(page.getByTestId("session-idle-warning")).toHaveCount(0);
+
+    // Past the ORIGINAL deadline, still signed in.
+    await page.waitForTimeout(4000);
+    await expect(page.getByTestId("account-menu")).toBeVisible();
+  });
+
+  test("SP-3 absolute: continuous activity does not save the session", async ({ page }) => {
+    await overridePolicy(page, { idleMs: 600_000, warnMs: 1000, absoluteMs: 5000 });
+    const user = await createUser({ confirmed: true });
+
+    await signIn(page, user.email, user.password);
+    await page.evaluate(() => {
+      window.setInterval(() => {
+        window.dispatchEvent(new Event("pointerdown"));
+      }, 500);
+    });
+
+    await expect(page.getByTestId("account-menu")).toHaveCount(0, { timeout: 20000 });
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByTestId("session-notice")).toBeVisible();
+  });
+
+  test("SP-4 cross-tab: signing out in one tab evacuates the other", async ({ page, context }) => {
+    const user = await createUser({ confirmed: true });
+    await grantRole(user.id, "super_admin");
+
+    await signIn(page, user.email, user.password);
+
+    const other = await context.newPage();
+    await gotoReady(other, "/admin");
+    await expect(other.getByTestId("admin-panel-root")).toBeVisible({ timeout: 15000 });
+
+    await signOutViaUi(page);
+
+    await expect(other).toHaveURL(/\/$/, { timeout: 20000 });
+    await expect(other.getByTestId("admin-panel-root")).toHaveCount(0);
+    await expect(other.getByTestId("account-menu")).toHaveCount(0);
+    await other.close();
   });
 });

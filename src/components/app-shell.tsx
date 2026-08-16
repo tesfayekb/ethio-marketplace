@@ -16,14 +16,20 @@ import { AppHeader } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { LocationSelector } from "@/components/shell/location-selector";
-import { SignOutDialog } from "@/components/shell/sign-out-dialog";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { useAuth } from "@/features/auth/use-auth";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { MY_PERMISSIONS_KEY, usePermissions } from "@/features/permissions/usePermissions";
+import {
+  clearSessionClocks,
+  startSessionClocks,
+  useSessionPolicy,
+  type SessionExpiryReason,
+} from "@/features/session/session-policy";
 import { useI18n } from "@/i18n";
+import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
@@ -42,8 +48,10 @@ type ShellValue = {
   /** True while the session is still unknown (SSR / first load). */
   authLoading: boolean;
   /**
-   * U0j (INC-072) — opens the sign-out CONFIRMATION. No affordance signs the
-   * user out directly; the hard reset runs only after confirmation.
+   * U0k (INC-072 addendum) — ONE-CLICK sign-out. Every affordance calls this
+   * directly and it performs the whole hard reset; there is no confirmation
+   * step (a confirm dialog reintroduces the walk-away exposure it pretends to
+   * prevent, and sign-out is non-destructive and instantly reversible).
    */
   requestSignOut: () => void;
   activePanel: PanelId;
@@ -151,7 +159,7 @@ export function AppShell({ children }: { children: ReactNode }) {
    * Law F3: this only decides whether the Admin TAB renders. Every admin
    * action is enforced by RLS / has_permission on the server.
    */
-  const { permissions } = usePermissions({ enabled: user !== null });
+  const { permissions, loading: permissionsLoading } = usePermissions({ enabled: user !== null });
 
   /**
    * U0j (INC-072) — SIGN-OUT IS A HARD RESET, in this exact order:
@@ -160,28 +168,69 @@ export function AppShell({ children }: { children: ReactNode }) {
    *       is awaited;
    *   (b) the permission cache is REMOVED (not merely invalidated) so no
    *       stale admin grant can paint anything;
-   *   (c) auth-derived client state resets (panel, category, location, drawer);
-   *   (d) replace-navigate to "/" so Back cannot re-enter a gated page.
+   *   (c) the session-policy clocks are cleared (U0k) so the next sign-in
+   *       starts a fresh idle/absolute window;
+   *   (d) auth-derived client state resets (panel, category, location, drawer);
+   *   (e) replace-navigate to "/" so Back cannot re-enter a gated page.
+   *
+   * U0k: no confirmation dialog — one click IS the contract.
    */
-  const [signOutOpen, setSignOutOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const requestSignOut = useCallback(() => setSignOutOpen(true), []);
+  const [sessionNotice, setSessionNotice] = useState<MessageKey | null>(null);
 
-  const confirmSignOut = useCallback(async () => {
-    setSigningOut(true);
-    try {
-      await signOut();
-      queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
-      setPanelChoice("marketplace");
-      setSelectedCategoryId(null);
-      setLocationPath([]);
-      setNavOpen(false);
-      await navigate({ to: "/", replace: true });
-    } finally {
-      setSigningOut(false);
-      setSignOutOpen(false);
-    }
-  }, [signOut, queryClient, navigate]);
+  const hardReset = useCallback(
+    async (notice: MessageKey | null) => {
+      setSigningOut(true);
+      try {
+        await signOut();
+        queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
+        clearSessionClocks();
+        setPanelChoice("marketplace");
+        setSelectedCategoryId(null);
+        setLocationPath([]);
+        setNavOpen(false);
+        setSessionNotice(notice);
+        await navigate({ to: "/", replace: true });
+      } finally {
+        setSigningOut(false);
+      }
+    },
+    [signOut, queryClient, navigate],
+  );
+
+  const requestSignOut = useCallback(() => {
+    if (signingOut) return;
+    void hardReset(null);
+  }, [hardReset, signingOut]);
+
+  /**
+   * U0k — SESSION POLICY. FAIL-SAFE tiering: until permissions resolve we
+   * assume "staff", i.e. the STRICT limits, never the lenient ones.
+   */
+  const tier =
+    permissionsLoading || permissions.includes(ADMIN_PANEL_PERMISSION)
+      ? ("staff" as const)
+      : ("regular" as const);
+
+  const onExpire = useCallback(
+    (reason: SessionExpiryReason) => {
+      void hardReset(reason === "idle" ? "session.signedOutIdle" : "session.expired");
+    },
+    [hardReset],
+  );
+
+  const { warningSecondsLeft, extend } = useSessionPolicy({
+    active: user !== null,
+    tier,
+    onExpire,
+  });
+
+  /** (b) A fresh sign-in starts fresh clocks. */
+  useEffect(() => {
+    if (user === null) return;
+    startSessionClocks();
+    setSessionNotice(null);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * THE LIVE GUARD (the security fix). `user` comes from the shell's
@@ -247,13 +296,47 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}
       <script dangerouslySetInnerHTML={{ __html: RAIL_INIT_SCRIPT }} />
-      {/* U0j — the ONE confirmation, shared by every sign-out affordance. */}
-      <SignOutDialog
-        open={signOutOpen}
-        onOpenChange={setSignOutOpen}
-        onConfirm={() => void confirmSignOut()}
-        busy={signingOut}
-      />
+      {/* U0k — non-modal idle warning. It never traps focus and never blocks
+          the page: any real interaction resets the idle clock anyway. */}
+      {warningSecondsLeft !== null ? (
+        <div
+          data-testid="session-idle-warning"
+          role="status"
+          aria-live="polite"
+          className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p className="text-sm text-foreground">
+            {t("session.idleWarning").replace("{s}", String(warningSecondsLeft))}
+          </p>
+          <button
+            type="button"
+            data-testid="session-stay-signed-in"
+            onClick={extend}
+            className="min-h-11 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t("session.staySignedIn")}
+          </button>
+        </div>
+      ) : null}
+      {/* U0k — the post-expiry notice, shown on the marketplace after the reset. */}
+      {sessionNotice !== null ? (
+        <div
+          data-testid="session-notice"
+          role="status"
+          aria-live="polite"
+          className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-lg border border-border bg-card p-3 shadow-lg"
+        >
+          <p className="text-sm text-foreground">{t(sessionNotice)}</p>
+          <button
+            type="button"
+            data-testid="session-notice-dismiss"
+            onClick={() => setSessionNotice(null)}
+            className="min-h-11 rounded-md px-3 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {t("common.dismiss")}
+          </button>
+        </div>
+      ) : null}
       {/* U0g/L3 — the footer is a SIBLING BELOW the grid, not a third grid row.
           A sticky grid item's clamp rectangle is the GRID CONTAINER, so with
           the footer inside the grid the rail could overhang it; ending the

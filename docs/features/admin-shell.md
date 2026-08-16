@@ -278,9 +278,8 @@ and stay page-scoped.
 ## U0j — sign-out is a hard reset (INC-072)
 
 Every sign-out affordance (rail/drawer foot, header account menu) calls
-`requestSignOut()` from the shell context, which opens the single
-`SignOutDialog` (focus-trapped, Escape cancels, ≥44px targets). Only the
-confirm action performs the reset, in order: `signOut()` awaited → the
+`requestSignOut()` from the shell context, which (since U0k) performs the
+reset immediately on one click, in order: `signOut()` awaited → the
 `my-permissions` query is REMOVED from the cache → panel/category/location/
 drawer state reset → `navigate({ to: "/", replace: true })`.
 
@@ -289,3 +288,20 @@ than checking on mount, so a sign-out in this tab, in another tab, or a token
 expiry evacuates the surface immediately. `usePermissions` also reports an
 empty set whenever the read is disabled, so a signed-out shell can never
 derive a grant from a stale cache entry.
+
+## Session policy (U0k)
+
+Sign-out is ONE CLICK: every affordance (rail/drawer foot, account menu) calls
+`requestSignOut`, which performs the U0j hard reset immediately — no
+confirmation dialog exists (`sign-out-dialog.tsx` was deleted).
+
+`src/features/session/session-policy.ts` is the single source of truth for the
+client-side session limits: idle 30 min (staff) / 4 h (regular), absolute 12 h
+(staff) / 7 d (regular), warning 60 s before idle expiry. Staff = permissions
+include `admin_panel:access`; while permissions are unresolved the STRICT tier
+applies (fail-safe). Clocks persist in `sb-<ref>-last-activity-at` and
+`sb-<ref>-session-started-at`, which makes the policy survive reloads and apply
+across tabs. Expiry runs the same hard reset and shows a translated notice.
+
+This is UX enforcement only; the authoritative bound is the Supabase Auth
+refresh-token / session configuration (operator item). Law F3 is unchanged.

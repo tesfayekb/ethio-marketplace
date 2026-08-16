@@ -52,9 +52,6 @@ export const en = {
   "auth.noSessionBody":
     "If you opened the link on another device or browser, your account is confirmed there. Sign in here to continue.",
   "auth.signOut": "Sign out",
-  "auth.signOutConfirmTitle": "Sign out?",
-  "auth.signOutConfirmBody":
-    "You will be signed out on this device and returned to the marketplace.",
   "auth.signedInAs": "Signed in",
   "auth.checking": "Checking your session…",
   "auth.working": "Please wait…",
@@ -255,6 +252,11 @@ export const en = {
   "admin.section.attributes.body": "Attribute management arrives in U6.",
   "admin.section.images.title": "Images",
   "admin.section.images.body": "Image tooling arrives in U8.",
+  "common.dismiss": "Dismiss",
+  "session.idleWarning": "You'll be signed out for inactivity in {s}s",
+  "session.staySignedIn": "Stay signed in",
+  "session.signedOutIdle": "Signed out for inactivity",
+  "session.expired": "Session expired — please sign in again",
 } as const;
 
 export default en;
