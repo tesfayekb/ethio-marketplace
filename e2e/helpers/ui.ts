@@ -103,6 +103,46 @@ export async function signOutViaMenu(
   await page.getByRole("menuitem", { name: labels.signOut ?? en["auth.signOut"] }).click();
 }
 
+/** Viewport branch: below md the rail lives in the Sheet drawer. */
+export function isMobile(page: Page) {
+  return (page.viewportSize()?.width ?? 1280) < 768;
+}
+
+/**
+ * U0j-2 — opens the rail's sign-out affordance for THIS viewport and returns
+ * the scope it lives in. Strict-mode safe: never a page-wide locator.
+ */
+export async function openRailScope(page: Page) {
+  await waitForHydration(page);
+  if (isMobile(page)) {
+    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    const drawer = page.getByRole("dialog");
+    await expect(drawer).toBeVisible();
+    return drawer;
+  }
+  const rail = page.getByTestId("app-rail");
+  await expect(rail).toBeVisible();
+  return rail;
+}
+
+/**
+ * THE ONE sign-out path for the suite (U0j-2). Opens the affordance, confirms
+ * the dialog, and resolves only on the achieved hard reset: URL "/", no account
+ * menu, sign-in link visible.
+ */
+export async function signOutViaUi(page: Page, labels: { signIn?: string } = {}) {
+  const scope = await openRailScope(page);
+  await scope.getByTestId("rail-sign-out").click();
+  await expect(page.getByTestId("sign-out-dialog")).toBeVisible();
+  await page.getByTestId("sign-out-confirm").click();
+
+  await page.waitForURL(/\/$/, { timeout: 15000 });
+  await expect(page.getByTestId("account-menu")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: labels.signIn ?? en["auth.signIn"] })).toBeVisible({
+    timeout: 15000,
+  });
+}
+
 /**
  * Drives the real sign-in form and resolves only when the session is
  * established and persisted — callers may navigate immediately.
@@ -155,6 +195,10 @@ export async function attemptSignIn(page: Page, email: string, password: string)
 
   const emailInput = page.getByRole("textbox", { name: /email/i });
   const passwordInput = page.locator("#auth-password");
+
+  // U0j-2 precondition: a missing sign-in form must fail HERE, not later as a
+  // confusing fill timeout.
+  await expect(emailInput, "sign-in form did not render on /auth").toBeVisible({ timeout: 15000 });
 
   await fillUntilStable(emailInput, email, "email");
   await fillUntilStable(passwordInput, password, "password");

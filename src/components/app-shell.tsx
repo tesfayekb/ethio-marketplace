@@ -24,6 +24,7 @@ import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { MY_PERMISSIONS_KEY, usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 /** One node of the chosen geographic path (country -> region -> city -> …). */
@@ -197,6 +198,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     setNavOpen(false);
     if (gatedRoute) void navigate({ to: "/", replace: true });
   }, [authLoading, user, gatedRoute, navigate, queryClient]);
+
+  /**
+   * U0j-2 — TEST HOOK, dev-only. The E2E live-guard proof must fire a REAL
+   * same-tab SIGNED_OUT through onAuthStateChange (synthetic storage events are
+   * ignored by supabase-js in the tab that dispatches them). `import.meta.env.DEV`
+   * is false in every production build, so this never ships.
+   */
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") return;
+    (window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase = supabase;
+  }, []);
 
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {

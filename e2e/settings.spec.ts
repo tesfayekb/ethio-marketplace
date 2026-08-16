@@ -6,7 +6,7 @@ import {
   expectSignedIn,
   expectSignedOut,
   signIn,
-  signOutViaMenu,
+  signOutViaUi,
   waitForHydration,
 } from "./helpers/ui";
 import { createUser } from "./helpers/users";
@@ -79,7 +79,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await submit.click();
   await expect(page.getByText(en["settings.passwordChanged"])).toBeVisible({ timeout: 15000 });
 
-  await signOutViaMenu(page);
+  await signOutViaUi(page);
   await expectSignedOut(page);
 
   // Old password no longer works.

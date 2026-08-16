@@ -6,7 +6,7 @@ import {
   expectSignedIn,
   expectSignedOut,
   signIn,
-  signOutViaMenu,
+  signOutViaUi,
   waitForHydration,
 } from "./helpers/ui";
 import { createUser, identityProviders, mintRecoveryLink } from "./helpers/users";
@@ -73,7 +73,7 @@ test("R-3: a recovery link sets a new password, and the old one stops working", 
   await expect(page.getByText(en["auth.resetDone"])).toBeVisible({ timeout: 20000 });
 
   await page.getByRole("button", { name: en["auth.continue"] }).click();
-  await signOutViaMenu(page);
+  await signOutViaUi(page);
   await expectSignedOut(page);
 
   // The old password is dead.
