@@ -203,6 +203,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
 
   const nodes: RailNode[] = categories.map((category) => ({
     key: category.id,
+    testid: `rail-category-${category.slug}`,
     label: language === "am" ? (category.nameAm ?? category.nameEn) : category.nameEn,
     // Categories are DATA, not config, so their glyph comes from the slug map
     // in src/config/panels.ts — DISTINCT per category, so the collapsed rail is
@@ -232,6 +233,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         <RailRow
           node={{
             key: "all",
+            testid: "rail-category-all",
             label: t("shell.allCategories"),
             icon: Tag,
             active: selectedCategorySlug === null,
