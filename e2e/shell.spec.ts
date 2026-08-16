@@ -955,5 +955,4 @@ test.describe("rail scroll regions (U0f)", () => {
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
     await expect(rail.getByTestId("rail-sign-out")).toBeInViewport();
   });
-
 });
