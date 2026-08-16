@@ -218,7 +218,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         */}
         <div
           data-testid="shell-topbar"
-          className="col-start-1 row-start-1 min-w-0 bg-card md:col-start-2 md:h-16"
+          className="col-start-1 row-start-1 min-w-0 bg-card md:col-start-2 md:[grid-row-end:-1] md:h-16 md:self-start md:sticky md:top-0 md:z-30"
         >
           <AppHeader />
         </div>
