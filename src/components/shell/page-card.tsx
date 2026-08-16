@@ -39,7 +39,11 @@ export function PageCard({
   as?: "section" | "div";
 } & React.HTMLAttributes<HTMLElement>) {
   return (
-    <As data-testid={testid} className={cn(PAGE_CARD_CLASS, dashed && "border-dashed", className)} {...props}>
+    <As
+      data-testid={testid}
+      className={cn(PAGE_CARD_CLASS, dashed && "border-dashed", className)}
+      {...props}
+    >
       {children}
     </As>
   );
