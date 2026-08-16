@@ -125,3 +125,4 @@
 - 2026-08-12 — fix(shell): desktop rail sized to viewport minus the 4rem logo row (sticky top-16, calc(100dvh-4rem)) — pinned Sign out back in view; U0f complete
 - 2026-08-12 — test(e2e): U0f rail invariant corrected to viewport-minus-row-1 geometry (top 64px, height 296px at 1280×360)
 - 2026-08-16 — feat(shell): U0g — desktop layout laws: fixed top band + fixed rail, footer full-width beneath the rail, content-only scrolling; E2E invariants L1–L3
+- 2026-08-16 — fix(shell): U0g-2 — fixed top band + fixed rail (never move; inner list scrolls), footer full-width beneath the rail with readable inset content; L1/L2 test premise repaired
