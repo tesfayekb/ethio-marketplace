@@ -491,6 +491,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           avatar_url: string | null
           contact_phone: string | null
           contact_prefs: Json
@@ -506,11 +507,14 @@ export type Database = {
           seller_alias: string | null
           show_phone: boolean
           show_telegram: boolean
+          status_changed_at: string | null
+          status_reason: string | null
           updated_at: string
           user_id: string
           viewing_location: Json | null
         }
         Insert: {
+          account_status?: string
           avatar_url?: string | null
           contact_phone?: string | null
           contact_prefs?: Json
@@ -526,11 +530,14 @@ export type Database = {
           seller_alias?: string | null
           show_phone?: boolean
           show_telegram?: boolean
+          status_changed_at?: string | null
+          status_reason?: string | null
           updated_at?: string
           user_id: string
           viewing_location?: Json | null
         }
         Update: {
+          account_status?: string
           avatar_url?: string | null
           contact_phone?: string | null
           contact_prefs?: Json
@@ -546,6 +553,8 @@ export type Database = {
           seller_alias?: string | null
           show_phone?: boolean
           show_telegram?: boolean
+          status_changed_at?: string | null
+          status_reason?: string | null
           updated_at?: string
           user_id?: string
           viewing_location?: Json | null
@@ -755,6 +764,69 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_user: {
+        Args: { p_user_id: string }
+        Returns: {
+          account_status: string
+          contact_whatsapp: boolean
+          created_at: string
+          display_name: string
+          email: string
+          home_country_code: string
+          last_sign_in_at: string
+          roles: string[]
+          seller_alias: string
+          show_phone: boolean
+          show_telegram: boolean
+          status_changed_at: string
+          status_reason: string
+          user_id: string
+        }[]
+      }
+      admin_list_roles: {
+        Args: never
+        Returns: {
+          display_name: string
+          is_system: boolean
+          name: string
+          priority: number
+        }[]
+      }
+      admin_list_users: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_role?: string
+          p_search?: string
+          p_status?: string
+        }
+        Returns: {
+          account_status: string
+          created_at: string
+          display_name: string
+          email: string
+          home_country_code: string
+          roles: string[]
+          total_count: number
+          user_id: string
+        }[]
+      }
+      admin_set_account_status: {
+        Args: { p_reason?: string; p_status: string; p_user_id: string }
+        Returns: undefined
+      }
+      admin_user_activity: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          action: string
+          actor_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          meta: Json
+        }[]
+      }
       assign_role: {
         Args: {
           p_role_name: string
