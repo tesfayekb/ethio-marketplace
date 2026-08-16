@@ -1129,8 +1129,27 @@ test.describe("desktop layout laws (U0g)", () => {
     await gotoReady(page, TALL);
     await expectScrollRange(page);
 
-    await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
-    await page.waitForTimeout(200);
+    /** U0i-3: scroll, then wait until the hook's applied inset matches geometry. */
+    const settle = async () => {
+      await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+      await expect
+        .poll(async () =>
+          page.evaluate(() => {
+            const aside = document.querySelector('[data-testid="app-rail"]') as HTMLElement;
+            const footerEl =
+              document.querySelector('[data-testid="shell-footer-wrapper"]') ??
+              document.querySelector("footer")!;
+            const expected = Math.max(
+              0,
+              window.innerHeight - footerEl.getBoundingClientRect().top,
+            );
+            const applied = parseFloat(aside.dataset["railInset"] ?? "NaN");
+            return Math.abs(applied - expected);
+          }),
+        )
+        .toBeLessThanOrEqual(1);
+    };
+    await settle();
 
     const footer = await footRect(page);
 
@@ -1146,39 +1165,26 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(linkX).toBeGreaterThanOrEqual(256);
 
     /**
-     * U0h — THE FOOTER PAINTS OVER THE RAIL. Read from the compositor, not
-     * from classes: at a point INSIDE the rail column (x = 128), the topmost
-     * element just BELOW the footer's top edge must belong to the footer, and
-     * just ABOVE it must still belong to the rail. That is exactly "the rail
-     * visually ends at the footer's top".
+     * U0i-3 — THE CLAMP LAW IS GEOMETRY, not compositor hit-testing: the
+     * rail's box must end at or above the footer's top edge.
      */
-    const ownerAt = (y: number) =>
-      page.evaluate((py) => {
-        const el = document.elementFromPoint(128, py);
-        return {
-          inFooter: el?.closest('[data-testid="shell-footer-wrapper"]') !== null,
-          inRail: el?.closest('[data-testid="app-rail"]') !== null,
-        };
-      }, y);
+    const railBottom = (page: typeof import("@playwright/test")) => page;
+    void railBottom;
+    const bottomOf = () =>
+      page.evaluate(
+        () => document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect().bottom,
+      );
+    expect(await bottomOf()).toBeLessThanOrEqual(footer.top + 1);
 
-    const below = await ownerAt(footer.top + 8);
-    expect(below.inFooter).toBe(true);
-    expect(below.inRail).toBe(false);
-    const above = await ownerAt(footer.top - 8);
-    expect(above.inRail).toBe(true);
-
-    // Dark mode must be just as opaque — a translucent surface would let the
-    // rail show through and re-open the overlap.
+    // Dark mode must clamp identically — a theme swap must not re-open the overlap.
     const modeBefore = await page.getAttribute("html", "data-mode");
     await page.getByTestId("theme-toggle").click();
     await expect.poll(async () => page.getAttribute("html", "data-mode")).not.toBe(modeBefore);
-    await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
-    await page.waitForTimeout(200);
+    await settle();
     const darkFooter = await footRect(page);
-    const darkBelow = await ownerAt(darkFooter.top + 8);
-    expect(darkBelow.inFooter).toBe(true);
-    expect(darkBelow.inRail).toBe(false);
+    expect(await bottomOf()).toBeLessThanOrEqual(darkFooter.top + 1);
   });
+
 
   /**
    * U0i — THE RAIL CLAMPS ABOVE THE IN-VIEW FOOTER.
