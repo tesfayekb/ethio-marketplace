@@ -25,7 +25,7 @@ import { Route as AdminImagesRouteImport } from './routes/admin.images'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
-import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users.$userId'
+import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -108,9 +108,9 @@ const AdminAttributesRoute = AdminAttributesRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
-  id: '/$userId',
-  path: '/$userId',
-  getParentRoute: () => AdminUsersRoute,
+  id: '/users_/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -124,7 +124,7 @@ export interface FileRoutesByFullPath {
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
-  '/admin/users': typeof AdminUsersRouteWithChildren
+  '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
@@ -142,7 +142,7 @@ export interface FileRoutesByTo {
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
-  '/admin/users': typeof AdminUsersRouteWithChildren
+  '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
@@ -162,13 +162,13 @@ export interface FileRoutesById {
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
-  '/admin/users': typeof AdminUsersRouteWithChildren
+  '/admin/users': typeof AdminUsersRoute
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
   '/dev/tall': typeof DevTallRoute
   '/admin/': typeof AdminIndexRoute
-  '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/admin/users_/$userId': typeof AdminUsersUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -226,7 +226,7 @@ export interface FileRouteTypes {
     | '/c/$slug'
     | '/dev/tall'
     | '/admin/'
-    | '/admin/users/$userId'
+    | '/admin/users_/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -354,27 +354,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAttributesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/users/$userId': {
-      id: '/admin/users/$userId'
-      path: '/$userId'
+    '/admin/users_/$userId': {
+      id: '/admin/users_/$userId'
+      path: '/users/$userId'
       fullPath: '/admin/users/$userId'
       preLoaderRoute: typeof AdminUsersUserIdRouteImport
-      parentRoute: typeof AdminUsersRoute
+      parentRoute: typeof AdminRoute
     }
   }
 }
-
-interface AdminUsersRouteChildren {
-  AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
-}
-
-const AdminUsersRouteChildren: AdminUsersRouteChildren = {
-  AdminUsersUserIdRoute: AdminUsersUserIdRoute,
-}
-
-const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
-  AdminUsersRouteChildren,
-)
 
 interface AdminRouteChildren {
   AdminAttributesRoute: typeof AdminAttributesRoute
@@ -383,8 +371,9 @@ interface AdminRouteChildren {
   AdminImagesRoute: typeof AdminImagesRoute
   AdminLocationsRoute: typeof AdminLocationsRoute
   AdminRolesRoute: typeof AdminRolesRoute
-  AdminUsersRoute: typeof AdminUsersRouteWithChildren
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -394,8 +383,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminImagesRoute: AdminImagesRoute,
   AdminLocationsRoute: AdminLocationsRoute,
   AdminRolesRoute: AdminRolesRoute,
-  AdminUsersRoute: AdminUsersRouteWithChildren,
+  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminUsersUserIdRoute: AdminUsersUserIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
