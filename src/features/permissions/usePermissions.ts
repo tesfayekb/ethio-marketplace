@@ -31,6 +31,6 @@ export function usePermissions({ enabled = true }: { enabled?: boolean } = {}) {
     permissions: data,
     loading: query.isLoading,
     error: query.error,
-    has: (slug: string) => (query.data ?? []).includes(slug),
+    has: (slug: string) => data.includes(slug),
   };
 }
