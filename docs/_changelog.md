@@ -122,4 +122,4 @@
 - 2026-08-12 — fix(shell): U0e — panel switching navigates (INC-058/071); dead admin state-placeholder removed; drawer logo block divider + top-bar-height restored
 - 2026-08-12 — feat(shell): U0f — fixed panel header with scrollable item region (drawer + rail, short-viewport E2E); testids on all rail items; drawer-scoped switcher selectors (two red tests repaired)
 - 2026-08-12 — fix(ci): nanoid override >=3.3.18 (GHSA-2v37-7h3g-55p8, audit clean); md+ rail scroll test given a guaranteed-overflow premise (Admin panel at 1280×360)
-- 2026-08-12 — fix(shell): desktop rail is viewport-bound (sticky, dvh-capped) so its item region scrolls instead of the page — U0f root cause; test asserts the invariant
+- 2026-08-12 — fix(shell): desktop rail sized to viewport minus the 4rem logo row (sticky top-16, calc(100dvh-4rem)) — pinned Sign out back in view; U0f complete
