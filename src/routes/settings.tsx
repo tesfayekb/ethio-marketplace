@@ -289,7 +289,7 @@ function SettingsScreen() {
             </dd>
           </div>
         </dl>
-      </section>
+      </PageCard>
 
       {/* Section 2 — sign-in methods */}
       <PageCard className="mt-6" aria-labelledby="settings-methods">
@@ -424,7 +424,7 @@ function SettingsScreen() {
             {busy ? t("auth.working") : t("settings.linkGoogle")}
           </button>
         ) : null}
-      </section>
+      </PageCard>
 
       {/* Section 3 — security */}
       <PageCard className="mt-6" aria-labelledby="settings-security">
@@ -538,7 +538,7 @@ function SettingsScreen() {
             </button>
           )}
         </div>
-      </section>
+      </PageCard>
     </main>
   );
 }
