@@ -253,8 +253,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             {!isFeedRoute || activePanel !== "my-listings" ? children : <PanelPlaceholder />}
           </main>
         </div>
+        </div>
 
-        <div className="col-start-1 row-start-3 md:col-span-2 md:col-start-1">
+        {/* Full-width footer, beneath the rail's column as well as the content's. */}
+        <div className="w-full">
           <AppFooter />
         </div>
       </div>
