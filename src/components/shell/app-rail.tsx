@@ -376,8 +376,11 @@ export function AppRail() {
       <CollapsedContext.Provider value={collapsed === true}>
         <aside
           data-testid="app-rail"
-          // keep in sync with app-shell grid-rows row 1 (4rem)
-          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:flex md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:h-[calc(100dvh-4rem)] md:max-h-[calc(100dvh-4rem)] md:overflow-hidden md:[html[data-rail=collapsed]_&]:px-1"
+          // U0g-2 — FIXED, never sticky: the rail must not move at any scroll
+          // offset, including the page bottom (where it sits ON TOP of the
+          // full-width footer). top-16 / height keep in sync with the fixed
+          // top band's 4rem row.
+          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:inset-inline-start-0 md:start-0 md:top-16 md:z-20 md:flex md:w-64 md:h-[calc(100vh-4rem)] md:h-[calc(100dvh-4rem)] md:max-h-[calc(100dvh-4rem)] md:overflow-hidden md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
