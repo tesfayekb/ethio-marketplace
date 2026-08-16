@@ -153,7 +153,6 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
   const scope = await openRailScope(page);
   await scope.getByTestId("rail-sign-out").click();
 
-
   await page.waitForURL(/\/$/, { timeout: 15000 });
   await expect(page.getByTestId("account-menu")).toHaveCount(0);
   await expect(page.getByRole("link", { name: labels.signIn ?? en["auth.signIn"] })).toBeVisible({

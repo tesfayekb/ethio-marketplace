@@ -50,8 +50,8 @@ export type SessionPolicyOverrides = {
 function overrides(): SessionPolicyOverrides {
   if (!import.meta.env.DEV || typeof window === "undefined") return {};
   return (
-    (window as unknown as { __ethioSessionPolicy?: SessionPolicyOverrides })
-      .__ethioSessionPolicy ?? {}
+    (window as unknown as { __ethioSessionPolicy?: SessionPolicyOverrides }).__ethioSessionPolicy ??
+    {}
   );
 }
 

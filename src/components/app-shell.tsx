@@ -207,9 +207,10 @@ export function AppShell({ children }: { children: ReactNode }) {
    * U0k — SESSION POLICY. FAIL-SAFE tiering: until permissions resolve we
    * assume "staff", i.e. the STRICT limits, never the lenient ones.
    */
-  const tier = permissionsLoading || permissions.includes(ADMIN_PANEL_PERMISSION)
-    ? ("staff" as const)
-    : ("regular" as const);
+  const tier =
+    permissionsLoading || permissions.includes(ADMIN_PANEL_PERMISSION)
+      ? ("staff" as const)
+      : ("regular" as const);
 
   const onExpire = useCallback(
     (reason: SessionExpiryReason) => {
