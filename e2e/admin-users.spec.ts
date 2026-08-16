@@ -13,16 +13,12 @@ import { adminClient, createUser } from "./helpers/users";
  * (P1–P6); AU-5/AU-6 re-prove two of them from a real browser session.
  */
 
-declare global {
-  interface Window {
-    __ethioSupabase?: {
-      rpc: (
-        fn: string,
-        args?: Record<string, unknown>,
-      ) => Promise<{ error: { message: string } | null }>;
-    };
-  }
-}
+type RpcClient = {
+  rpc: (
+    fn: string,
+    args?: Record<string, unknown>,
+  ) => Promise<{ error: { message: string } | null }>;
+};
 
 async function grantRole(userId: string, roleName: string) {
   const supabase = adminClient();
@@ -41,13 +37,15 @@ async function grantRole(userId: string, roleName: string) {
 }
 
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(() => Boolean(window.__ethioSupabase), undefined, { timeout: 15000 });
+  await page.waitForFunction(
+    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
+    undefined,
+    { timeout: 15000 },
+  );
   return page.evaluate(
     async ([name, payload]) => {
-      const result = await window.__ethioSupabase!.rpc(
-        name as string,
-        payload as Record<string, unknown>,
-      );
+      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
+      const result = await client.rpc(name as string, payload as Record<string, unknown>);
       return result.error?.message ?? null;
     },
     [fn, args] as const,
