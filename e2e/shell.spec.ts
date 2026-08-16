@@ -1066,6 +1066,8 @@ test.describe("desktop layout laws (U0g)", () => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, "/");
     await makeTall(page);
+    await expectDocumentIsScroller(page);
+
 
     const logoBefore = await rect(page, "shell-logo-cell");
     const barBefore = await rect(page, "shell-topbar");
