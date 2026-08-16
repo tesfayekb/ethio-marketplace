@@ -134,3 +134,4 @@
 - 2026-08-16 — fix(shell): footer-inset hook flushes on scrollend (no one-frame lag); test(e2e): L3 asserts the clamp law by geometry with a settled measurement (compositor hit-test retired)
 - 2026-08-16 — fix(auth): U0j — sign-out hard reset with confirmation, live auth guard on gated routes, permission cache purge, replace-navigate to marketplace; E2E SO-1..SO-4 (INC-072, Tier A)
 - 2026-08-16 — test(e2e): U0j-2 — shared signOutViaUi with confirm; live-guard proof via same-tab client signOut (test hook under DEV) + reload path; strict-mode scoping; legacy sign-out sites re-anchored
+- 2026-08-16 — fix(shell): footer clamp inset rounds up + re-clamps on content resize (locale switch); Sign out always clickable (hit-test law); test(e2e): locale-agnostic openRailScope

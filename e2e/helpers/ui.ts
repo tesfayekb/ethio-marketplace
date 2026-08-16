@@ -1,6 +1,20 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
+import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
+
+/** Escape a catalog value for literal use inside a RegExp. */
+function escapeRe(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * U0j-3 — the hamburger's accessible name in EITHER catalog, so rail helpers
+ * work in an Amharic shell too.
+ */
+export function openMenuPattern() {
+  return new RegExp(`^(${escapeRe(en["shell.openMenu"])}|${escapeRe(am["shell.openMenu"])})$`);
+}
 
 /** Lifted verbatim from smoke-auth-i18n.spec.ts (P1-c). */
 export async function expectNoHorizontalOverflow(page: Page) {
@@ -115,8 +129,13 @@ export function isMobile(page: Page) {
 export async function openRailScope(page: Page) {
   await waitForHydration(page);
   if (isMobile(page)) {
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    // U0j-3 — LOCALE-AGNOSTIC. The hamburger carries no testid (census:
+    // app-header.tsx labels it with t("shell.openMenu") only, and that file is
+    // outside this task's scope), so match its aria-label against BOTH
+    // catalogs — an Amharic shell must reach the same control.
+    await page.getByRole("button", { name: openMenuPattern() }).click();
     const drawer = page.getByRole("dialog");
+
     await expect(drawer).toBeVisible();
     return drawer;
   }

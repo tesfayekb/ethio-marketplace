@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 /** The footer wrapper AppShell renders below the grid (U0h). */
 const FOOTER_SELECTOR = '[data-testid="shell-footer-wrapper"]';
+/** U0j-3 — content whose height changes without a scroll (locale switch). */
+const CONTENT_SELECTORS = ["#main", "main"];
 
 /**
  * U0i — HOW FAR THE FOOTER INTRUDES INTO THE VIEWPORT.
@@ -29,7 +31,15 @@ export function useFooterInset(): number {
     const measure = () => {
       frame = 0;
       const top = footer.getBoundingClientRect().top;
-      const next = Math.max(0, Math.round(window.innerHeight - top));
+      /**
+       * U0j-3 — ROUND UP, THEN ADD 1px. Sub-pixel footer tops used to leave the
+       * aside's bottom edge fractionally BELOW the footer's top, so the footer
+       * painted over the rail's last row (Sign out). Ceil + 1 guarantees the
+       * aside always ends strictly above the footer. The margin is only applied
+       * while the footer actually intrudes, so the no-footer case stays exactly 0.
+       */
+      const raw = Math.ceil(window.innerHeight - top);
+      const next = raw > 0 ? raw + 1 : 0;
       // U0i-3: publish the applied inset for tests/settle polling.
       const aside = document.querySelector('[data-testid="app-rail"]');
       if (aside) aside.setAttribute("data-rail-inset", String(next));
@@ -62,6 +72,21 @@ export function useFooterInset(): number {
     window.addEventListener("resize", scheduleSettle, { passive: true });
     const observer = new ResizeObserver(schedule);
     observer.observe(footer);
+    /**
+     * U0j-3 — CONTENT-HEIGHT CHANGES. Switching locale (or any re-render that
+     * shortens the page) moves the footer into view WITHOUT a scroll or resize
+     * event, so observing the footer alone left the rail clamped at a stale
+     * inset. Observing the body and the main content region re-clamps
+     * immediately.
+     */
+    observer.observe(document.body);
+    for (const selector of CONTENT_SELECTORS) {
+      const node = document.querySelector(selector);
+      if (node) {
+        observer.observe(node);
+        break;
+      }
+    }
 
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame);
