@@ -1,4 +1,13 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 
 import { Logo } from "@/components/brand/logo";
@@ -7,12 +16,13 @@ import { AppHeader } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { LocationSelector } from "@/components/shell/location-selector";
+import { SignOutDialog } from "@/components/shell/sign-out-dialog";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { useAuth } from "@/features/auth/use-auth";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
-import { usePermissions } from "@/features/permissions/usePermissions";
+import { MY_PERMISSIONS_KEY, usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
@@ -106,6 +116,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   /**
    * INC-058 — PANEL/ROUTE DESYNC. `activePanel` used to be pure client state
@@ -197,7 +208,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       auth,
       user,
       authLoading,
-      signOut,
+      requestSignOut,
       activePanel,
       setActivePanel,
       selectedCategoryId,
@@ -211,7 +222,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     user,
     authLoading,
     permissions,
-    signOut,
+    requestSignOut,
     activePanel,
     setActivePanel,
     selectedCategoryId,
@@ -224,6 +235,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}
       <script dangerouslySetInnerHTML={{ __html: RAIL_INIT_SCRIPT }} />
+      {/* U0j — the ONE confirmation, shared by every sign-out affordance. */}
+      <SignOutDialog
+        open={signOutOpen}
+        onOpenChange={setSignOutOpen}
+        onConfirm={() => void confirmSignOut()}
+        busy={signingOut}
+      />
       {/* U0g/L3 — the footer is a SIBLING BELOW the grid, not a third grid row.
           A sticky grid item's clamp rectangle is the GRID CONTAINER, so with
           the footer inside the grid the rail could overhang it; ending the

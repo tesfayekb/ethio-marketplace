@@ -102,7 +102,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
  */
 export function AppHeader() {
   const { t } = useI18n();
-  const { auth, user, signOut, setNavOpen } = useShell();
+  const { auth, user, requestSignOut, setNavOpen } = useShell();
   const { collapsed, toggle } = useRailCollapsed();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -250,7 +250,7 @@ export function AppHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => void signOut()}>
+                <DropdownMenuItem onSelect={() => requestSignOut()}>
                   <LogOut className="me-2 h-4 w-4" aria-hidden="true" />
                   {t("auth.signOut")}
                 </DropdownMenuItem>

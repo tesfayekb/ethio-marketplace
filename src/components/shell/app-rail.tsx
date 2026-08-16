@@ -334,7 +334,7 @@ function RailBody({ onNavigate }: { onNavigate: () => void }) {
  */
 function RailFoot({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useI18n();
-  const { auth, signOut } = useShell();
+  const { auth, requestSignOut } = useShell();
   const pad = { "--rail-pad": "0.75rem" } as React.CSSProperties;
 
   // Nothing but sign-out lives here now, so a logged-out rail has NO foot at
@@ -351,7 +351,7 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
           style={pad}
           onClick={() => {
             onNavigate();
-            void signOut();
+            requestSignOut();
           }}
           className={cn(ITEM_BASE, ITEM_IDLE)}
         >
