@@ -1083,20 +1083,25 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(logoBottomOfPage.y).toBeLessThanOrEqual(1);
   });
 
-  test("L3: the footer is full-width BELOW the rail", async ({ page, viewport }) => {
+  test("L3: the footer spans the full width beneath the fixed rail", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, "/");
     await makeTall(page);
 
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
     await page.waitForTimeout(200);
 
     const footer = await footRect(page);
-    const rail = await rect(page, "app-rail");
 
+    // The footer BOX starts at x=0 and spans the viewport: its background and
+    // border run underneath the rail's column.
     expect(Math.abs(footer.x)).toBeLessThanOrEqual(1);
     expect(Math.abs(footer.width - (viewport?.width ?? 0))).toBeLessThanOrEqual(1);
-    // The rail sits ABOVE the footer, never beside it.
-    expect(footer.top).toBeGreaterThanOrEqual(rail.bottom - 1);
+
+    // Its CONTENT is inset past the rail, so nothing readable hides behind it.
+    const linkX = await page.evaluate(
+      () => document.querySelector("footer a")!.getBoundingClientRect().x,
+    );
+    expect(linkX).toBeGreaterThanOrEqual(256);
   });
 });
