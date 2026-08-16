@@ -1007,32 +1007,55 @@ test.describe("desktop layout laws (U0g)", () => {
   }
 
   /**
+   * U0g-3 LAW: at md+ the DOCUMENT is the only page scroller. No ancestor of
+   * #main may bound the content stack with a height + overflow, which would
+   * turn it into an internal scroller (the named regression).
+   *
    * The premise of L1/L2 is that the PAGE can actually scroll. The spacer goes
    * into the content column (#main) and grows until the document really has
    * the requested scroll range — otherwise a "nothing moved" assertion would
-   * pass vacuously.
+   * pass vacuously. Grow AND measure happen in ONE evaluate, so a React
+   * re-render between two round-trips can never drop the spacer under us; the
+   * outer poll re-plants it if a re-render does remove it.
    */
   async function makeTall(page: Page, need = 600) {
-    await page.evaluate((needed) => {
-      const main = document.querySelector("#main")!;
-      let spacer = main.querySelector<HTMLElement>('[data-testid="u0g-spacer"]');
-      if (!spacer) {
-        spacer = document.createElement("div");
-        spacer.setAttribute("data-testid", "u0g-spacer");
-        main.appendChild(spacer);
-      }
-      let h = 3000;
-      for (let i = 0; i < 6; i += 1) {
-        spacer.style.height = `${h}px`;
-        const el = document.scrollingElement!;
-        if (el.scrollHeight - window.innerHeight >= needed) return;
-        h *= 2;
-      }
-    }, need);
-    const range = await page.evaluate(
-      () => document.scrollingElement!.scrollHeight - window.innerHeight,
-    );
-    expect(range).toBeGreaterThanOrEqual(need);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate((needed) => {
+            const main = document.querySelector("#main")!;
+            let spacer = main.querySelector<HTMLElement>('[data-testid="u0g-spacer"]');
+            if (!spacer) {
+              spacer = document.createElement("div");
+              spacer.setAttribute("data-testid", "u0g-spacer");
+              main.appendChild(spacer);
+            }
+            let h = 3000;
+            const doc = document.scrollingElement!;
+            for (let i = 0; i < 6; i += 1) {
+              spacer.style.height = `${h}px`;
+              if (doc.scrollHeight - window.innerHeight >= needed) break;
+              h *= 2;
+            }
+            return doc.scrollHeight - window.innerHeight;
+          }, need),
+        {
+          message:
+            "the document must be the page scroller (regression: the content stack became an internal scroller)",
+        },
+      )
+      .toBeGreaterThanOrEqual(need);
+  }
+
+  /** The law, asserted directly: scrolling the DOCUMENT actually moves it. */
+  async function expectDocumentIsScroller(page: Page) {
+    await page.evaluate(() => window.scrollTo(0, 200));
+    await expect
+      .poll(async () => page.evaluate(() => document.scrollingElement!.scrollTop), {
+        message: "content stack became an internal scroller",
+      })
+      .toBe(200);
+    await page.evaluate(() => window.scrollTo(0, 0));
   }
 
   test("L1/L2: the top band and the rail stay put while content scrolls", async ({
@@ -1042,6 +1065,7 @@ test.describe("desktop layout laws (U0g)", () => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, "/");
     await makeTall(page);
+    await expectDocumentIsScroller(page);
 
     const logoBefore = await rect(page, "shell-logo-cell");
     const barBefore = await rect(page, "shell-topbar");
