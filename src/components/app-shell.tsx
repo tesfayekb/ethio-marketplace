@@ -16,7 +16,6 @@ import { AppHeader } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { LocationSelector } from "@/components/shell/location-selector";
-import { SignOutDialog } from "@/components/shell/sign-out-dialog";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { useAuth } from "@/features/auth/use-auth";
