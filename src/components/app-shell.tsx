@@ -182,10 +182,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           {t("shell.skipToContent")}
         </a>
 
-        {/* Corner block: rail width × top-bar height, above the sidebar. */}
+        {/* Corner block: rail width × top-bar height, above the sidebar.
+            U0g/L1 — the whole row-1 band is STICKY on md+. A sticky grid item
+            is constrained by its grid AREA, so a row-1-only cell would scroll
+            away; the cell therefore spans rows 1..-1 with `self-start` and an
+            explicit h-16, which keeps the painted geometry identical (same x,
+            width, y and height as before) while giving sticky a tall
+            containing block. z-30 puts the band above the rail and content. */}
         <div
           data-testid="shell-logo-cell"
-          className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:col-start-1 md:row-start-1 md:flex md:items-center md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
+          className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:col-start-1 md:row-start-1 md:[grid-row-end:-1] md:flex md:h-16 md:items-center md:self-start md:sticky md:top-0 md:z-30 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
         >
           <Link
             to="/"
