@@ -278,9 +278,8 @@ and stay page-scoped.
 ## U0j — sign-out is a hard reset (INC-072)
 
 Every sign-out affordance (rail/drawer foot, header account menu) calls
-`requestSignOut()` from the shell context, which opens the single
-`SignOutDialog` (focus-trapped, Escape cancels, ≥44px targets). Only the
-confirm action performs the reset, in order: `signOut()` awaited → the
+`requestSignOut()` from the shell context, which (since U0k) performs the
+reset immediately on one click, in order: `signOut()` awaited → the
 `my-permissions` query is REMOVED from the cache → panel/category/location/
 drawer state reset → `navigate({ to: "/", replace: true })`.
 
