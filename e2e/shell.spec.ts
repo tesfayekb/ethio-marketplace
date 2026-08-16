@@ -597,7 +597,10 @@ test.describe("mobile chrome", () => {
     const drawer = page.getByRole("dialog");
     await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
 
-    await page.getByTestId("panel-header-switcher").click();
+    // U0f: BOTH the rail and the drawer render a panel band, so the switcher
+    // must be drawer-scoped or the locator is strict-mode ambiguous. The
+    // OPTIONS live in a portal outside the drawer, so they stay page-scoped.
+    await drawer.getByTestId("panel-header-switcher").click();
     await page.getByTestId("panel-header-option-account").click();
 
     // INC-071: activation IS navigation. The URL is Account's homePath, and
@@ -863,5 +866,65 @@ test.describe("panel header band (U0d)", () => {
     await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
     await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible();
     await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
+  });
+});
+
+/**
+ * U0f — the item region scrolls under a FIXED panel header, with the sign-out
+ * foot pinned. Proven at deliberately SHORT viewports, where the category list
+ * cannot fit.
+ */
+test.describe("rail scroll regions (U0f)", () => {
+  test("drawer: items scroll, header fixed, sign out pinned", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) >= 768, "mobile drawer only");
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await page.setViewportSize({ width: 360, height: 480 });
+    await gotoReady(page, "/");
+
+    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    const drawer = page.getByRole("dialog");
+    const scroll = drawer.getByTestId("rail-scroll");
+    await expect(scroll).toBeVisible();
+    // Categories must overflow for this proof to mean anything.
+    await expect
+      .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
+      .toBeGreaterThan(0);
+
+    const title = drawer.getByTestId("panel-header-title");
+    const before = (await title.boundingBox())!;
+    const last = scroll.locator("li").last();
+    await expect(last).not.toBeInViewport();
+
+    await scroll.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+    await expect(last).toBeInViewport();
+
+    // Fixed header: its y did not move with the items.
+    const after = (await title.boundingBox())!;
+    expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+    // Pinned foot: reachable without scrolling the drawer itself.
+    await expect(drawer.getByTestId("rail-sign-out")).toBeInViewport();
+  });
+
+  test("md+ rail: items scroll, header fixed", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await page.setViewportSize({ width: 1280, height: 500 });
+    await gotoReady(page, "/");
+
+    const rail = page.getByTestId("app-rail");
+    const scroll = rail.getByTestId("rail-scroll");
+    await expect(scroll).toBeVisible();
+    await expect
+      .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
+      .toBeGreaterThan(0);
+
+    const title = rail.getByTestId("panel-header-title");
+    const before = (await title.boundingBox())!;
+    await scroll.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+    const after = (await title.boundingBox())!;
+    expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+    await expect(rail.getByTestId("rail-sign-out")).toBeInViewport();
   });
 });

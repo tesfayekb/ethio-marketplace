@@ -156,6 +156,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <button
             type="button"
             onClick={node.onSelect}
+            data-testid={node.testid}
             aria-current={node.active ? "true" : undefined}
             aria-label={node.label}
             style={pad}
@@ -168,12 +169,14 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     );
   }
 
-  // No path yet: the item's page is a later feature.
+  // No path yet: the item's page is a later feature. U0f — it still carries its
+  // testid, so every rail item is addressable regardless of how it renders.
   return (
     <li>
       <WithTooltip label={node.label}>
         <span
           style={pad}
+          data-testid={node.testid}
           className={cn(ITEM_BASE, "text-muted-foreground")}
           aria-disabled="true"
           aria-label={node.label}
@@ -373,13 +376,20 @@ export function AppRail() {
       <CollapsedContext.Provider value={collapsed === true}>
         <aside
           data-testid="app-rail"
-          className="hidden min-w-0 flex-col border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:flex md:[html[data-rail=collapsed]_&]:px-1"
+          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:flex md:[html[data-rail=collapsed]_&]:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
               collapsed rail, where there is no room for a name. */}
           <PanelHeader className={cn("mb-2", HIDE_WHEN_COLLAPSED)} />
-          <RailBody onNavigate={() => undefined} />
+          {/* U0f: ONLY the item region scrolls. The logo cell (grid row 1) and
+              the panel band above stay fixed; RailFoot below stays pinned. */}
+          <div
+            data-testid="rail-scroll"
+            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
+          >
+            <RailBody onNavigate={() => undefined} />
+          </div>
           <RailFoot onNavigate={() => undefined} />
         </aside>
       </CollapsedContext.Provider>
@@ -403,8 +413,14 @@ export function AppRail() {
           {/* U0d: the SAME panel band as the md+ rail, directly below the
               logo cell. The old stacked all-panels list is gone (U0c). */}
           <PanelHeader className="mt-3" />
-          <div className="mt-4 flex flex-1 flex-col gap-4">
-            <RailBody onNavigate={() => setNavOpen(false)} />
+          <div className="mt-4 flex min-h-0 flex-1 flex-col gap-4">
+            {/* U0f: same three-region pattern as the md+ rail. */}
+            <div
+              data-testid="rail-scroll"
+              className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
+            >
+              <RailBody onNavigate={() => setNavOpen(false)} />
+            </div>
             <RailFoot onNavigate={() => setNavOpen(false)} />
           </div>
         </SheetContent>

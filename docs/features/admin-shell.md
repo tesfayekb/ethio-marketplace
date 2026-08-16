@@ -167,3 +167,30 @@ The mobile drawer stays OPEN through a panel switch: the Sheet closes only when
 `navOpen` is set false, which navigation alone does not do. Its logo block
 mirrors the top bar — same `h-14` height, same `border-b border-border`
 divider.
+
+## U0f — fixed panel header, scrollable item region
+
+`src/components/shell/app-rail.tsx` renders three regions in both the md+ rail
+and the mobile drawer, identically:
+
+1. Fixed head — the logo cell (rail, grid row 1) / logo block (drawer) and the
+   `PanelHeader` band. Never scrolls; heights unchanged from U0d/U0e, so the
+   corner-block, one-band and tablet geometry invariants still hold.
+2. Scroll region — `RailBody` inside `data-testid="rail-scroll"`
+   (`min-h-0 flex-1 overflow-y-auto overscroll-contain`, touch momentum, no
+   horizontal overflow at 360px).
+3. Pinned foot — `RailFoot` (Sign out) below the scroll area, reachable without
+   scrolling. Its `mt-auto` pinning is preserved; the flex parent now carries
+   `min-h-0` so the scroll region, not the foot, absorbs the overflow.
+
+Every rail row now carries `data-testid={node.testid}` — routed `Link` leaves,
+`onSelect` buttons and path-less rows alike — so items whose page is a later
+feature (for example `rail-item-ac-overview`) are addressable in tests. No
+behaviour change beyond the attribute.
+
+E2E: `e2e/shell.spec.ts` "rail scroll regions (U0f)" proves overflow, the fixed
+header (`panel-header-title` y unchanged after scrolling), the last item coming
+into view on scroll and the pinned Sign out — at 360×480 (drawer) and 1280×500
+(rail). The drawer switcher test scopes `panel-header-switcher` to the drawer
+locator (both surfaces render a band); the switcher's OPTIONS live in a portal
+and stay page-scoped.
