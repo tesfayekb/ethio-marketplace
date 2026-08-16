@@ -48,8 +48,10 @@ type ShellValue = {
   /** True while the session is still unknown (SSR / first load). */
   authLoading: boolean;
   /**
-   * U0j (INC-072) — opens the sign-out CONFIRMATION. No affordance signs the
-   * user out directly; the hard reset runs only after confirmation.
+   * U0k (INC-072 addendum) — ONE-CLICK sign-out. Every affordance calls this
+   * directly and it performs the whole hard reset; there is no confirmation
+   * step (a confirm dialog reintroduces the walk-away exposure it pretends to
+   * prevent, and sign-out is non-destructive and instantly reversible).
    */
   requestSignOut: () => void;
   activePanel: PanelId;
