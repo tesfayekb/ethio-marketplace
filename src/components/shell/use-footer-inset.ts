@@ -32,11 +32,20 @@ export function useFooterInset(): number {
     const measure = () => {
       frame = 0;
       const top = footer.getBoundingClientRect().top;
-      const next = Math.max(0, Math.round(window.innerHeight - top));
+      /**
+       * U0j-3 — ROUND UP, THEN ADD 1px. Sub-pixel footer tops used to leave the
+       * aside's bottom edge fractionally BELOW the footer's top, so the footer
+       * painted over the rail's last row (Sign out). Ceil + 1 guarantees the
+       * aside always ends strictly above the footer. The margin is only applied
+       * while the footer actually intrudes, so the no-footer case stays exactly 0.
+       */
+      const raw = Math.ceil(window.innerHeight - top);
+      const next = raw > 0 ? raw + 1 : 0;
       // U0i-3: publish the applied inset for tests/settle polling.
       const aside = document.querySelector('[data-testid="app-rail"]');
       if (aside) aside.setAttribute("data-rail-inset", String(next));
       setInset((prev) => (prev === next ? prev : next));
+
     };
     const schedule = () => {
       if (frame === 0) frame = window.requestAnimationFrame(measure);
