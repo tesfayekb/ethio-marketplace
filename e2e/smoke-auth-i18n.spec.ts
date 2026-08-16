@@ -10,7 +10,7 @@ import {
   expectSignedIn,
   fillUntilStable,
   openAccountMenu,
-  signOutViaMenu,
+  signOutViaUi,
   waitForHydration,
 } from "./helpers/ui";
 
@@ -74,9 +74,6 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
   await expectNoHorizontalOverflow(page);
 
   // 6. Sign out returns the header to the signed-out state.
-  await signOutViaMenu(page, {
-    accountMenu: am["shell.accountMenu"],
-    signOut: am["auth.signOut"],
-  });
+  await signOutViaUi(page, { signIn: am["auth.signIn"] });
   await expect(page.getByRole("link", { name: am["auth.signIn"] })).toBeVisible();
 });
