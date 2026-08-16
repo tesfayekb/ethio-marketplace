@@ -476,7 +476,7 @@ test.describe("corner-block grid", () => {
     await expect(rail.locator("li svg").first()).toBeVisible();
 
     // Hovering an icon-only row reveals its label.
-    await rail.getByRole("button", { name: en["shell.allCategories"] }).hover();
+    await rail.getByRole("link", { name: en["shell.allCategories"] }).hover();
     const tip = page.getByTestId("rail-tooltip").first();
     await expect(tip).toBeVisible();
     await expect(tip).toContainText(en["shell.allCategories"]);
