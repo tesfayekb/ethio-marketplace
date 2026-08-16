@@ -102,7 +102,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
  */
 export function AppHeader() {
   const { t } = useI18n();
-  const { auth, user, requestSignOut, setNavOpen } = useShell();
+  const { auth, user, requestSignOut, setNavOpen, signingOut } = useShell();
   const { collapsed, toggle } = useRailCollapsed();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -213,7 +213,7 @@ export function AppHeader() {
           </button>
           <LanguageSwitcher />
           <ThemeToggle />
-          {auth.isAuthenticated ? (
+          {auth.isAuthenticated && !signingOut ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button

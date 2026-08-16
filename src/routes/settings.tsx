@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
+import { PageCard, PAGE_MAIN_CLASS } from "@/components/shell/page-card";
 import {
   changeEmail,
   changePassword,
@@ -56,8 +57,6 @@ const primaryButtonClass =
 const secondaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md border border-input px-4 " +
   "text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60";
-
-const sectionClass = "mt-8 border-t border-border pt-6";
 
 function providerLabelKey(provider: string): MessageKey {
   return provider === "google" ? "settings.providerGoogle" : "settings.providerEmail";
@@ -236,7 +235,7 @@ function SettingsScreen() {
 
   if (checkingSession) {
     return (
-      <main className="mx-auto w-full max-w-sm px-4 py-10">
+      <main className={PAGE_MAIN_CLASS}>
         <p className="text-sm text-muted-foreground">{t("auth.checking")}</p>
       </main>
     );
@@ -251,7 +250,7 @@ function SettingsScreen() {
   const canRemovePassword = passwordPresent === true && hasFallbackIdentity;
 
   return (
-    <main className="mx-auto w-full max-w-sm px-4 py-10">
+    <main className={PAGE_MAIN_CLASS}>
       <h1 className="text-xl font-semibold text-foreground">{t("settings.title")}</h1>
 
       {errorKey ? (
@@ -266,7 +265,7 @@ function SettingsScreen() {
       ) : null}
 
       {/* Section 1 — identity (read-only; editing waits for the REQ-021 gateway) */}
-      <section className={sectionClass} aria-labelledby="settings-identity">
+      <PageCard className="mt-6" aria-labelledby="settings-identity">
         <h2 id="settings-identity" className="text-base font-semibold text-foreground">
           {t("settings.identity")}
         </h2>
@@ -290,10 +289,10 @@ function SettingsScreen() {
             </dd>
           </div>
         </dl>
-      </section>
+      </PageCard>
 
       {/* Section 2 — sign-in methods */}
-      <section className={sectionClass} aria-labelledby="settings-methods">
+      <PageCard className="mt-6" aria-labelledby="settings-methods">
         <h2 id="settings-methods" className="text-base font-semibold text-foreground">
           {t("settings.methods")}
         </h2>
@@ -425,10 +424,10 @@ function SettingsScreen() {
             {busy ? t("auth.working") : t("settings.linkGoogle")}
           </button>
         ) : null}
-      </section>
+      </PageCard>
 
       {/* Section 3 — security */}
-      <section className={sectionClass} aria-labelledby="settings-security">
+      <PageCard className="mt-6" aria-labelledby="settings-security">
         <h2 id="settings-security" className="text-base font-semibold text-foreground">
           {t("settings.security")}
         </h2>
@@ -539,7 +538,7 @@ function SettingsScreen() {
             </button>
           )}
         </div>
-      </section>
+      </PageCard>
     </main>
   );
 }
