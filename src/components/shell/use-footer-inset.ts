@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 
 /** The footer wrapper AppShell renders below the grid (U0h). */
 const FOOTER_SELECTOR = '[data-testid="shell-footer-wrapper"]';
+/** U0j-3 — content whose height changes without a scroll (locale switch). */
+const CONTENT_SELECTORS = ["#main", "main"];
+
 
 /**
  * U0i — HOW FAR THE FOOTER INTRUDES INTO THE VIEWPORT.
