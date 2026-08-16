@@ -1159,11 +1159,7 @@ test.describe("desktop layout laws (U0g)", () => {
     const scroller = page.getByTestId("app-rail").getByTestId("rail-scroll");
     const overflows = await scroller.evaluate((el) => el.scrollHeight > el.clientHeight);
     if (overflows) {
-      const last = page
-        .getByTestId("app-rail")
-        .getByTestId("rail-scroll")
-        .locator("nav li")
-        .last();
+      const last = page.getByTestId("app-rail").getByTestId("rail-scroll").locator("nav li").last();
       await last.scrollIntoViewIfNeeded();
       await expect(last).toBeInViewport();
     }
@@ -1175,4 +1171,3 @@ test.describe("desktop layout laws (U0g)", () => {
     await expectNoHorizontalOverflow(page);
   });
 });
-
