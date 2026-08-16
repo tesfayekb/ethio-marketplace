@@ -875,8 +875,8 @@ test.describe("panel header band (U0d)", () => {
  * cannot fit.
  */
 test.describe("rail scroll regions (U0f)", () => {
-  test("drawer: items scroll, header fixed, sign out pinned", async ({ page }) => {
-    test.skip(({ viewport }) => (viewport?.width ?? 0) >= 768, "mobile drawer only");
+  test("drawer: items scroll, header fixed, sign out pinned", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) >= 768, "mobile drawer only");
     const user = await createUser({ confirmed: true });
     await signIn(page, user.email, user.password);
     await page.setViewportSize({ width: 360, height: 480 });
@@ -888,9 +888,7 @@ test.describe("rail scroll regions (U0f)", () => {
     await expect(scroll).toBeVisible();
     // Categories must overflow for this proof to mean anything.
     await expect
-      .poll(async () =>
-        scroll.evaluate((el) => el.scrollHeight - el.clientHeight),
-      )
+      .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
       .toBeGreaterThan(0);
 
     const title = drawer.getByTestId("panel-header-title");
@@ -908,8 +906,8 @@ test.describe("rail scroll regions (U0f)", () => {
     await expect(drawer.getByTestId("rail-sign-out")).toBeInViewport();
   });
 
-  test("md+ rail: items scroll, header fixed", async ({ page }) => {
-    test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "md and up only");
+  test("md+ rail: items scroll, header fixed", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
     const user = await createUser({ confirmed: true });
     await signIn(page, user.email, user.password);
     await page.setViewportSize({ width: 1280, height: 500 });
@@ -919,9 +917,7 @@ test.describe("rail scroll regions (U0f)", () => {
     const scroll = rail.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
     await expect
-      .poll(async () =>
-        scroll.evaluate((el) => el.scrollHeight - el.clientHeight),
-      )
+      .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
       .toBeGreaterThan(0);
 
     const title = rail.getByTestId("panel-header-title");
