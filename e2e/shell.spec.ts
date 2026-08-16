@@ -426,7 +426,8 @@ test.describe("corner-block grid", () => {
 
   test("category rows carry DISTINCT icons, not one repeated glyph", async ({ page }) => {
     await gotoReady(page, "/");
-    const rows = page.getByTestId("app-rail").locator("nav li > button");
+    // U0l: category rows are LINKS now (each category is a real URL).
+    const rows = page.getByTestId("app-rail").locator("nav li > a");
     const count = await rows.count();
     // Row 0 is "All categories"; real categories follow. Needs at least two
     // seeded categories for the claim to mean anything.
@@ -764,7 +765,7 @@ test.describe("mobile chrome", () => {
     await page.getByRole("button", { name: en["shell.openMenu"] }).click();
     await expectTapTarget(
       page,
-      page.getByRole("button", { name: en["shell.allCategories"] }),
+      page.getByRole("link", { name: en["shell.allCategories"] }).first(),
       "all categories",
     );
   });
