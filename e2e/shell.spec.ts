@@ -1103,4 +1103,3 @@ test.describe("desktop layout laws (U0g)", () => {
     await expectNoHorizontalOverflow(page);
   });
 });
-
