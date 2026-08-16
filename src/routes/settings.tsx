@@ -235,7 +235,7 @@ function SettingsScreen() {
 
   if (checkingSession) {
     return (
-      <main className="mx-auto w-full max-w-sm px-4 py-10">
+      <main className={PAGE_MAIN_CLASS}>
         <p className="text-sm text-muted-foreground">{t("auth.checking")}</p>
       </main>
     );
@@ -250,7 +250,7 @@ function SettingsScreen() {
   const canRemovePassword = passwordPresent === true && hasFallbackIdentity;
 
   return (
-    <main className="mx-auto w-full max-w-sm px-4 py-10">
+    <main className={PAGE_MAIN_CLASS}>
       <h1 className="text-xl font-semibold text-foreground">{t("settings.title")}</h1>
 
       {errorKey ? (
@@ -265,7 +265,7 @@ function SettingsScreen() {
       ) : null}
 
       {/* Section 1 — identity (read-only; editing waits for the REQ-021 gateway) */}
-      <section className={sectionClass} aria-labelledby="settings-identity">
+      <PageCard className="mt-6" aria-labelledby="settings-identity">
         <h2 id="settings-identity" className="text-base font-semibold text-foreground">
           {t("settings.identity")}
         </h2>
@@ -292,7 +292,7 @@ function SettingsScreen() {
       </section>
 
       {/* Section 2 — sign-in methods */}
-      <section className={sectionClass} aria-labelledby="settings-methods">
+      <PageCard className="mt-6" aria-labelledby="settings-methods">
         <h2 id="settings-methods" className="text-base font-semibold text-foreground">
           {t("settings.methods")}
         </h2>
@@ -427,7 +427,7 @@ function SettingsScreen() {
       </section>
 
       {/* Section 3 — security */}
-      <section className={sectionClass} aria-labelledby="settings-security">
+      <PageCard className="mt-6" aria-labelledby="settings-security">
         <h2 id="settings-security" className="text-base font-semibold text-foreground">
           {t("settings.security")}
         </h2>
