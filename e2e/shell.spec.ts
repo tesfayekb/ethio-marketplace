@@ -80,7 +80,10 @@ async function railLaw(page: Page) {
   expect(
     Math.abs(measured.bottom - expectedBottom),
     "rail bottom must be min(viewport bottom, footer top)",
-  ).toBeLessThanOrEqual(1);
+    // U0j-3: the clamp now rounds up and adds a 1px margin so the footer can
+    // never paint over the rail, so the bottom may sit up to 2px above.
+  ).toBeLessThanOrEqual(2);
+
   return measured;
 }
 
