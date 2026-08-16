@@ -73,6 +73,5 @@ export function useFooterInset(): number {
     };
   }, []);
 
-
   return inset;
 }

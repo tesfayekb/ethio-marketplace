@@ -1139,10 +1139,7 @@ test.describe("desktop layout laws (U0g)", () => {
             const footerEl =
               document.querySelector('[data-testid="shell-footer-wrapper"]') ??
               document.querySelector("footer")!;
-            const expected = Math.max(
-              0,
-              window.innerHeight - footerEl.getBoundingClientRect().top,
-            );
+            const expected = Math.max(0, window.innerHeight - footerEl.getBoundingClientRect().top);
             const applied = parseFloat(aside.dataset["railInset"] ?? "NaN");
             return Math.abs(applied - expected);
           }),
@@ -1168,8 +1165,6 @@ test.describe("desktop layout laws (U0g)", () => {
      * U0i-3 — THE CLAMP LAW IS GEOMETRY, not compositor hit-testing: the
      * rail's box must end at or above the footer's top edge.
      */
-    const railBottom = (page: typeof import("@playwright/test")) => page;
-    void railBottom;
     const bottomOf = () =>
       page.evaluate(
         () => document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect().bottom,
@@ -1184,7 +1179,6 @@ test.describe("desktop layout laws (U0g)", () => {
     const darkFooter = await footRect(page);
     expect(await bottomOf()).toBeLessThanOrEqual(darkFooter.top + 1);
   });
-
 
   /**
    * U0i — THE RAIL CLAMPS ABOVE THE IN-VIEW FOOTER.
