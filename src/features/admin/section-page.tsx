@@ -1,3 +1,4 @@
+import { PageCard } from "@/components/shell/page-card";
 import { useI18n } from "@/i18n";
 
 import { sectionById, type AdminSectionId } from "./sections";
@@ -21,10 +22,10 @@ export function AdminSectionPage({ id }: { id: AdminSectionId }) {
         {t(section.titleKey)}
       </h1>
 
-      <section className="mt-4 rounded-lg border border-dashed border-border bg-card p-6">
+      <PageCard dashed className="mt-4">
         <h2 className="text-sm font-semibold text-foreground">{t("admin.comingSoon")}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{t(section.bodyKey)}</p>
-      </section>
+      </PageCard>
     </div>
   );
 }

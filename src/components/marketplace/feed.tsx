@@ -2,6 +2,7 @@ import { useShell } from "@/components/app-shell";
 import { WovenMark } from "@/components/brand/logo";
 import { Spinner } from "@/components/brand/spinner";
 import { ListingCard } from "@/components/marketplace/listing-card";
+import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { useFeed } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
@@ -9,6 +10,7 @@ import { useI18n } from "@/i18n";
 /** The Marketplace body: the ranked feed, narrowed by the rail's category. */
 export function Feed() {
   const { t } = useI18n();
+  // U0l: the category comes from the URL via the shell's derived value.
   const { selectedCategoryId, locationPath } = useShell();
   // The two axes travel together: category (applied) x area (accepted, stubbed).
   const { listings, isLoading, error, retry } = useFeed({
@@ -49,9 +51,9 @@ export function Feed() {
             ) : null}
 
             {listings.length === 0 ? (
-              <div
-                data-testid="feed-empty"
-                className="mx-auto flex w-full flex-col items-center rounded-lg border border-border bg-card p-10 text-center"
+              <PageCard
+                testid="feed-empty"
+                className="mx-auto flex w-full flex-col items-center p-10 text-center"
               >
                 {/* Allowed motif placement: logo, spinner, empty state. */}
                 <WovenMark className="h-10 w-10" />
@@ -59,7 +61,7 @@ export function Feed() {
                   {t("feed.emptyTitle")}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">{t("feed.emptyBody")}</p>
-              </div>
+              </PageCard>
             ) : (
               <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {listings.map((listing) => (
