@@ -5,6 +5,8 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import { useShell } from "@/components/app-shell";
 import { Logo } from "@/components/brand/logo";
 import { PanelHeader } from "@/components/shell/panel-header";
+import { useFooterInset } from "@/components/shell/use-footer-inset";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
