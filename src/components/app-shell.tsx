@@ -19,6 +19,7 @@ import { LocationSelector } from "@/components/shell/location-selector";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { useAuth } from "@/features/auth/use-auth";
+import { useCategories } from "@/features/feed/use-feed";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { MY_PERMISSIONS_KEY, usePermissions } from "@/features/permissions/usePermissions";
@@ -56,8 +57,12 @@ type ShellValue = {
   requestSignOut: () => void;
   activePanel: PanelId;
   setActivePanel: (panel: PanelId) => void;
+  /**
+   * U0l (INC-073) — DERIVED FROM THE URL, never settable state. The rail
+   * navigates to /c/<slug>; body, breadcrumb and highlight all read this.
+   */
+  selectedCategorySlug: string | null;
   selectedCategoryId: string | null;
-  setSelectedCategoryId: (id: string | null) => void;
   /** The cascading area selection. SEAM: set here, not yet applied to the feed. */
   locationPath: LocationNode[];
   setLocationPath: (path: LocationNode[]) => void;
@@ -119,7 +124,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const { user, loading: authLoading, signOut } = useAuth();
   const [panelChoice, setPanelChoice] = useState<PanelId>("marketplace");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [locationPath, setLocationPath] = useState<LocationNode[]>([]);
   const [navOpen, setNavOpen] = useState(false);
 
@@ -138,8 +142,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     : pathname.startsWith("/admin")
       ? "admin"
       : null;
-  /** Only "/" is the marketplace feed; every other route renders its own page. */
-  const isFeedRoute = pathname === "/";
+  /** The marketplace feed is "/" and every category route /c/<slug>. */
+  const isFeedRoute = pathname === "/" || pathname.startsWith("/c/");
+
+  /**
+   * U0l (INC-073) — the ONE source of truth for the selected category is the
+   * URL. `/c/<slug>` selects; anything else (including "/") selects nothing.
+   */
+  const selectedCategorySlug = pathname.startsWith("/c/")
+    ? decodeURIComponent(pathname.slice(3).split("/")[0] ?? "")
+    : null;
+  const { categories } = useCategories();
+  const selectedCategoryId =
+    (selectedCategorySlug
+      ? (categories.find((c) => c.slug === selectedCategorySlug)?.id ?? null)
+      : null) ?? null;
   const activePanel: PanelId = routePanel ?? panelChoice;
 
   /** Choosing a panel from a route-owned page returns to the feed shell. */
@@ -186,7 +203,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
         clearSessionClocks();
         setPanelChoice("marketplace");
-        setSelectedCategoryId(null);
         setLocationPath([]);
         setNavOpen(false);
         setSessionNotice(notice);
@@ -261,7 +277,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {
-      isAuthenticated: user !== null,
+      // U0l PART 4 — SO-2 RACE: the moment a sign-out starts, the shell is
+      // signed out for UI purposes, so no stale account menu can survive the
+      // replace-navigate. Authorization is still server-side only (law F3).
+      isAuthenticated: user !== null && !signingOut,
       isAdmin: permissions.includes(ADMIN_PANEL_PERMISSION),
       permissions,
     };
@@ -272,8 +291,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       requestSignOut,
       activePanel,
       setActivePanel,
+      selectedCategorySlug,
       selectedCategoryId,
-      setSelectedCategoryId,
       locationPath,
       setLocationPath,
       navOpen,
@@ -286,9 +305,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     requestSignOut,
     activePanel,
     setActivePanel,
+    selectedCategorySlug,
     selectedCategoryId,
     locationPath,
     navOpen,
+    signingOut,
   ]);
 
   return (
