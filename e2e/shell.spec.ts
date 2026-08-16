@@ -1088,21 +1088,37 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(Math.abs(logoAfter.width - logoBefore.width)).toBeLessThanOrEqual(1);
     expect(Math.abs(barAfter.x - (logoAfter.x + logoAfter.width))).toBeLessThanOrEqual(1);
     expect(Math.abs(barAfter.height - logoAfter.height)).toBeLessThanOrEqual(1);
-    // L2 — the rail did not move and is still fully on screen.
-    expect(Math.abs(railAfter.y - ROW1)).toBeLessThanOrEqual(1);
+    // L2 — the rail obeys the clamp law and did not move; the footer is not in
+    // view after a 600px scroll, so its bottom is the viewport bottom.
+    await railLaw(page);
+    expect(Math.abs(railAfter.y - railBefore.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(railAfter.x - railBefore.x)).toBeLessThanOrEqual(1);
     expect(Math.abs(railAfter.height - railBefore.height)).toBeLessThanOrEqual(1);
     expect(railAfter.bottom).toBeLessThanOrEqual((viewport?.height ?? 0) + 1);
 
     // NAMED REGRESSION (U0g-2): the old sticky rail crept upward at the very
     // bottom of the page. Fixed positioning must hold there too.
+    // U0i footer-clamp law: the rail's bottom follows the in-view footer; height is NOT invariant at page bottom by design.
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
     await page.waitForTimeout(200);
-    const railBottomOfPage = await rect(page, "app-rail");
-    expect(Math.abs(railBottomOfPage.y - ROW1)).toBeLessThanOrEqual(1);
-    expect(Math.abs(railBottomOfPage.x - railBefore.x)).toBeLessThanOrEqual(1);
-    expect(Math.abs(railBottomOfPage.height - railBefore.height)).toBeLessThanOrEqual(1);
+    const atBottom = await railLaw(page);
+    expect(Math.abs(atBottom.top - ROW1)).toBeLessThanOrEqual(1);
+    expect(Math.abs(atBottom.x - railBefore.x)).toBeLessThanOrEqual(1);
     const logoBottomOfPage = await rect(page, "shell-logo-cell");
     expect(logoBottomOfPage.y).toBeLessThanOrEqual(1);
+
+    // The footer owns the full viewport width beneath the clamped rail.
+    const footerAtBottom = await footRect(page);
+    expect(Math.abs(footerAtBottom.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(footerAtBottom.width - (viewport?.width ?? 0))).toBeLessThanOrEqual(1);
+
+    // The clamped rail keeps its scroll region usable: its last item is
+    // reachable, not hidden under the footer.
+    if (atBottom.overflows) {
+      const last = page.getByTestId("app-rail").getByTestId("rail-scroll").locator("li").last();
+      await last.scrollIntoViewIfNeeded();
+      await expect(last).toBeInViewport();
+    }
 
     // The real content really did scroll: its last line is on screen.
     await expect(page.getByTestId("tall-fixture-end")).toBeInViewport();
