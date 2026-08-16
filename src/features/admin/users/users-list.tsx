@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { PageCard } from "@/components/shell/page-card";
 import { useI18n } from "@/i18n";
 
-import { UNASSIGNABLE_ROLES, type AdminUserRow } from "./admin-users-service";
+import type { AdminUserRow } from "./admin-users-service";
 import { useAdminRoles, useAdminUsers, useDebounced } from "./use-admin-users";
 
 const PAGE_SIZE = 25;
@@ -19,7 +19,9 @@ function StatusBadge({ status }: { status: string }) {
       data-testid="user-status"
       variant={status === "deactivated" ? "destructive" : "secondary"}
     >
-      {status === "deactivated" ? t("admin.users.status.deactivated") : t("admin.users.status.active")}
+      {status === "deactivated"
+        ? t("admin.users.status.deactivated")
+        : t("admin.users.status.active")}
     </Badge>
   );
 }
@@ -202,7 +204,7 @@ export function AdminUsersList() {
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground" data-testid="users-total">
-          {t("admin.users.total", { n: String(total) })}
+          {t("admin.users.total").replace("{n}", String(total))}
         </p>
         <div className="flex gap-2">
           <Button
@@ -244,7 +246,7 @@ function UserRowLink({ user, dateLabel }: { user: AdminUserRow; dateLabel: strin
       <span className="block text-xs text-muted-foreground">
         {(user.homeCountryCode ?? "—") + " · " + dateLabel}
       </span>
-      <RoleChips roles={user.roles.filter((r) => !UNASSIGNABLE_ROLES.includes(r as never) || true)} />
+      <RoleChips roles={user.roles} />
       <span className="sr-only">{t("admin.users.openDetail")}</span>
     </Link>
   );

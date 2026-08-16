@@ -107,9 +107,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
 
       <PageCard className="space-y-3" testid="user-status-card">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("admin.users.status.title")}
-          </h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("admin.users.status.title")}</h2>
           <Badge data-testid="user-status" variant={deactivated ? "destructive" : "secondary"}>
             {deactivated ? t("admin.users.status.deactivated") : t("admin.users.status.active")}
           </Badge>
