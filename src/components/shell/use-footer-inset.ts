@@ -25,29 +25,54 @@ export function useFooterInset(): number {
     if (!footer) return;
 
     let frame = 0;
+    let settleTimer: ReturnType<typeof setTimeout> | undefined;
     const measure = () => {
       frame = 0;
       const top = footer.getBoundingClientRect().top;
       const next = Math.max(0, Math.round(window.innerHeight - top));
+      // U0i-3: publish the applied inset for tests/settle polling.
+      const aside = document.querySelector('[data-testid="app-rail"]');
+      if (aside) aside.setAttribute("data-rail-inset", String(next));
       setInset((prev) => (prev === next ? prev : next));
     };
     const schedule = () => {
       if (frame === 0) frame = window.requestAnimationFrame(measure);
     };
+    /**
+     * U0i-3 — SETTLE. rAF coalescing can leave the inset one frame behind the
+     * final scroll position. `scrollend` flushes synchronously; a 120ms
+     * debounce covers browsers without it.
+     */
+    const flush = () => {
+      if (frame !== 0) {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+      }
+      measure();
+    };
+    const scheduleSettle = () => {
+      schedule();
+      if (settleTimer) clearTimeout(settleTimer);
+      settleTimer = setTimeout(flush, 120);
+    };
 
     measure();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("scroll", scheduleSettle, { passive: true });
+    window.addEventListener("scrollend", flush, { passive: true });
+    window.addEventListener("resize", scheduleSettle, { passive: true });
     const observer = new ResizeObserver(schedule);
     observer.observe(footer);
 
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
+      if (settleTimer) clearTimeout(settleTimer);
+      window.removeEventListener("scroll", scheduleSettle);
+      window.removeEventListener("scrollend", flush);
+      window.removeEventListener("resize", scheduleSettle);
       observer.disconnect();
     };
   }, []);
+
 
   return inset;
 }
