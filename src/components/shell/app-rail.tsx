@@ -143,6 +143,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             params={node.params}
             onClick={node.onSelect}
             data-testid={node.testid}
+            aria-current={node.active ? "page" : undefined}
             aria-label={node.label}
             style={pad}
             className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
