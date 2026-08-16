@@ -132,3 +132,4 @@
 - 2026-08-16 — feat(catalog): provisional name_am for all 97 categories (pre-native-review); fix(shell): rail clamps above the in-view footer (last items + scrollbar always reachable); test(e2e): i18n-coverage repairs (brand allowlist, dialog locator, category-label coverage)
   2026-08-16 — test(e2e): rail geometry tests re-anchored to the footer-clamp law (top 64, bottom = min(viewport, footerTop)); i18n reds await the name_am staging apply
 - 2026-08-16 — fix(shell): footer-inset hook flushes on scrollend (no one-frame lag); test(e2e): L3 asserts the clamp law by geometry with a settled measurement (compositor hit-test retired)
+- 2026-08-16 — fix(auth): U0j — sign-out hard reset with confirmation, live auth guard on gated routes, permission cache purge, replace-navigate to marketplace; E2E SO-1..SO-4 (INC-072, Tier A)
