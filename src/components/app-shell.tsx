@@ -24,6 +24,7 @@ import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { MY_PERMISSIONS_KEY, usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 /** One node of the chosen geographic path (country -> region -> city -> …). */
