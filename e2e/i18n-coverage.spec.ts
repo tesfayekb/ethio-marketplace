@@ -8,19 +8,16 @@ import { gotoReady, signIn } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
- * U0h PART 2 — I18N CHROME COVERAGE GUARD.
+ * U0h PART 2 / U0i PART 3 — I18N CHROME COVERAGE GUARD.
  *
  * Law D1 says no user-visible literal strings; this guard proves the stronger
  * runtime property: with Amharic selected, the SHELL CHROME contains
  *   (a) no English value of a key that HAS a distinct Amharic value (i.e. no
- *       key silently fell back to en through `messages[key] ?? en[key]`), and
- *   (b) no raw dot-notation key name (a missing catalog entry rendered bare).
- *
- * DATA-DRIVEN CATEGORY ROWS ARE EXCLUDED ON PURPOSE. Category names come from
- * public.categories (name_en / name_am); their Amharic coverage is a DATA
- * concern tracked by its own launch-gate item (U5), not a chrome-string
- * concern. Including them here would make a seed gap look like a translation
- * bug and would make this guard un-actionable.
+ *       key silently fell back to en through `messages[key] ?? en[key]`),
+ *   (b) no raw dot-notation key name (a missing catalog entry rendered bare),
+ *   (c) no category row still showing its English `name_en` (U0i part 1 gave
+ *       every category a provisional `name_am`, so data-driven rows are now IN
+ *       scope — they used to be excluded as a seed gap).
  */
 
 /** Keys whose Amharic value is intentionally identical to English. */
@@ -32,6 +29,18 @@ const INTENTIONALLY_IDENTICAL = new Set<string>([
   "auth.emailPlaceholder", // a sample address, not prose
 ]);
 
+/**
+ * U0i(a) — BRAND/PRODUCT LITERALS ARE NEVER FALLBACKS. Anything whose English
+ * and Amharic values are identical is by definition untranslated on purpose,
+ * plus the literal brand wordmark and any dotted brand string derived from it.
+ */
+const ALLOW = new Set<string>(["ethio.com"]);
+for (const key of Object.keys(en) as (keyof typeof en)[]) {
+  const value = en[key];
+  if (typeof value !== "string") continue;
+  if (am[key] === value || INTENTIONALLY_IDENTICAL.has(key as string)) ALLOW.add(value.trim());
+}
+
 /** English strings that MUST NOT appear once Amharic is active, value -> key. */
 const ENGLISH_FALLBACKS = new Map<string, string>();
 for (const key of Object.keys(en) as (keyof typeof en)[]) {
@@ -40,10 +49,21 @@ for (const key of Object.keys(en) as (keyof typeof en)[]) {
   if (INTENTIONALLY_IDENTICAL.has(key as string)) continue;
   if (typeof enValue !== "string" || enValue.trim().length < 2) continue;
   if (amValue === enValue) continue;
+  if (ALLOW.has(enValue.trim())) continue;
   ENGLISH_FALLBACKS.set(enValue.trim(), key as string);
 }
 
 const KEY_NAMES = new Set<string>(Object.keys(en));
+
+/**
+ * U0i(a) — a raw key must start with a namespace the catalog actually owns
+ * (shell., auth., admin., …), so brand text such as "ethio.com" can never be
+ * mistaken for a rendered key name.
+ */
+const NAMESPACES = Array.from(
+  new Set(Object.keys(en).map((key) => key.split(".")[0] ?? "")),
+).filter(Boolean);
+const RAW_KEY_RE = new RegExp(`^(${NAMESPACES.join("|")})(\\.[A-Za-z0-9_]+)+$`);
 
 /** Grants a named role via the service role — the staff fixture. */
 async function grantRole(userId: string, roleName: string) {
@@ -87,58 +107,84 @@ const CHROME_TESTIDS = [
   "admin-nav-cards",
 ];
 
-/**
- * Every trimmed TEXT NODE inside the chrome, with the data-driven category
- * rows pruned out of the clone first.
- */
-async function chromeTexts(page: Page, categoriesLabel: string): Promise<string[]> {
-  return page.evaluate(
-    ([ids, catLabel]) => {
-      const out: string[] = [];
-      for (const id of ids as string[]) {
-        for (const region of Array.from(document.querySelectorAll(`[data-testid="${id}"]`))) {
-          const clone = region.cloneNode(true) as HTMLElement;
-          // EXCLUDED: category rows are database rows (name_en / name_am), not
-          // chrome strings — their coverage is a data/U5 launch-gate item.
-          for (const nav of Array.from(
-            clone.querySelectorAll(`nav[aria-label="${catLabel as string}"]`),
-          )) {
-            nav.remove();
-          }
-          const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
-          let node = walker.nextNode();
-          while (node) {
-            const text = (node.textContent ?? "").trim();
-            if (text) out.push(text);
-            node = walker.nextNode();
-          }
+/** Every trimmed TEXT NODE inside the given root elements. */
+async function textsWithin(page: Page, selectors: string[]): Promise<string[]> {
+  return page.evaluate((sels) => {
+    const out: string[] = [];
+    for (const sel of sels) {
+      for (const region of Array.from(document.querySelectorAll(sel))) {
+        const walker = document.createTreeWalker(region, NodeFilter.SHOW_TEXT);
+        let node = walker.nextNode();
+        while (node) {
+          const text = (node.textContent ?? "").trim();
+          if (text) out.push(text);
+          node = walker.nextNode();
         }
       }
-      return out;
-    },
-    [CHROME_TESTIDS, categoriesLabel] as const,
-  );
+    }
+    return out;
+  }, selectors);
 }
+
+const chromeTexts = (page: Page) =>
+  textsWithin(
+    page,
+    CHROME_TESTIDS.map((id) => `[data-testid="${id}"]`),
+  );
+
+/** U0i(b) — the mobile drawer is the Sheet DIALOG, not the md+ aside. */
+const drawerTexts = (page: Page) => textsWithin(page, ['[role="dialog"]']);
 
 function assertAmharicChrome(texts: string[], where: string) {
   const fellBack = texts
-    .filter((text) => ENGLISH_FALLBACKS.has(text))
+    .filter((text) => !ALLOW.has(text) && ENGLISH_FALLBACKS.has(text))
     .map((text) => `${ENGLISH_FALLBACKS.get(text)!} => "${text}"`);
   expect(fellBack, `${where}: keys fell back to English`).toEqual([]);
 
   const rawKeys = texts.filter(
-    (text) => KEY_NAMES.has(text) || /^[a-z][\w]*(\.[\w]+)+$/.test(text),
+    (text) => !ALLOW.has(text) && (KEY_NAMES.has(text) || RAW_KEY_RE.test(text)),
   );
   expect(rawKeys, `${where}: raw translation keys rendered`).toEqual([]);
 }
 
+/**
+ * U0i(c) — CATEGORY ROWS. Read purely from the DOM (no DB access here): a
+ * label made only of Latin letters is `name_en` leaking through the
+ * `nameAm ?? nameEn` fallback.
+ */
+const LATIN_ONLY = /^[A-Za-z][A-Za-z\s&'’\-.,()/]*$/;
+
+async function assertAmharicCategories(page: Page, scope: string, where: string) {
+  const labels = await page.evaluate(
+    ([sel, catLabel]) => {
+      const nav = document.querySelector(`${sel} nav[aria-label="${catLabel}"]`);
+      if (!nav) return [];
+      return Array.from(nav.querySelectorAll("li button, li a, li span[aria-disabled]"))
+        .map((el) => (el.textContent ?? "").trim())
+        .filter(Boolean);
+    },
+    [scope, am["shell.categoriesLabel"]] as const,
+  );
+
+  expect(labels.length, `${where}: no category rows rendered`).toBeGreaterThan(0);
+  const english = labels.filter((label) => !ALLOW.has(label) && LATIN_ONLY.test(label));
+  expect(english, `${where}: category labels still in English`).toEqual([]);
+}
+
 test.describe("i18n chrome coverage (Amharic)", () => {
-  test("the marketplace shell renders no English fallback", async ({ page }) => {
+  test("the marketplace shell renders no English fallback", async ({ page, viewport }) => {
     await useAmharic(page);
     await gotoReady(page, "/");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
 
-    assertAmharicChrome(await chromeTexts(page, am["shell.categoriesLabel"]), "marketplace shell");
+    assertAmharicChrome(await chromeTexts(page), "marketplace shell");
+    if ((viewport?.width ?? 0) >= 768) {
+      await assertAmharicCategories(
+        page,
+        '[data-testid="app-rail"]',
+        "marketplace rail categories",
+      );
+    }
   });
 
   test("the mobile drawer renders no English fallback", async ({ page, viewport }) => {
@@ -146,9 +192,11 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     await useAmharic(page);
     await gotoReady(page, "/");
     await page.getByRole("button", { name: am["shell.openMenu"] }).click();
-    await expect(page.getByTestId("app-rail")).toBeVisible();
+    const drawer = page.getByRole("dialog");
+    await expect(drawer).toBeVisible();
 
-    assertAmharicChrome(await chromeTexts(page, am["shell.categoriesLabel"]), "mobile drawer");
+    assertAmharicChrome(await drawerTexts(page), "mobile drawer");
+    await assertAmharicCategories(page, '[role="dialog"]', "mobile drawer categories");
   });
 
   test("the admin shell renders no English fallback", async ({ page }) => {
@@ -163,6 +211,6 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     await gotoReady(page, "/admin");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
 
-    assertAmharicChrome(await chromeTexts(page, am["shell.categoriesLabel"]), "admin shell");
+    assertAmharicChrome(await chromeTexts(page), "admin shell");
   });
 });
