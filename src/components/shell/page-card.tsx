@@ -38,10 +38,7 @@ export function PageCard({
   as?: "section" | "div";
 }) {
   return (
-    <As
-      data-testid={testid}
-      className={cn(PAGE_CARD_CLASS, dashed && "border-dashed", className)}
-    >
+    <As data-testid={testid} className={cn(PAGE_CARD_CLASS, dashed && "border-dashed", className)}>
       {children}
     </As>
   );
