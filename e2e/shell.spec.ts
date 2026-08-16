@@ -48,6 +48,42 @@ async function expectTapTarget(page: Page, locator: ReturnType<Page["getByRole"]
   expect(box!.height, `${name} height`).toBeGreaterThanOrEqual(44);
 }
 
+/**
+ * U0i FOOTER-CLAMP LAW (md+). The aside's top is pinned under the 4rem band,
+ * and its bottom follows whichever comes first: the viewport bottom, or the
+ * in-view footer's top edge. Its inner rail-scroll stays the scroll region.
+ * Rects are read with getBoundingClientRect() — boundingBox() would scroll the
+ * elements under test into view.
+ */
+async function railLaw(page: Page) {
+  const measured = await page.evaluate(() => {
+    const aside = document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect();
+    const footerEl =
+      document.querySelector('[data-testid="shell-footer-wrapper"]') ??
+      document.querySelector("footer")!;
+    const footerTop = footerEl.getBoundingClientRect().top;
+    const scroll = document.querySelector(
+      '[data-testid="app-rail"] [data-testid="rail-scroll"]',
+    ) as HTMLElement | null;
+    return {
+      top: aside.top,
+      bottom: aside.bottom,
+      x: aside.x,
+      height: aside.height,
+      footerTop,
+      innerHeight: window.innerHeight,
+      overflows: scroll ? scroll.scrollHeight > scroll.clientHeight : false,
+    };
+  });
+  expect(Math.abs(measured.top - 64), "rail top is not pinned at 64").toBeLessThanOrEqual(1);
+  const expectedBottom = Math.min(measured.innerHeight, measured.footerTop);
+  expect(
+    Math.abs(measured.bottom - expectedBottom),
+    "rail bottom must be min(viewport bottom, footer top)",
+  ).toBeLessThanOrEqual(1);
+  return measured;
+}
+
 test.describe("app shell", () => {
   test("mounts with header, rail slot and footer, logged out", async ({ page }, testInfo) => {
     await page.goto("/");
