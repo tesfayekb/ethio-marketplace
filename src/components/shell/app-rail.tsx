@@ -156,6 +156,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <button
             type="button"
             onClick={node.onSelect}
+            data-testid={node.testid}
             aria-current={node.active ? "true" : undefined}
             aria-label={node.label}
             style={pad}
@@ -168,12 +169,14 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     );
   }
 
-  // No path yet: the item's page is a later feature.
+  // No path yet: the item's page is a later feature. U0f — it still carries its
+  // testid, so every rail item is addressable regardless of how it renders.
   return (
     <li>
       <WithTooltip label={node.label}>
         <span
           style={pad}
+          data-testid={node.testid}
           className={cn(ITEM_BASE, "text-muted-foreground")}
           aria-disabled="true"
           aria-label={node.label}
