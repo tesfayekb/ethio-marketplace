@@ -141,6 +141,52 @@ export function AppShell({ children }: { children: ReactNode }) {
    */
   const { permissions } = usePermissions({ enabled: user !== null });
 
+  /**
+   * U0j (INC-072) — SIGN-OUT IS A HARD RESET, in this exact order:
+   *   (a) supabase.auth.signOut() — the repo's existing default scope
+   *       ("global": every session for this user) is kept deliberately, and it
+   *       is awaited;
+   *   (b) the permission cache is REMOVED (not merely invalidated) so no
+   *       stale admin grant can paint anything;
+   *   (c) auth-derived client state resets (panel, category, location, drawer);
+   *   (d) replace-navigate to "/" so Back cannot re-enter a gated page.
+   */
+  const [signOutOpen, setSignOutOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const requestSignOut = useCallback(() => setSignOutOpen(true), []);
+
+  const confirmSignOut = useCallback(async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
+      setPanelChoice("marketplace");
+      setSelectedCategoryId(null);
+      setLocationPath([]);
+      setNavOpen(false);
+      await navigate({ to: "/", replace: true });
+    } finally {
+      setSigningOut(false);
+      setSignOutOpen(false);
+    }
+  }, [signOut, queryClient, navigate]);
+
+  /**
+   * THE LIVE GUARD (the security fix). `user` comes from the shell's
+   * onAuthStateChange subscription, so ANY signed-out transition — this tab,
+   * another tab, or token expiry — lands here, not just a mount check. A gated
+   * route standing open is replaced by the marketplace immediately, so no
+   * gated UI survives a sign-out on any screen size.
+   */
+  const gatedRoute = pathname.startsWith("/admin") || pathname.startsWith("/settings");
+  useEffect(() => {
+    if (authLoading || user !== null) return;
+    queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
+    setPanelChoice("marketplace");
+    setNavOpen(false);
+    if (gatedRoute) void navigate({ to: "/", replace: true });
+  }, [authLoading, user, gatedRoute, navigate, queryClient]);
+
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {
       isAuthenticated: user !== null,
