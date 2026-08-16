@@ -305,7 +305,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
         >
           <p className="text-sm text-foreground">
-            {t("session.idleWarning", { s: String(warningSecondsLeft) })}
+            {t("session.idleWarning").replace("{s}", String(warningSecondsLeft))}
           </p>
           <button
             type="button"
