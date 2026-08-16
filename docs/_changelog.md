@@ -124,3 +124,4 @@
 - 2026-08-12 — fix(ci): nanoid override >=3.3.18 (GHSA-2v37-7h3g-55p8, audit clean); md+ rail scroll test given a guaranteed-overflow premise (Admin panel at 1280×360)
 - 2026-08-12 — fix(shell): desktop rail sized to viewport minus the 4rem logo row (sticky top-16, calc(100dvh-4rem)) — pinned Sign out back in view; U0f complete
 - 2026-08-12 — test(e2e): U0f rail invariant corrected to viewport-minus-row-1 geometry (top 64px, height 296px at 1280×360)
+- 2026-08-16 — feat(shell): U0g — desktop layout laws: fixed top band + fixed rail, footer full-width beneath the rail, content-only scrolling; E2E invariants L1–L3
