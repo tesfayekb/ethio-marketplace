@@ -973,15 +973,12 @@ test.describe("rail scroll regions (U0f)", () => {
     const rail = page.getByTestId("app-rail");
     const scroll = rail.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
-    // Viewport-bound rail: the aside fills the viewport BELOW the 4rem
-    // logo/top-bar row (grid row 1). Its top must sit at 64px and its height
-    // must equal 360px - 64px so the rail never overhangs the page.
-    const ROW1 = 64;
-    const railBox = (await rail.boundingBox())!;
-    expect(Math.abs(railBox.y - ROW1)).toBeLessThanOrEqual(1);
-    expect(Math.abs(railBox.height - (360 - ROW1))).toBeLessThanOrEqual(1);
-    // Strict: if a future change makes the items fit, this must fail loudly
-    // rather than pass vacuously.
+    // U0i footer-clamp law: top pinned at 64, bottom = min(viewport, footerTop).
+    // At 1280x360 the short admin page may already show the footer — the law
+    // covers that case (the rail ends at the footer's top edge).
+    await railLaw(page);
+    // Strict, measured against the CLAMPED region: if a future change makes the
+    // items fit, this must fail loudly rather than pass vacuously.
     await expect
       .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
       .toBeGreaterThan(0);
