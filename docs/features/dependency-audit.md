@@ -62,3 +62,23 @@ fix that is both patched and working. This supersedes the INC-008 acceptance.
 Zero runtime exposure: none of the three is in the production dependency tree.
 Typecheck, lint, build and format:check all pass on the regenerated lockfile.
 The clean-audit verdict itself comes only from CI — `bun audit` 404s in the sandbox.
+
+## 2026-08-12 Audit — GHSA-2v37-7h3g-55p8 (nanoid), REMEDIATED
+
+- Advisory: GHSA-2v37-7h3g-55p8, `nanoid` < 3.3.18 (predictable output).
+- Path: `vite` → `postcss` → `nanoid` (transitive, build chain).
+- Remediation: `package.json` `overrides` gains `"nanoid": "^3.3.18"`.
+  The advisory's floor is `>=3.3.18`; the range is pinned inside 3.x because
+  `postcss@8` requires `nanoid@^3.3.16` and a flat `>=3.3.18` resolves the tree
+  to `nanoid@6`, a different (ESM-only) API. `3.3.18` is both patched and the
+  only expressible working fix on Bun (no nested overrides).
+- Resolved: `nanoid@3.3.18` in `bun.lock`.
+- Verification: build green, typecheck/lint/format clean. `bun audit` cannot
+  reach the advisory service from the build sandbox (404), so the clean-audit
+  verdict comes from the CI `dependency-audit` job.
+
+### Standing note
+
+Transitive advisories are remediated by `overrides` in the same push that
+detects them — never deferred, never accepted merely because the package is
+not in the runtime tree (law H2).
