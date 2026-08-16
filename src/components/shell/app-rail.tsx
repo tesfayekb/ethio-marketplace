@@ -376,7 +376,7 @@ export function AppRail() {
       <CollapsedContext.Provider value={collapsed === true}>
         <aside
           data-testid="app-rail"
-          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:flex md:[html[data-rail=collapsed]_&]:px-1"
+          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:col-start-1 md:row-start-2 md:flex md:sticky md:top-0 md:h-screen md:h-dvh md:max-h-dvh md:overflow-hidden md:[html[data-rail=collapsed]_&]:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
