@@ -5,6 +5,8 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import { useShell } from "@/components/app-shell";
 import { Logo } from "@/components/brand/logo";
 import { PanelHeader } from "@/components/shell/panel-header";
+import { useFooterInset } from "@/components/shell/use-footer-inset";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -370,6 +372,7 @@ export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen } = useShell();
   const { collapsed } = useRailCollapsed();
+  const footerInset = useFooterInset();
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -377,10 +380,14 @@ export function AppRail() {
         <aside
           data-testid="app-rail"
           // U0g-2 — FIXED, never sticky: the rail must not move at any scroll
-          // offset, including the page bottom (where it sits ON TOP of the
-          // full-width footer). top-16 / height keep in sync with the fixed
-          // top band's 4rem row.
-          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-16 md:z-20 md:flex md:w-64 md:h-[calc(100vh-4rem)] md:h-[calc(100dvh-4rem)] md:max-h-[calc(100dvh-4rem)] md:overflow-hidden md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:px-1"
+          // offset. U0i — its BOTTOM is no longer the viewport bottom: it is
+          // `--rail-bottom-inset`, how far the footer has scrolled into view,
+          // so the rail's box always ENDS at the footer's top edge. With the
+          // fixed calc() height dropped (top-16 + bottom inset size it), the
+          // inner rail-scroll region keeps its scrollbar and every item stays
+          // reachable instead of hiding under the footer.
+          style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
+          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-16 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the

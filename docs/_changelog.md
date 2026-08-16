@@ -129,3 +129,4 @@
 - 2026-08-16 — fix(shell): U0g-3 — the document is the only page scroller at md+ (content stack unbounded; band/rail fixed out of flow); L1/L2 precondition now satisfied
 - 2026-08-16 — test(e2e): U0g layout laws on a real tall fixture route (injection harness retired after three flaky rounds); shell layout unchanged
 - 2026-08-16 — fix(shell): U0h — footer paints over the fixed rail at desktop bottom (rail ends at footer top, both modes); test(e2e): i18n chrome-coverage guard (Amharic shell, zero fallbacks) with am.ts gaps filled
+- 2026-08-16 — feat(catalog): provisional name_am for all 97 categories (pre-native-review); fix(shell): rail clamps above the in-view footer (last items + scrollbar always reachable); test(e2e): i18n-coverage repairs (brand allowlist, dialog locator, category-label coverage)
