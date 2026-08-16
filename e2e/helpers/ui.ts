@@ -194,6 +194,10 @@ export async function attemptSignIn(page: Page, email: string, password: string)
   const emailInput = page.getByRole("textbox", { name: /email/i });
   const passwordInput = page.locator("#auth-password");
 
+  // U0j-2 precondition: a missing sign-in form must fail HERE, not later as a
+  // confusing fill timeout.
+  await expect(emailInput, "sign-in form did not render on /auth").toBeVisible({ timeout: 15000 });
+
   await fillUntilStable(emailInput, email, "email");
   await fillUntilStable(passwordInput, password, "password");
 
