@@ -963,3 +963,110 @@ test.describe("rail scroll regions (U0f)", () => {
     await expect(rail.getByTestId("rail-sign-out")).toBeInViewport();
   });
 });
+
+/**
+ * U0g — DESKTOP LAYOUT LAWS.
+ *
+ * Long-content approach: the marketplace feed is not guaranteed tall, so the
+ * test injects a tall test-only spacer into #main via page.evaluate. That
+ * makes page scrolling real without depending on seeded data.
+ *
+ * Geometry is read with getBoundingClientRect(), never locator.boundingBox():
+ * the latter scrolls the element into view first, which would move the very
+ * sticky elements under test.
+ */
+test.describe("desktop layout laws (U0g)", () => {
+  const ROW1 = 64;
+
+  async function rect(page: Page, testid: string) {
+    return page.evaluate(
+      (id) =>
+        document.querySelector(`[data-testid="${id}"]`)!.getBoundingClientRect().toJSON() as {
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          bottom: number;
+          top: number;
+        },
+      testid,
+    );
+  }
+
+  async function footRect(page: Page) {
+    return page.evaluate(
+      () =>
+        document.querySelector("footer")!.getBoundingClientRect().toJSON() as {
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          top: number;
+        },
+    );
+  }
+
+  async function makeTall(page: Page) {
+    await page.evaluate(() => {
+      const main = document.querySelector("#main")!;
+      const spacer = document.createElement("div");
+      spacer.setAttribute("data-testid", "u0g-spacer");
+      spacer.style.height = "3000px";
+      main.appendChild(spacer);
+    });
+  }
+
+  test("L1/L2: the top band and the rail stay put while content scrolls", async ({
+    page,
+    viewport,
+  }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    await gotoReady(page, "/");
+    await makeTall(page);
+
+    const logoBefore = await rect(page, "shell-logo-cell");
+    const barBefore = await rect(page, "shell-topbar");
+    const railBefore = await rect(page, "app-rail");
+    expect(logoBefore.y).toBeLessThanOrEqual(1);
+    expect(Math.abs(railBefore.y - ROW1)).toBeLessThanOrEqual(1);
+
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await expect.poll(async () => Math.round(await page.evaluate(() => window.scrollY))).toBe(600);
+
+    const logoAfter = await rect(page, "shell-logo-cell");
+    const barAfter = await rect(page, "shell-topbar");
+    const railAfter = await rect(page, "app-rail");
+
+    // L1 — the whole row-1 band is still at the top of the viewport.
+    expect(Math.abs(logoAfter.y - logoBefore.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(barAfter.y - barBefore.y)).toBeLessThanOrEqual(1);
+    expect(logoAfter.y).toBeLessThanOrEqual(1);
+    // Corner-block geometry survives sticky: same x/width, bar starts at the
+    // logo cell's end edge, equal heights.
+    expect(Math.abs(logoAfter.x - logoBefore.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(logoAfter.width - logoBefore.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(barAfter.x - (logoAfter.x + logoAfter.width))).toBeLessThanOrEqual(1);
+    expect(Math.abs(barAfter.height - logoAfter.height)).toBeLessThanOrEqual(1);
+    // L2 — the rail did not move and is still fully on screen.
+    expect(Math.abs(railAfter.y - ROW1)).toBeLessThanOrEqual(1);
+    expect(Math.abs(railAfter.height - railBefore.height)).toBeLessThanOrEqual(1);
+    expect(railAfter.bottom).toBeLessThanOrEqual((viewport?.height ?? 0) + 1);
+  });
+
+  test("L3: the footer is full-width BELOW the rail", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    await gotoReady(page, "/");
+    await makeTall(page);
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(200);
+
+    const footer = await footRect(page);
+    const rail = await rect(page, "app-rail");
+
+    expect(Math.abs(footer.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(footer.width - (viewport?.width ?? 0))).toBeLessThanOrEqual(1);
+    // The rail sits ABOVE the footer, never beside it.
+    expect(footer.top).toBeGreaterThanOrEqual(rail.bottom - 1);
+  });
+});
