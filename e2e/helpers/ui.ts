@@ -115,8 +115,13 @@ export function isMobile(page: Page) {
 export async function openRailScope(page: Page) {
   await waitForHydration(page);
   if (isMobile(page)) {
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    // U0j-3 — LOCALE-AGNOSTIC. The hamburger carries no testid (census:
+    // app-header.tsx labels it with t("shell.openMenu") only, and that file is
+    // outside this task's scope), so match its aria-label against BOTH
+    // catalogs — an Amharic shell must reach the same control.
+    await page.getByRole("button", { name: openMenuPattern() }).click();
     const drawer = page.getByRole("dialog");
+
     await expect(drawer).toBeVisible();
     return drawer;
   }
