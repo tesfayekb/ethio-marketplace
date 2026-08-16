@@ -8,7 +8,7 @@ import { AdminUserDetailPage } from "@/features/admin/users/user-detail";
  * The /admin layout owns the permission gate and the AdminShellProvider, so
  * this file renders the body only.
  */
-export const Route = createFileRoute("/admin/users/$userId")({
+export const Route = createFileRoute("/admin/users_/$userId")({
   component: AdminUserDetailRoute,
 });
 
