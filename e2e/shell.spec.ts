@@ -937,10 +937,13 @@ test.describe("rail scroll regions (U0f)", () => {
     const rail = page.getByTestId("app-rail");
     const scroll = rail.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
-    // VIEWPORT-BOUND RAIL invariant: the aside is capped at the viewport
-    // height, so overflow lives in rail-scroll and never in the page.
+    // Viewport-bound rail: the aside fills the viewport BELOW the 4rem
+    // logo/top-bar row (grid row 1). Its top must sit at 64px and its height
+    // must equal 360px - 64px so the rail never overhangs the page.
+    const ROW1 = 64;
     const railBox = (await rail.boundingBox())!;
-    expect(Math.abs(railBox.height - 360)).toBeLessThanOrEqual(1);
+    expect(Math.abs(railBox.y - ROW1)).toBeLessThanOrEqual(1);
+    expect(Math.abs(railBox.height - (360 - ROW1))).toBeLessThanOrEqual(1);
     // Strict: if a future change makes the items fit, this must fail loudly
     // rather than pass vacuously.
     await expect
