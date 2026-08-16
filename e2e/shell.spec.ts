@@ -8,7 +8,24 @@ import {
   signIn,
   waitForHydration,
 } from "./helpers/ui";
-import { createUser } from "./helpers/users";
+import { adminClient, createUser } from "./helpers/users";
+
+/** Grants a named role via the service role — the staff fixture (see rbac.spec.ts). */
+async function grantRole(userId: string, roleName: string) {
+  const supabase = adminClient();
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id")
+    .eq("name", roleName)
+    .single();
+  if (roleError || !role) {
+    throw new Error(`[e2e:shell] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
+  }
+  const { error } = await supabase
+    .from("user_roles")
+    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
+  if (error) throw new Error(`[e2e:shell] granting ${roleName} failed: ${error.message}`);
+}
 
 /**
  * Shell smoke — the design foundation.
@@ -908,21 +925,32 @@ test.describe("rail scroll regions (U0f)", () => {
 
   test("md+ rail: items scroll, header fixed", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
-    const user = await createUser({ confirmed: true });
-    await signIn(page, user.email, user.password);
-    await page.setViewportSize({ width: 1280, height: 500 });
-    await gotoReady(page, "/");
+    // Guaranteed-overflow premise: the Admin panel's 7 sections plus the fixed
+    // header and pinned foot cannot fit in 360px of height. The staff fixture
+    // is granted through the same service-role path rbac.spec.ts uses.
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    await signIn(page, staff.email, staff.password);
+    await page.setViewportSize({ width: 1280, height: 360 });
+    await gotoReady(page, "/admin");
 
     const rail = page.getByTestId("app-rail");
     const scroll = rail.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
+    // Strict: if a future change makes the items fit, this must fail loudly
+    // rather than pass vacuously.
     await expect
       .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
       .toBeGreaterThan(0);
 
     const title = rail.getByTestId("panel-header-title");
     const before = (await title.boundingBox())!;
+    const last = scroll.locator("li").last();
+    await expect(last).not.toBeInViewport();
+
     await scroll.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+    await expect(last).toBeInViewport();
+
     const after = (await title.boundingBox())!;
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
     await expect(rail.getByTestId("rail-sign-out")).toBeInViewport();
