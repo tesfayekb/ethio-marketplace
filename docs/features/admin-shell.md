@@ -183,6 +183,17 @@ and the mobile drawer, identically:
    scrolling. Its `mt-auto` pinning is preserved; the flex parent now carries
    `min-h-0` so the scroll region, not the foot, absorbs the overflow.
 
+### Viewport-bound rail (U0f root cause)
+
+Scroll containment only works if the rail itself cannot grow. The md+ `<aside>`
+therefore carries `md:sticky md:top-0 md:h-screen md:h-dvh md:max-h-dvh
+md:overflow-hidden` (`h-screen` first as the fallback where `dvh` is
+unsupported): it is pinned to the viewport and capped at its height, so the
+inner `rail-scroll` is the ONLY scrolling region and a long category or admin
+list never lengthens the page. The drawer is untouched — the sheet already
+bounds itself. Grid rows/columns, the logo cell, the top bar, collapsed widths
+and all tokens are unchanged.
+
 Every rail row now carries `data-testid={node.testid}` — routed `Link` leaves,
 `onSelect` buttons and path-less rows alike — so items whose page is a later
 feature (for example `rail-item-ac-overview`) are addressable in tests. No
@@ -191,6 +202,7 @@ behaviour change beyond the attribute.
 E2E: `e2e/shell.spec.ts` "rail scroll regions (U0f)" proves overflow, the fixed
 header (`panel-header-title` y unchanged after scrolling), the last item coming
 into view on scroll and the pinned Sign out — at 360×480 (drawer) and 1280×500
-(rail). The drawer switcher test scopes `panel-header-switcher` to the drawer
+(rail); the md+ case also asserts the aside's box height equals the viewport
+height (±1px) — the viewport-bound invariant. The drawer switcher test scopes `panel-header-switcher` to the drawer
 locator (both surfaces render a band); the switcher's OPTIONS live in a portal
 and stay page-scoped.
