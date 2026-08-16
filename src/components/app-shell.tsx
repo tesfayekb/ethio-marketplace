@@ -269,11 +269,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        {/* Full-width footer in normal flow. Its BOX spans the whole viewport
-            (background + border start at x=0, underneath the fixed rail); its
-            INNER blocks get a start-inset equal to the rail width at md+ so
-            the links and copyright stay in the readable content column. */}
-        <div className="w-full md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16">
+        {/* U0h — the footer PAINTS OVER the fixed rail. Its BOX spans the whole
+            viewport and, because the wrapper is a stacking context above the
+            rail (z-40 > the rail's z-20), the rail visually ENDS at the
+            footer's top edge instead of running beside or under its text. The
+            surface is opaque in both themes: the <footer> itself carries
+            bg-card (census), and the wrapper repeats it so no rail pixel can
+            show through the wrapper box. INNER blocks keep the U0g-2 start
+            inset equal to the rail width at md+, so the links and copyright
+            stay in the readable content column. Mobile: unchanged (no fixed
+            rail exists there). */}
+        <div
+          data-testid="shell-footer-wrapper"
+          className="relative z-40 w-full bg-card md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16"
+        >
           <AppFooter />
         </div>
       </div>

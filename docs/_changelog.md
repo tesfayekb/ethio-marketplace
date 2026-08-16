@@ -128,3 +128,4 @@
 - 2026-08-16 — fix(shell): U0g-2 — fixed top band + fixed rail (never move; inner list scrolls), footer full-width beneath the rail with readable inset content; L1/L2 test premise repaired
 - 2026-08-16 — fix(shell): U0g-3 — the document is the only page scroller at md+ (content stack unbounded; band/rail fixed out of flow); L1/L2 precondition now satisfied
 - 2026-08-16 — test(e2e): U0g layout laws on a real tall fixture route (injection harness retired after three flaky rounds); shell layout unchanged
+- 2026-08-16 — fix(shell): U0h — footer paints over the fixed rail at desktop bottom (rail ends at footer top, both modes); test(e2e): i18n chrome-coverage guard (Amharic shell, zero fallbacks) with am.ts gaps filled

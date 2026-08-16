@@ -1095,6 +1095,40 @@ test.describe("desktop layout laws (U0g)", () => {
       () => document.querySelector("footer a")!.getBoundingClientRect().x,
     );
     expect(linkX).toBeGreaterThanOrEqual(256);
+
+    /**
+     * U0h — THE FOOTER PAINTS OVER THE RAIL. Read from the compositor, not
+     * from classes: at a point INSIDE the rail column (x = 128), the topmost
+     * element just BELOW the footer's top edge must belong to the footer, and
+     * just ABOVE it must still belong to the rail. That is exactly "the rail
+     * visually ends at the footer's top".
+     */
+    const ownerAt = (y: number) =>
+      page.evaluate((py) => {
+        const el = document.elementFromPoint(128, py);
+        return {
+          inFooter: el?.closest('[data-testid="shell-footer-wrapper"]') !== null,
+          inRail: el?.closest('[data-testid="app-rail"]') !== null,
+        };
+      }, y);
+
+    const below = await ownerAt(footer.top + 8);
+    expect(below.inFooter).toBe(true);
+    expect(below.inRail).toBe(false);
+    const above = await ownerAt(footer.top - 8);
+    expect(above.inRail).toBe(true);
+
+    // Dark mode must be just as opaque — a translucent surface would let the
+    // rail show through and re-open the overlap.
+    const modeBefore = await page.getAttribute("html", "data-mode");
+    await page.getByTestId("theme-toggle").click();
+    await expect.poll(async () => page.getAttribute("html", "data-mode")).not.toBe(modeBefore);
+    await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+    await page.waitForTimeout(200);
+    const darkFooter = await footRect(page);
+    const darkBelow = await ownerAt(darkFooter.top + 8);
+    expect(darkBelow.inFooter).toBe(true);
+    expect(darkBelow.inRail).toBe(false);
   });
 
   test("the tall fixture does not overflow horizontally at 360", async ({ page, viewport }) => {

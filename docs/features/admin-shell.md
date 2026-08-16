@@ -217,9 +217,13 @@ md:overflow-hidden` (with `100vh` first as the fallback, and `md:w-16` when
 - **L3 — content column + full-width footer.** The content stack offsets
   itself with `md:pt-16 md:ms-64` (`md:ms-16` collapsed) so it starts under the
   band and beside the rail, and the page scrolls normally. The footer sits in
-  normal flow after it, spanning the FULL viewport width from x=0 — the fixed
-  rail visually sits ON TOP of it at the page bottom, which is the ruled
-  behaviour. So the footer's own content stays readable, its wrapper applies
+  normal flow after it, spanning the FULL viewport width from x=0. U0h REVERSED
+  the painting order: the footer wrapper is `relative z-40 bg-card`, above the
+  rail's `z-20`, so at the page bottom the FOOTER paints over the rail and the
+  rail visually ENDS at the footer's top edge — it never runs beside or below
+  the footer. The surface is opaque in BOTH themes (`bg-card` on the wrapper
+  and on `<footer>`), so no rail pixel shows through. So the footer's own
+  content stays readable, its wrapper applies
   `md:[&>footer>*]:ps-64` (`ps-16` collapsed) — the padding lands on the
   footer's inner blocks, so the background and border keep spanning the full
   width while the links and copyright are inset past the rail's column.
@@ -234,7 +238,29 @@ the requested offset — a scroll assertion on a non-scrollable page would pass
 vacuously. Geometry is read with `getBoundingClientRect()` rather than
 `locator.boundingBox()` — the latter scrolls the element into view and would
 move the very elements under test. L3 additionally asserts the footer rect is
-x=0 / full viewport width while its first inner link starts at x >= 256.
+x=0 / full viewport width while its first inner link starts at x >= 256, and
+(U0h) reads the compositor at x=128 inside the rail column:
+`elementFromPoint(128, footerTop + 8)` must resolve inside
+`shell-footer-wrapper` and NOT inside `app-rail`, while
+`elementFromPoint(128, footerTop - 8)` must still resolve inside the rail. The
+same check is repeated after toggling the theme, proving the footer surface is
+opaque in dark mode too.
+
+### i18n chrome coverage guard (U0h)
+
+`e2e/i18n-coverage.spec.ts` runs the shell in Amharic (the language is written
+to `localStorage` in an init script, so no English frame is ever measured) on
+`/`, on the mobile drawer and on `/admin` with an `admin`-role fixture. It walks
+the text nodes of the chrome regions (`shell-topbar`, `panel-tabs`,
+`panel-header`, `breadcrumbs`, `shell-footer-wrapper`, `app-rail`,
+`admin-nav-cards`) and asserts (a) no rendered string equals the English value
+of a key that HAS a distinct Amharic value — i.e. nothing fell back through
+`messages[key] ?? en[key]` — and (b) no raw dot-notation key name rendered.
+Keys whose Amharic value is intentionally identical (brand wordmark, language
+endonyms/short codes, the sample email placeholder) are allow-listed in the
+spec. DATA-DRIVEN CATEGORY ROWS ARE EXCLUDED: category names come from
+`public.categories` (`name_en` / `name_am`), so their Amharic coverage is a
+data/U5 launch-gate item, not a chrome-string concern.
 
 Every rail row now carries `data-testid={node.testid}` — routed `Link` leaves,
 `onSelect` buttons and path-less rows alike — so items whose page is a later
