@@ -239,10 +239,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Rail: mobile drawer; md+ fixed beneath the band. */}
           <AppRail />
 
+          {/* U0g-3 LAW — the DOCUMENT is the only page scroller at md+. This
+              stack and every ancestor up to <html> stay unbounded: no
+              overflow-y, no h-screen/max-h cap (the wrapper is min-h-screen),
+              and the band and rail are position:fixed, so they impose no
+              height bound on the flow. Adding overflow + a bounded height here
+              would turn the content stack into an internal scroller and break
+              L1/L2. */}
           <div
             data-testid="shell-stack"
             className="col-start-1 row-start-2 flex min-w-0 flex-col md:ms-64 md:pt-16 md:[html[data-rail=collapsed]_&]:ms-16"
           >
+
             {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
             <PanelTabs />
             {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is
