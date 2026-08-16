@@ -1,21 +1,21 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `bade2c18189ce2e5324275021b5fe4c1c235ba24` (short `bade2c1`)
+- Commit: `65ac84576673f1442a09714945090e02721881c0` (short `65ac845`)
 - Conclusion: **FAILURE**
-- Completed (UTC): 2026-08-16T10:30:02Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/31941506974
+- Completed (UTC): 2026-08-16T10:44:47Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/31942176862
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Build, typecheck, lint | success |
-| Hardcoded string scan (enforcing) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | Gitleaks secrets scan | success |
+| Hardcoded string scan (enforcing) | success |
+| Build, typecheck, lint | success |
+| First-paint bundle budget (gzipped ceiling) | success |
+| Listing-write seam guard (with self-test) | success |
 | Migration linter (with self-test) | success |
 | E2E (Playwright, ethio-staging) | failure |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | Dependency vulnerability audit (enforcing on high/critical) | success |
-| Listing-write seam guard (with self-test) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
