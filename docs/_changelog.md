@@ -139,4 +139,3 @@
 - 2026-08-16 — feat(shell): U0l — category selection navigates to /c/<slug> (rail Links, URL-derived highlight + breadcrumb, INC-073); /auth is a proper page; page-card standard (PageCard/PAGE_MAIN_CLASS); E2E C-1..C-4
 - 2026-08-16 — fix(shell): U0l-2 — breadcrumb Home navigates via Link; header reads signingOut to prevent stale account-menu (SO-2); settings.tsx migrated to multi-card PageCard standard
 - 2026-08-16 — docs: U0 gate record — S28, four-lens close-out, system-state updated
-
