@@ -66,7 +66,7 @@ function providerLabelKey(provider: string): MessageKey {
 function SettingsScreen() {
   const { t, language } = useI18n();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [checkingSession, setCheckingSession] = useState(true);
   const [memberSince, setMemberSince] = useState<string | null>(null);
@@ -86,6 +86,16 @@ function SettingsScreen() {
   const [passwordPresent, setPasswordPresent] = useState<boolean | null>(null);
   const [passwordStateErrorKey, setPasswordStateErrorKey] = useState<MessageKey | null>(null);
   const [confirmingRemovePassword, setConfirmingRemovePassword] = useState(false);
+
+  /**
+   * U0j (INC-072) — LIVE guard. useAuth subscribes to onAuthStateChange, so
+   * any signed-out transition (this tab, another tab, expiry) empties the
+   * gated surface immediately and lands on the marketplace.
+   */
+  useEffect(() => {
+    if (authLoading || user !== null) return;
+    void navigate({ to: "/", replace: true });
+  }, [authLoading, user, navigate]);
 
   /** Auth-required. The server refuses everything anyway; this is the UX. */
   useEffect(() => {

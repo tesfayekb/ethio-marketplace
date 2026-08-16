@@ -11,6 +11,7 @@ export const en = {
   "common.error": "Something went wrong",
   "common.retry": "Retry",
   "common.empty": "Nothing here yet",
+  "common.cancel": "Cancel",
   "common.goHome": "Go home",
   "common.tryAgain": "Try again",
   "error.pageNotFound": "Page not found",
@@ -51,6 +52,9 @@ export const en = {
   "auth.noSessionBody":
     "If you opened the link on another device or browser, your account is confirmed there. Sign in here to continue.",
   "auth.signOut": "Sign out",
+  "auth.signOutConfirmTitle": "Sign out?",
+  "auth.signOutConfirmBody":
+    "You will be signed out on this device and returned to the marketplace.",
   "auth.signedInAs": "Signed in",
   "auth.checking": "Checking your session…",
   "auth.working": "Please wait…",

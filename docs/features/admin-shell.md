@@ -274,3 +274,18 @@ into view on scroll and the pinned Sign out — at 360×480 (drawer) and 1280×5
 height (±1px) — the viewport-bound invariant. The drawer switcher test scopes `panel-header-switcher` to the drawer
 locator (both surfaces render a band); the switcher's OPTIONS live in a portal
 and stay page-scoped.
+
+## U0j — sign-out is a hard reset (INC-072)
+
+Every sign-out affordance (rail/drawer foot, header account menu) calls
+`requestSignOut()` from the shell context, which opens the single
+`SignOutDialog` (focus-trapped, Escape cancels, ≥44px targets). Only the
+confirm action performs the reset, in order: `signOut()` awaited → the
+`my-permissions` query is REMOVED from the cache → panel/category/location/
+drawer state reset → `navigate({ to: "/", replace: true })`.
+
+Gated routes (`/admin/**`, `/settings`) subscribe to live auth state rather
+than checking on mount, so a sign-out in this tab, in another tab, or a token
+expiry evacuates the surface immediately. `usePermissions` also reports an
+empty set whenever the read is disabled, so a signed-out shell can never
+derive a grant from a stale cache entry.

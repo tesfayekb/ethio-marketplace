@@ -42,7 +42,15 @@ function AdminGate() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const section = sectionForPath(pathname);
 
-  const allowed = permissions.includes(ADMIN_PANEL_PERMISSION);
+  /**
+   * U0j (INC-072) — LIVE guard, not a mount check. `user` comes from the
+   * shell's onAuthStateChange subscription, so a sign-out in this tab, in
+   * another tab, or a token expiry flips it to null and the admin body is
+   * replaced by the marketplace at once. Law F3: UI convenience only; RLS /
+   * has_permission remain the authority.
+   */
+  const signedOut = !authLoading && user === null;
+  const allowed = !signedOut && permissions.includes(ADMIN_PANEL_PERMISSION);
   /** Deep-link guard: the section route resolves only with its permission. */
   const sectionAllowed = section === null || permissions.includes(section.permission);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -65,7 +73,7 @@ function AdminGate() {
   }, [section, sectionAllowed]);
 
   // No flash of sections while the permission read settles.
-  if (pending || !allowed || !sectionAllowed) {
+  if (pending || signedOut || !allowed || !sectionAllowed) {
     return (
       <div
         role="status"

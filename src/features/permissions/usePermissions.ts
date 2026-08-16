@@ -22,10 +22,15 @@ export function usePermissions({ enabled = true }: { enabled?: boolean } = {}) {
     enabled,
   });
 
+  // U0j (INC-072): a disabled read reports NOTHING. Even if a cache entry
+  // outlives the sign-out for a frame, a signed-out shell can never derive a
+  // grant from it. The shell also removeQueries() this key on sign-out.
+  const data = enabled ? (query.data ?? []) : [];
+
   return {
-    permissions: query.data ?? [],
+    permissions: data,
     loading: query.isLoading,
     error: query.error,
-    has: (slug: string) => (query.data ?? []).includes(slug),
+    has: (slug: string) => data.includes(slug),
   };
 }
