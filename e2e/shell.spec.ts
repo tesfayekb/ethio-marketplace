@@ -967,16 +967,18 @@ test.describe("rail scroll regions (U0f)", () => {
 /**
  * U0g — DESKTOP LAYOUT LAWS.
  *
- * Long-content approach: the marketplace feed is not guaranteed tall, so the
- * test injects a tall test-only spacer into #main via page.evaluate. That
- * makes page scrolling real without depending on seeded data.
+ * Long-content approach: the tests navigate to the route-owned tall fixture
+ * (/dev/tall). The former makeTall()/expectDocumentIsScroller() spacer
+ * injection is RETIRED — a spacer appended via page.evaluate is dropped by the
+ * next React re-render, which made L1/L2 flaky for three rounds.
  *
  * Geometry is read with getBoundingClientRect(), never locator.boundingBox():
  * the latter scrolls the element into view first, which would move the very
- * sticky elements under test.
+ * elements under test.
  */
 test.describe("desktop layout laws (U0g)", () => {
   const ROW1 = 64;
+  const TALL = "/dev/tall";
 
   async function rect(page: Page, testid: string) {
     return page.evaluate(
@@ -1006,56 +1008,18 @@ test.describe("desktop layout laws (U0g)", () => {
     );
   }
 
-  /**
-   * U0g-3 LAW: at md+ the DOCUMENT is the only page scroller. No ancestor of
-   * #main may bound the content stack with a height + overflow, which would
-   * turn it into an internal scroller (the named regression).
-   *
-   * The premise of L1/L2 is that the PAGE can actually scroll. The spacer goes
-   * into the content column (#main) and grows until the document really has
-   * the requested scroll range — otherwise a "nothing moved" assertion would
-   * pass vacuously. Grow AND measure happen in ONE evaluate, so a React
-   * re-render between two round-trips can never drop the spacer under us; the
-   * outer poll re-plants it if a re-render does remove it.
-   */
-  async function makeTall(page: Page, need = 600) {
+  /** The premise: real content makes the DOCUMENT scrollable by at least `need`. */
+  async function expectScrollRange(page: Page, need = 600) {
     await expect
       .poll(
         async () =>
-          page.evaluate((needed) => {
-            const main = document.querySelector("#main")!;
-            let spacer = main.querySelector<HTMLElement>('[data-testid="u0g-spacer"]');
-            if (!spacer) {
-              spacer = document.createElement("div");
-              spacer.setAttribute("data-testid", "u0g-spacer");
-              main.appendChild(spacer);
-            }
-            let h = 3000;
-            const doc = document.scrollingElement!;
-            for (let i = 0; i < 6; i += 1) {
-              spacer.style.height = `${h}px`;
-              if (doc.scrollHeight - window.innerHeight >= needed) break;
-              h *= 2;
-            }
-            return doc.scrollHeight - window.innerHeight;
-          }, need),
+          page.evaluate(() => document.scrollingElement!.scrollHeight - window.innerHeight),
         {
           message:
-            "the document must be the page scroller (regression: the content stack became an internal scroller)",
+            "the tall fixture must make the document scrollable (regression: the content stack became an internal scroller)",
         },
       )
       .toBeGreaterThanOrEqual(need);
-  }
-
-  /** The law, asserted directly: scrolling the DOCUMENT actually moves it. */
-  async function expectDocumentIsScroller(page: Page) {
-    await page.evaluate(() => window.scrollTo(0, 200));
-    await expect
-      .poll(async () => page.evaluate(() => document.scrollingElement!.scrollTop), {
-        message: "content stack became an internal scroller",
-      })
-      .toBe(200);
-    await page.evaluate(() => window.scrollTo(0, 0));
   }
 
   test("L1/L2: the top band and the rail stay put while content scrolls", async ({
@@ -1063,9 +1027,8 @@ test.describe("desktop layout laws (U0g)", () => {
     viewport,
   }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
-    await gotoReady(page, "/");
-    await makeTall(page);
-    await expectDocumentIsScroller(page);
+    await gotoReady(page, TALL);
+    await expectScrollRange(page);
 
     const logoBefore = await rect(page, "shell-logo-cell");
     const barBefore = await rect(page, "shell-topbar");
@@ -1074,7 +1037,9 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(Math.abs(railBefore.y - ROW1)).toBeLessThanOrEqual(1);
 
     await page.evaluate(() => window.scrollTo(0, 600));
-    await expect.poll(async () => Math.round(await page.evaluate(() => window.scrollY))).toBe(600);
+    await expect
+      .poll(async () => Math.round(await page.evaluate(() => document.scrollingElement!.scrollTop)))
+      .toBe(600);
 
     const logoAfter = await rect(page, "shell-logo-cell");
     const barAfter = await rect(page, "shell-topbar");
@@ -1105,12 +1070,15 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(Math.abs(railBottomOfPage.height - railBefore.height)).toBeLessThanOrEqual(1);
     const logoBottomOfPage = await rect(page, "shell-logo-cell");
     expect(logoBottomOfPage.y).toBeLessThanOrEqual(1);
+
+    // The real content really did scroll: its last line is on screen.
+    await expect(page.getByTestId("tall-fixture-end")).toBeInViewport();
   });
 
   test("L3: the footer spans the full width beneath the fixed rail", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
-    await gotoReady(page, "/");
-    await makeTall(page);
+    await gotoReady(page, TALL);
+    await expectScrollRange(page);
 
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
     await page.waitForTimeout(200);
@@ -1127,5 +1095,11 @@ test.describe("desktop layout laws (U0g)", () => {
       () => document.querySelector("footer a")!.getBoundingClientRect().x,
     );
     expect(linkX).toBeGreaterThanOrEqual(256);
+  });
+
+  test("the tall fixture does not overflow horizontally at 360", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) >= 768, "mobile only");
+    await gotoReady(page, TALL);
+    await expectNoHorizontalOverflow(page);
   });
 });
