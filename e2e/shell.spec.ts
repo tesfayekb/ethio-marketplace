@@ -597,7 +597,10 @@ test.describe("mobile chrome", () => {
     const drawer = page.getByRole("dialog");
     await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
 
-    await page.getByTestId("panel-header-switcher").click();
+    // U0f: BOTH the rail and the drawer render a panel band, so the switcher
+    // must be drawer-scoped or the locator is strict-mode ambiguous. The
+    // OPTIONS live in a portal outside the drawer, so they stay page-scoped.
+    await drawer.getByTestId("panel-header-switcher").click();
     await page.getByTestId("panel-header-option-account").click();
 
     // INC-071: activation IS navigation. The URL is Account's homePath, and
