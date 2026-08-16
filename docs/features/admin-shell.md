@@ -200,7 +200,7 @@ Four laws govern the md+ shell; mobile (< md) is unchanged (drawer + stacked
 layout).
 
 - **L1 — fixed top band.** The logo cell and the top bar are `md:sticky
-  md:top-0 md:z-30`. A sticky grid item is constrained by its grid area, so a
+md:top-0 md:z-30`. A sticky grid item is constrained by its grid area, so a
   row-1-only cell would still scroll away; both cells therefore span
   `md:row-start-1 md:[grid-row-end:-1]` with `md:self-start md:h-16`, which
   gives sticky a tall containing block while painting exactly the same
