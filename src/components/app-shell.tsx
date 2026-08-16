@@ -283,7 +283,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="shell-footer-wrapper"
           className="relative z-40 w-full bg-card md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16"
         >
-
           <AppFooter />
         </div>
       </div>

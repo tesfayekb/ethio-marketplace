@@ -126,7 +126,9 @@ function assertAmharicChrome(texts: string[], where: string) {
     .map((text) => `${ENGLISH_FALLBACKS.get(text)!} => "${text}"`);
   expect(fellBack, `${where}: keys fell back to English`).toEqual([]);
 
-  const rawKeys = texts.filter((text) => KEY_NAMES.has(text) || /^[a-z][\w]*(\.[\w]+)+$/.test(text));
+  const rawKeys = texts.filter(
+    (text) => KEY_NAMES.has(text) || /^[a-z][\w]*(\.[\w]+)+$/.test(text),
+  );
   expect(rawKeys, `${where}: raw translation keys rendered`).toEqual([]);
 }
 
@@ -153,8 +155,11 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
 
-    await useAmharic(page);
+    // Sign in FIRST in English: the signIn helper addresses controls by their
+    // English labels. The init script then applies Amharic to every following
+    // navigation, so /admin is measured entirely in Amharic.
     await signIn(page, staff.email, staff.password);
+    await useAmharic(page);
     await gotoReady(page, "/admin");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
 

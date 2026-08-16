@@ -1120,8 +1120,9 @@ test.describe("desktop layout laws (U0g)", () => {
 
     // Dark mode must be just as opaque — a translucent surface would let the
     // rail show through and re-open the overlap.
+    const modeBefore = await page.getAttribute("html", "data-mode");
     await page.getByTestId("theme-toggle").click();
-    await expect(page.locator("html")).toHaveClass(/dark/);
+    await expect.poll(async () => page.getAttribute("html", "data-mode")).not.toBe(modeBefore);
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
     await page.waitForTimeout(200);
     const darkFooter = await footRect(page);
@@ -1129,7 +1130,6 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(darkBelow.inFooter).toBe(true);
     expect(darkBelow.inRail).toBe(false);
   });
-
 
   test("the tall fixture does not overflow horizontally at 360", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) >= 768, "mobile only");
