@@ -211,7 +211,7 @@ page bottom, where sticky used to creep upward against the footer.
   256/1024×64 — identical to the sticky band it replaced.
 - **L2 — fixed rail beneath it.** The `<aside>` is
   `md:fixed md:start-0 md:top-16 md:z-20 md:w-64 md:h-[calc(100dvh-4rem)]
-  md:overflow-hidden` (with `100vh` first as the fallback, and `md:w-16` when
+md:overflow-hidden` (with `100vh` first as the fallback, and `md:w-16` when
   collapsed). The inner `rail-scroll` remains the only rail scrolling region
   and `RailFoot` stays pinned at its bottom.
 - **L3 — content column + full-width footer.** The content stack offsets
@@ -235,7 +235,6 @@ vacuously. Geometry is read with `getBoundingClientRect()` rather than
 `locator.boundingBox()` — the latter scrolls the element into view and would
 move the very elements under test. L3 additionally asserts the footer rect is
 x=0 / full viewport width while its first inner link starts at x >= 256.
-
 
 Every rail row now carries `data-testid={node.testid}` — routed `Link` leaves,
 `onSelect` buttons and path-less rows alike — so items whose page is a later
