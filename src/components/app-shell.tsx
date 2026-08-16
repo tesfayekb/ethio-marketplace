@@ -180,7 +180,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           grid at the content row makes the rail's bottom stop exactly at the
           footer's top. Visually identical on mobile (stacked, full width). */}
       <div className="flex min-h-screen flex-col bg-background">
-        <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[4rem_1fr] md:[html[data-rail=collapsed]_&]:grid-cols-[4rem_minmax(0,1fr)]">
+        {/* Mobile keeps the one-column grid. From md up the layout is FIXED
+            geometry (U0g-2): the band and the rail are position:fixed and the
+            content column offsets itself with padding/margin. */}
+        <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr] md:block">
           <a
             href="#main"
             className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
@@ -188,53 +191,57 @@ export function AppShell({ children }: { children: ReactNode }) {
             {t("shell.skipToContent")}
           </a>
 
-          {/* Corner block: rail width × top-bar height, above the sidebar.
-            U0g/L1 — the whole row-1 band is STICKY on md+. A sticky grid item
-            is constrained by its grid AREA, so a row-1-only cell would scroll
-            away; the cell therefore spans rows 1..-1 with `self-start` and an
-            explicit h-16, which keeps the painted geometry identical (same x,
-            width, y and height as before) while giving sticky a tall
-            containing block. z-30 puts the band above the rail and content. */}
+          {/* U0g-2 — THE FIXED TOP BAND. On mobile the wrapper is `contents`,
+              so the top bar remains grid row 1 exactly as before. On md+ the
+              wrapper becomes a fixed 4rem-tall strip spanning the viewport,
+              and the corner block lives INSIDE it: logo cell 16rem × 4rem at
+              x=0 (4rem when the rail is collapsed), top bar filling the rest.
+              Painted geometry is identical to the old sticky band. */}
           <div
-            data-testid="shell-logo-cell"
-            className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:col-start-1 md:row-start-1 md:[grid-row-end:-1] md:flex md:h-16 md:items-center md:self-start md:sticky md:top-0 md:z-30 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
+            data-testid="shell-band"
+            className="contents md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-16"
           >
-            <Link
-              to="/"
-              aria-label={t("app.name")}
-              className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            <div
+              data-testid="shell-logo-cell"
+              className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:flex md:h-16 md:w-64 md:shrink-0 md:items-center md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
             >
-              {/* Collapsed rail = icon-only logo; the two swap by attribute, so
+              <Link
+                to="/"
+                aria-label={t("app.name")}
+                className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {/* Collapsed rail = icon-only logo; the two swap by attribute, so
                 the swap is already correct on the first painted frame. */}
-              <span className="inline-flex md:[html[data-rail=collapsed]_&]:hidden">
-                <Logo variant="full" />
-              </span>
-              <span className="hidden md:[html[data-rail=collapsed]_&]:inline-flex">
-                <Logo variant="icon" />
-              </span>
-            </Link>
+                <span className="inline-flex md:[html[data-rail=collapsed]_&]:hidden">
+                  <Logo variant="full" />
+                </span>
+                <span className="hidden md:[html[data-rail=collapsed]_&]:inline-flex">
+                  <Logo variant="icon" />
+                </span>
+              </Link>
+            </div>
+
+            {/*
+            ONE uniform band: the cell itself carries bg-card and the row height,
+            and the header fills it, so there is no two-tone split between the
+            bar and the strip under it. min-w-0 is load-bearing — without it this
+            item sizes to the search input's intrinsic minimum and the page
+            overflows horizontally at 360px (INC-032).
+          */}
+            <div
+              data-testid="shell-topbar"
+              className="col-start-1 row-start-1 min-w-0 bg-card md:h-16 md:flex-1"
+            >
+              <AppHeader />
+            </div>
           </div>
 
-          {/*
-          ONE uniform band: the cell itself carries bg-card and the row height,
-          and the header fills it, so there is no two-tone split between the
-          bar and the strip under it. min-w-0 is load-bearing — without it this
-          grid item sizes to the search input's intrinsic minimum and the page
-          overflows horizontally at 360px (INC-032).
-        */}
-          <div
-            data-testid="shell-topbar"
-            className="col-start-1 row-start-1 min-w-0 bg-card md:col-start-2 md:[grid-row-end:-1] md:h-16 md:self-start md:sticky md:top-0 md:z-30"
-          >
-            <AppHeader />
-          </div>
-
-          {/* Rail places itself into column 1 / row 2; the drawer is fixed. */}
+          {/* Rail: mobile drawer; md+ fixed beneath the band. */}
           <AppRail />
 
           <div
             data-testid="shell-stack"
-            className="col-start-1 row-start-2 flex min-w-0 flex-col md:col-start-2"
+            className="col-start-1 row-start-2 flex min-w-0 flex-col md:ms-64 md:pt-16 md:[html[data-rail=collapsed]_&]:ms-16"
           >
             {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
             <PanelTabs />
@@ -255,8 +262,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        {/* Full-width footer, beneath the rail's column as well as the content's. */}
-        <div className="w-full">
+        {/* Full-width footer in normal flow. Its BOX spans the whole viewport
+            (background + border start at x=0, underneath the fixed rail); its
+            INNER blocks get a start-inset equal to the rail width at md+ so
+            the links and copyright stay in the readable content column. */}
+        <div className="w-full md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&]:[&>footer>*]:ps-16">
           <AppFooter />
         </div>
       </div>
