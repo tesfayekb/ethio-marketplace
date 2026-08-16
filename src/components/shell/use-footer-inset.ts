@@ -74,6 +74,22 @@ export function useFooterInset(): number {
     window.addEventListener("resize", scheduleSettle, { passive: true });
     const observer = new ResizeObserver(schedule);
     observer.observe(footer);
+    /**
+     * U0j-3 — CONTENT-HEIGHT CHANGES. Switching locale (or any re-render that
+     * shortens the page) moves the footer into view WITHOUT a scroll or resize
+     * event, so observing the footer alone left the rail clamped at a stale
+     * inset. Observing the body and the main content region re-clamps
+     * immediately.
+     */
+    observer.observe(document.body);
+    for (const selector of CONTENT_SELECTORS) {
+      const node = document.querySelector(selector);
+      if (node) {
+        observer.observe(node);
+        break;
+      }
+    }
+
 
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame);
