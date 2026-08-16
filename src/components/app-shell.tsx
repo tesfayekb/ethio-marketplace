@@ -174,7 +174,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}
       <script dangerouslySetInnerHTML={{ __html: RAIL_INIT_SCRIPT }} />
-      <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_1fr_auto] bg-background md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[4rem_1fr_auto] md:[html[data-rail=collapsed]_&]:grid-cols-[4rem_minmax(0,1fr)]">
+      {/* U0g/L3 — the footer is a SIBLING BELOW the grid, not a third grid row.
+          A sticky grid item's clamp rectangle is the GRID CONTAINER, so with
+          the footer inside the grid the rail could overhang it; ending the
+          grid at the content row makes the rail's bottom stop exactly at the
+          footer's top. Visually identical on mobile (stacked, full width). */}
+      <div className="flex min-h-screen flex-col bg-background">
+        <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[4rem_1fr] md:[html[data-rail=collapsed]_&]:grid-cols-[4rem_minmax(0,1fr)]">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
