@@ -30,7 +30,11 @@ type ShellValue = {
   user: AuthUser | null;
   /** True while the session is still unknown (SSR / first load). */
   authLoading: boolean;
-  signOut: () => Promise<unknown>;
+  /**
+   * U0j (INC-072) — opens the sign-out CONFIRMATION. No affordance signs the
+   * user out directly; the hard reset runs only after confirmation.
+   */
+  requestSignOut: () => void;
   activePanel: PanelId;
   setActivePanel: (panel: PanelId) => void;
   selectedCategoryId: string | null;
