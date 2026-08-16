@@ -8,6 +8,7 @@ import {
 } from "@/features/auth/auth-service";
 import { useAuth } from "@/features/auth/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { PAGE_MAIN_CLASS, PageCard } from "@/components/shell/page-card";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -305,81 +306,85 @@ function AuthScreen() {
 
   if (onForgot) {
     return (
-      <main className="mx-auto w-full max-w-sm px-4 py-10">
-        <h1 className="text-xl font-semibold text-foreground">{t("auth.resetTitle")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetBody")}</p>
+      <main className={PAGE_MAIN_CLASS}>
+        <PageCard>
+          <h1 className="text-xl font-semibold text-foreground">{t("auth.resetTitle")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetBody")}</p>
 
-        <form onSubmit={handleForgotSubmit} className="mt-6 flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="reset-email" className="text-sm font-medium text-foreground">
-              {t("auth.email")}
-            </label>
-            <input
-              id="reset-email"
-              name="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t("auth.emailPlaceholder")}
-              className={fieldClass}
-            />
-          </div>
+          <form onSubmit={handleForgotSubmit} className="mt-6 flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="reset-email" className="text-sm font-medium text-foreground">
+                {t("auth.email")}
+              </label>
+              <input
+                id="reset-email"
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("auth.emailPlaceholder")}
+                className={fieldClass}
+              />
+            </div>
 
-          {errorKey ? (
-            <p role="alert" className="text-sm text-destructive">
-              {t(errorKey)}
-            </p>
-          ) : null}
-          {resetRequested ? (
-            <p role="status" className="text-sm text-muted-foreground">
-              {t("auth.resetNeutral")}
-            </p>
-          ) : null}
-          {resetLimitReached ? (
-            <p role="status" className="text-sm text-muted-foreground">
-              {t("auth.resetLimit")}
-            </p>
-          ) : null}
+            {errorKey ? (
+              <p role="alert" className="text-sm text-destructive">
+                {t(errorKey)}
+              </p>
+            ) : null}
+            {resetRequested ? (
+              <p role="status" className="text-sm text-muted-foreground">
+                {t("auth.resetNeutral")}
+              </p>
+            ) : null}
+            {resetLimitReached ? (
+              <p role="status" className="text-sm text-muted-foreground">
+                {t("auth.resetLimit")}
+              </p>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={busy || cooldown > 0 || resetLimitReached}
+              className={primaryButtonClass}
+            >
+              {busy
+                ? t("auth.working")
+                : cooldown > 0
+                  ? t("auth.resendCooldown").replace("{s}", String(cooldown))
+                  : t("auth.resetSend")}
+            </button>
+          </form>
 
           <button
-            type="submit"
-            disabled={busy || cooldown > 0 || resetLimitReached}
-            className={primaryButtonClass}
+            type="button"
+            onClick={() => void navigate({ to: "/auth", search: {} })}
+            className={`${secondaryButtonClass} mt-4`}
           >
-            {busy
-              ? t("auth.working")
-              : cooldown > 0
-                ? t("auth.resendCooldown").replace("{s}", String(cooldown))
-                : t("auth.resetSend")}
+            {t("auth.backToSignIn")}
           </button>
-        </form>
-
-        <button
-          type="button"
-          onClick={() => void navigate({ to: "/auth", search: {} })}
-          className={`${secondaryButtonClass} mt-4`}
-        >
-          {t("auth.backToSignIn")}
-        </button>
+        </PageCard>
       </main>
     );
   }
 
   if (onCheckEmail && confirmed) {
     return (
-      <main className="mx-auto w-full max-w-sm px-4 py-10">
-        <h1 className="text-xl font-semibold text-foreground">{t("auth.confirmedInline")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirmedBody")}</p>
-        <button
-          type="button"
-          onClick={() => void navigate({ to: "/" })}
-          className={`${primaryButtonClass} mt-6`}
-        >
-          {t("auth.continue")}
-        </button>
+      <main className={PAGE_MAIN_CLASS}>
+        <PageCard>
+          <h1 className="text-xl font-semibold text-foreground">{t("auth.confirmedInline")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirmedBody")}</p>
+          <button
+            type="button"
+            onClick={() => void navigate({ to: "/" })}
+            className={`${primaryButtonClass} mt-6`}
+          >
+            {t("auth.continue")}
+          </button>
+        </PageCard>
       </main>
     );
   }
@@ -393,200 +398,204 @@ function AuthScreen() {
         : t("auth.resend");
 
     return (
-      <main className="mx-auto w-full max-w-sm px-4 py-10">
-        <h1 className="text-xl font-semibold text-foreground">{t("auth.checkEmail")}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {pendingEmail
-            ? t("auth.checkEmailSentTo").replace("{email}", pendingEmail)
-            : t("auth.checkEmailBody")}
-        </p>
-
-        {errorKey ? (
-          <p role="alert" className="mt-4 text-sm text-destructive">
-            {t(errorKey)}
+      <main className={PAGE_MAIN_CLASS}>
+        <PageCard>
+          <h1 className="text-xl font-semibold text-foreground">{t("auth.checkEmail")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {pendingEmail
+              ? t("auth.checkEmailSentTo").replace("{email}", pendingEmail)
+              : t("auth.checkEmailBody")}
           </p>
-        ) : null}
-        {/* INC-005b: neutral wording — never reveals whether the account exists
+
+          {errorKey ? (
+            <p role="alert" className="mt-4 text-sm text-destructive">
+              {t(errorKey)}
+            </p>
+          ) : null}
+          {/* INC-005b: neutral wording — never reveals whether the account exists
             or is already confirmed. */}
-        {resendSent ? (
-          <p role="status" className="mt-4 text-sm text-muted-foreground">
-            {t("auth.resendNeutral")}
-          </p>
-        ) : null}
-        {limitReached ? (
-          <p role="status" className="mt-4 text-sm text-muted-foreground">
-            {t("auth.resendLimitReached")}
-          </p>
-        ) : null}
+          {resendSent ? (
+            <p role="status" className="mt-4 text-sm text-muted-foreground">
+              {t("auth.resendNeutral")}
+            </p>
+          ) : null}
+          {limitReached ? (
+            <p role="status" className="mt-4 text-sm text-muted-foreground">
+              {t("auth.resendLimitReached")}
+            </p>
+          ) : null}
 
-        {/* D-005: exactly one primary resend + one secondary sign-in action;
+          {/* D-005: exactly one primary resend + one secondary sign-in action;
             cold load (no stored email) offers only the back-to-sign-in path. */}
-        {pendingEmail ? (
-          <button
-            type="button"
-            onClick={() => void handleResend(pendingEmail)}
-            disabled={busy || cooldown > 0 || limitReached}
-            className={`${primaryButtonClass} mt-6`}
-          >
-            {resendLabel}
-          </button>
-        ) : null}
+          {pendingEmail ? (
+            <button
+              type="button"
+              onClick={() => void handleResend(pendingEmail)}
+              disabled={busy || cooldown > 0 || limitReached}
+              className={`${primaryButtonClass} mt-6`}
+            >
+              {resendLabel}
+            </button>
+          ) : null}
 
-        {pendingEmail ? (
-          <button
-            type="button"
-            onClick={() => void handleAlreadyConfirmed()}
-            disabled={busy}
-            className={`${secondaryButtonClass} mt-4`}
-          >
-            {t("auth.alreadyConfirmedSignIn")}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => void navigate({ to: "/auth", search: {} })}
-            className={`${secondaryButtonClass} mt-6`}
-          >
-            {t("auth.backToSignIn")}
-          </button>
-        )}
+          {pendingEmail ? (
+            <button
+              type="button"
+              onClick={() => void handleAlreadyConfirmed()}
+              disabled={busy}
+              className={`${secondaryButtonClass} mt-4`}
+            >
+              {t("auth.alreadyConfirmedSignIn")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void navigate({ to: "/auth", search: {} })}
+              className={`${secondaryButtonClass} mt-6`}
+            >
+              {t("auth.backToSignIn")}
+            </button>
+          )}
+        </PageCard>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto w-full max-w-sm px-4 py-10">
-      <h1 className="text-xl font-semibold text-foreground">
-        {isSignIn ? t("auth.signIn") : t("auth.createAccount")}
-      </h1>
+    <main className={PAGE_MAIN_CLASS}>
+      <PageCard>
+        <h1 className="text-xl font-semibold text-foreground">
+          {isSignIn ? t("auth.signIn") : t("auth.createAccount")}
+        </h1>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="auth-email" className="text-sm font-medium text-foreground">
-            {t("auth.email")}
-          </label>
-          <input
-            id="auth-email"
-            name="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoFocus
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={t("auth.emailPlaceholder")}
-            className={fieldClass}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="auth-password" className="text-sm font-medium text-foreground">
-            {t("auth.password")}
-          </label>
-          <div className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="auth-email" className="text-sm font-medium text-foreground">
+              {t("auth.email")}
+            </label>
             <input
-              id="auth-password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete={isSignIn ? "current-password" : "new-password"}
+              id="auth-email"
+              name="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              autoFocus
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("auth.passwordPlaceholder")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("auth.emailPlaceholder")}
               className={fieldClass}
             />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="auth-password" className="text-sm font-medium text-foreground">
+              {t("auth.password")}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="auth-password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete={isSignIn ? "current-password" : "new-password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("auth.passwordPlaceholder")}
+                className={fieldClass}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-pressed={showPassword}
+                className="min-h-11 shrink-0 rounded-md border border-input px-3 text-sm text-muted-foreground hover:bg-accent"
+              >
+                {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              </button>
+            </div>
+          </div>
+
+          {errorKey ? (
+            <p role="alert" className="text-sm text-destructive">
+              {t(errorKey)}
+            </p>
+          ) : null}
+          {resendSent ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t("auth.resendNeutral")}
+            </p>
+          ) : null}
+          {canResend ? (
             <button
               type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-pressed={showPassword}
-              className="min-h-11 shrink-0 rounded-md border border-input px-3 text-sm text-muted-foreground hover:bg-accent"
+              onClick={() => void handleResend(email.trim())}
+              disabled={busy || cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT}
+              className="min-h-11 rounded-md border border-input px-4 text-sm text-foreground hover:bg-accent disabled:opacity-60"
             >
-              {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              {cooldown > 0
+                ? t("auth.resendCooldown").replace("{s}", String(cooldown))
+                : t("auth.resend")}
             </button>
-          </div>
-        </div>
+          ) : null}
 
-        {errorKey ? (
-          <p role="alert" className="text-sm text-destructive">
-            {t(errorKey)}
-          </p>
-        ) : null}
-        {resendSent ? (
-          <p role="status" className="text-sm text-muted-foreground">
-            {t("auth.resendNeutral")}
-          </p>
-        ) : null}
-        {canResend ? (
+          <button type="submit" disabled={busy} className={primaryButtonClass}>
+            {busy ? t("auth.working") : isSignIn ? t("auth.signInButton") : t("auth.signUpButton")}
+          </button>
+        </form>
+
+        {/* P1-g: the recovery entry point, sign-in view only. */}
+        {isSignIn ? (
           <button
             type="button"
-            onClick={() => void handleResend(email.trim())}
-            disabled={busy || cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT}
-            className="min-h-11 rounded-md border border-input px-4 text-sm text-foreground hover:bg-accent disabled:opacity-60"
+            onClick={() => {
+              setErrorKey(null);
+              setResetRequested(false);
+              void navigate({ to: "/auth", search: { view: "forgot" } });
+            }}
+            className="mt-4 min-h-11 w-full rounded-md text-sm font-medium text-primary underline underline-offset-4"
           >
-            {cooldown > 0
-              ? t("auth.resendCooldown").replace("{s}", String(cooldown))
-              : t("auth.resend")}
+            {t("auth.forgotPassword")}
           </button>
         ) : null}
 
-        <button type="submit" disabled={busy} className={primaryButtonClass}>
-          {busy ? t("auth.working") : isSignIn ? t("auth.signInButton") : t("auth.signUpButton")}
-        </button>
-      </form>
-
-      {/* P1-g: the recovery entry point, sign-in view only. */}
-      {isSignIn ? (
         <button
           type="button"
           onClick={() => {
             setErrorKey(null);
-            setResetRequested(false);
-            void navigate({ to: "/auth", search: { view: "forgot" } });
+            setCanResend(false);
+            setResendSent(false);
+            void navigate({ to: "/auth", search: isSignIn ? { view: "sign-up" } : {} });
           }}
           className="mt-4 min-h-11 w-full rounded-md text-sm font-medium text-primary underline underline-offset-4"
         >
-          {t("auth.forgotPassword")}
+          {isSignIn ? t("auth.toggleToSignUp") : t("auth.toggleToSignIn")}
         </button>
-      ) : null}
 
-      <button
-        type="button"
-        onClick={() => {
-          setErrorKey(null);
-          setCanResend(false);
-          setResendSent(false);
-          void navigate({ to: "/auth", search: isSignIn ? { view: "sign-up" } : {} });
-        }}
-        className="mt-4 min-h-11 w-full rounded-md text-sm font-medium text-primary underline underline-offset-4"
-      >
-        {isSignIn ? t("auth.toggleToSignUp") : t("auth.toggleToSignIn")}
-      </button>
-
-      {/* P1-d: real Google door below the email form (mobile-first order).
+        {/* P1-d: real Google door below the email form (mobile-first order).
           Telegram (P1-e) remains a slot until its own named phase. */}
-      <section aria-labelledby="auth-providers" className="mt-8 border-t border-border pt-6">
-        <h2 id="auth-providers" className="text-xs uppercase text-muted-foreground">
-          {t("auth.orSeparator")}
-        </h2>
-        <div className="mt-3 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => void handleGoogle()}
-            disabled={busy}
-            className={secondaryButtonClass}
-          >
-            {t("auth.continueWithGoogle")}
-          </button>
-          <button
-            type="button"
-            disabled
-            className="min-h-11 w-full rounded-md border border-dashed border-border px-4 text-sm text-muted-foreground"
-          >
-            {t("auth.telegramSlot")}
-          </button>
-        </div>
-      </section>
+        <section aria-labelledby="auth-providers" className="mt-8 border-t border-border pt-6">
+          <h2 id="auth-providers" className="text-xs uppercase text-muted-foreground">
+            {t("auth.orSeparator")}
+          </h2>
+          <div className="mt-3 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => void handleGoogle()}
+              disabled={busy}
+              className={secondaryButtonClass}
+            >
+              {t("auth.continueWithGoogle")}
+            </button>
+            <button
+              type="button"
+              disabled
+              className="min-h-11 w-full rounded-md border border-dashed border-border px-4 text-sm text-muted-foreground"
+            >
+              {t("auth.telegramSlot")}
+            </button>
+          </div>
+        </section>
+      </PageCard>
     </main>
   );
 }

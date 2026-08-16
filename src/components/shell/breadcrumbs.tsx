@@ -34,21 +34,22 @@ const CURRENT = "font-semibold text-foreground underline underline-offset-4";
 export function Breadcrumbs() {
   const { t, language } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { activePanel, setActivePanel, selectedCategoryId, setSelectedCategoryId } = useShell();
+  const searchView = useRouterState({
+    select: (s) => (s.location.search as { view?: string }).view,
+  });
+  const { activePanel, setActivePanel, selectedCategorySlug } = useShell();
 
   /**
    * Home IS the marketplace feed — there is no separate home page. From any
    * panel the root crumb returns to the unfiltered Marketplace feed: it sets
-   * the active panel back to marketplace AND clears the category filter.
+   * the active panel back to marketplace; the URL "/" clears the category.
    */
-  const goHome = () => {
-    setActivePanel("marketplace");
-    setSelectedCategoryId(null);
-  };
+  const goHome = () => setActivePanel("marketplace");
   const { categories } = useCategories();
 
   const panelLabel = t(PANELS[activePanel].labelKey);
-  const selected = categories.find((c) => c.id === selectedCategoryId) ?? null;
+  /** U0l (INC-073): the crumb reads the URL, exactly like the rail and body. */
+  const selected = categories.find((c) => c.slug === selectedCategorySlug) ?? null;
   const path = selected ? [selected] : [];
 
   /**
@@ -57,7 +58,37 @@ export function Breadcrumbs() {
    * On every OTHER panel the panel name is real information about where you
    * are, so it stays a segment: Home › Account › …
    */
-  const showPanelSegment = activePanel !== "marketplace";
+  const showPanelSegment = activePanel !== "marketplace" && !pathname.startsWith("/auth");
+
+  /**
+   * U0l PART 2 — /auth IS A PAGE: Home › Sign in (or › Create an account in
+   * the sign-up view, read from the same search param the route owns).
+   */
+  if (pathname.startsWith("/auth")) {
+    return (
+      <Breadcrumb
+        data-testid="breadcrumbs"
+        aria-label={t("shell.breadcrumbLabel")}
+        className="mb-3"
+      >
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/" data-testid="breadcrumb-home">
+                {t("nav.home")}
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage data-testid="breadcrumb-auth" className={CURRENT}>
+              {searchView === "sign-up" ? t("auth.createAccount") : t("auth.signIn")}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
 
   /**
    * U0c — ADMIN ROUTES feed THIS seam, route-derived (INC-058). The admin
@@ -129,13 +160,9 @@ export function Breadcrumbs() {
             <BreadcrumbItem>
               {path.length > 0 ? (
                 <BreadcrumbLink asChild>
-                  <button
-                    type="button"
-                    data-testid="breadcrumb-panel"
-                    onClick={() => setSelectedCategoryId(null)}
-                  >
+                  <Link to="/" data-testid="breadcrumb-panel">
                     {panelLabel}
-                  </button>
+                  </Link>
                 </BreadcrumbLink>
               ) : (
                 <BreadcrumbPage data-testid="breadcrumb-panel">{panelLabel}</BreadcrumbPage>
@@ -155,13 +182,13 @@ export function Breadcrumbs() {
                   <BreadcrumbPage data-testid="breadcrumb-category">{label}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <button
-                      type="button"
+                    <Link
+                      to="/c/$slug"
+                      params={{ slug: node.slug }}
                       data-testid="breadcrumb-category"
-                      onClick={() => setSelectedCategoryId(node.id)}
                     >
                       {label}
-                    </button>
+                    </Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>

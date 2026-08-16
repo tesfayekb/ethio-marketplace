@@ -93,3 +93,24 @@ category's attributes arrive with the real import or the admin builder.
    this phase; a future `public.collections` (+ membership) table.
 4. Posting flow, browse-tree UI, and the screening gateway consume these tables in
    later Phase 2 features.
+
+## U0l — category selection is NAVIGATION (INC-073)
+
+A category is an ADDRESS, not client state. `src/routes/c.$slug.tsx` renders the
+feed for `/c/<slug>`; the rail rows (`src/components/shell/app-rail.tsx`) are
+`<Link to="/c/$slug">` carrying `aria-current="page"` when active, and the
+breadcrumb (`src/components/shell/breadcrumbs.tsx`) derives its category segment
+from the same URL. `AppShell` no longer owns `selectedCategoryId` — it derives
+`selectedCategorySlug` from the pathname, so rail highlight, breadcrumb and feed
+can never disagree, and a category page is shareable, reloadable and
+back-button correct.
+
+### Page-card standard
+
+`src/components/shell/page-card.tsx` exports `PAGE_MAIN_CLASS` (the `<main>`
+wrapper) and `PageCard` (the content surface). Every page body uses it — the
+auth page, admin section pages and the feed's empty state — so no route invents
+its own container. `/auth` is a normal page inside the shell: breadcrumb
+Home › Sign in / Create an account, no rail category selected.
+
+E2E: `e2e/category-nav.spec.ts` (C-1..C-4).

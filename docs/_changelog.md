@@ -136,3 +136,4 @@
 - 2026-08-16 — test(e2e): U0j-2 — shared signOutViaUi with confirm; live-guard proof via same-tab client signOut (test hook under DEV) + reload path; strict-mode scoping; legacy sign-out sites re-anchored
 - 2026-08-16 — fix(shell): footer clamp inset rounds up + re-clamps on content resize (locale switch); Sign out always clickable (hit-test law); test(e2e): locale-agnostic openRailScope
 - 2026-08-16 — feat(auth): U0k — one-click sign-out (confirm removed); role-tiered idle/absolute session policy with warning + hard reset; cross-tab enforcement; sign-out-others on password change; E2E SP-1..SP-4 (Tier A, INC-072 addendum)
+- 2026-08-16 — feat(shell): U0l — category selection navigates to /c/<slug> (rail Links, URL-derived highlight + breadcrumb, INC-073); /auth is a proper page; page-card standard (PageCard/PAGE_MAIN_CLASS); E2E C-1..C-4

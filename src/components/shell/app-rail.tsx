@@ -66,6 +66,8 @@ type RailNode = {
   label: string;
   icon?: NavItem["icon"];
   path?: string;
+  /** Route params for a dynamic path (U0l: /c/$slug). */
+  params?: Record<string, string>;
   active?: boolean;
   onSelect?: () => void;
   children?: RailNode[];
@@ -138,8 +140,10 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         <WithTooltip label={node.label}>
           <Link
             to={node.path}
+            params={node.params}
             onClick={node.onSelect}
             data-testid={node.testid}
+            aria-current={node.active ? "page" : undefined}
             aria-label={node.label}
             style={pad}
             className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
@@ -194,20 +198,22 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const { t, language } = useI18n();
   const { categories, isLoading } = useCategories();
-  const { selectedCategoryId, setSelectedCategoryId } = useShell();
+  // U0l (INC-073): the highlight reads the URL, exactly like the body and the
+  // breadcrumb — never a private selection state.
+  const { selectedCategorySlug } = useShell();
 
   const nodes: RailNode[] = categories.map((category) => ({
     key: category.id,
+    testid: `rail-category-${category.slug}`,
     label: language === "am" ? (category.nameAm ?? category.nameEn) : category.nameEn,
     // Categories are DATA, not config, so their glyph comes from the slug map
     // in src/config/panels.ts — DISTINCT per category, so the collapsed rail is
     // readable without hovering (INC-039). Unmapped slugs fall back to Tag.
     icon: categoryIcon(category.slug),
-    active: category.id === selectedCategoryId,
-    onSelect: () => {
-      setSelectedCategoryId(category.id);
-      onNavigate();
-    },
+    active: category.slug === selectedCategorySlug,
+    path: "/c/$slug",
+    params: { slug: category.slug },
+    onSelect: onNavigate,
     // Subcategories dive in place through the same RailRow recursion the admin
     // tree uses. useCategories currently returns top-level nodes only, so this
     // is empty until the category-children read lands with its own feature.
@@ -228,13 +234,12 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         <RailRow
           node={{
             key: "all",
+            testid: "rail-category-all",
             label: t("shell.allCategories"),
             icon: Tag,
-            active: selectedCategoryId === null,
-            onSelect: () => {
-              setSelectedCategoryId(null);
-              onNavigate();
-            },
+            active: selectedCategorySlug === null,
+            path: "/",
+            onSelect: onNavigate,
           }}
         />
         {/* INC-050: while the tree is being read the rail shows placeholder
