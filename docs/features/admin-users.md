@@ -35,13 +35,13 @@ self-update path are identity, not content, and are intentionally untouched.
 Staff RPCs (all `SECURITY DEFINER`, `REVOKE ALL … FROM PUBLIC, anon` +
 `GRANT EXECUTE … TO authenticated`, each with its own `has_permission` gate):
 
-| Function                                        | Gate                                | Purpose                                     |
-| ----------------------------------------------- | ----------------------------------- | ------------------------------------------- |
-| `admin_list_users(search,status,role,limit,off)` | `profiles:view`                     | paged list + `total_count`, email from auth  |
-| `admin_get_user(user_id)`                        | `profiles:view`                     | one user + contact flags + last sign-in      |
-| `admin_set_account_status(user_id,status,reason)`| `profiles:update`                   | status write + `log_audit('user.status_change')` |
-| `admin_user_activity(user_id,limit)`             | `profiles:view`                     | per-user audit rows                          |
-| `admin_list_roles()`                             | `profiles:view` OR `roles:view`      | role options for filter/assignment           |
+| Function                                          | Gate                            | Purpose                                          |
+| ------------------------------------------------- | ------------------------------- | ------------------------------------------------ |
+| `admin_list_users(search,status,role,limit,off)`  | `profiles:view`                 | paged list + `total_count`, email from auth      |
+| `admin_get_user(user_id)`                         | `profiles:view`                 | one user + contact flags + last sign-in          |
+| `admin_set_account_status(user_id,status,reason)` | `profiles:update`               | status write + `log_audit('user.status_change')` |
+| `admin_user_activity(user_id,limit)`              | `profiles:view`                 | per-user audit rows                              |
+| `admin_list_roles()`                              | `profiles:view` OR `roles:view` | role options for filter/assignment               |
 
 `admin_list_users` / `admin_get_user` are the ONLY path that exposes an email
 address to staff, and only behind `profiles:view`.
