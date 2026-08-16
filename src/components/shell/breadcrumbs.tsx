@@ -160,13 +160,9 @@ export function Breadcrumbs() {
             <BreadcrumbItem>
               {path.length > 0 ? (
                 <BreadcrumbLink asChild>
-                  <button
-                    type="button"
-                    data-testid="breadcrumb-panel"
-                    onClick={() => setSelectedCategoryId(null)}
-                  >
+                  <Link to="/" data-testid="breadcrumb-panel">
                     {panelLabel}
-                  </button>
+                  </Link>
                 </BreadcrumbLink>
               ) : (
                 <BreadcrumbPage data-testid="breadcrumb-panel">{panelLabel}</BreadcrumbPage>
@@ -186,13 +182,13 @@ export function Breadcrumbs() {
                   <BreadcrumbPage data-testid="breadcrumb-category">{label}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <button
-                      type="button"
+                    <Link
+                      to="/c/$slug"
+                      params={{ slug: node.slug }}
                       data-testid="breadcrumb-category"
-                      onClick={() => setSelectedCategoryId(node.id)}
                     >
                       {label}
-                    </button>
+                    </Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>

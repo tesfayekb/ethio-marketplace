@@ -153,10 +153,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     ? decodeURIComponent(pathname.slice(3).split("/")[0] ?? "")
     : null;
   const { categories } = useCategories();
-  const selectedCategoryId =
-    (selectedCategorySlug
-      ? (categories.find((c) => c.slug === selectedCategorySlug)?.id ?? null)
-      : null) ?? null;
+  const selectedCategoryId = selectedCategorySlug
+    ? (categories.find((c) => c.slug === selectedCategorySlug)?.id ?? null)
+    : null;
   const activePanel: PanelId = routePanel ?? panelChoice;
 
   /** Choosing a panel from a route-owned page returns to the feed shell. */
