@@ -998,7 +998,56 @@ test.describe("rail scroll regions (U0f)", () => {
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
     await expect(rail.getByTestId("rail-sign-out")).toBeInViewport();
   });
+
+  /**
+   * U0j-3 — POINTER-HIT LAW. The clamp is not just geometry: the rail's Sign
+   * out must remain the topmost element at its own centre. Switching to
+   * Amharic shortens the page WITHOUT a scroll, which is exactly the case the
+   * footer-only ResizeObserver used to miss.
+   */
+  test("footer never covers the rail's Sign out", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await gotoReady(page, "/");
+
+    await page.getByTestId("language-switcher").click();
+    await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
+    await expect(page.getByTestId("language-switcher-full")).toHaveText(en["language.amharic"]);
+
+    const signOut = page.getByTestId("rail-sign-out");
+    await expect(signOut).toBeVisible();
+
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const aside = document
+              .querySelector('[data-testid="app-rail"]')!
+              .getBoundingClientRect();
+            const footer = (
+              document.querySelector('[data-testid="shell-footer-wrapper"]') ??
+              document.querySelector("footer")!
+            ).getBoundingClientRect();
+            const button = document.querySelector(
+              '[data-testid="app-rail"] [data-testid="rail-sign-out"]',
+            ) as HTMLElement;
+            const rect = button.getBoundingClientRect();
+            const hit = document.elementFromPoint(
+              Math.round(rect.left + rect.width / 2),
+              Math.round(rect.top + rect.height / 2),
+            );
+            return {
+              clearsFooter: aside.bottom <= footer.top - 1,
+              hits: Boolean(hit && button.contains(hit)),
+            };
+          }),
+        { message: "rail must clear the footer and Sign out must be hit-testable" },
+      )
+      .toEqual({ clearsFooter: true, hits: true });
+  });
 });
+
 
 /**
  * U0g — DESKTOP LAYOUT LAWS.
