@@ -250,7 +250,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             data-testid="shell-stack"
             className="col-start-1 row-start-2 flex min-w-0 flex-col md:ms-64 md:pt-16 md:[html[data-rail=collapsed]_&]:ms-16"
           >
-
             {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
             <PanelTabs />
             {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is

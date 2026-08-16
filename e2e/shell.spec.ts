@@ -1058,7 +1058,6 @@ test.describe("desktop layout laws (U0g)", () => {
     await page.evaluate(() => window.scrollTo(0, 0));
   }
 
-
   test("L1/L2: the top band and the rail stay put while content scrolls", async ({
     page,
     viewport,
@@ -1067,7 +1066,6 @@ test.describe("desktop layout laws (U0g)", () => {
     await gotoReady(page, "/");
     await makeTall(page);
     await expectDocumentIsScroller(page);
-
 
     const logoBefore = await rect(page, "shell-logo-cell");
     const barBefore = await rect(page, "shell-topbar");
