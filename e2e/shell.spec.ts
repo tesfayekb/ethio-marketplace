@@ -48,6 +48,42 @@ async function expectTapTarget(page: Page, locator: ReturnType<Page["getByRole"]
   expect(box!.height, `${name} height`).toBeGreaterThanOrEqual(44);
 }
 
+/**
+ * U0i FOOTER-CLAMP LAW (md+). The aside's top is pinned under the 4rem band,
+ * and its bottom follows whichever comes first: the viewport bottom, or the
+ * in-view footer's top edge. Its inner rail-scroll stays the scroll region.
+ * Rects are read with getBoundingClientRect() — boundingBox() would scroll the
+ * elements under test into view.
+ */
+async function railLaw(page: Page) {
+  const measured = await page.evaluate(() => {
+    const aside = document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect();
+    const footerEl =
+      document.querySelector('[data-testid="shell-footer-wrapper"]') ??
+      document.querySelector("footer")!;
+    const footerTop = footerEl.getBoundingClientRect().top;
+    const scroll = document.querySelector(
+      '[data-testid="app-rail"] [data-testid="rail-scroll"]',
+    ) as HTMLElement | null;
+    return {
+      top: aside.top,
+      bottom: aside.bottom,
+      x: aside.x,
+      height: aside.height,
+      footerTop,
+      innerHeight: window.innerHeight,
+      overflows: scroll ? scroll.scrollHeight > scroll.clientHeight : false,
+    };
+  });
+  expect(Math.abs(measured.top - 64), "rail top is not pinned at 64").toBeLessThanOrEqual(1);
+  const expectedBottom = Math.min(measured.innerHeight, measured.footerTop);
+  expect(
+    Math.abs(measured.bottom - expectedBottom),
+    "rail bottom must be min(viewport bottom, footer top)",
+  ).toBeLessThanOrEqual(1);
+  return measured;
+}
+
 test.describe("app shell", () => {
   test("mounts with header, rail slot and footer, logged out", async ({ page }, testInfo) => {
     await page.goto("/");
@@ -937,15 +973,12 @@ test.describe("rail scroll regions (U0f)", () => {
     const rail = page.getByTestId("app-rail");
     const scroll = rail.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
-    // Viewport-bound rail: the aside fills the viewport BELOW the 4rem
-    // logo/top-bar row (grid row 1). Its top must sit at 64px and its height
-    // must equal 360px - 64px so the rail never overhangs the page.
-    const ROW1 = 64;
-    const railBox = (await rail.boundingBox())!;
-    expect(Math.abs(railBox.y - ROW1)).toBeLessThanOrEqual(1);
-    expect(Math.abs(railBox.height - (360 - ROW1))).toBeLessThanOrEqual(1);
-    // Strict: if a future change makes the items fit, this must fail loudly
-    // rather than pass vacuously.
+    // U0i footer-clamp law: top pinned at 64, bottom = min(viewport, footerTop).
+    // At 1280x360 the short admin page may already show the footer — the law
+    // covers that case (the rail ends at the footer's top edge).
+    await railLaw(page);
+    // Strict, measured against the CLAMPED region: if a future change makes the
+    // items fit, this must fail loudly rather than pass vacuously.
     await expect
       .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
       .toBeGreaterThan(0);
@@ -1055,21 +1088,37 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(Math.abs(logoAfter.width - logoBefore.width)).toBeLessThanOrEqual(1);
     expect(Math.abs(barAfter.x - (logoAfter.x + logoAfter.width))).toBeLessThanOrEqual(1);
     expect(Math.abs(barAfter.height - logoAfter.height)).toBeLessThanOrEqual(1);
-    // L2 — the rail did not move and is still fully on screen.
-    expect(Math.abs(railAfter.y - ROW1)).toBeLessThanOrEqual(1);
+    // L2 — the rail obeys the clamp law and did not move; the footer is not in
+    // view after a 600px scroll, so its bottom is the viewport bottom.
+    await railLaw(page);
+    expect(Math.abs(railAfter.y - railBefore.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(railAfter.x - railBefore.x)).toBeLessThanOrEqual(1);
     expect(Math.abs(railAfter.height - railBefore.height)).toBeLessThanOrEqual(1);
     expect(railAfter.bottom).toBeLessThanOrEqual((viewport?.height ?? 0) + 1);
 
     // NAMED REGRESSION (U0g-2): the old sticky rail crept upward at the very
     // bottom of the page. Fixed positioning must hold there too.
+    // U0i footer-clamp law: the rail's bottom follows the in-view footer; height is NOT invariant at page bottom by design.
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
     await page.waitForTimeout(200);
-    const railBottomOfPage = await rect(page, "app-rail");
-    expect(Math.abs(railBottomOfPage.y - ROW1)).toBeLessThanOrEqual(1);
-    expect(Math.abs(railBottomOfPage.x - railBefore.x)).toBeLessThanOrEqual(1);
-    expect(Math.abs(railBottomOfPage.height - railBefore.height)).toBeLessThanOrEqual(1);
+    const atBottom = await railLaw(page);
+    expect(Math.abs(atBottom.top - ROW1)).toBeLessThanOrEqual(1);
+    expect(Math.abs(atBottom.x - railBefore.x)).toBeLessThanOrEqual(1);
     const logoBottomOfPage = await rect(page, "shell-logo-cell");
     expect(logoBottomOfPage.y).toBeLessThanOrEqual(1);
+
+    // The footer owns the full viewport width beneath the clamped rail.
+    const footerAtBottom = await footRect(page);
+    expect(Math.abs(footerAtBottom.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(footerAtBottom.width - (viewport?.width ?? 0))).toBeLessThanOrEqual(1);
+
+    // The clamped rail keeps its scroll region usable: its last item is
+    // reachable, not hidden under the footer.
+    if (atBottom.overflows) {
+      const last = page.getByTestId("app-rail").getByTestId("rail-scroll").locator("li").last();
+      await last.scrollIntoViewIfNeeded();
+      await expect(last).toBeInViewport();
+    }
 
     // The real content really did scroll: its last line is on screen.
     await expect(page.getByTestId("tall-fixture-end")).toBeInViewport();
