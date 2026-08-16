@@ -208,6 +208,11 @@ export async function changePassword(
 
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) return failure(error);
+  // U0k session hardening (c): a credential change invalidates every OTHER
+  // device's session. Best-effort — the password IS already changed, so a
+  // failure here is reported to the console, never surfaced as a failed change.
+  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
+  if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
   return { ok: true };
 }
 
@@ -398,5 +403,9 @@ export async function completePasswordReset(newPassword: string): Promise<AuthRe
 
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) return failure(error);
+  // U0k session hardening (c): finishing a recovery also ends every other
+  // device's session (the recovery may itself be an account takeover recovery).
+  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
+  if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
   return { ok: true };
 }
