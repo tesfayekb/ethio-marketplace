@@ -143,7 +143,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     test.skip((viewport?.width ?? 0) >= 768, "mobile only");
     await useAmharic(page);
     await gotoReady(page, "/");
-    await page.getByTestId("nav-toggle").click();
+    await page.getByRole("button", { name: am["shell.openMenu"] }).click();
     await expect(page.getByTestId("app-rail")).toBeVisible();
 
     assertAmharicChrome(await chromeTexts(page, am["shell.categoriesLabel"]), "mobile drawer");
