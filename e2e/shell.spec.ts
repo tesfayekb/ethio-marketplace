@@ -1131,9 +1131,48 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(darkBelow.inRail).toBe(false);
   });
 
+  /**
+   * U0i — THE RAIL CLAMPS ABOVE THE IN-VIEW FOOTER.
+   *
+   * NAMED REGRESSION: "rail items hidden under the footer". With the rail's
+   * box ending at the footer's top edge, its inner scroll region keeps its
+   * scrollbar and its LAST item can still be scrolled into view at the very
+   * bottom of the page.
+   */
+  test("U0i: the rail ends at the footer top and its last item stays reachable", async ({
+    page,
+    viewport,
+  }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    await gotoReady(page, TALL);
+    await expectScrollRange(page);
+
+    await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+    await page.waitForTimeout(300);
+
+    const footer = await footRect(page);
+    const railAtBottom = await rect(page, "app-rail");
+    expect(railAtBottom.bottom).toBeLessThanOrEqual(footer.top + 1);
+    // Still anchored under the fixed band — clamping changes the bottom only.
+    expect(Math.abs(railAtBottom.y - ROW1)).toBeLessThanOrEqual(1);
+
+    const scroller = page.getByTestId("app-rail").getByTestId("rail-scroll");
+    const overflows = await scroller.evaluate((el) => el.scrollHeight > el.clientHeight);
+    if (overflows) {
+      const last = page
+        .getByTestId("app-rail")
+        .getByTestId("rail-scroll")
+        .locator("nav li")
+        .last();
+      await last.scrollIntoViewIfNeeded();
+      await expect(last).toBeInViewport();
+    }
+  });
+
   test("the tall fixture does not overflow horizontally at 360", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) >= 768, "mobile only");
     await gotoReady(page, TALL);
     await expectNoHorizontalOverflow(page);
   });
 });
+
