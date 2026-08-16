@@ -194,36 +194,48 @@ list never lengthens the page. The drawer is untouched — the sheet already
 bounds itself. Grid rows/columns, the logo cell, the top bar, collapsed widths
 and all tokens are unchanged.
 
-### Desktop layout laws (U0g)
+### Desktop layout laws (U0g, revised by U0g-2)
 
 Four laws govern the md+ shell; mobile (< md) is unchanged (drawer + stacked
-layout).
+layout). U0g-2 replaced sticky positioning with FIXED positioning everywhere in
+the shell chrome: the rail must never move at any scroll offset, including the
+page bottom, where sticky used to creep upward against the footer.
 
-- **L1 — fixed top band.** The logo cell and the top bar are `md:sticky
-md:top-0 md:z-30`. A sticky grid item is constrained by its grid area, so a
-  row-1-only cell would still scroll away; both cells therefore span
-  `md:row-start-1 md:[grid-row-end:-1]` with `md:self-start md:h-16`, which
-  gives sticky a tall containing block while painting exactly the same
-  corner-block geometry (same x, width, y and 4rem height).
-- **L2 — fixed rail beneath it.** Unchanged from U0f: `md:sticky md:top-16`
-  with `h-[calc(100dvh-4rem)]`; the inner `rail-scroll` is the only rail
-  scrolling region.
-- **L3 — footer full-width below the rail.** The footer is now a SIBLING BELOW
-  the grid rather than a third grid row, inside an outer
-  `flex min-h-screen flex-col` wrapper whose grid child is `flex-1`. Reason: a
-  sticky item's clamp rectangle ends at the grid container, so with the footer
-  inside the grid the rail could overhang it. Ending the grid at the content
-  row makes the rail's bottom stop exactly at the footer's top — the rail sits
-  above the footer, never beside it.
+- **L1 — fixed top band.** The logo cell and the top bar live inside one
+  wrapper (`data-testid="shell-band"`) that is `contents` on mobile — so the
+  top bar stays grid row 1 exactly as before — and
+  `md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-16` from md up. Inside
+  it the corner block is preserved by construction: the logo cell is
+  `md:w-64 md:h-16 md:shrink-0` (`md:w-16` when `html[data-rail=collapsed]`)
+  and the top bar is `md:flex-1`. Measured at 1280: logo 0/256×64, bar
+  256/1024×64 — identical to the sticky band it replaced.
+- **L2 — fixed rail beneath it.** The `<aside>` is
+  `md:fixed md:start-0 md:top-16 md:z-20 md:w-64 md:h-[calc(100dvh-4rem)]
+  md:overflow-hidden` (with `100vh` first as the fallback, and `md:w-16` when
+  collapsed). The inner `rail-scroll` remains the only rail scrolling region
+  and `RailFoot` stays pinned at its bottom.
+- **L3 — content column + full-width footer.** The content stack offsets
+  itself with `md:pt-16 md:ms-64` (`md:ms-16` collapsed) so it starts under the
+  band and beside the rail, and the page scrolls normally. The footer sits in
+  normal flow after it, spanning the FULL viewport width from x=0 — the fixed
+  rail visually sits ON TOP of it at the page bottom, which is the ruled
+  behaviour. So the footer's own content stays readable, its wrapper applies
+  `md:[&>footer>*]:ps-64` (`ps-16` collapsed) — the padding lands on the
+  footer's inner blocks, so the background and border keep spanning the full
+  width while the links and copyright are inset past the rail's column.
 - **L4 — only content scrolls.** With a tall body, page scroll moves the
-  content while the band's and the rail's on-screen positions stay put, until
-  L3's footer reveal at the very end.
+  content while the band's and the rail's on-screen rects stay byte-identical,
+  at 600px and at the very bottom of the document.
 
 E2E (`desktop layout laws (U0g)` in `e2e/shell.spec.ts`) injects a tall
-test-only spacer into `#main` via `page.evaluate` so page scrolling is real
-without depending on seeded data, and reads geometry with
-`getBoundingClientRect()` rather than `locator.boundingBox()` — the latter
-scrolls the element into view and would move the sticky elements under test.
+test-only spacer into the content column (`#main`) via `page.evaluate`, GROWING
+it until `document.scrollingElement.scrollHeight - innerHeight` really reaches
+the requested offset — a scroll assertion on a non-scrollable page would pass
+vacuously. Geometry is read with `getBoundingClientRect()` rather than
+`locator.boundingBox()` — the latter scrolls the element into view and would
+move the very elements under test. L3 additionally asserts the footer rect is
+x=0 / full viewport width while its first inner link starts at x >= 256.
+
 
 Every rail row now carries `data-testid={node.testid}` — routed `Link` leaves,
 `onSelect` buttons and path-less rows alike — so items whose page is a later
