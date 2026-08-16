@@ -30,15 +30,16 @@ export function PageCard({
   dashed = false,
   testid = "page-card",
   as: As = "section",
+  ...props
 }: {
   children: ReactNode;
   className?: string;
   dashed?: boolean;
   testid?: string;
   as?: "section" | "div";
-}) {
+} & React.HTMLAttributes<HTMLElement>) {
   return (
-    <As data-testid={testid} className={cn(PAGE_CARD_CLASS, dashed && "border-dashed", className)}>
+    <As data-testid={testid} className={cn(PAGE_CARD_CLASS, dashed && "border-dashed", className)} {...props}>
       {children}
     </As>
   );
