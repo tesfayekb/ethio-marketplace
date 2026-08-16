@@ -37,14 +37,7 @@ export function Breadcrumbs() {
   const searchView = useRouterState({
     select: (s) => (s.location.search as { view?: string }).view,
   });
-  const { activePanel, setActivePanel, selectedCategorySlug } = useShell();
-
-  /**
-   * Home IS the marketplace feed — there is no separate home page. From any
-   * panel the root crumb returns to the unfiltered Marketplace feed: it sets
-   * the active panel back to marketplace; the URL "/" clears the category.
-   */
-  const goHome = () => setActivePanel("marketplace");
+  const { activePanel, selectedCategorySlug } = useShell();
   const { categories } = useCategories();
 
   const panelLabel = t(PANELS[activePanel].labelKey);
@@ -146,9 +139,9 @@ export function Breadcrumbs() {
         <BreadcrumbItem>
           {showPanelSegment || path.length > 0 ? (
             <BreadcrumbLink asChild>
-              <button type="button" data-testid="breadcrumb-home" onClick={goHome}>
+              <Link to="/" data-testid="breadcrumb-home">
                 {t("nav.home")}
-              </button>
+              </Link>
             </BreadcrumbLink>
           ) : (
             <BreadcrumbPage data-testid="breadcrumb-home">{t("nav.home")}</BreadcrumbPage>
