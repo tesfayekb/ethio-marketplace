@@ -1048,7 +1048,6 @@ test.describe("rail scroll regions (U0f)", () => {
   });
 });
 
-
 /**
  * U0g — DESKTOP LAYOUT LAWS.
  *

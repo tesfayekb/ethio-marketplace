@@ -5,7 +5,6 @@ const FOOTER_SELECTOR = '[data-testid="shell-footer-wrapper"]';
 /** U0j-3 — content whose height changes without a scroll (locale switch). */
 const CONTENT_SELECTORS = ["#main", "main"];
 
-
 /**
  * U0i — HOW FAR THE FOOTER INTRUDES INTO THE VIEWPORT.
  *
@@ -45,7 +44,6 @@ export function useFooterInset(): number {
       const aside = document.querySelector('[data-testid="app-rail"]');
       if (aside) aside.setAttribute("data-rail-inset", String(next));
       setInset((prev) => (prev === next ? prev : next));
-
     };
     const schedule = () => {
       if (frame === 0) frame = window.requestAnimationFrame(measure);
@@ -89,7 +87,6 @@ export function useFooterInset(): number {
         break;
       }
     }
-
 
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame);

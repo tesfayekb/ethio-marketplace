@@ -16,7 +16,6 @@ export function openMenuPattern() {
   return new RegExp(`^(${escapeRe(en["shell.openMenu"])}|${escapeRe(am["shell.openMenu"])})$`);
 }
 
-
 /** Lifted verbatim from smoke-auth-i18n.spec.ts (P1-c). */
 export async function expectNoHorizontalOverflow(page: Page) {
   const overflow = await page.evaluate(() => {
