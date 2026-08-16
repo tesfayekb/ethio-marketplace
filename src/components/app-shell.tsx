@@ -159,7 +159,7 @@ export function AppShell({ children }: { children: ReactNode }) {
    * Law F3: this only decides whether the Admin TAB renders. Every admin
    * action is enforced by RLS / has_permission on the server.
    */
-  const { permissions } = usePermissions({ enabled: user !== null });
+  const { permissions, loading: permissionsLoading } = usePermissions({ enabled: user !== null });
 
   /**
    * U0j (INC-072) — SIGN-OUT IS A HARD RESET, in this exact order:
@@ -168,28 +168,68 @@ export function AppShell({ children }: { children: ReactNode }) {
    *       is awaited;
    *   (b) the permission cache is REMOVED (not merely invalidated) so no
    *       stale admin grant can paint anything;
-   *   (c) auth-derived client state resets (panel, category, location, drawer);
-   *   (d) replace-navigate to "/" so Back cannot re-enter a gated page.
+   *   (c) the session-policy clocks are cleared (U0k) so the next sign-in
+   *       starts a fresh idle/absolute window;
+   *   (d) auth-derived client state resets (panel, category, location, drawer);
+   *   (e) replace-navigate to "/" so Back cannot re-enter a gated page.
+   *
+   * U0k: no confirmation dialog — one click IS the contract.
    */
-  const [signOutOpen, setSignOutOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const requestSignOut = useCallback(() => setSignOutOpen(true), []);
+  const [sessionNotice, setSessionNotice] = useState<MessageKey | null>(null);
 
-  const confirmSignOut = useCallback(async () => {
-    setSigningOut(true);
-    try {
-      await signOut();
-      queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
-      setPanelChoice("marketplace");
-      setSelectedCategoryId(null);
-      setLocationPath([]);
-      setNavOpen(false);
-      await navigate({ to: "/", replace: true });
-    } finally {
-      setSigningOut(false);
-      setSignOutOpen(false);
-    }
-  }, [signOut, queryClient, navigate]);
+  const hardReset = useCallback(
+    async (notice: MessageKey | null) => {
+      setSigningOut(true);
+      try {
+        await signOut();
+        queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
+        clearSessionClocks();
+        setPanelChoice("marketplace");
+        setSelectedCategoryId(null);
+        setLocationPath([]);
+        setNavOpen(false);
+        setSessionNotice(notice);
+        await navigate({ to: "/", replace: true });
+      } finally {
+        setSigningOut(false);
+      }
+    },
+    [signOut, queryClient, navigate],
+  );
+
+  const requestSignOut = useCallback(() => {
+    if (signingOut) return;
+    void hardReset(null);
+  }, [hardReset, signingOut]);
+
+  /**
+   * U0k — SESSION POLICY. FAIL-SAFE tiering: until permissions resolve we
+   * assume "staff", i.e. the STRICT limits, never the lenient ones.
+   */
+  const tier = permissionsLoading || permissions.includes(ADMIN_PANEL_PERMISSION)
+    ? ("staff" as const)
+    : ("regular" as const);
+
+  const onExpire = useCallback(
+    (reason: SessionExpiryReason) => {
+      void hardReset(reason === "idle" ? "session.signedOutIdle" : "session.expired");
+    },
+    [hardReset],
+  );
+
+  const { warningSecondsLeft, extend } = useSessionPolicy({
+    active: user !== null,
+    tier,
+    onExpire,
+  });
+
+  /** (b) A fresh sign-in starts fresh clocks. */
+  useEffect(() => {
+    if (user === null) return;
+    startSessionClocks();
+    setSessionNotice(null);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * THE LIVE GUARD (the security fix). `user` comes from the shell's
