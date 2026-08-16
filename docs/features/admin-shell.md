@@ -194,6 +194,37 @@ list never lengthens the page. The drawer is untouched — the sheet already
 bounds itself. Grid rows/columns, the logo cell, the top bar, collapsed widths
 and all tokens are unchanged.
 
+### Desktop layout laws (U0g)
+
+Four laws govern the md+ shell; mobile (< md) is unchanged (drawer + stacked
+layout).
+
+- **L1 — fixed top band.** The logo cell and the top bar are `md:sticky
+md:top-0 md:z-30`. A sticky grid item is constrained by its grid area, so a
+  row-1-only cell would still scroll away; both cells therefore span
+  `md:row-start-1 md:[grid-row-end:-1]` with `md:self-start md:h-16`, which
+  gives sticky a tall containing block while painting exactly the same
+  corner-block geometry (same x, width, y and 4rem height).
+- **L2 — fixed rail beneath it.** Unchanged from U0f: `md:sticky md:top-16`
+  with `h-[calc(100dvh-4rem)]`; the inner `rail-scroll` is the only rail
+  scrolling region.
+- **L3 — footer full-width below the rail.** The footer is now a SIBLING BELOW
+  the grid rather than a third grid row, inside an outer
+  `flex min-h-screen flex-col` wrapper whose grid child is `flex-1`. Reason: a
+  sticky item's clamp rectangle ends at the grid container, so with the footer
+  inside the grid the rail could overhang it. Ending the grid at the content
+  row makes the rail's bottom stop exactly at the footer's top — the rail sits
+  above the footer, never beside it.
+- **L4 — only content scrolls.** With a tall body, page scroll moves the
+  content while the band's and the rail's on-screen positions stay put, until
+  L3's footer reveal at the very end.
+
+E2E (`desktop layout laws (U0g)` in `e2e/shell.spec.ts`) injects a tall
+test-only spacer into `#main` via `page.evaluate` so page scrolling is real
+without depending on seeded data, and reads geometry with
+`getBoundingClientRect()` rather than `locator.boundingBox()` — the latter
+scrolls the element into view and would move the sticky elements under test.
+
 Every rail row now carries `data-testid={node.testid}` — routed `Link` leaves,
 `onSelect` buttons and path-less rows alike — so items whose page is a later
 feature (for example `rail-item-ac-overview`) are addressable in tests. No
