@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
+import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 
@@ -79,7 +80,15 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
     (role) => !UNASSIGNABLE_ROLES.includes(role.name as (typeof UNASSIGNABLE_ROLES)[number]),
   );
 
+  /**
+   * U1f — the four sensitive actions run through the step-up gate. `guard`
+   * verifies (or asks for) AAL2 first; the RPC itself refuses at aal1 anyway
+   * (public.require_step_up_if_needed), so this is UX, not authorization.
+   * Non-step-up failures stay on the mutation's own error state (law F4).
+   */
   return (
+    <StepUpGate>
+      {(guard) => (
     <div data-testid="admin-user-detail" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
@@ -162,7 +171,9 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                       setReasonError(true);
                       return;
                     }
-                    status.mutate({ status: "deactivated", reason: reason.trim() });
+                    void guard(() =>
+                      status.mutateAsync({ status: "deactivated", reason: reason.trim() }),
+                    ).catch(() => undefined);
                   }}
                 >
                   {t("admin.users.status.deactivate")}
@@ -175,7 +186,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                 disabled={status.isPending}
                 onClick={() => {
                   setReason("");
-                  status.mutate({ status: "active" });
+                  void guard(() => status.mutateAsync({ status: "active" })).catch(() => undefined);
                 }}
               >
                 {t("admin.users.status.activate")}
@@ -215,7 +226,9 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                       className="min-h-11 px-2 text-xs"
                       data-testid={`role-remove-${role}`}
                       disabled={revoke.isPending}
-                      onClick={() => revoke.mutate(role)}
+                      onClick={() =>
+                        void guard(() => revoke.mutateAsync(role)).catch(() => undefined)
+                      }
                     >
                       {t("admin.users.roles.remove")}
                     </Button>
@@ -251,7 +264,9 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               className="min-h-11"
               data-testid="assign-role"
               disabled={selectedRole === "" || assign.isPending}
-              onClick={() => assign.mutate(selectedRole)}
+              onClick={() =>
+                void guard(() => assign.mutateAsync(selectedRole)).catch(() => undefined)
+              }
             >
               {t("admin.users.roles.assignAction")}
             </Button>
@@ -290,6 +305,8 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
         )}
       </PageCard>
     </div>
+      )}
+    </StepUpGate>
   );
 }
 
