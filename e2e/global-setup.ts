@@ -42,6 +42,10 @@ export function adminClient() {
 }
 
 export default async function globalSetup() {
+  // 0. Migration parity (INC-074): staging must carry the newest local migration,
+  //    or the suite fails once with the filename instead of N cryptic reds.
+  await migrationPreflight();
+
   // 1. Loud, non-sensitive preflight. URL is not secret; the key never is printed.
   const url = process.env["E2E_SUPABASE_URL"] ?? "";
   const keyLength = (process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "").length;
@@ -57,6 +61,7 @@ export default async function globalSetup() {
   }
 
   const supabase = adminClient();
+
   const runId = process.env["GITHUB_RUN_ID"] ?? randomBytes(4).toString("hex");
   const email = testEmail(runId, 1);
   const password =
