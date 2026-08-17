@@ -153,3 +153,4 @@
 - 2026-08-17 — ci: parity preflight — ledger via definer RPC (service_role only), loud degraded mode, object-probe verified against U1f; migration_marks law if no ledger (INC-074 follow-up)
 - 2026-08-17 — ci: parity ledger via public.migration_marks (self-marking migrations; SQL-editor applies have no tool ledger); backfill; guard + law; preflight reads marks
 - 2026-08-17 — feat(admin): U1g — edit user (admin_update_profile, step-up gated, audited) + parity table; test(e2e): AU-3/4/5 re-anchored to step-up (enrollAndStepUp), AU-9..11
+- 2026-08-17 — fix(e2e): expectAal2 reads data.currentLevel; fix(auth): auth-derived query root + cancel-then-remove purge (SO-4 after U1g; INC-078 addendum)

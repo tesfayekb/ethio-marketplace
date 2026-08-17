@@ -22,10 +22,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useCategories } from "@/features/feed/use-feed";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
-import {
-  AUTH_DERIVED_ROOT,
-  usePermissions,
-} from "@/features/permissions/usePermissions";
+import { AUTH_DERIVED_ROOT, usePermissions } from "@/features/permissions/usePermissions";
 import {
   clearSessionClocks,
   startSessionClocks,
