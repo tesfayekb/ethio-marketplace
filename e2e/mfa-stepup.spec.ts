@@ -191,3 +191,70 @@ test.describe("U1f step-up authentication", () => {
     });
   });
 });
+
+/**
+ * U1f-4 (INC-081) — A BEARER aal2 CLAIM IS NOT A STEP-UP.
+ *
+ * Both proofs come from the operator repro: after unenrolling the only factor
+ * the session still carried aal2 and `deactivate` went through; and the
+ * enrollment verify itself elevated the session for its whole lifetime.
+ *
+ * MF-7 shortens the client window through the DEV override
+ * (`window.__ethioStepUp = { windowMs }`); the SERVER window stays 10 minutes,
+ * so the re-verification the modal collects is accepted normally. The
+ * authoritative refusals are migration proofs P5/P7.
+ */
+test.describe("U1f-4 step-up freshness", () => {
+  test("MF-6 unenrolling the only factor drops the stepped-up state", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const target = await createUser({ confirmed: true });
+    await switchUser(page, staff.email, staff.password);
+    const secret = await enrollThroughSettings(page);
+
+    // Remove the only factor — the session may still claim aal2.
+    await page.getByTestId("mfa-remove").click();
+    await page.getByTestId("mfa-remove-code").fill(totp(secret));
+    await page.getByTestId("mfa-remove-confirm").click();
+    await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOff"], {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("mfa-off-warning")).toBeVisible();
+
+    await gotoReady(page, `/admin/users/${target.id}`);
+    await page.getByTestId("deactivate-reason").fill("MF-6 proof");
+    await page.getByTestId("deactivate-user").click();
+
+    await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
+    expect(await statusChangeCount(target.id)).toBe(0);
+  });
+
+  test("MF-7 a verification older than the window re-prompts", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const target = await createUser({ confirmed: true });
+    await page.addInitScript(() => {
+      (window as unknown as { __ethioStepUp: { windowMs: number } }).__ethioStepUp = {
+        windowMs: 3000,
+      };
+    });
+    await switchUser(page, staff.email, staff.password);
+    const secret = await enrollThroughSettings(page);
+
+    // Enrollment elevated the session; wait past the (shortened) window.
+    await page.waitForTimeout(4000);
+
+    await gotoReady(page, `/admin/users/${target.id}`);
+    await page.getByTestId("deactivate-reason").fill("MF-7 proof");
+    await page.getByTestId("deactivate-user").click();
+
+    const modal = page.getByTestId("step-up-modal");
+    await expect(modal).toBeVisible({ timeout: 15000 });
+    await page.getByTestId("step-up-code").fill(totp(secret));
+    await page.getByTestId("step-up-submit").click();
+    await expect(modal).toBeHidden({ timeout: 20000 });
+    await expect(page.getByTestId("user-status")).toHaveText(en["admin.users.status.deactivated"], {
+      timeout: 20000,
+    });
+  });
+});

@@ -121,3 +121,37 @@ Every auth-derived query key starts with `AUTH_DERIVED_ROOT`
 `["auth-derived","admin","countries"]`. The sign-out hard reset cancels then
 removes that single root, so nothing auth-derived — including the cached
 step-up hint's neighbours — survives into a signed-out shell.
+
+## U1f-4 — a bearer `aal2` claim is not a step-up (INC-081)
+
+Operator repro: after unenrolling the only TOTP factor, `deactivate` still
+succeeded (the JWT kept claiming `aal2`), and the enrollment verify itself
+elevated the session for its whole lifetime, so no later prompt fired.
+
+**The two-condition law.** A sensitive action is stepped up only if BOTH hold,
+checked server-side in `public.require_step_up_if_needed` (migration
+`20260817100845_…`):
+
+1. the caller CURRENTLY owns a verified TOTP factor
+   (`auth.mfa_factors`, `status='verified'`, `factor_type='totp'`);
+2. the JWT claims `aal2` AND `auth.mfa_amr_claims` shows a `totp` verification
+   on the CURRENT session within the last **10 minutes**.
+
+Failure modes are distinct: `step-up required: no verified factor`,
+`step-up required`, `step-up required: verification expired` — all SQLSTATE
+`P0009`, so the existing client detection is unchanged.
+
+Migration proofs: P5 (aal2 claim, no factor → refused), P6 (factor + aal2 +
+fresh amr → accepted), P7 (verification older than 10 minutes → refused),
+P8 (read resources unaffected). Re-run after apply, all pass.
+
+**Client mirror** (`mfa-service.ts` → `isStepUpFresh()`): factor present, aal2,
+and `readSteppedUpAt()` inside `STEP_UP_WINDOW_MS` (10 min). `verifyFactor`
+stamps the verification instant; `unenrollFactor` invalidates the stamp and
+refreshes the session so nothing looks elevated after the last factor goes.
+`use-step-up.ts` guards on freshness instead of the raw AAL. Settings shows
+`mfa-off-warning` when no factor remains. DEV/E2E may shorten the CLIENT window
+with `window.__ethioStepUp = { windowMs }`; the server window is fixed.
+
+E2E: MF-6 (unenroll → the no-factor modal, no RPC) and MF-7 (expired window →
+re-prompt, then the action proceeds).

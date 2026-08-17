@@ -1,5 +1,24 @@
 import { supabase } from "@/integrations/supabase/client";
+import { markSteppedUp, readSteppedUpAt } from "@/features/session/session-policy";
 import type { MessageKey } from "@/i18n";
+
+/**
+ * U1f-4 (INC-081) — A BEARER CLAIM IS NOT A STEP-UP.
+ *
+ * The server gate (public.require_step_up_if_needed) now requires BOTH a
+ * currently-owned verified TOTP factor AND a totp verification on this session
+ * within STEP_UP_WINDOW_MS. This client mirrors that window so the user is
+ * asked for a code BEFORE the RPC refuses — never instead of it (law F3).
+ */
+export const STEP_UP_WINDOW_MS = 10 * 60 * 1000;
+
+/** DEV/E2E only: a shorter window so expiry is testable without waiting. */
+function stepUpWindowMs(): number {
+  if (typeof window === "undefined") return STEP_UP_WINDOW_MS;
+  const override = (window as unknown as { __ethioStepUp?: { windowMs?: number } }).__ethioStepUp;
+  const value = override?.windowMs;
+  return typeof value === "number" && value > 0 ? value : STEP_UP_WINDOW_MS;
+}
 
 /**
  * U1f — MFA / STEP-UP SEAM (INC-079).
@@ -58,6 +77,24 @@ export async function isSteppedUp(): Promise<boolean> {
   return (await getAal()).current === "aal2";
 }
 
+/**
+ * U1f-4: the CLIENT-side mirror of the server's two conditions.
+ *   (1) a verified TOTP factor still exists on the account — an unenrolled
+ *       account can never be "already stepped up", however the JWT reads;
+ *   (2) aal2 AND the last verification happened inside the window — so an
+ *       enrollment done long before a sensitive action does not stand in for
+ *       a fresh code.
+ * Authority still lives in public.require_step_up_if_needed (law F3).
+ */
+export async function isStepUpFresh(): Promise<boolean> {
+  const factors = await listFactors();
+  if (!factors.ok || factors.factors.length === 0) return false;
+  if (!(await isSteppedUp())) return false;
+  const verifiedAt = readSteppedUpAt();
+  if (verifiedAt === null) return false;
+  return Date.now() - verifiedAt < stepUpWindowMs();
+}
+
 export async function listFactors(): Promise<
   { ok: true; factors: MfaFactor[] } | { ok: false; errorKey: MessageKey }
 > {
@@ -102,6 +139,8 @@ export async function verifyFactor(factorId: string, code: string): Promise<MfaO
     code: code.trim(),
   });
   if (verify.error) return failure(verify.error.message);
+  // The verification instant is what the window is measured from.
+  markSteppedUp();
   return { ok: true };
 }
 
@@ -114,9 +153,16 @@ export async function stepUpWithCode(code: string): Promise<MfaOutcome> {
   return verifyFactor(factor.id, code);
 }
 
-/** Unenroll. MF-5: the caller re-verifies first, so this runs at aal2 only. */
+/**
+ * Unenroll. MF-5: the caller re-verifies first, so this runs at aal2 only.
+ * U1f-4: removing the last factor must not leave a session that still LOOKS
+ * stepped up — refresh so GoTrue re-issues the claim, and drop the local hint
+ * (stamp 0 = never fresh). The server refuses on factor absence regardless.
+ */
 export async function unenrollFactor(factorId: string): Promise<MfaOutcome> {
   const { error } = await supabase.auth.mfa.unenroll({ factorId });
   if (error) return failure(error.message);
+  markSteppedUp(0);
+  await supabase.auth.refreshSession();
   return { ok: true };
 }
