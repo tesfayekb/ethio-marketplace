@@ -214,6 +214,19 @@ BEGIN
   END IF;
 END; $function$;
 
+-- C1. PRIVILEGE RESTATEMENT (definer law, INC-074) ----------------------------
+-- The two seams above are RE-DECLARED in this file; CREATE OR REPLACE preserves
+-- the live grants, so these four lines change nothing in production -- they make
+-- this file self-describing about its privilege posture. Idempotent: safe to
+-- re-run. Staging already applied this migration; the operator re-runs ONLY
+-- these four lines there. Restated verbatim from the creating migration
+-- 20260804174739_0ce87c13-1bf0-4cc8-8d61-8dd8212d961c.sql (lines 319-323) and
+-- identical to the applied record in rider 20260817023555.
+REVOKE ALL ON FUNCTION public.submit_listing(uuid, uuid, uuid, text, text, char, jsonb, numeric, char, text, text, uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.transition_listing(uuid, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.submit_listing(uuid, uuid, uuid, text, text, char, jsonb, numeric, char, text, text, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.transition_listing(uuid, text) TO authenticated;
+
 -- D. STAFF RPCs --------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.admin_list_users(
   p_search text DEFAULT NULL,
