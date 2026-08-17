@@ -1,5 +1,5 @@
 import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 
 
 import { Button } from "@/components/ui/button";
@@ -355,7 +355,7 @@ export function DataTable<T>({
                           role: "link",
                           tabIndex: 0,
                           onClick: go,
-                          onKeyDown: (event: React.KeyboardEvent<HTMLTableRowElement>) => {
+                          onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
                             if (event.key === "Enter") {
                               event.preventDefault();
                               go();
