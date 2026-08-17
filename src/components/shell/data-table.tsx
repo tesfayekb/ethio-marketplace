@@ -66,8 +66,14 @@ export interface DataTableProps<T> {
   rows: T[];
   rowKey: (row: T) => string;
   rowTestId: (row: T) => string;
-  /** Router link props for the whole row (cards are links, table names are not). */
+  /**
+   * Router link props for the whole row. U1d (INC-077): this applies to BOTH
+   * responsive twins — the 360 card is a Link, and the md+ table row renders
+   * its first primary cell as a Link, navigates on click anywhere in the row,
+   * and is keyboard reachable (role="link", tabIndex, Enter).
+   */
   rowHref?: (row: T) => LinkProps;
+
   /** Accessible caption for the table (also the card list's aria-label). */
   caption: string;
   emptyState: ReactNode;
