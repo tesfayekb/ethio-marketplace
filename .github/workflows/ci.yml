@@ -401,6 +401,14 @@ jobs:
         with:
           pattern: e2e-results-*
           path: shard-results
+      # Log tails only exist for RED jobs; a run where every job wrote results
+      # downloads nothing here and the step is a no-op.
+      - name: Download job log tails
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: e2e-log-*
+          path: shard-logs
       # MERGE MECHANISM: JSON concatenation, not `playwright merge-reports`.
       # The consumer is scripts/e2e-failure-report.ts, which reads the JSON
       # reporter shape; E2E_RESULTS_DIR makes it walk every shard's
