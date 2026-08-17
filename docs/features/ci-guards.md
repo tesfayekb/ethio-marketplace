@@ -146,3 +146,26 @@ fails, declared deletion passes, addition-only range passes. CI runs the
 self-test and then the guard in the step "No unexplained deletions (with
 self-test)", first in `build-and-check` (which now checks out with
 `fetch-depth: 0` so the previous SHA is present).
+
+## Self-marking law + parity ledger (U1f-3, 2026-08-17)
+
+`supabase_migrations.schema_migrations` only exists where the migration TOOL ran
+(ethio-prod). ethio-staging is applied by hand through the SQL editor and has no
+tool ledger, so the U1f-2 RPC could not even be created there. The ledger is now
+`public.migration_marks` (version text PK, marked_at), created by
+`20260817054246`, RLS-enabled with an explicit deny-all policy for
+`anon`/`authenticated`, granted to `service_role` only, and read through the
+unchanged definer `public.e2e_migration_ledger()`.
+
+**Law:** every migration's LAST statement is
+`INSERT INTO public.migration_marks(version) VALUES ('<own version>') ON CONFLICT
+DO NOTHING;`. `scripts/check-migrations.sh` fails any migration with version >=
+`20260817054246` that lacks a `INSERT INTO public.migration_marks` carrying its
+OWN version string, and self-tests that rule against
+`scripts/fixtures/bad-unmarked-migration-example.sql` (no mark) before scanning.
+`20260817055252` back-fills a mark for every migration that existed when it was
+written, so both environments start complete the moment it runs.
+
+The preflight's degraded mode now has exactly one cause: the ledger RPC is absent
+(the ledger migration has not been applied to staging). The warning names that
+migration.

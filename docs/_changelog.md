@@ -151,3 +151,4 @@
 - 2026-08-17 — ci: E2E failure reporter (docs/tracking/e2e-last-failure.md) + no-unexplained-deletions guard (INC-076); fix(auth): sign-out purges all auth-derived queries (SO-2/SO-4 after settings banner, INC-078)
 - 2026-08-17 — feat(auth): U1f — TOTP MFA enrollment + step-up gate (AAL2) for requires_step_up permissions; server-side enforcement in mutation RPCs; E2E MF-1..MF-5 (Tier A)
 - 2026-08-17 — ci: parity preflight — ledger via definer RPC (service_role only), loud degraded mode, object-probe verified against U1f; migration_marks law if no ledger (INC-074 follow-up)
+- 2026-08-17 — ci: parity ledger via public.migration_marks (self-marking migrations; SQL-editor applies have no tool ledger); backfill; guard + law; preflight reads marks

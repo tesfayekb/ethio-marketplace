@@ -1,27 +1,32 @@
 /**
- * Migration-parity preflight (INC-074).
+ * Migration-parity preflight (INC-074, U1f-3).
  *
  * Runs BEFORE Playwright. Proves that the staging database carries the newest
  * local migration, so a missing RPC fails once, loudly, with the filename —
  * instead of twelve cryptic test reds.
  *
+ * ENVIRONMENT ASYMMETRY (U1f-3 root cause): supabase_migrations.schema_migrations
+ * exists only where the migration TOOL ran (ethio-prod). ethio-staging is applied
+ * by hand through the SQL editor, which writes no ledger at all. The ledger is
+ * therefore public.migration_marks — every migration's last statement inserts its
+ * own 14-digit version (self-marking law, docs/governance/migrations.md), so the
+ * ledger is identical on both environments.
+ *
  * Mechanism (in order):
  *   1. Ledger (primary): public.e2e_migration_ledger(), a SECURITY DEFINER
- *      function executable by service_role ONLY, returning
- *      supabase_migrations.schema_migrations.version — that schema is NOT
- *      exposed to PostgREST, so the RPC is the only door.
+ *      function executable by service_role ONLY, returning the marks in order.
  *   2. Fallback probe (DEGRADED, announced loudly via ::warning and the CI step
- *      summary): parse the newest local migration for the objects it declares
- *      (CREATE [OR REPLACE] FUNCTION / CREATE TABLE) and check them against
- *      staging — functions via PostgREST RPC existence detection (PGRST202 with
- *      no name suggestion = missing), tables via a zero-row select (42P01).
- *      Seed-only migrations are invisible to this mode; it never claims
- *      otherwise.
+ *      summary): used ONLY when the RPC itself is absent — i.e. the ledger
+ *      migration has not been applied to staging yet. Parses the newest local
+ *      migration for the objects it declares (CREATE [OR REPLACE] FUNCTION /
+ *      CREATE TABLE) and checks them against staging. Seed-only migrations are
+ *      invisible to this mode; it never claims otherwise.
  *
  * Modes:
  *   (default)  fail non-zero when staging is behind.
  *   --dry      print applied-vs-local for the operator; always exit 0.
  */
+
 import { appendFileSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -78,20 +83,26 @@ function degraded(reason: string): void {
 }
 
 /**
- * LEDGER-FIRST RULE (U1c/U1f-2): the ledger is THE mechanism — the only path
- * that detects seed-only migrations. supabase_migrations is NOT exposed to
- * PostgREST, so it is read through public.e2e_migration_ledger(), a definer
- * function executable by service_role ONLY.
+ * LEDGER-FIRST RULE (U1c/U1f-2/U1f-3): the ledger is THE mechanism — the only
+ * path that detects seed-only migrations. It is public.migration_marks, read
+ * through public.e2e_migration_ledger(), a definer function executable by
+ * service_role ONLY.
  *
- * Returns null only when the RPC is genuinely unavailable; the caller then
- * declares degraded mode loudly rather than claiming a check it never made.
+ * Returns null only when the RPC itself is unavailable (the ledger migration has
+ * not been applied to staging); the caller then declares degraded mode loudly
+ * rather than claiming a check it never made.
  */
+const LEDGER_MIGRATION = "20260817054246 (public.migration_marks + e2e_migration_ledger)";
+
 async function appliedVersionsFromLedger(client: SupabaseClient): Promise<string[] | null> {
   const { data, error } = await client.rpc("e2e_migration_ledger");
   if (error || !data) {
-    degraded(error?.message ?? "ledger RPC returned no rows");
+    degraded(
+      `${error?.message ?? "ledger RPC returned no rows"} — apply ${LEDGER_MIGRATION} to ethio-staging first`,
+    );
     return null;
   }
+
   return (data as string[]).map((v) => String(v)).sort();
 }
 
@@ -142,7 +153,7 @@ export default async function migrationPreflight(dry = false): Promise<void> {
   let mechanism: string;
 
   if (applied) {
-    mechanism = "public.e2e_migration_ledger() definer RPC (schema_migrations)";
+    mechanism = "public.e2e_migration_ledger() definer RPC (public.migration_marks)";
 
     const appliedSet = new Set(applied);
     missing = local.filter((f) => !appliedSet.has(versionOf(f)));
@@ -190,7 +201,7 @@ export default async function migrationPreflight(dry = false): Promise<void> {
   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
   if (!applied) {
     degraded(
-      "parity was proved by the object probe, not the ledger — apply the e2e_migration_ledger() migration to staging",
+      `parity was proved by the object probe, not the ledger — apply ${LEDGER_MIGRATION} to ethio-staging`,
     );
   }
 }
