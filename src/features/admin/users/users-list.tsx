@@ -1,9 +1,9 @@
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
 import { PageCard } from "@/components/shell/page-card";
 import { useI18n } from "@/i18n";
 
@@ -12,13 +12,10 @@ import { useAdminRoles, useAdminUsers, useDebounced } from "./use-admin-users";
 
 const PAGE_SIZE = 25;
 
-function StatusBadge({ status, mobile = false }: { status: string; mobile?: boolean }) {
+function StatusBadge({ status }: { status: string }) {
   const { t } = useI18n();
   return (
-    <Badge
-      data-testid={mobile ? "user-status-mobile" : "user-status"}
-      variant={status === "deactivated" ? "destructive" : "secondary"}
-    >
+    <Badge variant={status === "deactivated" ? "destructive" : "secondary"}>
       {status === "deactivated"
         ? t("admin.users.status.deactivated")
         : t("admin.users.status.active")}
@@ -26,15 +23,11 @@ function StatusBadge({ status, mobile = false }: { status: string; mobile?: bool
   );
 }
 
-function RoleChips({ roles, mobile = false }: { roles: string[]; mobile?: boolean }) {
+function RoleChips({ roles }: { roles: string[] }) {
   return (
     <span className="flex flex-wrap gap-1">
       {roles.map((role) => (
-        <Badge
-          key={role}
-          variant="outline"
-          data-testid={mobile ? `role-chip-mobile-${role}` : `role-chip-${role}`}
-        >
+        <Badge key={role} variant="outline">
           {role}
         </Badge>
       ))}
@@ -42,7 +35,11 @@ function RoleChips({ roles, mobile = false }: { roles: string[]; mobile?: boolea
   );
 }
 
-/** 360-first: cards on phones, a table from md up. */
+/**
+ * U1b — 360-first through the shared DataTable primitive (INC-075).
+ * Column priority does the responsive work; nothing here may overflow
+ * horizontally at 360 / 768 / 1280.
+ */
 export function AdminUsersList() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
@@ -63,14 +60,75 @@ export function AdminUsersList() {
   const users = data?.users ?? [];
   const total = data?.totalCount ?? 0;
   const dateFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
-    dateStyle: "medium",
+    // Short format keeps the detail column narrow (no-overflow law).
+    dateStyle: "short",
   });
 
   const selectClass =
     "h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground";
 
+  const columns: DataTableColumn<AdminUserRow>[] = [
+    {
+      key: "name",
+      header: t("admin.users.col.name"),
+      priority: "primary",
+      width: "w-[22%]",
+      cell: (user) => (
+        <span className="block truncate font-medium text-foreground" title={user.displayName}>
+          {user.displayName}
+        </span>
+      ),
+    },
+    {
+      key: "email",
+      header: t("admin.users.col.email"),
+      priority: "primary",
+      width: "w-[30%]",
+      cell: (user) => (
+        // Emails wrap at the @ rather than stretching the column.
+        <span className="block break-all text-muted-foreground" title={user.email}>
+          {user.email}
+        </span>
+      ),
+    },
+    {
+      key: "country",
+      header: t("admin.users.col.country"),
+      priority: "secondary",
+      width: "w-[10%]",
+      cell: (user) => (
+        <span className="block text-muted-foreground">{user.homeCountryCode ?? "—"}</span>
+      ),
+    },
+    {
+      key: "status",
+      header: t("admin.users.col.status"),
+      priority: "secondary",
+      width: "w-[14%]",
+      cell: (user) => <StatusBadge status={user.accountStatus} />,
+    },
+    {
+      key: "roles",
+      header: t("admin.users.col.roles"),
+      priority: "secondary",
+      width: "w-[16%]",
+      cell: (user) => <RoleChips roles={user.roles} />,
+    },
+    {
+      key: "joined",
+      header: t("admin.users.col.joined"),
+      priority: "detail",
+      width: "w-[12%]",
+      cell: (user) => (
+        <span className="block text-muted-foreground">
+          {dateFmt.format(new Date(user.createdAt))}
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <div data-testid="admin-users" className="space-y-4">
+    <div data-testid="admin-users" className="min-w-0 space-y-4">
       <PageCard className="space-y-3">
         <label className="block text-sm font-medium text-foreground" htmlFor="admin-users-search">
           {t("admin.users.searchLabel")}
@@ -133,126 +191,56 @@ export function AdminUsersList() {
         </div>
       </PageCard>
 
-      {isLoading ? (
-        <PageCard>
+      <DataTable
+        columns={columns}
+        rows={users}
+        rowKey={(user) => user.userId}
+        rowTestId={(user) => `user-row-${user.userId}`}
+        rowHref={(user) => ({
+          to: "/admin/users/$userId",
+          params: { userId: user.userId },
+        })}
+        caption={t("admin.users.title")}
+        loading={isLoading}
+        loadingState={
           <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
             {t("admin.users.loading")}
           </p>
-        </PageCard>
-      ) : error ? (
-        <PageCard data-testid="users-error">
+        }
+        error={error}
+        errorState={
           <p role="alert" className="text-sm text-destructive">
             {t("admin.users.error")}
           </p>
-        </PageCard>
-      ) : users.length === 0 ? (
-        <PageCard data-testid="users-empty">
-          <p className="text-sm text-muted-foreground">{t("admin.users.empty")}</p>
-        </PageCard>
-      ) : (
-        <PageCard className="p-0">
-          {/* 360: stacked cards */}
-          <ul className="divide-y divide-border md:hidden">
-            {users.map((user) => (
-              <li key={user.userId} className="p-4">
-                <UserRowLink user={user} dateLabel={dateFmt.format(new Date(user.createdAt))} />
-              </li>
-            ))}
-          </ul>
-
-          {/* md+: table */}
-          <table className="hidden w-full text-start text-sm md:table">
-            <thead className="border-b border-border text-muted-foreground">
-              <tr>
-                <th className="p-3 text-start font-medium">{t("admin.users.col.name")}</th>
-                <th className="p-3 text-start font-medium">{t("admin.users.col.email")}</th>
-                <th className="p-3 text-start font-medium">{t("admin.users.col.country")}</th>
-                <th className="p-3 text-start font-medium">{t("admin.users.col.status")}</th>
-                <th className="p-3 text-start font-medium">{t("admin.users.col.roles")}</th>
-                <th className="p-3 text-start font-medium">{t("admin.users.col.joined")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr
-                  key={user.userId}
-                  data-testid={`user-row-${user.userId}`}
-                  className="border-b border-border last:border-0"
-                >
-                  <td className="p-3">
-                    <Link
-                      to="/admin/users/$userId"
-                      params={{ userId: user.userId }}
-                      className="font-medium text-foreground underline underline-offset-4"
-                    >
-                      {user.displayName}
-                    </Link>
-                  </td>
-                  <td className="p-3 text-muted-foreground">{user.email}</td>
-                  <td className="p-3 text-muted-foreground">{user.homeCountryCode ?? "—"}</td>
-                  <td className="p-3">
-                    <StatusBadge status={user.accountStatus} />
-                  </td>
-                  <td className="p-3">
-                    <RoleChips roles={user.roles} />
-                  </td>
-                  <td className="p-3 text-muted-foreground">
-                    {dateFmt.format(new Date(user.createdAt))}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </PageCard>
-      )}
-
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground" data-testid="users-total">
-          {t("admin.users.total").replace("{n}", String(total))}
-        </p>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="min-h-11"
-            disabled={page === 0}
-            onClick={() => setPage((p) => Math.max(p - 1, 0))}
-          >
-            {t("admin.users.prev")}
-          </Button>
-          <Button
-            variant="outline"
-            className="min-h-11"
-            disabled={(page + 1) * PAGE_SIZE >= total}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            {t("admin.users.next")}
-          </Button>
-        </div>
-      </div>
+        }
+        emptyState={<p className="text-sm text-muted-foreground">{t("admin.users.empty")}</p>}
+        pagination={
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground" data-testid="users-total">
+              {t("admin.users.total").replace("{n}", String(total))}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="min-h-11"
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(p - 1, 0))}
+              >
+                {t("admin.users.prev")}
+              </Button>
+              <Button
+                variant="outline"
+                className="min-h-11"
+                disabled={(page + 1) * PAGE_SIZE >= total}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                {t("admin.users.next")}
+              </Button>
+            </div>
+          </div>
+        }
+      />
     </div>
-  );
-}
-
-function UserRowLink({ user, dateLabel }: { user: AdminUserRow; dateLabel: string }) {
-  const { t } = useI18n();
-  return (
-    <Link
-      to="/admin/users/$userId"
-      params={{ userId: user.userId }}
-      data-testid={`user-card-${user.userId}`}
-      className="block min-h-11 space-y-1"
-    >
-      <span className="flex flex-wrap items-center gap-2">
-        <span className="font-medium text-foreground">{user.displayName}</span>
-        <StatusBadge status={user.accountStatus} mobile />
-      </span>
-      <span className="block text-sm text-muted-foreground">{user.email}</span>
-      <span className="block text-xs text-muted-foreground">
-        {(user.homeCountryCode ?? "—") + " · " + dateLabel}
-      </span>
-      <RoleChips roles={user.roles} mobile />
-      <span className="sr-only">{t("admin.users.openDetail")}</span>
-    </Link>
   );
 }
 

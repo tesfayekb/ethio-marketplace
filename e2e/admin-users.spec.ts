@@ -37,11 +37,12 @@ async function grantRole(userId: string, roleName: string) {
 }
 
 /**
- * INC-074 — the list renders responsive twins (mobile card + desktop row) with
- * distinct testids; pick the one this viewport actually shows.
+ * INC-074/INC-075 — the shared DataTable renders responsive twins with distinct
+ * testids: `user-row-<id>` (md+ table row) and `user-row-<id>-card` (360 card).
+ * Pick the one this viewport actually shows.
  */
 function userRow(page: Page, userId: string) {
-  return page.getByTestId(isMobile(page) ? `user-card-${userId}` : `user-row-${userId}`);
+  return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
 }
 
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {

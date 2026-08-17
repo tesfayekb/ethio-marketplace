@@ -305,3 +305,43 @@ across tabs. Expiry runs the same hard reset and shows a translated notice.
 
 This is UX enforcement only; the authoritative bound is the Supabase Auth
 refresh-token / session configuration (operator item). Law F3 is unchanged.
+
+## The table law (U1b, INC-075)
+
+`src/components/shell/data-table.tsx` is the ONE list primitive for every admin
+section. It is co-located with `page-card.tsx` because a DataTable renders
+inside a `PageCard` and shares its shell-law status.
+
+API as landed:
+
+```tsx
+<DataTable
+  columns={[{ key, header, cell, priority, align?, width?, sortable? }]}
+  rows rowKey rowTestId rowHref?
+  caption emptyState loading loadingState error errorState
+  pagination sortKey? sortDirection? onSort?
+/>
+```
+
+`priority` drives responsiveness — never scrolling:
+
+- `primary` — always rendered (360 cards and the md+ table);
+- `secondary` — rendered in the card body and the md table;
+- `detail` — hidden at 360 (reachable through the row link), shown in the
+  table only from `lg`.
+
+NO-HORIZONTAL-OVERFLOW LAW: no admin page may scroll horizontally at 360, 768
+or 1280, and the DataTable container may not carry an inner horizontal scroll
+at 1280 either. `e2e/shell-table-law.spec.ts` ("admin tables never overflow
+horizontally") asserts this on `/admin/users` in both projects. Long text
+truncates with a `title` tooltip, emails break, dates use the short format and
+chips wrap; the `overflow-x-auto` on the table wrapper is a last resort for
+data wider than any layout, not a design tool.
+
+Testids: container `data-table`, card list `data-table-cards`, header cell
+`data-table-col-<key>`, table row `rowTestId(row)`, card
+`${rowTestId(row)}-card`, plus `data-table-loading` / `data-table-error` /
+`data-table-empty` for the three non-row states.
+
+CLASS RULE: every admin list uses DataTable. A hand-rolled table plus a
+parallel card list is the INC-075 defect.
