@@ -38,3 +38,6 @@ $$;
 
 REVOKE ALL ON FUNCTION public.e2e_migration_ledger() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.e2e_migration_ledger() TO service_role;
+
+-- Self-mark (last statement, per the self-marking law).
+INSERT INTO public.migration_marks(version) VALUES ('20260817054246') ON CONFLICT DO NOTHING;
