@@ -260,3 +260,19 @@ Every parallel test process derives
 
 **Law:** parallel test processes own their fixtures by process id; namespace-wide
 sweeps run only in single-process jobs.
+
+## Flake class: transient UI-open timing (2026-08-17)
+
+Two isolated mobile reds (SO-2 smoke, SO-4 shard 1) failed at
+`getByRole('dialog')` not visible while the same helper passed 245× in the same
+run: the hamburger click landed before the drawer opened under parallel-runner
+load. Flake class: transient UI-open timing under parallel runners → helpers own
+a bounded retry; assertions never get looser timeouts as a substitute.
+
+`openRailScope` (e2e/helpers/ui.ts) is the ONE drawer-open contract:
+hydration + `toBeEnabled` gate, click, 3s visibility poll, then at most ONE
+retry (only from a genuinely closed state, logging `[e2e] drawer open retried`
+so retries are countable in the log tail), and it returns only once the drawer's
+`panel-header-title` has settled. Callers that opened the drawer themselves
+(`signOutViaUi`, `auth-signout.spec.ts` SO-4, `category-nav.spec.ts`) all route
+through it.

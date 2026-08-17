@@ -167,7 +167,6 @@ export async function openRailScope(page: Page) {
   return rail;
 }
 
-
 /**
  * THE ONE sign-out path for the suite (U0k). ONE CLICK: the affordance itself
  * performs the hard reset — there is no confirmation dialog any more. Resolves
