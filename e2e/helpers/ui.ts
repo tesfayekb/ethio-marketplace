@@ -269,4 +269,3 @@ export async function switchUser(page: Page, email: string, password: string) {
   }
   await signIn(page, email, password);
 }
-
