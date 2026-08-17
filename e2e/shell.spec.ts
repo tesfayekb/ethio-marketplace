@@ -6,6 +6,7 @@ import {
   expectSignedIn,
   gotoReady,
   signIn,
+  switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
@@ -1012,8 +1013,7 @@ test.describe("rail scroll regions (U0f)", () => {
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
 
-    await page.getByTestId("language-switcher").click();
-    await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
+    await switchLanguage(page, "am");
     await expect(page.getByTestId("language-switcher-full")).toHaveText(en["language.amharic"]);
 
     const signOut = page.getByTestId("rail-sign-out");

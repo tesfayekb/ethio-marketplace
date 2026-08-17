@@ -353,3 +353,20 @@ export async function expectAal2(page: Page) {
   }
   expect(level, "the session did not reach aal2").toBe("aal2");
 }
+
+/**
+ * U1g-4 (B) — THE ONE language-switching interaction for the whole suite.
+ *
+ * Census: <LanguageSwitcher> renders a dropdown trigger (`language-switcher`)
+ * whose label lives in `language-switcher-short` (below md) or
+ * `language-switcher-full` (md and up); each menu item now carries
+ * `language-option-<code>`. Anchoring on that testid removes the accessible-name
+ * drift (both catalogs spell the endonym "አማርኛ", and the item also contains a
+ * tick icon), which is what broke the footer/Sign-out test.
+ */
+export async function switchLanguage(page: Page, code: "en" | "am") {
+  await waitForHydration(page);
+  await page.getByTestId("language-switcher").click();
+  await page.getByTestId(`language-option-${code}`).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
+}
