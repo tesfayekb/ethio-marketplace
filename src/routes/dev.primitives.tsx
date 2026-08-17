@@ -2,7 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { ChartFrame } from "@/components/shell/chart-frame";
-import { DataTable, DataTablePagination, type DataTableColumn } from "@/components/shell/data-table";
+import {
+  DataTable,
+  DataTablePagination,
+  type DataTableColumn,
+} from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
 import { FormField, FormSection } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
@@ -112,11 +116,18 @@ const PAIRS = [
   { label: "Email", value: LONG_EMAIL },
   { label: "Home country", value: "ET" },
   { label: "Account status", value: <Badge variant="secondary">{"active"}</Badge> },
-  { label: "Roles", value: <span className="flex flex-wrap gap-1">{CHIPS.slice(0, 8).map((chip) => (
-        <Badge key={chip} variant="outline">
-          {chip}
-        </Badge>
-      ))}</span> },
+  {
+    label: "Roles",
+    value: (
+      <span className="flex flex-wrap gap-1">
+        {CHIPS.slice(0, 8).map((chip) => (
+          <Badge key={chip} variant="outline">
+            {chip}
+          </Badge>
+        ))}
+      </span>
+    ),
+  },
   { label: "Notes", value: LONG_VALUE },
   { label: "Joined", value: "2026-01-01", hint: "UTC" },
   { label: "Last sign-in", value: "2026-08-16", hint: "UTC" },

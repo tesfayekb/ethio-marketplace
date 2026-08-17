@@ -34,7 +34,10 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div data-testid={testid} className={cn("min-w-0 space-y-1", full && "md:col-span-2")}>
-      <label className="block min-w-0 break-words text-sm font-medium text-foreground" htmlFor={htmlFor}>
+      <label
+        className="block min-w-0 break-words text-sm font-medium text-foreground"
+        htmlFor={htmlFor}
+      >
         {label}
       </label>
       {children}
@@ -78,7 +81,10 @@ export function FormSection({
 
       <div
         data-testid={`${testid}-fields`}
-        className={cn("grid min-w-0 gap-4", columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}
+        className={cn(
+          "grid min-w-0 gap-4",
+          columns === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1",
+        )}
       >
         {children}
       </div>

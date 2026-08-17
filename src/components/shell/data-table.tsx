@@ -117,10 +117,7 @@ export function DataTablePagination({
   const from = total === 0 ? 0 : offset + 1;
   const to = Math.min(offset + pageSize, total);
   return (
-    <div
-      data-testid={testid}
-      className="flex min-w-0 flex-wrap items-center justify-between gap-3"
-    >
+    <div data-testid={testid} className="flex min-w-0 flex-wrap items-center justify-between gap-3">
       <span data-testid={`${testid}-range`} className="text-sm tabular-nums text-muted-foreground">
         {`${from}–${to} ${t("prim.table.of")} ${total}`}
       </span>
@@ -349,7 +346,10 @@ export function DataTable<T>({
                       </td>
                     ) : null}
                     {columns.map((column) => (
-                      <td key={column.key} className={cellClass(column as DataTableColumn<unknown>)}>
+                      <td
+                        key={column.key}
+                        className={cellClass(column as DataTableColumn<unknown>)}
+                      >
                         <span className="block min-w-0 break-words">{column.cell(row)}</span>
                       </td>
                     ))}

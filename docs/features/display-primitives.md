@@ -9,15 +9,15 @@ Cross-cutting rules for every primitive: dark mode through design tokens only; l
 - Fixture route: `/dev/primitives` (also `?state=empty|loading|error`) — production-safe, noindex, no data access, no writes. Every block carries `data-testid="prim-<name>"`.
 - Law suite: `e2e/primitives-law.spec.ts`, describe `display primitives law (test-once responsiveness)`, at 360×800, 768×1024 and 1280×800.
 
-| Law | Assertion |
-| --- | --- |
-| L1 | `document.scrollingElement.scrollWidth <= innerWidth` at every viewport |
-| L2 | every `prim-*` container and `data-table` satisfies `scrollWidth <= clientWidth + 1` (the declared last-resort scroller must stay inactive on fixture data) |
-| L3 | DataTable: cards at 360, table at 768+, `detail` columns only at 1280 |
-| L4 | StatGrid tiles occupy 2 / 3 / 4 columns by viewport (measured tile x positions) |
-| L5 | FormSection actions bar `position: sticky` at 360, `static` from md |
-| L6 | DetailPanel long value fully visible (`scrollHeight == clientHeight`, text present) |
-| L7 | empty / loading / error states render on demand via the `?state=` toggle |
+| Law | Assertion                                                                                                                                                   |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L1  | `document.scrollingElement.scrollWidth <= innerWidth` at every viewport                                                                                     |
+| L2  | every `prim-*` container and `data-table` satisfies `scrollWidth <= clientWidth + 1` (the declared last-resort scroller must stay inactive on fixture data) |
+| L3  | DataTable: cards at 360, table at 768+, `detail` columns only at 1280                                                                                       |
+| L4  | StatGrid tiles occupy 2 / 3 / 4 columns by viewport (measured tile x positions)                                                                             |
+| L5  | FormSection actions bar `position: sticky` at 360, `static` from md                                                                                         |
+| L6  | DetailPanel long value fully visible (`scrollHeight == clientHeight`, text present)                                                                         |
+| L7  | empty / loading / error states render on demand via the `?state=` toggle                                                                                    |
 
 ## PageCard (`src/components/shell/page-card.tsx`, U0l)
 

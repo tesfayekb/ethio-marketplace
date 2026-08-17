@@ -65,7 +65,10 @@ export function ChartFrame({
   const height = Math.max(120, Math.round(width * RATIO[aspect]));
 
   const legendBlock = legendContent ? (
-    <div data-testid={`${testid}-legend`} className="flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-xs">
+    <div
+      data-testid={`${testid}-legend`}
+      className="flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-xs"
+    >
       {legendContent}
     </div>
   ) : null;
