@@ -34,7 +34,10 @@ function invalidCode(message: string | undefined): boolean {
 }
 
 function failure(message: string | undefined): { ok: false; errorKey: MessageKey } {
-  return { ok: false, errorKey: invalidCode(message) ? "mfa.errorInvalidCode" : "mfa.errorGeneric" };
+  return {
+    ok: false,
+    errorKey: invalidCode(message) ? "mfa.errorInvalidCode" : "mfa.errorGeneric",
+  };
 }
 
 /** PostgREST surfaces the server gate's RAISE as this message (SQLSTATE P0009). */

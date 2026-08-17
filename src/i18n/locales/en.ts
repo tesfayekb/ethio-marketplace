@@ -340,12 +340,15 @@ export const en = {
   "mfa.errorInvalidCode": "That code isn't right. Enter the current code from your app.",
   "mfa.errorNoFactor": "No authenticator app is set up on this account.",
   "mfa.stepUpTitle": "Two-factor verification required",
-  "mfa.stepUpBody": "This action requires two-factor verification. Enter the current code from your authenticator app.",
+  "mfa.stepUpBody":
+    "This action requires two-factor verification. Enter the current code from your authenticator app.",
   "mfa.stepUpConfirm": "Verify and continue",
   "mfa.stepUpNoFactorTitle": "Set up two-factor authentication first",
-  "mfa.stepUpNoFactorBody": "This action requires two-factor verification, and this account has no authenticator app yet.",
+  "mfa.stepUpNoFactorBody":
+    "This action requires two-factor verification, and this account has no authenticator app yet.",
   "mfa.stepUpGoToSettings": "Go to settings",
-  "mfa.stepUpFreshSignIn": "A new sign-in always starts unverified, so sensitive actions ask for a code again.",
+  "mfa.stepUpFreshSignIn":
+    "A new sign-in always starts unverified, so sensitive actions ask for a code again.",
   "common.save": "Save",
 } as const;
 
