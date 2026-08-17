@@ -214,8 +214,10 @@ export async function updateProfile(input: UpdateProfileInput): Promise<void> {
   const { error } = await supabase.rpc("admin_update_profile", {
     p_user_id: input.userId,
     p_display_name: input.displayName,
-    p_seller_alias: input.sellerAlias,
-    p_home_country_code: input.homeCountryCode,
+    // The generated signature models the DEFAULT NULL params as optional:
+    // "not sent" and "sent as null" are the same thing to the function.
+    p_seller_alias: input.sellerAlias ?? undefined,
+    p_home_country_code: input.homeCountryCode ?? undefined,
   });
   if (error) throw error;
 }
