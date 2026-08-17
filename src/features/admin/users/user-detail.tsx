@@ -119,7 +119,12 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
           </p>
         ) : null}
 
-        {mayUpdate ? (
+        {isOwnAccount ? (
+          <p data-testid="own-account-note" className="text-sm text-muted-foreground">
+            {t("admin.users.status.ownAccount")}
+          </p>
+        ) : mayUpdate ? (
+
           <div className="space-y-2">
             {!deactivated ? (
               <>
