@@ -112,13 +112,7 @@ export function ChartFrame({
         ) : null}
       </div>
       {legend === "top" ? legendBlock : null}
-      {loading || error || empty ? (
-        body
-      ) : (
-        <div ref={undefined} className="min-w-0">
-          {body}
-        </div>
-      )}
+      <div className="min-w-0">{body}</div>
       {legend === "bottom" ? legendBlock : null}
     </PageCard>
   );
