@@ -102,7 +102,6 @@ STAGING BEHIND: apply <filename> to ethio-staging before E2E can pass
 followed by every missing file. `bun scripts/e2e-migration-preflight.ts --dry`
 prints applied-vs-local for the operator and always exits 0.
 
-
 ## E2E failure reporter (U1e, 2026-08-17)
 
 Playwright's CI reporter list now includes `["json", { outputFile:
