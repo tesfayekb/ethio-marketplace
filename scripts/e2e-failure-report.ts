@@ -79,8 +79,45 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
   };
 }
 
-export function render(json: PwJson, meta: { runId: string; runUrl: string; sha: string }): string {
-  const { failures, passed, skipped } = collect(json);
+/**
+ * One CI job that produced (or failed to produce) test results. INC-081: the
+ * merged report must name WHICH job a failure came from, and must quote a red
+ * job that produced no results at all instead of silently counting it as zero.
+ */
+export type Source = {
+  /** Human label: "smoke" or "shard 3". */
+  label: string;
+  json: PwJson | null;
+  /** Last lines of the job log, already redacted, when results are missing. */
+  logTail: string | null;
+};
+
+/** `e2e-results-smoke` → `smoke`; `e2e-results-3` → `shard 3`. */
+export function sourceLabel(artifactDir: string): string {
+  const id = artifactDir.replace(/^e2e-results-/, "");
+  return /^\d+$/.test(id) ? `shard ${id}` : id;
+}
+
+export function renderSources(
+  sources: Source[],
+  meta: { runId: string; runUrl: string; sha: string },
+): string {
+  let passed = 0;
+  let skipped = 0;
+  const failures: (Failure & { source: string })[] = [];
+  const silent: Source[] = [];
+
+  for (const source of sources) {
+    if (!source.json) {
+      silent.push(source);
+      continue;
+    }
+    const collected = collect(source.json);
+    passed += collected.passed;
+    skipped += collected.skipped;
+    for (const f of collected.failures) failures.push({ ...f, source: source.label });
+  }
+
   const lines = [
     "# Last E2E failure (auto-generated — do not edit by hand)",
     "",
@@ -88,10 +125,11 @@ export function render(json: PwJson, meta: { runId: string; runUrl: string; sha:
     `- Commit: \`${meta.sha}\``,
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
+    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.label).join(", ")}`,
     "",
   ];
 
-  if (failures.length === 0) {
+  if (failures.length === 0 && silent.length === 0) {
     lines.push("No failed tests were recorded in the JSON reporter output.", "");
     return lines.join("\n");
   }
@@ -100,6 +138,7 @@ export function render(json: PwJson, meta: { runId: string; runUrl: string; sha:
     lines.push(
       `## ${f.title}`,
       "",
+      `- Source: \`${f.source}\``,
       `- Project: \`${f.project}\``,
       `- Failed step: ${f.step ? `\`${f.step}\`` : "(none recorded)"}`,
       "",
@@ -110,7 +149,25 @@ export function render(json: PwJson, meta: { runId: string; runUrl: string; sha:
     );
   }
 
+  // Law F4: a red job that wrote no results is quoted, never counted as zero.
+  for (const s of silent) {
+    lines.push(
+      `## ${s.label}: no results file`,
+      "",
+      `${s.label}: no results file — the process failed outside test results (setup/teardown/preflight).`,
+      "",
+      "```text",
+      s.logTail ?? "(no log tail was uploaded for this source)",
+      "```",
+      "",
+    );
+  }
+
   return lines.join("\n");
+}
+
+export function render(json: PwJson, meta: { runId: string; runUrl: string; sha: string }): string {
+  return renderSources([{ label: "all", json, logTail: null }], meta);
 }
 
 export function renderGreen(meta: { runId: string; runUrl: string; sha: string }): string {
@@ -126,6 +183,14 @@ export function renderGreen(meta: { runId: string; runUrl: string; sha: string }
   ].join("\n");
 }
 
+/** Last `count` lines of a job log, redacted. */
+async function logTail(path: string, count = 40): Promise<string | null> {
+  const file = Bun.file(path);
+  if (!(await file.exists())) return null;
+  const text = redact(await file.text());
+  return text.split("\n").slice(-count).join("\n").trim() || null;
+}
+
 async function main() {
   const meta = {
     runId: process.env["GITHUB_RUN_ID"] ?? "local",
@@ -135,23 +200,36 @@ async function main() {
 
   if (process.env["SELF_TEST"] === "1") {
     const fixture = (await Bun.file(FIXTURE).json()) as PwJson;
-    const out = render(fixture, { runId: "self-test", runUrl: "", sha: "self-test" });
+    const out = renderSources(
+      [
+        { label: "shard 2", json: fixture, logTail: null },
+        { label: "smoke", json: null, logTail: "Error: browserType.launch failed\nexit code 1" },
+      ],
+      { runId: "self-test", runUrl: "", sha: "self-test" },
+    );
     const required = [
       "SO-2 settings: confirmed sign-out empties the gated surface",
       "AU-3 admin can deactivate a user",
       "waitForURL(/\\/$/)",
       "expect.toBeVisible",
+      "- Source: `shard 2`",
+      "smoke: no results file — the process failed outside test results (setup/teardown/preflight).",
+      "browserType.launch failed",
     ];
     const missing = required.filter((needle) => !out.includes(needle));
     if (missing.length > 0) {
       console.error("SELF-TEST FAILED — missing from rendered report:", missing);
       process.exit(1);
     }
+    if (sourceLabel("e2e-results-3") !== "shard 3" || sourceLabel("e2e-results-smoke") !== "smoke") {
+      console.error("SELF-TEST FAILED — source labelling is wrong.");
+      process.exit(1);
+    }
     if (out.includes("eyJhbGciOi") || /sb-[a-z]+-auth-token/.test(out)) {
       console.error("SELF-TEST FAILED — secret-shaped text survived redaction.");
       process.exit(1);
     }
-    console.log("Self-test OK: both failures, their steps, and redaction verified.");
+    console.log("Self-test OK: failures, steps, source labels, crash quoting and redaction verified.");
     return;
   }
 
@@ -161,53 +239,42 @@ async function main() {
     return;
   }
 
-  // SHARDED RUNS: each shard uploads its own results.json, so the reporter
-  // reads EVERY shard and sums them. Merge mechanism is JSON concatenation
-  // (suites appended, stats summed) — the failure list must be complete, not
-  // the first red shard's.
+  // SHARDED RUNS: every source (smoke tier + four shards) uploads its own
+  // results.json, so the reporter reads them ALL, labels each failure with its
+  // source, and quotes the log tail of any source that produced no results.
   const dir = process.env["E2E_RESULTS_DIR"];
-  const paths: string[] = [];
-  if (dir) {
-    const glob = new Bun.Glob("**/*.json");
-    for await (const rel of glob.scan({ cwd: dir })) paths.push(`${dir}/${rel}`);
-    paths.sort();
-  } else {
-    paths.push(process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json");
-  }
+  const logsDir = process.env["E2E_LOGS_DIR"];
+  const expected = (process.env["E2E_EXPECTED_SOURCES"] ?? "smoke,1,2,3,4")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-  const merged: PwJson = { suites: [], stats: { expected: 0, skipped: 0 } };
+  const sources: Source[] = [];
   let found = 0;
-  for (const path of paths) {
+
+  if (dir) {
+    for (const id of expected) {
+      const path = `${dir}/e2e-results-${id}/results.json`;
+      const file = Bun.file(path);
+      const json = (await file.exists()) ? ((await file.json()) as PwJson) : null;
+      if (json) found += 1;
+      sources.push({
+        label: sourceLabel(`e2e-results-${id}`),
+        json,
+        logTail: json ? null : logsDir ? await logTail(`${logsDir}/e2e-log-${id}/${id}.log`) : null,
+      });
+    }
+  } else {
+    const path = process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json";
     const file = Bun.file(path);
-    if (!(await file.exists())) continue;
-    const json = (await file.json()) as PwJson;
-    merged.suites!.push(...(json.suites ?? []));
-    merged.stats!.expected = (merged.stats!.expected ?? 0) + (json.stats?.expected ?? 0);
-    merged.stats!.skipped = (merged.stats!.skipped ?? 0) + (json.stats?.skipped ?? 0);
-    found += 1;
+    const json = (await file.exists()) ? ((await file.json()) as PwJson) : null;
+    if (json) found += 1;
+    sources.push({ label: "all", json, logTail: null });
   }
 
-  if (found === 0) {
-    // Law F4: a missing results file is reported as itself, never as "green".
-    await Bun.write(
-      OUT,
-      [
-        "# Last E2E failure (auto-generated — do not edit by hand)",
-        "",
-        `- Run: ${meta.runUrl || meta.runId}`,
-        `- Commit: \`${meta.sha}\``,
-        "",
-        `No JSON reporter output was found at \`${dir ?? paths[0]}\`; the E2E job failed`,
-        "before Playwright wrote results (setup, build, or preflight).",
-        "",
-      ].join("\n"),
-    );
-    console.log(`Wrote ${OUT} (no results file).`);
-    return;
-  }
-
-  await Bun.write(OUT, render(merged, meta));
-  console.log(`Wrote ${OUT} (merged ${found} shard result file(s)).`);
+  await Bun.write(OUT, renderSources(sources, meta));
+  console.log(`Wrote ${OUT} (${found}/${sources.length} source result file(s) found).`);
 }
 
 if (import.meta.main) await main();
+
