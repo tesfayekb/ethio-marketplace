@@ -58,7 +58,12 @@ export function LanguageSwitcher({ className }: { className?: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {SUPPORTED_LANGUAGES.map((code: Language) => (
-          <DropdownMenuItem key={code} lang={code} onSelect={() => setLanguage(code)}>
+          <DropdownMenuItem
+            key={code}
+            lang={code}
+            data-testid={`language-option-${code}`}
+            onSelect={() => setLanguage(code)}
+          >
             <Check
               aria-hidden="true"
               className={cn("me-2 h-4 w-4", code === language ? "opacity-100" : "opacity-0")}
