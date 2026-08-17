@@ -29,6 +29,9 @@ export type StepUpMode = "closed" | "code" | "no-factor";
 
 type PendingAction = () => void | Promise<void>;
 
+/** The gate callback handed to children of <StepUpGate>. */
+export type GuardFn = (action: PendingAction) => Promise<void>;
+
 export function useStepUp() {
   const [mode, setMode] = useState<StepUpMode>("closed");
   const [busy, setBusy] = useState(false);

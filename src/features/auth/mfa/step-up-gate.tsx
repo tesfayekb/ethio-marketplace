@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n";
 
-import { useStepUp } from "./use-step-up";
+import { useStepUp, type GuardFn } from "./use-step-up";
 
 /**
  * U1f — STEP-UP GATE (INC-079).
@@ -16,8 +16,6 @@ import { useStepUp } from "./use-step-up";
  * 360-first (full-width controls, ≥44px targets) and RTL-safe (logical
  * spacing only).
  */
-type GuardFn = (action: () => void | Promise<void>) => Promise<void>;
-
 export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNode }) {
   const { t } = useI18n();
   const { mode, busy, errorKey, guard, submitCode, close } = useStepUp();
