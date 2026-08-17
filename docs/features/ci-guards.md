@@ -89,3 +89,48 @@ STAGING BEHIND: apply <filename> to ethio-staging before E2E can pass
 
 followed by every missing file. `bun scripts/e2e-migration-preflight.ts --dry`
 prints applied-vs-local for the operator and always exits 0.
+
+## E2E failure reporter (U1e, 2026-08-17)
+
+Playwright's CI reporter list now includes `["json", { outputFile:
+"test-results/results.json" }]` alongside `html` and `list`.
+`scripts/e2e-failure-report.ts` reads that file and writes
+`docs/tracking/e2e-last-failure.md`:
+
+- run id/url, commit, write timestamp, passed/skipped/failed counts;
+- per FAILED test: project · full title · innermost failed step ·
+  ANSI-stripped error message truncated to 40 lines.
+
+Redaction is unconditional (law F1): anything matching `sb-*-auth-token` or a
+JWT-shaped triple is replaced before it reaches the file. `SELF_TEST=1 bun
+scripts/e2e-failure-report.ts` renders `scripts/fixtures/e2e-results-sample.json`
+(two failures) and exits non-zero unless both titles, both step names and the
+redactions are present — a reporter that only ever prints "no failures" proves
+nothing.
+
+CI wiring (`.github/workflows/ci.yml`, job `e2e`): on `failure()` the self-test
+runs, then the report; on `success()` the same file is rewritten with
+`last E2E run <id> passed`, so the file ALWAYS reflects the latest run. Both
+paths commit through the regenerate-after-fetch retry loop copied from
+`ci-status-report.yml` (message `ci: e2e failure report [skip ci]`); a failed
+push is a `::warning`, never a red. The supervisor now reads E2E evidence by
+clone — the artifact courier model is retired.
+
+## No-unexplained-deletions guard (INC-076, ratified 2026-08-17)
+
+`scripts/check-deletions.sh` lists files deleted between the previous main SHA
+(`github.event.before`, falling back to `HEAD^` when missing or all-zero) and
+`HEAD`. If any file was deleted, some commit message in the range must contain
+`[intentional-delete]`; otherwise the step fails and prints every removed path.
+This is the CI half of INC-076's class rule: a stale-checkout push that erases
+work can no longer be green.
+
+`docs/tracking/*.md` reporters need no exemption: they REGENERATE their files
+(modification), never delete them, so a deletion there is a genuine finding.
+
+Self-test (`SELF_TEST=1 bash scripts/check-deletions.sh`) builds a synthetic
+repo with git plumbing and proves all three directions: undeclared deletion
+fails, declared deletion passes, addition-only range passes. CI runs the
+self-test and then the guard in the step "No unexplained deletions (with
+self-test)", first in `build-and-check` (which now checks out with
+`fetch-depth: 0` so the previous SHA is present).
