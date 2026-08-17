@@ -156,3 +156,4 @@
 - 2026-08-17 — fix(e2e): expectAal2 reads data.currentLevel; fix(auth): auth-derived query root + cancel-then-remove purge (SO-4 after U1g; INC-078 addendum)
 - 2026-08-17 — fix(shell): neutral query-keys module (browse-path guard green); no permissions query registered when signed out (SO-4 purge assertion); header settles to Sign in after reset
 - 2026-08-17 — fix(auth): hard reset unmounts the permissions loader before purge + gcTime 0 (SO-4 strict assertion); test(e2e): shared switchLanguage helper (selector drift)
+- 2026-08-17 — ci: E2E sharded ×4 + merged report, cancel superseded runs, @smoke fail-fast tier, cache checks (≈11 min → ≈3–4 min); test(e2e): smoke re-anchored to Amharic labels

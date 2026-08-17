@@ -64,15 +64,23 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
   //    literal. The shell has exactly ONE language affordance (the top-bar
   //    switcher); its trigger carries the CURRENT language, and the target
   //    language is chosen from its menu.
+  //
+  //    LABELS ARE LOCALE-DEPENDENT AFTER switchLanguage — NEVER HARDCODE
+  //    ENGLISH POST-SWITCH. Every selector below resolves its label from
+  //    am[...], or (preferred) from a stable testid that no locale can move.
   await switchLanguage(page, "am");
 
-  // Sign-out is still reachable, now under the Amharic account-menu label.
+  // Sign-out is still reachable; the menu item is addressed by testid, and the
+  // account-menu trigger by its Amharic accessible name.
   await openAccountMenu(page, am["shell.accountMenu"]);
-  await expect(page.getByRole("menuitem", { name: am["auth.signOut"] })).toBeVisible();
+  await expect(page.getByTestId("account-menu-sign-out")).toBeVisible();
+  await expect(page.getByTestId("account-menu-sign-out")).toHaveText(
+    new RegExp(am["auth.signOut"]),
+  );
   await page.keyboard.press("Escape");
   await expectNoHorizontalOverflow(page);
 
-  // 6. Sign out returns the header to the signed-out state.
+  // 6. Sign out returns the header to the signed-out state (Amharic labels).
   await signOutViaUi(page, { signIn: am["auth.signIn"] });
   await expect(page.getByRole("link", { name: am["auth.signIn"] })).toBeVisible();
 });

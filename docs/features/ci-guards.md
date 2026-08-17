@@ -177,3 +177,40 @@ written, so both environments start complete the moment it runs.
 The preflight's degraded mode now has exactly one cause: the ledger RPC is absent
 (the ledger migration has not been applied to staging). The warning names that
 migration.
+
+## E2E sharding, cancellation, and the smoke tier (2026-08-17)
+
+The E2E stage is four jobs instead of one:
+
+```text
+e2e-preflight  →  e2e-smoke   ┐
+               →  e2e-shard 1..4 (fail-fast: false)  ┘ → e2e ("E2E (Playwright, ethio-staging)")
+```
+
+- `e2e-preflight` runs the migration-parity probe ONCE (INC-074) so four
+  runners cannot each pay for it.
+- `e2e-smoke` runs the smoke, shell-gate and sign-out specs (a file list, not a
+  title grep — tagging those specs would edit files outside the task that
+  introduced this tier). It fails fast in ~1–2 min; the shards run regardless.
+- `e2e-shard N/4` runs `playwright test --shard=N/4` and uploads its JSON
+  reporter output as `e2e-results-N`, pass or fail.
+- `e2e` downloads all shard artifacts and MERGES them by JSON concatenation
+  (suites appended, `stats.expected`/`stats.skipped` summed) via
+  `E2E_RESULTS_DIR` in `scripts/e2e-failure-report.ts`, so the published
+  `docs/tracking/e2e-last-failure.md` lists EVERY shard's failures — not the
+  first red shard's. It keeps the historical job name, so the status reporter's
+  table row and every downstream read are unchanged. Its own conclusion is the
+  E2E verdict: red if any shard or the smoke tier was not `success`.
+
+Caches: the Playwright browser cache is keyed on `runner.os` + the resolved
+`@playwright/test` version; bun's install cache is keyed on `bun.lock`. Both
+jobs echo `cache-hit` so a silently-missing cache is visible in the log rather
+than inferred from a slow run.
+
+### G18 — cancel superseded runs
+
+`concurrency: { group: ci-<ref>, cancel-in-progress: true }` at the top of
+`ci.yml`. The platform pushes several commits per task; without it, an older
+HEAD's run can finish after a newer one and overwrite the status file. With it,
+the only surviving run is the newest push's, so `docs/tracking/ci-status.md`
+and `e2e-last-failure.md` always describe HEAD.

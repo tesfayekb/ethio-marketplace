@@ -161,9 +161,33 @@ async function main() {
     return;
   }
 
-  const resultsPath = process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json";
-  const file = Bun.file(resultsPath);
-  if (!(await file.exists())) {
+  // SHARDED RUNS: each shard uploads its own results.json, so the reporter
+  // reads EVERY shard and sums them. Merge mechanism is JSON concatenation
+  // (suites appended, stats summed) — the failure list must be complete, not
+  // the first red shard's.
+  const dir = process.env["E2E_RESULTS_DIR"];
+  const paths: string[] = [];
+  if (dir) {
+    const glob = new Bun.Glob("**/*.json");
+    for await (const rel of glob.scan({ cwd: dir })) paths.push(`${dir}/${rel}`);
+    paths.sort();
+  } else {
+    paths.push(process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json");
+  }
+
+  const merged: PwJson = { suites: [], stats: { expected: 0, skipped: 0 } };
+  let found = 0;
+  for (const path of paths) {
+    const file = Bun.file(path);
+    if (!(await file.exists())) continue;
+    const json = (await file.json()) as PwJson;
+    merged.suites!.push(...(json.suites ?? []));
+    merged.stats!.expected = (merged.stats!.expected ?? 0) + (json.stats?.expected ?? 0);
+    merged.stats!.skipped = (merged.stats!.skipped ?? 0) + (json.stats?.skipped ?? 0);
+    found += 1;
+  }
+
+  if (found === 0) {
     // Law F4: a missing results file is reported as itself, never as "green".
     await Bun.write(
       OUT,
@@ -173,7 +197,7 @@ async function main() {
         `- Run: ${meta.runUrl || meta.runId}`,
         `- Commit: \`${meta.sha}\``,
         "",
-        `No JSON reporter output was found at \`${resultsPath}\`; the E2E job failed`,
+        `No JSON reporter output was found at \`${dir ?? paths[0]}\`; the E2E job failed`,
         "before Playwright wrote results (setup, build, or preflight).",
         "",
       ].join("\n"),
@@ -182,9 +206,8 @@ async function main() {
     return;
   }
 
-  const json = (await file.json()) as PwJson;
-  await Bun.write(OUT, render(json, meta));
-  console.log(`Wrote ${OUT}.`);
+  await Bun.write(OUT, render(merged, meta));
+  console.log(`Wrote ${OUT} (merged ${found} shard result file(s)).`);
 }
 
 if (import.meta.main) await main();
