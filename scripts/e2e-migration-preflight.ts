@@ -28,7 +28,6 @@ import { fileURLToPath } from "node:url";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(HERE, "..", "supabase", "migrations");
 const PROD_REF = "zwmvxvzzvjvtdcfcwiuf";
@@ -129,7 +128,6 @@ async function objectExists(client: SupabaseClient, probe: Probe): Promise<boole
   return !(error.code === "PGRST202" || /could not find the function/i.test(error.message));
 }
 
-
 export default async function migrationPreflight(dry = false): Promise<void> {
   const local = localMigrations();
   if (local.length === 0) {
@@ -195,7 +193,6 @@ export default async function migrationPreflight(dry = false): Promise<void> {
       "parity was proved by the object probe, not the ledger — apply the e2e_migration_ledger() migration to staging",
     );
   }
-
 }
 
 // Direct CLI invocation: `bun scripts/e2e-migration-preflight.ts [--dry]`
