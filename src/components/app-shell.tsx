@@ -202,6 +202,17 @@ export function AppShell({ children }: { children: ReactNode }) {
       try {
         await signOut();
         queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
+        /**
+         * INC-078 LAW (folded in by U1f) — THE HARD RESET PURGES EVERY
+         * AUTH-DERIVED READ. The mechanism: auth-derived caches are tagged by
+         * a leading ["me"] key segment, and the reset REMOVES (not merely
+         * invalidates) every query whose key starts with it, so nothing
+         * survives to repaint from a session that no longer exists. Sections
+         * keyed elsewhere (e.g. ["admin", ...]) are removed by their own
+         * route teardown; the ["me"] prefix is the contract for anything read
+         * as "the signed-in user".
+         */
+        queryClient.removeQueries({ queryKey: ["me"] });
         clearSessionClocks();
         setPanelChoice("marketplace");
         setLocationPath([]);

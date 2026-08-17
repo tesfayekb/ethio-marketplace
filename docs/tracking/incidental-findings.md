@@ -176,3 +176,24 @@ all, by design).**
 Note: CI now publishes E2E failure evidence to
 `docs/tracking/e2e-last-failure.md` — the supervisor reads it by clone; the
 artifact courier model is retired.
+
+## INC-079 — step-up authentication is a session property, not a role property
+
+Design record (U1f). RBAC answers "may this account do it"; step-up answers
+"is THIS SESSION currently proven to be that account". The two are independent,
+so `super_admin` gets no exemption: the server gate
+`public.require_step_up_if_needed` reads `auth.jwt() ->> 'aal'` only, and every
+sensitive mutation RPC calls it AFTER its permission check — permission denied
+must never be softened into "verify to continue" for someone who lacks the
+permission entirely.
+
+Client consequences: `StepUpGate` is UX, never authorization (law F3); it may be
+forgotten without opening a hole, because the RPC raises P0009 and the hook
+converts that refusal back into the same modal. A user with no enrolled factor
+is blocked BEFORE any RPC is sent, so a missing factor can never produce a
+half-applied action.
+
+Session tie-in (folded from INC-078): the hard reset now also removes every
+query prefixed `["me"]` — that prefix is the standing contract for anything read
+as "the signed-in user" — and `clearSessionClocks()` drops the cached step-up
+hint, so a fresh sign-in starts at `aal1` and re-verifies.

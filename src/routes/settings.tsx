@@ -13,6 +13,7 @@ import {
   signOutOtherDevices,
   unlinkProviderIdentity,
 } from "@/features/auth/auth-service";
+import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +88,12 @@ function SettingsScreen() {
   const [passwordPresent, setPasswordPresent] = useState<boolean | null>(null);
   const [passwordStateErrorKey, setPasswordStateErrorKey] = useState<MessageKey | null>(null);
   const [confirmingRemovePassword, setConfirmingRemovePassword] = useState(false);
+
+  /** U1f — two-factor authentication (TOTP), the step-up enrollment surface. */
+  const mfa = useMfa();
+  const [enrollCode, setEnrollCode] = useState("");
+  const [removeCode, setRemoveCode] = useState("");
+  const [removingFactorId, setRemovingFactorId] = useState<string | null>(null);
 
   /**
    * U0j (INC-072) — LIVE guard. useAuth subscribes to onAuthStateChange, so
@@ -463,7 +470,184 @@ function SettingsScreen() {
         ) : null}
       </PageCard>
 
-      {/* Section 3 — security */}
+      {/* Section 3 — two-factor authentication (U1f) */}
+      <PageCard className="mt-6" aria-labelledby="settings-mfa" testid="settings-mfa">
+        <h2 id="settings-mfa" className="text-base font-semibold text-foreground">
+          {t("mfa.title")}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("mfa.description")}</p>
+
+        {mfa.errorKey ? (
+          <p role="alert" data-testid="mfa-error" className="mt-3 text-sm text-destructive">
+            {t(mfa.errorKey)}
+          </p>
+        ) : null}
+        {mfa.successKey ? (
+          <p role="status" data-testid="mfa-success" className="mt-3 text-sm text-muted-foreground">
+            {t(mfa.successKey)}
+          </p>
+        ) : null}
+
+        {mfa.factors === null ? (
+          <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+        ) : (
+          <p data-testid="mfa-status" className="mt-3 text-sm font-medium text-foreground">
+            {mfa.factors.length > 0 ? t("mfa.statusOn") : t("mfa.statusOff")}
+          </p>
+        )}
+
+        {(mfa.factors ?? []).map((factor) => (
+          <div
+            key={factor.id}
+            data-testid={`mfa-factor-${factor.id}`}
+            className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
+          >
+            <div className="flex min-w-0 flex-col">
+              <span className="text-sm font-medium text-foreground">
+                {factor.friendlyName ?? t("mfa.factorName")}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {t("mfa.addedOn").replace("{when}", relativeTime(factor.createdAt, language))}
+              </span>
+            </div>
+            <button
+              type="button"
+              data-testid="mfa-remove"
+              onClick={() => {
+                setRemoveCode("");
+                setRemovingFactorId(factor.id);
+              }}
+              disabled={mfa.busy}
+              className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+            >
+              {t("mfa.remove")}
+            </button>
+          </div>
+        ))}
+
+        {/* MF-5 — removal re-verifies with a live code before the factor goes. */}
+        {removingFactorId ? (
+          <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
+            <p className="text-sm text-foreground">{t("mfa.removeConfirm")}</p>
+            <label htmlFor="mfa-remove-code" className="text-sm text-muted-foreground">
+              {t("mfa.codeLabel")}
+            </label>
+            <input
+              id="mfa-remove-code"
+              data-testid="mfa-remove-code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder={t("mfa.codePlaceholder")}
+              value={removeCode}
+              onChange={(e) => setRemoveCode(e.target.value)}
+              className={fieldClass}
+            />
+            <button
+              type="button"
+              data-testid="mfa-remove-confirm"
+              disabled={mfa.busy || removeCode.trim() === ""}
+              onClick={() => {
+                void mfa.removeFactor(removingFactorId, removeCode).then((ok) => {
+                  if (ok) {
+                    setRemovingFactorId(null);
+                    setRemoveCode("");
+                  }
+                });
+              }}
+              className={primaryButtonClass}
+            >
+              {mfa.busy ? t("auth.working") : t("mfa.removeConfirmYes")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setRemovingFactorId(null)}
+              disabled={mfa.busy}
+              className={secondaryButtonClass}
+            >
+              {t("settings.cancel")}
+            </button>
+          </div>
+        ) : null}
+
+        {mfa.pending === null && (mfa.factors ?? []).length === 0 ? (
+          <button
+            type="button"
+            data-testid="mfa-enroll"
+            disabled={mfa.busy}
+            onClick={() => void mfa.startEnrollment(t("mfa.factorName"))}
+            className={`${primaryButtonClass} mt-4`}
+          >
+            {mfa.busy ? t("auth.working") : t("mfa.enroll")}
+          </button>
+        ) : null}
+
+        {mfa.pending ? (
+          <div data-testid="mfa-enroll-panel" className="mt-4 flex flex-col gap-3">
+            <p className="text-sm text-foreground">{t("mfa.step1")}</p>
+            <img
+              data-testid="mfa-qr"
+              src={mfa.pending.qrCode}
+              alt={t("mfa.qrAlt")}
+              width={200}
+              height={200}
+              loading="lazy"
+              className="h-[200px] w-[200px] self-start rounded-md border border-border bg-background p-2"
+            />
+            <label htmlFor="mfa-secret" className="text-sm text-muted-foreground">
+              {t("mfa.secretLabel")}
+            </label>
+            <input
+              id="mfa-secret"
+              data-testid="mfa-secret"
+              readOnly
+              value={mfa.pending.secret}
+              className={fieldClass}
+            />
+            <p className="text-sm text-foreground">{t("mfa.step2")}</p>
+            <label htmlFor="mfa-code" className="text-sm text-muted-foreground">
+              {t("mfa.codeLabel")}
+            </label>
+            <input
+              id="mfa-code"
+              data-testid="mfa-code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder={t("mfa.codePlaceholder")}
+              value={enrollCode}
+              onChange={(e) => setEnrollCode(e.target.value)}
+              className={fieldClass}
+            />
+            <button
+              type="button"
+              data-testid="mfa-verify"
+              disabled={mfa.busy || enrollCode.trim() === ""}
+              onClick={() => {
+                void mfa.confirmEnrollment(enrollCode).then((ok) => {
+                  if (ok) setEnrollCode("");
+                });
+              }}
+              className={primaryButtonClass}
+            >
+              {mfa.busy ? t("auth.working") : t("mfa.verifyActivate")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEnrollCode("");
+                void mfa.cancelEnrollment();
+              }}
+              disabled={mfa.busy}
+              className={secondaryButtonClass}
+            >
+              {t("settings.cancel")}
+            </button>
+          </div>
+        ) : null}
+      </PageCard>
+
+      {/* Section 4 — security */}
       <PageCard className="mt-6" aria-labelledby="settings-security">
         <h2 id="settings-security" className="text-base font-semibold text-foreground">
           {t("settings.security")}
