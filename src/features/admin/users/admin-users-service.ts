@@ -1,3 +1,4 @@
+import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -227,7 +228,7 @@ export async function updateProfile(input: UpdateProfileInput): Promise<void> {
  * Law F4 — an unmapped failure is still a failure: it falls back to the
  * generic key, never to silence.
  */
-export function profileEditErrorKey(error: unknown): string {
+export function profileEditErrorKey(error: unknown): MessageKey {
   const message = (error as { message?: string } | null)?.message ?? "";
   if (/alias already taken|profiles_seller_alias_unique|duplicate key/i.test(message)) {
     return "admin.users.edit.errorAliasTaken";

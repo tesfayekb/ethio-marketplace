@@ -311,7 +311,8 @@ export const en = {
   "admin.users.edit.description": "Corrections made by staff are recorded in this user's activity.",
   "admin.users.edit.displayName": "Display name",
   "admin.users.edit.alias": "Seller alias",
-  "admin.users.edit.aliasHelp": "3–30 characters: letters, numbers, spaces, dot, dash or underscore.",
+  "admin.users.edit.aliasHelp":
+    "3–30 characters: letters, numbers, spaces, dot, dash or underscore.",
   "admin.users.edit.country": "Home country",
   "admin.users.edit.countryNone": "Not set",
   "admin.users.edit.save": "Save changes",

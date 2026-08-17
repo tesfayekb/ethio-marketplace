@@ -11,6 +11,7 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
+import type { MessageKey } from "@/i18n/types";
 
 import { profileEditErrorKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
 import {
@@ -140,7 +141,6 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               guard={guard}
             />
           ) : null}
-
 
           <PageCard className="space-y-3" testid="user-status-card">
             <div className="flex flex-wrap items-center gap-2">
@@ -377,7 +377,7 @@ function AdminUserEditForm({
   const [name, setName] = useState(displayName);
   const [alias, setAlias] = useState(sellerAlias ?? "");
   const [country, setCountry] = useState(homeCountryCode ?? "");
-  const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [saved, setSaved] = useState(false);
 
   return (

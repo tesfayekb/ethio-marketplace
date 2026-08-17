@@ -98,8 +98,7 @@ export function useCountries() {
 export function useUpdateProfile(userId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: Omit<UpdateProfileInput, "userId">) =>
-      updateProfile({ userId, ...input }),
+    mutationFn: (input: Omit<UpdateProfileInput, "userId">) => updateProfile({ userId, ...input }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEY }),
   });
 }
