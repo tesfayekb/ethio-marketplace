@@ -178,3 +178,62 @@ export async function revokeRole(userId: string, roleName: string): Promise<void
   });
   if (error) throw error;
 }
+
+/* ---------------------------------------------------------------------------
+ * U1g — EDIT USER.
+ *
+ * The write is the definer RPC `admin_update_profile`, which checks
+ * profiles:update AND require_step_up_if_needed('profiles','update') before it
+ * touches a row. The browser never writes to profiles across users.
+ * ------------------------------------------------------------------------ */
+
+export interface CountryOption {
+  code: string;
+  nameEn: string;
+}
+
+/** Countries are public reference data (policy `countries_public_read`). */
+export async function listCountries(): Promise<CountryOption[]> {
+  const { data, error } = await supabase
+    .from("countries")
+    .select("code, name_en")
+    .eq("is_active", true)
+    .order("name_en");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({ code: row.code, nameEn: row.name_en }));
+}
+
+export interface UpdateProfileInput {
+  userId: string;
+  displayName: string;
+  sellerAlias: string | null;
+  homeCountryCode: string | null;
+}
+
+export async function updateProfile(input: UpdateProfileInput): Promise<void> {
+  const { error } = await supabase.rpc("admin_update_profile", {
+    p_user_id: input.userId,
+    p_display_name: input.displayName,
+    p_seller_alias: input.sellerAlias,
+    p_home_country_code: input.homeCountryCode,
+  });
+  if (error) throw error;
+}
+
+/**
+ * Maps the RPC's (and the table constraints') refusals onto translation keys.
+ * Law F4 — an unmapped failure is still a failure: it falls back to the
+ * generic key, never to silence.
+ */
+export function profileEditErrorKey(error: unknown): string {
+  const message = (error as { message?: string } | null)?.message ?? "";
+  if (/alias already taken|profiles_seller_alias_unique|duplicate key/i.test(message)) {
+    return "admin.users.edit.errorAliasTaken";
+  }
+  if (/display name is required/i.test(message)) return "admin.users.edit.errorNameRequired";
+  if (/seller_alias|alias/i.test(message)) return "admin.users.edit.errorAliasFormat";
+  if (/unknown country|home_country_code/i.test(message)) return "admin.users.edit.errorCountry";
+  if (/step-up required/i.test(message)) return "admin.users.edit.errorStepUp";
+  if (/permission denied/i.test(message)) return "admin.users.edit.errorPermission";
+  return "admin.users.edit.failed";
+}
