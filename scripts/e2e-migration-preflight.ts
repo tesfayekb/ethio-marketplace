@@ -1,27 +1,32 @@
 /**
- * Migration-parity preflight (INC-074).
+ * Migration-parity preflight (INC-074, U1f-3).
  *
  * Runs BEFORE Playwright. Proves that the staging database carries the newest
  * local migration, so a missing RPC fails once, loudly, with the filename —
  * instead of twelve cryptic test reds.
  *
+ * ENVIRONMENT ASYMMETRY (U1f-3 root cause): supabase_migrations.schema_migrations
+ * exists only where the migration TOOL ran (ethio-prod). ethio-staging is applied
+ * by hand through the SQL editor, which writes no ledger at all. The ledger is
+ * therefore public.migration_marks — every migration's last statement inserts its
+ * own 14-digit version (self-marking law, docs/governance/migrations.md), so the
+ * ledger is identical on both environments.
+ *
  * Mechanism (in order):
  *   1. Ledger (primary): public.e2e_migration_ledger(), a SECURITY DEFINER
- *      function executable by service_role ONLY, returning
- *      supabase_migrations.schema_migrations.version — that schema is NOT
- *      exposed to PostgREST, so the RPC is the only door.
+ *      function executable by service_role ONLY, returning the marks in order.
  *   2. Fallback probe (DEGRADED, announced loudly via ::warning and the CI step
- *      summary): parse the newest local migration for the objects it declares
- *      (CREATE [OR REPLACE] FUNCTION / CREATE TABLE) and check them against
- *      staging — functions via PostgREST RPC existence detection (PGRST202 with
- *      no name suggestion = missing), tables via a zero-row select (42P01).
- *      Seed-only migrations are invisible to this mode; it never claims
- *      otherwise.
+ *      summary): used ONLY when the RPC itself is absent — i.e. the ledger
+ *      migration has not been applied to staging yet. Parses the newest local
+ *      migration for the objects it declares (CREATE [OR REPLACE] FUNCTION /
+ *      CREATE TABLE) and checks them against staging. Seed-only migrations are
+ *      invisible to this mode; it never claims otherwise.
  *
  * Modes:
  *   (default)  fail non-zero when staging is behind.
  *   --dry      print applied-vs-local for the operator; always exit 0.
  */
+
 import { appendFileSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
