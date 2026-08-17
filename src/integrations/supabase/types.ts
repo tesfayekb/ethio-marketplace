@@ -836,6 +836,7 @@ export type Database = {
         Returns: undefined
       }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
+      e2e_migration_ledger: { Args: never; Returns: string[] }
       expire_stale_listings: { Args: never; Returns: number }
       get_category_attributes: {
         Args: { p_category_id: string; p_include_inherited?: boolean }

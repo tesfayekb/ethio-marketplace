@@ -6,22 +6,23 @@
  * instead of twelve cryptic test reds.
  *
  * Mechanism (in order):
- *   1. Try the Supabase CLI ledger: schema "supabase_migrations", table
- *      "schema_migrations" (column `version` = the 14-digit filename prefix).
- *      This is the table Lovable's migration tool writes on this project, but
- *      it is only readable through PostgREST when that schema is exposed.
- *   2. Fallback probe (definer-free, service-role): parse the newest local
- *      migration for the objects it declares (CREATE [OR REPLACE] FUNCTION /
- *      CREATE TABLE) and check them against staging — functions via
- *      pg_get_function_identity_arguments-free RPC existence detection
- *      (PostgREST PGRST202 = not in schema cache), tables via a zero-row select
- *      (42P01 = missing).
+ *   1. Ledger (primary): public.e2e_migration_ledger(), a SECURITY DEFINER
+ *      function executable by service_role ONLY, returning
+ *      supabase_migrations.schema_migrations.version — that schema is NOT
+ *      exposed to PostgREST, so the RPC is the only door.
+ *   2. Fallback probe (DEGRADED, announced loudly via ::warning and the CI step
+ *      summary): parse the newest local migration for the objects it declares
+ *      (CREATE [OR REPLACE] FUNCTION / CREATE TABLE) and check them against
+ *      staging — functions via PostgREST RPC existence detection (PGRST202 with
+ *      no name suggestion = missing), tables via a zero-row select (42P01).
+ *      Seed-only migrations are invisible to this mode; it never claims
+ *      otherwise.
  *
  * Modes:
  *   (default)  fail non-zero when staging is behind.
  *   --dry      print applied-vs-local for the operator; always exit 0.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { appendFileSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -62,25 +63,36 @@ function serviceClient(): { client: SupabaseClient; url: string } {
   };
 }
 
+/** Loud degraded-mode notice: stderr ::warning + the CI step summary. */
+function degraded(reason: string): void {
+  const line = `PREFLIGHT DEGRADED: object-probe only (seed-only migrations invisible) — ${reason}`;
+  console.error(`::warning::${line}`);
+  const summary = process.env["GITHUB_STEP_SUMMARY"];
+  if (summary) {
+    try {
+      appendFileSync(summary, `\n> **${line}**\n`);
+    } catch (err) {
+      console.error(`[e2e:preflight] could not write the step summary: ${String(err)}`);
+    }
+  }
+}
+
 /**
- * LEDGER-FIRST RULE (U1c): the ledger is THE mechanism. It is the only path
- * that detects seed-only migrations (no new function or table to probe for).
- * Returns null only when the ledger table is genuinely unreadable; the caller
- * then says so loudly before falling back to the weaker object probe.
+ * LEDGER-FIRST RULE (U1c/U1f-2): the ledger is THE mechanism — the only path
+ * that detects seed-only migrations. supabase_migrations is NOT exposed to
+ * PostgREST, so it is read through public.e2e_migration_ledger(), a definer
+ * function executable by service_role ONLY.
+ *
+ * Returns null only when the RPC is genuinely unavailable; the caller then
+ * declares degraded mode loudly rather than claiming a check it never made.
  */
-async function appliedVersionsFromLedger(url: string, key: string): Promise<string[] | null> {
-  const ledger = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    db: { schema: "supabase_migrations" },
-  });
-  const { data, error } = await ledger.from("schema_migrations").select("version");
+async function appliedVersionsFromLedger(client: SupabaseClient): Promise<string[] | null> {
+  const { data, error } = await client.rpc("e2e_migration_ledger");
   if (error || !data) {
-    console.warn(
-      `[e2e:preflight] ledger unreadable (${error?.message ?? "no rows"}) — falling back to the object probe, which CANNOT detect seed-only migrations.`,
-    );
+    degraded(error?.message ?? "ledger RPC returned no rows");
     return null;
   }
-  return (data as Array<{ version: string }>).map((row) => String(row.version)).sort();
+  return (data as string[]).map((v) => String(v)).sort();
 }
 
 /** Objects declared by a migration file, used by the fallback probe. */
@@ -108,7 +120,11 @@ async function objectExists(client: SupabaseClient, probe: Probe): Promise<boole
   }
   const { error } = await client.rpc(probe.name, {});
   if (!error) return true;
-  // PGRST202: function not found in the schema cache -> genuinely missing.
+  // PGRST202 covers BOTH "no such function" and "exists but different
+  // arguments". PostgREST distinguishes them in the hint: when the name exists
+  // it suggests the real signature. A named suggestion means PRESENT.
+  const hint = (error as { hint?: string | null }).hint ?? "";
+  if (hint.toLowerCase().includes(probe.name)) return true;
   return !(error.code === "PGRST202" || /could not find the function/i.test(error.message));
 }
 
@@ -119,15 +135,15 @@ export default async function migrationPreflight(dry = false): Promise<void> {
     return;
   }
   const newest = local[local.length - 1]!;
-  const { client, url } = serviceClient();
-  const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"]!;
+  const { client } = serviceClient();
 
-  const applied = await appliedVersionsFromLedger(url, key);
+  const applied = await appliedVersionsFromLedger(client);
   let missing: string[] = [];
   let mechanism: string;
 
   if (applied) {
-    mechanism = "supabase_migrations.schema_migrations ledger";
+    mechanism = "public.e2e_migration_ledger() definer RPC (schema_migrations)";
+
     const appliedSet = new Set(applied);
     missing = local.filter((f) => !appliedSet.has(versionOf(f)));
     if (dry) {
@@ -146,7 +162,8 @@ export default async function migrationPreflight(dry = false): Promise<void> {
       if (!(await objectExists(client, probe))) absent.push(`${probe.kind} ${probe.name}`);
     }
     if (dry) {
-      console.log(`[e2e:preflight] mechanism: ${mechanism} (ledger schema not exposed)`);
+      console.log(`[e2e:preflight] mechanism: ${mechanism} (ledger RPC unavailable)`);
+
       console.log(`[e2e:preflight] newest local migration: ${newest}`);
       console.log(
         `[e2e:preflight] probed objects: ${probes.map((p) => `${p.kind} ${p.name}`).join(", ") || "(none)"}`,
@@ -172,8 +189,8 @@ export default async function migrationPreflight(dry = false): Promise<void> {
 
   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
   if (!applied) {
-    console.warn(
-      "[e2e:preflight] NOTE: parity was proved by the fallback probe, not the ledger. Expose supabase_migrations to PostgREST on staging for seed-only coverage.",
+    degraded(
+      "parity was proved by the object probe, not the ledger — apply the e2e_migration_ledger() migration to staging",
     );
   }
 }
