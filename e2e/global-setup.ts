@@ -41,10 +41,20 @@ export function processId(): string {
   return cachedProcessId;
 }
 
-/** Reserved, non-deliverable namespace — sweepable, never a real address. */
+/**
+ * Reserved, non-deliverable namespace — sweepable, never a real address.
+ *
+ * ID SCHEME (INC-080 + addendum): `e2e+<PROCESS_ID>-<worker>-<n>-<rand6>@ethio-e2e.invalid`.
+ * PROCESS_ID is the ownership boundary teardown filters on (`+${PROCESS_ID}-`);
+ * one job may run N workers (Playwright projects x parallelism) that share it,
+ * so ids must be unique per WORKER, not per job — see `mintEmail` in
+ * e2e/helpers/users.ts. This helper builds the setup fixture (one per job) and
+ * addresses that are deliberately never registered.
+ */
 export function testEmail(id: string, n: number): string {
   return `e2e+${id}-${n}@ethio-e2e.invalid`;
 }
+
 
 export function adminClient() {
   const url = process.env["E2E_SUPABASE_URL"];
