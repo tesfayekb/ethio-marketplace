@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { adminClient, processId, testEmail } from "../global-setup";
+import { adminClient, processId } from "../global-setup";
 
 export { adminClient } from "../global-setup";
 
@@ -12,10 +12,27 @@ export type TestUser = {
 };
 
 /**
- * Per-process mint counter (INC-080). Combined with the process id in the
- * email, no two parallel test processes can race on the same fixture address.
+ * Per-worker mint counter (INC-080 addendum). ONE job may run N workers
+ * (Playwright projects x parallelism) that all share PROCESS_ID and each
+ * restart this counter at 1 — ids must be unique per WORKER, not per job.
+ * Uniqueness therefore comes from the worker tag + a random suffix; the
+ * counter is only a readability aid.
  */
 let minted = 1;
+
+function workerTag(): string {
+  return process.env["TEST_WORKER_INDEX"] ?? String(process.pid);
+}
+
+/**
+ * Fixture identity is unique by construction: PROCESS_ID (ownership) + worker
+ * tag + counter + 6 random base36 chars. Teardown still filters on
+ * `+${PROCESS_ID}-`, which this shape preserves.
+ */
+export function mintEmail(n: number): string {
+  const rand6 = randomBytes(8).toString("base64url").replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 6);
+  return `e2e+${processId()}-${workerTag()}-${n}-${rand6}@ethio-e2e.invalid`;
+}
 
 function baseUrl(): string {
   return process.env["E2E_BASE_URL"] ?? "http://127.0.0.1:4173";
@@ -29,8 +46,9 @@ function baseUrl(): string {
 export async function createUser({ confirmed }: { confirmed: boolean }): Promise<TestUser> {
   const supabase = adminClient();
   minted += 1;
-  const email = testEmail(processId(), minted);
+  const email = mintEmail(minted);
   const password = `Pw-${randomBytes(18).toString("base64url")}`;
+
 
   const { data, error } = await supabase.auth.admin.createUser({
     email,
