@@ -142,7 +142,8 @@ test.describe("U0j sign-out hard reset", () => {
     await signOutViaUi(page);
     await expectSignedOutMarketplace(page);
 
-    const scope = isMobile(page) ? await openRailScope(page) : page.getByTestId("app-rail");
+    // Unified: openRailScope owns BOTH viewports (drawer on mobile, rail on desktop).
+    const scope = await openRailScope(page);
     await expect(scope.getByTestId("rail-sign-out")).toHaveCount(0);
     await expect(scope.getByText(en["admin.nav.label"], { exact: true })).toHaveCount(0);
     await expect(scope.getByText(en["panel.account"], { exact: true })).toHaveCount(0);
