@@ -10,7 +10,15 @@ on:
   pull_request:
     branches: [main]
 
+# Lovable's platform pushes several commits per task, so an in-flight run for an
+# older HEAD is obsolete the moment a newer one starts. Cancelling it keeps the
+# status file (G18) unambiguous: it always reflects the newest push.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+
   build-and-check:
     name: Build, typecheck, lint
     runs-on: ubuntu-latest
