@@ -301,6 +301,17 @@ export const am: Messages = {
   "admin.users.activity.empty": "የተመዘገበ እንቅስቃሴ የለም።",
   "admin.users.activity.loading": "እንቅስቃሴን በመጫን ላይ…",
   "account.deactivatedBanner": "መለያዎ ተቋርጧል — ድጋፍን ያግኙ።",
+  "prim.state.loading": "በመጫን ላይ…",
+  "prim.state.empty": "ገና የሚታይ ነገር የለም።",
+  "prim.state.error": "የሆነ ችግር ተፈጥሯል።",
+  "prim.table.previous": "ቀዳሚ",
+  "prim.table.next": "ቀጣይ",
+  "prim.table.of": "ከ",
+  "prim.table.selected": "ተመርጠዋል",
+  "prim.table.selectRow": "ረድፍ ምረጥ",
+  "prim.table.selectAll": "ሁሉንም ረድፎች ምረጥ",
+  "prim.table.actions": "እርምጃዎች",
+  "common.save": "አስቀምጥ",
 };
 
 export default am;
