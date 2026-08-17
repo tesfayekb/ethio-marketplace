@@ -22,7 +22,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useCategories } from "@/features/feed/use-feed";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
-import { AUTH_DERIVED_ROOT, usePermissions } from "@/features/permissions/usePermissions";
+import { usePermissions } from "@/features/permissions/usePermissions";
 import {
   clearSessionClocks,
   startSessionClocks,
@@ -32,6 +32,7 @@ import {
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 /** One node of the chosen geographic path (country -> region -> city -> …). */
@@ -170,14 +171,24 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 
   /**
-   * RBAC seam (Phase R3). Signed-out visitors issue NO request: `enabled` is
-   * false, so the marketplace first paint costs nothing in RBAC terms. A
-   * signed-in user pays exactly one cached RPC per session.
+   * RBAC seam (Phase R3), U1g-3 (B) — MOUNTED, NOT DISABLED. The hook used to
+   * be called unconditionally with `enabled: user !== null`; a disabled query
+   * still keeps an observer, so the hard reset's removeQueries() was followed
+   * immediately by the shell RE-REGISTERING an "auth-derived" entry and SO-4's
+   * purge assertion saw a survivor. Now the query only EXISTS while a session
+   * does: <PermissionsLoader/> is rendered for authenticated sessions only, so
+   * after sign-out there is no observer left to re-register anything. A
+   * signed-out marketplace visitor still issues zero RBAC requests.
    *
    * Law F3: this only decides whether the Admin TAB renders. Every admin
    * action is enforced by RLS / has_permission on the server.
    */
-  const { permissions, loading: permissionsLoading } = usePermissions({ enabled: user !== null });
+  const [permissionsState, setPermissionsState] = useState<{
+    permissions: string[];
+    loading: boolean;
+  }>({ permissions: [], loading: false });
+  const permissions = permissionsState.permissions;
+  const permissionsLoading = permissionsState.loading;
 
   /**
    * U0j (INC-072) — SIGN-OUT IS A HARD RESET, in this exact order:
