@@ -90,6 +90,13 @@ export function Breadcrumbs() {
    */
   if (pathname.startsWith("/admin")) {
     const section = sectionForPath(pathname);
+    /**
+     * U1d — the user-detail route publishes the name through the SMALLEST
+     * EXISTING SEAM: the react-query cache the detail page already fills
+     * (`useAdminUser(userId)`, key ["admin","users","detail",id]). No new
+     * context, no new fetch path — the crumb reads the same cached row.
+     */
+    const userDetailId = /^\/admin\/users\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
     return (
       <Breadcrumb
         data-testid="breadcrumbs"
@@ -122,9 +129,25 @@ export function Breadcrumbs() {
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage data-testid="breadcrumb-admin-section" className={CURRENT}>
-                  {t(section.titleKey)}
-                </BreadcrumbPage>
+                {userDetailId ? (
+                  <BreadcrumbLink asChild>
+                    <Link to="/admin/users" data-testid="breadcrumb-admin-section">
+                      {t(section.titleKey)}
+                    </Link>
+                  </BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage data-testid="breadcrumb-admin-section" className={CURRENT}>
+                    {t(section.titleKey)}
+                  </BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+            </>
+          ) : null}
+          {userDetailId ? (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <AdminUserCrumb userId={userDetailId} />
               </BreadcrumbItem>
             </>
           ) : null}
@@ -132,6 +155,7 @@ export function Breadcrumbs() {
       </Breadcrumb>
     );
   }
+
 
   return (
     <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")} className="mb-3">
