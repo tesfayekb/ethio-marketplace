@@ -55,6 +55,14 @@ and `src/components/app-shell.tsx` (the Admin-tab gate; see
 `docs/features/rbac-client-seam.md`). CI runs it in both directions: PASS on
 `src/`, and it must FAIL on `scripts/fixtures/bad-permission-import-example.ts.txt`.
 
+**U1g-3 note (2026-08-17).** The purge root (`AUTH_DERIVED_ROOT` / `authKey`,
+INC-078) briefly lived inside the seam, which made every legitimate consumer —
+the shell and `src/features/admin/users/use-admin-users.ts` — an importer of
+`features/permissions` and turned the guard red. Query keys are inert strings,
+so they now live in the neutral `src/lib/query-keys.ts`, which imports nothing
+from `features/*`. LAW: shared, behaviour-free constants never travel through a
+guarded seam; put them in `src/lib`.
+
 ## Definer-restatement law (INC-074, 2026-08-16)
 
 `scripts/check-migrations.sh` also fails any migration (timestamp >=

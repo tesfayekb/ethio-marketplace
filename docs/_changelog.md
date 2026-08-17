@@ -154,3 +154,4 @@
 - 2026-08-17 — ci: parity ledger via public.migration_marks (self-marking migrations; SQL-editor applies have no tool ledger); backfill; guard + law; preflight reads marks
 - 2026-08-17 — feat(admin): U1g — edit user (admin_update_profile, step-up gated, audited) + parity table; test(e2e): AU-3/4/5 re-anchored to step-up (enrollAndStepUp), AU-9..11
 - 2026-08-17 — fix(e2e): expectAal2 reads data.currentLevel; fix(auth): auth-derived query root + cancel-then-remove purge (SO-4 after U1g; INC-078 addendum)
+- 2026-08-17 — fix(shell): neutral query-keys module (browse-path guard green); no permissions query registered when signed out (SO-4 purge assertion); header settles to Sign in after reset

@@ -14,7 +14,6 @@ export { AUTH_DERIVED_ROOT, authKey } from "@/lib/query-keys";
 /** Shared cache key — one read per session, shared by every admin surface. */
 export const MY_PERMISSIONS_KEY = [AUTH_DERIVED_ROOT, "my-permissions"] as const;
 
-
 /**
  * The permission read. Cached hard on purpose (performance strategy): roles
  * change rarely, and a marketplace visitor must never pay for RBAC.

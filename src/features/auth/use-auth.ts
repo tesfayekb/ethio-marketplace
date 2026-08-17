@@ -66,7 +66,6 @@ export function useAuth() {
       void applyUser(data.session?.user?.id, data.session?.user?.email);
     });
 
-
     return () => {
       cancelled = true;
       subscription.subscription.unsubscribe();

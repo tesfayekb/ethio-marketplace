@@ -153,7 +153,6 @@ test.describe("U0j sign-out hard reset", () => {
     // unmount of the session-only observers — the assertion itself stays strict.
     await page.waitForTimeout(500);
     const survivors = await page.evaluate(() => {
-
       const client = (
         window as unknown as {
           __ethioQueryClient?: { getQueryCache: () => { getAll: () => { queryKey: unknown[] }[] } };
