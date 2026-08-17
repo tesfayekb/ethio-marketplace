@@ -141,6 +141,8 @@ export async function verifyFactor(factorId: string, code: string): Promise<MfaO
     code: code.trim(),
   });
   if (verify.error) return failure(verify.error.message);
+  // The verification instant is what the window is measured from.
+  markSteppedUp();
   return { ok: true };
 }
 
@@ -153,9 +155,17 @@ export async function stepUpWithCode(code: string): Promise<MfaOutcome> {
   return verifyFactor(factor.id, code);
 }
 
-/** Unenroll. MF-5: the caller re-verifies first, so this runs at aal2 only. */
+/**
+ * Unenroll. MF-5: the caller re-verifies first, so this runs at aal2 only.
+ * U1f-4: removing the last factor must not leave a session that still LOOKS
+ * stepped up — refresh so GoTrue re-issues the claim, and drop the local hint
+ * (stamp 0 = never fresh). The server refuses on factor absence regardless.
+ */
 export async function unenrollFactor(factorId: string): Promise<MfaOutcome> {
   const { error } = await supabase.auth.mfa.unenroll({ factorId });
   if (error) return failure(error.message);
+  markSteppedUp(0);
+  await supabase.auth.refreshSession();
   return { ok: true };
+
 }
