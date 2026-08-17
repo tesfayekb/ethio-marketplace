@@ -214,3 +214,22 @@ than inferred from a slow run.
 HEAD's run can finish after a newer one and overwrite the status file. With it,
 the only surviving run is the newest push's, so `docs/tracking/ci-status.md`
 and `e2e-last-failure.md` always describe HEAD.
+
+### Fixture ownership under sharding (INC-080, 2026-08-17)
+
+Every parallel test process derives
+`PROCESS_ID = ${GITHUB_RUN_ID ?? local<rand>}-${E2E_SHARD ?? "solo"}`.
+`ci.yml` sets `E2E_SHARD: ${{ matrix.shard }}` on the shard matrix and
+`E2E_SHARD: smoke` on the smoke tier; `nightly-e2e.yml` sets `E2E_SHARD: nightly`.
+
+- Minted fixtures are `e2e+<PROCESS_ID>-<n>@ethio-e2e.invalid`, and the mint
+  counter is per process, so two processes can never collide on an address.
+- `global-teardown.ts` deletes ONLY emails containing `+${PROCESS_ID}-`, and
+  still refuses, per user, to delete anything outside `@ethio-e2e.invalid`.
+- The namespace-wide sweep (`sweepStaleUsers()`, users older than 24h) runs only
+  in the single-process nightly job. Standing proof fixtures
+  (`proof-base@staging.test`, `proof-third@staging.test`) are on another domain
+  and are excluded by the namespace check.
+
+**Law:** parallel test processes own their fixtures by process id; namespace-wide
+sweeps run only in single-process jobs.

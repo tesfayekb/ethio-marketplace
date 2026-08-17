@@ -20,6 +20,9 @@ jobs:
       # from the repository variable, so when staging SMTP moved from Mailtrap to
       # Ethereal (ruling R1) the nightly kept sending against the retired sink and
       # every sign-up 500'd. One source of truth: the same variable ci.yml reads.
+      # INC-080: the nightly is a single-process job, hence the only place a
+      # namespace-wide sweep is allowed.
+      E2E_SHARD: nightly
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
@@ -49,6 +52,12 @@ jobs:
       # The verdict of the job is THIS step and nothing else. continue-on-error
       # lets the heartbeat run afterwards; the final step re-raises the failure so
       # a red suite can never be hidden by a green bookkeeping commit.
+      # INC-080: stale-orphan reaping lives HERE, never in a parallel shard's
+      # teardown. Deletes only @ethio-e2e.invalid users older than 24h; the
+      # standing proof fixtures (proof-base@staging.test, proof-third@staging.test)
+      # are on another domain and the per-user namespace assert refuses them.
+      - name: Sweep stale E2E users (older than 24h)
+        run: bun -e 'const m = await import("./e2e/global-teardown.ts"); await m.sweepStaleUsers();'
       - name: Run nightly E2E
         id: run
         continue-on-error: true

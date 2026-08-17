@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { adminClient, testEmail } from "../global-setup";
+import { adminClient, processId, testEmail } from "../global-setup";
 
 export { adminClient } from "../global-setup";
 
@@ -11,9 +11,11 @@ export type TestUser = {
   displayName: string;
 };
 
-function runId(): string {
-  return process.env["GITHUB_RUN_ID"] ?? "local";
-}
+/**
+ * Per-process mint counter (INC-080). Combined with the process id in the
+ * email, no two parallel test processes can race on the same fixture address.
+ */
+let minted = 1;
 
 function baseUrl(): string {
   return process.env["E2E_BASE_URL"] ?? "http://127.0.0.1:4173";
@@ -26,7 +28,8 @@ function baseUrl(): string {
  */
 export async function createUser({ confirmed }: { confirmed: boolean }): Promise<TestUser> {
   const supabase = adminClient();
-  const email = testEmail(runId(), Date.now() % 1_000_000);
+  minted += 1;
+  const email = testEmail(processId(), minted);
   const password = `Pw-${randomBytes(18).toString("base64url")}`;
 
   const { data, error } = await supabase.auth.admin.createUser({
