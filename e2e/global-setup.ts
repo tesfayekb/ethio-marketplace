@@ -18,13 +18,32 @@ export type E2EUser = {
   email: string;
   password: string;
   displayName: string;
-  /** Persisted so the teardown sweep can scope deletions to this run. */
-  runId: string;
+  /**
+   * Persisted so THIS process's teardown can scope deletions to its own
+   * fixtures (INC-080). Parallel shards share GITHUB_RUN_ID, so the run id
+   * alone is not an ownership boundary.
+   */
+  processId: string;
 };
 
+let cachedProcessId: string | null = null;
+
+/**
+ * Ownership boundary for E2E fixtures (INC-080). Every parallel test process
+ * (each CI shard, the smoke tier, a local run) gets its own id, so teardown
+ * can delete exactly what it minted and nothing a sibling process owns.
+ */
+export function processId(): string {
+  if (cachedProcessId) return cachedProcessId;
+  const run = process.env["GITHUB_RUN_ID"] ?? `local${randomBytes(3).toString("hex")}`;
+  const shard = process.env["E2E_SHARD"] ?? "solo";
+  cachedProcessId = `${run}-${shard}`;
+  return cachedProcessId;
+}
+
 /** Reserved, non-deliverable namespace — sweepable, never a real address. */
-export function testEmail(runId: string, n: number): string {
-  return `e2e+${runId}-${n}@ethio-e2e.invalid`;
+export function testEmail(id: string, n: number): string {
+  return `e2e+${id}-${n}@ethio-e2e.invalid`;
 }
 
 export function adminClient() {
@@ -64,8 +83,9 @@ export default async function globalSetup() {
 
   const supabase = adminClient();
 
-  const runId = process.env["GITHUB_RUN_ID"] ?? randomBytes(4).toString("hex");
-  const email = testEmail(runId, 1);
+  const currentProcessId = processId();
+  console.log(`[e2e:setup] PROCESS_ID = ${currentProcessId}`);
+  const email = testEmail(currentProcessId, 1);
   const password =
     process.env["E2E_USER_PASSWORD"] ?? `Pw-${randomBytes(18).toString("base64url")}`;
 
@@ -112,7 +132,7 @@ export default async function globalSetup() {
     email,
     password,
     displayName: email.split("@")[0]!,
-    runId,
+    processId: currentProcessId,
   };
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });
