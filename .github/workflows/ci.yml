@@ -183,6 +183,8 @@ jobs:
   e2e:
     name: E2E (Playwright, ethio-staging)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       # ethio-staging — publishable values only; the service-role key is a secret.
       # Mailtrap sandbox on staging accepts any recipient — enables A-1..A-3 (INC-013).
@@ -232,7 +234,36 @@ jobs:
           SELF_TEST=1 bun scripts/e2e-failure-report.ts
           bun scripts/e2e-failure-report.ts
           cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
-          bash .github/scripts/publish-tracking-file.sh e2e-last-failure.md
+          # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
+          # the file is derived state owned by this run, so rewriting it on top
+          # of whatever main now holds can never conflict. A push failure is a
+          # ::warning, never a red — bookkeeping must not redden Actions.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          pushed=0
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p docs/tracking
+            cp /tmp/e2e-last-failure.md docs/tracking/e2e-last-failure.md
+            git add docs/tracking/e2e-last-failure.md
+            if git diff --cached --quiet; then
+              echo "No report change; nothing to commit."
+              pushed=1
+              break
+            fi
+            git commit -m "ci: e2e failure report [skip ci]"
+            if git push origin HEAD:main; then
+              pushed=1
+              break
+            fi
+            echo "Report push rejected (attempt ${attempt}/3); refetching."
+            sleep 5
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "::warning::E2E failure report push failed after retries"
+          fi
+          exit 0
 
       - name: Publish green E2E marker
         if: success()
@@ -243,7 +274,36 @@ jobs:
           set -u
           bun scripts/e2e-failure-report.ts
           cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
-          bash .github/scripts/publish-tracking-file.sh e2e-last-failure.md
+          # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
+          # the file is derived state owned by this run, so rewriting it on top
+          # of whatever main now holds can never conflict. A push failure is a
+          # ::warning, never a red — bookkeeping must not redden Actions.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          pushed=0
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p docs/tracking
+            cp /tmp/e2e-last-failure.md docs/tracking/e2e-last-failure.md
+            git add docs/tracking/e2e-last-failure.md
+            if git diff --cached --quiet; then
+              echo "No report change; nothing to commit."
+              pushed=1
+              break
+            fi
+            git commit -m "ci: e2e failure report [skip ci]"
+            if git push origin HEAD:main; then
+              pushed=1
+              break
+            fi
+            echo "Report push rejected (attempt ${attempt}/3); refetching."
+            sleep 5
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "::warning::E2E failure report push failed after retries"
+          fi
+          exit 0
 
       - name: Upload report on failure
         if: failure()
