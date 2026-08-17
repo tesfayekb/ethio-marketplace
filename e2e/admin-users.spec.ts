@@ -120,12 +120,51 @@ test.describe("U1 admin users", () => {
       timeout: 15000,
     });
 
+    // U1d — the deactivated user sees the banner on their own settings page.
+    await switchUser(page, scratch.email, scratch.password);
+    await gotoReady(page, "/settings");
+    await expect(page.getByTestId("account-deactivated-banner")).toBeVisible({ timeout: 15000 });
+
+    await switchUser(page, staff.email, staff.password);
+    await page.goto(`/admin/users/${scratch.id}`);
+    await waitForHydration(page);
     await page.getByTestId("activate-user").click();
     await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
       en["admin.users.status.active"],
       { timeout: 15000 },
     );
   });
+
+  test("AU-7 crumb: Home > Admin > Users > <name>, Users navigates back", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const scratch = await createUser({ confirmed: true });
+
+    await switchUser(page, staff.email, staff.password);
+    await page.goto(`/admin/users/${scratch.id}`);
+    await waitForHydration(page);
+
+    const crumbs = page.getByTestId("breadcrumbs").locator("li");
+    await expect(page.getByTestId("breadcrumb-admin-user")).toBeVisible({ timeout: 15000 });
+    expect(await crumbs.count()).toBeGreaterThanOrEqual(4);
+
+    await page.getByTestId("breadcrumb-admin-section").click();
+    await expect(page).toHaveURL(/\/admin\/users\/?$/);
+  });
+
+  test("AU-8 own row: status controls are not offered on your own record", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+
+    await switchUser(page, staff.email, staff.password);
+    await page.goto(`/admin/users/${staff.id}`);
+    await waitForHydration(page);
+
+    await expect(page.getByTestId("own-account-note")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("deactivate-user")).toHaveCount(0);
+    await expect(page.getByTestId("activate-user")).toHaveCount(0);
+  });
+
 
   test("AU-4 roles: assign and remove, super_admin/user never offered", async ({ page }) => {
     const staff = await createUser({ confirmed: true });
