@@ -93,6 +93,24 @@ function PanelPlaceholder() {
 }
 
 /**
+ * U1g-3 (B) — the permission read, MOUNTED ONLY FOR A SESSION. Rendering this
+ * (instead of calling the hook with `enabled: false`) is what keeps the query
+ * cache free of an "auth-derived" entry after the hard reset: an unmounted
+ * observer cannot re-register a purged key.
+ */
+function PermissionsLoader({
+  onChange,
+}: {
+  onChange: (state: { permissions: string[]; loading: boolean }) => void;
+}) {
+  const { permissions, loading } = usePermissions();
+  useEffect(() => {
+    onChange({ permissions, loading });
+  }, [permissions, loading, onChange]);
+  return null;
+}
+
+/**
  * THE CORNER-BLOCK GRID + THE VERTICAL STACK.
  *
  * From md up the shell is a two-column CSS grid whose first column is the rail
@@ -223,6 +241,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         await queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
         queryClient.removeQueries({ queryKey: [AUTH_DERIVED_ROOT] });
         queryClient.removeQueries({ queryKey: ["me"] });
+        setPermissionsState({ permissions: [], loading: false });
         clearSessionClocks();
         setPanelChoice("marketplace");
         setLocationPath([]);
@@ -282,6 +301,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (authLoading || user !== null) return;
     void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
     queryClient.removeQueries({ queryKey: [AUTH_DERIVED_ROOT] });
+    setPermissionsState({ permissions: [], loading: false });
     setPanelChoice("marketplace");
     setNavOpen(false);
     if (gatedRoute) void navigate({ to: "/", replace: true });
@@ -340,6 +360,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellContext.Provider value={value}>
+      {user !== null && !signingOut ? <PermissionsLoader onChange={setPermissionsState} /> : null}
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}
       <script dangerouslySetInnerHTML={{ __html: RAIL_INIT_SCRIPT }} />
