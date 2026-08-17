@@ -454,6 +454,21 @@ export type Database = {
           },
         ]
       }
+      migration_marks: {
+        Row: {
+          marked_at: string
+          version: string
+        }
+        Insert: {
+          marked_at?: string
+          version: string
+        }
+        Update: {
+          marked_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       permissions: {
         Row: {
           action: string
