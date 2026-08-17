@@ -149,3 +149,4 @@
 - 2026-08-17 — fix(repo): INC-076 — U1c primitives/fixture/law-suite/preflight restored verbatim from f62f2f8 after a stale-checkout push overwrote main; base-SHA rule adopted
 - 2026-08-17 — fix(ui): U1d — DataTable rows clickable on desktop (+law L8); own-row status controls hidden; settings deactivation banner; Users > <name> crumb; INC-077
 - 2026-08-17 — ci: E2E failure reporter (docs/tracking/e2e-last-failure.md) + no-unexplained-deletions guard (INC-076); fix(auth): sign-out purges all auth-derived queries (SO-2/SO-4 after settings banner, INC-078)
+- 2026-08-17 — feat(auth): U1f — TOTP MFA enrollment + step-up gate (AAL2) for requires_step_up permissions; server-side enforcement in mutation RPCs; E2E MF-1..MF-5 (Tier A)
