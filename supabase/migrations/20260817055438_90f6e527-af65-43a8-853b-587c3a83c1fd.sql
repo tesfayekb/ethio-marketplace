@@ -8,4 +8,4 @@ CREATE POLICY "migration_marks_no_client_access"
   USING (false) WITH CHECK (false);
 
 -- Self-mark (last statement, per the self-marking law).
-INSERT INTO public.migration_marks(version) VALUES ('__SELF__') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks(version) VALUES ('20260817055438') ON CONFLICT DO NOTHING;
