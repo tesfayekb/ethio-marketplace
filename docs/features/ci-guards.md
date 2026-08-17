@@ -202,6 +202,28 @@ e2e-preflight  →  e2e-smoke   ┐
   table row and every downstream read are unchanged. Its own conclusion is the
   E2E verdict: red if any shard or the smoke tier was not `success`.
 
+### Every red source is quoted (INC-081, 2026-08-17)
+
+Run 32013538511 was red on the smoke tier while the published report said
+"0 failed": the smoke job uploaded no `results.json`, so the merged report
+never saw it. Closed in both directions:
+
+- The smoke job now uploads `test-results/results.json` as `e2e-results-smoke`
+  (`if: always()`), exactly like the shards; the report job's existing
+  `e2e-results-*` download pattern matches it.
+- Every source (`smoke`, `1`..`4`) tees its Playwright output to a log file and
+  uploads it as `e2e-log-<source>` on failure. The report job downloads
+  `e2e-log-*` into `E2E_LOGS_DIR`.
+- `scripts/e2e-failure-report.ts` walks `E2E_EXPECTED_SOURCES` (default
+  `smoke,1,2,3,4`), labels every failure with `- Source: \`smoke\``/`\`shard 3\``, and for any expected source with no results file writes
+  "<source>: no results file — the process failed outside test results
+  (setup/teardown/preflight)" followed by the last 40 log lines (redacted).
+
+LAW: the merged verdict quotes every red source; a red job with no test
+failures shows its log tail. The reporter may never print "0 failed" while a
+job is red without quoting WHY. The self-test proves both shapes (a labelled
+shard failure and a results-less smoke source with its log tail).
+
 Caches: the Playwright browser cache is keyed on `runner.os` + the resolved
 `@playwright/test` version; bun's install cache is keyed on `bun.lock`. Both
 jobs echo `cache-hit` so a silently-missing cache is visible in the log rather

@@ -272,7 +272,35 @@ jobs:
       # and auth-signout.spec.ts would edit specs outside this task's scope, and
       # a file list carries the same meaning with zero test-logic change.
       - name: Run the smoke tier (fail fast)
-        run: bunx playwright test e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts
+        run: |
+          set -o pipefail
+          bunx playwright test e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts 2>&1 | tee smoke.log
+      # INC-081: the smoke tier used to upload nothing, so its failures never
+      # reached docs/tracking/e2e-last-failure.md ("0 failed" while red).
+      - name: Upload smoke results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-smoke
+          path: test-results/results.json
+          if-no-files-found: warn
+          retention-days: 7
+      # If Playwright never wrote results, the log tail is the only evidence.
+      - name: Capture smoke log tail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-log-smoke
+          path: smoke.log
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload HTML report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-smoke
+          path: playwright-report/
+          retention-days: 7
 
   e2e-shard:
     name: E2E shard ${{ matrix.shard }}/4
@@ -324,7 +352,17 @@ jobs:
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
       - name: Run E2E shard (dev-server mode; the production build is validated in build-and-check)
-        run: bunx playwright test --shard=${{ matrix.shard }}/4
+        run: |
+          set -o pipefail
+          bunx playwright test --shard=${{ matrix.shard }}/4 2>&1 | tee ${{ matrix.shard }}.log
+      - name: Capture shard log tail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-log-${{ matrix.shard }}
+          path: ${{ matrix.shard }}.log
+          if-no-files-found: warn
+          retention-days: 7
       # Every shard uploads its JSON reporter output, pass or fail — the merged
       # report must see ALL failures, not only those of the first red shard.
       - name: Upload shard results
@@ -363,6 +401,14 @@ jobs:
         with:
           pattern: e2e-results-*
           path: shard-results
+      # Log tails only exist for RED jobs; a run where every job wrote results
+      # downloads nothing here and the step is a no-op.
+      - name: Download job log tails
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: e2e-log-*
+          path: shard-logs
       # MERGE MECHANISM: JSON concatenation, not `playwright merge-reports`.
       # The consumer is scripts/e2e-failure-report.ts, which reads the JSON
       # reporter shape; E2E_RESULTS_DIR makes it walk every shard's
@@ -370,6 +416,8 @@ jobs:
       - name: Publish merged E2E report
         env:
           E2E_RESULTS_DIR: shard-results
+          E2E_LOGS_DIR: shard-logs
+          E2E_EXPECTED_SOURCES: smoke,1,2,3,4
           E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
