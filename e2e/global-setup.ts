@@ -7,7 +7,6 @@ import { createClient } from "@supabase/supabase-js";
 
 import migrationPreflight from "../scripts/e2e-migration-preflight";
 
-
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const STATE_FILE = join(HERE, ".state", "test-user.json");
 

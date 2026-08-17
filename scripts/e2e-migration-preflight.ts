@@ -52,7 +52,9 @@ function serviceClient(): { client: SupabaseClient; url: string } {
     );
   }
   if (url.includes(PROD_REF)) {
-    throw new Error("[e2e:preflight] Refusing to probe ethio-prod. Point E2E_SUPABASE_URL at staging.");
+    throw new Error(
+      "[e2e:preflight] Refusing to probe ethio-prod. Point E2E_SUPABASE_URL at staging.",
+    );
   }
   return {
     url,
@@ -151,9 +153,7 @@ export default async function migrationPreflight(dry = false): Promise<void> {
 
   if (missing.length > 0) {
     const newestMissing = missing[missing.length - 1]!;
-    console.error(
-      `STAGING BEHIND: apply ${newestMissing} to ethio-staging before E2E can pass`,
-    );
+    console.error(`STAGING BEHIND: apply ${newestMissing} to ethio-staging before E2E can pass`);
     console.error(`[e2e:preflight] mechanism: ${mechanism}`);
     console.error("[e2e:preflight] missing migration file(s):");
     for (const file of missing) console.error(`  - ${file}`);
