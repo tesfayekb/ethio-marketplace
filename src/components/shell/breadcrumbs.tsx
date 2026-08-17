@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { PANELS } from "@/config/panels";
 import { sectionForPath } from "@/features/admin/sections";
+import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 
@@ -214,6 +215,16 @@ export function Breadcrumbs() {
         })}
       </BreadcrumbList>
     </Breadcrumb>
+  );
+}
+
+/** U1d — the 4th admin crumb; reads the detail page's cached row. */
+function AdminUserCrumb({ userId }: { userId: string }) {
+  const { data } = useAdminUser(userId);
+  return (
+    <BreadcrumbPage data-testid="breadcrumb-admin-user" className={CURRENT}>
+      {data?.displayName ?? "—"}
+    </BreadcrumbPage>
   );
 }
 
