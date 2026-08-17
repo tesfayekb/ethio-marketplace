@@ -290,6 +290,7 @@ export const am: Messages = {
   "admin.users.status.activate": "አንቃ",
   "admin.users.status.changedAt": "የተቀየረበት",
   "admin.users.status.failed": "ሁኔታውን መቀየር አልተቻለም።",
+  "admin.users.status.ownAccount": "የራስዎን የመለያ ሁኔታ እዚህ መቀየር አይችሉም — መለያዎን በቅንብሮች ውስጥ ያስተዳድሩ።",
   "admin.users.roles.title": "ሚናዎች",
   "admin.users.roles.none": "እስካሁን ሚና የለም።",
   "admin.users.roles.assign": "ሚና መድብ",

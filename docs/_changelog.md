@@ -147,3 +147,4 @@
 - 2026-08-17 — test(e2e): switchUser settles auth state before branching (INC-074 addendum)
 - 2026-08-17 — feat(ui): U1c — display primitives (DEC-015): StatCard/StatGrid, ChartFrame, FormSection, DetailPanel, DataTable slots; /dev/primitives fixture; primitives law suite (test-once responsiveness); preflight ledger-first (seed-only migrations detected)
 - 2026-08-17 — fix(repo): INC-076 — U1c primitives/fixture/law-suite/preflight restored verbatim from f62f2f8 after a stale-checkout push overwrote main; base-SHA rule adopted
+- 2026-08-17 — fix(ui): U1d — DataTable rows clickable on desktop (+law L8); own-row status controls hidden; settings deactivation banner; Users > <name> crumb; INC-077

@@ -69,6 +69,8 @@ function SettingsScreen() {
 
   const [checkingSession, setCheckingSession] = useState(true);
   const [memberSince, setMemberSince] = useState<string | null>(null);
+  /** U1d — own account status, for the deactivation banner (U1a leftover). */
+  const [accountDeactivated, setAccountDeactivated] = useState(false);
   const [identities, setIdentities] = useState<IdentitySummary[] | null>(null);
   const [identitiesErrorKey, setIdentitiesErrorKey] = useState<MessageKey | null>(null);
 
@@ -109,6 +111,16 @@ function SettingsScreen() {
       const { data } = await supabase.auth.getUser();
       if (!active) return;
       setMemberSince(data.user?.created_at ?? null);
+      const userId = data.user?.id;
+      if (userId) {
+        const profile = await supabase
+          .from("profiles")
+          .select("account_status")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (!active) return;
+        setAccountDeactivated(profile.data?.account_status === "deactivated");
+      }
       setCheckingSession(false);
     })();
     return () => {
@@ -252,6 +264,14 @@ function SettingsScreen() {
   return (
     <main className={PAGE_MAIN_CLASS}>
       <h1 className="text-xl font-semibold text-foreground">{t("settings.title")}</h1>
+
+      {accountDeactivated ? (
+        <PageCard className="mt-4 border-destructive" testid="account-deactivated-banner">
+          <p role="alert" className="text-sm font-medium text-destructive">
+            {t("account.deactivatedBanner")}
+          </p>
+        </PageCard>
+      ) : null}
 
       {errorKey ? (
         <p role="alert" className="mt-4 text-sm text-destructive">

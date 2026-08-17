@@ -381,6 +381,7 @@ function PrimitivesFixture() {
           rows={rows}
           rowKey={(row) => row.id}
           rowTestId={(row) => `prim-row-${row.id}`}
+          rowHref={(row) => ({ to: "/c/$slug", params: { slug: row.id } })}
           caption={"Primitives fixture table"}
           loading={loading}
           loadingState={<p className="text-sm text-muted-foreground">{t("prim.state.loading")}</p>}

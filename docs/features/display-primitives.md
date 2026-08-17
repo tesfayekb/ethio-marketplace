@@ -57,6 +57,10 @@ The frame measures the plot area with a `ResizeObserver` and calls `children({ w
 
 `DetailPanel({ title?, pairs, loading?, error?, testid?, className? })` with `pairs: { label, value, hint? }[]` — 1-col at 360, 2-col from md. Values wrap (`break-words`) and are never truncated silently; chip/badge values are supported.
 
+## Row links (U1d, INC-077)
+
+`DataTable({ rowHref })` applies to BOTH responsive twins: the 360 card is a whole-card `Link`, and from md the table row is fully clickable — the first `primary` column renders as a `Link` (`<rowTestId>-link`), the `<tr>` carries `role="link"`, `tabIndex=0`, click-to-navigate and Enter-to-navigate, with a `hover:bg-muted/50 cursor-pointer` affordance. Selection and row-action cells stop propagation so inner controls keep working. Law L8 in `e2e/primitives-law.spec.ts` proves click (non-primary cell), keyboard (Enter) and the 360 card. CLASS RULE: every primitive INTERACTION contract has a law test on `/dev/primitives`, not just geometry.
+
 ## Adoption
 
 Feature screens adopt these primitives as each U section ships; no feature page was migrated in U1c.

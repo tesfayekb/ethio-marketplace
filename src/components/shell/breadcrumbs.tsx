@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { PANELS } from "@/config/panels";
 import { sectionForPath } from "@/features/admin/sections";
+import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 
@@ -90,6 +91,13 @@ export function Breadcrumbs() {
    */
   if (pathname.startsWith("/admin")) {
     const section = sectionForPath(pathname);
+    /**
+     * U1d — the user-detail route publishes the name through the SMALLEST
+     * EXISTING SEAM: the react-query cache the detail page already fills
+     * (`useAdminUser(userId)`, key ["admin","users","detail",id]). No new
+     * context, no new fetch path — the crumb reads the same cached row.
+     */
+    const userDetailId = /^\/admin\/users\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
     return (
       <Breadcrumb
         data-testid="breadcrumbs"
@@ -122,9 +130,25 @@ export function Breadcrumbs() {
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage data-testid="breadcrumb-admin-section" className={CURRENT}>
-                  {t(section.titleKey)}
-                </BreadcrumbPage>
+                {userDetailId ? (
+                  <BreadcrumbLink asChild>
+                    <Link to="/admin/users" data-testid="breadcrumb-admin-section">
+                      {t(section.titleKey)}
+                    </Link>
+                  </BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage data-testid="breadcrumb-admin-section" className={CURRENT}>
+                    {t(section.titleKey)}
+                  </BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+            </>
+          ) : null}
+          {userDetailId ? (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <AdminUserCrumb userId={userDetailId} />
               </BreadcrumbItem>
             </>
           ) : null}
@@ -190,6 +214,16 @@ export function Breadcrumbs() {
         })}
       </BreadcrumbList>
     </Breadcrumb>
+  );
+}
+
+/** U1d — the 4th admin crumb; reads the detail page's cached row. */
+function AdminUserCrumb({ userId }: { userId: string }) {
+  const { data } = useAdminUser(userId);
+  return (
+    <BreadcrumbPage data-testid="breadcrumb-admin-user" className={CURRENT}>
+      {data?.displayName ?? "—"}
+    </BreadcrumbPage>
   );
 }
 

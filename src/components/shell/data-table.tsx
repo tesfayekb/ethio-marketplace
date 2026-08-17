@@ -1,5 +1,5 @@
-import { Link, type LinkProps } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
+import type { KeyboardEvent, ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -65,8 +65,14 @@ export interface DataTableProps<T> {
   rows: T[];
   rowKey: (row: T) => string;
   rowTestId: (row: T) => string;
-  /** Router link props for the whole row (cards are links, table names are not). */
+  /**
+   * Router link props for the whole row. U1d (INC-077): this applies to BOTH
+   * responsive twins — the 360 card is a Link, and the md+ table row renders
+   * its first primary cell as a Link, navigates on click anywhere in the row,
+   * and is keyboard reachable (role="link", tabIndex, Enter).
+   */
   rowHref?: (row: T) => LinkProps;
+
   /** Accessible caption for the table (also the card list's aria-label). */
   caption: string;
   emptyState: ReactNode;
@@ -169,6 +175,9 @@ export function DataTable<T>({
   className,
 }: DataTableProps<T>) {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  /** U1d: the FIRST primary column carries the row link inside the table. */
+  const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
 
   const toolbarBlock = toolbar ? (
     <PageCard testid="data-table-toolbar" className="min-w-0">
@@ -327,14 +336,38 @@ export function DataTable<T>({
             <tbody>
               {rows.map((row) => {
                 const key = rowKey(row);
+                const href = rowHref?.(row);
+                const go = () => {
+                  if (href) void navigate(href as never);
+                };
                 return (
                   <tr
                     key={key}
                     data-testid={rowTestId(row)}
-                    className="border-b border-border last:border-0"
+                    className={cn(
+                      "border-b border-border last:border-0",
+                      href && "cursor-pointer hover:bg-muted/50",
+                    )}
+                    {...(href
+                      ? {
+                          role: "link",
+                          tabIndex: 0,
+                          onClick: go,
+                          onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              go();
+                            }
+                          },
+                        }
+                      : {})}
                   >
                     {selection ? (
-                      <td className="p-3 align-top">
+                      <td
+                        className="p-3 align-top"
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                      >
                         <Checkbox
                           aria-label={t("prim.table.selectRow")}
                           data-testid={`${rowTestId(row)}-select-cell`}
@@ -350,13 +383,26 @@ export function DataTable<T>({
                         key={column.key}
                         className={cellClass(column as DataTableColumn<unknown>)}
                       >
-                        <span className="block min-w-0 break-words">{column.cell(row)}</span>
+                        {href && column.key === linkColumnKey ? (
+                          <Link
+                            {...href}
+                            data-testid={`${rowTestId(row)}-link`}
+                            className="block min-w-0 break-words"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            {column.cell(row)}
+                          </Link>
+                        ) : (
+                          <span className="block min-w-0 break-words">{column.cell(row)}</span>
+                        )}
                       </td>
                     ))}
                     {rowActions ? (
                       <td
                         data-testid={`${rowTestId(row)}-actions-cell`}
                         className="p-3 text-end align-top"
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
                       >
                         <span className="flex flex-wrap justify-end gap-2">{rowActions(row)}</span>
                       </td>
