@@ -197,3 +197,30 @@ Session tie-in (folded from INC-078): the hard reset now also removes every
 query prefixed `["me"]` — that prefix is the standing contract for anything read
 as "the signed-in user" — and `clearSessionClocks()` drops the cached step-up
 hint, so a fresh sign-in starts at `aal1` and re-verifies.
+
+## INC-074 addendum (U1f-3) — the ledger existed only where the migration tool ran
+
+Finding: `supabase_migrations.schema_migrations` is written by the migration
+TOOL. ethio-prod has it because Lovable's Supabase integration applies there;
+ethio-staging is applied BY HAND through the SQL editor, which writes no ledger
+at all. The U1f-2 definer RPC read that schema, so it was not merely empty on
+staging — the migration declaring it could not be applied there in the first
+place. A parity check whose ledger exists in only one environment can never be
+the mechanism it claims to be.
+
+**Environment-asymmetry law:** any artefact the preflight depends on must be
+created BY the migrations themselves, never by the tool that happens to apply
+them.
+
+**Self-marking law (ratified):** every migration's LAST statement is
+`INSERT INTO public.migration_marks(version) VALUES ('<its own 14-digit
+version>') ON CONFLICT DO NOTHING;`. The mark is the ledger on staging and is
+identical on prod. `public.migration_marks` is RLS-enabled with an explicit
+deny-all policy for `anon`/`authenticated`; only `service_role` and the definer
+`public.e2e_migration_ledger()` can see it. `scripts/check-migrations.sh`
+enforces the mark for every file with version >= 20260817054246 (self-test:
+`scripts/fixtures/bad-unmarked-migration-example.sql`).
+
+Degraded mode now has exactly one cause — the ledger RPC itself is absent, i.e.
+the ledger migration has not been applied to staging — and the warning names
+that migration.
