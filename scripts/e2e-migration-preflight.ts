@@ -132,7 +132,6 @@ export default async function migrationPreflight(dry = false): Promise<void> {
     const probes = declaredObjects(readFileSync(join(MIGRATIONS_DIR, newest), "utf8"));
     const absent: string[] = [];
     for (const probe of probes) {
-      // eslint-disable-next-line no-await-in-loop
       if (!(await objectExists(client, probe))) absent.push(`${probe.kind} ${probe.name}`);
     }
     if (dry) {
