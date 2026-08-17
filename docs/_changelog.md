@@ -140,3 +140,4 @@
 - 2026-08-16 — fix(shell): U0l-2 — breadcrumb Home navigates via Link; header reads signingOut to prevent stale account-menu (SO-2); settings.tsx migrated to multi-card PageCard standard
 - 2026-08-16 — docs: U0 gate record — S28, four-lens close-out, system-state updated
 - 2026-08-16 — feat(admin): U1 Users — account_status rider + status guard trigger + seam enforcement; admin_list_users/get/set_status/activity RPCs (profiles:view/update gated); list + detail UI with role assignment via audited RPCs; E2E AU-1..AU-6 (Tier A, DEC-014)
+- 2026-08-16 — fix(db): grant restatement for re-declared seams (definer-guard law); ci: migration-parity preflight before E2E (names the missing file); docs: INC-074 + guard law
