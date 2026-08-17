@@ -158,3 +158,4 @@
 - 2026-08-17 — fix(auth): hard reset unmounts the permissions loader before purge + gcTime 0 (SO-4 strict assertion); test(e2e): shared switchLanguage helper (selector drift)
 - 2026-08-17 — ci: E2E sharded ×4 + merged report, cancel superseded runs, @smoke fail-fast tier, cache checks (≈11 min → ≈3–4 min); test(e2e): smoke re-anchored to Amharic labels
 - 2026-08-17 — ci: per-process E2E fixture scoping (setup/teardown by run+shard id); namespace sweep moved to nightly; INC-080
+- 2026-08-17 — ci: smoke tier uploads results + log tail on failure; merged report labels sources and quotes non-test crashes (reporter blind spot closed)

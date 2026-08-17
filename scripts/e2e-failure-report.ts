@@ -221,7 +221,10 @@ async function main() {
       console.error("SELF-TEST FAILED — missing from rendered report:", missing);
       process.exit(1);
     }
-    if (sourceLabel("e2e-results-3") !== "shard 3" || sourceLabel("e2e-results-smoke") !== "smoke") {
+    if (
+      sourceLabel("e2e-results-3") !== "shard 3" ||
+      sourceLabel("e2e-results-smoke") !== "smoke"
+    ) {
       console.error("SELF-TEST FAILED — source labelling is wrong.");
       process.exit(1);
     }
@@ -229,7 +232,9 @@ async function main() {
       console.error("SELF-TEST FAILED — secret-shaped text survived redaction.");
       process.exit(1);
     }
-    console.log("Self-test OK: failures, steps, source labels, crash quoting and redaction verified.");
+    console.log(
+      "Self-test OK: failures, steps, source labels, crash quoting and redaction verified.",
+    );
     return;
   }
 
@@ -277,4 +282,3 @@ async function main() {
 }
 
 if (import.meta.main) await main();
-

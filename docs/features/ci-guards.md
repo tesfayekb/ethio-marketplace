@@ -215,8 +215,7 @@ never saw it. Closed in both directions:
   uploads it as `e2e-log-<source>` on failure. The report job downloads
   `e2e-log-*` into `E2E_LOGS_DIR`.
 - `scripts/e2e-failure-report.ts` walks `E2E_EXPECTED_SOURCES` (default
-  `smoke,1,2,3,4`), labels every failure with `- Source: \`smoke\`` /
-  `\`shard 3\``, and for any expected source with no results file writes
+  `smoke,1,2,3,4`), labels every failure with `- Source: \`smoke\``/`\`shard 3\``, and for any expected source with no results file writes
   "<source>: no results file — the process failed outside test results
   (setup/teardown/preflight)" followed by the last 40 log lines (redacted).
 
