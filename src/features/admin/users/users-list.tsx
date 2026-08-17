@@ -235,7 +235,7 @@ function UserRowLink({ user, dateLabel }: { user: AdminUserRow; dateLabel: strin
     <Link
       to="/admin/users/$userId"
       params={{ userId: user.userId }}
-      data-testid={`user-row-${user.userId}`}
+      data-testid={`user-card-${user.userId}`}
       className="block min-h-11 space-y-1"
     >
       <span className="flex flex-wrap items-center gap-2">
