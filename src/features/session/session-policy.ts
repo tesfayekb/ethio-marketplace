@@ -71,7 +71,29 @@ export function sessionPolicyKeys() {
   return {
     lastActivityAt: `sb-${ref}-last-activity-at`,
     sessionStartedAt: `sb-${ref}-session-started-at`,
+    /** U1f — cached "recently stepped up" hint (AAL2). Never authoritative. */
+    steppedUpAt: `sb-${ref}-stepped-up-at`,
   };
+}
+
+/**
+ * U1f — AAL AWARENESS.
+ *
+ * The AUTHORITATIVE assurance level is the JWT's `aal` claim, read by the
+ * server gate (public.require_step_up_if_needed) and by GoTrue's
+ * getAuthenticatorAssuranceLevel(). This stamp is only a client-side hint so
+ * the UI does not have to ask GoTrue on every render.
+ *
+ * A staff IDLE timeout signs the session out, which clears this stamp along
+ * with the clocks below — and a FRESH sign-in always starts at aal1, so the
+ * first sensitive action after signing in asks for a code again.
+ */
+export function markSteppedUp(now = Date.now()) {
+  writeStamp(sessionPolicyKeys().steppedUpAt, now);
+}
+
+export function readSteppedUpAt(): number | null {
+  return readStamp(sessionPolicyKeys().steppedUpAt);
 }
 
 function readStamp(key: string): number | null {
@@ -100,6 +122,8 @@ export function clearSessionClocks() {
   const keys = sessionPolicyKeys();
   window.localStorage.removeItem(keys.lastActivityAt);
   window.localStorage.removeItem(keys.sessionStartedAt);
+  // U1f: the step-up hint dies with the session it belonged to.
+  window.localStorage.removeItem(keys.steppedUpAt);
 }
 
 export function idleLimitFor(tier: SessionTier) {
