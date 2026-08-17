@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, isMobile, signIn, switchUser, waitForHydration } from "./helpers/ui";
+import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -64,7 +64,7 @@ test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await createUser({ confirmed: true });
     await grantRole(moderator.id, "moderator");
-    await signIn(page, moderator.email, moderator.password);
+    await switchUser(page, moderator.email, moderator.password);
     await waitForHydration(page);
     await page.goto("/admin/users");
     await waitForHydration(page);
@@ -85,7 +85,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await signIn(page, staff.email, staff.password);
+    await switchUser(page, staff.email, staff.password);
     await page.goto("/admin/users");
     await waitForHydration(page);
 
@@ -101,7 +101,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await signIn(page, staff.email, staff.password);
+    await switchUser(page, staff.email, staff.password);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("user-identity-card")).toBeVisible({ timeout: 15000 });
@@ -131,7 +131,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "super_admin");
     const scratch = await createUser({ confirmed: true });
 
-    await signIn(page, staff.email, staff.password);
+    await switchUser(page, staff.email, staff.password);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -155,7 +155,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await signIn(page, staff.email, staff.password);
+    await switchUser(page, staff.email, staff.password);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("U1 seam");
@@ -184,7 +184,7 @@ test.describe("U1 admin users", () => {
     const base = await createUser({ confirmed: true });
     const victim = await createUser({ confirmed: true });
 
-    await signIn(page, base.email, base.password);
+    await switchUser(page, base.email, base.password);
     await gotoReady(page, "/");
     const message = await rpcFromBrowser(page, "admin_set_account_status", {
       p_user_id: victim.id,
