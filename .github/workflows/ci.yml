@@ -229,6 +229,9 @@ jobs:
     needs: e2e-preflight
     runs-on: ubuntu-latest
     env:
+      # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
+      # the shard id is what makes each process's fixtures its own.
+      E2E_SHARD: smoke
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
@@ -281,6 +284,9 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     env:
+      # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
+      # the shard id is what makes each process's fixtures its own.
+      E2E_SHARD: ${{ matrix.shard }}
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
