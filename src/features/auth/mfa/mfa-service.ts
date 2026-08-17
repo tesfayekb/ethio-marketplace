@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { clearSteppedUp, markSteppedUp, readSteppedUpAt } from "@/features/session/session-policy";
+import { markSteppedUp, readSteppedUpAt } from "@/features/session/session-policy";
 import type { MessageKey } from "@/i18n";
 
 /**
