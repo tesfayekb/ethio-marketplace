@@ -13,6 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # INC-076: the deletion guard needs the previous main commit in the
+          # local object store, so the shallow default will not do.
+          fetch-depth: 0
+      # INC-076 (ratified): a push that deletes files must SAY so. The guard is
+      # self-tested in both directions before it is trusted.
+      - name: No unexplained deletions (with self-test)
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: |
+          SELF_TEST=1 bash scripts/check-deletions.sh
+          bash scripts/check-deletions.sh
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
