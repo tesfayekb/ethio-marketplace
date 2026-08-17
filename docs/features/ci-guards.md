@@ -74,12 +74,24 @@ riders (migrations are append-only), e.g. the grant restatement for
 `e2e/global-setup.ts` for local runs. It compares `supabase/migrations/*.sql`
 against ethio-staging using the service-role client the harness already holds:
 
-1. Ledger path — reads `supabase_migrations.schema_migrations` (`version` =
-   the 14-digit filename prefix) through PostgREST.
-2. Fallback probe — when that schema is not exposed, it parses the newest local
-   migration for `CREATE [OR REPLACE] FUNCTION` / `CREATE TABLE` names and
-   checks them on staging (`PGRST202` = function absent, `42P01` = table
-   absent). No SECURITY DEFINER helper is required.
+1. Ledger path (PRIMARY, U1f-2) — `supabase_migrations.schema_migrations` is
+   NOT exposed to PostgREST, so the ledger is read through
+   `public.e2e_migration_ledger()`: a `SECURITY DEFINER` SQL function returning
+   `SETOF text` (the `version` column, ordered). `EXECUTE` is revoked from
+   PUBLIC/anon/authenticated and granted to `service_role` ONLY — the harness
+   holds that key; no client role can call it. This is the only path that sees
+   seed-only migrations (they declare no function or table to probe).
+2. Object probe (DEGRADED FALLBACK) — used only when the ledger RPC errors. It
+   parses the newest local migration for `CREATE [OR REPLACE] FUNCTION` /
+   `CREATE TABLE` names and checks them on staging (`PGRST202` without a
+   name-matching hint = function absent; a hint naming the function means it
+   exists with a different signature, i.e. PRESENT; `42P01` = table absent).
+
+**No silent fallback (law).** Degraded mode always prints
+`::warning::PREFLIGHT DEGRADED: object-probe only (seed-only migrations
+invisible) — <error>` on stderr and appends the same line to
+`$GITHUB_STEP_SUMMARY`. The preflight never reports a check it did not make; in
+degraded mode a missing object still fails loudly with the filename.
 
 When staging is behind it exits non-zero with:
 
@@ -89,6 +101,7 @@ STAGING BEHIND: apply <filename> to ethio-staging before E2E can pass
 
 followed by every missing file. `bun scripts/e2e-migration-preflight.ts --dry`
 prints applied-vs-local for the operator and always exits 0.
+
 
 ## E2E failure reporter (U1e, 2026-08-17)
 
