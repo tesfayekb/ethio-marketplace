@@ -250,7 +250,11 @@ export function AppHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => requestSignOut()}>
+                <DropdownMenuItem
+                  data-testid="account-menu-sign-out"
+                  onSelect={() => requestSignOut()}
+                >
+
                   <LogOut className="me-2 h-4 w-4" aria-hidden="true" />
                   {t("auth.signOut")}
                 </DropdownMenuItem>
