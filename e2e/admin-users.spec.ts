@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, signIn, waitForHydration } from "./helpers/ui";
+import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -36,6 +36,14 @@ async function grantRole(userId: string, roleName: string) {
   if (error) throw new Error(`[e2e:u1] granting ${roleName} failed: ${error.message}`);
 }
 
+/**
+ * INC-074 — the list renders responsive twins (mobile card + desktop row) with
+ * distinct testids; pick the one this viewport actually shows.
+ */
+function userRow(page: Page, userId: string) {
+  return page.getByTestId(isMobile(page) ? `user-card-${userId}` : `user-row-${userId}`);
+}
+
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
   await page.waitForFunction(
     () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
@@ -56,7 +64,7 @@ test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await createUser({ confirmed: true });
     await grantRole(moderator.id, "moderator");
-    await signIn(page, moderator.email, moderator.password);
+    await switchUser(page, moderator.email, moderator.password);
     await waitForHydration(page);
     await page.goto("/admin/users");
     await waitForHydration(page);
@@ -65,11 +73,11 @@ test.describe("U1 admin users", () => {
 
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
-    await page.context().clearCookies();
-    await signIn(page, staff.email, staff.password);
+    // INC-074: /auth is guarded for an authenticated session — sign out first.
+    await switchUser(page, staff.email, staff.password);
     await page.goto("/admin/users");
     await waitForHydration(page);
-    await expect(page.getByTestId(`user-row-${staff.id}`)).toBeVisible({ timeout: 15000 });
+    await expect(userRow(page, staff.id)).toBeVisible({ timeout: 15000 });
   });
 
   test("AU-2 search and status filter", async ({ page }) => {
@@ -77,15 +85,15 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await signIn(page, staff.email, staff.password);
+    await switchUser(page, staff.email, staff.password);
     await page.goto("/admin/users");
     await waitForHydration(page);
 
     await page.getByTestId("users-search").fill(scratch.email);
-    await expect(page.getByTestId(`user-row-${scratch.id}`)).toBeVisible({ timeout: 15000 });
+    await expect(userRow(page, scratch.id)).toBeVisible({ timeout: 15000 });
 
     await page.getByTestId("users-status-filter").selectOption("deactivated");
-    await expect(page.getByTestId(`user-row-${scratch.id}`)).toHaveCount(0);
+    await expect(userRow(page, scratch.id)).toHaveCount(0);
   });
 
   test("AU-3 detail: reason required, deactivate, audit row, reactivate", async ({ page }) => {
@@ -93,7 +101,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await signIn(page, staff.email, staff.password);
+    await switchUser(page, staff.email, staff.password);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("user-identity-card")).toBeVisible({ timeout: 15000 });
@@ -123,7 +131,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "super_admin");
     const scratch = await createUser({ confirmed: true });
 
-    await signIn(page, staff.email, staff.password);
+    await switchUser(page, staff.email, staff.password);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -147,7 +155,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await signIn(page, staff.email, staff.password);
+    await switchUser(page, staff.email, staff.password);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("U1 seam");
@@ -158,8 +166,8 @@ test.describe("U1 admin users", () => {
     );
 
     // Sign in AS the deactivated user and call the write seam directly.
-    await page.context().clearCookies();
-    await signIn(page, scratch.email, scratch.password);
+    // INC-074: /auth is guarded while authenticated — switchUser signs out first.
+    await switchUser(page, scratch.email, scratch.password);
     await gotoReady(page, "/");
     const message = await rpcFromBrowser(page, "submit_listing", {
       p_seller_id: scratch.id,
@@ -176,7 +184,7 @@ test.describe("U1 admin users", () => {
     const base = await createUser({ confirmed: true });
     const victim = await createUser({ confirmed: true });
 
-    await signIn(page, base.email, base.password);
+    await switchUser(page, base.email, base.password);
     await gotoReady(page, "/");
     const message = await rpcFromBrowser(page, "admin_set_account_status", {
       p_user_id: victim.id,

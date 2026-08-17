@@ -12,11 +12,11 @@ import { useAdminRoles, useAdminUsers, useDebounced } from "./use-admin-users";
 
 const PAGE_SIZE = 25;
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, mobile = false }: { status: string; mobile?: boolean }) {
   const { t } = useI18n();
   return (
     <Badge
-      data-testid="user-status"
+      data-testid={mobile ? "user-status-mobile" : "user-status"}
       variant={status === "deactivated" ? "destructive" : "secondary"}
     >
       {status === "deactivated"
@@ -26,11 +26,15 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function RoleChips({ roles }: { roles: string[] }) {
+function RoleChips({ roles, mobile = false }: { roles: string[]; mobile?: boolean }) {
   return (
     <span className="flex flex-wrap gap-1">
       {roles.map((role) => (
-        <Badge key={role} variant="outline" data-testid={`role-chip-${role}`}>
+        <Badge
+          key={role}
+          variant="outline"
+          data-testid={mobile ? `role-chip-mobile-${role}` : `role-chip-${role}`}
+        >
           {role}
         </Badge>
       ))}
@@ -235,18 +239,18 @@ function UserRowLink({ user, dateLabel }: { user: AdminUserRow; dateLabel: strin
     <Link
       to="/admin/users/$userId"
       params={{ userId: user.userId }}
-      data-testid={`user-row-${user.userId}`}
+      data-testid={`user-card-${user.userId}`}
       className="block min-h-11 space-y-1"
     >
       <span className="flex flex-wrap items-center gap-2">
         <span className="font-medium text-foreground">{user.displayName}</span>
-        <StatusBadge status={user.accountStatus} />
+        <StatusBadge status={user.accountStatus} mobile />
       </span>
       <span className="block text-sm text-muted-foreground">{user.email}</span>
       <span className="block text-xs text-muted-foreground">
         {(user.homeCountryCode ?? "—") + " · " + dateLabel}
       </span>
-      <RoleChips roles={user.roles} />
+      <RoleChips roles={user.roles} mobile />
       <span className="sr-only">{t("admin.users.openDetail")}</span>
     </Link>
   );
