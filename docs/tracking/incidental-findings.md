@@ -237,3 +237,26 @@ enforces the mark for every file with version >= 20260817054246 (self-test:
 Degraded mode now has exactly one cause — the ledger RPC itself is absent, i.e.
 the ledger migration has not been applied to staging — and the warning names
 that migration.
+
+### INC-080 (2026-08-17) — Sharded E2E processes deleted each other's fixtures (namespace-wide teardown, shared run id)
+
+**Evidence.** Run 32012959376: 39 tests passed, but 3 of 4 shards and the smoke
+tier were red while the merged reporter showed **0 failed tests** — failures
+outside test results, i.e. process-level crashes (setup/teardown), not
+assertions. Root cause: `global-teardown.ts` swept the ENTIRE
+`@ethio-e2e.invalid` namespace, and every parallel process keyed its fixtures on
+`GITHUB_RUN_ID`, which all shards and the smoke tier share. The first process to
+finish deleted the still-in-use fixtures of the other four.
+
+**Fix.** Fixture ownership is now a PROCESS id:
+`PROCESS_ID = ${GITHUB_RUN_ID ?? local<rand>}-${E2E_SHARD ?? "solo"}`
+(`E2E_SHARD` is `1..4` on the shard matrix, `smoke` on the smoke tier,
+`nightly` on the nightly job). Minted emails are
+`e2e+<PROCESS_ID>-<n>@ethio-e2e.invalid`; the id is persisted in the setup state
+file; teardown deletes only users whose email contains `+${PROCESS_ID}-`, with
+the out-of-namespace refusal kept as a per-user assert. Stale-orphan reaping
+moved to the single-process nightly job (`sweepStaleUsers()`), the only place a
+namespace-wide delete is permitted, and only for users older than 24h.
+
+**Class rule (ratified):** parallel test processes own their fixtures by process
+id; namespace-wide sweeps run only in single-process jobs (nightly).
