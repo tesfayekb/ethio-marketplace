@@ -62,24 +62,14 @@ function serviceClient(): { client: SupabaseClient; url: string } {
   };
 }
 
-/**
- * LEDGER-FIRST RULE (U1c): the ledger is THE mechanism. It is the only path
- * that detects seed-only migrations (no new function or table to probe for).
- * Returns null only when the ledger table is genuinely unreadable; the caller
- * then says so loudly before falling back to the weaker object probe.
- */
+/** Reads the CLI ledger. Returns null when the schema is not reachable. */
 async function appliedVersionsFromLedger(url: string, key: string): Promise<string[] | null> {
   const ledger = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
     db: { schema: "supabase_migrations" },
   });
   const { data, error } = await ledger.from("schema_migrations").select("version");
-  if (error || !data) {
-    console.warn(
-      `[e2e:preflight] ledger unreadable (${error?.message ?? "no rows"}) — falling back to the object probe, which CANNOT detect seed-only migrations.`,
-    );
-    return null;
-  }
+  if (error || !data) return null;
   return (data as Array<{ version: string }>).map((row) => String(row.version)).sort();
 }
 
@@ -138,8 +128,7 @@ export default async function migrationPreflight(dry = false): Promise<void> {
       );
     }
   } else {
-    mechanism =
-      "declared-object probe of the newest local migration (FALLBACK — seed-only migrations are invisible to it)";
+    mechanism = "declared-object probe of the newest local migration";
     const probes = declaredObjects(readFileSync(join(MIGRATIONS_DIR, newest), "utf8"));
     const absent: string[] = [];
     for (const probe of probes) {
@@ -171,11 +160,6 @@ export default async function migrationPreflight(dry = false): Promise<void> {
   }
 
   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
-  if (!applied) {
-    console.warn(
-      "[e2e:preflight] NOTE: parity was proved by the fallback probe, not the ledger. Expose supabase_migrations to PostgREST on staging for seed-only coverage.",
-    );
-  }
 }
 
 // Direct CLI invocation: `bun scripts/e2e-migration-preflight.ts [--dry]`

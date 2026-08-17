@@ -15,7 +15,6 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as DevTallRouteImport } from './routes/dev.tall'
-import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
 import { Route as CSlugRouteImport } from './routes/c.$slug'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
@@ -56,11 +55,6 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const DevTallRoute = DevTallRouteImport.update({
   id: '/dev/tall',
   path: '/dev/tall',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevPrimitivesRoute = DevPrimitivesRouteImport.update({
-  id: '/dev/primitives',
-  path: '/dev/primitives',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CSlugRoute = CSlugRouteImport.update({
@@ -134,7 +128,6 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
-  '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -153,7 +146,6 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
-  '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
   '/admin': typeof AdminIndexRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -174,7 +166,6 @@ export interface FileRoutesById {
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
-  '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
@@ -196,7 +187,6 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/reset'
     | '/c/$slug'
-    | '/dev/primitives'
     | '/dev/tall'
     | '/admin/'
     | '/admin/users/$userId'
@@ -215,7 +205,6 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/reset'
     | '/c/$slug'
-    | '/dev/primitives'
     | '/dev/tall'
     | '/admin'
     | '/admin/users/$userId'
@@ -235,7 +224,6 @@ export interface FileRouteTypes {
     | '/auth_/callback'
     | '/auth_/reset'
     | '/c/$slug'
-    | '/dev/primitives'
     | '/dev/tall'
     | '/admin/'
     | '/admin/users_/$userId'
@@ -249,7 +237,6 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetRoute: typeof AuthResetRoute
   CSlugRoute: typeof CSlugRoute
-  DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevTallRoute: typeof DevTallRoute
 }
 
@@ -295,13 +282,6 @@ declare module '@tanstack/react-router' {
       path: '/dev/tall'
       fullPath: '/dev/tall'
       preLoaderRoute: typeof DevTallRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dev/primitives': {
-      id: '/dev/primitives'
-      path: '/dev/primitives'
-      fullPath: '/dev/primitives'
-      preLoaderRoute: typeof DevPrimitivesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/c/$slug': {
@@ -418,7 +398,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetRoute: AuthResetRoute,
   CSlugRoute: CSlugRoute,
-  DevPrimitivesRoute: DevPrimitivesRoute,
   DevTallRoute: DevTallRoute,
 }
 export const routeTree = rootRouteImport

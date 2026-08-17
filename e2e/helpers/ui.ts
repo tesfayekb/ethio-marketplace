@@ -245,6 +245,24 @@ export async function expectSignedOut(page: Page) {
  */
 export async function switchUser(page: Page, email: string, password: string) {
   await gotoReady(page, "/");
+
+  // Auth state must be SETTLED before branching — after a navigation/redirect
+  // the header renders its auth branch asynchronously; an instantaneous count
+  // is a race (INC-074 addendum).
+  await page.waitForFunction(
+    ([enSignIn, amSignIn]) => {
+      const accountMenu = document.querySelector('[data-testid="account-menu"]');
+      if (accountMenu && accountMenu.isConnected) return true;
+      for (const link of document.querySelectorAll("a")) {
+        const text = link.textContent?.trim() ?? "";
+        if (text === enSignIn || text === amSignIn) return true;
+      }
+      return false;
+    },
+    [en["auth.signIn"], am["auth.signIn"]],
+    { timeout: 15000 },
+  );
+
   const signedIn = await page.getByTestId("account-menu").count();
   if (signedIn > 0) {
     await signOutViaUi(page);

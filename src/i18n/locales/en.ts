@@ -305,17 +305,6 @@ export const en = {
   "admin.users.activity.empty": "No recorded activity.",
   "admin.users.activity.loading": "Loading activity…",
   "account.deactivatedBanner": "Your account is deactivated — contact support.",
-  "prim.state.loading": "Loading…",
-  "prim.state.empty": "Nothing to show yet.",
-  "prim.state.error": "Something went wrong.",
-  "prim.table.previous": "Previous",
-  "prim.table.next": "Next",
-  "prim.table.of": "of",
-  "prim.table.selected": "selected",
-  "prim.table.selectRow": "Select row",
-  "prim.table.selectAll": "Select all rows",
-  "prim.table.actions": "Actions",
-  "common.save": "Save",
 } as const;
 
 export default en;
