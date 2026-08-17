@@ -176,6 +176,10 @@ export function DataTable<T>({
   className,
 }: DataTableProps<T>) {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  /** U1d: the FIRST primary column carries the row link inside the table. */
+  const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
+
 
   const toolbarBlock = toolbar ? (
     <PageCard testid="data-table-toolbar" className="min-w-0">
