@@ -1,5 +1,25 @@
 import { supabase } from "@/integrations/supabase/client";
+import { clearSteppedUp, markSteppedUp, readSteppedUpAt } from "@/features/session/session-policy";
 import type { MessageKey } from "@/i18n";
+
+/**
+ * U1f-4 (INC-081) — A BEARER CLAIM IS NOT A STEP-UP.
+ *
+ * The server gate (public.require_step_up_if_needed) now requires BOTH a
+ * currently-owned verified TOTP factor AND a totp verification on this session
+ * within STEP_UP_WINDOW_MS. This client mirrors that window so the user is
+ * asked for a code BEFORE the RPC refuses — never instead of it (law F3).
+ */
+export const STEP_UP_WINDOW_MS = 10 * 60 * 1000;
+
+/** DEV/E2E only: a shorter window so expiry is testable without waiting. */
+function stepUpWindowMs(): number {
+  if (typeof window === "undefined") return STEP_UP_WINDOW_MS;
+  const override = (window as unknown as { __ethioStepUp?: { windowMs?: number } }).__ethioStepUp;
+  const value = override?.windowMs;
+  return typeof value === "number" && value > 0 ? value : STEP_UP_WINDOW_MS;
+}
+
 
 /**
  * U1f — MFA / STEP-UP SEAM (INC-079).
