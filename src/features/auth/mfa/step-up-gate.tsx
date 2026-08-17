@@ -16,11 +16,9 @@ import { useStepUp } from "./use-step-up";
  * 360-first (full-width controls, ≥44px targets) and RTL-safe (logical
  * spacing only).
  */
-export function StepUpGate({
-  children,
-}: {
-  children: (guard: (action: () => void | Promise<void>) => Promise<void>) => ReactNode;
-}) {
+type GuardFn = (action: () => void | Promise<void>) => Promise<void>;
+
+export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNode }) {
   const { t } = useI18n();
   const { mode, busy, errorKey, guard, submitCode, close } = useStepUp();
   const [code, setCode] = useState("");
