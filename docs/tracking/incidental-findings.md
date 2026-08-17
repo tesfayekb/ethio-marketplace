@@ -260,3 +260,13 @@ namespace-wide delete is permitted, and only for users older than 24h.
 
 **Class rule (ratified):** parallel test processes own their fixtures by process
 id; namespace-wide sweeps run only in single-process jobs (nightly).
+
+**Addendum (2026-08-17) — second facet.** Run 32015036209: all 15 smoke tests
+failed with "already registered". The per-job counter collided across the two
+project workers inside the smoke job (mobile-360 + desktop-1280 share an
+identical PROCESS_ID, and the counter restarts in every OS process). Fix: worker
+tag + random suffix — `e2e+<PROCESS_ID>-<worker>-<n>-<rand6>@ethio-e2e.invalid`,
+where `worker` is `TEST_WORKER_INDEX` (Playwright, per worker) falling back to
+the pid. The teardown filter `+${PROCESS_ID}-` still matches, so ownership is
+unchanged. **Class rule:** fixture identity is unique by construction (worker +
+random), never by a counter shared across processes.
