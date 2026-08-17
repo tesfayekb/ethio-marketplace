@@ -3,7 +3,10 @@ name: CI
 on:
   push:
     branches: [main]
-    paths-ignore: ["docs/tracking/ci-status.md", "docs/tracking/nightly-status.md"]
+    paths-ignore:
+      - "docs/tracking/ci-status.md"
+      - "docs/tracking/nightly-status.md"
+      - "docs/tracking/e2e-last-failure.md"
   pull_request:
     branches: [main]
 
