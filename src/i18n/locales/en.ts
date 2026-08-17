@@ -294,6 +294,7 @@ export const en = {
   "admin.users.status.activate": "Activate",
   "admin.users.status.changedAt": "Changed",
   "admin.users.status.failed": "The status could not be changed.",
+  "admin.users.status.ownAccount": "You can't change your own account status here — manage your account in Settings.",
   "admin.users.roles.title": "Roles",
   "admin.users.roles.none": "No roles yet.",
   "admin.users.roles.assign": "Assign role",

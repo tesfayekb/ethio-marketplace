@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
+import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 
 import { UNASSIGNABLE_ROLES } from "./admin-users-service";
@@ -25,6 +26,9 @@ import {
 export function AdminUserDetailPage({ userId }: { userId: string }) {
   const { t, language } = useI18n();
   const { permissions } = useAdminShell();
+  const { user: authUser } = useAuth();
+  /** U1d (INC-077): never offer status controls on your OWN record. */
+  const isOwnAccount = authUser?.id === userId;
   const mayUpdate = permissions.includes("profiles:update");
   const mayAssign = permissions.includes("roles:assign");
 
