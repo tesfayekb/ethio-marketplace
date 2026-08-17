@@ -152,7 +152,6 @@ export async function openRailScope(page: Page) {
       // Not mid-animation: a partially-open drawer must not be re-clicked
       // (that would toggle it shut). Only retry from a genuinely closed state.
       await expect(drawer, "drawer is mid-animation, not closed — not retrying").toHaveCount(0);
-      // eslint-disable-next-line no-console
       console.log("[e2e] drawer open retried");
       await hamburger.click();
       await expect(drawer, "drawer did not open after one retry").toBeVisible({ timeout: 10000 });
