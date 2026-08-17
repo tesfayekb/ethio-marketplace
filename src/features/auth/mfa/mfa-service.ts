@@ -20,7 +20,6 @@ function stepUpWindowMs(): number {
   return typeof value === "number" && value > 0 ? value : STEP_UP_WINDOW_MS;
 }
 
-
 /**
  * U1f — MFA / STEP-UP SEAM (INC-079).
  *
@@ -96,7 +95,6 @@ export async function isStepUpFresh(): Promise<boolean> {
   return Date.now() - verifiedAt < stepUpWindowMs();
 }
 
-
 export async function listFactors(): Promise<
   { ok: true; factors: MfaFactor[] } | { ok: false; errorKey: MessageKey }
 > {
@@ -167,5 +165,4 @@ export async function unenrollFactor(factorId: string): Promise<MfaOutcome> {
   markSteppedUp(0);
   await supabase.auth.refreshSession();
   return { ok: true };
-
 }
