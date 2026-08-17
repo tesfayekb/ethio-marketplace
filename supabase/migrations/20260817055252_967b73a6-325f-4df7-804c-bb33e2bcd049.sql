@@ -70,4 +70,4 @@ INSERT INTO public.migration_marks(version) VALUES
 ON CONFLICT DO NOTHING;
 
 -- Self-mark (last statement, per the self-marking law).
-INSERT INTO public.migration_marks(version) VALUES ('20260817055200') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks(version) VALUES ('20260817055252') ON CONFLICT DO NOTHING;
