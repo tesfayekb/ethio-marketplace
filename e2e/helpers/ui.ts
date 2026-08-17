@@ -127,6 +127,11 @@ export function isMobile(page: Page) {
 /**
  * U0j-2 — opens the rail's sign-out affordance for THIS viewport and returns
  * the scope it lives in. Strict-mode safe: never a page-wide locator.
+ *
+ * FLAKE CLASS (2026-08-17): under parallel runners the drawer occasionally did
+ * not open on the first click (two isolated mobile reds against 245 passes).
+ * The contract is now hydration-gated and owns ONE bounded retry — assertions
+ * are never given looser timeouts as a substitute.
  */
 export async function openRailScope(page: Page) {
   await waitForHydration(page);
@@ -135,16 +140,33 @@ export async function openRailScope(page: Page) {
     // app-header.tsx labels it with t("shell.openMenu") only, and that file is
     // outside this task's scope), so match its aria-label against BOTH
     // catalogs — an Amharic shell must reach the same control.
-    await page.getByRole("button", { name: openMenuPattern() }).click();
-    const drawer = page.getByRole("dialog");
+    const hamburger = page.getByRole("button", { name: openMenuPattern() });
+    await expect(hamburger, "hamburger never became interactive").toBeEnabled({ timeout: 15000 });
 
-    await expect(drawer).toBeVisible();
+    const drawer = page.getByRole("dialog");
+    await hamburger.click();
+
+    try {
+      await expect(drawer).toBeVisible({ timeout: 3000 });
+    } catch {
+      // Not mid-animation: a partially-open drawer must not be re-clicked
+      // (that would toggle it shut). Only retry from a genuinely closed state.
+      await expect(drawer, "drawer is mid-animation, not closed — not retrying").toHaveCount(0);
+      // eslint-disable-next-line no-console
+      console.log("[e2e] drawer open retried");
+      await hamburger.click();
+      await expect(drawer, "drawer did not open after one retry").toBeVisible({ timeout: 10000 });
+    }
+
+    // Settled, not merely present: the panel header has rendered its title.
+    await expect(drawer.getByTestId("panel-header-title")).not.toHaveText("", { timeout: 10000 });
     return drawer;
   }
   const rail = page.getByTestId("app-rail");
   await expect(rail).toBeVisible();
   return rail;
 }
+
 
 /**
  * THE ONE sign-out path for the suite (U0k). ONE CLICK: the affordance itself
