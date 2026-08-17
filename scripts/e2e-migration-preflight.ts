@@ -6,26 +6,28 @@
  * instead of twelve cryptic test reds.
  *
  * Mechanism (in order):
- *   1. Try the Supabase CLI ledger: schema "supabase_migrations", table
- *      "schema_migrations" (column `version` = the 14-digit filename prefix).
- *      This is the table Lovable's migration tool writes on this project, but
- *      it is only readable through PostgREST when that schema is exposed.
- *   2. Fallback probe (definer-free, service-role): parse the newest local
- *      migration for the objects it declares (CREATE [OR REPLACE] FUNCTION /
- *      CREATE TABLE) and check them against staging — functions via
- *      pg_get_function_identity_arguments-free RPC existence detection
- *      (PostgREST PGRST202 = not in schema cache), tables via a zero-row select
- *      (42P01 = missing).
+ *   1. Ledger (primary): public.e2e_migration_ledger(), a SECURITY DEFINER
+ *      function executable by service_role ONLY, returning
+ *      supabase_migrations.schema_migrations.version — that schema is NOT
+ *      exposed to PostgREST, so the RPC is the only door.
+ *   2. Fallback probe (DEGRADED, announced loudly via ::warning and the CI step
+ *      summary): parse the newest local migration for the objects it declares
+ *      (CREATE [OR REPLACE] FUNCTION / CREATE TABLE) and check them against
+ *      staging — functions via PostgREST RPC existence detection (PGRST202 with
+ *      no name suggestion = missing), tables via a zero-row select (42P01).
+ *      Seed-only migrations are invisible to this mode; it never claims
+ *      otherwise.
  *
  * Modes:
  *   (default)  fail non-zero when staging is behind.
  *   --dry      print applied-vs-local for the operator; always exit 0.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { appendFileSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(HERE, "..", "supabase", "migrations");
