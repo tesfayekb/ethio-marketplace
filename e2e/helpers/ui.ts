@@ -3,6 +3,8 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
 
+import { totp } from "./totp";
+
 /** Escape a catalog value for literal use inside a RegExp. */
 function escapeRe(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -268,4 +270,64 @@ export async function switchUser(page: Page, email: string, password: string) {
     await signOutViaUi(page);
   }
   await signIn(page, email, password);
+}
+
+/**
+ * U1g — STEP-UP FIXTURE.
+ *
+ * Every sensitive admin mutation now demands an AAL2 session (U1f), so the
+ * legacy specs must enroll a factor and step up before they mutate anything.
+ * Enrolls TOTP through Settings (the same steps MF-1 drives) and returns the
+ * secret so the caller can answer later gate prompts.
+ */
+export async function enrollAndStepUp(page: Page): Promise<string> {
+  await gotoReady(page, "/settings");
+  await page.getByTestId("mfa-enroll").click();
+  await expect(page.getByTestId("mfa-qr")).toBeVisible({ timeout: 15000 });
+  const secret = await page.getByTestId("mfa-secret").inputValue();
+  expect(secret.length, "TOTP secret was not shown").toBeGreaterThan(10);
+  await page.getByTestId("mfa-code").fill(totp(secret));
+  await page.getByTestId("mfa-verify").click();
+  await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOn"], { timeout: 20000 });
+  return secret;
+}
+
+/**
+ * Answers the StepUpGate modal IF it opened; a no-op when the session is
+ * already AAL2. Never weakens an assertion — it only supplies the code the
+ * gate asks for.
+ */
+export async function stepUpIfPrompted(page: Page, secret: string) {
+  const modal = page.getByTestId("step-up-modal");
+  try {
+    await modal.waitFor({ state: "visible", timeout: 5000 });
+  } catch {
+    return;
+  }
+  await page.getByTestId("step-up-code").fill(totp(secret));
+  await page.getByTestId("step-up-submit").click();
+  await expect(modal).toBeHidden({ timeout: 20000 });
+}
+
+/** The session actually reached AAL2 (read from the DEV client, not inferred). */
+export async function expectAal2(page: Page) {
+  await page.waitForFunction(
+    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
+    undefined,
+    { timeout: 15000 },
+  );
+  const level = await page.evaluate(async () => {
+    const client = (
+      window as unknown as {
+        __ethioSupabase: {
+          auth: {
+            mfa: { getAuthenticatorAssuranceLevel: () => Promise<{ currentLevel: string | null }> };
+          };
+        };
+      }
+    ).__ethioSupabase;
+    const { currentLevel } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    return currentLevel;
+  });
+  expect(level, "the session did not reach aal2").toBe("aal2");
 }
