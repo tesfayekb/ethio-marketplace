@@ -102,3 +102,22 @@ spacing only.
    `ethio-prod` AND `ethio-staging`.
 2. Apply migration `20260817052646_196f64f5-d959-4852-b7ab-550b77fbfb7e.sql` to
    staging BEFORE the E2E run (the parity preflight names it on failure).
+
+## Reading the AAL from a test (U1g-2)
+
+`supabase.auth.mfa.getAuthenticatorAssuranceLevel()` resolves to
+`{ data: { currentLevel, nextLevel }, error }` — the level lives under `data`.
+`e2e/helpers/ui.ts` exposes `readAal(page)` (the raw read) and
+`expectAal2(page)`, which polls it for up to 5s because the client flips its
+AAL asynchronously after a factor is verified. `stepUpIfPrompted` now ends on
+that achieved state, not on the submit click.
+
+## Purge root (INC-078 addendum)
+
+Every auth-derived query key starts with `AUTH_DERIVED_ROOT`
+(`src/features/permissions/usePermissions.ts`): permissions
+`["auth-derived","my-permissions"]`, admin users
+`["auth-derived","admin","users",...]`, admin countries
+`["auth-derived","admin","countries"]`. The sign-out hard reset cancels then
+removes that single root, so nothing auth-derived — including the cached
+step-up hint's neighbours — survives into a signed-out shell.

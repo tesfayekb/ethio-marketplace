@@ -22,7 +22,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useCategories } from "@/features/feed/use-feed";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
-import { MY_PERMISSIONS_KEY, usePermissions } from "@/features/permissions/usePermissions";
+import { AUTH_DERIVED_ROOT, usePermissions } from "@/features/permissions/usePermissions";
 import {
   clearSessionClocks,
   startSessionClocks,
@@ -201,17 +201,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       setSigningOut(true);
       try {
         await signOut();
-        queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
         /**
-         * INC-078 LAW (folded in by U1f) — THE HARD RESET PURGES EVERY
-         * AUTH-DERIVED READ. The mechanism: auth-derived caches are tagged by
-         * a leading ["me"] key segment, and the reset REMOVES (not merely
-         * invalidates) every query whose key starts with it, so nothing
-         * survives to repaint from a session that no longer exists. Sections
-         * keyed elsewhere (e.g. ["admin", ...]) are removed by their own
-         * route teardown; the ["me"] prefix is the contract for anything read
-         * as "the signed-in user".
+         * INC-078 LAW (U1f; made STRUCTURAL by U1g-2) — THE HARD RESET PURGES
+         * EVERY AUTH-DERIVED READ. Mechanism: every auth-context query key
+         * starts with AUTH_DERIVED_ROOT, so ONE cancel-then-remove pair covers
+         * all of them — permissions, admin users, admin countries and anything
+         * added later. CANCEL FIRST: an in-flight fetch must never resolve into
+         * a signed-out shell. Legacy ["me"] prefix kept for any older reader.
          */
+        await queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
+        queryClient.removeQueries({ queryKey: [AUTH_DERIVED_ROOT] });
         queryClient.removeQueries({ queryKey: ["me"] });
         clearSessionClocks();
         setPanelChoice("marketplace");
@@ -270,7 +269,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const gatedRoute = pathname.startsWith("/admin") || pathname.startsWith("/settings");
   useEffect(() => {
     if (authLoading || user !== null) return;
-    queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
+    void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
+    queryClient.removeQueries({ queryKey: [AUTH_DERIVED_ROOT] });
     setPanelChoice("marketplace");
     setNavOpen(false);
     if (gatedRoute) void navigate({ to: "/", replace: true });
@@ -285,7 +285,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === "undefined") return;
     (window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase = supabase;
-  }, []);
+    // U1g-2 — SO-4 proof reads the cache directly to assert the purge.
+    (window as unknown as { __ethioQueryClient?: unknown }).__ethioQueryClient = queryClient;
+  }, [queryClient]);
 
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {

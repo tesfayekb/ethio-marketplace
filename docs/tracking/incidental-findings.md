@@ -177,6 +177,19 @@ Note: CI now publishes E2E failure evidence to
 `docs/tracking/e2e-last-failure.md` — the supervisor reads it by clone; the
 artifact courier model is retired.
 
+**Addendum (2026-08-17, U1g-2) — second facet: any NEW auth-context query
+re-introduces the leak unless the purge is STRUCTURAL.** U1g added the admin
+countries read for the edit form; keyed `["admin","countries"]` it sat outside
+every purge prefix and survived sign-out, and SO-4 caught it. LAW: every
+auth-derived query key starts with the shared root `["auth-derived", ...]`
+(`AUTH_DERIVED_ROOT` / `authKey()` in
+`src/features/permissions/usePermissions.ts`), and the hard reset does
+**cancel-then-remove** on that one root — cancel first so no in-flight fetch
+resolves into a signed-out shell. Public data fetched in an authenticated admin
+context (countries) is auth-derived for this purpose: it must not outlive the
+session. SO-4 asserts zero surviving `auth-derived` queries via the DEV-only
+`window.__ethioQueryClient`.
+
 ## INC-079 — step-up authentication is a session property, not a role property
 
 Design record (U1f). RBAC answers "may this account do it"; step-up answers

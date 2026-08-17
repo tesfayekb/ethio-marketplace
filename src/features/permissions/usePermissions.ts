@@ -2,8 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchMyPermissions } from "./service";
 
+/**
+ * INC-078 (second facet) — THE PURGE ROOT. Every query whose data is derived
+ * from the signed-in session starts with this segment, so the hard reset can
+ * cancel-then-remove ALL of them with ONE call. A new auth-context query that
+ * forgets this root re-introduces the leak; the root IS the law.
+ */
+export const AUTH_DERIVED_ROOT = "auth-derived" as const;
+
+/** Build an auth-derived query key. */
+export function authKey(...parts: readonly (string | object)[]) {
+  return [AUTH_DERIVED_ROOT, ...parts];
+}
+
 /** Shared cache key — one read per session, shared by every admin surface. */
-export const MY_PERMISSIONS_KEY = ["my-permissions"] as const;
+export const MY_PERMISSIONS_KEY = [AUTH_DERIVED_ROOT, "my-permissions"] as const;
 
 /**
  * The permission read. Cached hard on purpose (performance strategy): roles
