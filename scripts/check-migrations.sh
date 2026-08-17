@@ -202,4 +202,26 @@ fi
 
 echo "Definer guard OK."
 
+mark_violations=0
+mark_offenders=""
+while IFS= read -r -d '' file; do
+  base="$(basename "$file")"
+  stamp="${base%%_*}"
+  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$MARK_GUARD_FLOOR" ]]; then
+    continue
+  fi
+  if ! out=$(check_mark_file "$file" "$stamp"); then
+    mark_violations=$((mark_violations + 1))
+    mark_offenders+="$out"$'\n'
+  fi
+done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
+
+if [ "$mark_violations" -gt 0 ]; then
+  echo "Self-marking guard FAILED: $mark_violations file(s) do not self-mark into public.migration_marks:"
+  printf '%s' "$mark_offenders"
+  exit 1
+fi
+
+echo "Self-marking guard OK (floor $MARK_GUARD_FLOOR)."
+
 echo "Migration guard OK."
