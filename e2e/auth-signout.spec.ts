@@ -149,6 +149,9 @@ test.describe("U0j sign-out hard reset", () => {
 
     // U1g-2 (INC-078 addendum) — STRUCTURAL PURGE PROOF: not one auth-derived
     // query survives the hard reset, whichever feature added it.
+    // U1g-3: a 500ms settle so the read happens after React has flushed the
+    // unmount of the session-only observers — the assertion itself stays strict.
+    await page.waitForTimeout(500);
     const survivors = await page.evaluate(() => {
       const client = (
         window as unknown as {

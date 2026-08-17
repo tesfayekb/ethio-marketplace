@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { AUTH_DERIVED_ROOT } from "@/features/permissions/usePermissions";
+import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
   assignRole,

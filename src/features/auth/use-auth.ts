@@ -20,13 +20,25 @@ export function useAuth() {
 
   useEffect(() => {
     let cancelled = false;
+    /**
+     * U1g-3 (C) — LAST WRITE WINS BY SEQUENCE, not by arrival. The display-name
+     * read is awaited between two setState calls, so a fetch started while the
+     * user was still signed in could resolve AFTER SIGNED_OUT and RESURRECT the
+     * user object. That is exactly the SO-4 desktop symptom: the account menu
+     * disappears, then comes back, and the "Sign in" link never renders. Each
+     * auth event takes a ticket; a write from an older ticket is dropped.
+     */
+    let seq = 0;
 
     const applyUser = async (userId: string | undefined, email: string | null | undefined) => {
+      const ticket = ++seq;
+      const stale = () => cancelled || ticket !== seq;
+
       if (!userId) {
-        if (!cancelled) setState({ user: null, loading: false });
+        if (!stale()) setState({ user: null, loading: false });
         return;
       }
-      if (!cancelled) {
+      if (!stale()) {
         setState({ user: { id: userId, email: email ?? null, displayName: null }, loading: false });
       }
       // The signup trigger owns profile rows; we only read the display name.
@@ -35,7 +47,7 @@ export function useAuth() {
         .select("display_name")
         .eq("user_id", userId)
         .maybeSingle();
-      if (cancelled) return;
+      if (stale()) return;
       setState({
         user: {
           id: userId,
