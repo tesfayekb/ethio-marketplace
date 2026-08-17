@@ -118,7 +118,7 @@ export function DataTable<T>({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <PageCard data-testid="data-table" testid="data-table" className="min-w-0 p-0">
+      <PageCard testid="data-table" className="min-w-0 p-0">
         {/* 360-first: a card per row, primary + secondary stacked. */}
         <ul data-testid="data-table-cards" aria-label={caption} className="divide-y divide-border md:hidden">
           {rows.map((row) => {
