@@ -191,19 +191,48 @@ jobs:
           fi
           echo "No high or critical advisories."
 
-  e2e:
-    name: E2E (Playwright, ethio-staging)
+  # ── E2E TIERS ──────────────────────────────────────────────────────────────
+  # One preflight, one fast smoke tier, four parallel shards, one merged
+  # verdict. The merged job keeps the historical name so the CI status
+  # reporter's table row ("E2E (Playwright, ethio-staging)") is unchanged.
+
+  e2e-preflight:
+    name: E2E preflight (migration parity, staging)
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     env:
-      # ethio-staging — publishable values only; the service-role key is a secret.
-      # Mailtrap sandbox on staging accepts any recipient — enables A-1..A-3 (INC-013).
+      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Cache bun install
+        id: bun-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - name: Bun cache hit?
+        run: echo "bun cache-hit=${{ steps.bun-cache.outputs.cache-hit }}"
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      # INC-074: staging must carry the newest local migration, or the suite
+      # fails with N cryptic reds instead of one named file.
+      - name: Migration parity preflight (staging)
+        run: bun scripts/e2e-migration-preflight.ts
+
+  e2e-smoke:
+    name: E2E smoke tier
+    needs: e2e-preflight
+    runs-on: ubuntu-latest
+    env:
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      # The build must point the app at staging, never at ethio-prod.
       VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
@@ -213,35 +242,135 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
+      - name: Cache bun install
+        id: bun-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - name: Bun cache hit?
+        run: echo "bun cache-hit=${{ steps.bun-cache.outputs.cache-hit }}"
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Resolve Playwright version
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
+        id: pw-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Playwright cache hit?
+        run: echo "playwright cache-hit=${{ steps.pw-cache.outputs.cache-hit }}"
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
-      # INC-074: staging must carry the newest local migration, or the suite
-      # fails with N cryptic reds instead of one named file.
-      - name: Migration parity preflight (staging)
-        run: bun scripts/e2e-migration-preflight.ts
-      - name: Run E2E (dev-server mode; production build is validated in build-and-check)
-        run: bunx playwright test
+      # The smoke tier is a FILE LIST, not a title grep: tagging shell.spec.ts
+      # and auth-signout.spec.ts would edit specs outside this task's scope, and
+      # a file list carries the same meaning with zero test-logic change.
+      - name: Run the smoke tier (fail fast)
+        run: bunx playwright test e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts
 
-      # U1e — E2E FAILURE REPORTER. The supervisor reads the evidence by clone
-      # (docs/tracking/e2e-last-failure.md); the artifact courier is retired.
-      # The self-test runs FIRST: a reporter that only ever prints "no
-      # failures" proves nothing.
-      - name: Publish E2E failure report
+  e2e-shard:
+    name: E2E shard ${{ matrix.shard }}/4
+    needs: e2e-preflight
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
+      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Cache bun install
+        id: bun-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - name: Bun cache hit?
+        run: echo "bun cache-hit=${{ steps.bun-cache.outputs.cache-hit }}"
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Playwright cache hit?
+        run: echo "playwright cache-hit=${{ steps.pw-cache.outputs.cache-hit }}"
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: Run E2E shard (dev-server mode; the production build is validated in build-and-check)
+        run: bunx playwright test --shard=${{ matrix.shard }}/4
+      # Every shard uploads its JSON reporter output, pass or fail — the merged
+      # report must see ALL failures, not only those of the first red shard.
+      - name: Upload shard results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-${{ matrix.shard }}
+          path: test-results/results.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload HTML report on failure
         if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.shard }}
+          path: playwright-report/
+          retention-days: 7
+
+  e2e:
+    # HISTORICAL NAME PRESERVED: docs/tracking/ci-status.md lists one row per
+    # job, and downstream reads key off this exact string. It is now the MERGED
+    # verdict for the four shards.
+    name: E2E (Playwright, ethio-staging)
+    needs: [e2e-smoke, e2e-shard]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Download shard results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e2e-results-*
+          path: shard-results
+      # MERGE MECHANISM: JSON concatenation, not `playwright merge-reports`.
+      # The consumer is scripts/e2e-failure-report.ts, which reads the JSON
+      # reporter shape; E2E_RESULTS_DIR makes it walk every shard's
+      # results.json and sum stats across them.
+      - name: Publish merged E2E report
         env:
+          E2E_RESULTS_DIR: shard-results
+          E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -u
+          # The self-test runs FIRST: a reporter that only ever prints "no
+          # failures" proves nothing.
           SELF_TEST=1 bun scripts/e2e-failure-report.ts
           bun scripts/e2e-failure-report.ts
           cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
@@ -275,51 +404,13 @@ jobs:
             echo "::warning::E2E failure report push failed after retries"
           fi
           exit 0
-
-      - name: Publish green E2E marker
-        if: success()
-        env:
-          E2E_GREEN: "1"
-          E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      # Law F4 — the merged job's conclusion IS the E2E verdict. A red shard or
+      # a red smoke tier reddens this row; bookkeeping never masks it.
+      - name: Verdict
         run: |
-          set -u
-          bun scripts/e2e-failure-report.ts
-          cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
-          # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
-          # the file is derived state owned by this run, so rewriting it on top
-          # of whatever main now holds can never conflict. A push failure is a
-          # ::warning, never a red — bookkeeping must not redden Actions.
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          pushed=0
-          for attempt in 1 2 3; do
-            git fetch origin main
-            git reset --hard origin/main
-            mkdir -p docs/tracking
-            cp /tmp/e2e-last-failure.md docs/tracking/e2e-last-failure.md
-            git add docs/tracking/e2e-last-failure.md
-            if git diff --cached --quiet; then
-              echo "No report change; nothing to commit."
-              pushed=1
-              break
-            fi
-            git commit -m "ci: e2e failure report [skip ci]"
-            if git push origin HEAD:main; then
-              pushed=1
-              break
-            fi
-            echo "Report push rejected (attempt ${attempt}/3); refetching."
-            sleep 5
-          done
-          if [ "$pushed" -ne 1 ]; then
-            echo "::warning::E2E failure report push failed after retries"
+          echo "smoke=${{ needs.e2e-smoke.result }} shards=${{ needs.e2e-shard.result }}"
+          if [ "${{ needs.e2e-smoke.result }}" != "success" ] || [ "${{ needs.e2e-shard.result }}" != "success" ]; then
+            echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"
+            exit 1
           fi
-          exit 0
-
-      - name: Upload report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
+          echo "All E2E shards and the smoke tier passed."
