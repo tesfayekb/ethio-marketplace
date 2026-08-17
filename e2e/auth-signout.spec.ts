@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, isMobile, openRailScope, signIn, signOutViaUi } from "./helpers/ui";
+import { gotoReady, openRailScope, signIn, signOutViaUi } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
