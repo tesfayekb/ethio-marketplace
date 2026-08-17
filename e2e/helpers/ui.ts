@@ -235,3 +235,19 @@ export async function attemptSignIn(page: Page, email: string, password: string)
 export async function expectSignedOut(page: Page) {
   await expect(page.getByRole("button", { name: en["shell.accountMenu"] })).toHaveCount(0);
 }
+
+/**
+ * INC-074 — /auth is NOT a sign-in form for an authenticated session (U0j
+ * guard redirects it away), so a second `signIn` while still signed in hangs
+ * on the email field until the test times out. CLASS RULE: multi-user E2E
+ * never navigates to /auth while signed in — it signs out first, or uses a
+ * fresh browser context.
+ */
+export async function switchUser(page: Page, email: string, password: string) {
+  await gotoReady(page, "/");
+  const signedIn = await page.getByTestId("account-menu").count();
+  if (signedIn > 0) {
+    await signOutViaUi(page);
+  }
+  await signIn(page, email, password);
+}
