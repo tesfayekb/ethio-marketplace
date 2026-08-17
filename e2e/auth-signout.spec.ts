@@ -146,6 +146,23 @@ test.describe("U0j sign-out hard reset", () => {
     await expect(scope.getByTestId("rail-sign-out")).toHaveCount(0);
     await expect(scope.getByText(en["admin.nav.label"], { exact: true })).toHaveCount(0);
     await expect(scope.getByText(en["panel.account"], { exact: true })).toHaveCount(0);
+
+    // U1g-2 (INC-078 addendum) — STRUCTURAL PURGE PROOF: not one auth-derived
+    // query survives the hard reset, whichever feature added it.
+    const survivors = await page.evaluate(() => {
+      const client = (
+        window as unknown as {
+          __ethioQueryClient?: { getQueryCache: () => { getAll: () => { queryKey: unknown[] }[] } };
+        }
+      ).__ethioQueryClient;
+      if (!client) return ["__no_query_client__"];
+      return client
+        .getQueryCache()
+        .getAll()
+        .filter((q) => q.queryKey?.[0] === "auth-derived")
+        .map((q) => JSON.stringify(q.queryKey));
+    });
+    expect(survivors, "auth-derived queries survived the hard reset").toEqual([]);
   });
 });
 
