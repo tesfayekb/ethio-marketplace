@@ -137,15 +137,15 @@ export default async function migrationPreflight(dry = false): Promise<void> {
     return;
   }
   const newest = local[local.length - 1]!;
-  const { client, url } = serviceClient();
-  const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"]!;
+  const { client } = serviceClient();
 
-  const applied = await appliedVersionsFromLedger(url, key);
+  const applied = await appliedVersionsFromLedger(client);
   let missing: string[] = [];
   let mechanism: string;
 
   if (applied) {
-    mechanism = "supabase_migrations.schema_migrations ledger";
+    mechanism = "public.e2e_migration_ledger() definer RPC (schema_migrations)";
+
     const appliedSet = new Set(applied);
     missing = local.filter((f) => !appliedSet.has(versionOf(f)));
     if (dry) {
