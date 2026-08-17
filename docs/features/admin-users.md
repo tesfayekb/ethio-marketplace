@@ -90,7 +90,6 @@ fourth segment requires an edit to the shell breadcrumb component, which was
 out of this task's scope. The self-serve "your account is deactivated" banner in
 Settings is likewise deferred — `src/routes/settings.tsx` was outside scope.
 
-
 ## U1g — Edit user
 
 Migration `20260817061418_a3ef929c-0881-42a5-b6ed-bb68855d5ce2.sql` adds
@@ -121,14 +120,14 @@ re-anchored to the step-up world with the shared `enrollAndStepUp` /
 
 ## Parity register (Apex vs ethio v1)
 
-| Capability                    | State                                          |
-| ----------------------------- | ---------------------------------------------- |
-| List / detail                 | built (U1)                                     |
-| Deactivate / reactivate       | built (U1, step-up gated)                      |
-| Roles assign / revoke         | built (U1, step-up gated, audited)             |
-| Per-user activity             | built (U1)                                     |
-| Edit profile                  | built (U1g, step-up gated, audited)            |
-| Invite / create user          | registered later — Ops + a U2 permission       |
-| Delete user                   | registered later — GDPR flow + a U2 permission |
-| Impersonation                 | registered later — U3, with guardrails         |
-| Bulk actions                  | registered later — on need                     |
+| Capability              | State                                          |
+| ----------------------- | ---------------------------------------------- |
+| List / detail           | built (U1)                                     |
+| Deactivate / reactivate | built (U1, step-up gated)                      |
+| Roles assign / revoke   | built (U1, step-up gated, audited)             |
+| Per-user activity       | built (U1)                                     |
+| Edit profile            | built (U1g, step-up gated, audited)            |
+| Invite / create user    | registered later — Ops + a U2 permission       |
+| Delete user             | registered later — GDPR flow + a U2 permission |
+| Impersonation           | registered later — U3, with guardrails         |
+| Bulk actions            | registered later — on need                     |
