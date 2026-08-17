@@ -830,6 +830,15 @@ export type Database = {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: undefined
       }
+      admin_update_profile: {
+        Args: {
+          p_display_name: string
+          p_home_country_code?: string
+          p_seller_alias?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       admin_user_activity: {
         Args: { p_limit?: number; p_user_id: string }
         Returns: {
