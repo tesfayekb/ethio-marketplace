@@ -79,7 +79,7 @@ test.describe("display primitives law (test-once responsiveness)", () => {
       // L4 — StatGrid column count: 2 / 3 / 4.
       const tileXs = await page
         .getByTestId("prim-stat-grid")
-        .locator("[data-testid^='prim-stat-']")
+        .locator("[data-testid^='prim-stat-tile-']")
         .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().x)));
       const columns = new Set(tileXs).size;
       const expected = viewport.width >= 1280 ? 4 : viewport.width >= 768 ? 3 : 2;

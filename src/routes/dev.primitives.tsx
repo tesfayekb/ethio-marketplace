@@ -288,7 +288,7 @@ function PrimitivesFixture() {
 
       <div data-testid="prim-stat-grid" className="min-w-0">
         <StatGrid>
-          {STATS.map((stat) => (
+          {STATS.map((stat, index) => (
             <StatCard
               key={stat.label}
               label={stat.label}
@@ -297,7 +297,7 @@ function PrimitivesFixture() {
               trend={stat.trend}
               hint={stat.hint}
               loading={loading}
-              testid={`prim-stat-${stat.label.length}`}
+              testid={`prim-stat-tile-${index}`}
             />
           ))}
         </StatGrid>
