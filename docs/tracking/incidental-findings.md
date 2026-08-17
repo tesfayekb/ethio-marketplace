@@ -136,6 +136,8 @@ ADDENDUM (2026-08-17) — guard ruling: in-place restatement. The four REVOKE/GR
 
 ADDENDUM (2026-08-17) — U1 E2E residual root causes (from artifact): (a) second sign-in via /auth while authenticated — /auth is guarded (U0j), specs must sign out first (switchUser helper; class rule: multi-user E2E never navigates to /auth while signed in); (b) duplicate responsive testids in users-list — class rule: responsive twins carry distinct testids (card vs row).
 
+ADDENDUM (2026-08-17) — U1b-2: switchUser raced the header's auth branch after a redirect (count()==0 before hydration) → skipped sign-out → /auth guard refused the form (correct). Fix: settle-then-branch. AU-3/AU-5 mobile in run 31991623929 are attributed to the staging seed (profiles:update) landing mid-run — the next run at parity is the check; if they persist, the artifact drives the next round.
+
 ### INC-075 (2026-08-17) — U1 users table overflowed horizontally at desktop; no shared table primitive; admin role lacked profiles:update (operator-caught + artifact-diagnosed)
 
 Defect 1: hand-rolled table + separate card list; desktop table wider than its column → page-level horizontal scroll (operator screenshot). Fix: DataTable primitive with priority-driven responsiveness + the table law E2E; users list migrated. CLASS RULE: every admin list uses DataTable; no page may ever scroll horizontally at 360/768/1280 (CI-asserted). Defect 2: E2E admin fixture (seeded admin role) lacked profiles:update, so the detail page correctly hid Deactivate → AU-3/5 hung (artifact evidence: click on deactivate-user never resolved). Fix: seed correction (admin manages users). Note: RBAC + UI behaved correctly; the seed was the gap.
