@@ -19,6 +19,14 @@ ALTER TABLE public.migration_marks ENABLE ROW LEVEL SECURITY;
 
 -- No policies by design: definer/service_role territory only.
 REVOKE ALL ON TABLE public.migration_marks FROM PUBLIC, anon, authenticated;
+
+-- Explicit deny-all for client roles: the table is definer/service_role territory.
+-- (RLS with zero policies already denies; the policy makes the refusal explicit
+-- and satisfies the every-table-ships-a-policy law.)
+DROP POLICY IF EXISTS "migration_marks_no_client_access" ON public.migration_marks;
+CREATE POLICY "migration_marks_no_client_access"
+  ON public.migration_marks FOR ALL TO anon, authenticated
+  USING (false) WITH CHECK (false);
 GRANT ALL ON TABLE public.migration_marks TO service_role;
 
 CREATE OR REPLACE FUNCTION public.e2e_migration_ledger()
