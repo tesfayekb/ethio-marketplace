@@ -55,7 +55,6 @@ export function testEmail(id: string, n: number): string {
   return `e2e+${id}-${n}@ethio-e2e.invalid`;
 }
 
-
 export function adminClient() {
   const url = process.env["E2E_SUPABASE_URL"];
   const serviceRoleKey = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"];

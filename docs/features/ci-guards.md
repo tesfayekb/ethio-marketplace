@@ -244,8 +244,13 @@ Every parallel test process derives
 `ci.yml` sets `E2E_SHARD: ${{ matrix.shard }}` on the shard matrix and
 `E2E_SHARD: smoke` on the smoke tier; `nightly-e2e.yml` sets `E2E_SHARD: nightly`.
 
-- Minted fixtures are `e2e+<PROCESS_ID>-<n>@ethio-e2e.invalid`, and the mint
-  counter is per process, so two processes can never collide on an address.
+- Minted fixtures are
+  `e2e+<PROCESS_ID>-<workerTag>-<n>-<rand6>@ethio-e2e.invalid`, where
+  `workerTag` is `TEST_WORKER_INDEX` (Playwright sets it per worker) falling
+  back to `process.pid`, and `rand6` is 6 random base36 chars. ONE job may run N
+  workers (projects x parallelism) that share PROCESS_ID, so ids must be unique
+  per worker, not per job; uniqueness is by construction and never depends on a
+  counter shared across processes (INC-080 addendum).
 - `global-teardown.ts` deletes ONLY emails containing `+${PROCESS_ID}-`, and
   still refuses, per user, to delete anything outside `@ethio-e2e.invalid`.
 - The namespace-wide sweep (`sweepStaleUsers()`, users older than 24h) runs only

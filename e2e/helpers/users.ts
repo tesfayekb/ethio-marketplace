@@ -30,7 +30,11 @@ function workerTag(): string {
  * `+${PROCESS_ID}-`, which this shape preserves.
  */
 export function mintEmail(n: number): string {
-  const rand6 = randomBytes(8).toString("base64url").replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 6);
+  const rand6 = randomBytes(8)
+    .toString("base64url")
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase()
+    .slice(0, 6);
   return `e2e+${processId()}-${workerTag()}-${n}-${rand6}@ethio-e2e.invalid`;
 }
 
@@ -48,7 +52,6 @@ export async function createUser({ confirmed }: { confirmed: boolean }): Promise
   minted += 1;
   const email = mintEmail(minted);
   const password = `Pw-${randomBytes(18).toString("base64url")}`;
-
 
   const { data, error } = await supabase.auth.admin.createUser({
     email,
