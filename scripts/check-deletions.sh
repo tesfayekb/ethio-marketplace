@@ -54,7 +54,8 @@ run_guard() {
 }
 
 self_test() {
-  local tmp
+  local guard tmp status
+  guard="$(cd "$(dirname "$0")" && pwd)/check-deletions.sh"
   tmp="$(mktemp -d)"
   (
     set -e
@@ -62,41 +63,37 @@ self_test() {
     git init -q .
     git config user.email t@t.t
     git config user.name t
-    mkdir -p src
-    echo a >src/a.txt
-    echo b >src/b.txt
-    git add -A
-    git commit -qm "base"
-    local base
-    base="$(git rev-parse HEAD)"
+
+    # Commits are built with plumbing (hash-object / mktree / commit-tree) so
+    # the fixture needs no working index and cannot disturb any real checkout.
+    a="$(printf a | git hash-object -w --stdin)"
+    b="$(printf b | git hash-object -w --stdin)"
+    t1="$(printf '100644 blob %s\ta.txt\n100644 blob %s\tb.txt\n' "$a" "$b" | git mktree)"
+    t2="$(printf '100644 blob %s\ta.txt\n' "$a" | git mktree)"
+    t3="$(printf '100644 blob %s\ta.txt\n100644 blob %s\tc.txt\n' "$a" "$b" | git mktree)"
+
+    base="$(git commit-tree "$t1" -m base)"
+    undeclared="$(git commit-tree "$t2" -p "$base" -m 'drop b')"
+    declared="$(git commit-tree "$t2" -p "$base" -m 'drop b [intentional-delete]')"
+    addition="$(git commit-tree "$t3" -p "$base" -m 'add c')"
 
     # Direction 1: an undeclared deletion must FAIL.
-    git rm -q src/b.txt
-    git commit -qm "drop b"
-    if SELF_TEST= bash "$OLDPWD/scripts/check-deletions.sh" "$base" HEAD >/dev/null 2>&1; then
+    if bash "$guard" "$base" "$undeclared" >/dev/null 2>&1; then
       echo "SELF-TEST FAILED: undeclared deletion was not flagged." >&2
       exit 1
     fi
-
     # Direction 2: the same deletion, declared, must PASS.
-    git commit -q --amend -m "drop b [intentional-delete]"
-    if ! SELF_TEST= bash "$OLDPWD/scripts/check-deletions.sh" "$base" HEAD >/dev/null 2>&1; then
+    if ! bash "$guard" "$base" "$declared" >/dev/null 2>&1; then
       echo "SELF-TEST FAILED: declared deletion was rejected." >&2
       exit 1
     fi
-
-    # Direction 3: a pure addition must PASS.
-    local mid
-    mid="$(git rev-parse HEAD)"
-    echo c >src/c.txt
-    git add -A
-    git commit -qm "add c"
-    if ! SELF_TEST= bash "$OLDPWD/scripts/check-deletions.sh" "$mid" HEAD >/dev/null 2>&1; then
+    # Direction 3: an addition-only range must PASS.
+    if ! bash "$guard" "$base" "$addition" >/dev/null 2>&1; then
       echo "SELF-TEST FAILED: an addition-only range was rejected." >&2
       exit 1
     fi
   )
-  local status=$?
+  status=$?
   rm -rf "$tmp"
   if [ "$status" -ne 0 ]; then
     echo "Deletion-guard self-test FAILED."
