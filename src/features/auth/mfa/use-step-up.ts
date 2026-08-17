@@ -71,7 +71,9 @@ export function useStepUp() {
 
   const guard = useCallback(
     async (action: PendingAction) => {
-      if (await isSteppedUp()) {
+      // U1f-4: an aal2 claim alone is not enough — the factor must still exist
+      // and the verification must be inside the step-up window.
+      if (await isStepUpFresh()) {
         await runGuarded(action);
         return;
       }
