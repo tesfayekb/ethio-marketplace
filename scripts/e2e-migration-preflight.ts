@@ -153,7 +153,7 @@ export default async function migrationPreflight(dry = false): Promise<void> {
   let mechanism: string;
 
   if (applied) {
-    mechanism = "public.e2e_migration_ledger() definer RPC (schema_migrations)";
+    mechanism = "public.e2e_migration_ledger() definer RPC (public.migration_marks)";
 
     const appliedSet = new Set(applied);
     missing = local.filter((f) => !appliedSet.has(versionOf(f)));
