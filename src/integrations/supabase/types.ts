@@ -887,6 +887,10 @@ export type Database = {
         Returns: undefined
       }
       remove_own_password: { Args: never; Returns: undefined }
+      require_step_up_if_needed: {
+        Args: { p_action: string; p_resource: string }
+        Returns: undefined
+      }
       revoke_role: {
         Args: { p_role_name: string; p_target_user: string }
         Returns: undefined
