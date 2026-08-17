@@ -201,7 +201,7 @@ export default async function migrationPreflight(dry = false): Promise<void> {
   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
   if (!applied) {
     degraded(
-      "parity was proved by the object probe, not the ledger — apply the e2e_migration_ledger() migration to staging",
+      `parity was proved by the object probe, not the ledger — apply ${LEDGER_MIGRATION} to ethio-staging`,
     );
   }
 }
