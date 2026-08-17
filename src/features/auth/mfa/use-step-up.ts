@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 
 import type { MessageKey } from "@/i18n";
 
-import { isStepUpRequiredError, isSteppedUp, listFactors, stepUpWithCode } from "./mfa-service";
+import { isStepUpFresh, isStepUpRequiredError, listFactors, stepUpWithCode } from "./mfa-service";
 
 /**
  * U1f — THE CLIENT SIDE OF STEP-UP (INC-079).
