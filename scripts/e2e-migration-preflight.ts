@@ -191,10 +191,11 @@ export default async function migrationPreflight(dry = false): Promise<void> {
 
   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
   if (!applied) {
-    console.warn(
-      "[e2e:preflight] NOTE: parity was proved by the fallback probe, not the ledger. Expose supabase_migrations to PostgREST on staging for seed-only coverage.",
+    degraded(
+      "parity was proved by the object probe, not the ledger — apply the e2e_migration_ledger() migration to staging",
     );
   }
+
 }
 
 // Direct CLI invocation: `bun scripts/e2e-migration-preflight.ts [--dry]`
