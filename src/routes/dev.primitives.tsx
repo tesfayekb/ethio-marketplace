@@ -31,14 +31,11 @@ import { useI18n } from "@/i18n";
 type FixtureState = "default" | "empty" | "loading" | "error";
 
 export const Route = createFileRoute("/dev/primitives")({
-  validateSearch: (search: Record<string, unknown>): { state: FixtureState } => {
-    const raw = String(search["state"] ?? "default");
-    const state: FixtureState = (["empty", "loading", "error"] as const).includes(
-      raw as "empty" | "loading" | "error",
-    )
-      ? (raw as FixtureState)
-      : "default";
-    return { state };
+  validateSearch: (search: Record<string, unknown>): { state?: FixtureState } => {
+    const raw = String(search["state"] ?? "");
+    return (["empty", "loading", "error"] as const).includes(raw as "empty")
+      ? { state: raw as FixtureState }
+      : {};
   },
   head: () => ({
     meta: [
@@ -149,7 +146,7 @@ const FIELDS = [
 /* -------------------------------- fixture -------------------------------- */
 
 function PrimitivesFixture() {
-  const { state } = Route.useSearch();
+  const { state = "default" } = Route.useSearch();
   const { t } = useI18n();
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
