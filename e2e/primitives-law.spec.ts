@@ -102,6 +102,34 @@ test.describe("display primitives law (test-once responsiveness)", () => {
     });
   }
 
+  /**
+   * L8 (INC-077) — the rowHref INTERACTION contract: the whole desktop row is
+   * a link (click anywhere, keyboard Enter), and the 360 card still is one.
+   */
+  test("L8 rowHref navigates from the table row, the card and the keyboard", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await gotoReady(page, "/dev/primitives");
+    await expect(page.getByTestId("prim-fixture")).toBeVisible({ timeout: 15000 });
+
+    // Click a NON-primary cell of row 1 — the row itself navigates.
+    await page.getByTestId("prim-row-row-1").locator("td").nth(5).click();
+    await expect(page).toHaveURL(/\/c\/row-1$/);
+
+    // Keyboard: focus the row and press Enter.
+    await gotoReady(page, "/dev/primitives");
+    await page.getByTestId("prim-row-row-2").focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/c\/row-2$/);
+
+    // 360: the card is still a whole-card link.
+    await page.setViewportSize({ width: 360, height: 800 });
+    await gotoReady(page, "/dev/primitives");
+    await page.getByTestId("prim-row-row-3-card").click();
+    await expect(page).toHaveURL(/\/c\/row-3$/);
+  });
+
+
+
   // L7 — every primitive renders its empty / loading / error state on demand.
   for (const state of ["empty", "loading", "error"] as const) {
     test(`primitives render their ${state} state`, async ({ page }) => {
