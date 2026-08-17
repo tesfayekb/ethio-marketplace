@@ -92,7 +92,13 @@ const ROWS: FixtureRow[] = Array.from({ length: 6 }, (_, index) => ({
   handle: `@fixture-seller-${index + 1}`,
 }));
 
-const STATS = [
+const STATS: Array<{
+  label: string;
+  value: string;
+  delta?: string;
+  trend?: "up" | "down" | "flat";
+  hint?: string;
+}> = [
   { label: LONG_LABEL, value: "12,481", delta: "+4.2%", trend: "up" as const },
   { label: "Listings published this week", value: "3,204", delta: "-1.1%", trend: "down" as const },
   { label: "Messages sent", value: "88,102", delta: "0.0%", trend: "flat" as const },

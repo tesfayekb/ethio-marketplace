@@ -315,6 +315,7 @@ export const en = {
   "prim.table.selectRow": "Select row",
   "prim.table.selectAll": "Select all rows",
   "prim.table.actions": "Actions",
+  "common.save": "Save",
 } as const;
 
 export default en;

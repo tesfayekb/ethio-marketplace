@@ -311,6 +311,7 @@ export const am: Messages = {
   "prim.table.selectRow": "ረድፍ ምረጥ",
   "prim.table.selectAll": "ሁሉንም ረድፎች ምረጥ",
   "prim.table.actions": "እርምጃዎች",
+  "common.save": "አስቀምጥ",
 };
 
 export default am;
