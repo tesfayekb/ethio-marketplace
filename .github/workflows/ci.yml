@@ -200,8 +200,13 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
+      # INC-074: staging must carry the newest local migration, or the suite
+      # fails with N cryptic reds instead of one named file.
+      - name: Migration parity preflight (staging)
+        run: bun scripts/e2e-migration-preflight.ts
       - name: Run E2E (dev-server mode; production build is validated in build-and-check)
         run: bunx playwright test
+
       - name: Upload report on failure
         if: failure()
         uses: actions/upload-artifact@v4
