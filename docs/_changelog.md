@@ -143,3 +143,4 @@
 - 2026-08-16 — fix(db): grant restatement for re-declared seams (definer-guard law); ci: migration-parity preflight before E2E (names the missing file); docs: INC-074 + guard law
 - 2026-08-17 — fix(db): U1 migration self-describing (four seam grant lines restated in-file, definer guard green); docs: INC-074 addendum — admin-users AU-1/2/3/5 diagnosis DEFERRED, CI artifact and staging E2E credentials unreachable from the executor environment
 - 2026-08-17 — fix(e2e/ui): admin-users AU-1/2/3/5 — switchUser helper (sign out before second sign-in; /auth is guarded when authenticated), distinct responsive testids in users-list; INC-074 addendum
+- 2026-08-17 — feat(admin): U1b — DataTable primitive (priority-responsive, no-overflow law) + users list migrated; admin role gains profiles:update (seed); E2E table law; INC-075
