@@ -2,7 +2,15 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  enrollAndStepUp,
+  expectAal2,
+  gotoReady,
+  isMobile,
+  stepUpIfPrompted,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -103,6 +111,8 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
 
     await switchUser(page, staff.email, staff.password);
+    // U1g: the mutation is step-up gated (U1f) — enroll and reach aal2 first.
+    const secret = await enrollAndStepUp(page);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("user-identity-card")).toBeVisible({ timeout: 15000 });
@@ -112,6 +122,8 @@ test.describe("U1 admin users", () => {
 
     await page.getByTestId("deactivate-reason").fill("U1 e2e");
     await page.getByTestId("deactivate-user").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
     await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
       en["admin.users.status.deactivated"],
       { timeout: 15000 },
@@ -129,6 +141,9 @@ test.describe("U1 admin users", () => {
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("activate-user").click();
+    // A fresh sign-in starts at aal1, so the gate fires again here.
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
     await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
       en["admin.users.status.active"],
       { timeout: 15000 },
@@ -171,6 +186,7 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
 
     await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -181,10 +197,13 @@ test.describe("U1 admin users", () => {
 
     await select.selectOption("moderator");
     await page.getByTestId("assign-role").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
     await expect(page.getByTestId("role-chip-moderator")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("activity-role.assign").first()).toBeVisible({ timeout: 15000 });
 
     await page.getByTestId("role-remove-moderator").click();
+    await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("role-chip-moderator")).toHaveCount(0, { timeout: 15000 });
     await expect(page.getByTestId("activity-role.revoke").first()).toBeVisible({ timeout: 15000 });
   });
@@ -195,10 +214,13 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
 
     await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("U1 seam");
     await page.getByTestId("deactivate-user").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
     await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
       en["admin.users.status.deactivated"],
       { timeout: 15000 },
@@ -231,5 +253,78 @@ test.describe("U1 admin users", () => {
       p_reason: "should never work",
     });
     expect(message ?? "").toContain("permission denied");
+  });
+  test("AU-9 edit: staff edits display name and alias, activity records it", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const scratch = await createUser({ confirmed: true });
+    const alias = `u1g${Date.now().toString(36)}`;
+
+    await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
+    await page.goto(`/admin/users/${scratch.id}`);
+    await waitForHydration(page);
+
+    await page.getByTestId("edit-display-name").fill("U1g Edited Name");
+    await page.getByTestId("edit-seller-alias").fill(alias);
+    await page.getByTestId("edit-save").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
+
+    await expect(page.getByTestId("edit-saved")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("activity-user.profile_edit").first()).toBeVisible({
+      timeout: 15000,
+    });
+
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("edit-display-name")).toHaveValue("U1g Edited Name", {
+      timeout: 15000,
+    });
+    await expect(page.getByTestId("edit-seller-alias")).toHaveValue(alias);
+  });
+
+  test("AU-10 edit: a duplicate alias is refused inline and nothing changes", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const holder = await createUser({ confirmed: true });
+    const scratch = await createUser({ confirmed: true });
+    const alias = `u1gdup${Date.now().toString(36)}`;
+
+    await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
+
+    await page.goto(`/admin/users/${holder.id}`);
+    await waitForHydration(page);
+    await page.getByTestId("edit-seller-alias").fill(alias);
+    await page.getByTestId("edit-save").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("edit-saved")).toBeVisible({ timeout: 15000 });
+
+    await page.goto(`/admin/users/${scratch.id}`);
+    await waitForHydration(page);
+    await page.getByTestId("edit-seller-alias").fill(alias);
+    await page.getByTestId("edit-save").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("edit-error")).toHaveText(
+      en["admin.users.edit.errorAliasTaken"],
+      { timeout: 15000 },
+    );
+
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("edit-seller-alias")).toHaveValue("", { timeout: 15000 });
+  });
+
+  test("AU-11 own row: no edit form on your own record", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+
+    await switchUser(page, staff.email, staff.password);
+    await page.goto(`/admin/users/${staff.id}`);
+    await waitForHydration(page);
+
+    await expect(page.getByTestId("own-account-note-edit")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("user-edit-form")).toHaveCount(0);
   });
 });

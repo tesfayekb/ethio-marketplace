@@ -1,22 +1,27 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { FormField, FormSection } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
+import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
+import type { MessageKey } from "@/i18n/types";
 
-import { UNASSIGNABLE_ROLES } from "./admin-users-service";
+import { profileEditErrorKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
 import {
   useAdminRoles,
   useAdminUser,
   useAdminUserActivity,
+  useCountries,
   useRoleAssignment,
   useSetAccountStatus,
+  useUpdateProfile,
 } from "./use-admin-users";
 
 /**
@@ -117,6 +122,25 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               />
             </dl>
           </PageCard>
+
+          {/* U1g — EDIT PROFILE. Hidden on your own record (same rule as the
+              status controls: staff edit themselves in Settings) and hidden
+              without profiles:update; the RPC refuses either way. */}
+          {isOwnAccount ? (
+            <PageCard testid="user-edit-own-note">
+              <p data-testid="own-account-note-edit" className="text-sm text-muted-foreground">
+                {t("admin.users.status.ownAccount")}
+              </p>
+            </PageCard>
+          ) : mayUpdate ? (
+            <AdminUserEditForm
+              userId={userId}
+              displayName={user.displayName}
+              sellerAlias={user.sellerAlias}
+              homeCountryCode={user.homeCountryCode}
+              guard={guard}
+            />
+          ) : null}
 
           <PageCard className="space-y-3" testid="user-status-card">
             <div className="flex flex-wrap items-center gap-2">
@@ -322,6 +346,133 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
         </div>
       )}
     </StepUpGate>
+  );
+}
+
+/**
+ * U1g — EDIT PROFILE FORM.
+ *
+ * Three columns of the profile only (display name, seller alias, home
+ * country). Save runs through the same StepUpGate `guard` as the other
+ * sensitive actions; the RPC's refusals are mapped onto translated inline
+ * errors (law F4 — nothing is swallowed).
+ */
+function AdminUserEditForm({
+  userId,
+  displayName,
+  sellerAlias,
+  homeCountryCode,
+  guard,
+}: {
+  userId: string;
+  displayName: string;
+  sellerAlias: string | null;
+  homeCountryCode: string | null;
+  guard: GuardFn;
+}) {
+  const { t } = useI18n();
+  const countries = useCountries();
+  const save = useUpdateProfile(userId);
+
+  const [name, setName] = useState(displayName);
+  const [alias, setAlias] = useState(sellerAlias ?? "");
+  const [country, setCountry] = useState(homeCountryCode ?? "");
+  const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  return (
+    <FormSection
+      testid="user-edit-form"
+      title={t("admin.users.edit.title")}
+      description={t("admin.users.edit.description")}
+      columns={2}
+      actions={
+        <>
+          <Button
+            className="min-h-11 w-full sm:w-auto"
+            data-testid="edit-save"
+            disabled={save.isPending}
+            onClick={() => {
+              setSaved(false);
+              if (name.trim() === "") {
+                setErrorKey("admin.users.edit.errorNameRequired");
+                return;
+              }
+              setErrorKey(null);
+              void guard(() =>
+                save.mutateAsync({
+                  displayName: name.trim(),
+                  sellerAlias: alias.trim() === "" ? null : alias.trim(),
+                  homeCountryCode: country === "" ? null : country,
+                }),
+              )
+                .then(() => setSaved(true))
+                .catch((error: unknown) => setErrorKey(profileEditErrorKey(error)));
+            }}
+          >
+            {t("admin.users.edit.save")}
+          </Button>
+          {saved ? (
+            <p data-testid="edit-saved" role="status" className="text-sm text-muted-foreground">
+              {t("admin.users.edit.saved")}
+            </p>
+          ) : null}
+          {errorKey ? (
+            <p data-testid="edit-error" role="alert" className="text-sm text-destructive">
+              {t(errorKey)}
+            </p>
+          ) : null}
+        </>
+      }
+    >
+      <FormField label={t("admin.users.edit.displayName")} htmlFor="edit-display-name">
+        <Input
+          id="edit-display-name"
+          data-testid="edit-display-name"
+          value={name}
+          onChange={(event) => {
+            setName(event.target.value);
+            setSaved(false);
+          }}
+        />
+      </FormField>
+
+      <FormField
+        label={t("admin.users.edit.alias")}
+        htmlFor="edit-seller-alias"
+        help={t("admin.users.edit.aliasHelp")}
+      >
+        <Input
+          id="edit-seller-alias"
+          data-testid="edit-seller-alias"
+          value={alias}
+          onChange={(event) => {
+            setAlias(event.target.value);
+            setSaved(false);
+          }}
+        />
+      </FormField>
+
+      <FormField label={t("admin.users.edit.country")} htmlFor="edit-country">
+        <select
+          id="edit-country"
+          data-testid="edit-country"
+          className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          value={country}
+          onChange={(event) => {
+            setCountry(event.target.value);
+            setSaved(false);
+          }}
+        >
+          <option value="">{t("admin.users.edit.countryNone")}</option>
+          {(countries.data ?? []).map((option) => (
+            <option key={option.code} value={option.code}>
+              {option.nameEn}
+            </option>
+          ))}
+        </select>
+      </FormField>
+    </FormSection>
   );
 }
 

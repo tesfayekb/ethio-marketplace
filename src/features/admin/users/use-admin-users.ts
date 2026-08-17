@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import {
   assignRole,
   getUser,
+  listCountries,
   listRoles,
   listUserActivity,
   listUsers,
   revokeRole,
   setAccountStatus,
+  updateProfile,
   type AccountStatus,
   type ListUsersInput,
+  type UpdateProfileInput,
 } from "./admin-users-service";
 
 /** Cache keys — one namespace so a mutation can invalidate the whole section. */
@@ -80,4 +83,22 @@ export function useRoleAssignment(userId: string) {
     onSuccess: invalidate,
   });
   return { assign, revoke };
+}
+
+/** U1g — countries for the edit form's select (public reference data). */
+export function useCountries() {
+  return useQuery({
+    queryKey: ["admin", "countries"],
+    queryFn: listCountries,
+    staleTime: 60 * 60_000,
+  });
+}
+
+/** U1g — the audited, step-up-gated profile edit. */
+export function useUpdateProfile(userId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: Omit<UpdateProfileInput, "userId">) => updateProfile({ userId, ...input }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEY }),
+  });
 }
