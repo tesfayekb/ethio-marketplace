@@ -170,4 +170,4 @@ BEGIN
 END $$;
 
 -- Self-mark (last statement, per the self-marking law).
-INSERT INTO public.migration_marks(version) VALUES ('20260817100700') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks(version) VALUES ('20260817100845') ON CONFLICT DO NOTHING;
