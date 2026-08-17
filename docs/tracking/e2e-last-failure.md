@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32003876394
-- Commit: `d98df0a698745e340971013e7790a8d8a4b25e05`
-- Written (UTC): 2026-08-17T07:12:03.909Z
-- Passed: 168 · Skipped: 35 · Failed: 2
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32007306254
+- Commit: `e9ec689cb6963314406239cf5d8434c4e07903a7`
+- Written (UTC): 2026-08-17T08:00:31.023Z
+- Passed: 167 · Skipped: 35 · Failed: 3
 
 ## auth-signout.spec.ts › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI
 
@@ -30,15 +30,24 @@ expect(received).toEqual(expected) // deep equality
 - Failed step: (none recorded)
 
 ```text
-Error: expect(locator).toBeVisible() failed
+Error: auth-derived queries survived the hard reset
 
-Locator: getByRole('link', { name: 'Sign in' })
-Expected: visible
-Timeout: 15000ms
-Error: element(s) not found
+expect(received).toEqual(expected) // deep equality
 
-Call log:
-  - Expect "toBeVisible" with timeout 15000ms
-  - waiting for getByRole('link', { name: 'Sign in' })
+- Expected  - 1
++ Received  + 3
 
+- Array []
++ Array [
++   "[\"auth-derived\",\"my-permissions\"]",
++ ]
+```
+
+## shell.spec.ts › rail scroll regions (U0f) › footer never covers the rail's Sign out
+
+- Project: `desktop-1280`
+- Failed step: (none recorded)
+
+```text
+Test timeout of 60000ms exceeded.
 ```
