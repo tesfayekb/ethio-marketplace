@@ -164,7 +164,8 @@ export default async function migrationPreflight(dry = false): Promise<void> {
       if (!(await objectExists(client, probe))) absent.push(`${probe.kind} ${probe.name}`);
     }
     if (dry) {
-      console.log(`[e2e:preflight] mechanism: ${mechanism} (ledger schema not exposed)`);
+      console.log(`[e2e:preflight] mechanism: ${mechanism} (ledger RPC unavailable)`);
+
       console.log(`[e2e:preflight] newest local migration: ${newest}`);
       console.log(
         `[e2e:preflight] probed objects: ${probes.map((p) => `${p.kind} ${p.name}`).join(", ") || "(none)"}`,
