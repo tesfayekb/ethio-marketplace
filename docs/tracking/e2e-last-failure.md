@@ -1,53 +1,25 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32007306254
-- Commit: `e9ec689cb6963314406239cf5d8434c4e07903a7`
-- Written (UTC): 2026-08-17T08:00:31.023Z
-- Passed: 167 · Skipped: 35 · Failed: 3
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32011131813
+- Commit: `33818dd4ee890c54332ed91c7278361f5a7ed372`
+- Written (UTC): 2026-08-17T08:47:21.202Z
+- Passed: 169 · Skipped: 35 · Failed: 1
 
-## auth-signout.spec.ts › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
 
 - Project: `mobile-360`
 - Failed step: (none recorded)
 
 ```text
-Error: auth-derived queries survived the hard reset
+Error: expect(locator).toBeVisible() failed
 
-expect(received).toEqual(expected) // deep equality
+Locator: getByRole('menuitem', { name: 'Sign out' })
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
 
-- Expected  - 1
-+ Received  + 3
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByRole('menuitem', { name: 'Sign out' })
 
-- Array []
-+ Array [
-+   "[\"auth-derived\",\"my-permissions\"]",
-+ ]
-```
-
-## auth-signout.spec.ts › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI
-
-- Project: `desktop-1280`
-- Failed step: (none recorded)
-
-```text
-Error: auth-derived queries survived the hard reset
-
-expect(received).toEqual(expected) // deep equality
-
-- Expected  - 1
-+ Received  + 3
-
-- Array []
-+ Array [
-+   "[\"auth-derived\",\"my-permissions\"]",
-+ ]
-```
-
-## shell.spec.ts › rail scroll regions (U0f) › footer never covers the rail's Sign out
-
-- Project: `desktop-1280`
-- Failed step: (none recorded)
-
-```text
-Test timeout of 60000ms exceeded.
 ```
