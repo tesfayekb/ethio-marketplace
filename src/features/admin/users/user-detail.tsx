@@ -118,6 +118,26 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
             </dl>
           </PageCard>
 
+          {/* U1g — EDIT PROFILE. Hidden on your own record (same rule as the
+              status controls: staff edit themselves in Settings) and hidden
+              without profiles:update; the RPC refuses either way. */}
+          {isOwnAccount ? (
+            <PageCard testid="user-edit-own-note">
+              <p data-testid="own-account-note-edit" className="text-sm text-muted-foreground">
+                {t("admin.users.status.ownAccount")}
+              </p>
+            </PageCard>
+          ) : mayUpdate ? (
+            <AdminUserEditForm
+              userId={userId}
+              displayName={user.displayName}
+              sellerAlias={user.sellerAlias}
+              homeCountryCode={user.homeCountryCode}
+              guard={guard}
+            />
+          ) : null}
+
+
           <PageCard className="space-y-3" testid="user-status-card">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-sm font-semibold text-foreground">
