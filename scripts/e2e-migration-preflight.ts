@@ -62,25 +62,36 @@ function serviceClient(): { client: SupabaseClient; url: string } {
   };
 }
 
+/** Loud degraded-mode notice: stderr ::warning + the CI step summary. */
+function degraded(reason: string): void {
+  const line = `PREFLIGHT DEGRADED: object-probe only (seed-only migrations invisible) — ${reason}`;
+  console.error(`::warning::${line}`);
+  const summary = process.env["GITHUB_STEP_SUMMARY"];
+  if (summary) {
+    try {
+      appendFileSync(summary, `\n> **${line}**\n`);
+    } catch (err) {
+      console.error(`[e2e:preflight] could not write the step summary: ${String(err)}`);
+    }
+  }
+}
+
 /**
- * LEDGER-FIRST RULE (U1c): the ledger is THE mechanism. It is the only path
- * that detects seed-only migrations (no new function or table to probe for).
- * Returns null only when the ledger table is genuinely unreadable; the caller
- * then says so loudly before falling back to the weaker object probe.
+ * LEDGER-FIRST RULE (U1c/U1f-2): the ledger is THE mechanism — the only path
+ * that detects seed-only migrations. supabase_migrations is NOT exposed to
+ * PostgREST, so it is read through public.e2e_migration_ledger(), a definer
+ * function executable by service_role ONLY.
+ *
+ * Returns null only when the RPC is genuinely unavailable; the caller then
+ * declares degraded mode loudly rather than claiming a check it never made.
  */
-async function appliedVersionsFromLedger(url: string, key: string): Promise<string[] | null> {
-  const ledger = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    db: { schema: "supabase_migrations" },
-  });
-  const { data, error } = await ledger.from("schema_migrations").select("version");
+async function appliedVersionsFromLedger(client: SupabaseClient): Promise<string[] | null> {
+  const { data, error } = await client.rpc("e2e_migration_ledger");
   if (error || !data) {
-    console.warn(
-      `[e2e:preflight] ledger unreadable (${error?.message ?? "no rows"}) — falling back to the object probe, which CANNOT detect seed-only migrations.`,
-    );
+    degraded(error?.message ?? "ledger RPC returned no rows");
     return null;
   }
-  return (data as Array<{ version: string }>).map((row) => String(row.version)).sort();
+  return (data as string[]).map((v) => String(v)).sort();
 }
 
 /** Objects declared by a migration file, used by the fallback probe. */
@@ -108,9 +119,14 @@ async function objectExists(client: SupabaseClient, probe: Probe): Promise<boole
   }
   const { error } = await client.rpc(probe.name, {});
   if (!error) return true;
-  // PGRST202: function not found in the schema cache -> genuinely missing.
+  // PGRST202 covers BOTH "no such function" and "exists but different
+  // arguments". PostgREST distinguishes them in the hint: when the name exists
+  // it suggests the real signature. A named suggestion means PRESENT.
+  const hint = (error as { hint?: string | null }).hint ?? "";
+  if (hint.toLowerCase().includes(probe.name)) return true;
   return !(error.code === "PGRST202" || /could not find the function/i.test(error.message));
 }
+
 
 export default async function migrationPreflight(dry = false): Promise<void> {
   const local = localMigrations();
