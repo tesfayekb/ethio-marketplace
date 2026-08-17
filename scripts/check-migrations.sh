@@ -133,6 +133,39 @@ echo "Self-test OK: definer-without-revoke sample correctly flagged:"
 printf '%s\n' "$definer_out"
 rm -f "$DEFINER_BAD_SAMPLE"
 
+# --- Self-marking law (U1f-3): every migration ends with its own mark ---
+# The SQL editor (how ethio-staging is applied) writes no tool ledger, so the
+# mark IS the ledger there: each migration at or after $MARK_GUARD_FLOOR must
+# contain `INSERT INTO public.migration_marks` carrying its OWN version string.
+MARK_GUARD_FLOOR="20260817054246"
+
+check_mark_file() {
+  # $1 = file, $2 = version. Returns 0 = OK, 1 = violation.
+  local file="$1" version="$2"
+  if ! grep -qiE "insert[[:space:]]+into[[:space:]]+public\.migration_marks" "$file"; then
+    echo "  - $file (no INSERT INTO public.migration_marks)"
+    return 1
+  fi
+  if ! grep -qE "migration_marks[^;]*'${version}'" "$file"; then
+    echo "  - $file (mark does not carry its own version '${version}')"
+    return 1
+  fi
+  return 0
+}
+
+MARK_BAD_FIXTURE="$FIXTURE_DIR/bad-unmarked-migration-example.sql"
+if [ ! -f "$MARK_BAD_FIXTURE" ]; then
+  echo "GUARD SELF-TEST FAILED: fixture $MARK_BAD_FIXTURE not found"
+  exit 1
+fi
+if mark_out=$(check_mark_file "$MARK_BAD_FIXTURE" "29990101000000"); then
+  echo "GUARD SELF-TEST FAILED: unmarked migration sample was not flagged"
+  exit 1
+fi
+echo "Self-test OK: unmarked-migration sample correctly flagged:"
+printf '%s\n' "$mark_out"
+
+
 if [ "${SELF_TEST:-0}" = "1" ]; then
   echo "SELF_TEST mode: self-tests passed; skipping real scan."
   exit 0
