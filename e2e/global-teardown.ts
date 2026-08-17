@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
 
-import { adminClient, STATE_FILE, type E2EUser } from "./global-setup";
+import { adminClient, processId, STATE_FILE, type E2EUser } from "./global-setup";
 
 const NAMESPACE = "@ethio-e2e.invalid";
-const ORPHAN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const STALE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 type ListedUser = { id: string; email?: string; created_at?: string };
 
@@ -23,19 +23,25 @@ function inNamespace(email: string | undefined): email is string {
   return Boolean(email && email.startsWith("e2e+") && email.endsWith(NAMESPACE));
 }
 
+/** A fixture belongs to this process iff its local part carries the process id. */
+function ownedBy(email: string | undefined, id: string): email is string {
+  return inNamespace(email) && email.includes(`+${id}-`);
+}
+
+/**
+ * INC-080: parallel shards share GITHUB_RUN_ID, so a namespace-wide sweep here
+ * deleted sibling shards' fixtures mid-run. Teardown now deletes ONLY the users
+ * minted by THIS process; stale orphans are reaped by the nightly sweep below.
+ */
 export default async function globalTeardown() {
-  const currentRunId = existsSync(STATE_FILE)
-    ? ((JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser).runId ?? "")
+  const persisted = existsSync(STATE_FILE)
+    ? ((JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser).processId ?? "")
     : "";
+  const currentProcessId = persisted || processId();
   const supabase = adminClient();
 
   const users = await listAll(supabase);
-  const targets = users.filter((u) => {
-    if (!inNamespace(u.email)) return false;
-    if (currentRunId && u.email.includes(currentRunId)) return true;
-    const age = u.created_at ? Date.now() - Date.parse(u.created_at) : 0;
-    return age > ORPHAN_MAX_AGE_MS;
-  });
+  const targets = users.filter((u) => ownedBy(u.email, currentProcessId));
 
   let deleted = 0;
   for (const user of targets) {
@@ -48,17 +54,43 @@ export default async function globalTeardown() {
     deleted += 1;
   }
 
-  if (currentRunId) {
-    const remaining = (await listAll(supabase)).filter(
-      (u) => inNamespace(u.email) && u.email.includes(currentRunId),
+  const remaining = (await listAll(supabase)).filter((u) => ownedBy(u.email, currentProcessId));
+  if (remaining.length > 0) {
+    throw new Error(
+      `[e2e:teardown] ${remaining.length} user(s) from process ${currentProcessId} survived teardown.`,
     );
-    if (remaining.length > 0) {
-      throw new Error(
-        `[e2e:teardown] ${remaining.length} user(s) from run ${currentRunId} survived teardown.`,
-      );
-    }
   }
 
-  console.log(`[e2e:teardown] deleted ${deleted} user(s) in ${NAMESPACE}`);
+  console.log(`[e2e:teardown] deleted ${deleted} user(s) owned by process ${currentProcessId}`);
   rmSync(STATE_FILE, { force: true });
+}
+
+/**
+ * NIGHTLY ONLY (single-process job). The one place a namespace-wide delete is
+ * allowed: reaps @ethio-e2e.invalid users older than 24h left behind by
+ * crashed runs. Standing proof fixtures live on other domains and are excluded
+ * by the namespace check, which is asserted per user before every delete.
+ */
+export async function sweepStaleUsers(): Promise<number> {
+  const supabase = adminClient();
+  const users = await listAll(supabase);
+  const cutoff = Date.now() - STALE_MAX_AGE_MS;
+  const targets = users.filter((u) => {
+    if (!inNamespace(u.email)) return false;
+    const createdAt = u.created_at ? Date.parse(u.created_at) : Number.NaN;
+    return Number.isFinite(createdAt) && createdAt < cutoff;
+  });
+
+  let deleted = 0;
+  for (const user of targets) {
+    if (!inNamespace(user.email)) {
+      throw new Error(`[e2e:sweep] refusing to delete out-of-namespace user ${user.id}`);
+    }
+    const { error } = await supabase.auth.admin.deleteUser(user.id);
+    if (error) throw new Error(`[e2e:sweep] failed to delete ${user.id}: ${error.message}`);
+    deleted += 1;
+  }
+
+  console.log(`[e2e:sweep] deleted ${deleted} stale user(s) in ${NAMESPACE} older than 24h`);
+  return deleted;
 }
