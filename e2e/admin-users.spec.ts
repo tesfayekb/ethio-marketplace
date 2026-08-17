@@ -2,7 +2,15 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  enrollAndStepUp,
+  expectAal2,
+  gotoReady,
+  isMobile,
+  stepUpIfPrompted,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -103,6 +111,8 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
 
     await switchUser(page, staff.email, staff.password);
+    // U1g: the mutation is step-up gated (U1f) — enroll and reach aal2 first.
+    const secret = await enrollAndStepUp(page);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("user-identity-card")).toBeVisible({ timeout: 15000 });
@@ -112,6 +122,8 @@ test.describe("U1 admin users", () => {
 
     await page.getByTestId("deactivate-reason").fill("U1 e2e");
     await page.getByTestId("deactivate-user").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
     await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
       en["admin.users.status.deactivated"],
       { timeout: 15000 },
@@ -129,6 +141,9 @@ test.describe("U1 admin users", () => {
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("activate-user").click();
+    // A fresh sign-in starts at aal1, so the gate fires again here.
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
     await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
       en["admin.users.status.active"],
       { timeout: 15000 },
@@ -171,6 +186,7 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
 
     await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -181,10 +197,13 @@ test.describe("U1 admin users", () => {
 
     await select.selectOption("moderator");
     await page.getByTestId("assign-role").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
     await expect(page.getByTestId("role-chip-moderator")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("activity-role.assign").first()).toBeVisible({ timeout: 15000 });
 
     await page.getByTestId("role-remove-moderator").click();
+    await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("role-chip-moderator")).toHaveCount(0, { timeout: 15000 });
     await expect(page.getByTestId("activity-role.revoke").first()).toBeVisible({ timeout: 15000 });
   });
@@ -195,10 +214,13 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
 
     await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("U1 seam");
     await page.getByTestId("deactivate-user").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
     await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
       en["admin.users.status.deactivated"],
       { timeout: 15000 },
