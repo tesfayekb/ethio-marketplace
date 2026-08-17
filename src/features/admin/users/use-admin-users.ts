@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+import { AUTH_DERIVED_ROOT } from "@/features/permissions/usePermissions";
+
 import {
   assignRole,
   getUser,
@@ -17,7 +19,7 @@ import {
 } from "./admin-users-service";
 
 /** Cache keys — one namespace so a mutation can invalidate the whole section. */
-export const ADMIN_USERS_KEY = ["admin", "users"] as const;
+export const ADMIN_USERS_KEY = [AUTH_DERIVED_ROOT, "admin", "users"] as const;
 
 /** 300ms debounce for the search box (U1: one request per pause, not per key). */
 export function useDebounced<T>(value: T, delay = 300): T {
@@ -88,7 +90,7 @@ export function useRoleAssignment(userId: string) {
 /** U1g — countries for the edit form's select (public reference data). */
 export function useCountries() {
   return useQuery({
-    queryKey: ["admin", "countries"],
+    queryKey: [AUTH_DERIVED_ROOT, "admin", "countries"],
     queryFn: listCountries,
     staleTime: 60 * 60_000,
   });
