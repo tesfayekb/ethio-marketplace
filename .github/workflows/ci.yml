@@ -352,7 +352,17 @@ jobs:
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
       - name: Run E2E shard (dev-server mode; the production build is validated in build-and-check)
-        run: bunx playwright test --shard=${{ matrix.shard }}/4
+        run: |
+          set -o pipefail
+          bunx playwright test --shard=${{ matrix.shard }}/4 2>&1 | tee ${{ matrix.shard }}.log
+      - name: Capture shard log tail
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-log-${{ matrix.shard }}
+          path: ${{ matrix.shard }}.log
+          if-no-files-found: warn
+          retention-days: 7
       # Every shard uploads its JSON reporter output, pass or fail — the merged
       # report must see ALL failures, not only those of the first red shard.
       - name: Upload shard results
