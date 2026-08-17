@@ -204,3 +204,6 @@ BEGIN
 
   PERFORM set_config('request.jwt.claims', NULL, true);
 END $$;
+
+-- Self-mark (last statement, per the self-marking law).
+INSERT INTO public.migration_marks(version) VALUES ('20260817061418') ON CONFLICT DO NOTHING;
