@@ -22,7 +22,11 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useCategories } from "@/features/feed/use-feed";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
-import { MY_PERMISSIONS_KEY, usePermissions } from "@/features/permissions/usePermissions";
+import {
+  AUTH_DERIVED_ROOT,
+  MY_PERMISSIONS_KEY,
+  usePermissions,
+} from "@/features/permissions/usePermissions";
 import {
   clearSessionClocks,
   startSessionClocks,
@@ -269,7 +273,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const gatedRoute = pathname.startsWith("/admin") || pathname.startsWith("/settings");
   useEffect(() => {
     if (authLoading || user !== null) return;
-    queryClient.removeQueries({ queryKey: MY_PERMISSIONS_KEY });
+    void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
+    queryClient.removeQueries({ queryKey: [AUTH_DERIVED_ROOT] });
     setPanelChoice("marketplace");
     setNavOpen(false);
     if (gatedRoute) void navigate({ to: "/", replace: true });
@@ -284,7 +289,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === "undefined") return;
     (window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase = supabase;
-  }, []);
+    // U1g-2 — SO-4 proof reads the cache directly to assert the purge.
+    (window as unknown as { __ethioQueryClient?: unknown }).__ethioQueryClient = queryClient;
+  }, [queryClient]);
 
   const value = useMemo<ShellValue>(() => {
     const auth: PanelAuthContext = {
