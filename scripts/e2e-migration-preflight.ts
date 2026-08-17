@@ -83,20 +83,26 @@ function degraded(reason: string): void {
 }
 
 /**
- * LEDGER-FIRST RULE (U1c/U1f-2): the ledger is THE mechanism — the only path
- * that detects seed-only migrations. supabase_migrations is NOT exposed to
- * PostgREST, so it is read through public.e2e_migration_ledger(), a definer
- * function executable by service_role ONLY.
+ * LEDGER-FIRST RULE (U1c/U1f-2/U1f-3): the ledger is THE mechanism — the only
+ * path that detects seed-only migrations. It is public.migration_marks, read
+ * through public.e2e_migration_ledger(), a definer function executable by
+ * service_role ONLY.
  *
- * Returns null only when the RPC is genuinely unavailable; the caller then
- * declares degraded mode loudly rather than claiming a check it never made.
+ * Returns null only when the RPC itself is unavailable (the ledger migration has
+ * not been applied to staging); the caller then declares degraded mode loudly
+ * rather than claiming a check it never made.
  */
+const LEDGER_MIGRATION = "20260817054246 (public.migration_marks + e2e_migration_ledger)";
+
 async function appliedVersionsFromLedger(client: SupabaseClient): Promise<string[] | null> {
   const { data, error } = await client.rpc("e2e_migration_ledger");
   if (error || !data) {
-    degraded(error?.message ?? "ledger RPC returned no rows");
+    degraded(
+      `${error?.message ?? "ledger RPC returned no rows"} — apply ${LEDGER_MIGRATION} to ethio-staging first`,
+    );
     return null;
   }
+
   return (data as string[]).map((v) => String(v)).sort();
 }
 
