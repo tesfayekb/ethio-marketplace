@@ -1,7 +1,6 @@
 import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
 import type { KeyboardEvent, ReactNode } from "react";
 
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useI18n } from "@/i18n";
@@ -179,7 +178,6 @@ export function DataTable<T>({
   const navigate = useNavigate();
   /** U1d: the FIRST primary column carries the row link inside the table. */
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
-
 
   const toolbarBlock = toolbar ? (
     <PageCard testid="data-table-toolbar" className="min-w-0">
@@ -412,7 +410,6 @@ export function DataTable<T>({
                   </tr>
                 );
               })}
-
             </tbody>
           </table>
         </div>

@@ -128,8 +128,6 @@ test.describe("display primitives law (test-once responsiveness)", () => {
     await expect(page).toHaveURL(/\/c\/row-3$/);
   });
 
-
-
   // L7 — every primitive renders its empty / loading / error state on demand.
   for (const state of ["empty", "loading", "error"] as const) {
     test(`primitives render their ${state} state`, async ({ page }) => {

@@ -128,7 +128,6 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
             {t("admin.users.status.ownAccount")}
           </p>
         ) : mayUpdate ? (
-
           <div className="space-y-2">
             {!deactivated ? (
               <>

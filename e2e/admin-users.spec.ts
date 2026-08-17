@@ -165,7 +165,6 @@ test.describe("U1 admin users", () => {
     await expect(page.getByTestId("activate-user")).toHaveCount(0);
   });
 
-
   test("AU-4 roles: assign and remove, super_admin/user never offered", async ({ page }) => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "super_admin");

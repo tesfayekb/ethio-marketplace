@@ -157,7 +157,6 @@ export function Breadcrumbs() {
     );
   }
 
-
   return (
     <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")} className="mb-3">
       <BreadcrumbList>
