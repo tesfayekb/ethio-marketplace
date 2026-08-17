@@ -307,27 +307,49 @@ export async function stepUpIfPrompted(page: Page, secret: string) {
   await page.getByTestId("step-up-code").fill(totp(secret));
   await page.getByTestId("step-up-submit").click();
   await expect(modal).toBeHidden({ timeout: 20000 });
+  // The client's AAL flips asynchronously after verification — settle on the
+  // achieved state, never on the click (U1g-2).
+  await expectAal2(page);
 }
 
-/** The session actually reached AAL2 (read from the DEV client, not inferred). */
-export async function expectAal2(page: Page) {
+/**
+ * The session actually reached AAL2 (read from the DEV client, not inferred).
+ *
+ * U1g-2: getAuthenticatorAssuranceLevel() resolves to { data: { currentLevel,
+ * nextLevel } } — the previous read destructured currentLevel off the envelope
+ * and always saw undefined.
+ */
+export async function readAal(page: Page) {
   await page.waitForFunction(
     () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
     undefined,
     { timeout: 15000 },
   );
-  const level = await page.evaluate(async () => {
+  return page.evaluate(async () => {
     const client = (
       window as unknown as {
         __ethioSupabase: {
           auth: {
-            mfa: { getAuthenticatorAssuranceLevel: () => Promise<{ currentLevel: string | null }> };
+            mfa: {
+              getAuthenticatorAssuranceLevel: () => Promise<{
+                data: { currentLevel: string | null } | null;
+              }>;
+            };
           };
         };
       }
     ).__ethioSupabase;
-    const { currentLevel } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
-    return currentLevel;
+    const { data } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    return data?.currentLevel ?? null;
   });
+}
+
+export async function expectAal2(page: Page) {
+  let level: string | null = null;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    level = await readAal(page);
+    if (level === "aal2") return;
+    await page.waitForTimeout(500);
+  }
   expect(level, "the session did not reach aal2").toBe("aal2");
 }

@@ -24,7 +24,6 @@ import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import {
   AUTH_DERIVED_ROOT,
-  MY_PERMISSIONS_KEY,
   usePermissions,
 } from "@/features/permissions/usePermissions";
 import {
