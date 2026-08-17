@@ -3,7 +3,10 @@ name: CI
 on:
   push:
     branches: [main]
-    paths-ignore: ["docs/tracking/ci-status.md", "docs/tracking/nightly-status.md"]
+    paths-ignore:
+      - "docs/tracking/ci-status.md"
+      - "docs/tracking/nightly-status.md"
+      - "docs/tracking/e2e-last-failure.md"
   pull_request:
     branches: [main]
 
@@ -13,6 +16,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # INC-076: the deletion guard needs the previous main commit in the
+          # local object store, so the shallow default will not do.
+          fetch-depth: 0
+      # INC-076 (ratified): a push that deletes files must SAY so. The guard is
+      # self-tested in both directions before it is trusted.
+      - name: No unexplained deletions (with self-test)
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: |
+          SELF_TEST=1 bash scripts/check-deletions.sh
+          bash scripts/check-deletions.sh
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
@@ -171,6 +186,8 @@ jobs:
   e2e:
     name: E2E (Playwright, ethio-staging)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       # ethio-staging — publishable values only; the service-role key is a secret.
       # Mailtrap sandbox on staging accepts any recipient — enables A-1..A-3 (INC-013).
@@ -207,6 +224,90 @@ jobs:
       - name: Run E2E (dev-server mode; production build is validated in build-and-check)
         run: bunx playwright test
 
+      # U1e — E2E FAILURE REPORTER. The supervisor reads the evidence by clone
+      # (docs/tracking/e2e-last-failure.md); the artifact courier is retired.
+      # The self-test runs FIRST: a reporter that only ever prints "no
+      # failures" proves nothing.
+      - name: Publish E2E failure report
+        if: failure()
+        env:
+          E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -u
+          SELF_TEST=1 bun scripts/e2e-failure-report.ts
+          bun scripts/e2e-failure-report.ts
+          cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
+          # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
+          # the file is derived state owned by this run, so rewriting it on top
+          # of whatever main now holds can never conflict. A push failure is a
+          # ::warning, never a red — bookkeeping must not redden Actions.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          pushed=0
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p docs/tracking
+            cp /tmp/e2e-last-failure.md docs/tracking/e2e-last-failure.md
+            git add docs/tracking/e2e-last-failure.md
+            if git diff --cached --quiet; then
+              echo "No report change; nothing to commit."
+              pushed=1
+              break
+            fi
+            git commit -m "ci: e2e failure report [skip ci]"
+            if git push origin HEAD:main; then
+              pushed=1
+              break
+            fi
+            echo "Report push rejected (attempt ${attempt}/3); refetching."
+            sleep 5
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "::warning::E2E failure report push failed after retries"
+          fi
+          exit 0
+
+      - name: Publish green E2E marker
+        if: success()
+        env:
+          E2E_GREEN: "1"
+          E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -u
+          bun scripts/e2e-failure-report.ts
+          cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
+          # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
+          # the file is derived state owned by this run, so rewriting it on top
+          # of whatever main now holds can never conflict. A push failure is a
+          # ::warning, never a red — bookkeeping must not redden Actions.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          pushed=0
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p docs/tracking
+            cp /tmp/e2e-last-failure.md docs/tracking/e2e-last-failure.md
+            git add docs/tracking/e2e-last-failure.md
+            if git diff --cached --quiet; then
+              echo "No report change; nothing to commit."
+              pushed=1
+              break
+            fi
+            git commit -m "ci: e2e failure report [skip ci]"
+            if git push origin HEAD:main; then
+              pushed=1
+              break
+            fi
+            echo "Report push rejected (attempt ${attempt}/3); refetching."
+            sleep 5
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "::warning::E2E failure report push failed after retries"
+          fi
+          exit 0
+
       - name: Upload report on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -214,3 +315,4 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+

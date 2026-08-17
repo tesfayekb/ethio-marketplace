@@ -1,0 +1,68 @@
+{
+  "stats": { "expected": 41, "skipped": 3, "unexpected": 2 },
+  "suites": [
+    {
+      "title": "auth-signout.spec.ts",
+      "suites": [
+        {
+          "title": "U0j sign-out hard reset",
+          "specs": [
+            {
+              "title": "SO-2 settings: confirmed sign-out empties the gated surface",
+              "ok": false,
+              "tests": [
+                {
+                  "projectName": "desktop-1280",
+                  "status": "unexpected",
+                  "results": [
+                    {
+                      "status": "failed",
+                      "error": {
+                        "message": "\u001b[31mTimeoutError\u001b[39m: page.waitForURL(/\\/$/): Timeout 15000ms exceeded.\nCurrent URL: http://127.0.0.1:4173/auth\nstorage: sb-abcdef-auth-token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl"
+                      },
+                      "steps": [
+                        {
+                          "title": "signOutViaUi",
+                          "steps": [
+                            {
+                              "title": "waitForURL(/\\/$/)",
+                              "error": { "message": "Timeout 15000ms exceeded." }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "admin-users.spec.ts",
+      "specs": [
+        {
+          "title": "AU-3 admin can deactivate a user",
+          "ok": false,
+          "tests": [
+            {
+              "projectName": "mobile-360",
+              "status": "unexpected",
+              "results": [
+                {
+                  "status": "failed",
+                  "error": {
+                    "message": "Error: expect(locator).toBeVisible() failed\nLocator: getByTestId('settings-deactivated-banner')\nExpected: visible\nReceived: hidden"
+                  },
+                  "steps": [{ "title": "expect.toBeVisible", "error": { "message": "hidden" } }]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -149,3 +149,30 @@ Defect: U1c landed on main across ten commits (03:43–03:48); the next task (U1
 ### INC-077 (2026-08-17) — Desktop table rows lost their link in the DataTable migration; own-row deactivate exposed in admin (operator walk)
 
 Defect 1: the users list's mobile card carried rowHref but the desktop <tr> did not — a regression introduced by U1b's migration and missed because the table law tests overflow, not interaction. Fix: DataTable rowHref applies to table rows (whole row + primary cell + keyboard) + primitives law L8. CLASS RULE: every primitive interaction contract has a law test on /dev/primitives (not just geometry). Defect 2: an admin viewing their own record saw Deactivate (server refuses, UI shouldn't offer). Fix: own-row rule + note; self-closure lives in Account settings (separate scoped item). Operator directive adopted: sensitive actions require step-up (2FA) — U1e (Tier A) builds MFA enrollment + the requires_step_up gate; deactivate/activate/role assign/revoke are the first step-up permissions.
+
+### INC-078 (2026-08-17) — Sign-out regression on /settings after U1d banner (desktop SO-2/SO-4)
+
+Defect: U1d added the own-profile deactivation banner to `src/routes/settings.tsx`
+inside the page's ONE-SHOT bootstrap effect (deps `[navigate]`), whose tail
+branch sent any session-less outcome to `/auth`. The two added awaits
+(`supabase.auth.getUser()` + the `profiles.account_status` read) widened the
+window so that a sign-out started on `/settings` resolved that tail AFTER the
+session was gone: the page navigated to `/auth` while the shell's hard reset
+was replace-navigating to `/`, and the sign-out assertions (SO-2, and SO-4
+whose flow also passes through a gated surface) observed the wrong destination.
+Desktop-only in practice because the desktop rail exposes sign-out in one
+click, while the mobile drawer costs enough time for the bootstrap to settle
+first.
+
+Fix (root): the settings bootstrap is now keyed to the auth state
+(`[authLoading, user, navigate]`), bails when the user is null after a session
+existed, and never routes post-sign-out. LAW: **the sign-out hard reset purges
+every auth-derived read; no page bootstrap may route after an auth
+transition — destination after sign-out belongs to the shell's hard reset
+alone, and any auth-derived cache entry must be prefix-tagged so the reset can
+remove it (today: `MY_PERMISSIONS_KEY`; the settings banner holds no cache at
+all, by design).**
+
+Note: CI now publishes E2E failure evidence to
+`docs/tracking/e2e-last-failure.md` — the supervisor reads it by clone; the
+artifact courier model is retired.

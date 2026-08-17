@@ -17,7 +17,11 @@ export default defineConfig({
   // Acceptance measurement requires retries: 0 (pass bar, §6 of the report).
   retries: 0,
   workers: 1,
-  reporter: process.env["CI"] ? [["html", { open: "never" }], ["list"]] : [["list"]],
+  // U1e: the json reporter is what scripts/e2e-failure-report.ts reads to
+  // publish docs/tracking/e2e-last-failure.md (the artifact courier is retired).
+  reporter: process.env["CI"]
+    ? [["html", { open: "never" }], ["json", { outputFile: "test-results/results.json" }], ["list"]]
+    : [["list"]],
   timeout: 60_000,
   expect: { timeout: 10_000 },
   use: {

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
 import { PageCard, PAGE_MAIN_CLASS } from "@/components/shell/page-card";
 import {
@@ -98,35 +98,52 @@ function SettingsScreen() {
     void navigate({ to: "/", replace: true });
   }, [authLoading, user, navigate]);
 
-  /** Auth-required. The server refuses everything anyway; this is the UX. */
+  /**
+   * INC-078 — AUTH-DERIVED READS ARE OWNED BY THE AUTH TRANSITION.
+   *
+   * The old bootstrap ran ONCE (deps: [navigate]) and, after its awaits, sent
+   * ANY session-less outcome to /auth. U1d added two more awaits in front of
+   * that branch (getUser + the profiles banner read), widening the window
+   * enough that a desktop sign-out started on /settings resolved the tail of
+   * this effect AFTER the session was gone: the page navigated to /auth while
+   * the shell's hard reset was replace-navigating to "/", and the sign-out
+   * assertions (SO-2/SO-4) saw the wrong destination.
+   *
+   * The law: every auth-derived read is keyed to the auth state and is
+   * cancelled by an auth transition; post-sign-out routing belongs to the
+   * shell's hard reset alone, never to a page bootstrap.
+   */
+  const hadSession = useRef(false);
+
   useEffect(() => {
+    if (authLoading) return;
     let active = true;
     void (async () => {
-      const signedIn = await hasSessionRehydrating();
-      if (!active) return;
-      if (!signedIn) {
-        void navigate({ to: "/auth", search: {} });
+      if (user === null) {
+        // Signed out AFTER having a session: the shell hard reset owns "/".
+        if (hadSession.current) return;
+        const signedIn = await hasSessionRehydrating();
+        if (!active || hadSession.current) return;
+        if (!signedIn) void navigate({ to: "/auth", search: {} });
         return;
       }
+      hadSession.current = true;
       const { data } = await supabase.auth.getUser();
-      if (!active) return;
+      if (!active || user === null) return;
       setMemberSince(data.user?.created_at ?? null);
-      const userId = data.user?.id;
-      if (userId) {
-        const profile = await supabase
-          .from("profiles")
-          .select("account_status")
-          .eq("user_id", userId)
-          .maybeSingle();
-        if (!active) return;
-        setAccountDeactivated(profile.data?.account_status === "deactivated");
-      }
+      const profile = await supabase
+        .from("profiles")
+        .select("account_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!active) return;
+      setAccountDeactivated(profile.data?.account_status === "deactivated");
       setCheckingSession(false);
     })();
     return () => {
       active = false;
     };
-  }, [navigate]);
+  }, [authLoading, user, navigate]);
 
   const loadIdentities = useCallback(async () => {
     const result = await getIdentities();

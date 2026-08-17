@@ -148,3 +148,4 @@
 - 2026-08-17 — feat(ui): U1c — display primitives (DEC-015): StatCard/StatGrid, ChartFrame, FormSection, DetailPanel, DataTable slots; /dev/primitives fixture; primitives law suite (test-once responsiveness); preflight ledger-first (seed-only migrations detected)
 - 2026-08-17 — fix(repo): INC-076 — U1c primitives/fixture/law-suite/preflight restored verbatim from f62f2f8 after a stale-checkout push overwrote main; base-SHA rule adopted
 - 2026-08-17 — fix(ui): U1d — DataTable rows clickable on desktop (+law L8); own-row status controls hidden; settings deactivation banner; Users > <name> crumb; INC-077
+- 2026-08-17 — ci: E2E failure reporter (docs/tracking/e2e-last-failure.md) + no-unexplained-deletions guard (INC-076); fix(auth): sign-out purges all auth-derived queries (SO-2/SO-4 after settings banner, INC-078)
