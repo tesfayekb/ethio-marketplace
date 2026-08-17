@@ -59,6 +59,8 @@ self_test() {
   tmp="$(mktemp -d)"
   (
     set -e
+    # The child invocations must run the GUARD, not the self-test again.
+    unset SELF_TEST
     cd "$tmp"
     git init -q .
     git config user.email t@t.t
