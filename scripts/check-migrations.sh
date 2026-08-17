@@ -2,6 +2,11 @@
 # Migration guard: every migration containing CREATE TABLE must also enable RLS,
 # create at least one policy, and grant privileges. Includes a self-test against
 # a known-bad fixture so a broken guard cannot silently pass.
+#
+# Definer law (INC-074): re-declaring an existing SECURITY DEFINER function
+# requires restating its REVOKE/GRANT lines in the same file (CREATE OR REPLACE
+# preserves live grants, but the file must be self-describing).
+
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
