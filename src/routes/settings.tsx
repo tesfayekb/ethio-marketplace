@@ -496,6 +496,13 @@ function SettingsScreen() {
           </p>
         )}
 
+        {/* U1f-4: with no factor left, sensitive actions cannot be stepped up. */}
+        {mfa.factors !== null && mfa.factors.length === 0 ? (
+          <p data-testid="mfa-off-warning" className="mt-2 text-sm text-muted-foreground">
+            {t("mfa.stepUpNoFactorBody")}
+          </p>
+        ) : null}
+
         {(mfa.factors ?? []).map((factor) => (
           <div
             key={factor.id}
