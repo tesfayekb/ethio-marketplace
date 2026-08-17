@@ -78,6 +78,25 @@ export async function isSteppedUp(): Promise<boolean> {
   return (await getAal()).current === "aal2";
 }
 
+/**
+ * U1f-4: the CLIENT-side mirror of the server's two conditions.
+ *   (1) a verified TOTP factor still exists on the account — an unenrolled
+ *       account can never be "already stepped up", however the JWT reads;
+ *   (2) aal2 AND the last verification happened inside the window — so an
+ *       enrollment done long before a sensitive action does not stand in for
+ *       a fresh code.
+ * Authority still lives in public.require_step_up_if_needed (law F3).
+ */
+export async function isStepUpFresh(): Promise<boolean> {
+  const factors = await listFactors();
+  if (!factors.ok || factors.factors.length === 0) return false;
+  if (!(await isSteppedUp())) return false;
+  const verifiedAt = readSteppedUpAt();
+  if (verifiedAt === null) return false;
+  return Date.now() - verifiedAt < stepUpWindowMs();
+}
+
+
 export async function listFactors(): Promise<
   { ok: true; factors: MfaFactor[] } | { ok: false; errorKey: MessageKey }
 > {
