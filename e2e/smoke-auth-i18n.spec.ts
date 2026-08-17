@@ -11,6 +11,7 @@ import {
   fillUntilStable,
   openAccountMenu,
   signOutViaUi,
+  switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
 

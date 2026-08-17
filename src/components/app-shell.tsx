@@ -267,7 +267,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     [signOut, queryClient, navigate],
   );
 
-
   const requestSignOut = useCallback(() => {
     if (signingOut) return;
     void hardReset(null);
