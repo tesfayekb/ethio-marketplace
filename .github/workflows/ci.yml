@@ -416,6 +416,8 @@ jobs:
       - name: Publish merged E2E report
         env:
           E2E_RESULTS_DIR: shard-results
+          E2E_LOGS_DIR: shard-logs
+          E2E_EXPECTED_SOURCES: smoke,1,2,3,4
           E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
