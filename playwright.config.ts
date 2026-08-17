@@ -20,11 +20,7 @@ export default defineConfig({
   // U1e: the json reporter is what scripts/e2e-failure-report.ts reads to
   // publish docs/tracking/e2e-last-failure.md (the artifact courier is retired).
   reporter: process.env["CI"]
-    ? [
-        ["html", { open: "never" }],
-        ["json", { outputFile: "test-results/results.json" }],
-        ["list"],
-      ]
+    ? [["html", { open: "never" }], ["json", { outputFile: "test-results/results.json" }], ["list"]]
     : [["list"]],
   timeout: 60_000,
   expect: { timeout: 10_000 },

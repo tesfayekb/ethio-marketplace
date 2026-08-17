@@ -145,7 +145,6 @@ function SettingsScreen() {
     };
   }, [authLoading, user, navigate]);
 
-
   const loadIdentities = useCallback(async () => {
     const result = await getIdentities();
     if (!result.ok) {

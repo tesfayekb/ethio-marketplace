@@ -25,6 +25,7 @@ type PwSpec = { title?: string; ok?: boolean; tests?: PwTest[] };
 type PwSuite = { title?: string; specs?: PwSpec[]; suites?: PwSuite[] };
 type PwJson = { suites?: PwSuite[]; stats?: { expected?: number; skipped?: number } };
 
+// eslint-disable-next-line no-control-regex -- stripping real ANSI colour codes is the point
 const ANSI = /\u001b\[[0-9;]*m/g;
 const JWT = /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b/g;
 const STORAGE_KEY = /sb-[A-Za-z0-9-]+-auth-token/g;
@@ -60,7 +61,9 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
           project: test.projectName ?? "unknown",
           title: redact([...path, spec.title ?? "(untitled)"].join(" › ")),
           message,
-          step: innermostFailedStep(result?.steps) ? redact(innermostFailedStep(result.steps)!) : null,
+          step: innermostFailedStep(result?.steps)
+            ? redact(innermostFailedStep(result.steps)!)
+            : null,
         });
       }
     }
