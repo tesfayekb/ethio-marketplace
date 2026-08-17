@@ -254,4 +254,77 @@ test.describe("U1 admin users", () => {
     });
     expect(message ?? "").toContain("permission denied");
   });
+  test("AU-9 edit: staff edits display name and alias, activity records it", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const scratch = await createUser({ confirmed: true });
+    const alias = `u1g${Date.now().toString(36)}`;
+
+    await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
+    await page.goto(`/admin/users/${scratch.id}`);
+    await waitForHydration(page);
+
+    await page.getByTestId("edit-display-name").fill("U1g Edited Name");
+    await page.getByTestId("edit-seller-alias").fill(alias);
+    await page.getByTestId("edit-save").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
+
+    await expect(page.getByTestId("edit-saved")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("activity-user.profile_edit").first()).toBeVisible({
+      timeout: 15000,
+    });
+
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("edit-display-name")).toHaveValue("U1g Edited Name", {
+      timeout: 15000,
+    });
+    await expect(page.getByTestId("edit-seller-alias")).toHaveValue(alias);
+  });
+
+  test("AU-10 edit: a duplicate alias is refused inline and nothing changes", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const holder = await createUser({ confirmed: true });
+    const scratch = await createUser({ confirmed: true });
+    const alias = `u1gdup${Date.now().toString(36)}`;
+
+    await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
+
+    await page.goto(`/admin/users/${holder.id}`);
+    await waitForHydration(page);
+    await page.getByTestId("edit-seller-alias").fill(alias);
+    await page.getByTestId("edit-save").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("edit-saved")).toBeVisible({ timeout: 15000 });
+
+    await page.goto(`/admin/users/${scratch.id}`);
+    await waitForHydration(page);
+    await page.getByTestId("edit-seller-alias").fill(alias);
+    await page.getByTestId("edit-save").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("edit-error")).toHaveText(
+      en["admin.users.edit.errorAliasTaken"],
+      { timeout: 15000 },
+    );
+
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("edit-seller-alias")).toHaveValue("", { timeout: 15000 });
+  });
+
+  test("AU-11 own row: no edit form on your own record", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+
+    await switchUser(page, staff.email, staff.password);
+    await page.goto(`/admin/users/${staff.id}`);
+    await waitForHydration(page);
+
+    await expect(page.getByTestId("own-account-note-edit")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("user-edit-form")).toHaveCount(0);
+  });
 });
