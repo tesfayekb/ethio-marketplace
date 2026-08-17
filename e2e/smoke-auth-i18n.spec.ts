@@ -11,6 +11,7 @@ import {
   fillUntilStable,
   openAccountMenu,
   signOutViaUi,
+  switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
 
@@ -63,9 +64,7 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
   //    literal. The shell has exactly ONE language affordance (the top-bar
   //    switcher); its trigger carries the CURRENT language, and the target
   //    language is chosen from its menu.
-  await page.getByTestId("language-switcher").click();
-  await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
-  await expect(page.locator("html")).toHaveAttribute("lang", "am");
+  await switchLanguage(page, "am");
 
   // Sign-out is still reachable, now under the Amharic account-menu label.
   await openAccountMenu(page, am["shell.accountMenu"]);

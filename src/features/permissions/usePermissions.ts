@@ -26,7 +26,12 @@ export function usePermissions({ enabled = true }: { enabled?: boolean } = {}) {
     queryKey: MY_PERMISSIONS_KEY,
     queryFn: fetchMyPermissions,
     staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
+    // U1g-4 (A) — gcTime 0: the moment the last observer unmounts (sign-out
+    // unmounts <PermissionsLoader/>), the entry must EVAPORATE. A lingering
+    // unobserved grant is exactly what SO-4 forbids, and it costs nothing:
+    // permissions are re-fetched once per session anyway. staleTime keeps the
+    // in-session read cheap.
+    gcTime: 0,
     retry: 1,
     enabled,
   });

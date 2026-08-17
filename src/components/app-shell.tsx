@@ -227,9 +227,25 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const hardReset = useCallback(
     async (notice: MessageKey | null) => {
+      /**
+       * U1g-4 (A) — ORDER IS THE FIX. The purge must run when NO observer is
+       * left, otherwise React Query keeps (or re-creates) the permissions entry
+       * and SO-4 sees a survivor. Sequence:
+       *   1. signingOut + user-derived state cleared -> <PermissionsLoader/>
+       *      unmounts on the next commit;
+       *   2. await a macrotask so React has actually COMMITTED that unmount;
+       *   3. cancel-then-remove every auth-derived key;
+       *   4. navigate.
+       */
       setSigningOut(true);
+      setPermissionsState({ permissions: [], loading: false });
+      setPanelChoice("marketplace");
+      setLocationPath([]);
+      setNavOpen(false);
       try {
         await signOut();
+        // (2) macrotask boundary: React commits the unmount before the purge.
+        await new Promise((resolve) => setTimeout(resolve, 0));
         /**
          * INC-078 LAW (U1f; made STRUCTURAL by U1g-2) — THE HARD RESET PURGES
          * EVERY AUTH-DERIVED READ. Mechanism: every auth-context query key
@@ -241,11 +257,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         await queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
         queryClient.removeQueries({ queryKey: [AUTH_DERIVED_ROOT] });
         queryClient.removeQueries({ queryKey: ["me"] });
-        setPermissionsState({ permissions: [], loading: false });
         clearSessionClocks();
-        setPanelChoice("marketplace");
-        setLocationPath([]);
-        setNavOpen(false);
         setSessionNotice(notice);
         await navigate({ to: "/", replace: true });
       } finally {
