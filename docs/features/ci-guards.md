@@ -54,3 +54,38 @@ the marketplace browse path. Allowlist: the seam itself, `src/routes/admin.tsx`,
 and `src/components/app-shell.tsx` (the Admin-tab gate; see
 `docs/features/rbac-client-seam.md`). CI runs it in both directions: PASS on
 `src/`, and it must FAIL on `scripts/fixtures/bad-permission-import-example.ts.txt`.
+
+## Definer-restatement law (INC-074, 2026-08-16)
+
+`scripts/check-migrations.sh` also fails any migration (timestamp >=
+`20260810000000`) that declares a `SECURITY DEFINER` function without an
+in-file `REVOKE` naming it. This includes **re-declarations**: re-declaring an
+existing SECURITY DEFINER function requires restating its `REVOKE`/`GRANT`
+lines in the same file. `CREATE OR REPLACE` preserves live grants, but the file
+must be self-describing — a reader of one migration must be able to see the
+privilege posture of every function it declares. Corrections are forward-only
+riders (migrations are append-only), e.g. the grant restatement for
+`submit_listing` / `transition_listing` re-declared in `20260816120338`.
+
+## Migration parity preflight (INC-074, 2026-08-16)
+
+`scripts/e2e-migration-preflight.ts` runs as its own CI step
+("Migration parity preflight (staging)") before Playwright, and again from
+`e2e/global-setup.ts` for local runs. It compares `supabase/migrations/*.sql`
+against ethio-staging using the service-role client the harness already holds:
+
+1. Ledger path — reads `supabase_migrations.schema_migrations` (`version` =
+   the 14-digit filename prefix) through PostgREST.
+2. Fallback probe — when that schema is not exposed, it parses the newest local
+   migration for `CREATE [OR REPLACE] FUNCTION` / `CREATE TABLE` names and
+   checks them on staging (`PGRST202` = function absent, `42P01` = table
+   absent). No SECURITY DEFINER helper is required.
+
+When staging is behind it exits non-zero with:
+
+```
+STAGING BEHIND: apply <filename> to ethio-staging before E2E can pass
+```
+
+followed by every missing file. `bun scripts/e2e-migration-preflight.ts --dry`
+prints applied-vs-local for the operator and always exits 0.
