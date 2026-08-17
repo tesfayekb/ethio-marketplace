@@ -210,5 +210,4 @@ async function main() {
   console.log(`Wrote ${OUT} (merged ${found} shard result file(s)).`);
 }
 
-
 if (import.meta.main) await main();
