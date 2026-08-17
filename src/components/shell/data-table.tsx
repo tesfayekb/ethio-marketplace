@@ -338,14 +338,38 @@ export function DataTable<T>({
             <tbody>
               {rows.map((row) => {
                 const key = rowKey(row);
+                const href = rowHref?.(row);
+                const go = () => {
+                  if (href) void navigate(href as never);
+                };
                 return (
                   <tr
                     key={key}
                     data-testid={rowTestId(row)}
-                    className="border-b border-border last:border-0"
+                    className={cn(
+                      "border-b border-border last:border-0",
+                      href && "cursor-pointer hover:bg-muted/50",
+                    )}
+                    {...(href
+                      ? {
+                          role: "link",
+                          tabIndex: 0,
+                          onClick: go,
+                          onKeyDown: (event: React.KeyboardEvent<HTMLTableRowElement>) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              go();
+                            }
+                          },
+                        }
+                      : {})}
                   >
                     {selection ? (
-                      <td className="p-3 align-top">
+                      <td
+                        className="p-3 align-top"
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                      >
                         <Checkbox
                           aria-label={t("prim.table.selectRow")}
                           data-testid={`${rowTestId(row)}-select-cell`}
@@ -361,13 +385,26 @@ export function DataTable<T>({
                         key={column.key}
                         className={cellClass(column as DataTableColumn<unknown>)}
                       >
-                        <span className="block min-w-0 break-words">{column.cell(row)}</span>
+                        {href && column.key === linkColumnKey ? (
+                          <Link
+                            {...href}
+                            data-testid={`${rowTestId(row)}-link`}
+                            className="block min-w-0 break-words"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            {column.cell(row)}
+                          </Link>
+                        ) : (
+                          <span className="block min-w-0 break-words">{column.cell(row)}</span>
+                        )}
                       </td>
                     ))}
                     {rowActions ? (
                       <td
                         data-testid={`${rowTestId(row)}-actions-cell`}
                         className="p-3 text-end align-top"
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
                       >
                         <span className="flex flex-wrap justify-end gap-2">{rowActions(row)}</span>
                       </td>
@@ -375,6 +412,7 @@ export function DataTable<T>({
                   </tr>
                 );
               })}
+
             </tbody>
           </table>
         </div>
