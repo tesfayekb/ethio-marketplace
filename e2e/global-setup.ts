@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 
 import migrationPreflight from "../scripts/e2e-migration-preflight";
+import { mintEmail } from "./helpers/users";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const STATE_FILE = join(HERE, ".state", "test-user.json");
@@ -44,15 +45,15 @@ export function processId(): string {
 /**
  * Reserved, non-deliverable namespace — sweepable, never a real address.
  *
- * ID SCHEME (INC-080 + addendum): `e2e+<PROCESS_ID>-<worker>-<n>-<rand6>@ethio-e2e.invalid`.
- * PROCESS_ID is the ownership boundary teardown filters on (`+${PROCESS_ID}-`);
- * one job may run N workers (Playwright projects x parallelism) that share it,
- * so ids must be unique per WORKER, not per job — see `mintEmail` in
- * e2e/helpers/users.ts. This helper builds the setup fixture (one per job) and
- * addresses that are deliberately never registered.
+ * ID SCHEME (INC-080 final): `testEmail` is now a THIN ALIAS of `mintEmail`, so
+ * no spec can construct a colliding address. `mintEmail` adds the worker tag and
+ * a random suffix on top of PROCESS_ID, which is what parallel Playwright
+ * workers inside ONE job need (they share PROCESS_ID and each restart any
+ * counter at 1). The legacy `id` parameter is ignored: ownership always comes
+ * from `processId()`, so teardown's `+${PROCESS_ID}-` filter still matches.
  */
-export function testEmail(id: string, n: number): string {
-  return `e2e+${id}-${n}@ethio-e2e.invalid`;
+export function testEmail(_id: string, n: number): string {
+  return mintEmail(n);
 }
 
 export function adminClient() {

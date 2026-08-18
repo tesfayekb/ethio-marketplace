@@ -270,3 +270,18 @@ where `worker` is `TEST_WORKER_INDEX` (Playwright, per worker) falling back to
 the pid. The teardown filter `+${PROCESS_ID}-` still matches, so ownership is
 unchanged. **Class rule:** fixture identity is unique by construction (worker +
 random), never by a counter shared across processes.
+
+**Final addendum (2026-08-18) — closed.** The addendum fixed `mintEmail` but
+`testEmail(RUN_ID, n)` in `e2e/global-setup.ts` still built the old shape, so
+`auth-signup` A-1 collided under parallel workers ("Check your email" never
+rendered — the address was already registered). `testEmail` is now a **thin
+alias of `mintEmail`**; the legacy `id` argument is ignored (ownership always
+comes from `processId()`), so no spec can construct a colliding address. Call
+sites inherit the new shape with no further edits: `e2e/global-setup.ts` (setup
+fixture), `e2e/auth-signup.spec.ts`, `e2e/auth-signin-errors.spec.ts` (B-2/B-3
+never-registered addresses), `e2e/nightly/auth-resend-exhaustion.spec.ts`. A-1
+now polls for heading-or-error and reports the app's own error text, so a future
+collision reads as "already registered" instead of a missing heading. Nightly
+needs no change: the last two red nightlies ran the pre-fix suite serially and
+are expected to clear tonight; the supervisor verifies tomorrow's heartbeat.
+INC-080 is CLOSED.
