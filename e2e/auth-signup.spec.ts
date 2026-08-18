@@ -24,15 +24,25 @@ async function signUpFresh(page: import("@playwright/test").Page, n: number) {
 
 /**
  * Diagnostic: if sign-up failed, surface the app's own error text instead of a
- * bare "heading not found". Adds no tolerance — a clean run is unaffected.
+ * bare "heading not found". Waits for whichever surface appears first, so a
+ * collision ("already registered") reads as that text in the failure report.
+ * Adds no tolerance — a clean run is unaffected.
  */
 async function assertNoSignUpError(page: import("@playwright/test").Page) {
   const alertRegion = page.getByRole("alert");
-  if (await alertRegion.count()) {
-    const alertText = await alertRegion.first().innerText();
-    expect(alertText, `sign-up surfaced an error instead of check-email`).toBe("");
-  }
+  const heading = page.getByRole("heading", { name: en["auth.checkEmail"] });
+  await expect
+    .poll(
+      async () => {
+        if (await heading.count()) return "ok";
+        if (await alertRegion.count()) return (await alertRegion.first().innerText()).trim();
+        return "pending";
+      },
+      { timeout: 15000, message: "sign-up surfaced an error instead of check-email" },
+    )
+    .toBe("ok");
 }
+
 
 const EMAIL_SINK = process.env["E2E_EMAIL_SINK"] === "1";
 
