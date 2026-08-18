@@ -8,7 +8,6 @@ import { createClient } from "@supabase/supabase-js";
 import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { mintEmail } from "./helpers/users";
 
-
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const STATE_FILE = join(HERE, ".state", "test-user.json");
 
@@ -56,7 +55,6 @@ export function processId(): string {
 export function testEmail(_id: string, n: number): string {
   return mintEmail(n);
 }
-
 
 export function adminClient() {
   const url = process.env["E2E_SUPABASE_URL"];

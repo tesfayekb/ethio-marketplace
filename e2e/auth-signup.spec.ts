@@ -43,7 +43,6 @@ async function assertNoSignUpError(page: import("@playwright/test").Page) {
     .toBe("ok");
 }
 
-
 const EMAIL_SINK = process.env["E2E_EMAIL_SINK"] === "1";
 
 test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () => {

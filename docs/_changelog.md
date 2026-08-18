@@ -162,3 +162,4 @@
 - 2026-08-17 — fix(e2e): minted fixture emails unique per worker (TEST_WORKER_INDEX + random suffix) — smoke tier no longer collides across projects (INC-080 addendum)
 - 2026-08-17 — test(e2e): openRailScope hydration-gated + single bounded retry (mobile drawer flake under parallel load); drawer-open helpers unified
 - U1f-4 — step-up gate verifies factor presence + verification freshness server-side (INC-081); client mirrors the 10-minute window; MF-6/MF-7 added.
+- 2026-08-17 — test(e2e): testEmail delegates to mintEmail (unique per worker) — auth-signup collision under parallel workers; INC-080 closed
