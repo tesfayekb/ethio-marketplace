@@ -2,46 +2,26 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32019119115
 - Commit: `474364877e6036b7a77fb8efed28d0ff0970975e`
-- Written (UTC): 2026-08-17T10:13:44.192Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Sources without results: smoke, shard 1, shard 2, shard 3, shard 4
+- Written (UTC): 2026-08-18T11:03:57.998Z
+- Passed: 251 · Skipped: 65 · Failed: 1
+- Sources without results: none
 
-## smoke: no results file
+## auth-signup.spec.ts › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle
 
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+- Source: `shard 1`
+- Project: `mobile-360`
+- Failed step: (none recorded)
 
 ```text
-(no log tail was uploaded for this source)
-```
+Error: expect(locator).toBeVisible() failed
 
-## shard 2: no results file
+Locator: getByRole('heading', { name: 'Check your email' })
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
 
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByRole('heading', { name: 'Check your email' })
 
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
 ```
