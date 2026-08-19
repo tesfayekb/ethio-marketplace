@@ -677,8 +677,8 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     const bar = (await page.locator("header").first().boundingBox())!;
 
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-    const block = page.getByRole("dialog").getByTestId("drawer-logo-block");
+    const block = (await openRailScope(page)).getByTestId("drawer-logo-block");
+
     await expect(block).toBeVisible();
     const box = (await block.boundingBox())!;
     expect(Math.abs(box.height - bar.height)).toBeLessThanOrEqual(1);
