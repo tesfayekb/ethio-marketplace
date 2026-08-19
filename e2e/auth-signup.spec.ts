@@ -59,7 +59,6 @@ function watchAuthRateLimit(page: Page) {
   };
 }
 
-
 /** Drives the real sign-up form to the check-email view. Returns the address used. */
 async function signUpFresh(page: Page, n: number) {
   const email = testEmail(RUN_ID, n);
@@ -147,5 +146,4 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     await expect(throttled).toBeVisible({ timeout: 15000 });
     await expect(throttled).toBeDisabled();
   });
-
 });

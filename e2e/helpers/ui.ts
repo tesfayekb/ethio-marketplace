@@ -163,7 +163,6 @@ export async function openRailScope(page: Page) {
       }
     }
 
-
     // Settled, not merely present: the panel header has rendered its title.
     await expect(drawer.getByTestId("panel-header-title")).not.toHaveText("", { timeout: 10000 });
     return drawer;

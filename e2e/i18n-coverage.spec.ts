@@ -196,7 +196,6 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     const drawer = await openRailScope(page);
     await expect(drawer).toBeVisible();
 
-
     assertAmharicChrome(await drawerTexts(page), "mobile drawer");
     await assertAmharicCategories(page, '[role="dialog"]', "mobile drawer categories");
   });
