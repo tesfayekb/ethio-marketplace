@@ -2,7 +2,7 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32303998421
 - Commit: `2295a79c716cfb9ef85be869ebbe003d03c9439d`
-- Written (UTC): 2026-08-19T22:06:59.517Z
+- Written (UTC): 2026-08-19T22:24:00.024Z
 - Passed: 253 · Skipped: 63 · Failed: 1
 - Sources without results: none
 
@@ -13,13 +13,10 @@
 - Failed step: (none recorded)
 
 ```text
-Error: sign-up surfaced an error instead of check-email
+Error: AUTH RATE LIMIT hit — staging email quota exhausted; retry after the window. Raw: 429 over_email_send_rate_limit: For security purposes, you can only request this after 57 seconds.
 
 expect(received).toBe(expected) // Object.is equality
 
-Expected: "ok"
-Received: "Something went wrong. Please try again."
-
-Call Log:
-- Timeout 15000ms exceeded while waiting on the predicate
+Expected: false
+Received: true
 ```
