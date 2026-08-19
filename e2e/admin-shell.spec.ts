@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { ADMIN_SECTIONS, sectionForPath } from "../src/features/admin/sections";
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, signIn, waitForHydration } from "./helpers/ui";
+import { gotoReady, openRailScope, signIn, waitForHydration } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -140,8 +140,7 @@ test.describe("Admin shell (U0)", () => {
     await expect(page.getByTestId("admin-nav-sidebar")).toHaveCount(0);
 
     if (isMobile(page)) {
-      await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-      const drawer = page.getByRole("dialog");
+      const drawer = await openRailScope(page);
       // U0c — the drawer heads with the ACTIVE panel and lists its items only.
       await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.admin"]);
       for (const id of expected) {
@@ -196,8 +195,7 @@ test.describe("Admin shell (U0)", () => {
 
     // U0b: the shell drawer carries zero admin section items for this role.
     if (isMobile(page)) {
-      await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-      const drawer = page.getByRole("dialog");
+      const drawer = await openRailScope(page);
       await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.admin"]);
       for (const section of ADMIN_SECTIONS) {
         await expect(drawer.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);

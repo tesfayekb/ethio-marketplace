@@ -634,10 +634,9 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     await expect(page.getByTestId("app-rail")).toBeHidden();
 
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-
-    const drawer = page.getByRole("dialog");
+    const drawer = await openRailScope(page);
     await expect(drawer).toBeVisible();
+
     // U0c — the drawer names the ACTIVE panel and lists ONLY its items.
     await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
@@ -678,8 +677,8 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     const bar = (await page.locator("header").first().boundingBox())!;
 
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-    const block = page.getByRole("dialog").getByTestId("drawer-logo-block");
+    const block = (await openRailScope(page)).getByTestId("drawer-logo-block");
+
     await expect(block).toBeVisible();
     const box = (await block.boundingBox())!;
     expect(Math.abs(box.height - bar.height)).toBeLessThanOrEqual(1);
@@ -703,8 +702,7 @@ test.describe("mobile chrome", () => {
   test("no Settings item leaks into the mobile category drawer", async ({ page }) => {
     // INC-053 — the Marketplace rail is the live category tree, drawer included.
     await gotoReady(page, "/");
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-    const drawer = page.getByRole("dialog");
+    const drawer = await openRailScope(page);
     await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
     await expect(drawer.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
@@ -765,7 +763,7 @@ test.describe("mobile chrome", () => {
     await expectTapTarget(page, page.getByTestId("search-toggle"), "search toggle");
 
     // Category rows inside the drawer are targets too.
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    await openRailScope(page);
     await expectTapTarget(
       page,
       page.getByRole("link", { name: en["shell.allCategories"] }).first(),

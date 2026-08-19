@@ -303,3 +303,27 @@ Dashboard for **ethio-staging** → Authentication → Rate Limits, fields:
 `Rate limit for token verifications`, and `Rate limit for sign ups and sign ins`
 (per 5 minutes, per IP). Raise only staging; ethio-prod keeps defaults. Tests
 never retry past the limit — a red that names the quota is the correct outcome.
+
+## Instrumentation law — timeouts must name themselves
+
+**A test-level timeout with no failed step is an instrumentation gap: the
+reporter prints the final step durations; helpers never exhaust silently.
+Timeouts are never loosened as a substitute.**
+
+Two mechanisms enforce it:
+
+- **Reporter (`scripts/e2e-failure-report.ts`).** When the step-walker finds no
+  error-bearing step in a failed test, the report appends a
+  `Last steps before timeout:` block: the final 5 LEAF steps with durations, in
+  execution order from `results.json`. Cumulative slowness then reads as a
+  duration profile, and a hidden wait reads as its own name. The bundled
+  self-test fixture carries a timeout-without-failed-step case and asserts the
+  block renders.
+- **Helper-wait law (`e2e/helpers/ui.ts`).** Every `catch` and manual polling
+  loop throws a NAMED error on exhaustion, stating what it waited for and for
+  how long: `fillUntilStable` rethrows its per-attempt assertion message,
+  `openRailScope`'s mounted-but-waiting branch throws "drawer mounted but never
+  became visible after 13s", and `expectAal2` names its 5s poll and last read.
+  The one declared exception is `stepUpIfPrompted`, where exhaustion is a
+  legitimate outcome (no gate opened because the session is already AAL2); the
+  exception is commented in place.
