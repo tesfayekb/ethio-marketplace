@@ -131,6 +131,12 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     const sentTo = en["auth.checkEmailSentTo"].replace("{email}", email);
     await expect(page.getByText(sentTo, { exact: false })).toBeVisible();
 
+    // Sign-up phase is PROVEN — a 429 from here on is the throttle under test.
+    // A 429 on resend is the feature; a 429 on sign-up is exhausted staging
+    // quota (INC-082).
+    expect(limit.hit(), limit.reason()).toBe(false);
+    limit.disarm();
+
     const resend = page.getByRole("button", { name: en["auth.resend"] });
     await expect(resend).toBeVisible();
 
@@ -140,7 +146,6 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     const throttled = page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") });
     await expect(throttled).toBeVisible({ timeout: 15000 });
     await expect(throttled).toBeDisabled();
-    // A rate limit reached mid-test must not read as a UI defect.
-    expect(limit.hit(), limit.reason()).toBe(false);
   });
+
 });
