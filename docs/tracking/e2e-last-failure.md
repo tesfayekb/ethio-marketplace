@@ -1,22 +1,17 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32303998421
-- Commit: `2295a79c716cfb9ef85be869ebbe003d03c9439d`
-- Written (UTC): 2026-08-19T22:24:00.024Z
-- Passed: 253 · Skipped: 63 · Failed: 1
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32309106722
+- Commit: `143ed2f4f1c3232b03ae3ac9e7a800581bdb1efc`
+- Written (UTC): 2026-08-19T22:36:52.400Z
+- Passed: 252 · Skipped: 64 · Failed: 1
 - Sources without results: none
 
-## auth-signup.spec.ts › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle
+## shell.spec.ts › rail scroll regions (U0f) › footer never covers the rail's Sign out
 
-- Source: `email`
-- Project: `email-serial`
+- Source: `smoke`
+- Project: `desktop-1280`
 - Failed step: (none recorded)
 
 ```text
-Error: AUTH RATE LIMIT hit — staging email quota exhausted; retry after the window. Raw: 429 over_email_send_rate_limit: For security purposes, you can only request this after 57 seconds.
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: false
-Received: true
+Test timeout of 60000ms exceeded.
 ```
