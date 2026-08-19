@@ -5,6 +5,7 @@ import {
   expectNoHorizontalOverflow,
   expectSignedIn,
   gotoReady,
+  openRailScope,
   signIn,
   switchLanguage,
   waitForHydration,
@@ -651,15 +652,16 @@ test.describe("mobile chrome", () => {
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
 
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-    const drawer = page.getByRole("dialog");
+    // INC-082: the drawer is opened ONLY through openRailScope — the bounded
+    // retry for transient open-timing lives in the helper, never inline.
+    const drawer = await openRailScope(page);
     await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
 
     // U0f: BOTH the rail and the drawer render a panel band, so the switcher
     // must be drawer-scoped or the locator is strict-mode ambiguous. The
-    // OPTIONS live in a portal outside the drawer, so they stay page-scoped.
+    // OPTIONS live in a portal outside the drawer, so they are menu-scoped.
     await drawer.getByTestId("panel-header-switcher").click();
-    await page.getByTestId("panel-header-option-account").click();
+    await page.getByRole("menu").getByTestId("panel-header-option-account").click();
 
     // INC-071: activation IS navigation. The URL is Account's homePath, and
     // the drawer stays OPEN on the new panel's items.
@@ -913,11 +915,16 @@ test.describe("panel header band (U0d)", () => {
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
 
-    const rail = page.getByTestId("app-rail");
+    // INC-082/INC-068 law: the rail scope comes from the ONE helper, and the
+    // band must be SETTLED (title non-empty) before the switcher is clicked.
+    const rail = await openRailScope(page);
+    await expect(rail.getByTestId("panel-header-title")).not.toHaveText("", { timeout: 10000 });
     await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
 
     await rail.getByTestId("panel-header-switcher").click();
-    await page.getByTestId("panel-header-option-account").click();
+    // Scope the option to the OPEN menu: the drawer/rail can render a
+    // duplicate option node, which would be strict-mode ambiguous.
+    await page.getByRole("menu").getByTestId("panel-header-option-account").click();
 
     // INC-071 — the route, not state, decides the panel.
     await expect(page).toHaveURL(/\/settings$/);

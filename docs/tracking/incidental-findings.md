@@ -285,3 +285,18 @@ collision reads as "already registered" instead of a missing heading. Nightly
 needs no change: the last two red nightlies ran the pre-fix suite serially and
 are expected to clear tonight; the supervisor verifies tomorrow's heartbeat.
 INC-080 is CLOSED.
+
+### INC-082 (2026-08-17) — Sharded E2E hits the Auth email rate limit (sign-up/resend tests)
+
+The generic UI error masked the cause until the diagnostic assertion: the Auth
+API's email/signup quota (per-project, per-hour) is consumed by 5 parallel
+processes plus the resend tests within minutes, and `auth-service.ts` maps a
+non-429 shaped failure to `auth.errorGeneric` — so A-1 read as "Something went
+wrong" instead of "rate limited". Fix: email-sending tests isolated in a single
+serial project (`email-serial`) with its own CI job (`E2E email (serial,
+quota-bound)`), removed from the shard matrix and the smoke tier via explicit
+`--project` selection; A-1 watches the Auth API for a raw 429 and fails with a
+self-naming reason quoting `over_email_send_rate_limit` /
+`over_request_rate_limit`, with no retry loop past the limit. **Class rule:**
+tests that consume an external quota run single-instance and name the quota when
+it bites.
