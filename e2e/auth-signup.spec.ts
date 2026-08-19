@@ -19,10 +19,19 @@ const RATE_LIMIT_CODES = ["over_email_send_rate_limit", "over_request_rate_limit
 /**
  * Watches the Auth API and records the RAW error code of any 429 — the UI shows
  * a translated generic message, which is exactly what masked INC-082.
+ *
+ * SCOPED (INC-082 addendum): a 429 on RESEND is the feature (P1-c resend
+ * hardening); a 429 on SIGN-UP is exhausted staging quota. The watcher is armed
+ * for the sign-up phase only and is DISARMED by the caller the moment the
+ * check-email view is proven — mechanism: explicit phase disarm (the sign-up
+ * and resend phases both hit POST /auth/v1/signup plus /auth/v1/resend, so URL
+ * filtering alone cannot separate them).
  */
 function watchAuthRateLimit(page: Page) {
   const seen: string[] = [];
+  let armed = true;
   const onResponse = (response: Response) => {
+    if (!armed) return;
     if (!/\/auth\/v1\//.test(response.url())) return;
     if (response.status() !== 429) return;
     void response
@@ -36,10 +45,15 @@ function watchAuthRateLimit(page: Page) {
   };
   page.on("response", onResponse);
   return {
+    /** Stop recording — everything after this point is the resend phase. */
+    disarm: () => {
+      armed = false;
+      page.off("response", onResponse);
+    },
     hit: () => seen.length > 0,
     /** Human-readable, self-naming reason for the report. */
     reason: () =>
-      `AUTH RATE LIMIT hit — staging email quota exhausted; retry after the window. Raw: ${
+      `AUTH RATE LIMIT hit during SIGN-UP — staging email quota exhausted; retry after the window. Raw: ${
         seen.join(" | ") || RATE_LIMIT_CODES.join("/")
       }`,
   };
@@ -116,6 +130,12 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     const sentTo = en["auth.checkEmailSentTo"].replace("{email}", email);
     await expect(page.getByText(sentTo, { exact: false })).toBeVisible();
 
+    // Sign-up phase is PROVEN — a 429 from here on is the throttle under test.
+    // A 429 on resend is the feature; a 429 on sign-up is exhausted staging
+    // quota (INC-082).
+    expect(limit.hit(), limit.reason()).toBe(false);
+    limit.disarm();
+
     const resend = page.getByRole("button", { name: en["auth.resend"] });
     await expect(resend).toBeVisible();
 
@@ -125,7 +145,5 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     const throttled = page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") });
     await expect(throttled).toBeVisible({ timeout: 15000 });
     await expect(throttled).toBeDisabled();
-    // A rate limit reached mid-test must not read as a UI defect.
-    expect(limit.hit(), limit.reason()).toBe(false);
   });
 });

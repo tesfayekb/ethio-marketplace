@@ -947,8 +947,9 @@ test.describe("rail scroll regions (U0f)", () => {
     await page.setViewportSize({ width: 360, height: 480 });
     await gotoReady(page, "/");
 
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-    const drawer = page.getByRole("dialog");
+    // INC-082: opened through the one drawer contract, never inline.
+    const drawer = await openRailScope(page);
+
     const scroll = drawer.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
     // Categories must overflow for this proof to mean anything.

@@ -300,3 +300,13 @@ self-naming reason quoting `over_email_send_rate_limit` /
 `over_request_rate_limit`, with no retry loop past the limit. **Class rule:**
 tests that consume an external quota run single-instance and name the quota when
 it bites.
+
+**Addendum (2026-08-19).** Ethereal sink refreshed per the launch-gate WATCH
+(expired ephemeral account = the generic-SMTP-failure signature + 3 red
+nightlies); the 429 watcher was over-broad and flagged the deliberate resend
+throttle — scoped to the sign-up phase. **Class note:** guards that watch for an
+error code must exclude the paths where that code is the expected behavior.
+Same addendum: `openRailScope`'s retry branch asserted `toHaveCount(0)` to prove
+"not mid-animation", which converted a merely slow drawer into a failure; it now
+keeps waiting when the dialog is mounted and re-clicks only when nothing
+mounted.

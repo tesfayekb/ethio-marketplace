@@ -149,12 +149,18 @@ export async function openRailScope(page: Page) {
     try {
       await expect(drawer).toBeVisible({ timeout: 3000 });
     } catch {
-      // Not mid-animation: a partially-open drawer must not be re-clicked
-      // (that would toggle it shut). Only retry from a genuinely closed state.
-      await expect(drawer, "drawer is mid-animation, not closed — not retrying").toHaveCount(0);
-      console.log("[e2e] drawer open retried");
-      await hamburger.click();
-      await expect(drawer, "drawer did not open after one retry").toBeVisible({ timeout: 10000 });
+      // INC-082 addendum: slowness is NOT failure. If the dialog is MOUNTED it
+      // is opening/animating — keep waiting, never re-click (that would toggle
+      // it shut). Only a genuinely absent dialog means the click did not take.
+      if ((await drawer.count()) > 0) {
+        await expect(drawer, "drawer mounted but never became visible").toBeVisible({
+          timeout: 10000,
+        });
+      } else {
+        console.log("[e2e] drawer open retried");
+        await hamburger.click();
+        await expect(drawer, "drawer did not open after one retry").toBeVisible({ timeout: 10000 });
+      }
     }
 
     // Settled, not merely present: the panel header has rendered its title.

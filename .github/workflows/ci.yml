@@ -22,7 +22,7 @@ jobs:
     name: Build, typecheck, lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # INC-076: the deletion guard needs the previous main commit in the
           # local object store, so the shallow default will not do.
@@ -63,7 +63,7 @@ jobs:
     name: Gitleaks secrets scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -74,7 +74,7 @@ jobs:
     name: Migration linter (with self-test)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # Self-tests first: a guard that only ever passes proves nothing.
       - name: Guard self-tests (RLS fixture + SECURITY DEFINER sample)
         run: SELF_TEST=1 bash scripts/check-migrations.sh
@@ -85,7 +85,7 @@ jobs:
     name: Hardcoded string scan (enforcing)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run string scan
         run: bash scripts/check-hardcoded-strings.sh
 
@@ -93,7 +93,7 @@ jobs:
     name: Listing-write seam guard (with self-test)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # Direction 1: the guard must PASS on real source.
       - name: Guard src/
         run: bash scripts/check-listing-writes.sh src
@@ -114,7 +114,7 @@ jobs:
     name: Browse-path guard (no RBAC seam on the marketplace path, with self-test)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # Direction 1: the guard must PASS on real source.
       - name: Guard src/
         run: bash scripts/check-browse-imports.sh src
@@ -134,8 +134,8 @@ jobs:
     name: Marketplace weight guard (no heavy deps on the first-paint path)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
       - name: Guard the marketplace module graph
@@ -145,7 +145,7 @@ jobs:
     name: First-paint bundle budget (gzipped ceiling)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
@@ -161,7 +161,7 @@ jobs:
     name: Dependency vulnerability audit (enforcing on high/critical)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
@@ -203,7 +203,7 @@ jobs:
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
@@ -240,7 +240,7 @@ jobs:
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
@@ -323,7 +323,7 @@ jobs:
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
@@ -399,7 +399,7 @@ jobs:
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
@@ -453,7 +453,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
