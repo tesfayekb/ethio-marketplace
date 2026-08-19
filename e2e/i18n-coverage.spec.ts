@@ -4,7 +4,7 @@ import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { LANGUAGE_STORAGE_KEY } from "../src/i18n/provider";
 
-import { gotoReady, signIn } from "./helpers/ui";
+import { gotoReady, openRailScope, signIn } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
