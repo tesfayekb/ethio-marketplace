@@ -191,9 +191,11 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     test.skip((viewport?.width ?? 0) >= 768, "mobile only");
     await useAmharic(page);
     await gotoReady(page, "/");
-    await page.getByRole("button", { name: am["shell.openMenu"] }).click();
-    const drawer = page.getByRole("dialog");
+    // INC-082: the drawer is opened ONLY through openRailScope (locale-agnostic
+    // hamburger + the one open contract), never inline.
+    const drawer = await openRailScope(page);
     await expect(drawer).toBeVisible();
+
 
     assertAmharicChrome(await drawerTexts(page), "mobile drawer");
     await assertAmharicCategories(page, '[role="dialog"]', "mobile drawer categories");
