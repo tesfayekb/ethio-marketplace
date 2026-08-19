@@ -634,10 +634,9 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     await expect(page.getByTestId("app-rail")).toBeHidden();
 
-    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
-
-    const drawer = page.getByRole("dialog");
+    const drawer = await openRailScope(page);
     await expect(drawer).toBeVisible();
+
     // U0c — the drawer names the ACTIVE panel and lists ONLY its items.
     await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
     await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
