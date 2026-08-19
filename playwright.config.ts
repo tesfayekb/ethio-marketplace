@@ -34,7 +34,8 @@ export default defineConfig({
       name: "mobile-360",
       use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 740 } },
       // Nightly specs need real elapsed time; they never run per push (INC-020).
-      testIgnore: ["**/nightly/**"],
+      // INC-082: email-sending specs belong to `email-serial` ONLY.
+      testIgnore: ["**/nightly/**", "**/auth-signup.spec.ts"],
     },
     {
       name: "desktop-1280",
@@ -51,7 +52,17 @@ export default defineConfig({
         "**/settings.spec.ts",
       ],
     },
+    {
+      // INC-082 — EMAIL QUOTA PROJECT. The Auth email/signup rate limit is
+      // per-project and per-hour: these specs must run in ONE process, one
+      // viewport, never sharded and never in the smoke tier. CI runs them as
+      // their own small job with --workers=1.
+      name: "email-serial",
+      testMatch: ["**/auth-signup.spec.ts"],
+      use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 740 } },
+    },
   ],
+
   // Option B (evidence-based): CI serves the app with the Vite dev server.
   // The Cloudflare-worker production bundle does not reproduce in the GitHub
   // runner (dist/server/wrangler.json is absent there), so wrangler can never
