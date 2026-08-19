@@ -46,6 +46,8 @@ export async function fillUntilStable(input: Locator, value: string, fieldName: 
       );
       return;
     } catch (error) {
+      // HELPER-WAIT LAW: exhaustion rethrows the NAMED per-attempt assertion
+      // error ("<field> fill attempt 5 did not stick" / "was cleared after").
       if (attempt === 5) throw error;
       await input.page().waitForTimeout(150);
     }
@@ -153,9 +155,10 @@ export async function openRailScope(page: Page) {
       // is opening/animating — keep waiting, never re-click (that would toggle
       // it shut). Only a genuinely absent dialog means the click did not take.
       if ((await drawer.count()) > 0) {
-        await expect(drawer, "drawer mounted but never became visible").toBeVisible({
-          timeout: 10000,
-        });
+        await expect(
+          drawer,
+          "drawer mounted but never became visible after 13s",
+        ).toBeVisible({ timeout: 10000 });
       } else {
         console.log("[e2e] drawer open retried");
         await hamburger.click();
@@ -328,6 +331,9 @@ export async function stepUpIfPrompted(page: Page, secret: string) {
   try {
     await modal.waitFor({ state: "visible", timeout: 5000 });
   } catch {
+    // HELPER-WAIT LAW exception, declared: exhaustion here is a legitimate
+    // OUTCOME (the session is already AAL2 and no gate opened), not a silent
+    // failure — the caller's own assertions cover the mutation that follows.
     return;
   }
   await page.getByTestId("step-up-code").fill(totp(secret));
@@ -377,7 +383,10 @@ export async function expectAal2(page: Page) {
     if (level === "aal2") return;
     await page.waitForTimeout(500);
   }
-  expect(level, "the session did not reach aal2").toBe("aal2");
+  expect(
+    level,
+    `the session did not reach aal2 after 5s of polling (last read: ${level ?? "null"})`,
+  ).toBe("aal2");
 }
 
 /**
