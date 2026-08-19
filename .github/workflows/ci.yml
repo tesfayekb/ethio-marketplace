@@ -274,7 +274,7 @@ jobs:
       - name: Run the smoke tier (fail fast)
         run: |
           set -o pipefail
-          bunx playwright test e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts 2>&1 | tee smoke.log
+          bunx playwright test --project=mobile-360 --project=desktop-1280 e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts 2>&1 | tee smoke.log
       # INC-081: the smoke tier used to upload nothing, so its failures never
       # reached docs/tracking/e2e-last-failure.md ("0 failed" while red).
       - name: Upload smoke results
@@ -354,7 +354,7 @@ jobs:
       - name: Run E2E shard (dev-server mode; the production build is validated in build-and-check)
         run: |
           set -o pipefail
-          bunx playwright test --shard=${{ matrix.shard }}/4 2>&1 | tee ${{ matrix.shard }}.log
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --shard=${{ matrix.shard }}/4 2>&1 | tee ${{ matrix.shard }}.log
       - name: Capture shard log tail
         if: failure()
         uses: actions/upload-artifact@v4
@@ -386,7 +386,7 @@ jobs:
     # job, and downstream reads key off this exact string. It is now the MERGED
     # verdict for the four shards.
     name: E2E (Playwright, ethio-staging)
-    needs: [e2e-smoke, e2e-shard]
+    needs: [e2e-smoke, e2e-shard, e2e-email]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -417,8 +417,8 @@ jobs:
         env:
           E2E_RESULTS_DIR: shard-results
           E2E_LOGS_DIR: shard-logs
-          E2E_EXPECTED_SOURCES: smoke,1,2,3,4
-          E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success') && '1' || '0' }}
+          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4
+          E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success' && needs.e2e-email.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -u
@@ -461,8 +461,8 @@ jobs:
       # a red smoke tier reddens this row; bookkeeping never masks it.
       - name: Verdict
         run: |
-          echo "smoke=${{ needs.e2e-smoke.result }} shards=${{ needs.e2e-shard.result }}"
-          if [ "${{ needs.e2e-smoke.result }}" != "success" ] || [ "${{ needs.e2e-shard.result }}" != "success" ]; then
+          echo "smoke=${{ needs.e2e-smoke.result }} email=${{ needs.e2e-email.result }} shards=${{ needs.e2e-shard.result }}"
+          if [ "${{ needs.e2e-smoke.result }}" != "success" ] || [ "${{ needs.e2e-shard.result }}" != "success" ] || [ "${{ needs.e2e-email.result }}" != "success" ]; then
             echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"
             exit 1
           fi
