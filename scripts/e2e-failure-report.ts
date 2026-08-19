@@ -43,7 +43,36 @@ function innermostFailedStep(steps: PwStep[] | undefined): string | null {
   return innermostFailedStep(candidate.steps) ?? candidate.title ?? null;
 }
 
-type Failure = { project: string; title: string; message: string; step: string | null };
+/** Every leaf step (a step with no children), in execution order. */
+export function leafSteps(steps: PwStep[] | undefined): { title: string; duration: number }[] {
+  const out: { title: string; duration: number }[] = [];
+  for (const step of steps ?? []) {
+    if (step.steps && step.steps.length > 0) {
+      out.push(...leafSteps(step.steps));
+    } else {
+      out.push({ title: step.title ?? "(untitled step)", duration: step.duration ?? 0 });
+    }
+  }
+  return out;
+}
+
+/** True when any step in the tree carries an error. */
+function hasErrorStep(steps: PwStep[]): boolean {
+  return steps.some((s) => s.error !== undefined || hasErrorStep(s.steps ?? []));
+}
+
+type Failure = {
+  project: string;
+  title: string;
+  message: string;
+  step: string | null;
+  /**
+   * PART A — only populated when the walker found NO error-bearing step (a
+   * test-level timeout). The final leaf steps read as a duration profile, so a
+   * cumulative-slowness death names itself instead of rendering an empty body.
+   */
+  lastSteps: { title: string; duration: number }[];
+};
 
 export function collect(json: PwJson): { failures: Failure[]; passed: number; skipped: number } {
   const failures: Failure[] = [];
@@ -57,13 +86,17 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
         const result = (test.results ?? []).find((r) => r.status && r.status !== "passed");
         const raw = result?.error?.message ?? "(no error message captured)";
         const message = redact(raw).split("\n").slice(0, 40).join("\n");
+        const errorBearing = (result?.steps ?? []).length > 0 && hasErrorStep(result!.steps!);
         failures.push({
           project: test.projectName ?? "unknown",
           title: redact([...path, spec.title ?? "(untitled)"].join(" › ")),
           message,
-          step: innermostFailedStep(result?.steps)
-            ? redact(innermostFailedStep(result.steps)!)
-            : null,
+          step: errorBearing ? redact(innermostFailedStep(result!.steps)!) : null,
+          lastSteps: errorBearing
+            ? []
+            : leafSteps(result?.steps)
+                .slice(-5)
+                .map((st) => ({ title: redact(st.title), duration: st.duration })),
         });
       }
     }
@@ -147,6 +180,14 @@ export function renderSources(
       "```",
       "",
     );
+    // PART A: no failed step means a test-level timeout — print where the time
+    // went instead of an empty body. Timeouts are never loosened as a
+    // substitute for this instrumentation.
+    if (!f.step && f.lastSteps.length > 0) {
+      lines.push("Last steps before timeout:", "", "```text");
+      for (const st of f.lastSteps) lines.push(`${st.duration}ms  ${st.title}`);
+      lines.push("```", "");
+    }
   }
 
   // Law F4: a red job that wrote no results is quoted, never counted as zero.
@@ -213,6 +254,10 @@ async function main() {
       "waitForURL(/\\/$/)",
       "expect.toBeVisible",
       "- Source: `shard 2`",
+      "footer never covers the rail's Sign out",
+      "Last steps before timeout:",
+      "60000ms  expect.toBeVisible",
+      "1200ms  locator.boundingBox",
       "smoke: no results file — the process failed outside test results (setup/teardown/preflight).",
       "browserType.launch failed",
     ];
