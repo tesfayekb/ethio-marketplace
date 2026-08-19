@@ -6,7 +6,6 @@ import {
   expectSignedIn,
   gotoReady,
   openRailScope,
-
   signIn,
   switchLanguage,
   waitForHydration,
@@ -664,7 +663,6 @@ test.describe("mobile chrome", () => {
     await drawer.getByTestId("panel-header-switcher").click();
     await page.getByRole("menu").getByTestId("panel-header-option-account").click();
 
-
     // INC-071: activation IS navigation. The URL is Account's homePath, and
     // the drawer stays OPEN on the new panel's items.
     await expect(page).toHaveURL(/\/settings$/);
@@ -927,7 +925,6 @@ test.describe("panel header band (U0d)", () => {
     // Scope the option to the OPEN menu: the drawer/rail can render a
     // duplicate option node, which would be strict-mode ambiguous.
     await page.getByRole("menu").getByTestId("panel-header-option-account").click();
-
 
     // INC-071 — the route, not state, decides the panel.
     await expect(page).toHaveURL(/\/settings$/);

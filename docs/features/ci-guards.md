@@ -276,3 +276,30 @@ so retries are countable in the log tail), and it returns only once the drawer's
 `panel-header-title` has settled. Callers that opened the drawer themselves
 (`signOutViaUi`, `auth-signout.spec.ts` SO-4, `category-nav.spec.ts`) all route
 through it.
+
+## Email quota tier: `email-serial` (INC-082, 2026-08-17)
+
+Supabase Auth enforces a **per-project, per-hour email/signup rate limit**. Every
+sign-up and every resend in the suite spends from that one quota, so those specs
+may never run in parallel processes.
+
+- Playwright project `email-serial` (one viewport, `test.describe.configure({
+mode: "serial" })`, `--workers=1`) owns `e2e/auth-signup.spec.ts`; the nightly
+  resend-exhaustion spec already runs single-process in `nightly-e2e.yml`.
+- `mobile-360` / `desktop-1280` `testIgnore` the file, and the smoke and shard
+  jobs pass explicit `--project=mobile-360 --project=desktop-1280`, so the
+  email tier can never be picked up twice.
+- CI job **"E2E email (serial, quota-bound)"** runs it once per push, uploads
+  `e2e-results-email` and (on red) `e2e-log-email`; `E2E_EXPECTED_SOURCES` is
+  `smoke,email,1,2,3,4` and the merged `e2e` verdict includes it.
+
+**Operational constants.** Staging Auth defaults: 4 emails/hour project-wide
+(`Rate limit for sending emails`), 30 OTP/verification requests per hour, plus
+the app's own 60s per-address resend cooldown (INC-017).
+
+**OPERATOR NOTE — if the limit bites repeatedly:** raise it in the Supabase
+Dashboard for **ethio-staging** → Authentication → Rate Limits, fields:
+`Rate limit for sending emails` (per hour), `Rate limit for token refreshes`,
+`Rate limit for token verifications`, and `Rate limit for sign ups and sign ins`
+(per 5 minutes, per IP). Raise only staging; ethio-prod keeps defaults. Tests
+never retry past the limit — a red that names the quota is the correct outcome.
