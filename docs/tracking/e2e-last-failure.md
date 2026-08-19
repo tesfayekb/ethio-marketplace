@@ -1,10 +1,30 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32131146452
-- Commit: `b76e76b480d09b8206b6e51586265e4a2b257496`
-- Written (UTC): 2026-08-18T11:25:05.678Z
-- Passed: 248 · Skipped: 66 · Failed: 3
-- Sources without results: none
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32303998421
+- Commit: `2295a79c716cfb9ef85be869ebbe003d03c9439d`
+- Written (UTC): 2026-08-19T21:57:18.082Z
+- Passed: 118 · Skipped: 32 · Failed: 5
+- Sources without results: shard 1, shard 2, shard 4
+
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface
+
+- Source: `smoke`
+- Project: `mobile-360`
+- Failed step: (none recorded)
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI
+
+- Source: `smoke`
+- Project: `mobile-360`
+- Failed step: (none recorded)
+
+```text
+Test timeout of 60000ms exceeded.
+```
 
 ## shell.spec.ts › mobile chrome › the drawer switcher NAVIGATES to the panel's home (U0e)
 
@@ -13,33 +33,33 @@
 - Failed step: (none recorded)
 
 ```text
-Error: expect(locator).toHaveText(expected) failed
+Test timeout of 60000ms exceeded.
+```
 
-Locator: getByRole('dialog').getByTestId('panel-header-title')
-Expected: "Marketplace"
+## shell.spec.ts › rail scroll regions (U0f) › drawer: items scroll, header fixed, sign out pinned
+
+- Source: `smoke`
+- Project: `mobile-360`
+- Failed step: (none recorded)
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('dialog').getByTestId('rail-scroll')
+Expected: visible
 Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByRole('dialog').getByTestId('panel-header-title')
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByRole('dialog').getByTestId('rail-scroll')
 
-```
-
-## shell.spec.ts › panel header band (U0d) › the desktop rail switcher NAVIGATES to the panel's home (U0e)
-
-- Source: `smoke`
-- Project: `desktop-1280`
-- Failed step: (none recorded)
-
-```text
-Test timeout of 60000ms exceeded.
 ```
 
 ## auth-signup.spec.ts › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle
 
-- Source: `shard 1`
-- Project: `mobile-360`
+- Source: `email`
+- Project: `email-serial`
 - Failed step: (none recorded)
 
 ```text
@@ -52,4 +72,28 @@ Received: "Something went wrong. Please try again."
 
 Call Log:
 - Timeout 15000ms exceeded while waiting on the predicate
+```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
 ```
