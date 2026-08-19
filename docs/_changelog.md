@@ -165,3 +165,4 @@
 - 2026-08-17 — test(e2e): testEmail delegates to mintEmail (unique per worker) — auth-signup collision under parallel workers; INC-080 closed
 - 2026-08-17 — test(e2e): email-sending specs isolated (serial project/job) + rate-limit-aware assertion (INC-082); switcher tests routed through openRailScope
 - 2026-08-19 — test(e2e): 429 watcher scoped to sign-up phase (resend 429 is the throttle under test); openRailScope waits out slow drawer animation (retry only on no-mount); drawer opens unified; ci: actions runtime bumps
+- 2026-08-19 — ci: reporter names timeout-without-step deaths (last-steps block); test(e2e): helper waits throw named errors on exhaustion; drawer opens fully unified

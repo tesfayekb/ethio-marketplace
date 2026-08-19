@@ -155,10 +155,9 @@ export async function openRailScope(page: Page) {
       // is opening/animating — keep waiting, never re-click (that would toggle
       // it shut). Only a genuinely absent dialog means the click did not take.
       if ((await drawer.count()) > 0) {
-        await expect(
-          drawer,
-          "drawer mounted but never became visible after 13s",
-        ).toBeVisible({ timeout: 10000 });
+        await expect(drawer, "drawer mounted but never became visible after 13s").toBeVisible({
+          timeout: 10000,
+        });
       } else {
         console.log("[e2e] drawer open retried");
         await hamburger.click();
