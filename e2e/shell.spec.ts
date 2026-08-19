@@ -5,6 +5,8 @@ import {
   expectNoHorizontalOverflow,
   expectSignedIn,
   gotoReady,
+  openRailScope,
+
   signIn,
   switchLanguage,
   waitForHydration,
