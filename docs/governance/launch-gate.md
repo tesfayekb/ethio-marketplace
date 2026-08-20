@@ -9,6 +9,7 @@
 - Dev/preview database separation — partially satisfied by ethio-staging; confirm the dev vs prod story before real users.
 - Leaked-password protection toggle (Supabase Auth) — Pro-plan gated; enable on upgrade.
 - Lovable project settings: Hide-badge ON, Visitor-analytics OFF (currently ON on the real project — square before launch), Auto-fix-security OFF (keep).
+- ACT-U0-1: On Supabase Pro upgrade — set Sessions time-box to 7 days + inactivity timeout to 4 hours AND enable compromised-refresh-token detection, on ethio-prod AND ethio-staging. Until then the client session policy (U0k) is the effective enforcement.
 
 ## Secrets
 
