@@ -1,136 +1,220 @@
 {
-  "stats": {
-    "expected": 41,
-    "skipped": 3,
-    "unexpected": 3
+  "config": {
+    "configFile": "/dev-server/pw.capture.config.ts",
+    "rootDir": "/dev-server/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/dev-server/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop-1280",
+        "name": "desktop-1280",
+        "testDir": "/dev-server/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/tmp-capture.spec.ts"
+        ],
+        "timeout": 20000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.1",
+    "workers": 8,
+    "webServer": null
   },
   "suites": [
     {
-      "title": "auth-signout.spec.ts",
-      "suites": [
-        {
-          "title": "U0j sign-out hard reset",
-          "specs": [
-            {
-              "title": "SO-2 settings: confirmed sign-out empties the gated surface",
-              "ok": false,
-              "tests": [
-                {
-                  "projectName": "desktop-1280",
-                  "status": "unexpected",
-                  "results": [
-                    {
-                      "status": "failed",
-                      "error": {
-                        "message": "\u001b[31mTimeoutError\u001b[39m: page.waitForURL(/\\/$/): Timeout 15000ms exceeded.\nCurrent URL: http://127.0.0.1:4173/auth\nstorage: sb-abcdef-auth-token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl"
-                      },
-                      "steps": [
-                        {
-                          "title": "signOutViaUi",
-                          "steps": [
-                            {
-                              "title": "waitForURL(/\\/$/)",
-                              "error": {
-                                "message": "Timeout 15000ms exceeded."
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "admin-users.spec.ts",
+      "title": "tmp-capture.spec.ts",
+      "file": "tmp-capture.spec.ts",
+      "column": 0,
+      "line": 0,
       "specs": [
         {
-          "title": "AU-3 admin can deactivate a user",
+          "title": "CAP-1 a missing testid fails with a locator error",
           "ok": false,
+          "tags": [],
           "tests": [
             {
-              "projectName": "mobile-360",
-              "status": "unexpected",
-              "results": [
-                {
-                  "status": "failed",
-                  "error": {
-                    "message": "Error: expect(locator).toBeVisible() failed\nLocator: getByTestId('settings-deactivated-banner')\nExpected: visible\nReceived: hidden"
-                  },
-                  "steps": [
-                    {
-                      "title": "expect.toBeVisible",
-                      "error": {
-                        "message": "hidden"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "shell.spec.ts",
-      "specs": [
-        {
-          "title": "footer never covers the rail's Sign out",
-          "ok": false,
-          "tests": [
-            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop-1280",
               "projectName": "desktop-1280",
-              "status": "unexpected",
               "results": [
                 {
-                  "status": "timedOut",
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 3597,
                   "error": {
-                    "message": "Test timeout of 60000ms exceeded."
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected substring: \u001b[32m\"sb-abcdef-auth-token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl\"\u001b[39m\nReceived string:    \u001b[31m\"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesElectronicsFashionAutomotiveHome & GardenServicesSports & LeisureReal EstateJobsPets & AnimalsBabies & KidsBeauty & Personal CareAgriculture & FarmingCommercial EquipmentAreaCountryHomeListings near youNothing here yet in your areaBe the first to post a listing.CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[39m\nTimeout: 3000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    5 × locator resolved to <body data-tsd-source=\"/src/routes/__root.tsx:142:7\">…</body>\u001b[22m\n\u001b[2m      - unexpected value \"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesAreaLoading…HomeListings near youLoading listings…CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[22m\n\u001b[2m    - locator resolved to <body data-tsd-source=\"/src/routes/__root.tsx:142:7\">…</body>\u001b[22m\n\u001b[2m    - unexpected value \"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesElectronicsFashionAutomotiveHome & GardenServicesSports & LeisureReal EstateJobsPets & AnimalsBabies & KidsBeauty & Personal CareAgriculture & FarmingCommercial EquipmentAreaCountryHomeListings near youNothing here yet in your areaBe the first to post a listing.CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected substring: \u001b[32m\"sb-abcdef-auth-token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl\"\u001b[39m\nReceived string:    \u001b[31m\"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesElectronicsFashionAutomotiveHome & GardenServicesSports & LeisureReal EstateJobsPets & AnimalsBabies & KidsBeauty & Personal CareAgriculture & FarmingCommercial EquipmentAreaCountryHomeListings near youNothing here yet in your areaBe the first to post a listing.CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[39m\nTimeout: 3000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    5 × locator resolved to <body data-tsd-source=\"/src/routes/__root.tsx:142:7\">…</body>\u001b[22m\n\u001b[2m      - unexpected value \"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesAreaLoading…HomeListings near youLoading listings…CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[22m\n\u001b[2m    - locator resolved to <body data-tsd-source=\"/src/routes/__root.tsx:142:7\">…</body>\u001b[22m\n\u001b[2m    - unexpected value \"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesElectronicsFashionAutomotiveHome & GardenServicesSports & LeisureReal EstateJobsPets & AnimalsBabies & KidsBeauty & Personal CareAgriculture & FarmingCommercial EquipmentAreaCountryHomeListings near youNothing here yet in your areaBe the first to post a listing.CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[22m\n\n    at /dev-server/e2e/tmp-capture.spec.ts:5:38",
+                    "location": {
+                      "file": "/dev-server/e2e/tmp-capture.spec.ts",
+                      "column": 38,
+                      "line": 5
+                    },
+                    "snippet": "  3 | test(\"CAP-1 a missing testid fails with a locator error\", async ({ page }) => {\n  4 |   await page.goto(\"http://localhost:8080/\");\n> 5 |   await expect(page.locator(\"body\")).toContainText(\n    |                                      ^\n  6 |     \"sb-abcdef-auth-token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl\",\n  7 |     { timeout: 3000 },\n  8 |   );"
                   },
-                  "steps": [
+                  "errors": [
                     {
-                      "title": "gotoReady",
-                      "duration": 9100,
-                      "steps": [
-                        {
-                          "title": "page.goto",
-                          "duration": 8000
-                        },
-                        {
-                          "title": "page.waitForFunction",
-                          "duration": 1100
-                        }
-                      ]
+                      "location": {
+                        "file": "/dev-server/e2e/tmp-capture.spec.ts",
+                        "column": 38,
+                        "line": 5
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected substring: \u001b[32m\"sb-abcdef-auth-token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl\"\u001b[39m\nReceived string:    \u001b[31m\"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesElectronicsFashionAutomotiveHome & GardenServicesSports & LeisureReal EstateJobsPets & AnimalsBabies & KidsBeauty & Personal CareAgriculture & FarmingCommercial EquipmentAreaCountryHomeListings near youNothing here yet in your areaBe the first to post a listing.CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[39m\nTimeout: 3000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\u001b[2m    5 × locator resolved to <body data-tsd-source=\"/src/routes/__root.tsx:142:7\">…</body>\u001b[22m\n\u001b[2m      - unexpected value \"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesAreaLoading…HomeListings near youLoading listings…CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[22m\n\u001b[2m    - locator resolved to <body data-tsd-source=\"/src/routes/__root.tsx:142:7\">…</body>\u001b[22m\n\u001b[2m    - unexpected value \"Skip to contentethio.comMARKETPLACEethio.comethio.comMARKETPLACESearch listingsENEnglishSign inMarketplaceCategoriesAll categoriesElectronicsFashionAutomotiveHome & GardenServicesSports & LeisureReal EstateJobsPets & AnimalsBabies & KidsBeauty & Personal CareAgriculture & FarmingCommercial EquipmentAreaCountryHomeListings near youNothing here yet in your areaBe the first to post a listing.CompanyHomeAboutHow it worksHelpSafetyContactLegalTermsPrivacy© 2026 ethio.com — All rights reserved.\"\u001b[22m\n\n\n  3 | test(\"CAP-1 a missing testid fails with a locator error\", async ({ page }) => {\n  4 |   await page.goto(\"http://localhost:8080/\");\n> 5 |   await expect(page.locator(\"body\")).toContainText(\n    |                                      ^\n  6 |     \"sb-abcdef-auth-token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2lnbmF0dXJl\",\n  7 |     { timeout: 3000 },\n  8 |   );\n    at /dev-server/e2e/tmp-capture.spec.ts:5:38"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-22T05:37:43.715Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/dev-server/test-results/tmp-capture-CAP-1-a-missin-57ad1--fails-with-a-locator-error-desktop-1280/test-failed-1.png"
                     },
                     {
-                      "title": "signIn",
-                      "duration": 21000
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/dev-server/test-results/tmp-capture-CAP-1-a-missin-57ad1--fails-with-a-locator-error-desktop-1280/error-context.md"
                     },
                     {
-                      "title": "openRailScope",
-                      "duration": 14000
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/dev-server/test-results/tmp-capture-CAP-1-a-missin-57ad1--fails-with-a-locator-error-desktop-1280/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/dev-server/e2e/tmp-capture.spec.ts",
+                    "column": 38,
+                    "line": 5
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "5eb55035568d610f702d-5bba7cde8c0a0ba7c61f",
+          "file": "tmp-capture.spec.ts",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "CAP-2 a test-level timeout records no failed step",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 20000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop-1280",
+              "projectName": "desktop-1280",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 20195,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 20000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 20000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 20000ms exceeded.\u001b[39m"
                     },
                     {
-                      "title": "locator.boundingBox",
-                      "duration": 1200
+                      "location": {
+                        "file": "/dev-server/e2e/tmp-capture.spec.ts",
+                        "column": 14,
+                        "line": 13
+                      },
+                      "message": "Error: page.waitForTimeout: Test timeout of 20000ms exceeded.\n\n  11 | test(\"CAP-2 a test-level timeout records no failed step\", async ({ page }) => {\n  12 |   await page.goto(\"http://localhost:8080/\");\n> 13 |   await page.waitForTimeout(30000);\n     |              ^\n  14 | });\n  15 |\n    at /dev-server/e2e/tmp-capture.spec.ts:13:14"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-08-22T05:37:49.273Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/dev-server/test-results/tmp-capture-CAP-2-a-test-l-096e8-eout-records-no-failed-step-desktop-1280/test-failed-1.png"
                     },
                     {
-                      "title": "expect.toBeVisible",
-                      "duration": 60000
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/dev-server/test-results/tmp-capture-CAP-2-a-test-l-096e8-eout-records-no-failed-step-desktop-1280/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/dev-server/test-results/tmp-capture-CAP-2-a-test-l-096e8-eout-records-no-failed-step-desktop-1280/trace.zip"
                     }
                   ]
                 }
-              ]
+              ],
+              "status": "unexpected"
             }
-          ]
+          ],
+          "id": "5eb55035568d610f702d-5487c0113b51eb174e81",
+          "file": "tmp-capture.spec.ts",
+          "line": 11,
+          "column": 1
         }
       ]
     }
-  ]
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-22T05:37:41.926Z",
+    "duration": 27853.764,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
 }
