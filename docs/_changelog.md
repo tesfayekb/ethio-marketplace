@@ -167,3 +167,4 @@
 - 2026-08-19 — test(e2e): 429 watcher scoped to sign-up phase (resend 429 is the throttle under test); openRailScope waits out slow drawer animation (retry only on no-mount); drawer opens unified; ci: actions runtime bumps
 - 2026-08-19 — ci: reporter names timeout-without-step deaths (last-steps block); test(e2e): helper waits throw named errors on exhaustion; drawer opens fully unified
 - 2026-08-19 — docs: U1 gate record — DEC-015/DEC-016, S29, four-lens close-out, system-state + launch-gate updated
+- 2026-08-22 — feat(admin): U2 Roles & Permissions console — matrix with system/is_core locks, custom-role lifecycle, DEC-016 permission registration, roles:view→admin; step-up on every mutation; E2E RP-1..8 (Tier A)

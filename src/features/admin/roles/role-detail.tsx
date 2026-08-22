@@ -144,7 +144,11 @@ function RoleMetaCard({ role, mayUpdate }: { role: RoleDetail; mayUpdate: boolea
                 </span>
               ) : null}
               {errorKey ? (
-                <span role="alert" data-testid="role-meta-error" className="text-sm text-destructive">
+                <span
+                  role="alert"
+                  data-testid="role-meta-error"
+                  className="text-sm text-destructive"
+                >
                   {t(errorKey)}
                 </span>
               ) : null}
@@ -221,7 +225,9 @@ function DangerCard({ role }: { role: RoleDetail }) {
     <StepUpGate>
       {(guard) => (
         <PageCard testid="role-danger" className="min-w-0 space-y-3">
-          <h3 className="text-base font-semibold text-foreground">{t("admin.roles.danger.title")}</h3>
+          <h3 className="text-base font-semibold text-foreground">
+            {t("admin.roles.danger.title")}
+          </h3>
           <p className="text-sm text-muted-foreground">{t("admin.roles.danger.description")}</p>
           {hasMembers ? (
             <p data-testid="role-delete-hint" className="text-sm text-muted-foreground">

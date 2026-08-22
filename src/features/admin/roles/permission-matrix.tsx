@@ -53,7 +53,9 @@ export function PermissionMatrix({
       {(guard) => (
         <PageCard testid="role-permissions" className="min-w-0 space-y-4">
           <div className="min-w-0 space-y-1">
-            <h3 className="text-base font-semibold text-foreground">{t("admin.roles.perm.title")}</h3>
+            <h3 className="text-base font-semibold text-foreground">
+              {t("admin.roles.perm.title")}
+            </h3>
             <p className="text-sm text-muted-foreground">{t("admin.roles.perm.description")}</p>
             {isSystem ? (
               <p data-testid="role-system-note" className="text-sm text-muted-foreground">
@@ -61,7 +63,11 @@ export function PermissionMatrix({
               </p>
             ) : null}
             {errorKey ? (
-              <p role="alert" data-testid="role-permission-error" className="text-sm text-destructive">
+              <p
+                role="alert"
+                data-testid="role-permission-error"
+                className="text-sm text-destructive"
+              >
                 {t(errorKey)}
               </p>
             ) : null}
@@ -115,7 +121,9 @@ export function PermissionMatrix({
                             disabled={setPermission.isPending}
                             onClick={() => toggle(guard, row)}
                           >
-                            {row.granted ? t("admin.roles.perm.revoke") : t("admin.roles.perm.grant")}
+                            {row.granted
+                              ? t("admin.roles.perm.revoke")
+                              : t("admin.roles.perm.grant")}
                           </Button>
                         )}
                       </li>

@@ -350,11 +350,13 @@ export const en = {
   "admin.roles.detail.notFound": "This role does not exist.",
   "admin.roles.detail.back": "Back to roles",
   "admin.roles.meta.title": "Role details",
-  "admin.roles.meta.description": "The role key never changes; the display name and description do.",
+  "admin.roles.meta.description":
+    "The role key never changes; the display name and description do.",
   "admin.roles.meta.save": "Save changes",
   "admin.roles.meta.saved": "Saved.",
   "admin.roles.meta.failed": "The role could not be saved.",
-  "admin.roles.systemLockedNote": "This is a system role. It cannot be edited, deleted or re-permissioned.",
+  "admin.roles.systemLockedNote":
+    "This is a system role. It cannot be edited, deleted or re-permissioned.",
   "admin.roles.perm.title": "Permissions",
   "admin.roles.perm.description": "Grant or revoke one permission at a time.",
   "admin.roles.perm.action": "Action",
@@ -369,7 +371,8 @@ export const en = {
   "admin.roles.members.count": "{n} members hold this role",
   "admin.roles.members.view": "View members",
   "admin.roles.danger.title": "Delete this role",
-  "admin.roles.danger.description": "Deleting a role removes it and its permissions. This cannot be undone.",
+  "admin.roles.danger.description":
+    "Deleting a role removes it and its permissions. This cannot be undone.",
   "admin.roles.danger.hasMembers": "Remove every member before deleting this role.",
   "admin.roles.danger.confirmLabel": "Type the role key to confirm",
   "admin.roles.danger.delete": "Delete role",

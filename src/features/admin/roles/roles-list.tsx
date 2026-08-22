@@ -149,9 +149,7 @@ function CreateRoleCard() {
       setDisplayName("");
       setDescription("");
       await navigate({ to: "/admin/roles/$roleId", params: { roleId: id } });
-    }).catch((cause: unknown) =>
-      setErrorKey(roleErrorKey(cause, "admin.roles.create.failed")),
-    );
+    }).catch((cause: unknown) => setErrorKey(roleErrorKey(cause, "admin.roles.create.failed")));
   };
 
   return (
@@ -186,7 +184,11 @@ function CreateRoleCard() {
                 {t("admin.roles.create.cancel")}
               </Button>
               {errorKey ? (
-                <span role="alert" data-testid="role-create-error" className="text-sm text-destructive">
+                <span
+                  role="alert"
+                  data-testid="role-create-error"
+                  className="text-sm text-destructive"
+                >
                   {t(errorKey)}
                 </span>
               ) : null}
@@ -213,7 +215,11 @@ function CreateRoleCard() {
               onChange={(event) => setDisplayName(event.target.value)}
             />
           </FormField>
-          <FormField label={t("admin.roles.create.descriptionField")} htmlFor="role-description" full>
+          <FormField
+            label={t("admin.roles.create.descriptionField")}
+            htmlFor="role-description"
+            full
+          >
             <Input
               id="role-description"
               data-testid="role-create-description"
