@@ -633,7 +633,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
