@@ -373,6 +373,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ShellContext.Provider value={value}>
       {user !== null && !signingOut ? <PermissionsLoader onChange={setPermissionsState} /> : null}
+      {/* U3 / DEC-016 — an active impersonation is ALWAYS visible, on every
+          page, for as long as the 15-minute box is open. */}
+      <ImpersonationBanner enabled={user !== null && !signingOut} />
+
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}
       <script dangerouslySetInnerHTML={{ __html: RAIL_INIT_SCRIPT }} />
