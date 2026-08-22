@@ -29,6 +29,12 @@ export default defineConfig({
   },
 
   vite: {
+    // INC-085g — the e2e build is a test artifact; readability outranks size;
+    // prod build untouched. Minified React errors ("Minified React error #185
+    // … at si") name nothing; unminified they carry the component.
+    ...(process.env["VITE_E2E"] === "1"
+      ? { build: { minify: false as const, sourcemap: true } }
+      : {}),
     define: {
       // DEC-018 — E2E MODE. The CI E2E jobs build with VITE_E2E=1 so the
       // production bundle carries the test instruments (src/lib/env-flags.ts).
