@@ -558,7 +558,14 @@ async function main() {
     }
     const out = renderSources(
       [
-        { label: "shard 2", json: fixture, logTail: null },
+        {
+          label: "shard 2",
+          json: fixture,
+          logTail: null,
+          // DEC-018: server errors are quoted for a source that DID produce
+          // results — independent of context matching.
+          serverErrors: ["[ssr-error] /admin/users TypeError: boom at ssr.mjs:1"],
+        },
         { label: "smoke", json: null, logTail: "Error: browserType.launch failed\nexit code 1" },
       ],
       { runId: "self-test", runUrl: "", sha: "self-test" },
@@ -576,12 +583,48 @@ async function main() {
       "Context: context file not found for `tmp-capture-CAP-2-a-test-level-timeout-records-no-failed-step-desktop-1280`",
       "smoke: no results file — the process failed outside test results (setup/teardown/preflight).",
       "browserType.launch failed",
+      // DEC-018 — the [ssr-error] grep must reach the report for a FAILED
+      // source that produced results, and a source without any must say so.
+      "## Server errors: shard 2",
+      "[ssr-error] /admin/users TypeError: boom at ssr.mjs:1",
+      "No `[ssr-error]` lines in the `smoke` log",
     ];
     const missing = required.filter((needle) => !out.includes(needle));
     if (missing.length > 0) {
       console.error("SELF-TEST FAILED — missing from rendered report:", missing);
       process.exit(1);
     }
+    // DEC-018 — GREP + CONTAINMENT FALLBACK. The switcher slug is the shape
+    // that defeated the prefix/suffix splice: the apostrophe token vanished in
+    // truncation, leaving no clean `-<5 hex>-` seam.
+    if (
+      grepSsrErrors("noise\n[ssr-error] /c/slug Error: nope\nmore noise").length !== 1 ||
+      grepSsrErrors(null).length !== 0
+    ) {
+      console.error("SELF-TEST FAILED — [ssr-error] grep did not isolate the server lines.");
+      process.exit(1);
+    }
+    const switcherSlug = "shell-panel-switcher-the-switcher-drawer-opens-mobile-360";
+    const switcherMatch = matchContextDir([switcherSlug], {
+      file: "e2e/shell.spec.ts",
+      titlePath: ["panel switcher", "the switcher's drawer opens"],
+      project: "mobile-360",
+    });
+    if (switcherMatch !== switcherSlug) {
+      console.error("SELF-TEST FAILED — containment fallback missed the switcher slug.");
+      process.exit(1);
+    }
+    if (
+      matchContextDir(["shell-panel-switcher-a-different-test-mobile-360"], {
+        file: "e2e/shell.spec.ts",
+        titlePath: ["panel switcher", "the switcher's drawer opens"],
+        project: "mobile-360",
+      }) !== null
+    ) {
+      console.error("SELF-TEST FAILED — containment fallback matched a foreign directory.");
+      process.exit(1);
+    }
+
     if (
       sourceLabel("e2e-results-3") !== "shard 3" ||
       sourceLabel("e2e-results-smoke") !== "smoke"
