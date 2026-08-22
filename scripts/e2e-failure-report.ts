@@ -75,23 +75,34 @@ function specBase(file: string): string {
 /**
  * THE MATCHING RULE (stated, because it is the whole mechanism).
  *
+ * INC-084g — the slug carries the WHOLE titlePath, not just the test title.
  * Playwright names a failure's output directory
- *   `<spec-base>-<test-title>-<project>`
+ *   `<spec-base>-<describe…>-<test-title>-<project>`
  * sanitised as above, and — when that exceeds its length budget — TRUNCATES
- * the middle, splicing in a five-hex-digit hash:
+ * the middle, splicing in a five-hex-digit hash. Both shapes are real captures:
  *   `tmp-capture-CAP-1-a-missin-57ad1--fails-with-a-locator-error-desktop-1280`
- * (captured, real). So a candidate directory matches a failure when
+ *   `tmp-capture-describe-panel-d893b-d-failure-records-its-chain-desktop-1280`
+ * The second one's head (`tmp-capture-describe-panel`) only matches once the
+ * describe title ("panel-scoped chrome") is part of the core — building the
+ * core from the bare test title, as the first live read did, misses every
+ * describe-nested failure, which is nearly all of them.
+ *
+ * So a candidate directory matches a failure when
  *   1. it ends with `-<sanitised project name>`, and
- *   2. the remainder either equals the sanitised `<spec-base>-<title>` core, or
- *      splits at some `-<5 hex>-` marker into a prefix and a suffix of it.
+ *   2. the remainder either equals the sanitised
+ *      `<spec-base>-<titlePath joined>` core, or splits at some `-<5 hex>-`
+ *      marker into a prefix and a suffix of it.
  * Anything else is not this failure's directory, and the reporter says so
  * rather than quoting a neighbour's snapshot.
  */
-export function matchContextDir(
-  candidates: string[],
-  spec: { file: string; title: string; project: string },
-): string | null {
-  const core = sanitizeSlug(`${specBase(spec.file)}-${spec.title}`);
+type ContextSpec = { file: string; titlePath: string[]; project: string };
+
+function contextCore(spec: ContextSpec): string {
+  return sanitizeSlug([specBase(spec.file), ...spec.titlePath].join("-"));
+}
+
+export function matchContextDir(candidates: string[], spec: ContextSpec): string | null {
+  const core = contextCore(spec);
   const projectSlug = sanitizeSlug(spec.project);
   const suffix = `-${projectSlug}`;
 
@@ -112,9 +123,10 @@ export function matchContextDir(
 }
 
 /** The human-readable slug a failure WOULD have; printed when nothing matches. */
-export function contextSlug(spec: { file: string; title: string; project: string }): string {
-  return sanitizeSlug(`${specBase(spec.file)}-${spec.title}-${spec.project}`);
+export function contextSlug(spec: ContextSpec): string {
+  return `${contextCore(spec)}-${sanitizeSlug(spec.project)}`;
 }
+
 
 /**
  * Walks a downloaded artifact root and indexes every error-context.md by the
