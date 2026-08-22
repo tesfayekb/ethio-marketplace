@@ -119,13 +119,15 @@ export async function assertSsrHealthy(page: Page): Promise<void> {
  * out of the job log.
  */
 const CLIENT_ERROR_BUFFER = 20;
-const CLIENT_ERROR_MESSAGE_CHARS = 500;
+const CLIENT_ERROR_MESSAGE_CHARS = 2000;
 
 function armClientErrorCapture(page: Page, buffer: string[]): void {
   const push = (line: string) => {
     buffer.push(line);
     if (buffer.length > CLIENT_ERROR_BUFFER) buffer.shift();
   };
+  // INC-085i — preserve the complete stack in the attachment. Console lines
+  // have a 2,000-character transport cap below; page errors are never capped.
   page.on("pageerror", (error) => push(`pageerror: ${error.stack ?? error.message}`));
   page.on("console", (message) => {
     if (message.type() !== "error") return;

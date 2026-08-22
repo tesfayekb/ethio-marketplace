@@ -343,7 +343,28 @@ export type Source = {
 export function grepTag(text: string | null, tag: string, limit = 20): string[] {
   if (!text) return [];
   const lines = text.split("\n").filter((line) => line.includes(tag));
-  return lines.slice(-limit).map((line) => redact(line.trim()));
+  return collapseConsecutive(lines.map((line) => redact(line.trim()))).slice(-limit);
+}
+
+/** INC-085i — preserve the evidence while making repeated loops readable. */
+export function collapseConsecutive(lines: string[]): string[] {
+  const collapsed: string[] = [];
+  for (const line of lines) {
+    const previous = collapsed.at(-1);
+    if (!previous) {
+      collapsed.push(line);
+      continue;
+    }
+    const match = previous.match(/^(.*) ×(\d+)$/);
+    const previousLine = match?.[1] ?? previous;
+    if (previousLine === line) {
+      const count = Number(match?.[2] ?? "1") + 1;
+      collapsed[collapsed.length - 1] = `${line} ×${count}`;
+    } else {
+      collapsed.push(line);
+    }
+  }
+  return collapsed;
 }
 
 /** Every `[ssr-error]` line in a job log. */
@@ -464,7 +485,7 @@ export function renderSources(
     const failed =
       failures.some((f) => f.source === source.label) || silent.some((s) => s.source === source);
     if (!failed) continue;
-    const ssr = source.serverErrors ?? [];
+    const ssr = collapseConsecutive(source.serverErrors ?? []);
     lines.push(
       `## Server errors: ${source.label}`,
       "",
@@ -474,7 +495,7 @@ export function renderSources(
     );
     // INC-085f — the browser's channel, quoted next to the server's. A blank
     // ARIA snapshot with no server error is a CLIENT crash; these lines name it.
-    const client = source.clientErrors ?? [];
+    const client = collapseConsecutive(source.clientErrors ?? []);
     lines.push(
       `## Client errors: ${source.label}`,
       "",
@@ -509,9 +530,9 @@ export function renderSources(
       "```",
       "",
     );
-    const ssr = s.serverErrors ?? [];
+    const ssr = collapseConsecutive(s.serverErrors ?? []);
     if (ssr.length > 0) lines.push("```text", ...ssr, "```", "");
-    const clientLines = s.clientErrors ?? [];
+    const clientLines = collapseConsecutive(s.clientErrors ?? []);
     if (clientLines.length > 0) lines.push("```text", ...clientLines, "```", "");
   }
 
@@ -653,9 +674,15 @@ async function main() {
           logTail: null,
           // DEC-018: server errors are quoted for a source that DID produce
           // results — independent of context matching.
-          serverErrors: ["[ssr-error] /admin/users TypeError: boom at ssr.mjs:1"],
+          serverErrors: [
+            "[ssr-error] /admin/users TypeError: boom at ssr.mjs:1",
+            "[ssr-error] /admin/users TypeError: boom at ssr.mjs:1",
+          ],
           // INC-085f — the browser channel must reach the report too.
-          clientErrors: ["[client-error] TypeError: t is not a function at chunk-abc.js:1"],
+          clientErrors: [
+            "[client-error] TypeError: t is not a function at chunk-abc.js:1",
+            "[client-error] TypeError: t is not a function at chunk-abc.js:1",
+          ],
         },
         { label: "smoke", json: null, logTail: "Error: browserType.launch failed\nexit code 1" },
       ],
@@ -677,11 +704,11 @@ async function main() {
       // DEC-018 — the [ssr-error] grep must reach the report for a FAILED
       // source that produced results, and a source without any must say so.
       "## Server errors: shard 2",
-      "[ssr-error] /admin/users TypeError: boom at ssr.mjs:1",
+      "[ssr-error] /admin/users TypeError: boom at ssr.mjs:1 ×2",
       "No `[ssr-error]` lines in the `smoke` log",
       // INC-085f — client-error quoting, and the explicit absence sentence.
       "## Client errors: shard 2",
-      "[client-error] TypeError: t is not a function at chunk-abc.js:1",
+      "[client-error] TypeError: t is not a function at chunk-abc.js:1 ×2",
       "No `[client-error]` lines in the `smoke` log",
     ];
     const missing = required.filter((needle) => !out.includes(needle));
