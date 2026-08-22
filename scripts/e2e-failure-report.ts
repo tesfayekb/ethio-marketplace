@@ -531,6 +531,7 @@ async function main() {
     for (const [name, path, expectedCount] of layouts) {
       const found = collectContextFiles(path);
       if (found.size !== expectedCount) {
+        if (found.size === 0) reportEmptySearch(path, `layout "${name}"`);
         console.error(
           `SELF-TEST FAILED — layout "${name}": expected ${expectedCount} context file(s), found ${found.size}.`,
         );
