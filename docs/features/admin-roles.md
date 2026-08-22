@@ -22,14 +22,14 @@ authorization decision: every read and write is a definer RPC that re-checks
 **RPCs** (all `SECURITY DEFINER`, `REVOKE ALL FROM PUBLIC, anon`,
 `GRANT EXECUTE TO authenticated`)
 
-| Function                      | Gate                    | Audit                    |
-| ----------------------------- | ----------------------- | ------------------------ |
-| `admin_list_roles_detailed()` | `roles:view`            | —                        |
-| `admin_get_role(id)`          | `roles:view`            | —                        |
-| `admin_create_role(…)`        | `roles:create` + step-up | `role.create`            |
-| `admin_update_role(…)`        | `roles:update` + step-up | `role.update` (old→new)  |
-| `admin_delete_role(id)`       | `roles:delete` + step-up | `role.delete`            |
-| `admin_set_role_permission(…)`| `roles:update` + step-up | `role.permission_change` |
+| Function                       | Gate                     | Audit                    |
+| ------------------------------ | ------------------------ | ------------------------ |
+| `admin_list_roles_detailed()`  | `roles:view`             | —                        |
+| `admin_get_role(id)`           | `roles:view`             | —                        |
+| `admin_create_role(…)`         | `roles:create` + step-up | `role.create`            |
+| `admin_update_role(…)`         | `roles:update` + step-up | `role.update` (old→new)  |
+| `admin_delete_role(id)`        | `roles:delete` + step-up | `role.delete`            |
+| `admin_set_role_permission(…)` | `roles:update` + step-up | `role.permission_change` |
 
 The RPCs raise clean, matchable messages (`system roles are immutable`,
 `role has members`, `core permission locked`) BEFORE the R1 triggers
@@ -45,16 +45,16 @@ with `requires_step_up = true` and zero role grants.
 
 ## Client
 
-| File                                              | Role                                                  |
-| ------------------------------------------------- | ----------------------------------------------------- |
-| `src/features/admin/roles/roles-service.ts`       | RPC seam + `roleErrorKey()` refusal→translation map    |
-| `src/features/admin/roles/use-admin-roles.ts`     | Query/mutation hooks under `AUTH_DERIVED_ROOT`         |
-| `src/features/admin/roles/roles-list.tsx`         | DataTable list + create-role FormSection               |
-| `src/features/admin/roles/role-detail.tsx`        | Meta, members, danger zone                             |
-| `src/features/admin/roles/permission-matrix.tsx`  | Matrix grouped by resource with the locks              |
-| `src/routes/admin.roles.tsx`                      | Section index                                          |
-| `src/routes/admin.roles_.$roleId.tsx`             | Detail route (flat `_` convention)                     |
-| `src/components/shell/breadcrumbs.tsx`            | `Roles & Permissions > <display name>` 4th segment     |
+| File                                             | Role                                                |
+| ------------------------------------------------ | --------------------------------------------------- |
+| `src/features/admin/roles/roles-service.ts`      | RPC seam + `roleErrorKey()` refusal→translation map |
+| `src/features/admin/roles/use-admin-roles.ts`    | Query/mutation hooks under `AUTH_DERIVED_ROOT`      |
+| `src/features/admin/roles/roles-list.tsx`        | DataTable list + create-role FormSection            |
+| `src/features/admin/roles/role-detail.tsx`       | Meta, members, danger zone                          |
+| `src/features/admin/roles/permission-matrix.tsx` | Matrix grouped by resource with the locks           |
+| `src/routes/admin.roles.tsx`                     | Section index                                       |
+| `src/routes/admin.roles_.$roleId.tsx`            | Detail route (flat `_` convention)                  |
+| `src/components/shell/breadcrumbs.tsx`           | `Roles & Permissions > <display name>` 4th segment  |
 
 Locks in the UI mirror the server: a system role replaces every control with a
 locked state; a granted `is_core` row is locked individually. Deletion is
