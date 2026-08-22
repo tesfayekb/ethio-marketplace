@@ -365,3 +365,13 @@ stack line>` and a best-effort titles-only failure list, then exits non-zero;
   files, the reporter prints the glob and every path it walked
   (`reportEmptySearch`), so the next environment gap names itself instead of
   reporting a bare "found 0".
+
+- **Slug law (INC-084g).** Playwright names a failure's output directory from
+  the whole `titlePath` — spec base, every enclosing `describe` title, then the
+  test title — middle-truncated with a five-hex-digit hash when long. The
+  reporter's matcher builds its core the same way (the file suite is skipped: it
+  already supplies the spec base). Reporter fixtures must cover BOTH shapes:
+  describe-less (`scripts/fixtures/e2e-context-sample`) and describe-nested
+  (`scripts/fixtures/e2e-context-sample-describe`), both captured from real
+  Playwright output. The self-test fails if a describe-nested failure cannot
+  resolve its `error-context.md`.
