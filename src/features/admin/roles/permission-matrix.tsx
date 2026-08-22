@@ -109,7 +109,12 @@ export function PermissionMatrix({
                 </h4>
                 <ul className="min-w-0 divide-y divide-border rounded-md border border-border">
                   {group.map((row) => {
-                    const locked = isSystem || (row.granted && row.isCore);
+                    // DEC-017: reserved permissions and rows every account
+                    // already carries offer no toggle at all. Both mirror the
+                    // server — assignable is re-refused inside the RPC.
+                    const reserved = !row.assignable;
+                    const baseline = row.assignable && row.userBaseline;
+                    const locked = isSystem || (row.granted && row.isCore) || reserved || baseline;
                     const slug = permissionSlug(row);
                     return (
                       <li
@@ -131,9 +136,25 @@ export function PermissionMatrix({
                           {row.granted ? (
                             <Badge variant="secondary">{t("admin.roles.perm.granted")}</Badge>
                           ) : null}
+                          {baseline ? (
+                            <Badge
+                              variant="secondary"
+                              data-testid={`role-permission-baseline-${slug}`}
+                            >
+                              {t("admin.roles.perm.baselineBadge")}
+                            </Badge>
+                          ) : null}
                           {row.granted && row.isCore ? (
                             <span className="text-xs text-muted-foreground">
                               {t("admin.roles.perm.coreNote")}
+                            </span>
+                          ) : null}
+                          {reserved && !isSystem ? (
+                            <span
+                              data-testid={`role-permission-reserved-${slug}`}
+                              className="text-xs text-muted-foreground"
+                            >
+                              {t("admin.roles.perm.notAssignable")}
                             </span>
                           ) : null}
                         </span>
