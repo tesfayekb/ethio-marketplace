@@ -329,6 +329,7 @@ Two mechanisms enforce it:
   `steps` array — verified on real captured output (`steps: 0` on every result),
   so neither mechanism could ever fire. **CLASS RULE: reporter fixtures are
   captured from real output, never authored from assumption.**
+
 - **Helper-wait law (`e2e/helpers/ui.ts`).** Every `catch` and manual polling
   loop throws a NAMED error on exhaustion, stating what it waited for and for
   how long: `fillUntilStable` rethrows its per-attempt assertion message,
