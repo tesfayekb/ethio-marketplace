@@ -726,7 +726,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] grep, the containment fallback (switcher slug + its refusal of a foreign directory), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
