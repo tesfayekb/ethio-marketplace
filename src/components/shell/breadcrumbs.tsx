@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { PANELS } from "@/config/panels";
 import { sectionForPath } from "@/features/admin/sections";
+import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
 import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
@@ -230,6 +231,16 @@ function AdminUserCrumb({ userId }: { userId: string }) {
   return (
     <BreadcrumbPage data-testid="breadcrumb-admin-user" className={CURRENT}>
       {data?.displayName ?? "—"}
+    </BreadcrumbPage>
+  );
+}
+
+/** U2 — the 4th admin crumb for a role; reads the detail page's cached row. */
+function AdminRoleCrumb({ roleId }: { roleId: string }) {
+  const { data } = useAdminRole(roleId);
+  return (
+    <BreadcrumbPage data-testid="breadcrumb-admin-role" className={CURRENT}>
+      {data?.displayName ?? data?.name ?? "—"}
     </BreadcrumbPage>
   );
 }
