@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
+import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useAuth } from "@/features/auth/use-auth";
@@ -140,6 +141,12 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               homeCountryCode={user.homeCountryCode}
               guard={guard}
             />
+          ) : null}
+
+          {/* U3 / DEC-016 — VIEW AS. Super-admin only, step-up gated, never on
+              your own record. The RPC re-checks all three (law F3). */}
+          {!isOwnAccount && permissions.includes("impersonation:use") ? (
+            <ImpersonationStarter userId={userId} guard={guard} />
           ) : null}
 
           <PageCard className="space-y-3" testid="user-status-card">

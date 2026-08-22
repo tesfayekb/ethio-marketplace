@@ -18,6 +18,7 @@ import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { LocationSelector } from "@/components/shell/location-selector";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
+import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
 import { useAuth } from "@/features/auth/use-auth";
 import { useCategories } from "@/features/feed/use-feed";
 import type { AuthUser } from "@/features/auth/types";
@@ -373,6 +374,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ShellContext.Provider value={value}>
       {user !== null && !signingOut ? <PermissionsLoader onChange={setPermissionsState} /> : null}
+      {/* U3 / DEC-016 — an active impersonation is ALWAYS visible, on every
+          page, for as long as the 15-minute box is open. */}
+      <ImpersonationBanner enabled={user !== null && !signingOut} />
+
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}
       <script dangerouslySetInnerHTML={{ __html: RAIL_INIT_SCRIPT }} />

@@ -232,6 +232,39 @@ export type Database = {
         }
         Relationships: []
       }
+      impersonation_sessions: {
+        Row: {
+          actor_id: string
+          ended_at: string | null
+          ended_reason: string | null
+          expires_at: string
+          id: string
+          reason: string
+          started_at: string
+          target_id: string
+        }
+        Insert: {
+          actor_id: string
+          ended_at?: string | null
+          ended_reason?: string | null
+          expires_at: string
+          id?: string
+          reason: string
+          started_at?: string
+          target_id: string
+        }
+        Update: {
+          actor_id?: string
+          ended_at?: string | null
+          ended_reason?: string | null
+          expires_at?: string
+          id?: string
+          reason?: string
+          started_at?: string
+          target_id?: string
+        }
+        Relationships: []
+      }
       listing_locations: {
         Row: {
           created_at: string
@@ -782,6 +815,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_audit_facets: {
+        Args: never
+        Returns: {
+          kind: string
+          value: string
+        }[]
+      }
+      admin_audit_stats: {
+        Args: { p_days?: number }
+        Returns: {
+          active_impersonations: number
+          count_24h: number
+          count_7d: number
+          days: Json
+          top_actions: Json
+        }[]
+      }
       admin_create_role: {
         Args: {
           p_description?: string
@@ -827,6 +877,28 @@ export type Database = {
           status_changed_at: string
           status_reason: string
           user_id: string
+        }[]
+      }
+      admin_list_audit: {
+        Args: {
+          p_action?: string
+          p_entity_type?: string
+          p_from?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_to?: string
+        }
+        Returns: {
+          action: string
+          actor_id: string
+          actor_name: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          meta: Json
+          total_count: number
         }[]
       }
       admin_list_roles: {
@@ -914,9 +986,26 @@ export type Database = {
         }
         Returns: undefined
       }
+      begin_impersonation: {
+        Args: { p_reason: string; p_target: string }
+        Returns: {
+          expires_at: string
+          session_id: string
+        }[]
+      }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       e2e_migration_ledger: { Args: never; Returns: string[] }
+      end_impersonation: { Args: { p_session: string }; Returns: undefined }
       expire_stale_listings: { Args: never; Returns: number }
+      get_active_impersonation: {
+        Args: never
+        Returns: {
+          expires_at: string
+          id: string
+          target_id: string
+          target_name: string
+        }[]
+      }
       get_category_attributes: {
         Args: { p_category_id: string; p_include_inherited?: boolean }
         Returns: {
@@ -952,6 +1041,30 @@ export type Database = {
         Args: { p_action: string; p_resource: string; p_user_id: string }
         Returns: boolean
       }
+      impersonated_get_profile: {
+        Args: { p_session: string }
+        Returns: {
+          account_status: string
+          created_at: string
+          display_name: string
+          home_country_code: string
+          seller_alias: string
+          target_id: string
+        }[]
+      }
+      impersonated_list_listings: {
+        Args: { p_limit?: number; p_offset?: number; p_session: string }
+        Returns: {
+          created_at: string
+          id: string
+          price_amount: number
+          price_currency: string
+          status: string
+          title: string
+          total_count: number
+        }[]
+      }
+      impersonation_target: { Args: { p_session: string }; Returns: string }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       log_audit: {
         Args: {
