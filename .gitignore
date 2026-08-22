@@ -34,7 +34,12 @@ dist-ssr
 # E2E harness artifacts
 e2e/.state/
 playwright-report/
-test-results/
+# Root-anchored: Playwright's outputDir is the repo root. Unanchored, this
+# pattern matched nested fixture paths at any depth (INC-084f).
+/test-results/
+# Fixture trees deliberately mirror the live runner layout; re-include them in
+# case any global/system excludes carry an unanchored test-results/ pattern.
+!scripts/fixtures/**/test-results/
 blob-report/
 
 # Local-only Playwright configs (never committed)

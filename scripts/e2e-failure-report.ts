@@ -150,6 +150,54 @@ export function collectContextFiles(root: string): Map<string, string> {
   return found;
 }
 
+/**
+ * INC-084f — WHEN ZERO CONTEXT FILES ARE FOUND, THE SEARCH NAMES ITSELF.
+ * The layout fixtures were absent in CI (excluded by an unanchored
+ * `test-results/` ignore) and the only signal was "found 0". A zero result now
+ * prints the glob it looked for and every path it actually walked, so the next
+ * environment gap is diagnosable from the log alone.
+ */
+export function describeSearch(root: string): string[] {
+  const seen: string[] = [];
+  const walk = (dir: string, depth: number) => {
+    if (depth > 8) return;
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      seen.push(`${dir} (unreadable or absent)`);
+      return;
+    }
+    if (entries.length === 0) seen.push(`${dir} (empty)`);
+    for (const entry of entries) {
+      const path = `${dir}/${entry}`;
+      let isDir = false;
+      try {
+        isDir = statSync(path).isDirectory();
+      } catch {
+        seen.push(`${path} (unstatable)`);
+        continue;
+      }
+      if (isDir) walk(path, depth + 1);
+      else seen.push(path);
+    }
+  };
+  walk(root, 0);
+  return seen;
+}
+
+/** Prints the glob + every walked path when a context search came back empty. */
+export function reportEmptySearch(root: string, label: string): void {
+  const paths = describeSearch(root);
+  console.error(`${label}: 0 context files found.`);
+  console.error(`  glob: ${root}/**/error-context.md`);
+  if (paths.length === 0) {
+    console.error(`  searched: nothing — \`${root}\` does not exist or is empty.`);
+    return;
+  }
+  for (const path of paths) console.error(`  searched: ${path}`);
+}
+
 /** Last `count` lines of a context file, redacted. */
 export function contextTail(path: string, count = 20): string {
   const text = redact(readFileSync(path, "utf8"));
@@ -424,6 +472,9 @@ async function main() {
     const fixture = (await Bun.file(FIXTURE).json()) as PwJson;
     const contexts = collectContextFiles(CONTEXT_FIXTURE);
     if (contexts.size !== 1) {
+      // INC-084f: a 0-found result must name the glob and every walked path —
+      // that is exactly the signal the untracked-fixture failure lacked.
+      if (contexts.size === 0) reportEmptySearch(CONTEXT_FIXTURE, "sample fixture");
       console.error(`SELF-TEST FAILED — expected 1 bundled context file, found ${contexts.size}.`);
       process.exit(1);
     }
@@ -480,6 +531,7 @@ async function main() {
     for (const [name, path, expectedCount] of layouts) {
       const found = collectContextFiles(path);
       if (found.size !== expectedCount) {
+        if (found.size === 0) reportEmptySearch(path, `layout "${name}"`);
         console.error(
           `SELF-TEST FAILED — layout "${name}": expected ${expectedCount} context file(s), found ${found.size}.`,
         );
@@ -572,6 +624,7 @@ async function main() {
   }
 
   const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();
+  if (contextsDir && contexts.size === 0) reportEmptySearch(contextsDir, "context download");
 
   await Bun.write(OUT, renderSources(sources, meta, contexts));
   console.log(
