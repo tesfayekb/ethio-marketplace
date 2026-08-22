@@ -350,7 +350,7 @@ export function renderSources(
     // INC-083 rule 2: the page snapshot Playwright wrote at the moment of
     // death is the diagnosable evidence — quote it, or say plainly that it is
     // missing. Never leave a failure body without one of the two.
-    const spec = { file: f.file, title: f.specTitle, project: f.project };
+    const spec = { file: f.file, titlePath: f.titlePath, project: f.project };
     const dir = matchContextDir(candidates, spec);
     const slug = contextSlug(spec);
     if (dir) {
