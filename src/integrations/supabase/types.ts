@@ -779,6 +779,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_role: {
+        Args: {
+          p_description?: string
+          p_display_name?: string
+          p_name: string
+        }
+        Returns: string
+      }
+      admin_delete_role: { Args: { p_role_id: string }; Returns: undefined }
+      admin_get_role: {
+        Args: { p_role_id: string }
+        Returns: {
+          action: string
+          description: string
+          display_name: string
+          granted: boolean
+          is_core: boolean
+          is_system: boolean
+          member_count: number
+          name: string
+          permission_id: string
+          requires_step_up: boolean
+          resource: string
+          role_id: string
+        }[]
+      }
       admin_get_user: {
         Args: { p_user_id: string }
         Returns: {
@@ -807,6 +833,18 @@ export type Database = {
           priority: number
         }[]
       }
+      admin_list_roles_detailed: {
+        Args: never
+        Returns: {
+          description: string
+          display_name: string
+          id: string
+          is_system: boolean
+          member_count: number
+          name: string
+          permission_count: number
+        }[]
+      }
       admin_list_users: {
         Args: {
           p_limit?: number
@@ -830,12 +868,24 @@ export type Database = {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: undefined
       }
+      admin_set_role_permission: {
+        Args: { p_granted: boolean; p_permission_id: string; p_role_id: string }
+        Returns: undefined
+      }
       admin_update_profile: {
         Args: {
           p_display_name: string
           p_home_country_code?: string
           p_seller_alias?: string
           p_user_id: string
+        }
+        Returns: undefined
+      }
+      admin_update_role: {
+        Args: {
+          p_description?: string
+          p_display_name?: string
+          p_role_id: string
         }
         Returns: undefined
       }
