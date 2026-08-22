@@ -18,6 +18,7 @@ import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { LocationSelector } from "@/components/shell/location-selector";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
+import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
 import { useAuth } from "@/features/auth/use-auth";
 import { useCategories } from "@/features/feed/use-feed";
 import type { AuthUser } from "@/features/auth/types";
