@@ -46,14 +46,19 @@ export function ImpersonationStarter({ userId, guard }: { userId: string; guard:
                 return;
               }
               setErrorKey(null);
-              void guard(() =>
-                begin.mutateAsync({ targetId: userId, reason: reason.trim() }),
-              )
-                .then((session) => {
-                  if (!session) return;
+              let sessionId: string | null = null;
+              void guard(async () => {
+                const session = await begin.mutateAsync({
+                  targetId: userId,
+                  reason: reason.trim(),
+                });
+                sessionId = session.sessionId;
+              })
+                .then(() => {
+                  if (sessionId === null) return;
                   void navigate({
                     to: "/admin/impersonation/$sessionId",
-                    params: { sessionId: session.sessionId },
+                    params: { sessionId },
                   });
                 })
                 .catch(() => setErrorKey("impersonation.failed"));
