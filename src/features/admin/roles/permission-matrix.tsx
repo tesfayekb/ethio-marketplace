@@ -11,6 +11,28 @@ import { permissionSlug, roleErrorKey, type RolePermissionRow } from "./roles-se
 import { useSetRolePermission } from "./use-admin-roles";
 
 /**
+ * U2a / INC-084(b) — MATRIX VOCABULARY IS CHROME, NOT DATA.
+ *
+ * `permissions.action` and `resources.name` are a finite, admin-owned
+ * vocabulary, so they translate (Law D1). The raw value is used ONLY as a hard
+ * fallback, and only behind a dev-console warn — the Amharic coverage guard
+ * makes any fallback red rather than letting raw English leak.
+ */
+function useVocabulary() {
+  const { t, messages } = useI18n();
+
+  return (kind: "action" | "resource", value: string) => {
+    const key = `admin.roles.perm.${kind}.${value}` as MessageKey;
+    if (key in messages) return t(key);
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console -- dev-only signal; the guard is the enforcement
+      console.warn(`[roles] missing matrix ${kind} translation for "${value}" (key: ${key})`);
+    }
+    return value;
+  };
+}
+
+/**
  * U2 — the permission matrix, grouped by resource.
  *
  * 360: one card per resource with stacked action rows. md+: the same rows read
@@ -31,6 +53,7 @@ export function PermissionMatrix({
   rows: RolePermissionRow[];
 }) {
   const { t } = useI18n();
+  const label = useVocabulary();
   const setPermission = useSetRolePermission(roleId);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
 
@@ -47,6 +70,7 @@ export function PermissionMatrix({
       setPermission.mutateAsync({ permissionId: row.permissionId, granted: !row.granted }),
     ).catch((cause: unknown) => setErrorKey(roleErrorKey(cause, "admin.roles.perm.failed")));
   };
+
 
   return (
     <StepUpGate>
