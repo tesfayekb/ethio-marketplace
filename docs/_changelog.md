@@ -180,3 +180,4 @@
 - 2026-08-22 — ci: reporter output prettier-exempt (E5 class); fix(ssr): error page logs + DEV-embeds its cause; test(e2e): gotoReady retries the SSR error page once then fails named (INC-085c — flake family unmasked)
 - 2026-08-22 — ci(e2e): DEC-018 — CI builds and serves the PRODUCTION bundle (wrangler) in E2E mode; isE2E flag gates test instruments; central document-response guard in e2e/fixtures.ts; reporter quotes [ssr-error] and matches contexts by containment (INC-085d)
 - 2026-08-22 — ci: reporter treats zero-test results from failed sources as no-results (webServer deaths now quote their own logs)
+- 2026-08-22 — ci(DEC-018): nitro target pinned explicit for the e2e build + build-output verify step (ENOENT wipeout root-caused; INC-085e)

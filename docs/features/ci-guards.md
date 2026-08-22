@@ -428,6 +428,20 @@ import.meta.env.VITE_E2E === "1"` — so they exist in dev and in the E2E build
   `src/lib/error-page.ts` stays dependency-free and inlines the same condition
   rather than importing the flag module.
 
+- **Pinned build target + build-output verify (INC-085e).** The e2e build's
+  server target is PINNED (never environment-detected); the verify step fails the
+  job at build time with the emitted tree if the shape drifts — a serve step may
+  never discover a missing build. Mechanism: `@lovable.dev/vite-tanstack-config`
+  forces `preset: "cloudflare-module"`, the `dist/{server,client}` output layout
+  and `cloudflare.deployConfig` ONLY when it detects a Lovable sandbox
+  (`LOVABLE_SANDBOX`/`SANDBOX`); outside it, nitro receives just
+  `defaultPreset: "cloudflare-module"` and emits its own default layout with no
+  `dist/server/wrangler.json`. `vite.config.ts` now passes those same values
+  through the wrapper's supported `nitro: { ... }` option, so CI and the sandbox
+  resolve identically. Every job that builds for E2E runs, immediately after the
+  build, `Verify e2e build output` — `test -f dist/server/wrangler.json` or an
+  `::error::` plus `find dist .output -maxdepth 3 -type f | head -60`.
+
 - **Document-response guard (DEC-018).** `e2e/fixtures.ts` exports the extended
   `test`/`expect` that every spec imports. An auto-fixture watches every document
   response: a 5xx or the SSR error page's marker triggers ONE automatic reload,

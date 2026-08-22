@@ -59,6 +59,11 @@ jobs:
       # artifact-sharing was not worth the plumbing.
       - name: Build the app in E2E mode (VITE_E2E=1)
         run: bun run build:e2e
+      # INC-085e — the build step is not allowed to hand a missing artifact to
+      # the serve step: ENOENT at wrangler is a serve-time symptom of a
+      # build-time drift, and it cost six jobs once.
+      - name: Verify e2e build output
+        run: test -f dist/server/wrangler.json || { echo "::error::e2e build did not emit dist/server/wrangler.json — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
       # The verdict of the job is THIS step and nothing else. continue-on-error
       # lets the heartbeat run afterwards; the final step re-raises the failure so
       # a red suite can never be hidden by a green bookkeeping commit.

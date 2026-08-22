@@ -7,11 +7,27 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // INC-085e — NITRO TARGET IS PINNED, NEVER ENVIRONMENT-DETECTED.
+  // The wrapper only forces `preset: "cloudflare-module"`, the dist/ output
+  // layout and `cloudflare.deployConfig` INSIDE the Lovable sandbox
+  // (LOVABLE_SANDBOX/SANDBOX env). Outside it — i.e. in GitHub Actions — it
+  // passes nitro nothing but `defaultPreset`, so the build emitted the nitro
+  // default layout with no dist/server/wrangler.json and all six E2E jobs died
+  // at the serve step with ENOENT while the build step stayed green.
+  // These values are verbatim the sandbox branch's, so both environments now
+  // resolve identically; the sandbox branch still overrides them with the same
+  // constants, so pinning here changes nothing for the deployed build.
+  nitro: {
+    preset: "cloudflare-module",
+    output: { dir: "dist", serverDir: "dist/server", publicDir: "dist/client" },
+    cloudflare: { nodeCompat: true, deployConfig: true },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+
   vite: {
     define: {
       // DEC-018 — E2E MODE. The CI E2E jobs build with VITE_E2E=1 so the
