@@ -362,11 +362,23 @@ export function renderSources(
   let passed = 0;
   let skipped = 0;
   const failures: (Failure & { source: string })[] = [];
-  const silent: Source[] = [];
+  /**
+   * INC-086 — THREE-WAY CLASSIFICATION PER SOURCE:
+   *  (a) results with >= 1 test  -> normal path;
+   *  (b) no parseable results    -> "no results file";
+   *  (c) results parse, 0 tests  -> "produced no tests" (the runner died in
+   *      webServer/global setup). (b) and (c) are BOTH sources without results
+   *      and both are quoted; neither may be counted as a clean zero.
+   */
+  const silent: { source: Source; kind: "missing" | "zero-test" }[] = [];
 
   for (const source of sources) {
     if (!source.json) {
-      silent.push(source);
+      silent.push({ source, kind: "missing" });
+      continue;
+    }
+    if (countTests(source.json) === 0) {
+      silent.push({ source, kind: "zero-test" });
       continue;
     }
     const collected = collect(source.json);
