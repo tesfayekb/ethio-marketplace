@@ -6,7 +6,6 @@ import {
   enrollAndStepUp,
   expectAal2,
   gotoReady,
-  isMobile,
   stepUpIfPrompted,
   switchUser,
   userRow,
