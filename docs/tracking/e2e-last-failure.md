@@ -1,21 +1,18 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
 - Run: local
-- Commit: `local`
-- Written (UTC): 2026-08-22T06:01:48.422Z
-- Passed: 10 · Skipped: 2 · Failed: 1
-- Sources without results: shard 1, shard 2, shard 3, shard 4
+- Commit: `ce7ec6c`
+- Written (UTC): 2026-08-22T06:03:52.127Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Sources without results: smoke, shard 1, shard 2, shard 3, shard 4
 
-## shell.spec.ts › mobile chrome › the drawer switcher NAVIGATES to the panel's home (U0e)
+## smoke: no results file
 
-- Source: `smoke`
-- Project: `mobile-360`
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-Test timeout of 60000ms exceeded.
+results.json exists but could not be parsed: Unexpected end of JSON input
 ```
-
-Context: context file not found for `shell-the-drawer-switcher-NAVIGATES-to-the-panel-s-home-U0e-mobile-360`
 
 ## shard 1: no results file
 
