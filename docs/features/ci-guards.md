@@ -312,13 +312,24 @@ Timeouts are never loosened as a substitute.**
 
 Two mechanisms enforce it:
 
-- **Reporter (`scripts/e2e-failure-report.ts`).** When the step-walker finds no
-  error-bearing step in a failed test, the report appends a
-  `Last steps before timeout:` block: the final 5 LEAF steps with durations, in
-  execution order from `results.json`. Cumulative slowness then reads as a
-  duration profile, and a hidden wait reads as its own name. The bundled
-  self-test fixture carries a timeout-without-failed-step case and asserts the
-  block renders.
+- **Reporter (`scripts/e2e-failure-report.ts`).** Every failure body carries the
+  page snapshot Playwright wrote at the moment of death: each E2E job uploads
+  `test-results/**/error-context.md` as `e2e-context-<source>`, the merged report
+  job downloads `e2e-context-*`, and the reporter quotes the LAST 20 lines under
+  `Context:` — or states `context file not found for <slug>`. Matching rule: the
+  candidate directory ends with `-<sanitised project>` and its remainder either
+  equals the sanitised `<spec-base>-<test title>` core or splits at a `-<5 hex>-`
+  truncation marker into a prefix and a suffix of it. The bundled self-test runs
+  on REAL captured fixtures (`scripts/fixtures/e2e-results-sample.json` +
+  `scripts/fixtures/e2e-context-sample/`) and asserts both the quoted context and
+  the missing-context branch.
+
+  **RETIRED (INC-083 rule 2, 2026-08-22): the JSON-steps walker and the
+  `Last steps before timeout:` block.** Playwright's JSON reporter emits no
+  `steps` array — verified on real captured output (`steps: 0` on every result),
+  so neither mechanism could ever fire. **CLASS RULE: reporter fixtures are
+  captured from real output, never authored from assumption.**
+
 - **Helper-wait law (`e2e/helpers/ui.ts`).** Every `catch` and manual polling
   loop throws a NAMED error on exhaustion, stating what it waited for and for
   how long: `fillUntilStable` rethrows its per-attempt assertion message,

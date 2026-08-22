@@ -30,3 +30,8 @@ e2e/proofs/*.patch
 
 # Verbatim-imported supervisor document (same class as docs/spec/, docs/governance/; INC-007).
 docs/features/performance-strategy.md
+
+# INC-083: reporter fixtures are REAL captured Playwright output — reformatting
+# them would edit evidence.
+scripts/fixtures/e2e-results-sample.json
+scripts/fixtures/e2e-context-sample/

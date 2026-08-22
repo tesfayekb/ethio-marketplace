@@ -75,9 +75,17 @@ typed confirm; RP-6 revocation path (factor unenrolled → the RPC refuses);
 RP-7 DEC-016 rows render as grantable; RP-8 Amharic sweep + no horizontal
 overflow at every viewport.
 
-## Known deviation (recorded)
+## Members link and filter state (U2a)
 
-The Members card links to `/admin/users` WITHOUT a preselected role filter: the
-users list holds its filter in component state, not in the URL, and
-`src/routes/admin.users.tsx` / `users-list.tsx` are outside this task's scope.
-Making the filter a URL search param is the follow-up.
+The Members card links to `/admin/users?role=<role key>` and the users list's
+role filter is URL-derived (INC-073 law: the URL is the single source of truth),
+so a deep link and an in-page change are the same state. The users list's SEARCH
+and STATUS filters remain component state — moving them to search params is
+queued as a follow-up.
+
+## Open product question (operator-raised, U2a)
+
+Should the matrix restrict WHICH permissions are grantable to a custom role (an
+assignable-scope flag on `permissions`)? Today every registered permission is
+offered to a custom role, gated only by step-up and the `is_core` / system locks.
+Future hardening; not decided.

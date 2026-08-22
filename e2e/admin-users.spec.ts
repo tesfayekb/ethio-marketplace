@@ -6,9 +6,9 @@ import {
   enrollAndStepUp,
   expectAal2,
   gotoReady,
-  isMobile,
   stepUpIfPrompted,
   switchUser,
+  userRow,
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
@@ -42,15 +42,6 @@ async function grantRole(userId: string, roleName: string) {
     .from("user_roles")
     .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
   if (error) throw new Error(`[e2e:u1] granting ${roleName} failed: ${error.message}`);
-}
-
-/**
- * INC-074/INC-075 — the shared DataTable renders responsive twins with distinct
- * testids: `user-row-<id>` (md+ table row) and `user-row-<id>-card` (360 card).
- * Pick the one this viewport actually shows.
- */
-function userRow(page: Page, userId: string) {
-  return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
 }
 
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {

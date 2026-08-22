@@ -398,6 +398,22 @@ export async function expectAal2(page: Page) {
  * drift (both catalogs spell the endonym "አማርኛ", and the item also contains a
  * tick icon), which is what broke the footer/Sign-out test.
  */
+/**
+ * U2a / INC-084(c) — RESPONSIVE-TWIN LAW for role rows.
+ *
+ * DataTable renders BOTH twins and hides one by breakpoint, so a bare
+ * getByTestId matches a hidden element and every assertion on it fails. Mirrors
+ * userRow: card twin at mobile, table row at desktop; returns the VISIBLE one.
+ */
+export function roleRow(page: Page, roleName: string) {
+  return page.getByTestId(isMobile(page) ? `role-row-${roleName}-card` : `role-row-${roleName}`);
+}
+
+/** Same twin rule for user rows (lifted from admin-users.spec.ts). */
+export function userRow(page: Page, userId: string) {
+  return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
+}
+
 export async function switchLanguage(page: Page, code: "en" | "am") {
   await waitForHydration(page);
   await page.getByTestId("language-switcher").click();

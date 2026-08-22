@@ -7,10 +7,11 @@ import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
-  isMobile,
+  roleRow,
   stepUpIfPrompted,
   switchLanguage,
   switchUser,
+  userRow,
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
@@ -110,14 +111,17 @@ test.describe("U2 roles console", () => {
     await waitForHydration(page);
     await expect(page).toHaveURL(/\/admin\/?$/);
     await expect(page.getByTestId("admin-section-roles")).toHaveCount(0);
+    // TWIN LAW: absence is asserted through the same visible-twin locator the
+    // positive phase uses, never through a raw role-row-* testid.
+    await expect(roleRow(page, "admin")).toHaveCount(0);
 
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/roles");
     await expect(page.getByTestId("admin-section-roles")).toBeVisible();
-    await expect(page.getByTestId("role-row-admin")).toHaveCount(isMobile(page) ? 0 : 1);
-    await expect(page.getByText("super_admin").first()).toBeVisible();
+    await expect(roleRow(page, "admin")).toBeVisible();
+    await expect(roleRow(page, "super_admin")).toBeVisible();
 
     // Signed-out deep link into a role id: redirected, nothing gated renders.
     const id = await roleId("admin");
@@ -126,6 +130,7 @@ test.describe("U2 roles console", () => {
     await page.goto(`/admin/roles/${id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("role-permissions")).toHaveCount(0);
+    await expect(roleRow(page, "admin")).toHaveCount(0);
     await expect(page).not.toHaveURL(/\/admin\/roles\//);
   });
 
@@ -135,9 +140,7 @@ test.describe("U2 roles console", () => {
     // The audit row is per-actor; assert it through the same definer read the
     // Users section uses (activity is scoped to the signed-in actor).
     await gotoReady(page, "/admin/roles");
-    const row = isMobile(page)
-      ? page.getByTestId(`role-row-${name}-card`)
-      : page.getByTestId(`role-row-${name}`);
+    const row = roleRow(page, name);
     await expect(row).toBeVisible();
     await row.click();
     await expect(page.getByTestId("role-permissions")).toBeVisible();
@@ -237,7 +240,7 @@ test.describe("U2 roles console", () => {
     await page.getByTestId("role-delete").click();
     await stepUpIfPrompted(page, secret);
     await expect(page).toHaveURL(/\/admin\/roles\/?$/, { timeout: 20000 });
-    await expect(page.getByTestId(`role-row-${name}`)).toHaveCount(0);
+    await expect(roleRow(page, name)).toHaveCount(0);
   });
 
   test("RP-6 revocation path: unenrolling the factor refuses the next change", async ({ page }) => {
@@ -310,5 +313,51 @@ test.describe("U2 roles console", () => {
     await gotoReady(page, `/admin/roles/${id}`);
     await expect(page.getByText(am["admin.roles.perm.title"]).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("RP-9 delete confirm: the expected key renders adjacent and arms only on an exact match", async ({
+    page,
+  }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    const name = await createRoleViaUi(page, secret);
+    const id = await roleId(name);
+    await gotoReady(page, `/admin/roles/${id}`);
+
+    // INC-084(a): the operator reads the key from the page, not from memory.
+    const shown = (await page.getByTestId("role-delete-key").innerText()).trim();
+    expect(shown).toBe(name);
+    await expect(page.getByTestId("role-delete")).toBeDisabled();
+
+    await page.getByTestId("role-delete-confirm").fill("delete");
+    await expect(page.getByTestId("role-delete")).toBeDisabled();
+
+    await page.getByTestId("role-delete-confirm").fill(shown);
+    await expect(page.getByTestId("role-delete")).toBeEnabled();
+    await page.getByTestId("role-delete").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page).toHaveURL(/\/admin\/roles\/?$/, { timeout: 20000 });
+    await expect(roleRow(page, name)).toHaveCount(0);
+  });
+
+  test("RP-10 members link preselects the role filter via the URL", async ({ page }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    const name = await createRoleViaUi(page, secret);
+    const id = await roleId(name);
+
+    const member = await createUser({ confirmed: true });
+    await grantRole(member.id, name);
+
+    await gotoReady(page, `/admin/roles/${id}`);
+    await page.getByTestId("role-members-link").click();
+    await expect(page).toHaveURL(new RegExp(`/admin/users\\?role=${name}$`), { timeout: 20000 });
+    await expect(page.getByTestId("users-role-filter")).toHaveValue(name);
+    await expect(userRow(page, member.id)).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("users-total")).toContainText("1");
+
+    // A direct deep link behaves identically (INC-073: the URL is the state).
+    await gotoReady(page, `/admin/users?role=${name}`);
+    await expect(page.getByTestId("users-role-filter")).toHaveValue(name);
+    await expect(userRow(page, member.id)).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("users-total")).toContainText("1");
   });
 });
