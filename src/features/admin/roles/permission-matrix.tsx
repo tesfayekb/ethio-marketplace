@@ -110,11 +110,14 @@ export function PermissionMatrix({
                 <ul className="min-w-0 divide-y divide-border rounded-md border border-border">
                   {group.map((row) => {
                     // DEC-017: reserved permissions and rows every account
-                    // already carries offer no toggle at all. Both mirror the
-                    // server — assignable is re-refused inside the RPC.
+                    // already carries offer no toggle. Both mirror the server
+                    // — assignable is re-refused inside the RPC. A baseline
+                    // row that IS already granted keeps its Revoke control, so
+                    // an existing grant never becomes un-cleanable.
                     const reserved = !row.assignable;
                     const baseline = row.assignable && row.userBaseline;
-                    const locked = isSystem || (row.granted && row.isCore) || reserved || baseline;
+                    const locked =
+                      isSystem || (row.granted && row.isCore) || reserved || (baseline && !row.granted);
                     const slug = permissionSlug(row);
                     return (
                       <li
