@@ -8,6 +8,7 @@ import { useI18n } from "@/i18n";
 
 import { isExpiredSessionError, type ImpersonatedListing } from "./impersonation-service";
 import {
+  useActiveImpersonation,
   useCountdown,
   useEndImpersonation,
   useImpersonatedListings,
