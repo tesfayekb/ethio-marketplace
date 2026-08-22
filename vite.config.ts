@@ -32,9 +32,19 @@ export default defineConfig({
     // INC-085g — the e2e build is a test artifact; readability outranks size;
     // prod build untouched. Minified React errors ("Minified React error #185
     // … at si") name nothing; unminified they carry the component.
+    //
+    // INC-085h — CSS MINIFICATION IS NEVER PART OF THAT RELAXATION. `minify:
+    // false` also switches CSS minification off, and the client and SSR
+    // environments then emit styles.css with DIFFERENT content hashes: the SSR
+    // graph printed /assets/styles-DmnTMSCG.css while the client build wrote
+    // /assets/styles-B6HzPvrJ.css, so every e2e page loaded with a 404
+    // stylesheet and no styles at all. Pinning `cssMinify: true` keeps the CSS
+    // pipeline byte-identical to the prod build in both environments, so the
+    // hash the server prints is the hash the client build emitted.
     ...(process.env["VITE_E2E"] === "1"
-      ? { build: { minify: false as const, sourcemap: true } }
+      ? { build: { minify: false as const, sourcemap: true, cssMinify: true as const } }
       : {}),
+
     define: {
       // DEC-018 — E2E MODE. The CI E2E jobs build with VITE_E2E=1 so the
       // production bundle carries the test instruments (src/lib/env-flags.ts).
