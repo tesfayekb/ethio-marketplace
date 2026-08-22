@@ -329,6 +329,25 @@ export function grepSsrErrors(text: string | null, limit = 20): string[] {
   return lines.slice(-limit).map((line) => redact(line.trim()));
 }
 
+/**
+ * INC-086 — HOW MANY TESTS THIS FILE ACTUALLY RECORDS.
+ * A results.json from a runner that died before executing anything parses
+ * perfectly and contains `"suites": []` (real capture:
+ * scripts/fixtures/e2e-results-empty.json, stats all zero). Treating that as
+ * "has results" is how run 32564655998 published "Failed 0 · Sources without
+ * results: none" while six jobs were red. Counting is structural — the suite
+ * tree, not `stats` — so a reporter-shape change cannot fake a non-zero count.
+ */
+export function countTests(json: PwJson): number {
+  let total = 0;
+  const walk = (suite: PwSuite) => {
+    for (const spec of suite.specs ?? []) total += (spec.tests ?? []).length;
+    for (const child of suite.suites ?? []) walk(child);
+  };
+  for (const suite of json.suites ?? []) walk(suite);
+  return total;
+}
+
 /** `e2e-results-smoke` → `smoke`; `e2e-results-3` → `shard 3`. */
 export function sourceLabel(artifactDir: string): string {
   const id = artifactDir.replace(/^e2e-results-/, "");
