@@ -464,7 +464,7 @@ import.meta.env.VITE_E2E === "1"` — so they exist in dev and in the E2E build
   after React has successfully hydrated. `waitForHydration` polls that
   attribute and, on a 15 s timeout, throws the NAMED error
   `app never declared ready — SSR marker <present/absent>, likely client crash;
-  see [client-error] lines`. Readiness is never inferred from framework
+see [client-error] lines`. Readiness is never inferred from framework
   internals (the old gate polled React's dev-era `__reactProps$` markers, which
   made "not yet hydrated" and "crashed during hydration" indistinguishable
   under the production build).
