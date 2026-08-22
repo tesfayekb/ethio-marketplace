@@ -34,7 +34,6 @@ const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
 const LAYOUT_FIXTURES = "scripts/fixtures";
 const MALFORMED_FIXTURE = "scripts/fixtures/e2e-results-malformed.json";
 
-
 type PwResult = { status?: string; error?: { message?: string } };
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
 type PwSpec = { title?: string; ok?: boolean; file?: string; tests?: PwTest[] };
@@ -374,7 +373,8 @@ export async function rescueTitles(resultsDir: string | undefined): Promise<stri
     const parsed = await readJson(`${resultsDir}/${entry}/results.json`);
     if (!parsed.json) continue;
     try {
-      for (const f of collect(parsed.json).failures) titles.push(`${sourceLabel(entry)}: ${f.title}`);
+      for (const f of collect(parsed.json).failures)
+        titles.push(`${sourceLabel(entry)}: ${f.title}`);
     } catch {
       /* a shape we cannot walk contributes nothing; it must never throw */
     }
@@ -389,7 +389,9 @@ export async function rescueTitles(resultsDir: string | undefined): Promise<stri
  * cannot parse is now exactly what it is — a source without usable results —
  * and it is QUOTED in the report, never silently counted as zero.
  */
-export async function readJson(path: string): Promise<{ json: PwJson | null; error: string | null }> {
+export async function readJson(
+  path: string,
+): Promise<{ json: PwJson | null; error: string | null }> {
   const file = Bun.file(path);
   if (!(await file.exists())) return { json: null, error: null };
   try {
@@ -407,7 +409,6 @@ async function logTail(path: string, count = 40): Promise<string | null> {
   const text = redact(await file.text());
   return text.split("\n").slice(-count).join("\n").trim() || null;
 }
-
 
 async function main() {
   const meta = {
@@ -530,7 +531,6 @@ async function main() {
     return;
   }
 
-
   if (process.env["E2E_GREEN"] === "1") {
     await Bun.write(OUT, renderGreen(meta));
     console.log(`Wrote ${OUT} (green run ${meta.runId}).`);
@@ -571,7 +571,6 @@ async function main() {
     sources.push({ label: "all", json: parsed.json, logTail: parsed.error });
   }
 
-
   const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();
 
   await Bun.write(OUT, renderSources(sources, meta, contexts));
@@ -610,4 +609,3 @@ if (import.meta.main) {
     process.exit(1);
   }
 }
-
