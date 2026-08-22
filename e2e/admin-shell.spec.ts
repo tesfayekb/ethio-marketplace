@@ -181,7 +181,6 @@ test.describe("Admin shell (U0)", () => {
     const perms = await permissionsOfRole("moderator");
     expect(expectedSectionIds(perms), "moderator section census drifted").toEqual(["audit"]);
 
-
     await signIn(page, mod.email, mod.password);
     await waitForHydration(page);
 
@@ -191,30 +190,44 @@ test.describe("Admin shell (U0)", () => {
     await page.goto("/admin");
     await waitForHydration(page);
     await expect(page.getByTestId("admin-panel-root")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("admin-no-sections")).toBeVisible();
-    // AdminNav returns null for zero sections, so the container is absent (not empty).
-    await expect(page.getByTestId("admin-nav-cards")).toHaveCount(0);
+    await expect(page.getByTestId("admin-no-sections")).toHaveCount(0);
+
+    // Exactly ONE card: Audit & Security.
+    const cards = page.getByTestId("admin-nav-cards").getByRole("link");
+    await expect(cards).toHaveCount(1, { timeout: 15000 });
+    const audit = ADMIN_SECTIONS.find((s) => s.id === "audit")!;
+    await expect(page.getByTestId("admin-section-link-audit")).toContainText(en[audit.titleKey]);
     await expect(page.getByTestId("admin-nav-sidebar")).toHaveCount(0);
 
-    // U0b: the shell drawer carries zero admin section items for this role.
+    // The shell rail/drawer carries the same single item.
     if (isMobile(page)) {
       const drawer = await openRailScope(page);
       await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.admin"]);
-      for (const section of ADMIN_SECTIONS) {
+      await expect(drawer.getByTestId("rail-item-ad-audit")).toBeVisible({ timeout: 15000 });
+      for (const section of ADMIN_SECTIONS.filter((s) => s.id !== "audit")) {
         await expect(drawer.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
       }
       await page.keyboard.press("Escape");
     } else {
       const rail = page.getByTestId("app-rail");
-      for (const section of ADMIN_SECTIONS) {
+      await expect(rail.getByTestId("rail-item-ad-audit")).toBeVisible({ timeout: 15000 });
+      for (const section of ADMIN_SECTIONS.filter((s) => s.id !== "audit")) {
         await expect(rail.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
       }
     }
 
-    await page.goto("/admin/users");
+    // The permitted deep link RENDERS.
+    await page.goto(audit.path);
     await waitForHydration(page);
-    await expect(page).toHaveURL(/\/admin$/);
-    await expect(page.getByTestId("admin-access-notice")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("admin-audit")).toBeVisible({ timeout: 15000 });
+
+    // Every other section is still refused to /admin with the notice.
+    for (const path of ["/admin/users", "/admin/roles"]) {
+      await page.goto(path);
+      await waitForHydration(page);
+      await expect(page).toHaveURL(/\/admin$/);
+      await expect(page.getByTestId("admin-access-notice")).toBeVisible({ timeout: 15000 });
+    }
   });
 
   test("A-4 admin TAB from marketplace navigates to /admin (INC-071)", async ({ page }) => {
