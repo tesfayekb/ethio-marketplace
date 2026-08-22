@@ -394,7 +394,7 @@ export function renderSources(
     `- Commit: \`${meta.sha}\``,
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
-    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.label).join(", ")}`,
+    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
   ];
 
