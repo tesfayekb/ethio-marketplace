@@ -147,7 +147,6 @@ function armClientErrorCapture(page: Page, buffer: string[]): void {
   });
 }
 
-
 export const test = base.extend<{ ssrGuard: void; clientErrors: string[] }>({
   clientErrors: [
     async ({ page }, use, testInfo) => {
