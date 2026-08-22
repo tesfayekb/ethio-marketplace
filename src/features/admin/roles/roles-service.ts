@@ -31,6 +31,10 @@ export interface RolePermissionRow {
   requiresStepUp: boolean;
   granted: boolean;
   isCore: boolean;
+  /** DEC-017 — false = reserved for system roles; the server refuses grants. */
+  assignable: boolean;
+  /** True when the base `user` role already carries it (derived live). */
+  userBaseline: boolean;
 }
 
 export interface RoleDetail {
@@ -77,6 +81,8 @@ export async function getRole(roleId: string): Promise<RoleDetail | null> {
       requiresStepUp: row.requires_step_up,
       granted: row.granted,
       isCore: row.is_core,
+      assignable: row.assignable,
+      userBaseline: row.user_baseline,
     })),
   };
 }
@@ -141,6 +147,7 @@ export function roleErrorKey(error: unknown, fallback: MessageKey): MessageKey {
   if (/core permission locked|core role permission/i.test(message)) {
     return "admin.roles.error.coreLocked";
   }
+  if (/not assignable to custom roles/i.test(message)) return "admin.roles.perm.notAssignable";
   if (/role has members/i.test(message)) return "admin.roles.error.hasMembers";
   if (/already taken|duplicate key/i.test(message)) return "admin.roles.error.nameTaken";
   if (/role name is required/i.test(message)) return "admin.roles.error.nameRequired";
