@@ -1,4 +1,38 @@
-export function renderErrorPage(): string {
+/**
+ * INC-085(c) — the SSR error page is the face of the parallel-load flake
+ * family. In DEV builds ONLY it carries the true cause (HTML comment plus a
+ * `data-ssr-error` attribute) so Playwright page snapshots record why the
+ * request failed. Production output stays byte-identical to the clean page.
+ *
+ * Dependency-free by law: the same module-init failure that triggers this page
+ * must not be able to break it.
+ */
+
+function sanitizeForMarkup(message: string): string {
+  return message
+    .replace(/[<>&"]/g, " ")
+    .replace(/--+/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 300);
+}
+
+function describe(error: unknown): string {
+  if (error instanceof Error) return `${error.name}: ${error.message}`;
+  if (typeof error === "string") return error;
+  try {
+    return JSON.stringify(error) ?? String(error);
+  } catch {
+    return String(error);
+  }
+}
+
+export function renderErrorPage(error?: unknown): string {
+  const isDev = Boolean(import.meta.env?.DEV);
+  const detail = isDev && error !== undefined ? sanitizeForMarkup(describe(error)) : "";
+  const comment = detail ? `\n    <!-- ssr-error: ${detail} -->` : "";
+  const attribute = detail ? ` data-ssr-error="${detail}"` : "";
+
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -16,8 +50,8 @@ export function renderErrorPage(): string {
       .secondary { background: #fff; color: #111; border-color: #d1d5db; }
     </style>
   </head>
-  <body>
-    <div class="card">
+  <body>${comment}
+    <div class="card"${attribute}>
       <h1>This page didn't load</h1>
       <p>Something went wrong on our end. You can try refreshing or head back home.</p>
       <div class="actions">
