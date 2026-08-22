@@ -458,3 +458,22 @@ import.meta.env.VITE_E2E === "1"` — so they exist in dev and in the E2E build
   is accepted if its non-hash tokens are an order-preserving subsequence of the
   expected slug's tokens; the self-test proves it matches the switcher slug and
   refuses a foreign directory.
+
+- **Hydration contract (INC-085f).** The app declares its own readiness:
+  `RootComponent` sets `data-app-ready="1"` on `<html>` in a root effect, only
+  after React has successfully hydrated. `waitForHydration` polls that
+  attribute and, on a 15 s timeout, throws the NAMED error
+  `app never declared ready — SSR marker <present/absent>, likely client crash;
+  see [client-error] lines`. Readiness is never inferred from framework
+  internals (the old gate polled React's dev-era `__reactProps$` markers, which
+  made "not yet hydrated" and "crashed during hydration" indistinguishable
+  under the production build).
+
+- **Client errors in the failure report (INC-085f).** The `e2e/fixtures.ts`
+  auto-fixture buffers the last 20 `pageerror` throws and console errors per
+  test; when the test fails it attaches them as `client-errors` AND prints each
+  as a `[client-error]` line. The reporter greps both channels with ONE shared
+  helper (`grepTag`) and renders `## Client errors: <source>` beside
+  `## Server errors: <source>`; a source with none says so explicitly. Every
+  runtime error channel — server log, browser console, page error — has a
+  capture path into the evidence file.
