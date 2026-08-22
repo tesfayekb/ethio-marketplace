@@ -28,6 +28,7 @@ import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
+import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -124,6 +125,12 @@ const AdminRolesRoleIdRoute = AdminRolesRoleIdRouteImport.update({
   path: '/roles/$roleId',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminImpersonationSessionIdRoute =
+  AdminImpersonationSessionIdRouteImport.update({
+    id: '/impersonation_/$sessionId',
+    path: '/impersonation/$sessionId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
 }
@@ -163,6 +171,7 @@ export interface FileRoutesByTo {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
 }
@@ -185,6 +194,7 @@ export interface FileRoutesById {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
 }
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/tall'
     | '/admin/'
+    | '/admin/impersonation/$sessionId'
     | '/admin/roles/$roleId'
     | '/admin/users/$userId'
   fileRoutesByTo: FileRoutesByTo
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/tall'
     | '/admin'
+    | '/admin/impersonation/$sessionId'
     | '/admin/roles/$roleId'
     | '/admin/users/$userId'
   id:
@@ -249,6 +261,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/tall'
     | '/admin/'
+    | '/admin/impersonation_/$sessionId'
     | '/admin/roles_/$roleId'
     | '/admin/users_/$userId'
   fileRoutesById: FileRoutesById
@@ -400,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRolesRoleIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/impersonation_/$sessionId': {
+      id: '/admin/impersonation_/$sessionId'
+      path: '/impersonation/$sessionId'
+      fullPath: '/admin/impersonation/$sessionId'
+      preLoaderRoute: typeof AdminImpersonationSessionIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
@@ -412,6 +432,7 @@ interface AdminRouteChildren {
   AdminRolesRoute: typeof AdminRolesRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminImpersonationSessionIdRoute: typeof AdminImpersonationSessionIdRoute
   AdminRolesRoleIdRoute: typeof AdminRolesRoleIdRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
 }
@@ -425,6 +446,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminRolesRoute: AdminRolesRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminImpersonationSessionIdRoute: AdminImpersonationSessionIdRoute,
   AdminRolesRoleIdRoute: AdminRolesRoleIdRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,
 }

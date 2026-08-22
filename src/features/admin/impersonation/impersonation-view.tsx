@@ -122,7 +122,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
               onSuccess: () => {
                 const targetId = profile.data?.targetId;
                 void (targetId
-                  ? navigate({ to: "/admin/users_/$userId", params: { userId: targetId } })
+                  ? navigate({ to: "/admin/users/$userId", params: { userId: targetId } })
                   : navigate({ to: "/admin/users" }));
               },
             });
