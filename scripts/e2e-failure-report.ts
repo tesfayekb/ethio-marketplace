@@ -36,6 +36,12 @@ const DESCRIBE_FIXTURE = "scripts/fixtures/e2e-context-sample-describe";
 
 const LAYOUT_FIXTURES = "scripts/fixtures";
 const MALFORMED_FIXTURE = "scripts/fixtures/e2e-results-malformed.json";
+/**
+ * INC-086 — a REAL zero-test results.json, captured by running Playwright with
+ * an impossible `--grep` (`"suites": []`, every stat 0). Same shape a job
+ * leaves behind when its webServer or global setup dies before any test runs.
+ */
+const EMPTY_FIXTURE = "scripts/fixtures/e2e-results-empty.json";
 
 type PwResult = { status?: string; error?: { message?: string } };
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
