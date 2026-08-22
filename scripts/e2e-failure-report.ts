@@ -31,6 +31,9 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 const OUT = "docs/tracking/e2e-last-failure.md";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
+/** INC-084g — the describe-nested shape, captured from a real Playwright run. */
+const DESCRIBE_FIXTURE = "scripts/fixtures/e2e-context-sample-describe";
+
 const LAYOUT_FIXTURES = "scripts/fixtures";
 const MALFORMED_FIXTURE = "scripts/fixtures/e2e-results-malformed.json";
 
@@ -75,23 +78,34 @@ function specBase(file: string): string {
 /**
  * THE MATCHING RULE (stated, because it is the whole mechanism).
  *
+ * INC-084g — the slug carries the WHOLE titlePath, not just the test title.
  * Playwright names a failure's output directory
- *   `<spec-base>-<test-title>-<project>`
+ *   `<spec-base>-<describe…>-<test-title>-<project>`
  * sanitised as above, and — when that exceeds its length budget — TRUNCATES
- * the middle, splicing in a five-hex-digit hash:
+ * the middle, splicing in a five-hex-digit hash. Both shapes are real captures:
  *   `tmp-capture-CAP-1-a-missin-57ad1--fails-with-a-locator-error-desktop-1280`
- * (captured, real). So a candidate directory matches a failure when
+ *   `tmp-capture-describe-panel-d893b-d-failure-records-its-chain-desktop-1280`
+ * The second one's head (`tmp-capture-describe-panel`) only matches once the
+ * describe title ("panel-scoped chrome") is part of the core — building the
+ * core from the bare test title, as the first live read did, misses every
+ * describe-nested failure, which is nearly all of them.
+ *
+ * So a candidate directory matches a failure when
  *   1. it ends with `-<sanitised project name>`, and
- *   2. the remainder either equals the sanitised `<spec-base>-<title>` core, or
- *      splits at some `-<5 hex>-` marker into a prefix and a suffix of it.
+ *   2. the remainder either equals the sanitised
+ *      `<spec-base>-<titlePath joined>` core, or splits at some `-<5 hex>-`
+ *      marker into a prefix and a suffix of it.
  * Anything else is not this failure's directory, and the reporter says so
  * rather than quoting a neighbour's snapshot.
  */
-export function matchContextDir(
-  candidates: string[],
-  spec: { file: string; title: string; project: string },
-): string | null {
-  const core = sanitizeSlug(`${specBase(spec.file)}-${spec.title}`);
+type ContextSpec = { file: string; titlePath: string[]; project: string };
+
+function contextCore(spec: ContextSpec): string {
+  return sanitizeSlug([specBase(spec.file), ...spec.titlePath].join("-"));
+}
+
+export function matchContextDir(candidates: string[], spec: ContextSpec): string | null {
+  const core = contextCore(spec);
   const projectSlug = sanitizeSlug(spec.project);
   const suffix = `-${projectSlug}`;
 
@@ -112,8 +126,8 @@ export function matchContextDir(
 }
 
 /** The human-readable slug a failure WOULD have; printed when nothing matches. */
-export function contextSlug(spec: { file: string; title: string; project: string }): string {
-  return sanitizeSlug(`${specBase(spec.file)}-${spec.title}-${spec.project}`);
+export function contextSlug(spec: ContextSpec): string {
+  return `${contextCore(spec)}-${sanitizeSlug(spec.project)}`;
 }
 
 /**
@@ -214,16 +228,25 @@ type Failure = {
   message: string;
   /** Spec file as the JSON reporter records it, e.g. `admin-roles.spec.ts`. */
   file: string;
-  /** Bare test title (no suite trail) — the matching rule's input. */
+  /** Bare test title (no suite trail) — kept for display/debugging. */
   specTitle: string;
+  /**
+   * INC-084g — describe chain + test title, exactly as Playwright joins them
+   * into the output-directory slug. The FILE suite (whose title is the file
+   * name) is excluded: the slug already opens with the spec base.
+   */
+  titlePath: string[];
 };
 
 export function collect(json: PwJson): { failures: Failure[]; passed: number; skipped: number } {
   const failures: Failure[] = [];
 
-  const walk = (suite: PwSuite, trail: string[], file: string) => {
-    const path = suite.title ? [...trail, suite.title] : trail;
+  const walk = (suite: PwSuite, trail: string[], file: string, isRoot: boolean) => {
     const suiteFile = suite.file ?? file;
+    // The root suite IS the spec file (title === file name); it contributes the
+    // spec base, never a describe segment.
+    const isFileSuite = isRoot || suite.title === suiteFile || suite.title === file;
+    const path = suite.title && !isFileSuite ? [...trail, suite.title] : trail;
     for (const spec of suite.specs ?? []) {
       for (const test of spec.tests ?? []) {
         const status = test.status ?? "";
@@ -231,19 +254,21 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
         const result = (test.results ?? []).find((r) => r.status && r.status !== "passed");
         const raw = result?.error?.message ?? "(no error message captured)";
         const message = redact(raw).split("\n").slice(0, 40).join("\n");
+        const specTitle = spec.title ?? "(untitled)";
         failures.push({
           project: test.projectName ?? "unknown",
-          title: redact([...path, spec.title ?? "(untitled)"].join(" › ")),
+          title: redact([suiteFile, ...path, specTitle].filter(Boolean).join(" › ")),
           message,
           file: spec.file ?? suiteFile,
-          specTitle: spec.title ?? "(untitled)",
+          specTitle,
+          titlePath: [...path, specTitle],
         });
       }
     }
-    for (const child of suite.suites ?? []) walk(child, path, suiteFile);
+    for (const child of suite.suites ?? []) walk(child, path, suiteFile, false);
   };
 
-  for (const suite of json.suites ?? []) walk(suite, [], suite.file ?? "");
+  for (const suite of json.suites ?? []) walk(suite, [], suite.file ?? "", true);
 
   return {
     failures,
@@ -326,7 +351,7 @@ export function renderSources(
     // INC-083 rule 2: the page snapshot Playwright wrote at the moment of
     // death is the diagnosable evidence — quote it, or say plainly that it is
     // missing. Never leave a failure body without one of the two.
-    const spec = { file: f.file, title: f.specTitle, project: f.project };
+    const spec = { file: f.file, titlePath: f.titlePath, project: f.project };
     const dir = matchContextDir(candidates, spec);
     const slug = contextSlug(spec);
     if (dir) {
@@ -555,6 +580,33 @@ async function main() {
       console.log(`  layout OK — ${name}: ${found.size} context file(s), report rendered.`);
     }
 
+    // INC-084g — DESCRIBE-NESTED SHAPE (real capture). The slug carries the
+    // describe title, so a matcher built from the bare test title finds
+    // nothing. This fixture fails loudly if that regression ever returns.
+    const describeJson = (await Bun.file(`${DESCRIBE_FIXTURE}/results.json`).json()) as PwJson;
+    const describeContexts = collectContextFiles(DESCRIBE_FIXTURE);
+    if (describeContexts.size !== 1) {
+      if (describeContexts.size === 0) reportEmptySearch(DESCRIBE_FIXTURE, "describe fixture");
+      console.error(
+        `SELF-TEST FAILED — expected 1 describe-nested context file, found ${describeContexts.size}.`,
+      );
+      process.exit(1);
+    }
+    const describeOut = renderSources(
+      [{ label: "shard 1", json: describeJson, logTail: null }],
+      { runId: "self-test", runUrl: "", sha: "self-test" },
+      describeContexts,
+    );
+    if (
+      describeOut.includes("context file not found") ||
+      !describeOut.includes("panel-scoped chrome › CAP-3")
+    ) {
+      console.error(
+        "SELF-TEST FAILED — describe-nested failure did not resolve its error-context (titlePath matching regressed).",
+      );
+      process.exit(1);
+    }
+
     // NEVER-SILENT LAW: a malformed results.json is (a) survivable as a source
     // and (b) renderable as a REPORTER ERROR when something does escape.
     const malformed = await readJson(MALFORMED_FIXTURE);
@@ -578,7 +630,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }

@@ -171,3 +171,4 @@
 - 2026-08-22 — fix(admin): U2a — delete-confirm shows the role key adjacent (testid split); matrix vocabulary i18n EN+AM (+coverage guard); members link via ?role= URL param; test(e2e): roleRow twin helper, RP-9/RP-10; ci: reporter quotes error-context.md (JSON-steps retired)
 - 2026-08-22 — ci: failure reporter — artifact-layout fix from local repro, never-silent wrapper (a reporter crash writes its own report), download resilience, layout fixtures (INC-084e)
 - 2026-08-22 — ci: root-anchor test-results ignore; context fixtures actually committed (git-tracked, proven); self-test names its searched paths on 0-found (INC-084f)
+- 2026-08-22 — ci: reporter matches error-context by full titlePath (describe-nested slugs) + real describe fixture in the self-test; test(e2e): expectSignedIn/signOutViaMenu anchor on account-menu-sign-out testid (INC-084g)

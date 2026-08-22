@@ -100,7 +100,10 @@ export async function openAccountMenu(page: Page, label: string = en["shell.acco
 /** Signed-in identity + the sign-out affordance, both inside the account menu. */
 export async function expectSignedIn(page: Page, displayName: string) {
   const trigger = await openAccountMenu(page);
-  await expect(page.getByRole("menuitem", { name: en["auth.signOut"] })).toBeVisible({
+  // INC-084g — anchor on the testid, not the accessible name: the menu item
+  // carries an icon and renders in the ACTIVE catalog, so an English-literal
+  // role lookup goes blind in an Amharic shell (and was the shard-2 red).
+  await expect(page.getByTestId("account-menu-sign-out")).toBeVisible({
     timeout: 15000,
   });
   // The identity now renders in TWO places (the trigger span and the menu
@@ -113,12 +116,9 @@ export async function expectSignedIn(page: Page, displayName: string) {
 }
 
 /** Sign out through the account menu. `labels` allows the Amharic pass. */
-export async function signOutViaMenu(
-  page: Page,
-  labels: { accountMenu?: string; signOut?: string } = {},
-) {
+export async function signOutViaMenu(page: Page, labels: { accountMenu?: string } = {}) {
   await openAccountMenu(page, labels.accountMenu ?? en["shell.accountMenu"]);
-  await page.getByRole("menuitem", { name: labels.signOut ?? en["auth.signOut"] }).click();
+  await page.getByTestId("account-menu-sign-out").click();
 }
 
 /** Viewport branch: below md the rail lives in the Sheet drawer. */
