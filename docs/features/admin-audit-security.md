@@ -18,16 +18,16 @@ guardrail the decision named.
 **RPCs** (all `SECURITY DEFINER`, `REVOKE ALL FROM PUBLIC, anon`,
 `GRANT EXECUTE TO authenticated, service_role`)
 
-| Function                                  | Gate                                   | Audit                 |
-| ----------------------------------------- | -------------------------------------- | --------------------- |
-| `admin_list_audit(...)`                   | `audit_logs:view`                      | —                     |
-| `admin_audit_facets()`                    | `audit_logs:view`                      | —                     |
-| `admin_audit_stats(days)`                 | `audit_logs:view`                      | —                     |
-| `begin_impersonation(target, reason)`     | super-admin only + `impersonation:use` step-up | `impersonation.start` |
-| `end_impersonation(session)`              | session owner                          | `impersonation.end`   |
-| `get_active_impersonation()`              | caller's own live session              | —                     |
-| `impersonated_get_profile(session)`       | live session box                       | —                     |
-| `impersonated_list_listings(session,…)`   | live session box                       | —                     |
+| Function                                | Gate                                           | Audit                 |
+| --------------------------------------- | ---------------------------------------------- | --------------------- |
+| `admin_list_audit(...)`                 | `audit_logs:view`                              | —                     |
+| `admin_audit_facets()`                  | `audit_logs:view`                              | —                     |
+| `admin_audit_stats(days)`               | `audit_logs:view`                              | —                     |
+| `begin_impersonation(target, reason)`   | super-admin only + `impersonation:use` step-up | `impersonation.start` |
+| `end_impersonation(session)`            | session owner                                  | `impersonation.end`   |
+| `get_active_impersonation()`            | caller's own live session                      | —                     |
+| `impersonated_get_profile(session)`     | live session box                               | —                     |
+| `impersonated_list_listings(session,…)` | live session box                               | —                     |
 
 `begin_impersonation` refuses: a non-super caller, self-targets, super-admin
 targets, a reason under 5 characters, a second concurrent session, and aal1
