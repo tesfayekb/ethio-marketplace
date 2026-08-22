@@ -117,7 +117,10 @@ export function PermissionMatrix({
                     const reserved = !row.assignable;
                     const baseline = row.assignable && row.userBaseline;
                     const locked =
-                      isSystem || (row.granted && row.isCore) || reserved || (baseline && !row.granted);
+                      isSystem ||
+                      (row.granted && row.isCore) ||
+                      reserved ||
+                      (baseline && !row.granted);
                     const slug = permissionSlug(row);
                     return (
                       <li

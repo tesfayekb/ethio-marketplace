@@ -2,163 +2,163 @@
 
 ```yaml
 - generic [ref=e2]:
-  - generic [ref=e3]:
-    - link "Skip to content" [ref=e4] [cursor=pointer]:
-      - /url: "#main"
-    - generic [ref=e5]:
-      - link "ethio.com" [ref=e7] [cursor=pointer]:
-        - /url: /
-        - generic [ref=e9]:
-          - img [ref=e10]
-          - generic [ref=e15]:
-            - generic [ref=e16]: ethio.com
-            - generic [ref=e17]:
-              - generic [ref=e18]: M
-              - generic [ref=e19]: A
-              - generic [ref=e20]: R
-              - generic [ref=e21]: K
-              - generic [ref=e22]: E
-              - generic [ref=e23]: T
-              - generic [ref=e24]: P
-              - generic [ref=e25]: L
-              - generic [ref=e26]: A
-              - generic [ref=e27]: C
-              - generic [ref=e28]: E
-      - banner [ref=e31]:
-        - button "Collapse sidebar" [ref=e32]:
-          - img [ref=e33]
-        - search [ref=e36]:
-          - generic [ref=e37]:
-            - generic [ref=e38]: Search listings
-            - img
-            - searchbox "Search listings" [ref=e39]
-        - generic [ref=e40]:
-          - button "Language" [ref=e41]:
-            - generic [ref=e42]: English
-            - img [ref=e43]
-          - button "Switch light or dark theme" [ref=e45]:
-            - img [ref=e46]
-          - link "Sign in" [ref=e52] [cursor=pointer]:
-            - /url: /auth
-    - complementary [ref=e53]:
-      - heading "Marketplace" [level=2] [ref=e55]
-      - navigation "Categories" [ref=e57]:
-        - heading "Categories" [level=2] [ref=e58]
-        - list [ref=e59]:
-          - listitem [ref=e60]:
-            - link "All categories" [ref=e61] [cursor=pointer]:
-              - /url: /
-              - img [ref=e62]
-              - generic [ref=e65]: All categories
-          - listitem [ref=e66]:
-            - link "Electronics" [ref=e67] [cursor=pointer]:
-              - /url: /c/electronics
-              - img [ref=e68]
-              - generic [ref=e71]: Electronics
-          - listitem [ref=e72]:
-            - link "Fashion" [ref=e73] [cursor=pointer]:
-              - /url: /c/fashion
-              - img [ref=e74]
-              - generic [ref=e76]: Fashion
-          - listitem [ref=e77]:
-            - link "Automotive" [ref=e78] [cursor=pointer]:
-              - /url: /c/automotive
-              - img [ref=e79]
-              - generic [ref=e82]: Automotive
-          - listitem [ref=e83]:
-            - link "Home & Garden" [ref=e84] [cursor=pointer]:
-              - /url: /c/home-garden
-              - img [ref=e85]
-              - generic [ref=e88]: Home & Garden
-          - listitem [ref=e89]:
-            - link "Services" [ref=e90] [cursor=pointer]:
-              - /url: /c/services
-              - img [ref=e91]
-              - generic [ref=e93]: Services
-          - listitem [ref=e94]:
-            - link "Sports & Leisure" [ref=e95] [cursor=pointer]:
-              - /url: /c/sports-leisure
-              - img [ref=e96]
-              - generic [ref=e99]: Sports & Leisure
-          - listitem [ref=e100]:
-            - link "Real Estate" [ref=e101] [cursor=pointer]:
-              - /url: /c/real-estate
-              - img [ref=e102]
-              - generic [ref=e105]: Real Estate
-          - listitem [ref=e106]:
-            - link "Jobs" [ref=e107] [cursor=pointer]:
-              - /url: /c/jobs
-              - img [ref=e108]
-              - generic [ref=e111]: Jobs
-          - listitem [ref=e112]:
-            - link "Pets & Animals" [ref=e113] [cursor=pointer]:
-              - /url: /c/pets-animals
-              - img [ref=e114]
-              - generic [ref=e119]: Pets & Animals
-          - listitem [ref=e120]:
-            - link "Babies & Kids" [ref=e121] [cursor=pointer]:
-              - /url: /c/babies-kids
-              - img [ref=e122]
-              - generic [ref=e125]: Babies & Kids
-          - listitem [ref=e126]:
-            - link "Beauty & Personal Care" [ref=e127] [cursor=pointer]:
-              - /url: /c/beauty-personal-care
-              - img [ref=e128]
-              - generic [ref=e131]: Beauty & Personal Care
-          - listitem [ref=e132]:
-            - link "Agriculture & Farming" [ref=e133] [cursor=pointer]:
-              - /url: /c/agriculture-farming
-              - img [ref=e134]
-              - generic [ref=e137]: Agriculture & Farming
-          - listitem [ref=e138]:
-            - link "Commercial Equipment" [ref=e139] [cursor=pointer]:
-              - /url: /c/commercial-equipment
-              - img [ref=e140]
-              - generic [ref=e143]: Commercial Equipment
-    - generic [ref=e144]:
-      - generic [ref=e145]:
-        - generic [ref=e146]:
-          - img [ref=e147]
-          - generic [ref=e150]: Area
-        - button "Country" [ref=e151]:
-          - generic [ref=e152]: Country
-          - img [ref=e153]
-      - main [ref=e155]:
-        - navigation "Breadcrumb" [ref=e156]:
-          - list [ref=e157]:
-            - listitem [ref=e158]:
-              - link "Home" [disabled] [ref=e159]
-        - generic [ref=e160]:
-          - heading "Listings near you" [level=1] [ref=e161]
-          - generic [ref=e163]:
-            - img [ref=e164]
-            - heading "Nothing here yet in your area" [level=2] [ref=e169]
-            - paragraph [ref=e170]: Be the first to post a listing.
-  - contentinfo [ref=e172]:
-    - generic [ref=e173]:
-      - navigation "Company" [ref=e174]:
-        - heading "Company" [level=2] [ref=e175]
-        - list [ref=e176]:
-          - listitem [ref=e177]:
-            - link "Home" [ref=e178] [cursor=pointer]:
-              - /url: /
-          - listitem [ref=e179]:
-            - generic [ref=e180]: About
-          - listitem [ref=e181]:
-            - generic [ref=e182]: How it works
-      - navigation "Help" [ref=e183]:
-        - heading "Help" [level=2] [ref=e184]
-        - list [ref=e185]:
-          - listitem [ref=e186]:
-            - generic [ref=e187]: Safety
-          - listitem [ref=e188]:
-            - generic [ref=e189]: Contact
-      - navigation "Legal" [ref=e190]:
-        - heading "Legal" [level=2] [ref=e191]
-        - list [ref=e192]:
-          - listitem [ref=e193]:
-            - generic [ref=e194]: Terms
-          - listitem [ref=e195]:
-            - generic [ref=e196]: Privacy
-    - paragraph [ref=e198]: © 2026 ethio.com — All rights reserved.
+    - generic [ref=e3]:
+        - link "Skip to content" [ref=e4] [cursor=pointer]:
+            - /url: "#main"
+        - generic [ref=e5]:
+            - link "ethio.com" [ref=e7] [cursor=pointer]:
+                - /url: /
+                - generic [ref=e9]:
+                    - img [ref=e10]
+                    - generic [ref=e15]:
+                        - generic [ref=e16]: ethio.com
+                        - generic [ref=e17]:
+                            - generic [ref=e18]: M
+                            - generic [ref=e19]: A
+                            - generic [ref=e20]: R
+                            - generic [ref=e21]: K
+                            - generic [ref=e22]: E
+                            - generic [ref=e23]: T
+                            - generic [ref=e24]: P
+                            - generic [ref=e25]: L
+                            - generic [ref=e26]: A
+                            - generic [ref=e27]: C
+                            - generic [ref=e28]: E
+            - banner [ref=e31]:
+                - button "Collapse sidebar" [ref=e32]:
+                    - img [ref=e33]
+                - search [ref=e36]:
+                    - generic [ref=e37]:
+                        - generic [ref=e38]: Search listings
+                        - img
+                        - searchbox "Search listings" [ref=e39]
+                - generic [ref=e40]:
+                    - button "Language" [ref=e41]:
+                        - generic [ref=e42]: English
+                        - img [ref=e43]
+                    - button "Switch light or dark theme" [ref=e45]:
+                        - img [ref=e46]
+                    - link "Sign in" [ref=e52] [cursor=pointer]:
+                        - /url: /auth
+        - complementary [ref=e53]:
+            - heading "Marketplace" [level=2] [ref=e55]
+            - navigation "Categories" [ref=e57]:
+                - heading "Categories" [level=2] [ref=e58]
+                - list [ref=e59]:
+                    - listitem [ref=e60]:
+                        - link "All categories" [ref=e61] [cursor=pointer]:
+                            - /url: /
+                            - img [ref=e62]
+                            - generic [ref=e65]: All categories
+                    - listitem [ref=e66]:
+                        - link "Electronics" [ref=e67] [cursor=pointer]:
+                            - /url: /c/electronics
+                            - img [ref=e68]
+                            - generic [ref=e71]: Electronics
+                    - listitem [ref=e72]:
+                        - link "Fashion" [ref=e73] [cursor=pointer]:
+                            - /url: /c/fashion
+                            - img [ref=e74]
+                            - generic [ref=e76]: Fashion
+                    - listitem [ref=e77]:
+                        - link "Automotive" [ref=e78] [cursor=pointer]:
+                            - /url: /c/automotive
+                            - img [ref=e79]
+                            - generic [ref=e82]: Automotive
+                    - listitem [ref=e83]:
+                        - link "Home & Garden" [ref=e84] [cursor=pointer]:
+                            - /url: /c/home-garden
+                            - img [ref=e85]
+                            - generic [ref=e88]: Home & Garden
+                    - listitem [ref=e89]:
+                        - link "Services" [ref=e90] [cursor=pointer]:
+                            - /url: /c/services
+                            - img [ref=e91]
+                            - generic [ref=e93]: Services
+                    - listitem [ref=e94]:
+                        - link "Sports & Leisure" [ref=e95] [cursor=pointer]:
+                            - /url: /c/sports-leisure
+                            - img [ref=e96]
+                            - generic [ref=e99]: Sports & Leisure
+                    - listitem [ref=e100]:
+                        - link "Real Estate" [ref=e101] [cursor=pointer]:
+                            - /url: /c/real-estate
+                            - img [ref=e102]
+                            - generic [ref=e105]: Real Estate
+                    - listitem [ref=e106]:
+                        - link "Jobs" [ref=e107] [cursor=pointer]:
+                            - /url: /c/jobs
+                            - img [ref=e108]
+                            - generic [ref=e111]: Jobs
+                    - listitem [ref=e112]:
+                        - link "Pets & Animals" [ref=e113] [cursor=pointer]:
+                            - /url: /c/pets-animals
+                            - img [ref=e114]
+                            - generic [ref=e119]: Pets & Animals
+                    - listitem [ref=e120]:
+                        - link "Babies & Kids" [ref=e121] [cursor=pointer]:
+                            - /url: /c/babies-kids
+                            - img [ref=e122]
+                            - generic [ref=e125]: Babies & Kids
+                    - listitem [ref=e126]:
+                        - link "Beauty & Personal Care" [ref=e127] [cursor=pointer]:
+                            - /url: /c/beauty-personal-care
+                            - img [ref=e128]
+                            - generic [ref=e131]: Beauty & Personal Care
+                    - listitem [ref=e132]:
+                        - link "Agriculture & Farming" [ref=e133] [cursor=pointer]:
+                            - /url: /c/agriculture-farming
+                            - img [ref=e134]
+                            - generic [ref=e137]: Agriculture & Farming
+                    - listitem [ref=e138]:
+                        - link "Commercial Equipment" [ref=e139] [cursor=pointer]:
+                            - /url: /c/commercial-equipment
+                            - img [ref=e140]
+                            - generic [ref=e143]: Commercial Equipment
+        - generic [ref=e144]:
+            - generic [ref=e145]:
+                - generic [ref=e146]:
+                    - img [ref=e147]
+                    - generic [ref=e150]: Area
+                - button "Country" [ref=e151]:
+                    - generic [ref=e152]: Country
+                    - img [ref=e153]
+            - main [ref=e155]:
+                - navigation "Breadcrumb" [ref=e156]:
+                    - list [ref=e157]:
+                        - listitem [ref=e158]:
+                            - link "Home" [disabled] [ref=e159]
+                - generic [ref=e160]:
+                    - heading "Listings near you" [level=1] [ref=e161]
+                    - generic [ref=e163]:
+                        - img [ref=e164]
+                        - heading "Nothing here yet in your area" [level=2] [ref=e169]
+                        - paragraph [ref=e170]: Be the first to post a listing.
+    - contentinfo [ref=e172]:
+        - generic [ref=e173]:
+            - navigation "Company" [ref=e174]:
+                - heading "Company" [level=2] [ref=e175]
+                - list [ref=e176]:
+                    - listitem [ref=e177]:
+                        - link "Home" [ref=e178] [cursor=pointer]:
+                            - /url: /
+                    - listitem [ref=e179]:
+                        - generic [ref=e180]: About
+                    - listitem [ref=e181]:
+                        - generic [ref=e182]: How it works
+            - navigation "Help" [ref=e183]:
+                - heading "Help" [level=2] [ref=e184]
+                - list [ref=e185]:
+                    - listitem [ref=e186]:
+                        - generic [ref=e187]: Safety
+                    - listitem [ref=e188]:
+                        - generic [ref=e189]: Contact
+            - navigation "Legal" [ref=e190]:
+                - heading "Legal" [level=2] [ref=e191]
+                - list [ref=e192]:
+                    - listitem [ref=e193]:
+                        - generic [ref=e194]: Terms
+                    - listitem [ref=e195]:
+                        - generic [ref=e196]: Privacy
+        - paragraph [ref=e198]: © 2026 ethio.com — All rights reserved.
 ```
