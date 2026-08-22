@@ -7,22 +7,35 @@
  * reporter output into ONE committed markdown file the supervisor reads by
  * clone: docs/tracking/e2e-last-failure.md.
  *
+ * U2a / INC-083 rule 2 — EVIDENCE COMES FROM error-context.md, NOT FROM STEPS.
+ * Playwright's JSON reporter emits NO `steps` array (verified against a real
+ * captured run: scripts/fixtures/e2e-results-sample.json, `steps: 0` on every
+ * result), so the old failed-step walker and the "last steps before timeout"
+ * block could never fire. Both are REMOVED. What Playwright does write for a
+ * failure is test-results/<slug>/error-context.md — the page snapshot at the
+ * moment of death — and CI now uploads those; the reporter quotes each
+ * failure's last 20 lines.
+ *
  * Laws it honours:
  *  - F1/F4: nothing secret is ever written. Anything shaped like an auth-token
  *    storage key or a JWT is redacted before it reaches the file.
- *  - Guard self-test (docs/features/ci-guards.md): SELF_TEST=1 renders a
- *    bundled fixture with two failures and asserts both are present — a
- *    reporter that only ever prints "no failures" proves nothing.
+ *  - Guard self-test (docs/features/ci-guards.md): SELF_TEST=1 renders REAL
+ *    captured fixtures and asserts both failures, the quoted context and the
+ *    missing-context branch are present — a reporter that only ever prints "no
+ *    failures" proves nothing. CLASS RULE: reporter fixtures are captured from
+ *    real output, never authored from assumption.
  */
+
+import { readdirSync, readFileSync, statSync } from "node:fs";
 
 const OUT = "docs/tracking/e2e-last-failure.md";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
+const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
 
-type PwStep = { title?: string; error?: unknown; steps?: PwStep[]; duration?: number };
-type PwResult = { status?: string; error?: { message?: string }; steps?: PwStep[] };
+type PwResult = { status?: string; error?: { message?: string } };
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
-type PwSpec = { title?: string; ok?: boolean; tests?: PwTest[] };
-type PwSuite = { title?: string; specs?: PwSpec[]; suites?: PwSuite[] };
+type PwSpec = { title?: string; ok?: boolean; file?: string; tests?: PwTest[] };
+type PwSuite = { title?: string; file?: string; specs?: PwSpec[]; suites?: PwSuite[] };
 type PwJson = { suites?: PwSuite[]; stats?: { expected?: number; skipped?: number } };
 
 // eslint-disable-next-line no-control-regex -- stripping real ANSI colour codes is the point
@@ -34,51 +47,133 @@ export function redact(input: string): string {
   return input.replace(ANSI, "").replace(JWT, "[redacted-jwt]").replace(STORAGE_KEY, "[redacted]");
 }
 
-/** The innermost step that carries an error (or the last one attempted). */
-function innermostFailedStep(steps: PwStep[] | undefined): string | null {
-  if (!steps || steps.length === 0) return null;
-  const failed = steps.filter((s) => s.error !== undefined);
-  const pool = failed.length > 0 ? failed : [steps[steps.length - 1]!];
-  const candidate = pool[pool.length - 1]!;
-  return innermostFailedStep(candidate.steps) ?? candidate.title ?? null;
+/* -------------------------------------------------------------------------- */
+/* error-context.md location                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Playwright's own output-directory sanitiser: every character outside
+ * [A-Za-z0-9_-] collapses to a single dash, and leading/trailing dashes are
+ * trimmed. (Observed verbatim on the captured run: "CAP-1 a missing testid
+ * fails with a locator error" -> "CAP-1-a-missing-testid-fails-with-a-locator-error".)
+ */
+export function sanitizeSlug(input: string): string {
+  return input
+    .replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
-/** Every leaf step (a step with no children), in execution order. */
-export function leafSteps(steps: PwStep[] | undefined): { title: string; duration: number }[] {
-  const out: { title: string; duration: number }[] = [];
-  for (const step of steps ?? []) {
-    if (step.steps && step.steps.length > 0) {
-      out.push(...leafSteps(step.steps));
-    } else {
-      out.push({ title: step.title ?? "(untitled step)", duration: step.duration ?? 0 });
+/** `e2e/admin-roles.spec.ts` -> `admin-roles` (Playwright drops the extensions). */
+function specBase(file: string): string {
+  const base = file.split("/").pop() ?? file;
+  return base.replace(/\.(spec|test)\.[tj]sx?$/, "").replace(/\.[tj]sx?$/, "");
+}
+
+/**
+ * THE MATCHING RULE (stated, because it is the whole mechanism).
+ *
+ * Playwright names a failure's output directory
+ *   `<spec-base>-<test-title>-<project>`
+ * sanitised as above, and — when that exceeds its length budget — TRUNCATES
+ * the middle, splicing in a five-hex-digit hash:
+ *   `tmp-capture-CAP-1-a-missin-57ad1--fails-with-a-locator-error-desktop-1280`
+ * (captured, real). So a candidate directory matches a failure when
+ *   1. it ends with `-<sanitised project name>`, and
+ *   2. the remainder either equals the sanitised `<spec-base>-<title>` core, or
+ *      splits at some `-<5 hex>-` marker into a prefix and a suffix of it.
+ * Anything else is not this failure's directory, and the reporter says so
+ * rather than quoting a neighbour's snapshot.
+ */
+export function matchContextDir(
+  candidates: string[],
+  spec: { file: string; title: string; project: string },
+): string | null {
+  const core = sanitizeSlug(`${specBase(spec.file)}-${spec.title}`);
+  const projectSlug = sanitizeSlug(spec.project);
+  const suffix = `-${projectSlug}`;
+
+  for (const candidate of candidates) {
+    if (!candidate.endsWith(suffix)) continue;
+    const body = candidate.slice(0, candidate.length - suffix.length);
+    if (body === core) return candidate;
+
+    const marker = /-[0-9a-f]{5}-/g;
+    let hit: RegExpExecArray | null;
+    while ((hit = marker.exec(body)) !== null) {
+      const head = body.slice(0, hit.index);
+      const tail = body.slice(hit.index + hit[0].length);
+      if (core.startsWith(head) && core.endsWith(tail)) return candidate;
     }
   }
-  return out;
+  return null;
 }
 
-/** True when any step in the tree carries an error. */
-function hasErrorStep(steps: PwStep[]): boolean {
-  return steps.some((s) => s.error !== undefined || hasErrorStep(s.steps ?? []));
+/** The human-readable slug a failure WOULD have; printed when nothing matches. */
+export function contextSlug(spec: { file: string; title: string; project: string }): string {
+  return sanitizeSlug(`${specBase(spec.file)}-${spec.title}-${spec.project}`);
 }
+
+/**
+ * Walks a downloaded artifact root and indexes every error-context.md by the
+ * name of the directory that holds it (the Playwright slug).
+ */
+export function collectContextFiles(root: string): Map<string, string> {
+  const found = new Map<string, string>();
+  const walk = (dir: string, depth: number) => {
+    if (depth > 8) return;
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return; // an absent or unreadable root is simply "no context uploaded"
+    }
+    for (const entry of entries) {
+      const path = `${dir}/${entry}`;
+      let isDir = false;
+      try {
+        isDir = statSync(path).isDirectory();
+      } catch {
+        continue;
+      }
+      if (isDir) {
+        walk(path, depth + 1);
+      } else if (entry === "error-context.md") {
+        const slug = dir.split("/").pop() ?? dir;
+        if (!found.has(slug)) found.set(slug, path);
+      }
+    }
+  };
+  walk(root, 0);
+  return found;
+}
+
+/** Last `count` lines of a context file, redacted. */
+export function contextTail(path: string, count = 20): string {
+  const text = redact(readFileSync(path, "utf8"));
+  return text.replace(/\s+$/, "").split("\n").slice(-count).join("\n");
+}
+
+/* -------------------------------------------------------------------------- */
+/* collection + rendering                                                       */
+/* -------------------------------------------------------------------------- */
 
 type Failure = {
   project: string;
   title: string;
   message: string;
-  step: string | null;
-  /**
-   * PART A — only populated when the walker found NO error-bearing step (a
-   * test-level timeout). The final leaf steps read as a duration profile, so a
-   * cumulative-slowness death names itself instead of rendering an empty body.
-   */
-  lastSteps: { title: string; duration: number }[];
+  /** Spec file as the JSON reporter records it, e.g. `admin-roles.spec.ts`. */
+  file: string;
+  /** Bare test title (no suite trail) — the matching rule's input. */
+  specTitle: string;
 };
 
 export function collect(json: PwJson): { failures: Failure[]; passed: number; skipped: number } {
   const failures: Failure[] = [];
 
-  const walk = (suite: PwSuite, trail: string[]) => {
+  const walk = (suite: PwSuite, trail: string[], file: string) => {
     const path = suite.title ? [...trail, suite.title] : trail;
+    const suiteFile = suite.file ?? file;
     for (const spec of suite.specs ?? []) {
       for (const test of spec.tests ?? []) {
         const status = test.status ?? "";
@@ -86,24 +181,19 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
         const result = (test.results ?? []).find((r) => r.status && r.status !== "passed");
         const raw = result?.error?.message ?? "(no error message captured)";
         const message = redact(raw).split("\n").slice(0, 40).join("\n");
-        const errorBearing = (result?.steps ?? []).length > 0 && hasErrorStep(result!.steps!);
         failures.push({
           project: test.projectName ?? "unknown",
           title: redact([...path, spec.title ?? "(untitled)"].join(" › ")),
           message,
-          step: errorBearing ? redact(innermostFailedStep(result!.steps)!) : null,
-          lastSteps: errorBearing
-            ? []
-            : leafSteps(result?.steps)
-                .slice(-5)
-                .map((st) => ({ title: redact(st.title), duration: st.duration })),
+          file: spec.file ?? suiteFile,
+          specTitle: spec.title ?? "(untitled)",
         });
       }
     }
-    for (const child of suite.suites ?? []) walk(child, path);
+    for (const child of suite.suites ?? []) walk(child, path, suiteFile);
   };
 
-  for (const suite of json.suites ?? []) walk(suite, []);
+  for (const suite of json.suites ?? []) walk(suite, [], suite.file ?? "");
 
   return {
     failures,
@@ -134,6 +224,7 @@ export function sourceLabel(artifactDir: string): string {
 export function renderSources(
   sources: Source[],
   meta: { runId: string; runUrl: string; sha: string },
+  contexts: Map<string, string> = new Map(),
 ): string {
   let passed = 0;
   let skipped = 0;
@@ -167,26 +258,31 @@ export function renderSources(
     return lines.join("\n");
   }
 
+  const candidates = [...contexts.keys()];
+
   for (const f of failures) {
     lines.push(
       `## ${f.title}`,
       "",
       `- Source: \`${f.source}\``,
       `- Project: \`${f.project}\``,
-      `- Failed step: ${f.step ? `\`${f.step}\`` : "(none recorded)"}`,
       "",
       "```text",
       f.message,
       "```",
       "",
     );
-    // PART A: no failed step means a test-level timeout — print where the time
-    // went instead of an empty body. Timeouts are never loosened as a
-    // substitute for this instrumentation.
-    if (!f.step && f.lastSteps.length > 0) {
-      lines.push("Last steps before timeout:", "", "```text");
-      for (const st of f.lastSteps) lines.push(`${st.duration}ms  ${st.title}`);
-      lines.push("```", "");
+
+    // INC-083 rule 2: the page snapshot Playwright wrote at the moment of
+    // death is the diagnosable evidence — quote it, or say plainly that it is
+    // missing. Never leave a failure body without one of the two.
+    const spec = { file: f.file, title: f.specTitle, project: f.project };
+    const dir = matchContextDir(candidates, spec);
+    const slug = contextSlug(spec);
+    if (dir) {
+      lines.push("Context:", "", "```text", contextTail(contexts.get(dir)!), "```", "");
+    } else {
+      lines.push(`Context: context file not found for \`${slug}\``, "");
     }
   }
 
@@ -240,24 +336,33 @@ async function main() {
   };
 
   if (process.env["SELF_TEST"] === "1") {
+    // BOTH fixtures are REAL captured output (a two-failure Playwright run:
+    // one locator failure with a page snapshot, one test-level timeout whose
+    // context directory is deliberately NOT bundled).
     const fixture = (await Bun.file(FIXTURE).json()) as PwJson;
+    const contexts = collectContextFiles(CONTEXT_FIXTURE);
+    if (contexts.size !== 1) {
+      console.error(`SELF-TEST FAILED — expected 1 bundled context file, found ${contexts.size}.`);
+      process.exit(1);
+    }
     const out = renderSources(
       [
         { label: "shard 2", json: fixture, logTail: null },
         { label: "smoke", json: null, logTail: "Error: browserType.launch failed\nexit code 1" },
       ],
       { runId: "self-test", runUrl: "", sha: "self-test" },
+      contexts,
     );
     const required = [
-      "SO-2 settings: confirmed sign-out empties the gated surface",
-      "AU-3 admin can deactivate a user",
-      "waitForURL(/\\/$/)",
-      "expect.toBeVisible",
+      "CAP-1 a missing testid fails with a locator error",
+      "CAP-2 a test-level timeout records no failed step",
+      "Test timeout of 20000ms exceeded.",
       "- Source: `shard 2`",
-      "footer never covers the rail's Sign out",
-      "Last steps before timeout:",
-      "60000ms  expect.toBeVisible",
-      "1200ms  locator.boundingBox",
+      // The quoted tail of the REAL page snapshot.
+      "Context:",
+      "© 2026 ethio.com — All rights reserved.",
+      // The no-context branch, named by the slug it looked for.
+      "Context: context file not found for `tmp-capture-CAP-2-a-test-level-timeout-records-no-failed-step-desktop-1280`",
       "smoke: no results file — the process failed outside test results (setup/teardown/preflight).",
       "browserType.launch failed",
     ];
@@ -278,7 +383,7 @@ async function main() {
       process.exit(1);
     }
     console.log(
-      "Self-test OK: failures, steps, source labels, crash quoting and redaction verified.",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting and redaction verified (real captured fixtures).",
     );
     return;
   }
@@ -294,6 +399,7 @@ async function main() {
   // source, and quotes the log tail of any source that produced no results.
   const dir = process.env["E2E_RESULTS_DIR"];
   const logsDir = process.env["E2E_LOGS_DIR"];
+  const contextsDir = process.env["E2E_CONTEXT_DIR"];
   const expected = (process.env["E2E_EXPECTED_SOURCES"] ?? "smoke,1,2,3,4")
     .split(",")
     .map((s) => s.trim())
@@ -322,8 +428,12 @@ async function main() {
     sources.push({ label: "all", json, logTail: null });
   }
 
-  await Bun.write(OUT, renderSources(sources, meta));
-  console.log(`Wrote ${OUT} (${found}/${sources.length} source result file(s) found).`);
+  const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();
+
+  await Bun.write(OUT, renderSources(sources, meta, contexts));
+  console.log(
+    `Wrote ${OUT} (${found}/${sources.length} source result file(s), ${contexts.size} context file(s) found).`,
+  );
 }
 
 if (import.meta.main) await main();
