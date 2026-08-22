@@ -42,7 +42,7 @@ export default defineConfig({
     // pipeline byte-identical to the prod build in both environments, so the
     // hash the server prints is the hash the client build emitted.
     ...(process.env["VITE_E2E"] === "1"
-      ? { build: { minify: false as const, sourcemap: true } }
+      ? { build: { minify: false as const, sourcemap: true, cssMinify: true as const } }
       : {}),
 
     define: {
