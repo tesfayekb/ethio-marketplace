@@ -87,7 +87,7 @@ export function AdminRolesList() {
         rows={data ?? []}
         rowKey={(role) => role.id}
         rowTestId={(role) => `role-row-${role.name}`}
-        rowHref={(role) => `/admin/roles/${role.id}`}
+        rowHref={(role) => ({ to: "/admin/roles/$roleId", params: { roleId: role.id } })}
         caption={t("admin.roles.title")}
         loading={isLoading}
         loadingState={
