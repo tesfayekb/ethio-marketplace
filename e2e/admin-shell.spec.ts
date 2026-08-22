@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 import { ADMIN_SECTIONS, sectionForPath } from "../src/features/admin/sections";
 import { en } from "../src/i18n/locales/en";

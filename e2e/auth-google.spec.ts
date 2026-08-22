@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { waitForHydration } from "./helpers/ui";
