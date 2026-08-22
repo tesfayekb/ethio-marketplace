@@ -490,8 +490,14 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
+      # INC-084e — DOWNLOAD RESILIENCE. actions/download-artifact@v4 FAILS the
+      # step when a `pattern` matches nothing (e.g. every upstream job died
+      # before uploading). A missing or partial artifact set must never kill
+      # the job before the reporter runs: the reporter's whole purpose is to
+      # describe exactly that situation.
       - name: Download shard results
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           pattern: e2e-results-*
           path: shard-results
@@ -504,6 +510,11 @@ jobs:
           pattern: e2e-log-*
           path: shard-logs
       # Context files only exist for RED jobs; a green run downloads nothing.
+      # LAYOUT (rehearsed in scripts/fixtures): with `pattern` and the default
+      # merge-multiple:false, EACH artifact lands in its OWN subdirectory named
+      # after the artifact — shard-contexts/e2e-context-smoke/test-results/<slug>/
+      # error-context.md. The reporter walks for error-context.md by name, so
+      # it handles that shape, the merged-flat shape and the empty directory.
       - name: Download error contexts
         uses: actions/download-artifact@v4
         continue-on-error: true
@@ -525,9 +536,17 @@ jobs:
         run: |
           set -u
           # The self-test runs FIRST: a reporter that only ever prints "no
-          # failures" proves nothing.
-          SELF_TEST=1 bun scripts/e2e-failure-report.ts
-          bun scripts/e2e-failure-report.ts
+          # failures" proves nothing. It never writes the live report, so a
+          # self-test failure must not stop us from publishing one.
+          selftest=0
+          SELF_TEST=1 bun scripts/e2e-failure-report.ts || selftest=$?
+          # NEVER-SILENT LAW (INC-084e): the reporter writes a file even when
+          # it crashes (the file then names the crash), so a non-zero exit is
+          # recorded and re-raised AFTER the file is committed — never allowed
+          # to skip publication, which is exactly how ce7ec6c went unreported.
+          reporter=0
+          bun scripts/e2e-failure-report.ts || reporter=$?
+
           cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
           # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
           # the file is derived state owned by this run, so rewriting it on top
@@ -558,7 +577,17 @@ jobs:
           if [ "$pushed" -ne 1 ]; then
             echo "::warning::E2E failure report push failed after retries"
           fi
+          # The report is published; NOW the reporter's own health is raised.
+          if [ "$selftest" -ne 0 ]; then
+            echo "::error::E2E failure reporter self-test failed (exit ${selftest})"
+            exit "$selftest"
+          fi
+          if [ "$reporter" -ne 0 ]; then
+            echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"
+            exit "$reporter"
+          fi
           exit 0
+
       # Law F4 — the merged job's conclusion IS the E2E verdict. A red shard or
       # a red smoke tier reddens this row; bookkeeping never masks it.
       - name: Verdict

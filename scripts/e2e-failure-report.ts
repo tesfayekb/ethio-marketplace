@@ -31,6 +31,8 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 const OUT = "docs/tracking/e2e-last-failure.md";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
+const LAYOUT_FIXTURES = "scripts/fixtures";
+const MALFORMED_FIXTURE = "scripts/fixtures/e2e-results-malformed.json";
 
 type PwResult = { status?: string; error?: { message?: string } };
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
@@ -320,6 +322,86 @@ export function renderGreen(meta: { runId: string; runUrl: string; sha: string }
   ].join("\n");
 }
 
+/**
+ * NEVER-SILENT LAW (INC-084e). The reporter's first live run died namelessly:
+ * a source's results.json was unreadable, the exception escaped `main`, no
+ * file was written, and the only visible signal was the ABSENCE of a report
+ * commit while ci-status published normally. A reporter that can die without
+ * naming itself is worse than no reporter, so every crash now renders into the
+ * very file everyone reads — header, error, and a best-effort titles-only
+ * failure list scraped from whatever results.json can still be parsed.
+ */
+export function renderCrash(
+  error: unknown,
+  meta: { runId: string; runUrl: string; sha: string },
+  titles: string[],
+): string {
+  const err = error instanceof Error ? error : new Error(String(error));
+  const firstStackLine = (err.stack ?? "").split("\n")[1]?.trim() ?? "(no stack)";
+  return [
+    "# Last E2E failure (auto-generated — do not edit by hand)",
+    "",
+    `- Run: ${meta.runUrl || meta.runId}`,
+    `- Commit: \`${meta.sha}\``,
+    `- Written (UTC): ${new Date().toISOString()}`,
+    "",
+    `REPORTER ERROR: ${redact(err.message)} — ${redact(firstStackLine)}`,
+    "",
+    "## Best-effort failure list (titles only)",
+    "",
+    ...(titles.length === 0
+      ? ["(no failure titles could be recovered from the results files)"]
+      : titles.map((t) => `- ${redact(t)}`)),
+    "",
+  ].join("\n");
+}
+
+/**
+ * Titles-only rescue pass for the crash path: reads every results.json it can,
+ * ignores every one it cannot, and never throws.
+ */
+export async function rescueTitles(resultsDir: string | undefined): Promise<string[]> {
+  const titles: string[] = [];
+  if (!resultsDir) return titles;
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(resultsDir);
+  } catch {
+    return titles;
+  }
+  for (const entry of entries) {
+    const parsed = await readJson(`${resultsDir}/${entry}/results.json`);
+    if (!parsed.json) continue;
+    try {
+      for (const f of collect(parsed.json).failures)
+        titles.push(`${sourceLabel(entry)}: ${f.title}`);
+    } catch {
+      /* a shape we cannot walk contributes nothing; it must never throw */
+    }
+  }
+  return titles;
+}
+
+/**
+ * Reads a results.json defensively. ROOT CAUSE OF INC-084e: an empty or
+ * truncated results.json (a job killed mid-write) made `file.json()` throw
+ * from `main`, killing the reporter before it wrote anything. A source we
+ * cannot parse is now exactly what it is — a source without usable results —
+ * and it is QUOTED in the report, never silently counted as zero.
+ */
+export async function readJson(
+  path: string,
+): Promise<{ json: PwJson | null; error: string | null }> {
+  const file = Bun.file(path);
+  if (!(await file.exists())) return { json: null, error: null };
+  try {
+    return { json: (await file.json()) as PwJson, error: null };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { json: null, error: `results.json exists but could not be parsed: ${redact(message)}` };
+  }
+}
+
 /** Last `count` lines of a job log, redacted. */
 async function logTail(path: string, count = 40): Promise<string | null> {
   const file = Bun.file(path);
@@ -382,8 +464,69 @@ async function main() {
       console.error("SELF-TEST FAILED — secret-shaped text survived redaction.");
       process.exit(1);
     }
+
+    // INC-084e — LIVE-SHAPE REHEARSAL. actions/download-artifact@v4 with a
+    // `pattern` and merge-multiple:false drops EACH artifact into its own
+    // subdirectory named after the artifact; with merge-multiple:true they
+    // land flat; when no artifact matches, the path is an empty directory.
+    // All three shapes are permanent fixtures, because "it works on my
+    // hand-made directory" is exactly how the first live run died.
+    const layouts: [string, string, number][] = [
+      ["per-artifact subdir", `${LAYOUT_FIXTURES}/e2e-context-layout-subdir`, 1],
+      ["merged flat", `${LAYOUT_FIXTURES}/e2e-context-layout-flat`, 1],
+      ["zero artifacts", `${LAYOUT_FIXTURES}/e2e-context-layout-empty`, 0],
+      ["missing directory", `${LAYOUT_FIXTURES}/e2e-context-layout-absent`, 0],
+    ];
+    for (const [name, path, expectedCount] of layouts) {
+      const found = collectContextFiles(path);
+      if (found.size !== expectedCount) {
+        console.error(
+          `SELF-TEST FAILED — layout "${name}": expected ${expectedCount} context file(s), found ${found.size}.`,
+        );
+        process.exit(1);
+      }
+      // Every layout must still RENDER, with the missing-context branch when
+      // nothing matches — never a crash.
+      const rendered = renderSources(
+        [{ label: "smoke", json: fixture, logTail: null }],
+        { runId: "self-test", runUrl: "", sha: "self-test" },
+        found,
+      );
+      if (!rendered.includes("CAP-1 a missing testid fails with a locator error")) {
+        console.error(`SELF-TEST FAILED — layout "${name}" rendered no failure body.`);
+        process.exit(1);
+      }
+      if (expectedCount === 0 && !rendered.includes("Context: context file not found for")) {
+        console.error(`SELF-TEST FAILED — layout "${name}" lost the missing-context branch.`);
+        process.exit(1);
+      }
+      console.log(`  layout OK — ${name}: ${found.size} context file(s), report rendered.`);
+    }
+
+    // NEVER-SILENT LAW: a malformed results.json is (a) survivable as a source
+    // and (b) renderable as a REPORTER ERROR when something does escape.
+    const malformed = await readJson(MALFORMED_FIXTURE);
+    if (malformed.json !== null || !malformed.error) {
+      console.error("SELF-TEST FAILED — malformed results.json was not reported as unparseable.");
+      process.exit(1);
+    }
+    const crash = renderCrash(new Error("boom while rendering"), meta, [
+      "smoke: shell.spec.ts › drawer switcher",
+    ]);
+    for (const needle of [
+      "REPORTER ERROR: boom while rendering",
+      "## Best-effort failure list (titles only)",
+      "- smoke: shell.spec.ts › drawer switcher",
+      "- Commit: `",
+    ]) {
+      if (!crash.includes(needle)) {
+        console.error(`SELF-TEST FAILED — crash report missing: ${needle}`);
+        process.exit(1);
+      }
+    }
+
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting and redaction verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
@@ -410,22 +553,22 @@ async function main() {
 
   if (dir) {
     for (const id of expected) {
-      const path = `${dir}/e2e-results-${id}/results.json`;
-      const file = Bun.file(path);
-      const json = (await file.exists()) ? ((await file.json()) as PwJson) : null;
-      if (json) found += 1;
+      const parsed = await readJson(`${dir}/e2e-results-${id}/results.json`);
+      if (parsed.json) found += 1;
       sources.push({
         label: sourceLabel(`e2e-results-${id}`),
-        json,
-        logTail: json ? null : logsDir ? await logTail(`${logsDir}/e2e-log-${id}/${id}.log`) : null,
+        json: parsed.json,
+        logTail: parsed.json
+          ? null
+          : (parsed.error ??
+            (logsDir ? await logTail(`${logsDir}/e2e-log-${id}/${id}.log`) : null)),
       });
     }
   } else {
     const path = process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json";
-    const file = Bun.file(path);
-    const json = (await file.exists()) ? ((await file.json()) as PwJson) : null;
-    if (json) found += 1;
-    sources.push({ label: "all", json, logTail: null });
+    const parsed = await readJson(path);
+    if (parsed.json) found += 1;
+    sources.push({ label: "all", json: parsed.json, logTail: parsed.error });
   }
 
   const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();
@@ -436,4 +579,33 @@ async function main() {
   );
 }
 
-if (import.meta.main) await main();
+/**
+ * THE WRAPPER (INC-084e). Whatever happens inside `main`, this file gets
+ * written and the process exit code tells the truth. Self-test failures keep
+ * their own `process.exit(1)` path (they must not overwrite the live report).
+ */
+if (import.meta.main) {
+  try {
+    await main();
+  } catch (error) {
+    const meta = {
+      runId: process.env["GITHUB_RUN_ID"] ?? "local",
+      runUrl: process.env["E2E_RUN_URL"] ?? "",
+      sha: process.env["GITHUB_SHA"] ?? "local",
+    };
+    let titles: string[] = [];
+    try {
+      titles = await rescueTitles(process.env["E2E_RESULTS_DIR"]);
+    } catch {
+      /* the rescue pass is best-effort by definition */
+    }
+    try {
+      await Bun.write(OUT, renderCrash(error, meta, titles));
+      console.error(`REPORTER ERROR written to ${OUT}.`);
+    } catch (writeError) {
+      console.error("REPORTER ERROR could not be written:", writeError);
+    }
+    console.error(error);
+    process.exit(1);
+  }
+}

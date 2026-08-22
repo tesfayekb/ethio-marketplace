@@ -338,3 +338,20 @@ Two mechanisms enforce it:
   The one declared exception is `stepUpIfPrompted`, where exhaustion is a
   legitimate outcome (no gate opened because the session is already AAL2); the
   exception is commented in place.
+
+- **Self-report law (INC-084e).** The failure reporter writes
+  `docs/tracking/e2e-last-failure.md` on EVERY completed E2E run — green, red, or
+  its own crash. `scripts/e2e-failure-report.ts` wraps `main` in a top-level
+  catch that renders the run/commit header, `REPORTER ERROR: <message + first
+stack line>` and a best-effort titles-only failure list, then exits non-zero;
+  the workflow publishes that file first and re-raises the exit code afterwards,
+  and all three artifact downloads are `continue-on-error` so a missing or
+  partial artifact set can never kill the job before the reporter speaks. An
+  unreadable `results.json` is a source without results (quoted verbatim), and a
+  missing `E2E_CONTEXT_DIR` or unmatched slug is the ordinary
+  `context file not found` branch — never a crash. **New CI plumbing rehearses
+  the live runner layout in fixtures before first deploy:** both
+  `actions/download-artifact@v4` shapes (per-artifact subdirectory with
+  `merge-multiple:false`, merged flat) plus the zero-artifact directory are
+  permanent self-test fixtures (`scripts/fixtures/e2e-context-layout-*`), as is
+  the malformed-results case (`scripts/fixtures/e2e-results-malformed.json`).

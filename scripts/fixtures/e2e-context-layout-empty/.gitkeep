@@ -1,0 +1,1 @@
+# Empty-download rehearsal: actions/download-artifact@v4 creates the path even when no artifact matches.
