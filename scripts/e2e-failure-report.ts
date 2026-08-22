@@ -326,13 +326,34 @@ export type Source = {
    * is INDEPENDENT of whether an error-context.md matched.
    */
   serverErrors?: string[];
+  /**
+   * INC-085f — every `[client-error]` line the job's log carried, redacted. A
+   * client crash during hydration leaves the server log silent; this is the
+   * only channel that names it.
+   */
+  clientErrors?: string[];
 };
 
-/** Every `[ssr-error]` line in a job log, capped so one bad run cannot flood. */
-export function grepSsrErrors(text: string | null, limit = 20): string[] {
+/**
+ * INC-085f — ONE tag-grep for every runtime-error channel. `[ssr-error]` is
+ * the server's voice, `[client-error]` the browser's (pageerror + console
+ * errors, printed by the e2e fixture on failure). Both are greppable from the
+ * same job log by the same rule, capped so one bad run cannot flood.
+ */
+export function grepTag(text: string | null, tag: string, limit = 20): string[] {
   if (!text) return [];
-  const lines = text.split("\n").filter((line) => line.includes("[ssr-error]"));
+  const lines = text.split("\n").filter((line) => line.includes(tag));
   return lines.slice(-limit).map((line) => redact(line.trim()));
+}
+
+/** Every `[ssr-error]` line in a job log. */
+export function grepSsrErrors(text: string | null, limit = 20): string[] {
+  return grepTag(text, "[ssr-error]", limit);
+}
+
+/** Every `[client-error]` line in a job log (INC-085f). */
+export function grepClientErrors(text: string | null, limit = 20): string[] {
+  return grepTag(text, "[client-error]", limit);
 }
 
 /**
@@ -451,6 +472,19 @@ export function renderSources(
         ? [`No \`[ssr-error]\` lines in the \`${source.label}\` log (or no log was uploaded).`, ""]
         : ["```text", ...ssr, "```", ""]),
     );
+    // INC-085f — the browser's channel, quoted next to the server's. A blank
+    // ARIA snapshot with no server error is a CLIENT crash; these lines name it.
+    const client = source.clientErrors ?? [];
+    lines.push(
+      `## Client errors: ${source.label}`,
+      "",
+      ...(client.length === 0
+        ? [
+            `No \`[client-error]\` lines in the \`${source.label}\` log (or no log was uploaded).`,
+            "",
+          ]
+        : ["```text", ...client, "```", ""]),
+    );
   }
 
   // Law F4: a red job that wrote no results is quoted, never counted as zero.
@@ -477,13 +511,18 @@ export function renderSources(
     );
     const ssr = s.serverErrors ?? [];
     if (ssr.length > 0) lines.push("```text", ...ssr, "```", "");
+    const clientLines = s.clientErrors ?? [];
+    if (clientLines.length > 0) lines.push("```text", ...clientLines, "```", "");
   }
 
   return lines.join("\n");
 }
 
 export function render(json: PwJson, meta: { runId: string; runUrl: string; sha: string }): string {
-  return renderSources([{ label: "all", json, logTail: null, serverErrors: [] }], meta);
+  return renderSources(
+    [{ label: "all", json, logTail: null, serverErrors: [], clientErrors: [] }],
+    meta,
+  );
 }
 
 export function renderGreen(meta: { runId: string; runUrl: string; sha: string }): string {
@@ -615,6 +654,8 @@ async function main() {
           // DEC-018: server errors are quoted for a source that DID produce
           // results — independent of context matching.
           serverErrors: ["[ssr-error] /admin/users TypeError: boom at ssr.mjs:1"],
+          // INC-085f — the browser channel must reach the report too.
+          clientErrors: ["[client-error] TypeError: t is not a function at chunk-abc.js:1"],
         },
         { label: "smoke", json: null, logTail: "Error: browserType.launch failed\nexit code 1" },
       ],
@@ -638,6 +679,10 @@ async function main() {
       "## Server errors: shard 2",
       "[ssr-error] /admin/users TypeError: boom at ssr.mjs:1",
       "No `[ssr-error]` lines in the `smoke` log",
+      // INC-085f — client-error quoting, and the explicit absence sentence.
+      "## Client errors: shard 2",
+      "[client-error] TypeError: t is not a function at chunk-abc.js:1",
+      "No `[client-error]` lines in the `smoke` log",
     ];
     const missing = required.filter((needle) => !out.includes(needle));
     if (missing.length > 0) {
@@ -660,6 +705,7 @@ async function main() {
           json: emptyJson,
           logTail: "Error: Timed out waiting 120000ms from config.webServer.\nexit code 1",
           serverErrors: ["[ssr-error] / TypeError: dead at ssr.mjs:9"],
+          clientErrors: ["[client-error] ReferenceError: hydrate is not defined"],
         },
         { label: "smoke", json: emptyJson, logTail: "Error: No tests found", serverErrors: [] },
       ],
@@ -673,6 +719,7 @@ async function main() {
       "shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.",
       "Timed out waiting 120000ms from config.webServer.",
       "[ssr-error] / TypeError: dead at ssr.mjs:9",
+      "[client-error] ReferenceError: hydrate is not defined",
       "## smoke: results file with zero tests",
       "Error: No tests found",
     ]) {
@@ -694,6 +741,14 @@ async function main() {
       grepSsrErrors(null).length !== 0
     ) {
       console.error("SELF-TEST FAILED — [ssr-error] grep did not isolate the server lines.");
+      process.exit(1);
+    }
+    if (
+      grepClientErrors("noise\n[client-error] TypeError: boom\n[ssr-error] other").length !== 1 ||
+      grepClientErrors(null).length !== 0 ||
+      grepTag("a\n[client-error] one\n[client-error] two", "[client-error]", 1).length !== 1
+    ) {
+      console.error("SELF-TEST FAILED — [client-error] grep did not isolate the browser lines.");
       process.exit(1);
     }
     const switcherSlug = "shell-panel-switcher-the-switcher-drawer-opens-mobile-360";
@@ -818,7 +873,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] grep, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
@@ -861,13 +916,20 @@ async function main() {
         // every source and only rendered where a source has no usable results.
         logTail: parsed.error ?? tail,
         serverErrors: grepSsrErrors(log),
+        clientErrors: grepClientErrors(log),
       });
     }
   } else {
     const path = process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json";
     const parsed = await readJson(path);
     if (parsed.json && countTests(parsed.json) > 0) found += 1;
-    sources.push({ label: "all", json: parsed.json, logTail: parsed.error, serverErrors: [] });
+    sources.push({
+      label: "all",
+      json: parsed.json,
+      logTail: parsed.error,
+      serverErrors: [],
+      clientErrors: [],
+    });
   }
 
   const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();

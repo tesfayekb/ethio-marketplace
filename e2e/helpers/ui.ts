@@ -67,17 +67,30 @@ export async function fillUntilStable(input: Locator, value: string, fieldName: 
  * only exists on /auth; the shell put interactive chrome on every route, so the
  * probe now accepts any attached control.
  */
+/**
+ * INC-085f — READINESS IS AN EXPLICIT CONTRACT, never an inference from
+ * framework internals. The app sets `data-app-ready="1"` on <html> in a root
+ * effect once React has hydrated; this polls THAT. The old gate polled
+ * React's `__reactProps$` markers (a dev-era heuristic), so under the
+ * production build "not yet hydrated" and "crashed during hydration" were
+ * indistinguishable — 24 failures with blank snapshots and no server errors.
+ */
 export async function waitForHydration(page: Page) {
-  await page.waitForFunction(
-    () => {
-      const controls = document.querySelectorAll("button, input, a[href]");
-      return Array.from(controls).some((el) =>
-        Object.keys(el).some((key) => key.startsWith("__reactProps$")),
-      );
-    },
-    undefined,
-    { timeout: 15000 },
-  );
+  try {
+    await page.waitForSelector('html[data-app-ready="1"]', {
+      state: "attached",
+      timeout: 15000,
+    });
+  } catch {
+    const ssrMarker = await page
+      .locator("[data-ssr-error]")
+      .count()
+      .then((n) => (n > 0 ? "present" : "absent"))
+      .catch(() => "absent");
+    throw new Error(
+      `app never declared ready — SSR marker ${ssrMarker}, likely client crash; see [client-error] lines`,
+    );
+  }
 }
 
 /**

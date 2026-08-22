@@ -150,6 +150,12 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    // INC-085f — the E2E hydration contract: set only after React has
+    // successfully hydrated; a client crash before this leaves it unset.
+    document.documentElement.dataset["appReady"] = "1";
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
