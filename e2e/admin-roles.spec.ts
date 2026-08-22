@@ -314,6 +314,7 @@ test.describe("U2 roles console", () => {
     await expect(page.getByText(am["admin.roles.perm.title"]).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
+
   test("RP-9 delete confirm: the expected key renders adjacent and arms only on an exact match", async ({
     page,
   }) => {
