@@ -172,3 +172,4 @@
 - 2026-08-22 — ci: failure reporter — artifact-layout fix from local repro, never-silent wrapper (a reporter crash writes its own report), download resilience, layout fixtures (INC-084e)
 - 2026-08-22 — ci: root-anchor test-results ignore; context fixtures actually committed (git-tracked, proven); self-test names its searched paths on 0-found (INC-084f)
 - 2026-08-22 — ci: reporter matches error-context by full titlePath (describe-nested slugs) + real describe fixture in the self-test; test(e2e): expectSignedIn/signOutViaMenu anchor on account-menu-sign-out testid (INC-084g)
+- 2026-08-22 — docs: U2 gate record — S30, four-lens close-out, INC-084 reconciled, system-state updated

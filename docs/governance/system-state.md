@@ -54,6 +54,7 @@
 - **DEC-014 (2026-08-10):** Foundations-First Admin Epoch ratified — U0–U8 (admin shell, users, roles console, audit/security, locations, categories, attributes, tags, AI images) precede the wizard; wizard ships LAST. Current build target: U0 (admin shell & navigation). See spec-ledger DEC-014.
 - **U0 (admin shell & navigation) — build COMPLETE 2026-08-16** (CI green e0af7bf; 17 shell laws with tests; sign-out hard reset + session policy Tier A; four-lens review at docs/governance/reviews/u0-closeout.md). Gate stamps on the operator's published-URL walk. Next build target: U1 Users.
 - **U1 (Users) — COMPLETE 2026-08-19** (CI green 70f5176, 17/17 full suite; operator walk passed incl. step-up re-walk; four-lens review at docs/governance/reviews/u1-closeout.md; DEC-015 primitives + DEC-016 parity plan ratified). Next build target: U2 Roles & Permissions console.
+- **U2 (Roles & Permissions) — COMPLETE 2026-08-22** (CI green 52e184b, 17/17; operator walk passed; four-lens review at docs/governance/reviews/u2-closeout.md; DEC-016 permissions registered). Next build target: U3 Audit & Security + guardrailed impersonation.
 
 
 
