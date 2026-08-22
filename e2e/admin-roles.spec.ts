@@ -241,7 +241,7 @@ test.describe("U2 roles console", () => {
   });
 
   test("RP-6 revocation path: unenrolling the factor refuses the next change", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret, user } = await signInAsSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
 
@@ -255,22 +255,16 @@ test.describe("U2 roles console", () => {
 
     // Unenrol every factor server-side (INC-081: a stale aal2 claim is not
     // authority — the gate re-reads auth.mfa_factors).
-    const { data: factors } = await adminClient().auth.admin.mfa.listFactors({
-      userId: (await adminClient().from("roles").select("id").eq("id", id).single()).data
-        ? ((await page.evaluate(() =>
-            JSON.parse(
-              window.localStorage.getItem(
-                Object.keys(window.localStorage).find((k) => k.endsWith("-auth-token")) ?? "",
-              ) ?? "null",
-            ),
-          )) as { user?: { id?: string } } | null)?.user?.id ?? ""
-        : "",
-    });
-    for (const factor of factors?.factors ?? []) {
-      await adminClient().auth.admin.mfa.deleteFactor({
+    const { data: factorList, error: factorError } = await adminClient().auth.admin.mfa.listFactors(
+      { userId: user.id },
+    );
+    if (factorError) throw new Error(`[e2e:u2] listing factors failed: ${factorError.message}`);
+    for (const factor of factorList?.factors ?? []) {
+      const { error } = await adminClient().auth.admin.mfa.deleteFactor({
         id: factor.id,
-        userId: factor.user_id ?? "",
+        userId: user.id,
       });
+      if (error) throw new Error(`[e2e:u2] deleting factor failed: ${error.message}`);
     }
 
     expect(
