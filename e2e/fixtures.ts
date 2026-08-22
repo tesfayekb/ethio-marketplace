@@ -119,7 +119,7 @@ export async function assertSsrHealthy(page: Page): Promise<void> {
  * out of the job log.
  */
 const CLIENT_ERROR_BUFFER = 20;
-const CLIENT_ERROR_MESSAGE_CHARS = 200;
+const CLIENT_ERROR_MESSAGE_CHARS = 500;
 
 function armClientErrorCapture(page: Page, buffer: string[]): void {
   const push = (line: string) => {
@@ -129,9 +129,24 @@ function armClientErrorCapture(page: Page, buffer: string[]): void {
   page.on("pageerror", (error) => push(`pageerror: ${error.stack ?? error.message}`));
   page.on("console", (message) => {
     if (message.type() !== "error") return;
-    push(`console.error: ${message.text()}`);
+    // INC-085g — React prints the message in arg 0 and the COMPONENT STACK in a
+    // later arg; message.text() alone threw the only useful half away.
+    void (async () => {
+      const parts: string[] = [];
+      for (const arg of message.args()) {
+        try {
+          const value = await arg.jsonValue();
+          parts.push(typeof value === "string" ? value : JSON.stringify(value));
+        } catch {
+          /* a handle we cannot serialise contributes nothing, never throws */
+        }
+      }
+      const joined = parts.length > 0 ? parts.join(" ") : message.text();
+      push(`console.error: ${joined.slice(0, CLIENT_ERROR_MESSAGE_CHARS)}`);
+    })();
   });
 }
+
 
 export const test = base.extend<{ ssrGuard: void; clientErrors: string[] }>({
   clientErrors: [
