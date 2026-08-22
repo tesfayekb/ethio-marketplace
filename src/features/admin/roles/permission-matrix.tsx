@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { en } from "@/i18n/locales/en";
 import type { MessageKey } from "@/i18n/types";
 import { useState } from "react";
 
@@ -19,11 +20,13 @@ import { useSetRolePermission } from "./use-admin-roles";
  * makes any fallback red rather than letting raw English leak.
  */
 function useVocabulary() {
-  const { t, messages } = useI18n();
+  const { t } = useI18n();
 
   return (kind: "action" | "resource", value: string) => {
     const key = `admin.roles.perm.${kind}.${value}` as MessageKey;
-    if (key in messages) return t(key);
+    // `en` is the complete key set (am.ts is type-checked against it), so it is
+    // the authority on whether a vocabulary key exists at all.
+    if (key in en) return t(key);
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console -- dev-only signal; the guard is the enforcement
       console.warn(`[roles] missing matrix ${kind} translation for "${value}" (key: ${key})`);
@@ -100,8 +103,11 @@ export function PermissionMatrix({
           <div className="min-w-0 space-y-4">
             {[...byResource.entries()].map(([resource, group]) => (
               <section key={resource} data-testid={`role-resource-${resource}`} className="min-w-0">
-                <h4 className="mb-2 break-words text-sm font-semibold text-foreground">
-                  {resource}
+                <h4
+                  data-testid={`role-resource-heading-${resource}`}
+                  className="mb-2 break-words text-sm font-semibold text-foreground"
+                >
+                  {label("resource", resource)}
                 </h4>
                 <ul className="min-w-0 divide-y divide-border rounded-md border border-border">
                   {group.map((row) => {
@@ -115,7 +121,9 @@ export function PermissionMatrix({
                         className="flex min-w-0 flex-col gap-2 p-3 md:flex-row md:items-center md:justify-between"
                       >
                         <span className="flex min-w-0 flex-wrap items-center gap-2">
-                          <span className="break-words text-sm text-foreground">{row.action}</span>
+                          <span data-testid="role-permission-action" className="break-words text-sm text-foreground">
+                            {label("action", row.action)}
+                          </span>
                           {row.requiresStepUp ? (
                             <Badge variant="outline">{t("admin.roles.perm.stepUp")}</Badge>
                           ) : null}
