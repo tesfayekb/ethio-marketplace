@@ -819,7 +819,7 @@ async function main() {
   } else {
     const path = process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json";
     const parsed = await readJson(path);
-    if (parsed.json) found += 1;
+    if (parsed.json && countTests(parsed.json) > 0) found += 1;
     sources.push({ label: "all", json: parsed.json, logTail: parsed.error, serverErrors: [] });
   }
 
