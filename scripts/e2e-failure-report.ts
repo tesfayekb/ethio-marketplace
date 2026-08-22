@@ -799,17 +799,20 @@ async function main() {
   if (dir) {
     for (const id of expected) {
       const parsed = await readJson(`${dir}/e2e-results-${id}/results.json`);
-      if (parsed.json) found += 1;
+      // INC-086: "found" means USABLE results (>= 1 recorded test), so the
+      // console line cannot claim a source reported when it reported nothing.
+      if (parsed.json && countTests(parsed.json) > 0) found += 1;
       // DEC-018: the log is read for EVERY source, not only for sources that
       // produced no results — `[ssr-error]` lines matter most next to a
       // failure that DID get recorded.
       const log = logsDir ? await readLog(`${logsDir}/e2e-log-${id}/${id}.log`) : null;
+      const tail = log ? log.split("\n").slice(-40).join("\n").trim() || null : null;
       sources.push({
         label: sourceLabel(`e2e-results-${id}`),
         json: parsed.json,
-        logTail: parsed.json
-          ? null
-          : (parsed.error ?? (log ? log.split("\n").slice(-40).join("\n").trim() || null : null)),
+        // INC-086: a zero-test source needs its log tail too, so it is kept for
+        // every source and only rendered where a source has no usable results.
+        logTail: parsed.error ?? tail,
         serverErrors: grepSsrErrors(log),
       });
     }
