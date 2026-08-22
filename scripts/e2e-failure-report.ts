@@ -31,6 +31,9 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 const OUT = "docs/tracking/e2e-last-failure.md";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
+/** INC-084g — the describe-nested shape, captured from a real Playwright run. */
+const DESCRIBE_FIXTURE = "scripts/fixtures/e2e-context-sample-describe";
+
 const LAYOUT_FIXTURES = "scripts/fixtures";
 const MALFORMED_FIXTURE = "scripts/fixtures/e2e-results-malformed.json";
 
