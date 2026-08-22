@@ -320,6 +320,83 @@ export function renderGreen(meta: { runId: string; runUrl: string; sha: string }
   ].join("\n");
 }
 
+/**
+ * NEVER-SILENT LAW (INC-084e). The reporter's first live run died namelessly:
+ * a source's results.json was unreadable, the exception escaped `main`, no
+ * file was written, and the only visible signal was the ABSENCE of a report
+ * commit while ci-status published normally. A reporter that can die without
+ * naming itself is worse than no reporter, so every crash now renders into the
+ * very file everyone reads — header, error, and a best-effort titles-only
+ * failure list scraped from whatever results.json can still be parsed.
+ */
+export function renderCrash(
+  error: unknown,
+  meta: { runId: string; runUrl: string; sha: string },
+  titles: string[],
+): string {
+  const err = error instanceof Error ? error : new Error(String(error));
+  const firstStackLine = (err.stack ?? "").split("\n")[1]?.trim() ?? "(no stack)";
+  return [
+    "# Last E2E failure (auto-generated — do not edit by hand)",
+    "",
+    `- Run: ${meta.runUrl || meta.runId}`,
+    `- Commit: \`${meta.sha}\``,
+    `- Written (UTC): ${new Date().toISOString()}`,
+    "",
+    `REPORTER ERROR: ${redact(err.message)} — ${redact(firstStackLine)}`,
+    "",
+    "## Best-effort failure list (titles only)",
+    "",
+    ...(titles.length === 0
+      ? ["(no failure titles could be recovered from the results files)"]
+      : titles.map((t) => `- ${redact(t)}`)),
+    "",
+  ].join("\n");
+}
+
+/**
+ * Titles-only rescue pass for the crash path: reads every results.json it can,
+ * ignores every one it cannot, and never throws.
+ */
+export async function rescueTitles(resultsDir: string | undefined): Promise<string[]> {
+  const titles: string[] = [];
+  if (!resultsDir) return titles;
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(resultsDir);
+  } catch {
+    return titles;
+  }
+  for (const entry of entries) {
+    const parsed = await readJson(`${resultsDir}/${entry}/results.json`);
+    if (!parsed.json) continue;
+    try {
+      for (const f of collect(parsed.json).failures) titles.push(`${sourceLabel(entry)}: ${f.title}`);
+    } catch {
+      /* a shape we cannot walk contributes nothing; it must never throw */
+    }
+  }
+  return titles;
+}
+
+/**
+ * Reads a results.json defensively. ROOT CAUSE OF INC-084e: an empty or
+ * truncated results.json (a job killed mid-write) made `file.json()` throw
+ * from `main`, killing the reporter before it wrote anything. A source we
+ * cannot parse is now exactly what it is — a source without usable results —
+ * and it is QUOTED in the report, never silently counted as zero.
+ */
+export async function readJson(path: string): Promise<{ json: PwJson | null; error: string | null }> {
+  const file = Bun.file(path);
+  if (!(await file.exists())) return { json: null, error: null };
+  try {
+    return { json: (await file.json()) as PwJson, error: null };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { json: null, error: `results.json exists but could not be parsed: ${redact(message)}` };
+  }
+}
+
 /** Last `count` lines of a job log, redacted. */
 async function logTail(path: string, count = 40): Promise<string | null> {
   const file = Bun.file(path);
@@ -327,6 +404,7 @@ async function logTail(path: string, count = 40): Promise<string | null> {
   const text = redact(await file.text());
   return text.split("\n").slice(-count).join("\n").trim() || null;
 }
+
 
 async function main() {
   const meta = {
