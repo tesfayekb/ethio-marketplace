@@ -442,7 +442,6 @@ import.meta.env.VITE_E2E === "1"` — so they exist in dev and in the E2E build
   build, `Verify e2e build output` — `test -f dist/server/wrangler.json` or an
   `::error::` plus `find dist .output -maxdepth 3 -type f | head -60`.
 
-
 - **Document-response guard (DEC-018).** `e2e/fixtures.ts` exports the extended
   `test`/`expect` that every spec imports. An auto-fixture watches every document
   response: a 5xx or the SSR error page's marker triggers ONE automatic reload,
