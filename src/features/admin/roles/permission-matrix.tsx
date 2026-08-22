@@ -28,7 +28,6 @@ function useVocabulary() {
     // the authority on whether a vocabulary key exists at all.
     if (key in en) return t(key);
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console -- dev-only signal; the guard is the enforcement
       console.warn(`[roles] missing matrix ${kind} translation for "${value}" (key: ${key})`);
     }
     return value;
@@ -73,7 +72,6 @@ export function PermissionMatrix({
       setPermission.mutateAsync({ permissionId: row.permissionId, granted: !row.granted }),
     ).catch((cause: unknown) => setErrorKey(roleErrorKey(cause, "admin.roles.perm.failed")));
   };
-
 
   return (
     <StepUpGate>
@@ -121,7 +119,10 @@ export function PermissionMatrix({
                         className="flex min-w-0 flex-col gap-2 p-3 md:flex-row md:items-center md:justify-between"
                       >
                         <span className="flex min-w-0 flex-wrap items-center gap-2">
-                          <span data-testid="role-permission-action" className="break-words text-sm text-foreground">
+                          <span
+                            data-testid="role-permission-action"
+                            className="break-words text-sm text-foreground"
+                          >
                             {label("action", row.action)}
                           </span>
                           {row.requiresStepUp ? (
