@@ -449,17 +449,29 @@ export function renderSources(
   }
 
   // Law F4: a red job that wrote no results is quoted, never counted as zero.
-  for (const s of silent) {
+  // INC-086: "wrote a results.json containing zero tests" is the same thing —
+  // the runner died before executing, so its own log IS the evidence.
+  for (const { source: s, kind } of silent) {
+    const heading =
+      kind === "missing"
+        ? `## ${s.label}: no results file`
+        : `## ${s.label}: results file with zero tests`;
+    const sentence =
+      kind === "missing"
+        ? `${s.label}: no results file — the process failed outside test results (setup/teardown/preflight).`
+        : `${s.label}: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.`;
     lines.push(
-      `## ${s.label}: no results file`,
+      heading,
       "",
-      `${s.label}: no results file — the process failed outside test results (setup/teardown/preflight).`,
+      sentence,
       "",
       "```text",
       s.logTail ?? "(no log tail was uploaded for this source)",
       "```",
       "",
     );
+    const ssr = s.serverErrors ?? [];
+    if (ssr.length > 0) lines.push("```text", ...ssr, "```", "");
   }
 
   return lines.join("\n");
