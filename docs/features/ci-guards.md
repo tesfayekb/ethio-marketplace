@@ -355,3 +355,13 @@ stack line>` and a best-effort titles-only failure list, then exits non-zero;
   `merge-multiple:false`, merged flat) plus the zero-artifact directory are
   permanent self-test fixtures (`scripts/fixtures/e2e-context-layout-*`), as is
   the malformed-results case (`scripts/fixtures/e2e-results-malformed.json`).
+
+- **Tracked-files law (INC-084f).** A fixture exists when `git ls-files` says so.
+  Completion reports verify new files are TRACKED, not present; unanchored ignore
+  patterns are anchored the moment they bite. `test-results/` in `.gitignore` is
+  root-anchored (`/test-results/`) because Playwright's `outputDir` is the repo
+  root and nothing else writes a nested `test-results/`; the reporter's layout
+  fixtures deliberately mirror that inner path. When a context search finds zero
+  files, the reporter prints the glob and every path it walked
+  (`reportEmptySearch`), so the next environment gap names itself instead of
+  reporting a bare "found 0".
