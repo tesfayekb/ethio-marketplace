@@ -398,6 +398,7 @@ export const en = {
     "Deleting a role removes it and its permissions. This cannot be undone.",
   "admin.roles.danger.hasMembers": "Remove every member before deleting this role.",
   "admin.roles.danger.confirmLabel": "Type the role key to confirm",
+  "admin.roles.danger.confirmHint": "Type {key} to confirm",
   "admin.roles.danger.delete": "Delete role",
   "admin.roles.danger.failed": "The role could not be deleted.",
   "admin.roles.error.stepUp": "Confirm a one-time code to make this change.",
