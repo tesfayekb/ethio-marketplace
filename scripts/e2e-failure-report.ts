@@ -582,6 +582,34 @@ async function main() {
       console.log(`  layout OK — ${name}: ${found.size} context file(s), report rendered.`);
     }
 
+    // INC-084g — DESCRIBE-NESTED SHAPE (real capture). The slug carries the
+    // describe title, so a matcher built from the bare test title finds
+    // nothing. This fixture fails loudly if that regression ever returns.
+    const describeJson = (await Bun.file(`${DESCRIBE_FIXTURE}/results.json`).json()) as PwJson;
+    const describeContexts = collectContextFiles(DESCRIBE_FIXTURE);
+    if (describeContexts.size !== 1) {
+      if (describeContexts.size === 0) reportEmptySearch(DESCRIBE_FIXTURE, "describe fixture");
+      console.error(
+        `SELF-TEST FAILED — expected 1 describe-nested context file, found ${describeContexts.size}.`,
+      );
+      process.exit(1);
+    }
+    const describeOut = renderSources(
+      [{ label: "shard 1", json: describeJson, logTail: null }],
+      { runId: "self-test", runUrl: "", sha: "self-test" },
+      describeContexts,
+    );
+    if (
+      describeOut.includes("context file not found") ||
+      !describeOut.includes("panel-scoped chrome › CAP-3")
+    ) {
+      console.error(
+        "SELF-TEST FAILED — describe-nested failure did not resolve its error-context (titlePath matching regressed).",
+      );
+      process.exit(1);
+    }
+
+
     // NEVER-SILENT LAW: a malformed results.json is (a) survivable as a source
     // and (b) renderable as a REPORTER ERROR when something does escape.
     const malformed = await readJson(MALFORMED_FIXTURE);
