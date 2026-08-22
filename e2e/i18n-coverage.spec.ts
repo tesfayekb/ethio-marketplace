@@ -214,4 +214,36 @@ test.describe("i18n chrome coverage (Amharic)", () => {
 
     assertAmharicChrome(await chromeTexts(page), "admin shell");
   });
+
+  /**
+   * U2a / INC-084(b) — MATRIX VOCABULARY. `permissions.action` and
+   * `resources.name` are finite admin-owned chrome, so under Amharic no matrix
+   * action label or resource heading may be pure Latin: that is the raw DB
+   * value leaking through the component's dev-warn fallback.
+   */
+  test("the roles permission matrix renders no raw English vocabulary", async ({ page }) => {
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+
+    const { data: role, error } = await adminClient()
+      .from("roles")
+      .select("id")
+      .eq("name", "super_admin")
+      .single();
+    if (error || !role) throw new Error(`[e2e:i18n] super_admin role not found`);
+
+    await signIn(page, staff.email, staff.password);
+    await useAmharic(page);
+    await gotoReady(page, `/admin/roles/${role.id}`);
+    await expect(page.getByTestId("role-permissions")).toBeVisible({ timeout: 20000 });
+
+    const labels = await textsWithin(page, [
+      '[data-testid^="role-resource-heading-"]',
+      '[data-testid="role-permission-action"]',
+    ]);
+    expect(labels.length, "matrix vocabulary: nothing rendered").toBeGreaterThan(0);
+    const english = labels.filter((label) => !ALLOW.has(label) && LATIN_ONLY.test(label));
+    expect(english, "matrix vocabulary: raw English actions/resources rendered").toEqual([]);
+    assertAmharicChrome(labels, "roles permission matrix");
+  });
 });
