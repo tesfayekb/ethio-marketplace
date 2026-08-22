@@ -310,3 +310,5 @@ Same addendum: `openRailScope`'s retry branch asserted `toHaveCount(0)` to prove
 "not mid-animation", which converted a merely slow drawer into a failure; it now
 keeps waiting when the dialog is mounted and re-clicks only when nothing
 mounted.
+
+### INC-083 (2026-08-22) — Same-tree divergence: sharded run 32380360503 failed 9 (parallel-load window), the serial nightly on the identical tree passed all; disposition: re-run. Reporter gap found: Playwright's JSON reporter emits no steps — the step-walker and the last-steps block never fired on real data; the self-test fixture encoded the assumption (supervisor design slip). CLASS RULES: (1) reporter fixtures are captured from real output, never authored from assumption; (2) next CI task quotes each failure's error-context.md (which carries the pending-action call log) instead of JSON steps.
