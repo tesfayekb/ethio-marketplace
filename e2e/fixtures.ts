@@ -131,18 +131,35 @@ function armClientErrorCapture(page: Page, buffer: string[]): void {
     if (message.type() !== "error") return;
     // INC-085g — React prints the message in arg 0 and the COMPONENT STACK in a
     // later arg; message.text() alone threw the only useful half away.
+    // INC-085h — but jsonValue() on an Error yields `{"name":"Error"}`: the
+    // message and the stack are non-enumerable, so the capture regressed to
+    // noise. Read every arg IN THE PAGE as `stack ?? String(value)`, and keep
+    // message.text() as the baseline so a fully unreadable arg list still
+    // records something.
     void (async () => {
       const parts: string[] = [];
       for (const arg of message.args()) {
         try {
-          const value = await arg.jsonValue();
-          parts.push(typeof value === "string" ? value : JSON.stringify(value));
+          const value = await arg.evaluate((v: unknown) => {
+            if (v instanceof Error) return v.stack ?? `${v.name}: ${v.message}`;
+            if (typeof v === "string") return v;
+            try {
+              return JSON.stringify(v) ?? String(v);
+            } catch {
+              return String(v);
+            }
+          });
+          if (typeof value === "string" && value.length > 0) parts.push(value);
         } catch {
           /* a handle we cannot serialise contributes nothing, never throws */
         }
       }
-      const joined = parts.length > 0 ? parts.join(" ") : message.text();
-      push(`console.error: ${joined.slice(0, CLIENT_ERROR_MESSAGE_CHARS)}`);
+      const text = message.text();
+      const joined = parts.length > 0 ? parts.join(" ") : text;
+      // Keep the plain text when the arg walk produced something different,
+      // so neither channel can hide the failure.
+      const line = joined.includes(text) ? joined : `${text} :: ${joined}`;
+      push(`console.error: ${line.slice(0, CLIENT_ERROR_MESSAGE_CHARS)}`);
     })();
   });
 }

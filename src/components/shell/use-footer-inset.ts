@@ -76,10 +76,17 @@ export function useFooterInset(): number {
      * U0j-3 — CONTENT-HEIGHT CHANGES. Switching locale (or any re-render that
      * shortens the page) moves the footer into view WITHOUT a scroll or resize
      * event, so observing the footer alone left the rail clamped at a stale
-     * inset. Observing the body and the main content region re-clamps
-     * immediately.
+     * inset. Observing the main content region re-clamps immediately.
+     *
+     * INC-085h — NEVER OBSERVE document.body HERE. The measured inset is
+     * applied to the rail, and the rail is a child of the body: whenever the
+     * rail is not taken out of flow (any state where its `fixed` positioning
+     * is not in effect — e.g. the stylesheet failed to load), writing the
+     * inset changes the body's height, which fires this very observer, which
+     * measures a new inset. That is a self-feeding render loop and it is what
+     * React reports as "Maximum update depth exceeded" (#185). The observed
+     * set must never contain an ancestor whose box the inset can move.
      */
-    observer.observe(document.body);
     for (const selector of CONTENT_SELECTORS) {
       const node = document.querySelector(selector);
       if (node) {
