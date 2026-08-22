@@ -390,6 +390,7 @@ export const am: Messages = {
   "admin.roles.danger.description": "ሚናውን መሰረዝ እሱንና ፈቃዶቹን ያስወግዳል። ይህ አይመለስም።",
   "admin.roles.danger.hasMembers": "ሚናውን ከመሰረዝዎ በፊት ሁሉንም አባላት ያስወግዱ።",
   "admin.roles.danger.confirmLabel": "ለማረጋገጥ የሚናውን ቁልፍ ይተይቡ",
+  "admin.roles.danger.confirmHint": "ለማረጋገጥ {key} ይተይቡ",
   "admin.roles.danger.delete": "ሚና ሰርዝ",
   "admin.roles.danger.failed": "ሚናውን መሰረዝ አልተቻለም።",
   "admin.roles.error.stepUp": "ይህን ለውጥ ለማድረግ የአንድ ጊዜ ኮድ ያረጋግጡ።",
