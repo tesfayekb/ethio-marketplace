@@ -29,9 +29,12 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
   const listings = useImpersonatedListings(sessionId);
   const end = useEndImpersonation();
 
+  const active = useActiveImpersonation(true);
   const expired =
-    isExpiredSessionError(profile.error) || isExpiredSessionError(listings.error) === true;
-  const countdown = useCountdown(expired ? null : undefined);
+    isExpiredSessionError(profile.error) ||
+    isExpiredSessionError(listings.error) ||
+    (active.isFetched && active.data?.id !== sessionId);
+  const countdown = useCountdown(expired ? null : (active.data?.expiresAt ?? null));
 
   const fmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
     dateStyle: "medium",
