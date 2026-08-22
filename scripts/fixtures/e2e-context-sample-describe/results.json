@@ -1,0 +1,98 @@
+{
+  "suites": [
+    {
+      "title": "tmp-capture-describe.spec.ts",
+      "file": "tmp-capture-describe.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "panel-scoped chrome",
+          "file": "tmp-capture-describe.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "CAP-3 a describe-nested failure records its chain",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3589,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('definitely-not-here-cap3')\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('definitely-not-here-cap3')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('definitely-not-here-cap3')\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('definitely-not-here-cap3')\u001b[22m\n\n    at /dev-server/e2e/tmp-capture-describe.spec.ts:6:64",
+                        "location": {
+                          "file": "/dev-server/e2e/tmp-capture-describe.spec.ts",
+                          "column": 64,
+                          "line": 6
+                        },
+                        "snippet": "  4 |   test(\"CAP-3 a describe-nested failure records its chain\", async ({ page }) => {\n  5 |     await page.goto(\"/\");\n> 6 |     await expect(page.getByTestId(\"definitely-not-here-cap3\")).toBeVisible({ timeout: 3000 });\n    |                                                                ^\n  7 |   });\n  8 | });\n  9 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/dev-server/e2e/tmp-capture-describe.spec.ts",
+                            "column": 64,
+                            "line": 6
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('definitely-not-here-cap3')\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('definitely-not-here-cap3')\u001b[22m\n\n\n  4 |   test(\"CAP-3 a describe-nested failure records its chain\", async ({ page }) => {\n  5 |     await page.goto(\"/\");\n> 6 |     await expect(page.getByTestId(\"definitely-not-here-cap3\")).toBeVisible({ timeout: 3000 });\n    |                                                                ^\n  7 |   });\n  8 | });\n  9 |\n    at /dev-server/e2e/tmp-capture-describe.spec.ts:6:64"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [
+                        {
+                          "text": "Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.\n"
+                        }
+                      ],
+                      "retry": 0,
+                      "startTime": "2026-08-22T06:33:41.047Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/tmp/cap/test-results/tmp-capture-describe-panel-d893b-d-failure-records-its-chain-desktop-1280/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/tmp/cap/test-results/tmp-capture-describe-panel-d893b-d-failure-records-its-chain-desktop-1280/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/dev-server/e2e/tmp-capture-describe.spec.ts",
+                        "column": 64,
+                        "line": 6
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "60b69dc92289e12e4ac7-3b44b05c9125508202f3",
+              "file": "tmp-capture-describe.spec.ts",
+              "line": 4,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "expected": 0,
+    "skipped": 0
+  }
+}
