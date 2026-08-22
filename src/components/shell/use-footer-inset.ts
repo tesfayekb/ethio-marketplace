@@ -28,6 +28,9 @@ export function useFooterInset(): number {
 
     let frame = 0;
     let settleTimer: ReturnType<typeof setTimeout> | undefined;
+    // INC-085i — measurement is allowed to run often, but a stable result must
+    // be a no-op for BOTH React state and the diagnostic DOM attribute.
+    let lastApplied = -1;
     const measure = () => {
       frame = 0;
       const top = footer.getBoundingClientRect().top;
@@ -40,9 +43,13 @@ export function useFooterInset(): number {
        */
       const raw = Math.ceil(window.innerHeight - top);
       const next = raw > 0 ? raw + 1 : 0;
+      if (next === lastApplied) return;
+      lastApplied = next;
       // U0i-3: publish the applied inset for tests/settle polling.
       const aside = document.querySelector('[data-testid="app-rail"]');
-      if (aside) aside.setAttribute("data-rail-inset", String(next));
+      if (aside && aside.getAttribute("data-rail-inset") !== String(next)) {
+        aside.setAttribute("data-rail-inset", String(next));
+      }
       setInset((prev) => (prev === next ? prev : next));
     };
     const schedule = () => {
@@ -71,7 +78,6 @@ export function useFooterInset(): number {
     window.addEventListener("scrollend", flush, { passive: true });
     window.addEventListener("resize", scheduleSettle, { passive: true });
     const observer = new ResizeObserver(schedule);
-    observer.observe(footer);
     /**
      * U0j-3 — CONTENT-HEIGHT CHANGES. Switching locale (or any re-render that
      * shortens the page) moves the footer into view WITHOUT a scroll or resize
@@ -86,6 +92,11 @@ export function useFooterInset(): number {
      * measures a new inset. That is a self-feeding render loop and it is what
      * React reports as "Maximum update depth exceeded" (#185). The observed
      * set must never contain an ancestor whose box the inset can move.
+     *
+     * INC-085i — the same rule applies to the footer itself. In an unstyled or
+     * partially styled first frame the rail is in flow; changing it can move
+     * the footer, so observing the footer closes the same feedback loop even
+     * after the body observer was removed. Observe content only.
      */
     for (const selector of CONTENT_SELECTORS) {
       const node = document.querySelector(selector);
