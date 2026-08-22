@@ -1,11 +1,7 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: local
-- Commit: `ce7ec6c`
-- Written (UTC): 2026-08-22T06:04:01.567Z
+last E2E run 32556068784 passed
 
-REPORTER ERROR: number is not iterable — at collect (/dev-server/scripts/e2e-failure-report.ts:199:14)
-
-## Best-effort failure list (titles only)
-
-(no failure titles could be recovered from the results files)
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32556068784
+- Commit: `e2ab51dc86dce9caa3040afbd9e545259bdc06a9`
+- Written (UTC): 2026-08-22T06:13:27.756Z
