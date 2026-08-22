@@ -89,3 +89,41 @@ Should the matrix restrict WHICH permissions are grantable to a custom role (an
 assignable-scope flag on `permissions`)? Today every registered permission is
 offered to a custom role, gated only by step-up and the `is_core` / system locks.
 Future hardening; not decided.
+
+## Assignable scope (U2b, DEC-017)
+
+The open question above is answered: `public.permissions` now carries
+`assignable boolean NOT NULL DEFAULT true`. `false` means the permission is an
+escalation vector reserved for system roles, and
+`admin_set_role_permission` refuses to GRANT it to a non-system role
+(`permission is not assignable to custom roles`). REVOKING an existing
+non-assignable grant stays allowed — the cleanup path.
+
+Reserved set (18 rows, read-back asserted in the migration):
+`roles:create/update/delete/assign/manage`, all `user_roles:*`, all
+`permissions:*`, `impersonation:use`, `profiles:create`, `profiles:delete`.
+`roles:view` stays assignable — a read-only console is a legitimate grant.
+
+`admin_get_role` was re-declared (return type change ⇒ DROP + CREATE, grants
+restated) and each matrix row now carries `assignable` plus `user_baseline`,
+the latter derived LIVE from the base `user` role's grants (today:
+`account_panel:access` alone) rather than from a stored copy.
+
+Matrix UI:
+
+| Row state                           | Control                                                     |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `assignable = false`                | locked + `admin.roles.perm.notAssignable`                   |
+| `user_baseline` and not granted     | locked + badge `admin.roles.perm.baselineBadge`             |
+| `user_baseline` and ALREADY granted | badge, but the Revoke control stays (no un-cleanable grant) |
+| system role                         | unchanged — fully locked                                    |
+
+Migration `supabase/migrations/20260822065530_de8f85bd-e66b-4231-8c76-e7c2e7cfc40f.sql`
+(self-marking, version `20260822065530`). Proofs P1 (reserved grant refused),
+P2 (assignable grant succeeds), P3 (system-role refusal unchanged and still
+trigger-authoritative), P4 (`user_baseline` true for the base grant, false for
+`admin_panel:access`), P5 (revoke of a pre-existing non-assignable grant
+permitted), plus read-backs on the reserved count and both functions' grants.
+
+E2E: `RP-11` (locked row + RPC refusal + Amharic note) and `RP-12` (baseline
+badge without a toggle; an ordinary row still toggles).
