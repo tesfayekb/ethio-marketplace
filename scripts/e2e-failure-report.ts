@@ -580,4 +580,34 @@ async function main() {
   );
 }
 
-if (import.meta.main) await main();
+/**
+ * THE WRAPPER (INC-084e). Whatever happens inside `main`, this file gets
+ * written and the process exit code tells the truth. Self-test failures keep
+ * their own `process.exit(1)` path (they must not overwrite the live report).
+ */
+if (import.meta.main) {
+  try {
+    await main();
+  } catch (error) {
+    const meta = {
+      runId: process.env["GITHUB_RUN_ID"] ?? "local",
+      runUrl: process.env["E2E_RUN_URL"] ?? "",
+      sha: process.env["GITHUB_SHA"] ?? "local",
+    };
+    let titles: string[] = [];
+    try {
+      titles = await rescueTitles(process.env["E2E_RESULTS_DIR"]);
+    } catch {
+      /* the rescue pass is best-effort by definition */
+    }
+    try {
+      await Bun.write(OUT, renderCrash(error, meta, titles));
+      console.error(`REPORTER ERROR written to ${OUT}.`);
+    } catch (writeError) {
+      console.error("REPORTER ERROR could not be written:", writeError);
+    }
+    console.error(error);
+    process.exit(1);
+  }
+}
+
