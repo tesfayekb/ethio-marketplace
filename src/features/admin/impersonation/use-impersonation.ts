@@ -29,6 +29,10 @@ export function useActiveImpersonation(enabled: boolean) {
     enabled,
     refetchInterval: 30_000,
     staleTime: 10_000,
+    // INC-085 / U1g-4 — gcTime 0: the moment the last observer unmounts (the
+    // banner unmounts on sign-out), the entry must EVAPORATE. A lingering
+    // unobserved auth-derived entry is exactly what SO-4 forbids.
+    gcTime: 0,
   });
 
   useEffect(() => {
