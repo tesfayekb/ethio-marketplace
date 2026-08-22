@@ -95,7 +95,6 @@ export function useFooterInset(): number {
       }
     }
 
-
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame);
       if (settleTimer) clearTimeout(settleTimer);

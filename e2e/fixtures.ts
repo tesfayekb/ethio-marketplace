@@ -162,7 +162,6 @@ function armClientErrorCapture(page: Page, buffer: string[]): void {
       push(`console.error: ${line.slice(0, CLIENT_ERROR_MESSAGE_CHARS)}`);
     })();
   });
-
 }
 
 export const test = base.extend<{ ssrGuard: void; clientErrors: string[] }>({
