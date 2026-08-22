@@ -12,4 +12,13 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    define: {
+      // DEC-018 — E2E MODE. The CI E2E jobs build with VITE_E2E=1 so the
+      // production bundle carries the test instruments (src/lib/env-flags.ts).
+      // A normal build leaves it "", so `isE2E` is false and every instrument
+      // is dead code — the shipped bundle is unchanged.
+      "import.meta.env.VITE_E2E": JSON.stringify(process.env["VITE_E2E"] ?? ""),
+    },
+  },
 });
