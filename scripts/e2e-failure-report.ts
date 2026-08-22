@@ -441,8 +441,7 @@ export function renderSources(
   // file matched. INC-085d: the cause was logged but unhearable.
   for (const source of sources) {
     const failed =
-      failures.some((f) => f.source === source.label) ||
-      silent.some((s) => s.source === source);
+      failures.some((f) => f.source === source.label) || silent.some((s) => s.source === source);
     if (!failed) continue;
     const ssr = source.serverErrors ?? [];
     lines.push(
@@ -819,7 +818,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] grep, the containment fallback (switcher slug + its refusal of a foreign directory), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] grep, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }

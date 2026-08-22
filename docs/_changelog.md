@@ -179,3 +179,4 @@
 - 2026-08-22 — fix(shell): impersonation banner unmounts on sign-out + gcTime 0 (SO-4 guard catch, INC-085); test(e2e): A-2 re-anchored to moderators' audit section
 - 2026-08-22 — ci: reporter output prettier-exempt (E5 class); fix(ssr): error page logs + DEV-embeds its cause; test(e2e): gotoReady retries the SSR error page once then fails named (INC-085c — flake family unmasked)
 - 2026-08-22 — ci(e2e): DEC-018 — CI builds and serves the PRODUCTION bundle (wrangler) in E2E mode; isE2E flag gates test instruments; central document-response guard in e2e/fixtures.ts; reporter quotes [ssr-error] and matches contexts by containment (INC-085d)
+- 2026-08-22 — ci: reporter treats zero-test results from failed sources as no-results (webServer deaths now quote their own logs)

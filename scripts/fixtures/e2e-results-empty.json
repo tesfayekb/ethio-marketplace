@@ -22,9 +22,7 @@
         "name": "desktop-1280",
         "testDir": "/dev-server/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/shell.spec.ts"
-        ],
+        "testMatch": ["**/shell.spec.ts"],
         "timeout": 30000
       }
     ],
