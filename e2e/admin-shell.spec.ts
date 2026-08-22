@@ -171,13 +171,16 @@ test.describe("Admin shell (U0)", () => {
     }
   });
 
-  test("A-2 moderator fixture: zero sections, deep link refused, admin tab still visible", async ({
+  // INC-085(b) — U3 gave moderators a real section — zero-sections was the
+  // placeholder-era premise. The census is the truth: exactly one section.
+  test("A-2 moderator fixture: exactly one section (audit), other deep links refused, admin tab still visible", async ({
     page,
   }) => {
     const mod = await createUser({ confirmed: true });
     await grantRole(mod.id, "moderator");
     const perms = await permissionsOfRole("moderator");
-    expect(expectedSectionIds(perms), "moderator seed now grants admin sections").toEqual([]);
+    expect(expectedSectionIds(perms), "moderator section census drifted").toEqual(["audit"]);
+
 
     await signIn(page, mod.email, mod.password);
     await waitForHydration(page);
