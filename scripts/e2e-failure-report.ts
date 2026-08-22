@@ -624,6 +624,7 @@ async function main() {
   }
 
   const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();
+  if (contextsDir && contexts.size === 0) reportEmptySearch(contextsDir, "context download");
 
   await Bun.write(OUT, renderSources(sources, meta, contexts));
   console.log(
