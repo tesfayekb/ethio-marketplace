@@ -7,9 +7,9 @@ import {
   expectAal2,
   gotoReady,
   isMobile,
-  userRow,
   stepUpIfPrompted,
   switchUser,
+  userRow,
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
@@ -45,11 +45,6 @@ async function grantRole(userId: string, roleName: string) {
   if (error) throw new Error(`[e2e:u1] granting ${roleName} failed: ${error.message}`);
 }
 
-/**
- * INC-074/INC-075 — the shared DataTable renders responsive twins with distinct
- * testids: `user-row-<id>` (md+ table row) and `user-row-<id>-card` (360 card).
- * Pick the one this viewport actually shows.
- */
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
   await page.waitForFunction(
     () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
