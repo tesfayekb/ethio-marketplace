@@ -1,7 +1,11 @@
 import { useState } from "react";
 
 import { ChartFrame } from "@/components/shell/chart-frame";
-import { DataTable, DataTablePagination, type DataTableColumn } from "@/components/shell/data-table";
+import {
+  DataTable,
+  DataTablePagination,
+  type DataTableColumn,
+} from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +30,8 @@ function DayBars({
 }) {
   const max = Math.max(1, ...days.map((entry) => entry.count));
   const gap = 4;
-  const barWidth = days.length > 0 ? Math.max(2, (size.width - gap * days.length) / days.length) : 0;
+  const barWidth =
+    days.length > 0 ? Math.max(2, (size.width - gap * days.length) / days.length) : 0;
   return (
     <svg
       data-testid="audit-chart-svg"
