@@ -175,3 +175,4 @@
 - 2026-08-22 — docs: U2 gate record — S30, four-lens close-out, INC-084 reconciled, system-state updated
 - 2026-08-22 — feat(rbac): U2b DEC-017 — assignable-scope flag server-enforced; matrix locks escalation-vector permissions and badges user-baseline rows (derived live)
 - 2026-08-22 — feat(admin): U3 Audit & Security — audit viewer (stats + 14-day chart + filters/pagination) and impersonation v1 (super-admin only, step-up, 15-minute box, dual-actor audit, global banner, READ-ONLY; auth-level act-as deferred)
+- 2026-08-22 — style(docs): prettier admin-audit-security.md (format:check was omitted from the U3 pre-flight — checklist reminder)
