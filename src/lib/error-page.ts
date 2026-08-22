@@ -28,10 +28,18 @@ function describe(error: unknown): string {
 }
 
 export function renderErrorPage(error?: unknown): string {
-  const isDev = Boolean(import.meta.env?.DEV);
-  const detail = isDev && error !== undefined ? sanitizeForMarkup(describe(error)) : "";
+  // DEPENDENCY-FREE BY LAW: the flag is INLINED here rather than imported from
+  // src/lib/env-flags.ts — the same module-init failure that triggers this page
+  // must not be able to break it. Same expression, same meaning (DEC-018).
+  const isInstrumented = Boolean(import.meta.env?.DEV) || import.meta.env?.VITE_E2E === "1";
+  const detail = isInstrumented && error !== undefined ? sanitizeForMarkup(describe(error)) : "";
   const comment = detail ? `\n    <!-- ssr-error: ${detail} -->` : "";
   const attribute = detail ? ` data-ssr-error="${detail}"` : "";
+  // INC-085d CLASS RULE — evidence must be VISIBLE to the instruments that
+  // collect it: ARIA/page snapshots record text, never comments or attributes.
+  const cause = detail
+    ? `\n      <pre data-testid="ssr-error-cause" class="cause">${detail}</pre>`
+    : "";
 
   return `<!doctype html>
 <html lang="en">
@@ -48,6 +56,7 @@ export function renderErrorPage(error?: unknown): string {
       a, button { padding: 0.5rem 1rem; border-radius: 0.375rem; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
       .primary { background: #111; color: #fff; }
       .secondary { background: #fff; color: #111; border-color: #d1d5db; }
+      .cause { margin: 1rem 0 0; padding: 0.5rem; background: #fff; border: 1px solid #d1d5db; border-radius: 0.375rem; text-align: start; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.4 ui-monospace, monospace; color: #b91c1c; }
     </style>
   </head>
   <body>${comment}
@@ -57,7 +66,7 @@ export function renderErrorPage(error?: unknown): string {
       <div class="actions">
         <button class="primary" onclick="location.reload()">Try again</button>
         <a class="secondary" href="/">Go home</a>
-      </div>
+      </div>${cause}
     </div>
   </body>
 </html>`;
