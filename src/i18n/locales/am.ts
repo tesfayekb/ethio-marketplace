@@ -359,6 +359,8 @@ export const am: Messages = {
   "admin.roles.perm.revoke": "አንሳ",
   "admin.roles.perm.locked": "ተቆልፏል",
   "admin.roles.perm.coreNote": "መሠረታዊ ፈቃድ — ሊነሳ አይችልም።",
+  "admin.roles.perm.notAssignable": "በሥርዓቱ የሚተዳደር — ለብጁ ሚናዎች ሊሰጥ አይችልም",
+  "admin.roles.perm.baselineBadge": "ሁሉም ሰው በ«ተጠቃሚ» ሚና በኩል ይህ አለው",
   "admin.roles.perm.stepUp": "ኮድ ይፈልጋል",
   "admin.roles.perm.failed": "የፈቃዱ ለውጥ አልተሳካም።",
   // U2a — የማትሪክሱ የቃላት ስብስብ (የገጽ ቃላት እንጂ መረጃ አይደለም)።

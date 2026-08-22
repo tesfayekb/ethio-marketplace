@@ -365,6 +365,8 @@ export const en = {
   "admin.roles.perm.revoke": "Revoke",
   "admin.roles.perm.locked": "Locked",
   "admin.roles.perm.coreNote": "Core permission — it cannot be revoked.",
+  "admin.roles.perm.notAssignable": "System-managed — cannot be granted to custom roles",
+  "admin.roles.perm.baselineBadge": "Everyone has this via the user role",
   "admin.roles.perm.stepUp": "Needs a code",
   "admin.roles.perm.failed": "That permission change failed.",
   // U2a — MATRIX VOCABULARY (finite chrome, not data): every distinct
