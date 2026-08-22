@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { isE2E } from "@/lib/env-flags";
+
 /**
  * U0k — SESSION POLICY (client-side enforcement).
  *

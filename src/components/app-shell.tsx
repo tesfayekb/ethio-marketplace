@@ -32,8 +32,8 @@ import {
 } from "@/features/session/session-policy";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
-import { isE2E } from "@/lib/env-flags";
 import { supabase } from "@/integrations/supabase/client";
+import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
