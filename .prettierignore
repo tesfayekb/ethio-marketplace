@@ -35,3 +35,6 @@ docs/features/performance-strategy.md
 # them would edit evidence.
 scripts/fixtures/e2e-results-sample.json
 scripts/fixtures/e2e-context-sample/
+
+# Reporter output — verbatim evidence fidelity outranks style; Knowledge E5 / INC-011 class.
+docs/tracking/e2e-last-failure.md

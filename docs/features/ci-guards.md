@@ -375,3 +375,12 @@ stack line>` and a best-effort titles-only failure list, then exits non-zero;
   (`scripts/fixtures/e2e-context-sample-describe`), both captured from real
   Playwright output. The self-test fails if a describe-nested failure cannot
   resolve its `error-context.md`.
+
+- **SSR error page instrumentation (INC-085c).** The SSR error page is
+  instrumented: the server logs `[ssr-error]` with the true exception (request
+  path, message, first stack lines) so shard log tails carry the cause; DEV
+  builds embed it in the page (`<!-- ssr-error: … -->` plus `data-ssr-error` on
+  the card) so Playwright snapshots record it; `gotoReady` retries the error
+  page once and then fails NAMED (`SSR error page twice for <url>: <cause>`).
+  Durable candidate registered: CI serves a production build (requires an E2E
+  build mode for the DEV hooks) — ACT when the named evidence justifies it.

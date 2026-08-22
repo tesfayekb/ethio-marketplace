@@ -78,9 +78,44 @@ export async function waitForHydration(page: Page) {
   );
 }
 
-/** Navigate and wait for the page to be genuinely interactive. */
+/**
+ * INC-085(c) — the dev SSR server intermittently fails requests under CI's
+ * 6-way parallel load and serves the static error page; the interactive
+ * markup never arrives, so the failure used to surface as an unrelated
+ * 60s element-not-found. Detects that page from its stable h1 plus the
+ * DEV-embedded `data-ssr-error` cause.
+ */
+async function readSsrErrorPage(page: Page): Promise<string | null> {
+  return page.evaluate(() => {
+    const card = document.querySelector("[data-ssr-error]");
+    const heading = document.querySelector("h1");
+    const isErrorPage = card !== null || heading?.textContent?.trim() === "This page didn't load";
+    if (!isErrorPage) return null;
+    return card?.getAttribute("data-ssr-error") ?? "(no embedded cause — production build)";
+  });
+}
+
+/**
+ * Navigate and wait for the page to be genuinely interactive.
+ *
+ * Owns ONE bounded retry of the SSR error page (drawer-retry law: never a
+ * silent third try) — a second occurrence throws a NAMED error carrying the
+ * DEV-embedded cause.
+ */
 export async function gotoReady(page: Page, path: string) {
   await page.goto(path);
+
+  let cause = await readSsrErrorPage(page);
+  if (cause !== null) {
+    console.log("[e2e] ssr error page — retrying navigation once");
+    await page.waitForTimeout(500);
+    await page.reload();
+    cause = await readSsrErrorPage(page);
+    if (cause !== null) {
+      throw new Error(`SSR error page twice for ${path}: ${cause}`);
+    }
+  }
+
   await waitForHydration(page);
 }
 

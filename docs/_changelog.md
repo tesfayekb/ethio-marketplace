@@ -177,3 +177,4 @@
 - 2026-08-22 — feat(admin): U3 Audit & Security — audit viewer (stats + 14-day chart + filters/pagination) and impersonation v1 (super-admin only, step-up, 15-minute box, dual-actor audit, global banner, READ-ONLY; auth-level act-as deferred)
 - 2026-08-22 — style(docs): prettier admin-audit-security.md (format:check was omitted from the U3 pre-flight — checklist reminder)
 - 2026-08-22 — fix(shell): impersonation banner unmounts on sign-out + gcTime 0 (SO-4 guard catch, INC-085); test(e2e): A-2 re-anchored to moderators' audit section
+- 2026-08-22 — ci: reporter output prettier-exempt (E5 class); fix(ssr): error page logs + DEV-embeds its cause; test(e2e): gotoReady retries the SSR error page once then fails named (INC-085c — flake family unmasked)
