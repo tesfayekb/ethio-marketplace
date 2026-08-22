@@ -639,6 +639,48 @@ async function main() {
       console.error("SELF-TEST FAILED — missing from rendered report:", missing);
       process.exit(1);
     }
+    // INC-086 — THE WIPEOUT CASE. Every source wrote a results.json that
+    // parses and records ZERO tests (real capture: an impossible --grep, the
+    // same shape a dead webServer leaves behind). The old reporter printed
+    // "Failed 0 · Sources without results: none" and quoted nothing.
+    const emptyJson = (await Bun.file(EMPTY_FIXTURE).json()) as PwJson;
+    if (countTests(emptyJson) !== 0 || countTests(fixture) !== 2) {
+      console.error("SELF-TEST FAILED — countTests miscounted the captured fixtures.");
+      process.exit(1);
+    }
+    const wipeout = renderSources(
+      [
+        {
+          label: "shard 1",
+          json: emptyJson,
+          logTail: "Error: Timed out waiting 120000ms from config.webServer.\nexit code 1",
+          serverErrors: ["[ssr-error] / TypeError: dead at ssr.mjs:9"],
+        },
+        { label: "smoke", json: emptyJson, logTail: "Error: No tests found", serverErrors: [] },
+      ],
+      { runId: "self-test", runUrl: "", sha: "self-test" },
+      new Map(),
+    );
+    for (const needle of [
+      "- Passed: 0 · Skipped: 0 · Failed: 0",
+      "- Sources without results: shard 1, smoke",
+      "## shard 1: results file with zero tests",
+      "shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.",
+      "Timed out waiting 120000ms from config.webServer.",
+      "[ssr-error] / TypeError: dead at ssr.mjs:9",
+      "## smoke: results file with zero tests",
+      "Error: No tests found",
+    ]) {
+      if (!wipeout.includes(needle)) {
+        console.error(`SELF-TEST FAILED — wipeout report missing: ${needle}`);
+        process.exit(1);
+      }
+    }
+    if (wipeout.includes("Sources without results: none")) {
+      console.error("SELF-TEST FAILED — wipeout header still claims every source reported.");
+      process.exit(1);
+    }
+
     // DEC-018 — GREP + CONTAINMENT FALLBACK. The switcher slug is the shape
     // that defeated the prefix/suffix splice: the apostrophe token vanished in
     // truncation, leaving no clean `-<5 hex>-` seam.
