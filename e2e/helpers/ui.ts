@@ -121,7 +121,6 @@ export async function signOutViaMenu(page: Page, labels: { accountMenu?: string 
   await page.getByTestId("account-menu-sign-out").click();
 }
 
-
 /** Viewport branch: below md the rail lives in the Sheet drawer. */
 export function isMobile(page: Page) {
   return (page.viewportSize()?.width ?? 1280) < 768;

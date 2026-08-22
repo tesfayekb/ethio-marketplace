@@ -130,7 +130,6 @@ export function contextSlug(spec: ContextSpec): string {
   return `${contextCore(spec)}-${sanitizeSlug(spec.project)}`;
 }
 
-
 /**
  * Walks a downloaded artifact root and indexes every error-context.md by the
  * name of the directory that holds it (the Playwright slug).
@@ -270,7 +269,6 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
   };
 
   for (const suite of json.suites ?? []) walk(suite, [], suite.file ?? "", true);
-
 
   return {
     failures,
@@ -608,7 +606,6 @@ async function main() {
       );
       process.exit(1);
     }
-
 
     // NEVER-SILENT LAW: a malformed results.json is (a) survivable as a source
     // and (b) renderable as a REPORTER ERROR when something does escape.
