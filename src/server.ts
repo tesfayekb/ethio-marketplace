@@ -29,7 +29,8 @@ function logSsrError(request: Request, error: unknown) {
     // Keep the raw URL; a malformed one is itself evidence.
   }
   const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-  const stack = error instanceof Error ? (error.stack ?? "").split("\n").slice(1, 4).join("\n") : "";
+  const stack =
+    error instanceof Error ? (error.stack ?? "").split("\n").slice(1, 4).join("\n") : "";
   console.error("[ssr-error]", where, message, stack);
   console.error(error);
 }
@@ -79,4 +80,3 @@ export default {
     }
   },
 };
-

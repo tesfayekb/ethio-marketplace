@@ -89,8 +89,7 @@ async function readSsrErrorPage(page: Page): Promise<string | null> {
   return page.evaluate(() => {
     const card = document.querySelector("[data-ssr-error]");
     const heading = document.querySelector("h1");
-    const isErrorPage =
-      card !== null || heading?.textContent?.trim() === "This page didn't load";
+    const isErrorPage = card !== null || heading?.textContent?.trim() === "This page didn't load";
     if (!isErrorPage) return null;
     return card?.getAttribute("data-ssr-error") ?? "(no embedded cause — production build)";
   });
@@ -119,7 +118,6 @@ export async function gotoReady(page: Page, path: string) {
 
   await waitForHydration(page);
 }
-
 
 /**
  * The shell moved the signed-in controls (identity, profile, settings, sign
