@@ -375,8 +375,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     <ShellContext.Provider value={value}>
       {user !== null && !signingOut ? <PermissionsLoader onChange={setPermissionsState} /> : null}
       {/* U3 / DEC-016 — an active impersonation is ALWAYS visible, on every
-          page, for as long as the 15-minute box is open. */}
-      <ImpersonationBanner enabled={user !== null && !signingOut} />
+          page, for as long as the 15-minute box is open.
+          INC-085: the banner MOUNTS conditionally. A mounted useQuery with
+          `enabled:false` re-registers its entry after the hard reset's
+          removeQueries (INC-078 class), so `enabled` is never the mechanism —
+          unmounting is. The prop stays, pinned to `true` while mounted. */}
+      {user !== null && !signingOut ? <ImpersonationBanner enabled /> : null}
 
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}
