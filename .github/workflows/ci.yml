@@ -577,7 +577,17 @@ jobs:
           if [ "$pushed" -ne 1 ]; then
             echo "::warning::E2E failure report push failed after retries"
           fi
+          # The report is published; NOW the reporter's own health is raised.
+          if [ "$selftest" -ne 0 ]; then
+            echo "::error::E2E failure reporter self-test failed (exit ${selftest})"
+            exit "$selftest"
+          fi
+          if [ "$reporter" -ne 0 ]; then
+            echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"
+            exit "$reporter"
+          fi
           exit 0
+
       # Law F4 — the merged job's conclusion IS the E2E verdict. A red shard or
       # a red smoke tier reddens this row; bookkeeping never masks it.
       - name: Verdict
