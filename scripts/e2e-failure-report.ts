@@ -488,23 +488,24 @@ async function main() {
 
   if (dir) {
     for (const id of expected) {
-      const path = `${dir}/e2e-results-${id}/results.json`;
-      const file = Bun.file(path);
-      const json = (await file.exists()) ? ((await file.json()) as PwJson) : null;
-      if (json) found += 1;
+      const parsed = await readJson(`${dir}/e2e-results-${id}/results.json`);
+      if (parsed.json) found += 1;
       sources.push({
         label: sourceLabel(`e2e-results-${id}`),
-        json,
-        logTail: json ? null : logsDir ? await logTail(`${logsDir}/e2e-log-${id}/${id}.log`) : null,
+        json: parsed.json,
+        logTail: parsed.json
+          ? null
+          : (parsed.error ??
+            (logsDir ? await logTail(`${logsDir}/e2e-log-${id}/${id}.log`) : null)),
       });
     }
   } else {
     const path = process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json";
-    const file = Bun.file(path);
-    const json = (await file.exists()) ? ((await file.json()) as PwJson) : null;
-    if (json) found += 1;
-    sources.push({ label: "all", json, logTail: null });
+    const parsed = await readJson(path);
+    if (parsed.json) found += 1;
+    sources.push({ label: "all", json: parsed.json, logTail: parsed.error });
   }
+
 
   const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();
 
