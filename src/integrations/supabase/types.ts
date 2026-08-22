@@ -472,6 +472,7 @@ export type Database = {
       permissions: {
         Row: {
           action: string
+          assignable: boolean
           created_at: string
           description: string | null
           id: string
@@ -480,6 +481,7 @@ export type Database = {
         }
         Insert: {
           action: string
+          assignable?: boolean
           created_at?: string
           description?: string | null
           id?: string
@@ -488,6 +490,7 @@ export type Database = {
         }
         Update: {
           action?: string
+          assignable?: boolean
           created_at?: string
           description?: string | null
           id?: string
@@ -792,6 +795,7 @@ export type Database = {
         Args: { p_role_id: string }
         Returns: {
           action: string
+          assignable: boolean
           description: string
           display_name: string
           granted: boolean
@@ -803,6 +807,7 @@ export type Database = {
           requires_step_up: boolean
           resource: string
           role_id: string
+          user_baseline: boolean
         }[]
       }
       admin_get_user: {
