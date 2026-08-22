@@ -384,3 +384,37 @@ stack line>` and a best-effort titles-only failure list, then exits non-zero;
   page once and then fails NAMED (`SSR error page twice for <url>: <cause>`).
   Durable candidate registered: CI serves a production build (requires an E2E
   build mode for the DEV hooks) — ACT when the named evidence justifies it.
+
+- **Built-app E2E (DEC-018, INC-085d).** CI no longer serves the Vite dev server.
+  Every E2E job runs `bun run build:e2e` (a normal production build with
+  `VITE_E2E=1`) and Playwright's `webServer` serves `dist/` through
+  `bunx wrangler dev -c dist/server/wrangler.json` — the same Cloudflare worker
+  runtime production uses. Locally the loop is unchanged (`vite dev`); the built
+  path is selected by `E2E_SERVE_BUILT=1`, set in the workflows only. Each job
+  builds its own `dist/` (seconds, and the build needs that job's `VITE_*` env);
+  no build artifact is shared. Test-only instruments (`__ethioSupabase`,
+  `__ethioQueryClient`, `__ethioSessionPolicy`, `__ethioStepUp`, the `/dev/*`
+  fixture routes, the SSR error page's visible cause) are gated on
+  `isE2E` from `src/lib/env-flags.ts` — `import.meta.env.DEV ||
+import.meta.env.VITE_E2E === "1"` — so they exist in dev and in the E2E build
+  and are compiled out of the production build (verified: a plain `bun run build`
+  contains none of the window hooks).
+  `src/lib/error-page.ts` stays dependency-free and inlines the same condition
+  rather than importing the flag module.
+
+- **Document-response guard (DEC-018).** `e2e/fixtures.ts` exports the extended
+  `test`/`expect` that every spec imports. An auto-fixture watches every document
+  response: a 5xx or the SSR error page's marker triggers ONE automatic reload,
+  and a second occurrence fails the test NAMED, quoting the cause the page
+  carries. `gotoReady` delegates to that guard instead of keeping its own retry,
+  so there is exactly one retry policy in the harness.
+
+- **Server errors in the failure report.** `scripts/e2e-failure-report.ts` reads
+  the full log of EVERY failed source (not only sources that produced no
+  results) and quotes every `[ssr-error]` line under `## Server errors: <source>`;
+  a source with none says so explicitly. The context matcher gained a
+  CONTAINMENT fallback: when Playwright's truncation leaves no clean
+  `-<5 hex>-` seam (apostrophes collapse into the hash), a candidate directory
+  is accepted if its non-hash tokens are an order-preserving subsequence of the
+  expected slug's tokens; the self-test proves it matches the switcher slug and
+  refuses a foreign directory.

@@ -33,6 +33,7 @@ import {
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
@@ -323,11 +324,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   /**
    * U0j-2 — TEST HOOK, dev-only. The E2E live-guard proof must fire a REAL
    * same-tab SIGNED_OUT through onAuthStateChange (synthetic storage events are
-   * ignored by supabase-js in the tab that dispatches them). `import.meta.env.DEV`
-   * is false in every production build, so this never ships.
+   * ignored by supabase-js in the tab that dispatches them). DEC-018: gated on
+   * `isE2E`, which is false in every production build, so this never ships.
    */
   useEffect(() => {
-    if (!import.meta.env.DEV || typeof window === "undefined") return;
+    if (!isE2E || typeof window === "undefined") return;
     (window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase = supabase;
     // U1g-2 — SO-4 proof reads the cache directly to assert the purge.
     (window as unknown as { __ethioQueryClient?: unknown }).__ethioQueryClient = queryClient;

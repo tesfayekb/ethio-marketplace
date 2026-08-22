@@ -122,7 +122,33 @@ export function matchContextDir(candidates: string[], spec: ContextSpec): string
       if (core.startsWith(head) && core.endsWith(tail)) return candidate;
     }
   }
+
+  // DEC-018 FALLBACK — CONTAINMENT, not equality. Playwright's truncation does
+  // not always leave a clean `-<5 hex>-` seam (an apostrophe collapses to a
+  // dash, and the hash can absorb a neighbouring dash), so the prefix/suffix
+  // splice above misses shapes like the switcher slug. Last resort: strip the
+  // hash tokens from the candidate and accept it when what remains is a
+  // SUBSEQUENCE of the expected slug's tokens — order-preserving, so it can
+  // still never match a different test's directory.
+  for (const candidate of candidates) {
+    if (!candidate.endsWith(suffix)) continue;
+    const body = candidate.slice(0, candidate.length - suffix.length);
+    if (isTokenSubsequence(body, core)) return candidate;
+  }
   return null;
+}
+
+/** `a-b-c` tokens minus 5-hex hash tokens, in order, contained in the core. */
+export function isTokenSubsequence(body: string, core: string): boolean {
+  const tokens = body.split("-").filter((t) => t.length > 0 && !/^[0-9a-f]{5}$/.test(t));
+  const coreTokens = core.split("-").filter((t) => t.length > 0);
+  if (tokens.length === 0) return false;
+  let i = 0;
+  for (const token of coreTokens) {
+    if (token === tokens[i]) i += 1;
+    if (i === tokens.length) return true;
+  }
+  return false;
 }
 
 /** The human-readable slug a failure WOULD have; printed when nothing matches. */
@@ -288,7 +314,20 @@ export type Source = {
   json: PwJson | null;
   /** Last lines of the job log, already redacted, when results are missing. */
   logTail: string | null;
+  /**
+   * DEC-018 — every `[ssr-error]` line the job's log carried, redacted. The
+   * server logs the true exception behind a failed page delivery; quoting it
+   * is INDEPENDENT of whether an error-context.md matched.
+   */
+  serverErrors?: string[];
 };
+
+/** Every `[ssr-error]` line in a job log, capped so one bad run cannot flood. */
+export function grepSsrErrors(text: string | null, limit = 20): string[] {
+  if (!text) return [];
+  const lines = text.split("\n").filter((line) => line.includes("[ssr-error]"));
+  return lines.slice(-limit).map((line) => redact(line.trim()));
+}
 
 /** `e2e-results-smoke` → `smoke`; `e2e-results-3` → `shard 3`. */
 export function sourceLabel(artifactDir: string): string {
@@ -361,6 +400,21 @@ export function renderSources(
     }
   }
 
+  // DEC-018 — SERVER ERRORS, per source, quoted whether or not any context
+  // file matched. INC-085d: the cause was logged but unhearable.
+  for (const source of sources) {
+    const failed = failures.some((f) => f.source === source.label) || !source.json;
+    if (!failed) continue;
+    const ssr = source.serverErrors ?? [];
+    lines.push(
+      `## Server errors: ${source.label}`,
+      "",
+      ...(ssr.length === 0
+        ? [`No \`[ssr-error]\` lines in the \`${source.label}\` log (or no log was uploaded).`, ""]
+        : ["```text", ...ssr, "```", ""]),
+    );
+  }
+
   // Law F4: a red job that wrote no results is quoted, never counted as zero.
   for (const s of silent) {
     lines.push(
@@ -379,7 +433,7 @@ export function renderSources(
 }
 
 export function render(json: PwJson, meta: { runId: string; runUrl: string; sha: string }): string {
-  return renderSources([{ label: "all", json, logTail: null }], meta);
+  return renderSources([{ label: "all", json, logTail: null, serverErrors: [] }], meta);
 }
 
 export function renderGreen(meta: { runId: string; runUrl: string; sha: string }): string {
@@ -475,12 +529,11 @@ export async function readJson(
   }
 }
 
-/** Last `count` lines of a job log, redacted. */
-async function logTail(path: string, count = 40): Promise<string | null> {
+/** The whole job log, redacted; `null` when the artifact was not uploaded. */
+async function readLog(path: string): Promise<string | null> {
   const file = Bun.file(path);
   if (!(await file.exists())) return null;
-  const text = redact(await file.text());
-  return text.split("\n").slice(-count).join("\n").trim() || null;
+  return redact(await file.text());
 }
 
 async function main() {
@@ -505,7 +558,14 @@ async function main() {
     }
     const out = renderSources(
       [
-        { label: "shard 2", json: fixture, logTail: null },
+        {
+          label: "shard 2",
+          json: fixture,
+          logTail: null,
+          // DEC-018: server errors are quoted for a source that DID produce
+          // results — independent of context matching.
+          serverErrors: ["[ssr-error] /admin/users TypeError: boom at ssr.mjs:1"],
+        },
         { label: "smoke", json: null, logTail: "Error: browserType.launch failed\nexit code 1" },
       ],
       { runId: "self-test", runUrl: "", sha: "self-test" },
@@ -523,12 +583,48 @@ async function main() {
       "Context: context file not found for `tmp-capture-CAP-2-a-test-level-timeout-records-no-failed-step-desktop-1280`",
       "smoke: no results file — the process failed outside test results (setup/teardown/preflight).",
       "browserType.launch failed",
+      // DEC-018 — the [ssr-error] grep must reach the report for a FAILED
+      // source that produced results, and a source without any must say so.
+      "## Server errors: shard 2",
+      "[ssr-error] /admin/users TypeError: boom at ssr.mjs:1",
+      "No `[ssr-error]` lines in the `smoke` log",
     ];
     const missing = required.filter((needle) => !out.includes(needle));
     if (missing.length > 0) {
       console.error("SELF-TEST FAILED — missing from rendered report:", missing);
       process.exit(1);
     }
+    // DEC-018 — GREP + CONTAINMENT FALLBACK. The switcher slug is the shape
+    // that defeated the prefix/suffix splice: the apostrophe token vanished in
+    // truncation, leaving no clean `-<5 hex>-` seam.
+    if (
+      grepSsrErrors("noise\n[ssr-error] /c/slug Error: nope\nmore noise").length !== 1 ||
+      grepSsrErrors(null).length !== 0
+    ) {
+      console.error("SELF-TEST FAILED — [ssr-error] grep did not isolate the server lines.");
+      process.exit(1);
+    }
+    const switcherSlug = "shell-panel-switcher-the-switcher-drawer-opens-mobile-360";
+    const switcherMatch = matchContextDir([switcherSlug], {
+      file: "e2e/shell.spec.ts",
+      titlePath: ["panel switcher", "the switcher's drawer opens"],
+      project: "mobile-360",
+    });
+    if (switcherMatch !== switcherSlug) {
+      console.error("SELF-TEST FAILED — containment fallback missed the switcher slug.");
+      process.exit(1);
+    }
+    if (
+      matchContextDir(["shell-panel-switcher-a-different-test-mobile-360"], {
+        file: "e2e/shell.spec.ts",
+        titlePath: ["panel switcher", "the switcher's drawer opens"],
+        project: "mobile-360",
+      }) !== null
+    ) {
+      console.error("SELF-TEST FAILED — containment fallback matched a foreign directory.");
+      process.exit(1);
+    }
+
     if (
       sourceLabel("e2e-results-3") !== "shard 3" ||
       sourceLabel("e2e-results-smoke") !== "smoke"
@@ -630,7 +726,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] grep, the containment fallback (switcher slug + its refusal of a foreign directory), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
@@ -659,20 +755,24 @@ async function main() {
     for (const id of expected) {
       const parsed = await readJson(`${dir}/e2e-results-${id}/results.json`);
       if (parsed.json) found += 1;
+      // DEC-018: the log is read for EVERY source, not only for sources that
+      // produced no results — `[ssr-error]` lines matter most next to a
+      // failure that DID get recorded.
+      const log = logsDir ? await readLog(`${logsDir}/e2e-log-${id}/${id}.log`) : null;
       sources.push({
         label: sourceLabel(`e2e-results-${id}`),
         json: parsed.json,
         logTail: parsed.json
           ? null
-          : (parsed.error ??
-            (logsDir ? await logTail(`${logsDir}/e2e-log-${id}/${id}.log`) : null)),
+          : (parsed.error ?? (log ? log.split("\n").slice(-40).join("\n").trim() || null : null)),
+        serverErrors: grepSsrErrors(log),
       });
     }
   } else {
     const path = process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json";
     const parsed = await readJson(path);
     if (parsed.json) found += 1;
-    sources.push({ label: "all", json: parsed.json, logTail: parsed.error });
+    sources.push({ label: "all", json: parsed.json, logTail: parsed.error, serverErrors: [] });
   }
 
   const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();

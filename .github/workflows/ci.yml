@@ -239,6 +239,11 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      # DEC-018 — the suite runs against the BUILT app, with the test
+      # instruments compiled in (src/lib/env-flags.ts). PROD is unaffected:
+      # VITE_E2E is set here and by `bun run build:e2e` only.
+      VITE_E2E: "1"
+      E2E_SERVE_BUILT: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -268,6 +273,11 @@ jobs:
         run: echo "playwright cache-hit=${{ steps.pw-cache.outputs.cache-hit }}"
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
+      # DEC-018: E2E runs the PRODUCTION build in E2E mode. Each job builds its
+      # own dist/ (the build is seconds and needs the job's VITE_* env anyway);
+      # artifact-sharing was not worth the plumbing.
+      - name: Build the app in E2E mode (VITE_E2E=1)
+        run: bun run build:e2e
       # The smoke tier is a FILE LIST, not a title grep: tagging shell.spec.ts
       # and auth-signout.spec.ts would edit specs outside this task's scope, and
       # a file list carries the same meaning with zero test-logic change.
@@ -333,6 +343,11 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      # DEC-018 — the suite runs against the BUILT app, with the test
+      # instruments compiled in (src/lib/env-flags.ts). PROD is unaffected:
+      # VITE_E2E is set here and by `bun run build:e2e` only.
+      VITE_E2E: "1"
+      E2E_SERVE_BUILT: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -362,7 +377,12 @@ jobs:
         run: echo "playwright cache-hit=${{ steps.pw-cache.outputs.cache-hit }}"
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
-      - name: Run E2E shard (dev-server mode; the production build is validated in build-and-check)
+      # DEC-018: E2E runs the PRODUCTION build in E2E mode. Each job builds its
+      # own dist/ (the build is seconds and needs the job's VITE_* env anyway);
+      # artifact-sharing was not worth the plumbing.
+      - name: Build the app in E2E mode (VITE_E2E=1)
+        run: bun run build:e2e
+      - name: Run E2E shard (built app, served by wrangler — DEC-018)
         run: |
           set -o pipefail
           bunx playwright test --project=mobile-360 --project=desktop-1280 --shard=${{ matrix.shard }}/4 2>&1 | tee ${{ matrix.shard }}.log
@@ -420,6 +440,11 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      # DEC-018 — the suite runs against the BUILT app, with the test
+      # instruments compiled in (src/lib/env-flags.ts). PROD is unaffected:
+      # VITE_E2E is set here and by `bun run build:e2e` only.
+      VITE_E2E: "1"
+      E2E_SERVE_BUILT: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -443,6 +468,11 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
+      # DEC-018: E2E runs the PRODUCTION build in E2E mode. Each job builds its
+      # own dist/ (the build is seconds and needs the job's VITE_* env anyway);
+      # artifact-sharing was not worth the plumbing.
+      - name: Build the app in E2E mode (VITE_E2E=1)
+        run: bun run build:e2e
       - name: Run the email-serial project (single instance)
         run: |
           set -o pipefail

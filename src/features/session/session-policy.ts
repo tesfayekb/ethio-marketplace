@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { isE2E } from "@/lib/env-flags";
+
 /**
  * U0k — SESSION POLICY (client-side enforcement).
  *
@@ -40,7 +42,7 @@ const TICK_MS = 1_000;
 export type SessionTier = "staff" | "regular";
 export type SessionExpiryReason = "idle" | "absolute";
 
-/** DEV-only overrides, used by the E2E session-policy specs. */
+/** DEV/E2E-only overrides, used by the E2E session-policy specs (DEC-018). */
 export type SessionPolicyOverrides = {
   idleMs?: number;
   warnMs?: number;
@@ -48,7 +50,7 @@ export type SessionPolicyOverrides = {
 };
 
 function overrides(): SessionPolicyOverrides {
-  if (!import.meta.env.DEV || typeof window === "undefined") return {};
+  if (!isE2E || typeof window === "undefined") return {};
   return (
     (window as unknown as { __ethioSessionPolicy?: SessionPolicyOverrides }).__ethioSessionPolicy ??
     {}
