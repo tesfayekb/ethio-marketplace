@@ -108,7 +108,50 @@ export async function assertSsrHealthy(page: Page): Promise<void> {
   if (state.failure) throw new Error(state.failure);
 }
 
-export const test = base.extend<{ ssrGuard: void }>({
+/**
+ * INC-085f — CLIENT-ERROR CAPTURE.
+ *
+ * Every runtime error channel needs a capture path into the evidence file.
+ * The server has `[ssr-error]`; the browser had none, so a crash during
+ * hydration produced blank ARIA snapshots and silence. This buffers the last
+ * 20 `pageerror` throws and console errors per test and, when the test fails,
+ * attaches them AND prints each as a `[client-error]` line the reporter greps
+ * out of the job log.
+ */
+const CLIENT_ERROR_BUFFER = 20;
+const CLIENT_ERROR_MESSAGE_CHARS = 200;
+
+function armClientErrorCapture(page: Page, buffer: string[]): void {
+  const push = (line: string) => {
+    buffer.push(line);
+    if (buffer.length > CLIENT_ERROR_BUFFER) buffer.shift();
+  };
+  page.on("pageerror", (error) => push(`pageerror: ${error.stack ?? error.message}`));
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    push(`console.error: ${message.text()}`);
+  });
+}
+
+export const test = base.extend<{ ssrGuard: void; clientErrors: string[] }>({
+  clientErrors: [
+    async ({ page }, use, testInfo) => {
+      const buffer: string[] = [];
+      armClientErrorCapture(page, buffer);
+      await use(buffer);
+      if (testInfo.status === testInfo.expectedStatus || buffer.length === 0) return;
+      await testInfo.attach("client-errors", {
+        body: buffer.join("\n"),
+        contentType: "text/plain",
+      });
+      for (const entry of buffer) {
+        console.log(
+          `[client-error] ${entry.replace(/\s+/g, " ").slice(0, CLIENT_ERROR_MESSAGE_CHARS)}`,
+        );
+      }
+    },
+    { auto: true },
+  ],
   ssrGuard: [
     async ({ page }, use) => {
       armSsrGuard(page);
