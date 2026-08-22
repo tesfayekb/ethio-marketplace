@@ -472,6 +472,9 @@ async function main() {
     const fixture = (await Bun.file(FIXTURE).json()) as PwJson;
     const contexts = collectContextFiles(CONTEXT_FIXTURE);
     if (contexts.size !== 1) {
+      // INC-084f: a 0-found result must name the glob and every walked path —
+      // that is exactly the signal the untracked-fixture failure lacked.
+      if (contexts.size === 0) reportEmptySearch(CONTEXT_FIXTURE, "sample fixture");
       console.error(`SELF-TEST FAILED — expected 1 bundled context file, found ${contexts.size}.`);
       process.exit(1);
     }
