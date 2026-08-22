@@ -460,11 +460,73 @@ async function main() {
       console.error("SELF-TEST FAILED — secret-shaped text survived redaction.");
       process.exit(1);
     }
+
+    // INC-084e — LIVE-SHAPE REHEARSAL. actions/download-artifact@v4 with a
+    // `pattern` and merge-multiple:false drops EACH artifact into its own
+    // subdirectory named after the artifact; with merge-multiple:true they
+    // land flat; when no artifact matches, the path is an empty directory.
+    // All three shapes are permanent fixtures, because "it works on my
+    // hand-made directory" is exactly how the first live run died.
+    const layouts: [string, string, number][] = [
+      ["per-artifact subdir", `${LAYOUT_FIXTURES}/e2e-context-layout-subdir`, 1],
+      ["merged flat", `${LAYOUT_FIXTURES}/e2e-context-layout-flat`, 1],
+      ["zero artifacts", `${LAYOUT_FIXTURES}/e2e-context-layout-empty`, 0],
+      ["missing directory", `${LAYOUT_FIXTURES}/e2e-context-layout-absent`, 0],
+    ];
+    for (const [name, path, expectedCount] of layouts) {
+      const found = collectContextFiles(path);
+      if (found.size !== expectedCount) {
+        console.error(
+          `SELF-TEST FAILED — layout "${name}": expected ${expectedCount} context file(s), found ${found.size}.`,
+        );
+        process.exit(1);
+      }
+      // Every layout must still RENDER, with the missing-context branch when
+      // nothing matches — never a crash.
+      const rendered = renderSources(
+        [{ label: "smoke", json: fixture, logTail: null }],
+        { runId: "self-test", runUrl: "", sha: "self-test" },
+        found,
+      );
+      if (!rendered.includes("CAP-1 a missing testid fails with a locator error")) {
+        console.error(`SELF-TEST FAILED — layout "${name}" rendered no failure body.`);
+        process.exit(1);
+      }
+      if (expectedCount === 0 && !rendered.includes("Context: context file not found for")) {
+        console.error(`SELF-TEST FAILED — layout "${name}" lost the missing-context branch.`);
+        process.exit(1);
+      }
+      console.log(`  layout OK — ${name}: ${found.size} context file(s), report rendered.`);
+    }
+
+    // NEVER-SILENT LAW: a malformed results.json is (a) survivable as a source
+    // and (b) renderable as a REPORTER ERROR when something does escape.
+    const malformed = await readJson(MALFORMED_FIXTURE);
+    if (malformed.json !== null || !malformed.error) {
+      console.error("SELF-TEST FAILED — malformed results.json was not reported as unparseable.");
+      process.exit(1);
+    }
+    const crash = renderCrash(new Error("boom while rendering"), meta, [
+      "smoke: shell.spec.ts › drawer switcher",
+    ]);
+    for (const needle of [
+      "REPORTER ERROR: boom while rendering",
+      "## Best-effort failure list (titles only)",
+      "- smoke: shell.spec.ts › drawer switcher",
+      "- Commit: `",
+    ]) {
+      if (!crash.includes(needle)) {
+        console.error(`SELF-TEST FAILED — crash report missing: ${needle}`);
+        process.exit(1);
+      }
+    }
+
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting and redaction verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
+
 
   if (process.env["E2E_GREEN"] === "1") {
     await Bun.write(OUT, renderGreen(meta));
