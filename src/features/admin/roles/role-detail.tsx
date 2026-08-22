@@ -194,6 +194,7 @@ function MembersCard({ role }: { role: RoleDetail }) {
       </p>
       <Link
         to="/admin/users"
+        search={{ role: role.name }}
         data-testid="role-members-link"
         className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4"
       >

@@ -7,6 +7,7 @@ import {
   expectAal2,
   gotoReady,
   isMobile,
+  userRow,
   stepUpIfPrompted,
   switchUser,
   waitForHydration,
@@ -49,10 +50,6 @@ async function grantRole(userId: string, roleName: string) {
  * testids: `user-row-<id>` (md+ table row) and `user-row-<id>-card` (360 card).
  * Pick the one this viewport actually shows.
  */
-function userRow(page: Page, userId: string) {
-  return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
-}
-
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
   await page.waitForFunction(
     () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
