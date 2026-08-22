@@ -434,7 +434,9 @@ export function renderSources(
   // DEC-018 — SERVER ERRORS, per source, quoted whether or not any context
   // file matched. INC-085d: the cause was logged but unhearable.
   for (const source of sources) {
-    const failed = failures.some((f) => f.source === source.label) || !source.json;
+    const failed =
+      failures.some((f) => f.source === source.label) ||
+      silent.some((s) => s.source === source);
     if (!failed) continue;
     const ssr = source.serverErrors ?? [];
     lines.push(
