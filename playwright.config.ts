@@ -63,16 +63,23 @@ export default defineConfig({
     },
   ],
 
-  // Option B (evidence-based): CI serves the app with the Vite dev server.
-  // The Cloudflare-worker production bundle does not reproduce in the GitHub
-  // runner (dist/server/wrangler.json is absent there), so wrangler can never
-  // start. Dev mode serves the same SSR app and exercises routing, i18n, auth
-  // and UI faithfully; production-bundle behaviour is covered by the separate
-  // post-deploy staging smoke check.
+  // DEC-018 — CI SERVES THE PRODUCTION BUILD (E2E mode).
+  // Option B (dev-server mode) is retired for CI: the dev SSR server
+  // intermittently failed document requests under 6-way parallel load and
+  // served the static error page (INC-085c/d). CI now runs `bun run build:e2e`
+  // as its own step and serves dist/ through wrangler — the same Cloudflare
+  // worker runtime production uses, with the VITE_E2E instruments compiled in.
+  // dist/server/wrangler.json IS produced by the current nitro build (the
+  // 2026-08-01 absence that forced Option B no longer reproduces).
+  //   CI:    bun run serve:e2e:built --port <PORT>   (wrangler dev on dist/)
+  //   local: bun run serve:e2e --port <PORT>          (vite dev, fast loop)
   webServer: process.env["E2E_BASE_URL"]
     ? undefined
     : {
-        command: `bun run serve:e2e --port ${PORT}`,
+        command:
+          process.env["E2E_SERVE_BUILT"] === "1"
+            ? `bun run serve:e2e:built --port ${PORT}`
+            : `bun run serve:e2e --port ${PORT}`,
         url: BASE_URL,
         reuseExistingServer: !process.env["CI"],
         timeout: 180_000,
