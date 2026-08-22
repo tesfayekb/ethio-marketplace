@@ -98,6 +98,9 @@ export function Breadcrumbs() {
      * context, no new fetch path — the crumb reads the same cached row.
      */
     const userDetailId = /^\/admin\/users\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
+    /** U2 — the same cache seam for the Roles > <display name> 4th segment. */
+    const roleDetailId = /^\/admin\/roles\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
+    const detailId = userDetailId ?? roleDetailId;
     return (
       <Breadcrumb
         data-testid="breadcrumbs"
@@ -130,9 +133,9 @@ export function Breadcrumbs() {
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                {userDetailId ? (
+                {detailId ? (
                   <BreadcrumbLink asChild>
-                    <Link to="/admin/users" data-testid="breadcrumb-admin-section">
+                    <Link to={section.path} data-testid="breadcrumb-admin-section">
                       {t(section.titleKey)}
                     </Link>
                   </BreadcrumbLink>
@@ -144,11 +147,15 @@ export function Breadcrumbs() {
               </BreadcrumbItem>
             </>
           ) : null}
-          {userDetailId ? (
+          {detailId ? (
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <AdminUserCrumb userId={userDetailId} />
+                {userDetailId ? (
+                  <AdminUserCrumb userId={userDetailId} />
+                ) : (
+                  <AdminRoleCrumb roleId={detailId} />
+                )}
               </BreadcrumbItem>
             </>
           ) : null}
