@@ -360,4 +360,74 @@ test.describe("U2 roles console", () => {
     await expect(userRow(page, member.id)).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("users-total")).toContainText("1");
   });
+
+  test("RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC", async ({
+    page,
+  }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    const name = await createRoleViaUi(page, secret);
+    const id = await roleId(name);
+    await gotoReady(page, `/admin/roles/${id}`);
+
+    // UI: no toggle, a locked state and the reserved note.
+    await expect(page.getByTestId("role-permission-toggle-roles:update")).toHaveCount(0);
+    await expect(page.getByTestId("role-permission-locked-roles:update")).toBeVisible();
+    await expect(page.getByTestId("role-permission-reserved-roles:update")).toContainText(
+      en["admin.roles.perm.notAssignable"],
+    );
+
+    // Server: the same refusal, reached around the UI entirely (Law F3).
+    const permId = (
+      await adminClient()
+        .from("permissions")
+        .select("id, action, resources!inner(name)")
+        .eq("action", "update")
+        .eq("resources.name", "roles")
+        .single()
+    ).data as { id: string } | null;
+    expect(
+      await rpcFromBrowser(page, "admin_set_role_permission", {
+        p_role_id: id,
+        p_permission_id: permId?.id,
+        p_granted: true,
+      }),
+    ).toMatch(/not assignable to custom roles/i);
+
+    await switchLanguage(page, "am");
+    await expect(page.getByTestId("role-permission-reserved-roles:update")).toContainText(
+      am["admin.roles.perm.notAssignable"],
+    );
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("RP-12 DEC-017: a user-baseline row badges instead of toggling; a normal row still toggles", async ({
+    page,
+  }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    const name = await createRoleViaUi(page, secret);
+    const id = await roleId(name);
+    await gotoReady(page, `/admin/roles/${id}`);
+
+    // account_panel:access is the base `user` role's only grant today.
+    await expect(page.getByTestId("role-permission-baseline-account_panel:access")).toContainText(
+      en["admin.roles.perm.baselineBadge"],
+    );
+    await expect(page.getByTestId("role-permission-toggle-account_panel:access")).toHaveCount(0);
+    await expect(page.getByTestId("role-permission-locked-account_panel:access")).toBeVisible();
+
+    // Regression: an ordinary assignable row still grants and revokes.
+    await page.getByTestId("role-permission-toggle-listings:view").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("role-permission-listings:view")).toHaveAttribute(
+      "data-granted",
+      "true",
+      { timeout: 20000 },
+    );
+
+    await switchLanguage(page, "am");
+    await expect(page.getByTestId("role-permission-baseline-account_panel:access")).toContainText(
+      am["admin.roles.perm.baselineBadge"],
+    );
+    await expectNoHorizontalOverflow(page);
+  });
 });
