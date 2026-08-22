@@ -1,3 +1,4 @@
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +45,11 @@ export function AdminUsersList() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
-  const [role, setRole] = useState("all");
+  // INC-073 law: the role filter is URL-derived — the URL is its only source
+  // of truth, so a deep link and an in-page change are the same state.
+  const navigate = useNavigate();
+  const { role: roleParam } = useSearch({ from: "/admin/users" });
+  const role = roleParam ?? "all";
   const [page, setPage] = useState(0);
   const debouncedSearch = useDebounced(search);
 
@@ -176,8 +181,13 @@ export function AdminUsersList() {
               className={`${selectClass} mt-1`}
               value={role}
               onChange={(event) => {
+                const next = event.target.value;
                 setPage(0);
-                setRole(event.target.value);
+                void navigate({
+                  to: "/admin/users",
+                  search: next === "all" ? {} : { role: next },
+                  replace: true,
+                });
               }}
             >
               <option value="all">{t("admin.users.filter.all")}</option>

@@ -156,7 +156,7 @@ function RoleMetaCard({ role, mayUpdate }: { role: RoleDetail; mayUpdate: boolea
           }
         >
           <FormField label={t("admin.roles.col.name")} htmlFor="role-key">
-            <Input id="role-key" data-testid="role-name" value={role.name} readOnly disabled />
+            <Input id="role-key" data-testid="role-key" value={role.name} readOnly disabled />
           </FormField>
           <FormField label={t("admin.roles.create.displayName")} htmlFor="role-display-edit">
             <Input
@@ -241,6 +241,29 @@ function DangerCard({ role }: { role: RoleDetail }) {
               >
                 {t("admin.roles.danger.confirmLabel")}
               </label>
+              {/*
+                U2a / INC-084(a) — the expected key renders VERBATIM next to the
+                field. The compare stays trim-exact against role.name, so what
+                the operator reads is exactly what arms the button.
+              */}
+              <p className="text-sm text-muted-foreground">
+                {t("admin.roles.danger.confirmHint")
+                  .split("{key}")
+                  .flatMap((part, index) =>
+                    index === 0
+                      ? [<span key="p0">{part}</span>]
+                      : [
+                          <code
+                            key="key"
+                            data-testid="role-delete-key"
+                            className="break-all font-mono text-foreground"
+                          >
+                            {role.name}
+                          </code>,
+                          <span key={`p${index}`}>{part}</span>,
+                        ],
+                  )}
+              </p>
               <Input
                 id="role-delete-confirm"
                 data-testid="role-delete-confirm"
