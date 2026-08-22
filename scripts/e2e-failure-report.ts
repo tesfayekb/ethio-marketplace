@@ -226,16 +226,25 @@ type Failure = {
   message: string;
   /** Spec file as the JSON reporter records it, e.g. `admin-roles.spec.ts`. */
   file: string;
-  /** Bare test title (no suite trail) — the matching rule's input. */
+  /** Bare test title (no suite trail) — kept for display/debugging. */
   specTitle: string;
+  /**
+   * INC-084g — describe chain + test title, exactly as Playwright joins them
+   * into the output-directory slug. The FILE suite (whose title is the file
+   * name) is excluded: the slug already opens with the spec base.
+   */
+  titlePath: string[];
 };
 
 export function collect(json: PwJson): { failures: Failure[]; passed: number; skipped: number } {
   const failures: Failure[] = [];
 
-  const walk = (suite: PwSuite, trail: string[], file: string) => {
-    const path = suite.title ? [...trail, suite.title] : trail;
+  const walk = (suite: PwSuite, trail: string[], file: string, isRoot: boolean) => {
     const suiteFile = suite.file ?? file;
+    // The root suite IS the spec file (title === file name); it contributes the
+    // spec base, never a describe segment.
+    const isFileSuite = isRoot || suite.title === suiteFile || suite.title === file;
+    const path = suite.title && !isFileSuite ? [...trail, suite.title] : trail;
     for (const spec of suite.specs ?? []) {
       for (const test of spec.tests ?? []) {
         const status = test.status ?? "";
@@ -243,19 +252,22 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
         const result = (test.results ?? []).find((r) => r.status && r.status !== "passed");
         const raw = result?.error?.message ?? "(no error message captured)";
         const message = redact(raw).split("\n").slice(0, 40).join("\n");
+        const specTitle = spec.title ?? "(untitled)";
         failures.push({
           project: test.projectName ?? "unknown",
-          title: redact([...path, spec.title ?? "(untitled)"].join(" › ")),
+          title: redact([suiteFile, ...path, specTitle].filter(Boolean).join(" › ")),
           message,
           file: spec.file ?? suiteFile,
-          specTitle: spec.title ?? "(untitled)",
+          specTitle,
+          titlePath: [...path, specTitle],
         });
       }
     }
-    for (const child of suite.suites ?? []) walk(child, path, suiteFile);
+    for (const child of suite.suites ?? []) walk(child, path, suiteFile, false);
   };
 
-  for (const suite of json.suites ?? []) walk(suite, [], suite.file ?? "");
+  for (const suite of json.suites ?? []) walk(suite, [], suite.file ?? "", true);
+
 
   return {
     failures,
