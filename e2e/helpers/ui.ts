@@ -3,6 +3,8 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
 
+import { assertSsrHealthy } from "../fixtures";
+
 import { totp } from "./totp";
 
 /** Escape a catalog value for literal use inside a RegExp. */
@@ -79,43 +81,18 @@ export async function waitForHydration(page: Page) {
 }
 
 /**
- * INC-085(c) — the dev SSR server intermittently fails requests under CI's
- * 6-way parallel load and serves the static error page; the interactive
- * markup never arrives, so the failure used to surface as an unrelated
- * 60s element-not-found. Detects that page from its stable h1 plus the
- * DEV-embedded `data-ssr-error` cause.
- */
-async function readSsrErrorPage(page: Page): Promise<string | null> {
-  return page.evaluate(() => {
-    const card = document.querySelector("[data-ssr-error]");
-    const heading = document.querySelector("h1");
-    const isErrorPage = card !== null || heading?.textContent?.trim() === "This page didn't load";
-    if (!isErrorPage) return null;
-    return card?.getAttribute("data-ssr-error") ?? "(no embedded cause — production build)";
-  });
-}
-
-/**
  * Navigate and wait for the page to be genuinely interactive.
  *
- * Owns ONE bounded retry of the SSR error page (drawer-retry law: never a
- * silent third try) — a second occurrence throws a NAMED error carrying the
- * DEV-embedded cause.
+ * DEC-018 — the SSR error page is no longer detected here: the CENTRAL
+ * document-response guard in e2e/fixtures.ts owns the retry (once) and the
+ * NAMED second-hit failure for every page of every test. gotoReady only
+ * DELEGATES: it waits for any in-flight recovery reload and re-raises the
+ * guard's named error at the navigation instead of letting it surface 60 s
+ * later as an unrelated element-not-found.
  */
 export async function gotoReady(page: Page, path: string) {
   await page.goto(path);
-
-  let cause = await readSsrErrorPage(page);
-  if (cause !== null) {
-    console.log("[e2e] ssr error page — retrying navigation once");
-    await page.waitForTimeout(500);
-    await page.reload();
-    cause = await readSsrErrorPage(page);
-    if (cause !== null) {
-      throw new Error(`SSR error page twice for ${path}: ${cause}`);
-    }
-  }
-
+  await assertSsrHealthy(page);
   await waitForHydration(page);
 }
 
