@@ -183,3 +183,4 @@
 - 2026-08-22 — ci(DEC-018): nitro target pinned explicit for the e2e build + build-output verify step (ENOENT wipeout root-caused; INC-085e)
 - 2026-08-22 — test(e2e): explicit data-app-ready hydration contract + client-error capture ([client-error] tag, reporter-grepped) — prod-build divergence made self-naming (INC-085f)
 - 2026-08-22 — ci: e2e build unminified + full console-arg capture — React #185 will name its component (INC-085g)
+- 2026-08-22 — fix(build): e2e build pins cssMinify so the SSR and client graphs hash styles.css identically (404 stylesheet → unstyled e2e pages → strict-mode/#185 failures); fix(shell): useFooterInset stops observing document.body (self-feeding inset loop); test(e2e): console capture reads Error stacks instead of jsonValue (INC-085h)
