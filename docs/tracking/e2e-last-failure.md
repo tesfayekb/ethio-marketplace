@@ -1,18 +1,754 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32565215034
-- Commit: `9f7e2fca38b19a1fc57c13ecab5958f503838bd4`
-- Written (UTC): 2026-08-22T09:33:54.420Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/32565546128
+- Commit: `55c1852f8fa5332c596335fe4fdff78b92dbdedb`
+- Written (UTC): 2026-08-22T09:53:06.666Z
+- Passed: 263 · Skipped: 66 · Failed: 24
+- Sources without results: none
+
+## shell.spec.ts › mobile chrome › the drawer switcher NAVIGATES to the panel's home (U0e)
+
+- Source: `smoke`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context: context file not found for `shell-mobile-chrome-the-drawer-switcher-NAVIGATES-to-the-panel-s-home-U0e-mobile-360`
+
+## shell.spec.ts › panel-scoped chrome › location row is present on Marketplace and absent on Account
+
+- Source: `smoke`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › panel-scoped chrome › location row is present on Marketplace and absent on Account
+
+- Source: `smoke`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › rail scroll regions (U0f) › md+ rail: items scroll, header fixed
+
+- Source: `smoke`
+- Project: `desktop-1280`
+
+```text
+Error: rail bottom must be min(viewport bottom, footer top)
+
+expect(received).toBeLessThanOrEqual(expected)
+
+Expected: <= 2
+Received:    28
+```
+
+Context:
+
+```text
+          - listitem [ref=e198]:
+            - generic [ref=e199]: About
+          - listitem [ref=e200]:
+            - generic [ref=e201]: How it works
+      - navigation "Help" [ref=e202]:
+        - heading "Help" [level=2] [ref=e203]
+        - list [ref=e204]:
+          - listitem [ref=e205]:
+            - generic [ref=e206]: Safety
+          - listitem [ref=e207]:
+            - generic [ref=e208]: Contact
+      - navigation "Legal" [ref=e209]:
+        - heading "Legal" [level=2] [ref=e210]
+        - list [ref=e211]:
+          - listitem [ref=e212]:
+            - generic [ref=e213]: Terms
+          - listitem [ref=e214]:
+            - generic [ref=e215]: Privacy
+    - paragraph [ref=e217]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## shell.spec.ts › rail scroll regions (U0f) › footer never covers the rail's Sign out
+
+- Source: `smoke`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
+
+- Source: `smoke`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
+
+- Source: `smoke`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-audit.spec.ts › U3 audit & security › AS-1 gating: a plain user is refused, a moderator reads the log
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-audit.spec.ts › U3 audit & security › IMP-3 server refusals: self, super-admin target, and a non-super caller
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-roles.spec.ts › U2 roles console › RP-8 Amharic + no horizontal overflow
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-users.spec.ts › U1 admin users › AU-3 detail: reason required, deactivate, audit row, reactivate
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-callback.spec.ts › C-1: a fresh confirmation link signs the user in
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-callback.spec.ts › C-3: an already-confirmed user gets the honest already-confirmed surface
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-reset.spec.ts › R-3: a recovery link sets a new password, and the old one stops working
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## settings.spec.ts › S-2: settings renders all three sections and guards the only method
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## settings.spec.ts › S-3 (U-4): wrong current password is rejected; correct one rotates the password
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-roles.spec.ts › U2 roles console › RP-8 Amharic + no horizontal overflow
+
+- Source: `shard 3`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › panel-scoped chrome › location row is present on Marketplace and absent on Account
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › panel follows the route › /settings shows the Account context, and returning shows categories
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › panel follows the route › admin panel is absent for a normal signed-in user
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
 
 ## Server errors: smoke
 
 No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
-
-## Server errors: email
-
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
 
 ## Server errors: shard 1
 
@@ -29,165 +765,3 @@ No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
 ## Server errors: shard 4
 
 No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## smoke: results file with zero tests
-
-smoke: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] $ bunx wrangler@4.125.0 dev -c dist/server/wrangler.json --ip 127.0.0.1 --port "4173"
-[WebServer] Resolving dependencies
-[WebServer] Resolved, downloaded and extracted [241]
-[WebServer] Saved lockfile
-[WebServer] 
-[WebServer]  ⛅️ wrangler 4.125.0
-[WebServer] ────────────────────
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] Could not read file: dist/server/wrangler.json
-[WebServer] 
-[WebServer]   ENOENT: no such file or directory, open '/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/wrangler.json'
-[WebServer]   
-[WebServer]   If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] 
-[WebServer] 
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-22_09-33-37_673.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## email: results file with zero tests
-
-email: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] $ bunx wrangler@4.125.0 dev -c dist/server/wrangler.json --ip 127.0.0.1 --port "4173"
-[WebServer] Resolving dependencies
-[WebServer] Resolved, downloaded and extracted [241]
-[WebServer] Saved lockfile
-[WebServer] 
-[WebServer]  ⛅️ wrangler 4.125.0
-[WebServer] ────────────────────
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] Could not read file: dist/server/wrangler.json
-[WebServer] 
-[WebServer]   ENOENT: no such file or directory, open '/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/wrangler.json'
-[WebServer]   
-[WebServer]   If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] 
-[WebServer] 
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-22_09-33-31_488.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## shard 1: results file with zero tests
-
-shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] $ bunx wrangler@4.125.0 dev -c dist/server/wrangler.json --ip 127.0.0.1 --port "4173"
-[WebServer] Resolving dependencies
-[WebServer] Resolved, downloaded and extracted [241]
-[WebServer] Saved lockfile
-[WebServer] 
-[WebServer]  ⛅️ wrangler 4.125.0
-[WebServer] ────────────────────
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] Could not read file: dist/server/wrangler.json
-[WebServer] 
-[WebServer]   ENOENT: no such file or directory, open '/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/wrangler.json'
-[WebServer]   
-[WebServer]   If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] 
-[WebServer] 
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-22_09-33-27_072.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## shard 2: results file with zero tests
-
-shard 2: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] $ bunx wrangler@4.125.0 dev -c dist/server/wrangler.json --ip 127.0.0.1 --port "4173"
-[WebServer] Resolving dependencies
-[WebServer] Resolved, downloaded and extracted [241]
-[WebServer] Saved lockfile
-[WebServer] 
-[WebServer]  ⛅️ wrangler 4.125.0
-[WebServer] ────────────────────
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] Could not read file: dist/server/wrangler.json
-[WebServer] 
-[WebServer]   ENOENT: no such file or directory, open '/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/wrangler.json'
-[WebServer]   
-[WebServer]   If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] 
-[WebServer] 
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-22_09-33-29_467.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## shard 3: results file with zero tests
-
-shard 3: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] $ bunx wrangler@4.125.0 dev -c dist/server/wrangler.json --ip 127.0.0.1 --port "4173"
-[WebServer] Resolving dependencies
-[WebServer] Resolved, downloaded and extracted [241]
-[WebServer] Saved lockfile
-[WebServer] 
-[WebServer]  ⛅️ wrangler 4.125.0
-[WebServer] ────────────────────
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] Could not read file: dist/server/wrangler.json
-[WebServer] 
-[WebServer]   ENOENT: no such file or directory, open '/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/wrangler.json'
-[WebServer]   
-[WebServer]   If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] 
-[WebServer] 
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-22_09-33-21_343.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## shard 4: results file with zero tests
-
-shard 4: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] $ bunx wrangler@4.125.0 dev -c dist/server/wrangler.json --ip 127.0.0.1 --port "4173"
-[WebServer] Resolving dependencies
-[WebServer] Resolved, downloaded and extracted [241]
-[WebServer] Saved lockfile
-[WebServer] 
-[WebServer]  ⛅️ wrangler 4.125.0
-[WebServer] ────────────────────
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] Could not read file: dist/server/wrangler.json
-[WebServer] 
-[WebServer]   ENOENT: no such file or directory, open '/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/wrangler.json'
-[WebServer]   
-[WebServer]   If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] 
-[WebServer] 
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-22_09-33-23_788.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
