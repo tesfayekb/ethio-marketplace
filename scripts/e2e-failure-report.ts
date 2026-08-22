@@ -828,7 +828,7 @@ async function main() {
 
   await Bun.write(OUT, renderSources(sources, meta, contexts));
   console.log(
-    `Wrote ${OUT} (${found}/${sources.length} source result file(s), ${contexts.size} context file(s) found).`,
+    `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
   );
 }
 
