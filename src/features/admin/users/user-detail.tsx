@@ -142,6 +142,12 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
             />
           ) : null}
 
+          {/* U3 / DEC-016 — VIEW AS. Super-admin only, step-up gated, never on
+              your own record. The RPC re-checks all three (law F3). */}
+          {!isOwnAccount && permissions.includes("impersonation:use") ? (
+            <ImpersonationStarter userId={userId} guard={guard} />
+          ) : null}
+
           <PageCard className="space-y-3" testid="user-status-card">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-sm font-semibold text-foreground">
