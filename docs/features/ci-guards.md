@@ -224,6 +224,32 @@ failures shows its log tail. The reporter may never print "0 failed" while a
 job is red without quoting WHY. The self-test proves both shapes (a labelled
 shard failure and a results-less smoke source with its log tail).
 
+### Zero-test results are NO results (INC-086, 2026-08-22)
+
+Run 32564655998: six failed jobs, report read
+"Passed 0 · Failed 0 · Sources without results: none", nothing quoted. Each job
+HAD uploaded a `results.json` — one that parsed perfectly and contained
+`"suites": []`, because the runner died in `webServer`/global setup before a
+single test executed. "File exists" was mistaken for "source reported".
+
+Classification per source is now three-way:
+
+- (a) results with **>= 1 recorded test** — normal path (failures, contexts);
+- (b) **no parseable results file** — existing "no results file" block;
+- (c) **results parse, total tests == 0** — "SOURCE PRODUCED NO TESTS — the
+  runner died before executing (webServer/setup)", followed by the last 40 log
+  lines and any `[ssr-error]` lines from that source's log.
+
+`Sources without results` in the header counts (b) **and** (c). The count is
+structural — `countTests()` walks the suite tree, it does not trust `stats` —
+so a reporter-shape change surfaces as a loud miscount, never a fake zero.
+
+Fixture: `scripts/fixtures/e2e-results-empty.json`, captured by running
+Playwright locally with an impossible `--grep` (CLASS RULE: reporter fixtures
+are captured from real output, never authored from assumption). The self-test
+adds the **wipeout case** — every source zero-test — asserting the log tails
+are quoted and the header names both sources instead of "none".
+
 Caches: the Playwright browser cache is keyed on `runner.os` + the resolved
 `@playwright/test` version; bun's install cache is keyed on `bun.lock`. Both
 jobs echo `cache-hit` so a silently-missing cache is visible in the log rather

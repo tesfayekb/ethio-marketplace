@@ -36,6 +36,12 @@ const DESCRIBE_FIXTURE = "scripts/fixtures/e2e-context-sample-describe";
 
 const LAYOUT_FIXTURES = "scripts/fixtures";
 const MALFORMED_FIXTURE = "scripts/fixtures/e2e-results-malformed.json";
+/**
+ * INC-086 — a REAL zero-test results.json, captured by running Playwright with
+ * an impossible `--grep` (`"suites": []`, every stat 0). Same shape a job
+ * leaves behind when its webServer or global setup dies before any test runs.
+ */
+const EMPTY_FIXTURE = "scripts/fixtures/e2e-results-empty.json";
 
 type PwResult = { status?: string; error?: { message?: string } };
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
@@ -329,6 +335,25 @@ export function grepSsrErrors(text: string | null, limit = 20): string[] {
   return lines.slice(-limit).map((line) => redact(line.trim()));
 }
 
+/**
+ * INC-086 — HOW MANY TESTS THIS FILE ACTUALLY RECORDS.
+ * A results.json from a runner that died before executing anything parses
+ * perfectly and contains `"suites": []` (real capture:
+ * scripts/fixtures/e2e-results-empty.json, stats all zero). Treating that as
+ * "has results" is how run 32564655998 published "Failed 0 · Sources without
+ * results: none" while six jobs were red. Counting is structural — the suite
+ * tree, not `stats` — so a reporter-shape change cannot fake a non-zero count.
+ */
+export function countTests(json: PwJson): number {
+  let total = 0;
+  const walk = (suite: PwSuite) => {
+    for (const spec of suite.specs ?? []) total += (spec.tests ?? []).length;
+    for (const child of suite.suites ?? []) walk(child);
+  };
+  for (const suite of json.suites ?? []) walk(suite);
+  return total;
+}
+
 /** `e2e-results-smoke` → `smoke`; `e2e-results-3` → `shard 3`. */
 export function sourceLabel(artifactDir: string): string {
   const id = artifactDir.replace(/^e2e-results-/, "");
@@ -343,11 +368,23 @@ export function renderSources(
   let passed = 0;
   let skipped = 0;
   const failures: (Failure & { source: string })[] = [];
-  const silent: Source[] = [];
+  /**
+   * INC-086 — THREE-WAY CLASSIFICATION PER SOURCE:
+   *  (a) results with >= 1 test  -> normal path;
+   *  (b) no parseable results    -> "no results file";
+   *  (c) results parse, 0 tests  -> "produced no tests" (the runner died in
+   *      webServer/global setup). (b) and (c) are BOTH sources without results
+   *      and both are quoted; neither may be counted as a clean zero.
+   */
+  const silent: { source: Source; kind: "missing" | "zero-test" }[] = [];
 
   for (const source of sources) {
     if (!source.json) {
-      silent.push(source);
+      silent.push({ source, kind: "missing" });
+      continue;
+    }
+    if (countTests(source.json) === 0) {
+      silent.push({ source, kind: "zero-test" });
       continue;
     }
     const collected = collect(source.json);
@@ -363,7 +400,7 @@ export function renderSources(
     `- Commit: \`${meta.sha}\``,
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
-    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.label).join(", ")}`,
+    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
   ];
 
@@ -403,7 +440,8 @@ export function renderSources(
   // DEC-018 — SERVER ERRORS, per source, quoted whether or not any context
   // file matched. INC-085d: the cause was logged but unhearable.
   for (const source of sources) {
-    const failed = failures.some((f) => f.source === source.label) || !source.json;
+    const failed =
+      failures.some((f) => f.source === source.label) || silent.some((s) => s.source === source);
     if (!failed) continue;
     const ssr = source.serverErrors ?? [];
     lines.push(
@@ -416,17 +454,29 @@ export function renderSources(
   }
 
   // Law F4: a red job that wrote no results is quoted, never counted as zero.
-  for (const s of silent) {
+  // INC-086: "wrote a results.json containing zero tests" is the same thing —
+  // the runner died before executing, so its own log IS the evidence.
+  for (const { source: s, kind } of silent) {
+    const heading =
+      kind === "missing"
+        ? `## ${s.label}: no results file`
+        : `## ${s.label}: results file with zero tests`;
+    const sentence =
+      kind === "missing"
+        ? `${s.label}: no results file — the process failed outside test results (setup/teardown/preflight).`
+        : `${s.label}: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.`;
     lines.push(
-      `## ${s.label}: no results file`,
+      heading,
       "",
-      `${s.label}: no results file — the process failed outside test results (setup/teardown/preflight).`,
+      sentence,
       "",
       "```text",
       s.logTail ?? "(no log tail was uploaded for this source)",
       "```",
       "",
     );
+    const ssr = s.serverErrors ?? [];
+    if (ssr.length > 0) lines.push("```text", ...ssr, "```", "");
   }
 
   return lines.join("\n");
@@ -594,6 +644,48 @@ async function main() {
       console.error("SELF-TEST FAILED — missing from rendered report:", missing);
       process.exit(1);
     }
+    // INC-086 — THE WIPEOUT CASE. Every source wrote a results.json that
+    // parses and records ZERO tests (real capture: an impossible --grep, the
+    // same shape a dead webServer leaves behind). The old reporter printed
+    // "Failed 0 · Sources without results: none" and quoted nothing.
+    const emptyJson = (await Bun.file(EMPTY_FIXTURE).json()) as PwJson;
+    if (countTests(emptyJson) !== 0 || countTests(fixture) !== 2) {
+      console.error("SELF-TEST FAILED — countTests miscounted the captured fixtures.");
+      process.exit(1);
+    }
+    const wipeout = renderSources(
+      [
+        {
+          label: "shard 1",
+          json: emptyJson,
+          logTail: "Error: Timed out waiting 120000ms from config.webServer.\nexit code 1",
+          serverErrors: ["[ssr-error] / TypeError: dead at ssr.mjs:9"],
+        },
+        { label: "smoke", json: emptyJson, logTail: "Error: No tests found", serverErrors: [] },
+      ],
+      { runId: "self-test", runUrl: "", sha: "self-test" },
+      new Map(),
+    );
+    for (const needle of [
+      "- Passed: 0 · Skipped: 0 · Failed: 0",
+      "- Sources without results: shard 1, smoke",
+      "## shard 1: results file with zero tests",
+      "shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.",
+      "Timed out waiting 120000ms from config.webServer.",
+      "[ssr-error] / TypeError: dead at ssr.mjs:9",
+      "## smoke: results file with zero tests",
+      "Error: No tests found",
+    ]) {
+      if (!wipeout.includes(needle)) {
+        console.error(`SELF-TEST FAILED — wipeout report missing: ${needle}`);
+        process.exit(1);
+      }
+    }
+    if (wipeout.includes("Sources without results: none")) {
+      console.error("SELF-TEST FAILED — wipeout header still claims every source reported.");
+      process.exit(1);
+    }
+
     // DEC-018 — GREP + CONTAINMENT FALLBACK. The switcher slug is the shape
     // that defeated the prefix/suffix splice: the apostrophe token vanished in
     // truncation, leaving no clean `-<5 hex>-` seam.
@@ -726,7 +818,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] grep, the containment fallback (switcher slug + its refusal of a foreign directory), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] grep, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
@@ -754,24 +846,27 @@ async function main() {
   if (dir) {
     for (const id of expected) {
       const parsed = await readJson(`${dir}/e2e-results-${id}/results.json`);
-      if (parsed.json) found += 1;
+      // INC-086: "found" means USABLE results (>= 1 recorded test), so the
+      // console line cannot claim a source reported when it reported nothing.
+      if (parsed.json && countTests(parsed.json) > 0) found += 1;
       // DEC-018: the log is read for EVERY source, not only for sources that
       // produced no results — `[ssr-error]` lines matter most next to a
       // failure that DID get recorded.
       const log = logsDir ? await readLog(`${logsDir}/e2e-log-${id}/${id}.log`) : null;
+      const tail = log ? log.split("\n").slice(-40).join("\n").trim() || null : null;
       sources.push({
         label: sourceLabel(`e2e-results-${id}`),
         json: parsed.json,
-        logTail: parsed.json
-          ? null
-          : (parsed.error ?? (log ? log.split("\n").slice(-40).join("\n").trim() || null : null)),
+        // INC-086: a zero-test source needs its log tail too, so it is kept for
+        // every source and only rendered where a source has no usable results.
+        logTail: parsed.error ?? tail,
         serverErrors: grepSsrErrors(log),
       });
     }
   } else {
     const path = process.env["E2E_RESULTS_JSON"] ?? "test-results/results.json";
     const parsed = await readJson(path);
-    if (parsed.json) found += 1;
+    if (parsed.json && countTests(parsed.json) > 0) found += 1;
     sources.push({ label: "all", json: parsed.json, logTail: parsed.error, serverErrors: [] });
   }
 
@@ -780,7 +875,7 @@ async function main() {
 
   await Bun.write(OUT, renderSources(sources, meta, contexts));
   console.log(
-    `Wrote ${OUT} (${found}/${sources.length} source result file(s), ${contexts.size} context file(s) found).`,
+    `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
   );
 }
 
