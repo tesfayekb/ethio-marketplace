@@ -524,6 +524,11 @@ CLASS RULE — A VALUE THAT CROSSES AN EFFECT DEPENDENCY ARRAY OWNS ITS IDENTITY
 results that feed effects must never mint fresh arrays/objects for the empty or
 loading case, and every state writer fed by such an effect must be equality-guarded.
 
+ADDENDUM — the reporter's boot-crash fixture is a tracked file test: an untracked `.log`
+fixture was swallowed by `.gitignore *.log` and caused a green suite to red at report
+self-test; the durable fix is renaming to `.log.txt` and treating every fixture path as a
+commit-time tracked-files proof (INC-091).
+
 CLASS 3 — THE SINGLES, PER TEST (all diagnosed from the run file, no spec changed):
 
 - `admin-users.spec.ts › AU-5` — context: the error page; timeout waiting on a dead
@@ -552,3 +557,5 @@ served locally, `data-app-ready=1`, zero console errors, clamp delta
 `/ @1280x360 = 0`, `/ @1280x800 = 1.5`, `/auth @1280x360 = 0` (law allows <= 2).
 The signed-in surfaces remain CI's to prove: the sandbox has no staging service-role
 key, so no fixture user can be created or signed in here.
+
+| INC-091 | 2026-08-28 | Fixture file `scripts/fixtures/e2e-log-boot-crash.log` was ignored by `.gitignore *.log` and never tracked, so CI reporter self-test ENOENTed while the suite itself was green (INC-084f law) | FIXED — renamed to `.log.txt`, path updated in `scripts/e2e-failure-report.ts`; tracked-files proof now mandatory for every new fixture |

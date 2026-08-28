@@ -942,7 +942,7 @@ async function main() {
     // log and the tail is 35 lines of "waiting for the web server": a raw tail
     // quotes only the noise. The summary must carry the workerd error AND the
     // final lines, and must collapse the repeated wait line.
-    const bootLog = await Bun.file("scripts/fixtures/e2e-log-boot-crash.log").text();
+    const bootLog = await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text();
     const bootSummary = summarizeLog(bootLog) ?? "";
     for (const needle of [
       "--- error lines",
