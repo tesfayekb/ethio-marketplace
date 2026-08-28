@@ -715,11 +715,13 @@ async function readLog(path: string): Promise<string | null> {
 }
 
 async function main() {
-  const meta = {
+  const meta: ReportMeta = {
     runId: process.env["GITHUB_RUN_ID"] ?? "local",
     runUrl: process.env["E2E_RUN_URL"] ?? "",
     sha: process.env["GITHUB_SHA"] ?? "local",
+    commitMessage: process.env["E2E_HEAD_COMMIT_MESSAGE"] ?? "",
   };
+
 
   if (process.env["SELF_TEST"] === "1") {
     // BOTH fixtures are REAL captured output (a two-failure Playwright run:
