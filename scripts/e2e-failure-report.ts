@@ -456,7 +456,7 @@ export function sourceLabel(artifactDir: string): string {
 
 export function renderSources(
   sources: Source[],
-  meta: { runId: string; runUrl: string; sha: string },
+  meta: ReportMeta,
   contexts: Map<string, string> = new Map(),
 ): string {
   let passed = 0;
@@ -591,14 +591,14 @@ export function renderSources(
   return lines.join("\n");
 }
 
-export function render(json: PwJson, meta: { runId: string; runUrl: string; sha: string }): string {
+export function render(json: PwJson, meta: ReportMeta): string {
   return renderSources(
     [{ label: "all", json, logTail: null, serverErrors: [], clientErrors: [] }],
     meta,
   );
 }
 
-export function renderGreen(meta: { runId: string; runUrl: string; sha: string }): string {
+export function renderGreen(meta: ReportMeta): string {
   return [
     "# Last E2E failure (auto-generated — do not edit by hand)",
     "",
@@ -622,7 +622,7 @@ export function renderGreen(meta: { runId: string; runUrl: string; sha: string }
  */
 export function renderCrash(
   error: unknown,
-  meta: { runId: string; runUrl: string; sha: string },
+  meta: ReportMeta,
   titles: string[],
 ): string {
   const err = error instanceof Error ? error : new Error(String(error));
