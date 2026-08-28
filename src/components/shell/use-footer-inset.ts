@@ -73,10 +73,35 @@ export function useFooterInset(): number {
       settleTimer = setTimeout(flush, 120);
     };
 
+    /**
+     * CLASS 1 / INC-089 ADDENDUM — THE CORRECTED CLAMP LAW.
+     *
+     * The footer's top is read PULL-BASED (inside `measure`, never observed),
+     * so no measurement can feed itself. But then the SET of moments that
+     * trigger a measurement has to cover the case the old law missed: the
+     * footer is ALREADY in view at first paint and the user never scrolls
+     * (a short page in a short viewport). One mount measurement is not enough
+     * there, because the first frame is measured before web fonts land and
+     * before the footer's own box settles — the rail then keeps a stale inset
+     * and overhangs the footer (the "Received: 28" failure).
+     *
+     * The triggers are therefore, and only:
+     *   1. mount, then a settle pass on the next frames and on fonts.ready;
+     *   2. scroll / scrollend / resize (user- or viewport-driven);
+     *   3. a ResizeObserver on the CONTENT region (#main) — never on the
+     *      footer, never on the body.
+     */
     measure();
+    // (1) settle: layout, fonts and late CSS all move the footer without any
+    // event of their own. Bounded, one-shot, and idempotent (`lastApplied`).
+    const settlePasses = [0, 60, 200, 600].map((delay) => setTimeout(flush, delay));
+    const raf2 = window.requestAnimationFrame(() => window.requestAnimationFrame(measure));
+    const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+    void fonts?.ready.then(() => measure()).catch(() => undefined);
     window.addEventListener("scroll", scheduleSettle, { passive: true });
     window.addEventListener("scrollend", flush, { passive: true });
     window.addEventListener("resize", scheduleSettle, { passive: true });
+
     const observer = new ResizeObserver(schedule);
     /**
      * U0j-3 — CONTENT-HEIGHT CHANGES. Switching locale (or any re-render that
@@ -108,7 +133,10 @@ export function useFooterInset(): number {
 
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(raf2);
+      for (const timer of settlePasses) clearTimeout(timer);
       if (settleTimer) clearTimeout(settleTimer);
+
       window.removeEventListener("scroll", scheduleSettle);
       window.removeEventListener("scrollend", flush);
       window.removeEventListener("resize", scheduleSettle);
