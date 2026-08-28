@@ -9,6 +9,11 @@ routeTree.gen.ts
 src/routeTree.gen.ts
 src/integrations/supabase/types.ts
 
+# Platform-injected, regeneration-owned auth-storage broker (INC-087).
+# Machine-generated exemption, same class as types.ts / routeTree.gen.ts
+# (Knowledge E5, INC-011): rewritten by the platform on every injection.
+src/integrations/supabase/previewAuthStorage.ts
+
 # Ratified records: imported verbatim, bytes must not churn under tooling (see INC-007)
 docs/spec/
 docs/governance/
