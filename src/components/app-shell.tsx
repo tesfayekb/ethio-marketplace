@@ -211,6 +211,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   const permissionsLoading = permissionsState.loading;
 
   /**
+   * INC-090 — SECOND HALF OF THE LOOP GUARD. <PermissionsLoader/> reports on
+   * every change of its own inputs; writing an unconditionally-new object here
+   * re-renders the whole shell (and the loader) for a report that said nothing
+   * new. Paired with the stable identity in usePermissions, an unchanged report
+   * is now a genuine no-op for React.
+   */
+  const applyPermissions = useCallback((next: { permissions: string[]; loading: boolean }) => {
+    setPermissionsState((prev) =>
+      prev.loading === next.loading &&
+      prev.permissions.length === next.permissions.length &&
+      prev.permissions.every((slug, i) => slug === next.permissions[i])
+        ? prev
+        : next,
+    );
+  }, []);
+
+  /**
    * U0j (INC-072) — SIGN-OUT IS A HARD RESET, in this exact order:
    *   (a) supabase.auth.signOut() — the repo's existing default scope
    *       ("global": every session for this user) is kept deliberately, and it
@@ -374,7 +391,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <ShellContext.Provider value={value}>
-      {user !== null && !signingOut ? <PermissionsLoader onChange={setPermissionsState} /> : null}
+      {user !== null && !signingOut ? <PermissionsLoader onChange={applyPermissions} /> : null}
       {/* U3 / DEC-016 — an active impersonation is ALWAYS visible, on every
           page, for as long as the 15-minute box is open.
           INC-085: the banner MOUNTS conditionally. A mounted useQuery with

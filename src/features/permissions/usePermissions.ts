@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
@@ -10,6 +11,10 @@ import { fetchMyPermissions } from "./service";
  * without importing the RBAC seam. Re-exported here for existing readers.
  */
 export { AUTH_DERIVED_ROOT, authKey } from "@/lib/query-keys";
+
+/** The ONE shared empty result (INC-090): a stable identity for every
+ * render that has no permissions to report. */
+const EMPTY_PERMISSIONS: string[] = [];
 
 /** Shared cache key — one read per session, shared by every admin surface. */
 export const MY_PERMISSIONS_KEY = [AUTH_DERIVED_ROOT, "my-permissions"] as const;
@@ -36,10 +41,25 @@ export function usePermissions({ enabled = true }: { enabled?: boolean } = {}) {
     enabled,
   });
 
-  // U0j (INC-072): a disabled read reports NOTHING. Even if a cache entry
-  // outlives the sign-out for a frame, a signed-out shell can never derive a
-  // grant from it. The shell also removeQueries() this key on sign-out.
-  const data = enabled ? (query.data ?? []) : [];
+  /**
+   * U0j (INC-072): a disabled read reports NOTHING. Even if a cache entry
+   * outlives the sign-out for a frame, a signed-out shell can never derive a
+   * grant from it. The shell also removeQueries() this key on sign-out.
+   *
+   * INC-090 — IDENTITY IS PART OF THE CONTRACT. This used to be
+   * `enabled ? (query.data ?? []) : []`, which mints a BRAND-NEW array on every
+   * render while the read is loading, disabled or errored. <PermissionsLoader/>
+   * lists `permissions` in an effect's dependency array, so a fresh array each
+   * render meant: effect -> setState in the shell -> re-render -> fresh array
+   * -> effect … an unbounded update loop that React aborts with #185, which the
+   * root error boundary paints as "This page didn't load". The fallback is now
+   * ONE frozen module-level constant and the result is memoised on the query
+   * data, so identity only changes when the permissions themselves change.
+   */
+  const data = useMemo(
+    () => (enabled ? (query.data ?? EMPTY_PERMISSIONS) : EMPTY_PERMISSIONS),
+    [enabled, query.data],
+  );
 
   return {
     permissions: data,
