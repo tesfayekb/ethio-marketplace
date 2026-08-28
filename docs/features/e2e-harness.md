@@ -123,3 +123,32 @@ The fill sequence now targets that cold-start window explicitly:
 Both viewport projects green in GitHub Actions on push to `main`; under 5 minutes added;
 zero flakes across 3 consecutive runs at `retries: 0`; no secret in any log or artifact;
 zero residual `e2e+%` users after the run; all existing CI gates still green.
+
+## Serve runtime (DEC-019 / INC-088)
+
+The suite runs the PRODUCTION build in E2E mode (DEC-018). That build is served on
+**nitro's `node-server` preset** — `bun run build:e2e` (`NITRO_PRESET=node-server`)
+emits `dist/server/index.mjs`, and `bun run serve:e2e:built` starts it through
+`scripts/serve-e2e-node.ts` with `HOST=127.0.0.1` and the Playwright port.
+
+Why not wrangler: nitro stamps the worker's `compatibility_date` with the build day, and
+a pinned `wrangler dev` binary can never accept a date newer than its own release day,
+so the serve died before the first request (INC-088). The deploy target is untouched —
+`NITRO_PRESET` is set by the e2e build alone and otherwise resolves `cloudflare-module`.
+
+Parity is not abandoned: the nightly workflow runs `cloudflare-parity-smoke`, which
+builds with `bun run build:e2e:cloudflare` and serves through
+`bun run serve:e2e:built:cloudflare` (wrangler) for one smoke spec.
+
+Every e2e job verifies `dist/server/index.mjs` exists before serving; the parity job
+verifies `dist/server/wrangler.json` instead.
+
+## Zero-test evidence and platform-origin labelling
+
+A source whose `results.json` records zero tests died in `webServer`/global setup. Its
+log is summarized, never tailed raw: every line matching `/✘|ERROR|error:|Error:|exited
+with code/` from the whole log (capped at 30, oldest first) then the final 10 lines.
+`scripts/fixtures/e2e-log-boot-crash.log` locks the behaviour in the reporter self-test.
+
+The report prefixes a `PLATFORM-ORIGIN?` line when the run's head commit subject is
+`Lovable update` or `Work in progress` (`E2E_HEAD_COMMIT_MESSAGE`).

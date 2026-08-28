@@ -378,6 +378,57 @@ export function grepClientErrors(text: string | null, limit = 20): string[] {
 }
 
 /**
+ * INC-088 — WHAT A ZERO-TEST SOURCE'S LOG MUST SHOW.
+ *
+ * A runner that died in `webServer` prints its cause EARLY (the boot banner,
+ * the crash) and then floods the tail with unrelated retry/teardown noise — a
+ * raw 40-line tail quoted the noise and hid the cause. The wrangler
+ * compatibility-date crash was invisible for exactly this reason: the asset
+ * table alone is longer than 40 lines.
+ *
+ * The summary is therefore two bands, in order:
+ *  1. every ERROR-shaped line from the FULL log (capped at 30, oldest kept —
+ *     the FIRST error is the cause, later ones are consequences);
+ *  2. the final 10 lines, so the exit status is still visible.
+ */
+const ERROR_LINE = /✘|ERROR|error:|Error:|exited with code/;
+const ERROR_LINE_CAP = 30;
+const LOG_TAIL_LINES = 10;
+
+export function summarizeLog(text: string | null): string | null {
+  if (!text) return null;
+  const lines = text.split("\n");
+  const errors = collapseConsecutive(
+    lines
+      .filter((line) => ERROR_LINE.test(line))
+      .map((line) => redact(line.trimEnd()))
+      .filter((line) => line.trim().length > 0),
+  ).slice(0, ERROR_LINE_CAP);
+  const tail = lines
+    .slice(-LOG_TAIL_LINES)
+    .map((line) => redact(line.trimEnd()))
+    .join("\n")
+    .trim();
+  const parts: string[] = [];
+  if (errors.length > 0) parts.push(`--- error lines (${errors.length}) ---`, ...errors);
+  parts.push(`--- final ${LOG_TAIL_LINES} lines ---`, tail || "(empty)");
+  return parts.join("\n");
+}
+
+/**
+ * INC-088 — PLATFORM-ORIGIN LABEL. Lovable's own auto-pushes land on main with
+ * a fixed commit subject; a red run on such a commit is very likely not ours.
+ * One string check, no heuristics, and it only ever ADDS a hint.
+ */
+const PLATFORM_COMMIT_SUBJECTS = ["Lovable update", "Work in progress"];
+
+export function isPlatformOriginCommit(message: string | undefined): boolean {
+  if (!message) return false;
+  const subject = message.split("\n")[0]?.trim() ?? "";
+  return PLATFORM_COMMIT_SUBJECTS.includes(subject);
+}
+
+/**
  * INC-086 — HOW MANY TESTS THIS FILE ACTUALLY RECORDS.
  * A results.json from a runner that died before executing anything parses
  * perfectly and contains `"suites": []` (real capture:
@@ -402,9 +453,18 @@ export function sourceLabel(artifactDir: string): string {
   return /^\d+$/.test(id) ? `shard ${id}` : id;
 }
 
+/** Run identity carried into every rendered report. */
+export type ReportMeta = {
+  runId: string;
+  runUrl: string;
+  sha: string;
+  /** INC-088 — the head commit's message, for the PLATFORM-ORIGIN? hint. */
+  commitMessage?: string;
+};
+
 export function renderSources(
   sources: Source[],
-  meta: { runId: string; runUrl: string; sha: string },
+  meta: ReportMeta,
   contexts: Map<string, string> = new Map(),
 ): string {
   let passed = 0;
@@ -440,6 +500,11 @@ export function renderSources(
     "",
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
+    ...(isPlatformOriginCommit(meta.commitMessage)
+      ? [
+          `- PLATFORM-ORIGIN? the head commit's subject is \`${meta.commitMessage?.split("\n")[0]?.trim()}\` — a Lovable auto-push, so suspect platform-injected code before ours.`,
+        ]
+      : []),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
@@ -539,14 +604,14 @@ export function renderSources(
   return lines.join("\n");
 }
 
-export function render(json: PwJson, meta: { runId: string; runUrl: string; sha: string }): string {
+export function render(json: PwJson, meta: ReportMeta): string {
   return renderSources(
     [{ label: "all", json, logTail: null, serverErrors: [], clientErrors: [] }],
     meta,
   );
 }
 
-export function renderGreen(meta: { runId: string; runUrl: string; sha: string }): string {
+export function renderGreen(meta: ReportMeta): string {
   return [
     "# Last E2E failure (auto-generated — do not edit by hand)",
     "",
@@ -568,11 +633,7 @@ export function renderGreen(meta: { runId: string; runUrl: string; sha: string }
  * very file everyone reads — header, error, and a best-effort titles-only
  * failure list scraped from whatever results.json can still be parsed.
  */
-export function renderCrash(
-  error: unknown,
-  meta: { runId: string; runUrl: string; sha: string },
-  titles: string[],
-): string {
+export function renderCrash(error: unknown, meta: ReportMeta, titles: string[]): string {
   const err = error instanceof Error ? error : new Error(String(error));
   const firstStackLine = (err.stack ?? "").split("\n")[1]?.trim() ?? "(no stack)";
   return [
@@ -647,10 +708,11 @@ async function readLog(path: string): Promise<string | null> {
 }
 
 async function main() {
-  const meta = {
+  const meta: ReportMeta = {
     runId: process.env["GITHUB_RUN_ID"] ?? "local",
     runUrl: process.env["E2E_RUN_URL"] ?? "",
     sha: process.env["GITHUB_SHA"] ?? "local",
+    commitMessage: process.env["E2E_HEAD_COMMIT_MESSAGE"] ?? "",
   };
 
   if (process.env["SELF_TEST"] === "1") {
@@ -876,6 +938,47 @@ async function main() {
       );
       process.exit(1);
     }
+    // INC-088 — BANNER-THEN-CRASH. The cause is printed near the TOP of the
+    // log and the tail is 35 lines of "waiting for the web server": a raw tail
+    // quotes only the noise. The summary must carry the workerd error AND the
+    // final lines, and must collapse the repeated wait line.
+    const bootLog = await Bun.file("scripts/fixtures/e2e-log-boot-crash.log").text();
+    const bootSummary = summarizeLog(bootLog) ?? "";
+    for (const needle of [
+      "--- error lines",
+      "newest date supported by this server binary",
+      "The Workers runtime failed to start",
+      "--- final 10 lines ---",
+      "Timed out waiting 120000ms from config.webServer.",
+    ]) {
+      if (!bootSummary.includes(needle)) {
+        console.error(`SELF-TEST FAILED — zero-test log summary missing: ${needle}`);
+        process.exit(1);
+      }
+    }
+    const errorBand = bootSummary.split("--- final 10 lines ---")[0] ?? "";
+    if (errorBand.includes("waiting for the web server")) {
+      console.error("SELF-TEST FAILED — wait noise leaked into the error band.");
+      process.exit(1);
+    }
+    const bootReport = renderSources(
+      [{ label: "shard 2", json: { suites: [] }, logTail: bootSummary }],
+      { runId: "self-test", runUrl: "", sha: "self-test", commitMessage: "Lovable update" },
+    );
+    if (
+      !bootReport.includes("results file with zero tests") ||
+      !bootReport.includes("The Workers runtime failed to start") ||
+      !bootReport.includes("PLATFORM-ORIGIN?")
+    ) {
+      console.error(
+        "SELF-TEST FAILED — the zero-test report lost the summarized log or the PLATFORM-ORIGIN? hint.",
+      );
+      process.exit(1);
+    }
+    if (isPlatformOriginCommit("fix(e2e): serve on node")) {
+      console.error("SELF-TEST FAILED — PLATFORM-ORIGIN? fired on a human commit.");
+      process.exit(1);
+    }
 
     // NEVER-SILENT LAW: a malformed results.json is (a) survivable as a source
     // and (b) renderable as a REPORTER ERROR when something does escape.
@@ -935,7 +1038,10 @@ async function main() {
       // produced no results — `[ssr-error]` lines matter most next to a
       // failure that DID get recorded.
       const log = logsDir ? await readLog(`${logsDir}/e2e-log-${id}/${id}.log`) : null;
-      const tail = log ? log.split("\n").slice(-40).join("\n").trim() || null : null;
+      // INC-088: error lines from the WHOLE log first, then the final 10 —
+      // never a bare tail, which quotes the noise and hides the cause.
+      const tail = summarizeLog(log);
+
       sources.push({
         label: sourceLabel(`e2e-results-${id}`),
         json: parsed.json,

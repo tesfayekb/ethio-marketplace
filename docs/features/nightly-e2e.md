@@ -66,3 +66,12 @@ retries` and exits 0. The file then lags, which the staleness rule above catches
 
 The file is machine-generated and is exempt from the prettier gate in
 `.prettierignore`, same class as `docs/tracking/ci-status.md` (INC-011).
+
+## Cloudflare parity smoke (DEC-019 / INC-088)
+
+The per-push suite serves the built app on nitro's `node-server` preset, so one nightly
+job — `cloudflare-parity-smoke` — keeps a wrangler-served pass on the DEPLOY runtime: it
+builds with `bun run build:e2e:cloudflare`, verifies `dist/server/wrangler.json`, and
+runs `e2e/smoke-auth-i18n.spec.ts` on `mobile-360`. If it dies because workerd refuses
+the build-day `compatibility_date`, the step prints an explicit `::error::` naming the
+INC-088 runtime class so a runtime refusal is never read as an application break.

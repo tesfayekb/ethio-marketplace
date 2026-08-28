@@ -365,3 +365,53 @@ DISPOSITION: **E5 exemption, not in-place conformance.** The file opens with `//
 SAFETY: the broker is inert off the Lovable preview surface. `PREVIEW_ZONES` matching plus a UUID-anchored host pattern plus the `window.parent !== window` frame test must ALL hold; otherwise the module returns plain `localStorage`. CI's `127.0.0.1` origin, the production domain and the published `lovable.app` host (no project UUID in a non-user-controlled host position) each fall through to `localStorage`, so the U0k localStorage audit, SO-3b's `sb-*-auth-token` handling and the session-policy clocks read exactly what they read before. Auth material leaves the page only through `window.parent.postMessage` with a `targetOrigin` drawn from `EDITOR`-validated Lovable editor origins, and inbound replies are discarded unless `event.origin` is in that same validated list — an untrusted embedder can neither receive nor forge a session.
 
 CLASS RULE: platform-generated files are held to our gates like any other file — for each one we decide **conform or E5-exempt**, per file and with the reason recorded. A file we can edit durably gets conformed; a file the platform rewrites gets a path-scoped exemption. Weakening a gate to accommodate generated output is never the remedy.
+
+## INC-088 — the e2e serve died in workerd, not in our code (DEC-019)
+
+SYMPTOM: every E2E job produced a `results.json` with zero tests, and the reporter's
+40-line tail quoted nothing but repeated "waiting for the web server" lines. The cause
+was printed far above that window.
+
+REPRODUCTION (`env -u SANDBOX -u LOVABLE_SANDBOX -u DEV_SERVER__PROJECT_PATH bun run
+build:e2e && bun run serve:e2e:built --port 4173`), verbatim after the asset table:
+
+```text
+⎔ Starting local server...
+[wrangler:info] ✨ Parsed 1 valid header rule.
+✘ [ERROR] service core:user:ethio-marketplace: This Worker requires compatibility date "2026-08-28", but the newest date supported by this server binary is "2026-08-27".
+
+✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
+```
+
+ROOT CAUSE: nitro stamps the built worker's `compatibility_date` with the BUILD DAY.
+`wrangler dev` runs a pinned workerd binary whose newest supported date is, by
+construction, never newer than its own release day. On any day after that release the
+local serve refuses to start before the first request. Nothing in the application is
+involved; bumping the pinned wrangler only moves the same cliff forward one release.
+
+DEC-019 BRANCH: **the first branch fired** — the failure is in the wrangler/workerd
+runtime class. The per-push CI serve therefore moved to nitro's `node-server` preset
+(`node dist/server/index.mjs`, via `scripts/serve-e2e-node.ts`): the same built
+application code, no bunx download, no workerd. The deploy target is unchanged —
+`NITRO_PRESET` is unset everywhere except the e2e build, so the shipped build still
+resolves `cloudflare-module` byte-identically. One nightly job,
+`cloudflare-parity-smoke`, keeps a wrangler-served smoke pass on the deploy runtime and
+prints an explicit line when it dies for the compatibility-date reason rather than for
+an application break.
+
+EVIDENCE FIX: a zero-test source's log is no longer quoted as a raw tail. The report
+now carries every ERROR-shaped line from the FULL log (`/✘|ERROR|error:|Error:|exited
+with code/`, capped at 30, oldest first — the first error is the cause) followed by the
+final 10 lines, proven by `scripts/fixtures/e2e-log-boot-crash.log`, a banner-then-crash
+log whose tail is pure noise.
+
+PLATFORM-ORIGIN NOTE: Lovable's auto-pushes land on main with a fixed commit subject.
+The reporter now prefixes a `PLATFORM-ORIGIN?` line when the run's head commit message
+is `Lovable update` or `Work in progress` (one exact string check on the subject line,
+fed by `E2E_HEAD_COMMIT_MESSAGE`), so a red whose likely origin is platform-injected
+code says so instead of costing a diagnosis from scratch.
+
+CLASS RULE: a test harness may not depend on a runtime whose acceptance window is
+pinned to a binary's release date while its input is stamped with the build date. When
+the failing layer is the runtime and not the application, migrate the harness and keep
+exactly one parity job on the deploy runtime.
