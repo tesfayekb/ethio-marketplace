@@ -1,8 +1,8 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33140774200
-- Commit: `857f0495cb0be0f6180981d7898981145590a5b1`
-- Written (UTC): 2026-08-28T04:06:33.917Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33162175395
+- Commit: `4d7b512bbc8c37bf0e050aca0baee47fb57c97aa`
+- Written (UTC): 2026-08-28T10:09:10.882Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
 
@@ -76,7 +76,7 @@ smoke: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/
 [WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
 [WebServer] │ _tanstack-start-manifest_v-DdohLP-k.mjs           │ esm  │ 6.61 KiB    │
 [WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ Total (92 modules)                                │      │ 2430.60 KiB │
+[WebServer] │ Total (92 modules)                                │      │ 2430.64 KiB │
 [WebServer] └───────────────────────────────────────────────────┴──────┴─────────────┘
 [WebServer] ⎔ Starting local server...
 [WebServer] [wrangler:info] ✨ Parsed 1 valid header rule.
@@ -89,12 +89,12 @@ smoke: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/
 [WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
 [WebServer] 
 [WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787889973199","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
+[WebServer]   {"timestamp":"1787911726273","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
 [WebServer] 
 [WebServer] 
 [WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
 [WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_04-06-12_382.log"
+[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-45_314.log"
 [WebServer] error: script "serve:e2e:built" exited with code 1
 Error: Process from config.webServer was not able to start. Exit code: 1
 ```
@@ -134,12 +134,12 @@ email: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/
 [WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
 [WebServer] 
 [WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787889964538","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
+[WebServer]   {"timestamp":"1787911728215","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
 [WebServer] 
 [WebServer] 
 [WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
 [WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_04-06-03_496.log"
+[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-47_308.log"
 [WebServer] error: script "serve:e2e:built" exited with code 1
 Error: Process from config.webServer was not able to start. Exit code: 1
 ```
@@ -179,12 +179,12 @@ shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 [WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
 [WebServer] 
 [WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787889965807","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
+[WebServer]   {"timestamp":"1787911737155","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
 [WebServer] 
 [WebServer] 
 [WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
 [WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_04-06-04_873.log"
+[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-56_238.log"
 [WebServer] error: script "serve:e2e:built" exited with code 1
 Error: Process from config.webServer was not able to start. Exit code: 1
 ```
@@ -224,12 +224,12 @@ shard 2: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 [WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
 [WebServer] 
 [WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787889969774","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
+[WebServer]   {"timestamp":"1787911727569","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
 [WebServer] 
 [WebServer] 
 [WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
 [WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_04-06-08_914.log"
+[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-46_651.log"
 [WebServer] error: script "serve:e2e:built" exited with code 1
 Error: Process from config.webServer was not able to start. Exit code: 1
 ```
@@ -269,12 +269,12 @@ shard 3: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 [WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
 [WebServer] 
 [WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787889966638","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
+[WebServer]   {"timestamp":"1787911733441","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
 [WebServer] 
 [WebServer] 
 [WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
 [WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_04-06-05_718.log"
+[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-52_471.log"
 [WebServer] error: script "serve:e2e:built" exited with code 1
 Error: Process from config.webServer was not able to start. Exit code: 1
 ```
@@ -314,12 +314,12 @@ shard 4: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 [WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
 [WebServer] 
 [WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787889975509","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
+[WebServer]   {"timestamp":"1787911724937","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
 [WebServer] 
 [WebServer] 
 [WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
 [WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_04-06-14_551.log"
+[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-44_045.log"
 [WebServer] error: script "serve:e2e:built" exited with code 1
 Error: Process from config.webServer was not able to start. Exit code: 1
 ```
