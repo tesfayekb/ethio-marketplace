@@ -964,8 +964,9 @@ async function main() {
         process.exit(1);
       }
     }
-    if (bootSummary.split("\n").filter((l) => l.startsWith("waiting for the web server")).length > 1) {
-      console.error("SELF-TEST FAILED — zero-test log summary did not collapse the wait noise.");
+    const errorBand = bootSummary.split("--- final 10 lines ---")[0] ?? "";
+    if (errorBand.includes("waiting for the web server")) {
+      console.error("SELF-TEST FAILED — wait noise leaked into the error band.");
       process.exit(1);
     }
     const bootReport = renderSources(
