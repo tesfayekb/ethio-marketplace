@@ -378,6 +378,58 @@ export function grepClientErrors(text: string | null, limit = 20): string[] {
 }
 
 /**
+ * INC-088 — WHAT A ZERO-TEST SOURCE'S LOG MUST SHOW.
+ *
+ * A runner that died in `webServer` prints its cause EARLY (the boot banner,
+ * the crash) and then floods the tail with unrelated retry/teardown noise — a
+ * raw 40-line tail quoted the noise and hid the cause. The wrangler
+ * compatibility-date crash was invisible for exactly this reason: the asset
+ * table alone is longer than 40 lines.
+ *
+ * The summary is therefore two bands, in order:
+ *  1. every ERROR-shaped line from the FULL log (capped at 30, oldest kept —
+ *     the FIRST error is the cause, later ones are consequences);
+ *  2. the final 10 lines, so the exit status is still visible.
+ */
+const ERROR_LINE = /✘|ERROR|error:|Error:|exited with code/;
+const ERROR_LINE_CAP = 30;
+const LOG_TAIL_LINES = 10;
+
+export function summarizeLog(text: string | null): string | null {
+  if (!text) return null;
+  const lines = text.split("\n");
+  const errors = collapseConsecutive(
+    lines
+      .filter((line) => ERROR_LINE.test(line))
+      .map((line) => redact(line.trimEnd()))
+      .filter((line) => line.trim().length > 0),
+  ).slice(0, ERROR_LINE_CAP);
+  const tail = lines
+    .slice(-LOG_TAIL_LINES)
+    .map((line) => redact(line.trimEnd()))
+    .join("\n")
+    .trim();
+  const parts: string[] = [];
+  if (errors.length > 0) parts.push(`--- error lines (${errors.length}) ---`, ...errors);
+  parts.push(`--- final ${LOG_TAIL_LINES} lines ---`, tail || "(empty)");
+  return parts.join("\n");
+}
+
+/**
+ * INC-088 — PLATFORM-ORIGIN LABEL. Lovable's own auto-pushes land on main with
+ * a fixed commit subject; a red run on such a commit is very likely not ours.
+ * One string check, no heuristics, and it only ever ADDS a hint.
+ */
+const PLATFORM_COMMIT_SUBJECTS = ["Lovable update", "Work in progress"];
+
+export function isPlatformOriginCommit(message: string | undefined): boolean {
+  if (!message) return false;
+  const subject = message.split("\n")[0]?.trim() ?? "";
+  return PLATFORM_COMMIT_SUBJECTS.includes(subject);
+}
+
+
+/**
  * INC-086 — HOW MANY TESTS THIS FILE ACTUALLY RECORDS.
  * A results.json from a runner that died before executing anything parses
  * perfectly and contains `"suites": []` (real capture:
