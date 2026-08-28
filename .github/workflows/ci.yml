@@ -584,6 +584,10 @@ jobs:
           E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4
           E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success' && needs.e2e-email.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # INC-088 — platform-origin label: Lovable's auto-pushes carry a fixed
+          # commit subject, and the reporter prefixes a PLATFORM-ORIGIN? hint
+          # when it sees one. Empty on pull_request events, which is correct.
+          E2E_HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           set -u
           # The self-test runs FIRST: a reporter that only ever prints "no
