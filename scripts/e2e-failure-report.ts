@@ -492,11 +492,17 @@ export function renderSources(
     "",
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
+    ...(isPlatformOriginCommit(meta.commitMessage)
+      ? [
+          `- PLATFORM-ORIGIN? the head commit's subject is \`${meta.commitMessage?.split("\n")[0]?.trim()}\` — a Lovable auto-push, so suspect platform-injected code before ours.`,
+        ]
+      : []),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
   ];
+
 
   if (failures.length === 0 && silent.length === 0) {
     lines.push("No failed tests were recorded in the JSON reporter output.", "");
