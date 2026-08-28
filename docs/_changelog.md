@@ -185,3 +185,4 @@
 - 2026-08-22 — ci: e2e build unminified + full console-arg capture — React #185 will name its component (INC-085g)
 - 2026-08-22 — fix(build): e2e build pins cssMinify so the SSR and client graphs hash styles.css identically (404 stylesheet → unstyled e2e pages → strict-mode/#185 failures); fix(shell): useFooterInset stops observing document.body (self-feeding inset loop); test(e2e): console capture reads Error stacks instead of jsonValue (INC-085h)
 - 2026-08-22 — fix(shell): name and eliminate useFooterInset's remaining footer-observer feedback loop; test(e2e): retain full pageerror stacks, raise console capture to 2,000 characters, and collapse repeated Client/Server evidence as ×N (INC-085i)
+- 2026-08-28 — ci: platform-injected previewAuthStorage.ts takes the Knowledge E5 machine-generated exemption (path-scoped eslint + prettier ignore) — red main from commit 857f049 cleared with no gate weakening (INC-087)
