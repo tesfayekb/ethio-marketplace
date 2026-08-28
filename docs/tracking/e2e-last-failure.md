@@ -1,10 +1,684 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33162175395
-- Commit: `4d7b512bbc8c37bf0e050aca0baee47fb57c97aa`
-- Written (UTC): 2026-08-28T10:09:10.882Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33163195999
+- Commit: `4695d2c4859d4be726c9a614284be1bb4d3083c9`
+- Written (UTC): 2026-08-28T10:40:42.748Z
+- Passed: 264 · Skipped: 67 · Failed: 22
+- Sources without results: none
+
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface
+
+- Source: `smoke`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › panel-scoped chrome › location row is present on Marketplace and absent on Account
+
+- Source: `smoke`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › panel follows the route › /settings shows the Account context, and returning shows categories
+
+- Source: `smoke`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › rail scroll regions (U0f) › md+ rail: items scroll, header fixed
+
+- Source: `smoke`
+- Project: `desktop-1280`
+
+```text
+Error: rail bottom must be min(viewport bottom, footer top)
+
+expect(received).toBeLessThanOrEqual(expected)
+
+Expected: <= 2
+Received:    28
+```
+
+Context:
+
+```text
+          - listitem [ref=e198]:
+            - generic [ref=e199]: About
+          - listitem [ref=e200]:
+            - generic [ref=e201]: How it works
+      - navigation "Help" [ref=e202]:
+        - heading "Help" [level=2] [ref=e203]
+        - list [ref=e204]:
+          - listitem [ref=e205]:
+            - generic [ref=e206]: Safety
+          - listitem [ref=e207]:
+            - generic [ref=e208]: Contact
+      - navigation "Legal" [ref=e209]:
+        - heading "Legal" [level=2] [ref=e210]
+        - list [ref=e211]:
+          - listitem [ref=e212]:
+            - generic [ref=e213]: Terms
+          - listitem [ref=e214]:
+            - generic [ref=e215]: Privacy
+    - paragraph [ref=e217]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
+
+- Source: `smoke`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
+
+- Source: `smoke`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-audit.spec.ts › U3 audit & security › AS-1 gating: a plain user is refused, a moderator reads the log
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-audit.spec.ts › U3 audit & security › IMP-3 server refusals: self, super-admin target, and a non-super caller
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-roles.spec.ts › U2 roles console › RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-roles.spec.ts › U2 roles console › RP-8 Amharic + no horizontal overflow
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-users.spec.ts › U1 admin users › AU-1 permission: moderator is refused, admin sees the list
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-users.spec.ts › U1 admin users › AU-3 detail: reason required, deactivate, audit row, reactivate
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## admin-users.spec.ts › U1 admin users › AU-5 seam: a deactivated account cannot write a listing
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-callback.spec.ts › C-1: a fresh confirmation link signs the user in
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-callback.spec.ts › C-3: an already-confirmed user gets the honest already-confirmed surface
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-reset.spec.ts › R-3: a recovery link sets a new password, and the old one stops working
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## settings.spec.ts › S-3 (U-4): wrong current password is rejected; correct one rotates the password
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## shell.spec.ts › panel-scoped chrome › location row is present on Marketplace and absent on Account
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## smoke-auth-i18n.spec.ts › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('account-menu-sign-out')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('account-menu-sign-out')
+
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
 
 ## Server errors: smoke
 
@@ -12,15 +686,10 @@ No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
 ## Client errors: smoke
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
-
-## Server errors: email
-
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
-
-## Client errors: email
-
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+```text
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:24285:4 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×3
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:22054:63 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×12
+```
 
 ## Server errors: shard 1
 
@@ -28,7 +697,20 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Client errors: shard 1
 
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+```text
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:24285:4 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×3
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×2
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:24285:4 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×3
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:24285:4 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×3
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:22054:63 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×3
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×2
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:24285:4 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×9
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:22054:63 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×6
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:22054:63 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×3
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:24285:4 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×6
+```
 
 ## Server errors: shard 2
 
@@ -36,7 +718,9 @@ No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
 
 ## Client errors: shard 2
 
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+```text
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:22054:63 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×6
+```
 
 ## Server errors: shard 3
 
@@ -44,7 +728,9 @@ No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
 
 ## Client errors: shard 3
 
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+```text
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:22054:63 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×3
+```
 
 ## Server errors: shard 4
 
@@ -52,274 +738,6 @@ No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Client errors: shard 4
 
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## smoke: results file with zero tests
-
-smoke: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
 ```text
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/stat-card-D9MghW2F.mjs                       │ esm  │ 5.89 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/step-up-gate-CjTzzry-.mjs                    │ esm  │ 5.90 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-roles-BQwDhDIv.mjs                 │ esm  │ 4.88 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-users-CHIlm7jA.mjs                 │ esm  │ 7.32 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-auth-SmMFoPco.mjs                        │ esm  │ 2.48 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-impersonation-DgiGcOSu.mjs               │ esm  │ 5.13 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/utils-C_uf36nf.mjs                           │ esm  │ 0.29 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _tanstack-start-manifest_v-DdohLP-k.mjs           │ esm  │ 6.61 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ Total (92 modules)                                │      │ 2430.64 KiB │
-[WebServer] └───────────────────────────────────────────────────┴──────┴─────────────┘
-[WebServer] ⎔ Starting local server...
-[WebServer] [wrangler:info] ✨ Parsed 1 valid header rule.
-[WebServer] ✘ [ERROR] service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date "2026-08-28", but the newest date supported by this server binary is "2026-08-27".
-[WebServer] 
-[WebServer] 
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
-[WebServer] 
-[WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787911726273","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
-[WebServer] 
-[WebServer] 
-[WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-45_314.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## email: results file with zero tests
-
-email: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/stat-card-D9MghW2F.mjs                       │ esm  │ 5.89 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/step-up-gate-CjTzzry-.mjs                    │ esm  │ 5.90 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-roles-BQwDhDIv.mjs                 │ esm  │ 4.88 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-users-CHIlm7jA.mjs                 │ esm  │ 7.32 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-auth-SmMFoPco.mjs                        │ esm  │ 2.48 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-impersonation-DgiGcOSu.mjs               │ esm  │ 5.13 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/utils-C_uf36nf.mjs                           │ esm  │ 0.29 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _tanstack-start-manifest_v-DdohLP-k.mjs           │ esm  │ 6.61 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ Total (92 modules)                                │      │ 2430.60 KiB │
-[WebServer] └───────────────────────────────────────────────────┴──────┴─────────────┘
-[WebServer] ⎔ Starting local server...
-[WebServer] [wrangler:info] ✨ Parsed 1 valid header rule.
-[WebServer] ✘ [ERROR] service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date "2026-08-28", but the newest date supported by this server binary is "2026-08-27".
-[WebServer] 
-[WebServer] 
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
-[WebServer] 
-[WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787911728215","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
-[WebServer] 
-[WebServer] 
-[WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-47_308.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## shard 1: results file with zero tests
-
-shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/stat-card-D9MghW2F.mjs                       │ esm  │ 5.89 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/step-up-gate-CjTzzry-.mjs                    │ esm  │ 5.90 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-roles-BQwDhDIv.mjs                 │ esm  │ 4.88 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-users-CHIlm7jA.mjs                 │ esm  │ 7.32 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-auth-SmMFoPco.mjs                        │ esm  │ 2.48 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-impersonation-DgiGcOSu.mjs               │ esm  │ 5.13 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/utils-C_uf36nf.mjs                           │ esm  │ 0.29 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _tanstack-start-manifest_v-DdohLP-k.mjs           │ esm  │ 6.61 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ Total (92 modules)                                │      │ 2430.60 KiB │
-[WebServer] └───────────────────────────────────────────────────┴──────┴─────────────┘
-[WebServer] ⎔ Starting local server...
-[WebServer] [wrangler:info] ✨ Parsed 1 valid header rule.
-[WebServer] ✘ [ERROR] service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date "2026-08-28", but the newest date supported by this server binary is "2026-08-27".
-[WebServer] 
-[WebServer] 
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
-[WebServer] 
-[WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787911737155","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
-[WebServer] 
-[WebServer] 
-[WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-56_238.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## shard 2: results file with zero tests
-
-shard 2: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/stat-card-D9MghW2F.mjs                       │ esm  │ 5.89 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/step-up-gate-CjTzzry-.mjs                    │ esm  │ 5.90 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-roles-BQwDhDIv.mjs                 │ esm  │ 4.88 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-users-CHIlm7jA.mjs                 │ esm  │ 7.32 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-auth-SmMFoPco.mjs                        │ esm  │ 2.48 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-impersonation-DgiGcOSu.mjs               │ esm  │ 5.13 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/utils-C_uf36nf.mjs                           │ esm  │ 0.29 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _tanstack-start-manifest_v-DdohLP-k.mjs           │ esm  │ 6.61 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ Total (92 modules)                                │      │ 2430.60 KiB │
-[WebServer] └───────────────────────────────────────────────────┴──────┴─────────────┘
-[WebServer] ⎔ Starting local server...
-[WebServer] [wrangler:info] ✨ Parsed 1 valid header rule.
-[WebServer] ✘ [ERROR] service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date "2026-08-28", but the newest date supported by this server binary is "2026-08-27".
-[WebServer] 
-[WebServer] 
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
-[WebServer] 
-[WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787911727569","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
-[WebServer] 
-[WebServer] 
-[WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-46_651.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## shard 3: results file with zero tests
-
-shard 3: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/stat-card-D9MghW2F.mjs                       │ esm  │ 5.89 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/step-up-gate-CjTzzry-.mjs                    │ esm  │ 5.90 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-roles-BQwDhDIv.mjs                 │ esm  │ 4.88 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-users-CHIlm7jA.mjs                 │ esm  │ 7.32 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-auth-SmMFoPco.mjs                        │ esm  │ 2.48 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-impersonation-DgiGcOSu.mjs               │ esm  │ 5.13 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/utils-C_uf36nf.mjs                           │ esm  │ 0.29 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _tanstack-start-manifest_v-DdohLP-k.mjs           │ esm  │ 6.61 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ Total (92 modules)                                │      │ 2430.60 KiB │
-[WebServer] └───────────────────────────────────────────────────┴──────┴─────────────┘
-[WebServer] ⎔ Starting local server...
-[WebServer] [wrangler:info] ✨ Parsed 1 valid header rule.
-[WebServer] ✘ [ERROR] service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date "2026-08-28", but the newest date supported by this server binary is "2026-08-27".
-[WebServer] 
-[WebServer] 
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
-[WebServer] 
-[WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787911733441","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
-[WebServer] 
-[WebServer] 
-[WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-52_471.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
-```
-
-## shard 4: results file with zero tests
-
-shard 4: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/stat-card-D9MghW2F.mjs                       │ esm  │ 5.89 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/step-up-gate-CjTzzry-.mjs                    │ esm  │ 5.90 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-roles-BQwDhDIv.mjs                 │ esm  │ 4.88 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-admin-users-CHIlm7jA.mjs                 │ esm  │ 7.32 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-auth-SmMFoPco.mjs                        │ esm  │ 2.48 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/use-impersonation-DgiGcOSu.mjs               │ esm  │ 5.13 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _ssr/utils-C_uf36nf.mjs                           │ esm  │ 0.29 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ _tanstack-start-manifest_v-DdohLP-k.mjs           │ esm  │ 6.61 KiB    │
-[WebServer] ├───────────────────────────────────────────────────┼──────┼─────────────┤
-[WebServer] │ Total (92 modules)                                │      │ 2430.60 KiB │
-[WebServer] └───────────────────────────────────────────────────┴──────┴─────────────┘
-[WebServer] ⎔ Starting local server...
-[WebServer] [wrangler:info] ✨ Parsed 1 valid header rule.
-[WebServer] ✘ [ERROR] service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date "2026-08-28", but the newest date supported by this server binary is "2026-08-27".
-[WebServer] 
-[WebServer] 
-[WebServer] 
-[WebServer] Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
-[WebServer] 
-[WebServer] ✘ [ERROR] The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
-[WebServer] 
-[WebServer]   Runtime stderr:
-[WebServer]   {"timestamp":"1787911724937","level":"error","source":"src/workerd/server/json-logger.c++:127","message":"service core:user:tesfayekb-ethio-marketplace: This Worker requires compatibility date \"2026-08-28\", but the newest date supported by this server binary is \"2026-08-27\".","context_depth":0}
-[WebServer] 
-[WebServer] 
-[WebServer] If you think this is a bug then please create an issue at https://github.com/cloudflare/workers-sdk/issues/new/choose
-[WebServer] Note that there is a newer version of Wrangler available (4.127.0). Consider checking whether upgrading resolves this error.
-[WebServer] 🪵  Logs were written to "/home/runner/.config/.wrangler/logs/wrangler-2026-08-28_10-08-44_045.log"
-[WebServer] error: script "serve:e2e:built" exited with code 1
-Error: Process from config.webServer was not able to start. Exit code: 1
+[client-error] console.error: Error: Minified React error #185; visit https://react.dev/errors/185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at getRootForUpdatedFiber (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1788:90) at enqueueConcurrentHookUpdate (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:1774:10) at dispatchSetStateInternal (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3641:13) at dispatchSetState (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:3620:3) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:22054:63 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21379:20 at Array.map (<anonymous>) at http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21378:25 at setRef (http://127.0.0.1:4173/assets/index-w2z5Ky7H.js:21372:40) ×3
 ```
