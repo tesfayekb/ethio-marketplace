@@ -1005,7 +1005,10 @@ async function main() {
       // produced no results — `[ssr-error]` lines matter most next to a
       // failure that DID get recorded.
       const log = logsDir ? await readLog(`${logsDir}/e2e-log-${id}/${id}.log`) : null;
-      const tail = log ? log.split("\n").slice(-40).join("\n").trim() || null : null;
+      // INC-088: error lines from the WHOLE log first, then the final 10 —
+      // never a bare tail, which quotes the noise and hides the cause.
+      const tail = summarizeLog(log);
+
       sources.push({
         label: sourceLabel(`e2e-results-${id}`),
         json: parsed.json,
