@@ -415,3 +415,62 @@ CLASS RULE: a test harness may not depend on a runtime whose acceptance window i
 pinned to a binary's release date while its input is stamped with the build date. When
 the failing layer is the runtime and not the application, migrate the harness and keep
 exactly one parity job on the deploy runtime.
+
+## INC-089 — the #185 loop is an `asChild` ref contract break, not a footer measurement
+
+React error #185 kept firing after INC-085i with app frames finally visible in the
+unminified e2e bundle:
+
+```text
+dispatchSetState
+  ← <anonymous @22054>   (index-w2z5Ky7H.js)
+  ← setRef
+  ← Array.map
+  ← setRef
+  ← <anonymous @24285>   (index-w2z5Ky7H.js)
+```
+
+RESOLVED SITE: both offsets land in Radix's `composeRefs`/`useComposedRefs`
+(`refs.map(ref => setRef(ref, node))`), invoked from the two Slot parents the rail
+stacks on a MAPPED row in `src/components/shell/app-rail.tsx` — `CollapsibleTrigger
+asChild` (RailRow's submenu branch, previously line 118) and `TooltipTrigger asChild`
+inside `WithTooltip` (previously line 53). Both Radix triggers compose a `useState`
+setter as one of their refs.
+
+CAUSE: `CollapsibleTrigger asChild` was given `WithTooltip` as its child, and
+`WithTooltip` never yields a ref-holding element — expanded it returned a Fragment,
+collapsed it returned a Tooltip Root. A Slot parent whose child cannot hold a ref
+writes its composed state-setter with `null` on every render pass, so
+`setRef → dispatchSetState → re-render → setRef` never settles; every mapped rail row
+multiplies the churn until React aborts with #185.
+
+FIX (root, both components): the tooltip now wraps the TRIGGER instead of sitting
+between the trigger and its DOM element, and `WithTooltip`'s non-collapsed branch
+returns `children` unwrapped — so every `asChild` parent in the rail receives a real
+ref-holding element.
+
+CLASS RULE — MAPPED CHILDREN NEVER TAKE INLINE STATE-WRITING REF CALLBACKS, AND NO
+`asChild` PARENT EVER RECEIVES A FRAGMENT OR A ROOT/PROVIDER COMPONENT. If a wrapper
+component is conditional, it must be placed OUTSIDE the trigger, never between the
+trigger and its element.
+
+CORRECTION TO INC-085i: INC-085i attributed the whole #185 family to
+`useFooterInset`'s ResizeObserver feedback. That attribution was INCOMPLETE. The
+observer loop was real and its fix stands, but it accounted for only one class; the
+surviving loop is the rail's `asChild` ref contract break recorded here. The record is
+corrected accordingly — INC-085i's frames named the hook that _re-rendered_, not the
+ref that _dispatched_.
+
+THE STRAY 400 (shard 1 client errors): captured verbatim locally on the negative
+sign-in path —
+`POST https://<project>.supabase.co/auth/v1/token?grant_type=password` →
+`400 {"code":"invalid_credentials","message":"Invalid login credentials"}`.
+It is GoTrue's by-design response to the wrong-password specs; the app renders the
+translated error. Environmental to the auth suite, not an application defect — no fix.
+
+LOCAL-REPRO LIMITATION (recorded so the next reader does not repeat it): inside the
+Lovable sandbox the vite wrapper forces `preset: "cloudflare-module"` regardless of
+`NITRO_PRESET`, so `serve:e2e:built` runs the worker entry under node and serves NO
+static assets (every `/assets/*` 404s, nothing hydrates). Local verification therefore
+front-ends the built server with a static file server for `dist/client`. CI is outside
+the sandbox and gets the real node-server output (DEC-019 unaffected).

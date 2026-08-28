@@ -44,10 +44,24 @@ const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foregroun
 /** True only after hydration on a collapsed desktop rail. */
 const CollapsedContext = createContext(false);
 
-/** Hover label for the icons-only rail. Expanded rails need no tooltip. */
+/**
+ * Hover label for the icons-only rail. Expanded rails need no tooltip.
+ *
+ * INC-089 — THE ASCHILD/REF CONTRACT. Every `asChild` parent (Radix Slot)
+ * composes ITS OWN ref — often a `useState` setter — onto the child it is
+ * given. If that child cannot hold a ref (a Fragment) or is a Root/provider
+ * component that never forwards one, the composed setter is written with
+ * `null` on every render pass: `setRef` → `dispatchSetState` → re-render →
+ * `setRef` again. Mapped rows multiply the churn until React aborts with #185.
+ *
+ * So: the non-collapsed branch returns `children` UNWRAPPED (no Fragment), and
+ * no caller may hand this component's output to another `asChild` parent — the
+ * tooltip always sits OUTSIDE the trigger, never between a trigger and its DOM
+ * element. See RailRow's collapsible branch.
+ */
 function WithTooltip({ label, children }: { label: string; children: ReactNode }) {
   const collapsed = useContext(CollapsedContext);
-  if (!collapsed) return <>{children}</>;
+  if (!collapsed) return children as React.ReactElement;
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
@@ -100,8 +114,15 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li>
         <Collapsible open={open} onOpenChange={setOpen}>
-          <CollapsibleTrigger asChild>
-            <WithTooltip label={node.label}>
+          {/* INC-089 — the tooltip wraps the TRIGGER, never sits between the
+              trigger and its DOM element: `CollapsibleTrigger asChild` must
+              receive a ref-holding child, and WithTooltip's collapsed branch
+              renders a Tooltip Root (no ref) while its expanded branch used to
+              render a Fragment (no ref). Either one left Radix's composed
+              state-setting ref writing null on every render — the #185 loop,
+              multiplied by every mapped row. */}
+          <WithTooltip label={node.label}>
+            <CollapsibleTrigger asChild>
               <button
                 type="button"
                 data-testid="rail-submenu-trigger"
@@ -120,8 +141,9 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
                   )}
                 />
               </button>
-            </WithTooltip>
-          </CollapsibleTrigger>
+            </CollapsibleTrigger>
+          </WithTooltip>
+
           <CollapsibleContent asChild>
             <ul data-testid="rail-submenu" className="mt-0.5 flex flex-col gap-0.5">
               {node.children!.map((child) => (
