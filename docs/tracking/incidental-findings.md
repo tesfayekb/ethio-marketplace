@@ -552,3 +552,5 @@ served locally, `data-app-ready=1`, zero console errors, clamp delta
 `/ @1280x360 = 0`, `/ @1280x800 = 1.5`, `/auth @1280x360 = 0` (law allows <= 2).
 The signed-in surfaces remain CI's to prove: the sandbox has no staging service-role
 key, so no fixture user can be created or signed in here.
+
+| INC-091 | 2026-08-28 | Fixture file `scripts/fixtures/e2e-log-boot-crash.log` was ignored by `.gitignore *.log` and never tracked, so CI reporter self-test ENOENTed while the suite itself was green (INC-084f law) | FIXED — renamed to `.log.txt`, path updated in `scripts/e2e-failure-report.ts`; tracked-files proof now mandatory for every new fixture |
