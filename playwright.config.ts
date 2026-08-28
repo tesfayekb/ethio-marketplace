@@ -83,9 +83,11 @@ export default defineConfig({
     ? undefined
     : {
         command:
-          process.env["E2E_SERVE_BUILT"] === "1"
-            ? `bun run serve:e2e:built --port ${PORT}`
-            : `bun run serve:e2e --port ${PORT}`,
+          process.env["E2E_SERVE_BUILT"] === "cloudflare"
+            ? `bun run serve:e2e:built:cloudflare --port ${PORT}`
+            : process.env["E2E_SERVE_BUILT"] === "1"
+              ? `bun run serve:e2e:built --port ${PORT}`
+              : `bun run serve:e2e --port ${PORT}`,
         url: BASE_URL,
         reuseExistingServer: !process.env["CI"],
         timeout: 180_000,

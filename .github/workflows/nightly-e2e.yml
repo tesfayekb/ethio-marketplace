@@ -160,3 +160,63 @@ jobs:
             exit 1
           fi
           echo "Nightly E2E suite passed."
+
+  # DEC-019 / INC-088 — CLOUDFLARE PARITY SMOKE.
+  # The per-push suite serves the built app on nitro's node-server preset
+  # because `wrangler dev` cannot boot a worker whose compatibility_date is the
+  # build day. The DEPLOY target is still Cloudflare, so exactly one job per
+  # night must prove the same code boots and serves on workerd. It is allowed
+  # to be red for the runtime reason alone — the step prints the distinction —
+  # but a genuine application break here is a real signal.
+  cloudflare-parity-smoke:
+    name: Cloudflare parity smoke (wrangler-served)
+    runs-on: ubuntu-latest
+    env:
+      E2E_SHARD: cfsmoke
+      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
+      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_E2E: "1"
+      E2E_SERVE_BUILT: "cloudflare"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: Build the app for the Cloudflare target (VITE_E2E=1)
+        run: bun run build:e2e:cloudflare
+      - name: Verify the worker artifact
+        run: test -f dist/server/wrangler.json || { echo "::error::cloudflare e2e build did not emit dist/server/wrangler.json — nitro target drift"; find dist -maxdepth 3 -type f | head -60; exit 1; }
+      - name: Run the smoke tier on workerd
+        run: |
+          set -o pipefail
+          bunx playwright test --project=mobile-360 e2e/smoke-auth-i18n.spec.ts 2>&1 | tee cf-smoke.log || {
+            if grep -q "newest date supported by this server binary" cf-smoke.log; then
+              echo "::error::workerd refused the build-day compatibility_date (INC-088 runtime class) — the application itself was never exercised."
+            fi
+            exit 1
+          }
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-cf-parity
+          path: playwright-report/
+          retention-days: 7
