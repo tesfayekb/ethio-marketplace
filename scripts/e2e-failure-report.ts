@@ -428,7 +428,6 @@ export function isPlatformOriginCommit(message: string | undefined): boolean {
   return PLATFORM_COMMIT_SUBJECTS.includes(subject);
 }
 
-
 /**
  * INC-086 — HOW MANY TESTS THIS FILE ACTUALLY RECORDS.
  * A results.json from a runner that died before executing anything parses
@@ -464,7 +463,6 @@ export type ReportMeta = {
 };
 
 export function renderSources(
-
   sources: Source[],
   meta: ReportMeta,
   contexts: Map<string, string> = new Map(),
@@ -512,7 +510,6 @@ export function renderSources(
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
   ];
-
 
   if (failures.length === 0 && silent.length === 0) {
     lines.push("No failed tests were recorded in the JSON reporter output.", "");
@@ -636,11 +633,7 @@ export function renderGreen(meta: ReportMeta): string {
  * very file everyone reads — header, error, and a best-effort titles-only
  * failure list scraped from whatever results.json can still be parsed.
  */
-export function renderCrash(
-  error: unknown,
-  meta: ReportMeta,
-  titles: string[],
-): string {
+export function renderCrash(error: unknown, meta: ReportMeta, titles: string[]): string {
   const err = error instanceof Error ? error : new Error(String(error));
   const firstStackLine = (err.stack ?? "").split("\n")[1]?.trim() ?? "(no stack)";
   return [
@@ -721,7 +714,6 @@ async function main() {
     sha: process.env["GITHUB_SHA"] ?? "local",
     commitMessage: process.env["E2E_HEAD_COMMIT_MESSAGE"] ?? "",
   };
-
 
   if (process.env["SELF_TEST"] === "1") {
     // BOTH fixtures are REAL captured output (a two-failure Playwright run:
@@ -987,7 +979,6 @@ async function main() {
       console.error("SELF-TEST FAILED — PLATFORM-ORIGIN? fired on a human commit.");
       process.exit(1);
     }
-
 
     // NEVER-SILENT LAW: a malformed results.json is (a) survivable as a source
     // and (b) renderable as a REPORTER ERROR when something does escape.
