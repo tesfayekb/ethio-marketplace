@@ -474,3 +474,81 @@ Lovable sandbox the vite wrapper forces `preset: "cloudflare-module"` regardless
 static assets (every `/assets/*` 404s, nothing hydrates). Local verification therefore
 front-ends the built server with a static file server for `dist/client`. CI is outside
 the sandbox and gets the real node-server output (DEC-019 unaffected).
+
+## INC-089 ADDENDUM (run 33166409697) + INC-090 — THE SIGNED-IN #185 LOOP AND THE CLAMP LAW
+
+CLASS 1 — CLAMP LAW CORRECTED (`src/components/shell/use-footer-inset.ts`).
+Evidence line: `shell.spec.ts › rail scroll regions (U0f) › md+ rail` —
+`rail bottom must be min(viewport bottom, footer top) … Expected: <= 2, Received: 28`.
+INC-085i removed the footer ResizeObserver (correctly — it fed itself), but that
+observer was also the ONLY path that re-measured when the footer is ALREADY in view
+at first paint and nothing ever scrolls: the mount measurement lands before fonts and
+late layout settle, so the rail kept a stale inset and overhung the footer.
+
+CORRECTED LAW — the footer top is read PULL-BASED (inside `measure`, never observed);
+the trigger set is exactly: (1) mount plus a bounded settle pass (next frames,
+`document.fonts.ready`, 0/60/200/600 ms one-shots), (2) scroll / scrollend / resize,
+(3) a ResizeObserver on the CONTENT region (`#main`) only — never the footer, never
+the body. Every pass is idempotent through `lastApplied`, so a stable measurement is a
+no-op for React state and for the diagnostic attribute alike.
+
+CLASS 2 — RESIDUAL #185 IS REAL, AND IT IS NOT A REF-CALLBACK SITE (INC-090).
+The client-error channels attach to FAILING sources (shards 1–4 all carry the lines),
+so the tail was not cured noise. Resolving the two offsets against the local
+sourcemapped e2e build (`dist/client/assets/index-*.js`, unminified) gives, verbatim:
+
+```text
+22054: const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
+       — @radix-ui/react-focus-scope, FocusScope
+24285: ref: import_react.useCallback((node2) => { stylesRef.current = node2 ? getComputedStyle(node2) : null; setNode(node2); }, [])
+       — @radix-ui/react-presence, usePresence
+```
+
+Both are Radix's own composed state-setting refs inside an OPEN overlay (dropdown
+menu / drawer). They are the loop's LOUDEST dispatchers, not its source: they churn
+because their whole subtree re-renders without end. The source is the shell:
+
+`usePermissions` returned `enabled ? (query.data ?? []) : []` — a NEW array on every
+render whenever the read is loading, disabled or errored. `<PermissionsLoader/>`
+reports through an effect whose dependency array contains that value, and the shell
+stored the report as a NEW object. So: render → new array → effect → shell setState →
+render … an unbounded loop that only exists for a SIGNED-IN shell, which is exactly
+the population of this run's failures. React aborts with #185 and the root error
+boundary paints "This page didn't load".
+
+FIX (root, both halves): one module-level `EMPTY_PERMISSIONS` constant plus a
+`useMemo` on `query.data` in `usePermissions`; an equality-guarded writer
+(`applyPermissions`) in `AppShell` so an unchanged report is a genuine no-op.
+
+CLASS RULE — A VALUE THAT CROSSES AN EFFECT DEPENDENCY ARRAY OWNS ITS IDENTITY. Hook
+results that feed effects must never mint fresh arrays/objects for the empty or
+loading case, and every state writer fed by such an effect must be equality-guarded.
+
+CLASS 3 — THE SINGLES, PER TEST (all diagnosed from the run file, no spec changed):
+
+- `admin-users.spec.ts › AU-5` — context: the error page; timeout waiting on a dead
+  shell. Same INC-090 loop. No spec change.
+- `auth-callback.spec.ts › C-1`, `› C-3` — context: `account-menu-sign-out` never
+  appears; snapshot is the error page. The signed-in shell crashed before the header
+  rendered. INC-090. No spec change.
+- `settings.spec.ts › S-2`, `› S-3 (U-4)`, `› S-4` — identical evidence (error page +
+  missing sign-out). INC-090. No spec change.
+- `shell.spec.ts › panel-scoped chrome › location row …` — identical evidence.
+  INC-090.
+- `shell.spec.ts › rail scroll regions › drawer …` (mobile) — context: the error page,
+  test timeout; INC-090 (the drawer is an open Dialog, i.e. the FocusScope/Presence
+  frames above).
+- `admin-roles.spec.ts › RP-8` — context: the error page, timeout. INC-090.
+- `smoke-auth-i18n.spec.ts` (mobile-360 and desktop-1280) — identical evidence.
+  INC-090.
+- `shell.spec.ts › rail scroll regions › md+ rail` — the only NON-#185 failure of the
+  twelve; Class 1 above.
+
+No timeout was loosened, no assertion weakened, no suppression added; no spec file was
+re-anchored because no evidence line shows product truth changing.
+
+LOCAL PROOF (signed-out surfaces only — see the limitation below): built e2e bundle,
+served locally, `data-app-ready=1`, zero console errors, clamp delta
+`/ @1280x360 = 0`, `/ @1280x800 = 1.5`, `/auth @1280x360 = 0` (law allows <= 2).
+The signed-in surfaces remain CI's to prove: the sandbox has no staging service-role
+key, so no fixture user can be created or signed in here.
