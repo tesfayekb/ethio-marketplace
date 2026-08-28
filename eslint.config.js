@@ -13,6 +13,12 @@ export default tseslint.config(
       ".vinxi",
       "src/integrations/supabase/types.ts",
       "src/routeTree.gen.ts",
+      // Platform-injected, regeneration-owned auth storage broker (INC-087).
+      // Knowledge E5 / INC-011 machine-generated exemption: it carries the
+      // "automatically generated. Do not edit it directly." banner and is
+      // rewritten by the platform on every injection, so in-place formatting
+      // would not survive. Exemption is scoped to this exact file.
+      "src/integrations/supabase/previewAuthStorage.ts",
     ],
   },
   {
