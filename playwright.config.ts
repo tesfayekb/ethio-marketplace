@@ -67,11 +67,17 @@ export default defineConfig({
   // Option B (dev-server mode) is retired for CI: the dev SSR server
   // intermittently failed document requests under 6-way parallel load and
   // served the static error page (INC-085c/d). CI now runs `bun run build:e2e`
-  // as its own step and serves dist/ through wrangler — the same Cloudflare
-  // worker runtime production uses, with the VITE_E2E instruments compiled in.
-  // dist/server/wrangler.json IS produced by the current nitro build (the
-  // 2026-08-01 absence that forced Option B no longer reproduces).
-  //   CI:    bun run serve:e2e:built --port <PORT>   (wrangler dev on dist/)
+  // as its own step and serves dist/ with the VITE_E2E instruments compiled in.
+  //
+  // DEC-019 / INC-088 — THAT SERVE RUNS ON NODE, NOT ON WORKERD. nitro stamps
+  // the built worker's `compatibility_date` with the BUILD DAY, and a pinned
+  // `wrangler dev` binary can never support a date newer than its own release
+  // day, so the local serve died before the first request. The failure is in
+  // the wrangler/workerd runtime class, not in our code, so CI serves the SAME
+  // built application through nitro's node-server preset and one nightly
+  // "cloudflare parity smoke" job keeps a wrangler-served pass on the deploy
+  // runtime.
+  //   CI:    bun run serve:e2e:built --port <PORT>   (node dist/server/index.mjs)
   //   local: bun run serve:e2e --port <PORT>          (vite dev, fast loop)
   webServer: process.env["E2E_BASE_URL"]
     ? undefined
