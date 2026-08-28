@@ -39,8 +39,13 @@ export default defineConfig({
   nitro: {
     preset: NITRO_PRESET,
     output: { dir: "dist", serverDir: "dist/server", publicDir: "dist/client" },
-    cloudflare: { nodeCompat: true, deployConfig: true },
+    // Cloudflare-only options belong to the cloudflare preset alone; nitro's
+    // node-server target has no worker to configure.
+    ...(NITRO_PRESET === "cloudflare-module"
+      ? { cloudflare: { nodeCompat: true, deployConfig: true } }
+      : {}),
   },
+
 
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
