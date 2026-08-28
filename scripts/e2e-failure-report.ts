@@ -454,7 +454,17 @@ export function sourceLabel(artifactDir: string): string {
   return /^\d+$/.test(id) ? `shard ${id}` : id;
 }
 
+/** Run identity carried into every rendered report. */
+export type ReportMeta = {
+  runId: string;
+  runUrl: string;
+  sha: string;
+  /** INC-088 — the head commit's message, for the PLATFORM-ORIGIN? hint. */
+  commitMessage?: string;
+};
+
 export function renderSources(
+
   sources: Source[],
   meta: ReportMeta,
   contexts: Map<string, string> = new Map(),
