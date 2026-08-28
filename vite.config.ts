@@ -6,6 +6,25 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+/**
+ * DEC-019 — THE E2E SERVE RUNTIME IS NODE, THE DEPLOY TARGET STAYS CLOUDFLARE.
+ *
+ * INC-088: nitro stamps `compatibility_date` with the BUILD DAY. `wrangler dev`
+ * runs a pinned workerd binary whose newest supported date is, by construction,
+ * never newer than its release day — so on any day after the pinned wrangler's
+ * release the local serve dies before the first request with
+ * "This Worker requires compatibility date <today>, but the newest date
+ * supported by this server binary is <yesterday>". That is a runtime-class
+ * failure in wrangler/workerd, not in our code, so DEC-019's first branch
+ * fires: CI serves the SAME built app through nitro's node-server preset, and
+ * one nightly job keeps a wrangler-served parity smoke.
+ *
+ * The preset is still explicitly pinned (INC-085e's Implicit Detection Law) —
+ * it is only selectable through NITRO_PRESET, which nothing but the e2e build
+ * sets. An unset variable resolves to the deploy target, byte-identically.
+ */
+const NITRO_PRESET = process.env["NITRO_PRESET"] ?? "cloudflare-module";
+
 export default defineConfig({
   // INC-085e — NITRO TARGET IS PINNED, NEVER ENVIRONMENT-DETECTED.
   // The wrapper only forces `preset: "cloudflare-module"`, the dist/ output
@@ -18,10 +37,11 @@ export default defineConfig({
   // resolve identically; the sandbox branch still overrides them with the same
   // constants, so pinning here changes nothing for the deployed build.
   nitro: {
-    preset: "cloudflare-module",
+    preset: NITRO_PRESET,
     output: { dir: "dist", serverDir: "dist/server", publicDir: "dist/client" },
     cloudflare: { nodeCompat: true, deployConfig: true },
   },
+
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
