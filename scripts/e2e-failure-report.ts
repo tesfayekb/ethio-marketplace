@@ -946,6 +946,47 @@ async function main() {
       );
       process.exit(1);
     }
+    // INC-088 — BANNER-THEN-CRASH. The cause is printed near the TOP of the
+    // log and the tail is 35 lines of "waiting for the web server": a raw tail
+    // quotes only the noise. The summary must carry the workerd error AND the
+    // final lines, and must collapse the repeated wait line.
+    const bootLog = await Bun.file("scripts/fixtures/e2e-log-boot-crash.log").text();
+    const bootSummary = summarizeLog(bootLog) ?? "";
+    for (const needle of [
+      "--- error lines",
+      "newest date supported by this server binary",
+      "The Workers runtime failed to start",
+      "--- final 10 lines ---",
+      "Timed out waiting 120000ms from config.webServer.",
+    ]) {
+      if (!bootSummary.includes(needle)) {
+        console.error(`SELF-TEST FAILED — zero-test log summary missing: ${needle}`);
+        process.exit(1);
+      }
+    }
+    if (bootSummary.split("\n").filter((l) => l.startsWith("waiting for the web server")).length > 1) {
+      console.error("SELF-TEST FAILED — zero-test log summary did not collapse the wait noise.");
+      process.exit(1);
+    }
+    const bootReport = renderSources(
+      [{ label: "shard 2", json: { suites: [] }, logTail: bootSummary }],
+      { runId: "self-test", runUrl: "", sha: "self-test", commitMessage: "Lovable update" },
+    );
+    if (
+      !bootReport.includes("results file with zero tests") ||
+      !bootReport.includes("The Workers runtime failed to start") ||
+      !bootReport.includes("PLATFORM-ORIGIN?")
+    ) {
+      console.error(
+        "SELF-TEST FAILED — the zero-test report lost the summarized log or the PLATFORM-ORIGIN? hint.",
+      );
+      process.exit(1);
+    }
+    if (isPlatformOriginCommit("fix(e2e): serve on node")) {
+      console.error("SELF-TEST FAILED — PLATFORM-ORIGIN? fired on a human commit.");
+      process.exit(1);
+    }
+
 
     // NEVER-SILENT LAW: a malformed results.json is (a) survivable as a source
     // and (b) renderable as a REPORTER ERROR when something does escape.
