@@ -524,6 +524,11 @@ CLASS RULE — A VALUE THAT CROSSES AN EFFECT DEPENDENCY ARRAY OWNS ITS IDENTITY
 results that feed effects must never mint fresh arrays/objects for the empty or
 loading case, and every state writer fed by such an effect must be equality-guarded.
 
+ADDENDUM — the reporter's boot-crash fixture is a tracked file test: an untracked `.log`
+fixture was swallowed by `.gitignore *.log` and caused a green suite to red at report
+self-test; the durable fix is renaming to `.log.txt` and treating every fixture path as a
+commit-time tracked-files proof (INC-091).
+
 CLASS 3 — THE SINGLES, PER TEST (all diagnosed from the run file, no spec changed):
 
 - `admin-users.spec.ts › AU-5` — context: the error page; timeout waiting on a dead
