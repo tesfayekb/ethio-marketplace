@@ -355,9 +355,10 @@ export function DataTable<T>({
                 const go = () => {
                   if (href) void navigate(href as never);
                 };
+                const expansion = expandedRow?.(row);
                 return (
+                  <Fragment key={key}>
                   <tr
-                    key={key}
                     data-testid={rowTestId(row)}
                     className={cn(
                       "border-b border-border last:border-0",
