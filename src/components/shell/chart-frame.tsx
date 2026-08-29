@@ -78,7 +78,10 @@ export function ChartFrame({
     return () => observer.disconnect();
   }, []);
 
-  const height = Math.max(120, Math.round(width * RATIO[aspect]));
+  const sparkline = variant === "sparkline";
+  const height = sparkline
+    ? SPARKLINE_PLOT_HEIGHT
+    : Math.max(120, Math.round(width * RATIO[aspect]));
 
   const legendBlock = legendContent ? (
     <div
