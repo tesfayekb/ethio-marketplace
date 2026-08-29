@@ -358,83 +358,88 @@ export function DataTable<T>({
                 const expansion = expandedRow?.(row);
                 return (
                   <Fragment key={key}>
-                  <tr
-                    data-testid={rowTestId(row)}
-                    className={cn(
-                      "border-b border-border last:border-0",
-                      href && "cursor-pointer hover:bg-muted/50",
-                    )}
-                    {...(href
-                      ? {
-                          role: "link",
-                          tabIndex: 0,
-                          onClick: go,
-                          onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
-                            if (event.key === "Enter") {
-                              event.preventDefault();
-                              go();
-                            }
-                          },
-                        }
-                      : {})}
-                  >
-                    {selection ? (
-                      <td
-                        className="p-3 align-top"
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                      >
-                        <Checkbox
-                          aria-label={t("prim.table.selectRow")}
-                          data-testid={`${rowTestId(row)}-select-cell`}
-                          checked={selectedKeys.has(key)}
-                          onCheckedChange={(checked) =>
-                            selection.onToggleRow(row, checked === true)
+                    <tr
+                      data-testid={rowTestId(row)}
+                      className={cn(
+                        "border-b border-border last:border-0",
+                        href && "cursor-pointer hover:bg-muted/50",
+                      )}
+                      {...(href
+                        ? {
+                            role: "link",
+                            tabIndex: 0,
+                            onClick: go,
+                            onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                go();
+                              }
+                            },
                           }
-                        />
-                      </td>
-                    ) : null}
-                    {columns.map((column) => (
-                      <td
-                        key={column.key}
-                        className={cellClass(column as DataTableColumn<unknown>)}
-                      >
-                        {href && column.key === linkColumnKey ? (
-                          <Link
-                            {...href}
-                            data-testid={`${rowTestId(row)}-link`}
-                            className="block min-w-0 break-words"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            {column.cell(row)}
-                          </Link>
-                        ) : (
-                          <span className="block min-w-0 break-words">{column.cell(row)}</span>
-                        )}
-                      </td>
-                    ))}
-                    {rowActions ? (
-                      <td
-                        data-testid={`${rowTestId(row)}-actions-cell`}
-                        className="p-3 text-end align-top"
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                      >
-                        <span className="flex flex-wrap justify-end gap-2">{rowActions(row)}</span>
-                      </td>
-                    ) : null}
-                  </tr>
-                  {expansion ? (
-                    <tr data-testid={`${rowTestId(row)}-expanded-row`} className="border-b border-border last:border-0">
-                      <td
-                        colSpan={columns.length + (selection ? 1 : 0) + (rowActions ? 1 : 0)}
-                        data-testid={`${rowTestId(row)}-expanded`}
-                        className="min-w-0 p-3 align-top"
-                      >
-                        {expansion}
-                      </td>
+                        : {})}
+                    >
+                      {selection ? (
+                        <td
+                          className="p-3 align-top"
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                        >
+                          <Checkbox
+                            aria-label={t("prim.table.selectRow")}
+                            data-testid={`${rowTestId(row)}-select-cell`}
+                            checked={selectedKeys.has(key)}
+                            onCheckedChange={(checked) =>
+                              selection.onToggleRow(row, checked === true)
+                            }
+                          />
+                        </td>
+                      ) : null}
+                      {columns.map((column) => (
+                        <td
+                          key={column.key}
+                          className={cellClass(column as DataTableColumn<unknown>)}
+                        >
+                          {href && column.key === linkColumnKey ? (
+                            <Link
+                              {...href}
+                              data-testid={`${rowTestId(row)}-link`}
+                              className="block min-w-0 break-words"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              {column.cell(row)}
+                            </Link>
+                          ) : (
+                            <span className="block min-w-0 break-words">{column.cell(row)}</span>
+                          )}
+                        </td>
+                      ))}
+                      {rowActions ? (
+                        <td
+                          data-testid={`${rowTestId(row)}-actions-cell`}
+                          className="p-3 text-end align-top"
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                        >
+                          <span className="flex flex-wrap justify-end gap-2">
+                            {rowActions(row)}
+                          </span>
+                        </td>
+                      ) : null}
                     </tr>
-                  ) : null}
+                    {expansion ? (
+                      <tr
+                        data-testid={`${rowTestId(row)}-expanded-row`}
+                        className="border-b border-border last:border-0"
+                      >
+                        <td
+                          colSpan={columns.length + (selection ? 1 : 0) + (rowActions ? 1 : 0)}
+                          data-testid={`${rowTestId(row)}-expanded`}
+                          className="min-w-0 p-3 align-top"
+                        >
+                          {expansion}
+                        </td>
+                      </tr>
+                    ) : null}
                   </Fragment>
                 );
               })}
