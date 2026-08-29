@@ -176,6 +176,7 @@ export function DataTable<T>({
   errorState,
   toolbar,
   rowActions,
+  expandedRow,
   selection,
   pagination,
   sortKey,
