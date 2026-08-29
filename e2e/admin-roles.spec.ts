@@ -312,7 +312,14 @@ test.describe("U2 roles console", () => {
     await expectNoHorizontalOverflow(page);
 
     await gotoReady(page, `/admin/roles/${id}`);
-    await expect(page.getByText(am["admin.roles.perm.title"]).first()).toBeVisible();
+    // INC-084c (third occurrence): an unscoped getByText resolves to the rail's
+    // hidden nav twin, not the visible surface. Anchor to the matrix heading
+    // INSIDE the Permissions card so the assertion always hits the real element.
+    await expect(
+      page
+        .getByTestId("role-permissions")
+        .getByRole("heading", { name: am["admin.roles.perm.title"] }),
+    ).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
