@@ -96,3 +96,40 @@ jobs:
             echo "::warning::CI status push failed after retries"
           fi
           exit 0
+
+  # DEC-020 divergence repair — the ONLY sanctioned non-fast-forward path to
+  # main. Operator-triggered only (workflow_dispatch), never automatic. Use it
+  # when the promote guard reports "MAIN DIVERGED" and the operator has
+  # confirmed main's extra commits are tracking-only (ci-status.md /
+  # e2e-last-failure.md [skip ci] commits). It force-pushes dev over main with
+  # --force-with-lease, after echoing exactly what is being overwritten.
+  sync-main:
+    name: sync-main — DEC-020 divergence repair
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Show what will be overwritten
+        run: |
+          set -eu
+          git fetch origin main dev
+          echo "main HEAD: $(git rev-parse origin/main)"
+          echo "dev  HEAD: $(git rev-parse origin/dev)"
+          echo "--- commits on main that are NOT on dev (these will be DISCARDED) ---"
+          git log --oneline origin/main --not origin/dev || true
+          echo "--- end ---"
+          echo "--- commits on dev that are not on main (these will be ADOPTED) ---"
+          git log --oneline origin/dev --not origin/main || true
+          echo "--- end ---"
+
+      - name: Force main to dev (lease-protected)
+        run: |
+          set -eu
+          git push --force-with-lease=main:"$(git rev-parse origin/main)" origin origin/dev:main
+          echo "main is now $(git rev-parse origin/dev)"
