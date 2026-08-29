@@ -192,3 +192,4 @@
   2026-08-28 — fix: track e2e boot-crash fixture by renaming to .log.txt and pinning reporter path (INC-091); add INC-090 addendum
 - 2026-08-29 — fix(admin): audit detail expands inline beneath its row (INC-092); impersonation copy states the read-only model; docs: impersonation model & roadmap (DEC-021)
 - 2026-08-29 — fix(admin): audit trend as bounded sparkline (≤160px, normalized, sparse labels); test(e2e): audit-expand locators scoped to the visible surface (INC-093)
+- 2026-08-29 — test(e2e): auditSurface twin helper — audit locators viewport-correct both ways (INC-084c sixth, INC-093b)
