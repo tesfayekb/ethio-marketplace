@@ -1078,6 +1078,21 @@ export type Database = {
           total_count: number
         }[]
       }
+      admin_list_languages: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          enabled_admin: boolean
+          enabled_public: boolean
+          is_base: boolean
+          name_en: string
+          name_native: string
+          rtl: boolean
+          sort: number
+          updated_at: string
+        }[]
+      }
       admin_list_roles: {
         Args: never
         Returns: {
@@ -1281,6 +1296,12 @@ export type Database = {
         Args: never
         Returns: {
           permission: string
+        }[]
+      }
+      get_my_translator_languages: {
+        Args: never
+        Returns: {
+          lang_code: string
         }[]
       }
       get_role_hierarchy: { Args: { p_role_id: string }; Returns: string[] }

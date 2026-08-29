@@ -133,25 +133,44 @@ echo "Self-test OK: definer-without-revoke sample correctly flagged:"
 printf '%s\n' "$definer_out"
 rm -f "$DEFINER_BAD_SAMPLE"
 
-# --- Self-marking law (U1f-3): every migration ends with its own mark ---
+# --- Self-marking law (U1f-3, re-based by INC-094) ---
 # The SQL editor (how ethio-staging is applied) writes no tool ledger, so the
 # mark IS the ledger there: each migration at or after $MARK_GUARD_FLOOR must
-# contain `INSERT INTO public.migration_marks` carrying its OWN version string.
+# contain `INSERT INTO public.migration_marks` carrying a 14-digit version.
+#
+# INC-094 — DECLARED-MARK LAW. The mark can NOT be required to equal the file's
+# own filename stamp: the migration tool assigns that stamp when it WRITES the
+# file, after the SQL was authored, and tool-managed migration files cannot be
+# edited afterwards. Requiring the filename stamp made every landing red and the
+# "fix" recursive (each corrective migration inherits the same problem).
+# The law is therefore: a migration DECLARES a 14-digit mark, at or after its own
+# filename stamp (so marks stay monotonic and no file recycles an older stamp),
+# and the tooling reads the DECLARED literal out of the file — see
+# scripts/e2e-migration-preflight.ts, which compares declared marks against the
+# ledger instead of assuming filename equality.
 MARK_GUARD_FLOOR="20260817054246"
 
 check_mark_file() {
-  # $1 = file, $2 = version. Returns 0 = OK, 1 = violation.
+  # $1 = file, $2 = filename stamp. Returns 0 = OK, 1 = violation.
   local file="$1" version="$2"
   if ! grep -qiE "insert[[:space:]]+into[[:space:]]+public\.migration_marks" "$file"; then
     echo "  - $file (no INSERT INTO public.migration_marks)"
     return 1
   fi
-  if ! grep -qE "migration_marks[^;]*'${version}'" "$file"; then
-    echo "  - $file (mark does not carry its own version '${version}')"
+  local best
+  best=$(grep -oE "migration_marks[^;]*'[0-9]{14}'" "$file" \
+    | grep -oE "'[0-9]{14}'" | tr -d "'" | sort | tail -1)
+  if [ -z "$best" ]; then
+    echo "  - $file (mark carries no 14-digit version literal)"
+    return 1
+  fi
+  if [[ "$best" < "$version" ]]; then
+    echo "  - $file (declared mark '$best' precedes its filename stamp '$version')"
     return 1
   fi
   return 0
 }
+
 
 MARK_BAD_FIXTURE="$FIXTURE_DIR/bad-unmarked-migration-example.sql"
 if [ ! -f "$MARK_BAD_FIXTURE" ]; then

@@ -49,6 +49,21 @@ function versionOf(filename: string): string {
   return filename.split("_")[0] ?? "";
 }
 
+/**
+ * INC-094 — DECLARED-MARK LAW. A migration cannot contain its own filename
+ * stamp: the tool assigns that stamp when it writes the file, after the SQL is
+ * authored, and the file cannot be edited afterwards. Parity is therefore keyed
+ * on the mark the file DECLARES — the newest 14-digit literal in one of its
+ * `INSERT INTO public.migration_marks` statements — falling back to the
+ * filename stamp for the older files where the two coincide.
+ */
+export function declaredMark(filename: string): string {
+  const sql = readFileSync(join(MIGRATIONS_DIR, filename), "utf8");
+  const marks = [...sql.matchAll(/migration_marks[^;]*?'(\d{14})'/gi)].map((m) => m[1]!);
+  if (marks.length === 0) return versionOf(filename);
+  return marks.sort()[marks.length - 1]!;
+}
+
 function serviceClient(): { client: SupabaseClient; url: string } {
   const url = process.env["E2E_SUPABASE_URL"] ?? "";
   const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "";
@@ -156,12 +171,15 @@ export default async function migrationPreflight(dry = false): Promise<void> {
     mechanism = "public.e2e_migration_ledger() definer RPC (public.migration_marks)";
 
     const appliedSet = new Set(applied);
-    missing = local.filter((f) => !appliedSet.has(versionOf(f)));
+    // INC-094: compare on the DECLARED mark, never the filename stamp.
+    missing = local.filter((f) => !appliedSet.has(declaredMark(f)));
     if (dry) {
       console.log(`[e2e:preflight] mechanism: ${mechanism}`);
       console.log(`[e2e:preflight] applied on staging (${applied.length}): ${applied.join(", ")}`);
       console.log(
-        `[e2e:preflight] local files (${local.length}): ${local.map(versionOf).join(", ")}`,
+        `[e2e:preflight] local files (${local.length}): ${local
+          .map((f) => `${versionOf(f)}→${declaredMark(f)}`)
+          .join(", ")}`,
       );
     }
   } else {
