@@ -126,7 +126,10 @@ export function ChartFrame({
   }
 
   return (
-    <PageCard testid={testid} className={cn("min-w-0", sparkline ? "space-y-2" : "space-y-3", className)}>
+    <PageCard
+      testid={testid}
+      className={cn("min-w-0", sparkline ? "space-y-2" : "space-y-3", className)}
+    >
       <div className="min-w-0 space-y-1">
         <h3
           className={cn(
