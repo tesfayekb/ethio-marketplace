@@ -1,14 +1,18 @@
 name: CI
 
+# DEC-020 — CI lives on dev. main receives pushes ONLY from the `promote`
+# job below (fast-forward on full green), so a push-triggered run on main
+# would be a no-op echo of dev's run at the identical SHA. main is the
+# certified-green record; red never lands there.
 on:
   push:
-    branches: [main]
+    branches: [dev]
     paths-ignore:
       - "docs/tracking/ci-status.md"
       - "docs/tracking/nightly-status.md"
       - "docs/tracking/e2e-last-failure.md"
   pull_request:
-    branches: [main]
+    branches: [dev]
 
 # Lovable's platform pushes several commits per task, so an in-flight run for an
 # older HEAD is obsolete the moment a newer one starts. Cancelling it keeps the
@@ -605,14 +609,16 @@ jobs:
           cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
           # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
           # the file is derived state owned by this run, so rewriting it on top
-          # of whatever main now holds can never conflict. A push failure is a
+          # of whatever dev now holds can never conflict. A push failure is a
           # ::warning, never a red — bookkeeping must not redden Actions.
+          # DEC-020: tracking commits land on DEV (main advances only via the
+          # promote job); the `[skip ci]` tag keeps them from re-triggering CI.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           pushed=0
           for attempt in 1 2 3; do
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch origin dev
+            git reset --hard origin/dev
             mkdir -p docs/tracking
             cp /tmp/e2e-last-failure.md docs/tracking/e2e-last-failure.md
             git add docs/tracking/e2e-last-failure.md
@@ -622,7 +628,7 @@ jobs:
               break
             fi
             git commit -m "ci: e2e failure report [skip ci]"
-            if git push origin HEAD:main; then
+            if git push origin HEAD:dev; then
               pushed=1
               break
             fi
