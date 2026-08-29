@@ -60,21 +60,26 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     /**
-     * D3 runtime flip (U4b): the DB bundle is the runtime truth once it
-     * exists, and the compiled catalog is the seed AND the offline fallback.
-     * The compiled catalog is applied FIRST, then the approved DB rows are
-     * merged over it, so a partial bundle can never blank a screen.
+     * D3 runtime flip (U4b), corrected by INC-095: the DB bundle is an OVERLAY
+     * on the compiled ACTIVE catalog, never a replacement. The chain is
+     * additive and applied lowest-first:
+     *
+     *   compiled.en  ▸  compiled[lang]  ▸  DB[lang]
+     *
+     * so an empty, partial or failing bundle is INVISIBLE: the compiled active
+     * catalog still answers every key, and compiled English is the last resort.
      */
     const applyWithBundle = (compiled: Messages) => {
       if (cancelled) return;
-      setMessages(compiled);
+      const base = { ...en, ...compiled } as Messages;
+      setMessages(base);
       void fetchUiBundle(language).then(({ bundle, reason }) => {
         if (cancelled) return;
         if (!bundle) {
           console.warn(`[i18n] bundle fallback for ${language}: ${reason}`);
           return;
         }
-        setMessages({ ...compiled, ...bundle } as Messages);
+        setMessages({ ...base, ...bundle } as Messages);
       });
     };
 
@@ -89,6 +94,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [language]);
+
 
   useEffect(() => {
     document.documentElement.lang = language;
