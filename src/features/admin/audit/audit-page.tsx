@@ -92,7 +92,7 @@ export function AdminAuditPage() {
 
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
-  const expandedRow = rows.find((row) => row.id === expanded) ?? null;
+  
 
   const timeFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
     dateStyle: "short",
