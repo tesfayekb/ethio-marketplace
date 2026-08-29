@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
+import { processId } from "./global-setup";
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -35,6 +36,13 @@ import { adminClient, createUser } from "./helpers/users";
  *   row (mobile) `${rowTestId(row)}-card`, row (desktop) `${rowTestId(row)}`.
  * The mobile ROW carries the `-card` suffix — the bare rowTestId exists on the
  * desktop `<tr>` ONLY, which is why the mobile row locators found nothing.
+ *
+ * INC-095(d) — the EXPANSION innards (`string-editor-*`, `string-input-*`,
+ * `string-save-*`, …) exist in BOTH twins too: the desktop expansion is a
+ * full-width `<tr>` inside the table, the mobile one renders inside the card.
+ * A bare `.first()` therefore resolves the HIDDEN twin (TR-4's ×14 hidden,
+ * TR-8's strict duplicate). Every expansion locator routes through
+ * `expansionOf` / `surfaceControl`, never inline.
  */
 function translationsSurface(page: Page): Locator {
   return isMobile(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
@@ -55,6 +63,56 @@ function stringRow(page: Page, keySlug: string): Locator {
 
 function surfaceControl(page: Page, testid: string): Locator {
   return translationsSurface(page).getByTestId(testid);
+}
+
+/** The VISIBLE twin's inline editor for one string row (INC-095d). */
+function expansionOf(page: Page, keySlug: string): Locator {
+  return surfaceControl(page, `string-editor-${keySlug}`);
+}
+
+/** A control inside the VISIBLE twin's inline editor. */
+function expansionControl(page: Page, keySlug: string, prefix: string): Locator {
+  return expansionOf(page, keySlug).getByTestId(`${prefix}-${keySlug}`);
+}
+
+/** The first Amharic key the strings list shows, as a testid-safe slug. */
+function slug(key: string) {
+  return key.replace(/[^a-zA-Z0-9]+/g, "-");
+}
+
+/**
+ * SCRATCH-KEY LAW (INC-095e). The catalog is SHARED RUNTIME: a spec that
+ * edits, flags, approves or clears a real chrome key mutates what every other
+ * spec — and every operator — then renders. Specs therefore mutate ONLY a
+ * namespaced key of their own, `e2e.scratch.<PROCESS_ID>-<worker>`, seeded
+ * before the assertion and reaped after it. Real catalog keys are READ-ONLY to
+ * specs.
+ *
+ * Seeding is a service-role INSERT rather than `admin_sync_ui_keys` because
+ * that RPC is `has_permission(auth.uid(), …)` + step-up gated and the
+ * service-role connection has no `auth.uid()`; the rows written here are the
+ * exact shape the RPC writes (base `approved`, target `untranslated`).
+ */
+function scratchKey(): string {
+  const worker = process.env["TEST_WORKER_INDEX"] ?? String(process.pid);
+  return `e2e.scratch.${processId()}-${worker}`;
+}
+
+async function seedScratchKey(key: string, sourceValue: string) {
+  const supabase = adminClient();
+  const rows = [
+    { key, lang_code: "en", value: sourceValue, status: "approved", machine: false },
+    { key, lang_code: "am", value: null, status: "untranslated", machine: false },
+  ];
+  const { error } = await supabase
+    .from("ui_translations")
+    .upsert(rows, { onConflict: "key,lang_code" });
+  if (error) throw new Error(`[e2e:u4b] seeding ${key} failed: ${error.message}`);
+}
+
+async function reapScratchKey(key: string) {
+  const { error } = await adminClient().from("ui_translations").delete().eq("key", key);
+  if (error) throw new Error(`[e2e:u4b] reaping ${key} failed: ${error.message}`);
 }
 
 async function grantRole(userId: string, roleName: string) {
@@ -80,11 +138,6 @@ async function signInAsSuperAdmin(page: Page) {
   await waitForHydration(page);
   const secret = await enrollAndStepUp(page);
   return { user, secret };
-}
-
-/** The first Amharic key the strings list shows, as a testid-safe slug. */
-function slug(key: string) {
-  return key.replace(/[^a-zA-Z0-9]+/g, "-");
 }
 
 test.describe("U4b translations console", () => {
@@ -116,31 +169,39 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-3 the strings page lists keys with source and status", async ({ page }) => {
-    await signInAsSuperAdmin(page);
-    await gotoReady(page, "/admin/translations/am");
-    await expect(page.getByTestId("admin-translations-strings")).toBeVisible();
-    await expect(page.getByTestId("strings-coverage")).toBeVisible();
-    await expect(
-      translationsSurface(page)
-        .getByTestId(/^string-row-/)
-        .first(),
-    ).toBeVisible({
-      timeout: 20000,
-    });
+    const key = scratchKey();
+    await seedScratchKey(key, "Scratch source");
+    try {
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am");
+      await expect(page.getByTestId("admin-translations-strings")).toBeVisible();
+      await expect(page.getByTestId("strings-coverage")).toBeVisible();
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, slug(key))).toBeVisible({ timeout: 20000 });
+      await expect(surfaceControl(page, `string-status-${slug(key)}`)).toBeVisible();
+    } finally {
+      await reapScratchKey(key);
+    }
   });
 
   test("TR-4 scope: a translator outside the language is refused by the SERVER", async ({
     page,
   }) => {
-    const { secret } = await signInAsSuperAdmin(page);
-    await gotoReady(page, "/admin/translations/am");
-    const first = translationsSurface(page)
-      .getByTestId(/^string-expand-/)
-      .first();
-    await first.click();
-    const editor = page.getByTestId(/^string-editor-/).first();
-    await expect(editor).toBeVisible();
-    await stepUpIfPrompted(page, secret);
+    const key = scratchKey();
+    await seedScratchKey(key, "Scratch source");
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am");
+      const id = slug(key);
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `string-expand-${id}`).click();
+      // INC-095d — the editor is scoped to the VISIBLE twin, never `.first()`.
+      await expect(expansionOf(page, id)).toBeVisible();
+      await stepUpIfPrompted(page, secret);
+    } finally {
+      await reapScratchKey(key);
+    }
   });
 
   test("TR-5 filters live in the URL and survive a reload", async ({ page }) => {
@@ -171,29 +232,43 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-8 save then approve moves a string through the status machine", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
-    await gotoReady(page, "/admin/translations/am");
-    const key = "admin.translations.title";
-    const id = slug(key);
-    await page.getByTestId("strings-search").fill(key);
-    await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
-    await surfaceControl(page, `string-expand-${id}`).click();
-    await page.getByTestId(`string-input-${id}`).fill(am["admin.translations.title"]);
-    await page.getByTestId(`string-save-${id}`).click();
-    await stepUpIfPrompted(page, secret);
-    await expect(page.getByTestId(`string-saved-${id}`)).toBeVisible({ timeout: 20000 });
-    await page.getByTestId(`string-approve-${id}`).click();
-    await stepUpIfPrompted(page, secret);
-    await expect(page.getByTestId(`string-saved-${id}`)).toBeVisible({ timeout: 20000 });
+    // SCRATCH-KEY LAW (INC-095e): the mutation targets this spec's OWN key.
+    const key = scratchKey();
+    await seedScratchKey(key, "Scratch source");
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am");
+      const id = slug(key);
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `string-expand-${id}`).click();
+      await expansionControl(page, id, "string-input").fill("የሙከራ ምንጭ");
+      await expansionControl(page, id, "string-save").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 20000 });
+      await expansionControl(page, id, "string-approve").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 20000 });
+    } finally {
+      await reapScratchKey(key);
+    }
   });
 
   test("TR-9 the Amharic runtime still renders after the DB bundle merge", async ({ page }) => {
     await signInAsSuperAdmin(page);
     await gotoReady(page, "/admin/translations");
+    // INC-084c seventh — anchored to the censused section container inside
+    // <main>, never a bare getByText().first() (the rail's hidden nav twin
+    // carries the same label).
+    const section = page.locator("main").getByTestId("admin-section-translations");
     await switchLanguage(page, "am");
-    await expect(page.getByText(am["admin.translations.title"]).first()).toBeVisible();
+    await expect(
+      section.getByRole("heading", { name: am["admin.translations.title"] }),
+    ).toBeVisible({ timeout: 20000 });
     await switchLanguage(page, "en");
-    await expect(page.getByText(en["admin.translations.title"]).first()).toBeVisible();
+    await expect(
+      section.getByRole("heading", { name: en["admin.translations.title"] }),
+    ).toBeVisible({ timeout: 20000 });
   });
 
   test("TR-10 translator scope card is manage-gated on the user detail page", async ({ page }) => {
