@@ -200,3 +200,4 @@
 - 2026-08-29 — fix(i18n): matrix vocabulary for the translations registration (coverage guard catch)
 - 2026-08-29 — feat(i18n): U4b read seams — `admin_list_languages()` (definer, translations:view) exposes the full roster incl. admin-only languages the RLS policy hides; `get_my_translator_languages()` (auth-callable self-read) makes the strings page honest about scope; proofs P1-P4
 - 2026-08-29 — fix(ci): INC-094 declared-mark law — migration marks are read from the file, not assumed equal to the tool-assigned filename stamp; ledger reconciled
+- 2026-08-29 — feat(i18n): U4b translations console — languages roster (coverage, admin/public switches, key sync, add-language), per-language strings editor with URL-derived filters and provenance, manage-gated translator scope card on user detail, D3 runtime flip (approved DB bundle merged over the compiled catalog with a logged fallback), TR-1..10 (Tier A)

@@ -31,9 +31,7 @@ import { adminClient, createUser } from "./helpers/users";
  * resolves the hidden twin and strict mode (or a not-found) follows.
  */
 function translationsSurface(page: Page): Locator {
-  return isMobile(page)
-    ? page.getByTestId("data-table-cards")
-    : page.getByRole("table");
+  return isMobile(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
 }
 
 function langRow(page: Page, code: string): Locator {
@@ -111,7 +109,11 @@ test.describe("U4b translations console", () => {
     await gotoReady(page, "/admin/translations/am");
     await expect(page.getByTestId("admin-translations-strings")).toBeVisible();
     await expect(page.getByTestId("strings-coverage")).toBeVisible();
-    await expect(translationsSurface(page).getByTestId(/^string-row-/).first()).toBeVisible({
+    await expect(
+      translationsSurface(page)
+        .getByTestId(/^string-row-/)
+        .first(),
+    ).toBeVisible({
       timeout: 20000,
     });
   });
@@ -121,7 +123,9 @@ test.describe("U4b translations console", () => {
   }) => {
     const { secret } = await signInAsSuperAdmin(page);
     await gotoReady(page, "/admin/translations/am");
-    const first = translationsSurface(page).getByTestId(/^string-expand-/).first();
+    const first = translationsSurface(page)
+      .getByTestId(/^string-expand-/)
+      .first();
     await first.click();
     const editor = page.getByTestId(/^string-editor-/).first();
     await expect(editor).toBeVisible();

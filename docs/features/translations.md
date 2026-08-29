@@ -149,3 +149,50 @@ Proofs (in-migration, dynamic principals, scratch rows cleaned up):
 - **P3** self-read correctness — the caller gets exactly their own codes and
   never another user's.
 - **P4** the self-read is per-principal, not global.
+
+## The console (U4b, 2026-08-29)
+
+| Surface                        | File                                                  | Gate                                        |
+| ------------------------------ | ----------------------------------------------------- | ------------------------------------------- |
+| `/admin/translations`          | `src/features/admin/translations/languages-page.tsx`  | `translations:view`; controls need `manage` |
+| `/admin/translations/$lang`    | `src/features/admin/translations/strings-page.tsx`    | `translations:view`; save/approve per verb  |
+| Translator scope (user detail) | `src/features/admin/translations/translator-card.tsx` | `translations:manage`                       |
+| RPC seam / hooks               | `translations-service.ts`, `use-translations.ts`      | —                                           |
+
+Routes: `src/routes/admin.translations.tsx` and
+`src/routes/admin.translations_.$lang.tsx` (flat detail nesting; `/admin` owns
+the permission gate and `AdminShellProvider`). The section is registered once
+in `src/features/admin/sections.ts`, so nav, breadcrumbs, the landing grid and
+the deep-link guard all derive from it.
+
+### Laws honoured
+
+- **F3** — every control is convenience only; each definer RPC re-checks
+  `has_permission` → `require_step_up_if_needed` → `translation_scope_ok`.
+  Mutations run inside `StepUpGate`.
+- **F4** — refusals surface: a translated message plus the server's own text
+  (`serverMessage`), never a silent no-op.
+- **INC-073** — the strings list's `status`, `flagged` and `q` filters live in
+  the URL (`validateSearch` is the single parse point), so a filtered view is
+  shareable.
+- **INC-084c** — `e2e/admin-translations.spec.ts` routes every row locator
+  through one `translationsSurface(page)` twin helper.
+- **C5/C1** — logical properties only; the roster and the strings list use the
+  responsive `DataTable`, editor opens inline via `expandedRow`.
+
+### D3 runtime flip
+
+`src/i18n/bundle.ts` reads `get_ui_bundle(lang)`; `I18nProvider` applies the
+compiled catalog FIRST and merges the approved DB rows over it. An empty or
+failing bundle logs one line — `[i18n] bundle fallback for <lang>: <reason>` —
+and keeps the compiled catalog, so a bundle can never blank the UI.
+
+**Honest limitation (SSR):** the active language is still restored from
+`localStorage` after hydration and the root route has no server-side bundle
+loader, so the server renders the compiled English catalog and the DB bundle is
+merged client-side. Public-page SSR of a non-English bundle is a separate
+change (root loader + language in the URL or a cookie) and is NOT in U4b.
+
+**Honest limitation (translator card):** U4a exposes a SELF read only, so the
+card cannot display another user's current assignment. It is a REPLACE control
+and its copy says so.
