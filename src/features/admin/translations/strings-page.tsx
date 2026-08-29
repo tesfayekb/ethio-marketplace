@@ -35,7 +35,9 @@ import {
 
 const PAGE_SIZE = 25;
 
-type MutationAction = () => Promise<void>;
+interface MutationAction {
+  (): Promise<void>;
+}
 
 const STATUS_CHIPS = [
   { value: "all", labelKey: "admin.translations.filter.all" },
