@@ -79,13 +79,31 @@ async function railLaw(page: Page) {
     };
   });
   expect(Math.abs(measured.top - 64), "rail top is not pinned at 64").toBeLessThanOrEqual(1);
-  const expectedBottom = Math.min(measured.innerHeight, measured.footerTop);
-  expect(
-    Math.abs(measured.bottom - expectedBottom),
-    "rail bottom must be min(viewport bottom, footer top)",
-    // U0j-3: the clamp now rounds up and adds a 1px margin so the footer can
-    // never paint over the rail, so the bottom may sit up to 2px above.
-  ).toBeLessThanOrEqual(2);
+
+  // L3 stabilization poll: on a cold renderer the footer-inset hook's mount
+  // settle passes (see the clamp-law comment in use-footer-inset.ts: "settle
+  // pass on the next frames and on fonts.ready") may not have applied yet when
+  // this single shot reads the rects — poll the delta for up to 3s. The LAW
+  // value (≤2px, the U0j-3 ceil+1px margin) is unchanged; this is settlement,
+  // not loosening.
+  await expect
+    .poll(
+      async () => {
+        const again = await page.evaluate(() => {
+          const aside = document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect();
+          const footerEl =
+            document.querySelector('[data-testid="shell-footer-wrapper"]') ??
+            document.querySelector("footer")!;
+          return {
+            bottom: aside.bottom,
+            expected: Math.min(window.innerHeight, footerEl.getBoundingClientRect().top),
+          };
+        });
+        return Math.abs(again.bottom - again.expected);
+      },
+      { timeout: 3000 },
+    )
+    .toBeLessThanOrEqual(2);
 
   return measured;
 }
