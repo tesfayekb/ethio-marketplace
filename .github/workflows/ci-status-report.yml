@@ -11,10 +11,14 @@ on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
+  # Operator-only entry point for the sync-main repair job below. The report
+  # job is gated to workflow_run so a dispatch can never write a status file.
+  workflow_dispatch:
 
 jobs:
   report:
     name: Write CI status to repo
+    if: github.event_name == 'workflow_run'
     runs-on: ubuntu-latest
     permissions:
       contents: write
