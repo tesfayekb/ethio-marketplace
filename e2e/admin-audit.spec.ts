@@ -93,6 +93,27 @@ test.describe("U3 audit & security", () => {
     await grantRole(user.id, "moderator");
     await gotoReady(page, "/admin/audit");
     await expect(page.getByTestId("admin-audit")).toBeVisible();
+
+    // INC-092: the detail region must render ADJACENT to the row it describes,
+    // never at page bottom. The assertion is a DOM RELATIONSHIP (sibling row at
+    // md+, same card at 360), not a position on the page.
+    const trigger = page.locator('[data-testid^="audit-expand-"]').first();
+    await expect(trigger).toBeVisible();
+    const rowId = ((await trigger.getAttribute("data-testid")) ?? "").replace("audit-expand-", "");
+    await trigger.click();
+    const detail = page.locator(`[data-testid="audit-row-${rowId}-expanded"]`).first();
+    await expect(detail).toBeVisible();
+    const adjacent = await detail.evaluate((element, id) => {
+      const row = element.closest("tr");
+      if (row) {
+        const previous = row.previousElementSibling as HTMLElement | null;
+        return previous?.dataset["testid"] === `audit-row-${id}`;
+      }
+      const card = element.closest("li");
+      return Boolean(card?.querySelector(`[data-testid="audit-row-${id}-card"]`));
+    }, rowId);
+    expect(adjacent).toBe(true);
+
     await page.getByTestId("audit-search").fill("no-such-actor-value");
     await expect(page.getByTestId("data-table-empty")).toBeVisible({ timeout: 20000 });
     await expect(page.getByText(en["admin.audit.empty"])).toBeVisible();
