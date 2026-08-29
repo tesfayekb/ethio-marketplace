@@ -545,7 +545,8 @@ export const en = {
   "admin.translations.switch.public": "Published to visitors",
   "admin.translations.open": "Open strings",
   "admin.translations.add.title": "Add a language",
-  "admin.translations.add.description": "New languages start staff-only; publication is coverage-gated.",
+  "admin.translations.add.description":
+    "New languages start staff-only; publication is coverage-gated.",
   "admin.translations.add.code": "Language code",
   "admin.translations.add.codePlaceholder": "so",
   "admin.translations.add.nameEn": "English name",
@@ -554,14 +555,18 @@ export const en = {
   "admin.translations.add.submit": "Add language",
   "admin.translations.add.added": "Language saved.",
   "admin.translations.sync.title": "Sync keys",
-  "admin.translations.sync.description": "Imports the compiled catalog: English rows are approved, every staff language gains the missing keys as untranslated.",
+  "admin.translations.sync.description":
+    "Imports the compiled catalog: English rows are approved, every staff language gains the missing keys as untranslated.",
   "admin.translations.sync.action": "Sync keys",
   "admin.translations.sync.note": "The first sync seeds the shipped Amharic values as approved.",
-  "admin.translations.sync.done": "{inserted} keys added across {languages} languages, {seeded} Amharic values seeded.",
+  "admin.translations.sync.done":
+    "{inserted} keys added across {languages} languages, {seeded} Amharic values seeded.",
   "admin.translations.error.stepUp": "This action needs two-factor verification.",
   "admin.translations.error.scope": "You are not assigned to this language.",
-  "admin.translations.error.coverage": "This language cannot be published until every key is approved.",
-  "admin.translations.error.baseLocked": "English is the source language and changes only through a key sync.",
+  "admin.translations.error.coverage":
+    "This language cannot be published until every key is approved.",
+  "admin.translations.error.baseLocked":
+    "English is the source language and changes only through a key sync.",
   "admin.translations.error.permission": "You don't have permission to do that.",
   "admin.translations.error.codeInvalid": "Enter a valid language code (2–8 letters).",
   "admin.translations.error.generic": "That change could not be saved.",
@@ -599,9 +604,11 @@ export const en = {
   "admin.translations.editor.approve": "Approve",
   "admin.translations.editor.clear": "Clear",
   "admin.translations.editor.flagNote": "Flagged: {note}",
-  "admin.translations.editor.notAssigned": "You are not assigned to this language — the server will refuse changes.",
+  "admin.translations.editor.notAssigned":
+    "You are not assigned to this language — the server will refuse changes.",
   "admin.translations.translator.title": "Translator languages",
-  "admin.translations.translator.description": "The languages this person may edit. Managers are exempt from this list.",
+  "admin.translations.translator.description":
+    "The languages this person may edit. Managers are exempt from this list.",
   "admin.translations.translator.none": "No languages assigned.",
   "admin.translations.translator.save": "Save assignment",
   "admin.translations.translator.saved": "Assignment saved.",

@@ -543,10 +543,12 @@ export const am: Messages = {
   "admin.translations.add.submit": "ቋንቋ ጨምር",
   "admin.translations.add.added": "ቋንቋ ተቀምጧል።",
   "admin.translations.sync.title": "ቁልፎችን አመሳስል",
-  "admin.translations.sync.description": "የተጠናቀረውን ካታሎግ ያስገባል፦ የእንግሊዝኛ መስመሮች ይጸድቃሉ፣ እያንዳንዱ የሠራተኛ ቋንቋ የጎደሉትን ቁልፎች እንደ ያልተተረጎሙ ያገኛል።",
+  "admin.translations.sync.description":
+    "የተጠናቀረውን ካታሎግ ያስገባል፦ የእንግሊዝኛ መስመሮች ይጸድቃሉ፣ እያንዳንዱ የሠራተኛ ቋንቋ የጎደሉትን ቁልፎች እንደ ያልተተረጎሙ ያገኛል።",
   "admin.translations.sync.action": "ቁልፎችን አመሳስል",
   "admin.translations.sync.note": "የመጀመሪያው ማመሳሰል የተላኩትን የአማርኛ እሴቶች እንደ ጸድቀዋል ያስቀምጣል።",
-  "admin.translations.sync.done": "{inserted} ቁልፎች በ{languages} ቋንቋዎች ተጨመሩ፣ {seeded} የአማርኛ እሴቶች ተዘርተዋል።",
+  "admin.translations.sync.done":
+    "{inserted} ቁልፎች በ{languages} ቋንቋዎች ተጨመሩ፣ {seeded} የአማርኛ እሴቶች ተዘርተዋል።",
   "admin.translations.error.stepUp": "ይህ እርምጃ ባለሁለት-ደረጃ ማረጋገጫ ይፈልጋል።",
   "admin.translations.error.scope": "ለዚህ ቋንቋ አልተመደቡም።",
   "admin.translations.error.coverage": "እያንዳንዱ ቁልፍ እስኪጸድቅ ድረስ ይህ ቋንቋ ሊታተም አይችልም።",
@@ -590,7 +592,8 @@ export const am: Messages = {
   "admin.translations.editor.flagNote": "ተመልክቷል፦ {note}",
   "admin.translations.editor.notAssigned": "ለዚህ ቋንቋ አልተመደቡም — ሰርቨሩ ለውጦችን ይከለክላል።",
   "admin.translations.translator.title": "የተርጓሚ ቋንቋዎች",
-  "admin.translations.translator.description": "ይህ ሰው ሊያስተካክላቸው የሚችላቸው ቋንቋዎች። አስተዳዳሪዎች ከዚህ ዝርዝር ነፃ ናቸው።",
+  "admin.translations.translator.description":
+    "ይህ ሰው ሊያስተካክላቸው የሚችላቸው ቋንቋዎች። አስተዳዳሪዎች ከዚህ ዝርዝር ነፃ ናቸው።",
   "admin.translations.translator.none": "የተመደበ ቋንቋ የለም።",
   "admin.translations.translator.save": "ምድብ አስቀምጥ",
   "admin.translations.translator.saved": "ምድብ ተቀምጧል።",
