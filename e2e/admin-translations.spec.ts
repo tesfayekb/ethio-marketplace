@@ -351,7 +351,7 @@ test.describe("U4b translations console", () => {
     // skip the bulk operation and go straight to the merge assertion.
     await test.step("sync", async () => {
       if ((await enTotal()) === 0) {
-        const { secret } = await enrollAndStepUp(page);
+        const secret = await enrollAndStepUp(page);
         await page.getByTestId("translations-sync-run").click();
         await stepUpIfPrompted(page, secret);
         await expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 30000 });
