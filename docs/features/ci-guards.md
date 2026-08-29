@@ -505,3 +505,24 @@ Known mechanics:
 - Nightly follows the repository DEFAULT branch — the operator flips the
   default to dev after the first green promote, or nightly keeps testing
   stale main.
+- EVERY committing workflow targets dev. `ci-status-report.yml` checks out dev
+  and pushes `HEAD:dev`; `nightly-e2e.yml`'s heartbeat fetches, resets and
+  pushes dev; ci.yml's e2e report job already did. No workflow but `promote`
+  writes to main.
+
+### sync-main — the only sanctioned non-fast-forward path
+
+`ci-status-report.yml` carries a second job, `sync-main — DEC-020 divergence
+repair`, gated to `workflow_dispatch` (the `report` job is gated to
+`workflow_run`, so a dispatch never writes a status file). It checks out dev,
+echoes both directions of the divergence — commits on main that will be
+DISCARDED and commits on dev that will be ADOPTED — and then force-pushes dev
+onto main with `--force-with-lease` pinned to the SHA it just read.
+
+It is operator-triggered ONLY, and it is used in exactly one situation: the
+promote guard failed with `MAIN DIVERGED`, whose message now appends "run the
+sync-main dispatch after confirming main's extra commits are tracking-only".
+The operator confirms from the guard output that main's extra commits are
+tracking commits (`ci-status.md`, `e2e-last-failure.md`, `[skip ci]`) and
+nothing else, then dispatches. Any other divergence — real work stranded on
+main — is a manual reconcile, never this button.
