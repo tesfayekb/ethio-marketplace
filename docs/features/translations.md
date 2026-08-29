@@ -111,3 +111,41 @@ REQ-004 (translation dashboard) is this schema's product surface: U4b builds
 the console on `admin_list_translations` / `admin_translation_stats` and the
 mutation RPCs; nothing in the runtime changes shape when it lands, because
 components only ever call `t(key)`.
+
+## Console read seams (U4b prerequisite, 2026-08-29)
+
+U4a registered the mutation RPCs and the restrictive `languages` policy
+(`USING (enabled_public OR is_base)`) but no matching READ, so the browser could
+see only `en` and `am` — the console had no way to render the roster, the
+`enabled_admin` / `enabled_public` switches, or the coverage-gate state for
+`om` / `ti`. Resolved with two definer reads (never a widened table policy,
+which would leak the roster row shape to the client and mix policy styles).
+
+Migration: `supabase/migrations/20260829060103_e9f7988f-e584-4944-9c5e-f3e7fa32b07d.sql`
+
+| Function                        | Caller              | Returns                                                                                                                                              |
+| ------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin_list_languages()`        | `translations:view` | Every language row: `code, name_en, name_native, rtl, is_base, enabled_admin, enabled_public, sort, created_at, updated_at`, ordered by `sort, code` |
+| `get_my_translator_languages()` | any signed-in user  | The caller's OWN assigned `lang_code` set, ordered                                                                                                   |
+
+Neither requires step-up: reads never do (DEC-017 registered `view` as the only
+non-step-up verb), and the self-read discloses only what the caller may always
+know. Both are `REVOKE`d from `anon`.
+
+`get_my_translator_languages()` upgrades the strings page from
+attempt-and-toast to informed controls: the UI can state "not assigned to this
+language" honestly instead of firing a write the server will refuse. Law F3 is
+unchanged — every mutation still re-checks `has_permission` →
+`require_step_up_if_needed` → `translation_scope_ok` server-side. Note the
+manage exemption: `translations:manage` holders are scope-EXEMPT, and this list
+returns their explicit rows only, so the console must consult the PERMISSION,
+not this list, before concluding a manage holder is unassigned.
+
+Proofs (in-migration, dynamic principals, scratch rows cleaned up):
+
+- **P1** deny-case — a permissionless principal is refused `admin_list_languages`.
+- **P2** a superadmin sees the WHOLE roster, `om` included with
+  `enabled_admin AND NOT enabled_public`, row count equal to `languages`.
+- **P3** self-read correctness — the caller gets exactly their own codes and
+  never another user's.
+- **P4** the self-read is per-principal, not global.
