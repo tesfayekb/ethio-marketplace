@@ -17,12 +17,26 @@ import { PageCard } from "./page-card";
 
 export type ChartAspect = "16/9" | "4/3" | "square";
 
+/**
+ * U3b (INC-093) — BOUNDED VARIANT. `variant="sparkline"` pins the plot to a
+ * fixed, small height (SPARKLINE_PLOT_HEIGHT) instead of deriving it from the
+ * aspect ratio, so a trend glance can never consume the viewport. Total card
+ * height stays <= 160px including the optional `footer` label strip. The
+ * default variant is unchanged for every existing call site.
+ */
+export type ChartVariant = "default" | "sparkline";
+
 const RATIO: Record<ChartAspect, number> = { "16/9": 9 / 16, "4/3": 3 / 4, square: 1 };
+
+const SPARKLINE_PLOT_HEIGHT = 64;
 
 export interface ChartFrameProps {
   title: string;
   description?: string;
   aspect?: ChartAspect;
+  variant?: ChartVariant;
+  /** Sparse axis labels rendered under the plot (sparkline label strip). */
+  footer?: ReactNode;
   legend?: "top" | "bottom";
   legendContent?: ReactNode;
   children: (size: { width: number; height: number }) => ReactNode;
@@ -37,6 +51,8 @@ export function ChartFrame({
   title,
   description,
   aspect = "16/9",
+  variant = "default",
+  footer,
   legend = "bottom",
   legendContent,
   children,
@@ -62,7 +78,10 @@ export function ChartFrame({
     return () => observer.disconnect();
   }, []);
 
-  const height = Math.max(120, Math.round(width * RATIO[aspect]));
+  const sparkline = variant === "sparkline";
+  const height = sparkline
+    ? SPARKLINE_PLOT_HEIGHT
+    : Math.max(120, Math.round(width * RATIO[aspect]));
 
   const legendBlock = legendContent ? (
     <div
@@ -78,7 +97,7 @@ export function ChartFrame({
     body = (
       <div data-testid={`${testid}-loading`} className="min-w-0">
         <span className="sr-only">{t("prim.state.loading")}</span>
-        <Skeleton className="h-40 w-full" />
+        <Skeleton className={cn("w-full", sparkline ? "h-16" : "h-40")} />
       </div>
     );
   } else if (error) {
@@ -107,15 +126,34 @@ export function ChartFrame({
   }
 
   return (
-    <PageCard testid={testid} className={cn("min-w-0 space-y-3", className)}>
+    <PageCard
+      testid={testid}
+      className={cn("min-w-0", sparkline ? "space-y-2" : "space-y-3", className)}
+    >
       <div className="min-w-0 space-y-1">
-        <h3 className="min-w-0 break-words text-base font-semibold text-foreground">{title}</h3>
+        <h3
+          className={cn(
+            "min-w-0 break-words font-semibold text-foreground",
+            sparkline ? "text-sm" : "text-base",
+          )}
+        >
+          {title}
+        </h3>
         {description ? (
-          <p className="min-w-0 break-words text-sm text-muted-foreground">{description}</p>
+          sparkline ? (
+            <p className="sr-only">{description}</p>
+          ) : (
+            <p className="min-w-0 break-words text-sm text-muted-foreground">{description}</p>
+          )
         ) : null}
       </div>
       {legend === "top" ? legendBlock : null}
       <div className="min-w-0">{body}</div>
+      {footer ? (
+        <div data-testid={`${testid}-footer`} className="min-w-0 text-xs text-muted-foreground">
+          {footer}
+        </div>
+      ) : null}
       {legend === "bottom" ? legendBlock : null}
     </PageCard>
   );

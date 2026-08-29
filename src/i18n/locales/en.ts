@@ -467,6 +467,7 @@ export const en = {
   "admin.audit.stat.topAction": "Top action",
   "admin.audit.chart.title": "Events per day",
   "admin.audit.chart.description": "Audit events recorded on each of the last 14 days.",
+  "admin.audit.chart.bar": "{date}: {count} events",
   "admin.audit.col.time": "Time",
   "admin.audit.col.actor": "Actor",
   "admin.audit.col.action": "Action",

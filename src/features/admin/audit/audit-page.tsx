@@ -20,16 +20,24 @@ const PAGE_SIZE = 25;
 const SELECT_CLASS =
   "h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground";
 
-/** A dependency-free 14-day bar chart drawn inside the measured ChartFrame. */
+/**
+ * U3b (INC-093) — SPARKLINE. A dependency-free 14-day trend drawn inside the
+ * bounded ChartFrame: bars normalized to the window max, a 2px baseline tick
+ * for zero-days (never empty space), and one accessible label per bar. The
+ * stat tiles carry the numbers; this is shape only.
+ */
 function DayBars({
   size,
   days,
+  labelFor,
 }: {
   size: { width: number; height: number };
   days: { day: string; count: number }[];
+  labelFor: (day: string, count: number) => string;
 }) {
   const max = Math.max(1, ...days.map((entry) => entry.count));
-  const gap = 4;
+  const gap = 3;
+  const baseline = 2;
   const barWidth =
     days.length > 0 ? Math.max(2, (size.width - gap * days.length) / days.length) : 0;
   return (
@@ -41,18 +49,21 @@ function DayBars({
       className="max-w-full"
     >
       {days.map((entry, index) => {
-        const barHeight = Math.round((entry.count / max) * (size.height - 8));
+        const scaled = Math.round((entry.count / max) * (size.height - baseline));
+        const barHeight = Math.max(scaled, baseline);
+        const label = labelFor(entry.day, entry.count);
         return (
           <rect
             key={entry.day}
             x={index * (barWidth + gap)}
             y={size.height - barHeight}
             width={barWidth}
-            height={Math.max(barHeight, 1)}
-            rx={2}
-            className="fill-primary"
+            height={barHeight}
+            rx={1}
+            aria-label={label}
+            className={entry.count > 0 ? "fill-primary" : "fill-muted-foreground/40"}
           >
-            <title>{`${entry.day}: ${entry.count}`}</title>
+            <title>{label}</title>
           </rect>
         );
       })}
@@ -97,6 +108,22 @@ export function AdminAuditPage() {
     dateStyle: "short",
     timeStyle: "short",
   });
+
+  const dayFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+  const days = stats.data?.days ?? [];
+  const barLabel = (day: string, count: number) =>
+    t("admin.audit.chart.bar")
+      .replace("{date}", dayFmt.format(new Date(day)))
+      .replace("{count}", String(count));
+  // Sparse axis labels: first, last, and weekly ticks — never one per bar.
+  const dayTicks = days.map((entry, index) =>
+    index === 0 || index === days.length - 1 || index % 7 === 0
+      ? dayFmt.format(new Date(entry.day))
+      : null,
+  );
 
   const resetPage = () => setPage(0);
 
@@ -195,13 +222,26 @@ export function AdminAuditPage() {
 
       <ChartFrame
         testid="audit-chart"
+        variant="sparkline"
         title={t("admin.audit.chart.title")}
         description={t("admin.audit.chart.description")}
         loading={stats.isLoading}
         error={stats.error}
-        empty={(stats.data?.days ?? []).length === 0}
+        empty={days.length === 0}
+        footer={
+          <div data-testid="audit-chart-labels" className="flex min-w-0 justify-between gap-2">
+            {dayTicks
+              .map((label, index) => ({ label, index }))
+              .filter((tick) => tick.label !== null)
+              .map((tick) => (
+                <span key={tick.index} className="truncate tabular-nums">
+                  {tick.label}
+                </span>
+              ))}
+          </div>
+        }
       >
-        {(size) => <DayBars size={size} days={stats.data?.days ?? []} />}
+        {(size) => <DayBars size={size} days={days} labelFor={barLabel} />}
       </ChartFrame>
 
       <DataTable
