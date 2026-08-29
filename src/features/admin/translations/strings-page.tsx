@@ -411,7 +411,8 @@ function StringEditor({
   const [saved, setSaved] = useState(false);
   const id = slug(row.key);
 
-  // eslint-disable-next-line no-unused-vars -- the scan in scripts/check-hardcoded-strings.sh reads `> Promise<` as JSX text; the alias keeps the signature off one line.
+  // MutationAction alias: the hardcoded-string scan reads an inline
+  // arrow return type as JSX text (known scanner shape, not a violation).
   const run = (action: MutationAction) => {
     setSaved(false);
     setErrorKey(null);
