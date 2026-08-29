@@ -2,25 +2,43 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33244043884
 - Commit: `ad2720e1db4e9050a5b2fd34a7a8704f24bc1370`
-- Written (UTC): 2026-08-29T08:49:43.537Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
+- Written (UTC): 2026-08-29T09:56:48.957Z
+- Passed: 309 · Skipped: 63 · Failed: 1
+- Sources without results: none
 
-## Server errors: smoke
+## admin-translations.spec.ts › U4b translations console › TR-9 the Amharic runtime still renders after the DB bundle merge
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+- Source: `shard 1`
+- Project: `mobile-360`
 
-## Client errors: smoke
+```text
+Test timeout of 60000ms exceeded.
+```
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+Context:
 
-## Server errors: email
-
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
-
-## Client errors: email
-
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+```text
+          - listitem [ref=e216]:
+            - generic [ref=e217]: ስለ እኛ
+          - listitem [ref=e218]:
+            - generic [ref=e219]: እንዴት እንደሚሰራ
+      - navigation "እገዛ" [ref=e220]:
+        - heading "እገዛ" [level=2] [ref=e221]
+        - list [ref=e222]:
+          - listitem [ref=e223]:
+            - generic [ref=e224]: ደህንነት
+          - listitem [ref=e225]:
+            - generic [ref=e226]: ያግኙን
+      - navigation "ሕጋዊ" [ref=e227]:
+        - heading "ሕጋዊ" [level=2] [ref=e228]
+        - list [ref=e229]:
+          - listitem [ref=e230]:
+            - generic [ref=e231]: ውሎች
+          - listitem [ref=e232]:
+            - generic [ref=e233]: ግላዊነት
+    - paragraph [ref=e235]: © 2026 ethio.com — መብቱ በሙሉ የተጠበቀ ነው።
+```
+```
 
 ## Server errors: shard 1
 
@@ -29,75 +47,3 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 ## Client errors: shard 1
 
 No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 3
-
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Server errors: shard 4
-
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
