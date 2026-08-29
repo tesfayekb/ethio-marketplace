@@ -91,8 +91,9 @@ jobs:
       # running is distinguishable from one that ran and passed.
       #
       # INC-027: the push used to be a bare checkout->commit->push. A commit landing
-      # on main mid-run rejected it ("fetch first"), the step failed, and the whole
-      # job went red while the file on main stayed stale. Two changes: the status
+      # on the branch mid-run rejected it ("fetch first"), the step failed, and the
+      # whole job went red while the file stayed stale. DEC-020: the heartbeat
+      # now targets dev, never main. Two changes: the status
       # file is REGENERATED after every fetch (it is derived state — the run owns
       # every field, so rewriting is always safe and never conflicts), and a push
       # that still fails after 3 attempts is a warning, not a job failure.
@@ -128,8 +129,8 @@ jobs:
 
           pushed=0
           for attempt in 1 2 3; do
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch origin dev
+            git reset --hard origin/dev
             write_status
             git add docs/tracking/nightly-status.md
             if git diff --cached --quiet; then
@@ -138,7 +139,7 @@ jobs:
               break
             fi
             git commit -m "chore(ci): nightly E2E heartbeat [skip ci]"
-            if git push origin HEAD:main; then
+            if git push origin HEAD:dev; then
               pushed=1
               break
             fi
