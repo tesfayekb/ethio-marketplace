@@ -424,6 +424,18 @@ export function DataTable<T>({
                       </td>
                     ) : null}
                   </tr>
+                  {expansion ? (
+                    <tr data-testid={`${rowTestId(row)}-expanded-row`} className="border-b border-border last:border-0">
+                      <td
+                        colSpan={columns.length + (selection ? 1 : 0) + (rowActions ? 1 : 0)}
+                        data-testid={`${rowTestId(row)}-expanded`}
+                        className="min-w-0 p-3 align-top"
+                      >
+                        {expansion}
+                      </td>
+                    </tr>
+                  ) : null}
+                  </Fragment>
                 );
               })}
             </tbody>
