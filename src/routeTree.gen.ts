@@ -20,6 +20,7 @@ import { Route as CSlugRouteImport } from './routes/c.$slug'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
 import { Route as AdminImagesRouteImport } from './routes/admin.images'
@@ -85,6 +86,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
+  id: '/translations',
+  path: '/translations',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminRolesRoute = AdminRolesRouteImport.update({
   id: '/roles',
   path: '/roles',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/reset': typeof AuthResetRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/admin/images'
     | '/admin/locations'
     | '/admin/roles'
+    | '/admin/translations'
     | '/admin/users'
     | '/auth/callback'
     | '/auth/reset'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/admin/images'
     | '/admin/locations'
     | '/admin/roles'
+    | '/admin/translations'
     | '/admin/users'
     | '/auth/callback'
     | '/auth/reset'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/admin/images'
     | '/admin/locations'
     | '/admin/roles'
+    | '/admin/translations'
     | '/admin/users'
     | '/auth_/callback'
     | '/auth_/reset'
@@ -357,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/translations': {
+      id: '/admin/translations'
+      path: '/translations'
+      fullPath: '/admin/translations'
+      preLoaderRoute: typeof AdminTranslationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/roles': {
       id: '/admin/roles'
       path: '/roles'
@@ -430,6 +449,7 @@ interface AdminRouteChildren {
   AdminImagesRoute: typeof AdminImagesRoute
   AdminLocationsRoute: typeof AdminLocationsRoute
   AdminRolesRoute: typeof AdminRolesRoute
+  AdminTranslationsRoute: typeof AdminTranslationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminImpersonationSessionIdRoute: typeof AdminImpersonationSessionIdRoute
@@ -444,6 +464,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminImagesRoute: AdminImagesRoute,
   AdminLocationsRoute: AdminLocationsRoute,
   AdminRolesRoute: AdminRolesRoute,
+  AdminTranslationsRoute: AdminTranslationsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminImpersonationSessionIdRoute: AdminImpersonationSessionIdRoute,
