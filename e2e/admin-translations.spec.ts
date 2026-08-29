@@ -215,12 +215,77 @@ test.describe("U4b translations console", () => {
     await expect(page).toHaveURL(/status=approved/);
   });
 
-  test("TR-6 coverage gate: an incomplete language cannot be published", async ({ page }) => {
+  /**
+   * TR-6 — the publication gate, deterministic under ANY shard order.
+   *
+   * INC-095h: the catalog is SHARED RUNTIME whose size depends on whether a
+   * sync (TR-7) or a purge ran first. The spec therefore branches on the
+   * observed state instead of assuming one:
+   *   step 1 — read the base key count; if the catalog is EMPTY assert the
+   *            empty-set branch (switch disabled, sync-first tooltip, and the
+   *            server RAISEs the empty refusal through the DEV client);
+   *   step 2 — ensure non-empty by seeding ONE scratch key (scratch-key law),
+   *            then assert the incomplete branch (N-remaining tooltip + the
+   *            'not fully approved' RAISE).
+   * Ordering: step 2 only ever ADDS a key, so it can never make step 1's
+   * branch flip back — the sequence is monotonic and shard-order-proof.
+   */
+  test("TR-6 coverage gate: empty and incomplete catalogs both refuse publication", async ({
+    page,
+  }) => {
     await signInAsSuperAdmin(page);
     await gotoReady(page, "/admin/translations");
+
+    const flipOm = async () =>
+      page.evaluate(async () => {
+        const client = (
+          window as unknown as {
+            __ethioSupabase: {
+              rpc: (
+                fn: string,
+                args: Record<string, unknown>,
+              ) => Promise<{ error: { message: string } | null }>;
+            };
+          }
+        ).__ethioSupabase;
+        const { error } = await client.rpc("admin_set_language_flags", {
+          p_code: "om",
+          p_enabled_admin: true,
+          p_enabled_public: true,
+        });
+        return error?.message ?? "";
+      });
+
+    const baseCount = async () => {
+      const { count, error } = await adminClient()
+        .from("ui_translations")
+        .select("key", { count: "exact", head: true })
+        .eq("lang_code", "en");
+      if (error) throw new Error(`[e2e:u4b] base count failed: ${error.message}`);
+      return count ?? 0;
+    };
+
     const publicSwitch = surfaceControl(page, "lang-public-om");
-    await expect(publicSwitch).toBeDisabled();
-    await expect(surfaceControl(page, "lang-public-gate-om")).toBeVisible();
+
+    if ((await baseCount()) === 0) {
+      await expect(publicSwitch).toBeDisabled();
+      await expect(surfaceControl(page, "lang-public-gate-om")).toContainText(
+        en["admin.translations.syncFirstTooltip"],
+      );
+      expect(await flipOm()).toMatch(/catalog empty/i);
+    }
+
+    // Step 2 — ensure NON-empty via this spec's own scratch key.
+    const key = scratchKey();
+    await seedScratchKey(key, "Scratch source");
+    try {
+      await gotoReady(page, "/admin/translations");
+      await expect(publicSwitch).toBeDisabled();
+      await expect(surfaceControl(page, "lang-public-gate-om")).toBeVisible();
+      expect(await flipOm()).toMatch(/not fully approved/i);
+    } finally {
+      await reapScratchKey(key);
+    }
   });
 
   test("TR-7 sync imports the compiled catalog and reports its counts", async ({ page }) => {

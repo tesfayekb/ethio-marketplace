@@ -138,6 +138,10 @@ function LanguagesTable({
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
+  // Source-catalog size drives the publication gate's empty-set branch.
+  const baseCode = rows.find((row) => row.isBase)?.code ?? "en";
+  const baseKeyCount = coverageOf(statsByLang.get(baseCode)).total;
+
   const apply = (row: LanguageRow, next: { admin?: boolean; public?: boolean }) => {
     setErrorKey(null);
     setErrorDetail(null);
@@ -148,8 +152,15 @@ function LanguagesTable({
         enabledPublic: next.public ?? row.enabledPublic,
       }),
     ).catch((failure: unknown) => {
-      setErrorKey(translationErrorKey(failure));
-      setErrorDetail(serverMessage(failure));
+      // Both server refusals read translated: the coverage one through the
+      // shared mapper, the empty-catalog one through the sync-first line.
+      const raw = serverMessage(failure) ?? "";
+      setErrorKey(
+        /catalog empty/i.test(raw)
+          ? "admin.translations.syncFirstTooltip"
+          : translationErrorKey(failure),
+      );
+      setErrorDetail(raw === "" ? null : raw);
     });
   };
 
@@ -230,10 +241,15 @@ function LanguagesTable({
       width: "w-[14%]",
       cell: (row) => {
         const { total, remaining } = coverageOf(statsByLang.get(row.code));
-        const blocked = !row.enabledPublic && remaining > 0;
-        const hint = t("admin.translations.publicGate")
-          .replace("{remaining}", String(remaining))
-          .replace("{total}", String(total));
+        // EMPTY-SET LAW (INC-095h): an empty catalog is not vacuously complete.
+        // The server refuses it explicitly; the switch says so before the click.
+        const catalogEmpty = baseKeyCount === 0;
+        const blocked = !row.enabledPublic && (catalogEmpty || remaining > 0);
+        const hint = catalogEmpty
+          ? t("admin.translations.syncFirstTooltip")
+          : t("admin.translations.publicGate")
+              .replace("{remaining}", String(remaining))
+              .replace("{total}", String(total));
         return (
           <span className="block min-w-0" title={blocked ? hint : undefined}>
             <Switch
