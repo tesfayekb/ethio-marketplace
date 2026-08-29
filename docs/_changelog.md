@@ -203,3 +203,4 @@
 - 2026-08-29 — feat(i18n): U4b translations console — languages roster (coverage, admin/public switches, key sync, add-language), per-language strings editor with URL-derived filters and provenance, manage-gated translator scope card on user detail, D3 runtime flip (approved DB bundle merged over the compiled catalog with a logged fallback), TR-1..10 (Tier A)
 - 2026-08-29 — fix(i18n): DB bundle overlays the compiled active catalog (chain restored; empty catalog is invisible); test(e2e): TR helper re-anchored to the primitive's real testids (INC-095)
 - 2026-08-29 — fix(i18n): am pair for translations.collapse (+parity); test(e2e): expansion scoped via twin helper, scratch-key law, TR-9 anchored (INC-095c-e)
+- 2026-08-29 — fix(i18n): publish gate refuses an empty catalog (vacuous-complete hole, TR-6 catch); sheet/dialog close labels i18n'd (D1 on a11y text); sync-first tooltip

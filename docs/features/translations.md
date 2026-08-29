@@ -73,6 +73,12 @@ non-null row for that language:
 `language not fully approved: N of M remaining`. `enabled_admin` has no gate —
 that is how a language is worked on before it is published.
 
+EMPTY-SET LAW (U4b-4, INC-095h): every completeness/totality gate defines its
+behavior on the empty set explicitly. An empty source catalog is NOT vacuously
+complete — when the base catalog holds zero keys the server refuses first with
+`catalog empty — sync keys before publishing a language`, and the console's
+public switch is disabled with the sync-first tooltip.
+
 ## Machine translation (U4c)
 
 Provider decision: **Google Cloud Translation v3**, wrapped in an edge
