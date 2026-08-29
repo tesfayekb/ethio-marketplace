@@ -323,6 +323,14 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
             ) : null}
           </PageCard>
 
+          {/* U4b — translator SCOPE (which languages), manage-gated; the RPC
+              re-checks translations:manage server-side (law F3). */}
+          {permissions.includes("translations:manage") ? (
+            <TranslatorLanguagesCard userId={user.userId} guard={guard} />
+          ) : null}
+
+
+
           <PageCard className="space-y-3" testid="user-activity-card">
             <h2 className="text-sm font-semibold text-foreground">
               {t("admin.users.activity.title")}
