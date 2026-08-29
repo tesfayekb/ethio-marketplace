@@ -132,4 +132,4 @@ BEGIN
 END $p3$;
 
 -- This migration's own DECLARED mark (DEC-022 declared-mark law).
-INSERT INTO public.migration_marks(version) VALUES ('20260829084500') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks(version) VALUES ('20260829084528') ON CONFLICT DO NOTHING;
