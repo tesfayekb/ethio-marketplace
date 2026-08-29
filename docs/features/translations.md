@@ -180,12 +180,17 @@ the deep-link guard all derive from it.
 - **C5/C1** — logical properties only; the roster and the strings list use the
   responsive `DataTable`, editor opens inline via `expandedRow`.
 
-### D3 runtime flip
+### D3 runtime flip — fallback-chain law (INC-095)
 
-`src/i18n/bundle.ts` reads `get_ui_bundle(lang)`; `I18nProvider` applies the
-compiled catalog FIRST and merges the approved DB rows over it. An empty or
-failing bundle logs one line — `[i18n] bundle fallback for <lang>: <reason>` —
-and keeps the compiled catalog, so a bundle can never blank the UI.
+**The DB bundle is an OVERLAY on the compiled active catalog, never a
+replacement; chain = DB[lang] ▸ compiled[lang] ▸ compiled.en.**
+
+`src/i18n/bundle.ts` reads `get_ui_bundle(lang)`; `I18nProvider` builds the base
+layer as `{ ...compiled.en, ...compiled[lang] }` and merges the approved DB rows
+over it. An empty or failing bundle logs one line — `[i18n] bundle fallback for
+<lang>: <reason>` — and is otherwise INVISIBLE: the compiled active catalog
+still answers every key, so an empty staging catalog can never regress a
+language to English, and a bundle can never blank the UI.
 
 **Honest limitation (SSR):** the active language is still restored from
 `localStorage` after hydration and the root route has no server-side bundle

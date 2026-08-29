@@ -29,17 +29,28 @@ import { adminClient, createUser } from "./helpers/users";
  * helper, never inline; roleRow / userRow / auditSurface precedent). The
  * DataTable renders BOTH a card list and a table; a bare prefix locator
  * resolves the hidden twin and strict mode (or a not-found) follows.
+ *
+ * INC-095(b) — CENSUSED primitive ids only (src/components/shell/data-table.tsx):
+ *   container (mobile) `data-table-cards`, container (desktop) `<table>`,
+ *   row (mobile) `${rowTestId(row)}-card`, row (desktop) `${rowTestId(row)}`.
+ * The mobile ROW carries the `-card` suffix — the bare rowTestId exists on the
+ * desktop `<tr>` ONLY, which is why the mobile row locators found nothing.
  */
 function translationsSurface(page: Page): Locator {
   return isMobile(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
 }
 
+/** Row testid differs per twin: `-card` on mobile, bare on the desktop row. */
+function rowTestId(page: Page, base: string): string {
+  return isMobile(page) ? `${base}-card` : base;
+}
+
 function langRow(page: Page, code: string): Locator {
-  return translationsSurface(page).getByTestId(`lang-row-${code}`);
+  return translationsSurface(page).getByTestId(rowTestId(page, `lang-row-${code}`));
 }
 
 function stringRow(page: Page, keySlug: string): Locator {
-  return translationsSurface(page).getByTestId(`string-row-${keySlug}`);
+  return translationsSurface(page).getByTestId(rowTestId(page, `string-row-${keySlug}`));
 }
 
 function surfaceControl(page: Page, testid: string): Locator {

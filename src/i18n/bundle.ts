@@ -8,9 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
  * base returns `{}` — which is exactly the fallback case: the caller keeps the
  * compiled catalog. A missing bundle can never blank the UI (D3 fallback law).
  *
+ * INC-095: the bundle is an OVERLAY the provider merges on top of the compiled
+ * ACTIVE catalog, never a replacement — hence empty/blank entries are dropped
+ * here so they can never punch a hole in the layer beneath.
+ *
  * Law F4 — never a silent swallow: a failure returns null WITH a reason, and
  * the provider logs one line naming the language.
  */
+
 export type BundleResult =
   | { bundle: Record<string, string>; reason: null }
   | { bundle: null; reason: string };
