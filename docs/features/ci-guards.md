@@ -477,3 +477,31 @@ see [client-error] lines`. Readiness is never inferred from framework
   `## Server errors: <source>`; a source with none says so explicitly. Every
   runtime error channel — server log, browser console, page error — has a
   capture path into the evidence file.
+
+## DEC-020 — CI on dev, fast-forward promote to main
+
+CI's push trigger targets `dev` only. A final `promote` job
+("Promote to main (fast-forward on green)") needs EVERY job in the workflow —
+`build-and-check`, `secrets-scan`, `migration-lint`, `string-scan`,
+`listing-write-seam`, `browse-path-guard`, `marketplace-weight`,
+`bundle-budget`, `dependency-audit`, `e2e-preflight`, `e2e-smoke`,
+`e2e-shard`, `e2e-email`, `e2e` — and runs only when
+`github.ref == 'refs/heads/dev' && success()`. It fetches `origin/main`,
+refuses with a named `::error::` unless `origin/main` is an ancestor of the
+tested HEAD (`git merge-base --is-ancestor`), and then pushes
+`HEAD:main`. Fast-forward is the only allowed motion: never a merge, never a
+rebase — a divergence is a manual reconcile, per the decision record.
+
+Known mechanics:
+
+- The reporters' `[skip ci]` tracking commits (`ci-status.md`,
+  `e2e-last-failure.md`) land on dev AFTER the tested SHA, so dev may sit
+  ahead of main by tracking commits until the next promote. That gap is
+  always fast-forwardable — the ancestry guard passes and the promote carries
+  the tracking commits along.
+- main hosts no push-triggered CI BY DESIGN: its greenness is certified by
+  dev's run at the identical SHA. The `paths-ignore` list is irrelevant
+  there; the promote push never triggers a run.
+- Nightly follows the repository DEFAULT branch — the operator flips the
+  default to dev after the first green promote, or nightly keeps testing
+  stale main.
