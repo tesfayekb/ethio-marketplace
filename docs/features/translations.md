@@ -35,8 +35,8 @@ machine/flag/approval provenance. `approve` stamps `approved_by/approved_at`.
 
 ## Scope model — roles are VERBS, `translator_languages` is SCOPE
 
-| Layer                  | Answers                                     |
-| ---------------------- | ------------------------------------------- |
+| Layer                  | Answers                                      |
+| ---------------------- | -------------------------------------------- |
 | `translations:*` perms | _may this person edit/approve/manage at all_ |
 | `translator_languages` | _which languages may they touch_             |
 
