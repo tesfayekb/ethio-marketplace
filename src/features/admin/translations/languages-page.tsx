@@ -152,8 +152,15 @@ function LanguagesTable({
         enabledPublic: next.public ?? row.enabledPublic,
       }),
     ).catch((failure: unknown) => {
-      setErrorKey(translationErrorKey(failure));
-      setErrorDetail(serverMessage(failure));
+      // Both server refusals read translated: the coverage one through the
+      // shared mapper, the empty-catalog one through the sync-first line.
+      const raw = serverMessage(failure) ?? "";
+      setErrorKey(
+        /catalog empty/i.test(raw)
+          ? "admin.translations.syncFirstTooltip"
+          : translationErrorKey(failure),
+      );
+      setErrorDetail(raw === "" ? null : raw);
     });
   };
 
