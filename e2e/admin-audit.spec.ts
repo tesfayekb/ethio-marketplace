@@ -105,7 +105,11 @@ test.describe("U3 audit & security", () => {
     await expect(trigger).toBeVisible();
     const rowId = ((await trigger.getAttribute("data-testid")) ?? "").replace("audit-expand-", "");
     await trigger.click();
-    const detail = page.locator(`[data-testid="audit-row-${rowId}-expanded"]`).first();
+    // Same twin law: read the detail inside the visible table, not page-wide.
+    const detail = page
+      .getByRole("table")
+      .locator(`[data-testid="audit-row-${rowId}-expanded"]`)
+      .first();
     await expect(detail).toBeVisible();
     const adjacent = await detail.evaluate((element, id) => {
       const row = element.closest("tr");
