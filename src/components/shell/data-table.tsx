@@ -84,6 +84,15 @@ export interface DataTableProps<T> {
   toolbar?: ReactNode;
   /** Per-row controls: inline in the 360 card, trailing column at md. */
   rowActions?: (row: T) => ReactNode;
+  /**
+   * U3a (INC-092) — INLINE ROW EXPANSION. Return the detail region for a row
+   * and it renders DIRECTLY beneath that row: inside the 360 card, and as a
+   * full-width `<tr>` injected immediately after the table row. Returning
+   * `null`/`undefined` renders nothing. Tabular detail is never allowed to
+   * appear at page bottom, detached from the row it describes.
+   * Testid: `${rowTestId(row)}-expanded`.
+   */
+  expandedRow?: (row: T) => ReactNode;
   /** Optional bulk-select support. */
   selection?: DataTableSelection<T>;
   /** Pagination controls slot, rendered under the table. */
