@@ -172,13 +172,17 @@ export default async function migrationPreflight(dry = false): Promise<void> {
     mechanism = "public.e2e_migration_ledger() definer RPC (public.migration_marks)";
 
     const appliedSet = new Set(applied);
-    missing = local.filter((f) => !appliedSet.has(versionOf(f)));
+    // INC-094: compare on the DECLARED mark, never the filename stamp.
+    missing = local.filter((f) => !appliedSet.has(declaredMark(f)));
     if (dry) {
       console.log(`[e2e:preflight] mechanism: ${mechanism}`);
       console.log(`[e2e:preflight] applied on staging (${applied.length}): ${applied.join(", ")}`);
       console.log(
-        `[e2e:preflight] local files (${local.length}): ${local.map(versionOf).join(", ")}`,
+        `[e2e:preflight] local files (${local.length}): ${local
+          .map((f) => `${versionOf(f)}→${declaredMark(f)}`)
+          .join(", ")}`,
       );
+
     }
   } else {
     mechanism =
