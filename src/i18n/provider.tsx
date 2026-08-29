@@ -90,7 +90,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     };
   }, [language]);
 
-
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);

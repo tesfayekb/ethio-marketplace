@@ -105,9 +105,7 @@ export interface TranslationFilters {
 }
 
 function asStatus(value: string): TranslationStatus {
-  return value === "machine" || value === "edited" || value === "approved"
-    ? value
-    : "untranslated";
+  return value === "machine" || value === "edited" || value === "approved" ? value : "untranslated";
 }
 
 export async function listTranslations({

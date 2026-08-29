@@ -134,7 +134,9 @@ export function AdminTranslationsStringsPage({
   const known: LanguageRow | undefined = (languages.data ?? []).find((row) => row.code === lang);
   const guardPending = languages.isLoading;
   const unavailable =
-    !guardPending && languages.data !== undefined && (!known || (!known.enabledAdmin && !known.isBase));
+    !guardPending &&
+    languages.data !== undefined &&
+    (!known || (!known.enabledAdmin && !known.isBase));
 
   // Guard: unknown or staff-disabled language → back to the roster with a notice.
   useEffect(() => {
@@ -166,7 +168,10 @@ export function AdminTranslationsStringsPage({
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
   const outOfScope =
-    !mayManage && scope.data !== undefined && !scope.data.includes(lang) && (mayUpdate || mayApprove);
+    !mayManage &&
+    scope.data !== undefined &&
+    !scope.data.includes(lang) &&
+    (mayUpdate || mayApprove);
 
   return (
     <StepUpGate>
@@ -422,7 +427,10 @@ function StringEditor({
         <p className="text-xs font-medium text-muted-foreground">
           {t("admin.translations.editor.source")}
         </p>
-        <p data-testid={`string-source-${id}`} className="min-w-0 break-words text-sm text-foreground">
+        <p
+          data-testid={`string-source-${id}`}
+          className="min-w-0 break-words text-sm text-foreground"
+        >
           {row.sourceValue ?? "—"}
         </p>
       </div>
@@ -499,7 +507,11 @@ function StringEditor({
       </div>
 
       {saved ? (
-        <p role="status" data-testid={`string-saved-${id}`} className="text-sm text-muted-foreground">
+        <p
+          role="status"
+          data-testid={`string-saved-${id}`}
+          className="text-sm text-muted-foreground"
+        >
           {t("admin.translations.editor.saved")}
         </p>
       ) : null}

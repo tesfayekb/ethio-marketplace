@@ -80,7 +80,6 @@ export const ADMIN_SECTIONS = [
   },
 ] as const satisfies readonly AdminSectionShape[];
 
-
 export type AdminSection = (typeof ADMIN_SECTIONS)[number];
 export type AdminSectionId = AdminSection["id"];
 

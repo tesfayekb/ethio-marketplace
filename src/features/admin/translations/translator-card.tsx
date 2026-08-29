@@ -22,13 +22,7 @@ import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
  * REPLACE control — the submitted set becomes the user's whole scope — and the
  * copy says so rather than implying a merge.
  */
-export function TranslatorLanguagesCard({
-  userId,
-  guard,
-}: {
-  userId: string;
-  guard: GuardFn;
-}) {
+export function TranslatorLanguagesCard({ userId, guard }: { userId: string; guard: GuardFn }) {
   const { t } = useI18n();
   const languages = useLanguages();
   const save = useSetTranslatorLanguages(userId);
@@ -57,9 +51,7 @@ export function TranslatorLanguagesCard({
       {languages.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
       ) : assignable.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {t("admin.translations.translator.none")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
       ) : (
         <ul className="flex flex-wrap gap-3">
           {assignable.map((row) => (
@@ -70,10 +62,7 @@ export function TranslatorLanguagesCard({
                 checked={selected.includes(row.code)}
                 onCheckedChange={(checked) => toggle(row.code, checked === true)}
               />
-              <label
-                className="text-sm text-foreground"
-                htmlFor={`translator-lang-${row.code}`}
-              >
+              <label className="text-sm text-foreground" htmlFor={`translator-lang-${row.code}`}>
                 {`${row.nameNative} (${row.code})`}
               </label>
             </li>
@@ -96,9 +85,7 @@ export function TranslatorLanguagesCard({
         {t("admin.translations.translator.save")}
       </Button>
 
-      <p className="text-xs text-muted-foreground">
-        {t("admin.translations.translator.audit")}
-      </p>
+      <p className="text-xs text-muted-foreground">{t("admin.translations.translator.audit")}</p>
 
       {saved ? (
         <p role="status" data-testid="translator-saved" className="text-sm text-muted-foreground">

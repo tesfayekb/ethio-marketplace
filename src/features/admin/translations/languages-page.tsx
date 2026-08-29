@@ -1,10 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
-import {
-  DataTable,
-  type DataTableColumn,
-} from "@/components/shell/data-table";
+import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
 import { FormField, FormSection } from "@/components/shell/form-section";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { Badge } from "@/components/ui/badge";
@@ -356,12 +353,20 @@ function SyncKeysCard({ guard }: { guard: GuardFn }) {
             {t("admin.translations.sync.action")}
           </Button>
           {done ? (
-            <p role="status" data-testid="translations-sync-done" className="text-sm text-foreground">
+            <p
+              role="status"
+              data-testid="translations-sync-done"
+              className="text-sm text-foreground"
+            >
               {done}
             </p>
           ) : null}
           {errorKey ? (
-            <p role="alert" data-testid="translations-sync-error" className="text-sm text-destructive">
+            <p
+              role="alert"
+              data-testid="translations-sync-error"
+              className="text-sm text-destructive"
+            >
               {t(errorKey)}
             </p>
           ) : null}
@@ -398,7 +403,11 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
             onClick={() => {
               setSaved(false);
               const slug = code.trim().toLowerCase();
-              if (!LANGUAGE_CODE_RE.test(slug) || nameEn.trim() === "" || nameNative.trim() === "") {
+              if (
+                !LANGUAGE_CODE_RE.test(slug) ||
+                nameEn.trim() === "" ||
+                nameNative.trim() === ""
+              ) {
                 setErrorKey("admin.translations.error.codeInvalid");
                 return;
               }
@@ -424,12 +433,20 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
             {t("admin.translations.add.submit")}
           </Button>
           {saved ? (
-            <p role="status" data-testid="translations-add-saved" className="text-sm text-muted-foreground">
+            <p
+              role="status"
+              data-testid="translations-add-saved"
+              className="text-sm text-muted-foreground"
+            >
               {t("admin.translations.add.added")}
             </p>
           ) : null}
           {errorKey ? (
-            <p role="alert" data-testid="translations-add-error" className="text-sm text-destructive">
+            <p
+              role="alert"
+              data-testid="translations-add-error"
+              className="text-sm text-destructive"
+            >
               {t(errorKey)}
             </p>
           ) : null}
