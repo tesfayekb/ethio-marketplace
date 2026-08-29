@@ -109,6 +109,22 @@ export function AdminAuditPage() {
     timeStyle: "short",
   });
 
+  const dayFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+  const days = stats.data?.days ?? [];
+  const barLabel = (day: string, count: number) =>
+    t("admin.audit.chart.bar")
+      .replace("{date}", dayFmt.format(new Date(day)))
+      .replace("{count}", String(count));
+  // Sparse axis labels: first, last, and weekly ticks — never one per bar.
+  const dayTicks = days.map((entry, index) =>
+    index === 0 || index === days.length - 1 || index % 7 === 0
+      ? dayFmt.format(new Date(entry.day))
+      : null,
+  );
+
   const resetPage = () => setPage(0);
 
   const columns: DataTableColumn<AuditRow>[] = [
