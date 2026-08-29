@@ -232,6 +232,65 @@ export type Database = {
         }
         Relationships: []
       }
+      entity_translations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          field: string
+          flag_note: string | null
+          flagged: boolean
+          lang_code: string
+          machine: boolean
+          status: string
+          updated_at: string
+          updated_by: string | null
+          value: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          field: string
+          flag_note?: string | null
+          flagged?: boolean
+          lang_code: string
+          machine?: boolean
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          field?: string
+          flag_note?: string | null
+          flagged?: boolean
+          lang_code?: string
+          machine?: boolean
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_translations_lang_code_fkey"
+            columns: ["lang_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       impersonation_sessions: {
         Row: {
           actor_id: string
@@ -262,6 +321,45 @@ export type Database = {
           reason?: string
           started_at?: string
           target_id?: string
+        }
+        Relationships: []
+      }
+      languages: {
+        Row: {
+          code: string
+          created_at: string
+          enabled_admin: boolean
+          enabled_public: boolean
+          is_base: boolean
+          name_en: string
+          name_native: string
+          rtl: boolean
+          sort: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          enabled_admin?: boolean
+          enabled_public?: boolean
+          is_base?: boolean
+          name_en: string
+          name_native: string
+          rtl?: boolean
+          sort?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          enabled_admin?: boolean
+          enabled_public?: boolean
+          is_base?: boolean
+          name_en?: string
+          name_native?: string
+          rtl?: boolean
+          sort?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -737,6 +835,85 @@ export type Database = {
           },
         ]
       }
+      translator_languages: {
+        Row: {
+          created_at: string
+          lang_code: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          lang_code: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          lang_code?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translator_languages_lang_code_fkey"
+            columns: ["lang_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      ui_translations: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          flag_note: string | null
+          flagged: boolean
+          key: string
+          lang_code: string
+          machine: boolean
+          status: string
+          updated_at: string
+          updated_by: string | null
+          value: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          flag_note?: string | null
+          flagged?: boolean
+          key: string
+          lang_code: string
+          machine?: boolean
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          flag_note?: string | null
+          flagged?: boolean
+          key?: string
+          lang_code?: string
+          machine?: boolean
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ui_translations_lang_code_fkey"
+            columns: ["lang_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       user_directory: {
         Row: {
           account_status: string
@@ -922,6 +1099,31 @@ export type Database = {
           permission_count: number
         }[]
       }
+      admin_list_translations: {
+        Args: {
+          p_flagged?: boolean
+          p_lang: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+        }
+        Returns: {
+          approved_at: string
+          approved_by: string
+          flag_note: string
+          flagged: boolean
+          key: string
+          lang_code: string
+          machine: boolean
+          source_value: string
+          status: string
+          total_count: number
+          updated_at: string
+          updated_by: string
+          value: string
+        }[]
+      }
       admin_list_users: {
         Args: {
           p_limit?: number
@@ -941,13 +1143,50 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_machine_translation: {
+        Args: { p_key: string; p_lang: string; p_value: string }
+        Returns: undefined
+      }
+      admin_save_translation: {
+        Args: { p_key: string; p_lang: string; p_value: string }
+        Returns: undefined
+      }
       admin_set_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_language_flags: {
+        Args: {
+          p_code: string
+          p_enabled_admin: boolean
+          p_enabled_public: boolean
+        }
         Returns: undefined
       }
       admin_set_role_permission: {
         Args: { p_granted: boolean; p_permission_id: string; p_role_id: string }
         Returns: undefined
+      }
+      admin_set_translation_status: {
+        Args: { p_action: string; p_key: string; p_lang: string }
+        Returns: undefined
+      }
+      admin_set_translator_languages: {
+        Args: { p_langs: string[]; p_user: string }
+        Returns: undefined
+      }
+      admin_sync_ui_keys: { Args: { p_am?: Json; p_en: Json }; Returns: Json }
+      admin_translation_stats: {
+        Args: { p_lang?: string }
+        Returns: {
+          approved: number
+          edited: number
+          flagged: number
+          lang_code: string
+          machine_count: number
+          total: number
+          untranslated: number
+        }[]
       }
       admin_update_profile: {
         Args: {
@@ -963,6 +1202,15 @@ export type Database = {
           p_description?: string
           p_display_name?: string
           p_role_id: string
+        }
+        Returns: undefined
+      }
+      admin_upsert_language: {
+        Args: {
+          p_code: string
+          p_name_en: string
+          p_name_native: string
+          p_rtl?: boolean
         }
         Returns: undefined
       }
@@ -1036,6 +1284,7 @@ export type Database = {
         }[]
       }
       get_role_hierarchy: { Args: { p_role_id: string }; Returns: string[] }
+      get_ui_bundle: { Args: { p_lang: string }; Returns: Json }
       has_password: { Args: never; Returns: boolean }
       has_permission: {
         Args: { p_action: string; p_resource: string; p_user_id: string }
@@ -1109,6 +1358,8 @@ export type Database = {
         Args: { p_listing_id: string; p_new_status: string }
         Returns: undefined
       }
+      translation_placeholders: { Args: { p_text: string }; Returns: string[] }
+      translation_scope_ok: { Args: { p_lang: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

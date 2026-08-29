@@ -196,3 +196,4 @@
 - 2026-08-29 — docs: S31 gate — DEC-017..021 rows, U2b+U3 close-out, harness epoch closed, roadmap reorder (U4 Translations), ACT-U3-1
 - 2026-08-29 — ci(DEC-020): CI on dev + fast-forward promote to main on full green; main is the certified record
 - 2026-08-29 — ci(DEC-020): all tracking commits target dev; sync-main dispatch = sanctioned divergence repair
+- 2026-08-29 — feat(i18n): U4a translations foundation — languages/ui_translations/translator_languages/entity_translations, DEC-017-pattern permissions (step-up, assignable), scoped definer RPCs with placeholder validator + coverage gate, locations name_am backfill (Tier A)
