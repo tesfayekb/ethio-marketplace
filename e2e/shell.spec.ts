@@ -79,7 +79,7 @@ async function railLaw(page: Page) {
     };
   });
   expect(Math.abs(measured.top - 64), "rail top is not pinned at 64").toBeLessThanOrEqual(1);
-  const expectedBottom = Math.min(measured.innerHeight, measured.footerTop);
+  
   // L3 stabilization poll: on a cold renderer the footer-inset hook's mount
   // settle passes (see the clamp-law comment in use-footer-inset.ts: "settle
   // pass on the next frames and on fonts.ready") may not have applied yet when
