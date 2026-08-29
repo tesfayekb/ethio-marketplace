@@ -201,3 +201,29 @@ change (root loader + language in the URL or a cookie) and is NOT in U4b.
 **Honest limitation (translator card):** U4a exposes a SELF read only, so the
 card cannot display another user's current assignment. It is a REPLACE control
 and its copy says so.
+
+### SCRATCH-KEY LAW (INC-095e)
+
+**Specs never mutate a real catalog key.** The `ui_translations` catalog is
+SHARED RUNTIME: an edit, flag, approve or clear performed by a test changes
+what every other spec — and every operator on that environment — then renders.
+
+Every mutating case (TR-3 / TR-5 / TR-8) therefore works on a key of its own,
+namespaced `e2e.scratch.<PROCESS_ID>-<worker>`: seeded before the assertion,
+edited/approved/cleared, and reaped in a `finally`. Real chrome keys are
+READ-ONLY to specs.
+
+Seeding writes the exact rows `admin_sync_ui_keys` would write (base `en`
+row `approved`, target-language row `untranslated`). It uses the service-role
+client rather than the RPC because the RPC is
+`has_permission(auth.uid(), 'translations', 'manage')` + step-up gated and the
+service-role connection carries no `auth.uid()`.
+
+### Expansion scoping (INC-095d)
+
+The inline editor ids (`string-editor-*`, `string-input-*`, `string-save-*`,
+`string-approve-*`, `string-saved-*`) exist in BOTH DataTable twins — the
+desktop expansion is a full-width `<tr>`, the mobile one renders inside the
+card. `expansionOf(slug)` / `expansionControl(slug, prefix)` in
+`e2e/admin-translations.spec.ts` scope them to the visible twin; no expansion
+locator is written inline or with `.first()`.

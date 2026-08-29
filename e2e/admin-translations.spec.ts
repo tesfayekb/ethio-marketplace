@@ -262,13 +262,13 @@ test.describe("U4b translations console", () => {
     // carries the same label).
     const section = page.locator("main").getByTestId("admin-section-translations");
     await switchLanguage(page, "am");
-    await expect(section.getByRole("heading", { name: am["admin.translations.title"] })).toBeVisible(
-      { timeout: 20000 },
-    );
+    await expect(
+      section.getByRole("heading", { name: am["admin.translations.title"] }),
+    ).toBeVisible({ timeout: 20000 });
     await switchLanguage(page, "en");
-    await expect(section.getByRole("heading", { name: en["admin.translations.title"] })).toBeVisible(
-      { timeout: 20000 },
-    );
+    await expect(
+      section.getByRole("heading", { name: en["admin.translations.title"] }),
+    ).toBeVisible({ timeout: 20000 });
   });
 
   test("TR-10 translator scope card is manage-gated on the user detail page", async ({ page }) => {
