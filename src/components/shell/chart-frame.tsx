@@ -97,7 +97,7 @@ export function ChartFrame({
     body = (
       <div data-testid={`${testid}-loading`} className="min-w-0">
         <span className="sr-only">{t("prim.state.loading")}</span>
-        <Skeleton className="h-40 w-full" />
+        <Skeleton className={cn("w-full", sparkline ? "h-16" : "h-40")} />
       </div>
     );
   } else if (error) {
