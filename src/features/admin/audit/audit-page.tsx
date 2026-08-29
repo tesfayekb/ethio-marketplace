@@ -331,28 +331,6 @@ export function AdminAuditPage() {
           />
         }
       />
-
-      {expandedRow ? (
-        <DetailPanel
-          testid="audit-detail"
-          title={t("admin.audit.detailTitle")}
-          pairs={[
-            { label: t("admin.audit.col.action"), value: expandedRow.action },
-            {
-              label: t("admin.audit.col.actor"),
-              value: expandedRow.actorName ?? t("admin.audit.system"),
-            },
-            {
-              label: t("admin.audit.col.entity"),
-              value: `${expandedRow.entityType}${expandedRow.entityId ? ` · ${expandedRow.entityId}` : ""}`,
-            },
-            ...Object.entries(expandedRow.meta).map(([key, value]) => ({
-              label: key,
-              value: typeof value === "string" ? value : JSON.stringify(value),
-            })),
-          ]}
-        />
-      ) : null}
     </div>
   );
 }
