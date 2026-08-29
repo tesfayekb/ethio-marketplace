@@ -483,7 +483,10 @@ export const am: Messages = {
   "impersonation.cancel": "ሰርዝ",
   "impersonation.failed": "የመወከል ክፍለ ጊዜውን መጀመር አልተቻለም።",
   "impersonation.title": "እንደ {name} በመመልከት ላይ",
-  "impersonation.readOnlyNote": "ለንባብ ብቻ የሆነ እይታ። እዚህ የሚደረግ ምንም እርምጃ የመለያውን መረጃ አይለውጥም።",
+  "impersonation.readOnlyNote":
+    "ለንባብ ብቻ የሆነ የድጋፍ እይታ — የዚህን መለያ መረጃ እያዩ ነው እንጂ እንደዚህ መለያ ሆነው እየሠሩ አይደለም። እዚህ የሚደረግ ምንም እርምጃ የእነሱን መረጃ አይለውጥም።",
+  "impersonation.roadmapNote":
+    "ሙሉ እንደ-ተጠቃሚ እይታ ታቅዷል (DEC-021)፤ በመወከል ጊዜ ሁሉንም ለውጦች በሰርቨር በኩል ይከለክላል።",
   "impersonation.endsIn": "የሚያበቃው በ",
   "impersonation.expired": "ይህ የመወከል ክፍለ ጊዜ አብቅቷል።",
   "impersonation.backToUser": "ወደ ተጠቃሚው ተመለስ",
