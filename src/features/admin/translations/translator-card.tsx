@@ -58,7 +58,7 @@ export function TranslatorLanguagesCard({
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
       ) : assignable.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          {t("admin.translations.translator.noLanguages")}
+          {t("admin.translations.translator.none")}
         </p>
       ) : (
         <ul className="flex flex-wrap gap-3">
@@ -95,6 +95,10 @@ export function TranslatorLanguagesCard({
       >
         {t("admin.translations.translator.save")}
       </Button>
+
+      <p className="text-xs text-muted-foreground">
+        {t("admin.translations.translator.audit")}
+      </p>
 
       {saved ? (
         <p role="status" data-testid="translator-saved" className="text-sm text-muted-foreground">
