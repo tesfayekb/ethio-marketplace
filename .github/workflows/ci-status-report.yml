@@ -5,14 +5,20 @@ name: CI Status Report
 #    cannot re-trigger it;
 #  - the commit message carries [skip ci];
 #  - CI's push trigger ignores docs/tracking/ci-status.md.
+# DEC-020: every tracking commit targets dev; main only ever moves by the
+# promote job's fast-forward, or by the operator-triggered sync-main dispatch.
 on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
+  # Operator-only entry point for the sync-main repair job below. The report
+  # job is gated to workflow_run so a dispatch can never write a status file.
+  workflow_dispatch:
 
 jobs:
   report:
     name: Write CI status to repo
+    if: github.event_name == 'workflow_run'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -20,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: dev
 
       - name: Build status file
         uses: actions/github-script@v7
@@ -56,7 +62,7 @@ jobs:
 
       # Regenerate-after-fetch + retry, mirroring nightly-e2e.yml (INC-027).
       # The status file is derived state owned entirely by this run, so
-      # rewriting it on top of whatever main now holds is always correct and
+      # rewriting it on top of whatever dev now holds is always correct and
       # can never conflict. A failed push is a warning, never a red job — the
       # reporter must not redden Actions on its own bookkeeping.
       - name: Commit and push
@@ -67,8 +73,8 @@ jobs:
 
           pushed=0
           for attempt in 1 2 3; do
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch origin dev
+            git reset --hard origin/dev
             mkdir -p docs/tracking
             cp /tmp/ci-status.md docs/tracking/ci-status.md
             git add docs/tracking/ci-status.md
@@ -78,7 +84,7 @@ jobs:
               break
             fi
             git commit -m "ci: update CI status report [skip ci]"
-            if git push origin HEAD:main; then
+            if git push origin HEAD:dev; then
               pushed=1
               break
             fi
@@ -90,3 +96,40 @@ jobs:
             echo "::warning::CI status push failed after retries"
           fi
           exit 0
+
+  # DEC-020 divergence repair — the ONLY sanctioned non-fast-forward path to
+  # main. Operator-triggered only (workflow_dispatch), never automatic. Use it
+  # when the promote guard reports "MAIN DIVERGED" and the operator has
+  # confirmed main's extra commits are tracking-only (ci-status.md /
+  # e2e-last-failure.md [skip ci] commits). It force-pushes dev over main with
+  # --force-with-lease, after echoing exactly what is being overwritten.
+  sync-main:
+    name: sync-main — DEC-020 divergence repair
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Show what will be overwritten
+        run: |
+          set -eu
+          git fetch origin main dev
+          echo "main HEAD: $(git rev-parse origin/main)"
+          echo "dev  HEAD: $(git rev-parse origin/dev)"
+          echo "--- commits on main that are NOT on dev (these will be DISCARDED) ---"
+          git log --oneline origin/main --not origin/dev || true
+          echo "--- end ---"
+          echo "--- commits on dev that are not on main (these will be ADOPTED) ---"
+          git log --oneline origin/dev --not origin/main || true
+          echo "--- end ---"
+
+      - name: Force main to dev (lease-protected)
+        run: |
+          set -eu
+          git push --force-with-lease=main:"$(git rev-parse origin/main)" origin origin/dev:main
+          echo "main is now $(git rev-parse origin/dev)"

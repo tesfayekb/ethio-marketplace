@@ -699,6 +699,6 @@ jobs:
       - name: Fast-forward guard (ff-only law — never merge/rebase here)
         run: |
           git fetch origin main
-          git merge-base --is-ancestor origin/main HEAD || { echo "::error::MAIN DIVERGED — fast-forward impossible; manual reconcile per DEC-020 (ff-only law, never merge/rebase here)"; exit 1; }
+          git merge-base --is-ancestor origin/main HEAD || { echo "::error::MAIN DIVERGED — fast-forward impossible; manual reconcile per DEC-020 (ff-only law, never merge/rebase here); run the sync-main dispatch after confirming main's extra commits are tracking-only"; exit 1; }
       - name: Promote dev to main
         run: git push origin HEAD:main

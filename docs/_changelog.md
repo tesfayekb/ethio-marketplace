@@ -195,3 +195,4 @@
 - 2026-08-29 — test(e2e): auditSurface twin helper — audit locators viewport-correct both ways (INC-084c sixth, INC-093b)
 - 2026-08-29 — docs: S31 gate — DEC-017..021 rows, U2b+U3 close-out, harness epoch closed, roadmap reorder (U4 Translations), ACT-U3-1
 - 2026-08-29 — ci(DEC-020): CI on dev + fast-forward promote to main on full green; main is the certified record
+- 2026-08-29 — ci(DEC-020): all tracking commits target dev; sync-main dispatch = sanctioned divergence repair
