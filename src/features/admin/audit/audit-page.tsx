@@ -92,7 +92,6 @@ export function AdminAuditPage() {
 
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
-  const expandedRow = rows.find((row) => row.id === expanded) ?? null;
 
   const timeFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
     dateStyle: "short",
@@ -284,6 +283,29 @@ export function AdminAuditPage() {
             />
           </div>
         }
+        expandedRow={(row) =>
+          row.id === expanded ? (
+            <DetailPanel
+              testid="audit-detail"
+              title={t("admin.audit.detailTitle")}
+              pairs={[
+                { label: t("admin.audit.col.action"), value: row.action },
+                {
+                  label: t("admin.audit.col.actor"),
+                  value: row.actorName ?? t("admin.audit.system"),
+                },
+                {
+                  label: t("admin.audit.col.entity"),
+                  value: `${row.entityType}${row.entityId ? ` · ${row.entityId}` : ""}`,
+                },
+                ...Object.entries(row.meta).map(([key, value]) => ({
+                  label: key,
+                  value: typeof value === "string" ? value : JSON.stringify(value),
+                })),
+              ]}
+            />
+          ) : null
+        }
         rowActions={(row) => (
           <Button
             type="button"
@@ -308,28 +330,6 @@ export function AdminAuditPage() {
           />
         }
       />
-
-      {expandedRow ? (
-        <DetailPanel
-          testid="audit-detail"
-          title={t("admin.audit.detailTitle")}
-          pairs={[
-            { label: t("admin.audit.col.action"), value: expandedRow.action },
-            {
-              label: t("admin.audit.col.actor"),
-              value: expandedRow.actorName ?? t("admin.audit.system"),
-            },
-            {
-              label: t("admin.audit.col.entity"),
-              value: `${expandedRow.entityType}${expandedRow.entityId ? ` · ${expandedRow.entityId}` : ""}`,
-            },
-            ...Object.entries(expandedRow.meta).map(([key, value]) => ({
-              label: key,
-              value: typeof value === "string" ? value : JSON.stringify(value),
-            })),
-          ]}
-        />
-      ) : null}
     </div>
   );
 }

@@ -115,7 +115,10 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       </div>
 
       <PageCard testid="impersonation-readonly-note">
-        <p className="text-sm text-muted-foreground">{t("impersonation.readOnlyNote")}</p>
+        <p className="text-sm text-foreground">{t("impersonation.readOnlyNote")}</p>
+        <p data-testid="impersonation-roadmap-note" className="mt-2 text-xs text-muted-foreground">
+          {t("impersonation.roadmapNote")}
+        </p>
         <Button
           className="mt-3 min-h-11 w-full sm:w-auto"
           variant="destructive"

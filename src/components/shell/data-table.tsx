@@ -1,5 +1,5 @@
 import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
-import type { KeyboardEvent, ReactNode } from "react";
+import { Fragment, type KeyboardEvent, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -84,6 +84,15 @@ export interface DataTableProps<T> {
   toolbar?: ReactNode;
   /** Per-row controls: inline in the 360 card, trailing column at md. */
   rowActions?: (row: T) => ReactNode;
+  /**
+   * U3a (INC-092) — INLINE ROW EXPANSION. Return the detail region for a row
+   * and it renders DIRECTLY beneath that row: inside the 360 card, and as a
+   * full-width `<tr>` injected immediately after the table row. Returning
+   * `null`/`undefined` renders nothing. Tabular detail is never allowed to
+   * appear at page bottom, detached from the row it describes.
+   * Testid: `${rowTestId(row)}-expanded`.
+   */
+  expandedRow?: (row: T) => ReactNode;
   /** Optional bulk-select support. */
   selection?: DataTableSelection<T>;
   /** Pagination controls slot, rendered under the table. */
@@ -167,6 +176,7 @@ export function DataTable<T>({
   errorState,
   toolbar,
   rowActions,
+  expandedRow,
   selection,
   pagination,
   sortKey,
@@ -274,6 +284,11 @@ export function DataTable<T>({
                     {rowActions(row)}
                   </div>
                 ) : null}
+                {expandedRow?.(row) ? (
+                  <div data-testid={`${rowTestId(row)}-expanded`} className="min-w-0">
+                    {expandedRow(row)}
+                  </div>
+                ) : null}
               </li>
             );
           })}
@@ -340,74 +355,92 @@ export function DataTable<T>({
                 const go = () => {
                   if (href) void navigate(href as never);
                 };
+                const expansion = expandedRow?.(row);
                 return (
-                  <tr
-                    key={key}
-                    data-testid={rowTestId(row)}
-                    className={cn(
-                      "border-b border-border last:border-0",
-                      href && "cursor-pointer hover:bg-muted/50",
-                    )}
-                    {...(href
-                      ? {
-                          role: "link",
-                          tabIndex: 0,
-                          onClick: go,
-                          onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
-                            if (event.key === "Enter") {
-                              event.preventDefault();
-                              go();
-                            }
-                          },
-                        }
-                      : {})}
-                  >
-                    {selection ? (
-                      <td
-                        className="p-3 align-top"
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                      >
-                        <Checkbox
-                          aria-label={t("prim.table.selectRow")}
-                          data-testid={`${rowTestId(row)}-select-cell`}
-                          checked={selectedKeys.has(key)}
-                          onCheckedChange={(checked) =>
-                            selection.onToggleRow(row, checked === true)
+                  <Fragment key={key}>
+                    <tr
+                      data-testid={rowTestId(row)}
+                      className={cn(
+                        "border-b border-border last:border-0",
+                        href && "cursor-pointer hover:bg-muted/50",
+                      )}
+                      {...(href
+                        ? {
+                            role: "link",
+                            tabIndex: 0,
+                            onClick: go,
+                            onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                go();
+                              }
+                            },
                           }
-                        />
-                      </td>
-                    ) : null}
-                    {columns.map((column) => (
-                      <td
-                        key={column.key}
-                        className={cellClass(column as DataTableColumn<unknown>)}
+                        : {})}
+                    >
+                      {selection ? (
+                        <td
+                          className="p-3 align-top"
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                        >
+                          <Checkbox
+                            aria-label={t("prim.table.selectRow")}
+                            data-testid={`${rowTestId(row)}-select-cell`}
+                            checked={selectedKeys.has(key)}
+                            onCheckedChange={(checked) =>
+                              selection.onToggleRow(row, checked === true)
+                            }
+                          />
+                        </td>
+                      ) : null}
+                      {columns.map((column) => (
+                        <td
+                          key={column.key}
+                          className={cellClass(column as DataTableColumn<unknown>)}
+                        >
+                          {href && column.key === linkColumnKey ? (
+                            <Link
+                              {...href}
+                              data-testid={`${rowTestId(row)}-link`}
+                              className="block min-w-0 break-words"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              {column.cell(row)}
+                            </Link>
+                          ) : (
+                            <span className="block min-w-0 break-words">{column.cell(row)}</span>
+                          )}
+                        </td>
+                      ))}
+                      {rowActions ? (
+                        <td
+                          data-testid={`${rowTestId(row)}-actions-cell`}
+                          className="p-3 text-end align-top"
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                        >
+                          <span className="flex flex-wrap justify-end gap-2">
+                            {rowActions(row)}
+                          </span>
+                        </td>
+                      ) : null}
+                    </tr>
+                    {expansion ? (
+                      <tr
+                        data-testid={`${rowTestId(row)}-expanded-row`}
+                        className="border-b border-border last:border-0"
                       >
-                        {href && column.key === linkColumnKey ? (
-                          <Link
-                            {...href}
-                            data-testid={`${rowTestId(row)}-link`}
-                            className="block min-w-0 break-words"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            {column.cell(row)}
-                          </Link>
-                        ) : (
-                          <span className="block min-w-0 break-words">{column.cell(row)}</span>
-                        )}
-                      </td>
-                    ))}
-                    {rowActions ? (
-                      <td
-                        data-testid={`${rowTestId(row)}-actions-cell`}
-                        className="p-3 text-end align-top"
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                      >
-                        <span className="flex flex-wrap justify-end gap-2">{rowActions(row)}</span>
-                      </td>
+                        <td
+                          colSpan={columns.length + (selection ? 1 : 0) + (rowActions ? 1 : 0)}
+                          data-testid={`${rowTestId(row)}-expanded`}
+                          className="min-w-0 p-3 align-top"
+                        >
+                          {expansion}
+                        </td>
+                      </tr>
                     ) : null}
-                  </tr>
+                  </Fragment>
                 );
               })}
             </tbody>

@@ -62,3 +62,11 @@ surface reads the target's profile and listings through the definer RPCs above.
 - `e2e/admin-audit.spec.ts` — AS-1/AS-2 (gating, stats, filters, overflow law),
   IMP-1 (open → banner → end), IMP-2 (dual-actor audit rows), IMP-3 (server
   refusals called straight from the browser client).
+
+## Impersonation — model & roadmap
+
+**v1 (shipped, DEC-016): read-only viewer.** The admin never becomes the target. Definer RPCs (impersonated_get_profile / impersonated_list_listings) verify an active, unexpired, actor-owned session row and return the target's data. Guardrails: super-admin only · step-up required · reason ≥ 5 chars · 15-minute box · dual-actor audit (impersonation.start / .end) · global banner with countdown and End now · read-only by construction (no write path exists). Rationale: zero token risk — nothing minted, nothing to leak, nothing to revoke.
+
+**v2 (planned, DEC-021, Ops phase): full act-as with server-side write lock.** Gold standard (GitHub staff tooling, Stripe support, Intercom): a service-role edge function mints a ≤15-minute JWT for the target carrying an impersonator_id claim; the app runs as the target in an isolated /impersonate tab (token in memory only, never persisted); RLS write policies and every sensitive RPC refuse when impersonator_id is present — "see everything, change nothing" enforced by the database; auth-service operations (password/email/2FA) are unreachable from the impersonation context; both identities are audited on every read surface that logs; the session is revocable and the banner is permanent. Open considerations recorded for the DEC: user-visible transparency (the target's own security log lists staff views), and the write-guard census across every user-writable table before enabling.
+
+**Why v1 first:** support needs (assist a user having an issue) are mostly read needs; the viewer delivers them with no minted credentials. DEC-021 upgrades to full perspective when the write-lock census can be done properly.

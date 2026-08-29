@@ -495,7 +495,9 @@ export const en = {
   "impersonation.failed": "The impersonation session could not be started.",
   "impersonation.title": "Viewing as {name}",
   "impersonation.readOnlyNote":
-    "Read-only view. No action taken here can change this account's data.",
+    "Read-only support view — you are seeing this account's data, not acting as this account. No action here can change their data.",
+  "impersonation.roadmapNote":
+    "Full view-as-user is planned (DEC-021) and will block all changes server-side while impersonating.",
   "impersonation.endsIn": "Ends in",
   "impersonation.expired": "This impersonation session has ended.",
   "impersonation.backToUser": "Back to the user",

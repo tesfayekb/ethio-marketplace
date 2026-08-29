@@ -559,3 +559,5 @@ The signed-in surfaces remain CI's to prove: the sandbox has no staging service-
 key, so no fixture user can be created or signed in here.
 
 | INC-091 | 2026-08-28 | Fixture file `scripts/fixtures/e2e-log-boot-crash.log` was ignored by `.gitignore *.log` and never tracked, so CI reporter self-test ENOENTed while the suite itself was green (INC-084f law) | FIXED — renamed to `.log.txt`, path updated in `scripts/e2e-failure-report.ts`; tracked-files proof now mandatory for every new fixture |
+
+| INC-092 | 2026-08-29 | U3 walk: audit Details opened the panel at page bottom (found by operator) — inline row expansion is the law for tabular detail (primitives L-series); impersonation scope expectation documented — DEC-021 registered for full act-as at Ops | FIXED — `DataTable` gained an `expandedRow` slot (full-width `<tr>` after the row at md+, in-card at 360); impersonation copy states the read-only model and the DEC-021 roadmap |
