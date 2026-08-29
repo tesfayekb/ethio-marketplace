@@ -198,3 +198,5 @@
 - 2026-08-29 — ci(DEC-020): all tracking commits target dev; sync-main dispatch = sanctioned divergence repair
 - 2026-08-29 — feat(i18n): U4a translations foundation — languages/ui_translations/translator_languages/entity_translations, DEC-017-pattern permissions (step-up, assignable), scoped definer RPCs with placeholder validator + coverage gate, locations name_am backfill (Tier A)
 - 2026-08-29 — fix(i18n): matrix vocabulary for the translations registration (coverage guard catch)
+- 2026-08-29 — feat(i18n): U4b read seams — `admin_list_languages()` (definer, translations:view) exposes the full roster incl. admin-only languages the RLS policy hides; `get_my_translator_languages()` (auth-callable self-read) makes the strings page honest about scope; proofs P1-P4
+- 2026-08-29 — fix(ci): INC-094 declared-mark law — migration marks are read from the file, not assumed equal to the tool-assigned filename stamp; ledger reconciled
