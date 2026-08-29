@@ -64,7 +64,6 @@ export function declaredMark(filename: string): string {
   return marks.sort()[marks.length - 1]!;
 }
 
-
 function serviceClient(): { client: SupabaseClient; url: string } {
   const url = process.env["E2E_SUPABASE_URL"] ?? "";
   const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "";
@@ -182,7 +181,6 @@ export default async function migrationPreflight(dry = false): Promise<void> {
           .map((f) => `${versionOf(f)}→${declaredMark(f)}`)
           .join(", ")}`,
       );
-
     }
   } else {
     mechanism =
