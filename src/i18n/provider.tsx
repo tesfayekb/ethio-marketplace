@@ -57,17 +57,38 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   // Load the active locale only.
   useEffect(() => {
     let cancelled = false;
+
+    /**
+     * D3 runtime flip (U4b): the DB bundle is the runtime truth once it
+     * exists, and the compiled catalog is the seed AND the offline fallback.
+     * The compiled catalog is applied FIRST, then the approved DB rows are
+     * merged over it, so a partial bundle can never blank a screen.
+     */
+    const applyWithBundle = (compiled: Messages) => {
+      if (cancelled) return;
+      setMessages(compiled);
+      void fetchUiBundle(language).then(({ bundle, reason }) => {
+        if (cancelled) return;
+        if (!bundle) {
+          console.warn(`[i18n] bundle fallback for ${language}: ${reason}`);
+          return;
+        }
+        setMessages({ ...compiled, ...bundle } as Messages);
+      });
+    };
+
     if (language === "en") {
-      setMessages(en);
-      return;
+      applyWithBundle(en);
+      return () => {
+        cancelled = true;
+      };
     }
-    loaders[language]().then((loaded) => {
-      if (!cancelled) setMessages(loaded);
-    });
+    loaders[language]().then(applyWithBundle);
     return () => {
       cancelled = true;
     };
   }, [language]);
+
 
   useEffect(() => {
     document.documentElement.lang = language;
