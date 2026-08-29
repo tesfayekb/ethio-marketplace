@@ -97,7 +97,11 @@ test.describe("U3 audit & security", () => {
     // INC-092: the detail region must render ADJACENT to the row it describes,
     // never at page bottom. The assertion is a DOM RELATIONSHIP (sibling row at
     // md+, same card at 360), not a position on the page.
-    const trigger = page.locator('[data-testid^="audit-expand-"]').first();
+    // INC-084c (FIFTH occurrence, run 33230993452): a bare prefix locator with
+    // .first() resolves to the HIDDEN responsive twin at desktop. Every
+    // audit-expand interaction scopes to the VISIBLE container — the table at
+    // md+ (the 360 branch would scope to the card list).
+    const trigger = page.getByRole("table").locator('[data-testid^="audit-expand-"]').first();
     await expect(trigger).toBeVisible();
     const rowId = ((await trigger.getAttribute("data-testid")) ?? "").replace("audit-expand-", "");
     await trigger.click();
