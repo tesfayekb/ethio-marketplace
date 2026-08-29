@@ -44,6 +44,17 @@ async function grantRole(userId: string, roleName: string) {
   if (error) throw new Error(`[e2e:u3] granting ${roleName} failed: ${error.message}`);
 }
 
+/**
+ * INC-084c sixth — per-viewport scoping lives in one helper, never inline
+ * (roleRow/userRow law). The audit list has a card twin at 360 and a table twin
+ * at md+; tests must query inside the VISIBLE surface, because both twins are
+ * in the DOM and share row testids.
+ */
+function auditSurface(page: Page) {
+  const width = page.viewportSize()?.width ?? 1280;
+  return width < 768 ? page.getByTestId("data-table-cards") : page.getByRole("table");
+}
+
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
   await page.waitForFunction(
     () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
