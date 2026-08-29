@@ -659,3 +659,46 @@ jobs:
             exit 1
           fi
           echo "All E2E shards and the smoke tier passed."
+
+  # DEC-020 — main advances ONLY here: a fast-forward from dev, solely on full
+  # green. `needs:` enumerates EVERY job above, and `success()` is true only
+  # when all of them succeeded (the merged `e2e` job has `if: always()`, so it
+  # always reports a verdict; its own red already blocks promotion). Red never
+  # lands on main; main is the certified-green record.
+  promote:
+    name: Promote to main (fast-forward on green)
+    needs:
+      [
+        build-and-check,
+        secrets-scan,
+        migration-lint,
+        string-scan,
+        listing-write-seam,
+        browse-path-guard,
+        marketplace-weight,
+        bundle-budget,
+        dependency-audit,
+        e2e-preflight,
+        e2e-smoke,
+        e2e-shard,
+        e2e-email,
+        e2e,
+      ]
+    if: github.ref == 'refs/heads/dev' && success()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Configure the actions bot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Fast-forward guard (ff-only law — never merge/rebase here)
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor origin/main HEAD || { echo "::error::MAIN DIVERGED — fast-forward impossible; manual reconcile per DEC-020 (ff-only law, never merge/rebase here)"; exit 1; }
+      - name: Promote dev to main
+        run: git push origin HEAD:main
