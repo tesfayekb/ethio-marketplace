@@ -79,7 +79,7 @@ async function railLaw(page: Page) {
     };
   });
   expect(Math.abs(measured.top - 64), "rail top is not pinned at 64").toBeLessThanOrEqual(1);
-  
+
   // L3 stabilization poll: on a cold renderer the footer-inset hook's mount
   // settle passes (see the clamp-law comment in use-footer-inset.ts: "settle
   // pass on the next frames and on fonts.ready") may not have applied yet when
@@ -90,9 +90,7 @@ async function railLaw(page: Page) {
     .poll(
       async () => {
         const again = await page.evaluate(() => {
-          const aside = document
-            .querySelector('[data-testid="app-rail"]')!
-            .getBoundingClientRect();
+          const aside = document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect();
           const footerEl =
             document.querySelector('[data-testid="shell-footer-wrapper"]') ??
             document.querySelector("footer")!;
