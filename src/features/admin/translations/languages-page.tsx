@@ -230,10 +230,15 @@ function LanguagesTable({
       width: "w-[14%]",
       cell: (row) => {
         const { total, remaining } = coverageOf(statsByLang.get(row.code));
-        const blocked = !row.enabledPublic && remaining > 0;
-        const hint = t("admin.translations.publicGate")
-          .replace("{remaining}", String(remaining))
-          .replace("{total}", String(total));
+        // EMPTY-SET LAW (INC-095h): an empty catalog is not vacuously complete.
+        // The server refuses it explicitly; the switch says so before the click.
+        const catalogEmpty = baseKeyCount === 0;
+        const blocked = !row.enabledPublic && (catalogEmpty || remaining > 0);
+        const hint = catalogEmpty
+          ? t("admin.translations.syncFirstTooltip")
+          : t("admin.translations.publicGate")
+              .replace("{remaining}", String(remaining))
+              .replace("{total}", String(total));
         return (
           <span className="block min-w-0" title={blocked ? hint : undefined}>
             <Switch
