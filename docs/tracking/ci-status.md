@@ -1,29 +1,29 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `d2721b3234a5d2a27435ed527fc57fb74c2f7025` (short `d2721b3`)
+- Commit: `769e3e61f0d02781c19fda65954da72530be2844` (short `769e3e6`)
 - Conclusion: **FAILURE**
-- Completed (UTC): 2026-08-29T07:03:05Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33239557221
+- Completed (UTC): 2026-08-29T07:49:52Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33241376354
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Hardcoded string scan (enforcing) | success |
-| Listing-write seam guard (with self-test) | success |
 | Gitleaks secrets scan | success |
-| E2E preflight (migration parity, staging) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
 | First-paint bundle budget (gzipped ceiling) | success |
 | Build, typecheck, lint | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Hardcoded string scan (enforcing) | success |
 | Dependency vulnerability audit (enforcing on high/critical) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Listing-write seam guard (with self-test) | success |
+| E2E preflight (migration parity, staging) | success |
 | Migration linter (with self-test) | success |
-| E2E email (serial, quota-bound) | success |
-| E2E shard 4/4 | success |
-| E2E shard 2/4 | failure |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | E2E smoke tier | success |
-| E2E shard 1/4 | failure |
+| E2E email (serial, quota-bound) | success |
 | E2E shard 3/4 | failure |
+| E2E shard 1/4 | success |
+| E2E shard 2/4 | failure |
+| E2E shard 4/4 | success |
 | E2E (Playwright, ethio-staging) | failure |
 | Promote to main (fast-forward on green) | skipped |
