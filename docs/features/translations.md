@@ -192,7 +192,6 @@ over it. An empty or failing bundle logs one line — `[i18n] bundle fallback fo
 still answers every key, so an empty staging catalog can never regress a
 language to English, and a bundle can never blank the UI.
 
-
 **Honest limitation (SSR):** the active language is still restored from
 `localStorage` after hydration and the root route has no server-side bundle
 loader, so the server renders the compiled English catalog and the DB bundle is

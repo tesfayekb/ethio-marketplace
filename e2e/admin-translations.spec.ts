@@ -57,7 +57,6 @@ function surfaceControl(page: Page, testid: string): Locator {
   return translationsSurface(page).getByTestId(testid);
 }
 
-
 async function grantRole(userId: string, roleName: string) {
   const supabase = adminClient();
   const { data: role, error: roleError } = await supabase
