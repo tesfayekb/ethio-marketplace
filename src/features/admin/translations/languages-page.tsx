@@ -138,6 +138,10 @@ function LanguagesTable({
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
+  // Source-catalog size drives the publication gate's empty-set branch.
+  const baseCode = rows.find((row) => row.isBase)?.code ?? "en";
+  const baseKeyCount = coverageOf(statsByLang.get(baseCode)).total;
+
   const apply = (row: LanguageRow, next: { admin?: boolean; public?: boolean }) => {
     setErrorKey(null);
     setErrorDetail(null);
