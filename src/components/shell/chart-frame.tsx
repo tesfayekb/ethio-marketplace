@@ -17,12 +17,26 @@ import { PageCard } from "./page-card";
 
 export type ChartAspect = "16/9" | "4/3" | "square";
 
+/**
+ * U3b (INC-093) — BOUNDED VARIANT. `variant="sparkline"` pins the plot to a
+ * fixed, small height (SPARKLINE_PLOT_HEIGHT) instead of deriving it from the
+ * aspect ratio, so a trend glance can never consume the viewport. Total card
+ * height stays <= 160px including the optional `footer` label strip. The
+ * default variant is unchanged for every existing call site.
+ */
+export type ChartVariant = "default" | "sparkline";
+
 const RATIO: Record<ChartAspect, number> = { "16/9": 9 / 16, "4/3": 3 / 4, square: 1 };
+
+const SPARKLINE_PLOT_HEIGHT = 64;
 
 export interface ChartFrameProps {
   title: string;
   description?: string;
   aspect?: ChartAspect;
+  variant?: ChartVariant;
+  /** Sparse axis labels rendered under the plot (sparkline label strip). */
+  footer?: ReactNode;
   legend?: "top" | "bottom";
   legendContent?: ReactNode;
   children: (size: { width: number; height: number }) => ReactNode;
@@ -37,6 +51,8 @@ export function ChartFrame({
   title,
   description,
   aspect = "16/9",
+  variant = "default",
+  footer,
   legend = "bottom",
   legendContent,
   children,
