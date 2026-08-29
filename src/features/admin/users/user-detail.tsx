@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { FormField, FormSection } from "@/components/shell/form-section";
+import { TranslatorLanguagesCard } from "@/features/admin/translations/translator-card";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
