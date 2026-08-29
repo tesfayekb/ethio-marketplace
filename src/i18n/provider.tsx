@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { fetchUiBundle } from "./bundle";
 import { en } from "./locales/en";
 import { SUPPORTED_LANGUAGES, type Language, type MessageKey, type Messages } from "./types";
 
