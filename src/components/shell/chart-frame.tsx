@@ -126,15 +126,31 @@ export function ChartFrame({
   }
 
   return (
-    <PageCard testid={testid} className={cn("min-w-0 space-y-3", className)}>
+    <PageCard testid={testid} className={cn("min-w-0", sparkline ? "space-y-2" : "space-y-3", className)}>
       <div className="min-w-0 space-y-1">
-        <h3 className="min-w-0 break-words text-base font-semibold text-foreground">{title}</h3>
+        <h3
+          className={cn(
+            "min-w-0 break-words font-semibold text-foreground",
+            sparkline ? "text-sm" : "text-base",
+          )}
+        >
+          {title}
+        </h3>
         {description ? (
-          <p className="min-w-0 break-words text-sm text-muted-foreground">{description}</p>
+          sparkline ? (
+            <p className="sr-only">{description}</p>
+          ) : (
+            <p className="min-w-0 break-words text-sm text-muted-foreground">{description}</p>
+          )
         ) : null}
       </div>
       {legend === "top" ? legendBlock : null}
       <div className="min-w-0">{body}</div>
+      {footer ? (
+        <div data-testid={`${testid}-footer`} className="min-w-0 text-xs text-muted-foreground">
+          {footer}
+        </div>
+      ) : null}
       {legend === "bottom" ? legendBlock : null}
     </PageCard>
   );
