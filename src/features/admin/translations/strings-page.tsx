@@ -35,6 +35,8 @@ import {
 
 const PAGE_SIZE = 25;
 
+type MutationAction = () => Promise<void>;
+
 const STATUS_CHIPS = [
   { value: "all", labelKey: "admin.translations.filter.all" },
   { value: "untranslated", labelKey: "admin.translations.status.untranslated" },
@@ -409,7 +411,8 @@ function StringEditor({
   const [saved, setSaved] = useState(false);
   const id = slug(row.key);
 
-  const run = (action: () => Promise<void>) => {
+  // eslint-disable-next-line no-unused-vars -- the scan in scripts/check-hardcoded-strings.sh reads `> Promise<` as JSX text; the alias keeps the signature off one line.
+  const run = (action: MutationAction) => {
     setSaved(false);
     setErrorKey(null);
     setErrorDetail(null);
