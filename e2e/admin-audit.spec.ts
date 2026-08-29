@@ -44,6 +44,17 @@ async function grantRole(userId: string, roleName: string) {
   if (error) throw new Error(`[e2e:u3] granting ${roleName} failed: ${error.message}`);
 }
 
+/**
+ * INC-084c sixth — per-viewport scoping lives in one helper, never inline
+ * (roleRow/userRow law). The audit list has a card twin at 360 and a table twin
+ * at md+; tests must query inside the VISIBLE surface, because both twins are
+ * in the DOM and share row testids.
+ */
+function auditSurface(page: Page) {
+  const width = page.viewportSize()?.width ?? 1280;
+  return width < 768 ? page.getByTestId("data-table-cards") : page.getByRole("table");
+}
+
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
   await page.waitForFunction(
     () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
@@ -97,19 +108,15 @@ test.describe("U3 audit & security", () => {
     // INC-092: the detail region must render ADJACENT to the row it describes,
     // never at page bottom. The assertion is a DOM RELATIONSHIP (sibling row at
     // md+, same card at 360), not a position on the page.
-    // INC-084c (FIFTH occurrence, run 33230993452): a bare prefix locator with
-    // .first() resolves to the HIDDEN responsive twin at desktop. Every
-    // audit-expand interaction scopes to the VISIBLE container — the table at
-    // md+ (the 360 branch would scope to the card list).
-    const trigger = page.getByRole("table").locator('[data-testid^="audit-expand-"]').first();
+    // INC-084c sixth — per-viewport scoping lives in one helper, never inline
+    // (roleRow/userRow law). The VISIBLE container is the card list at 360 and
+    // the table at md+; both twins share the same row testids.
+    const surface = auditSurface(page);
+    const trigger = surface.locator('[data-testid^="audit-expand-"]').first();
     await expect(trigger).toBeVisible();
     const rowId = ((await trigger.getAttribute("data-testid")) ?? "").replace("audit-expand-", "");
     await trigger.click();
-    // Same twin law: read the detail inside the visible table, not page-wide.
-    const detail = page
-      .getByRole("table")
-      .locator(`[data-testid="audit-row-${rowId}-expanded"]`)
-      .first();
+    const detail = surface.locator(`[data-testid="audit-row-${rowId}-expanded"]`).first();
     await expect(detail).toBeVisible();
     const adjacent = await detail.evaluate((element, id) => {
       const row = element.closest("tr");
