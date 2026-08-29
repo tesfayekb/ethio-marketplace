@@ -23,6 +23,7 @@ import {
   serverMessage,
   translationErrorKey,
   type LanguageRow,
+  type SyncResult,
   type TranslationStats,
 } from "./translations-service";
 import {
@@ -330,20 +331,25 @@ function SyncKeysCard({ guard }: { guard: GuardFn }) {
             onClick={() => {
               setDone(null);
               setErrorKey(null);
-              void guard(() =>
-                sync.mutateAsync({
+              // `guard` resolves void, so the RPC's counts are carried out
+              // through this box rather than the promise value.
+              const box: { result: SyncResult | null } = { result: null };
+              void guard(async () => {
+                box.result = await sync.mutateAsync({
                   en: en as unknown as Record<string, string>,
                   am: am as unknown as Record<string, string>,
-                }),
-              )
-                .then((result) =>
+                });
+              })
+                .then(() => {
+                  const result = box.result;
+                  if (!result) return;
                   setDone(
                     t("admin.translations.sync.done")
                       .replace("{inserted}", String(result.inserted))
                       .replace("{languages}", String(result.languages))
                       .replace("{seeded}", String(result.seeded)),
-                  ),
-                )
+                  );
+                })
                 .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
             }}
           >
