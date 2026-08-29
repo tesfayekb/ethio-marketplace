@@ -320,20 +320,58 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-9 the Amharic runtime still renders after the DB bundle merge", async ({ page }) => {
-    await signInAsSuperAdmin(page);
-    await gotoReady(page, "/admin/translations");
-    // INC-084c seventh — anchored to the censused section container inside
-    // <main>, never a bare getByText().first() (the rail's hidden nav twin
-    // carries the same label).
-    const section = page.locator("main").getByTestId("admin-section-translations");
-    await switchLanguage(page, "am");
-    await expect(
-      section.getByRole("heading", { name: am["admin.translations.title"] }),
-    ).toBeVisible({ timeout: 20000 });
-    await switchLanguage(page, "en");
-    await expect(
-      section.getByRole("heading", { name: en["admin.translations.title"] }),
-    ).toBeVisible({ timeout: 20000 });
+    // sized budget for a legitimate 577-key bulk sync — sizing a real operation
+    // is not loosening (INC-095i); phases named below so any timeout self-locates.
+    test.setTimeout(120_000);
+
+    const enTotal = async () => {
+      return page.evaluate(async () => {
+        const client = (
+          window as unknown as {
+            __ethioSupabase: {
+              rpc: (
+                fn: string,
+                args: Record<string, unknown>,
+              ) => Promise<{ data: Array<{ total: number }> | null; error: unknown }>;
+            };
+          }
+        ).__ethioSupabase;
+        const { data, error } = await client.rpc("admin_translation_stats", { p_lang: "en" });
+        if (error) throw error;
+        return data?.[0]?.total ?? 0;
+      });
+    };
+
+    await test.step("sign-in", async () => {
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations");
+    });
+
+    // VERIFY-OR-SYNC: if another spec's sync already populated the catalog,
+    // skip the bulk operation and go straight to the merge assertion.
+    await test.step("sync", async () => {
+      if ((await enTotal()) === 0) {
+        const secret = await enrollAndStepUp(page);
+        await page.getByTestId("translations-sync-run").click();
+        await stepUpIfPrompted(page, secret);
+        await expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 30000 });
+      }
+    });
+
+    await test.step("switch+assert", async () => {
+      // INC-084c seventh — anchored to the censused section container inside
+      // <main>, never a bare getByText().first() (the rail's hidden nav twin
+      // carries the same label).
+      const section = page.locator("main").getByTestId("admin-section-translations");
+      await switchLanguage(page, "am");
+      await expect(
+        section.getByRole("heading", { name: am["admin.translations.title"] }),
+      ).toBeVisible({ timeout: 20000 });
+      await switchLanguage(page, "en");
+      await expect(
+        section.getByRole("heading", { name: en["admin.translations.title"] }),
+      ).toBeVisible({ timeout: 20000 });
+    });
   });
 
   test("TR-10 translator scope card is manage-gated on the user detail page", async ({ page }) => {
