@@ -222,13 +222,26 @@ export function AdminAuditPage() {
 
       <ChartFrame
         testid="audit-chart"
+        variant="sparkline"
         title={t("admin.audit.chart.title")}
         description={t("admin.audit.chart.description")}
         loading={stats.isLoading}
         error={stats.error}
-        empty={(stats.data?.days ?? []).length === 0}
+        empty={days.length === 0}
+        footer={
+          <div data-testid="audit-chart-labels" className="flex min-w-0 justify-between gap-2">
+            {dayTicks
+              .map((label, index) => ({ label, index }))
+              .filter((tick) => tick.label !== null)
+              .map((tick) => (
+                <span key={tick.index} className="truncate tabular-nums">
+                  {tick.label}
+                </span>
+              ))}
+          </div>
+        }
       >
-        {(size) => <DayBars size={size} days={stats.data?.days ?? []} />}
+        {(size) => <DayBars size={size} days={days} labelFor={barLabel} />}
       </ChartFrame>
 
       <DataTable
