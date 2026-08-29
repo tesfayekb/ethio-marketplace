@@ -456,6 +456,7 @@ export const am: Messages = {
   "admin.audit.stat.topAction": "ቀዳሚ እርምጃ",
   "admin.audit.chart.title": "በቀን የክንውኖች ብዛት",
   "admin.audit.chart.description": "ባለፉት 14 ቀናት የተመዘገቡ የኦዲት ክንውኖች።",
+  "admin.audit.chart.bar": "{date}: {count} ክንውኖች",
   "admin.audit.col.time": "ሰዓት",
   "admin.audit.col.actor": "ተዋናይ",
   "admin.audit.col.action": "እርምጃ",
