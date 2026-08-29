@@ -284,6 +284,11 @@ export function DataTable<T>({
                     {rowActions(row)}
                   </div>
                 ) : null}
+                {expandedRow?.(row) ? (
+                  <div data-testid={`${rowTestId(row)}-expanded`} className="min-w-0">
+                    {expandedRow(row)}
+                  </div>
+                ) : null}
               </li>
             );
           })}
