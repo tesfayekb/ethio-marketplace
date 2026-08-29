@@ -284,6 +284,29 @@ export function AdminAuditPage() {
             />
           </div>
         }
+        expandedRow={(row) =>
+          row.id === expanded ? (
+            <DetailPanel
+              testid="audit-detail"
+              title={t("admin.audit.detailTitle")}
+              pairs={[
+                { label: t("admin.audit.col.action"), value: row.action },
+                {
+                  label: t("admin.audit.col.actor"),
+                  value: row.actorName ?? t("admin.audit.system"),
+                },
+                {
+                  label: t("admin.audit.col.entity"),
+                  value: `${row.entityType}${row.entityId ? ` · ${row.entityId}` : ""}`,
+                },
+                ...Object.entries(row.meta).map(([key, value]) => ({
+                  label: key,
+                  value: typeof value === "string" ? value : JSON.stringify(value),
+                })),
+              ]}
+            />
+          ) : null
+        }
         rowActions={(row) => (
           <Button
             type="button"
