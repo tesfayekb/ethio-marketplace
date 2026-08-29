@@ -71,7 +71,15 @@ export const ADMIN_SECTIONS = [
     titleKey: "admin.section.images.title",
     bodyKey: "admin.section.images.body",
   },
+  {
+    id: "translations",
+    path: "/admin/translations",
+    permission: "translations:view",
+    titleKey: "admin.section.translations.title",
+    bodyKey: "admin.section.translations.body",
+  },
 ] as const satisfies readonly AdminSectionShape[];
+
 
 export type AdminSection = (typeof ADMIN_SECTIONS)[number];
 export type AdminSectionId = AdminSection["id"];
