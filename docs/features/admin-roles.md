@@ -118,6 +118,9 @@ Matrix UI:
 | `user_baseline` and ALREADY granted | badge, but the Revoke control stays (no un-cleanable grant) |
 | system role                         | unchanged — fully locked                                    |
 
+Law: any migration registering a new resource or action ships its `admin.roles.perm.*`
+keys (EN+AM) in the same landing — the i18n coverage guard enforces this.
+
 Migration `supabase/migrations/20260822065530_de8f85bd-e66b-4231-8c76-e7c2e7cfc40f.sql`
 (self-marking, version `20260822065530`). Proofs P1 (reserved grant refused),
 P2 (assignable grant succeeds), P3 (system-role refusal unchanged and still
