@@ -2,6 +2,7 @@ import {
   FolderTree,
   Globe2,
   Image,
+  Languages,
   ScrollText,
   ShieldCheck,
   SlidersHorizontal,
@@ -32,6 +33,7 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   categories: FolderTree,
   attributes: SlidersHorizontal,
   images: Image,
+  translations: Languages,
 };
 
 export const ADMIN_NAV_ITEMS: readonly NavItem[] = ADMIN_SECTIONS.map((section) => ({
