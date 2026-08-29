@@ -312,13 +312,15 @@ test.describe("U2 roles console", () => {
     await expectNoHorizontalOverflow(page);
 
     await gotoReady(page, `/admin/roles/${id}`);
-    // INC-084c (third occurrence): an unscoped getByText resolves to the rail's
-    // hidden nav twin, not the visible surface. Anchor to the matrix heading
-    // INSIDE the Permissions card so the assertion always hits the real element.
+    // INC-084c (fourth occurrence): the card's h3 title AND a resource-group h4
+    // inside the matrix both render the same Amharic word "ፈቃዶች" (run
+    // 33228312458 strict-mode violation), so a name-only heading query collides.
+    // Anchor to the card title EXACTLY: the level-3 heading inside the
+    // role-permissions card.
     await expect(
       page
         .getByTestId("role-permissions")
-        .getByRole("heading", { name: am["admin.roles.perm.title"] }),
+        .getByRole("heading", { name: am["admin.roles.perm.title"], level: 3 }),
     ).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
