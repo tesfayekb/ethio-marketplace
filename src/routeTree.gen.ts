@@ -28,6 +28,7 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
+import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 
@@ -126,6 +127,11 @@ const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
   path: '/users/$userId',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTranslationsLangRoute = AdminTranslationsLangRouteImport.update({
+  id: '/translations_/$lang',
+  path: '/translations/$lang',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminRolesRoleIdRoute = AdminRolesRoleIdRouteImport.update({
   id: '/roles_/$roleId',
   path: '/roles/$roleId',
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
+  '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
 }
 export interface FileRoutesByTo {
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
+  '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
 }
 export interface FileRoutesById {
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
+  '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
 }
 export interface FileRouteTypes {
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/impersonation/$sessionId'
     | '/admin/roles/$roleId'
+    | '/admin/translations/$lang'
     | '/admin/users/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/impersonation/$sessionId'
     | '/admin/roles/$roleId'
+    | '/admin/translations/$lang'
     | '/admin/users/$userId'
   id:
     | '__root__'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
     | '/admin/roles_/$roleId'
+    | '/admin/translations_/$lang'
     | '/admin/users_/$userId'
   fileRoutesById: FileRoutesById
 }
@@ -425,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersUserIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/translations_/$lang': {
+      id: '/admin/translations_/$lang'
+      path: '/translations/$lang'
+      fullPath: '/admin/translations/$lang'
+      preLoaderRoute: typeof AdminTranslationsLangRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/roles_/$roleId': {
       id: '/admin/roles_/$roleId'
       path: '/roles/$roleId'
@@ -454,6 +473,7 @@ interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminImpersonationSessionIdRoute: typeof AdminImpersonationSessionIdRoute
   AdminRolesRoleIdRoute: typeof AdminRolesRoleIdRoute
+  AdminTranslationsLangRoute: typeof AdminTranslationsLangRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
 }
 
@@ -469,6 +489,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminImpersonationSessionIdRoute: AdminImpersonationSessionIdRoute,
   AdminRolesRoleIdRoute: AdminRolesRoleIdRoute,
+  AdminTranslationsLangRoute: AdminTranslationsLangRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,
 }
 

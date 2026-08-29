@@ -1,4 +1,4 @@
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -69,11 +69,16 @@ const STATUS_LABELS: Record<string, MessageKey> = {
  * caveat, a `translations:manage` holder is scope-EXEMPT, so the notice is
  * suppressed on the PERMISSION, never on an empty list.
  */
-export function AdminTranslationsStringsPage({ lang }: { lang: string }) {
+export function AdminTranslationsStringsPage({
+  lang,
+  search,
+}: {
+  lang: string;
+  search: StringsSearch;
+}) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { permissions } = useAdminShell();
-  const search = useSearch({ from: "/admin/translations/$lang" }) as StringsSearch;
 
   const mayUpdate = permissions.includes("translations:update");
   const mayApprove = permissions.includes("translations:approve");
