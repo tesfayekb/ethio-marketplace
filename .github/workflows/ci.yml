@@ -715,7 +715,11 @@ jobs:
           E2E_RESULTS_DIR: shard-results
           E2E_LOGS_DIR: shard-logs
           E2E_CONTEXT_DIR: shard-contexts
-          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4
+          # DEC-023-B: `changed?` is OPTIONAL — labelled like any source when the
+          # fast lane ran, silently omitted when it skipped. The lane is signal
+          # only; this job's `needs:` and E2E_GREEN stay the full matrix.
+          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,changed?
+
           E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success' && needs.e2e-email.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           # INC-088 — platform-origin label: Lovable's auto-pushes carry a fixed
