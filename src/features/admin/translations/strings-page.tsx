@@ -18,6 +18,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 import { relativeTime } from "@/lib/relative-time";
 
+import { AiBulkBar } from "./ai-bulk-bar";
 import {
   serverMessage,
   translationErrorKey,
@@ -25,6 +26,7 @@ import {
   type TranslationRow,
 } from "./translations-service";
 import {
+  useAiTranslate,
   useLanguages,
   useMyTranslatorLanguages,
   useSaveTranslation,
@@ -87,6 +89,7 @@ export function AdminTranslationsStringsPage({
   const mayUpdate = permissions.includes("translations:update");
   const mayApprove = permissions.includes("translations:approve");
   const mayManage = permissions.includes("translations:manage");
+  const mayMachine = permissions.includes("translations:machine");
 
   const languages = useLanguages();
   const stats = useTranslationStats(lang);
@@ -203,6 +206,14 @@ export function AdminTranslationsStringsPage({
               .replace("{total}", String(counts["all"] ?? 0))}
           </p>
 
+          {mayMachine && !(known?.isBase ?? false) ? (
+            <AiBulkBar
+              lang={lang}
+              untranslated={counts["untranslated"] ?? 0}
+              guard={guard}
+            />
+          ) : null}
+
           {outOfScope ? (
             <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">
               {t("admin.translations.editor.notAssigned")}
@@ -268,6 +279,7 @@ export function AdminTranslationsStringsPage({
                   rtl={known?.rtl ?? false}
                   mayUpdate={mayUpdate}
                   mayApprove={mayApprove}
+                  mayMachine={mayMachine && !(known?.isBase ?? false)}
                   guard={guard}
                 />
               ) : null
@@ -395,6 +407,7 @@ function StringEditor({
   rtl,
   mayUpdate,
   mayApprove,
+  mayMachine,
   guard,
 }: {
   row: TranslationRow;
@@ -402,10 +415,12 @@ function StringEditor({
   rtl: boolean;
   mayUpdate: boolean;
   mayApprove: boolean;
+  mayMachine: boolean;
   guard: GuardFn;
 }) {
   const { t, language } = useI18n();
   const save = useSaveTranslation(lang);
+  const ai = useAiTranslate(lang);
   const statusAction = useTranslationStatusAction(lang);
   const [draft, setDraft] = useState(row.value ?? "");
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
@@ -484,6 +499,26 @@ function StringEditor({
             onClick={() => run(() => save.mutateAsync({ key: row.key, value: draft }))}
           >
             {t("admin.translations.editor.save")}
+          </Button>
+        ) : null}
+        {mayMachine ? (
+          <Button
+            variant="outline"
+            className="min-h-11"
+            data-testid={`string-ai-${id}`}
+            disabled={ai.isPending || row.sourceValue === null}
+            onClick={() =>
+              run(async () => {
+                const result = await ai.mutateAsync([
+                  { key: row.key, source: row.sourceValue ?? "" },
+                ]);
+                const failure = result.failed[0];
+                // F4 — a per-item refusal is an ERROR here, never a quiet no-op.
+                if (failure) throw new Error(failure.reason);
+              })
+            }
+          >
+            {ai.isPending ? t("admin.translations.ai.pending") : t("admin.translations.ai.row")}
           </Button>
         ) : null}
         {mayApprove ? (
