@@ -629,6 +629,21 @@ export const am: Messages = {
   "admin.translations.col.entityType": "ዓይነት",
   "admin.translations.entity.category": "ምድብ",
   "admin.translations.entity.location": "ቦታ",
+  "admin.translations.history.open": "ታሪክ",
+  "admin.translations.history.title": "የለውጥ ታሪክ",
+  "admin.translations.history.loading": "ታሪክ በመጫን ላይ…",
+  "admin.translations.history.error": "ታሪኩን መጫን አልተቻለም።",
+  "admin.translations.history.empty": "እስካሁን ታሪክ የለም — ለውጦች እዚህ ይታያሉ።",
+  "admin.translations.history.noValue": "(ምንም እሴት የለም)",
+  "admin.translations.history.actor.system": "ሲስተም",
+  "admin.translations.history.restore": "ይህን እሴት መልስ",
+  "admin.translations.history.restored": "ተመልሷል።",
+  "admin.translations.history.confirm": "ይህን ጽሑፍ እንደ የተስተካከለ እሴት ይመልሰዋል — ታሪኩ ሁሉንም ይይዛል",
+  "admin.translations.history.clearInstead": "በምትኩ አጽዳ",
+  "admin.translations.history.action.machine": "የማሽን ጽሑፍ",
+  "admin.translations.history.action.save": "የሰው እርማት",
+  "admin.translations.history.action.approve": "ጸድቋል",
+  "admin.translations.history.action.clear": "ጸድቷል",
 };
 
 export default am;
