@@ -93,8 +93,14 @@ function slug(key: string) {
  * service-role connection has no `auth.uid()`; the rows written here are the
  * exact shape the RPC writes (base `approved`, target `untranslated`).
  */
-function scratchKey(tag: string): string {
+function scratchAxes(tag: string): string {
   const worker = process.env["TEST_WORKER_INDEX"] ?? String(process.pid);
+  const shard = process.env["E2E_SHARD"] ?? "solo";
+  const project = test.info().project.name;
+  return `${processId()}-${shard}-${project}-${worker}-${tag}`;
+}
+
+function scratchKey(tag: string): string {
   // INC-096f — the namespace MUST carry every parallelism axis: run id
   // (processId), shard/job (E2E_SHARD), worker, project, and finally the TEST
   // itself. First the project name was missing, causing mobile-360/desktop-1280
@@ -102,16 +108,45 @@ function scratchKey(tag: string): string {
   // fast lane added a third concurrent job and keys collided across jobs because
   // PROCESS_ID is run-scoped. Last, the per-test tag was missing: every TR test
   // in one worker derived ONE key, so TR-8's writes landed on TR-11's row.
-  const shard = process.env["E2E_SHARD"] ?? "solo";
-  const project = test.info().project.name;
-  return `e2e.scratch.${processId()}-${shard}-${project}-${worker}-${tag}`;
+  return `e2e.scratch.${scratchAxes(tag)}`;
 }
 
-async function seedScratchKey(key: string, sourceValue: string) {
+/**
+ * FENCE LANGUAGE (INC-097d — third pillar of the fixture-identity law).
+ *
+ * Identity isolates ROWS; it cannot isolate a SWEEP. TR-12's bulk fill is a
+ * by-design global operation: run on `am`, it translates every untranslated
+ * row in the language, including sibling tests' freshly seeded scratch keys
+ * (dump-proven, run 33310150087 — row[0]'s actor was the bulk persona). The
+ * fence is a language nobody else works in: sweep-class tests seed and sweep
+ * HERE, so `am`/`om` — real operator surfaces — are never touched by a test.
+ *
+ * The code is `zxx` (ISO 639-2 "no linguistic content"), NOT the literal
+ * `e2e` the task named: `/api/translate` validates `target_lang` against
+ * `/^[a-z]{2,8}(-[a-z]{2,8})?$/`, which rejects the digit, and the route is
+ * out of this task's scope. Flip this one constant if that regex ever widens.
+ */
+const FENCE_LANG = "zxx";
+
+async function ensureFenceLanguage() {
+  const { error } = await adminClient().from("languages").upsert(
+    {
+      code: FENCE_LANG,
+      name_en: "E2E Fence",
+      name_native: "E2E",
+      enabled_admin: true,
+      enabled_public: false,
+    },
+    { onConflict: "code" },
+  );
+  if (error) throw new Error(`[e2e:u4c] fence language upsert failed: ${error.message}`);
+}
+
+async function seedScratchKey(key: string, sourceValue: string, lang = "am") {
   const supabase = adminClient();
   const rows = [
     { key, lang_code: "en", value: sourceValue, status: "approved", machine: false },
-    { key, lang_code: "am", value: null, status: "untranslated", machine: false },
+    { key, lang_code: lang, value: null, status: "untranslated", machine: false },
   ];
   const { error } = await supabase
     .from("ui_translations")
