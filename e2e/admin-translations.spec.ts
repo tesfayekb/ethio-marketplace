@@ -124,6 +124,45 @@ async function reapScratchKey(key: string) {
   if (error) throw new Error(`[e2e:u4b] reaping ${key} failed: ${error.message}`);
 }
 
+/**
+ * SELF-DESCRIBING DUMP LAW (INC-096f-c): a revision-count mismatch is
+ * evidence, not a number. Every count assertion on ui_translation_revisions
+ * dumps EVERY row verbatim — action, prior status/value/machine, actor,
+ * timestamp — so the mechanism reads itself (a double restore-click, a stray
+ * save, or a capture we owe a law each name themselves). Shared by TR-11 and
+ * TR-16; any future count assertion uses this too.
+ */
+export interface RevisionDumpRow {
+  action: string;
+  prev_value: string | null;
+  prev_status: string | null;
+  prev_machine: boolean;
+  changed_by: string | null;
+  changed_at: string;
+}
+
+async function dumpRevisions(key: string, lang: string, tag: string): Promise<RevisionDumpRow[]> {
+  const { data, error } = await adminClient()
+    .from("ui_translation_revisions")
+    .select("prev_value, prev_status, prev_machine, action, changed_by, changed_at")
+    .eq("key", key)
+    .eq("lang_code", lang)
+    .order("changed_at", { ascending: true });
+  if (error) throw new Error(`${tag} revision read failed for ${key}: ${error.message}`);
+  return (data ?? []) as RevisionDumpRow[];
+}
+
+function serializeRevisions(rows: RevisionDumpRow[]): string {
+  return rows
+    .map(
+      (r, i) =>
+        `  [${i}] action=${r.action} prev_status=${r.prev_status} ` +
+        `prev_value=${JSON.stringify(r.prev_value)} prev_machine=${r.prev_machine} ` +
+        `changed_by=${r.changed_by} changed_at=${r.changed_at}`,
+    )
+    .join("\n");
+}
+
 async function grantRole(userId: string, roleName: string) {
   const supabase = adminClient();
   const { data: role, error: roleError } = await supabase
