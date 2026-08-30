@@ -609,8 +609,9 @@ export const en = {
   "admin.translations.editor.notAssigned":
     "You are not assigned to this language — the server will refuse changes.",
   "admin.translations.translator.title": "Translator languages",
-  "admin.translations.translator.description":
-    "The languages this person may edit. Managers are exempt from this list.",
+  "admin.translations.translator.scopeNote":
+    "Visible to translation managers only. Assignments scope which languages this person may edit; the translator role grants the editing permission itself.",
+  "admin.translations.translator.empty": "No translator languages assigned.",
   "admin.translations.translator.none": "No languages assigned.",
   "admin.translations.translator.save": "Save assignment",
   "admin.translations.translator.saved": "Assignment saved.",
