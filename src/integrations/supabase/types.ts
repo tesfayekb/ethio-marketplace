@@ -1121,6 +1121,32 @@ export type Database = {
           total_count: number
         }[]
       }
+      admin_list_entity_translations: {
+        Args: {
+          p_lang: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+        }
+        Returns: {
+          approved_at: string
+          approved_by: string
+          entity_id: string
+          entity_type: string
+          field: string
+          flag_note: string
+          flagged: boolean
+          label: string
+          machine: boolean
+          source_value: string
+          status: string
+          total_count: number
+          updated_at: string
+          updated_by: string
+          value: string
+        }[]
+      }
       admin_list_languages: {
         Args: never
         Returns: {
@@ -1205,12 +1231,32 @@ export type Database = {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
       }
+      admin_save_entity_translation: {
+        Args: {
+          p_field: string
+          p_id: string
+          p_lang: string
+          p_type: string
+          p_value: string
+        }
+        Returns: undefined
+      }
       admin_save_translation: {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
       }
       admin_set_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_entity_translation_status: {
+        Args: {
+          p_action: string
+          p_field: string
+          p_id: string
+          p_lang: string
+          p_type: string
+        }
         Returns: undefined
       }
       admin_set_language_flags: {
@@ -1302,6 +1348,10 @@ export type Database = {
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       e2e_migration_ledger: { Args: never; Returns: string[] }
       end_impersonation: { Args: { p_session: string }; Returns: undefined }
+      entity_source_value: {
+        Args: { p_field: string; p_id: string; p_type: string }
+        Returns: string
+      }
       expire_stale_listings: { Args: never; Returns: number }
       get_active_impersonation: {
         Args: never
@@ -1335,6 +1385,7 @@ export type Database = {
           validation: Json
         }[]
       }
+      get_entity_bundle: { Args: { p_lang: string }; Returns: Json }
       get_my_permissions: {
         Args: never
         Returns: {
