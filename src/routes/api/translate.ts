@@ -118,6 +118,25 @@ async function googleTranslate(
   return out;
 }
 
+/**
+ * SERVER-RUNTIME ENV ACCESS — one access pattern, both serves.
+ *
+ * `process.env` is the ONLY read used here, and it is read INSIDE the handler,
+ * never at module scope:
+ *  * node serve (`E2E_SERVE_BUILT=1`, Nitro node-server / DEC-019): the real
+ *    Node `process.env`, populated from the job/shell environment.
+ *  * cloudflare serve (workerd + `nodejs_compat`): the platform injects the
+ *    Worker bindings into `process.env` per REQUEST — a module-scope read there
+ *    returns `undefined`, which is exactly why every read sits in the handler.
+ *
+ * No `VITE_`-prefixed name is ever read on this path: `VITE_*` is compiled into
+ * the CLIENT bundle, so a provider key behind such a name would ship to the
+ * browser. `GOOGLE_TRANSLATE_API_KEY` is a Supabase/deploy secret only.
+ */
+function serverEnv(name: string): string {
+  return process.env[name] ?? "";
+}
+
 export const Route = createFileRoute("/api/translate")({
   server: {
     handlers: {
@@ -193,8 +212,8 @@ export const Route = createFileRoute("/api/translate")({
         }
 
         // ---- PROVIDER --------------------------------------------------
-        const fake = process.env["E2E_FAKE_TRANSLATE"] === "1";
-        const apiKey = process.env["GOOGLE_TRANSLATE_API_KEY"] ?? "";
+        const fake = serverEnv("E2E_FAKE_TRANSLATE") === "1";
+        const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
         if (!fake && apiKey === "") {
           return json({ error: "translation provider is not configured" }, 503);
         }
