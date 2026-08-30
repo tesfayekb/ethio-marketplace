@@ -594,8 +594,9 @@ export const am: Messages = {
   "admin.translations.editor.flagNote": "ተመልክቷል፦ {note}",
   "admin.translations.editor.notAssigned": "ለዚህ ቋንቋ አልተመደቡም — ሰርቨሩ ለውጦችን ይከለክላል።",
   "admin.translations.translator.title": "የተርጓሚ ቋንቋዎች",
-  "admin.translations.translator.description":
-    "ይህ ሰው ሊያስተካክላቸው የሚችላቸው ቋንቋዎች። አስተዳዳሪዎች ከዚህ ዝርዝር ነፃ ናቸው።",
+  "admin.translations.translator.scopeNote":
+    "ለትርጉም አስተዳዳሪዎች ብቻ የታይ። የተመደቡ ቋንቋዎች ይህ ሰው የትኞቹን ቋንቋዎች ሊያስተካክል እንደሚችል ይወስናል፤ የተርጓሚው ሚና ራሱ የማስተካከል ፈቃድ ይሰጣል።",
+  "admin.translations.translator.empty": "ምንም የተርጓሚ ቋንቋ አልተመደበም።",
   "admin.translations.translator.none": "የተመደበ ቋንቋ የለም።",
   "admin.translations.translator.save": "ምድብ አስቀምጥ",
   "admin.translations.translator.saved": "ምድብ ተቀምጧል።",

@@ -205,3 +205,4 @@
 - 2026-08-29 — fix(i18n): am pair for translations.collapse (+parity); test(e2e): expansion scoped via twin helper, scratch-key law, TR-9 anchored (INC-095c-e)
 - 2026-08-29 — fix(i18n): publish gate refuses an empty catalog (vacuous-complete hole, TR-6 catch); sheet/dialog close labels i18n'd (D1 on a11y text); sync-first tooltip
 - 2026-08-29 — test(e2e): TR-9 verify-or-sync, sized 120s budget, named phases (INC-095i)
+- 2026-08-30 — polish(admin): translator card compact empty state + manage-only scope note
