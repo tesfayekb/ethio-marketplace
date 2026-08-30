@@ -111,10 +111,12 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         </ul>
       )}
 
-      <Button
-        className="min-h-11 w-full sm:w-auto"
-        data-testid="translator-save"
-        disabled={save.isPending || languages.isLoading}
+      {targetEligible.data === true ? (
+        <>
+          <Button
+            className="min-h-11 w-full sm:w-auto"
+            data-testid="translator-save"
+            disabled={save.isPending || languages.isLoading}
         onClick={() => {
           setSaved(false);
           setErrorKey(null);
