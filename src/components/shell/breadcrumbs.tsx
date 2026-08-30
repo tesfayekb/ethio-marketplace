@@ -16,6 +16,7 @@ import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
 import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 
 /**
  * The content top-line breadcrumb — band 4: Home › <panel> › <category path>.

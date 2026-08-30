@@ -14,6 +14,7 @@ import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useRailCollapsed } from "@/providers/rail-state";

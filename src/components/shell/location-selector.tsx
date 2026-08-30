@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 
