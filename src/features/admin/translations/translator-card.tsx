@@ -51,7 +51,6 @@ function useTargetHasTranslationPermission(userId: string) {
   });
 }
 
-
 export function TranslatorLanguagesCard({ userId, guard }: { userId: string; guard: GuardFn }) {
   const { t } = useI18n();
   const languages = useLanguages();
@@ -83,7 +82,11 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
       ) : targetEligible.isError ? (
         /* Law F4 — a failed check surfaces; it never impersonates absence. */
-        <p role="alert" data-testid="translator-check-error" className="text-sm text-muted-foreground">
+        <p
+          role="alert"
+          data-testid="translator-check-error"
+          className="text-sm text-muted-foreground"
+        >
           {t("admin.translations.translator.checkError")}
         </p>
       ) : targetEligible.data !== true ? (
