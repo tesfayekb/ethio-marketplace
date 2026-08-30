@@ -374,11 +374,82 @@ test.describe("U4b translations console", () => {
     });
   });
 
-  test("TR-10 translator scope card is manage-gated on the user detail page", async ({ page }) => {
-    const { user } = await signInAsSuperAdmin(page);
-    await gotoReady(page, `/admin/users/${user.id}`);
-    await expect(page.getByTestId("user-translator-card")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("translator-lang-am")).toBeVisible();
-    await expectNoHorizontalOverflow(page);
+  /**
+   * TR-10 — the two-state proof (INC-095j). TRUTH CHANGE (U4b-5 amendment):
+   * the translator card is CONDITIONAL on the target's effective
+   * `translations:*` permissions, so the old single-state assertion
+   * (`translator-lang-am` always visible) was asserting a truth the product
+   * no longer holds — a target with no translations permission renders the
+   * muted `translator-no-role` line and NO controls.
+   *
+   * STATE A: fresh scratch user, no role → no-role line, zero checkboxes, no
+   * save button. STATE B: grant `translations:view` via a SCRATCH CUSTOM ROLE
+   * (service-role inserts, the established fixture path — scratch-key law's
+   * roles analogue) → checkboxes render → assign am → save behind step-up →
+   * saved status + the am checkbox stays checked (the visible assignment).
+   */
+  test("TR-10 translator card proves both permission states", async ({ page }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    const target = await createUser({ confirmed: true });
+    const supabase = adminClient();
+    const roleName = `e2e-tr10-${processId()}-${process.env["TEST_WORKER_INDEX"] ?? process.pid}`;
+    let roleId: string | null = null;
+    try {
+      // STATE A — no translations:* permission: the card collapses honestly.
+      await gotoReady(page, `/admin/users/${target.id}`);
+      await expect(page.getByTestId("user-translator-card")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("translator-no-role")).toBeVisible();
+      await expect(page.locator('[data-testid^="translator-lang-"]')).toHaveCount(0);
+      await expect(page.getByTestId("translator-save")).toHaveCount(0);
+
+      // STATE B — a scratch custom role carrying ONLY translations:view.
+      const { data: permission, error: permissionError } = await supabase
+        .from("permissions")
+        .select("id, resources!inner(name)")
+        .eq("resources.name", "translations")
+        .eq("action", "view")
+        .single();
+      if (permissionError || !permission) {
+        throw new Error(
+          `[e2e:u4b] translations:view permission lookup failed: ${permissionError?.message ?? "no row"}`,
+        );
+      }
+      const { data: role, error: roleError } = await supabase
+        .from("roles")
+        .insert({ name: roleName, display_name: roleName, is_system: false })
+        .select("id")
+        .single();
+      if (roleError || !role) {
+        throw new Error(`[e2e:u4b] scratch role insert failed: ${roleError?.message ?? "no row"}`);
+      }
+      roleId = role.id;
+      const { error: grantError } = await supabase
+        .from("role_permissions")
+        .insert({ role_id: role.id, permission_id: permission.id, is_core: false });
+      if (grantError) {
+        throw new Error(`[e2e:u4b] scratch role permission failed: ${grantError.message}`);
+      }
+      const { error: assignError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: target.id, role_id: role.id, scope_type: "global" });
+      if (assignError) {
+        throw new Error(`[e2e:u4b] scratch role assign failed: ${assignError.message}`);
+      }
+
+      await gotoReady(page, `/admin/users/${target.id}`);
+      const amBox = page.getByTestId("translator-lang-am");
+      await expect(amBox).toBeVisible({ timeout: 20000 });
+      await amBox.click();
+      await page.getByTestId("translator-save").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("translator-saved")).toBeVisible({ timeout: 20000 });
+      await expect(amBox).toHaveAttribute("aria-checked", "true");
+      await expectNoHorizontalOverflow(page);
+    } finally {
+      if (roleId) {
+        await supabase.from("user_roles").delete().eq("role_id", roleId);
+        await supabase.from("roles").delete().eq("id", roleId);
+      }
+    }
   });
 });
