@@ -586,3 +586,32 @@ key, so no fixture user can be created or signed in here.
   `admin_machine_translation` as the sole writer. CLASS RULE: a transport that
   the executor cannot create is not a design constraint on the CONTRACT — move
   the host, keep the gates.
+
+- **INC-096 addendum (b–c) — the run-33293988345 500s were handler-issued, not
+  SSR renders.** (b) The failing evidence (TR-scope: `Expected: 403, Received:
+  500` from the fetch response while the surrounding page rendered normally)
+  shows POST `/api/translate` REACHED its handler and returned a
+  handler-issued 500 from the gate section — a page-registered route rendering
+  through SSR could not produce a JSON status for the client's fetch to read.
+  Census of the installed `@tanstack/react-start@1.168.26`: NO separate server
+  factory exists (`createServerFileRoute` is absent from every installed
+  package); `createFileRoute(...)({ server: { handlers } })` IS the
+  server-route primitive, augmented into file-route options by
+  `start-client-core/serverRoute.d.ts` (`server?: RouteServerOptions`,
+  `handlers.POST: (ctx: { request, params, pathname, context, next }) =>
+  Response`). Verified empirically in BOTH serves: dev AND the
+  `NITRO_PRESET=node-server` production build behind
+  `scripts/serve-e2e-node.ts` answer POST from the handler (401 without a
+  bearer; the compiled bundle keeps `process.env[name]` as a runtime read).
+  CLASS RULE: server endpoints use `createFileRoute` + `server.handlers`,
+  censused from the installed package; a red-run mechanism ruling must be
+  checked against the failure's own evidence shape before any rewrite
+  (INC-095m's class rule, second instance). (c) Server-route responses bypass
+  the SSR error catch, so the gate-section 500 was invisible to the reporter's
+  `[ssr-error]` grep. Handler-level logging is now part of the endpoint
+  contract: every 5xx the route issues — thrown or deliberately returned —
+  logs `[ssr-error] /api/translate <message + first stack line>` before the
+  structured `{error}` body. FIXED — `src/routes/api/translate.ts` wraps the
+  handler in try/catch and routes every deliberate 5xx through a logging
+  `fail5xx` helper; handler body (gates, chunking, fake mode, single-writer,
+  caps, per-item isolation) carried over verbatim.
