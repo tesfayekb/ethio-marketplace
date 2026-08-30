@@ -398,16 +398,16 @@ Each revision shows relative time, actor, an action chip, the prior
 status/provenance chips, and the prior value (wrapped, dir-aware).
 
 **RESTORE IS A SAVE — there is no new writer.** "Restore this value"
-(`translations:update`, behind `StepUpGate`, with the line *"Restores this text
-as an EDITED value — history keeps everything"*) calls the existing
+(`translations:update`, behind `StepUpGate`, with the line _"Restores this text
+as an EDITED value — history keeps everything"_) calls the existing
 `admin_save_translation`, so the server re-checks permission, step-up, scope
 and placeholders, the value lands as **edited**, and the restore itself is
 captured as a revision. A revision whose prior value is NULL cannot be saved —
 that row offers **Clear instead**, routing to the existing clear action
 (`translations:approve`).
 
-States: loading, error, and the empty state *"No history yet — changes will
-appear here."* The drawer refetches (and the row invalidates) after any
+States: loading, error, and the empty state _"No history yet — changes will
+appear here."_ The drawer refetches (and the row invalidates) after any
 mutation.
 
 TR-16 seeds a scratch key, machine-translates it, edits it by hand, opens
