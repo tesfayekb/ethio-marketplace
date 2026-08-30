@@ -34,7 +34,7 @@ import { useI18n } from "@/i18n";
 const CURRENT = "font-semibold text-foreground underline underline-offset-4";
 
 export function Breadcrumbs() {
-  const { t, language } = useI18n();
+  const { t, entities } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchView = useRouterState({
     select: (s) => (s.location.search as { view?: string }).view,

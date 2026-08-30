@@ -132,7 +132,7 @@ function LevelPicker({
 }
 
 export function LocationSelector() {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const { locationPath, setLocationPath } = useShell();
   const { rows, isLoading } = useLocationTree();
 
@@ -195,7 +195,6 @@ export function LocationSelector() {
             labelKey={level.labelKey}
             options={level.options}
             selected={level.selected}
-            language={language}
             onSelect={(row) =>
               // Choosing at depth N replaces that level and drops everything
               // below it — the cascade can never hold an orphaned child.
