@@ -208,3 +208,4 @@
 - 2026-08-30 — polish(admin): translator card compact empty state + manage-only scope note
 - 2026-08-30 — feat(admin): translator card renders only when the target holds a translations:\* permission (effective read via has_permission RPC); no-role targets get one muted line, no controls
 - 2026-08-30 — test(e2e): TR-10 proves the conditional translator card, both states (INC-095j)
+- 2026-08-30 — fix(rbac): gated definer read for the translator card (invoker-blind probe replaced); errored checks surface, never impersonate absence (INC-095k)
