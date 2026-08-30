@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33295910073
-- Commit: `6a71a4a2753517245627925b2837b9c607e37c6b`
-- Written (UTC): 2026-08-30T06:09:53.222Z
-- Passed: 311 · Skipped: 68 · Failed: 2
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33296389104
+- Commit: `cd40bf5e74c2e68a6f4b7d0bda2b821d263bf3cd`
+- Written (UTC): 2026-08-30T06:21:35.830Z
+- Passed: 312 · Skipped: 67 · Failed: 2
 - Sources without results: none
 
 ## admin-translations.spec.ts › U4b translations console › TR-11 per-row AI translate writes a machine row and captures a revision
@@ -12,10 +12,7 @@
 - Project: `mobile-360`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 1
-Received: 2
+Error: [e2e:u4c] revision read failed: column ui_translation_revisions.created_at does not exist
 ```
 
 Context:
@@ -49,10 +46,7 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 1
-Received: 2
+Error: [e2e:u4c] revision read failed: column ui_translation_revisions.created_at does not exist
 ```
 
 Context:
