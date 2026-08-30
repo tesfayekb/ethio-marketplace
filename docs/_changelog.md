@@ -206,4 +206,4 @@
 - 2026-08-29 — fix(i18n): publish gate refuses an empty catalog (vacuous-complete hole, TR-6 catch); sheet/dialog close labels i18n'd (D1 on a11y text); sync-first tooltip
 - 2026-08-29 — test(e2e): TR-9 verify-or-sync, sized 120s budget, named phases (INC-095i)
 - 2026-08-30 — polish(admin): translator card compact empty state + manage-only scope note
-- 2026-08-30 — feat(admin): translator card renders only when the target holds a translations:* permission (effective read via has_permission RPC); no-role targets get one muted line, no controls
+- 2026-08-30 — feat(admin): translator card renders only when the target holds a translations:\* permission (effective read via has_permission RPC); no-role targets get one muted line, no controls
