@@ -37,6 +37,27 @@ function isLanguage(value: string | null): value is Language {
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en");
   const [messages, setMessages] = useState<Messages>(en);
+  // U4d — entity names for the active language. Identity is stable while the
+  // language is unchanged and the fetch is pending (INC-090 identity law).
+  const [entities, setEntities] = useState<EntityBundle>(EMPTY_ENTITY_BUNDLE);
+
+  // The entity bundle follows the SAME overlay law as the UI bundle: a failure
+  // logs one line and leaves the column/base name answering (law F4, not silent).
+  useEffect(() => {
+    let cancelled = false;
+    setEntities({ lang: language, map: {} });
+    void fetchEntityBundle(language).then(({ bundle, reason }) => {
+      if (cancelled) return;
+      if (!bundle) {
+        console.warn(`[i18n] entity bundle fallback for ${language}: ${reason}`);
+        return;
+      }
+      setEntities({ lang: language, map: bundle });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [language]);
 
   const setLanguage = useCallback((next: Language) => {
     setLanguageState(next);
