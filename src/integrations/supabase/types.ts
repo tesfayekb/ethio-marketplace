@@ -1037,6 +1037,13 @@ export type Database = {
           user_baseline: boolean
         }[]
       }
+      admin_get_translator_scope: {
+        Args: { p_target: string }
+        Returns: {
+          eligible: boolean
+          languages: string[]
+        }[]
+      }
       admin_get_user: {
         Args: { p_user_id: string }
         Returns: {
