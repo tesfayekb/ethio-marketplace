@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33293988345
-- Commit: `137bf41f0f18c29018556c76b2e344d31665f562`
-- Written (UTC): 2026-08-30T05:27:31.754Z
-- Passed: 305 · Skipped: 68 · Failed: 8
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33295380760
+- Commit: `78fac29fe44626aa4d4e1f3ce30a773b4d1dec82`
+- Written (UTC): 2026-08-30T05:57:02.439Z
+- Passed: 307 · Skipped: 66 · Failed: 8
 - Sources without results: none
 
 ## admin-translations.spec.ts › U4b translations console › TR-11 per-row AI translate writes a machine row and captures a revision
@@ -14,14 +14,14 @@
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33293988345-1-0').getByTestId('string-saved-e2e-scratch-33293988345-1-0')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33295380760-1-0').getByTestId('string-saved-e2e-scratch-33295380760-1-0')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33293988345-1-0').getByTestId('string-saved-e2e-scratch-33293988345-1-0')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33295380760-1-0').getByTestId('string-saved-e2e-scratch-33295380760-1-0')
 
 ```
 
@@ -102,14 +102,14 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33293988345-1-2-break').getByTestId('string-saved-e2e-scratch-33293988345-1-2-break')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33295380760-1-2-break').getByTestId('string-saved-e2e-scratch-33295380760-1-2-break')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33293988345-1-2-break').getByTestId('string-saved-e2e-scratch-33293988345-1-2-break')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33295380760-1-2-break').getByTestId('string-saved-e2e-scratch-33295380760-1-2-break')
 
 ```
 
@@ -183,14 +183,14 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-33293988345-3-1').getByTestId('string-saved-e2e-scratch-33293988345-3-1')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-33295380760-3-1').getByTestId('string-saved-e2e-scratch-33295380760-3-1')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-33293988345-3-1').getByTestId('string-saved-e2e-scratch-33293988345-3-1')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-33295380760-3-1').getByTestId('string-saved-e2e-scratch-33295380760-3-1')
 
 ```
 
@@ -271,14 +271,14 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-33293988345-3-3-break').getByTestId('string-saved-e2e-scratch-33293988345-3-3-break')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-33295380760-3-3-break').getByTestId('string-saved-e2e-scratch-33295380760-3-3-break')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-33293988345-3-3-break').getByTestId('string-saved-e2e-scratch-33293988345-3-3-break')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-33295380760-3-3-break').getByTestId('string-saved-e2e-scratch-33295380760-3-3-break')
 
 ```
 
@@ -346,7 +346,9 @@ Context:
 
 ## Server errors: shard 1
 
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+```text
+[WebServer] [ssr-error] /api/translate Could not find the function public.has_permission(_action, _resource, _user_id) in the schema cache ×4
+```
 
 ## Client errors: shard 1
 
@@ -356,7 +358,9 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Server errors: shard 3
 
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+```text
+[WebServer] [ssr-error] /api/translate Could not find the function public.has_permission(_action, _resource, _user_id) in the schema cache ×4
+```
 
 ## Client errors: shard 3
 
