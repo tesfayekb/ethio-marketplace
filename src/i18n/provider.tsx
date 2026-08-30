@@ -107,8 +107,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       language,
       setLanguage,
       t: (key: MessageKey) => messages[key] ?? en[key],
+      entities,
     }),
-    [language, setLanguage, messages],
+    [language, setLanguage, messages, entities],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
