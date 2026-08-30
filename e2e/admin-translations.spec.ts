@@ -821,7 +821,11 @@ test.describe("U4b translations console", () => {
 
   async function reapScratchLocation(id: string) {
     const supabase = adminClient();
-    await supabase.from("entity_translations").delete().eq("entity_type", "location").eq("entity_id", id);
+    await supabase
+      .from("entity_translations")
+      .delete()
+      .eq("entity_type", "location")
+      .eq("entity_id", id);
     const { error } = await supabase.from("locations").delete().eq("id", id);
     if (error) throw new Error(`[e2e:u4d] scratch location cleanup failed: ${error.message}`);
   }
