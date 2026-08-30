@@ -89,8 +89,6 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         <p data-testid="translator-no-role" className="text-sm text-muted-foreground">
           {t("admin.translations.translator.noRole")}
         </p>
-      ) : languages.isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
       ) : assignable.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
       ) : selected.length === 0 ? (
