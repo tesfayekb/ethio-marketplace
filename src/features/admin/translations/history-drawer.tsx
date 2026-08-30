@@ -40,6 +40,11 @@ import {
  * that row offers "Clear instead", routing to the existing clear action.
  */
 
+/** Alias: an inline arrow return type reads as JSX text to the string scan. */
+interface MutationAction {
+  (): Promise<void>;
+}
+
 const ACTION_LABELS: Record<string, MessageKey> = {
   machine: "admin.translations.history.action.machine",
   save: "admin.translations.history.action.save",
@@ -82,7 +87,7 @@ export function HistoryDrawer({
   const save = useSaveTranslation(lang);
   const statusAction = useTranslationStatusAction(lang);
 
-  const run = (action: () => Promise<void>) => {
+  const run = (action: MutationAction) => {
     setRestored(false);
     setErrorKey(null);
     setErrorDetail(null);
