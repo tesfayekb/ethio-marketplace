@@ -1,8 +1,8 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33296389104
-- Commit: `cd40bf5e74c2e68a6f4b7d0bda2b821d263bf3cd`
-- Written (UTC): 2026-08-30T06:21:35.830Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33296827492
+- Commit: `9a647155c0988706704715142500dbe88abd2e3b`
+- Written (UTC): 2026-08-30T06:33:55.874Z
 - Passed: 312 · Skipped: 67 · Failed: 2
 - Sources without results: none
 
@@ -12,7 +12,10 @@
 - Project: `mobile-360`
 
 ```text
-Error: [e2e:u4c] revision read failed: column ui_translation_revisions.created_at does not exist
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 4
 ```
 
 Context:
@@ -46,7 +49,10 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: [e2e:u4c] revision read failed: column ui_translation_revisions.created_at does not exist
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 4
 ```
 
 Context:
