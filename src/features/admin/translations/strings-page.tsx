@@ -20,6 +20,7 @@ import { relativeTime } from "@/lib/relative-time";
 
 import { AiBulkBar } from "./ai-bulk-bar";
 import { DataScope } from "./data-scope";
+import { HistoryDrawer } from "./history-drawer";
 import {
   serverMessage,
   translationErrorKey,
