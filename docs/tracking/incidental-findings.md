@@ -589,7 +589,7 @@ key, so no fixture user can be created or signed in here.
 
 - **INC-096 addendum (b–c) — the run-33293988345 500s were handler-issued, not
   SSR renders.** (b) The failing evidence (TR-scope: `Expected: 403, Received:
-  500` from the fetch response while the surrounding page rendered normally)
+500` from the fetch response while the surrounding page rendered normally)
   shows POST `/api/translate` REACHED its handler and returned a
   handler-issued 500 from the gate section — a page-registered route rendering
   through SSR could not produce a JSON status for the client's fetch to read.
@@ -599,7 +599,7 @@ key, so no fixture user can be created or signed in here.
   server-route primitive, augmented into file-route options by
   `start-client-core/serverRoute.d.ts` (`server?: RouteServerOptions`,
   `handlers.POST: (ctx: { request, params, pathname, context, next }) =>
-  Response`). Verified empirically in BOTH serves: dev AND the
+Response`). Verified empirically in BOTH serves: dev AND the
   `NITRO_PRESET=node-server` production build behind
   `scripts/serve-e2e-node.ts` answer POST from the handler (401 without a
   bearer; the compiled bundle keeps `process.env[name]` as a runtime read).

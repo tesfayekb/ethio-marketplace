@@ -206,8 +206,7 @@ async function handlePost(request: Request): Promise<Response> {
     return json({ error: "invalid target_lang" }, 400);
   }
   if (items.length === 0) return json({ error: "no items" }, 400);
-  if (items.length > MAX_ITEMS)
-    return json({ error: `too many items (max ${MAX_ITEMS})` }, 413);
+  if (items.length > MAX_ITEMS) return json({ error: `too many items (max ${MAX_ITEMS})` }, 413);
   for (const item of items) {
     if (typeof item?.key !== "string" || typeof item?.source !== "string") {
       return json({ error: "invalid item shape" }, 400);
@@ -231,9 +230,7 @@ async function handlePost(request: Request): Promise<Response> {
   if (manageError) return fail5xx(manageError.message, 500);
 
   if (mayManage !== true) {
-    const { data: scope, error: scopeError } = await supabase.rpc(
-      "get_my_translator_languages",
-    );
+    const { data: scope, error: scopeError } = await supabase.rpc("get_my_translator_languages");
     if (scopeError) return fail5xx(scopeError.message, 500);
     const codes = ((scope ?? []) as { lang_code: string }[]).map((row) => row.lang_code);
     if (!codes.includes(target)) {
@@ -257,10 +254,7 @@ async function handlePost(request: Request): Promise<Response> {
     try {
       const supported = await loadSupportedTargets(apiKey);
       if (!supported.has(target)) {
-        return json(
-          { error: `target language ${target} is not supported by the provider` },
-          422,
-        );
+        return json({ error: `target language ${target} is not supported by the provider` }, 422);
       }
     } catch (error) {
       return fail5xx((error as Error).message, 502);
@@ -328,10 +322,7 @@ export const Route = createFileRoute("/api/translate")({
           return await handlePost(request);
         } catch (error) {
           logRouteError(error);
-          return json(
-            { error: error instanceof Error ? error.message : "internal error" },
-            500,
-          );
+          return json({ error: error instanceof Error ? error.message : "internal error" }, 500);
         }
       },
     },
