@@ -514,10 +514,10 @@ test.describe("U4b translations console", () => {
       // itself captured, then the human edit. Exactly two revisions, ordered.
       const { data: revisions, error: revError } = await adminClient()
         .from("ui_translation_revisions")
-        .select("prev_value, prev_status, action, created_at")
+        .select("prev_value, prev_status, action, changed_at")
         .eq("key", key)
         .eq("lang_code", "am")
-        .order("created_at", { ascending: true });
+        .order("changed_at", { ascending: true });
       if (revError) throw new Error(`[e2e:u4c] revision read failed: ${revError.message}`);
       expect(revisions?.length ?? 0).toBe(2);
       expect(revisions?.[0]?.action).toBe("machine");

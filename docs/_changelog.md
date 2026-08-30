@@ -215,3 +215,4 @@
 - 2026-08-30 — fix(api): translate endpoint censused against the installed Start server-route primitive (no separate factory exists; the CI 500s were handler-issued, not SSR renders); every 5xx now logs into [ssr-error] before the structured body (INC-096 b–c)
 - 2026-08-30 — fix(api): `has_permission` argument names in `/api/translate` match the SQL declaration (`p_user_id`, `p_resource`, `p_action`); first lit-seam catch (INC-096d)
 - 2026-08-30 — test(e2e): TR-11 asserts the full revision pair (capture law); DEC-023 env census reported
+- 2026-08-30 — test(e2e): TR-11 orders revisions by the declared changed_at
