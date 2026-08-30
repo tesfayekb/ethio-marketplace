@@ -1,12 +1,12 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33289750564
-- Commit: `fc8efefebd5be73050b4d0dee9b7a6fd3649c600`
-- Written (UTC): 2026-08-30T03:22:53.094Z
-- Passed: 302 · Skipped: 69 · Failed: 2
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33290363499
+- Commit: `fc916bd59ac9a8dfd8f50278164a5c05c833bbae`
+- Written (UTC): 2026-08-30T03:38:33.806Z
+- Passed: 304 · Skipped: 67 · Failed: 2
 - Sources without results: none
 
-## admin-translations.spec.ts › U4b translations console › TR-10 translator scope card is manage-gated on the user detail page
+## admin-translations.spec.ts › U4b translations console › TR-10 translator card proves both permission states
 
 - Source: `shard 1`
 - Project: `mobile-360`
@@ -16,11 +16,11 @@ Error: expect(locator).toBeVisible() failed
 
 Locator: getByTestId('translator-lang-am')
 Expected: visible
-Timeout: 10000ms
+Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
+  - Expect "toBeVisible" with timeout 20000ms
   - waiting for getByTestId('translator-lang-am')
 
 ```
@@ -28,29 +28,29 @@ Call log:
 Context:
 
 ```text
-          - listitem [ref=e144]:
-            - generic [ref=e145]: About
-          - listitem [ref=e146]:
-            - generic [ref=e147]: How it works
-      - navigation "Help" [ref=e148]:
-        - heading "Help" [level=2] [ref=e149]
-        - list [ref=e150]:
-          - listitem [ref=e151]:
-            - generic [ref=e152]: Safety
-          - listitem [ref=e153]:
-            - generic [ref=e154]: Contact
-      - navigation "Legal" [ref=e155]:
-        - heading "Legal" [level=2] [ref=e156]
-        - list [ref=e157]:
-          - listitem [ref=e158]:
-            - generic [ref=e159]: Terms
-          - listitem [ref=e160]:
-            - generic [ref=e161]: Privacy
-    - paragraph [ref=e163]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e172]:
+            - generic [ref=e173]: About
+          - listitem [ref=e174]:
+            - generic [ref=e175]: How it works
+      - navigation "Help" [ref=e176]:
+        - heading "Help" [level=2] [ref=e177]
+        - list [ref=e178]:
+          - listitem [ref=e179]:
+            - generic [ref=e180]: Safety
+          - listitem [ref=e181]:
+            - generic [ref=e182]: Contact
+      - navigation "Legal" [ref=e183]:
+        - heading "Legal" [level=2] [ref=e184]
+        - list [ref=e185]:
+          - listitem [ref=e186]:
+            - generic [ref=e187]: Terms
+          - listitem [ref=e188]:
+            - generic [ref=e189]: Privacy
+    - paragraph [ref=e191]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## admin-translations.spec.ts › U4b translations console › TR-10 translator scope card is manage-gated on the user detail page
+## admin-translations.spec.ts › U4b translations console › TR-10 translator card proves both permission states
 
 - Source: `shard 3`
 - Project: `desktop-1280`
@@ -60,11 +60,11 @@ Error: expect(locator).toBeVisible() failed
 
 Locator: getByTestId('translator-lang-am')
 Expected: visible
-Timeout: 10000ms
+Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
+  - Expect "toBeVisible" with timeout 20000ms
   - waiting for getByTestId('translator-lang-am')
 
 ```
@@ -72,25 +72,25 @@ Call log:
 Context:
 
 ```text
-          - listitem [ref=e232]:
-            - generic [ref=e233]: About
-          - listitem [ref=e234]:
-            - generic [ref=e235]: How it works
-      - navigation "Help" [ref=e236]:
-        - heading "Help" [level=2] [ref=e237]
-        - list [ref=e238]:
-          - listitem [ref=e239]:
-            - generic [ref=e240]: Safety
-          - listitem [ref=e241]:
-            - generic [ref=e242]: Contact
-      - navigation "Legal" [ref=e243]:
-        - heading "Legal" [level=2] [ref=e244]
-        - list [ref=e245]:
-          - listitem [ref=e246]:
-            - generic [ref=e247]: Terms
-          - listitem [ref=e248]:
-            - generic [ref=e249]: Privacy
-    - paragraph [ref=e251]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e260]:
+            - generic [ref=e261]: About
+          - listitem [ref=e262]:
+            - generic [ref=e263]: How it works
+      - navigation "Help" [ref=e264]:
+        - heading "Help" [level=2] [ref=e265]
+        - list [ref=e266]:
+          - listitem [ref=e267]:
+            - generic [ref=e268]: Safety
+          - listitem [ref=e269]:
+            - generic [ref=e270]: Contact
+      - navigation "Legal" [ref=e271]:
+        - heading "Legal" [level=2] [ref=e272]
+        - list [ref=e273]:
+          - listitem [ref=e274]:
+            - generic [ref=e275]: Terms
+          - listitem [ref=e276]:
+            - generic [ref=e277]: Privacy
+    - paragraph [ref=e279]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
