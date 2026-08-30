@@ -381,3 +381,36 @@ TR-14 edits and approves the real "Addis Ababa" Amharic name through the Data
 scope, asserting DB truth at each step, and TR-15 (inside TR-14, after the
 approve) reads `get_entity_bundle` from the browser: `am` carries the new
 value, `om` answers `{}`. The prior row is restored verbatim in a `finally`.
+
+## U4e — History drawer and one-click restore
+
+`admin_list_translation_revisions(p_key, p_lang, p_limit)` (migration
+`20260830113828_8cf6ff4a-74a2-4294-a8d9-497b76f7ef28.sql`, declared mark
+`20260830120000`) is a gated `SECURITY DEFINER` read over the append-only
+`ui_translation_revisions` table, which stays deny-all to client roles. It is
+gated on `translations:view`, revoked from PUBLIC/anon, granted to
+`authenticated`, and returns each revision's action, prior value/status/machine
+flag, actor id, a joined actor display name (profile name falling back to the
+auth email) and timestamp — newest first.
+
+A string row's expansion carries a **History** control opening the drawer.
+Each revision shows relative time, actor, an action chip, the prior
+status/provenance chips, and the prior value (wrapped, dir-aware).
+
+**RESTORE IS A SAVE — there is no new writer.** "Restore this value"
+(`translations:update`, behind `StepUpGate`, with the line _"Restores this text
+as an EDITED value — history keeps everything"_) calls the existing
+`admin_save_translation`, so the server re-checks permission, step-up, scope
+and placeholders, the value lands as **edited**, and the restore itself is
+captured as a revision. A revision whose prior value is NULL cannot be saved —
+that row offers **Clear instead**, routing to the existing clear action
+(`translations:approve`).
+
+States: loading, error, and the empty state _"No history yet — changes will
+appear here."_ The drawer refetches (and the row invalidates) after any
+mutation.
+
+TR-16 seeds a scratch key, machine-translates it, edits it by hand, opens
+History, asserts both rows and their actors, restores the machine value, and
+proves the row is `edited` with the `⟪am⟫` marker while the revision count
+reaches **three** — the restore is history too.

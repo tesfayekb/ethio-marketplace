@@ -224,3 +224,4 @@
 - 2026-08-30 — test(e2e): TR-14 fixture via service client (INC-097b); ci(DEC-024): shards at 2 workers under the identity law, revert-rule armed
 - 2026-08-30 — fix(db): U4d-3b — the two service_role grant-sweep migrations recreated after they went missing from the tree; declared marks 20260830100000/20260830110000 preserved (idempotent, ON CONFLICT DO NOTHING)
 - 2026-08-30 — ci(DEC-023-B): fast lane made non-gating as ratified
+- 2026-08-30 — feat(i18n): U4e — translation History drawer with one-click restore (restore-as-save; every restore is itself history)

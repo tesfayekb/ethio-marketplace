@@ -1183,6 +1183,19 @@ export type Database = {
           permission_count: number
         }[]
       }
+      admin_list_translation_revisions: {
+        Args: { p_key: string; p_lang: string; p_limit?: number }
+        Returns: {
+          action: string
+          changed_at: string
+          changed_by: string
+          changed_by_name: string
+          id: string
+          prev_machine: boolean
+          prev_status: string
+          prev_value: string
+        }[]
+      }
       admin_list_translations: {
         Args: {
           p_flagged?: boolean

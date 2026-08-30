@@ -20,6 +20,7 @@ import { relativeTime } from "@/lib/relative-time";
 
 import { AiBulkBar } from "./ai-bulk-bar";
 import { DataScope } from "./data-scope";
+import { HistoryDrawer } from "./history-drawer";
 import {
   serverMessage,
   translationErrorKey,
@@ -610,6 +611,16 @@ function StringEditor({
             </Button>
           </>
         ) : null}
+        {/* U4e — the page itself is translations:view-gated, so History rides along. */}
+        <HistoryDrawer
+          translationKey={row.key}
+          lang={lang}
+          rtl={rtl}
+          testId={id}
+          mayUpdate={mayUpdate}
+          mayApprove={mayApprove}
+          guard={guard}
+        />
       </div>
 
       {saved ? (

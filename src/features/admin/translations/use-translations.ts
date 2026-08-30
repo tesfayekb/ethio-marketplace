@@ -7,6 +7,7 @@ import {
   listEntityTranslations,
   listLanguages,
   listTranslationStats,
+  listTranslationRevisions,
   listTranslations,
   myTranslatorLanguages,
   saveEntityTranslation,
@@ -167,5 +168,19 @@ export function useEntityTranslationStatusAction(lang: string) {
       action: "approve" | "clear";
     }) => setEntityTranslationStatus({ lang, ...input }),
     onSettled: invalidate,
+  });
+}
+
+/**
+ * U4e — one key's revision history, newest first. Fetched only while the
+ * drawer is open (`enabled`), and invalidated with every translation mutation
+ * because the mutations ARE what history records — including a restore.
+ */
+export function useTranslationRevisions(input: { key: string; lang: string }, enabled: boolean) {
+  return useQuery({
+    queryKey: [...ADMIN_TRANSLATIONS_KEY, "revisions", input.lang, input.key],
+    queryFn: () => listTranslationRevisions(input),
+    enabled,
+    staleTime: 0,
   });
 }

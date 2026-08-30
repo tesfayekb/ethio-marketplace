@@ -443,3 +443,45 @@ export async function setEntityTranslationStatus(input: {
   });
   if (error) throw error;
 }
+
+/**
+ * U4e — TRANSLATION HISTORY (READ ONLY).
+ *
+ * `admin_list_translation_revisions` is the gated definer read over the
+ * append-only revision table; client roles have no direct access to it.
+ * There is NO history WRITER: a restore is a plain `saveTranslation` call, so
+ * the restore itself is captured as a revision like any other edit.
+ */
+export interface TranslationRevision {
+  id: string;
+  action: string;
+  prevValue: string | null;
+  prevStatus: string | null;
+  prevMachine: boolean;
+  changedBy: string | null;
+  changedByName: string | null;
+  changedAt: string;
+}
+
+export async function listTranslationRevisions(input: {
+  key: string;
+  lang: string;
+  limit?: number;
+}): Promise<TranslationRevision[]> {
+  const { data, error } = await supabase.rpc("admin_list_translation_revisions", {
+    p_key: input.key,
+    p_lang: input.lang,
+    p_limit: input.limit ?? 20,
+  });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    action: row.action,
+    prevValue: row.prev_value ?? null,
+    prevStatus: row.prev_status ?? null,
+    prevMachine: row.prev_machine,
+    changedBy: row.changed_by ?? null,
+    changedByName: row.changed_by_name ?? null,
+    changedAt: row.changed_at,
+  }));
+}

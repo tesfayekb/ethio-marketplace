@@ -646,6 +646,22 @@ export const en = {
   "admin.translations.col.entityType": "Type",
   "admin.translations.entity.category": "Category",
   "admin.translations.entity.location": "Location",
+  "admin.translations.history.open": "History",
+  "admin.translations.history.title": "Change history",
+  "admin.translations.history.loading": "Loading history…",
+  "admin.translations.history.error": "History could not be loaded.",
+  "admin.translations.history.empty": "No history yet — changes will appear here.",
+  "admin.translations.history.noValue": "(no value)",
+  "admin.translations.history.actor.system": "System",
+  "admin.translations.history.restore": "Restore this value",
+  "admin.translations.history.restored": "Restored.",
+  "admin.translations.history.confirm":
+    "Restores this text as an EDITED value — history keeps everything",
+  "admin.translations.history.clearInstead": "Clear instead",
+  "admin.translations.history.action.machine": "Machine write",
+  "admin.translations.history.action.save": "Human edit",
+  "admin.translations.history.action.approve": "Approved",
+  "admin.translations.history.action.clear": "Cleared",
 } as const;
 
 export default en;
