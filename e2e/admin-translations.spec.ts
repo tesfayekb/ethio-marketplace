@@ -900,23 +900,8 @@ test.describe("U4b translations console", () => {
       expect(amBundle["location"]?.[id]?.["name"]).toBe(marker);
       expect(bundles.om).toEqual({});
     } finally {
-      if (original) {
-        await supabase
-          .from("entity_translations")
-          .update({ value: original.value, status: original.status, machine: original.machine })
-          .eq("entity_type", "location")
-          .eq("entity_id", id)
-          .eq("field", "name")
-          .eq("lang_code", "am");
-      } else {
-        await supabase
-          .from("entity_translations")
-          .delete()
-          .eq("entity_type", "location")
-          .eq("entity_id", id)
-          .eq("field", "name")
-          .eq("lang_code", "am");
-      }
+      // The fixture owns itself: its translations go, then the row itself.
+      await reapScratchLocation(id);
     }
   });
   /**
