@@ -8,7 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
-import { fetchUiBundle } from "./bundle";
+import { fetchEntityBundle, fetchUiBundle } from "./bundle";
+import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { en } from "./locales/en";
 import { SUPPORTED_LANGUAGES, type Language, type MessageKey, type Messages } from "./types";
 
@@ -23,6 +24,8 @@ type I18nValue = {
   language: Language;
   setLanguage: (next: Language) => void;
   t: (key: MessageKey) => string;
+  /** U4d — approved entity names for the active language (overlay, never a replacement). */
+  entities: EntityBundle;
 };
 
 const I18nContext = createContext<I18nValue | null>(null);
