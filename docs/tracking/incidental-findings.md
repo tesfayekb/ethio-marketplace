@@ -615,3 +615,17 @@ Response`). Verified empirically in BOTH serves: dev AND the
   handler in try/catch and routes every deliberate 5xx through a logging
   `fail5xx` helper; handler body (gates, chunking, fake mode, single-writer,
   caps, per-item isolation) carried over verbatim.
+- **INC-096d — first lit-seam catch: named-argument mismatch in the
+  `/api/translate` gate.** The handler's two `supabase.rpc("has_permission",
+  ...)` calls used `_user_id`, `_resource`, `_action`, but the SQL declaration
+  names the parameters `p_user_id`, `p_resource`, `p_action`. PostgREST treats
+  a wrong argument name as function-not-found, producing the one-line
+  `[ssr-error]` "Could not find the function public.has_permission(_action,
+  _resource, _user_id)" on the first run after the server-route rewrite —
+  previously four blind 500 cycles with no greppable seam. CLASS RULE: every
+  `rpc()` argument list is copied verbatim from the SQL function declaration
+  and stated in the completion report; the declaration is censused before the
+  client seam is written. FIXED — both gate calls now use `p_user_id`,
+  `p_resource`, `p_action`; the other RPCs in the same file
+  (`get_my_translator_languages`, `admin_machine_translation`,
+  `admin_list_translations`) already matched their declarations.
