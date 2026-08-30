@@ -824,4 +824,89 @@ test.describe("U4b translations console", () => {
       }
     }
   });
+  /**
+   * ───────────────────────── U4e — HISTORY + RESTORE (TR-16) ─────────────────
+   * RESTORE IS A SAVE: the drawer calls admin_save_translation with a historical
+   * value, so the restore captures its OWN revision. Two revisions become three.
+   */
+  test("TR-16 the History drawer lists revisions and restores one as a new edit", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    const key = scratchKey("tr16");
+    await seedScratchKey(key, "History source");
+    const supabase = adminClient();
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am");
+      const id = slug(key);
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `string-expand-${id}`).click();
+
+      // 1) machine write, then 2) a human edit — the U4c pair (TR-11's shape).
+      await expansionControl(page, id, "string-ai").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+      await expansionControl(page, id, "string-input").fill("የሰው እርማት");
+      await expansionControl(page, id, "string-save").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 20000 });
+
+      // The drawer: newest first — the human edit (carrying the machine text it
+      // overwrote), then the machine write (carrying the empty prior value).
+      await expansionControl(page, id, "string-history").click();
+      const drawer = page.getByTestId(`history-drawer-${id}`);
+      await expect(drawer).toBeVisible({ timeout: 20000 });
+      await expect(drawer.getByTestId(`history-row-${id}-0`)).toBeVisible();
+      await expect(drawer.getByTestId(`history-row-${id}-1`)).toBeVisible();
+      await expect(drawer.getByTestId(`history-action-${id}-0`)).toHaveText(
+        en["admin.translations.history.action.save"],
+      );
+      await expect(drawer.getByTestId(`history-action-${id}-1`)).toHaveText(
+        en["admin.translations.history.action.machine"],
+      );
+      await expect(drawer.getByTestId(`history-value-${id}-0`)).toContainText("⟪am⟫");
+      // The actor is the signed-in admin, not the system placeholder.
+      await expect(drawer.getByTestId(`history-row-${id}-0`)).not.toContainText(
+        en["admin.translations.history.actor.system"],
+      );
+
+      // Restore the machine value — a SAVE, so the row returns EDITED.
+      await drawer.getByTestId(`history-restore-${id}-0`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(
+          async () => {
+            const { data } = await supabase
+              .from("ui_translations")
+              .select("value, status")
+              .eq("key", key)
+              .eq("lang_code", "am")
+              .maybeSingle();
+            return `${data?.status ?? "none"}|${(data?.value ?? "").includes("⟪am⟫")}`;
+          },
+          { timeout: 30000, message: "restore never landed as an edited value" },
+        )
+        .toBe("edited|true");
+
+      // …and the restore is itself history: exactly three revisions now.
+      await expect
+        .poll(
+          async () => {
+            const { data } = await supabase
+              .from("ui_translation_revisions")
+              .select("id")
+              .eq("key", key)
+              .eq("lang_code", "am");
+            return data?.length ?? 0;
+          },
+          { timeout: 30000, message: "the restore captured no revision" },
+        )
+        .toBe(3);
+    } finally {
+      await supabase.from("ui_translation_revisions").delete().eq("key", key);
+      await reapScratchKey(key);
+    }
+  });
 });
