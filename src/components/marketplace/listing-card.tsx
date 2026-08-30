@@ -2,6 +2,7 @@ import { Eye, ImageOff, MapPin } from "lucide-react";
 
 import type { FeedListing } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 
 function priceLabel(
   listing: FeedListing,
@@ -15,9 +16,20 @@ function priceLabel(
 }
 
 export function ListingCard({ listing }: { listing: FeedListing }) {
-  const { t, language } = useI18n();
+  const { t, entities } = useI18n();
+  // U4d: one resolver for every entity name — DB[lang] ▸ name_am ▸ name_en.
   const locationName =
-    (language === "am" ? listing.locationNameAm : listing.locationNameEn) ?? listing.locationNameEn;
+    listing.locationId === null
+      ? listing.locationNameEn
+      : entityName(
+          "location",
+          {
+            id: listing.locationId,
+            nameEn: listing.locationNameEn ?? "",
+            nameAm: listing.locationNameAm,
+          },
+          entities,
+        );
 
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">

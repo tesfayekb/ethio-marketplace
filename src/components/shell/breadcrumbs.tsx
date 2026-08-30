@@ -16,6 +16,7 @@ import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
 import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 
 /**
  * The content top-line breadcrumb — band 4: Home › <panel> › <category path>.
@@ -34,7 +35,7 @@ import { useI18n } from "@/i18n";
 const CURRENT = "font-semibold text-foreground underline underline-offset-4";
 
 export function Breadcrumbs() {
-  const { t, language } = useI18n();
+  const { t, entities } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchView = useRouterState({
     select: (s) => (s.location.search as { view?: string }).view,
@@ -197,7 +198,7 @@ export function Breadcrumbs() {
         ) : null}
 
         {path.map((node, index) => {
-          const label = language === "am" ? (node.nameAm ?? node.nameEn) : node.nameEn;
+          const label = entityName("category", node, entities);
           const isLast = index === path.length - 1;
           return (
             <span key={node.id} className="contents">

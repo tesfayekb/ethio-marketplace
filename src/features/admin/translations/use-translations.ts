@@ -4,17 +4,22 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
   aiTranslate,
+  listEntityTranslations,
   listLanguages,
   listTranslationStats,
   listTranslations,
   myTranslatorLanguages,
+  saveEntityTranslation,
   saveTranslation,
+  setEntityTranslationStatus,
   setLanguageFlags,
   setTranslationStatus,
   setTranslatorLanguages,
   syncUiKeys,
   upsertLanguage,
   type AiTranslateItem,
+  type EntityTranslationFilters,
+  type EntityType,
   type TranslationFilters,
 } from "./translations-service";
 
@@ -126,6 +131,41 @@ export function useAiTranslate(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
     mutationFn: (items: AiTranslateItem[]) => aiTranslate({ lang, items }),
+    onSettled: invalidate,
+  });
+}
+
+/**
+ * U4d — the DATA scope. Entity rows share ADMIN_TRANSLATIONS_KEY, so one
+ * invalidation refreshes both scopes and the coverage meters together.
+ */
+export function useEntityTranslations(filters: EntityTranslationFilters, enabled: boolean) {
+  return useQuery({
+    queryKey: [...ADMIN_TRANSLATIONS_KEY, "entity-rows", filters],
+    queryFn: () => listEntityTranslations(filters),
+    enabled,
+    staleTime: 10_000,
+  });
+}
+
+export function useSaveEntityTranslation(lang: string) {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (input: { type: EntityType; id: string; field: string; value: string }) =>
+      saveEntityTranslation({ lang, ...input }),
+    onSettled: invalidate,
+  });
+}
+
+export function useEntityTranslationStatusAction(lang: string) {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (input: {
+      type: EntityType;
+      id: string;
+      field: string;
+      action: "approve" | "clear";
+    }) => setEntityTranslationStatus({ lang, ...input }),
     onSettled: invalidate,
   });
 }

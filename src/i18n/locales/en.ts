@@ -631,6 +631,21 @@ export const en = {
   "admin.translations.translator.save": "Save assignment",
   "admin.translations.translator.saved": "Assignment saved.",
   "admin.translations.translator.audit": "Changes here are audited.",
+  // U4d — entity (Data) translations: category and location names.
+  "admin.translations.scope.label": "Translation scope",
+  "admin.translations.scope.interface": "Interface",
+  "admin.translations.scope.data": "Data",
+  "admin.translations.data.caption": "Category and location names for this language",
+  "admin.translations.data.empty": "No content names match this filter.",
+  "admin.translations.data.coverage": "{approved} of {total} content names approved.",
+  "admin.translations.data.aiDeferred":
+    "Machine translation is not available for content names yet — translate them by hand.",
+  "admin.translations.data.gateNote":
+    "Content coverage is a meter only; publishing a language still depends on interface strings.",
+  "admin.translations.col.entity": "Name",
+  "admin.translations.col.entityType": "Type",
+  "admin.translations.entity.category": "Category",
+  "admin.translations.entity.location": "Location",
 } as const;
 
 export default en;

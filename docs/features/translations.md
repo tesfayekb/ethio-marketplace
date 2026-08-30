@@ -312,3 +312,72 @@ tooling and by the audit trail, never by the browser.
 4. Publish the language only after coverage reaches 100% approved.
 5. Provider outage: failures are per item and listed in the summary; nothing is
    written for a failed key, so re-running is safe and idempotent.
+
+## Entity translations — U4d adoption (2026-08-30)
+
+Migration: `supabase/migrations/20260830080548_da0dfee5-6066-4087-b96b-dacfbac5c2a2.sql`
+(declared mark `20260830090000`).
+
+| Surface                                    | Caller                 | Notes                                                                                              |
+| ------------------------------------------ | ---------------------- | -------------------------------------------------------------------------------------------------- |
+| `get_entity_bundle(p_lang)`                | anon + authenticated   | Approved rows only, `{type:{id:{field:value}}}`; `{}` for a non-public language                    |
+| `admin_save_entity_translation(...)`       | `translations:update`  | step-up + scope, audited (`entity_translation.save`)                                               |
+| `admin_set_entity_translation_status(...)` | `translations:approve` | `approve` \| `clear`, step-up + scope, audited                                                     |
+| `admin_list_entity_translations(...)`      | `translations:view`    | Category+location universe LEFT JOINed onto the language, so untranslated names have a denominator |
+
+**Machine translation for entities is DEFERRED** — no `admin_machine_entity_*`
+writer exists; entity machine fill rides the REQ-004 engine. The console says
+so in helper text rather than hiding the absence.
+
+### Fallback chain (the overlay law, entity flavour)
+
+**DB[lang] ▸ the row's own `name_am` column ▸ `name_en`.** One resolver,
+`entityName(type, row, bundle)` in `src/i18n/entity.ts`, is called by EVERY
+read site (law B2); `src/i18n/bundle.ts` fetches the bundle and
+`I18nProvider` exposes it as `entities`. A failing or empty bundle logs
+`[i18n] entity bundle fallback for <lang>: <reason>` and is otherwise
+invisible.
+
+Read sites adopted (census): `src/components/marketplace/listing-card.tsx`
+(listing location), `src/components/shell/app-rail.tsx` (category label),
+`src/components/shell/breadcrumbs.tsx` (category crumb),
+`src/components/shell/location-selector.tsx` (cascade picker).
+`src/features/feed/use-feed.ts` is the data layer: it now selects
+`locations(id,…)` so the bundle can be keyed. `name_am` columns are RETAINED —
+they are the middle tier of the chain; dropping them is a later, explicitly
+instructed migration (law E2).
+
+**Honest limitation (SSR):** unchanged from U4b — the bundle merges
+client-side, so the server still renders the base/column names.
+
+### Backfill
+
+97 `('category', id, 'name', 'am', name_am, 'approved')` rows, asserted equal
+to the censused non-null `categories.name_am` count inside the migration
+(PROOF P5). The 17 location rows from U4a are untouched.
+
+### Console — the Data scope
+
+`/admin/translations/$lang?scope=data` (URL-derived per INC-073; the route's
+`validateSearch` parses `scope`). `src/features/admin/translations/data-scope.tsx`
+renders the entity rows through the responsive `DataTable` with the same
+inline editor contract as the Interface scope (`entity-*` testids keyed by the
+entity UUID), and no AI control.
+
+**THE S10 PUBLIC GATE REMAINS UI-KEYS-ONLY.** Content completeness is a METER,
+not a publish blocker, until the REQ-004 era — stated in the console itself
+(`admin.translations.data.gateNote`).
+
+### Proofs (in-migration)
+
+P1 gating denies (list/save/status) · P2 scope gate denies an unassigned
+principal · P3 a non-approved row never reaches the bundle · P4 `ti` (not
+public) returns `{}` · P5 backfill = 97 = census · P6 the `am` bundle carries
+the category names · P7 grants read back (anon: bundle only).
+
+### E2E
+
+TR-14 edits and approves the real "Addis Ababa" Amharic name through the Data
+scope, asserting DB truth at each step, and TR-15 (inside TR-14, after the
+approve) reads `get_entity_bundle` from the browser: `am` carries the new
+value, `om` answers `{}`. The prior row is restored verbatim in a `finally`.

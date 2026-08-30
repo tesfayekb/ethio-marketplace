@@ -17,6 +17,8 @@ export const Route = createFileRoute("/admin/translations_/$lang")({
     ...(typeof search["status"] === "string" ? { status: search["status"] } : {}),
     ...(search["flagged"] === true || search["flagged"] === "true" ? { flagged: true } : {}),
     ...(typeof search["q"] === "string" && search["q"] !== "" ? { q: search["q"] } : {}),
+    // U4d: the Interface | Data scope is a URL filter like the others.
+    ...(search["scope"] === "data" ? { scope: "data" } : {}),
   }),
   component: AdminTranslationsStringsRoute,
 });

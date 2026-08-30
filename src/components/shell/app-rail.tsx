@@ -14,6 +14,7 @@ import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useRailCollapsed } from "@/providers/rail-state";
@@ -218,7 +219,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 
 /** Marketplace rail = the LIVE category tree, read from the database. */
 function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
-  const { t, language } = useI18n();
+  const { t, entities } = useI18n();
   const { categories, isLoading } = useCategories();
   // U0l (INC-073): the highlight reads the URL, exactly like the body and the
   // breadcrumb — never a private selection state.
@@ -227,7 +228,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const nodes: RailNode[] = categories.map((category) => ({
     key: category.id,
     testid: `rail-category-${category.slug}`,
-    label: language === "am" ? (category.nameAm ?? category.nameEn) : category.nameEn,
+    label: entityName("category", category, entities),
     // Categories are DATA, not config, so their glyph comes from the slug map
     // in src/config/panels.ts — DISTINCT per category, so the collapsed rail is
     // readable without hovering (INC-039). Unmapped slugs fall back to Tag.

@@ -685,3 +685,5 @@ Response`). Verified empirically in BOTH serves: dev AND the
   Per-key DB truth is the law for bulk assertions (TR-11's pattern); the
   summary asserts visibility only. Global-setup now reaps hour-old
   `e2e.scratch.%` rows: fixture graveyards self-heal.
+
+- INC-097 — U4d scope census: the URL-scoped Interface|Data toggle cannot persist unless `src/routes/admin.translations_.$lang.tsx` parses `scope` (`validateSearch` is the single parse point, INC-073), and the strings page was already 565 lines, so the Data scope landed as a sibling `data-scope.tsx` rather than growing that file past the ~300-line split law (B4). Both files are named in the completion report as deliberate, minimal additions outside the task's literal file list.

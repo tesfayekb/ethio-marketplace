@@ -331,3 +331,115 @@ export async function aiTranslate(input: {
     failed: payload?.failed ?? [],
   };
 }
+
+/**
+ * U4d — ENTITY (DATA) TRANSLATIONS.
+ *
+ * Same seam discipline as the UI trio: definer RPCs only, every failure
+ * thrown. Machine translation is DEFERRED for entities — there is no
+ * `admin_machine_entity_translation`; entity machine fill rides the REQ-004
+ * engine, so the console shows no AI control on this scope.
+ */
+export type EntityType = "category" | "location";
+
+export interface EntityTranslationRow {
+  entityType: EntityType;
+  entityId: string;
+  field: string;
+  label: string;
+  sourceValue: string | null;
+  value: string | null;
+  status: TranslationStatus;
+  machine: boolean;
+  flagged: boolean;
+  flagNote: string | null;
+  updatedBy: string | null;
+  updatedAt: string | null;
+  approvedBy: string | null;
+  approvedAt: string | null;
+}
+
+export interface EntityTranslationPage {
+  rows: EntityTranslationRow[];
+  totalCount: number;
+}
+
+export interface EntityTranslationFilters {
+  lang: string;
+  status?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export async function listEntityTranslations({
+  lang,
+  status = "all",
+  search = "",
+  limit = 25,
+  offset = 0,
+}: EntityTranslationFilters): Promise<EntityTranslationPage> {
+  const { data, error } = await supabase.rpc("admin_list_entity_translations", {
+    p_lang: lang,
+    p_status: status,
+    p_search: search,
+    p_limit: limit,
+    p_offset: offset,
+  });
+  if (error) throw error;
+  const rows = data ?? [];
+  const first = rows[0];
+  return {
+    rows: rows.map((row) => ({
+      entityType: row.entity_type === "category" ? "category" : "location",
+      entityId: row.entity_id,
+      field: row.field,
+      label: row.label,
+      sourceValue: row.source_value ?? null,
+      value: row.value ?? null,
+      status: asStatus(row.status),
+      machine: row.machine,
+      flagged: row.flagged,
+      flagNote: row.flag_note ?? null,
+      updatedBy: row.updated_by ?? null,
+      updatedAt: row.updated_at ?? null,
+      approvedBy: row.approved_by ?? null,
+      approvedAt: row.approved_at ?? null,
+    })),
+    totalCount: first ? Number(first.total_count) : 0,
+  };
+}
+
+export async function saveEntityTranslation(input: {
+  type: EntityType;
+  id: string;
+  field: string;
+  lang: string;
+  value: string;
+}): Promise<void> {
+  const { error } = await supabase.rpc("admin_save_entity_translation", {
+    p_type: input.type,
+    p_id: input.id,
+    p_field: input.field,
+    p_lang: input.lang,
+    p_value: input.value,
+  });
+  if (error) throw error;
+}
+
+export async function setEntityTranslationStatus(input: {
+  type: EntityType;
+  id: string;
+  field: string;
+  lang: string;
+  action: "approve" | "clear";
+}): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_entity_translation_status", {
+    p_type: input.type,
+    p_id: input.id,
+    p_field: input.field,
+    p_lang: input.lang,
+    p_action: input.action,
+  });
+  if (error) throw error;
+}

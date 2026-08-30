@@ -8,7 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
-import { fetchUiBundle } from "./bundle";
+import { fetchEntityBundle, fetchUiBundle } from "./bundle";
+import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { en } from "./locales/en";
 import { SUPPORTED_LANGUAGES, type Language, type MessageKey, type Messages } from "./types";
 
@@ -23,6 +24,8 @@ type I18nValue = {
   language: Language;
   setLanguage: (next: Language) => void;
   t: (key: MessageKey) => string;
+  /** U4d — approved entity names for the active language (overlay, never a replacement). */
+  entities: EntityBundle;
 };
 
 const I18nContext = createContext<I18nValue | null>(null);
@@ -34,6 +37,27 @@ function isLanguage(value: string | null): value is Language {
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en");
   const [messages, setMessages] = useState<Messages>(en);
+  // U4d — entity names for the active language. Identity is stable while the
+  // language is unchanged and the fetch is pending (INC-090 identity law).
+  const [entities, setEntities] = useState<EntityBundle>(EMPTY_ENTITY_BUNDLE);
+
+  // The entity bundle follows the SAME overlay law as the UI bundle: a failure
+  // logs one line and leaves the column/base name answering (law F4, not silent).
+  useEffect(() => {
+    let cancelled = false;
+    setEntities({ lang: language, map: {} });
+    void fetchEntityBundle(language).then(({ bundle, reason }) => {
+      if (cancelled) return;
+      if (!bundle) {
+        console.warn(`[i18n] entity bundle fallback for ${language}: ${reason}`);
+        return;
+      }
+      setEntities({ lang: language, map: bundle });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [language]);
 
   const setLanguage = useCallback((next: Language) => {
     setLanguageState(next);
@@ -104,8 +128,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       language,
       setLanguage,
       t: (key: MessageKey) => messages[key] ?? en[key],
+      entities,
     }),
-    [language, setLanguage, messages],
+    [language, setLanguage, messages, entities],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

@@ -15,6 +15,8 @@ export interface FeedListing extends RankableListing {
   priceAmount: number | null;
   priceCurrency: string | null;
   priceMode: string;
+  /** U4d: the id is what the entity bundle is keyed by. */
+  locationId: string | null;
   locationNameEn: string | null;
   locationNameAm: string | null;
   categoryId: string;
@@ -45,7 +47,7 @@ type ListingRow = {
   tier: string;
   published_at: string | null;
   category_id: string;
-  locations: { name_en: string | null; name_am: string | null } | null;
+  locations: { id: string; name_en: string | null; name_am: string | null } | null;
 };
 
 function toFeedListing(row: ListingRow): FeedListing {
@@ -61,6 +63,7 @@ function toFeedListing(row: ListingRow): FeedListing {
     priceAmount: row.price_amount,
     priceCurrency: row.price_currency,
     priceMode: row.price_mode,
+    locationId: row.locations?.id ?? null,
     locationNameEn: row.locations?.name_en ?? null,
     locationNameAm: row.locations?.name_am ?? null,
     categoryId: row.category_id,
@@ -93,7 +96,7 @@ export function useFeed({
     let query = supabase
       .from("listings")
       .select(
-        "id,title,price_amount,price_currency,price_mode,tier,published_at,category_id,locations(name_en,name_am)",
+        "id,title,price_amount,price_currency,price_mode,tier,published_at,category_id,locations(id,name_en,name_am)",
       )
       .eq("status", "active");
 

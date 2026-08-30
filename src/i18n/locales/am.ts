@@ -616,6 +616,19 @@ export const am: Messages = {
   "admin.translations.translator.save": "ምድብ አስቀምጥ",
   "admin.translations.translator.saved": "ምድብ ተቀምጧል።",
   "admin.translations.translator.audit": "እዚህ የሚደረጉ ለውጦች ይመዘገባሉ።",
+  // U4d — የይዘት (ዳታ) ትርጉሞች፦ የምድብና የቦታ ስሞች።
+  "admin.translations.scope.label": "የትርጉም ወሰን",
+  "admin.translations.scope.interface": "በይነገጽ",
+  "admin.translations.scope.data": "ዳታ",
+  "admin.translations.data.caption": "ለዚህ ቋንቋ የምድብና የቦታ ስሞች",
+  "admin.translations.data.empty": "ከዚህ ማጣሪያ ጋር የሚዛመድ የይዘት ስም የለም።",
+  "admin.translations.data.coverage": "ከ{total} የይዘት ስሞች ውስጥ {approved} ጸድቀዋል።",
+  "admin.translations.data.aiDeferred": "ለይዘት ስሞች የማሽን ትርጉም ገና አይገኝም — በእጅ ይተርጉሙ።",
+  "admin.translations.data.gateNote": "የይዘት ሽፋን መለኪያ ብቻ ነው፤ ቋንቋን ማተም አሁንም በበይነገጽ ሐረጎች ላይ ይመሠረታል።",
+  "admin.translations.col.entity": "ስም",
+  "admin.translations.col.entityType": "ዓይነት",
+  "admin.translations.entity.category": "ምድብ",
+  "admin.translations.entity.location": "ቦታ",
 };
 
 export default am;

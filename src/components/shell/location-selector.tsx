@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -87,17 +88,16 @@ function LevelPicker({
   options,
   selected,
   onSelect,
-  language,
 }: {
   labelKey: MessageKey;
   options: LocationRow[];
   selected: LocationRow | null;
   onSelect: (row: LocationRow | null) => void;
-  language: string;
 }) {
-  const { t } = useI18n();
+  const { t, entities } = useI18n();
+  // U4d: the shared resolver, never an inline language ternary (law B2).
   const name = (row: LocationRow) =>
-    language === "am" ? (row.name_am ?? row.name_en) : row.name_en;
+    entityName("location", { id: row.id, nameEn: row.name_en, nameAm: row.name_am }, entities);
 
   return (
     <DropdownMenu>
@@ -133,7 +133,7 @@ function LevelPicker({
 }
 
 export function LocationSelector() {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const { locationPath, setLocationPath } = useShell();
   const { rows, isLoading } = useLocationTree();
 
@@ -196,7 +196,6 @@ export function LocationSelector() {
             labelKey={level.labelKey}
             options={level.options}
             selected={level.selected}
-            language={language}
             onSelect={(row) =>
               // Choosing at depth N replaces that level and drops everything
               // below it — the cascade can never hold an orphaned child.

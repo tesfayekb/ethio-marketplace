@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
+import type { EntityBundleMap } from "./entity";
+
 /**
  * The DB bundle reader (U4b, D3 runtime flip).
  *
@@ -19,6 +21,39 @@ import { supabase } from "@/integrations/supabase/client";
 export type BundleResult =
   | { bundle: Record<string, string>; reason: null }
   | { bundle: null; reason: string };
+
+export type EntityBundleResult =
+  | { bundle: EntityBundleMap; reason: null }
+  | { bundle: null; reason: string };
+
+/**
+ * U4d — the ENTITY bundle reader. Same law as the UI bundle: approved rows
+ * only, anon-callable, and a `{}` answer simply means "keep the column/base
+ * name" (never a blank label).
+ */
+export async function fetchEntityBundle(lang: string): Promise<EntityBundleResult> {
+  const { data, error } = await supabase.rpc("get_entity_bundle", { p_lang: lang });
+  if (error) return { bundle: null, reason: error.message };
+  if (data === null || typeof data !== "object" || Array.isArray(data)) {
+    return { bundle: null, reason: "entity bundle is not an object" };
+  }
+  const map: EntityBundleMap = {};
+  for (const [type, entities] of Object.entries(data as Record<string, unknown>)) {
+    if (entities === null || typeof entities !== "object" || Array.isArray(entities)) continue;
+    const byId: Record<string, Record<string, string>> = {};
+    for (const [id, fields] of Object.entries(entities as Record<string, unknown>)) {
+      if (fields === null || typeof fields !== "object" || Array.isArray(fields)) continue;
+      const byField: Record<string, string> = {};
+      for (const [field, value] of Object.entries(fields as Record<string, unknown>)) {
+        if (typeof value === "string" && value !== "") byField[field] = value;
+      }
+      if (Object.keys(byField).length > 0) byId[id] = byField;
+    }
+    if (Object.keys(byId).length > 0) map[type] = byId;
+  }
+  if (Object.keys(map).length === 0) return { bundle: null, reason: "entity bundle is empty" };
+  return { bundle: map, reason: null };
+}
 
 export async function fetchUiBundle(lang: string): Promise<BundleResult> {
   const { data, error } = await supabase.rpc("get_ui_bundle", { p_lang: lang });

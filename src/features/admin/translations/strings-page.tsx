@@ -19,6 +19,7 @@ import type { MessageKey } from "@/i18n/types";
 import { relativeTime } from "@/lib/relative-time";
 
 import { AiBulkBar } from "./ai-bulk-bar";
+import { DataScope } from "./data-scope";
 import {
   serverMessage,
   translationErrorKey,
@@ -54,6 +55,8 @@ export type StringsSearch = {
   status?: string;
   flagged?: boolean;
   q?: string;
+  /** U4d — "interface" (default) or "data"; URL-derived like every filter (INC-073). */
+  scope?: string;
 };
 
 const STATUS_LABELS: Record<string, MessageKey> = {
@@ -95,6 +98,7 @@ export function AdminTranslationsStringsPage({
   const stats = useTranslationStats(lang);
   const scope = useMyTranslatorLanguages(!mayManage && (mayUpdate || mayApprove));
 
+  const viewScope = search.scope === "data" ? "data" : "interface";
   const status = search.status ?? "all";
   const flagged = search.flagged === true || status === "flagged";
   const query = search.q ?? "";
@@ -113,10 +117,11 @@ export function AdminTranslationsStringsPage({
 
   const setSearchParams = (next: StringsSearch) => {
     setPage(0);
+    // The scope rides along with every filter change, so a Data view stays Data.
     void navigate({
       to: "/admin/translations/$lang",
       params: { lang },
-      search: next,
+      search: { ...(viewScope === "data" ? { scope: "data" } : {}), ...next },
       replace: true,
     });
   };
@@ -206,106 +211,170 @@ export function AdminTranslationsStringsPage({
               .replace("{total}", String(counts["all"] ?? 0))}
           </p>
 
-          {mayMachine && !(known?.isBase ?? false) ? (
-            <AiBulkBar lang={lang} untranslated={counts["untranslated"] ?? 0} guard={guard} />
-          ) : null}
-
-          {outOfScope ? (
-            <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">
-              {t("admin.translations.editor.notAssigned")}
-            </p>
-          ) : null}
-
-          <DataTable
-            columns={stringColumns(t, known?.rtl ?? false)}
-            rows={rows}
-            rowKey={(row) => row.key}
-            rowTestId={(row) => `string-row-${slug(row.key)}`}
-            caption={t("admin.translations.strings.caption")}
-            loading={list.isLoading}
-            loadingState={
-              <p className="text-sm text-muted-foreground">
-                {t("admin.translations.strings.loading")}
-              </p>
-            }
-            error={list.error}
-            errorState={
-              <p className="text-sm text-destructive">{t("admin.translations.strings.error")}</p>
-            }
-            emptyState={
-              <p className="text-sm text-muted-foreground">
-                {t("admin.translations.strings.empty")}
-              </p>
-            }
-            toolbar={
-              <div className="flex min-w-0 flex-col gap-2">
-                <Input
-                  data-testid="strings-search"
-                  value={searchDraft}
-                  aria-label={t("admin.translations.filter.search")}
-                  placeholder={t("admin.translations.filter.search")}
-                  onChange={(event) => setSearchDraft(event.target.value)}
-                />
-                <div className="flex min-w-0 flex-wrap gap-2" data-testid="strings-chips">
-                  {STATUS_CHIPS.map((chip) => (
-                    <Button
-                      key={chip.value}
-                      type="button"
-                      variant={status === chip.value ? "default" : "outline"}
-                      className="min-h-11"
-                      data-testid={`strings-chip-${chip.value}`}
-                      onClick={() =>
-                        setSearchParams({
-                          ...(chip.value === "all" ? {} : { status: chip.value }),
-                          ...(query === "" ? {} : { q: query }),
-                        })
-                      }
-                    >
-                      {`${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            }
-            expandedRow={(row) =>
-              row.key === expanded ? (
-                <StringEditor
-                  row={row}
-                  lang={lang}
-                  rtl={known?.rtl ?? false}
-                  mayUpdate={mayUpdate}
-                  mayApprove={mayApprove}
-                  mayMachine={mayMachine && !(known?.isBase ?? false)}
-                  guard={guard}
-                />
-              ) : null
-            }
-            rowActions={(row) => (
+          <div
+            className="flex min-w-0 flex-wrap gap-2"
+            role="group"
+            aria-label={t("admin.translations.scope.label")}
+            data-testid="strings-scope"
+          >
+            {(["interface", "data"] as const).map((value) => (
               <Button
+                key={value}
                 type="button"
-                variant="outline"
+                variant={viewScope === value ? "default" : "outline"}
                 className="min-h-11"
-                data-testid={`string-expand-${slug(row.key)}`}
-                onClick={() => setExpanded((current) => (current === row.key ? null : row.key))}
+                data-testid={`strings-scope-${value}`}
+                onClick={() =>
+                  void navigate({
+                    to: "/admin/translations/$lang",
+                    params: { lang },
+                    search: {
+                      ...(value === "data" ? { scope: "data" } : {}),
+                      ...(query === "" ? {} : { q: query }),
+                    },
+                    replace: true,
+                  })
+                }
               >
-                {expanded === row.key
-                  ? t("admin.translations.collapse")
-                  : t("admin.translations.expand")}
+                {t(
+                  value === "data"
+                    ? "admin.translations.scope.data"
+                    : "admin.translations.scope.interface",
+                )}
               </Button>
-            )}
-            pagination={
-              <DataTablePagination
-                testid="strings-pagination"
-                offset={page * PAGE_SIZE}
-                pageSize={PAGE_SIZE}
-                total={total}
-                onPrevious={() => setPage((current) => Math.max(0, current - 1))}
-                onNext={() =>
-                  setPage((current) => ((current + 1) * PAGE_SIZE < total ? current + 1 : current))
+            ))}
+          </div>
+
+          {viewScope === "data" ? (
+            <>
+              <p className="text-sm text-muted-foreground" data-testid="data-gate-note">
+                {t("admin.translations.data.gateNote")}
+              </p>
+              <Input
+                data-testid="data-search"
+                value={searchDraft}
+                aria-label={t("admin.translations.filter.search")}
+                placeholder={t("admin.translations.filter.search")}
+                onChange={(event) => setSearchDraft(event.target.value)}
+              />
+              <DataScope
+                lang={lang}
+                rtl={known?.rtl ?? false}
+                status="all"
+                query={query}
+                mayUpdate={mayUpdate}
+                mayApprove={mayApprove}
+                guard={guard}
+              />
+            </>
+          ) : (
+            <>
+              {mayMachine && !(known?.isBase ?? false) ? (
+                <AiBulkBar lang={lang} untranslated={counts["untranslated"] ?? 0} guard={guard} />
+              ) : null}
+
+              {outOfScope ? (
+                <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">
+                  {t("admin.translations.editor.notAssigned")}
+                </p>
+              ) : null}
+
+              <DataTable
+                columns={stringColumns(t, known?.rtl ?? false)}
+                rows={rows}
+                rowKey={(row) => row.key}
+                rowTestId={(row) => `string-row-${slug(row.key)}`}
+                caption={t("admin.translations.strings.caption")}
+                loading={list.isLoading}
+                loadingState={
+                  <p className="text-sm text-muted-foreground">
+                    {t("admin.translations.strings.loading")}
+                  </p>
+                }
+                error={list.error}
+                errorState={
+                  <p className="text-sm text-destructive">
+                    {t("admin.translations.strings.error")}
+                  </p>
+                }
+                emptyState={
+                  <p className="text-sm text-muted-foreground">
+                    {t("admin.translations.strings.empty")}
+                  </p>
+                }
+                toolbar={
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Input
+                      data-testid="strings-search"
+                      value={searchDraft}
+                      aria-label={t("admin.translations.filter.search")}
+                      placeholder={t("admin.translations.filter.search")}
+                      onChange={(event) => setSearchDraft(event.target.value)}
+                    />
+                    <div className="flex min-w-0 flex-wrap gap-2" data-testid="strings-chips">
+                      {STATUS_CHIPS.map((chip) => (
+                        <Button
+                          key={chip.value}
+                          type="button"
+                          variant={status === chip.value ? "default" : "outline"}
+                          className="min-h-11"
+                          data-testid={`strings-chip-${chip.value}`}
+                          onClick={() =>
+                            setSearchParams({
+                              ...(chip.value === "all" ? {} : { status: chip.value }),
+                              ...(query === "" ? {} : { q: query }),
+                            })
+                          }
+                        >
+                          {`${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                }
+                expandedRow={(row) =>
+                  row.key === expanded ? (
+                    <StringEditor
+                      row={row}
+                      lang={lang}
+                      rtl={known?.rtl ?? false}
+                      mayUpdate={mayUpdate}
+                      mayApprove={mayApprove}
+                      mayMachine={mayMachine && !(known?.isBase ?? false)}
+                      guard={guard}
+                    />
+                  ) : null
+                }
+                rowActions={(row) => (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="min-h-11"
+                    data-testid={`string-expand-${slug(row.key)}`}
+                    onClick={() => setExpanded((current) => (current === row.key ? null : row.key))}
+                  >
+                    {expanded === row.key
+                      ? t("admin.translations.collapse")
+                      : t("admin.translations.expand")}
+                  </Button>
+                )}
+                pagination={
+                  <DataTablePagination
+                    testid="strings-pagination"
+                    offset={page * PAGE_SIZE}
+                    pageSize={PAGE_SIZE}
+                    total={total}
+                    onPrevious={() => setPage((current) => Math.max(0, current - 1))}
+                    onNext={() =>
+                      setPage((current) =>
+                        (current + 1) * PAGE_SIZE < total ? current + 1 : current,
+                      )
+                    }
+                  />
                 }
               />
-            }
-          />
+            </>
+          )}
         </div>
       )}
     </StepUpGate>
