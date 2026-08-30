@@ -220,3 +220,4 @@
 - 2026-08-30 — test(e2e): scratch keys job-axis complete (run×shard×worker×project) — cross-job collision closed (INC-096f-b)
 - 2026-08-30 — test(e2e): per-test scratch identity + self-describing revision dump (INC-096f-c)
 - 2026-08-30 — test(e2e): TR-12 asserts per-key DB truth; global-setup reaps stale scratch rows (INC-096g)
+- 2026-08-30 — feat(i18n): U4d — entity translations live (categories 97 backfilled, locations adopted, Data console scope, anon bundle + fallback chain); public gate stays ui-scoped (Tier A)
