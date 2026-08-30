@@ -93,16 +93,18 @@ function slug(key: string) {
  * service-role connection has no `auth.uid()`; the rows written here are the
  * exact shape the RPC writes (base `approved`, target `untranslated`).
  */
-function scratchKey(): string {
+function scratchKey(tag: string): string {
   const worker = process.env["TEST_WORKER_INDEX"] ?? String(process.pid);
   // INC-096f — the namespace MUST carry every parallelism axis: run id
-  // (processId), shard/job (E2E_SHARD), worker, and project. First the project
-  // name was missing, causing mobile-360/desktop-1280 to share a key inside one
-  // job. Then the shard was missing; the DEC-023-B fast lane added a third
-  // concurrent job and keys collided across jobs because PROCESS_ID is run-scoped.
+  // (processId), shard/job (E2E_SHARD), worker, project, and finally the TEST
+  // itself. First the project name was missing, causing mobile-360/desktop-1280
+  // to share a key inside one job. Then the shard was missing; the DEC-023-B
+  // fast lane added a third concurrent job and keys collided across jobs because
+  // PROCESS_ID is run-scoped. Last, the per-test tag was missing: every TR test
+  // in one worker derived ONE key, so TR-8's writes landed on TR-11's row.
   const shard = process.env["E2E_SHARD"] ?? "solo";
   const project = test.info().project.name;
-  return `e2e.scratch.${processId()}-${shard}-${project}-${worker}`;
+  return `e2e.scratch.${processId()}-${shard}-${project}-${worker}-${tag}`;
 }
 
 async function seedScratchKey(key: string, sourceValue: string) {
@@ -176,7 +178,7 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-3 the strings page lists keys with source and status", async ({ page }) => {
-    const key = scratchKey();
+    const key = scratchKey("tr3");
     await seedScratchKey(key, "Scratch source");
     try {
       await signInAsSuperAdmin(page);
@@ -194,7 +196,7 @@ test.describe("U4b translations console", () => {
   test("TR-4 scope: a translator outside the language is refused by the SERVER", async ({
     page,
   }) => {
-    const key = scratchKey();
+    const key = scratchKey("tr4");
     await seedScratchKey(key, "Scratch source");
     try {
       const { secret } = await signInAsSuperAdmin(page);
@@ -283,7 +285,7 @@ test.describe("U4b translations console", () => {
     }
 
     // Step 2 — ensure NON-empty via this spec's own scratch key.
-    const key = scratchKey();
+    const key = scratchKey("tr6");
     await seedScratchKey(key, "Scratch source");
     try {
       await gotoReady(page, "/admin/translations");
@@ -305,7 +307,7 @@ test.describe("U4b translations console", () => {
 
   test("TR-8 save then approve moves a string through the status machine", async ({ page }) => {
     // SCRATCH-KEY LAW (INC-095e): the mutation targets this spec's OWN key.
-    const key = scratchKey();
+    const key = scratchKey("tr8");
     await seedScratchKey(key, "Scratch source");
     try {
       const { secret } = await signInAsSuperAdmin(page);
@@ -484,7 +486,7 @@ test.describe("U4b translations console", () => {
   test("TR-11 per-row AI translate writes a machine row and captures a revision", async ({
     page,
   }) => {
-    const key = scratchKey();
+    const key = scratchKey("tr11");
     await seedScratchKey(key, "Scratch source");
     try {
       const { secret } = await signInAsSuperAdmin(page);
@@ -521,12 +523,26 @@ test.describe("U4b translations console", () => {
       // itself captured, then the human edit. Exactly two revisions, ordered.
       const { data: revisions, error: revError } = await adminClient()
         .from("ui_translation_revisions")
-        .select("prev_value, prev_status, action, changed_at")
+        .select("prev_value, prev_status, prev_machine, action, changed_by, changed_at")
         .eq("key", key)
         .eq("lang_code", "am")
         .order("changed_at", { ascending: true });
       if (revError) throw new Error(`[e2e:u4c] revision read failed: ${revError.message}`);
-      expect(revisions?.length ?? 0).toBe(2);
+      // INC-096f-c — a count mismatch is evidence, not a number: on any
+      // deviation dump EVERY row verbatim so the mechanism reads itself.
+      if ((revisions?.length ?? 0) !== 2) {
+        throw new Error(
+          `[e2e:u4c] TR-11 expected exactly 2 revisions for ${key}, got ${revisions?.length ?? 0}:\n` +
+            (revisions ?? [])
+              .map(
+                (r, i) =>
+                  `  [${i}] action=${r.action} prev_status=${r.prev_status} ` +
+                  `prev_value=${JSON.stringify(r.prev_value)} prev_machine=${r.prev_machine} ` +
+                  `changed_by=${r.changed_by} changed_at=${r.changed_at}`,
+              )
+              .join("\n"),
+        );
+      }
       expect(revisions?.[0]?.action).toBe("machine");
       expect(revisions?.[0]?.prev_status).toBe("untranslated");
       expect(revisions?.[0]?.prev_value).toBeNull();
@@ -540,7 +556,7 @@ test.describe("U4b translations console", () => {
 
   test("TR-12 bulk AI fill translates every untranslated scratch key", async ({ page }) => {
     test.setTimeout(120_000);
-    const base = scratchKey();
+    const base = scratchKey("tr12");
     const keys = [`${base}-b1`, `${base}-b2`, `${base}-b3`];
     for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`);
     try {
@@ -586,7 +602,7 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-13 the placeholder validator flags a machine write too", async ({ page }) => {
-    const key = scratchKey() + "-break";
+    const key = scratchKey("tr13") + "-break";
     // E2EBREAK makes fake mode drop every {token}: the machine value then
     // mismatches the en source's placeholder set and MUST land flagged.
     await seedScratchKey(key, "E2EBREAK Hello {name}");

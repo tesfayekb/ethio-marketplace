@@ -671,3 +671,10 @@ Response`). Verified empirically in BOTH serves: dev AND the
 (E2E_SHARD) × worker × project`. The fast lane's maiden run surfaced this in
   three minutes — working as ratified. FIXED by putting `E2E_SHARD ?? "solo"`
   into the scratch namespace.
+- 2026-08-30 — **INC-096f-c** — Per-test tag completes fixture identity
+  (`run × shard × worker × project × test`): with the four-axis namespace
+  confirmed in-tree, run 33298052285 still read 4 revisions because every TR
+  test in one worker derived ONE key, so sibling tests' writes landed on
+  TR-11's row. `scratchKey(tag)` now takes the per-test tag (tr3/tr4/tr6/tr8/
+  tr11/tr12/tr13), and TR-11's count assertion dumps every revision row
+  verbatim on mismatch — counts never again require archaeology.
