@@ -45,13 +45,17 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         {t("admin.translations.translator.title")}
       </h2>
       <p className="text-sm text-muted-foreground">
-        {t("admin.translations.translator.description")}
+        {t("admin.translations.translator.scopeNote")}
       </p>
 
       {languages.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
       ) : assignable.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
+      ) : selected.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {t("admin.translations.translator.empty")}
+        </p>
       ) : (
         <ul className="flex flex-wrap gap-3">
           {assignable.map((row) => (
