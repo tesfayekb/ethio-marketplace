@@ -117,28 +117,36 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
             className="min-h-11 w-full sm:w-auto"
             data-testid="translator-save"
             disabled={save.isPending || languages.isLoading}
-        onClick={() => {
-          setSaved(false);
-          setErrorKey(null);
-          void guard(() => save.mutateAsync(selected))
-            .then(() => setSaved(true))
-            .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
-        }}
-      >
-        {t("admin.translations.translator.save")}
-      </Button>
+            onClick={() => {
+              setSaved(false);
+              setErrorKey(null);
+              void guard(() => save.mutateAsync(selected))
+                .then(() => setSaved(true))
+                .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
+            }}
+          >
+            {t("admin.translations.translator.save")}
+          </Button>
 
-      <p className="text-xs text-muted-foreground">{t("admin.translations.translator.audit")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("admin.translations.translator.audit")}
+          </p>
 
-      {saved ? (
-        <p role="status" data-testid="translator-saved" className="text-sm text-muted-foreground">
-          {t("admin.translations.translator.saved")}
-        </p>
-      ) : null}
-      {errorKey ? (
-        <p role="alert" data-testid="translator-error" className="text-sm text-destructive">
-          {t(errorKey)}
-        </p>
+          {saved ? (
+            <p
+              role="status"
+              data-testid="translator-saved"
+              className="text-sm text-muted-foreground"
+            >
+              {t("admin.translations.translator.saved")}
+            </p>
+          ) : null}
+          {errorKey ? (
+            <p role="alert" data-testid="translator-error" className="text-sm text-destructive">
+              {t(errorKey)}
+            </p>
+          ) : null}
+        </>
       ) : null}
     </PageCard>
   );
