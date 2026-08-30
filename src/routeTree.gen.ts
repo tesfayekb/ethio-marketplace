@@ -19,6 +19,7 @@ import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
 import { Route as CSlugRouteImport } from './routes/c.$slug'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
+import { Route as ApiTranslateRouteImport } from './routes/api/translate'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
@@ -80,6 +81,11 @@ const AuthResetRoute = AuthResetRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth_/callback',
   path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTranslateRoute = ApiTranslateRouteImport.update({
+  id: '/api/translate',
+  path: '/api/translate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/translate': typeof ApiTranslateRoute
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/translations'
     | '/admin/users'
+    | '/api/translate'
     | '/auth/callback'
     | '/auth/reset'
     | '/c/$slug'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/translations'
     | '/admin/users'
+    | '/api/translate'
     | '/auth/callback'
     | '/auth/reset'
     | '/c/$slug'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/translations'
     | '/admin/users'
+    | '/api/translate'
     | '/auth_/callback'
     | '/auth_/reset'
     | '/c/$slug'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   SettingsRoute: typeof SettingsRoute
+  ApiTranslateRoute: typeof ApiTranslateRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetRoute: typeof AuthResetRoute
   CSlugRoute: typeof CSlugRoute
@@ -372,6 +385,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/translate': {
+      id: '/api/translate'
+      path: '/api/translate'
+      fullPath: '/api/translate'
+      preLoaderRoute: typeof ApiTranslateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/users': {
@@ -500,6 +520,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   SettingsRoute: SettingsRoute,
+  ApiTranslateRoute: ApiTranslateRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetRoute: AuthResetRoute,
   CSlugRoute: CSlugRoute,

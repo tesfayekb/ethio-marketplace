@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
+  aiTranslate,
   listLanguages,
   listTranslationStats,
   listTranslations,
@@ -13,6 +14,7 @@ import {
   setTranslatorLanguages,
   syncUiKeys,
   upsertLanguage,
+  type AiTranslateItem,
   type TranslationFilters,
 } from "./translations-service";
 
@@ -112,6 +114,18 @@ export function useSetTranslatorLanguages(userId: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
     mutationFn: (langs: string[]) => setTranslatorLanguages({ userId, langs }),
+    onSettled: invalidate,
+  });
+}
+
+/**
+ * U4c — AI translation. One mutation for both surfaces (per-row and bulk); the
+ * caller does the chunking so it can report progress honestly.
+ */
+export function useAiTranslate(lang: string) {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (items: AiTranslateItem[]) => aiTranslate({ lang, items }),
     onSettled: invalidate,
   });
 }
