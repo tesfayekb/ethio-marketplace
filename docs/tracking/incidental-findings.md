@@ -689,3 +689,15 @@ Response`). Verified empirically in BOTH serves: dev AND the
 - INC-097 — U4d scope census: the URL-scoped Interface|Data toggle cannot persist unless `src/routes/admin.translations_.$lang.tsx` parses `scope` (`validateSearch` is the single parse point, INC-073), and the strings page was already 565 lines, so the Data scope landed as a sibling `data-scope.tsx` rather than growing that file past the ~300-line split law (B4). Both files are named in the completion report as deliberate, minimal additions outside the task's literal file list.
 
 - **INC-097b — fixture lookups are service-client reads.** TR-14's Addis Ababa lookup met `permission denied for table locations` at its own `.single()`. A fixture read hitting GRANT/RLS denial is a spec bug, not a product one: fixture reads go through `adminClient()` (the established service-client path), never a page-tier client. Root census: `locations` predates the E1 service-role GRANT law — its migrations grant `anon`/`authenticated` only, so even the service role needs the corrective grant migration tracked separately.
+
+- **INC-097d — global sweeps collide with shared-surface seeding by definition.**
+  Dump-proven in run 33310150087: (1) TR-12's by-design global bulk swept
+  sibling tests' scratch keys on `am` (row[0]'s actor was the bulk persona);
+  (2) TR-14's real-row Addis Ababa fixture met the previous run's residue.
+  The fence: such tests operate in a dedicated fence language (admin-only,
+  never public), and real-row fixtures are replaced by per-axes scratch
+  entities with reaper-backed cleanup. Third pillar of the fixture-identity
+  law: identity isolates ROWS; fences isolate SWEEPS. The fence code is `zxx`
+  rather than the literal `e2e` because `/api/translate` validates
+  `target_lang` against `/^[a-z]{2,8}(-[a-z]{2,8})?$/`, which rejects the
+  digit; the code is one exported constant in `e2e/global-setup.ts`.
