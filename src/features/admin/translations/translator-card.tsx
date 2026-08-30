@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
+import { supabase } from "@/integrations/supabase/client";
 
 import { translationErrorKey } from "./translations-service";
 import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
