@@ -147,5 +147,33 @@ export default async function globalSetup() {
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
+
+  // 6. Reap the fixture graveyard (INC-096g): a mid-test death leaves scratch
+  //    rows behind. Anything older than an hour cannot belong to a live run.
+  const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  let reaped = 0;
+  const { data: staleRevisions, error: revisionError } = await supabase
+    .from("ui_translation_revisions")
+    .delete()
+    .like("key", "e2e.scratch.%")
+    .lt("changed_at", cutoff)
+    .select("id");
+  if (revisionError) {
+    throw new Error(`[e2e:setup] reaping stale scratch revisions failed: ${revisionError.message}`);
+  }
+  reaped += staleRevisions?.length ?? 0;
+  const { data: staleRows, error: rowError } = await supabase
+    .from("ui_translations")
+    .delete()
+    .like("key", "e2e.scratch.%")
+    .lt("updated_at", cutoff)
+    .select("key");
+  if (rowError) {
+    throw new Error(`[e2e:setup] reaping stale scratch translations failed: ${rowError.message}`);
+  }
+  reaped += staleRows?.length ?? 0;
+  console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
+
   console.log(`[e2e:setup] state written; setup complete`);
 }
+
