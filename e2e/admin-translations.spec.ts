@@ -617,16 +617,19 @@ test.describe("U4b translations console", () => {
 
   test("TR-12 bulk AI fill translates every untranslated scratch key", async ({ page }) => {
     test.setTimeout(120_000);
+    // INC-097d — the bulk is a SWEEP: it must run inside the fence language,
+    // never on `am`, where it would translate sibling tests' scratch rows.
+    await ensureFenceLanguage();
     const base = scratchKey("tr12");
     const keys = [`${base}-b1`, `${base}-b2`, `${base}-b3`];
-    for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`);
+    for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`, FENCE_LANG);
     try {
       const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, "/admin/translations/am");
+      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
       // The bar's untranslated list can be computed before this spec's seeds
       // land; a reload forces it to recompute from fresh queries (INC-096g).
       await page.reload();
-      await gotoReady(page, "/admin/translations/am");
+      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
 
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
@@ -647,11 +650,11 @@ test.describe("U4b translations console", () => {
                 .from("ui_translations")
                 .select("value, status, machine")
                 .eq("key", key)
-                .eq("lang_code", "am")
+                .eq("lang_code", FENCE_LANG)
                 .maybeSingle();
               if (error) throw new Error(`[e2e:u4c] bulk read failed for ${key}: ${error.message}`);
               if (!data) return "missing";
-              return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes("⟪am⟫")}`;
+              return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes(`⟪${FENCE_LANG}⟫`)}`;
             },
             { timeout: 20000, message: `bulk AI never landed for ${key}` },
           )
