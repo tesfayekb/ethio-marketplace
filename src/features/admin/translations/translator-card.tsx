@@ -27,29 +27,26 @@ import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
 /**
  * U4b-5 amendment — EFFECTIVE-PERMISSION GATE. The card is meaningful only
  * when the TARGET user holds at least one `translations:*` permission through
- * any role. The read is the existing `has_permission(uuid, text, text)` RPC
- * (granted to authenticated since the RBAC migration) — the cheapest census;
- * no new RPC was added. Targets with no translations permission render a
- * single muted line instead of checkboxes.
+ * any role.
+ *
+ * U4b-6 (INC-095k) — INVOKER-RLS BLINDNESS. The first cut fanned out ×5 calls
+ * to `has_permission(uuid,text,text)`, which is a SECURITY INVOKER read: from
+ * the browser it reads `user_roles` under the CALLER's RLS and therefore
+ * returns empty-truth (false) for every target. A grant to `authenticated` is
+ * NOT client-usability. It is replaced by ONE gated SECURITY DEFINER RPC,
+ * `user_has_translation_permission(p_target)`, which gates the caller on
+ * `translations:manage` server-side and answers honestly for the target.
  */
-const TRANSLATION_ACTIONS = ["view", "update", "machine", "approve", "manage"] as const;
-
 function useTargetHasTranslationPermission(userId: string) {
   return useQuery({
     queryKey: ["admin", "user-translation-permission", userId],
     queryFn: async () => {
-      const checks = await Promise.all(
-        TRANSLATION_ACTIONS.map(async (action) => {
-          const { data, error } = await supabase.rpc("has_permission", {
-            p_user_id: userId,
-            p_resource: "translations",
-            p_action: action,
-          });
-          if (error) throw error;
-          return data === true;
-        }),
-      );
-      return checks.some(Boolean);
+      const { data, error } = await supabase.rpc("user_has_translation_permission", {
+        p_target: userId,
+      });
+      // Law F4 — an errored check is an error, never "no permission".
+      if (error) throw error;
+      return data === true;
     },
   });
 }
@@ -83,6 +80,15 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
 
       {targetEligible.isLoading || languages.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
+      ) : targetEligible.isError ? (
+        /* Law F4 — a failed check surfaces; it never impersonates absence. */
+        <p
+          role="alert"
+          data-testid="translator-check-error"
+          className="text-sm text-muted-foreground"
+        >
+          {t("admin.translations.translator.checkError")}
+        </p>
       ) : targetEligible.data !== true ? (
         /* No translations:* permission via any role: scoping has nothing to
            attach to. One muted line, no controls. */
