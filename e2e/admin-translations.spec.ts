@@ -562,37 +562,40 @@ test.describe("U4b translations console", () => {
     try {
       const { secret } = await signInAsSuperAdmin(page);
       await gotoReady(page, "/admin/translations/am");
+      // The bar's untranslated list can be computed before this spec's seeds
+      // land; a reload forces it to recompute from fresh queries (INC-096g).
+      await page.reload();
+      await gotoReady(page, "/admin/translations/am");
 
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
-      // N is live from the stats RPC; it is at least this spec's three keys.
-      const label = (await startButton.textContent()) ?? "";
-      const count = Number(label.replace(/\D+/g, ""));
-      expect(count).toBeGreaterThanOrEqual(3);
 
       await startButton.click();
       await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
       await page.getByTestId("ai-bulk-confirm-run").click();
       await stepUpIfPrompted(page, secret);
+      // VISIBILITY only — a localized summary string is never a count (INC-096g).
       await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 90000 });
 
-      const { data: rows, error } = await adminClient()
-        .from("ui_translations")
-        .select("key, value, status, machine")
-        .in("key", keys)
-        .eq("lang_code", "am");
-      if (error) throw new Error(`[e2e:u4c] bulk read failed: ${error.message}`);
-      expect(rows?.length ?? 0).toBe(3);
-      for (const row of rows ?? []) {
-        expect(row.status).toBe("machine");
-        expect(row.machine).toBe(true);
-        expect(row.value ?? "").toContain("⟪am⟫");
+      // Database truth, per key: the only law for bulk assertions (TR-11's pattern).
+      for (const key of keys) {
+        await expect
+          .poll(
+            async () => {
+              const { data, error } = await adminClient()
+                .from("ui_translations")
+                .select("value, status, machine")
+                .eq("key", key)
+                .eq("lang_code", "am")
+                .maybeSingle();
+              if (error) throw new Error(`[e2e:u4c] bulk read failed for ${key}: ${error.message}`);
+              if (!data) return "missing";
+              return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes("⟪am⟫")}`;
+            },
+            { timeout: 20000, message: `bulk AI never landed for ${key}` },
+          )
+          .toBe("machine|true|true");
       }
-
-      // The summary's own counts must cover this spec's keys.
-      const summary = (await page.getByTestId("ai-bulk-summary").textContent()) ?? "";
-      const done = Number(summary.replace(/\D+/g, "").slice(0, 4) || "0");
-      expect(done).toBeGreaterThanOrEqual(3);
     } finally {
       for (const key of keys) {
         await adminClient().from("ui_translation_revisions").delete().eq("key", key);

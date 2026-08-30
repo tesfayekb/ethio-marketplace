@@ -678,3 +678,10 @@ Response`). Verified empirically in BOTH serves: dev AND the
   TR-11's row. `scratchKey(tag)` now takes the per-test tag (tr3/tr4/tr6/tr8/
   tr11/tr12/tr13), and TR-11's count assertion dumps every revision row
   verbatim on mismatch — counts never again require archaeology.
+
+- **INC-096g — TR-12 parsed a localized summary for its count.** Fragile and
+  stale-list-blind: the digits-concat parse read a bar whose untranslated list
+  was computed before this spec's seeds landed ("Expected >= 3, Received 0").
+  Per-key DB truth is the law for bulk assertions (TR-11's pattern); the
+  summary asserts visibility only. Global-setup now reaps hour-old
+  `e2e.scratch.%` rows: fixture graveyards self-heal.
