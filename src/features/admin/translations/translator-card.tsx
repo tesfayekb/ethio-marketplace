@@ -24,10 +24,41 @@ import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
  * REPLACE control — the submitted set becomes the user's whole scope — and the
  * copy says so rather than implying a merge.
  */
+/**
+ * U4b-5 amendment — EFFECTIVE-PERMISSION GATE. The card is meaningful only
+ * when the TARGET user holds at least one `translations:*` permission through
+ * any role. The read is the existing `has_permission(uuid, text, text)` RPC
+ * (granted to authenticated since the RBAC migration) — the cheapest census;
+ * no new RPC was added. Targets with no translations permission render a
+ * single muted line instead of checkboxes.
+ */
+const TRANSLATION_ACTIONS = ["view", "update", "machine", "approve", "manage"] as const;
+
+function useTargetHasTranslationPermission(userId: string) {
+  return useQuery({
+    queryKey: ["admin", "user-translation-permission", userId],
+    queryFn: async () => {
+      const checks = await Promise.all(
+        TRANSLATION_ACTIONS.map(async (action) => {
+          const { data, error } = await supabase.rpc("has_permission", {
+            p_user_id: userId,
+            p_resource: "translations",
+            p_action: action,
+          });
+          if (error) throw error;
+          return data === true;
+        }),
+      );
+      return checks.some(Boolean);
+    },
+  });
+}
+
 export function TranslatorLanguagesCard({ userId, guard }: { userId: string; guard: GuardFn }) {
   const { t } = useI18n();
   const languages = useLanguages();
   const save = useSetTranslatorLanguages(userId);
+  const targetEligible = useTargetHasTranslationPermission(userId);
   const [selected, setSelected] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
