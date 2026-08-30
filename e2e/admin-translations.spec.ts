@@ -917,19 +917,30 @@ test.describe("U4b translations console", () => {
         .toBe("edited|true");
 
       // …and the restore is itself history: exactly three revisions now.
+      // INC-096f-c — on the final mismatch the FULL dump names the extra
+      // writer: action + actor + value tell whether it was a double
+      // restore-click, a stray save from the expansion, or a capture we owe
+      // a law.
+      let lastDump = "unread";
       await expect
         .poll(
           async () => {
-            const { data } = await supabase
-              .from("ui_translation_revisions")
-              .select("id")
-              .eq("key", key)
-              .eq("lang_code", "am");
-            return data?.length ?? 0;
+            const revisions = await dumpRevisions(key, "am", "[e2e:u4e]");
+            lastDump = serializeRevisions(revisions);
+            return revisions.length;
           },
-          { timeout: 30000, message: "the restore captured no revision" },
+          {
+            timeout: 30000,
+            message: `TR-16 expected exactly 3 revisions for ${key}`,
+          },
         )
-        .toBe(3);
+        .toBe(3)
+        .catch(async (error: unknown) => {
+          throw new Error(
+            `[e2e:u4e] TR-16 revision-count mismatch for ${key}:\n${lastDump}\n` +
+              `(${error instanceof Error ? error.message : String(error)})`,
+          );
+        });
     } finally {
       await supabase.from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);
