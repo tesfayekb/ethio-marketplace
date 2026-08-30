@@ -2,25 +2,53 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33301079718
 - Commit: `4a5a2611f7a7a68ac6a8108d16292cbbc466c07b`
-- Written (UTC): 2026-08-30T08:14:24.384Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
+- Written (UTC): 2026-08-30T08:33:50.721Z
+- Passed: 340 · Skipped: 69 · Failed: 4
+- Sources without results: none
 
-## Server errors: smoke
+## admin-translations.spec.ts › U4b translations console › TR-14 the Data scope edits and approves a location name
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+- Source: `shard 1`
+- Project: `mobile-360`
 
-## Client errors: smoke
+```text
+Error: [e2e:u4d] Addis Ababa lookup failed: permission denied for table locations
+```
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+Context: context file not found for `admin-translations-U4b-translations-console-TR-14-the-Data-scope-edits-and-approves-a-location-name-mobile-360`
 
-## Server errors: email
+## admin-translations.spec.ts › U4b translations console › TR-14 the Data scope edits and approves a location name
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+- Source: `shard 3`
+- Project: `desktop-1280`
 
-## Client errors: email
+```text
+Error: [e2e:u4d] Addis Ababa lookup failed: permission denied for table locations
+```
 
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+Context: context file not found for `admin-translations-U4b-translations-console-TR-14-the-Data-scope-edits-and-approves-a-location-name-desktop-1280`
+
+## admin-translations.spec.ts › U4b translations console › TR-14 the Data scope edits and approves a location name
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: [e2e:u4d] Addis Ababa lookup failed: permission denied for table locations
+```
+
+Context: context file not found for `admin-translations-U4b-translations-console-TR-14-the-Data-scope-edits-and-approves-a-location-name-mobile-360`
+
+## admin-translations.spec.ts › U4b translations console › TR-14 the Data scope edits and approves a location name
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: [e2e:u4d] Addis Ababa lookup failed: permission denied for table locations
+```
+
+Context: context file not found for `admin-translations-U4b-translations-console-TR-14-the-Data-scope-edits-and-approves-a-location-name-desktop-1280`
 
 ## Server errors: shard 1
 
@@ -30,14 +58,6 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
 No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
 ## Server errors: shard 3
 
 No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
@@ -46,58 +66,10 @@ No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
 
 No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
-## Server errors: shard 4
+## Server errors: changed
 
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+No `[ssr-error]` lines in the `changed` log (or no log was uploaded).
 
-## Client errors: shard 4
+## Client errors: changed
 
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
+No `[client-error]` lines in the `changed` log (or no log was uploaded).
