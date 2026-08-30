@@ -176,4 +176,3 @@ export default async function globalSetup() {
 
   console.log(`[e2e:setup] state written; setup complete`);
 }
-

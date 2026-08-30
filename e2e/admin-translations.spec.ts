@@ -596,7 +596,6 @@ test.describe("U4b translations console", () => {
           )
           .toBe("machine|true|true");
       }
-
     } finally {
       for (const key of keys) {
         await adminClient().from("ui_translation_revisions").delete().eq("key", key);
