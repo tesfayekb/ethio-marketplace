@@ -702,4 +702,126 @@ test.describe("U4b translations console", () => {
       await supabase.from("roles").delete().eq("id", role.id);
     }
   });
+
+  /**
+   * U4d — THE DATA SCOPE (TR-14/TR-15).
+   *
+   * Entity names are SHARED RUNTIME exactly like catalog keys, so TR-14 works
+   * on one real low-risk location and RESTORES its prior row verbatim in a
+   * `finally` (scratch-key law, entity flavour: capture-then-restore where a
+   * scratch entity cannot exist).
+   */
+  async function addisAbaba(): Promise<{ id: string }> {
+    const { data, error } = await adminClient()
+      .from("locations")
+      .select("id")
+      .eq("name_en", "Addis Ababa")
+      .limit(1)
+      .single();
+    if (error || !data) throw new Error(`[e2e:u4d] Addis Ababa lookup failed: ${error?.message}`);
+    return { id: data.id };
+  }
+
+  test("TR-14 the Data scope edits and approves a location name", async ({ page }) => {
+    test.setTimeout(120_000);
+    const { id } = await addisAbaba();
+    const supabase = adminClient();
+    const { data: original } = await supabase
+      .from("entity_translations")
+      .select("value, status, machine")
+      .eq("entity_type", "location")
+      .eq("entity_id", id)
+      .eq("field", "name")
+      .eq("lang_code", "am")
+      .maybeSingle();
+    const marker = `አዲስ አበባ ${processId()}`;
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am?scope=data");
+      await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("data-search").fill("Addis Ababa");
+      const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${id}`));
+      await expect(row).toBeVisible({ timeout: 20000 });
+
+      await surfaceControl(page, `entity-expand-${id}`).click();
+      const editor = surfaceControl(page, `entity-editor-${id}`);
+      await expect(editor).toBeVisible();
+      await editor.getByTestId(`entity-input-${id}`).fill(marker);
+      await editor.getByTestId(`entity-save-${id}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect(editor.getByTestId(`entity-saved-${id}`)).toBeVisible({ timeout: 20000 });
+
+      await expect
+        .poll(
+          async () => {
+            const { data } = await supabase
+              .from("entity_translations")
+              .select("value, status")
+              .eq("entity_type", "location")
+              .eq("entity_id", id)
+              .eq("field", "name")
+              .eq("lang_code", "am")
+              .maybeSingle();
+            return `${data?.status ?? "none"}:${data?.value ?? ""}`;
+          },
+          { timeout: 20000 },
+        )
+        .toBe(`edited:${marker}`);
+
+      await editor.getByTestId(`entity-approve-${id}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(
+          async () => {
+            const { data } = await supabase
+              .from("entity_translations")
+              .select("status")
+              .eq("entity_type", "location")
+              .eq("entity_id", id)
+              .eq("field", "name")
+              .eq("lang_code", "am")
+              .maybeSingle();
+            return data?.status ?? "none";
+          },
+          { timeout: 20000 },
+        )
+        .toBe("approved");
+
+      // TR-15 — RUNTIME: the approved value reaches the anon bundle for `am`,
+      // and a non-public language still answers `{}` (fallback chain intact).
+      const bundles = await page.evaluate(async () => {
+        const client = (
+          window as unknown as {
+            __ethioSupabase: {
+              rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
+            };
+          }
+        ).__ethioSupabase;
+        const am = await client.rpc("get_entity_bundle", { p_lang: "am" });
+        const om = await client.rpc("get_entity_bundle", { p_lang: "om" });
+        return { am: am.data, om: om.data };
+      });
+      const amBundle = bundles.am as Record<string, Record<string, Record<string, string>>>;
+      expect(amBundle["location"]?.[id]?.["name"]).toBe(marker);
+      expect(bundles.om).toEqual({});
+    } finally {
+      if (original) {
+        await supabase
+          .from("entity_translations")
+          .update({ value: original.value, status: original.status, machine: original.machine })
+          .eq("entity_type", "location")
+          .eq("entity_id", id)
+          .eq("field", "name")
+          .eq("lang_code", "am");
+      } else {
+        await supabase
+          .from("entity_translations")
+          .delete()
+          .eq("entity_type", "location")
+          .eq("entity_id", id)
+          .eq("field", "name")
+          .eq("lang_code", "am");
+      }
+    }
+  });
 });
