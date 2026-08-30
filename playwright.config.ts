@@ -16,11 +16,7 @@ export default defineConfig({
   forbidOnly: !!process.env["CI"],
   // Acceptance measurement requires retries: 0 (pass bar, §6 of the report).
   retries: 0,
-  // DEC-024 — capacity knob. Shard jobs export E2E_WORKERS=2; the scratch-key
-  // identity law (run×shard×worker×project×test) makes worker parallelism safe
-  // by construction. REVERT RULE: any cross-worker interference class returns
-  // this knob to 1 BEFORE the class is diagnosed. Smoke/email stay serial.
-  workers: process.env["E2E_WORKERS"] ? Number(process.env["E2E_WORKERS"]) : 1,
+  workers: 1,
   // U1e: the json reporter is what scripts/e2e-failure-report.ts reads to
   // publish docs/tracking/e2e-last-failure.md (the artifact courier is retired).
   reporter: process.env["CI"]

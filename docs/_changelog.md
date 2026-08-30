@@ -221,4 +221,4 @@
 - 2026-08-30 — test(e2e): per-test scratch identity + self-describing revision dump (INC-096f-c)
 - 2026-08-30 — test(e2e): TR-12 asserts per-key DB truth; global-setup reaps stale scratch rows (INC-096g)
 - 2026-08-30 — feat(i18n): U4d — entity translations live (categories 97 backfilled, locations adopted, Data console scope, anon bundle + fallback chain); public gate stays ui-scoped (Tier A)
-- 2026-08-30 — test(e2e): TR-14 fixture via service client (INC-097b); ci(DEC-024): shards at 2 workers under the identity law, revert-rule armed
+- 2026-08-30 — fix(db): service_role grants swept across pre-law tables — totality proven in-migration (INC-097c)
