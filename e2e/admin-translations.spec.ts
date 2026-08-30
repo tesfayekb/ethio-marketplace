@@ -509,16 +509,22 @@ test.describe("U4b translations console", () => {
       await stepUpIfPrompted(page, secret);
       await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 20000 });
 
+      // AI-over-empty is history too — the count is the law, not an accident.
+      // The machine write's status transition (untranslated → machine) is
+      // itself captured, then the human edit. Exactly two revisions, ordered.
       const { data: revisions, error: revError } = await adminClient()
         .from("ui_translation_revisions")
-        .select("prev_value, prev_status, action")
+        .select("prev_value, prev_status, action, created_at")
         .eq("key", key)
         .eq("lang_code", "am")
-        .eq("action", "save");
+        .order("created_at", { ascending: true });
       if (revError) throw new Error(`[e2e:u4c] revision read failed: ${revError.message}`);
-      expect(revisions?.length ?? 0).toBe(1);
-      expect(revisions?.[0]?.prev_value ?? "").toContain("⟪am⟫");
-      expect(revisions?.[0]?.prev_status).toBe("machine");
+      expect(revisions?.length ?? 0).toBe(2);
+      expect(revisions?.[0]?.action).toBe("machine");
+      expect(revisions?.[0]?.prev_status).toBe("untranslated");
+      expect(revisions?.[0]?.prev_value).toBeNull();
+      expect(revisions?.[1]?.action).toBe("save");
+      expect(revisions?.[1]?.prev_value ?? "").toContain("⟪am⟫");
     } finally {
       await adminClient().from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);
