@@ -14,6 +14,16 @@ export const STATE_FILE = join(HERE, ".state", "test-user.json");
 const PROD_REF = "zwmvxvzzvjvtdcfcwiuf";
 const STAGING_REF = "jatpuhfdjfzctjipklmk";
 
+/**
+ * FENCE LANGUAGE (INC-097d). Sweep-class specs (the global AI bulk) operate in
+ * a language nobody else works in, so a by-design global operation can never
+ * touch a sibling test's seeded rows. Declared here because both the spec that
+ * uses it and this reaper must agree on the code. `zxx` (ISO 639-2 "no
+ * linguistic content"), not the literal `e2e`: /api/translate validates
+ * target_lang against /^[a-z]{2,8}(-[a-z]{2,8})?$/, which rejects the digit.
+ */
+export const FENCE_LANG = "zxx";
+
 export type E2EUser = {
   id: string;
   email: string;
