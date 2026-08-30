@@ -629,3 +629,9 @@ Response`). Verified empirically in BOTH serves: dev AND the
   `p_resource`, `p_action`; the other RPCs in the same file
   (`get_my_translator_languages`, `admin_machine_translation`,
   `admin_list_translations`) already matched their declarations.
+- INC-096e (2026-08-30, U4c-4): TR-11 count corrected to the capture law — two
+  revisions for AI-then-edit. The machine write's status transition
+  (untranslated → machine) is captured as revision [0] (action=machine,
+  prev_status=untranslated, prev_value NULL); the human edit is revision [1]
+  (action=save, prev_value = the ⟪am⟫-marked machine value). AI-over-empty is
+  history too — the count is the law, not an accident.
