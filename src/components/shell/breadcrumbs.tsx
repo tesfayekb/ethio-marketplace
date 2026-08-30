@@ -197,7 +197,7 @@ export function Breadcrumbs() {
         ) : null}
 
         {path.map((node, index) => {
-          const label = language === "am" ? (node.nameAm ?? node.nameEn) : node.nameEn;
+          const label = entityName("category", node, entities);
           const isLast = index === path.length - 1;
           return (
             <span key={node.id} className="contents">

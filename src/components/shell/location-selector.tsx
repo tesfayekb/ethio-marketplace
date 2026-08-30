@@ -87,17 +87,16 @@ function LevelPicker({
   options,
   selected,
   onSelect,
-  language,
 }: {
   labelKey: MessageKey;
   options: LocationRow[];
   selected: LocationRow | null;
   onSelect: (row: LocationRow | null) => void;
-  language: string;
 }) {
-  const { t } = useI18n();
+  const { t, entities } = useI18n();
+  // U4d: the shared resolver, never an inline language ternary (law B2).
   const name = (row: LocationRow) =>
-    language === "am" ? (row.name_am ?? row.name_en) : row.name_en;
+    entityName("location", { id: row.id, nameEn: row.name_en, nameAm: row.name_am }, entities);
 
   return (
     <DropdownMenu>
