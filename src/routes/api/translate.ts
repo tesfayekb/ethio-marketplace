@@ -127,11 +127,9 @@ export const Route = createFileRoute("/api/translate")({
           return json({ error: "missing bearer token" }, 401);
         }
 
-        const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? "";
-        const publishable =
-          process.env["SUPABASE_PUBLISHABLE_KEY"] ??
-          process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
-          "";
+        const url = serverEnv("SUPABASE_URL");
+        const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
+
         if (url === "" || publishable === "") {
           return json({ error: "supabase server env missing" }, 500);
         }
