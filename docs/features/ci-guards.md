@@ -557,3 +557,21 @@ reported with the log tail.
 
 AUTO-RETIRE: if executor-side staging secrets ever arrive (DEC-023 proper),
 delete this job — local runs then carry the same signal at zero CI cost.
+
+## DEC-024 — shard capacity knob (2 workers)
+
+The four `e2e-shard` matrix jobs export `E2E_WORKERS: "2"`;
+`playwright.config.ts` honors `E2E_WORKERS` when set and otherwise stays at
+`workers: 1`. This is safe by construction: mutable-fixture identity enumerates
+every parallelism axis — run id × job (`E2E_SHARD`) × worker × project × test
+(INC-096f-c) — so two workers in one shard process can never share a scratch
+key, and the global-setup stale-scratch reaper (INC-096g) heals any mid-test
+death.
+
+Smoke (`e2e-smoke`) and the email-serial job are untouched and stay serial by
+design: the smoke spec's pass bar is flake-measured at `retries: 0`, and the
+Auth email/signup rate limit is per-project per-hour (INC-082).
+
+REVERT RULE: if any cross-worker interference class appears, the knob returns
+to `1` BEFORE the class is even diagnosed — capacity is a convenience, never a
+thing to defend.

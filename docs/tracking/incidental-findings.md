@@ -687,3 +687,5 @@ Response`). Verified empirically in BOTH serves: dev AND the
   `e2e.scratch.%` rows: fixture graveyards self-heal.
 
 - INC-097 — U4d scope census: the URL-scoped Interface|Data toggle cannot persist unless `src/routes/admin.translations_.$lang.tsx` parses `scope` (`validateSearch` is the single parse point, INC-073), and the strings page was already 565 lines, so the Data scope landed as a sibling `data-scope.tsx` rather than growing that file past the ~300-line split law (B4). Both files are named in the completion report as deliberate, minimal additions outside the task's literal file list.
+
+- **INC-097b — fixture lookups are service-client reads.** TR-14's Addis Ababa lookup met `permission denied for table locations` at its own `.single()`. A fixture read hitting GRANT/RLS denial is a spec bug, not a product one: fixture reads go through `adminClient()` (the established service-client path), never a page-tier client. Root census: `locations` predates the E1 service-role GRANT law — its migrations grant `anon`/`authenticated` only, so even the service role needs the corrective grant migration tracked separately.
