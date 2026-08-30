@@ -668,6 +668,6 @@ Response`). Verified empirically in BOTH serves: dev AND the
   jobs drew the same key, so TR-11 again read 4 revisions from multiple jobs
   (run 33297507465: shards 1 and 3 plus the changed lane). CLASS RULE finalized:
   mutable-fixture identity enumerates every parallelism axis — `run id × job
-  (E2E_SHARD) × worker × project`. The fast lane's maiden run surfaced this in
+(E2E_SHARD) × worker × project`. The fast lane's maiden run surfaced this in
   three minutes — working as ratified. FIXED by putting `E2E_SHARD ?? "solo"`
   into the scratch namespace.
