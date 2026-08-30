@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { processId } from "./global-setup";
+import { FENCE_LANG, processId } from "./global-setup";
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -93,8 +93,14 @@ function slug(key: string) {
  * service-role connection has no `auth.uid()`; the rows written here are the
  * exact shape the RPC writes (base `approved`, target `untranslated`).
  */
-function scratchKey(tag: string): string {
+function scratchAxes(tag: string): string {
   const worker = process.env["TEST_WORKER_INDEX"] ?? String(process.pid);
+  const shard = process.env["E2E_SHARD"] ?? "solo";
+  const project = test.info().project.name;
+  return `${processId()}-${shard}-${project}-${worker}-${tag}`;
+}
+
+function scratchKey(tag: string): string {
   // INC-096f — the namespace MUST carry every parallelism axis: run id
   // (processId), shard/job (E2E_SHARD), worker, project, and finally the TEST
   // itself. First the project name was missing, causing mobile-360/desktop-1280
@@ -102,16 +108,46 @@ function scratchKey(tag: string): string {
   // fast lane added a third concurrent job and keys collided across jobs because
   // PROCESS_ID is run-scoped. Last, the per-test tag was missing: every TR test
   // in one worker derived ONE key, so TR-8's writes landed on TR-11's row.
-  const shard = process.env["E2E_SHARD"] ?? "solo";
-  const project = test.info().project.name;
-  return `e2e.scratch.${processId()}-${shard}-${project}-${worker}-${tag}`;
+  return `e2e.scratch.${scratchAxes(tag)}`;
 }
 
-async function seedScratchKey(key: string, sourceValue: string) {
+/**
+ * FENCE LANGUAGE (INC-097d — third pillar of the fixture-identity law).
+ *
+ * Identity isolates ROWS; it cannot isolate a SWEEP. TR-12's bulk fill is a
+ * by-design global operation: run on `am`, it translates every untranslated
+ * row in the language, including sibling tests' freshly seeded scratch keys
+ * (dump-proven, run 33310150087 — row[0]'s actor was the bulk persona). The
+ * fence is a language nobody else works in: sweep-class tests seed and sweep
+ * HERE, so `am`/`om` — real operator surfaces — are never touched by a test.
+ *
+ * The code is `zxx` (ISO 639-2 "no linguistic content"), NOT the literal
+ * `e2e` the task named: `/api/translate` validates `target_lang` against
+ * `/^[a-z]{2,8}(-[a-z]{2,8})?$/`, which rejects the digit, and the route is
+ * out of this task's scope. Flip this one constant if that regex ever widens.
+ */
+// The code itself is declared once, in e2e/global-setup.ts, because the reaper
+// there must agree with every spec that seeds inside the fence.
+
+async function ensureFenceLanguage() {
+  const { error } = await adminClient().from("languages").upsert(
+    {
+      code: FENCE_LANG,
+      name_en: "E2E Fence",
+      name_native: "E2E",
+      enabled_admin: true,
+      enabled_public: false,
+    },
+    { onConflict: "code" },
+  );
+  if (error) throw new Error(`[e2e:u4c] fence language upsert failed: ${error.message}`);
+}
+
+async function seedScratchKey(key: string, sourceValue: string, lang = "am") {
   const supabase = adminClient();
   const rows = [
     { key, lang_code: "en", value: sourceValue, status: "approved", machine: false },
-    { key, lang_code: "am", value: null, status: "untranslated", machine: false },
+    { key, lang_code: lang, value: null, status: "untranslated", machine: false },
   ];
   const { error } = await supabase
     .from("ui_translations")
@@ -582,16 +618,19 @@ test.describe("U4b translations console", () => {
 
   test("TR-12 bulk AI fill translates every untranslated scratch key", async ({ page }) => {
     test.setTimeout(120_000);
+    // INC-097d — the bulk is a SWEEP: it must run inside the fence language,
+    // never on `am`, where it would translate sibling tests' scratch rows.
+    await ensureFenceLanguage();
     const base = scratchKey("tr12");
     const keys = [`${base}-b1`, `${base}-b2`, `${base}-b3`];
-    for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`);
+    for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`, FENCE_LANG);
     try {
       const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, "/admin/translations/am");
+      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
       // The bar's untranslated list can be computed before this spec's seeds
       // land; a reload forces it to recompute from fresh queries (INC-096g).
       await page.reload();
-      await gotoReady(page, "/admin/translations/am");
+      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
 
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
@@ -612,11 +651,11 @@ test.describe("U4b translations console", () => {
                 .from("ui_translations")
                 .select("value, status, machine")
                 .eq("key", key)
-                .eq("lang_code", "am")
+                .eq("lang_code", FENCE_LANG)
                 .maybeSingle();
               if (error) throw new Error(`[e2e:u4c] bulk read failed for ${key}: ${error.message}`);
               if (!data) return "missing";
-              return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes("⟪am⟫")}`;
+              return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes(`⟪${FENCE_LANG}⟫`)}`;
             },
             { timeout: 20000, message: `bulk AI never landed for ${key}` },
           )
@@ -730,42 +769,77 @@ test.describe("U4b translations console", () => {
   });
 
   /**
-   * U4d — THE DATA SCOPE (TR-14/TR-15).
+   * U4d / INC-097d — THE DATA SCOPE (TR-14/TR-15).
    *
-   * Entity names are SHARED RUNTIME exactly like catalog keys, so TR-14 works
-   * on one real low-risk location and RESTORES its prior row verbatim in a
-   * `finally` (scratch-key law, entity flavour: capture-then-restore where a
-   * scratch entity cannot exist).
+   * Entity names are SHARED RUNTIME exactly like catalog keys. The old
+   * capture-then-restore on the REAL "Addis Ababa" row met the previous run's
+   * residue (dump-proven, run 33310150087) and is retired: TR-14 now creates
+   * its OWN location, carrying every parallelism axis in its name, and deletes
+   * it (with its entity_translations) at the end. Crash leftovers are reaped by
+   * global-setup after 60 minutes.
+   *
+   * locations insert census (public.locations): id uuid default gen_random_uuid()
+   * · parent_id uuid NULL (FK locations.id) · level text NOT NULL CHECK IN
+   * ('country','region','city') · country_code char NOT NULL (FK countries.code)
+   * · name_en text NOT NULL · name_am text NULL · slug text NOT NULL, UNIQUE
+   * (parent_id, slug) · center_lat/lng double NULL · is_active bool NOT NULL
+   * default false (the Data console lists ACTIVE rows only) · created_at /
+   * updated_at timestamptz default now(). CHECK locations_root_is_country:
+   * (level='country') = (parent_id IS NULL) — so a scratch city MUST hang off
+   * an existing parent.
    */
-  async function addisAbaba(): Promise<{ id: string }> {
-    const { data, error } = await adminClient()
+  async function createScratchLocation(): Promise<{ id: string; name: string }> {
+    const supabase = adminClient();
+    const { data: parent, error: parentError } = await supabase
       .from("locations")
-      .select("id")
-      .eq("name_en", "Addis Ababa")
+      .select("id, country_code")
+      .eq("level", "country")
       .limit(1)
       .single();
-    if (error || !data) throw new Error(`[e2e:u4d] Addis Ababa lookup failed: ${error?.message}`);
-    return { id: data.id };
+    if (parentError || !parent) {
+      throw new Error(`[e2e:u4d] no country location to parent onto: ${parentError?.message}`);
+    }
+    const axes = scratchAxes("tr14");
+    const name = `E2E-Scratch-${axes}`;
+    const { data, error } = await supabase
+      .from("locations")
+      .insert({
+        parent_id: parent.id,
+        level: "city",
+        country_code: parent.country_code,
+        name_en: name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        is_active: true,
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      throw new Error(`[e2e:u4d] scratch location insert failed: ${error?.message}`);
+    }
+    return { id: data.id, name };
+  }
+
+  async function reapScratchLocation(id: string) {
+    const supabase = adminClient();
+    await supabase
+      .from("entity_translations")
+      .delete()
+      .eq("entity_type", "location")
+      .eq("entity_id", id);
+    const { error } = await supabase.from("locations").delete().eq("id", id);
+    if (error) throw new Error(`[e2e:u4d] scratch location cleanup failed: ${error.message}`);
   }
 
   test("TR-14 the Data scope edits and approves a location name", async ({ page }) => {
     test.setTimeout(120_000);
-    const { id } = await addisAbaba();
+    const { id, name } = await createScratchLocation();
     const supabase = adminClient();
-    const { data: original } = await supabase
-      .from("entity_translations")
-      .select("value, status, machine")
-      .eq("entity_type", "location")
-      .eq("entity_id", id)
-      .eq("field", "name")
-      .eq("lang_code", "am")
-      .maybeSingle();
     const marker = `አዲስ አበባ ${processId()}`;
     try {
       const { secret } = await signInAsSuperAdmin(page);
       await gotoReady(page, "/admin/translations/am?scope=data");
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("data-search").fill("Addis Ababa");
+      await page.getByTestId("data-search").fill(name);
       const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${id}`));
       await expect(row).toBeVisible({ timeout: 20000 });
 
@@ -831,23 +905,8 @@ test.describe("U4b translations console", () => {
       expect(amBundle["location"]?.[id]?.["name"]).toBe(marker);
       expect(bundles.om).toEqual({});
     } finally {
-      if (original) {
-        await supabase
-          .from("entity_translations")
-          .update({ value: original.value, status: original.status, machine: original.machine })
-          .eq("entity_type", "location")
-          .eq("entity_id", id)
-          .eq("field", "name")
-          .eq("lang_code", "am");
-      } else {
-        await supabase
-          .from("entity_translations")
-          .delete()
-          .eq("entity_type", "location")
-          .eq("entity_id", id)
-          .eq("field", "name")
-          .eq("lang_code", "am");
-      }
+      // The fixture owns itself: its translations go, then the row itself.
+      await reapScratchLocation(id);
     }
   });
   /**

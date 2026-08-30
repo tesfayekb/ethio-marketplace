@@ -14,6 +14,16 @@ export const STATE_FILE = join(HERE, ".state", "test-user.json");
 const PROD_REF = "zwmvxvzzvjvtdcfcwiuf";
 const STAGING_REF = "jatpuhfdjfzctjipklmk";
 
+/**
+ * FENCE LANGUAGE (INC-097d). Sweep-class specs (the global AI bulk) operate in
+ * a language nobody else works in, so a by-design global operation can never
+ * touch a sibling test's seeded rows. Declared here because both the spec that
+ * uses it and this reaper must agree on the code. `zxx` (ISO 639-2 "no
+ * linguistic content"), not the literal `e2e`: /api/translate validates
+ * target_lang against /^[a-z]{2,8}(-[a-z]{2,8})?$/, which rejects the digit.
+ */
+export const FENCE_LANG = "zxx";
+
 export type E2EUser = {
   id: string;
   email: string;
@@ -172,6 +182,60 @@ export default async function globalSetup() {
     throw new Error(`[e2e:setup] reaping stale scratch translations failed: ${rowError.message}`);
   }
   reaped += staleRows?.length ?? 0;
+
+  // INC-097d — FENCE SURFACES also leave residue when a run dies mid-test:
+  // the fence language's rows, and TR-14's scratch locations (with their
+  // entity translations). Anything older than an hour cannot belong to a live
+  // run, so it is reaped here rather than left to meet the next fixture.
+  const { data: staleFenceRevisions, error: fenceRevisionError } = await supabase
+    .from("ui_translation_revisions")
+    .delete()
+    .eq("lang_code", FENCE_LANG)
+    .lt("changed_at", cutoff)
+    .select("id");
+  if (fenceRevisionError) {
+    throw new Error(`[e2e:setup] reaping fence revisions failed: ${fenceRevisionError.message}`);
+  }
+  reaped += staleFenceRevisions?.length ?? 0;
+  const { data: staleFenceRows, error: fenceRowError } = await supabase
+    .from("ui_translations")
+    .delete()
+    .eq("lang_code", FENCE_LANG)
+    .lt("updated_at", cutoff)
+    .select("key");
+  if (fenceRowError) {
+    throw new Error(`[e2e:setup] reaping fence translations failed: ${fenceRowError.message}`);
+  }
+  reaped += staleFenceRows?.length ?? 0;
+
+  const { data: staleLocations, error: locationError } = await supabase
+    .from("locations")
+    .select("id")
+    .like("name_en", "E2E-Scratch-%")
+    .lt("created_at", cutoff);
+  if (locationError) {
+    throw new Error(`[e2e:setup] listing stale scratch locations failed: ${locationError.message}`);
+  }
+  for (const row of staleLocations ?? []) {
+    const { error: translationError } = await supabase
+      .from("entity_translations")
+      .delete()
+      .eq("entity_type", "location")
+      .eq("entity_id", row.id);
+    if (translationError) {
+      throw new Error(
+        `[e2e:setup] reaping entity translations for ${row.id} failed: ${translationError.message}`,
+      );
+    }
+    const { error: deleteError } = await supabase.from("locations").delete().eq("id", row.id);
+    if (deleteError) {
+      throw new Error(
+        `[e2e:setup] reaping scratch location ${row.id} failed: ${deleteError.message}`,
+      );
+    }
+    reaped += 1;
+  }
+
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 
   console.log(`[e2e:setup] state written; setup complete`);

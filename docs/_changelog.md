@@ -226,3 +226,4 @@
 - 2026-08-30 — ci(DEC-023-B): fast lane made non-gating as ratified
 - 2026-08-30 — feat(i18n): U4e — translation History drawer with one-click restore (restore-as-save; every restore is itself history)
 - 2026-08-30 — test(e2e): TR-16 joins the self-describing dump law (INC-096f-c)
+- 2026-08-30 — test(e2e): fence language for the global bulk + scratch-location fixture for TR-14 — sweep-class collisions closed (INC-097d)
