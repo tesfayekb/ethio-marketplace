@@ -523,12 +523,26 @@ test.describe("U4b translations console", () => {
       // itself captured, then the human edit. Exactly two revisions, ordered.
       const { data: revisions, error: revError } = await adminClient()
         .from("ui_translation_revisions")
-        .select("prev_value, prev_status, action, changed_at")
+        .select("prev_value, prev_status, prev_machine, action, changed_by, changed_at")
         .eq("key", key)
         .eq("lang_code", "am")
         .order("changed_at", { ascending: true });
       if (revError) throw new Error(`[e2e:u4c] revision read failed: ${revError.message}`);
-      expect(revisions?.length ?? 0).toBe(2);
+      // INC-096f-c — a count mismatch is evidence, not a number: on any
+      // deviation dump EVERY row verbatim so the mechanism reads itself.
+      if ((revisions?.length ?? 0) !== 2) {
+        throw new Error(
+          `[e2e:u4c] TR-11 expected exactly 2 revisions for ${key}, got ${revisions?.length ?? 0}:\n` +
+            (revisions ?? [])
+              .map(
+                (r, i) =>
+                  `  [${i}] action=${r.action} prev_status=${r.prev_status} ` +
+                  `prev_value=${JSON.stringify(r.prev_value)} prev_machine=${r.prev_machine} ` +
+                  `changed_by=${r.changed_by} changed_at=${r.changed_at}`,
+              )
+              .join("\n"),
+        );
+      }
       expect(revisions?.[0]?.action).toBe("machine");
       expect(revisions?.[0]?.prev_status).toBe("untranslated");
       expect(revisions?.[0]?.prev_value).toBeNull();
