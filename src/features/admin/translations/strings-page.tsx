@@ -207,11 +207,7 @@ export function AdminTranslationsStringsPage({
           </p>
 
           {mayMachine && !(known?.isBase ?? false) ? (
-            <AiBulkBar
-              lang={lang}
-              untranslated={counts["untranslated"] ?? 0}
-              guard={guard}
-            />
+            <AiBulkBar lang={lang} untranslated={counts["untranslated"] ?? 0} guard={guard} />
           ) : null}
 
           {outOfScope ? (

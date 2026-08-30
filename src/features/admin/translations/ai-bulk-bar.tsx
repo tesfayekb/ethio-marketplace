@@ -129,7 +129,11 @@ export function AiBulkBar({
           {t("admin.translations.ai.bulkAction").replace("{count}", String(untranslated))}
         </Button>
         {progress ? (
-          <span role="status" data-testid="ai-bulk-progress" className="text-sm text-muted-foreground">
+          <span
+            role="status"
+            data-testid="ai-bulk-progress"
+            className="text-sm text-muted-foreground"
+          >
             {t("admin.translations.ai.progress")
               .replace("{done}", String(progress.done))
               .replace("{total}", String(progress.total))}

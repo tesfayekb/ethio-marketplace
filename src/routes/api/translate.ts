@@ -159,7 +159,8 @@ export const Route = createFileRoute("/api/translate")({
           return json({ error: "invalid target_lang" }, 400);
         }
         if (items.length === 0) return json({ error: "no items" }, 400);
-        if (items.length > MAX_ITEMS) return json({ error: `too many items (max ${MAX_ITEMS})` }, 413);
+        if (items.length > MAX_ITEMS)
+          return json({ error: `too many items (max ${MAX_ITEMS})` }, 413);
         for (const item of items) {
           if (typeof item?.key !== "string" || typeof item?.source !== "string") {
             return json({ error: "invalid item shape" }, 400);

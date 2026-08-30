@@ -460,4 +460,214 @@ test.describe("U4b translations console", () => {
       }
     }
   });
+
+  /**
+   * ───────────────────────── U4c — AI TRANSLATION (TR-11..13) ─────────────
+   *
+   * FAKE MODE: CI sets `E2E_FAKE_TRANSLATE=1` on the serving jobs, so
+   * `/api/translate` returns a deterministic `⟪<lang>⟫ <source>` instead of
+   * calling Google. Everything else — the machine+scope gate, chunking, the
+   * `admin_machine_translation` writer, the placeholder validator, provenance
+   * and revision capture — runs exactly as it does in production.
+   *
+   * SCRATCH-KEY LAW (INC-095e) still governs: these cases mutate only their own
+   * namespaced key and reap it in a `finally`.
+   */
+
+  test("TR-11 per-row AI translate writes a machine row and captures a revision", async ({
+    page,
+  }) => {
+    const key = scratchKey();
+    await seedScratchKey(key, "Scratch source");
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am");
+      const id = slug(key);
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `string-expand-${id}`).click();
+      await expansionControl(page, id, "string-ai").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+
+      // The row itself: fake marker, machine status, machine provenance.
+      const { data: row, error } = await adminClient()
+        .from("ui_translations")
+        .select("value, status, machine")
+        .eq("key", key)
+        .eq("lang_code", "am")
+        .single();
+      if (error) throw new Error(`[e2e:u4c] row read failed: ${error.message}`);
+      expect(row?.value ?? "").toContain("⟪am⟫");
+      expect(row?.status).toBe("machine");
+      expect(row?.machine).toBe(true);
+
+      // A subsequent HUMAN edit must capture exactly one revision holding the
+      // machine value (the U4c writer discipline, read through service role).
+      await expansionControl(page, id, "string-input").fill("የሰው እርማት");
+      await expansionControl(page, id, "string-save").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 20000 });
+
+      const { data: revisions, error: revError } = await adminClient()
+        .from("ui_translation_revisions")
+        .select("prev_value, prev_status, action")
+        .eq("key", key)
+        .eq("lang_code", "am")
+        .eq("action", "save");
+      if (revError) throw new Error(`[e2e:u4c] revision read failed: ${revError.message}`);
+      expect(revisions?.length ?? 0).toBe(1);
+      expect(revisions?.[0]?.prev_value ?? "").toContain("⟪am⟫");
+      expect(revisions?.[0]?.prev_status).toBe("machine");
+    } finally {
+      await adminClient().from("ui_translation_revisions").delete().eq("key", key);
+      await reapScratchKey(key);
+    }
+  });
+
+  test("TR-12 bulk AI fill translates every untranslated scratch key", async ({ page }) => {
+    test.setTimeout(120_000);
+    const base = scratchKey();
+    const keys = [`${base}-b1`, `${base}-b2`, `${base}-b3`];
+    for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`);
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am");
+
+      const startButton = page.getByTestId("ai-bulk-start");
+      await expect(startButton).toBeVisible({ timeout: 20000 });
+      // N is live from the stats RPC; it is at least this spec's three keys.
+      const label = (await startButton.textContent()) ?? "";
+      const count = Number(label.replace(/\D+/g, ""));
+      expect(count).toBeGreaterThanOrEqual(3);
+
+      await startButton.click();
+      await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
+      await page.getByTestId("ai-bulk-confirm-run").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 90000 });
+
+      const { data: rows, error } = await adminClient()
+        .from("ui_translations")
+        .select("key, value, status, machine")
+        .in("key", keys)
+        .eq("lang_code", "am");
+      if (error) throw new Error(`[e2e:u4c] bulk read failed: ${error.message}`);
+      expect(rows?.length ?? 0).toBe(3);
+      for (const row of rows ?? []) {
+        expect(row.status).toBe("machine");
+        expect(row.machine).toBe(true);
+        expect(row.value ?? "").toContain("⟪am⟫");
+      }
+
+      // The summary's own counts must cover this spec's keys.
+      const summary = (await page.getByTestId("ai-bulk-summary").textContent()) ?? "";
+      const done = Number(summary.replace(/\D+/g, "").slice(0, 4) || "0");
+      expect(done).toBeGreaterThanOrEqual(3);
+    } finally {
+      for (const key of keys) {
+        await adminClient().from("ui_translation_revisions").delete().eq("key", key);
+        await reapScratchKey(key);
+      }
+    }
+  });
+
+  test("TR-13 the placeholder validator flags a machine write too", async ({ page }) => {
+    const key = scratchKey() + "-break";
+    // E2EBREAK makes fake mode drop every {token}: the machine value then
+    // mismatches the en source's placeholder set and MUST land flagged.
+    await seedScratchKey(key, "E2EBREAK Hello {name}");
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am");
+      const id = slug(key);
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `string-expand-${id}`).click();
+      await expansionControl(page, id, "string-ai").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+
+      const { data: row, error } = await adminClient()
+        .from("ui_translations")
+        .select("flagged, flag_note, status")
+        .eq("key", key)
+        .eq("lang_code", "am")
+        .single();
+      if (error) throw new Error(`[e2e:u4c] flag read failed: ${error.message}`);
+      expect(row?.flagged).toBe(true);
+      expect(row?.flag_note ?? "").toContain("placeholder mismatch");
+      expect(row?.status).toBe("machine");
+    } finally {
+      await adminClient().from("ui_translation_revisions").delete().eq("key", key);
+      await reapScratchKey(key);
+    }
+  });
+
+  test("TR-scope AI: a translator outside the language gets the structured refusal", async ({
+    page,
+  }) => {
+    // TR-4 persona pattern: the verb WITHOUT the language assignment. The
+    // refusal must come from the SERVER (403 + its own words), before any
+    // provider call and before any write.
+    const user = await createUser({ confirmed: true });
+    const supabase = adminClient();
+    const roleName = `e2e-u4c-machine-${processId()}-${process.env["TEST_WORKER_INDEX"] ?? "0"}`;
+    const { data: role, error: roleError } = await supabase
+      .from("roles")
+      .insert({ name: roleName, display_name: roleName, is_system: false, priority: 10 })
+      .select("id")
+      .single();
+    if (roleError || !role) throw new Error(`[e2e:u4c] scratch role failed: ${roleError?.message}`);
+    try {
+      const { data: perms, error: permError } = await supabase
+        .from("permissions")
+        .select("id, action, resources!inner(name)")
+        .eq("resources.name", "translations")
+        .in("action", ["view", "machine"]);
+      if (permError) throw new Error(`[e2e:u4c] permission read failed: ${permError.message}`);
+      await supabase
+        .from("role_permissions")
+        .insert((perms ?? []).map((p) => ({ role_id: role.id, permission_id: p.id })));
+      await supabase
+        .from("user_roles")
+        .insert({ user_id: user.id, role_id: role.id, scope_type: "global" });
+
+      await switchUser(page, user.email, user.password);
+      await waitForHydration(page);
+
+      const refusal = await page.evaluate(async () => {
+        const client = (
+          window as unknown as {
+            __ethioSupabase: {
+              auth: {
+                getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
+              };
+            };
+          }
+        ).__ethioSupabase;
+        const { data } = await client.auth.getSession();
+        const response = await fetch("/api/translate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${data.session?.access_token ?? ""}`,
+          },
+          body: JSON.stringify({
+            target_lang: "om",
+            items: [{ key: "e2e.u4c.scope", source: "Scope probe" }],
+          }),
+        });
+        const payload = (await response.json()) as { error?: string };
+        return { status: response.status, error: payload.error ?? "" };
+      });
+
+      expect(refusal.status).toBe(403);
+      expect(refusal.error).toMatch(/not assigned to this language/i);
+    } finally {
+      await supabase.from("user_roles").delete().eq("role_id", role.id);
+      await supabase.from("role_permissions").delete().eq("role_id", role.id);
+      await supabase.from("roles").delete().eq("id", role.id);
+    }
+  });
 });
