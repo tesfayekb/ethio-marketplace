@@ -222,3 +222,4 @@
 - 2026-08-30 — test(e2e): TR-12 asserts per-key DB truth; global-setup reaps stale scratch rows (INC-096g)
 - 2026-08-30 — feat(i18n): U4d — entity translations live (categories 97 backfilled, locations adopted, Data console scope, anon bundle + fallback chain); public gate stays ui-scoped (Tier A)
 - 2026-08-30 — test(e2e): TR-14 fixture via service client (INC-097b); ci(DEC-024): shards at 2 workers under the identity law, revert-rule armed
+- 2026-08-30 — fix(db): U4d-3b — the two service_role grant-sweep migrations recreated after they went missing from the tree; declared marks 20260830100000/20260830110000 preserved (idempotent, ON CONFLICT DO NOTHING)
