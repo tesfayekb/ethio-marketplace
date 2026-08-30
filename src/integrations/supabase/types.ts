@@ -861,6 +861,42 @@ export type Database = {
           },
         ]
       }
+      ui_translation_revisions: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          key: string
+          lang_code: string
+          prev_machine: boolean
+          prev_status: string | null
+          prev_value: string | null
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          key: string
+          lang_code: string
+          prev_machine?: boolean
+          prev_status?: string | null
+          prev_value?: string | null
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          key?: string
+          lang_code?: string
+          prev_machine?: boolean
+          prev_status?: string | null
+          prev_value?: string | null
+        }
+        Relationships: []
+      }
       ui_translations: {
         Row: {
           approved_at: string | null
