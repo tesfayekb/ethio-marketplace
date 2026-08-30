@@ -834,7 +834,7 @@ test.describe("U4b translations console", () => {
       const { secret } = await signInAsSuperAdmin(page);
       await gotoReady(page, "/admin/translations/am?scope=data");
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("data-search").fill("Addis Ababa");
+      await page.getByTestId("data-search").fill(name);
       const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${id}`));
       await expect(row).toBeVisible({ timeout: 20000 });
 
