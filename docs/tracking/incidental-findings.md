@@ -635,3 +635,28 @@ Response`). Verified empirically in BOTH serves: dev AND the
   prev_status=untranslated, prev_value NULL); the human edit is revision [1]
   (action=save, prev_value = the ⟪am⟫-marked machine value). AI-over-empty is
   history too — the count is the law, not an accident.
+- **INC-096f — TR-11's four revisions: a shared scratch key, not a doubled
+  writer.** The live bodies of `admin_save_translation`,
+  `admin_machine_translation` and `admin_set_translation_status`
+  (`pg_get_functiondef`, connected project) each contain EXACTLY ONE
+  `INSERT INTO public.ui_translation_revisions`, and each already orders
+  permission → step-up (`require_step_up_if_needed`) → scope
+  (`translation_scope_ok`) ABOVE that capture and above the mutation, inside
+  one transaction — so a refused attempt raises before capture and, even if it
+  did not, the raise would roll capture and mutation back together. No trigger
+  on `ui_translations` or `ui_translation_revisions` writes revisions
+  (`pg_get_triggerdef`: none). The doubling was test identity: `scratchKey()`
+  namespaced by PROCESS_ID + `TEST_WORKER_INDEX` only, so the `mobile-360` and
+  `desktop-1280` projects — the same job, routinely the same worker index —
+  drew the SAME key and mutated ONE catalog row. Each viewport contributed its
+  lawful 2 revisions; both then read 4, which is why both viewports failed with
+  the same number. Arithmetic: (1 AI via route + 1 human save) × 2 projects = 4.
+  FIXED by putting the Playwright project name into the scratch namespace.
+  CLASS RULE (ratified regardless of this instance's cause): capture and
+  mutation live strictly below every gate; a refused attempt leaves no trace
+  but its audit refusal. The live writers already satisfy it, verified above —
+  no re-declaration migration was shipped, because a no-op re-declaration of a
+  correct SECURITY DEFINER writer is risk without change (A3/A4: the conflict
+  is reported, not silently resolved). SECOND CLASS RULE: shared-runtime
+  fixture identity includes EVERY axis that can run the same test twice —
+  process, worker AND project.

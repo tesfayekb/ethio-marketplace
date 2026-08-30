@@ -104,7 +104,6 @@ function scratchKey(): string {
   return `e2e.scratch.${processId()}-${project}-${worker}`;
 }
 
-
 async function seedScratchKey(key: string, sourceValue: string) {
   const supabase = adminClient();
   const rows = [
