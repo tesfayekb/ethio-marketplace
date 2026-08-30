@@ -547,7 +547,8 @@ AUTHORITY: none. The merged verdict job ("E2E (Playwright, ethio-staging)")
 `needs:` exactly `e2e-smoke`, `e2e-shard`, `e2e-email`, and its `E2E_GREEN`
 expression reads those three results only. The fast lane cannot turn a red
 matrix green or a green matrix red; it only adds a labelled source to the
-merged report.
+merged report. The job is marked `continue-on-error: true` so a lane-only
+red while the full matrix is green cannot block promotion.
 
 REPORTER: `E2E_EXPECTED_SOURCES` gained an OPTIONAL-id suffix. `changed?` is
 read and labelled exactly like any other source when the lane uploaded results,

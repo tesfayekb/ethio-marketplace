@@ -351,6 +351,9 @@ jobs:
     name: E2E changed specs (fast lane)
     needs: e2e-preflight
     runs-on: ubuntu-latest
+    # signal-only per DEC-023-B — surfaces in logs/report, never gates verdict or promote;
+    # a lane-only failure with a green matrix is contention noise by definition
+    continue-on-error: true
     env:
       E2E_SHARD: changed
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
