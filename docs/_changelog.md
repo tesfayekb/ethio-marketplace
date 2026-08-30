@@ -219,3 +219,4 @@
 - 2026-08-30 — fix(i18n): writer order canonicalized — gates before capture before mutate; refused attempts leave no revisions (INC-096f); ci(DEC-023-B): changed-spec fast lane
 - 2026-08-30 — test(e2e): scratch keys job-axis complete (run×shard×worker×project) — cross-job collision closed (INC-096f-b)
 - 2026-08-30 — test(e2e): per-test scratch identity + self-describing revision dump (INC-096f-c)
+- 2026-08-30 — test(e2e): TR-12 asserts per-key DB truth; global-setup reaps stale scratch rows (INC-096g)
