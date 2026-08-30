@@ -9,6 +9,21 @@ import { createClient } from "@supabase/supabase-js";
  * editable), so the endpoint lives on the app server instead. Every other line
  * of the U4c contract is verbatim.
  *
+ * SERVER-ROUTE PRIMITIVE (INC-096b census, @tanstack/react-start@1.168.26):
+ * `createFileRoute(...)({ server: { handlers: { POST } } })` IS the server
+ * route primitive — `start-client-core/serverRoute.d.ts` augments the file
+ * route options with `server?: RouteServerOptions`; no separate factory
+ * (`createServerFileRoute` et al.) exists in the installed version. Verified
+ * empirically: POST answers from the handler in BOTH serves (dev AND the
+ * NITRO_PRESET=node-server production build behind scripts/serve-e2e-node.ts).
+ *
+ * ERROR-LOGGING CONTRACT (INC-096b/c): server-route responses do NOT traverse
+ * the SSR error catch, so a 500 issued here was previously invisible to the
+ * reporter's [ssr-error] grep (run 33293988345: TR-scope expected 403, got 500
+ * from a gate-section RPC error, with zero [ssr-error] lines). Every 5xx this
+ * route returns — thrown OR deliberately issued — is logged into [ssr-error]
+ * first. The 500 body stays structured: {error}.
+ *
  * LAWS honoured:
  *  * F1 — GOOGLE_TRANSLATE_API_KEY is read from the SERVER runtime env INSIDE
  *    the handler (`process.env[...]`, never a `VITE_` name), so it is never
@@ -49,6 +64,22 @@ function json(body: unknown, status: number): Response {
     status,
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
+}
+
+// INC-096b/c — server-route failures bypass the SSR catch; every 5xx this
+// endpoint issues (deliberate or thrown) logs into the reporter-grepped
+// [ssr-error] channel BEFORE the structured body goes out.
+function logRouteError(error: unknown): void {
+  const message =
+    error instanceof Error
+      ? `${error.message} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`
+      : String(error);
+  console.error("[ssr-error]", "/api/translate", message);
+}
+
+function fail5xx(error: string, status: number): Response {
+  logRouteError(error);
+  return json({ error }, status);
 }
 
 /** Cold-start cache of the provider's supported target codes. */
@@ -124,7 +155,9 @@ async function googleTranslate(
  * `process.env` is the ONLY read used here, and it is read INSIDE the handler,
  * never at module scope:
  *  * node serve (`E2E_SERVE_BUILT=1`, Nitro node-server / DEC-019): the real
- *    Node `process.env`, populated from the job/shell environment.
+ *    Node `process.env`, populated from the job/shell environment. Verified in
+ *    the built bundle: the read survives compilation as `process.env[name]`,
+ *    never a build-time inline.
  *  * cloudflare serve (workerd + `nodejs_compat`): the platform injects the
  *    Worker bindings into `process.env` per REQUEST — a module-scope read there
  *    returns `undefined`, which is exactly why every read sits in the handler.
@@ -137,157 +170,169 @@ function serverEnv(name: string): string {
   return process.env[name] ?? "";
 }
 
+async function handlePost(request: Request): Promise<Response> {
+  const authorization = request.headers.get("Authorization") ?? "";
+  if (!authorization.toLowerCase().startsWith("bearer ")) {
+    return json({ error: "missing bearer token" }, 401);
+  }
+
+  const url = serverEnv("SUPABASE_URL");
+  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
+
+  if (url === "" || publishable === "") {
+    return fail5xx("supabase server env missing", 500);
+  }
+
+  // CALLER-CONTEXT CLIENT: publishable key + the caller's own JWT.
+  const supabase = createClient(url, publishable, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const uid = userData?.user?.id;
+  if (userError || !uid) return json({ error: "not signed in" }, 401);
+
+  let payload: { target_lang?: string; items?: Item[] };
+  try {
+    payload = (await request.json()) as typeof payload;
+  } catch {
+    return json({ error: "invalid json body" }, 400);
+  }
+
+  const target = (payload.target_lang ?? "").trim().toLowerCase();
+  const items = Array.isArray(payload.items) ? payload.items : [];
+  if (!/^[a-z]{2,8}(-[a-z]{2,8})?$/.test(target)) {
+    return json({ error: "invalid target_lang" }, 400);
+  }
+  if (items.length === 0) return json({ error: "no items" }, 400);
+  if (items.length > MAX_ITEMS)
+    return json({ error: `too many items (max ${MAX_ITEMS})` }, 413);
+  for (const item of items) {
+    if (typeof item?.key !== "string" || typeof item?.source !== "string") {
+      return json({ error: "invalid item shape" }, 400);
+    }
+  }
+
+  // ---- GATE (before any provider call) ---------------------------
+  const { data: mayMachine, error: machineError } = await supabase.rpc("has_permission", {
+    _user_id: uid,
+    _resource: "translations",
+    _action: "machine",
+  });
+  if (machineError) return fail5xx(machineError.message, 500);
+  if (mayMachine !== true) return json({ error: "permission denied" }, 403);
+
+  const { data: mayManage, error: manageError } = await supabase.rpc("has_permission", {
+    _user_id: uid,
+    _resource: "translations",
+    _action: "manage",
+  });
+  if (manageError) return fail5xx(manageError.message, 500);
+
+  if (mayManage !== true) {
+    const { data: scope, error: scopeError } = await supabase.rpc(
+      "get_my_translator_languages",
+    );
+    if (scopeError) return fail5xx(scopeError.message, 500);
+    const codes = ((scope ?? []) as { lang_code: string }[]).map((row) => row.lang_code);
+    if (!codes.includes(target)) {
+      return json({ error: "not assigned to this language" }, 403);
+    }
+  }
+
+  // ---- PROVIDER --------------------------------------------------
+  const fake = serverEnv("E2E_FAKE_TRANSLATE") === "1";
+  const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
+  if (!fake && apiKey === "") {
+    return fail5xx("translation provider is not configured", 503);
+  }
+
+  const failed: Failure[] = [];
+  const translated = new Map<string, string>();
+
+  if (fake) {
+    for (const item of items) translated.set(item.key, fakeTranslate(target, item.source));
+  } else {
+    try {
+      const supported = await loadSupportedTargets(apiKey);
+      if (!supported.has(target)) {
+        return json(
+          { error: `target language ${target} is not supported by the provider` },
+          422,
+        );
+      }
+    } catch (error) {
+      return fail5xx((error as Error).message, 502);
+    }
+    for (let index = 0; index < items.length; index += GOOGLE_CHUNK) {
+      const chunk = items.slice(index, index + GOOGLE_CHUNK);
+      try {
+        const result = await googleTranslate(apiKey, target, chunk);
+        for (const item of chunk) {
+          const value = result.get(item.key);
+          if (value === undefined) {
+            failed.push({ key: item.key, reason: "provider returned no text" });
+          } else {
+            translated.set(item.key, value);
+          }
+        }
+      } catch (error) {
+        // Per-item honesty: the chunk failed, so every key in it is
+        // reported and NOTHING is written for any of them.
+        for (const item of chunk) {
+          failed.push({ key: item.key, reason: (error as Error).message });
+        }
+      }
+    }
+  }
+
+  // ---- WRITES (the RPC is the single writer) ---------------------
+  let done = 0;
+  for (const [key, value] of translated) {
+    const { error } = await supabase.rpc("admin_machine_translation", {
+      p_key: key,
+      p_lang: target,
+      p_value: value,
+    });
+    if (error) {
+      failed.push({ key, reason: error.message });
+      continue;
+    }
+    done += 1;
+  }
+
+  let flagged = 0;
+  if (done > 0) {
+    // Flag count read back from the rows the writer just validated.
+    const { data: rows } = await supabase.rpc("admin_list_translations", {
+      p_lang: target,
+      p_status: "machine",
+      p_flagged: true,
+      p_search: "",
+      p_limit: MAX_ITEMS,
+      p_offset: 0,
+    });
+    const keys = new Set(translated.keys());
+    flagged = ((rows ?? []) as { key: string }[]).filter((row) => keys.has(row.key)).length;
+  }
+
+  return json({ done, flagged, failed }, 200);
+}
+
 export const Route = createFileRoute("/api/translate")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const authorization = request.headers.get("Authorization") ?? "";
-        if (!authorization.toLowerCase().startsWith("bearer ")) {
-          return json({ error: "missing bearer token" }, 401);
-        }
-
-        const url = serverEnv("SUPABASE_URL");
-        const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-
-        if (url === "" || publishable === "") {
-          return json({ error: "supabase server env missing" }, 500);
-        }
-
-        // CALLER-CONTEXT CLIENT: publishable key + the caller's own JWT.
-        const supabase = createClient(url, publishable, {
-          global: { headers: { Authorization: authorization } },
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
-
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        const uid = userData?.user?.id;
-        if (userError || !uid) return json({ error: "not signed in" }, 401);
-
-        let payload: { target_lang?: string; items?: Item[] };
         try {
-          payload = (await request.json()) as typeof payload;
-        } catch {
-          return json({ error: "invalid json body" }, 400);
-        }
-
-        const target = (payload.target_lang ?? "").trim().toLowerCase();
-        const items = Array.isArray(payload.items) ? payload.items : [];
-        if (!/^[a-z]{2,8}(-[a-z]{2,8})?$/.test(target)) {
-          return json({ error: "invalid target_lang" }, 400);
-        }
-        if (items.length === 0) return json({ error: "no items" }, 400);
-        if (items.length > MAX_ITEMS)
-          return json({ error: `too many items (max ${MAX_ITEMS})` }, 413);
-        for (const item of items) {
-          if (typeof item?.key !== "string" || typeof item?.source !== "string") {
-            return json({ error: "invalid item shape" }, 400);
-          }
-        }
-
-        // ---- GATE (before any provider call) ---------------------------
-        const { data: mayMachine, error: machineError } = await supabase.rpc("has_permission", {
-          _user_id: uid,
-          _resource: "translations",
-          _action: "machine",
-        });
-        if (machineError) return json({ error: machineError.message }, 500);
-        if (mayMachine !== true) return json({ error: "permission denied" }, 403);
-
-        const { data: mayManage, error: manageError } = await supabase.rpc("has_permission", {
-          _user_id: uid,
-          _resource: "translations",
-          _action: "manage",
-        });
-        if (manageError) return json({ error: manageError.message }, 500);
-
-        if (mayManage !== true) {
-          const { data: scope, error: scopeError } = await supabase.rpc(
-            "get_my_translator_languages",
+          return await handlePost(request);
+        } catch (error) {
+          logRouteError(error);
+          return json(
+            { error: error instanceof Error ? error.message : "internal error" },
+            500,
           );
-          if (scopeError) return json({ error: scopeError.message }, 500);
-          const codes = ((scope ?? []) as { lang_code: string }[]).map((row) => row.lang_code);
-          if (!codes.includes(target)) {
-            return json({ error: "not assigned to this language" }, 403);
-          }
         }
-
-        // ---- PROVIDER --------------------------------------------------
-        const fake = serverEnv("E2E_FAKE_TRANSLATE") === "1";
-        const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
-        if (!fake && apiKey === "") {
-          return json({ error: "translation provider is not configured" }, 503);
-        }
-
-        const failed: Failure[] = [];
-        const translated = new Map<string, string>();
-
-        if (fake) {
-          for (const item of items) translated.set(item.key, fakeTranslate(target, item.source));
-        } else {
-          try {
-            const supported = await loadSupportedTargets(apiKey);
-            if (!supported.has(target)) {
-              return json(
-                { error: `target language ${target} is not supported by the provider` },
-                422,
-              );
-            }
-          } catch (error) {
-            return json({ error: (error as Error).message }, 502);
-          }
-          for (let index = 0; index < items.length; index += GOOGLE_CHUNK) {
-            const chunk = items.slice(index, index + GOOGLE_CHUNK);
-            try {
-              const result = await googleTranslate(apiKey, target, chunk);
-              for (const item of chunk) {
-                const value = result.get(item.key);
-                if (value === undefined) {
-                  failed.push({ key: item.key, reason: "provider returned no text" });
-                } else {
-                  translated.set(item.key, value);
-                }
-              }
-            } catch (error) {
-              // Per-item honesty: the chunk failed, so every key in it is
-              // reported and NOTHING is written for any of them.
-              for (const item of chunk) {
-                failed.push({ key: item.key, reason: (error as Error).message });
-              }
-            }
-          }
-        }
-
-        // ---- WRITES (the RPC is the single writer) ---------------------
-        let done = 0;
-        for (const [key, value] of translated) {
-          const { error } = await supabase.rpc("admin_machine_translation", {
-            p_key: key,
-            p_lang: target,
-            p_value: value,
-          });
-          if (error) {
-            failed.push({ key, reason: error.message });
-            continue;
-          }
-          done += 1;
-        }
-
-        let flagged = 0;
-        if (done > 0) {
-          // Flag count read back from the rows the writer just validated.
-          const { data: rows } = await supabase.rpc("admin_list_translations", {
-            p_lang: target,
-            p_status: "machine",
-            p_flagged: true,
-            p_search: "",
-            p_limit: MAX_ITEMS,
-            p_offset: 0,
-          });
-          const keys = new Set(translated.keys());
-          flagged = ((rows ?? []) as { key: string }[]).filter((row) => keys.has(row.key)).length;
-        }
-
-        return json({ done, flagged, failed }, 200);
       },
     },
   },
