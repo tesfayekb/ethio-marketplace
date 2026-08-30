@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
+import { authKey } from "@/lib/query-keys";
 
 import { translationErrorKey } from "./translations-service";
 import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
@@ -19,48 +20,64 @@ import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
  * may DO; this roster says WHICH LANGUAGES they may touch. Rendering is gated
  * on `translations:manage`; the RPC re-checks it server-side (law F3).
  *
- * HONEST LIMITATION: U4a exposes a SELF read only (`get_my_translator_languages`),
- * so this card cannot display another user's current assignment. It is a
- * REPLACE control — the submitted set becomes the user's whole scope — and the
- * copy says so rather than implying a merge.
- */
-/**
- * U4b-5 amendment — EFFECTIVE-PERMISSION GATE. The card is meaningful only
- * when the TARGET user holds at least one `translations:*` permission through
- * any role.
+ * U4b-7 (INC-095 l–n) — ONE gated definer read, `admin_get_translator_scope`,
+ * answers BOTH questions: is the target eligible, and which languages are
+ * ALREADY assigned. Two defects closed:
+ *   (l) the empty-selection branch rendered a line INSTEAD of the checkbox
+ *       list, so an eligible-but-unassigned target had no controls at all —
+ *       the empty state is now a CAPTION ABOVE the list, never a replacement.
+ *   (n) the card never read existing assignments, so the replace-set save
+ *       could silently WIPE a target's scope. `selected` now initializes from
+ *       server truth and re-syncs on every refetch.
  *
- * U4b-6 (INC-095k) — INVOKER-RLS BLINDNESS. The first cut fanned out ×5 calls
- * to `has_permission(uuid,text,text)`, which is a SECURITY INVOKER read: from
- * the browser it reads `user_roles` under the CALLER's RLS and therefore
- * returns empty-truth (false) for every target. A grant to `authenticated` is
- * NOT client-usability. It is replaced by ONE gated SECURITY DEFINER RPC,
- * `user_has_translation_permission(p_target)`, which gates the caller on
- * `translations:manage` server-side and answers honestly for the target.
+ * INC-095(m) SUPERVISOR CORRECTION: the U4b-6 "invoker-blind" mechanism was a
+ * misdiagnosis from a truncated grep — `has_permission` was SECURITY DEFINER
+ * throughout. The gated scope RPC stands on its own merits: ONE read, no
+ * client-side enumeration of an arbitrary target's permissions.
+ *
+ * INC-078 root: the key lives under `authKey(...)` so the sign-out purge sees
+ * it — the previous ad-hoc key sat outside the tripwire's sight.
  */
-function useTargetHasTranslationPermission(userId: string) {
-  return useQuery({
-    queryKey: ["admin", "user-translation-permission", userId],
+type TranslatorScope = { eligible: boolean; languages: string[] };
+
+function useTranslatorScope(userId: string) {
+  return useQuery<TranslatorScope>({
+    queryKey: authKey("admin", "translator-scope", userId),
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("user_has_translation_permission", {
+      const { data, error } = await supabase.rpc("admin_get_translator_scope", {
         p_target: userId,
       });
       // Law F4 — an errored check is an error, never "no permission".
       if (error) throw error;
-      return data === true;
+      const row = Array.isArray(data) ? data[0] : data;
+      return {
+        eligible: row?.eligible === true,
+        languages: row?.languages ?? [],
+      };
     },
   });
 }
 
 export function TranslatorLanguagesCard({ userId, guard }: { userId: string; guard: GuardFn }) {
   const { t } = useI18n();
+  const queryClient = useQueryClient();
   const languages = useLanguages();
   const save = useSetTranslatorLanguages(userId);
-  const targetEligible = useTargetHasTranslationPermission(userId);
+  const scope = useTranslatorScope(userId);
   const [selected, setSelected] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
 
+  const serverLanguages = scope.data?.languages;
+  // Server truth seeds the control set, and re-seeds it on every refetch, so a
+  // replace-set save always starts from what the server actually holds.
+  useEffect(() => {
+    if (!serverLanguages) return;
+    setSelected([...serverLanguages]);
+  }, [serverLanguages]);
+
   const assignable = (languages.data ?? []).filter((row) => !row.isBase && row.enabledAdmin);
+  const eligible = scope.data?.eligible === true;
 
   const toggle = (code: string, checked: boolean) => {
     setSaved(false);
@@ -78,9 +95,9 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         {t("admin.translations.translator.scopeNote")}
       </p>
 
-      {targetEligible.isLoading || languages.isLoading ? (
+      {scope.isLoading || languages.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
-      ) : targetEligible.isError ? (
+      ) : scope.isError ? (
         /* Law F4 — a failed check surfaces; it never impersonates absence. */
         <p
           role="alert"
@@ -89,7 +106,7 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         >
           {t("admin.translations.translator.checkError")}
         </p>
-      ) : targetEligible.data !== true ? (
+      ) : !eligible ? (
         /* No translations:* permission via any role: scoping has nothing to
            attach to. One muted line, no controls. */
         <p data-testid="translator-no-role" className="text-sm text-muted-foreground">
@@ -97,27 +114,34 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         </p>
       ) : assignable.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
-      ) : selected.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("admin.translations.translator.empty")}</p>
       ) : (
-        <ul className="flex flex-wrap gap-3">
-          {assignable.map((row) => (
-            <li key={row.code} className="flex min-h-11 items-center gap-2">
-              <Checkbox
-                id={`translator-lang-${row.code}`}
-                data-testid={`translator-lang-${row.code}`}
-                checked={selected.includes(row.code)}
-                onCheckedChange={(checked) => toggle(row.code, checked === true)}
-              />
-              <label className="text-sm text-foreground" htmlFor={`translator-lang-${row.code}`}>
-                {`${row.nameNative} (${row.code})`}
-              </label>
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* INC-095(l): the empty state is a CAPTION above the controls —
+              never a replacement for them. */}
+          {(serverLanguages?.length ?? 0) === 0 ? (
+            <p data-testid="translator-empty-caption" className="text-sm text-muted-foreground">
+              {t("admin.translations.translator.empty")}
+            </p>
+          ) : null}
+          <ul className="flex flex-wrap gap-3">
+            {assignable.map((row) => (
+              <li key={row.code} className="flex min-h-11 items-center gap-2">
+                <Checkbox
+                  id={`translator-lang-${row.code}`}
+                  data-testid={`translator-lang-${row.code}`}
+                  checked={selected.includes(row.code)}
+                  onCheckedChange={(checked) => toggle(row.code, checked === true)}
+                />
+                <label className="text-sm text-foreground" htmlFor={`translator-lang-${row.code}`}>
+                  {`${row.nameNative} (${row.code})`}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
-      {targetEligible.data === true ? (
+      {eligible ? (
         <>
           <Button
             className="min-h-11 w-full sm:w-auto"
@@ -127,7 +151,13 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
               setSaved(false);
               setErrorKey(null);
               void guard(() => save.mutateAsync(selected))
-                .then(() => setSaved(true))
+                .then(async () => {
+                  setSaved(true);
+                  // Server truth, not the optimistic set (law F4).
+                  await queryClient.invalidateQueries({
+                    queryKey: authKey("admin", "translator-scope", userId),
+                  });
+                })
                 .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
             }}
           >

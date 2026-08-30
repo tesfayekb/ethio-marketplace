@@ -444,6 +444,14 @@ test.describe("U4b translations console", () => {
       await stepUpIfPrompted(page, secret);
       await expect(page.getByTestId("translator-saved")).toBeVisible({ timeout: 20000 });
       await expect(amBox).toHaveAttribute("aria-checked", "true");
+
+      // PERSISTENCE (INC-095n) — the card used to never read existing
+      // assignments, so a replace-set save could silently wipe scope. After a
+      // reload the checkbox must come back CHECKED from server-loaded state.
+      await gotoReady(page, `/admin/users/${target.id}`);
+      const reloadedBox = page.getByTestId("translator-lang-am");
+      await expect(reloadedBox).toBeVisible({ timeout: 20000 });
+      await expect(reloadedBox).toHaveAttribute("aria-checked", "true");
       await expectNoHorizontalOverflow(page);
     } finally {
       if (roleId) {
