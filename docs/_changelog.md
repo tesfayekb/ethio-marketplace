@@ -207,3 +207,4 @@
 - 2026-08-29 — test(e2e): TR-9 verify-or-sync, sized 120s budget, named phases (INC-095i)
 - 2026-08-30 — polish(admin): translator card compact empty state + manage-only scope note
 - 2026-08-30 — feat(admin): translator card renders only when the target holds a translations:\* permission (effective read via has_permission RPC); no-role targets get one muted line, no controls
+- 2026-08-30 — test(e2e): TR-10 proves the conditional translator card, both states (INC-095j)
