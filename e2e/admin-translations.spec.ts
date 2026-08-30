@@ -768,36 +768,67 @@ test.describe("U4b translations console", () => {
   });
 
   /**
-   * U4d — THE DATA SCOPE (TR-14/TR-15).
+   * U4d / INC-097d — THE DATA SCOPE (TR-14/TR-15).
    *
-   * Entity names are SHARED RUNTIME exactly like catalog keys, so TR-14 works
-   * on one real low-risk location and RESTORES its prior row verbatim in a
-   * `finally` (scratch-key law, entity flavour: capture-then-restore where a
-   * scratch entity cannot exist).
+   * Entity names are SHARED RUNTIME exactly like catalog keys. The old
+   * capture-then-restore on the REAL "Addis Ababa" row met the previous run's
+   * residue (dump-proven, run 33310150087) and is retired: TR-14 now creates
+   * its OWN location, carrying every parallelism axis in its name, and deletes
+   * it (with its entity_translations) at the end. Crash leftovers are reaped by
+   * global-setup after 60 minutes.
+   *
+   * locations insert census (public.locations): id uuid default gen_random_uuid()
+   * · parent_id uuid NULL (FK locations.id) · level text NOT NULL CHECK IN
+   * ('country','region','city') · country_code char NOT NULL (FK countries.code)
+   * · name_en text NOT NULL · name_am text NULL · slug text NOT NULL, UNIQUE
+   * (parent_id, slug) · center_lat/lng double NULL · is_active bool NOT NULL
+   * default false (the Data console lists ACTIVE rows only) · created_at /
+   * updated_at timestamptz default now(). CHECK locations_root_is_country:
+   * (level='country') = (parent_id IS NULL) — so a scratch city MUST hang off
+   * an existing parent.
    */
-  async function addisAbaba(): Promise<{ id: string }> {
-    const { data, error } = await adminClient()
+  async function createScratchLocation(): Promise<{ id: string; name: string }> {
+    const supabase = adminClient();
+    const { data: parent, error: parentError } = await supabase
       .from("locations")
-      .select("id")
-      .eq("name_en", "Addis Ababa")
+      .select("id, country_code")
+      .eq("level", "country")
       .limit(1)
       .single();
-    if (error || !data) throw new Error(`[e2e:u4d] Addis Ababa lookup failed: ${error?.message}`);
-    return { id: data.id };
+    if (parentError || !parent) {
+      throw new Error(`[e2e:u4d] no country location to parent onto: ${parentError?.message}`);
+    }
+    const axes = scratchAxes("tr14");
+    const name = `E2E-Scratch-${axes}`;
+    const { data, error } = await supabase
+      .from("locations")
+      .insert({
+        parent_id: parent.id,
+        level: "city",
+        country_code: parent.country_code,
+        name_en: name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        is_active: true,
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      throw new Error(`[e2e:u4d] scratch location insert failed: ${error?.message}`);
+    }
+    return { id: data.id, name };
+  }
+
+  async function reapScratchLocation(id: string) {
+    const supabase = adminClient();
+    await supabase.from("entity_translations").delete().eq("entity_type", "location").eq("entity_id", id);
+    const { error } = await supabase.from("locations").delete().eq("id", id);
+    if (error) throw new Error(`[e2e:u4d] scratch location cleanup failed: ${error.message}`);
   }
 
   test("TR-14 the Data scope edits and approves a location name", async ({ page }) => {
     test.setTimeout(120_000);
-    const { id } = await addisAbaba();
+    const { id, name } = await createScratchLocation();
     const supabase = adminClient();
-    const { data: original } = await supabase
-      .from("entity_translations")
-      .select("value, status, machine")
-      .eq("entity_type", "location")
-      .eq("entity_id", id)
-      .eq("field", "name")
-      .eq("lang_code", "am")
-      .maybeSingle();
     const marker = `አዲስ አበባ ${processId()}`;
     try {
       const { secret } = await signInAsSuperAdmin(page);
