@@ -93,16 +93,18 @@ function slug(key: string) {
  * service-role connection has no `auth.uid()`; the rows written here are the
  * exact shape the RPC writes (base `approved`, target `untranslated`).
  */
-function scratchKey(): string {
+function scratchKey(tag: string): string {
   const worker = process.env["TEST_WORKER_INDEX"] ?? String(process.pid);
   // INC-096f — the namespace MUST carry every parallelism axis: run id
-  // (processId), shard/job (E2E_SHARD), worker, and project. First the project
-  // name was missing, causing mobile-360/desktop-1280 to share a key inside one
-  // job. Then the shard was missing; the DEC-023-B fast lane added a third
-  // concurrent job and keys collided across jobs because PROCESS_ID is run-scoped.
+  // (processId), shard/job (E2E_SHARD), worker, project, and finally the TEST
+  // itself. First the project name was missing, causing mobile-360/desktop-1280
+  // to share a key inside one job. Then the shard was missing; the DEC-023-B
+  // fast lane added a third concurrent job and keys collided across jobs because
+  // PROCESS_ID is run-scoped. Last, the per-test tag was missing: every TR test
+  // in one worker derived ONE key, so TR-8's writes landed on TR-11's row.
   const shard = process.env["E2E_SHARD"] ?? "solo";
   const project = test.info().project.name;
-  return `e2e.scratch.${processId()}-${shard}-${project}-${worker}`;
+  return `e2e.scratch.${processId()}-${shard}-${project}-${worker}-${tag}`;
 }
 
 async function seedScratchKey(key: string, sourceValue: string) {
