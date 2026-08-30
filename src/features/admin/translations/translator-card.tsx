@@ -81,7 +81,15 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         {t("admin.translations.translator.scopeNote")}
       </p>
 
-      {languages.isLoading ? (
+      {targetEligible.isLoading || languages.isLoading ? (
+        <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
+      ) : targetEligible.data !== true ? (
+        /* No translations:* permission via any role: scoping has nothing to
+           attach to. One muted line, no controls. */
+        <p data-testid="translator-no-role" className="text-sm text-muted-foreground">
+          {t("admin.translations.translator.noRole")}
+        </p>
+      ) : languages.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
       ) : assignable.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
