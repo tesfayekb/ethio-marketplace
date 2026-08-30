@@ -98,7 +98,7 @@ export function AdminTranslationsStringsPage({
   const stats = useTranslationStats(lang);
   const scope = useMyTranslatorLanguages(!mayManage && (mayUpdate || mayApprove));
 
-  const scope = search.scope === "data" ? "data" : "interface";
+  const viewScope = search.scope === "data" ? "data" : "interface";
   const status = search.status ?? "all";
   const flagged = search.flagged === true || status === "flagged";
   const query = search.q ?? "";
@@ -121,7 +121,7 @@ export function AdminTranslationsStringsPage({
     void navigate({
       to: "/admin/translations/$lang",
       params: { lang },
-      search: { ...(scope === "data" ? { scope: "data" } : {}), ...next },
+      search: { ...(viewScope === "data" ? { scope: "data" } : {}), ...next },
       replace: true,
     });
   };
@@ -221,7 +221,7 @@ export function AdminTranslationsStringsPage({
               <Button
                 key={value}
                 type="button"
-                variant={scope === value ? "default" : "outline"}
+                variant={viewScope === value ? "default" : "outline"}
                 className="min-h-11"
                 data-testid={`strings-scope-${value}`}
                 onClick={() =>
@@ -245,7 +245,7 @@ export function AdminTranslationsStringsPage({
             ))}
           </div>
 
-          {scope === "data" ? (
+          {viewScope === "data" ? (
             <>
               <p className="text-sm text-muted-foreground" data-testid="data-gate-note">
                 {t("admin.translations.data.gateNote")}
