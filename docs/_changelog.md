@@ -216,3 +216,4 @@
 - 2026-08-30 — fix(api): `has_permission` argument names in `/api/translate` match the SQL declaration (`p_user_id`, `p_resource`, `p_action`); first lit-seam catch (INC-096d)
 - 2026-08-30 — test(e2e): TR-11 asserts the full revision pair (capture law); DEC-023 env census reported
 - 2026-08-30 — test(e2e): TR-11 orders revisions by the declared changed_at
+- 2026-08-30 — fix(i18n): writer order canonicalized — gates before capture before mutate; refused attempts leave no revisions (INC-096f); ci(DEC-023-B): changed-spec fast lane

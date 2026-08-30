@@ -526,3 +526,34 @@ The operator confirms from the guard output that main's extra commits are
 tracking commits (`ci-status.md`, `e2e-last-failure.md`, `[skip ci]`) and
 nothing else, then dispatches. Any other divergence — real work stranded on
 main — is a manual reconcile, never this button.
+
+## DEC-023-B — the changed-spec fast lane (signal only)
+
+`ci.yml`'s `e2e-changed` job ("E2E changed specs (fast lane)") runs after
+`e2e-preflight`. It computes the spec files this branch touched with
+`git diff --name-only <merge-base origin/main HEAD>...HEAD -- 'e2e/*.spec.ts'`,
+caps the set at 5 files, and skips cleanly when the set is empty, over the cap,
+or when no merge-base exists. When it has work it runs those files in ONE job,
+both viewport projects, `--workers=2`, with the same staging env, built-app
+serve and `E2E_FAKE_TRANSLATE=1` as the matrix, uploading `e2e-results-changed`
+and `e2e-log-changed`.
+
+WHY: it is a plan-gated substitute for the local authenticated runs required by
+DEC-023 (A6/A7) that the executor cannot perform — its environment holds no
+staging credentials. A spec edit therefore gets an authenticated verdict in
+minutes instead of one full matrix cycle.
+
+AUTHORITY: none. The merged verdict job ("E2E (Playwright, ethio-staging)")
+`needs:` exactly `e2e-smoke`, `e2e-shard`, `e2e-email`, and its `E2E_GREEN`
+expression reads those three results only. The fast lane cannot turn a red
+matrix green or a green matrix red; it only adds a labelled source to the
+merged report.
+
+REPORTER: `E2E_EXPECTED_SOURCES` gained an OPTIONAL-id suffix. `changed?` is
+read and labelled exactly like any other source when the lane uploaded results,
+and omitted silently when it skipped — a skipped signal lane must never render
+as a missing-source alarm. Required ids are unchanged: their absence is still
+reported with the log tail.
+
+AUTO-RETIRE: if executor-side staging secrets ever arrive (DEC-023 proper),
+delete this job — local runs then carry the same signal at zero CI cost.

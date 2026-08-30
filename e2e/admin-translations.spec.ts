@@ -95,7 +95,13 @@ function slug(key: string) {
  */
 function scratchKey(): string {
   const worker = process.env["TEST_WORKER_INDEX"] ?? String(process.pid);
-  return `e2e.scratch.${processId()}-${worker}`;
+  // INC-096f — the namespace MUST also carry the Playwright PROJECT. Two
+  // projects (mobile-360, desktop-1280) run the same test in the same job and
+  // routinely draw the same worker index, so a project-blind key made both
+  // viewports mutate ONE row: each contributed its 2 revisions and both read 4.
+  // The writers are innocent — the key was shared. Project is part of identity.
+  const project = test.info().project.name;
+  return `e2e.scratch.${processId()}-${project}-${worker}`;
 }
 
 async function seedScratchKey(key: string, sourceValue: string) {

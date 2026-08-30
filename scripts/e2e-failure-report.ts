@@ -1020,20 +1020,29 @@ async function main() {
   const dir = process.env["E2E_RESULTS_DIR"];
   const logsDir = process.env["E2E_LOGS_DIR"];
   const contextsDir = process.env["E2E_CONTEXT_DIR"];
+  // DEC-023-B — OPTIONAL SOURCES. An id may carry a trailing `?` ("changed?"),
+  // meaning: label and read it exactly like any other source WHEN it uploaded
+  // results, and omit it silently when it did not. The changed-spec fast lane
+  // skips cleanly on branches that touched no spec, and a skipped signal-only
+  // lane must not render as a missing-source alarm. Required ids keep their
+  // old behaviour: absence is still reported.
   const expected = (process.env["E2E_EXPECTED_SOURCES"] ?? "smoke,1,2,3,4")
     .split(",")
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((s) => ({ id: s.replace(/\?$/, ""), optional: s.endsWith("?") }));
 
   const sources: Source[] = [];
   let found = 0;
 
   if (dir) {
-    for (const id of expected) {
+    for (const { id, optional } of expected) {
       const parsed = await readJson(`${dir}/e2e-results-${id}/results.json`);
+      if (optional && !parsed.json && !parsed.error) continue;
       // INC-086: "found" means USABLE results (>= 1 recorded test), so the
       // console line cannot claim a source reported when it reported nothing.
       if (parsed.json && countTests(parsed.json) > 0) found += 1;
+
       // DEC-018: the log is read for EVERY source, not only for sources that
       // produced no results — `[ssr-error]` lines matter most next to a
       // failure that DID get recorded.
