@@ -1381,6 +1381,10 @@ export type Database = {
       }
       translation_placeholders: { Args: { p_text: string }; Returns: string[] }
       translation_scope_ok: { Args: { p_lang: string }; Returns: boolean }
+      user_has_translation_permission: {
+        Args: { p_target: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
