@@ -81,6 +81,11 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
 
       {targetEligible.isLoading || languages.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
+      ) : targetEligible.isError ? (
+        /* Law F4 — a failed check surfaces; it never impersonates absence. */
+        <p role="alert" data-testid="translator-check-error" className="text-sm text-muted-foreground">
+          {t("admin.translations.translator.checkError")}
+        </p>
       ) : targetEligible.data !== true ? (
         /* No translations:* permission via any role: scoping has nothing to
            attach to. One muted line, no controls. */
