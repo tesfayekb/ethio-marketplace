@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { PageCard } from "@/components/shell/page-card";
@@ -6,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
+import { supabase } from "@/integrations/supabase/client";
 
 import { translationErrorKey } from "./translations-service";
 import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
@@ -22,10 +24,41 @@ import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
  * REPLACE control — the submitted set becomes the user's whole scope — and the
  * copy says so rather than implying a merge.
  */
+/**
+ * U4b-5 amendment — EFFECTIVE-PERMISSION GATE. The card is meaningful only
+ * when the TARGET user holds at least one `translations:*` permission through
+ * any role. The read is the existing `has_permission(uuid, text, text)` RPC
+ * (granted to authenticated since the RBAC migration) — the cheapest census;
+ * no new RPC was added. Targets with no translations permission render a
+ * single muted line instead of checkboxes.
+ */
+const TRANSLATION_ACTIONS = ["view", "update", "machine", "approve", "manage"] as const;
+
+function useTargetHasTranslationPermission(userId: string) {
+  return useQuery({
+    queryKey: ["admin", "user-translation-permission", userId],
+    queryFn: async () => {
+      const checks = await Promise.all(
+        TRANSLATION_ACTIONS.map(async (action) => {
+          const { data, error } = await supabase.rpc("has_permission", {
+            p_user_id: userId,
+            p_resource: "translations",
+            p_action: action,
+          });
+          if (error) throw error;
+          return data === true;
+        }),
+      );
+      return checks.some(Boolean);
+    },
+  });
+}
+
 export function TranslatorLanguagesCard({ userId, guard }: { userId: string; guard: GuardFn }) {
   const { t } = useI18n();
   const languages = useLanguages();
   const save = useSetTranslatorLanguages(userId);
+  const targetEligible = useTargetHasTranslationPermission(userId);
   const [selected, setSelected] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
@@ -48,8 +81,14 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         {t("admin.translations.translator.scopeNote")}
       </p>
 
-      {languages.isLoading ? (
+      {targetEligible.isLoading || languages.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
+      ) : targetEligible.data !== true ? (
+        /* No translations:* permission via any role: scoping has nothing to
+           attach to. One muted line, no controls. */
+        <p data-testid="translator-no-role" className="text-sm text-muted-foreground">
+          {t("admin.translations.translator.noRole")}
+        </p>
       ) : assignable.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
       ) : selected.length === 0 ? (
@@ -72,32 +111,42 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         </ul>
       )}
 
-      <Button
-        className="min-h-11 w-full sm:w-auto"
-        data-testid="translator-save"
-        disabled={save.isPending || languages.isLoading}
-        onClick={() => {
-          setSaved(false);
-          setErrorKey(null);
-          void guard(() => save.mutateAsync(selected))
-            .then(() => setSaved(true))
-            .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
-        }}
-      >
-        {t("admin.translations.translator.save")}
-      </Button>
+      {targetEligible.data === true ? (
+        <>
+          <Button
+            className="min-h-11 w-full sm:w-auto"
+            data-testid="translator-save"
+            disabled={save.isPending || languages.isLoading}
+            onClick={() => {
+              setSaved(false);
+              setErrorKey(null);
+              void guard(() => save.mutateAsync(selected))
+                .then(() => setSaved(true))
+                .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
+            }}
+          >
+            {t("admin.translations.translator.save")}
+          </Button>
 
-      <p className="text-xs text-muted-foreground">{t("admin.translations.translator.audit")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("admin.translations.translator.audit")}
+          </p>
 
-      {saved ? (
-        <p role="status" data-testid="translator-saved" className="text-sm text-muted-foreground">
-          {t("admin.translations.translator.saved")}
-        </p>
-      ) : null}
-      {errorKey ? (
-        <p role="alert" data-testid="translator-error" className="text-sm text-destructive">
-          {t(errorKey)}
-        </p>
+          {saved ? (
+            <p
+              role="status"
+              data-testid="translator-saved"
+              className="text-sm text-muted-foreground"
+            >
+              {t("admin.translations.translator.saved")}
+            </p>
+          ) : null}
+          {errorKey ? (
+            <p role="alert" data-testid="translator-error" className="text-sm text-destructive">
+              {t(errorKey)}
+            </p>
+          ) : null}
+        </>
       ) : null}
     </PageCard>
   );
