@@ -178,7 +178,7 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-3 the strings page lists keys with source and status", async ({ page }) => {
-    const key = scratchKey();
+    const key = scratchKey("tr3");
     await seedScratchKey(key, "Scratch source");
     try {
       await signInAsSuperAdmin(page);
@@ -196,7 +196,7 @@ test.describe("U4b translations console", () => {
   test("TR-4 scope: a translator outside the language is refused by the SERVER", async ({
     page,
   }) => {
-    const key = scratchKey();
+    const key = scratchKey("tr4");
     await seedScratchKey(key, "Scratch source");
     try {
       const { secret } = await signInAsSuperAdmin(page);
@@ -285,7 +285,7 @@ test.describe("U4b translations console", () => {
     }
 
     // Step 2 — ensure NON-empty via this spec's own scratch key.
-    const key = scratchKey();
+    const key = scratchKey("tr6");
     await seedScratchKey(key, "Scratch source");
     try {
       await gotoReady(page, "/admin/translations");
@@ -307,7 +307,7 @@ test.describe("U4b translations console", () => {
 
   test("TR-8 save then approve moves a string through the status machine", async ({ page }) => {
     // SCRATCH-KEY LAW (INC-095e): the mutation targets this spec's OWN key.
-    const key = scratchKey();
+    const key = scratchKey("tr8");
     await seedScratchKey(key, "Scratch source");
     try {
       const { secret } = await signInAsSuperAdmin(page);
@@ -486,7 +486,7 @@ test.describe("U4b translations console", () => {
   test("TR-11 per-row AI translate writes a machine row and captures a revision", async ({
     page,
   }) => {
-    const key = scratchKey();
+    const key = scratchKey("tr11");
     await seedScratchKey(key, "Scratch source");
     try {
       const { secret } = await signInAsSuperAdmin(page);
@@ -542,7 +542,7 @@ test.describe("U4b translations console", () => {
 
   test("TR-12 bulk AI fill translates every untranslated scratch key", async ({ page }) => {
     test.setTimeout(120_000);
-    const base = scratchKey();
+    const base = scratchKey("tr12");
     const keys = [`${base}-b1`, `${base}-b2`, `${base}-b3`];
     for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`);
     try {
@@ -588,7 +588,7 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-13 the placeholder validator flags a machine write too", async ({ page }) => {
-    const key = scratchKey() + "-break";
+    const key = scratchKey("tr13") + "-break";
     // E2EBREAK makes fake mode drop every {token}: the machine value then
     // mismatches the en source's placeholder set and MUST land flagged.
     await seedScratchKey(key, "E2EBREAK Hello {name}");
