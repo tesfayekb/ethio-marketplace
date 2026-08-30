@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { processId } from "./global-setup";
+import { FENCE_LANG, processId } from "./global-setup";
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -126,7 +126,8 @@ function scratchKey(tag: string): string {
  * `/^[a-z]{2,8}(-[a-z]{2,8})?$/`, which rejects the digit, and the route is
  * out of this task's scope. Flip this one constant if that regex ever widens.
  */
-const FENCE_LANG = "zxx";
+// The code itself is declared once, in e2e/global-setup.ts, because the reaper
+// there must agree with every spec that seeds inside the fence.
 
 async function ensureFenceLanguage() {
   const { error } = await adminClient().from("languages").upsert(
