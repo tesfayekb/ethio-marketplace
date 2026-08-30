@@ -624,8 +624,7 @@ export const am: Messages = {
   "admin.translations.data.empty": "ከዚህ ማጣሪያ ጋር የሚዛመድ የይዘት ስም የለም።",
   "admin.translations.data.coverage": "ከ{total} የይዘት ስሞች ውስጥ {approved} ጸድቀዋል።",
   "admin.translations.data.aiDeferred": "ለይዘት ስሞች የማሽን ትርጉም ገና አይገኝም — በእጅ ይተርጉሙ።",
-  "admin.translations.data.gateNote":
-    "የይዘት ሽፋን መለኪያ ብቻ ነው፤ ቋንቋን ማተም አሁንም በበይነገጽ ሐረጎች ላይ ይመሠረታል።",
+  "admin.translations.data.gateNote": "የይዘት ሽፋን መለኪያ ብቻ ነው፤ ቋንቋን ማተም አሁንም በበይነገጽ ሐረጎች ላይ ይመሠረታል።",
   "admin.translations.col.entity": "ስም",
   "admin.translations.col.entityType": "ዓይነት",
   "admin.translations.entity.category": "ምድብ",
