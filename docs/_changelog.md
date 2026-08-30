@@ -212,3 +212,4 @@
 - 2026-08-30 — fix(rbac): translator card reads existing scope (wipe-footgun closed), controls render for eligible targets (streak root), scope RPC + persistence proof (INC-095 l–n)
 
 - 2026-08-30 — feat(translations): AI machine translation via the app-server route (per-row + bulk), revision capture on every writer, CI fake mode (U4c, INC-096)
+- 2026-08-30 — fix(api): translate endpoint censused against the installed Start server-route primitive (no separate factory exists; the CI 500s were handler-issued, not SSR renders); every 5xx now logs into [ssr-error] before the structured body (INC-096 b–c)
