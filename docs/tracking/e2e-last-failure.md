@@ -1,174 +1,55 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33298052285
-- Commit: `3d83f974c6a249d41636f2d771c9b2bd86df9c51`
-- Written (UTC): 2026-08-30T07:05:00.874Z
-- Passed: 339 · Skipped: 66 · Failed: 4
-- Sources without results: none
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33298642338
+- Commit: `59f9015d5750342be2e30554bb2c35f4e2d54819`
+- Written (UTC): 2026-08-30T07:28:49.672Z
+- Passed: 262 · Skipped: 38 · Failed: 1
+- Sources without results: smoke
 
-## admin-translations.spec.ts › U4b translations console › TR-11 per-row AI translate writes a machine row and captures a revision
-
-- Source: `shard 1`
-- Project: `mobile-360`
-
-```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 2
-Received: 4
-```
-
-Context:
-
-```text
-          - listitem [ref=e143]:
-            - generic [ref=e144]: About
-          - listitem [ref=e145]:
-            - generic [ref=e146]: How it works
-      - navigation "Help" [ref=e147]:
-        - heading "Help" [level=2] [ref=e148]
-        - list [ref=e149]:
-          - listitem [ref=e150]:
-            - generic [ref=e151]: Safety
-          - listitem [ref=e152]:
-            - generic [ref=e153]: Contact
-      - navigation "Legal" [ref=e154]:
-        - heading "Legal" [level=2] [ref=e155]
-        - list [ref=e156]:
-          - listitem [ref=e157]:
-            - generic [ref=e158]: Terms
-          - listitem [ref=e159]:
-            - generic [ref=e160]: Privacy
-    - paragraph [ref=e162]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations.spec.ts › U4b translations console › TR-11 per-row AI translate writes a machine row and captures a revision
-
-- Source: `shard 3`
-- Project: `desktop-1280`
-
-```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 2
-Received: 4
-```
-
-Context:
-
-```text
-          - listitem [ref=e247]:
-            - generic [ref=e248]: About
-          - listitem [ref=e249]:
-            - generic [ref=e250]: How it works
-      - navigation "Help" [ref=e251]:
-        - heading "Help" [level=2] [ref=e252]
-        - list [ref=e253]:
-          - listitem [ref=e254]:
-            - generic [ref=e255]: Safety
-          - listitem [ref=e256]:
-            - generic [ref=e257]: Contact
-      - navigation "Legal" [ref=e258]:
-        - heading "Legal" [level=2] [ref=e259]
-        - list [ref=e260]:
-          - listitem [ref=e261]:
-            - generic [ref=e262]: Terms
-          - listitem [ref=e263]:
-            - generic [ref=e264]: Privacy
-    - paragraph [ref=e266]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations.spec.ts › U4b translations console › TR-11 per-row AI translate writes a machine row and captures a revision
-
-- Source: `changed`
-- Project: `mobile-360`
-
-```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 2
-Received: 4
-```
-
-Context:
-
-```text
-          - listitem [ref=e143]:
-            - generic [ref=e144]: About
-          - listitem [ref=e145]:
-            - generic [ref=e146]: How it works
-      - navigation "Help" [ref=e147]:
-        - heading "Help" [level=2] [ref=e148]
-        - list [ref=e149]:
-          - listitem [ref=e150]:
-            - generic [ref=e151]: Safety
-          - listitem [ref=e152]:
-            - generic [ref=e153]: Contact
-      - navigation "Legal" [ref=e154]:
-        - heading "Legal" [level=2] [ref=e155]
-        - list [ref=e156]:
-          - listitem [ref=e157]:
-            - generic [ref=e158]: Terms
-          - listitem [ref=e159]:
-            - generic [ref=e160]: Privacy
-    - paragraph [ref=e162]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations.spec.ts › U4b translations console › TR-11 per-row AI translate writes a machine row and captures a revision
+## admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key
 
 - Source: `changed`
 - Project: `desktop-1280`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
+Error: expect(received).toBeGreaterThanOrEqual(expected)
 
-Expected: 2
-Received: 4
+Expected: >= 3
+Received:    0
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e247]:
-            - generic [ref=e248]: About
-          - listitem [ref=e249]:
-            - generic [ref=e250]: How it works
-      - navigation "Help" [ref=e251]:
-        - heading "Help" [level=2] [ref=e252]
-        - list [ref=e253]:
-          - listitem [ref=e254]:
-            - generic [ref=e255]: Safety
-          - listitem [ref=e256]:
-            - generic [ref=e257]: Contact
-      - navigation "Legal" [ref=e258]:
-        - heading "Legal" [level=2] [ref=e259]
-        - list [ref=e260]:
-          - listitem [ref=e261]:
-            - generic [ref=e262]: Terms
-          - listitem [ref=e263]:
-            - generic [ref=e264]: Privacy
-    - paragraph [ref=e266]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e716]:
+            - generic [ref=e717]: About
+          - listitem [ref=e718]:
+            - generic [ref=e719]: How it works
+      - navigation "Help" [ref=e720]:
+        - heading "Help" [level=2] [ref=e721]
+        - list [ref=e722]:
+          - listitem [ref=e723]:
+            - generic [ref=e724]: Safety
+          - listitem [ref=e725]:
+            - generic [ref=e726]: Contact
+      - navigation "Legal" [ref=e727]:
+        - heading "Legal" [level=2] [ref=e728]
+        - list [ref=e729]:
+          - listitem [ref=e730]:
+            - generic [ref=e731]: Terms
+          - listitem [ref=e732]:
+            - generic [ref=e733]: Privacy
+    - paragraph [ref=e735]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## Server errors: shard 1
+## Server errors: smoke
 
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-## Client errors: shard 1
+## Client errors: smoke
 
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Server errors: shard 3
-
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
 ## Server errors: changed
 
@@ -177,3 +58,11 @@ No `[ssr-error]` lines in the `changed` log (or no log was uploaded).
 ## Client errors: changed
 
 No `[client-error]` lines in the `changed` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
