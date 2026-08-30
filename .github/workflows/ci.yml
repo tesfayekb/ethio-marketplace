@@ -337,6 +337,127 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # ── DEC-023-B — CHANGED-SPEC FAST LANE ────────────────────────────────────
+  # SIGNAL ONLY. This job is a plan-gated substitute for the local authenticated
+  # runs the executor cannot perform (no prod/staging secrets in its
+  # environment): it re-runs just the spec files this branch touched so a spec
+  # edit gets an authed verdict in minutes instead of a full matrix.
+  # AUTHORITY IS UNCHANGED: the merged verdict job below `needs:` exactly the
+  # full matrix (e2e-smoke, e2e-shard, e2e-email). This lane is never in that
+  # needs list and can never turn a red matrix green — or a green matrix red.
+  # Auto-retire: if executor-side staging secrets ever arrive (DEC-023), delete
+  # this job; local runs then carry the same signal at zero CI cost.
+  e2e-changed:
+    name: E2E changed specs (fast lane)
+    needs: e2e-preflight
+    runs-on: ubuntu-latest
+    env:
+      E2E_SHARD: changed
+      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
+      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_E2E: "1"
+      E2E_SERVE_BUILT: "1"
+      E2E_FAKE_TRANSLATE: "1"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      # The changed set is computed against the merge-base with origin/main, so
+      # it names what THIS branch touched, not what main moved on to.
+      - name: Compute changed spec files
+        id: changed
+        run: |
+          set -u
+          git fetch --no-tags --depth=200 origin main || true
+          base="$(git merge-base origin/main HEAD 2>/dev/null || true)"
+          if [ -z "$base" ]; then
+            echo "No merge-base with origin/main — skipping cleanly."
+            echo "specs=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files="$(git diff --name-only --diff-filter=d "$base"...HEAD -- 'e2e/*.spec.ts' | tr '\n' ' ')"
+          count="$(echo $files | wc -w)"
+          if [ "$count" -eq 0 ]; then
+            echo "No changed e2e specs — skipping cleanly."
+            echo "specs=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$count" -gt 5 ]; then
+            echo "$count changed specs (> cap 5) — the full matrix already covers this; skipping cleanly."
+            echo "specs=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Changed specs: $files"
+          echo "specs=$files" >> "$GITHUB_OUTPUT"
+      - name: Cache bun install
+        if: steps.changed.outputs.specs != ''
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - name: Install dependencies
+        if: steps.changed.outputs.specs != ''
+        run: bun install --frozen-lockfile
+      - name: Resolve Playwright version
+        if: steps.changed.outputs.specs != ''
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        if: steps.changed.outputs.specs != ''
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install Chromium
+        if: steps.changed.outputs.specs != ''
+        run: bunx playwright install --with-deps chromium
+      - name: Build the app in E2E mode (VITE_E2E=1)
+        if: steps.changed.outputs.specs != ''
+        run: bun run build:e2e
+      - name: Verify e2e build output
+        if: steps.changed.outputs.specs != ''
+        run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; exit 1; }
+      - name: Run the changed specs (both projects, one job)
+        if: steps.changed.outputs.specs != ''
+        run: |
+          set -o pipefail
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --workers=2 ${{ steps.changed.outputs.specs }} 2>&1 | tee changed.log
+      - name: Upload changed-lane results
+        if: always() && steps.changed.outputs.specs != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-changed
+          path: test-results/results.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Capture changed-lane log tail
+        if: always() && steps.changed.outputs.specs != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-log-changed
+          path: changed.log
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload error contexts
+        if: failure() && steps.changed.outputs.specs != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-context-changed
+          path: test-results/**/error-context.md
+          if-no-files-found: warn
+          retention-days: 7
+
+
   e2e-shard:
     name: E2E shard ${{ matrix.shard }}/4
     needs: e2e-preflight
