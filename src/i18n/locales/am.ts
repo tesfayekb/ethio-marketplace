@@ -597,6 +597,7 @@ export const am: Messages = {
   "admin.translations.translator.scopeNote":
     "ለትርጉም አስተዳዳሪዎች ብቻ የታይ። የተመደቡ ቋንቋዎች ይህ ሰው የትኞቹን ቋንቋዎች ሊያስተካክል እንደሚችል ይወስናል፤ የተርጓሚው ሚና ራሱ የማስተካከል ፈቃድ ይሰጣል።",
   "admin.translations.translator.empty": "ምንም የተርጓሚ ቋንቋ አልተመደበም።",
+  "admin.translations.translator.noRole": "የቋንቋ መቆጣጠር እንዲኖር የተርጓሚ ሚና ይመድቡ።",
   "admin.translations.translator.none": "የተመደበ ቋንቋ የለም።",
   "admin.translations.translator.save": "ምድብ አስቀምጥ",
   "admin.translations.translator.saved": "ምድብ ተቀምጧል።",
