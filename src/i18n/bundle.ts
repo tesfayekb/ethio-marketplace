@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
+import type { EntityBundleMap } from "./entity";
+
 /**
  * The DB bundle reader (U4b, D3 runtime flip).
  *
