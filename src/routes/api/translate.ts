@@ -215,17 +215,17 @@ async function handlePost(request: Request): Promise<Response> {
 
   // ---- GATE (before any provider call) ---------------------------
   const { data: mayMachine, error: machineError } = await supabase.rpc("has_permission", {
-    _user_id: uid,
-    _resource: "translations",
-    _action: "machine",
+    p_user_id: uid,
+    p_resource: "translations",
+    p_action: "machine",
   });
   if (machineError) return fail5xx(machineError.message, 500);
   if (mayMachine !== true) return json({ error: "permission denied" }, 403);
 
   const { data: mayManage, error: manageError } = await supabase.rpc("has_permission", {
-    _user_id: uid,
-    _resource: "translations",
-    _action: "manage",
+    p_user_id: uid,
+    p_resource: "translations",
+    p_action: "manage",
   });
   if (manageError) return fail5xx(manageError.message, 500);
 

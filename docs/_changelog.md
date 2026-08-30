@@ -213,3 +213,4 @@
 
 - 2026-08-30 — feat(translations): AI machine translation via the app-server route (per-row + bulk), revision capture on every writer, CI fake mode (U4c, INC-096)
 - 2026-08-30 — fix(api): translate endpoint censused against the installed Start server-route primitive (no separate factory exists; the CI 500s were handler-issued, not SSR renders); every 5xx now logs into [ssr-error] before the structured body (INC-096 b–c)
+- 2026-08-30 — fix(api): `has_permission` argument names in `/api/translate` match the SQL declaration (`p_user_id`, `p_resource`, `p_action`); first lit-seam catch (INC-096d)
