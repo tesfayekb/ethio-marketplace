@@ -2,25 +2,97 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33290923302
 - Commit: `48765c024e32ef2b87e0b0c44129a5767fba6887`
-- Written (UTC): 2026-08-30T03:44:15.744Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
+- Written (UTC): 2026-08-30T03:56:48.351Z
+- Passed: 305 · Skipped: 66 · Failed: 2
+- Sources without results: none
 
-## Server errors: smoke
+## admin-translations.spec.ts › U4b translations console › TR-10 translator card proves both permission states
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+- Source: `shard 1`
+- Project: `mobile-360`
 
-## Client errors: smoke
+```text
+Error: expect(locator).toBeVisible() failed
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+Locator: getByTestId('translator-lang-am')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
 
-## Server errors: email
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('translator-lang-am')
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+```
 
-## Client errors: email
+Context:
 
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+```text
+          - listitem [ref=e172]:
+            - generic [ref=e173]: About
+          - listitem [ref=e174]:
+            - generic [ref=e175]: How it works
+      - navigation "Help" [ref=e176]:
+        - heading "Help" [level=2] [ref=e177]
+        - list [ref=e178]:
+          - listitem [ref=e179]:
+            - generic [ref=e180]: Safety
+          - listitem [ref=e181]:
+            - generic [ref=e182]: Contact
+      - navigation "Legal" [ref=e183]:
+        - heading "Legal" [level=2] [ref=e184]
+        - list [ref=e185]:
+          - listitem [ref=e186]:
+            - generic [ref=e187]: Terms
+          - listitem [ref=e188]:
+            - generic [ref=e189]: Privacy
+    - paragraph [ref=e191]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## admin-translations.spec.ts › U4b translations console › TR-10 translator card proves both permission states
+
+- Source: `shard 3`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('translator-lang-am')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('translator-lang-am')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e260]:
+            - generic [ref=e261]: About
+          - listitem [ref=e262]:
+            - generic [ref=e263]: How it works
+      - navigation "Help" [ref=e264]:
+        - heading "Help" [level=2] [ref=e265]
+        - list [ref=e266]:
+          - listitem [ref=e267]:
+            - generic [ref=e268]: Safety
+          - listitem [ref=e269]:
+            - generic [ref=e270]: Contact
+      - navigation "Legal" [ref=e271]:
+        - heading "Legal" [level=2] [ref=e272]
+        - list [ref=e273]:
+          - listitem [ref=e274]:
+            - generic [ref=e275]: Terms
+          - listitem [ref=e276]:
+            - generic [ref=e277]: Privacy
+    - paragraph [ref=e279]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors: shard 1
 
@@ -30,14 +102,6 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
 No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
 ## Server errors: shard 3
 
 No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
@@ -45,59 +109,3 @@ No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
 ## Client errors: shard 3
 
 No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Server errors: shard 4
-
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
