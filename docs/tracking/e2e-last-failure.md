@@ -1,8 +1,8 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33293657404
-- Commit: `8ccc34afeee9b687cd31d1aaea8dae0bb2dedf6e`
-- Written (UTC): 2026-08-30T04:58:59.359Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33293988345
+- Commit: `137bf41f0f18c29018556c76b2e344d31665f562`
+- Written (UTC): 2026-08-30T05:07:51.333Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
 
