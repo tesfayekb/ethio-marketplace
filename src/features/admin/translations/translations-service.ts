@@ -275,3 +275,59 @@ export function serverMessage(error: unknown): string | null {
   const message = (error as { message?: string } | null)?.message ?? "";
   return message.trim() === "" ? null : message;
 }
+
+/**
+ * U4c — AI TRANSLATION SEAM.
+ *
+ * The endpoint is the app server's `/api/translate` route (INC-096: new
+ * Supabase Edge Functions are rejected by the executor, so the transport moved
+ * to the app server; the contract is unchanged). The session bearer is attached
+ * explicitly — this is a raw HTTP call, not a serverFn RPC, so the global
+ * function middleware does not apply.
+ *
+ * Law F3: this call decides NOTHING. The route re-checks
+ * `translations:machine` + scope, and `admin_machine_translation` re-gates
+ * again as the single writer.
+ */
+export interface AiTranslateItem {
+  key: string;
+  source: string;
+}
+
+export interface AiTranslateResult {
+  done: number;
+  flagged: number;
+  failed: { key: string; reason: string }[];
+}
+
+/** The route's own hard cap; the caller chunks to this size. */
+export const AI_CHUNK_SIZE = 100;
+
+export async function aiTranslate(input: {
+  lang: string;
+  items: AiTranslateItem[];
+}): Promise<AiTranslateResult> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error("not signed in");
+
+  const response = await fetch("/api/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ target_lang: input.lang, items: input.items }),
+  });
+
+  const payload = (await response.json().catch(() => null)) as
+    | (Partial<AiTranslateResult> & { error?: string })
+    | null;
+
+  // F4 — a refusal is thrown with the SERVER's own words, never swallowed.
+  if (!response.ok) {
+    throw new Error(payload?.error ?? `translation request failed (${response.status})`);
+  }
+  return {
+    done: Number(payload?.done ?? 0),
+    flagged: Number(payload?.flagged ?? 0),
+    failed: payload?.failed ?? [],
+  };
+}
