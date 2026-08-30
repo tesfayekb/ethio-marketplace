@@ -95,13 +95,14 @@ function slug(key: string) {
  */
 function scratchKey(): string {
   const worker = process.env["TEST_WORKER_INDEX"] ?? String(process.pid);
-  // INC-096f — the namespace MUST also carry the Playwright PROJECT. Two
-  // projects (mobile-360, desktop-1280) run the same test in the same job and
-  // routinely draw the same worker index, so a project-blind key made both
-  // viewports mutate ONE row: each contributed its 2 revisions and both read 4.
-  // The writers are innocent — the key was shared. Project is part of identity.
+  // INC-096f — the namespace MUST carry every parallelism axis: run id
+  // (processId), shard/job (E2E_SHARD), worker, and project. First the project
+  // name was missing, causing mobile-360/desktop-1280 to share a key inside one
+  // job. Then the shard was missing; the DEC-023-B fast lane added a third
+  // concurrent job and keys collided across jobs because PROCESS_ID is run-scoped.
+  const shard = process.env["E2E_SHARD"] ?? "solo";
   const project = test.info().project.name;
-  return `e2e.scratch.${processId()}-${project}-${worker}`;
+  return `e2e.scratch.${processId()}-${shard}-${project}-${worker}`;
 }
 
 async function seedScratchKey(key: string, sourceValue: string) {
