@@ -608,6 +608,19 @@ export const en = {
   "admin.translations.editor.flagNote": "Flagged: {note}",
   "admin.translations.editor.notAssigned":
     "You are not assigned to this language — the server will refuse changes.",
+  // U4c — AI translation (machine fill; results are provisional).
+  "admin.translations.ai.row": "AI translate",
+  "admin.translations.ai.pending": "Translating…",
+  "admin.translations.ai.bulkAction": "AI-translate all untranslated ({count})",
+  "admin.translations.ai.confirmTitle": "Machine-translate the untranslated strings?",
+  "admin.translations.ai.confirmBody":
+    "{count} strings will be sent for machine translation. Results land as provisional machine translations and still need approval before they ship.",
+  "admin.translations.ai.confirmCta": "Translate {count}",
+  "admin.translations.ai.cancel": "Cancel",
+  "admin.translations.ai.progress": "{done} of {total} sent…",
+  "admin.translations.ai.summary": "{done} translated, {flagged} flagged, {failed} failed.",
+  "admin.translations.ai.failedList": "Not translated: {keys}",
+  "admin.translations.ai.error": "Machine translation could not be completed.",
   "admin.translations.translator.title": "Translator languages",
   "admin.translations.translator.scopeNote":
     "Visible to translation managers only. Assignments scope which languages this person may edit; the translator role grants the editing permission itself.",

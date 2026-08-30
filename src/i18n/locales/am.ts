@@ -593,6 +593,19 @@ export const am: Messages = {
   "admin.translations.editor.clear": "አጽዳ",
   "admin.translations.editor.flagNote": "ተመልክቷል፦ {note}",
   "admin.translations.editor.notAssigned": "ለዚህ ቋንቋ አልተመደቡም — ሰርቨሩ ለውጦችን ይከለክላል።",
+  // U4c — በማሽን መተርጎም (ውጤቶቹ ጊዜያዊ ናቸው)።
+  "admin.translations.ai.row": "በAI ተርጉም",
+  "admin.translations.ai.pending": "በመተርጎም ላይ…",
+  "admin.translations.ai.bulkAction": "ያልተተረጎሙትን ሁሉ በAI ተርጉም ({count})",
+  "admin.translations.ai.confirmTitle": "ያልተተረጎሙትን ሐረጎች በማሽን ይተርጎሙ?",
+  "admin.translations.ai.confirmBody":
+    "{count} ሐረጎች ለማሽን ትርጉም ይላካሉ። ውጤቶቹ እንደ ጊዜያዊ የማሽን ትርጉም ይቀመጣሉ፤ ከመታተማቸው በፊት መጽደቅ አለባቸው።",
+  "admin.translations.ai.confirmCta": "{count} ተርጉም",
+  "admin.translations.ai.cancel": "ተወው",
+  "admin.translations.ai.progress": "ከ{total} ውስጥ {done} ተልኳል…",
+  "admin.translations.ai.summary": "{done} ተተርጉመዋል፣ {flagged} ተለይተዋል፣ {failed} አልተሳኩም።",
+  "admin.translations.ai.failedList": "ያልተተረጎሙ: {keys}",
+  "admin.translations.ai.error": "የማሽን ትርጉሙን ማጠናቀቅ አልተቻለም።",
   "admin.translations.translator.title": "የተርጓሚ ቋንቋዎች",
   "admin.translations.translator.scopeNote":
     "ለትርጉም አስተዳዳሪዎች ብቻ የታይ። የተመደቡ ቋንቋዎች ይህ ሰው የትኞቹን ቋንቋዎች ሊያስተካክል እንደሚችል ይወስናል፤ የተርጓሚው ሚና ራሱ የማስተካከል ፈቃድ ይሰጣል።",
