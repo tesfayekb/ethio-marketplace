@@ -119,10 +119,7 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
           {/* INC-095(l): the empty state is a CAPTION above the controls —
               never a replacement for them. */}
           {(serverLanguages?.length ?? 0) === 0 ? (
-            <p
-              data-testid="translator-empty-caption"
-              className="text-sm text-muted-foreground"
-            >
+            <p data-testid="translator-empty-caption" className="text-sm text-muted-foreground">
               {t("admin.translations.translator.empty")}
             </p>
           ) : null}
