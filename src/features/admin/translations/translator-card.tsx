@@ -53,9 +53,7 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
       ) : assignable.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
       ) : selected.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {t("admin.translations.translator.empty")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("admin.translations.translator.empty")}</p>
       ) : (
         <ul className="flex flex-wrap gap-3">
           {assignable.map((row) => (
