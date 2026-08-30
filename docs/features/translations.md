@@ -233,3 +233,82 @@ desktop expansion is a full-width `<tr>`, the mobile one renders inside the
 card. `expansionOf(slug)` / `expansionControl(slug, prefix)` in
 `e2e/admin-translations.spec.ts` scope them to the visible twin; no expansion
 locator is written inline or with `.first()`.
+
+## AI translation (U4c, 2026-08-30)
+
+Transport ruling (INC-096): the executor rejects NEW Supabase Edge Functions, so
+the provider wrapper is a **TanStack server route** —
+`src/routes/api/translate.ts` (`POST /api/translate`). The contract is exactly
+the one U4c specified for the edge function; only the host moved.
+
+| Concern  | Decision                                                                                                                                                         |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth     | Caller-context Supabase client: publishable key + the request's own `Authorization` bearer. **No service-role anywhere on this path.**                           |
+| Gate     | Before ANY provider call: `translations:machine` AND (`translations:manage` OR target ∈ `get_my_translator_languages()`); refusal is a structured `403 {error}`. |
+| Provider | Google Cloud Translation **v2 REST** with `?key=GOOGLE_TRANSLATE_API_KEY`; `/languages` fetched once at cold start and cached in memory.                         |
+| Writer   | `admin_machine_translation` ONLY — it re-gates, placeholder-validates (flags on mismatch), sets `machine` status, provenance and audit.                          |
+| Batching | ≤100 items per Google call; hard cap 600 items/request (`413` beyond).                                                                                           |
+| Failures | Per item: `{key, ok:false, reason}` and **nothing is written for that key**. Response `{done, flagged, failed[]}`.                                               |
+
+**Language census (2026-08-30, cloud.google.com/translate/docs/languages):** `am`
+Amharic (listed, marked experimental), `om` Oromo, `ti` Tigrinya — all three are
+supported by v2, so no provider switch was needed. A target absent from the
+cached list is refused per item with a clear reason rather than sent.
+
+### Secret access pattern
+
+`GOOGLE_TRANSLATE_API_KEY`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and
+`E2E_FAKE_TRANSLATE` are read through one `serverEnv(name)` helper that reads
+`process.env` **inside the handler**:
+
+- **node serve** (DEC-019 Nitro node-server, used by CI): real `process.env`.
+- **cloudflare serve** (workerd + `nodejs_compat`): bindings are injected into
+  `process.env` per request — a module-scope read returns `undefined`, which is
+  why every read is in the handler.
+
+No `VITE_`-prefixed name is read on this path; `VITE_*` compiles into the client
+bundle and would ship the key to the browser.
+
+### FAKE MODE (CI spends nothing)
+
+`E2E_FAKE_TRANSLATE=1` skips Google and returns a deterministic
+`⟪<target>⟫ <source>` per item. The rest of the pipeline — gates, chunking,
+writer RPC, validator, provenance, revisions — runs unchanged. A source
+containing the literal `E2EBREAK` yields output with all `{tokens}` dropped, so
+the validator's flag path is exercised (TR-13). The flag is set on the three
+E2E-serving CI jobs and on nightly; **a normal build never sets it.**
+
+### UI
+
+`strings-page.tsx` gains a per-row **AI translate** control (inside
+`StepUpGate`, hidden for the base language and without `translations:machine`)
+and `ai-bulk-bar.tsx` — count-labelled bulk fill with a confirmation dialog,
+live progress and an inline summary (`done / flagged / failed`, failed keys
+listed). **Deviation, stated:** no `<Toaster />` is mounted and `__root.tsx` is
+out of this task's scope, so the summary is an inline `role="status"` live
+region rather than a toast — same information, no silent success (F4).
+
+Machine output is **provisional**: it lands as `machine`, and the coverage gate
+counts approved rows only, so a human still approves before a language ships.
+
+## Revisions (U4c)
+
+Migration: `supabase/migrations/20260830045700_f5a61050-8b29-4773-befc-d8200d364596.sql`
+(declared mark `20260830060000`).
+
+`ui_translation_revisions` captures the PRIOR `value`/`status`/`machine` before
+every mutating write, from all three writers (`admin_save_translation`,
+`admin_machine_translation`, `admin_set_translation_status`). RLS is deny-all
+with no `anon`/`authenticated` SELECT grant: history is read by service-role
+tooling and by the audit trail, never by the browser.
+
+### Runbook
+
+1. Set `GOOGLE_TRANSLATE_API_KEY` as a deploy secret (never in code, never
+   `VITE_`-prefixed); publish so the server runtime picks it up.
+2. Sync keys from the languages page, then open a language.
+3. Bulk-fill or per-row translate; review flagged rows first (placeholder
+   mismatches), then approve.
+4. Publish the language only after coverage reaches 100% approved.
+5. Provider outage: failures are per item and listed in the summary; nothing is
+   written for a failed key, so re-running is safe and idempotent.
