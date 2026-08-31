@@ -1468,6 +1468,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      next_language_sort: { Args: never; Returns: number }
       promote_to_super_admin: {
         Args: { p_target_user: string }
         Returns: undefined
