@@ -35,6 +35,16 @@ import {
 const LANGUAGE_CODE_RE = /^[a-z]{2,8}$/;
 
 /**
+ * U4g-10 (INC-103) — ONE SORTED SOURCE. The roster's order law is (sort, code),
+ * identical to the public switcher's. Render AND the move controls' disabled
+ * predicates read this same array, so a button can never describe a different
+ * order from the one on screen.
+ */
+function sortLanguages(data: LanguageRow[] | undefined): LanguageRow[] {
+  return [...(data ?? [])].sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code));
+}
+
+/**
  * U4b PART A — THE LANGUAGES PAGE (/admin/translations).
  *
  * Gate tier: translations:view for the page, translations:manage for every
