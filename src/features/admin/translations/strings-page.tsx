@@ -400,7 +400,6 @@ export function AdminTranslationsStringsPage({
                     />
                   ) : null
                 }
-
                 rowActions={(row) => (
                   <Button
                     type="button"
@@ -566,7 +565,6 @@ function StringEditor({
         setErrorDetail(serverMessage(failure));
       });
   };
-
 
   return (
     <div className="min-w-0 space-y-3" data-testid={`string-editor-${id}`}>

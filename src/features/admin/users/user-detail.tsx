@@ -100,7 +100,6 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
     );
   }
 
-
   const deactivated = user.accountStatus === "deactivated";
   const assignable = (roles.data ?? []).filter(
     (role) => !UNASSIGNABLE_ROLES.includes(role.name as (typeof UNASSIGNABLE_ROLES)[number]),
