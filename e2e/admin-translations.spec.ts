@@ -1214,13 +1214,28 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
       let start = -1;
       await test.step("TR-20 roster visible", async () => {
+        // U4g-10 (INC-103) — PRECONDITION, not a weakened assertion: the base
+        // language is pinned first, so a fence sitting directly beneath it has
+        // a legitimately disabled "up" control (Playwright would then wait out
+        // the whole budget on the click). Park the fence at the end first.
+        if ((await positionOf(FENCE_LANG)) <= 1) {
+          const { data } = await supabase.from("languages").select("code").order("sort");
+          const codes = (data ?? []).map((row) => row.code as string);
+          const parked = [...codes.filter((code) => code !== FENCE_LANG), FENCE_LANG];
+          const { error } = await supabase.rpc("admin_set_language_order", { p_codes: parked });
+          if (error) throw new Error(`[e2e:u4g] parking the fence failed: ${error.message}`);
+        }
         await gotoReady(page, "/admin/translations");
         await expect(langRow(page, FENCE_LANG)).toBeVisible({ timeout: 20000 });
         start = await positionOf(FENCE_LANG);
       });
 
       await test.step("TR-20 move up", async () => {
-        await langRow(page, FENCE_LANG).getByTestId(`lang-up-${FENCE_LANG}`).click();
+        const up = langRow(page, FENCE_LANG).getByTestId(`lang-up-${FENCE_LANG}`);
+        await expect(up, "the fence's up control must be enabled before the move").toBeEnabled({
+          timeout: 20000,
+        });
+        await up.click();
         await stepUpIfPrompted(page, secret);
         await expect
           .poll(() => positionOf(FENCE_LANG), {
