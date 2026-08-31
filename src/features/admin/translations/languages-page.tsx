@@ -53,12 +53,7 @@ export function AdminTranslationsLanguagesPage() {
   const statsByLang = new Map<string, TranslationStats>(
     (stats.data ?? []).map((row) => [row.langCode, row]),
   );
-  // U4g-3 (INC-099b) — ONE ordering law, (sort, code), identical to the public
-  // switcher's. The RPC already orders this way; restating it client-side keeps
-  // the roster deterministic even if a read arrives unordered.
-  const rows = [...(languages.data ?? [])].sort(
-    (a, b) => a.sort - b.sort || a.code.localeCompare(b.code),
-  );
+  const rows = sortLanguages(languages.data);
   const baseTotal = statsByLang.get("en")?.total ?? 0;
   const enabledCount = rows.filter((row) => row.enabledAdmin || row.enabledPublic).length;
   const totals = (stats.data ?? []).reduce(
