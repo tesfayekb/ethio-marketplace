@@ -184,7 +184,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     };
   }, [language, authSettled]);
 
-
   const setLanguage = useCallback(
     (next: Language) => {
       // U4f — activation is gated: a non-public code falls back to the base
@@ -281,7 +280,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [language, authSettled]);
-
 
   useEffect(() => {
     document.documentElement.lang = language;
