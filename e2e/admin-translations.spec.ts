@@ -1230,13 +1230,16 @@ test.describe("U4g bulk approval, order and orphans", () => {
     const key = scratchKey("tr21");
     await seedScratchKey(key, "Orphan source", FENCE_LANG);
 
+    // INC-099 (J-law): fixture reads are TABLE reads through the service
+    // client. The gated RPC is the app's seam, never the test's oracle.
     const statOf = async (field: "total" | "orphaned") => {
-      const { data, error } = await supabase.rpc("admin_translation_stats", {
-        p_lang: FENCE_LANG,
-      });
-      if (error) throw new Error(`[e2e:u4g] stats read failed: ${error.message}`);
-      const row = (data ?? [])[0] as Record<string, number> | undefined;
-      return Number(row?.[field] ?? 0);
+      const { count, error } = await supabase
+        .from("ui_translations")
+        .select("key", { count: "exact", head: true })
+        .eq("lang_code", FENCE_LANG)
+        .eq("orphaned", field === "orphaned");
+      if (error) throw new Error(`[e2e:u4g] stats table read failed: ${error.message}`);
+      return Number(count ?? 0);
     };
 
     try {

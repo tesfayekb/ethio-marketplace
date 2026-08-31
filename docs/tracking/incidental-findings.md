@@ -731,3 +731,18 @@ U0f drawer geometry raced category loading: the smoke run resolved the last
 on skeleton height left the final item out of the viewport. CLASS RULE:
 geometry assertions wait for data-settled state — skeleton count 0 — not merely
 hydration. The non-blocking provider surfaced the assumption.
+
+## INC-099 — a wrapper/\_impl split dropped authenticated EXECUTE (2026-08-31)
+
+A wrapper/\_impl split re-declared functions without restating authenticated
+EXECUTE on the wrapper the app calls — a Postgres-level denial masquerading as
+an app refusal ("permission denied for function admin_translation_stats",
+run 33363319629; TR-3/4/8/11/12 cascaded from the page's stats call).
+
+CLASS RULE (E6 applied to grants): every migration touching functions ends with
+a `has_function_privilege` totality proof over the exact signatures the app
+calls; an overload census prevents stale-signature resolution.
+
+Fixture corollary: fixture reads are table reads (service client); gated RPCs
+are for the app. TR-21's stats assertion now counts `ui_translations` rows
+directly.
