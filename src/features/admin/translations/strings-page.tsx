@@ -152,10 +152,16 @@ export function AdminTranslationsStringsPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchDraft]);
 
+  /**
+   * INVARIANT: admin surfaces read admin sources; the public gate list is for
+   * the public switcher only. Language validity here comes from
+   * `admin_list_languages` (enabled_admin OR base) via `useLanguages()` — never
+   * from the i18n provider's public gate — and the page NEVER waits on it:
+   * INC-102, an admin route that blanked while a readiness signal was pending.
+   */
   const known: LanguageRow | undefined = (languages.data ?? []).find((row) => row.code === lang);
-  const guardPending = languages.isLoading;
   const unavailable =
-    !guardPending &&
+    !languages.isLoading &&
     languages.data !== undefined &&
     (!known || (!known.enabledAdmin && !known.isBase));
 
@@ -164,13 +170,11 @@ export function AdminTranslationsStringsPage({
     if (unavailable) void navigate({ to: "/admin/translations", replace: true });
   }, [unavailable, navigate]);
 
-  if (guardPending || unavailable) {
+  if (unavailable) {
     return (
       <PageCard testid="strings-unavailable">
         <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-          {unavailable
-            ? t("admin.translations.strings.unknown")
-            : t("admin.translations.strings.loading")}
+          {t("admin.translations.strings.unknown")}
         </p>
       </PageCard>
     );
