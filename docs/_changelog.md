@@ -234,3 +234,4 @@
 - 2026-08-31 — feat(i18n): U4g — approve-all-reviewed (flag-safe, revision-captured), language ordering (switcher follows), orphaned keys excluded from coverage
 - 2026-08-31 — fix(db): authenticated EXECUTE restored on translation wrappers with totality proof; TR-21 reads truth from tables (INC-099)
 - 2026-08-31 — fix(i18n): deterministic language order (normalized sort, append-on-insert, (sort, code) everywhere); TR-20 self-describing; gitleaks proof-literal allowlisted (INC-099b)
+- 2026-08-31 — fix(db): languages_append_sort as INVOKER; migration guard gains a reasoned, printed allowlist (DEC-022-B, INC-099c)

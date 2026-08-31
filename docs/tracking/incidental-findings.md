@@ -753,3 +753,21 @@ Language sort shipped tied at 0 — roster and switcher order were undefined and
 new languages could never append; normalized with rank, append-on-insert, and
 (sort, code) ordering everywhere. Poll budgets must be shorter than test budgets
 so failures self-describe.
+
+## INC-099c — a tool-split DEFINER/REVOKE pair left the guard permanently red (2026-08-31)
+
+`scripts/check-migrations.sh` requires a SECURITY DEFINER function's REVOKE in
+the SAME file. The migration tool wrote `languages_append_sort` (U4g-3,
+`4a00896e`) and its REVOKE (`f18f1883`) as two files, and tool-managed
+migrations cannot be edited afterwards — so the scan stayed red although the
+database was correctly locked down.
+
+MECHANISM (DEC-022-B): the follow-up lands in the same landing, the operator
+applies both in one step (apply-pairing), and the earlier file is entered in
+`scripts/migration-guard-allowlist.txt` with a reason and its closing migration
+fragment. Allowlisted files are skipped by the definer scan and PRINTED on every
+run — nothing is silently skipped, and the law itself is unweakened.
+
+CLASS RULE: trigger helpers default to SECURITY INVOKER; DEFINER is for gated
+entry points only. `languages_append_sort` was re-declared as INVOKER (U4g-4)
+with its REVOKEs in-file and an append proof under invoker semantics.

@@ -1,0 +1,5 @@
+# Definer-guard allowlist (DEC-022-B). One entry per line:
+#   <filename> | <reason> | <closing migration uuid-fragment>
+# Allowlisted files are skipped by the definer scan and PRINTED on every run,
+# each citing the migration that closed the window. Nothing is silently skipped.
+20260831064939_4a00896e-bc69-4919-bb1e-8181a7e65034.sql | tool split placed the REVOKE in the next file; window closed by paired apply | f18f1883
