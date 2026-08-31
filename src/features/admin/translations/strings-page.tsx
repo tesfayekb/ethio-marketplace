@@ -180,7 +180,6 @@ export function AdminTranslationsStringsPage({
     );
   }
 
-
   const langStats = (stats.data ?? [])[0];
   const counts: Record<string, number> = {
     all: langStats?.total ?? 0,
