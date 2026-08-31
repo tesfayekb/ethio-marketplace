@@ -1180,11 +1180,17 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await gotoReady(page, "/admin/translations");
       await expect(langRow(page, FENCE_LANG)).toBeVisible({ timeout: 20000 });
 
+      // U4g-3 (INC-099b) — order by (sort, code), the app's ordering law; sort
+      // alone was ambiguous while every row shared sort = 0.
+      // J-law: a poll budget must be STRICTLY shorter than the test budget
+      // (30s polls inside a 120s test) so a mismatch asserts with values
+      // instead of consuming the test and reporting only a timeout.
       const positionOf = async (code: string) => {
         const { data } = await supabase
           .from("languages")
           .select("code, sort")
-          .order("sort", { ascending: true });
+          .order("sort", { ascending: true })
+          .order("code", { ascending: true });
         return (data ?? []).map((row) => row.code as string).indexOf(code);
       };
       const start = await positionOf(FENCE_LANG);
