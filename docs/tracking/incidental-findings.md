@@ -710,3 +710,16 @@ Response`). Verified empirically in BOTH serves: dev AND the
   validates every activation source against it and falls back to the base
   language with one warning, and approve now refuses flagged rows. CLASS RULE:
   every consumer of a gated list reads the gate's source.
+
+## INC-098b — a root provider gated on a network read (2026-08-31)
+
+The publication-gate fix gated the ROOT on a network read — three specs stuck
+on their URLs. CLASS RULE: root providers render immediately from local state
+and reconcile async; gates change state once, equality-guarded, never block or
+loop.
+
+Verified alongside the fix: route guards are independent of i18n. `/admin`'s
+gate (`src/routes/admin.tsx`) derives `pending` from `authLoading || loading`
+(shell auth + permissions) and navigates from that effect alone; `useI18n()` is
+used there only for `t`. No guard, loader or redirect reads `publicLanguages`
+or `gateReady`.
