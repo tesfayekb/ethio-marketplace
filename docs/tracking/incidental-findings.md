@@ -771,3 +771,13 @@ run — nothing is silently skipped, and the law itself is unweakened.
 CLASS RULE: trigger helpers default to SECURITY INVOKER; DEFINER is for gated
 entry points only. `languages_append_sort` was re-declared as INVOKER (U4g-4)
 with its REVOKEs in-file and an append proof under invoker semantics.
+
+## INC-100 — re-runs were blind: artifacts could not be overwritten (2026-08-31)
+
+Re-run attempts could not overwrite attempt-1 artifacts; the reporter read
+nothing and reported a wipeout (run 33367384491 attempt 2 → "Passed 0 ·
+Skipped 0 · Failed 0" while shards 1/3 and the changed lane visibly failed).
+
+CLASS RULE: evidence artifacts are overwrite-on-rerun and the report names its
+attempt; a wipeout on attempt >= 2 with a green preflight now reads as
+"artifact contract broken", never as "no tests ran".

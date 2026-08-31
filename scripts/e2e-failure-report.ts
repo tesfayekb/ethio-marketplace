@@ -1023,7 +1023,12 @@ async function main() {
     // attempt 1's reads as an empty download; the header must name the attempt
     // so that emptiness is legible as a broken artifact contract rather than
     // "no tests ran". Fixture: the same wipeout shape, rendered on attempt 2.
-    const attemptMeta: ReportMeta = { runId: "self-test", runUrl: "", sha: "self-test", attempt: "2" };
+    const attemptMeta: ReportMeta = {
+      runId: "self-test",
+      runUrl: "",
+      sha: "self-test",
+      attempt: "2",
+    };
     const rerun = renderSources(
       [{ label: "shard 1", json: emptyJson, logTail: null, serverErrors: [], clientErrors: [] }],
       attemptMeta,
