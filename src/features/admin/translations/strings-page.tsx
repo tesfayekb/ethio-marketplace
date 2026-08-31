@@ -386,9 +386,12 @@ export function AdminTranslationsStringsPage({
                       mayApprove={mayApprove}
                       mayMachine={mayMachine && !(known?.isBase ?? false)}
                       guard={guard}
+                      saved={savedKey === row.key}
+                      onSaved={(next) => setSavedKey(next ? row.key : null)}
                     />
                   ) : null
                 }
+
                 rowActions={(row) => (
                   <Button
                     type="button"
