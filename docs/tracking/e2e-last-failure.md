@@ -1,54 +1,26 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33362350311
-- Commit: `229be05bf96ffde7f9f09076770a15072351754a`
-- Written (UTC): 2026-08-31T06:03:43.173Z
-- Passed: 423 · Skipped: 97 · Failed: 1
-- Sources without results: none
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33363319629
+- Commit: `42d7f785d2d9af351002e086dfcadab2d0e78830`
+- Written (UTC): 2026-08-31T06:13:47.345Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
 
-## admin-users.spec.ts › U1 admin users › AU-3 detail: reason required, deactivate, audit row, reactivate
+## Server errors: smoke
 
-- Source: `shard 1`
-- Project: `mobile-360`
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-```text
-Error: expect(locator).toBeVisible() failed
+## Client errors: smoke
 
-Locator: getByTestId('activity-user.status_change').first()
-Expected: visible
-Timeout: 15000ms
-Error: element(s) not found
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-Call log:
-  - Expect "toBeVisible" with timeout 15000ms
-  - waiting for getByTestId('activity-user.status_change').first()
+## Server errors: email
 
-```
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
 
-Context:
+## Client errors: email
 
-```text
-          - listitem [ref=e148]:
-            - generic [ref=e149]: About
-          - listitem [ref=e150]:
-            - generic [ref=e151]: How it works
-      - navigation "Help" [ref=e152]:
-        - heading "Help" [level=2] [ref=e153]
-        - list [ref=e154]:
-          - listitem [ref=e155]:
-            - generic [ref=e156]: Safety
-          - listitem [ref=e157]:
-            - generic [ref=e158]: Contact
-      - navigation "Legal" [ref=e159]:
-        - heading "Legal" [level=2] [ref=e160]
-        - list [ref=e161]:
-          - listitem [ref=e162]:
-            - generic [ref=e163]: Terms
-          - listitem [ref=e164]:
-            - generic [ref=e165]: Privacy
-    - paragraph [ref=e167]: © 2026 ethio.com — All rights reserved.
-```
-```
+No `[client-error]` lines in the `email` log (or no log was uploaded).
 
 ## Server errors: shard 1
 
@@ -57,3 +29,75 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 ## Client errors: shard 1
 
 No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## email: no results file
+
+email: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
