@@ -56,29 +56,47 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
   });
   const when = (value: string | null) => (value ? fmt.format(new Date(value)) : "—");
 
-  if (isLoading) {
+  /**
+   * INC-104 / INC-102 law — PAGES RENDER THEIR SHELL BEFORE THEIR QUERIES.
+   * The detail RPC (admin_get_user) is auth-derived: its query only starts once
+   * the session identity has settled, so on a cold mobile load it can stall
+   * behind the auth settle. Early-returning a bare card left the page with
+   * nothing but the footer (AU-3). The shell — container, heading, back link —
+   * renders immediately and the body carries a NAMED loading/error/not-found
+   * state in place.
+   */
+  if (isLoading || error || !user) {
     return (
-      <PageCard>
-        <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-          {t("admin.users.loading")}
-        </p>
-      </PageCard>
-    );
-  }
-  if (error) {
-    return (
-      <PageCard>
-        <p role="alert" className="text-sm text-destructive">
-          {t("admin.users.error")}
-        </p>
-      </PageCard>
-    );
-  }
-  if (!user) {
-    return (
-      <PageCard data-testid="user-not-found">
-        <p className="text-sm text-muted-foreground">{t("admin.users.detail.notFound")}</p>
-      </PageCard>
+      <div data-testid="admin-user-detail" className="space-y-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
+            {t("admin.users.detail.identity")}
+          </h1>
+          <Link
+            to="/admin/users"
+            className="text-sm text-muted-foreground underline underline-offset-4"
+          >
+            {t("admin.users.detail.back")}
+          </Link>
+        </div>
+        {isLoading ? (
+          <PageCard testid="user-detail-loading">
+            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+              {t("admin.users.loading")}
+            </p>
+          </PageCard>
+        ) : error ? (
+          <PageCard testid="user-detail-error">
+            <p role="alert" className="text-sm text-destructive">
+              {t("admin.users.error")}
+            </p>
+          </PageCard>
+        ) : (
+          <PageCard testid="user-not-found">
+            <p className="text-sm text-muted-foreground">{t("admin.users.detail.notFound")}</p>
+          </PageCard>
+        )}
+      </div>
     );
   }
 

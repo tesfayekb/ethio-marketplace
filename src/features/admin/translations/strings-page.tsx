@@ -106,6 +106,15 @@ export function AdminTranslationsStringsPage({
   const query = search.q ?? "";
   const [page, setPage] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
+  /**
+   * INC-104 — POST-ACTION FEEDBACK IS PAGE-LEVEL STATE, NEVER EXPANSION-LOCAL.
+   * The saved marker used to live inside StringEditor, which the DataTable
+   * re-creates whenever the invalidated list refetches (the table twin injects
+   * the expansion as a separate `<tr>`), so the confirmation vanished. Keyed by
+   * row key here, it survives any refetch on BOTH twins.
+   */
+  const [savedKey, setSavedKey] = useState<string | null>(null);
+
   const [searchDraft, setSearchDraft] = useState(query);
   /**
    * U4g — the orphaned set is a VIEW, not a status. It is component state
@@ -386,6 +395,8 @@ export function AdminTranslationsStringsPage({
                       mayApprove={mayApprove}
                       mayMachine={mayMachine && !(known?.isBase ?? false)}
                       guard={guard}
+                      saved={savedKey === row.key}
+                      onSaved={(next) => setSavedKey(next ? row.key : null)}
                     />
                   ) : null
                 }
@@ -518,6 +529,8 @@ function StringEditor({
   mayApprove,
   mayMachine,
   guard,
+  saved,
+  onSaved,
 }: {
   row: TranslationRow;
   lang: string;
@@ -526,6 +539,9 @@ function StringEditor({
   mayApprove: boolean;
   mayMachine: boolean;
   guard: GuardFn;
+  /** INC-104 — owned by the page, so a refetch cannot erase the marker. */
+  saved: boolean;
+  onSaved: (next: boolean) => void;
 }) {
   const { t, language } = useI18n();
   const save = useSaveTranslation(lang);
@@ -534,17 +550,16 @@ function StringEditor({
   const [draft, setDraft] = useState(row.value ?? "");
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const id = slug(row.key);
 
   // MutationAction alias: the hardcoded-string scan reads an inline
   // arrow return type as JSX text (known scanner shape, not a violation).
   const run = (action: MutationAction) => {
-    setSaved(false);
+    onSaved(false);
     setErrorKey(null);
     setErrorDetail(null);
     void guard(action)
-      .then(() => setSaved(true))
+      .then(() => onSaved(true))
       .catch((failure: unknown) => {
         setErrorKey(translationErrorKey(failure));
         setErrorDetail(serverMessage(failure));
