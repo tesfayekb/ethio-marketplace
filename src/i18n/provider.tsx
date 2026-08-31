@@ -118,7 +118,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [publicLanguages],
   );
 
-
   // The entity bundle follows the SAME overlay law as the UI bundle: a failure
   // logs one line and leaves the column/base name answering (law F4, not silent).
   useEffect(() => {
