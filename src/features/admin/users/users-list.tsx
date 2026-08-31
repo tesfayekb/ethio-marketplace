@@ -191,9 +191,16 @@ export function AdminUsersList() {
               }}
             >
               <option value="all">{t("admin.users.filter.all")}</option>
-              {(roles.data ?? []).map((item) => (
+              {/*
+                U4g-13 (INC-106, INC-073 extended): URL truth renders BEFORE the
+                option list arrives. A controlled <select> whose value has no
+                matching <option> collapses to the first one ("all"), so the URL
+                role is always emitted as an option — labelled from the roster
+                once it loads, by its raw name until then.
+              */}
+              {roleOptions.map((item) => (
                 <option key={item.name} value={item.name}>
-                  {item.displayName ?? item.name}
+                  {item.label}
                 </option>
               ))}
             </select>
