@@ -1036,7 +1036,12 @@ test.describe("U4f — publication gate governs language choice", () => {
     // switcher is compared as a SET; ORDER is TR-20's own assertion.
     const expected = data.map((row) => row.code as string).sort();
     expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
-    expect(expected, "the admin-only fence language is never public").not.toContain(FENCE_LANG);
+    // U4g-6 (INC-101): EVERY fence is admin-only, not just the first one.
+    for (const fence of [FENCE_LANG, APPROVE_FENCE_LANG]) {
+      expect(expected, `the admin-only fence language ${fence} is never public`).not.toContain(
+        fence,
+      );
+    }
 
     await gotoReady(page, "/");
     await page.getByTestId("language-switcher").click();
