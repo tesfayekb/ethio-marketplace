@@ -240,3 +240,4 @@
 - 2026-08-31 — fix(auth): session identity applied synchronously from the auth payload; only the profile read hops the auth lock (INC-101 addendum)
 - 2026-08-31 — fix(auth/i18n): use-auth restored to last-known-good; provider reads start after auth settles (INC-101b)
 - 2026-08-31 — fix(admin): strings page renders from admin sources, never awaits the public gate (INC-102)
+- 2026-08-31 — fix(db/admin): admin_list_translations honours an absent orphan filter; roster move controls read one sorted source (INC-103)
