@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { FENCE_LANG, processId } from "./global-setup";
+import { APPROVE_FENCE_LANG, FENCE_LANG, processId } from "./global-setup";
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -129,10 +129,15 @@ function scratchKey(tag: string): string {
 // The code itself is declared once, in e2e/global-setup.ts, because the reaper
 // there must agree with every spec that seeds inside the fence.
 
-async function ensureFenceLanguage() {
+/**
+ * U4g-6 (INC-101) — J2 ADDENDUM: ONE FENCE PER GLOBAL-SWEEP TEST. Two sweeps
+ * sharing one fence is the same collision the fence exists to prevent, so the
+ * helper takes the code and every sweep names its own.
+ */
+async function ensureFenceLanguage(code: string = FENCE_LANG) {
   const { error } = await adminClient().from("languages").upsert(
     {
-      code: FENCE_LANG,
+      code,
       name_en: "E2E Fence",
       name_native: "E2E",
       enabled_admin: true,
@@ -140,7 +145,7 @@ async function ensureFenceLanguage() {
     },
     { onConflict: "code" },
   );
-  if (error) throw new Error(`[e2e:u4c] fence language upsert failed: ${error.message}`);
+  if (error) throw new Error(`[e2e:u4c] fence language ${code} upsert failed: ${error.message}`);
 }
 
 async function seedScratchKey(key: string, sourceValue: string, lang = "am") {
