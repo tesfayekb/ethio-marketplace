@@ -318,7 +318,7 @@ function LanguagesTable({
     <>
       <DataTable
         columns={columns}
-        rows={rows}
+        rows={ordered}
         rowKey={(row) => row.code}
         rowTestId={(row) => `lang-row-${row.code}`}
         caption={t("admin.translations.caption")}
