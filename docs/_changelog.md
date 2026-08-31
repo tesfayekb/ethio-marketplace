@@ -245,3 +245,4 @@
 - 2026-08-31 — fix(i18n): sync orphans only sync-origin keys; TR-20 parks via table write; restore feedback page-level (INC-105)
 - 2026-08-31 — fix(admin): reorder controls on mobile; role filter honors URL before options load; test(e2e): TR-21 seeds sync-origin (INC-106)
 - 2026-08-31 — fix(admin): one reorder control per twin, in its own twin (INC-106b)
+- 2026-08-31 — test(e2e): TR-20 locates row actions per twin and names click/step-up/poll phases (INC-106c)

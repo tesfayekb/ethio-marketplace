@@ -1027,3 +1027,17 @@ surface.
 controls were table-twin only — every row action ships in BOTH twins (C1 law);
 (c) a URL-driven select collapsed while its options loaded — URL truth renders
 before option lists arrive (INC-073 law extended).
+
+## INC-106c — a row's actions are not inside the row element (U4g-15)
+
+(a) DataTable's card twin renders the card element and the actions region as
+SIBLINGS inside the `<li>`, so scoping row actions through the row locator
+finds nothing at 360; the table twin nests them in `-actions-cell` inside the
+`<tr>`. (b) A strict-mode/actionability stall on a click consumes the whole
+test budget before the poll's own budget is ever entered, so an anonymous
+timeout mis-names the phase.
+
+RULE: row-action locators route through a twin-aware `actionsOf(row)` helper
+that names the primitive's actual DOM per twin — never through the row
+locator; and every click / step-up / poll is its own named `test.step`, with
+the click carrying a budget strictly shorter than the test's.
