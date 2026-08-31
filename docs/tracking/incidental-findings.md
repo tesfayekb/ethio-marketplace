@@ -840,3 +840,25 @@ derivable from the auth event payload is applied in the same tick; only calls
 that would re-enter supabase-js's exclusive auth lock are deferred
 (src/features/auth/use-auth.ts). TR-20 is NOT folded here — its stall was an
 ordering/poll-budget matter (INC-099b) and this root does not explain it.
+
+## INC-101b — two auth-path rewrites regressed different query families
+
+Two successive rewrites of `src/features/auth/use-auth.ts` (INC-101 and its
+addendum) each cured one family and bred another: run 33374884757 shows rail
+category skeletons that never resolve, absent strings rows, and a missing
+`admin-panel-root`. The proven 4301a18 auth code is restored VERBATIM
+(`git diff 4301a18 -- src/features/auth/use-auth.ts` is empty) and the
+newcomer — the i18n provider's public-language read, added in U4f — now
+yields instead.
+
+Settle signal: `useAuthSettled()` in `src/i18n/provider.tsx` subscribes to
+`onAuthStateChange` and makes NO Supabase call inside the callback; it raises
+a flag on a macrotask hop after the first event (`INITIAL_SESSION` included),
+with a 3s watchdog so i18n can never stall. The gate read, the entity bundle
+read and the DB UI bundle read all start behind that flag. Gated activation
+(U4f) and the once-only reconcile (U4f-2) keep their behaviour; only their
+timing moves.
+
+CLASS RULE: first-frame Supabase reads belong to the auth flow alone —
+providers added later start their reads after auth settles; core auth code is
+changed only by DEC, never by in-cycle fixes.
