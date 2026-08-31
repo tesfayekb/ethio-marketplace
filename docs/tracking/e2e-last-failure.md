@@ -1,141 +1,53 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33371338957
-- Commit: `3f6ca1c48b55d5536c9d4d1ce6c634a18906087e`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33374884757
+- Commit: `efa888a4ab178bec1dd99d91260b82ac0fd4f3c4`
 - Attempt: 1
-- Written (UTC): 2026-08-31T08:14:04.644Z
-- Passed: 331 · Skipped: 65 · Failed: 5
+- Written (UTC): 2026-08-31T09:00:02.999Z
+- Passed: 330 · Skipped: 67 · Failed: 4
 - Sources without results: none
 
-## admin-roles.spec.ts › U2 roles console › RP-2 create: a super admin creates a custom role through step-up
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-1 admin: one click signs out and resets to the marketplace
 
-- Source: `shard 1`
-- Project: `mobile-360`
+- Source: `smoke`
+- Project: `desktop-1280`
 
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('role-row-e2e-custom-z6k61t-card')
+Locator: getByTestId('admin-panel-root')
 Expected: visible
 Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('role-row-e2e-custom-z6k61t-card')
+  - waiting for getByTestId('admin-panel-root')
 
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e12099]:
-            - generic [ref=e12100]: About
-          - listitem [ref=e12101]:
-            - generic [ref=e12102]: How it works
-      - navigation "Help" [ref=e12103]:
-        - heading "Help" [level=2] [ref=e12104]
-        - list [ref=e12105]:
-          - listitem [ref=e12106]:
-            - generic [ref=e12107]: Safety
-          - listitem [ref=e12108]:
-            - generic [ref=e12109]: Contact
-      - navigation "Legal" [ref=e12110]:
-        - heading "Legal" [level=2] [ref=e12111]
-        - list [ref=e12112]:
-          - listitem [ref=e12113]:
-            - generic [ref=e12114]: Terms
-          - listitem [ref=e12115]:
-            - generic [ref=e12116]: Privacy
-    - paragraph [ref=e12118]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations.spec.ts › U4b translations console › TR-8 save then approve moves a string through the status machine
-
-- Source: `shard 1`
-- Project: `mobile-360`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('string-row-e2e-scratch-33371338957-1-1-mobile-360-0-tr8-card')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-row-e2e-scratch-33371338957-1-1-mobile-360-0-tr8-card')
-
-```
-
-Context:
-
-```text
+          - listitem [ref=e110]:
+            - generic [ref=e111]: About
+          - listitem [ref=e112]:
+            - generic [ref=e113]: How it works
+      - navigation "Help" [ref=e114]:
+        - heading "Help" [level=2] [ref=e115]
+        - list [ref=e116]:
           - listitem [ref=e117]:
-            - generic [ref=e118]: About
+            - generic [ref=e118]: Safety
           - listitem [ref=e119]:
-            - generic [ref=e120]: How it works
-      - navigation "Help" [ref=e121]:
-        - heading "Help" [level=2] [ref=e122]
+            - generic [ref=e120]: Contact
+      - navigation "Legal" [ref=e121]:
+        - heading "Legal" [level=2] [ref=e122]
         - list [ref=e123]:
           - listitem [ref=e124]:
-            - generic [ref=e125]: Safety
+            - generic [ref=e125]: Terms
           - listitem [ref=e126]:
-            - generic [ref=e127]: Contact
-      - navigation "Legal" [ref=e128]:
-        - heading "Legal" [level=2] [ref=e129]
-        - list [ref=e130]:
-          - listitem [ref=e131]:
-            - generic [ref=e132]: Terms
-          - listitem [ref=e133]:
-            - generic [ref=e134]: Privacy
-    - paragraph [ref=e136]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations.spec.ts › U4b translations console › TR-11 per-row AI translate writes a machine row and captures a revision
-
-- Source: `shard 1`
-- Project: `mobile-360`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33371338957-1-1-mobile-360-3-tr11').getByTestId('string-saved-e2e-scratch-33371338957-1-1-mobile-360-3-tr11')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-33371338957-1-1-mobile-360-3-tr11').getByTestId('string-saved-e2e-scratch-33371338957-1-1-mobile-360-3-tr11')
-
-```
-
-Context:
-
-```text
-          - listitem [ref=e116]:
-            - generic [ref=e117]: About
-          - listitem [ref=e118]:
-            - generic [ref=e119]: How it works
-      - navigation "Help" [ref=e120]:
-        - heading "Help" [level=2] [ref=e121]
-        - list [ref=e122]:
-          - listitem [ref=e123]:
-            - generic [ref=e124]: Safety
-          - listitem [ref=e125]:
-            - generic [ref=e126]: Contact
-      - navigation "Legal" [ref=e127]:
-        - heading "Legal" [level=2] [ref=e128]
-        - list [ref=e129]:
-          - listitem [ref=e130]:
-            - generic [ref=e131]: Terms
-          - listitem [ref=e132]:
-            - generic [ref=e133]: Privacy
-    - paragraph [ref=e135]: © 2026 ethio.com — All rights reserved.
+            - generic [ref=e127]: Privacy
+    - paragraph [ref=e129]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -173,6 +85,52 @@ Context:
 ```
 ```
 
+## shell.spec.ts › rail scroll regions (U0f) › drawer: items scroll, header fixed, sign out pinned
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toHaveCount(expected) failed
+
+Locator:  getByRole('dialog').getByTestId('rail-category-skeleton')
+Expected: 0
+Received: 6
+Timeout:  10000ms
+
+Call log:
+  - Expect "toHaveCount" with timeout 10000ms
+  - waiting for getByRole('dialog').getByTestId('rail-category-skeleton')
+    14 × locator resolved to 6 elements
+       - unexpected value "6"
+
+```
+
+Context:
+
+```text
+              - generic [ref=e106]: Babies & Kids
+          - listitem [ref=e107]:
+            - link "Beauty & Personal Care" [ref=e108] [cursor=pointer]:
+              - /url: /c/beauty-personal-care
+              - img [ref=e109]
+              - generic [ref=e112]: Beauty & Personal Care
+          - listitem [ref=e113]:
+            - link "Agriculture & Farming" [ref=e114] [cursor=pointer]:
+              - /url: /c/agriculture-farming
+              - img [ref=e115]
+              - generic [ref=e118]: Agriculture & Farming
+          - listitem [ref=e119]:
+            - link "Commercial Equipment" [ref=e120] [cursor=pointer]:
+              - /url: /c/commercial-equipment
+              - img [ref=e121]
+              - generic [ref=e124]: Commercial Equipment
+      - button "Sign out" [ref=e126]:
+        - img [ref=e127]
+        - generic [ref=e130]: Sign out
+```
+```
+
 ## admin-translations.spec.ts › U4b translations console › TR-3 the strings page lists keys with source and status
 
 - Source: `shard 3`
@@ -181,41 +139,49 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-row-e2e-scratch-33371338957-3-3-desktop-1280-1-tr3')
+Locator: getByRole('table').getByTestId('string-row-e2e-scratch-33374884757-3-3-desktop-1280-1-tr3')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('string-row-e2e-scratch-33371338957-3-3-desktop-1280-1-tr3')
+  - waiting for getByRole('table').getByTestId('string-row-e2e-scratch-33374884757-3-3-desktop-1280-1-tr3')
 
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e204]:
-            - generic [ref=e205]: About
-          - listitem [ref=e206]:
-            - generic [ref=e207]: How it works
-      - navigation "Help" [ref=e208]:
-        - heading "Help" [level=2] [ref=e209]
-        - list [ref=e210]:
-          - listitem [ref=e211]:
-            - generic [ref=e212]: Safety
-          - listitem [ref=e213]:
-            - generic [ref=e214]: Contact
-      - navigation "Legal" [ref=e215]:
-        - heading "Legal" [level=2] [ref=e216]
-        - list [ref=e217]:
-          - listitem [ref=e218]:
-            - generic [ref=e219]: Terms
-          - listitem [ref=e220]:
-            - generic [ref=e221]: Privacy
-    - paragraph [ref=e223]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e205]:
+            - generic [ref=e206]: About
+          - listitem [ref=e207]:
+            - generic [ref=e208]: How it works
+      - navigation "Help" [ref=e209]:
+        - heading "Help" [level=2] [ref=e210]
+        - list [ref=e211]:
+          - listitem [ref=e212]:
+            - generic [ref=e213]: Safety
+          - listitem [ref=e214]:
+            - generic [ref=e215]: Contact
+      - navigation "Legal" [ref=e216]:
+        - heading "Legal" [level=2] [ref=e217]
+        - list [ref=e218]:
+          - listitem [ref=e219]:
+            - generic [ref=e220]: Terms
+          - listitem [ref=e221]:
+            - generic [ref=e222]: Privacy
+    - paragraph [ref=e224]: © 2026 ethio.com — All rights reserved.
 ```
 ```
+
+## Server errors: smoke
+
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+
+## Client errors: smoke
+
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
 ## Server errors: shard 1
 
@@ -224,6 +190,14 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 ## Client errors: shard 1
 
 No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 
 ## Server errors: shard 3
 
