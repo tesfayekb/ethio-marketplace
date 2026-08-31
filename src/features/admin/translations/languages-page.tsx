@@ -194,7 +194,7 @@ function LanguagesTable({
     const codes = ordered.map((entry) => entry.code);
     const index = codes.indexOf(row.code);
     const target = index + direction;
-    const neighbour = rows[target];
+    const neighbour = ordered[target];
     if (index < 0 || neighbour === undefined || neighbour.isBase) return;
     const next = [...codes];
     next[index] = neighbour.code;
