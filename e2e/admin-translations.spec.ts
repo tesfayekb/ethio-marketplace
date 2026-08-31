@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { FENCE_LANG, processId } from "./global-setup";
+import { APPROVE_FENCE_LANG, FENCE_LANG, processId } from "./global-setup";
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -129,18 +129,25 @@ function scratchKey(tag: string): string {
 // The code itself is declared once, in e2e/global-setup.ts, because the reaper
 // there must agree with every spec that seeds inside the fence.
 
-async function ensureFenceLanguage() {
-  const { error } = await adminClient().from("languages").upsert(
-    {
-      code: FENCE_LANG,
-      name_en: "E2E Fence",
-      name_native: "E2E",
-      enabled_admin: true,
-      enabled_public: false,
-    },
-    { onConflict: "code" },
-  );
-  if (error) throw new Error(`[e2e:u4c] fence language upsert failed: ${error.message}`);
+/**
+ * U4g-6 (INC-101) — J2 ADDENDUM: ONE FENCE PER GLOBAL-SWEEP TEST. Two sweeps
+ * sharing one fence is the same collision the fence exists to prevent, so the
+ * helper takes the code and every sweep names its own.
+ */
+async function ensureFenceLanguage(code: string = FENCE_LANG) {
+  const { error } = await adminClient()
+    .from("languages")
+    .upsert(
+      {
+        code,
+        name_en: `E2E Fence ${code}`,
+        name_native: "E2E",
+        enabled_admin: true,
+        enabled_public: false,
+      },
+      { onConflict: "code" },
+    );
+  if (error) throw new Error(`[e2e:u4c] fence language ${code} upsert failed: ${error.message}`);
 }
 
 async function seedScratchKey(key: string, sourceValue: string, lang = "am") {
@@ -1031,7 +1038,12 @@ test.describe("U4f — publication gate governs language choice", () => {
     // switcher is compared as a SET; ORDER is TR-20's own assertion.
     const expected = data.map((row) => row.code as string).sort();
     expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
-    expect(expected, "the admin-only fence language is never public").not.toContain(FENCE_LANG);
+    // U4g-6 (INC-101): EVERY fence is admin-only, not just the first one.
+    for (const fence of [FENCE_LANG, APPROVE_FENCE_LANG]) {
+      expect(expected, `the admin-only fence language ${fence} is never public`).not.toContain(
+        fence,
+      );
+    }
 
     await gotoReady(page, "/");
     await page.getByTestId("language-switcher").click();
@@ -1066,28 +1078,30 @@ test.describe("U4f — publication gate governs language choice", () => {
 test.describe("U4g bulk approval, order and orphans", () => {
   test("TR-19 approve-all approves reviewed rows and skips flagged ones", async ({ page }) => {
     test.setTimeout(120_000);
-    await ensureFenceLanguage();
+    await ensureFenceLanguage(APPROVE_FENCE_LANG);
+    // U4g-6 (INC-101): approve-all is a SWEEP — it owns its own fence so it can
+    // never approve TR-12's pending rows in the shared one.
     const supabase = adminClient();
     const base = scratchKey("tr19");
     const reviewed = [`${base}.a`, `${base}.b`, `${base}.c`];
     const flagged = `${base}.flagged`;
     const keys = [...reviewed, flagged];
-    for (const key of keys) await seedScratchKey(key, `Approve source ${key}`, FENCE_LANG);
+    for (const key of keys) await seedScratchKey(key, `Approve source ${key}`, APPROVE_FENCE_LANG);
     // Three machine rows waiting for review, one flagged row that must survive.
     const { error: seedError } = await supabase.from("ui_translations").upsert(
       [
         ...reviewed.map((key) => ({
           key,
-          lang_code: FENCE_LANG,
-          value: `⟪${FENCE_LANG}⟫ pending`,
+          lang_code: APPROVE_FENCE_LANG,
+          value: `⟪${APPROVE_FENCE_LANG}⟫ pending`,
           status: "machine",
           machine: true,
           flagged: false,
         })),
         {
           key: flagged,
-          lang_code: FENCE_LANG,
-          value: `⟪${FENCE_LANG}⟫ broken`,
+          lang_code: APPROVE_FENCE_LANG,
+          value: `⟪${APPROVE_FENCE_LANG}⟫ broken`,
           status: "machine",
           machine: true,
           flagged: true,
@@ -1100,7 +1114,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
     try {
       const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
+      await gotoReady(page, `/admin/translations/${APPROVE_FENCE_LANG}`);
       await page.getByTestId("approve-all-start").click();
       await page.getByTestId("approve-all-confirm-run").click();
       await stepUpIfPrompted(page, secret);
@@ -1115,7 +1129,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
                 .from("ui_translations")
                 .select("status, approved_by")
                 .eq("key", key)
-                .eq("lang_code", FENCE_LANG)
+                .eq("lang_code", APPROVE_FENCE_LANG)
                 .maybeSingle();
               if (error) throw new Error(`[e2e:u4g] read failed for ${key}: ${error.message}`);
               return `${data?.status ?? "none"}|${data?.approved_by === null ? "noactor" : "actor"}`;
@@ -1129,7 +1143,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         await expect
           .poll(
             async () => {
-              const revisions = await dumpRevisions(key, FENCE_LANG, "[e2e:u4g]");
+              const revisions = await dumpRevisions(key, APPROVE_FENCE_LANG, "[e2e:u4g]");
               dump = serializeRevisions(revisions);
               return revisions.filter((row) => row.action === "approve").length;
             },
@@ -1148,7 +1162,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         .from("ui_translations")
         .select("status, flagged")
         .eq("key", flagged)
-        .eq("lang_code", FENCE_LANG)
+        .eq("lang_code", APPROVE_FENCE_LANG)
         .maybeSingle();
       expect(
         `${flaggedRow?.status ?? "none"}|${String(flaggedRow?.flagged)}`,
@@ -1175,43 +1189,57 @@ test.describe("U4g bulk approval, order and orphans", () => {
     }
     const original = before.map((row) => row.code as string);
 
+    // U4g-3 (INC-099b) — order by (sort, code), the app's ordering law; sort
+    // alone was ambiguous while every row shared sort = 0.
+    // J-law: a poll budget must be STRICTLY shorter than the test budget
+    // (30s polls inside a 120s test) so a mismatch asserts with values
+    // instead of consuming the test and reporting only a timeout.
+    const positionOf = async (code: string) => {
+      const { data } = await supabase
+        .from("languages")
+        .select("code, sort")
+        .order("sort", { ascending: true })
+        .order("code", { ascending: true });
+      return (data ?? []).map((row) => row.code as string).indexOf(code);
+    };
+
     try {
-      const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, "/admin/translations");
-      await expect(langRow(page, FENCE_LANG)).toBeVisible({ timeout: 20000 });
+      // U4g-6 (INC-101) — NAMED PHASES (J-law): a stall must name the phase it
+      // stalled in, so the next report reads "sign-in" / "roster" / "move up"
+      // instead of one anonymous 120s timeout.
+      const secret = await test.step("TR-20 sign-in", async () => {
+        const signed = await signInAsSuperAdmin(page);
+        return signed.secret;
+      });
 
-      // U4g-3 (INC-099b) — order by (sort, code), the app's ordering law; sort
-      // alone was ambiguous while every row shared sort = 0.
-      // J-law: a poll budget must be STRICTLY shorter than the test budget
-      // (30s polls inside a 120s test) so a mismatch asserts with values
-      // instead of consuming the test and reporting only a timeout.
-      const positionOf = async (code: string) => {
-        const { data } = await supabase
-          .from("languages")
-          .select("code, sort")
-          .order("sort", { ascending: true })
-          .order("code", { ascending: true });
-        return (data ?? []).map((row) => row.code as string).indexOf(code);
-      };
-      const start = await positionOf(FENCE_LANG);
+      let start = -1;
+      await test.step("TR-20 roster visible", async () => {
+        await gotoReady(page, "/admin/translations");
+        await expect(langRow(page, FENCE_LANG)).toBeVisible({ timeout: 20000 });
+        start = await positionOf(FENCE_LANG);
+      });
 
-      await langRow(page, FENCE_LANG).getByTestId(`lang-up-${FENCE_LANG}`).click();
-      await stepUpIfPrompted(page, secret);
-      await expect
-        .poll(() => positionOf(FENCE_LANG), {
-          timeout: 30000,
-          message: "moving up never changed the roster order",
-        })
-        .toBe(start - 1);
+      await test.step("TR-20 move up", async () => {
+        await langRow(page, FENCE_LANG).getByTestId(`lang-up-${FENCE_LANG}`).click();
+        await stepUpIfPrompted(page, secret);
+        await expect
+          .poll(() => positionOf(FENCE_LANG), {
+            timeout: 30000,
+            message: "moving up never changed the roster order",
+          })
+          .toBe(start - 1);
+      });
 
-      await langRow(page, FENCE_LANG).getByTestId(`lang-down-${FENCE_LANG}`).click();
-      await stepUpIfPrompted(page, secret);
-      await expect
-        .poll(() => positionOf(FENCE_LANG), {
-          timeout: 30000,
-          message: "moving down never restored the position",
-        })
-        .toBe(start);
+      await test.step("TR-20 move down", async () => {
+        await langRow(page, FENCE_LANG).getByTestId(`lang-down-${FENCE_LANG}`).click();
+        await stepUpIfPrompted(page, secret);
+        await expect
+          .poll(() => positionOf(FENCE_LANG), {
+            timeout: 30000,
+            message: "moving down never restored the position",
+          })
+          .toBe(start);
+      });
     } finally {
       // The roster is shared runtime: put the censused order back verbatim.
       await supabase

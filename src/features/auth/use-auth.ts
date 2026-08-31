@@ -58,8 +58,32 @@ export function useAuth() {
       });
     };
 
+    /**
+     * U4g-6 (INC-101) — INVARIANT: AUTH-DERIVED STATE SETTLES INDEPENDENTLY OF
+     * EVERY OTHER SUPABASE READ (i18n's public-language read included).
+     *
+     * supabase-js serialises ALL session access through one exclusive auth
+     * lock, and `onAuthStateChange` callbacks are invoked while that lock is
+     * held. Issuing a Supabase request from INSIDE the callback (this hook's
+     * profile read did) makes that request wait for a lock its own caller is
+     * holding — a re-entrancy the library documents as a deadlock. Before U4f
+     * nothing else contended for the lock, so it always drained; the i18n
+     * provider's `languages` read (mounted above the shell, fired on the same
+     * first frames) now interleaves and the profile read — and behind it the
+     * permission read — can hang forever. Symptoms: displayName never arrives
+     * ("Signed in" fallback) and AdminGate's `pending` never clears.
+     *
+     * THE FIX IS STRUCTURAL: never touch Supabase inside the callback. A
+     * macrotask hop releases the lock first; sequencing is still enforced by
+     * the `seq` ticket above, so a deferred write from an older event loses.
+     */
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      void applyUser(session?.user?.id, session?.user?.email);
+      const userId = session?.user?.id;
+      const email = session?.user?.email;
+      setTimeout(() => {
+        if (cancelled) return;
+        void applyUser(userId, email);
+      }, 0);
     });
 
     void supabase.auth.getSession().then(({ data }) => {

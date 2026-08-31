@@ -781,3 +781,46 @@ Skipped 0 · Failed 0" while shards 1/3 and the changed lane visibly failed).
 CLASS RULE: evidence artifacts are overwrite-on-rerun and the report names its
 attempt; a wipeout on attempt >= 2 with a green preflight now reads as
 "artifact contract broken", never as "no tests ran".
+
+## INC-101 — auth-derived state never settled behind the i18n language read (2026-08-31)
+
+Since 4301a18 the built app intermittently never settled its auth-derived
+state: the account menu rendered the "Signed in" fallback (the profile
+`display_name` read never resolved — smoke S-2), `/admin` stopped redirecting a
+regular user (AdminGate's `pending = authLoading || loading` never cleared —
+R-2, earlier A-3), and translation cases stalled behind the same reads.
+
+DIFF REVIEW (`git diff 4301a18..HEAD -- src/`): the shell auth/profile query,
+`usePermissions`, `authKey()`/purge machinery and the app-shell/app-header/
+app-rail/breadcrumbs consumers are UNCHANGED. The only convicted change is
+`src/i18n/provider.tsx:99` (U4f) — a NEW Supabase read (`fetchPublicLanguages`,
+`src/i18n/provider.tsx:49`) issued from the provider that wraps the whole tree.
+Hypotheses (a) key/enabled depending on provider state, (b) a purge on the
+language reconcile, (c) a U4d profile→user mapping change and (d) context
+identity resetting auth state are all KILLED: `MY_PERMISSIONS_KEY`
+(`src/features/permissions/usePermissions.ts:20`) and its `enabled` flag carry
+no i18n input, the reconcile effect (`src/i18n/provider.tsx:190`) touches no
+query cache, `applyUser` still reads `display_name`
+(`src/features/auth/use-auth.ts:45`), and `applyPermissions`
+(`src/components/app-shell.tsx:220`) is equality-guarded.
+
+MECHANISM: supabase-js serialises all session access through one exclusive auth
+lock, and `onAuthStateChange` callbacks run while it is held.
+`src/features/auth/use-auth.ts:61` issued the profile read from INSIDE that
+callback — a documented re-entrancy. With no other contender the lock always
+drained; the i18n gate read, mounted above the shell and fired on the same
+first frames, now interleaves and the profile read — and the permission read
+queued behind it — can hang forever. Both symptoms are one stuck lock.
+
+FIX: the auth callback never touches Supabase (macrotask hop, sequence ticket
+unchanged), and the i18n gate read is deferred by one macrotask so the auth
+client initialises first. No test budget was loosened.
+
+CLASS RULE: AUTH-DERIVED STATE SETTLES INDEPENDENTLY OF EVERY OTHER READ. No
+Supabase call is issued from inside an auth-state callback, and no provider
+above the shell may issue a Supabase read on the first frames of the session
+bootstrap.
+
+J2 ADDENDUM (dump-proven: TR-12's `zxx` key came back approved because TR-19's
+approve-all swept the shared fence): ONE FENCE PER GLOBAL-SWEEP TEST. TR-19 now
+owns `zxy`; the reaper covers every fence code.
