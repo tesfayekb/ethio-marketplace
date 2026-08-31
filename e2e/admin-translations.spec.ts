@@ -1289,6 +1289,15 @@ test.describe("U4g bulk approval, order and orphans", () => {
     const supabase = adminClient();
     const key = scratchKey("tr21");
     await seedScratchKey(key, "Orphan source", FENCE_LANG);
+    // sync may only orphan sync-origin keys — INC-105. The seed is a TABLE
+    // write through the service client, stamped with the origin the sweep owns.
+    {
+      const { error } = await supabase
+        .from("ui_translations")
+        .update({ origin: "sync" })
+        .eq("key", key);
+      if (error) throw new Error(`[e2e:u4g] stamping ${key} origin failed: ${error.message}`);
+    }
 
     // INC-099 (J-law): fixture reads are TABLE reads through the service
     // client. The gated RPC is the app's seam, never the test's oracle.

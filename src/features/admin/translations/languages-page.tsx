@@ -205,7 +205,59 @@ function LanguagesTable({
     });
   };
 
+  /**
+   * U4g-13 (INC-106) — BOTH TWINS. The move controls are one function, so the
+   * card twin (360) and the table twin (md+) ship identical testids, identical
+   * disabled predicates read from the one sorted source, and the same manage
+   * gate. Touch targets stay ≥44px (C2).
+   */
+  const moveControls = (row: LanguageRow) => {
+    const index = ordered.findIndex((entry) => entry.code === row.code);
+    const above = index > 0 ? ordered[index - 1] : undefined;
+    return (
+      <>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="min-h-11 min-w-11"
+          data-testid={`lang-up-${row.code}`}
+          aria-label={t("admin.translations.order.up").replace("{language}", row.nameNative)}
+          disabled={order.isPending || above === undefined || above.isBase}
+          onClick={() => move(row, -1)}
+        >
+          <span aria-hidden="true">↑</span>
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="min-h-11 min-w-11"
+          data-testid={`lang-down-${row.code}`}
+          aria-label={t("admin.translations.order.down").replace("{language}", row.nameNative)}
+          disabled={order.isPending || index < 0 || index >= ordered.length - 1}
+          onClick={() => move(row, 1)}
+        >
+          <span aria-hidden="true">↓</span>
+        </Button>
+      </>
+    );
+  };
+
   const columns: DataTableColumn<LanguageRow>[] = [
+    {
+      // Card-twin home for the row actions: the primitive renders its actions
+      // region OUTSIDE the card element, so the controls live in a cell that
+      // the table twin hides (no duplicate testid inside either twin's row).
+      key: "order",
+      header: t("admin.translations.col.language"),
+      priority: "primary",
+      width: "w-0",
+      cell: (row) =>
+        row.isBase || !mayManage ? null : (
+          <span className="flex min-w-0 items-center gap-1 md:hidden">{moveControls(row)}</span>
+        ),
+    },
     {
       key: "language",
       header: t("admin.translations.col.language"),
@@ -332,10 +384,6 @@ function LanguagesTable({
           <p className="text-sm text-muted-foreground">{t("admin.translations.empty")}</p>
         }
         rowActions={(row) => {
-          // U4g-10 (INC-103): index by CODE against the one sorted source —
-          // object identity can differ from the rendered row.
-          const index = ordered.findIndex((entry) => entry.code === row.code);
-          const above = index > 0 ? ordered[index - 1] : undefined;
           return row.isBase ? (
             <span
               data-testid={`lang-source-${row.code}`}
@@ -346,38 +394,11 @@ function LanguagesTable({
           ) : (
             <span className="flex min-w-0 items-center gap-1">
               {mayManage ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="min-h-11 min-w-11"
-                    data-testid={`lang-up-${row.code}`}
-                    aria-label={t("admin.translations.order.up").replace(
-                      "{language}",
-                      row.nameNative,
-                    )}
-                    disabled={order.isPending || above === undefined || above.isBase}
-                    onClick={() => move(row, -1)}
-                  >
-                    <span aria-hidden="true">↑</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="min-h-11 min-w-11"
-                    data-testid={`lang-down-${row.code}`}
-                    aria-label={t("admin.translations.order.down").replace(
-                      "{language}",
-                      row.nameNative,
-                    )}
-                    disabled={order.isPending || index < 0 || index >= ordered.length - 1}
-                    onClick={() => move(row, 1)}
-                  >
-                    <span aria-hidden="true">↓</span>
-                  </Button>
-                </>
+                // Table twin only: the card twin renders the identical
+                // controls inside its own row cell (INC-106).
+                <span className="hidden min-w-0 items-center gap-1 md:flex">
+                  {moveControls(row)}
+                </span>
               ) : null}
               <Link
                 to="/admin/translations/$lang"

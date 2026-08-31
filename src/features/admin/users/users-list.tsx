@@ -62,6 +62,15 @@ export function AdminUsersList() {
   });
   const roles = useAdminRoles();
 
+  // The URL role is a first-class option even before the roster resolves.
+  const roleOptions: { name: string; label: string }[] = (roles.data ?? []).map((item) => ({
+    name: item.name,
+    label: item.displayName ?? item.name,
+  }));
+  if (role !== "all" && !roleOptions.some((item) => item.name === role)) {
+    roleOptions.unshift({ name: role, label: role });
+  }
+
   const users = data?.users ?? [];
   const total = data?.totalCount ?? 0;
   const dateFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
@@ -191,9 +200,16 @@ export function AdminUsersList() {
               }}
             >
               <option value="all">{t("admin.users.filter.all")}</option>
-              {(roles.data ?? []).map((item) => (
+              {/*
+                U4g-13 (INC-106, INC-073 extended): URL truth renders BEFORE the
+                option list arrives. A controlled <select> whose value has no
+                matching <option> collapses to the first one ("all"), so the URL
+                role is always emitted as an option — labelled from the roster
+                once it loads, by its raw name until then.
+              */}
+              {roleOptions.map((item) => (
                 <option key={item.name} value={item.name}>
-                  {item.displayName ?? item.name}
+                  {item.label}
                 </option>
               ))}
             </select>
