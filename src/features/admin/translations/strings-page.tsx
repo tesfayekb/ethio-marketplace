@@ -19,6 +19,7 @@ import type { MessageKey } from "@/i18n/types";
 import { relativeTime } from "@/lib/relative-time";
 
 import { AiBulkBar } from "./ai-bulk-bar";
+import { ApproveAllBar } from "./approve-bar";
 import { DataScope } from "./data-scope";
 import { HistoryDrawer } from "./history-drawer";
 import {
@@ -106,6 +107,12 @@ export function AdminTranslationsStringsPage({
   const [page, setPage] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [searchDraft, setSearchDraft] = useState(query);
+  /**
+   * U4g — the orphaned set is a VIEW, not a status. It is component state
+   * rather than a URL filter because the route file (the single parse point
+   * for search params) is outside this task's scope.
+   */
+  const [orphanedView, setOrphanedView] = useState(false);
 
   const list = useTranslations({
     lang,
@@ -114,6 +121,7 @@ export function AdminTranslationsStringsPage({
     search: query,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
+    orphaned: orphanedView,
   });
 
   const setSearchParams = (next: StringsSearch) => {
@@ -176,7 +184,9 @@ export function AdminTranslationsStringsPage({
     edited: langStats?.edited ?? 0,
     approved: langStats?.approved ?? 0,
     flagged: langStats?.flagged ?? 0,
+    orphaned: langStats?.orphaned ?? 0,
   };
+  const reviewable = langStats?.reviewable ?? 0;
 
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
@@ -270,6 +280,10 @@ export function AdminTranslationsStringsPage({
             </>
           ) : (
             <>
+              {mayApprove && !(known?.isBase ?? false) ? (
+                <ApproveAllBar lang={lang} reviewable={reviewable} guard={guard} />
+              ) : null}
+
               {mayMachine && !(known?.isBase ?? false) ? (
                 <AiBulkBar lang={lang} untranslated={counts["untranslated"] ?? 0} guard={guard} />
               ) : null}
@@ -320,17 +334,42 @@ export function AdminTranslationsStringsPage({
                           variant={status === chip.value ? "default" : "outline"}
                           className="min-h-11"
                           data-testid={`strings-chip-${chip.value}`}
-                          onClick={() =>
+                          onClick={() => {
+                            setOrphanedView(false);
                             setSearchParams({
                               ...(chip.value === "all" ? {} : { status: chip.value }),
                               ...(query === "" ? {} : { q: query }),
-                            })
-                          }
+                            });
+                          }}
                         >
                           {`${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`}
                         </Button>
                       ))}
+                      {/* U4g — orphaned keys: excluded from coverage, never shipped. */}
+                      <Button
+                        type="button"
+                        variant={orphanedView ? "default" : "outline"}
+                        className="min-h-11"
+                        data-testid="strings-chip-orphaned"
+                        onClick={() => {
+                          setPage(0);
+                          setOrphanedView((current) => !current);
+                        }}
+                      >
+                        {t("admin.translations.orphaned.chip").replace(
+                          "{count}",
+                          String(counts["orphaned"] ?? 0),
+                        )}
+                      </Button>
                     </div>
+                    {orphanedView ? (
+                      <p
+                        data-testid="strings-orphaned-note"
+                        className="text-xs text-muted-foreground"
+                      >
+                        {t("admin.translations.orphaned.note")}
+                      </p>
+                    ) : null}
                   </div>
                 }
                 expandedRow={(row) =>
