@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -174,12 +175,19 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Whatever the source (switcher, storage, URL), an active language that the
-  // gate does not bless is revoked as soon as the gate answers.
+  // gate does not bless is revoked ONCE, as soon as the gate answers
+  // (INC-098b): equality-guarded, persisted, and ref-latched so the effect
+  // cannot re-fire into a loop. Rendering never waited on this.
   useEffect(() => {
-    if (!gateReady) return;
-    if (language !== BASE_LANGUAGE && !isPublic(language)) {
-      console.warn(`[i18n] language "${language}" is not published — falling back to base`);
-      setLanguageState(BASE_LANGUAGE);
+    if (!gateReady || reconciledRef.current) return;
+    reconciledRef.current = true;
+    if (language === BASE_LANGUAGE || isPublic(language)) return;
+    console.warn(`[i18n] language "${language}" is not published — falling back to base`);
+    setLanguageState(BASE_LANGUAGE);
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, BASE_LANGUAGE);
+    } catch {
+      // Storage unavailable; the revocation still applies for this session.
     }
   }, [gateReady, isPublic, language]);
 
