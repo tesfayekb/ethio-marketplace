@@ -244,3 +244,4 @@
 - 2026-08-31 — fix(admin): saved marker is page-level state so it survives the approve refetch on both twins; user detail renders its shell before its queries (INC-104)
 - 2026-08-31 — fix(i18n): sync orphans only sync-origin keys; TR-20 parks via table write; restore feedback page-level (INC-105)
 - 2026-08-31 — fix(admin): reorder controls on mobile; role filter honors URL before options load; test(e2e): TR-21 seeds sync-origin (INC-106)
+- 2026-08-31 — fix(admin): one reorder control per twin, in its own twin (INC-106b)

@@ -206,10 +206,11 @@ function LanguagesTable({
   };
 
   /**
-   * U4g-13 (INC-106) — BOTH TWINS. The move controls are one function, so the
-   * card twin (360) and the table twin (md+) ship identical testids, identical
-   * disabled predicates read from the one sorted source, and the same manage
-   * gate. Touch targets stay ≥44px (C2).
+   * U4g-13/14 (INC-106, INC-106b) — BOTH TWINS, ONE COPY EACH. The move
+   * controls are one function rendered from the primitive's single rowActions
+   * slot, which each twin renders in its own DOM (card actions region at 360,
+   * actions cell at md+). Identical testids, identical disabled predicates
+   * read from the one sorted source, same manage gate, ≥44px targets (C2).
    */
   const moveControls = (row: LanguageRow) => {
     const index = ordered.findIndex((entry) => entry.code === row.code);
@@ -245,19 +246,6 @@ function LanguagesTable({
   };
 
   const columns: DataTableColumn<LanguageRow>[] = [
-    {
-      // Card-twin home for the row actions: the primitive renders its actions
-      // region OUTSIDE the card element, so the controls live in a cell that
-      // the table twin hides (no duplicate testid inside either twin's row).
-      key: "order",
-      header: t("admin.translations.col.language"),
-      priority: "primary",
-      width: "w-0",
-      cell: (row) =>
-        row.isBase || !mayManage ? null : (
-          <span className="flex min-w-0 items-center gap-1 md:hidden">{moveControls(row)}</span>
-        ),
-    },
     {
       key: "language",
       header: t("admin.translations.col.language"),
@@ -394,11 +382,11 @@ function LanguagesTable({
           ) : (
             <span className="flex min-w-0 items-center gap-1">
               {mayManage ? (
-                // Table twin only: the card twin renders the identical
-                // controls inside its own row cell (INC-106).
-                <span className="hidden min-w-0 items-center gap-1 md:flex">
-                  {moveControls(row)}
-                </span>
+                // INC-106b — ONE copy per twin: the primitive renders this
+                // actions region once inside the card twin and once inside the
+                // table twin's actions cell, so no visibility class is needed
+                // and neither DOM ever holds two `lang-up-*`/`lang-down-*`.
+                <span className="flex min-w-0 items-center gap-1">{moveControls(row)}</span>
               ) : null}
               <Link
                 to="/admin/translations/$lang"
