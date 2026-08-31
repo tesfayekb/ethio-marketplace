@@ -205,7 +205,6 @@ rm -f "$DEFINER_BAD_SAMPLE"
 # Self-test: an allowlisted file is SKIPPED by the scan AND PRINTED.
 ALLOW_TEST_DIR="$(mktemp -d)"
 ALLOW_TEST_LIST="$ALLOW_TEST_DIR/allowlist.txt"
-cp "$DEFINER_BAD_SAMPLE_KEEP" /dev/null 2>/dev/null || true
 cat > "$ALLOW_TEST_DIR/29990101000000_allowlisted-sample.sql" <<'SQL'
 CREATE OR REPLACE FUNCTION public.self_test_allowlisted()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
