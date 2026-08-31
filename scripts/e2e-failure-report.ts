@@ -1019,8 +1019,33 @@ async function main() {
       }
     }
 
+    // INC-100 — THE ATTEMPT LINE. A re-run whose artifacts could not overwrite
+    // attempt 1's reads as an empty download; the header must name the attempt
+    // so that emptiness is legible as a broken artifact contract rather than
+    // "no tests ran". Fixture: the same wipeout shape, rendered on attempt 2.
+    const attemptMeta: ReportMeta = { runId: "self-test", runUrl: "", sha: "self-test", attempt: "2" };
+    const rerun = renderSources(
+      [{ label: "shard 1", json: emptyJson, logTail: null, serverErrors: [], clientErrors: [] }],
+      attemptMeta,
+      new Map(),
+    );
+    for (const needle of ["- Attempt: 2", "- Passed: 0 · Skipped: 0 · Failed: 0"]) {
+      if (!rerun.includes(needle)) {
+        console.error(`SELF-TEST FAILED — re-run report missing: ${needle}`);
+        process.exit(1);
+      }
+    }
+    if (
+      !renderGreen(attemptMeta).includes("- Attempt: 2") ||
+      !renderCrash(new Error("boom"), attemptMeta, []).includes("- Attempt: 2") ||
+      !renderGreen({ runId: "self-test", runUrl: "", sha: "self-test" }).includes("- Attempt: 1")
+    ) {
+      console.error("SELF-TEST FAILED — a rendered report did not name its attempt.");
+      process.exit(1);
+    }
+
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
