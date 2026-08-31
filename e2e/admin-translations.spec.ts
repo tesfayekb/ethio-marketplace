@@ -1187,43 +1187,57 @@ test.describe("U4g bulk approval, order and orphans", () => {
     }
     const original = before.map((row) => row.code as string);
 
+    // U4g-3 (INC-099b) — order by (sort, code), the app's ordering law; sort
+    // alone was ambiguous while every row shared sort = 0.
+    // J-law: a poll budget must be STRICTLY shorter than the test budget
+    // (30s polls inside a 120s test) so a mismatch asserts with values
+    // instead of consuming the test and reporting only a timeout.
+    const positionOf = async (code: string) => {
+      const { data } = await supabase
+        .from("languages")
+        .select("code, sort")
+        .order("sort", { ascending: true })
+        .order("code", { ascending: true });
+      return (data ?? []).map((row) => row.code as string).indexOf(code);
+    };
+
     try {
-      const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, "/admin/translations");
-      await expect(langRow(page, FENCE_LANG)).toBeVisible({ timeout: 20000 });
+      // U4g-6 (INC-101) — NAMED PHASES (J-law): a stall must name the phase it
+      // stalled in, so the next report reads "sign-in" / "roster" / "move up"
+      // instead of one anonymous 120s timeout.
+      const secret = await test.step("TR-20 sign-in", async () => {
+        const signed = await signInAsSuperAdmin(page);
+        return signed.secret;
+      });
 
-      // U4g-3 (INC-099b) — order by (sort, code), the app's ordering law; sort
-      // alone was ambiguous while every row shared sort = 0.
-      // J-law: a poll budget must be STRICTLY shorter than the test budget
-      // (30s polls inside a 120s test) so a mismatch asserts with values
-      // instead of consuming the test and reporting only a timeout.
-      const positionOf = async (code: string) => {
-        const { data } = await supabase
-          .from("languages")
-          .select("code, sort")
-          .order("sort", { ascending: true })
-          .order("code", { ascending: true });
-        return (data ?? []).map((row) => row.code as string).indexOf(code);
-      };
-      const start = await positionOf(FENCE_LANG);
+      let start = -1;
+      await test.step("TR-20 roster visible", async () => {
+        await gotoReady(page, "/admin/translations");
+        await expect(langRow(page, FENCE_LANG)).toBeVisible({ timeout: 20000 });
+        start = await positionOf(FENCE_LANG);
+      });
 
-      await langRow(page, FENCE_LANG).getByTestId(`lang-up-${FENCE_LANG}`).click();
-      await stepUpIfPrompted(page, secret);
-      await expect
-        .poll(() => positionOf(FENCE_LANG), {
-          timeout: 30000,
-          message: "moving up never changed the roster order",
-        })
-        .toBe(start - 1);
+      await test.step("TR-20 move up", async () => {
+        await langRow(page, FENCE_LANG).getByTestId(`lang-up-${FENCE_LANG}`).click();
+        await stepUpIfPrompted(page, secret);
+        await expect
+          .poll(() => positionOf(FENCE_LANG), {
+            timeout: 30000,
+            message: "moving up never changed the roster order",
+          })
+          .toBe(start - 1);
+      });
 
-      await langRow(page, FENCE_LANG).getByTestId(`lang-down-${FENCE_LANG}`).click();
-      await stepUpIfPrompted(page, secret);
-      await expect
-        .poll(() => positionOf(FENCE_LANG), {
-          timeout: 30000,
-          message: "moving down never restored the position",
-        })
-        .toBe(start);
+      await test.step("TR-20 move down", async () => {
+        await langRow(page, FENCE_LANG).getByTestId(`lang-down-${FENCE_LANG}`).click();
+        await stepUpIfPrompted(page, secret);
+        await expect
+          .poll(() => positionOf(FENCE_LANG), {
+            timeout: 30000,
+            message: "moving down never restored the position",
+          })
+          .toBe(start);
+      });
     } finally {
       // The roster is shared runtime: put the censused order back verbatim.
       await supabase
