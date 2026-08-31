@@ -456,12 +456,21 @@ skipped_flagged}`; the RPC returns those same counts, which the console shows
   move-down controls ARE the visitor-facing order. The base language stays
   first.
 - **Orphaned keys** — `ui_translations.orphaned` is set by
-  `admin_sync_ui_keys` for every key absent from the ingested catalog, and
-  cleared when the key returns. Orphaned rows are excluded from
+  `admin_sync_ui_keys` for every SYNC-ORIGIN key absent from the ingested
+  catalog, and cleared when the key returns. Orphaned rows are excluded from
   `admin_translation_stats`, from the coverage/publication gate and from
   `get_ui_bundle`: a key the code no longer ships can neither block publication
   nor reach a visitor. `admin_list_translations` gains `p_orphaned`, which the
   strings page exposes as an "Orphaned · N" chip.
+- **Key ownership (U4g-12, INC-105)** — `ui_translations.origin` is
+  `'sync' | 'manual'`, NOT NULL, defaulting to `manual`. Every row
+  `admin_sync_ui_keys` inserts or upserts is stamped `sync`; orphan marking
+  applies ONLY to `origin = 'sync'` rows. Rows written directly (fixtures,
+  manual authoring) are invisible to the catalog payload and are never swept.
+  Existing non-scratch keys (`key NOT LIKE 'e2e.%'`) were backfilled to `sync`.
+  Migration proofs: a direct-inserted `manual` key survives a shrunken sync
+  un-orphaned, a `sync` key absent from the payload is orphaned, and a re-sync
+  clears it.
 
 E2E: TR-19 (approve-all counts, statuses, revisions, flagged skip), TR-20
 (order moves and is restored in `finally`), TR-21 (sync orphans an absent key,

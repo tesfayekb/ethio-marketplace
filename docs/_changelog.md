@@ -242,3 +242,4 @@
 - 2026-08-31 — fix(admin): strings page renders from admin sources, never awaits the public gate (INC-102)
 - 2026-08-31 — fix(db/admin): admin_list_translations honours an absent orphan filter; roster move controls read one sorted source (INC-103)
 - 2026-08-31 — fix(admin): saved marker is page-level state so it survives the approve refetch on both twins; user detail renders its shell before its queries (INC-104)
+- 2026-08-31 — fix(i18n): sync orphans only sync-origin keys; TR-20 parks via table write; restore feedback page-level (INC-105)

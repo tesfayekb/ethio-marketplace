@@ -907,6 +907,7 @@ export type Database = {
           key: string
           lang_code: string
           machine: boolean
+          origin: string
           orphaned: boolean
           status: string
           updated_at: string
@@ -922,6 +923,7 @@ export type Database = {
           key: string
           lang_code: string
           machine?: boolean
+          origin?: string
           orphaned?: boolean
           status?: string
           updated_at?: string
@@ -937,6 +939,7 @@ export type Database = {
           key?: string
           lang_code?: string
           machine?: boolean
+          origin?: string
           orphaned?: boolean
           status?: string
           updated_at?: string

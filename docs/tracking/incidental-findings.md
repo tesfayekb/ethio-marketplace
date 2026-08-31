@@ -999,3 +999,24 @@ The activity list is unchanged.
 
 CLASS RULE: post-action feedback is page-level state, never expansion-local;
 pages render their shell before their queries.
+
+## INC-105 — a sweep orphaned rows it never introduced (U4g-12)
+
+Sync orphaned keys it never introduced (direct inserts) — sibling scratch keys
+vanished mid-test. `admin_sync_ui_keys` treated the ingested catalog as the
+whole world: any row absent from the payload was flagged `orphaned`, including
+rows written directly by fixtures and by manual authoring, which the payload
+can never contain. Ownership is now recorded on the row: `ui_translations.origin`
+(`sync` | `manual`, NOT NULL, default `manual`), stamped `sync` by every insert
+and upsert the sync writer performs, and orphan marking is scoped to
+`origin = 'sync'`. Non-scratch keys were backfilled to `sync`.
+
+Two riders landed with it: TR-20's fence-parking precondition writes `sort`
+directly on `public.languages` with the service client (setup is a table write,
+not a borrowed gated RPC), and the History drawer's restore reports through the
+page-level marker keyed by row key (U4g-11) instead of drawer-local state, so
+it survives the table twin's expansion rebuild.
+
+CLASS RULE: a sweep may only touch rows it owns (origin tracking); fixture
+writes are table writes; post-action feedback has ONE page-level home per
+surface.

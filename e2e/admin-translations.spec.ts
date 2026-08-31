@@ -1218,11 +1218,22 @@ test.describe("U4g bulk approval, order and orphans", () => {
         // language is pinned first, so a fence sitting directly beneath it has
         // a legitimately disabled "up" control (Playwright would then wait out
         // the whole budget on the click). Park the fence at the end first.
+        // U4g-12 (INC-105) — J-law: FIXTURE WRITES ARE TABLE WRITES. Parking is
+        // setup, not the behaviour under test, so it writes `sort` directly on
+        // public.languages with the service client instead of borrowing the
+        // gated RPC (which would also demand step-up and audit a fake action).
         if ((await positionOf(FENCE_LANG)) <= 1) {
-          const { data } = await supabase.from("languages").select("code").order("sort");
-          const codes = (data ?? []).map((row) => row.code as string);
-          const parked = [...codes.filter((code) => code !== FENCE_LANG), FENCE_LANG];
-          const { error } = await supabase.rpc("admin_set_language_order", { p_codes: parked });
+          const { data } = await supabase
+            .from("languages")
+            .select("code, sort")
+            .order("sort", { ascending: true })
+            .order("code", { ascending: true });
+          const rows = data ?? [];
+          const maxSort = rows.reduce((top, row) => Math.max(top, (row.sort as number) ?? 0), 0);
+          const { error } = await supabase
+            .from("languages")
+            .update({ sort: maxSort + 1 })
+            .eq("code", FENCE_LANG);
           if (error) throw new Error(`[e2e:u4g] parking the fence failed: ${error.message}`);
         }
         await gotoReady(page, "/admin/translations");
