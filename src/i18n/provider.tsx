@@ -257,6 +257,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       const base = { ...en, ...compiled } as Messages;
       setMessages(base);
+      // Same settle rule as the gate/entity reads (INC-101b): the compiled
+      // catalog answers every key meanwhile, so the wait is invisible.
+      if (!authSettled) return;
       void fetchUiBundle(language).then(({ bundle, reason }) => {
         if (cancelled) return;
         if (!bundle) {
@@ -277,7 +280,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [language]);
+  }, [language, authSettled]);
+
 
   useEffect(() => {
     document.documentElement.lang = language;
