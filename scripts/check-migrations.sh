@@ -114,6 +114,75 @@ check_definer_file() {
   return 0
 }
 
+# --- DEC-022-B allowlist -------------------------------------------------
+# scripts/migration-guard-allowlist.txt holds one entry per line:
+#   <filename> | <reason> | <closing migration uuid-fragment>
+# The authoring tool can split a DEFINER declaration from its REVOKE across two
+# files. Such a file is SKIPPED by the definer scan and PRINTED on every run
+# citing its closer — nothing is silently skipped.
+ALLOWLIST_FILE="${ALLOWLIST_FILE:-$SCRIPT_DIR/migration-guard-allowlist.txt}"
+
+allowlist_entry() {
+  # $1 = basename. Prints "reason | closer" when allowlisted; empty otherwise.
+  local base="$1"
+  [ -f "$ALLOWLIST_FILE" ] || return 0
+  awk -F'|' -v base="$base" '
+    /^[[:space:]]*#/ { next }
+    /^[[:space:]]*$/ { next }
+    {
+      name = $1
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", name)
+      if (name == base) {
+        reason = $2; closer = $3
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", reason)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", closer)
+        print reason " | closed by " closer
+      }
+    }
+  ' "$ALLOWLIST_FILE"
+}
+
+scan_definer_dir() {
+  # $1 = directory. Prints the allowlist block; returns 1 on violations.
+  local dir="$1"
+  local violations=0 offenders="" skipped="" allowlisted=""
+  local file base stamp out entry
+  while IFS= read -r -d '' file; do
+    base="$(basename "$file")"
+    stamp="${base%%_*}"
+    entry="$(allowlist_entry "$base")"
+    if [ -n "$entry" ]; then
+      allowlisted+="  - $base ($entry)"$'\n'
+      continue
+    fi
+    if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$DEFINER_GUARD_FLOOR" ]]; then
+      if grep -qi 'security[[:space:]]\+definer' "$file"; then
+        skipped+="  - $base (grandfathered)"$'\n'
+      fi
+      continue
+    fi
+    if ! out=$(check_definer_file "$file"); then
+      violations=$((violations + 1))
+      offenders+="$out"$'\n'
+    fi
+  done < <(find "$dir" -type f -name '*.sql' -print0)
+
+  if [ -n "$skipped" ]; then
+    echo "Definer guard: grandfathered files skipped (pre-$DEFINER_GUARD_FLOOR):"
+    printf '%s' "$skipped"
+  fi
+  if [ -n "$allowlisted" ]; then
+    echo "Definer guard: allowlisted files (each cites its closer)"
+    printf '%s' "$allowlisted"
+  fi
+  if [ "$violations" -gt 0 ]; then
+    echo "Definer guard FAILED: $violations file(s) define SECURITY DEFINER functions without an in-file REVOKE:"
+    printf '%s' "$offenders"
+    return 1
+  fi
+  return 0
+}
+
 # Self-test: an embedded bad sample must be flagged.
 DEFINER_BAD_SAMPLE="$(mktemp)"
 cat > "$DEFINER_BAD_SAMPLE" <<'SQL'
@@ -132,6 +201,41 @@ fi
 echo "Self-test OK: definer-without-revoke sample correctly flagged:"
 printf '%s\n' "$definer_out"
 rm -f "$DEFINER_BAD_SAMPLE"
+
+# Self-test: an allowlisted file is SKIPPED by the scan AND PRINTED.
+ALLOW_TEST_DIR="$(mktemp -d)"
+ALLOW_TEST_LIST="$ALLOW_TEST_DIR/allowlist.txt"
+cp "$DEFINER_BAD_SAMPLE_KEEP" /dev/null 2>/dev/null || true
+cat > "$ALLOW_TEST_DIR/29990101000000_allowlisted-sample.sql" <<'SQL'
+CREATE OR REPLACE FUNCTION public.self_test_allowlisted()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  RETURN NEW;
+END;
+$$;
+SQL
+cat > "$ALLOW_TEST_LIST" <<'TXT'
+# self-test allowlist
+29990101000000_allowlisted-sample.sql | self-test: tool split placed the REVOKE in the next file | deadbeef
+TXT
+allow_out=$(ALLOWLIST_FILE="$ALLOW_TEST_LIST" scan_definer_dir "$ALLOW_TEST_DIR")
+allow_rc=$?
+if [ "$allow_rc" -ne 0 ]; then
+  echo "GUARD SELF-TEST FAILED: allowlisted file was not skipped"
+  printf '%s\n' "$allow_out"
+  rm -rf "$ALLOW_TEST_DIR"
+  exit 1
+fi
+if ! printf '%s' "$allow_out" | grep -q 'allowlisted files (each cites its closer)'; then
+  echo "GUARD SELF-TEST FAILED: allowlisted file was skipped but not printed"
+  rm -rf "$ALLOW_TEST_DIR"
+  exit 1
+fi
+echo "Self-test OK: allowlisted file skipped and printed:"
+printf '%s\n' "$allow_out"
+rm -rf "$ALLOW_TEST_DIR"
+
+
 
 # --- Self-marking law (U1f-3, re-based by INC-094) ---
 # The SQL editor (how ethio-staging is applied) writes no tool ledger, so the
