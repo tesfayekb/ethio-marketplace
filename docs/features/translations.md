@@ -446,7 +446,7 @@ CLASS RULE: every consumer of a gated list reads the gate's source.
   `approve` revision per row before writing, then stamps
   `approved/approved_by/approved_at`. Flagged rows are SKIPPED (U4f law) and the
   base language is refused. One audit entry records `{lang, approved,
-  skipped_flagged}`; the RPC returns those same counts, which the console shows
+skipped_flagged}`; the RPC returns those same counts, which the console shows
   verbatim as its summary. The bar's count is the server's own `reviewable`
   statistic, never a client tally.
 - **Roster order** (`admin_set_language_order(p_codes)`) — gated
