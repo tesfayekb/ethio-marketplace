@@ -658,8 +658,7 @@ export const am: Messages = {
   "admin.translations.order.note": "ይህ ቅደም ተከተል የሕዝብ ቋንቋ መቀየሪያውን ይመራል፤ መሠረታዊው ቋንቋ መጀመሪያ ይቆያል።",
   "admin.translations.order.saved": "ቅደም ተከተል ተቀምጧል።",
   "admin.translations.orphaned.chip": "ወላጅ አልባ · {count}",
-  "admin.translations.orphaned.note":
-    "እነዚህ ቁልፎች በመተግበሪያው ካታሎግ ውስጥ የሉም፤ ከሽፋን ተገልለዋል እና ፈጽሞ አይላኩም።",
+  "admin.translations.orphaned.note": "እነዚህ ቁልፎች በመተግበሪያው ካታሎግ ውስጥ የሉም፤ ከሽፋን ተገልለዋል እና ፈጽሞ አይላኩም።",
   "admin.translations.history.action.clear": "ጸድቷል",
 };
 

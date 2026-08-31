@@ -15,11 +15,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import {
-  serverMessage,
-  translationErrorKey,
-  type ApproveAllResult,
-} from "./translations-service";
+import { serverMessage, translationErrorKey, type ApproveAllResult } from "./translations-service";
 import { useApproveAllTranslations } from "./use-translations";
 
 /**
@@ -99,7 +95,11 @@ export function ApproveAllBar({
       </div>
 
       {summary ? (
-        <p role="status" data-testid="approve-all-summary" className="text-sm text-muted-foreground">
+        <p
+          role="status"
+          data-testid="approve-all-summary"
+          className="text-sm text-muted-foreground"
+        >
           {t("admin.translations.approve.summary")
             .replace("{approved}", String(summary.approved))
             .replace("{skipped}", String(summary.skippedFlagged))}
@@ -118,10 +118,7 @@ export function ApproveAllBar({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("admin.translations.approve.confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("admin.translations.approve.confirmBody").replace(
-                "{count}",
-                String(reviewable),
-              )}
+              {t("admin.translations.approve.confirmBody").replace("{count}", String(reviewable))}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
