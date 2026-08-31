@@ -80,7 +80,6 @@ function requestedFromUrl(): string | null {
   }
 }
 
-
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(BASE_LANGUAGE);
   const [messages, setMessages] = useState<Messages>(en);
@@ -89,8 +88,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [entities, setEntities] = useState<EntityBundle>(EMPTY_ENTITY_BUNDLE);
   // U4f — the publication gate's list. Until it answers, only the base language
   // is offered: an unblessed catalog is never rendered.
-  const [publicLanguages, setPublicLanguages] =
-    useState<PublicLanguage[]>(SEED_PUBLIC_LANGUAGES);
+  const [publicLanguages, setPublicLanguages] = useState<PublicLanguage[]>(SEED_PUBLIC_LANGUAGES);
   const [gateReady, setGateReady] = useState(false);
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
@@ -181,7 +179,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, [gateReady, isPublic, language]);
 
-
   // Load the active locale only.
   useEffect(() => {
     let cancelled = false;
@@ -236,7 +233,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }),
     [language, setLanguage, messages, entities, publicLanguages],
   );
-
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

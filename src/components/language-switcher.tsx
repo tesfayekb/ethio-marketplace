@@ -79,10 +79,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             >
               <Check
                 aria-hidden="true"
-                className={cn(
-                  "me-2 h-4 w-4",
-                  row.code === language ? "opacity-100" : "opacity-0",
-                )}
+                className={cn("me-2 h-4 w-4", row.code === language ? "opacity-100" : "opacity-0")}
               />
               {key ? t(key) : row.name_native}
             </DropdownMenuItem>
@@ -92,6 +89,5 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     </DropdownMenu>
   );
 }
-
 
 export default LanguageSwitcher;
