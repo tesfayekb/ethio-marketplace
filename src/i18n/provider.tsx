@@ -81,6 +81,44 @@ function requestedFromUrl(): string | null {
   }
 }
 
+/**
+ * U4g-8 (INC-101b) — INVARIANT: THE AUTH CALLBACK OWNS THE AUTH LOCK ON THE
+ * FIRST FRAMES; EVERY OTHER PROVIDER'S SUPABASE READ STARTS AFTER AUTH SETTLES.
+ *
+ * supabase-js serialises session access through one exclusive auth lock, and
+ * `onAuthStateChange` callbacks run while it is held. A read issued from this
+ * provider on the first frames contends with the auth flow's own profile read
+ * and can starve it. The cheapest settle signal available at the provider's
+ * position (above the shell, no auth context in scope) is a subscription that
+ * makes NO Supabase call inside its callback: the first auth event — always
+ * emitted, `INITIAL_SESSION` included — means the bootstrap has run. The flag
+ * is raised on a macrotask hop so the lock is released first. A watchdog keeps
+ * i18n from stalling forever if no event ever arrives.
+ */
+function useAuthSettled(): boolean {
+  const [settled, setSettled] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const raise = () => {
+      if (!cancelled) setSettled(true);
+    };
+    const { data: subscription } = supabase.auth.onAuthStateChange(() => {
+      // No Supabase call here: only a deferred flag flip.
+      setTimeout(raise, 0);
+    });
+    // Watchdog (law F4: never a silent stall) — i18n proceeds regardless.
+    const watchdog = setTimeout(raise, 3000);
+    return () => {
+      cancelled = true;
+      clearTimeout(watchdog);
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
+
+  return settled;
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(BASE_LANGUAGE);
   const [messages, setMessages] = useState<Messages>(en);
@@ -94,34 +132,28 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [gateReady, setGateReady] = useState(false);
   /** Loop guard (INC-098b): the gate revokes an unpublished language AT MOST once. */
   const reconciledRef = useRef(false);
+  const authSettled = useAuthSettled();
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
-  //
-  // U4g-6 (INC-101) — INVARIANT: I18N NEVER DELAYS AUTH-DERIVED STATE. Every
-  // supabase-js call queues behind the same exclusive auth lock, so this read —
-  // issued from the provider that wraps the whole tree — used to interleave
-  // with the session bootstrap and starve the profile/permission reads. It is
-  // deferred by one macrotask so the auth client initialises first; nothing
-  // renders on it (the seed answers frame one), so the hop costs nothing.
+  // Gated activation (U4f) and the once-only reconcile (U4f-2) are unchanged;
+  // only the START of this read moves behind the settle signal above.
   useEffect(() => {
+    if (!authSettled) return;
     let cancelled = false;
-    const timer = setTimeout(() => {
-      void fetchPublicLanguages().then((rows) => {
-        if (cancelled) return;
-        if (!rows || rows.length === 0) {
-          console.warn("[i18n] public language list unavailable — base language only");
-          setGateReady(true);
-          return;
-        }
-        setPublicLanguages(rows);
+    void fetchPublicLanguages().then((rows) => {
+      if (cancelled) return;
+      if (!rows || rows.length === 0) {
+        console.warn("[i18n] public language list unavailable — base language only");
         setGateReady(true);
-      });
-    }, 0);
+        return;
+      }
+      setPublicLanguages(rows);
+      setGateReady(true);
+    });
     return () => {
       cancelled = true;
-      clearTimeout(timer);
     };
-  }, []);
+  }, [authSettled]);
 
   const isPublic = useCallback(
     (code: string) => publicLanguages.some((row) => row.code === code),
@@ -130,9 +162,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   // The entity bundle follows the SAME overlay law as the UI bundle: a failure
   // logs one line and leaves the column/base name answering (law F4, not silent).
+  // Like the gate read, it starts only once auth has settled.
   useEffect(() => {
     let cancelled = false;
     setEntities({ lang: language, map: {} });
+    if (!authSettled) {
+      return () => {
+        cancelled = true;
+      };
+    }
     void fetchEntityBundle(language).then(({ bundle, reason }) => {
       if (cancelled) return;
       if (!bundle) {
@@ -144,7 +182,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [language]);
+  }, [language, authSettled]);
+
 
   const setLanguage = useCallback(
     (next: Language) => {
