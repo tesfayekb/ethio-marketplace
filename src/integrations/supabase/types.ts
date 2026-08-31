@@ -907,6 +907,7 @@ export type Database = {
           key: string
           lang_code: string
           machine: boolean
+          orphaned: boolean
           status: string
           updated_at: string
           updated_by: string | null
@@ -921,6 +922,7 @@ export type Database = {
           key: string
           lang_code: string
           machine?: boolean
+          orphaned?: boolean
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -935,6 +937,7 @@ export type Database = {
           key?: string
           lang_code?: string
           machine?: boolean
+          orphaned?: boolean
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -1028,6 +1031,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_approve_all_translations: {
+        Args: { p_lang: string }
+        Returns: Json
+      }
       admin_audit_facets: {
         Args: never
         Returns: {
@@ -1202,6 +1209,7 @@ export type Database = {
           p_lang: string
           p_limit?: number
           p_offset?: number
+          p_orphaned?: boolean
           p_search?: string
           p_status?: string
         }
@@ -1213,6 +1221,7 @@ export type Database = {
           key: string
           lang_code: string
           machine: boolean
+          orphaned: boolean
           source_value: string
           status: string
           total_count: number
@@ -1280,6 +1289,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_set_language_order: {
+        Args: { p_codes: string[] }
+        Returns: undefined
+      }
       admin_set_role_permission: {
         Args: { p_granted: boolean; p_permission_id: string; p_role_id: string }
         Returns: undefined
@@ -1301,6 +1314,8 @@ export type Database = {
           flagged: number
           lang_code: string
           machine_count: number
+          orphaned: number
+          reviewable: number
           total: number
           untranslated: number
         }[]
@@ -1343,6 +1358,7 @@ export type Database = {
           meta: Json
         }[]
       }
+      approve_all_translations_impl: { Args: { p_lang: string }; Returns: Json }
       assign_role: {
         Args: {
           p_role_name: string
@@ -1465,6 +1481,10 @@ export type Database = {
         Args: { p_role_name: string; p_target_user: string }
         Returns: undefined
       }
+      set_language_order_impl: {
+        Args: { p_codes: string[] }
+        Returns: undefined
+      }
       submit_listing: {
         Args: {
           p_attributes?: Json
@@ -1488,6 +1508,7 @@ export type Database = {
       }
       translation_placeholders: { Args: { p_text: string }; Returns: string[] }
       translation_scope_ok: { Args: { p_lang: string }; Returns: boolean }
+      ui_sync_mark_orphans: { Args: { p_en: Json }; Returns: Json }
       user_has_translation_permission: {
         Args: { p_target: string }
         Returns: boolean
