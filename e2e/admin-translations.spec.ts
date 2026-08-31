@@ -135,16 +135,18 @@ function scratchKey(tag: string): string {
  * helper takes the code and every sweep names its own.
  */
 async function ensureFenceLanguage(code: string = FENCE_LANG) {
-  const { error } = await adminClient().from("languages").upsert(
-    {
-      code,
-      name_en: `E2E Fence ${code}`,
-      name_native: "E2E",
-      enabled_admin: true,
-      enabled_public: false,
-    },
-    { onConflict: "code" },
-  );
+  const { error } = await adminClient()
+    .from("languages")
+    .upsert(
+      {
+        code,
+        name_en: `E2E Fence ${code}`,
+        name_native: "E2E",
+        enabled_admin: true,
+        enabled_public: false,
+      },
+      { onConflict: "code" },
+    );
   if (error) throw new Error(`[e2e:u4c] fence language ${code} upsert failed: ${error.message}`);
 }
 
