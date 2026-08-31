@@ -969,6 +969,9 @@ test.describe("rail scroll regions (U0f)", () => {
 
     const scroll = drawer.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
+    // INC-098c: geometry assertions wait for data-settled state — skeletons gone —
+    // not merely hydration. The non-blocking provider surfaced the assumption.
+    await expect(drawer.getByTestId("rail-category-skeleton")).toHaveCount(0);
     // Categories must overflow for this proof to mean anything.
     await expect
       .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
@@ -1003,6 +1006,9 @@ test.describe("rail scroll regions (U0f)", () => {
     const rail = page.getByTestId("app-rail");
     const scroll = rail.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
+    // INC-098c: geometry assertions wait for data-settled state — skeletons gone —
+    // not merely hydration. The non-blocking provider surfaced the assumption.
+    await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
     // U0i footer-clamp law: top pinned at 64, bottom = min(viewport, footerTop).
     // At 1280x360 the short admin page may already show the footer — the law
     // covers that case (the rail ends at the footer's top edge).

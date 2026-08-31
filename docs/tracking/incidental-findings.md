@@ -723,3 +723,11 @@ gate (`src/routes/admin.tsx`) derives `pending` from `authLoading || loading`
 (shell auth + permissions) and navigates from that effect alone; `useI18n()` is
 used there only for `t`. No guard, loader or redirect reads `publicLanguages`
 or `gateReady`.
+
+## INC-098c — geometry assertions must wait for data-settled state (2026-08-31)
+
+U0f drawer geometry raced category loading: the smoke run resolved the last
+`li` to `rail-category-skeleton` twice before real rows, and a scroll performed
+on skeleton height left the final item out of the viewport. CLASS RULE:
+geometry assertions wait for data-settled state — skeleton count 0 — not merely
+hydration. The non-blocking provider surfaced the assumption.
