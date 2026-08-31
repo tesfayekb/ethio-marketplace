@@ -1,63 +1,59 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33361751405
-- Commit: `b8704662853ff43b6a1c61b237b42575e46c3426`
-- Written (UTC): 2026-08-31T05:54:06.694Z
-- Passed: 425 · Skipped: 95 · Failed: 1
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33362350311
+- Commit: `229be05bf96ffde7f9f09076770a15072351754a`
+- Written (UTC): 2026-08-31T06:03:43.173Z
+- Passed: 423 · Skipped: 97 · Failed: 1
 - Sources without results: none
 
-## shell.spec.ts › rail scroll regions (U0f) › drawer: items scroll, header fixed, sign out pinned
+## admin-users.spec.ts › U1 admin users › AU-3 detail: reason required, deactivate, audit row, reactivate
 
-- Source: `smoke`
+- Source: `shard 1`
 - Project: `mobile-360`
 
 ```text
-Error: expect(locator).toBeInViewport() failed
+Error: expect(locator).toBeVisible() failed
 
-Locator:  getByRole('dialog').getByTestId('rail-scroll').locator('li').last()
-Expected: in viewport
-Received: viewport ratio 0
-Timeout:  10000ms
+Locator: getByTestId('activity-user.status_change').first()
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
 
 Call log:
-  - Expect "toBeInViewport" with timeout 10000ms
-  - waiting for getByRole('dialog').getByTestId('rail-scroll').locator('li').last()
-    2 × locator resolved to <li aria-hidden="true" data-testid="rail-category-skeleton">…</li>
-      - unexpected value "viewport ratio 0"
-    12 × locator resolved to <li>…</li>
-       - unexpected value "viewport ratio 0"
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('activity-user.status_change').first()
 
 ```
 
 Context:
 
 ```text
-              - generic [ref=e106]: Babies & Kids
-          - listitem [ref=e107]:
-            - link "Beauty & Personal Care" [ref=e108] [cursor=pointer]:
-              - /url: /c/beauty-personal-care
-              - img [ref=e109]
-              - generic [ref=e112]: Beauty & Personal Care
-          - listitem [ref=e113]:
-            - link "Agriculture & Farming" [ref=e114] [cursor=pointer]:
-              - /url: /c/agriculture-farming
-              - img [ref=e115]
-              - generic [ref=e118]: Agriculture & Farming
-          - listitem [ref=e119]:
-            - link "Commercial Equipment" [ref=e120] [cursor=pointer]:
-              - /url: /c/commercial-equipment
-              - img [ref=e121]
-              - generic [ref=e124]: Commercial Equipment
-      - button "Sign out" [ref=e126]:
-        - img [ref=e127]
-        - generic [ref=e130]: Sign out
+          - listitem [ref=e148]:
+            - generic [ref=e149]: About
+          - listitem [ref=e150]:
+            - generic [ref=e151]: How it works
+      - navigation "Help" [ref=e152]:
+        - heading "Help" [level=2] [ref=e153]
+        - list [ref=e154]:
+          - listitem [ref=e155]:
+            - generic [ref=e156]: Safety
+          - listitem [ref=e157]:
+            - generic [ref=e158]: Contact
+      - navigation "Legal" [ref=e159]:
+        - heading "Legal" [level=2] [ref=e160]
+        - list [ref=e161]:
+          - listitem [ref=e162]:
+            - generic [ref=e163]: Terms
+          - listitem [ref=e164]:
+            - generic [ref=e165]: Privacy
+    - paragraph [ref=e167]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## Server errors: smoke
+## Server errors: shard 1
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
-## Client errors: smoke
+## Client errors: shard 1
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
