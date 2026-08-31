@@ -1020,3 +1020,10 @@ it survives the table twin's expansion rebuild.
 CLASS RULE: a sweep may only touch rows it owns (origin tracking); fixture
 writes are table writes; post-action feedback has ONE page-level home per
 surface.
+
+## INC-106 — twin parity, seed origin, and URL-driven selects (U4g-13)
+
+(a) A test seeded a manual-origin key and expected sync semantics; (b) reorder
+controls were table-twin only — every row action ships in BOTH twins (C1 law);
+(c) a URL-driven select collapsed while its options loaded — URL truth renders
+before option lists arrive (INC-073 law extended).
