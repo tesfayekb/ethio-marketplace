@@ -325,8 +325,12 @@ function LanguagesTable({
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.empty")}</p>
         }
-        rowActions={(row) =>
-          row.isBase ? (
+        rowActions={(row) => {
+          // U4g-10 (INC-103): index by CODE against the one sorted source —
+          // object identity can differ from the rendered row.
+          const index = ordered.findIndex((entry) => entry.code === row.code);
+          const above = index > 0 ? ordered[index - 1] : undefined;
+          return row.isBase ? (
             <span
               data-testid={`lang-source-${row.code}`}
               className="block max-w-52 text-xs text-muted-foreground"
