@@ -206,10 +206,11 @@ function LanguagesTable({
   };
 
   /**
-   * U4g-13 (INC-106) — BOTH TWINS. The move controls are one function, so the
-   * card twin (360) and the table twin (md+) ship identical testids, identical
-   * disabled predicates read from the one sorted source, and the same manage
-   * gate. Touch targets stay ≥44px (C2).
+   * U4g-13/14 (INC-106, INC-106b) — BOTH TWINS, ONE COPY EACH. The move
+   * controls are one function rendered from the primitive's single rowActions
+   * slot, which each twin renders in its own DOM (card actions region at 360,
+   * actions cell at md+). Identical testids, identical disabled predicates
+   * read from the one sorted source, same manage gate, ≥44px targets (C2).
    */
   const moveControls = (row: LanguageRow) => {
     const index = ordered.findIndex((entry) => entry.code === row.code);
