@@ -398,38 +398,11 @@ function LanguagesTable({
           ) : (
             <span className="flex min-w-0 items-center gap-1">
               {mayManage ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="min-h-11 min-w-11"
-                    data-testid={`lang-up-${row.code}`}
-                    aria-label={t("admin.translations.order.up").replace(
-                      "{language}",
-                      row.nameNative,
-                    )}
-                    disabled={order.isPending || above === undefined || above.isBase}
-                    onClick={() => move(row, -1)}
-                  >
-                    <span aria-hidden="true">↑</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="min-h-11 min-w-11"
-                    data-testid={`lang-down-${row.code}`}
-                    aria-label={t("admin.translations.order.down").replace(
-                      "{language}",
-                      row.nameNative,
-                    )}
-                    disabled={order.isPending || index < 0 || index >= ordered.length - 1}
-                    onClick={() => move(row, 1)}
-                  >
-                    <span aria-hidden="true">↓</span>
-                  </Button>
-                </>
+                // Table twin only: the card twin renders the identical
+                // controls inside its own row cell (INC-106).
+                <span className="hidden min-w-0 items-center gap-1 md:flex">
+                  {moveControls(row)}
+                </span>
               ) : null}
               <Link
                 to="/admin/translations/$lang"
