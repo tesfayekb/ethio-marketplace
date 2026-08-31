@@ -351,7 +351,7 @@ function LanguagesTable({
                       "{language}",
                       row.nameNative,
                     )}
-                    disabled={order.isPending || (rows[rows.indexOf(row) - 1]?.isBase ?? true)}
+                    disabled={order.isPending || above === undefined || above.isBase}
                     onClick={() => move(row, -1)}
                   >
                     <span aria-hidden="true">↑</span>
