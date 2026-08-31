@@ -34,6 +34,10 @@ export interface TranslationStats {
   edited: number;
   approved: number;
   flagged: number;
+  /** U4g — keys the code no longer ships; excluded from every other count. */
+  orphaned: number;
+  /** U4g — machine+edited, unflagged, live: exactly what approve-all touches. */
+  reviewable: number;
 }
 
 export type TranslationStatus = "untranslated" | "machine" | "edited" | "approved";
@@ -51,6 +55,8 @@ export interface TranslationRow {
   updatedAt: string;
   approvedBy: string | null;
   approvedAt: string | null;
+  /** U4g — the key is absent from the compiled catalog the console last synced. */
+  orphaned: boolean;
 }
 
 export interface TranslationPage {
@@ -92,6 +98,8 @@ export async function listTranslationStats(lang?: string): Promise<TranslationSt
     edited: Number(row.edited),
     approved: Number(row.approved),
     flagged: Number(row.flagged),
+    orphaned: Number(row.orphaned),
+    reviewable: Number(row.reviewable),
   }));
 }
 
@@ -102,6 +110,8 @@ export interface TranslationFilters {
   search?: string;
   limit?: number;
   offset?: number;
+  /** U4g — undefined/false = the live catalog; true = the orphaned set only. */
+  orphaned?: boolean;
 }
 
 function asStatus(value: string): TranslationStatus {
@@ -115,6 +125,7 @@ export async function listTranslations({
   search = "",
   limit = 25,
   offset = 0,
+  orphaned = false,
 }: TranslationFilters): Promise<TranslationPage> {
   const { data, error } = await supabase.rpc("admin_list_translations", {
     p_lang: lang,
@@ -123,6 +134,7 @@ export async function listTranslations({
     p_search: search,
     p_limit: limit,
     p_offset: offset,
+    p_orphaned: orphaned,
   });
   if (error) throw error;
   const rows = data ?? [];
@@ -141,6 +153,7 @@ export async function listTranslations({
       updatedAt: row.updated_at,
       approvedBy: row.approved_by ?? null,
       approvedAt: row.approved_at ?? null,
+      orphaned: row.orphaned,
     })),
     totalCount: first ? Number(first.total_count) : 0,
   };
@@ -169,6 +182,35 @@ export async function setTranslationStatus(input: {
     p_lang: input.lang,
     p_action: input.action,
   });
+  if (error) throw error;
+}
+
+/**
+ * U4g — BULK APPROVAL. Flagged rows are SKIPPED server-side (U4f law), every
+ * approved row captures its own revision, and the summary is the server's own
+ * count, never an optimistic guess (F4).
+ */
+export interface ApproveAllResult {
+  approved: number;
+  skippedFlagged: number;
+}
+
+export async function approveAllTranslations(lang: string): Promise<ApproveAllResult> {
+  const { data, error } = await supabase.rpc("admin_approve_all_translations", { p_lang: lang });
+  if (error) throw error;
+  const record =
+    data !== null && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
+  return {
+    approved: Number(record["approved"] ?? 0),
+    skippedFlagged: Number(record["skipped_flagged"] ?? 0),
+  };
+}
+
+/** U4g — roster order; the public language switcher follows `languages.sort`. */
+export async function setLanguageOrder(codes: string[]): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_language_order", { p_codes: codes });
   if (error) throw error;
 }
 
@@ -262,6 +304,8 @@ export async function fetchUiBundle(lang: string): Promise<Record<string, string
 export function translationErrorKey(error: unknown): MessageKey {
   const message = (error as { message?: string } | null)?.message ?? "";
   if (/step-up required/i.test(message)) return "admin.translations.error.stepUp";
+  if (/flagged rows cannot be approved/i.test(message))
+    return "admin.translations.error.flaggedApprove";
   if (/not assigned to this language/i.test(message)) return "admin.translations.error.scope";
   if (/not fully approved/i.test(message)) return "admin.translations.error.coverage";
   if (/base language|sync-owned/i.test(message)) return "admin.translations.error.baseLocked";
