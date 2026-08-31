@@ -230,3 +230,4 @@
 - 2026-08-31 — docs: S32 gate — U4 Translations complete; DEC-022/023/023-B/024; U4 close-out; ACT-U4-1..3; next U5 Locations
 - 2026-08-31 — fix(i18n): switcher + runtime honor the publication gate; approve refuses flagged rows (INC-098)
 - 2026-08-31 — fix(i18n): non-blocking provider; gated activation reconciles once (INC-098b)
+- 2026-08-31 — test(e2e): shell drawer and rail-scroll geometry wait for skeleton count 0 before reading scroll/rects (INC-098c)
