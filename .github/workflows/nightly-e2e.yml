@@ -87,6 +87,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-nightly
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: playwright-report/
           retention-days: 7
 
@@ -225,5 +229,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-cf-parity
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: playwright-report/
           retention-days: 7

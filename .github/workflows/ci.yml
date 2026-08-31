@@ -306,6 +306,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-results-smoke
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: test-results/results.json
           if-no-files-found: warn
           retention-days: 7
@@ -315,6 +319,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-log-smoke
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: smoke.log
           if-no-files-found: warn
           retention-days: 7
@@ -326,6 +334,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-context-smoke
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: test-results/**/error-context.md
           if-no-files-found: warn
           retention-days: 7
@@ -334,6 +346,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-smoke
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: playwright-report/
           retention-days: 7
 
@@ -440,6 +456,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-results-changed
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: test-results/results.json
           if-no-files-found: warn
           retention-days: 7
@@ -448,6 +468,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-log-changed
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: changed.log
           if-no-files-found: warn
           retention-days: 7
@@ -456,6 +480,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-context-changed
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: test-results/**/error-context.md
           if-no-files-found: warn
           retention-days: 7
@@ -543,6 +571,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-log-${{ matrix.shard }}
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: ${{ matrix.shard }}.log
           if-no-files-found: warn
           retention-days: 7
@@ -553,6 +585,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-results-${{ matrix.shard }}
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: test-results/results.json
           if-no-files-found: warn
           retention-days: 7
@@ -564,6 +600,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-context-${{ matrix.shard }}
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: test-results/**/error-context.md
           if-no-files-found: warn
           retention-days: 7
@@ -572,6 +612,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ matrix.shard }}
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: playwright-report/
           retention-days: 7
 
@@ -644,6 +688,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-results-email
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: test-results/results.json
           if-no-files-found: warn
           retention-days: 7
@@ -655,6 +703,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-context-email
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: test-results/**/error-context.md
           if-no-files-found: warn
           retention-days: 7
@@ -663,6 +715,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-log-email
+          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
+          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
+          # the merged reporter reads attempt 1 or nothing at all.
+          overwrite: true
           path: email.log
           if-no-files-found: warn
           retention-days: 7
@@ -713,6 +769,41 @@ jobs:
         with:
           pattern: e2e-context-*
           path: shard-contexts
+      # INC-100 — RE-RUN CONTRACT CHECK. Every upload above carries
+      # `overwrite: true`, so on attempt >= 2 the artifacts must have been
+      # (re)written DURING this attempt. This step prints the attempt number
+      # and compares each e2e artifact's updated_at against the earliest job
+      # start of the current attempt. A stale or empty set is annotated as a
+      # BROKEN ARTIFACT CONTRACT, never left to look like "no tests ran"; it
+      # is a warning, because the reporter must still publish.
+      - name: Verify the downloaded artifacts belong to this attempt
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_ID: ${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -u
+          echo "Attempt: ${RUN_ATTEMPT}"
+          echo "--- downloaded results ---"
+          find shard-results -name results.json 2>/dev/null | sort || true
+          started=$(gh api "repos/${REPO}/actions/runs/${RUN_ID}/attempts/${RUN_ATTEMPT}/jobs" \
+            --jq '[.jobs[].started_at] | min' 2>/dev/null || echo "")
+          echo "Attempt ${RUN_ATTEMPT} started at: ${started:-unknown}"
+          if [ -n "$started" ]; then
+            stale=$(gh api "repos/${REPO}/actions/runs/${RUN_ID}/artifacts" --paginate \
+              --jq "[.artifacts[] | select(.name | startswith(\"e2e-\")) | select(.updated_at < \"${started}\") | .name] | join(\", \")" 2>/dev/null || echo "")
+            if [ -n "$stale" ]; then
+              echo "::error::INC-100 BROKEN ARTIFACT CONTRACT — these e2e artifacts predate attempt ${RUN_ATTEMPT} and were NOT overwritten: ${stale}. An empty or thin report below is an artifact failure, not an empty test run."
+            else
+              echo "All e2e artifacts were written during attempt ${RUN_ATTEMPT}."
+            fi
+          fi
+          if [ "${RUN_ATTEMPT}" != "1" ] && [ -z "$(find shard-results -name results.json 2>/dev/null)" ]; then
+            echo "::error::INC-100 BROKEN ARTIFACT CONTRACT — attempt ${RUN_ATTEMPT} downloaded ZERO results.json files; the report's zeros describe the download, not the suite."
+          fi
+          exit 0
       # MERGE MECHANISM: JSON concatenation, not `playwright merge-reports`.
       # The consumer is scripts/e2e-failure-report.ts, which reads the JSON
       # reporter shape; E2E_RESULTS_DIR makes it walk every shard's

@@ -576,3 +576,28 @@ Auth email/signup rate limit is per-project per-hour (INC-082).
 REVERT RULE: if any cross-worker interference class appears, the knob returns
 to `1` BEFORE the class is even diagnosed — capacity is a convenience, never a
 thing to defend.
+
+## INC-100 — the re-run artifact contract (2026-08-31)
+
+`actions/upload-artifact@v4` REFUSES a same-named artifact that already exists,
+so a re-run job's evidence was dropped and the merged reporter either read
+attempt 1's artifacts or nothing at all. Run 33367384491 attempt 2 published
+"Passed 0 · Skipped 0 · Failed 0" while shards 1/3 and the changed lane were
+visibly red.
+
+LAW, in two halves:
+
+1. **Evidence artifacts are overwrite-on-rerun.** Every E2E upload in
+   `ci.yml` and `nightly-e2e.yml` — results, log tails, error contexts, HTML
+   reports, changed lane — carries `overwrite: true`.
+2. **The report names its attempt.** `scripts/e2e-failure-report.ts` renders
+   `- Attempt: N` (from `GITHUB_RUN_ATTEMPT`, default `1`) in the header of
+   every report shape: sources, green and REPORTER ERROR. The merged job's
+   "Verify the downloaded artifacts belong to this attempt" step prints the
+   attempt, lists the downloaded `results.json` files, and annotates any e2e
+   artifact whose `updated_at` predates the attempt's first job start — plus a
+   zero-download on attempt >= 2 — as an `INC-100 BROKEN ARTIFACT CONTRACT`
+   error. It is `continue-on-error` on purpose: the reporter must still publish.
+
+READING RULE: a wipeout on attempt >= 2 with a green preflight now reads as
+"artifact contract broken", never as "no tests ran".

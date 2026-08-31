@@ -460,7 +460,20 @@ export type ReportMeta = {
   sha: string;
   /** INC-088 — the head commit's message, for the PLATFORM-ORIGIN? hint. */
   commitMessage?: string;
+  /**
+   * INC-100 — the GitHub run ATTEMPT this report describes. Re-runs used to be
+   * blind: upload-artifact@v4 refused to replace attempt-1 artifacts, the
+   * merged reporter downloaded nothing and published a wipeout that looked
+   * exactly like "no tests ran". Every report now names its attempt, so a
+   * wipeout on attempt >= 2 reads as "artifact contract broken".
+   */
+  attempt?: string;
 };
+
+/** INC-100 — the attempt line every rendered report carries. */
+export function attemptLine(meta: ReportMeta): string {
+  return `- Attempt: ${meta.attempt && meta.attempt.trim() !== "" ? meta.attempt.trim() : "1"}`;
+}
 
 export function renderSources(
   sources: Source[],
@@ -505,6 +518,7 @@ export function renderSources(
           `- PLATFORM-ORIGIN? the head commit's subject is \`${meta.commitMessage?.split("\n")[0]?.trim()}\` — a Lovable auto-push, so suspect platform-injected code before ours.`,
         ]
       : []),
+    attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
@@ -619,6 +633,7 @@ export function renderGreen(meta: ReportMeta): string {
     "",
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
+    attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     "",
   ].join("\n");
@@ -641,6 +656,7 @@ export function renderCrash(error: unknown, meta: ReportMeta, titles: string[]):
     "",
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
+    attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     "",
     `REPORTER ERROR: ${redact(err.message)} — ${redact(firstStackLine)}`,
@@ -713,6 +729,7 @@ async function main() {
     runUrl: process.env["E2E_RUN_URL"] ?? "",
     sha: process.env["GITHUB_SHA"] ?? "local",
     commitMessage: process.env["E2E_HEAD_COMMIT_MESSAGE"] ?? "",
+    attempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "1",
   };
 
   if (process.env["SELF_TEST"] === "1") {
@@ -1002,8 +1019,38 @@ async function main() {
       }
     }
 
+    // INC-100 — THE ATTEMPT LINE. A re-run whose artifacts could not overwrite
+    // attempt 1's reads as an empty download; the header must name the attempt
+    // so that emptiness is legible as a broken artifact contract rather than
+    // "no tests ran". Fixture: the same wipeout shape, rendered on attempt 2.
+    const attemptMeta: ReportMeta = {
+      runId: "self-test",
+      runUrl: "",
+      sha: "self-test",
+      attempt: "2",
+    };
+    const rerun = renderSources(
+      [{ label: "shard 1", json: emptyJson, logTail: null, serverErrors: [], clientErrors: [] }],
+      attemptMeta,
+      new Map(),
+    );
+    for (const needle of ["- Attempt: 2", "- Passed: 0 · Skipped: 0 · Failed: 0"]) {
+      if (!rerun.includes(needle)) {
+        console.error(`SELF-TEST FAILED — re-run report missing: ${needle}`);
+        process.exit(1);
+      }
+    }
+    if (
+      !renderGreen(attemptMeta).includes("- Attempt: 2") ||
+      !renderCrash(new Error("boom"), attemptMeta, []).includes("- Attempt: 2") ||
+      !renderGreen({ runId: "self-test", runUrl: "", sha: "self-test" }).includes("- Attempt: 1")
+    ) {
+      console.error("SELF-TEST FAILED — a rendered report did not name its attempt.");
+      process.exit(1);
+    }
+
     console.log(
-      "Self-test OK: failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
@@ -1096,6 +1143,7 @@ if (import.meta.main) {
       runId: process.env["GITHUB_RUN_ID"] ?? "local",
       runUrl: process.env["E2E_RUN_URL"] ?? "",
       sha: process.env["GITHUB_SHA"] ?? "local",
+      attempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "1",
     };
     let titles: string[] = [];
     try {
