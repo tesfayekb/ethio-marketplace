@@ -236,3 +236,4 @@
 - 2026-08-31 — fix(i18n): deterministic language order (normalized sort, append-on-insert, (sort, code) everywhere); TR-20 self-describing; gitleaks proof-literal allowlisted (INC-099b)
 - 2026-08-31 — fix(db): languages_append_sort as INVOKER; migration guard gains a reasoned, printed allowlist (DEC-022-B, INC-099c)
 - 2026-08-31 — ci: overwrite artifacts on re-run; report names its attempt (INC-100)
+- 2026-08-31 — fix(auth): auth-derived state settles independently of the i18n language read (no Supabase call inside the auth callback); TR-19 gets its own fence, TR-20 names its phases (INC-101)
