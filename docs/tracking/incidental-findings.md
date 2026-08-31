@@ -967,3 +967,35 @@ CLASS RULE: filters with nullable params must be written as
 `(p IS NULL OR col = p)`; list RPCs get a proof for the absent-filter call.
 Controls whose enabled-ness depends on list position read the SAME sorted array
 the list renders, and index it by key.
+
+## INC-104 — post-action feedback died with the expansion; detail page rendered nothing while loading
+
+TRACE 1 (TR-8, table twin, after Approve) — `string-approve-<id>` calls
+`run(statusAction.mutateAsync)`; `useTranslationStatusAction` invalidates the
+WHOLE `ADMIN_TRANSLATIONS_KEY` namespace `onSettled`, so the list, the stats and
+the counts all refetch. The `string-saved-<id>` marker lived in
+`StringEditor`'s own `useState`, and `StringEditor` is produced by the
+DataTable's `expandedRow(row)` slot — in the table twin that element is
+re-created inside a separately injected `-expanded-row` `<tr>` on every data
+change, so the refetch discarded the marker before Playwright could read it
+(the card twin, whose expansion is a plain child of the row `<li>`, kept it —
+hence "table twin only"). PATH TAKEN: page-level marker state keyed by row key,
+NOT a primitive change and NOT "approve collapses the row" — §10 census: the
+DataTable primitive is intentionally stateless about row content, and every
+other call site owns its own expansion state, so preserving arbitrary
+expansion-local state inside the primitive would be the wrong seam. Product
+intent is unchanged (the row stays open after Approve); TR-8 is unchanged.
+
+TRACE 2 (AU-3, mobile, intermittent) — `AdminUserDetailPage` early-returned a
+bare `PageCard` at lines 59/69/78 on `useAdminUser`'s loading/error/absent
+states, so the page had no `admin-user-detail` shell at all and the mobile
+snapshot held only the footer. The stalling query is the detail read
+`useAdminUser` → `admin_get_user`: it is auth-derived (`AUTH_DERIVED_ROOT`) and
+therefore cannot resolve until the session identity settles, which on a cold
+mobile load lands after first paint — an intermittent blank. FIX: the shell
+(container, heading, back link) renders immediately and the body carries named
+`user-detail-loading` / `user-detail-error` / `user-not-found` states in place.
+The activity list is unchanged.
+
+CLASS RULE: post-action feedback is page-level state, never expansion-local;
+pages render their shell before their queries.
