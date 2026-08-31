@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { supabase } from "@/integrations/supabase/client";
+
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { en } from "./locales/en";
@@ -15,10 +17,43 @@ import { SUPPORTED_LANGUAGES, type Language, type MessageKey, type Messages } fr
 
 export const LANGUAGE_STORAGE_KEY = "ethio.lang";
 
+/** The base language: the last-resort catalog and the refusal fallback (U4f). */
+export const BASE_LANGUAGE: Language = "en";
+
 /** Only "en" is bundled statically; other locales are fetched on demand. */
 const loaders: Record<Exclude<Language, "en">, () => Promise<Messages>> = {
   am: () => import("./locales/am").then((m) => m.am),
 };
+
+/**
+ * U4f (INC-098) — a PUBLIC language row, as the publication gate defines it.
+ * The `languages` table's public RLS SELECT exposes exactly `enabled_public OR
+ * is_base`, so this list IS the gate's source; every consumer of the gated list
+ * (the switcher, the runtime activation check) reads it rather than a static
+ * copy.
+ */
+export type PublicLanguage = {
+  code: string;
+  name_en: string;
+  name_native: string;
+  rtl: boolean;
+  sort: number;
+};
+
+/** Compiled seed used until the gate answers; `en` is the base row by law. */
+const SEED_PUBLIC_LANGUAGES: PublicLanguage[] = [
+  { code: "en", name_en: "English", name_native: "English", rtl: false, sort: 0 },
+];
+
+async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
+  const { data, error } = await supabase
+    .from("languages")
+    .select("code, name_en, name_native, rtl, sort")
+    .or("enabled_public.eq.true,is_base.eq.true")
+    .order("sort", { ascending: true });
+  if (error || !data) return null;
+  return data as PublicLanguage[];
+}
 
 type I18nValue = {
   language: Language;
@@ -26,6 +61,8 @@ type I18nValue = {
   t: (key: MessageKey) => string;
   /** U4d — approved entity names for the active language (overlay, never a replacement). */
   entities: EntityBundle;
+  /** U4f — the publication gate's own list; the switcher renders exactly this. */
+  publicLanguages: PublicLanguage[];
 };
 
 const I18nContext = createContext<I18nValue | null>(null);
@@ -33,6 +70,16 @@ const I18nContext = createContext<I18nValue | null>(null);
 function isLanguage(value: string | null): value is Language {
   return value !== null && (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
 }
+
+/** URL override (`?lang=xx`) — validated against the gate like every other source. */
+function requestedFromUrl(): string | null {
+  try {
+    return new URLSearchParams(window.location.search).get("lang");
+  } catch {
+    return null;
+  }
+}
+
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en");
