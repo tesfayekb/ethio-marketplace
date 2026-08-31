@@ -70,7 +70,6 @@ function actionsOf(page: Page, base: string): Locator {
   return surfaceControl(page, isMobile(page) ? `${base}-actions` : `${base}-actions-cell`);
 }
 
-
 function stringRow(page: Page, keySlug: string): Locator {
   return translationsSurface(page).getByTestId(rowTestId(page, `string-row-${keySlug}`));
 }
@@ -1303,7 +1302,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
             .toBe(start);
         });
       });
-
     } finally {
       // The roster is shared runtime: put the censused order back verbatim.
       await supabase
