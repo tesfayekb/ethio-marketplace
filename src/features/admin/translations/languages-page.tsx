@@ -246,19 +246,6 @@ function LanguagesTable({
 
   const columns: DataTableColumn<LanguageRow>[] = [
     {
-      // Card-twin home for the row actions: the primitive renders its actions
-      // region OUTSIDE the card element, so the controls live in a cell that
-      // the table twin hides (no duplicate testid inside either twin's row).
-      key: "order",
-      header: t("admin.translations.col.language"),
-      priority: "primary",
-      width: "w-0",
-      cell: (row) =>
-        row.isBase || !mayManage ? null : (
-          <span className="flex min-w-0 items-center gap-1 md:hidden">{moveControls(row)}</span>
-        ),
-    },
-    {
       key: "language",
       header: t("admin.translations.col.language"),
       priority: "primary",
