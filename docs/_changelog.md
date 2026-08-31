@@ -237,3 +237,4 @@
 - 2026-08-31 — fix(db): languages_append_sort as INVOKER; migration guard gains a reasoned, printed allowlist (DEC-022-B, INC-099c)
 - 2026-08-31 — ci: overwrite artifacts on re-run; report names its attempt (INC-100)
 - 2026-08-31 — fix(auth): auth-derived state settles independently of the i18n language read (no Supabase call inside the auth callback); TR-19 gets its own fence, TR-20 names its phases (INC-101)
+- 2026-08-31 — fix(auth): session identity applied synchronously from the auth payload; only the profile read hops the auth lock (INC-101 addendum)

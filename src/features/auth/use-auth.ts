@@ -30,17 +30,34 @@ export function useAuth() {
      */
     let seq = 0;
 
-    const applyUser = async (userId: string | undefined, email: string | null | undefined) => {
+    /**
+     * U4g-7 (INC-101 addendum) — INVARIANT: AUTH IDENTITY IS SYNCHRONOUS; ONLY
+     * NETWORK READS HOP. The identity (user id + email) comes straight from the
+     * callback payload and needs no Supabase call, so it is applied in the same
+     * tick. Deferring it too (U4g-6) meant every auth-derived consumer —
+     * permissions, and behind them the admin lists keyed off a settled session
+     * — mounted for a frame under "signed out" and could resolve their gated
+     * reads as empty. Only the profile display-name READ hops the macrotask,
+     * because that is the call that must not run while supabase-js holds the
+     * exclusive auth lock (see U4g-6 note below).
+     */
+    const applyIdentity = (userId: string | undefined, email: string | null | undefined) => {
       const ticket = ++seq;
-      const stale = () => cancelled || ticket !== seq;
-
+      if (cancelled) return ticket;
       if (!userId) {
-        if (!stale()) setState({ user: null, loading: false });
-        return;
+        setState({ user: null, loading: false });
+        return ticket;
       }
-      if (!stale()) {
-        setState({ user: { id: userId, email: email ?? null, displayName: null }, loading: false });
-      }
+      setState({ user: { id: userId, email: email ?? null, displayName: null }, loading: false });
+      return ticket;
+    };
+
+    const loadProfile = async (
+      ticket: number,
+      userId: string,
+      email: string | null | undefined,
+    ) => {
+      const stale = () => cancelled || ticket !== seq;
       // The signup trigger owns profile rows; we only read the display name.
       const { data } = await supabase
         .from("profiles")
@@ -80,14 +97,20 @@ export function useAuth() {
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       const userId = session?.user?.id;
       const email = session?.user?.email;
+      const ticket = applyIdentity(userId, email);
+      if (!userId) return;
       setTimeout(() => {
-        if (cancelled) return;
-        void applyUser(userId, email);
+        if (cancelled || ticket !== seq) return;
+        void loadProfile(ticket, userId, email);
       }, 0);
     });
 
     void supabase.auth.getSession().then(({ data }) => {
-      void applyUser(data.session?.user?.id, data.session?.user?.email);
+      const userId = data.session?.user?.id;
+      const email = data.session?.user?.email;
+      const ticket = applyIdentity(userId, email);
+      if (!userId) return;
+      void loadProfile(ticket, userId, email);
     });
 
     return () => {
