@@ -229,3 +229,4 @@
 - 2026-08-30 — test(e2e): fence language for the global bulk + scratch-location fixture for TR-14 — sweep-class collisions closed (INC-097d)
 - 2026-08-31 — docs: S32 gate — U4 Translations complete; DEC-022/023/023-B/024; U4 close-out; ACT-U4-1..3; next U5 Locations
 - 2026-08-31 — fix(i18n): switcher + runtime honor the publication gate; approve refuses flagged rows (INC-098)
+- 2026-08-31 — fix(i18n): non-blocking provider; gated activation reconciles once (INC-098b)

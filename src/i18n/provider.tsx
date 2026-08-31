@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -86,10 +87,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   // U4d — entity names for the active language. Identity is stable while the
   // language is unchanged and the fetch is pending (INC-090 identity law).
   const [entities, setEntities] = useState<EntityBundle>(EMPTY_ENTITY_BUNDLE);
-  // U4f — the publication gate's list. Until it answers, only the base language
-  // is offered: an unblessed catalog is never rendered.
+  // U4f/U4f-2 (INC-098b) — the publication gate's list. The seed answers the
+  // FIRST frame; the real list arrives asynchronously. The root provider never
+  // waits on the network: nothing here gates the tree.
   const [publicLanguages, setPublicLanguages] = useState<PublicLanguage[]>(SEED_PUBLIC_LANGUAGES);
   const [gateReady, setGateReady] = useState(false);
+  /** Loop guard (INC-098b): the gate revokes an unpublished language AT MOST once. */
+  const reconciledRef = useRef(false);
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
   useEffect(() => {
@@ -170,12 +174,19 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Whatever the source (switcher, storage, URL), an active language that the
-  // gate does not bless is revoked as soon as the gate answers.
+  // gate does not bless is revoked ONCE, as soon as the gate answers
+  // (INC-098b): equality-guarded, persisted, and ref-latched so the effect
+  // cannot re-fire into a loop. Rendering never waited on this.
   useEffect(() => {
-    if (!gateReady) return;
-    if (language !== BASE_LANGUAGE && !isPublic(language)) {
-      console.warn(`[i18n] language "${language}" is not published — falling back to base`);
-      setLanguageState(BASE_LANGUAGE);
+    if (!gateReady || reconciledRef.current) return;
+    reconciledRef.current = true;
+    if (language === BASE_LANGUAGE || isPublic(language)) return;
+    console.warn(`[i18n] language "${language}" is not published — falling back to base`);
+    setLanguageState(BASE_LANGUAGE);
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, BASE_LANGUAGE);
+    } catch {
+      // Storage unavailable; the revocation still applies for this session.
     }
   }, [gateReady, isPublic, language]);
 
