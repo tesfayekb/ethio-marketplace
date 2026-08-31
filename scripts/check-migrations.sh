@@ -293,34 +293,10 @@ if [ "${SELF_TEST:-0}" = "1" ]; then
   exit 0
 fi
 
-definer_violations=0
-definer_offenders=""
-definer_skipped=""
-while IFS= read -r -d '' file; do
-  base="$(basename "$file")"
-  stamp="${base%%_*}"
-  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$DEFINER_GUARD_FLOOR" ]]; then
-    if grep -qi 'security[[:space:]]\+definer' "$file"; then
-      definer_skipped+="  - $base (grandfathered)"$'\n'
-    fi
-    continue
-  fi
-  if ! out=$(check_definer_file "$file"); then
-    definer_violations=$((definer_violations + 1))
-    definer_offenders+="$out"$'\n'
-  fi
-done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
-
-if [ -n "$definer_skipped" ]; then
-  echo "Definer guard: grandfathered files skipped (pre-$DEFINER_GUARD_FLOOR):"
-  printf '%s' "$definer_skipped"
-fi
-
-if [ "$definer_violations" -gt 0 ]; then
-  echo "Definer guard FAILED: $definer_violations file(s) define SECURITY DEFINER functions without an in-file REVOKE:"
-  printf '%s' "$definer_offenders"
+if ! scan_definer_dir "$MIGRATIONS_DIR"; then
   exit 1
 fi
+
 
 echo "Definer guard OK."
 
