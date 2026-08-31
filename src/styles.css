@@ -186,6 +186,13 @@
     border-color: var(--color-border);
   }
 
+  @media (min-width: 48rem) {
+    html {
+      /* INC-106d: scrollIntoView targets clear the fixed 4rem shell band. */
+      scroll-padding-top: 4rem;
+    }
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);

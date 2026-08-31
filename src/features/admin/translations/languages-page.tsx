@@ -380,19 +380,19 @@ function LanguagesTable({
               {t("admin.translations.badge.source")}
             </span>
           ) : (
-            <span className="flex min-w-0 items-center gap-1">
+            <span className="flex min-w-0 flex-wrap items-center gap-2 md:w-64 md:justify-end">
               {mayManage ? (
                 // INC-106b — ONE copy per twin: the primitive renders this
                 // actions region once inside the card twin and once inside the
                 // table twin's actions cell, so no visibility class is needed
                 // and neither DOM ever holds two `lang-up-*`/`lang-down-*`.
-                <span className="flex min-w-0 items-center gap-1">{moveControls(row)}</span>
+                moveControls(row)
               ) : null}
               <Link
                 to="/admin/translations/$lang"
                 params={{ lang: row.code }}
                 data-testid={`lang-open-${row.code}`}
-                className="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground"
+                className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-md border border-input px-3 text-sm text-foreground"
               >
                 {t("admin.translations.open")}
               </Link>

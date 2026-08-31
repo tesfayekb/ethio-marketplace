@@ -1041,3 +1041,9 @@ RULE: row-action locators route through a twin-aware `actionsOf(row)` helper
 that names the primitive's actual DOM per twin — never through the row
 locator; and every click / step-up / poll is its own named `test.step`, with
 the click carrying a budget strictly shorter than the test's.
+
+## INC-106d — roster actions and fixed-band scroll targets intercepted clicks (U4g-16)
+
+Roster actions overlapped (link over button) and rows scrolled under the fixed
+band — both intercepted real clicks. CLASS RULE: interactive rows carry scroll
+margin for the fixed band; action groups never overlap.
