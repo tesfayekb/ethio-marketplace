@@ -113,7 +113,6 @@ export function useAuth() {
       void loadProfile(ticket, userId, email);
     });
 
-
     return () => {
       cancelled = true;
       subscription.subscription.unsubscribe();
