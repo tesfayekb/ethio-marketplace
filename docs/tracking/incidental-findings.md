@@ -900,3 +900,70 @@ it already renders its shell and passes `languages.isLoading` down as a
 `loading` prop rather than early-returning, so this fix does not touch it.
 
 CLASS RULE: admin surfaces never depend on public-facing readiness signals.
+
+## INC-103 — nullable list filters and the roster's move controls (U4g-10)
+
+REPRODUCTION (connected DB, no credentials needed).
+
+PART 1 — probe row `e2e.probe.u4g10` ('am', untranslated, orphaned=false),
+searched with `p_search = 'e2e.probe'` under three `p_orphaned` values, counted
+against the function's own predicate:
+
+    p_orphaned = NULL  -> 1
+    p_orphaned = false -> 1
+    p_orphaned = true  -> 0
+
+The shipped WHERE clause (pg_get_functiondef, verbatim):
+
+    WHERE t.lang_code = p_lang
+      -- NULL means "the live catalog": orphans are hidden unless asked for.
+      AND t.orphaned = COALESCE(p_orphaned, false)
+      AND (p_status IS NULL OR p_status = '' OR p_status = 'all' OR t.status = p_status)
+      AND (p_flagged IS NULL OR t.flagged = p_flagged)
+      AND (p_search IS NULL OR p_search = ''
+           OR t.key ILIKE '%' || p_search || '%'
+           OR COALESCE(t.value, '') ILIKE '%' || p_search || '%'
+           OR COALESCE(src.value, '') ILIKE '%' || p_search || '%')
+
+STATIC TRACE: `strings-search` input -> `searchDraft` state -> 350 ms debounce
+-> `navigate({ search: { q } })` -> `search.q` -> `query` -> `useTranslations({
+lang, status, search: query, limit, offset, orphaned: orphanedView })` -> query
+key `[AUTH_DERIVED_ROOT,'admin','translations','rows',filters]` ->
+`supabase.rpc('admin_list_translations', { p_lang, p_status, p_search, p_limit,
+p_offset, p_orphaned })`. With the Orphaned chip OFF the client sends
+`p_orphaned: false` — an EXPLICIT boolean, never absent.
+
+HONEST VERDICT: the reproduction does NOT convict the orphan predicate for the
+TR-3/4/8/11/12/16 "row not found after search" family — a non-orphaned row is
+returned for NULL and for false alike, and the console never sends NULL. What
+the reproduction DOES convict is the latent NULL-collapse: `COALESCE(p_orphaned,
+false)` makes an absent filter mean "hide orphans" for every other caller, and
+a key that a later Sync marks orphaned then disappears from a default search
+with no way to ask for "both". Fixed at root; the search family stays open with
+no reproduction of its own here.
+
+PART 2 — the up control's shipped disabled predicate (verbatim):
+
+    disabled={order.isPending || (rows[rows.indexOf(row) - 1]?.isBase ?? true)}
+
+`rows` is the parent's `(sort, code)`-sorted roster passed through
+`LanguagesTable`. Two defects: (1) `indexOf(row)` is object-identity based, and
+a miss yields -1 -> `rows[-2]` -> `?? true` -> permanently disabled; (2) the
+predicate is TRUE whenever the row above is the base language — and the fence
+language IS directly beneath the base whenever its `sort` ties with the base's
+(pre-U4g-3 rows all shared sort = 0, and (sort, code) then puts `en` first and
+the fence second). Playwright's click then waits out the whole budget on a
+legitimately disabled button. `order.isPending` does NOT stick: `move()` routes
+through `guard(() => order.mutateAsync(...))` with a `.catch`, so React Query
+settles the mutation on success and on refusal alike.
+
+FIX: one sorted source (`sortLanguages()`) feeds render, `move()` and both
+predicates; the index is taken by CODE, never by object identity. TR-20 gains a
+precondition that parks the fence at the end of the roster when it sits directly
+beneath the base, plus an explicit `toBeEnabled` assertion before the click —
+assertions and budgets unchanged.
+
+CLASS RULE: filters with nullable params must be written as
+`(p IS NULL OR col = p)`; list RPCs get a proof for the absent-filter call.
+Controls whose enabled-ness depends on list position read the SAME sorted array
+the list renders, and index it by key.

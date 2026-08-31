@@ -35,6 +35,16 @@ import {
 const LANGUAGE_CODE_RE = /^[a-z]{2,8}$/;
 
 /**
+ * U4g-10 (INC-103) — ONE SORTED SOURCE. The roster's order law is (sort, code),
+ * identical to the public switcher's. Render AND the move controls' disabled
+ * predicates read this same array, so a button can never describe a different
+ * order from the one on screen.
+ */
+function sortLanguages(data: LanguageRow[] | undefined): LanguageRow[] {
+  return [...(data ?? [])].sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code));
+}
+
+/**
  * U4b PART A — THE LANGUAGES PAGE (/admin/translations).
  *
  * Gate tier: translations:view for the page, translations:manage for every
@@ -53,12 +63,7 @@ export function AdminTranslationsLanguagesPage() {
   const statsByLang = new Map<string, TranslationStats>(
     (stats.data ?? []).map((row) => [row.langCode, row]),
   );
-  // U4g-3 (INC-099b) — ONE ordering law, (sort, code), identical to the public
-  // switcher's. The RPC already orders this way; restating it client-side keeps
-  // the roster deterministic even if a read arrives unordered.
-  const rows = [...(languages.data ?? [])].sort(
-    (a, b) => a.sort - b.sort || a.code.localeCompare(b.code),
-  );
+  const rows = sortLanguages(languages.data);
   const baseTotal = statsByLang.get("en")?.total ?? 0;
   const enabledCount = rows.filter((row) => row.enabledAdmin || row.enabledPublic).length;
   const totals = (stats.data ?? []).reduce(
@@ -145,8 +150,14 @@ function LanguagesTable({
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
+  /**
+   * U4g-10 (INC-103) — the ONE sorted source this component renders from and
+   * reasons about; the disabled predicates and `move` both index into it.
+   */
+  const ordered = sortLanguages(rows);
+
   // Source-catalog size drives the publication gate's empty-set branch.
-  const baseCode = rows.find((row) => row.isBase)?.code ?? "en";
+  const baseCode = ordered.find((row) => row.isBase)?.code ?? "en";
   const baseKeyCount = coverageOf(statsByLang.get(baseCode)).total;
 
   const apply = (row: LanguageRow, next: { admin?: boolean; public?: boolean }) => {
@@ -180,10 +191,10 @@ function LanguagesTable({
   const move = (row: LanguageRow, direction: -1 | 1) => {
     setErrorKey(null);
     setErrorDetail(null);
-    const codes = rows.map((entry) => entry.code);
+    const codes = ordered.map((entry) => entry.code);
     const index = codes.indexOf(row.code);
     const target = index + direction;
-    const neighbour = rows[target];
+    const neighbour = ordered[target];
     if (index < 0 || neighbour === undefined || neighbour.isBase) return;
     const next = [...codes];
     next[index] = neighbour.code;
@@ -307,7 +318,7 @@ function LanguagesTable({
     <>
       <DataTable
         columns={columns}
-        rows={rows}
+        rows={ordered}
         rowKey={(row) => row.code}
         rowTestId={(row) => `lang-row-${row.code}`}
         caption={t("admin.translations.caption")}
@@ -320,8 +331,12 @@ function LanguagesTable({
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.empty")}</p>
         }
-        rowActions={(row) =>
-          row.isBase ? (
+        rowActions={(row) => {
+          // U4g-10 (INC-103): index by CODE against the one sorted source —
+          // object identity can differ from the rendered row.
+          const index = ordered.findIndex((entry) => entry.code === row.code);
+          const above = index > 0 ? ordered[index - 1] : undefined;
+          return row.isBase ? (
             <span
               data-testid={`lang-source-${row.code}`}
               className="block max-w-52 text-xs text-muted-foreground"
@@ -342,7 +357,7 @@ function LanguagesTable({
                       "{language}",
                       row.nameNative,
                     )}
-                    disabled={order.isPending || (rows[rows.indexOf(row) - 1]?.isBase ?? true)}
+                    disabled={order.isPending || above === undefined || above.isBase}
                     onClick={() => move(row, -1)}
                   >
                     <span aria-hidden="true">↑</span>
@@ -357,7 +372,7 @@ function LanguagesTable({
                       "{language}",
                       row.nameNative,
                     )}
-                    disabled={order.isPending || rows.indexOf(row) >= rows.length - 1}
+                    disabled={order.isPending || index < 0 || index >= ordered.length - 1}
                     onClick={() => move(row, 1)}
                   >
                     <span aria-hidden="true">↓</span>
@@ -373,8 +388,8 @@ function LanguagesTable({
                 {t("admin.translations.open")}
               </Link>
             </span>
-          )
-        }
+          );
+        }}
       />
       {mayManage ? (
         <p data-testid="lang-order-note" className="text-xs text-muted-foreground">
