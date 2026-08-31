@@ -11,6 +11,9 @@
 - Lovable project settings: Hide-badge ON, Visitor-analytics OFF (currently ON on the real project — square before launch), Auto-fix-security OFF (keep).
 - ACT-U0-1: On Supabase Pro upgrade — set Sessions time-box to 7 days + inactivity timeout to 4 hours AND enable compromised-refresh-token detection, on ethio-prod AND ethio-staging. Until then the client session policy (U0k) is the effective enforcement.
 - ACT-U3-1: DEC-021 full act-as impersonation builds in the Ops phase — prerequisite: the write-guard census across every user-writable table and RPC (impersonator_id refusal clause); requirement text in spec-ledger DEC-021 and docs/features/admin-audit-security.md.
+- ACT-U4-1: entity machine translation rides the REQ-004 engine (deferred by design).
+- ACT-U4-2: SSR inlining of the active language bundle (root loader) — client-merge limitation stands until then.
+- Ops security review: has_permission client-callable for arbitrary targets (revoke candidate); 68 gated-definer linter warnings (ruling); leaked-password protection toggle.
 
 ## Secrets
 

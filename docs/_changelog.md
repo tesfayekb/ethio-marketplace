@@ -227,3 +227,4 @@
 - 2026-08-30 — feat(i18n): U4e — translation History drawer with one-click restore (restore-as-save; every restore is itself history)
 - 2026-08-30 — test(e2e): TR-16 joins the self-describing dump law (INC-096f-c)
 - 2026-08-30 — test(e2e): fence language for the global bulk + scratch-location fixture for TR-14 — sweep-class collisions closed (INC-097d)
+- 2026-08-31 — docs: S32 gate — U4 Translations complete; DEC-022/023/023-B/024; U4 close-out; ACT-U4-1..3; next U5 Locations
