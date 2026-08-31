@@ -26,6 +26,7 @@ import {
 import {
   useLanguages,
   useSetLanguageFlags,
+  useSetLanguageOrder,
   useSyncUiKeys,
   useTranslationStats,
   useUpsertLanguage,
@@ -135,6 +136,7 @@ function LanguagesTable({
 }) {
   const { t } = useI18n();
   const flags = useSetLanguageFlags();
+  const order = useSetLanguageOrder();
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
@@ -161,6 +163,29 @@ function LanguagesTable({
           : translationErrorKey(failure),
       );
       setErrorDetail(raw === "" ? null : raw);
+    });
+  };
+
+  /**
+   * U4g — ROSTER ORDER. The roster arrives sorted by `languages.sort`, and the
+   * public switcher reads the same column, so this order IS the visitor's
+   * order. The base language is pinned first; a swap into its slot is refused
+   * client-side and by the RPC.
+   */
+  const move = (row: LanguageRow, direction: -1 | 1) => {
+    setErrorKey(null);
+    setErrorDetail(null);
+    const codes = rows.map((entry) => entry.code);
+    const index = codes.indexOf(row.code);
+    const target = index + direction;
+    const neighbour = rows[target];
+    if (index < 0 || neighbour === undefined || neighbour.isBase) return;
+    const next = [...codes];
+    next[index] = neighbour.code;
+    next[target] = row.code;
+    void guard(() => order.mutateAsync(next)).catch((failure: unknown) => {
+      setErrorKey(translationErrorKey(failure));
+      setErrorDetail(serverMessage(failure));
     });
   };
 
@@ -299,17 +324,58 @@ function LanguagesTable({
               {t("admin.translations.badge.source")}
             </span>
           ) : (
-            <Link
-              to="/admin/translations/$lang"
-              params={{ lang: row.code }}
-              data-testid={`lang-open-${row.code}`}
-              className="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground"
-            >
-              {t("admin.translations.open")}
-            </Link>
+            <span className="flex min-w-0 items-center gap-1">
+              {mayManage ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="min-h-11 min-w-11"
+                    data-testid={`lang-up-${row.code}`}
+                    aria-label={t("admin.translations.order.up").replace(
+                      "{language}",
+                      row.nameNative,
+                    )}
+                    disabled={order.isPending || (rows[rows.indexOf(row) - 1]?.isBase ?? true)}
+                    onClick={() => move(row, -1)}
+                  >
+                    <span aria-hidden="true">↑</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="min-h-11 min-w-11"
+                    data-testid={`lang-down-${row.code}`}
+                    aria-label={t("admin.translations.order.down").replace(
+                      "{language}",
+                      row.nameNative,
+                    )}
+                    disabled={order.isPending || rows.indexOf(row) >= rows.length - 1}
+                    onClick={() => move(row, 1)}
+                  >
+                    <span aria-hidden="true">↓</span>
+                  </Button>
+                </>
+              ) : null}
+              <Link
+                to="/admin/translations/$lang"
+                params={{ lang: row.code }}
+                data-testid={`lang-open-${row.code}`}
+                className="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground"
+              >
+                {t("admin.translations.open")}
+              </Link>
+            </span>
           )
         }
       />
+      {mayManage ? (
+        <p data-testid="lang-order-note" className="text-xs text-muted-foreground">
+          {t("admin.translations.order.note")}
+        </p>
+      ) : null}
       {errorKey ? (
         <p role="alert" data-testid="lang-flags-error" className="text-sm text-destructive">
           {t(errorKey)}
