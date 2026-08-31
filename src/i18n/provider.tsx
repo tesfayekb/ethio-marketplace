@@ -96,20 +96,30 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const reconciledRef = useRef(false);
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
+  //
+  // U4g-6 (INC-101) — INVARIANT: I18N NEVER DELAYS AUTH-DERIVED STATE. Every
+  // supabase-js call queues behind the same exclusive auth lock, so this read —
+  // issued from the provider that wraps the whole tree — used to interleave
+  // with the session bootstrap and starve the profile/permission reads. It is
+  // deferred by one macrotask so the auth client initialises first; nothing
+  // renders on it (the seed answers frame one), so the hop costs nothing.
   useEffect(() => {
     let cancelled = false;
-    void fetchPublicLanguages().then((rows) => {
-      if (cancelled) return;
-      if (!rows || rows.length === 0) {
-        console.warn("[i18n] public language list unavailable — base language only");
+    const timer = setTimeout(() => {
+      void fetchPublicLanguages().then((rows) => {
+        if (cancelled) return;
+        if (!rows || rows.length === 0) {
+          console.warn("[i18n] public language list unavailable — base language only");
+          setGateReady(true);
+          return;
+        }
+        setPublicLanguages(rows);
         setGateReady(true);
-        return;
-      }
-      setPublicLanguages(rows);
-      setGateReady(true);
-    });
+      });
+    }, 0);
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, []);
 
