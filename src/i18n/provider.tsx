@@ -86,10 +86,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   // U4d — entity names for the active language. Identity is stable while the
   // language is unchanged and the fetch is pending (INC-090 identity law).
   const [entities, setEntities] = useState<EntityBundle>(EMPTY_ENTITY_BUNDLE);
-  // U4f — the publication gate's list. Until it answers, only the base language
-  // is offered: an unblessed catalog is never rendered.
+  // U4f/U4f-2 (INC-098b) — the publication gate's list. The seed answers the
+  // FIRST frame; the real list arrives asynchronously. The root provider never
+  // waits on the network: nothing here gates the tree.
   const [publicLanguages, setPublicLanguages] = useState<PublicLanguage[]>(SEED_PUBLIC_LANGUAGES);
   const [gateReady, setGateReady] = useState(false);
+  /** Loop guard (INC-098b): the gate revokes an unpublished language AT MOST once. */
+  const reconciledRef = useRef(false);
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
   useEffect(() => {
@@ -113,6 +116,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     (code: string) => publicLanguages.some((row) => row.code === code),
     [publicLanguages],
   );
+
 
   // The entity bundle follows the SAME overlay law as the UI bundle: a failure
   // logs one line and leaves the column/base name answering (law F4, not silent).
