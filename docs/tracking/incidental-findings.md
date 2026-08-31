@@ -824,3 +824,19 @@ bootstrap.
 J2 ADDENDUM (dump-proven: TR-12's `zxx` key came back approved because TR-19's
 approve-all swept the shared fence): ONE FENCE PER GLOBAL-SWEEP TEST. TR-19 now
 owns `zxy`; the reaper covers every fence code.
+
+INC-101 ADDENDUM (U4g-7) — the U4g-6 hop deferred TOO MUCH. The macrotask hop
+wrapped the whole `applyUser`, so the SESSION IDENTITY (user id / email), which
+comes from the callback payload and needs no Supabase call, also landed a tick
+late. For that frame every auth-derived consumer saw "signed out":
+`usePermissions({ enabled: user !== null })` (src/routes/admin.tsx:39,
+src/components/app-shell.tsx:195) stayed disabled, and the admin lists mounted
+behind it could resolve their gated reads as empty with nothing re-keyed on
+identity to force a refetch — RP-2's created role and TR-3/TR-8's seeded keys
+read as "element(s) not found" while present in the DB.
+
+CLASS RULE: AUTH IDENTITY IS SYNCHRONOUS; ONLY NETWORK READS HOP. Anything
+derivable from the auth event payload is applied in the same tick; only calls
+that would re-enter supabase-js's exclusive auth lock are deferred
+(src/features/auth/use-auth.ts). TR-20 is NOT folded here — its stall was an
+ordering/poll-budget matter (INC-099b) and this root does not explain it.
