@@ -62,6 +62,15 @@ export function AdminUsersList() {
   });
   const roles = useAdminRoles();
 
+  // The URL role is a first-class option even before the roster resolves.
+  const roleOptions: { name: string; label: string }[] = (roles.data ?? []).map((item) => ({
+    name: item.name,
+    label: item.displayName ?? item.name,
+  }));
+  if (role !== "all" && !roleOptions.some((item) => item.name === role)) {
+    roleOptions.unshift({ name: role, label: role });
+  }
+
   const users = data?.users ?? [];
   const total = data?.totalCount ?? 0;
   const dateFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
