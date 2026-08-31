@@ -232,9 +232,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setLanguage,
       t: (key: MessageKey) => messages[key] ?? en[key],
       entities,
+      publicLanguages,
     }),
-    [language, setLanguage, messages, entities],
+    [language, setLanguage, messages, entities, publicLanguages],
   );
+
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
