@@ -746,3 +746,10 @@ calls; an overload census prevents stale-signature resolution.
 Fixture corollary: fixture reads are table reads (service client); gated RPCs
 are for the app. TR-21's stats assertion now counts `ui_translations` rows
 directly.
+
+## INC-099b — language sort shipped tied at 0
+
+Language sort shipped tied at 0 — roster and switcher order were undefined and
+new languages could never append; normalized with rank, append-on-insert, and
+(sort, code) ordering everywhere. Poll budgets must be shorter than test budgets
+so failures self-describe.

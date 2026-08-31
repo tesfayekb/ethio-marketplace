@@ -73,22 +73,25 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         {[...publicLanguages]
           .sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code))
           .map((row) => {
-          const key = LABEL_KEYS[row.code as keyof typeof LABEL_KEYS];
-          return (
-            <DropdownMenuItem
-              key={row.code}
-              lang={row.code}
-              data-testid={`language-option-${row.code}`}
-              onSelect={() => setLanguage(row.code as Language)}
-            >
-              <Check
-                aria-hidden="true"
-                className={cn("me-2 h-4 w-4", row.code === language ? "opacity-100" : "opacity-0")}
-              />
-              {key ? t(key) : row.name_native}
-            </DropdownMenuItem>
-          );
-        })}
+            const key = LABEL_KEYS[row.code as keyof typeof LABEL_KEYS];
+            return (
+              <DropdownMenuItem
+                key={row.code}
+                lang={row.code}
+                data-testid={`language-option-${row.code}`}
+                onSelect={() => setLanguage(row.code as Language)}
+              >
+                <Check
+                  aria-hidden="true"
+                  className={cn(
+                    "me-2 h-4 w-4",
+                    row.code === language ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                {key ? t(key) : row.name_native}
+              </DropdownMenuItem>
+            );
+          })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

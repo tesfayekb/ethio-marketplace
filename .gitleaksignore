@@ -10,3 +10,6 @@
 # Scope note: this is a single-fingerprint exemption — the generic-api-key rule
 # stays fully armed everywhere, including on any FUTURE changelog line.
 6cdcca71aa8536a676142b7ec7109d45632b9110:docs/_changelog.md:generic-api-key:81
+#
+# false positive — random scratch-key literal inside a migration proof block (no secret)
+484c19a5ab8e5bc9da04ceb3c68d4af42378aca2:supabase/migrations/20260831060745_c719360f-757c-4a00-b2ba-71e4bc2bbf0a.sql:generic-api-key:529
