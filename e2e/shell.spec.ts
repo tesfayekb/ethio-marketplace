@@ -1297,3 +1297,43 @@ test.describe("desktop layout laws (U0g)", () => {
     await expectNoHorizontalOverflow(page);
   });
 });
+
+/**
+ * TR-18 (INC-098b) — THE ROOT PROVIDER NEVER WAITS ON THE NETWORK.
+ *
+ * U4f made the switcher read the publication gate; U4f-2's law is that the
+ * read is a RECONCILIATION, not a gate. With the languages read delayed five
+ * seconds, the chrome must still paint at once and every route guard — which
+ * depends on auth/permissions only, never on i18n state — must still fire.
+ */
+test.describe("i18n gate is non-blocking (U4f-2)", () => {
+  /** Delays the public-language read so a blocking provider would be obvious. */
+  async function delayLanguagesRead(page: Page, ms: number) {
+    await page.route(/\/rest\/v1\/languages\?/, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, ms));
+      await route.continue();
+    });
+  }
+
+  test("TR-18 the header renders while the languages read is still in flight", async ({ page }) => {
+    await delayLanguagesRead(page, 5000);
+
+    const started = Date.now();
+    await page.goto("/");
+    await expect(page.getByTestId("language-switcher")).toBeVisible({ timeout: 2000 });
+    expect(Date.now() - started).toBeLessThan(5000);
+  });
+
+  test("TR-18 a regular user is still redirected off /admin before the list resolves", async ({
+    page,
+  }) => {
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await delayLanguagesRead(page, 5000);
+
+    const started = Date.now();
+    await page.goto("/admin");
+    await expect(page).toHaveURL(/\/$/, { timeout: 8000 });
+    expect(Date.now() - started).toBeLessThan(5000);
+  });
+});
