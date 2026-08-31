@@ -67,6 +67,8 @@ export function HistoryDrawer({
   mayUpdate,
   mayApprove,
   guard,
+  restored,
+  onRestored,
 }: {
   translationKey: string;
   lang: string;
@@ -76,23 +78,29 @@ export function HistoryDrawer({
   mayUpdate: boolean;
   mayApprove: boolean;
   guard: GuardFn;
+  /**
+   * INC-105 — POST-ACTION FEEDBACK HAS ONE PAGE-LEVEL HOME PER SURFACE.
+   * A restore IS a save (U4e), so it reports through the page's marker keyed by
+   * row key (U4g-11) and survives the table twin's expansion rebuild on refetch.
+   */
+  restored: boolean;
+  onRestored: (next: boolean) => void;
 }) {
   const { t, language } = useI18n();
   const [open, setOpen] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
-  const [restored, setRestored] = useState(false);
 
   const history = useTranslationRevisions({ key: translationKey, lang }, open);
   const save = useSaveTranslation(lang);
   const statusAction = useTranslationStatusAction(lang);
 
   const run = (action: MutationAction) => {
-    setRestored(false);
+    onRestored(false);
     setErrorKey(null);
     setErrorDetail(null);
     void guard(action)
-      .then(() => setRestored(true))
+      .then(() => onRestored(true))
       .catch((failure: unknown) => {
         // F4 — a refusal is shown, never swallowed.
         setErrorKey(translationErrorKey(failure));

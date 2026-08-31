@@ -678,6 +678,8 @@ function StringEditor({
           mayUpdate={mayUpdate}
           mayApprove={mayApprove}
           guard={guard}
+          restored={saved}
+          onRestored={onSaved}
         />
       </div>
 
