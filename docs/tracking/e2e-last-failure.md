@@ -1,99 +1,58 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33387656956
-- Commit: `8e9c16804a74eba7ed90c93090c1b517958bb26d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33388597509
+- Commit: `e7d093ce1a23ed296311e17e3bb6ea6c57ecffea`
 - Attempt: 1
-- Written (UTC): 2026-08-31T11:45:16.025Z
-- Passed: 431 · Skipped: 97 · Failed: 5
+- Written (UTC): 2026-08-31T11:53:46.087Z
+- Passed: 434 · Skipped: 97 · Failed: 2
 - Sources without results: none
 
 ## admin-translations.spec.ts › U4g bulk approval, order and orphans › TR-20 roster order is operator-editable and persists
 
-- Source: `shard 1`
-- Project: `mobile-360`
+- Source: `shard 3`
+- Project: `desktop-1280`
 
 ```text
-Error: the fence's up control must be enabled before the move
-
-expect(locator).toBeEnabled() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('lang-row-zxx-card').getByTestId('lang-up-zxx')
-Expected: enabled
-Timeout: 20000ms
-Error: element(s) not found
-
+TimeoutError: locator.click: Timeout 15000ms exceeded.
 Call log:
-  - the fence's up control must be enabled before the move with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('lang-row-zxx-card').getByTestId('lang-up-zxx')
-
-```
-
-Context:
-
-```text
-          - listitem [ref=e283]:
-            - generic [ref=e284]: About
-          - listitem [ref=e285]:
-            - generic [ref=e286]: How it works
-      - navigation "Help" [ref=e287]:
-        - heading "Help" [level=2] [ref=e288]
-        - list [ref=e289]:
-          - listitem [ref=e290]:
-            - generic [ref=e291]: Safety
-          - listitem [ref=e292]:
-            - generic [ref=e293]: Contact
-      - navigation "Legal" [ref=e294]:
-        - heading "Legal" [level=2] [ref=e295]
-        - list [ref=e296]:
-          - listitem [ref=e297]:
-            - generic [ref=e298]: Terms
-          - listitem [ref=e299]:
-            - generic [ref=e300]: Privacy
-    - paragraph [ref=e302]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key
-
-- Source: `shard 3`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 120000ms exceeded.
-```
-
-Context:
-
-```text
-          - listitem [ref=e720]:
-            - generic [ref=e721]: About
-          - listitem [ref=e722]:
-            - generic [ref=e723]: How it works
-      - navigation "Help" [ref=e724]:
-        - heading "Help" [level=2] [ref=e725]
-        - list [ref=e726]:
-          - listitem [ref=e727]:
-            - generic [ref=e728]: Safety
-          - listitem [ref=e729]:
-            - generic [ref=e730]: Contact
-      - navigation "Legal" [ref=e731]:
-        - heading "Legal" [level=2] [ref=e732]
-        - list [ref=e733]:
-          - listitem [ref=e734]:
-            - generic [ref=e735]: Terms
-          - listitem [ref=e736]:
-            - generic [ref=e737]: Privacy
-    - paragraph [ref=e739]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations.spec.ts › U4g bulk approval, order and orphans › TR-20 roster order is operator-editable and persists
-
-- Source: `shard 3`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 120000ms exceeded.
+  - waiting for getByRole('table').getByTestId('lang-row-zxx-actions-cell').getByTestId('lang-up-zxx')
+    - locator resolved to <button type="button" aria-label="Move E2E up" data-testid="lang-up-zxx" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground …>…</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <a data-testid="lang-open-zxx" href="/admin/translations/zxx" class="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground">Open strings</a> intercepts pointer events
+    - retrying click action
+    - waiting 20ms
+    - waiting for element to be visible, enabled and stable
+    - element is visible, enabled and stable
+    - scrolling into view if needed
+    - done scrolling
+    - <a data-testid="lang-open-zxx" href="/admin/translations/zxx" class="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground">Open strings</a> intercepts pointer events
+  2 × retrying click action
+      - waiting 100ms
+      - waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <span class="hidden max-w-[10rem] truncate md:inline">e2e+33388597509-3-1-36-fomqor</span> from <div data-testid="shell-band" class="contents md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-16">…</div> subtree intercepts pointer events
+  7 × retrying click action
+      - waiting 500ms
+      - waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <a data-testid="lang-open-zxx" href="/admin/translations/zxx" class="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground">Open strings</a> intercepts pointer events
+    - retrying click action
+      - waiting 500ms
+      - waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <a data-testid="lang-open-zxx" href="/admin/translations/zxx" class="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground">Open strings</a> intercepts pointer events
+    - retrying click action
+      - waiting 500ms
 ```
 
 Context:
@@ -124,56 +83,49 @@ Context:
 ## admin-translations.spec.ts › U4g bulk approval, order and orphans › TR-20 roster order is operator-editable and persists
 
 - Source: `changed`
-- Project: `mobile-360`
-
-```text
-Error: the fence's up control must be enabled before the move
-
-expect(locator).toBeEnabled() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('lang-row-zxx-card').getByTestId('lang-up-zxx')
-Expected: enabled
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - the fence's up control must be enabled before the move with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('lang-row-zxx-card').getByTestId('lang-up-zxx')
-
-```
-
-Context:
-
-```text
-          - listitem [ref=e283]:
-            - generic [ref=e284]: About
-          - listitem [ref=e285]:
-            - generic [ref=e286]: How it works
-      - navigation "Help" [ref=e287]:
-        - heading "Help" [level=2] [ref=e288]
-        - list [ref=e289]:
-          - listitem [ref=e290]:
-            - generic [ref=e291]: Safety
-          - listitem [ref=e292]:
-            - generic [ref=e293]: Contact
-      - navigation "Legal" [ref=e294]:
-        - heading "Legal" [level=2] [ref=e295]
-        - list [ref=e296]:
-          - listitem [ref=e297]:
-            - generic [ref=e298]: Terms
-          - listitem [ref=e299]:
-            - generic [ref=e300]: Privacy
-    - paragraph [ref=e302]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations.spec.ts › U4g bulk approval, order and orphans › TR-20 roster order is operator-editable and persists
-
-- Source: `changed`
 - Project: `desktop-1280`
 
 ```text
-Test timeout of 120000ms exceeded.
+TimeoutError: locator.click: Timeout 15000ms exceeded.
+Call log:
+  - waiting for getByRole('table').getByTestId('lang-row-zxx-actions-cell').getByTestId('lang-up-zxx')
+    - locator resolved to <button type="button" aria-label="Move E2E up" data-testid="lang-up-zxx" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground …>…</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <a data-testid="lang-open-zxx" href="/admin/translations/zxx" class="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground">Open strings</a> intercepts pointer events
+    - retrying click action
+    - waiting 20ms
+    - waiting for element to be visible, enabled and stable
+    - element is visible, enabled and stable
+    - scrolling into view if needed
+    - done scrolling
+    - <a data-testid="lang-open-zxx" href="/admin/translations/zxx" class="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground">Open strings</a> intercepts pointer events
+  2 × retrying click action
+      - waiting 100ms
+      - waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <span class="hidden max-w-[10rem] truncate md:inline">e2e+33388597509-changed-2-21-om4slg</span> from <div data-testid="shell-band" class="contents md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-16">…</div> subtree intercepts pointer events
+  7 × retrying click action
+      - waiting 500ms
+      - waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <a data-testid="lang-open-zxx" href="/admin/translations/zxx" class="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground">Open strings</a> intercepts pointer events
+    - retrying click action
+      - waiting 500ms
+      - waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <a data-testid="lang-open-zxx" href="/admin/translations/zxx" class="inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm text-foreground">Open strings</a> intercepts pointer events
+    - retrying click action
+      - waiting 500ms
 ```
 
 Context:
@@ -200,14 +152,6 @@ Context:
     - paragraph [ref=e426]: © 2026 ethio.com — All rights reserved.
 ```
 ```
-
-## Server errors: shard 1
-
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Client errors: shard 1
-
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Server errors: shard 3
 
