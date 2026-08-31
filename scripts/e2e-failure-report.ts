@@ -460,7 +460,20 @@ export type ReportMeta = {
   sha: string;
   /** INC-088 — the head commit's message, for the PLATFORM-ORIGIN? hint. */
   commitMessage?: string;
+  /**
+   * INC-100 — the GitHub run ATTEMPT this report describes. Re-runs used to be
+   * blind: upload-artifact@v4 refused to replace attempt-1 artifacts, the
+   * merged reporter downloaded nothing and published a wipeout that looked
+   * exactly like "no tests ran". Every report now names its attempt, so a
+   * wipeout on attempt >= 2 reads as "artifact contract broken".
+   */
+  attempt?: string;
 };
+
+/** INC-100 — the attempt line every rendered report carries. */
+export function attemptLine(meta: ReportMeta): string {
+  return `- Attempt: ${meta.attempt && meta.attempt.trim() !== "" ? meta.attempt.trim() : "1"}`;
+}
 
 export function renderSources(
   sources: Source[],
@@ -505,6 +518,7 @@ export function renderSources(
           `- PLATFORM-ORIGIN? the head commit's subject is \`${meta.commitMessage?.split("\n")[0]?.trim()}\` — a Lovable auto-push, so suspect platform-injected code before ours.`,
         ]
       : []),
+    attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
@@ -619,6 +633,7 @@ export function renderGreen(meta: ReportMeta): string {
     "",
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
+    attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     "",
   ].join("\n");
@@ -641,6 +656,7 @@ export function renderCrash(error: unknown, meta: ReportMeta, titles: string[]):
     "",
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
+    attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     "",
     `REPORTER ERROR: ${redact(err.message)} — ${redact(firstStackLine)}`,
@@ -713,6 +729,7 @@ async function main() {
     runUrl: process.env["E2E_RUN_URL"] ?? "",
     sha: process.env["GITHUB_SHA"] ?? "local",
     commitMessage: process.env["E2E_HEAD_COMMIT_MESSAGE"] ?? "",
+    attempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "1",
   };
 
   if (process.env["SELF_TEST"] === "1") {
@@ -1096,6 +1113,7 @@ if (import.meta.main) {
       runId: process.env["GITHUB_RUN_ID"] ?? "local",
       runUrl: process.env["E2E_RUN_URL"] ?? "",
       sha: process.env["GITHUB_SHA"] ?? "local",
+      attempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "1",
     };
     let titles: string[] = [];
     try {
