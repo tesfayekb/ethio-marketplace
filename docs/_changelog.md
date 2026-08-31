@@ -231,3 +231,4 @@
 - 2026-08-31 — fix(i18n): switcher + runtime honor the publication gate; approve refuses flagged rows (INC-098)
 - 2026-08-31 — fix(i18n): non-blocking provider; gated activation reconciles once (INC-098b)
 - 2026-08-31 — test(e2e): shell drawer and rail-scroll geometry wait for skeleton count 0 before reading scroll/rects (INC-098c)
+- 2026-08-31 — feat(i18n): U4g — approve-all-reviewed (flag-safe, revision-captured), language ordering (switcher follows), orphaned keys excluded from coverage

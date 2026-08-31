@@ -437,3 +437,33 @@ Now:
   is unchanged (clearing is how a flagged row is retired).
 
 CLASS RULE: every consumer of a gated list reads the gate's source.
+
+## U4g — bulk approval, roster order, orphaned keys
+
+- **Approve all reviewed** (`admin_approve_all_translations(p_lang)`) — gated
+  `translations:approve` + step-up + language scope. It walks the rows whose
+  status is `machine` or `edited`, unflagged and not orphaned, captures one
+  `approve` revision per row before writing, then stamps
+  `approved/approved_by/approved_at`. Flagged rows are SKIPPED (U4f law) and the
+  base language is refused. One audit entry records `{lang, approved,
+  skipped_flagged}`; the RPC returns those same counts, which the console shows
+  verbatim as its summary. The bar's count is the server's own `reviewable`
+  statistic, never a client tally.
+- **Roster order** (`admin_set_language_order(p_codes)`) — gated
+  `translations:manage`, audited old→new. It rewrites `languages.sort` by array
+  position; codes outside the array keep their relative order after it. The
+  public language switcher reads the same column, so the console's move-up /
+  move-down controls ARE the visitor-facing order. The base language stays
+  first.
+- **Orphaned keys** — `ui_translations.orphaned` is set by
+  `admin_sync_ui_keys` for every key absent from the ingested catalog, and
+  cleared when the key returns. Orphaned rows are excluded from
+  `admin_translation_stats`, from the coverage/publication gate and from
+  `get_ui_bundle`: a key the code no longer ships can neither block publication
+  nor reach a visitor. `admin_list_translations` gains `p_orphaned`, which the
+  strings page exposes as an "Orphaned · N" chip.
+
+E2E: TR-19 (approve-all counts, statuses, revisions, flagged skip), TR-20
+(order moves and is restored in `finally`), TR-21 (sync orphans an absent key,
+stats exclude it, the chip lists it). All three work inside the `zxx` fence
+language (INC-097d).
