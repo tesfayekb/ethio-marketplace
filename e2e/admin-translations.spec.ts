@@ -1006,3 +1006,50 @@ test.describe("U4b translations console", () => {
     }
   });
 });
+
+/**
+ * U4f (INC-098) — THE PUBLICATION GATE GOVERNS CHOICE, NOT ONLY DATA.
+ *
+ * The switcher's options must EQUAL the gate's own list (the `languages` public
+ * SELECT: enabled_public OR is_base, ordered by sort), the admin-only fence
+ * language must never appear, and a forced non-public `?lang=` must render the
+ * base language. No real language is toggled by this test: it reads the gate
+ * and asserts the UI agrees with it.
+ */
+test.describe("U4f — publication gate governs language choice", () => {
+  test("TR-17: switcher options equal the DB public list; a non-public ?lang falls back", async ({
+    page,
+  }) => {
+    const supabase = adminClient();
+    const { data, error } = await supabase
+      .from("languages")
+      .select("code, sort")
+      .or("enabled_public.eq.true,is_base.eq.true")
+      .order("sort", { ascending: true });
+    if (error || !data) throw new Error(`[e2e:u4f] public language read failed: ${error?.message}`);
+    const expected = data.map((row) => row.code as string);
+    expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
+    expect(expected, "the admin-only fence language is never public").not.toContain(FENCE_LANG);
+
+    await gotoReady(page, "/");
+    await page.getByTestId("language-switcher").click();
+    await expect
+      .poll(
+        async () =>
+          page
+            .locator("[data-testid^='language-option-']")
+            .evaluateAll((nodes) =>
+              nodes.map((n) =>
+                (n.getAttribute("data-testid") ?? "").replace("language-option-", ""),
+              ),
+            ),
+        { timeout: 15000, message: "switcher options never matched the gate's public list" },
+      )
+      .toEqual(expected);
+    await page.keyboard.press("Escape");
+
+    // A forced non-public code is refused: the runtime renders the base language.
+    await gotoReady(page, "/?lang=om");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en", { timeout: 15000 });
+  });
+});

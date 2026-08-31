@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
-import { SUPPORTED_LANGUAGES, type Language } from "@/i18n/types";
+import type { Language } from "@/i18n/types";
 import { cn } from "@/lib/utils";
 
 const LABEL_KEYS = {
@@ -26,9 +26,20 @@ const SHORT_KEYS = {
  * tablets and up get the language NAME ("English ▾"), so nothing has to be
  * decoded. Either way the menu lists all languages INCLUDING the current one
  * (ticked). There is deliberately no second control.
+ *
+ * U4f (INC-098) — the OPTIONS come from the publication gate's own source (the
+ * `languages` table's public RLS SELECT: enabled_public OR is_base), ordered by
+ * `sort`, labelled with the native name. A static list is exactly the bug: a
+ * consumer of a gated list must read the gate.
  */
 export function LanguageSwitcher({ className }: { className?: string }) {
-  const { language, setLanguage, t } = useI18n();
+  const { language, setLanguage, t, publicLanguages } = useI18n();
+
+  const shortKey = SHORT_KEYS[language as keyof typeof SHORT_KEYS];
+  const fullKey = LABEL_KEYS[language as keyof typeof LABEL_KEYS];
+  const activeRow = publicLanguages.find((row) => row.code === language);
+  const shortLabel = shortKey ? t(shortKey) : language.toUpperCase();
+  const fullLabel = fullKey ? t(fullKey) : (activeRow?.name_native ?? language);
 
   return (
     <DropdownMenu>
@@ -48,29 +59,32 @@ export function LanguageSwitcher({ className }: { className?: string }) {
               anything else reading the control) can assert the RENDERED label
               rather than the button's concatenated text content (INC-033). */}
           <span lang={language} data-testid="language-switcher-short" className="md:hidden">
-            {t(SHORT_KEYS[language])}
+            {shortLabel}
           </span>
           <span lang={language} data-testid="language-switcher-full" className="hidden md:inline">
-            {t(LABEL_KEYS[language])}
+            {fullLabel}
           </span>
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {SUPPORTED_LANGUAGES.map((code: Language) => (
-          <DropdownMenuItem
-            key={code}
-            lang={code}
-            data-testid={`language-option-${code}`}
-            onSelect={() => setLanguage(code)}
-          >
-            <Check
-              aria-hidden="true"
-              className={cn("me-2 h-4 w-4", code === language ? "opacity-100" : "opacity-0")}
-            />
-            {t(LABEL_KEYS[code])}
-          </DropdownMenuItem>
-        ))}
+        {publicLanguages.map((row) => {
+          const key = LABEL_KEYS[row.code as keyof typeof LABEL_KEYS];
+          return (
+            <DropdownMenuItem
+              key={row.code}
+              lang={row.code}
+              data-testid={`language-option-${row.code}`}
+              onSelect={() => setLanguage(row.code as Language)}
+            >
+              <Check
+                aria-hidden="true"
+                className={cn("me-2 h-4 w-4", row.code === language ? "opacity-100" : "opacity-0")}
+              />
+              {key ? t(key) : row.name_native}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

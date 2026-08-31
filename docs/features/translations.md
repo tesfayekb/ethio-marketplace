@@ -414,3 +414,26 @@ TR-16 seeds a scratch key, machine-translates it, edits it by hand, opens
 History, asserts both rows and their actors, restores the machine value, and
 proves the row is `edited` with the `⟪am⟫` marker while the revision count
 reaches **three** — the restore is history too.
+
+## U4f — the publication gate governs CHOICE (2026-08-31, INC-098)
+
+Publication used to gate DATA only: the console could unpublish a language while
+the header still offered it, because the switcher carried a static list born in
+U0 (before the `languages` table existed).
+
+Now:
+
+- **Switcher options come from the gate's own source** — `languages` under its
+  public RLS SELECT (`enabled_public OR is_base`, anon-readable by design),
+  ordered by `sort`, labelled with the native name. English and Amharic keep
+  their compiled labels; any further published language shows `name_native`.
+- **Activation is validated** against that same list, whatever the source
+  (switcher click, persisted `ethio.lang`, `?lang=` override). A non-public code
+  falls back to the base language with exactly one `console.warn` — an unblessed
+  catalog is never rendered. Compiled catalogs remain the fallback layer INSIDE
+  a public language (law D3: `compiled.en ▸ compiled[lang] ▸ DB[lang]`).
+- **Approve refuses flagged rows.** `admin_set_translation_status(..., 'approve')`
+  raises `flagged rows cannot be approved — fix the placeholder first`; `clear`
+  is unchanged (clearing is how a flagged row is retired).
+
+CLASS RULE: every consumer of a gated list reads the gate's source.

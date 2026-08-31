@@ -701,3 +701,12 @@ Response`). Verified empirically in BOTH serves: dev AND the
   rather than the literal `e2e` because `/api/translate` validates
   `target_lang` against `/^[a-z]{2,8}(-[a-z]{2,8})?$/`, which rejects the
   digit; the code is one exported constant in `e2e/global-setup.ts`.
+
+- **INC-098 — the publication gate governed data but not choice.** U0's language
+  switcher predated the `languages` table and kept a static list, so an
+  unpublished language stayed selectable and a non-public code could activate a
+  compiled catalog the gate had never blessed. Fixed in U4f: the switcher reads
+  the public list (`enabled_public OR is_base`, ordered by `sort`), the runtime
+  validates every activation source against it and falls back to the base
+  language with one warning, and approve now refuses flagged rows. CLASS RULE:
+  every consumer of a gated list reads the gate's source.
