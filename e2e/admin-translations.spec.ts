@@ -57,6 +57,20 @@ function langRow(page: Page, code: string): Locator {
   return translationsSurface(page).getByTestId(rowTestId(page, `lang-row-${code}`));
 }
 
+/**
+ * INC-106c — THE ACTIONS REGION IS NOT INSIDE THE ROW ELEMENT ON MOBILE.
+ * DataTable's card twin renders `<li>` > (`<row>-card` Link) + (`<row>-actions`)
+ * as SIBLINGS: the actions region is a sibling of the card element the row
+ * helper resolves, so `langRow(...).getByTestId('lang-up-…')` finds nothing at
+ * 360. The table twin keeps its actions in `<row>-actions-cell` INSIDE the
+ * `<tr>`. Every row-action locator therefore routes through this helper, which
+ * names the primitive's truth per twin — never through the row locator.
+ */
+function actionsOf(page: Page, base: string): Locator {
+  return surfaceControl(page, isMobile(page) ? `${base}-actions` : `${base}-actions-cell`);
+}
+
+
 function stringRow(page: Page, keySlug: string): Locator {
   return translationsSurface(page).getByTestId(rowTestId(page, `string-row-${keySlug}`));
 }
