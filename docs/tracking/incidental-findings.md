@@ -862,3 +862,41 @@ timing moves.
 CLASS RULE: first-frame Supabase reads belong to the auth flow alone —
 providers added later start their reads after auth settles; core auth code is
 changed only by DEC, never by in-cycle fixes.
+
+## INC-102 — an admin surface blanked on a public readiness signal
+
+Evidence: run 33376721893 — TR-3's context snapshot for
+`/admin/translations/am` held only the footer (no heading, no search, no
+table); TR-4/8/11/12/16/20 all died on the same page.
+
+Census (verbatim):
+
+- `src/routes/admin.translations_.$lang.tsx` — no `useI18n()` read at all;
+  `validateSearch` parses `status`/`flagged`/`q`/`scope` only and never
+  consults any language list, so the route decides nothing from the provider.
+- `src/features/admin/translations/strings-page.tsx:90` —
+  `const { t } = useI18n();` (labels only), `:526` —
+  `const { t, language } = useI18n();` (labels + `relativeTime` locale).
+- `src/features/admin/translations/data-scope.tsx:68` and `:247` —
+  `const { t } = useI18n();` (labels only).
+- No read of `publicLanguages`, `gateReady` or `entities` exists in the
+  strings route, page or data scope.
+
+Blank path: `strings-page.tsx` early-returned a bare
+`PageCard testid="strings-unavailable"` whenever
+`guardPending = languages.isLoading` was true — the whole console (heading,
+search, filters, table) was replaced by one line of text while
+`admin_list_languages` was in flight. Once U4g-8 moved provider reads behind
+the auth-settle flag, that in-flight window widened past the assertions'
+budget and the page read as empty.
+
+Fix: the page renders its shell immediately from admin sources — language
+validity comes from `admin_list_languages` (enabled_admin OR base) — and the
+list/stats load in place. The early return survives only for the genuinely
+`unavailable` case (unknown or staff-disabled language), which also redirects.
+
+TR-20 (the roster page, `languages-page.tsx`) does NOT share the dependency:
+it already renders its shell and passes `languages.isLoading` down as a
+`loading` prop rather than early-returning, so this fix does not touch it.
+
+CLASS RULE: admin surfaces never depend on public-facing readiness signals.
