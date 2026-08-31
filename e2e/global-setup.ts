@@ -24,6 +24,17 @@ const STAGING_REF = "jatpuhfdjfzctjipklmk";
  */
 export const FENCE_LANG = "zxx";
 
+/**
+ * U4g-6 (INC-101) — J2 ADDENDUM: ONE FENCE PER GLOBAL-SWEEP TEST. TR-12's AI
+ * bulk and TR-19's approve-all are BOTH sweeps; sharing `zxx` meant TR-19's
+ * approve-all approved TR-12's pending fence row (dump-proven). TR-19 gets its
+ * own admin-only fence; the reaper below covers every fence code.
+ */
+export const APPROVE_FENCE_LANG = "zxy";
+
+/** Every fence code, so the reaper can never miss one. */
+export const FENCE_LANGS = [FENCE_LANG, APPROVE_FENCE_LANG] as const;
+
 export type E2EUser = {
   id: string;
   email: string;
@@ -190,7 +201,7 @@ export default async function globalSetup() {
   const { data: staleFenceRevisions, error: fenceRevisionError } = await supabase
     .from("ui_translation_revisions")
     .delete()
-    .eq("lang_code", FENCE_LANG)
+    .in("lang_code", [...FENCE_LANGS])
     .lt("changed_at", cutoff)
     .select("id");
   if (fenceRevisionError) {
@@ -200,7 +211,7 @@ export default async function globalSetup() {
   const { data: staleFenceRows, error: fenceRowError } = await supabase
     .from("ui_translations")
     .delete()
-    .eq("lang_code", FENCE_LANG)
+    .in("lang_code", [...FENCE_LANGS])
     .lt("updated_at", cutoff)
     .select("key");
   if (fenceRowError) {
