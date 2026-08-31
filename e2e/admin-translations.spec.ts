@@ -1242,7 +1242,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
       return Number(count ?? 0);
     };
 
-
     try {
       const { secret } = await signInAsSuperAdmin(page);
       await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
