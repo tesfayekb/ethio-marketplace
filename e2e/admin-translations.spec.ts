@@ -1255,31 +1255,55 @@ test.describe("U4g bulk approval, order and orphans", () => {
         start = await positionOf(FENCE_LANG);
       });
 
+      // U4g-15 (INC-106c) — the three sub-phases are named SEPARATELY: click,
+      // step-up, poll. A stall now reports which one consumed the budget; a
+      // strict-mode or actionability stall lives in "click" and never even
+      // reaches the poll's own 30s budget (that is what the earlier anonymous
+      // 120s timeout actually was).
       await test.step("TR-20 move up", async () => {
-        const up = langRow(page, FENCE_LANG).getByTestId(`lang-up-${FENCE_LANG}`);
-        await expect(up, "the fence's up control must be enabled before the move").toBeEnabled({
-          timeout: 20000,
+        const up = actionsOf(page, `lang-row-${FENCE_LANG}`).getByTestId(`lang-up-${FENCE_LANG}`);
+        await test.step("TR-20 move up · click", async () => {
+          await expect(up, "the fence's up control must be enabled before the move").toBeEnabled({
+            timeout: 20000,
+          });
+          await up.click({ timeout: 15000 });
         });
-        await up.click();
-        await stepUpIfPrompted(page, secret);
-        await expect
-          .poll(() => positionOf(FENCE_LANG), {
-            timeout: 30000,
-            message: "moving up never changed the roster order",
-          })
-          .toBe(start - 1);
+        await test.step("TR-20 move up · step-up", async () => {
+          await stepUpIfPrompted(page, secret);
+        });
+        await test.step("TR-20 move up · poll", async () => {
+          await expect
+            .poll(() => positionOf(FENCE_LANG), {
+              timeout: 30000,
+              message: "moving up never changed the roster order",
+            })
+            .toBe(start - 1);
+        });
       });
 
       await test.step("TR-20 move down", async () => {
-        await langRow(page, FENCE_LANG).getByTestId(`lang-down-${FENCE_LANG}`).click();
-        await stepUpIfPrompted(page, secret);
-        await expect
-          .poll(() => positionOf(FENCE_LANG), {
-            timeout: 30000,
-            message: "moving down never restored the position",
-          })
-          .toBe(start);
+        const down = actionsOf(page, `lang-row-${FENCE_LANG}`).getByTestId(
+          `lang-down-${FENCE_LANG}`,
+        );
+        await test.step("TR-20 move down · click", async () => {
+          await expect(down, "the fence's down control must be enabled").toBeEnabled({
+            timeout: 20000,
+          });
+          await down.click({ timeout: 15000 });
+        });
+        await test.step("TR-20 move down · step-up", async () => {
+          await stepUpIfPrompted(page, secret);
+        });
+        await test.step("TR-20 move down · poll", async () => {
+          await expect
+            .poll(() => positionOf(FENCE_LANG), {
+              timeout: 30000,
+              message: "moving down never restored the position",
+            })
+            .toBe(start);
+        });
       });
+
     } finally {
       // The roster is shared runtime: put the censused order back verbatim.
       await supabase
