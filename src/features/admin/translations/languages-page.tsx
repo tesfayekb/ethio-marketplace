@@ -381,11 +381,11 @@ function LanguagesTable({
           ) : (
             <span className="flex min-w-0 items-center gap-1">
               {mayManage ? (
-                // Table twin only: the card twin renders the identical
-                // controls inside its own row cell (INC-106).
-                <span className="hidden min-w-0 items-center gap-1 md:flex">
-                  {moveControls(row)}
-                </span>
+                // INC-106b — ONE copy per twin: the primitive renders this
+                // actions region once inside the card twin and once inside the
+                // table twin's actions cell, so no visibility class is needed
+                // and neither DOM ever holds two `lang-up-*`/`lang-down-*`.
+                <span className="flex min-w-0 items-center gap-1">{moveControls(row)}</span>
               ) : null}
               <Link
                 to="/admin/translations/$lang"
