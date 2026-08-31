@@ -191,7 +191,7 @@ function LanguagesTable({
   const move = (row: LanguageRow, direction: -1 | 1) => {
     setErrorKey(null);
     setErrorDetail(null);
-    const codes = rows.map((entry) => entry.code);
+    const codes = ordered.map((entry) => entry.code);
     const index = codes.indexOf(row.code);
     const target = index + direction;
     const neighbour = rows[target];
