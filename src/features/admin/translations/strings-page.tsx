@@ -106,6 +106,15 @@ export function AdminTranslationsStringsPage({
   const query = search.q ?? "";
   const [page, setPage] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
+  /**
+   * INC-104 — POST-ACTION FEEDBACK IS PAGE-LEVEL STATE, NEVER EXPANSION-LOCAL.
+   * The saved marker used to live inside StringEditor, which the DataTable
+   * re-creates whenever the invalidated list refetches (the table twin injects
+   * the expansion as a separate `<tr>`), so the confirmation vanished. Keyed by
+   * row key here, it survives any refetch on BOTH twins.
+   */
+  const [savedKey, setSavedKey] = useState<string | null>(null);
+
   const [searchDraft, setSearchDraft] = useState(query);
   /**
    * U4g — the orphaned set is a VIEW, not a status. It is component state
