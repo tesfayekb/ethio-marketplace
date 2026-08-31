@@ -381,13 +381,13 @@ function LanguagesTable({
             </span>
           ) : (
             <span className="flex min-w-0 flex-wrap items-center gap-2 md:w-64 md:justify-end">
-              {mayManage ? (
-                // INC-106b — ONE copy per twin: the primitive renders this
-                // actions region once inside the card twin and once inside the
-                // table twin's actions cell, so no visibility class is needed
-                // and neither DOM ever holds two `lang-up-*`/`lang-down-*`.
-                moveControls(row)
-              ) : null}
+              {mayManage
+                ? // INC-106b — ONE copy per twin: the primitive renders this
+                  // actions region once inside the card twin and once inside the
+                  // table twin's actions cell, so no visibility class is needed
+                  // and neither DOM ever holds two `lang-up-*`/`lang-down-*`.
+                  moveControls(row)
+                : null}
               <Link
                 to="/admin/translations/$lang"
                 params={{ lang: row.code }}
