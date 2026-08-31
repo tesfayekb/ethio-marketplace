@@ -572,6 +572,8 @@ export const en = {
   "admin.translations.error.permission": "You don't have permission to do that.",
   "admin.translations.error.codeInvalid": "Enter a valid language code (2–8 letters).",
   "admin.translations.error.generic": "That change could not be saved.",
+  "admin.translations.error.flaggedApprove":
+    "Flagged strings can't be approved — fix the placeholders first.",
   "admin.translations.strings.title": "Strings — {language}",
   "admin.translations.strings.back": "All languages",
   "admin.translations.strings.caption": "Translation keys",
@@ -662,6 +664,24 @@ export const en = {
   "admin.translations.history.action.save": "Human edit",
   "admin.translations.history.action.approve": "Approved",
   "admin.translations.history.action.clear": "Cleared",
+  // U4g — bulk approval, roster order, orphaned keys.
+  "admin.translations.approve.action": "Approve all reviewed ({count})",
+  "admin.translations.approve.confirmTitle": "Approve every reviewed string?",
+  "admin.translations.approve.confirmBody":
+    "{count} reviewed strings will be approved. Unreviewed machine text will become live for this language. Flagged strings are skipped.",
+  "admin.translations.approve.confirmCta": "Approve {count}",
+  "admin.translations.approve.cancel": "Cancel",
+  "admin.translations.approve.pending": "Approving…",
+  "admin.translations.approve.summary": "{approved} approved, {skipped} flagged and skipped.",
+  "admin.translations.approve.none": "Nothing is waiting for approval.",
+  "admin.translations.order.up": "Move {language} up",
+  "admin.translations.order.down": "Move {language} down",
+  "admin.translations.order.note":
+    "This order drives the public language switcher; the base language stays first.",
+  "admin.translations.order.saved": "Order saved.",
+  "admin.translations.orphaned.chip": "Orphaned · {count}",
+  "admin.translations.orphaned.note":
+    "These keys are no longer in the app catalog; they are excluded from coverage and never shipped.",
 } as const;
 
 export default en;

@@ -4,6 +4,7 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
   aiTranslate,
+  approveAllTranslations,
   listEntityTranslations,
   listLanguages,
   listTranslationStats,
@@ -14,6 +15,7 @@ import {
   saveTranslation,
   setEntityTranslationStatus,
   setLanguageFlags,
+  setLanguageOrder,
   setTranslationStatus,
   setTranslatorLanguages,
   syncUiKeys,
@@ -104,6 +106,24 @@ export function useSetLanguageFlags() {
   const invalidate = useInvalidateTranslations();
   return useMutation({
     mutationFn: setLanguageFlags,
+    onSettled: invalidate,
+  });
+}
+
+/** U4g — approve every reviewed (machine|edited, unflagged) row of a language. */
+export function useApproveAllTranslations(lang: string) {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: () => approveAllTranslations(lang),
+    onSettled: invalidate,
+  });
+}
+
+/** U4g — roster order; the same sort the public switcher reads. */
+export function useSetLanguageOrder() {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (codes: string[]) => setLanguageOrder(codes),
     onSettled: invalidate,
   });
 }

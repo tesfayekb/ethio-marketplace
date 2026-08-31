@@ -557,6 +557,7 @@ export const am: Messages = {
   "admin.translations.error.baseLocked": "እንግሊዝኛ የምንጭ ቋንቋ ነው፤ የሚቀየረው በቁልፍ ማመሳሰል ብቻ ነው።",
   "admin.translations.error.permission": "ይህን ለማድረግ ፈቃድ የሎትም።",
   "admin.translations.error.codeInvalid": "ትክክለኛ የቋንቋ ኮድ ያስገቡ (2–8 ፊደላት)።",
+  "admin.translations.error.flaggedApprove": "የተለጠፉ ሐረጎች ሊጸድቁ አይችሉም — መጀመሪያ ቦታ ያዢዎቹን ያስተካክሉ።",
   "admin.translations.error.generic": "ያ ለውጥ ሊቀመጥ አልቻለም።",
   "admin.translations.strings.title": "ሐረጎች — {language}",
   "admin.translations.strings.back": "ሁሉም ቋንቋዎች",
@@ -643,6 +644,22 @@ export const am: Messages = {
   "admin.translations.history.action.machine": "የማሽን ጽሑፍ",
   "admin.translations.history.action.save": "የሰው እርማት",
   "admin.translations.history.action.approve": "ጸድቋል",
+  "admin.translations.approve.action": "ሁሉንም የተገመገሙ አጽድቅ ({count})",
+  "admin.translations.approve.confirmTitle": "ሁሉንም የተገመገሙ ሐረጎች ማጽደቅ?",
+  "admin.translations.approve.confirmBody":
+    "{count} የተገመገሙ ሐረጎች ይጸድቃሉ። ያልተገመገመ የማሽን ጽሑፍ ለዚህ ቋንቋ ቀጥታ ይሆናል። የተለጠፉ ሐረጎች ይዘለላሉ።",
+  "admin.translations.approve.confirmCta": "{count} አጽድቅ",
+  "admin.translations.approve.cancel": "ሰርዝ",
+  "admin.translations.approve.pending": "በማጽደቅ ላይ…",
+  "admin.translations.approve.summary": "{approved} ጸድቀዋል፣ {skipped} ተለጥፈው ተዘለዋል።",
+  "admin.translations.approve.none": "ማጽደቅ የሚጠብቅ ነገር የለም።",
+  "admin.translations.order.up": "{language}ን ወደ ላይ አንቀሳቅስ",
+  "admin.translations.order.down": "{language}ን ወደ ታች አንቀሳቅስ",
+  "admin.translations.order.note": "ይህ ቅደም ተከተል የሕዝብ ቋንቋ መቀየሪያውን ይመራል፤ መሠረታዊው ቋንቋ መጀመሪያ ይቆያል።",
+  "admin.translations.order.saved": "ቅደም ተከተል ተቀምጧል።",
+  "admin.translations.orphaned.chip": "ወላጅ አልባ · {count}",
+  "admin.translations.orphaned.note":
+    "እነዚህ ቁልፎች በመተግበሪያው ካታሎግ ውስጥ የሉም፤ ከሽፋን ተገልለዋል እና ፈጽሞ አይላኩም።",
   "admin.translations.history.action.clear": "ጸድቷል",
 };
 
