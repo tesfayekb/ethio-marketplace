@@ -382,8 +382,8 @@ function LanguagesTable({
                 {t("admin.translations.open")}
               </Link>
             </span>
-          )
-        }
+          );
+        }}
       />
       {mayManage ? (
         <p data-testid="lang-order-note" className="text-xs text-muted-foreground">
