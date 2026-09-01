@@ -1369,3 +1369,25 @@ RULES:
   nothing that the server validator has not re-checked.
 - PROVENANCE IS ORIGIN, NEVER REVIEW STATE — approval is appended to machine
   provenance, never substituted for it.
+
+## INC-115b — FENCES CARRY THE PROJECT AXIS (U4g-25)
+
+EVIDENCE: TR-19 failed on `mobile-360` with reviewable=0 and only 2 of its 4
+keys present, while the same test passed on `desktop-1280` in the SAME job.
+Both projects seeded into the ONE approve fence `zxy`; desktop's approve-all
+is a by-design global sweep, so it approved (and thereby consumed) mobile's
+freshly seeded pending rows.
+
+CHANGE: `fenceLang(kind, project)` in `e2e/global-setup.ts` derives the code
+from the sweep kind and the Playwright project: the bulk fence is `zxx-m` /
+`zxx-d` and the approve fence `zxy-m` / `zxy-d`. Region-suffixed codes still
+satisfy `/api/translate`'s `^[a-z]{2,8}(-[a-z]{2,8})?$`. Ensure, park and reap
+cover all four; the reaper deletes fence residue by PREFIX, and TR-17 asserts
+publication-exclusion by prefix rather than by an enumerated pair.
+
+RULES:
+
+- FENCES CARRY THE PROJECT AXIS — a sweep test on two viewports is TWO sweeps,
+  and two sweeps never share one fence (J2's addendum, extended).
+- A FENCE REAPER MATCHES THE FAMILY, NOT A LITERAL — residue is deleted by
+  prefix so a newly suffixed fence can never outlive its run.

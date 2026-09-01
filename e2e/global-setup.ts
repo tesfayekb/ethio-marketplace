@@ -17,23 +17,43 @@ const STAGING_REF = "jatpuhfdjfzctjipklmk";
 /**
  * FENCE LANGUAGE (INC-097d). Sweep-class specs (the global AI bulk) operate in
  * a language nobody else works in, so a by-design global operation can never
- * touch a sibling test's seeded rows. Declared here because both the spec that
- * uses it and this reaper must agree on the code. `zxx` (ISO 639-2 "no
+ * touch a sibling test's seeded rows. Declared here because both the specs that
+ * use it and this reaper must agree on the codes. `zxx` (ISO 639-2 "no
  * linguistic content"), not the literal `e2e`: /api/translate validates
  * target_lang against /^[a-z]{2,8}(-[a-z]{2,8})?$/, which rejects the digit.
+ *
+ * U4g-6 (INC-101) — ONE FENCE PER GLOBAL-SWEEP TEST: TR-12's AI bulk and
+ * TR-19's approve-all are BOTH sweeps, so the approve sweep gets `zxy`.
+ *
+ * U4g-25 (INC-115b) — FENCES CARRY THE PROJECT AXIS: a sweep test running on
+ * two viewports is TWO sweeps. Desktop's approve-all swept mobile's freshly
+ * seeded rows inside the shared `zxy` (mobile saw reviewable=0, 2 of 4 keys).
+ * Every fence is therefore region-suffixed per Playwright project — `zxx-m` /
+ * `zxx-d`, `zxy-m` / `zxy-d` — which still satisfies the route's
+ * ^[a-z]{2,8}(-[a-z]{2,8})?$ contract.
  */
-export const FENCE_LANG = "zxx";
+export const FENCE_PREFIXES = { bulk: "zxx", approve: "zxy" } as const;
+
+export type FenceKind = keyof typeof FENCE_PREFIXES;
+
+/** Every fence prefix, so the reaper can never miss a suffixed variant. */
+export const FENCE_PREFIX_LIST = Object.values(FENCE_PREFIXES);
 
 /**
- * U4g-6 (INC-101) — J2 ADDENDUM: ONE FENCE PER GLOBAL-SWEEP TEST. TR-12's AI
- * bulk and TR-19's approve-all are BOTH sweeps; sharing `zxx` meant TR-19's
- * approve-all approved TR-12's pending fence row (dump-proven). TR-19 gets its
- * own admin-only fence; the reaper below covers every fence code.
+ * The project axis, reduced to a region subtag: only [a-z]{1,8} survives, so
+ * any future project name still yields a route-legal code.
  */
-export const APPROVE_FENCE_LANG = "zxy";
+export function fenceProjectSuffix(project: string): string {
+  const letters = project.toLowerCase().replace(/[^a-z]/g, "");
+  if (letters.startsWith("mobile")) return "m";
+  if (letters.startsWith("desktop")) return "d";
+  return (letters || "x").slice(0, 8);
+}
 
-/** Every fence code, so the reaper can never miss one. */
-export const FENCE_LANGS = [FENCE_LANG, APPROVE_FENCE_LANG] as const;
+/** The fence code a given sweep kind uses inside a given Playwright project. */
+export function fenceLang(kind: FenceKind, project: string): string {
+  return `${FENCE_PREFIXES[kind]}-${fenceProjectSuffix(project)}`;
+}
 
 export type E2EUser = {
   id: string;
@@ -198,26 +218,30 @@ export default async function globalSetup() {
   // the fence language's rows, and TR-14's scratch locations (with their
   // entity translations). Anything older than an hour cannot belong to a live
   // run, so it is reaped here rather than left to meet the next fixture.
-  const { data: staleFenceRevisions, error: fenceRevisionError } = await supabase
-    .from("ui_translation_revisions")
-    .delete()
-    .in("lang_code", [...FENCE_LANGS])
-    .lt("changed_at", cutoff)
-    .select("id");
-  if (fenceRevisionError) {
-    throw new Error(`[e2e:setup] reaping fence revisions failed: ${fenceRevisionError.message}`);
+  // INC-115b — fences are now per-project (`zxx-m`, `zxy-d`, …), so the reaper
+  // deletes by PREFIX rather than by an enumerated code list.
+  for (const prefix of FENCE_PREFIX_LIST) {
+    const { data: staleFenceRevisions, error: fenceRevisionError } = await supabase
+      .from("ui_translation_revisions")
+      .delete()
+      .like("lang_code", `${prefix}%`)
+      .lt("changed_at", cutoff)
+      .select("id");
+    if (fenceRevisionError) {
+      throw new Error(`[e2e:setup] reaping fence revisions failed: ${fenceRevisionError.message}`);
+    }
+    reaped += staleFenceRevisions?.length ?? 0;
+    const { data: staleFenceRows, error: fenceRowError } = await supabase
+      .from("ui_translations")
+      .delete()
+      .like("lang_code", `${prefix}%`)
+      .lt("updated_at", cutoff)
+      .select("key");
+    if (fenceRowError) {
+      throw new Error(`[e2e:setup] reaping fence translations failed: ${fenceRowError.message}`);
+    }
+    reaped += staleFenceRows?.length ?? 0;
   }
-  reaped += staleFenceRevisions?.length ?? 0;
-  const { data: staleFenceRows, error: fenceRowError } = await supabase
-    .from("ui_translations")
-    .delete()
-    .in("lang_code", [...FENCE_LANGS])
-    .lt("updated_at", cutoff)
-    .select("key");
-  if (fenceRowError) {
-    throw new Error(`[e2e:setup] reaping fence translations failed: ${fenceRowError.message}`);
-  }
-  reaped += staleFenceRows?.length ?? 0;
 
   const { data: staleLocations, error: locationError } = await supabase
     .from("locations")

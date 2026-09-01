@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { APPROVE_FENCE_LANG, FENCE_LANG, processId } from "./global-setup";
+import { FENCE_PREFIX_LIST, fenceLang, processId } from "./global-setup";
 import {
   describeStringsPage,
   describeSwitcher,
@@ -149,7 +149,20 @@ function scratchKey(tag: string): string {
  * sharing one fence is the same collision the fence exists to prevent, so the
  * helper takes the code and every sweep names its own.
  */
-async function ensureFenceLanguage(code: string = FENCE_LANG) {
+/**
+ * U4g-25 (INC-115b) — the fence carries the PROJECT axis: a sweep test running
+ * on two viewports is two sweeps, so each Playwright project sweeps its own
+ * language (`zxx-m`/`zxx-d`, `zxy-m`/`zxy-d`).
+ */
+function bulkFence(): string {
+  return fenceLang("bulk", test.info().project.name);
+}
+
+function approveFence(): string {
+  return fenceLang("approve", test.info().project.name);
+}
+
+async function ensureFenceLanguage(code: string) {
   const { error } = await adminClient()
     .from("languages")
     .upsert(
@@ -642,17 +655,18 @@ test.describe("U4b translations console", () => {
     test.setTimeout(120_000);
     // INC-097d — the bulk is a SWEEP: it must run inside the fence language,
     // never on `am`, where it would translate sibling tests' scratch rows.
-    await ensureFenceLanguage();
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
     const base = scratchKey("tr12");
     const keys = [`${base}-b1`, `${base}-b2`, `${base}-b3`];
-    for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`, FENCE_LANG);
+    for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`, fence);
     try {
       const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
+      await gotoReady(page, `/admin/translations/${fence}`);
       // The bar's untranslated list can be computed before this spec's seeds
       // land; a reload forces it to recompute from fresh queries (INC-096g).
       await page.reload();
-      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
+      await gotoReady(page, `/admin/translations/${fence}`);
 
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
@@ -673,11 +687,11 @@ test.describe("U4b translations console", () => {
                 .from("ui_translations")
                 .select("value, status, machine")
                 .eq("key", key)
-                .eq("lang_code", FENCE_LANG)
+                .eq("lang_code", fence)
                 .maybeSingle();
               if (error) throw new Error(`[e2e:u4c] bulk read failed for ${key}: ${error.message}`);
               if (!data) return "missing";
-              return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes(`⟪${FENCE_LANG}⟫`)}`;
+              return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes(`⟪${fence}⟫`)}`;
             },
             { timeout: 20000, message: `bulk AI never landed for ${key}` },
           )
@@ -1159,10 +1173,14 @@ test.describe("U4f — publication gate governs language choice", () => {
     const expected = data.map((row) => row.code as string).sort();
     expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
     // U4g-6 (INC-101): EVERY fence is admin-only, not just the first one.
-    for (const fence of [FENCE_LANG, APPROVE_FENCE_LANG]) {
-      expect(expected, `the admin-only fence language ${fence} is never public`).not.toContain(
-        fence,
-      );
+    // U4g-25 (INC-115b): fences are per-project, so the assertion is by PREFIX.
+    for (const code of expected) {
+      for (const prefix of FENCE_PREFIX_LIST) {
+        expect(
+          code.startsWith(`${prefix}-`) || code === prefix,
+          `the admin-only fence language ${code} is never public`,
+        ).toBe(false);
+      }
     }
 
     await gotoReady(page, "/");
@@ -1204,7 +1222,8 @@ test.describe("U4f — publication gate governs language choice", () => {
 test.describe("U4g bulk approval, order and orphans", () => {
   test("TR-19 approve-all approves reviewed rows and skips flagged ones", async ({ page }) => {
     test.setTimeout(120_000);
-    await ensureFenceLanguage(APPROVE_FENCE_LANG);
+    const fence = approveFence();
+    await ensureFenceLanguage(fence);
     // U4g-6 (INC-101): approve-all is a SWEEP — it owns its own fence so it can
     // never approve TR-12's pending rows in the shared one.
     const supabase = adminClient();
@@ -1212,22 +1231,22 @@ test.describe("U4g bulk approval, order and orphans", () => {
     const reviewed = [`${base}.a`, `${base}.b`, `${base}.c`];
     const flagged = `${base}.flagged`;
     const keys = [...reviewed, flagged];
-    for (const key of keys) await seedScratchKey(key, `Approve source ${key}`, APPROVE_FENCE_LANG);
+    for (const key of keys) await seedScratchKey(key, `Approve source ${key}`, fence);
     // Three machine rows waiting for review, one flagged row that must survive.
     const { error: seedError } = await supabase.from("ui_translations").upsert(
       [
         ...reviewed.map((key) => ({
           key,
-          lang_code: APPROVE_FENCE_LANG,
-          value: `⟪${APPROVE_FENCE_LANG}⟫ pending`,
+          lang_code: fence,
+          value: `⟪${fence}⟫ pending`,
           status: "machine",
           machine: true,
           flagged: false,
         })),
         {
           key: flagged,
-          lang_code: APPROVE_FENCE_LANG,
-          value: `⟪${APPROVE_FENCE_LANG}⟫ broken`,
+          lang_code: fence,
+          value: `⟪${fence}⟫ broken`,
           status: "machine",
           machine: true,
           flagged: true,
@@ -1262,7 +1281,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       });
 
       await step("TR-19 open fence page", async () => {
-        await gotoReady(page, `/admin/translations/${APPROVE_FENCE_LANG}`);
+        await gotoReady(page, `/admin/translations/${fence}`);
         await expect(page.getByTestId("approve-all-bar")).toBeVisible({ timeout: 20000 });
       });
 
@@ -1300,7 +1319,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
                   .from("ui_translations")
                   .select("status, approved_by")
                   .eq("key", key)
-                  .eq("lang_code", APPROVE_FENCE_LANG)
+                  .eq("lang_code", fence)
                   .maybeSingle();
                 if (error) throw new Error(`[e2e:u4g] read failed for ${key}: ${error.message}`);
                 return `${data?.status ?? "none"}|${data?.approved_by === null ? "noactor" : "actor"}`;
@@ -1314,7 +1333,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
           await expect
             .poll(
               async () => {
-                const revisions = await dumpRevisions(key, APPROVE_FENCE_LANG, "[e2e:u4g]");
+                const revisions = await dumpRevisions(key, fence, "[e2e:u4g]");
                 dump = serializeRevisions(revisions);
                 return revisions.filter((row) => row.action === "approve").length;
               },
@@ -1333,7 +1352,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
           .from("ui_translations")
           .select("status, flagged")
           .eq("key", flagged)
-          .eq("lang_code", APPROVE_FENCE_LANG)
+          .eq("lang_code", fence)
           .maybeSingle();
         expect(
           `${flaggedRow?.status ?? "none"}|${String(flaggedRow?.flagged)}`,
@@ -1350,7 +1369,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
   test("TR-20 roster order is operator-editable and persists", async ({ page }) => {
     test.setTimeout(120_000);
-    await ensureFenceLanguage();
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
     const supabase = adminClient();
     const { data: before, error: beforeError } = await supabase
       .from("languages")
@@ -1394,7 +1414,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         // setup, not the behaviour under test, so it writes `sort` directly on
         // public.languages with the service client instead of borrowing the
         // gated RPC (which would also demand step-up and audit a fake action).
-        if ((await positionOf(FENCE_LANG)) <= 1) {
+        if ((await positionOf(fence)) <= 1) {
           const { data } = await supabase
             .from("languages")
             .select("code, sort")
@@ -1405,12 +1425,12 @@ test.describe("U4g bulk approval, order and orphans", () => {
           const { error } = await supabase
             .from("languages")
             .update({ sort: maxSort + 1 })
-            .eq("code", FENCE_LANG);
+            .eq("code", fence);
           if (error) throw new Error(`[e2e:u4g] parking the fence failed: ${error.message}`);
         }
         await gotoReady(page, "/admin/translations");
-        await expect(langRow(page, FENCE_LANG)).toBeVisible({ timeout: 20000 });
-        start = await positionOf(FENCE_LANG);
+        await expect(langRow(page, fence)).toBeVisible({ timeout: 20000 });
+        start = await positionOf(fence);
       });
 
       // U4g-15 (INC-106c) — the three sub-phases are named SEPARATELY: click,
@@ -1419,7 +1439,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // reaches the poll's own 30s budget (that is what the earlier anonymous
       // 120s timeout actually was).
       await test.step("TR-20 move up", async () => {
-        const up = actionsOf(page, `lang-row-${FENCE_LANG}`).getByTestId(`lang-up-${FENCE_LANG}`);
+        const up = actionsOf(page, `lang-row-${fence}`).getByTestId(`lang-up-${fence}`);
         await test.step("TR-20 move up · click", async () => {
           await expect(up, "the fence's up control must be enabled before the move").toBeEnabled({
             timeout: 20000,
@@ -1431,7 +1451,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         });
         await test.step("TR-20 move up · poll", async () => {
           await expect
-            .poll(() => positionOf(FENCE_LANG), {
+            .poll(() => positionOf(fence), {
               timeout: 30000,
               message: "moving up never changed the roster order",
             })
@@ -1440,9 +1460,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       });
 
       await test.step("TR-20 move down", async () => {
-        const down = actionsOf(page, `lang-row-${FENCE_LANG}`).getByTestId(
-          `lang-down-${FENCE_LANG}`,
-        );
+        const down = actionsOf(page, `lang-row-${fence}`).getByTestId(`lang-down-${fence}`);
         await test.step("TR-20 move down · click", async () => {
           await expect(down, "the fence's down control must be enabled").toBeEnabled({
             timeout: 20000,
@@ -1454,7 +1472,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         });
         await test.step("TR-20 move down · poll", async () => {
           await expect
-            .poll(() => positionOf(FENCE_LANG), {
+            .poll(() => positionOf(fence), {
               timeout: 30000,
               message: "moving down never restored the position",
             })
@@ -1480,10 +1498,11 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
   test("TR-21 a key missing from the synced catalog is orphaned and excluded", async ({ page }) => {
     test.setTimeout(120_000);
-    await ensureFenceLanguage();
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
     const supabase = adminClient();
     const key = scratchKey("tr21");
-    await seedScratchKey(key, "Orphan source", FENCE_LANG);
+    await seedScratchKey(key, "Orphan source", fence);
     // sync may only orphan sync-origin keys — INC-105. The seed is a TABLE
     // write through the service client, stamped with the origin the sweep owns.
     {
@@ -1500,7 +1519,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       const { count, error } = await supabase
         .from("ui_translations")
         .select("key", { count: "exact", head: true })
-        .eq("lang_code", FENCE_LANG)
+        .eq("lang_code", fence)
         .eq("orphaned", field === "orphaned");
       if (error) throw new Error(`[e2e:u4g] stats table read failed: ${error.message}`);
       return Number(count ?? 0);
@@ -1508,7 +1527,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
     try {
       const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
+      await gotoReady(page, `/admin/translations/${fence}`);
 
       // The compiled catalog never contains a scratch key, so the console's own
       // sync is exactly the "payload lacking this key" the law describes.
@@ -1530,12 +1549,12 @@ test.describe("U4g bulk approval, order and orphans", () => {
         .from("ui_translations")
         .select("orphaned")
         .eq("key", key)
-        .eq("lang_code", FENCE_LANG)
+        .eq("lang_code", fence)
         .maybeSingle();
       expect(orphanRow?.orphaned, "the absent key carries the orphan flag").toBe(true);
 
       // Coverage excludes it, and the console shows it behind its own chip.
-      await gotoReady(page, `/admin/translations/${FENCE_LANG}`);
+      await gotoReady(page, `/admin/translations/${fence}`);
       await expect(page.getByTestId("strings-chip-orphaned")).toContainText(/\d/);
       await page.getByTestId("strings-chip-orphaned").click();
       await page.getByTestId("strings-search").fill(key);
@@ -1582,7 +1601,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
   }) => {
     test.setTimeout(120_000);
     const supabase = adminClient();
-    await ensureFenceLanguage();
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
 
     // Three REAL chrome keys, translated inside the fence only. `zxx` is a
     // language no operator and no other spec renders, so these rows are not a
@@ -1599,7 +1619,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       const { error } = await supabase
         .from("languages")
         .update({ enabled_public: enabled })
-        .eq("code", FENCE_LANG);
+        .eq("code", fence);
       if (error)
         throw new Error(`[e2e:u4g-17] fence enabled_public=${enabled} failed: ${error.message}`);
     };
@@ -1608,7 +1628,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       const { error } = await supabase.from("ui_translations").upsert(
         Object.entries(SEEDED).map(([key, value]) => ({
           key,
-          lang_code: FENCE_LANG,
+          lang_code: fence,
           value,
           status: "approved",
           machine: false,
@@ -1621,7 +1641,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // 1. The gate's own list now carries the fence, so the switcher lists it.
       await gotoReady(page, "/");
       await page.getByTestId("language-switcher").click();
-      const option = page.getByTestId(`language-option-${FENCE_LANG}`);
+      const option = page.getByTestId(`language-option-${fence}`);
       await expect(option, "the published fence language is missing from the switcher")
         .toBeVisible({ timeout: 20000 })
         // U4g-21 (INC-113): publication must survive a reload — if the option
@@ -1636,7 +1656,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // 2. Selecting it must RENDER, not crash: the readiness contract is the
       //    oracle (INC-085f), and the page keeps its hydrated marker.
       await option.click();
-      await expect(page.locator("html")).toHaveAttribute("lang", FENCE_LANG, { timeout: 20000 });
+      await expect(page.locator("html")).toHaveAttribute("lang", fence, { timeout: 20000 });
       await expect(page.locator("html")).toHaveAttribute("data-app-ready", "1");
       await waitForHydration(page);
 
@@ -1667,7 +1687,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await supabase
         .from("ui_translations")
         .delete()
-        .eq("lang_code", FENCE_LANG)
+        .eq("lang_code", fence)
         .in("key", Object.keys(SEEDED));
     }
   });
