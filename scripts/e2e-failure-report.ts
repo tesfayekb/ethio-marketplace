@@ -278,6 +278,27 @@ type Failure = {
   titlePath: string[];
 };
 
+/**
+ * DEC-028 / INC-117 — QUARANTINE PREDICATE. A test tagged `@global-state`
+ * mutates a surface shared by every concurrent project (the language roster,
+ * the publication gate). Those specs run in the serial nightly ONLY; their
+ * failures are reported and labeled, never gating, until the DEC-026
+ * component-test layer covers their logic.
+ */
+export function isQuarantined(title: string): boolean {
+  return title.includes("@global-state");
+}
+
+/** DEC-028 — the verdict split every consumer (nightly, operator) reads. */
+export function classifyFailures<T extends { title: string }>(
+  failures: T[],
+): { gating: T[]; quarantined: T[] } {
+  return {
+    gating: failures.filter((f) => !isQuarantined(f.title)),
+    quarantined: failures.filter((f) => isQuarantined(f.title)),
+  };
+}
+
 export function collect(json: PwJson): { failures: Failure[]; passed: number; skipped: number } {
   const failures: Failure[] = [];
 
