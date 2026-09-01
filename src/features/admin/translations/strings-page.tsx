@@ -582,7 +582,9 @@ function StringEditor({
 
       {row.flagged && row.flagNote ? (
         <p data-testid={`string-flagnote-${id}`} className="text-sm text-destructive">
-          {t("admin.translations.editor.flagNote").replace("{note}", row.flagNote)}
+          {`${t("admin.translations.editor.flagNote").replace("{note}", row.flagNote)} ${t(
+            "admin.translations.editor.placeholderRule",
+          )}`}
         </p>
       ) : null}
 
@@ -597,6 +599,37 @@ function StringEditor({
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
       />
+
+      {/**
+       * U4g-24 (INC-115) — ONE-CLICK PLACEHOLDER REPAIR. Positional rewrite
+       * only, and only when the counts already match: the tool never invents,
+       * drops or reorders a placeholder. It fills the EDITOR; nothing is
+       * written until Save, which re-runs the server-side validator.
+       */}
+      {row.flagged && mayUpdate ? (
+        <div className="min-w-0 space-y-1">
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            data-testid={`string-restore-tokens-${id}`}
+            disabled={!canRestoreTokens}
+            onClick={() => setDraft(rewriteTokens(draft, sourceTokens))}
+          >
+            {t("admin.translations.editor.restorePlaceholders")}
+          </Button>
+          {!canRestoreTokens ? (
+            <p
+              data-testid={`string-restore-hint-${id}`}
+              className="text-xs text-muted-foreground"
+            >
+              {t("admin.translations.editor.restoreHint")
+                .replace("{got}", String(draftTokens.length))
+                .replace("{want}", String(sourceTokens.length))}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <p data-testid={`string-provenance-${id}`} className="text-xs text-muted-foreground">
         {row.status === "untranslated"
