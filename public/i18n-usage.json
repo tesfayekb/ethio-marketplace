@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 170,
-  "dynamicCallSites": 65,
+  "scanned": 173,
+  "dynamicCallSites": 67,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -439,10 +439,25 @@
     "admin.translations.editor.clear": [
       "features/admin"
     ],
+    "admin.translations.editor.context": [
+      "features/admin"
+    ],
+    "admin.translations.editor.contextNone": [
+      "features/admin"
+    ],
+    "admin.translations.editor.contextPlaceholder": [
+      "features/admin"
+    ],
+    "admin.translations.editor.contextSave": [
+      "features/admin"
+    ],
     "admin.translations.editor.flagNote": [
       "features/admin"
     ],
     "admin.translations.editor.label": [
+      "features/admin"
+    ],
+    "admin.translations.editor.lengthWarning": [
       "features/admin"
     ],
     "admin.translations.editor.notAssigned": [
@@ -464,6 +479,15 @@
       "features/admin"
     ],
     "admin.translations.editor.source": [
+      "features/admin"
+    ],
+    "admin.translations.editor.usedOn": [
+      "features/admin"
+    ],
+    "admin.translations.editor.usedOnDynamic": [
+      "features/admin"
+    ],
+    "admin.translations.editor.usedOnUnknown": [
       "features/admin"
     ],
     "admin.translations.empty": [
@@ -544,6 +568,24 @@
     "admin.translations.provenance.none": [
       "features/admin"
     ],
+    "admin.translations.pseudo.note": [
+      "features/admin"
+    ],
+    "admin.translations.pseudo.pending": [
+      "features/admin"
+    ],
+    "admin.translations.pseudo.progress": [
+      "features/admin"
+    ],
+    "admin.translations.pseudo.run": [
+      "features/admin"
+    ],
+    "admin.translations.pseudo.summary": [
+      "features/admin"
+    ],
+    "admin.translations.pseudo.title": [
+      "features/admin"
+    ],
     "admin.translations.publicGate": [
       "features/admin"
     ],
@@ -611,6 +653,27 @@
       "features/admin"
     ],
     "admin.translations.title": [
+      "features/admin"
+    ],
+    "admin.translations.transfer.exportCsv": [
+      "features/admin"
+    ],
+    "admin.translations.transfer.exportXliff": [
+      "features/admin"
+    ],
+    "admin.translations.transfer.import": [
+      "features/admin"
+    ],
+    "admin.translations.transfer.importing": [
+      "features/admin"
+    ],
+    "admin.translations.transfer.note": [
+      "features/admin"
+    ],
+    "admin.translations.transfer.summary": [
+      "features/admin"
+    ],
+    "admin.translations.transfer.title": [
       "features/admin"
     ],
     "admin.translations.translator.audit": [
