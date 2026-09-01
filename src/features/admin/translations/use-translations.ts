@@ -209,3 +209,39 @@ export function useTranslationRevisions(input: { key: string; lang: string }, en
     staleTime: 0,
   });
 }
+
+/**
+ * U4j — the DATA coverage meter, per language (or all languages when `lang`
+ * is omitted). Shares ADMIN_TRANSLATIONS_KEY, so every translation mutation
+ * refreshes it alongside the interface meter.
+ */
+export function useEntityTranslationStats(lang?: string) {
+  return useQuery({
+    queryKey: [...ADMIN_TRANSLATIONS_KEY, "entity-stats", lang ?? "all"],
+    queryFn: () => listEntityTranslationStats(lang),
+    staleTime: 15_000,
+  });
+}
+
+/** U4j — data-layer AI. One mutation for the per-row and bulk surfaces. */
+export function useAiTranslateEntities(lang: string) {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (items: AiEntityItem[]) => aiTranslateEntities({ lang, items }),
+    onSettled: invalidate,
+  });
+}
+
+/**
+ * U4j — the provider's supported target list for the guided language picker.
+ * Fetched only while the picker is open (`enabled`); a failure surfaces so the
+ * operator can fall back to the manual form (F4), never a silent empty list.
+ */
+export function useProviderLanguages(enabled: boolean) {
+  return useQuery({
+    queryKey: [...ADMIN_TRANSLATIONS_KEY, "provider-languages"],
+    queryFn: listProviderLanguages,
+    enabled,
+    staleTime: 60 * 60_000,
+  });
+}
