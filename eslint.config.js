@@ -48,6 +48,42 @@ export default tseslint.config(
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      // DEC-025 — TYPED CLIENTS. An untyped `createClient` types every table,
+      // column and RPC argument as `any`, which is exactly what let the
+      // misspelled RPC argument `_user_id` compile and ship (INC-096d).
+      // Selector censused against the installed @typescript-eslint parser:
+      // the generic list hangs off `typeArguments` (v6+ name), so a call with
+      // no type argument is the `:not([typeArguments])` case.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.name='createClient']:not([typeArguments])",
+          message:
+            "DEC-025: pass the generated schema — createClient<Database>(…). An untyped client makes every table, column and RPC argument `any`.",
+        },
+      ],
+    },
+  },
+  {
+    // DEC-027 — SPEC LINT. Three failure classes the e2e suite paid for more
+    // than once; each is cheaper to catch here than in a CI run.
+    files: ["e2e/**/*.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='first']",
+          message: "twin helpers per J5",
+        },
+        {
+          selector: "MemberExpression[object.name='test'][property.name='only']",
+          message: "test.only never lands: it silently green-washes the whole file",
+        },
+        {
+          selector: "CallExpression[callee.property.name='waitForTimeout']",
+          message: "poll on truth, never sleep",
+        },
+      ],
     },
   },
   eslintPluginPrettier,
