@@ -297,6 +297,8 @@ jobs:
       # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
       # needs no provider key and spends nothing. PROD is unaffected.
       E2E_FAKE_TRANSLATE: "1"
+      # DEC-029 knob — injection parked pending DEC-026 component layer; INC-120c
+      E2E_UI_LOGIN: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -427,6 +429,8 @@ jobs:
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
       E2E_FAKE_TRANSLATE: "1"
+      # DEC-029 knob — injection parked pending DEC-026 component layer; INC-120c
+      E2E_UI_LOGIN: "1"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -571,6 +575,8 @@ jobs:
       # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
       # needs no provider key and spends nothing. PROD is unaffected.
       E2E_FAKE_TRANSLATE: "1"
+      # DEC-029 knob — injection parked pending DEC-026 component layer; INC-120c
+      E2E_UI_LOGIN: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -692,6 +698,8 @@ jobs:
       # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
       # needs no provider key and spends nothing. PROD is unaffected.
       E2E_FAKE_TRANSLATE: "1"
+      # DEC-029 knob — injection parked pending DEC-026 component layer; INC-120c
+      E2E_UI_LOGIN: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2

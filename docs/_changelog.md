@@ -276,3 +276,4 @@
 - 2026-09-02 — ci(DEC-029-B): revert knob engaged; injection/step-up seam under diagnosis (INC-120); build-artifact + 6 shards retained
 - 2026-09-02 — ci(DEC-029-C): session injection live (write-once sentinel, INC-120 closed); credential-lifecycle tests pinned to UI login
 - 2026-09-02 — test(e2e): per-user injection sentinel; switchUser clears and asserts identity (INC-120b)
+- 2026-09-02 — ci(DEC-029-E): injection parked per pre-committed rule; build-once + six shards retained (INC-120c)

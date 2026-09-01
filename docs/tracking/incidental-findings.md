@@ -1693,3 +1693,17 @@ once; the same user stays a no-op. `switchUser` routes through the same
 `assertInjectedIdentity`, which reads the ACTIVE persisted session's user id in
 the page and throws with BOTH ids on a mismatch — persona mix-ups name
 themselves instead of surfacing as inexplicable permission failures.
+
+## INC-120c — injection parked per the pre-committed rule
+
+**Evidence.** The run after INC-120b produced a third distinct failure shape in
+the multi-persona gating families.
+
+**Disposition.** Per the DEC-029 pre-committed rule, the revert knob is
+re-engaged (`E2E_UI_LOGIN: "1"` in all four E2E jobs) rather than chasing the
+next seam variant. The injection helpers and the per-user sentinel remain in
+the harness for the DEC-026 era, when the component layer is expected to make
+the client step-up gate safe under injected sessions. Levers 2 and 3 (shared
+build artifact, six shards) are retained as the measured win. Re-engaging lever
+1 requires a green feature-branch run with the knob removed and a DEC note
+naming the component-layer change.
