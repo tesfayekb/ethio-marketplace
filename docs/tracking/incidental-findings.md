@@ -1627,3 +1627,47 @@ RULE: readiness anchors are per-run scratch entities, asserted through the
 twin-aware helper on the visible surface — never a bare prefix + `.first()`.
 Fence entity residue (`entity_translations` rows in a fence-prefixed
 `lang_code`) is reaped alongside fence UI rows once it is an hour old.
+
+## INC-120 — an injected session is invisible to the step-up gate
+
+Evidence: run 33560575803, 16 failures, one shape — HTTP 500 with SQLSTATE
+P0009 `step-up required` on step-up-gated RPCs, and no `step-up-modal` was ever
+shown, so `stepUpIfPrompted` had nothing to answer.
+
+**What the client gate reads.** `useStepUp.guard`
+(`src/features/auth/mfa/use-step-up.ts:76`) runs the action unprompted iff
+`isStepUpFresh()` (`src/features/auth/mfa/mfa-service.ts:88-94`) is true, which
+is three reads: (1) `listFactors()` — GoTrue's factor list for the account;
+(2) `isSteppedUp()` → `getAal()` (`mfa-service.ts:68`) — the `aal` claim of the
+access token currently in storage; (3) `readSteppedUpAt()`
+(`src/features/session/session-policy.ts:97`) — the browser-local
+`sb-<ref>-stepped-up-at` stamp, written only by `verifyFactor`
+(`mfa-service.ts:130`). The enrolment path `stepUpIfPrompted` expects
+(`e2e/helpers/ui.ts:387`) is the modal itself, then `expectAal2`.
+
+**The differing input, verbatim.** Under a UI login the ONLY writer of
+`sb-<ref>-auth-token` is the app's own client, so storage always holds the
+newest session the server issued. Under injection, `addInitScript` re-ran on
+EVERY navigation and re-wrote the ORIGINAL aal1 password-grant bytes over
+whatever the app had persisted — including the AAL2 access token returned by
+`supabase.auth.mfa.verify`. The step-up stamp, an ordinary localStorage key,
+survived that overwrite. The result is a state a UI session can never reach:
+factor present + a claim that reads `aal2` after refresh of the restored
+session + a stamp inside the window, so the gate stays silent, while the server
+applies its stricter second condition — a `totp` amr row on the CURRENT session
+inside the 10-minute window (`docs/features/step-up-auth.md:136-138`) — and
+refuses with P0009.
+
+**Fix (knob-off until proved).** `injectSession` (`e2e/helpers/session.ts`) now
+writes the grant ONCE, guarded by a `__ethio-e2e-injected` sentinel in the same
+localStorage, so the app's own client is the only writer from the first
+navigation onward; and it clears any `sb-*-stepped-up-at` hint at that moment,
+so an injected session starts exactly where a fresh UI sign-in starts — aal1, no
+hint, gate prompts. Neither the client gate nor the server gate is weakened.
+
+**LAW.** Credential-lifecycle tests (password rotation, signed-out assertions)
+always use UI login regardless of the knob: `signIn()` / `switchUser()` accept
+`{ uiLogin: true }` and S-3 and RP-1's sign-in calls carry it. (SCOPE NOTE: the
+option landed in `e2e/helpers/ui.ts` here; annotating the two spec call sites
+touches `e2e/settings.spec.ts` and `e2e/rbac.spec.ts`, which this task's scope
+excludes — it is the first edit of the follow-up landing.)
