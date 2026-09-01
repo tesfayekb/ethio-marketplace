@@ -268,3 +268,4 @@
 - 2026-09-02 — feat(i18n): U4j — data-layer AI (per-row + bulk), data coverage meters, guided language creation from the provider's list with native names, RTL and countries
 - 2026-09-02 — fix(ci/e2e): exempt machine-generated flake ledger from prettier (INC-118); TR-24 scopes data-meter locator to language row cell; TR-21 quarantined as @global-state (DEC-028)
 - 2026-09-02 — fix(i18n): Data scope enumerates the entity universe — missing translations are untranslated rows, bulk-translatable (walk finding)
+- 2026-09-02 — fix(i18n): Data bulk count reads the entity stats correctly (INC-119); TR-24 self-describing

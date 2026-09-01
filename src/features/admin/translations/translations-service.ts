@@ -608,12 +608,111 @@ export async function listEntityTranslationStats(lang?: string): Promise<EntityT
     ...(lang ? { p_lang: lang } : {}),
   });
   if (error) throw error;
-  return (data ?? []).map((row) => ({
-    langCode: row.lang_code,
-    total: Number(row.total),
-    approved: Number(row.approved),
-    machineCount: Number(row.machine_count),
-    edited: Number(row.edited),
-    untranslated: Number(row.untranslated),
-  }));
+  // INC-119 — one typed mapper per RPC; a renamed or missing column throws.
+  return (data ?? []).map(mapEntityStatsRow);
+}
+
+/**
+ * ─────────────── INC-119 — ONE TYPED MAPPER PER RPC ────────────────────────
+ *
+ * The Data bulk bar rendered "(0)" while `admin_entity_translation_stats`
+ * counted 129 untranslated rows: the client collapsed EVERY non-success shape
+ * (no row for the language, an error, a pending fetch, a renamed column) into
+ * the same legitimate-looking zero. A count that cannot fail is a count that
+ * cannot be trusted (law F4 — no phantom success).
+ *
+ * From here on an RPC response is parsed by exactly ONE mapper that ASSERTS
+ * the shape it was promised; anything else throws with the function name and
+ * the offending field, and the surface renders an error instead of a zero.
+ */
+export class RpcShapeError extends Error {
+  constructor(fn: string, field: string, value: unknown) {
+    super(`[rpc-shape] ${fn}: field "${field}" has unexpected shape (${JSON.stringify(value)})`);
+    this.name = "RpcShapeError";
+  }
+}
+
+function requireRecord(fn: string, row: unknown): Record<string, unknown> {
+  if (typeof row !== "object" || row === null || Array.isArray(row)) {
+    throw new RpcShapeError(fn, "<row>", row);
+  }
+  return row as Record<string, unknown>;
+}
+
+function requireText(fn: string, row: Record<string, unknown>, field: string): string {
+  const value = row[field];
+  if (typeof value !== "string" || value === "") throw new RpcShapeError(fn, field, value);
+  return value;
+}
+
+/** bigint columns arrive as numbers or numeric strings; anything else is a shape bug. */
+function requireCount(fn: string, row: Record<string, unknown>, field: string): number {
+  const value = row[field];
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) {
+    return Number(value);
+  }
+  throw new RpcShapeError(fn, field, value);
+}
+
+const ENTITY_STATS_FN = "admin_entity_translation_stats";
+
+/** The ONLY parser of an `admin_entity_translation_stats` row. */
+export function mapEntityStatsRow(row: unknown): EntityTranslationStats {
+  const record = requireRecord(ENTITY_STATS_FN, row);
+  return {
+    langCode: requireText(ENTITY_STATS_FN, record, "lang_code"),
+    total: requireCount(ENTITY_STATS_FN, record, "total"),
+    approved: requireCount(ENTITY_STATS_FN, record, "approved"),
+    machineCount: requireCount(ENTITY_STATS_FN, record, "machine_count"),
+    edited: requireCount(ENTITY_STATS_FN, record, "edited"),
+    untranslated: requireCount(ENTITY_STATS_FN, record, "untranslated"),
+  };
+}
+
+/**
+ * Pick the row that belongs to `lang` — never `[0]`. The RPC returns EVERY
+ * non-base language when `p_lang` is omitted or ignored, so an index read is a
+ * silent wrong-language (or wrong-count) answer. `undefined` means the server
+ * has no row for that language, which is NOT zero work — the callers render it
+ * as an unknown count, never as "(0)".
+ */
+export function pickEntityStats(
+  rows: EntityTranslationStats[] | undefined,
+  lang: string,
+): EntityTranslationStats | undefined {
+  return (rows ?? []).find((row) => row.langCode === lang);
+}
+
+/**
+ * INC-119 self-test. Pure, dependency-free, and asserted by TR-24 so a mapper
+ * that stops matching the SQL contract fails a test instead of a walk.
+ */
+export function translationMapperSelfTest(): string {
+  const wire = {
+    lang_code: "zz",
+    total: 129,
+    approved: "1",
+    machine_count: 2,
+    edited: 0,
+    untranslated: "126",
+  };
+  const mapped = mapEntityStatsRow(wire);
+  if (mapped.untranslated !== 126 || mapped.total !== 129 || mapped.langCode !== "zz") {
+    throw new Error(`[rpc-shape] self-test mapped the wire row wrong: ${JSON.stringify(mapped)}`);
+  }
+  let threw = false;
+  try {
+    mapEntityStatsRow({ ...wire, untranslated: null });
+  } catch (error) {
+    threw = error instanceof RpcShapeError;
+  }
+  if (!threw) throw new Error("[rpc-shape] self-test: a missing count did not throw");
+  if (pickEntityStats([mapped], "zz")?.untranslated !== 126) {
+    throw new Error("[rpc-shape] self-test: pickEntityStats did not match by language");
+  }
+  if (pickEntityStats([mapped], "ti") !== undefined) {
+    throw new Error("[rpc-shape] self-test: pickEntityStats returned a foreign language");
+  }
+  return "ok";
 }

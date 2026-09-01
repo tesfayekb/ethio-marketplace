@@ -587,3 +587,47 @@ export async function describeSwitcher(page: Page): Promise<string> {
     `[INC-113] rendered options: ${options || "(none)"}`,
   ].join("\n");
 }
+
+/**
+ * U4j-4 (INC-119) — THE DATA SCOPE'S SHAPE DUMP.
+ *
+ * A bulk bar that says "(0)" while the server counts 129 used to fail as a
+ * bare number assertion. This reads the stats query's own state marker
+ * (`data-stats-state`), the bar's count provenance and the first three listed
+ * rows, so the next failure names the seam (RPC vs mapping vs render).
+ */
+export async function describeEntityStats(page: Page): Promise<string> {
+  const marker = page.getByTestId("data-stats-state");
+  const attrs: string[] = [];
+  if ((await marker.count().catch(() => 0)) > 0) {
+    for (const name of ["state", "lang", "rows", "untranslated", "total", "error"]) {
+      const value = await marker.getAttribute(`data-${name}`).catch(() => null);
+      attrs.push(`${name}=${value ?? "(absent)"}`);
+    }
+  } else {
+    attrs.push("(no data-stats-state marker rendered)");
+  }
+
+  const bar = page.getByTestId("ai-bulk-start");
+  const barText =
+    (await bar.count().catch(() => 0)) > 0
+      ? `text=${JSON.stringify(await bar.first().innerText())} countState=${
+          (await bar.first().getAttribute("data-count-state")) ?? "(absent)"
+        }`
+      : "(no ai-bulk-start rendered)";
+
+  const rows: string[] = [];
+  const cells = page.locator("[data-testid^='entity-status-']");
+  const count = await cells.count().catch(() => 0);
+  for (let index = 0; index < Math.min(count, 3); index += 1) {
+    const cell = cells.nth(index);
+    const id = (await cell.getAttribute("data-testid")) ?? "(no id)";
+    rows.push(`${id.replace("entity-status-", "")}=${(await cell.innerText()).trim()}`);
+  }
+
+  return [
+    `[INC-119] stats: ${attrs.join(" ")}`,
+    `[INC-119] bulk bar: ${barText}`,
+    `[INC-119] first rows: ${rows.length > 0 ? rows.join(" ") : "(none rendered)"}`,
+  ].join("\n");
+}

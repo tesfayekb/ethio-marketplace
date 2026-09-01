@@ -13,8 +13,9 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { AiBulkBar } from "./ai-bulk-bar";
+import { AiBulkBar, type CountState } from "./ai-bulk-bar";
 import {
+  pickEntityStats,
   serverMessage,
   translationErrorKey,
   type EntityTranslationRow,
@@ -93,13 +94,36 @@ export function DataScope({
    * SAME server count over the SAME universe as the list.
    */
   const stats = useEntityTranslationStats(lang);
-  const langStats = (stats.data ?? [])[0];
+  /**
+   * INC-119 — MATCH THE LANGUAGE, NEVER `[0]`, AND NEVER FAKE A ZERO.
+   * `langStats === undefined` means pending, failed, or "the server returned
+   * no row for this language" — three states that are not "no work left".
+   */
+  const langStats = pickEntityStats(stats.data, lang);
+  const countState: CountState = langStats
+    ? "success"
+    : stats.isError
+      ? "error"
+      : stats.isPending
+        ? "pending"
+        : "missing";
 
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
 
   return (
     <div className="min-w-0 space-y-4" data-testid="admin-translations-data">
+      {/* INC-119 — the shape trace the next failure can read straight off the DOM. */}
+      <span
+        hidden
+        data-testid="data-stats-state"
+        data-state={countState}
+        data-lang={lang}
+        data-rows={String((stats.data ?? []).length)}
+        data-untranslated={langStats ? String(langStats.untranslated) : "unknown"}
+        data-total={langStats ? String(langStats.total) : "unknown"}
+        data-error={stats.error instanceof Error ? stats.error.message : ""}
+      />
       <p data-testid="data-coverage" className="text-sm text-muted-foreground">
         {t("admin.translations.data.coverage")
           .replace("{approved}", String(langStats?.approved ?? 0))
@@ -114,6 +138,7 @@ export function DataScope({
           lang={lang}
           scope="entity"
           untranslated={langStats?.untranslated ?? 0}
+          countState={countState}
           guard={guard}
         />
       ) : null}
