@@ -20,7 +20,8 @@
     "format:check": "prettier --check \"src/**\" \"e2e/**\" \"docs/**\" \"*.{json,js,ts,md}\"",
     "format:write": "prettier --write \"src/**\" \"e2e/**\" \"docs/**\" \"*.{json,js,ts,md}\"",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
