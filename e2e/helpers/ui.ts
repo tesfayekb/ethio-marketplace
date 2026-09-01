@@ -342,6 +342,11 @@ export async function signInViaSession(page: Page, email: string, password: stri
  * on the email field until the test times out. CLASS RULE: multi-user E2E
  * never navigates to /auth while signed in — it signs out first, or uses a
  * fresh browser context.
+ *
+ * INC-120b — the injection branch is the SAME `signInViaSession` the first
+ * persona took: the sentinel is per-user, so switching clears the previous
+ * session and its step-up hint, writes the new grant once, and asserts the
+ * active identity. The UI-login branch below is untouched.
  */
 export async function switchUser(
   page: Page,
