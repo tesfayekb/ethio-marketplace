@@ -4,9 +4,12 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
   aiTranslate,
+  aiTranslateEntities,
   approveAllTranslations,
   listEntityTranslations,
+  listEntityTranslationStats,
   listLanguages,
+  listProviderLanguages,
   listTranslationStats,
   listTranslationRevisions,
   listTranslations,
@@ -20,11 +23,13 @@ import {
   setTranslatorLanguages,
   syncUiKeys,
   upsertLanguage,
+  type AiEntityItem,
   type AiTranslateItem,
   type EntityTranslationFilters,
   type EntityType,
   type TranslationFilters,
 } from "./translations-service";
+
 
 /**
  * U1g-3 purge law: every key starts at AUTH_DERIVED_ROOT, so one
