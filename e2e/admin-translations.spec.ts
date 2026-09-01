@@ -1121,10 +1121,9 @@ test.describe("U4b translations console", () => {
         .toBe("machine|true|true");
 
       // THE DATA METER exists for this language and counts a real universe.
+      // The meter is a CELL inside the language row (J5: cells are row-scoped).
       await gotoReady(page, "/admin/translations");
-      const meter = translationsSurface(page).getByTestId(
-        rowTestId(page, `lang-data-coverage-${fence}`),
-      );
+      const meter = langRow(page, fence).getByTestId(`lang-data-coverage-${fence}`);
       await expect(meter).toBeVisible({ timeout: 20000 });
       expect(Number((await meter.innerText()).replace(/[^0-9]/g, "").length)).toBeGreaterThan(0);
     } finally {
@@ -1744,9 +1743,13 @@ test.describe("U4g bulk approval, order and orphans", () => {
     });
   });
 
-  test("TR-21 a key missing from the synced catalog is orphaned and excluded", async ({ page }) => {
-    test.setTimeout(120_000);
-    const fence = bulkFence();
+  test(
+    "TR-21 a key missing from the synced catalog is orphaned and excluded",
+    { tag: "@global-state" },
+    async ({ page }) => {
+      test.info().annotations.push({ type: "global-state", description: "INC-117" });
+      test.setTimeout(120_000);
+      const fence = bulkFence();
     await ensureFenceLanguage(fence);
     const supabase = adminClient();
     const key = scratchKey("tr21");
