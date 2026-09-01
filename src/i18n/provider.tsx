@@ -85,9 +85,8 @@ type I18nValue = {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
-function isLanguage(value: string | null): value is Language {
-  return value !== null && (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
-}
+
+
 
 /** URL override (`?lang=xx`) — validated against the gate like every other source. */
 function requestedFromUrl(): string | null {
