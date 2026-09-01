@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { type Locator, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
@@ -19,6 +21,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
+import { PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
 import { translationMapperSelfTest } from "../src/features/admin/translations/translations-service";
 
 /**
@@ -2138,4 +2141,191 @@ test.describe("U4g bulk approval, order and orphans", () => {
         .in("key", Object.keys(SEEDED));
     }
   });
+
+  /**
+   * TR-29 (U4i ⑤) — EXPORT → EDIT → IMPORT, the offline-translator round trip.
+   *
+   * Walk: seed an axes-namespaced scratch key in this project's BULK FENCE,
+   * export the fence's catalog as CSV from the browser, rewrite that exact CSV
+   * with a translation for the scratch key plus one key that does NOT exist,
+   * import it, and assert DATABASE truth per key (J4): the real key lands
+   * `edited|false` with the imported value, the invented key is SKIPPED — the
+   * importer counts unknown keys, it never invents them.
+   *
+   * The export is read through the download itself (real bytes, not a mocked
+   * blob), so the CSV writer and the CSV reader are proven against each other
+   * end to end rather than only in the unit round-trip test.
+   */
+  test("TR-29 the catalog exports as CSV and a translated CSV imports back", async ({ page }) => {
+    test.setTimeout(120_000);
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
+    const key = scratchKey("tr29") + "-io";
+    const ghost = scratchKey("tr29") + "-ghost-never-created";
+    const source = `Round trip source ${key}`;
+    const imported = `⟪io⟫ ${key}`;
+    await seedScratchKey(key, source, fence);
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, `/admin/translations/${fence}`);
+      // Seed-before-navigate (J7) still needs the list to prove it SEES the row
+      // before the export button's bytes mean anything.
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, slug(key))).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("strings-search").fill("");
+
+      const [download] = await Promise.all([
+        page.waitForEvent("download", { timeout: 30000 }),
+        page.getByTestId("strings-export-csv").click(),
+      ]);
+      const exportedPath = await download.path();
+      const exported = await readFile(exportedPath, "utf8");
+      if (!exported.includes(key)) {
+        throw new Error(
+          `[e2e:u4i] TR-29 the CSV export omitted ${key}. First 500 bytes:\n${exported.slice(0, 500)}`,
+        );
+      }
+
+      // The operator's edit, expressed as the file they would send back.
+      const csv = ["key,source,translation", `${key},"${source}","${imported}"`, `${ghost},"x","y"`]
+        .join("\r\n")
+        .concat("\r\n");
+      await page.getByTestId("strings-import-input").setInputFiles({
+        name: `${fence}.csv`,
+        mimeType: "text/csv",
+        buffer: Buffer.from(csv, "utf8"),
+      });
+      await stepUpIfPrompted(page, secret);
+      // VISIBILITY only — the localized summary is never the count (J4).
+      await expect(page.getByTestId("strings-transfer-summary")).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId("strings-transfer-error")).toHaveCount(0);
+
+      await expect
+        .poll(
+          async () => {
+            const { data, error } = await adminClient()
+              .from("ui_translations")
+              .select("value, status, machine")
+              .eq("key", key)
+              .eq("lang_code", fence)
+              .maybeSingle();
+            if (error) throw new Error(`[e2e:u4i] TR-29 read failed: ${error.message}`);
+            if (!data) return "missing";
+            return `${data.value}|${data.status}|${String(data.machine)}`;
+          },
+          { timeout: 20000, message: `the CSV import never landed for ${key}` },
+        )
+        .toBe(`${imported}|edited|false`);
+
+      const { data: ghostRows, error: ghostError } = await adminClient()
+        .from("ui_translations")
+        .select("key")
+        .eq("key", ghost);
+      if (ghostError) throw new Error(`[e2e:u4i] TR-29 ghost read failed: ${ghostError.message}`);
+      expect(ghostRows ?? [], "the importer invented a key that has no base row").toEqual([]);
+    } finally {
+      await adminClient().from("ui_translation_revisions").delete().eq("key", key);
+      await reapScratchKey(key);
+      await adminClient().from("ui_translations").delete().eq("key", ghost);
+    }
+  });
+
+  /**
+   * TR-30 (U4i ⑦) — PSEUDO-LOCALIZATION, and the publication refusal.
+   *
+   * This test fills the RESERVED `zxa` language for the whole base catalog, so
+   * it is global state by construction (J6): it runs in ONE project and carries
+   * the @global-state quarantine tag (INC-117). `zxa` is not a fence — it is a
+   * product surface with a server rule of its own — so it is left in place
+   * afterwards exactly as the operator would leave it, admin-only.
+   *
+   * Two halves:
+   *  A. every filled row is `machine`, unapproved, bracketed and LONGER than
+   *     its source (the whole point: it shows truncation before a real
+   *     translation exists);
+   *  B. the roster REFUSES to publish `zxa` — the server rule, not a hidden
+   *     button — and the language stays unpublished in the database.
+   */
+  test(
+    "TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published",
+    { tag: "@global-state" },
+    async ({ page }) => {
+      test.skip(
+        test.info().project.name !== "desktop-1280",
+        "J6: zxa is global state — one project only",
+      );
+      test.info().annotations.push({
+        type: "global-state",
+        description: "INC-117 quarantined global-state test",
+      });
+      test.setTimeout(300_000);
+
+      const { secret } = await signInAsSuperAdmin(page);
+      // A key whose EN source exists for certain: the probe is a REAL catalog
+      // key, read-only to this spec (J2) — pseudo rows live in zxa alone.
+      const probe = "admin.translations.title";
+
+      await gotoReady(page, "/admin/translations/am");
+      await page.getByTestId("strings-pseudo-run").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("strings-pseudo-summary")).toBeVisible({ timeout: 240_000 });
+      await expect(page.getByTestId("strings-pseudo-error")).toHaveCount(0);
+
+      const { data: baseRow, error: baseError } = await adminClient()
+        .from("ui_translations")
+        .select("value")
+        .eq("key", probe)
+        .eq("lang_code", "en")
+        .maybeSingle();
+      if (baseError) throw new Error(`[e2e:u4i] TR-30 base read failed: ${baseError.message}`);
+      const baseValue = baseRow?.value ?? "";
+      expect(baseValue, `[e2e:u4i] TR-30 probe key ${probe} has no EN source`).not.toBe("");
+
+      await expect
+        .poll(
+          async () => {
+            const { data, error } = await adminClient()
+              .from("ui_translations")
+              .select("value, status, machine")
+              .eq("key", probe)
+              .eq("lang_code", PSEUDO_LANG)
+              .maybeSingle();
+            if (error) throw new Error(`[e2e:u4i] TR-30 pseudo read failed: ${error.message}`);
+            if (!data) return "missing";
+            const value = data.value ?? "";
+            return [
+              data.status,
+              String(data.machine),
+              String(value.startsWith("⟦") && value.endsWith("⟧")),
+              String(value.length > baseValue.length),
+            ].join("|");
+          },
+          { timeout: 30000, message: `pseudo text never landed for ${probe}` },
+        )
+        .toBe("machine|true|true|true");
+
+      // B. THE REFUSAL. The roster's publish control is the operator's only
+      //    path, and the server rule stands behind it.
+      await gotoReady(page, "/admin/translations");
+      const publish = page.getByTestId(`lang-public-${PSEUDO_LANG}`);
+      await expect(publish).toBeVisible({ timeout: 20000 });
+      if (await publish.isEnabled()) {
+        await publish.click();
+        await stepUpIfPrompted(page, secret);
+        await expect(page.getByTestId("lang-flags-error")).toBeVisible({ timeout: 20000 });
+      } else {
+        // Disabled is a legal refusal too, but only WITH its stated reason.
+        await expect(page.getByTestId(`lang-public-gate-${PSEUDO_LANG}`)).toBeVisible();
+      }
+
+      const { data: lang, error: langError } = await adminClient()
+        .from("languages")
+        .select("enabled_public, enabled_admin")
+        .eq("code", PSEUDO_LANG)
+        .maybeSingle();
+      if (langError) throw new Error(`[e2e:u4i] TR-30 language read failed: ${langError.message}`);
+      expect(lang?.enabled_public, "zxa reached the public switcher").toBe(false);
+      expect(lang?.enabled_admin).toBe(true);
+    },
+  );
 });
