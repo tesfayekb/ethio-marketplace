@@ -423,11 +423,21 @@ async function handlePost(request: Request): Promise<Response> {
   // ---- WRITES (the RPC is the single writer) ---------------------
   let done = 0;
   for (const [key, value] of translated) {
-    const { error } = await supabase.rpc("admin_machine_translation", {
-      p_key: key,
-      p_lang: target,
-      p_value: value,
-    });
+    const item = byKey.get(key);
+    const { error } =
+      scope === "entity" && item
+        ? await supabase.rpc("admin_machine_entity_translation", {
+            p_type: item.type as string,
+            p_id: item.id as string,
+            p_field: item.field as string,
+            p_lang: target,
+            p_value: value,
+          })
+        : await supabase.rpc("admin_machine_translation", {
+            p_key: key,
+            p_lang: target,
+            p_value: value,
+          });
     if (error) {
       failed.push({ key, reason: error.message });
       continue;
@@ -436,7 +446,9 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   let flagged = 0;
-  if (done > 0) {
+  // Entity names carry no {placeholders}, so the validator has nothing to flag;
+  // the flag read-back is a UI-scope concern only.
+  if (done > 0 && scope === "ui") {
     // Flag count read back from the rows the writer just validated.
     const { data: rows } = await supabase.rpc("admin_list_translations", {
       p_lang: target,
@@ -452,6 +464,53 @@ async function handlePost(request: Request): Promise<Response> {
 
   return json({ done, flagged, failed }, 200);
 }
+
+/**
+ * U4j — GET /api/translate: the PROVIDER's supported target list, for the
+ * guided "add a language" picker. Gated on `translations:manage` (the same
+ * permission `admin_upsert_language` requires), caller-context client, no
+ * service role. Fake mode answers from FAKE_LANGUAGES — no provider call.
+ */
+async function handleGet(request: Request): Promise<Response> {
+  const authorization = request.headers.get("Authorization") ?? "";
+  if (!authorization.toLowerCase().startsWith("bearer ")) {
+    return json({ error: "missing bearer token" }, 401);
+  }
+
+  const url = serverEnv("SUPABASE_URL");
+  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
+  if (url === "" || publishable === "") return fail5xx("supabase server env missing", 500);
+
+  const supabase = createClient(url, publishable, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const uid = userData?.user?.id;
+  if (userError || !uid) return json({ error: "not signed in" }, 401);
+
+  const { data: mayManage, error: manageError } = await supabase.rpc("has_permission", {
+    p_user_id: uid,
+    p_resource: "translations",
+    p_action: "manage",
+  });
+  if (manageError) return fail5xx(manageError.message, 500);
+  if (mayManage !== true) return json({ error: "permission denied" }, 403);
+
+  if (serverEnv("E2E_FAKE_TRANSLATE") === "1") {
+    return json({ languages: FAKE_LANGUAGES }, 200);
+  }
+
+  const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
+  if (apiKey === "") return fail5xx("translation provider is not configured", 503);
+  try {
+    return json({ languages: await loadSupportedLanguages(apiKey) }, 200);
+  } catch (error) {
+    return fail5xx((error as Error).message, 502);
+  }
+}
+
 
 export const Route = createFileRoute("/api/translate")({
   server: {
