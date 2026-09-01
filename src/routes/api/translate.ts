@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
+import type { Database } from "@/integrations/supabase/types";
+
 /**
  * U4c — AI TRANSLATION ENDPOINT.
  *
@@ -303,7 +305,7 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   // CALLER-CONTEXT CLIENT: publishable key + the caller's own JWT.
-  const supabase = createClient(url, publishable, {
+  const supabase = createClient<Database>(url, publishable, {
     global: { headers: { Authorization: authorization } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -478,7 +480,7 @@ async function handleGet(request: Request): Promise<Response> {
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
   if (url === "" || publishable === "") return fail5xx("supabase server env missing", 500);
 
-  const supabase = createClient(url, publishable, {
+  const supabase = createClient<Database>(url, publishable, {
     global: { headers: { Authorization: authorization } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
