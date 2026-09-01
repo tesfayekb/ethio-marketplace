@@ -219,15 +219,19 @@ export async function upsertLanguage(input: {
   nameEn: string;
   nameNative: string;
   rtl: boolean;
+  /** U4j — ISO country codes this language is spoken in; validated server-side. */
+  countryCodes?: string[];
 }): Promise<void> {
   const { error } = await supabase.rpc("admin_upsert_language", {
     p_code: input.code,
     p_name_en: input.nameEn,
     p_name_native: input.nameNative,
     p_rtl: input.rtl,
+    p_country_codes: input.countryCodes ?? [],
   });
   if (error) throw error;
 }
+
 
 export async function setLanguageFlags(input: {
   code: string;
