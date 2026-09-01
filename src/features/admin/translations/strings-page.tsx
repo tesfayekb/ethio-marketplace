@@ -609,7 +609,9 @@ function StringEditor({
   const save = useSaveTranslation(lang);
   const ai = useAiTranslate(lang);
   const statusAction = useTranslationStatusAction(lang);
+  const contextAction = useSetKeyContext();
   const [draft, setDraft] = useState(row.value ?? "");
+  const [contextDraft, setContextDraft] = useState(row.context);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const id = slug(row.key);
@@ -647,6 +649,58 @@ function StringEditor({
         </p>
       </div>
 
+      {/**
+       * U4i ① — CONTEXT NOTE. One note per KEY (stored on the base row), so a
+       * note written here is visible to every language's translator, and the
+       * AI route sends it to the provider as translation context.
+       */}
+      <div className="min-w-0 space-y-1">
+        <p className="text-xs font-medium text-muted-foreground">
+          {t("admin.translations.editor.context")}
+        </p>
+        {mayManage ? (
+          <div className="flex min-w-0 flex-col gap-2">
+            <Input
+              id={`string-context-${id}`}
+              data-testid={`string-context-${id}`}
+              value={contextDraft}
+              aria-label={t("admin.translations.editor.context")}
+              placeholder={t("admin.translations.editor.contextPlaceholder")}
+              onChange={(event) => setContextDraft(event.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 self-start"
+              data-testid={`string-context-save-${id}`}
+              disabled={contextAction.isPending || contextDraft === row.context}
+              onClick={() =>
+                run(() => contextAction.mutateAsync({ key: row.key, context: contextDraft }))
+              }
+            >
+              {t("admin.translations.editor.contextSave")}
+            </Button>
+          </div>
+        ) : (
+          <p data-testid={`string-context-${id}`} className="text-sm text-foreground">
+            {row.context === "" ? t("admin.translations.editor.contextNone") : row.context}
+          </p>
+        )}
+      </div>
+
+      {/**
+       * U4i ② — USED ON. Build-time truth from scripts/i18n-usage-map.ts.
+       * `undefined` (map not loaded) and an empty list (key not found in any
+       * literal call site → dynamic or unused) are DIFFERENT answers (E6).
+       */}
+      <p data-testid={`string-usedon-${id}`} className="text-xs text-muted-foreground">
+        {usedOn === undefined
+          ? t("admin.translations.editor.usedOnUnknown")
+          : usedOn.length === 0
+            ? t("admin.translations.editor.usedOnDynamic")
+            : t("admin.translations.editor.usedOn").replace("{surfaces}", usedOn.join(", "))}
+      </p>
+
       {row.flagged && row.flagNote ? (
         <p data-testid={`string-flagnote-${id}`} className="text-sm text-destructive">
           {`${t("admin.translations.editor.flagNote").replace("{note}", row.flagNote)} ${t(
@@ -666,6 +720,23 @@ function StringEditor({
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
       />
+
+      {/**
+       * U4i ③ — LENGTH WARNING. Advisory only: never a flag, never a block —
+       * the row still saves. Long Amharic renderings are legitimate; the chip
+       * exists so a translator can SEE a layout risk before QA does.
+       */}
+      {isOverlong(row.sourceValue, draft) ? (
+        <p
+          data-testid={`string-length-warning-${id}`}
+          className="text-xs font-medium text-amber-600 dark:text-amber-500"
+        >
+          {t("admin.translations.editor.lengthWarning").replace(
+            "{ratio}",
+            String(lengthRatio(row.sourceValue, draft)),
+          )}
+        </p>
+      ) : null}
 
       {/**
        * U4g-24 (INC-115) — ONE-CLICK PLACEHOLDER REPAIR. Positional rewrite
