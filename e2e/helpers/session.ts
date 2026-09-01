@@ -155,30 +155,82 @@ export async function passwordGrant(email: string, password: string): Promise<Pe
  * the token is the app's own client, so the storage always holds the newest
  * session the server issued.
  *
- * Therefore: write the grant ONCE (guarded by a sentinel that survives in the
- * same localStorage), never again, and clear any stale step-up hint at that
- * moment so an injected session starts exactly where a fresh UI sign-in
- * starts: aal1, no hint, gate prompts.
+ *
+ * INC-120b — WHY THE SENTINEL IS PER-USER.
+ *
+ * Write-once was user-blind: a sentinel keyed only on the storage key made the
+ * SECOND persona's injection a no-op, so multi-persona gating tests kept
+ * persona A's session and asserted persona B's permissions. The sentinel now
+ * records the TARGET USER ID; a different user clears every
+ * `sb-*-auth-token` AND every `sb-*-stepped-up-at` hint before writing the new
+ * grant once, and the same user stays a no-op.
  */
+export function sessionUserId(session: PersistedSession): string {
+  const id = session.user["id"];
+  if (typeof id !== "string" || !id) {
+    throw new Error("[e2e:session] password grant returned no user id — cannot inject.");
+  }
+  return id;
+}
+
 export async function injectSession(page: Page, session: PersistedSession): Promise<void> {
   await page.addInitScript(
-    ({ key, value, sentinel }: { key: string; value: string; sentinel: string }) => {
+    ({
+      key,
+      value,
+      sentinel,
+      userId,
+    }: {
+      key: string;
+      value: string;
+      sentinel: string;
+      userId: string;
+    }) => {
       try {
-        if (window.localStorage.getItem(sentinel) === key) return;
-        window.localStorage.setItem(key, value);
-        window.localStorage.setItem(sentinel, key);
-        // The step-up hint belongs to the session that earned it; an injected
-        // session has earned nothing yet.
+        if (window.localStorage.getItem(sentinel) === userId) return;
+        // Switching personas: nothing of the previous identity may survive.
         for (const k of Object.keys(window.localStorage)) {
-          if (k.startsWith("sb-") && k.endsWith("-stepped-up-at")) {
+          if (k.startsWith("sb-") && (k.endsWith("-auth-token") || k.endsWith("-stepped-up-at"))) {
             window.localStorage.removeItem(k);
           }
         }
+        window.localStorage.removeItem(sentinel);
+        window.localStorage.setItem(key, value);
+        window.localStorage.setItem(sentinel, userId);
       } catch {
         // A storage-denied context is a real failure, but it must surface as a
         // signed-out assertion in the caller, not as an init-script crash.
       }
     },
-    { key: storageKey(), value: JSON.stringify(session), sentinel: "__ethio-e2e-injected" },
+    {
+      key: storageKey(),
+      value: JSON.stringify(session),
+      sentinel: "__ethio-e2e-injected",
+      userId: sessionUserId(session),
+    },
   );
 }
+
+/**
+ * Persona mix-ups name themselves: read the ACTIVE persisted session's user id
+ * in the page and fail immediately with BOTH ids when it is not the target.
+ */
+export async function assertInjectedIdentity(page: Page, session: PersistedSession): Promise<void> {
+  const expected = sessionUserId(session);
+  const actual = await page.evaluate((key: string) => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as { user?: { id?: string } };
+      return parsed.user?.id ?? null;
+    } catch {
+      return null;
+    }
+  }, storageKey());
+  if (actual !== expected) {
+    throw new Error(
+      `[e2e:session] injected identity mismatch — expected user ${expected}, page holds ${actual ?? "no session"}.`,
+    );
+  }
+}
+
