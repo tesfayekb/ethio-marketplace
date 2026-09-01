@@ -219,26 +219,31 @@ export default async function globalSetup() {
   // the fence language's rows, and TR-14's scratch locations (with their
   // entity translations). Anything older than an hour cannot belong to a live
   // run, so it is reaped here rather than left to meet the next fixture.
-  const { data: staleFenceRevisions, error: fenceRevisionError } = await supabase
-    .from("ui_translation_revisions")
-    .delete()
-    .in("lang_code", [...FENCE_LANGS])
-    .lt("changed_at", cutoff)
-    .select("id");
-  if (fenceRevisionError) {
-    throw new Error(`[e2e:setup] reaping fence revisions failed: ${fenceRevisionError.message}`);
+  // INC-115b — fences are now per-project (`zxx-m`, `zxy-d`, …), so the reaper
+  // deletes by PREFIX rather than by an enumerated code list.
+  for (const prefix of FENCE_PREFIX_LIST) {
+    const { data: staleFenceRevisions, error: fenceRevisionError } = await supabase
+      .from("ui_translation_revisions")
+      .delete()
+      .like("lang_code", `${prefix}%`)
+      .lt("changed_at", cutoff)
+      .select("id");
+    if (fenceRevisionError) {
+      throw new Error(`[e2e:setup] reaping fence revisions failed: ${fenceRevisionError.message}`);
+    }
+    reaped += staleFenceRevisions?.length ?? 0;
+    const { data: staleFenceRows, error: fenceRowError } = await supabase
+      .from("ui_translations")
+      .delete()
+      .like("lang_code", `${prefix}%`)
+      .lt("updated_at", cutoff)
+      .select("key");
+    if (fenceRowError) {
+      throw new Error(`[e2e:setup] reaping fence translations failed: ${fenceRowError.message}`);
+    }
+    reaped += staleFenceRows?.length ?? 0;
   }
-  reaped += staleFenceRevisions?.length ?? 0;
-  const { data: staleFenceRows, error: fenceRowError } = await supabase
-    .from("ui_translations")
-    .delete()
-    .in("lang_code", [...FENCE_LANGS])
-    .lt("updated_at", cutoff)
-    .select("key");
-  if (fenceRowError) {
-    throw new Error(`[e2e:setup] reaping fence translations failed: ${fenceRowError.message}`);
-  }
-  reaped += staleFenceRows?.length ?? 0;
+
 
   const { data: staleLocations, error: locationError } = await supabase
     .from("locations")
