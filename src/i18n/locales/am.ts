@@ -593,6 +593,12 @@ export const am: Messages = {
   "admin.translations.editor.approve": "አጽድቅ",
   "admin.translations.editor.clear": "አጽዳ",
   "admin.translations.editor.flagNote": "ተመልክቷል፦ {note}",
+  // U4g-24 (INC-115) — የቦታ ያዥ ጥበቃና በአንድ ጠቅታ ማስተካከያ።
+  "admin.translations.editor.placeholderRule":
+    "የቦታ ያዦች በስማቸው ይሞላሉ — በእንግሊዝኛው ምንጭ እንዳሉት ሆነው ይቆዩ።",
+  "admin.translations.editor.restorePlaceholders": "የቦታ ያዦችን መልስ",
+  "admin.translations.editor.restoreHint":
+    "መጀመሪያ ብዛታቸው መመሳሰል አለበት፦ ትርጉሙ {got} የቦታ ያዦች አሉት፣ የእንግሊዝኛው ምንጭ {want} አሉት።",
   "admin.translations.editor.notAssigned": "ለዚህ ቋንቋ አልተመደቡም — ሰርቨሩ ለውጦችን ይከለክላል።",
   // U4c — በማሽን መተርጎም (ውጤቶቹ ጊዜያዊ ናቸው)።
   "admin.translations.ai.row": "በAI ተርጉም",
