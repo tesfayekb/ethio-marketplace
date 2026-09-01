@@ -61,6 +61,69 @@ async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unkno
   );
 }
 
+/**
+ * INC-109 — self-describing failure dump for the user-detail surface.
+ * Reads the live query cache through the E2E instrument (`__ethioQueryClient`,
+ * VITE_E2E-gated) plus the presence of the three detail testids, so a failed
+ * assertion names WHY the panel was empty instead of only that it was.
+ */
+async function describeUserDetail(page: Page): Promise<string> {
+  let cache = "(query cache unavailable)";
+  try {
+    cache = await page.evaluate(() => {
+      type Q = {
+        queryKey: unknown[];
+        state: {
+          status: string;
+          error: unknown;
+          dataUpdatedAt: number;
+          data: unknown;
+        };
+      };
+      const client = (
+        window as unknown as {
+          __ethioQueryClient?: { getQueryCache: () => { getAll: () => Q[] } };
+        }
+      ).__ethioQueryClient;
+      if (!client) return "(no __ethioQueryClient — not an E2E build?)";
+      return client
+        .getQueryCache()
+        .getAll()
+        .filter((q) => {
+          const key = q.queryKey.map((part) => String(part)).join("/");
+          return key.includes("detail") || key.includes("activity") || key.includes("user");
+        })
+        .map((q) => {
+          const error = q.state.error as { message?: string } | null;
+          const data = q.state.data;
+          const length = Array.isArray(data)
+            ? data.length
+            : data == null
+              ? "null"
+              : "non-array";
+          return `  ${JSON.stringify(q.queryKey)} status=${q.state.status} error=${
+            error?.message ?? "none"
+          } dataUpdatedAt=${q.state.dataUpdatedAt} dataLength=${length}`;
+        })
+        .join("\n");
+    });
+  } catch (error) {
+    cache = `(query cache read threw: ${(error as Error).message})`;
+  }
+
+  const present: string[] = [];
+  for (const id of ["admin-user-detail", "user-detail-error", "user-detail-loading"]) {
+    const count = await page.getByTestId(id).count().catch(() => -1);
+    present.push(`${id}=${count}`);
+  }
+
+  return [
+    `[INC-109] url: ${page.url()}`,
+    `[INC-109] testids: ${present.join(" ")}`,
+    `[INC-109] queries:\n${cache || "  (no matching queries)"}`,
+  ].join("\n");
+}
+
 test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await createUser({ confirmed: true });
