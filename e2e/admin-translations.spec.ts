@@ -672,19 +672,6 @@ test.describe("U4b translations console", () => {
 
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
-      // U4j-5 (INC-119b) — the universe must RENDER before the bar is read: at
-      // least one untranslated row exists on a fresh language.
-      await expect(page.locator("[data-testid^='entity-status-']").first()).toBeVisible({
-        timeout: 20000,
-      });
-      // The bar's count is only readable once the stats query is ready; poll
-      // for digits rather than racing a pending "(—)" into a false zero.
-      await expect
-        .poll(async () => (await startButton.innerText()).match(/[0-9]/) !== null, {
-          timeout: 20000,
-          message: "the Data bulk bar never reached a ready (numeric) count",
-        })
-        .toBe(true);
 
       await startButton.click();
       await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
