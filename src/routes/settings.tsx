@@ -64,7 +64,7 @@ function providerLabelKey(provider: string): MessageKey {
 }
 
 function SettingsScreen() {
-  const { t, language } = useI18n();
+  const { t, language, star, publicLanguages } = useI18n();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -321,6 +321,17 @@ function SettingsScreen() {
           <div className="flex justify-between gap-3">
             <dt className="text-muted-foreground">{t("settings.email")}</dt>
             <dd className="truncate text-foreground">{user?.email ?? "—"}</dd>
+          </div>
+          {/* U4h — the DEVICE ★, shown here as a READ-OUT: the star is chosen in
+              the language switcher (one affordance, C-laws), and this row only
+              tells the operator which device default is currently in force. */}
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">{t("settings.deviceLanguage")}</dt>
+            <dd className="truncate text-foreground" data-testid="settings-device-language">
+              {star
+                ? (publicLanguages.find((row) => row.code === star)?.name_native ?? star)
+                : t("settings.deviceLanguageNone")}
+            </dd>
           </div>
           <div className="flex justify-between gap-3">
             <dt className="text-muted-foreground">{t("settings.memberSince")}</dt>

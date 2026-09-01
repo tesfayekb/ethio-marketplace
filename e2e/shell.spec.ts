@@ -6,8 +6,10 @@ import {
   expectNoHorizontalOverflow,
   expectSignedIn,
   gotoReady,
+  describeSwitcher,
   openRailScope,
   signIn,
+  signOutViaUi,
   switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
@@ -1378,5 +1380,123 @@ test.describe("i18n gate is non-blocking (U4f-2)", () => {
     ).toBe(false);
     // SECONDARY (clock): unchanged budget.
     expect(elapsed).toBeLessThan(5000);
+  });
+});
+
+/**
+ * U4h — THE DEVICE ★ (TR-27/28).
+ *
+ * The star is a DEVICE choice: it must survive sign-out and session expiry,
+ * and the ACCOUNT preference is only a carry onto a device that never starred
+ * anything. These tests are read-only against every global list (they touch a
+ * per-test persona's own profile row), so they are NOT @global-state.
+ */
+test.describe("U4h device language star", () => {
+  /** Stars a language through the real affordance and waits for the apply. */
+  async function starLanguage(page: Page, code: "en" | "am") {
+    await waitForHydration(page);
+    await page.getByTestId("language-switcher").click();
+    await page.getByTestId(`language-star-${code}`).click();
+    await expect(page.getByTestId("language-switcher")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
+  }
+
+  /** Seeds a star the way a returning device carries one: both stores, pre-boot. */
+  async function seedStar(page: Page, code: string) {
+    await page.addInitScript(
+      ({ key, cookie, value }) => {
+        try {
+          window.localStorage.setItem(key, value);
+        } catch {
+          /* private mode; the cookie below still carries it */
+        }
+        document.cookie = `${cookie}=${value}; Path=/; Max-Age=31536000; SameSite=Lax`;
+      },
+      { key: "ethio.lang.star", cookie: "ethio_lang_star", value: code },
+    );
+  }
+
+  test("TR-27 a star set signed-out survives reload, sign-in and sign-out", async ({ page }) => {
+    await gotoReady(page, "/");
+    await starLanguage(page, "am");
+
+    await gotoReady(page, "/");
+    await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am");
+
+    const user = await createUser({ confirmed: true });
+    await signIn(page, user.email, user.password);
+    await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am");
+
+    await signOutViaUi(page);
+    await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am");
+  });
+
+  test("TR-28 the account carries onto a starless device, and never over a star", async ({
+    page,
+  }) => {
+    const supabase = adminClient();
+
+    // Persona A — account prefers Amharic, device has never starred anything.
+    const carried = await createUser({ confirmed: true });
+    const { error: carryError } = await supabase
+      .from("profiles")
+      .update({ preferred_language: "am" })
+      .eq("user_id", carried.id);
+    if (carryError) throw new Error(`[e2e:shell] seeding preference: ${carryError.message}`);
+
+    await signIn(page, carried.email, carried.password);
+    await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am", {
+      timeout: 15000,
+    });
+    // The carry WRITES the device star — that is what makes it outlive the session.
+    const star = await page.evaluate(() => window.localStorage.getItem("ethio.lang.star"));
+    expect(star, await describeSwitcher(page)).toBe("am");
+
+    // Persona B — the same account preference, but this device already starred
+    // English. The device wins; the account never overwrites an explicit star.
+    await signOutViaUi(page);
+    const overridden = await createUser({ confirmed: true });
+    const { error: prefError } = await supabase
+      .from("profiles")
+      .update({ preferred_language: "am" })
+      .eq("user_id", overridden.id);
+    if (prefError) throw new Error(`[e2e:shell] seeding preference: ${prefError.message}`);
+
+    const context = await page.context().browser()!.newContext();
+    const fresh = await context.newPage();
+    try {
+      await seedStar(fresh, "en");
+      await signIn(fresh, overridden.email, overridden.password);
+      await expect(fresh.locator("html"), await describeSwitcher(fresh)).toHaveAttribute(
+        "lang",
+        "en",
+      );
+      expect(await fresh.evaluate(() => window.localStorage.getItem("ethio.lang.star"))).toBe("en");
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("TR-28 hreflang alternates equal the anon publication gate", async ({ page }) => {
+    await gotoReady(page, "/");
+
+    const gate = await page.evaluate(() => {
+      const value = (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] as
+        | { codes: string[] }
+        | undefined;
+      return value?.codes ?? [];
+    });
+    expect(gate.length, await describeSwitcher(page)).toBeGreaterThan(0);
+
+    const alternates = await page
+      .locator("link[rel='alternate']")
+      .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("hreflang") ?? ""));
+    expect([...alternates].sort()).toEqual([...gate, "x-default"].sort());
+
+    // G1 — absolute URLs only.
+    const hrefs = await page
+      .locator("link[rel='alternate']")
+      .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href") ?? ""));
+    for (const href of hrefs) expect(href).toMatch(/^https?:\/\//);
   });
 });

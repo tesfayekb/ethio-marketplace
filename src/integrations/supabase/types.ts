@@ -655,7 +655,7 @@ export type Database = {
           display_name: string
           home_country_code: string | null
           notification_prefs: Json
-          preferred_language: string
+          preferred_language: string | null
           seller_alias: string | null
           show_phone: boolean
           show_telegram: boolean
@@ -678,7 +678,7 @@ export type Database = {
           display_name: string
           home_country_code?: string | null
           notification_prefs?: Json
-          preferred_language?: string
+          preferred_language?: string | null
           seller_alias?: string | null
           show_phone?: boolean
           show_telegram?: boolean
@@ -701,7 +701,7 @@ export type Database = {
           display_name?: string
           home_country_code?: string | null
           notification_prefs?: Json
-          preferred_language?: string
+          preferred_language?: string | null
           seller_alias?: string | null
           show_phone?: boolean
           show_telegram?: boolean
@@ -724,6 +724,13 @@ export type Database = {
             columns: ["home_country_code"]
             isOneToOne: false
             referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "profiles_preferred_language_fkey"
+            columns: ["preferred_language"]
+            isOneToOne: false
+            referencedRelation: "languages"
             referencedColumns: ["code"]
           },
         ]
@@ -1554,6 +1561,7 @@ export type Database = {
         Args: { p_target: string }
         Returns: boolean
       }
+      user_set_preferred_language: { Args: { p_code: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
