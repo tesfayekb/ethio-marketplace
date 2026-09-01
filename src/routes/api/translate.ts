@@ -105,21 +105,52 @@ function fail5xx(error: string, status: number): Response {
   return json({ error }, status);
 }
 
-/** Cold-start cache of the provider's supported target codes. */
-let supportedTargets: Set<string> | null = null;
+/** Cold-start cache of the provider's supported targets (code + English name). */
+export interface ProviderLanguage {
+  code: string;
+  name: string;
+}
 
-async function loadSupportedTargets(apiKey: string): Promise<Set<string>> {
-  if (supportedTargets) return supportedTargets;
+let supportedLanguages: ProviderLanguage[] | null = null;
+
+/**
+ * U4j FAKE LIST — deterministic, no provider call, no spend. Ethiopian and
+ * regional targets first so CI can add one (TR-25 uses `sw`).
+ */
+const FAKE_LANGUAGES: ProviderLanguage[] = [
+  { code: "am", name: "Amharic" },
+  { code: "om", name: "Oromo" },
+  { code: "ti", name: "Tigrinya" },
+  { code: "sw", name: "Swahili" },
+  { code: "so", name: "Somali" },
+  { code: "ar", name: "Arabic" },
+  { code: "fr", name: "French" },
+  { code: "en", name: "English" },
+];
+
+async function loadSupportedLanguages(apiKey: string): Promise<ProviderLanguage[]> {
+  if (supportedLanguages) return supportedLanguages;
   const response = await fetch(
-    `https://translation.googleapis.com/language/translate/v2/languages?key=${encodeURIComponent(apiKey)}`,
+    `https://translation.googleapis.com/language/translate/v2/languages?target=en&key=${encodeURIComponent(apiKey)}`,
   );
   if (!response.ok) throw new Error(`language list unavailable (${response.status})`);
-  const payload = (await response.json()) as { data?: { languages?: { language: string }[] } };
-  const codes = (payload.data?.languages ?? []).map((entry) => entry.language.toLowerCase());
-  if (codes.length === 0) throw new Error("language list empty");
-  supportedTargets = new Set(codes);
-  return supportedTargets;
+  const payload = (await response.json()) as {
+    data?: { languages?: { language: string; name?: string }[] };
+  };
+  const list = (payload.data?.languages ?? []).map((entry) => ({
+    code: entry.language.toLowerCase(),
+    name: entry.name ?? entry.language,
+  }));
+  if (list.length === 0) throw new Error("language list empty");
+  supportedLanguages = list;
+  return supportedLanguages;
 }
+
+async function loadSupportedTargets(apiKey: string): Promise<Set<string>> {
+  const list = await loadSupportedLanguages(apiKey);
+  return new Set(list.map((entry) => entry.code));
+}
+
 
 /**
  * U4g-24 / INC-115 — PLACEHOLDER PROTECTION.
