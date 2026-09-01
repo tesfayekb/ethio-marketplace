@@ -1425,7 +1425,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         return signed.secret;
       });
 
-      let start = -1;
+      let neighbour = "";
       await test.step("TR-20 roster visible", async () => {
         // U4g-10 (INC-103) — PRECONDITION, not a weakened assertion: the base
         // language is pinned first, so a fence sitting directly beneath it has
@@ -1451,8 +1451,12 @@ test.describe("U4g bulk approval, order and orphans", () => {
         }
         await gotoReady(page, "/admin/translations");
         await expect(langRow(page, fence)).toBeVisible({ timeout: 20000 });
-        start = await positionOf(fence);
+        const codes = await rosterCodes();
+        const at = codes.indexOf(fence);
+        expect(at, "the fence must be parked with a row above it").toBeGreaterThan(0);
+        neighbour = codes[at - 1]!;
       });
+
 
       // U4g-15 (INC-106c) — the three sub-phases are named SEPARATELY: click,
       // step-up, poll. A stall now reports which one consumed the budget; a
