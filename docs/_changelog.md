@@ -256,3 +256,4 @@
 - 2026-09-01 — fix(i18n): gate fetch without filter-shaped busting; failures surface and retry (INC-113b)
 - 2026-09-01 — test(e2e): scratch-role reaper; AU-3 audit-row dump (INC-114)
 - 2026-09-01 — feat(translations): placeholder-safe MT, one-click restore, honest provenance (INC-115)
+- 2026-09-01 — test(e2e): per-project fence languages (INC-115b)
