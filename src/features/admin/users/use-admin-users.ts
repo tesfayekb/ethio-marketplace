@@ -21,6 +21,23 @@ import {
 /** Cache keys — one namespace so a mutation can invalidate the whole section. */
 export const ADMIN_USERS_KEY = [AUTH_DERIVED_ROOT, "admin", "users"] as const;
 
+/**
+ * INC-110 — MUTATIONS INVALIDATE THE EXACT KEYS THEIR AUDIT ROWS FEED.
+ *
+ * The per-user activity list is fed by `admin_user_activity`, and every
+ * audited mutation (status change, role assign/revoke, profile edit) writes
+ * the row that list must show. A prefix invalidation alone was not enough:
+ * it refetched with `refetchType: "active"` only, did not wait, and the
+ * activity query's own staleTime could answer the very next mount from a
+ * cache captured BEFORE the audit row landed. The exact keys are named here
+ * and every mutation awaits them with `refetchType: "all"`.
+ */
+export const adminUserActivityKey = (userId: string) =>
+  [...ADMIN_USERS_KEY, "activity", userId] as const;
+export const adminUserDetailKey = (userId: string) =>
+  [...ADMIN_USERS_KEY, "detail", userId] as const;
+
+
 /** 300ms debounce for the search box (U1: one request per pause, not per key). */
 export function useDebounced<T>(value: T, delay = 300): T {
   const [debounced, setDebounced] = useState(value);
