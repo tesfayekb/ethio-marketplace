@@ -1335,3 +1335,37 @@ RULES:
 - A COUNT-SHAPED FAILURE DUMPS THE UNDERLYING TRUTH — when an assertion fails
   on "N rows rendered", the dump reads the same data from the database, so the
   next failure distinguishes a missing write from a filtering read.
+
+## INC-115 — placeholder protection in machine translation (U4g-24)
+
+1. MT SENT RAW `{token}`s TO THE PROVIDER. Google translated or reordered the
+   token text itself, so a token-bearing string came back mangled and every
+   such row landed flagged — the validator caught it, but the operator had to
+   retype the whole value by hand. `/api/translate` now MASKS each `{token}`
+   as `<span translate="no">⟦i⟧</span>` (`format=html`), and restores by index
+   afterwards. Restore is total-or-nothing: if a sentinel is missing or
+   duplicated the provider's own text is returned untouched and the writer's
+   validator flags it — a guess is never written.
+   HONESTY: no Google credential exists in this environment, so the provider's
+   behaviour could not be measured here; the implementation follows Google's
+   DOCUMENTED `translate="no"` contract and carries a second defence (bare
+   index sentinels) for the case where the wrapper is stripped. Fake mode runs
+   the same mask/restore path, so CI proves the mechanism.
+2. A MANGLED ROW HAD NO REPAIR PATH. The editor now offers "Restore
+   placeholders" on a flagged row: a POSITIONAL rewrite, inert until the draft
+   and the English source hold the same number of tokens (the hint states both
+   counts). It fills the editor only; Save re-runs the server validator.
+3. PROVENANCE FLIPPED TO "HUMAN" ON APPROVAL IN THE READING. Approval now
+   APPENDS "Approved by …" to the machine origin instead of reading as human
+   authorship.
+
+RULES:
+
+- PLACEHOLDERS NEVER TRAVEL TO A TRANSLATION PROVIDER — they are masked before
+  the call and restored after it, and a restore that cannot be proven exact is
+  not performed at all.
+- A REPAIR TOOL NEVER INVENTS CONTENT — it rewrites positionally under an
+  equal-count precondition, states the two counts when it refuses, and writes
+  nothing that the server validator has not re-checked.
+- PROVENANCE IS ORIGIN, NEVER REVIEW STATE — approval is appended to machine
+  provenance, never substituted for it.

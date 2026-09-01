@@ -828,7 +828,6 @@ test.describe("U4b translations console", () => {
     }
   });
 
-
   test("TR-scope AI: a translator outside the language gets the structured refusal", async ({
     page,
   }) => {

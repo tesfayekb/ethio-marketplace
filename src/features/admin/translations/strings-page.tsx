@@ -650,10 +650,7 @@ function StringEditor({
             {t("admin.translations.editor.restorePlaceholders")}
           </Button>
           {!canRestoreTokens ? (
-            <p
-              data-testid={`string-restore-hint-${id}`}
-              className="text-xs text-muted-foreground"
-            >
+            <p data-testid={`string-restore-hint-${id}`} className="text-xs text-muted-foreground">
               {t("admin.translations.editor.restoreHint")
                 .replace("{got}", String(draftTokens.length))
                 .replace("{want}", String(sourceTokens.length))}

@@ -160,7 +160,9 @@ function fakeTranslate(target: string, source: string): string {
   const { text, tokens } = maskTokens(source, false);
   const restored = restoreTokens(`⟪${target}⟫ ${text}`, tokens);
   // E2EBREAK still drops every placeholder — on the RESTORED text (TR-13).
-  return source.includes("E2EBREAK") ? restored.replace(TOKEN_RE, "").replace(/\s+/g, " ").trim() : restored;
+  return source.includes("E2EBREAK")
+    ? restored.replace(TOKEN_RE, "").replace(/\s+/g, " ").trim()
+    : restored;
 }
 
 /** Google v2 returns HTML-escaped text even in `format=text` responses. */
