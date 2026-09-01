@@ -1412,3 +1412,24 @@ RULES:
   code that a server route refuses is not a fence, it is a silent no-op.
 - EVERY AUDITED MUTATION INVALIDATES THE KEYS ITS AUDIT ROW FEEDS — one shared
   invalidator, no per-mutation variants.
+
+## INC-115d — EVERY ACTIVITY ASSERTION CARRIES THE SAME EVIDENCE
+
+EVIDENCE: AU-9 failed with nothing but `getByTestId('activity-user.profile_edit')
+… element(s) not found`. Only AU-3 had been taught (INC-109/INC-114) to dump
+the route, the query-cache state and the target's audit rows, so AU-9's failure
+could not distinguish three different defects from one another.
+
+CHANGE: `expectActivity(page, action, userId)` in `e2e/admin-users.spec.ts` is
+the single way any AU test asserts an `activity-*` row. On failure it rethrows
+the original assertion message plus `describeUserDetail(page)` and the target's
+last 10 `audit_log` rows (action, entity, created_at) read with the service
+client. AU-3 (status_change), AU-4 (role.assign, role.revoke) and AU-9
+(user.profile_edit) all go through it.
+
+RULES:
+
+- AN INSTRUMENT BUILT FOR ONE ASSERTION COVERS EVERY SIBLING ASSERTION OF THE
+  SAME SHAPE — otherwise the next failure re-buys the diagnosis.
+- A MISSING-ROW FAILURE NAMES WHICH LAYER IS EMPTY — write, read, or refetch —
+  in one dump.
