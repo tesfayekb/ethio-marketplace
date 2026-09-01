@@ -22,6 +22,9 @@ import { AiBulkBar } from "./ai-bulk-bar";
 import { ApproveAllBar } from "./approve-bar";
 import { DataScope } from "./data-scope";
 import { HistoryDrawer } from "./history-drawer";
+import { isOverlong, lengthRatio } from "./pseudo";
+import { PseudoBar } from "./pseudo-bar";
+import { TransferBar } from "./transfer-bar";
 import {
   pickEntityStats,
   serverMessage,
@@ -34,7 +37,9 @@ import {
   useLanguages,
   useMyTranslatorLanguages,
   useSaveTranslation,
+  useSetKeyContext,
   useTranslationStatusAction,
+  useUsageMap,
   useEntityTranslationStats,
   useTranslations,
   useTranslationStats,
@@ -172,6 +177,7 @@ export function AdminTranslationsStringsPage({
    * from the i18n provider's public gate — and the page NEVER waits on it:
    * INC-102, an admin route that blanked while a readiness signal was pending.
    */
+  const usage = useUsageMap();
   const known: LanguageRow | undefined = (languages.data ?? []).find((row) => row.code === lang);
   const unavailable =
     !languages.isLoading &&
@@ -207,6 +213,7 @@ export function AdminTranslationsStringsPage({
   const dataStats = pickEntityStats(entityStats.data, lang);
 
   const rows = list.data?.rows ?? [];
+  const baseLang = (languages.data ?? []).find((row) => row.isBase)?.code ?? "en";
   const total = list.data?.totalCount ?? 0;
   const outOfScope =
     !mayManage &&
@@ -316,6 +323,12 @@ export function AdminTranslationsStringsPage({
                 <AiBulkBar lang={lang} untranslated={counts["untranslated"] ?? 0} guard={guard} />
               ) : null}
 
+              {/* U4i ⑤⑦ — bulk delivery tools; manage-gated, server is the authority. */}
+              {mayManage ? (
+                <TransferBar lang={lang} baseLang={baseLang} rows={rows} guard={guard} />
+              ) : null}
+              {mayManage && (known?.isBase ?? false) ? <PseudoBar guard={guard} /> : null}
+
               {outOfScope ? (
                 <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">
                   {t("admin.translations.editor.notAssigned")}
@@ -409,6 +422,8 @@ export function AdminTranslationsStringsPage({
                       mayUpdate={mayUpdate}
                       mayApprove={mayApprove}
                       mayMachine={mayMachine && !(known?.isBase ?? false)}
+                      mayManage={mayManage}
+                      usedOn={usage.data?.[row.key]}
                       guard={guard}
                       saved={savedKey === row.key}
                       onSaved={(next) => setSavedKey(next ? row.key : null)}
@@ -569,6 +584,8 @@ function StringEditor({
   mayUpdate,
   mayApprove,
   mayMachine,
+  mayManage,
+  usedOn,
   guard,
   saved,
   onSaved,
@@ -579,6 +596,10 @@ function StringEditor({
   mayUpdate: boolean;
   mayApprove: boolean;
   mayMachine: boolean;
+  /** U4i ① — only a manage holder may write the shared translator note. */
+  mayManage: boolean;
+  /** U4i ② — surfaces from the build-time map; `undefined` = not yet known. */
+  usedOn: string[] | undefined;
   guard: GuardFn;
   /** INC-104 — owned by the page, so a refetch cannot erase the marker. */
   saved: boolean;
