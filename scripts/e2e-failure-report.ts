@@ -1253,7 +1253,7 @@ async function main() {
     return;
   }
 
-  // SHARDED RUNS: every source (smoke tier + four shards) uploads its own
+  // SHARDED RUNS: every source (smoke tier + six shards — DEC-029) uploads its own
   // results.json, so the reporter reads them ALL, labels each failure with its
   // source, and quotes the log tail of any source that produced no results.
   const dir = process.env["E2E_RESULTS_DIR"];
@@ -1265,7 +1265,7 @@ async function main() {
   // skips cleanly on branches that touched no spec, and a skipped signal-only
   // lane must not render as a missing-source alarm. Required ids keep their
   // old behaviour: absence is still reported.
-  const expected = (process.env["E2E_EXPECTED_SOURCES"] ?? "smoke,1,2,3,4")
+  const expected = (process.env["E2E_EXPECTED_SOURCES"] ?? "smoke,1,2,3,4,5,6")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean)
