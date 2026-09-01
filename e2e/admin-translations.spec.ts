@@ -1227,8 +1227,12 @@ test.describe("U4f — publication gate governs language choice", () => {
  * other spec — and no operator — depends on.
  */
 test.describe("U4g bulk approval, order and orphans", () => {
-  test("TR-19 approve-all approves reviewed rows and skips flagged ones", async ({ page }) => {
+  test("TR-19 approve-all approves reviewed rows and skips flagged ones @global-state", async ({
+    page,
+  }) => {
+    test.info().annotations.push({ type: "global-state", description: "INC-117" });
     test.setTimeout(120_000);
+
     const fence = approveFence();
     await ensureFenceLanguage(fence);
     // U4g-6 (INC-101): approve-all is a SWEEP — it owns its own fence so it can
