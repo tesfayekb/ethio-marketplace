@@ -446,6 +446,14 @@ export async function listProviderLanguages(): Promise<ProviderLanguage[]> {
 export type EntityType = "category" | "location";
 
 export interface EntityTranslationRow {
+  /**
+   * U4j-5 (INC-119b) — THE ROW'S IDENTITY IS THE ENTITY, NEVER THE OPTIONAL
+   * TRANSLATION ROW. Universe rows (a language with no `entity_translations`
+   * row yet) carry NO translation id; keying on it rendered nothing at all.
+   */
+  key: string;
+  /** The `entity_translations` row id when one exists — nullable by design. */
+  translationId: string | null;
   entityType: EntityType;
   entityId: string;
   field: string;
@@ -461,6 +469,21 @@ export interface EntityTranslationRow {
   approvedBy: string | null;
   approvedAt: string | null;
 }
+
+/** The one composite key: `${type}:${id}:${field}`. */
+export function entityRowKey(type: EntityType, id: string, field: string): string {
+  return `${type}:${id}:${field}`;
+}
+
+/** The testid stem for a universe row: `entity-row-<type>-<id>-<field>`. */
+export function entityRowSlug(row: {
+  entityType: EntityType;
+  entityId: string;
+  field: string;
+}): string {
+  return `${row.entityType}-${row.entityId}-${row.field}`;
+}
+
 
 export interface EntityTranslationPage {
   rows: EntityTranslationRow[];
