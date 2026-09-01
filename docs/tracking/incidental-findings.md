@@ -1460,3 +1460,43 @@ RULES:
 - PUBLICATION OF A FENCE IS THAT FENCE'S OWN TEST'S BUSINESS — no sibling test
   asserts a fence's publication state.
 - AN ASSERTION ON SHARED RUNTIME IS RELATIVE, NEVER AN ABSOLUTE INDEX.
+
+## INC-116 — THE ACTIVITY RPC TIMED OUT ON A GROWN AUDIT LOG (2026-09-01, U4g-29)
+
+Activity RPC hit statement timeout (57014) on a grown `audit_log` — missing
+index + non-sargable predicate; five AU "row not found" recurrences were this.
+
+EVIDENCE (`EXPLAIN ANALYZE`, connected DB, before):
+
+```text
+Limit -> Sort (Sort Key: created_at DESC)
+  -> Seq Scan on audit_log
+       Filter: ((actor_id = $1) OR (entity_id = $1::text))
+       Rows Removed by Filter: 674
+```
+
+AFTER (same shape, rewritten):
+
+```text
+Limit -> Sort -> Unique -> Append
+  -> Limit -> Index Scan using audit_log_actor_created_idx (actor_id = $1)
+  -> Limit -> Index Scan using audit_log_entity_id_created_idx (entity_id = $1)
+```
+
+CHANGE (one migration, declared mark `20260901170000`): index
+`audit_log_entity_id_created_idx (entity_id, created_at DESC)` plus
+`audit_log_entity_type_id_created_idx (entity_type, entity_id, created_at DESC)`;
+`admin_user_activity` rewritten as two independently indexed, independently
+LIMITed branches merged by `UNION`, ordered and LIMITed once. Every cast sits
+on the PARAMETER side. Grants restated (INC-074); in-migration proofs P1–P5.
+
+RULES:
+
+- EVERY LIST RPC SHIPS ITS INDEX AND AN EXPLAIN IN THE MIGRATION PROOF.
+- AN `OR` ACROSS TWO COLUMNS IS NOT A PREDICATE — IT IS TWO PREDICATES; WRITE
+  THEM AS TWO INDEXED BRANCHES.
+- A CAST NEVER SITS ON THE COLUMN SIDE.
+
+TR-22 (same landing): the assertion anchor must be visible at BOTH viewports —
+the wordmark is `md+` only, so the sign-in link and the switcher's aria-label
+carry the seeded-value proof.
