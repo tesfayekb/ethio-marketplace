@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { FENCE_PREFIX_LIST, fenceLang, processId } from "./global-setup";
+import { fenceLang, processId } from "./global-setup";
 import {
   describeStringsPage,
   describeSwitcher,
@@ -1172,16 +1172,10 @@ test.describe("U4f — publication gate governs language choice", () => {
     // switcher is compared as a SET; ORDER is TR-20's own assertion.
     const expected = data.map((row) => row.code as string).sort();
     expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
-    // U4g-6 (INC-101): EVERY fence is admin-only, not just the first one.
-    // U4g-25 (INC-115b): fences are per-project, so the assertion is by PREFIX.
-    for (const code of expected) {
-      for (const prefix of FENCE_PREFIX_LIST) {
-        expect(
-          code.startsWith(`${prefix}-`) || code === prefix,
-          `the admin-only fence language ${code} is never public`,
-        ).toBe(false);
-      }
-    }
+    // U4g-28 (INC-115e) — NO FENCE-NEVER-PUBLIC ASSERTION HERE. Fences are
+    // test-owned surfaces: TR-22 publishes its own fence for the duration of
+    // its run, so a concurrent TR-17 legitimately sees it in the gate's list.
+    // This test asserts only SET EQUALITY between the switcher and the DB list.
 
     await gotoReady(page, "/");
     await page.getByTestId("language-switcher").click();
@@ -1367,8 +1361,22 @@ test.describe("U4g bulk approval, order and orphans", () => {
     }
   });
 
+  /**
+   * U4g-28 (INC-115e) — GLOBAL-ORDER MUTATIONS RUN IN ONE PROJECT. The roster
+   * is a SINGLE global list, not a per-project surface: two projects moving the
+   * same fence concurrently race on one row, and an absolute index assertion is
+   * then false through no fault of the feature. Move semantics therefore run on
+   * desktop-1280 only, and they assert RELATIVE order (the fence lands directly
+   * above its former upper neighbour). Mobile keeps TR-20m: controls present
+   * and enabled, no move.
+   */
   test("TR-20 roster order is operator-editable and persists", async ({ page }) => {
+    test.skip(
+      test.info().project.name !== "desktop-1280",
+      "global order is a single list — one project mutates it",
+    );
     test.setTimeout(120_000);
+
     const fence = bulkFence();
     await ensureFenceLanguage(fence);
     const supabase = adminClient();
@@ -1386,13 +1394,24 @@ test.describe("U4g bulk approval, order and orphans", () => {
     // J-law: a poll budget must be STRICTLY shorter than the test budget
     // (30s polls inside a 120s test) so a mismatch asserts with values
     // instead of consuming the test and reporting only a timeout.
-    const positionOf = async (code: string) => {
+    const rosterCodes = async (): Promise<string[]> => {
       const { data } = await supabase
         .from("languages")
         .select("code, sort")
         .order("sort", { ascending: true })
         .order("code", { ascending: true });
-      return (data ?? []).map((row) => row.code as string).indexOf(code);
+      return (data ?? []).map((row) => row.code as string);
+    };
+    const positionOf = async (code: string) => (await rosterCodes()).indexOf(code);
+    /**
+     * RELATIVE order (INC-115e): the offset from the fence to its censused
+     * neighbour. -1 means the fence sits directly ABOVE the neighbour, +1
+     * directly below. A sibling row moving elsewhere in the list cannot change
+     * this, where an absolute index would.
+     */
+    const offsetTo = async (neighbour: string) => {
+      const codes = await rosterCodes();
+      return codes.indexOf(fence) - codes.indexOf(neighbour);
     };
 
     try {
@@ -1404,7 +1423,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         return signed.secret;
       });
 
-      let start = -1;
+      let neighbour = "";
       await test.step("TR-20 roster visible", async () => {
         // U4g-10 (INC-103) — PRECONDITION, not a weakened assertion: the base
         // language is pinned first, so a fence sitting directly beneath it has
@@ -1430,7 +1449,10 @@ test.describe("U4g bulk approval, order and orphans", () => {
         }
         await gotoReady(page, "/admin/translations");
         await expect(langRow(page, fence)).toBeVisible({ timeout: 20000 });
-        start = await positionOf(fence);
+        const codes = await rosterCodes();
+        const at = codes.indexOf(fence);
+        expect(at, "the fence must be parked with a row above it").toBeGreaterThan(0);
+        neighbour = codes[at - 1]!;
       });
 
       // U4g-15 (INC-106c) — the three sub-phases are named SEPARATELY: click,
@@ -1451,11 +1473,11 @@ test.describe("U4g bulk approval, order and orphans", () => {
         });
         await test.step("TR-20 move up · poll", async () => {
           await expect
-            .poll(() => positionOf(fence), {
+            .poll(() => offsetTo(neighbour), {
               timeout: 30000,
-              message: "moving up never changed the roster order",
+              message: "moving up never placed the fence above its former upper neighbour",
             })
-            .toBe(start - 1);
+            .toBe(-1);
         });
       });
 
@@ -1472,11 +1494,11 @@ test.describe("U4g bulk approval, order and orphans", () => {
         });
         await test.step("TR-20 move down · poll", async () => {
           await expect
-            .poll(() => positionOf(fence), {
+            .poll(() => offsetTo(neighbour), {
               timeout: 30000,
-              message: "moving down never restored the position",
+              message: "moving down never restored the fence below its neighbour",
             })
-            .toBe(start);
+            .toBe(1);
         });
       });
     } finally {
@@ -1494,6 +1516,55 @@ test.describe("U4g bulk approval, order and orphans", () => {
           }
         });
     }
+  });
+
+  /**
+   * TR-20m (U4g-28, INC-115e) — the MOBILE half of the move surface. It proves
+   * the reorder controls exist and are actionable at 360px WITHOUT mutating the
+   * single global roster (that is TR-20's business, on desktop only).
+   */
+  test("TR-20m mobile exposes both reorder controls for the parked fence", async ({ page }) => {
+    test.skip(
+      test.info().project.name === "desktop-1280",
+      "global order is a single list — one project mutates it",
+    );
+    test.setTimeout(120_000);
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
+    const supabase = adminClient();
+
+    // Park the fence away from the pinned base language so its "up" control is
+    // legitimately enabled. A fixture write is a table write (INC-105).
+    const { data: rows } = await supabase
+      .from("languages")
+      .select("code, sort")
+      .order("sort", { ascending: true })
+      .order("code", { ascending: true });
+    const codes = (rows ?? []).map((row) => row.code as string);
+    if (codes.indexOf(fence) <= 1) {
+      const maxSort = (rows ?? []).reduce(
+        (top, row) => Math.max(top, (row.sort as number) ?? 0),
+        0,
+      );
+      const { error } = await supabase
+        .from("languages")
+        .update({ sort: maxSort + 1 })
+        .eq("code", fence);
+      if (error) throw new Error(`[e2e:u4g] TR-20m parking the fence failed: ${error.message}`);
+    }
+
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/translations");
+    await expect(langRow(page, fence)).toBeVisible({ timeout: 20000 });
+
+    const actions = actionsOf(page, `lang-row-${fence}`);
+    const up = actions.getByTestId(`lang-up-${fence}`);
+    const down = actions.getByTestId(`lang-down-${fence}`);
+    await expect(up, "mobile must expose the up control").toBeVisible({ timeout: 20000 });
+    await expect(down, "mobile must expose the down control").toBeVisible({ timeout: 20000 });
+    await expect(up, "the parked fence's up control must be enabled").toBeEnabled({
+      timeout: 20000,
+    });
   });
 
   test("TR-21 a key missing from the synced catalog is orphaned and excluded", async ({ page }) => {
