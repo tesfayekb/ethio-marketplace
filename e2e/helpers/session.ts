@@ -155,6 +155,9 @@ export async function passwordGrant(email: string, password: string): Promise<Pe
  * the token is the app's own client, so the storage always holds the newest
  * session the server issued.
  *
+ * Therefore: write the grant ONCE per identity and clear any stale step-up
+ * hint at that moment, so an injected session starts exactly where a fresh UI
+ * sign-in starts: aal1, no hint, gate prompts.
  *
  * INC-120b — WHY THE SENTINEL IS PER-USER.
  *
