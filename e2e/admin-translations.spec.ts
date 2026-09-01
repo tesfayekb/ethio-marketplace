@@ -1177,7 +1177,6 @@ test.describe("U4f — publication gate governs language choice", () => {
     // its run, so a concurrent TR-17 legitimately sees it in the gate's list.
     // This test asserts only SET EQUALITY between the switcher and the DB list.
 
-
     await gotoReady(page, "/");
     await page.getByTestId("language-switcher").click();
     await expect
@@ -1415,7 +1414,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
       return codes.indexOf(fence) - codes.indexOf(neighbour);
     };
 
-
     try {
       // U4g-6 (INC-101) — NAMED PHASES (J-law): a stall must name the phase it
       // stalled in, so the next report reads "sign-in" / "roster" / "move up"
@@ -1457,7 +1455,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
         neighbour = codes[at - 1]!;
       });
 
-
       // U4g-15 (INC-106c) — the three sub-phases are named SEPARATELY: click,
       // step-up, poll. A stall now reports which one consumed the budget; a
       // strict-mode or actionability stall lives in "click" and never even
@@ -1482,7 +1479,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
             })
             .toBe(-1);
         });
-
       });
 
       await test.step("TR-20 move down", async () => {
@@ -1570,8 +1566,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
       timeout: 20000,
     });
   });
-
-
 
   test("TR-21 a key missing from the synced catalog is orphaned and excluded", async ({ page }) => {
     test.setTimeout(120_000);
