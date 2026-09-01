@@ -78,12 +78,30 @@ jobs:
       # are on another domain and the per-user namespace assert refuses them.
       - name: Sweep stale E2E users (older than 24h)
         run: bun -e 'const m = await import("./e2e/global-teardown.ts"); await m.sweepStaleUsers();'
-      - name: Run nightly E2E
+      - name: Run nightly E2E (real-elapsed-time cases)
         id: run
         continue-on-error: true
         run: |
           set -o pipefail
           bunx playwright test -c playwright.nightly.config.ts 2>&1 | tee nightly.log
+      # DEC-028 — THE SERIAL LANE FOR @global-state SPECS. The per-push matrix
+      # excludes them (`--grep-invert "@global-state"`), so this ONE-WORKER run
+      # is the only place their logic executes end-to-end. Its results.json is
+      # collected as its own reporter source (`full`), because the second run
+      # overwrites the first's file.
+      - name: Stash the nightly results before the serial full run
+        if: always()
+        run: |
+          set -u
+          mkdir -p nightly-results/e2e-results-nightly nightly-logs/e2e-log-nightly
+          cp test-results/results.json nightly-results/e2e-results-nightly/results.json 2>/dev/null || true
+          cp nightly.log nightly-logs/e2e-log-nightly/nightly.log 2>/dev/null || true
+      - name: Run the full suite serially (includes @global-state)
+        id: runfull
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --workers=1 2>&1 | tee full.log
       # INC-108 — THE NIGHTLY WRITES ITS OWN EVIDENCE, not only a heartbeat.
       # A serial nightly failure used to be undiagnosable from the repo: the
       # heartbeat said FAILURE and nothing else. The per-push reporter is reused
