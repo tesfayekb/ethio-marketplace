@@ -55,7 +55,6 @@ export function fenceProjectSuffix(project: string): string {
   return (letters || "xx").padEnd(2, "x").slice(0, 8);
 }
 
-
 /** The fence code a given sweep kind uses inside a given Playwright project. */
 export function fenceLang(kind: FenceKind, project: string): string {
   return `${FENCE_PREFIXES[kind]}-${fenceProjectSuffix(project)}`;

@@ -152,4 +152,3 @@ export function useUpdateProfile(userId: string) {
     onSuccess: invalidate,
   });
 }
-
