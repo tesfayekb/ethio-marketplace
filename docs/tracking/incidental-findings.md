@@ -1676,3 +1676,20 @@ sentinel. `e2e/rbac.spec.ts` needed no annotation: R-1 never signs in, and R-2 /
 R-3 assert rendering, not the credential. The knob stays in the harness as the
 standing rollback; the step-up families (TR-11/13/16/23/26, RP-1/4/5/11,
 IMP-1/2, AU-10, S-3) are the recurrence detector.
+
+## INC-120b — the write-once sentinel was user-blind (persona switching)
+
+**Evidence.** Run 33563901040 — 18 reds, all multi-persona gating tests.
+
+**Cause.** The INC-120 sentinel recorded only the storage key, so the SECOND
+persona's `injectSession` was a no-op: the browser kept persona A's session
+while the test asserted persona B's permissions.
+
+**Fix.** The sentinel is now the TARGET USER ID
+(`__ethio-e2e-injected = <userId>`). A different user clears every
+`sb-*-auth-token` AND every `sb-*-stepped-up-at` hint, then writes the new grant
+once; the same user stays a no-op. `switchUser` routes through the same
+`signInViaSession` (its UI-login branch untouched), and every injection ends on
+`assertInjectedIdentity`, which reads the ACTIVE persisted session's user id in
+the page and throws with BOTH ids on a mismatch — persona mix-ups name
+themselves instead of surfacing as inexplicable permission failures.
