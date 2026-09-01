@@ -522,9 +522,10 @@ export async function listEntityTranslations({
       const field = String(row.field);
       return {
         key: entityRowKey(entityType, entityId, field),
-        // Universe rows have none; the writers UPSERT on first save (INC-119b).
-        translationId:
-          typeof (row as { id?: unknown }).id === "string" ? (row as { id: string }).id : null,
+        // The universe RPC never projects a translation id — it is null by
+        // contract, and the writers UPSERT on first save (INC-119b).
+        translationId: null,
+
         entityType,
         entityId,
         field,
