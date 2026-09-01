@@ -207,9 +207,13 @@ jobs:
   # The per-push suite serves the built app on nitro's node-server preset
   # because `wrangler dev` cannot boot a worker whose compatibility_date is the
   # build day. The DEPLOY target is still Cloudflare, so exactly one job per
-  # night must prove the same code boots and serves on workerd. It is allowed
-  # to be red for the runtime reason alone — the step prints the distinction —
-  # but a genuine application break here is a real signal.
+  # night must prove the same code boots and serves on workerd.
+  # DEC-019-B / INC-111 — the worker's compatibility_date is now PINNED in
+  # vite.config.ts (`nitro.compatibilityDate`) to a date the pinned wrangler
+  # supports, so this job RUNS instead of refusing on a calendar boundary. A
+  # refusal is therefore no longer an excused runtime class: it means the pin
+  # or the wrangler version must be bumped (together, in one landing). The job
+  # is gating.
   cloudflare-parity-smoke:
     name: Cloudflare parity smoke (wrangler-served)
     runs-on: ubuntu-latest
