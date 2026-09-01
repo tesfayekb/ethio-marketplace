@@ -534,7 +534,8 @@ export const en = {
   "admin.translations.col.language": "Language",
   "admin.translations.col.code": "Code",
   "admin.translations.col.nameEn": "English name",
-  "admin.translations.col.coverage": "Coverage",
+  "admin.translations.col.coverage": "Interface coverage",
+  "admin.translations.col.coverageData": "Content coverage",
   "admin.translations.col.admin": "Staff",
   "admin.translations.col.public": "Public",
   "admin.translations.badge.rtl": "RTL",
@@ -556,6 +557,18 @@ export const en = {
   "admin.translations.add.rtl": "Right-to-left script",
   "admin.translations.add.submit": "Add language",
   "admin.translations.add.added": "Language saved.",
+  "admin.translations.add.pick": "Language",
+  "admin.translations.add.pickPlaceholder": "Search languages",
+  "admin.translations.add.pickLoading": "Loading the provider's language list…",
+  "admin.translations.add.pickError":
+    "The provider's language list is unavailable — enter the language manually.",
+  "admin.translations.add.pickEmpty": "No languages match that search.",
+  "admin.translations.add.pickSelected": "Selected: {language}",
+  "admin.translations.add.manual": "Not listed — enter manually",
+  "admin.translations.add.fromList": "Choose from the list instead",
+  "admin.translations.add.countries": "Countries where it is spoken",
+  "admin.translations.add.countriesHint": "Optional. Used to target the language by country.",
+  "admin.translations.add.countriesLoading": "Loading countries…",
   "admin.translations.sync.title": "Sync keys",
   "admin.translations.sync.description":
     "Imports the compiled catalog: English rows are approved, every staff language gains the missing keys as untranslated.",
@@ -646,8 +659,8 @@ export const en = {
   "admin.translations.data.caption": "Category and location names for this language",
   "admin.translations.data.empty": "No content names match this filter.",
   "admin.translations.data.coverage": "{approved} of {total} content names approved.",
-  "admin.translations.data.aiDeferred":
-    "Machine translation is not available for content names yet — translate them by hand.",
+  "admin.translations.data.aiNote":
+    "Machine translations of content names are provisional — approve them before they ship.",
   "admin.translations.data.gateNote":
     "Content coverage is a meter only; publishing a language still depends on interface strings.",
   "admin.translations.col.entity": "Name",
