@@ -1658,7 +1658,7 @@ applies its stricter second condition — a `totp` amr row on the CURRENT sessio
 inside the 10-minute window (`docs/features/step-up-auth.md:136-138`) — and
 refuses with P0009.
 
-**Fix (knob-off until proved).** `injectSession` (`e2e/helpers/session.ts`) now
+**Fix (proved with DEC-029-C; see the closure note below).** `injectSession` (`e2e/helpers/session.ts`) now
 writes the grant ONCE, guarded by a `__ethio-e2e-injected` sentinel in the same
 localStorage, so the app's own client is the only writer from the first
 navigation onward; and it clears any `sb-*-stepped-up-at` hint at that moment,
@@ -1667,7 +1667,12 @@ hint, gate prompts. Neither the client gate nor the server gate is weakened.
 
 **LAW.** Credential-lifecycle tests (password rotation, signed-out assertions)
 always use UI login regardless of the knob: `signIn()` / `switchUser()` accept
-`{ uiLogin: true }` and S-3 and RP-1's sign-in calls carry it. (SCOPE NOTE: the
-option landed in `e2e/helpers/ui.ts` here; annotating the two spec call sites
-touches `e2e/settings.spec.ts` and `e2e/rbac.spec.ts`, which this task's scope
-excludes — it is the first edit of the follow-up landing.)
+`{ uiLogin: true }` and S-3's sign-in calls carry it.
+
+**CLOSURE (DEC-029-C, 2026-09-02).** The two spec call sites in
+`e2e/settings.spec.ts` (S-3) now pass `{ uiLogin: true }`, and `E2E_UI_LOGIN` is
+removed from all four E2E jobs, so injection runs in CI under the write-once
+sentinel. `e2e/rbac.spec.ts` needed no annotation: R-1 never signs in, and R-2 /
+R-3 assert rendering, not the credential. The knob stays in the harness as the
+standing rollback; the step-up families (TR-11/13/16/23/26, RP-1/4/5/11,
+IMP-1/2, AU-10, S-3) are the recurrence detector.
