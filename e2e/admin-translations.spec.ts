@@ -1159,11 +1159,16 @@ test.describe("U4f — publication gate governs language choice", () => {
     const expected = data.map((row) => row.code as string).sort();
     expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
     // U4g-6 (INC-101): EVERY fence is admin-only, not just the first one.
-    for (const fence of [FENCE_LANG, APPROVE_FENCE_LANG]) {
-      expect(expected, `the admin-only fence language ${fence} is never public`).not.toContain(
-        fence,
-      );
+    // U4g-25 (INC-115b): fences are per-project, so the assertion is by PREFIX.
+    for (const code of expected) {
+      for (const prefix of FENCE_PREFIX_LIST) {
+        expect(
+          code.startsWith(`${prefix}-`) || code === prefix,
+          `the admin-only fence language ${code} is never public`,
+        ).toBe(false);
+      }
     }
+
 
     await gotoReady(page, "/");
     await page.getByTestId("language-switcher").click();
