@@ -33,8 +33,8 @@ vi.mock("@/i18n", () => ({
 
 function openMenu() {
   const trigger = screen.getByTestId("language-switcher");
+  // Radix opens on `pointerdown`; a follow-up click would toggle it shut.
   fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false, pointerType: "mouse" });
-  fireEvent.keyDown(trigger, { key: "Enter" });
 }
 
 describe("LanguageSwitcher", () => {
