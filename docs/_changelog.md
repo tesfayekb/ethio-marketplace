@@ -258,3 +258,4 @@
 - 2026-09-01 — feat(translations): placeholder-safe MT, one-click restore, honest provenance (INC-115)
 - 2026-09-01 — test(e2e): per-project fence languages (INC-115b)
 - 2026-09-01 — fix: route-legal fence subtags; profile-edit invalidates activity (INC-115c)
+- 2026-09-01 — test(e2e): every user-detail activity assertion dumps detail + audit truth (INC-115d)

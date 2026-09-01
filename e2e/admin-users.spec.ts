@@ -137,7 +137,7 @@ async function describeAuditRows(userId: string): Promise<string> {
       .select("action, entity_type, entity_id, created_at")
       .or(`entity_id.eq.${userId},actor_id.eq.${userId}`)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(10);
     if (error) return `[INC-114] audit_log read failed: ${error.message}`;
     const rows = data ?? [];
     if (rows.length === 0) return `[INC-114] audit_log rows for ${userId}: NONE`;
@@ -150,6 +150,24 @@ async function describeAuditRows(userId: string): Promise<string> {
     ].join("\n");
   } catch (error) {
     return `[INC-114] audit_log read threw: ${(error as Error).message}`;
+  }
+}
+
+/**
+ * INC-115d — EVERY activity assertion on the user-detail surface carries the
+ * same dump, not just AU-3's. A bare "element(s) not found" cannot distinguish
+ * "no audit row was written" from "the activity RPC omits it" from "the list
+ * was never refetched"; the rethrow below reads all three in one shot.
+ */
+async function expectActivity(page: Page, action: string, userId: string) {
+  try {
+    await expect(page.getByTestId(`activity-${action}`).first()).toBeVisible({ timeout: 15000 });
+  } catch (error) {
+    throw new Error(
+      `${(error as Error).message}\n\n[INC-115d] expected activity row: ${action}\n${await describeUserDetail(
+        page,
+      )}\n${await describeAuditRows(userId)}`,
+    );
   }
 }
 
@@ -212,21 +230,11 @@ test.describe("U1 admin users", () => {
       en["admin.users.status.deactivated"],
       { timeout: 15000 },
     );
-    // INC-109 — this assertion has failed five times with nothing but
-    // "element(s) not found". No budget or assertion change: on failure the
-    // error now carries the route, the query-cache state and which of the
-    // detail testids actually rendered.
-    try {
-      await expect(page.getByTestId("activity-user.status_change").first()).toBeVisible({
-        timeout: 15000,
-      });
-    } catch (error) {
-      throw new Error(
-        `${(error as Error).message}\n\n${await describeUserDetail(page)}\n${await describeAuditRows(
-          scratch.id,
-        )}`,
-      );
-    }
+    // INC-109 / INC-115d — this assertion has failed five times with nothing
+    // but "element(s) not found". No budget or assertion change: on failure the
+    // error carries the route, the query-cache state, which detail testids
+    // rendered, and the target's audit rows.
+    await expectActivity(page, "user.status_change", scratch.id);
 
     // U1d — the deactivated user sees the banner on their own settings page.
     await switchUser(page, scratch.email, scratch.password);
@@ -296,12 +304,12 @@ test.describe("U1 admin users", () => {
     await stepUpIfPrompted(page, secret);
     await expectAal2(page);
     await expect(page.getByTestId("role-chip-moderator")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("activity-role.assign").first()).toBeVisible({ timeout: 15000 });
+    await expectActivity(page, "role.assign", scratch.id);
 
     await page.getByTestId("role-remove-moderator").click();
     await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("role-chip-moderator")).toHaveCount(0, { timeout: 15000 });
-    await expect(page.getByTestId("activity-role.revoke").first()).toBeVisible({ timeout: 15000 });
+    await expectActivity(page, "role.revoke", scratch.id);
   });
 
   test("AU-5 seam: a deactivated account cannot write a listing", async ({ page }) => {
@@ -368,9 +376,7 @@ test.describe("U1 admin users", () => {
     await expectAal2(page);
 
     await expect(page.getByTestId("edit-saved")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("activity-user.profile_edit").first()).toBeVisible({
-      timeout: 15000,
-    });
+    await expectActivity(page, "user.profile_edit", scratch.id);
 
     await page.reload();
     await waitForHydration(page);
