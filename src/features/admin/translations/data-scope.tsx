@@ -144,10 +144,12 @@ export function DataScope({
               rtl={rtl}
               mayUpdate={mayUpdate}
               mayApprove={mayApprove}
+              mayMachine={mayMachine}
               guard={guard}
             />
           ) : null
         }
+
         rowActions={(row) => (
           <Button
             type="button"
