@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/auth-service";
 import { supabase } from "@/integrations/supabase/client";
 
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
@@ -17,6 +18,21 @@ import { en } from "./locales/en";
 import { type Language, type MessageKey, type Messages } from "./types";
 
 export const LANGUAGE_STORAGE_KEY = "ethio.lang";
+
+/**
+ * U4h — THE DEVICE ★.
+ *
+ * The star is a DEVICE choice, not a session one: it must survive sign-out and
+ * session expiry, and it must be visible to the SERVER on the first byte so
+ * `<html lang|dir>` is right before React attaches. That needs BOTH stores:
+ *  - `localStorage` — the durable client record (survives cookie clearing of
+ *    session cookies, and is the one the client reads first);
+ *  - a plain cookie — the only channel SSR can read. It carries a language
+ *    CODE and nothing else: no secrets, `SameSite=Lax`, one year, path `/`.
+ */
+export const LANGUAGE_STAR_STORAGE_KEY = "ethio.lang.star";
+export const LANGUAGE_STAR_COOKIE = "ethio_lang_star";
+const STAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 /** The base language: the last-resort catalog and the refusal fallback (U4f). */
 export const BASE_LANGUAGE: Language = "en";
@@ -40,6 +56,47 @@ const loaders: Partial<Record<string, () => Promise<Messages>>> = {
  */
 function isLanguageCode(value: string | null): value is Language {
   return value !== null && /^[a-z]{2,8}(-[a-z]{2,8})?$/i.test(value);
+}
+
+/**
+ * The device ★, read from the durable client record first and from the SSR
+ * cookie second (a browser that lost `localStorage` still keeps its star).
+ * SHAPE validation only — the publication gate reconciles afterwards, exactly
+ * as it does for every other language source.
+ */
+export function readDeviceStar(): string | null {
+  let stored: string | null = null;
+  try {
+    stored = window.localStorage.getItem(LANGUAGE_STAR_STORAGE_KEY);
+  } catch {
+    stored = null;
+  }
+  if (isLanguageCode(stored)) return stored;
+  try {
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${LANGUAGE_STAR_COOKIE}=([^;]*)`));
+    const fromCookie = match ? decodeURIComponent(match[1] ?? "") : null;
+    if (isLanguageCode(fromCookie)) return fromCookie;
+  } catch {
+    /* no document/cookie access (SSR, or a locked-down embed) */
+  }
+  return null;
+}
+
+/** Writes (or clears) the device ★ in BOTH stores. Never throws. */
+function writeDeviceStar(code: string | null): void {
+  try {
+    if (code === null) window.localStorage.removeItem(LANGUAGE_STAR_STORAGE_KEY);
+    else window.localStorage.setItem(LANGUAGE_STAR_STORAGE_KEY, code);
+  } catch {
+    /* private mode: the cookie below still carries the star */
+  }
+  try {
+    const value = code === null ? "" : encodeURIComponent(code);
+    const age = code === null ? 0 : STAR_COOKIE_MAX_AGE;
+    document.cookie = `${LANGUAGE_STAR_COOKIE}=${value}; Path=/; Max-Age=${age}; SameSite=Lax`;
+  } catch {
+    /* no cookie access; the localStorage record still answers on this device */
+  }
 }
 
 /**
@@ -143,6 +200,10 @@ type I18nValue = {
   entities: EntityBundle;
   /** U4f — the publication gate's own list; the switcher renders exactly this. */
   publicLanguages: PublicLanguage[];
+  /** U4h — the DEVICE ★: the one favourite, or null when the device never chose. */
+  star: string | null;
+  /** U4h — star a language: it becomes the device default AND the active language. */
+  setStar: (code: Language) => void;
 };
 
 const I18nContext = createContext<I18nValue | null>(null);
@@ -205,8 +266,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   // waits on the network: nothing here gates the tree.
   const [publicLanguages, setPublicLanguages] = useState<PublicLanguage[]>(SEED_PUBLIC_LANGUAGES);
   const [gateReady, setGateReady] = useState(false);
+  /** U4h — the device ★ (null until the boot read runs; SSR never reads storage). */
+  const [star, setStarState] = useState<string | null>(null);
+  /** U4h — the boot read has run, so "no star" now MEANS no star. */
+  const [bootRead, setBootRead] = useState(false);
   /** Loop guard (INC-098b): the gate revokes an unpublished language AT MOST once. */
   const reconciledRef = useRef(false);
+  /** U4h — the account carry is applied AT MOST once per mount. */
+  const accountSyncedRef = useRef(false);
   /** INC-107 — one warning per DB-only language, never one per effect run. */
   const warnedMissingRef = useRef<Set<string>>(new Set());
   const authSettled = useAuthSettled();
@@ -280,15 +347,55 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [gateReady, isPublic],
   );
 
-  // Restore the requested choice after hydration: URL override first, then the
-  // persisted preference. INC-107: neither source is validated against the
-  // COMPILED registry — a DB-only language is a legitimate preference — only
-  // against the code SHAPE here and against the publication gate below.
+  /**
+   * U4h — STAR A LANGUAGE. One favourite: the setter REPLACES, never appends,
+   * so the one-favourite invariant is structural rather than policed.
+   *
+   * Starring also SELECTS (the operator's spec: the star is the default, and a
+   * default you cannot see is not a default), and syncs UP to the account
+   * fire-and-forget when a session exists. The DB is the authority on whether
+   * the code may be stored at all; the client only pre-checks the same gate it
+   * already renders, so an unpublished code never reaches the RPC.
+   */
+  const setStar = useCallback(
+    (code: Language) => {
+      if (gateReady && !isPublic(code)) {
+        console.warn(`[i18n] language "${code}" is not published — star refused`);
+        return;
+      }
+      setStarState(code);
+      writeDeviceStar(code);
+      setLanguage(code);
+      void savePreferredLanguage(code).then((result) => {
+        // Signed out is the ORDINARY case for a device star, not a failure.
+        if (!result.ok && result.reason !== "no session") {
+          console.warn(`[i18n] account language sync failed for ${code}: ${result.reason}`);
+        }
+      });
+    },
+    [gateReady, isPublic, setLanguage],
+  );
+
+  // Restore the requested choice after hydration. PRECEDENCE (U4h):
+  //   URL override  ▸  device ★  ▸  last used language  ▸  base
+  // The account preference is NOT in this chain: it is a carry applied by the
+  // effect below, and only onto a device that never starred anything.
+  // INC-107: no source is validated against the COMPILED registry — a DB-only
+  // language is a legitimate preference — only against the code SHAPE here and
+  // against the publication gate below.
   useEffect(() => {
     const fromUrl = requestedFromUrl();
+    const deviceStar = readDeviceStar();
+    if (deviceStar !== null) setStarState(deviceStar);
+    setBootRead(true);
+
     if (fromUrl !== null) {
       if (isLanguageCode(fromUrl)) setLanguageState(fromUrl);
       else console.warn(`[i18n] language "${fromUrl}" is not published — falling back to base`);
+      return;
+    }
+    if (deviceStar !== null) {
+      setLanguageState(deviceStar as Language);
       return;
     }
     let stored: string | null = null;
@@ -300,13 +407,43 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (isLanguageCode(stored) && stored !== BASE_LANGUAGE) setLanguageState(stored);
   }, []);
 
-  // Whatever the source (switcher, storage, URL), an active language that the
-  // gate does not bless is revoked ONCE, as soon as the gate answers
-  // (INC-098b): equality-guarded, persisted, and ref-latched so the effect
-  // cannot re-fire into a loop. Rendering never waited on this.
+  /**
+   * U4h — THE ACCOUNT CARRY (secondary, applied at most once).
+   *
+   * Runs only on a device with NO star. The account's language is applied AND
+   * immediately written as the device star, which is what makes it survive the
+   * next sign-out and session expiry: after this, the device owns the choice.
+   * A device that already starred something is never overwritten by an account.
+   */
   useEffect(() => {
-    if (!gateReady || reconciledRef.current) return;
+    if (!bootRead || !authSettled || accountSyncedRef.current) return;
+    if (star !== null) return;
+    accountSyncedRef.current = true;
+    void fetchPreferredLanguage().then(({ code, reason }) => {
+      if (reason !== null) {
+        if (reason !== "no session") console.warn(`[i18n] account language read failed: ${reason}`);
+        return;
+      }
+      if (!isLanguageCode(code)) return;
+      setStarState(code);
+      writeDeviceStar(code);
+      setLanguageState(code);
+    });
+  }, [bootRead, authSettled, star]);
+
+  // Whatever the source (switcher, storage, URL, account carry), an active
+  // language that the gate does not bless is revoked ONCE, as soon as the gate
+  // answers (INC-098b): equality-guarded, persisted, and ref-latched so the
+  // effect cannot re-fire into a loop. Rendering never waited on this.
+  // U4h: a revoked language that was ALSO the device star clears the star, so
+  // the next load does not resurrect it.
+  useEffect(() => {
+    if (!gateReady || !bootRead || reconciledRef.current) return;
     reconciledRef.current = true;
+    if (star !== null && star !== BASE_LANGUAGE && !isPublic(star)) {
+      setStarState(null);
+      writeDeviceStar(null);
+    }
     if (language === BASE_LANGUAGE || isPublic(language)) return;
     console.warn(`[i18n] language "${language}" is not published — falling back to base`);
     setLanguageState(BASE_LANGUAGE);
@@ -315,7 +452,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {
       // Storage unavailable; the revocation still applies for this session.
     }
-  }, [gateReady, isPublic, language]);
+  }, [gateReady, bootRead, isPublic, language, star]);
 
   // Load the active locale only.
   useEffect(() => {
@@ -373,9 +510,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     };
   }, [language, authSettled]);
 
+  // U4h — `lang` AND `dir` follow the active language; direction comes from the
+  // gate row, so a future RTL language needs no code change here. The server
+  // already emitted both from the star cookie; this is the reconciliation.
   useEffect(() => {
+    const rtl = publicLanguages.find((row) => row.code === language)?.rtl ?? false;
     document.documentElement.lang = language;
-  }, [language]);
+    document.documentElement.dir = rtl ? "rtl" : "ltr";
+  }, [language, publicLanguages]);
 
   // U4g-21 (INC-113) — the gate snapshot an E2E failure dump reads. Mirrored
   // state only: nothing in the app reads it, and it is written, never watched.
@@ -383,9 +525,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] = {
       gateReady,
       active: language,
+      star,
       codes: publicLanguages.map((row) => row.code),
     };
-  }, [gateReady, language, publicLanguages]);
+  }, [gateReady, language, publicLanguages, star]);
 
   const value = useMemo<I18nValue>(
     () => ({
@@ -394,8 +537,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       t: (key: MessageKey) => messages[key] ?? en[key],
       entities,
       publicLanguages,
+      star,
+      setStar,
     }),
-    [language, setLanguage, messages, entities, publicLanguages],
+    [language, setLanguage, messages, entities, publicLanguages, star, setStar],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

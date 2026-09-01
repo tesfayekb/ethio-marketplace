@@ -1,4 +1,12 @@
-export { I18nProvider, useI18n, LANGUAGE_STORAGE_KEY, BASE_LANGUAGE } from "./provider";
+export {
+  I18nProvider,
+  useI18n,
+  LANGUAGE_STORAGE_KEY,
+  LANGUAGE_STAR_STORAGE_KEY,
+  LANGUAGE_STAR_COOKIE,
+  BASE_LANGUAGE,
+  readDeviceStar,
+} from "./provider";
 export type { PublicLanguage } from "./provider";
 
 export { SUPPORTED_LANGUAGES } from "./types";

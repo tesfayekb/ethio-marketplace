@@ -410,3 +410,44 @@ export async function completePasswordReset(newPassword: string): Promise<AuthRe
   if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
   return { ok: true };
 }
+
+/**
+ * U4h — THE ACCOUNT-SYNC SEAM (secondary to the device ★).
+ *
+ * The account's `preferred_language` is a CARRY, not the authority: it fills a
+ * device that has never expressed a star. The provider owns the precedence;
+ * these two calls are the only DB seam it uses.
+ *
+ * Law F4 — never a silent swallow: both return a discriminated result and the
+ * caller logs one named line.
+ */
+export async function fetchPreferredLanguage(): Promise<
+  { code: string | null; reason: null } | { code: null; reason: string }
+> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user?.id;
+  if (!userId) return { code: null, reason: "no session" };
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("preferred_language")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) return { code: null, reason: error.message };
+  return { code: data?.preferred_language ?? null, reason: null };
+}
+
+/**
+ * Pushes the device ★ up to the account. Own-row only and publication-gated in
+ * the database (`user_set_preferred_language`); the client never decides.
+ */
+export async function savePreferredLanguage(
+  code: string | null,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session) return { ok: false, reason: "no session" };
+
+  const { error } = await supabase.rpc("user_set_preferred_language", { p_code: code as string });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true };
+}

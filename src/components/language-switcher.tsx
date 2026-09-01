@@ -1,4 +1,4 @@
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Star } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -33,7 +33,7 @@ const SHORT_KEYS = {
  * consumer of a gated list must read the gate.
  */
 export function LanguageSwitcher({ className }: { className?: string }) {
-  const { language, setLanguage, t, publicLanguages } = useI18n();
+  const { language, setLanguage, t, publicLanguages, star, setStar } = useI18n();
 
   const shortKey = SHORT_KEYS[language as keyof typeof SHORT_KEYS];
   const fullKey = LABEL_KEYS[language as keyof typeof LABEL_KEYS];
@@ -74,11 +74,13 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           .sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code))
           .map((row) => {
             const key = LABEL_KEYS[row.code as keyof typeof LABEL_KEYS];
+            const starred = star === row.code;
             return (
               <DropdownMenuItem
                 key={row.code}
                 lang={row.code}
                 data-testid={`language-option-${row.code}`}
+                className="min-h-11 gap-2 pe-1"
                 onSelect={() => setLanguage(row.code as Language)}
               >
                 <Check
@@ -88,7 +90,32 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                     row.code === language ? "opacity-100" : "opacity-0",
                   )}
                 />
-                {key ? t(key) : row.name_native}
+                <span className="flex-1 truncate">{key ? t(key) : row.name_native}</span>
+                {/* U4h — the DEVICE ★. One favourite: `aria-pressed` is true on
+                    exactly one row because the provider's setter REPLACES the
+                    star rather than appending to a set. The click never reaches
+                    the menu item's own select handler — starring already
+                    selects, and a double-apply would fight it. */}
+                <button
+                  type="button"
+                  data-testid={`language-star-${row.code}`}
+                  aria-pressed={starred}
+                  aria-label={t(starred ? "language.starred" : "language.star")}
+                  title={t(starred ? "language.starred" : "language.star")}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setStar(row.code as Language);
+                  }}
+                  className={cn(
+                    "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md",
+                    "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    starred ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  <Star aria-hidden="true" className={cn("h-4 w-4", starred && "fill-current")} />
+                </button>
               </DropdownMenuItem>
             );
           })}
