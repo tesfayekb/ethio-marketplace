@@ -1,11 +1,7 @@
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 
-import {
-  PSEUDO_LANG,
-  PSEUDO_LANG_NAME_EN,
-  PSEUDO_LANG_NAME_NATIVE,
-} from "./pseudo";
+import { PSEUDO_LANG, PSEUDO_LANG_NAME_EN, PSEUDO_LANG_NAME_NATIVE } from "./pseudo";
 
 /**
  * U4b — the Translations console's client seam.
@@ -66,7 +62,6 @@ export interface TranslationRow {
   /** U4i ① — the translator note, stored once on the BASE row of the key. */
   context: string;
 }
-
 
 export interface TranslationPage {
   rows: TranslationRow[];
@@ -164,7 +159,6 @@ export async function listTranslations({
       approvedAt: row.approved_at ?? null,
       orphaned: row.orphaned,
       context: row.context ?? "",
-
     })),
     totalCount: first ? Number(first.total_count) : 0,
   };

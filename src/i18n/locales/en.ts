@@ -646,7 +646,8 @@ export const en = {
   "admin.translations.editor.usedOnUnknown": "Used on: checking…",
   "admin.translations.editor.usedOnDynamic": "Used on: dynamic — no literal call site found.",
   // U4i ③ — advisory length warning; never a flag, never a block.
-  "admin.translations.editor.lengthWarning": "Long: {ratio}× the English source — check the layout.",
+  "admin.translations.editor.lengthWarning":
+    "Long: {ratio}× the English source — check the layout.",
   // U4i ⑤ — CSV / XLIFF export and import.
   "admin.translations.transfer.title": "Export / import",
   "admin.translations.transfer.note":

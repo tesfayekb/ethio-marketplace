@@ -57,8 +57,7 @@ export function TransferBar({
   }));
 
   const download = (format: TransferFormat) => {
-    const text =
-      format === "csv" ? toCsv(transferRows) : toXliff(transferRows, baseLang, lang);
+    const text = format === "csv" ? toCsv(transferRows) : toXliff(transferRows, baseLang, lang);
     // A Blob URL keeps Ge'ez intact (UTF-8) where a data: URI would need escaping.
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
     const anchor = document.createElement("a");

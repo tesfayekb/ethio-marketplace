@@ -59,7 +59,8 @@ function walk(dir: string, out: string[] = []): string[] {
 function surfaceFor(file: string): string {
   const rel = relative(SRC, file).split(sep).join("/");
   if (rel === "routes/__root.tsx") return "(every page)";
-  if (rel.startsWith("routes/api/")) return `/${rel.slice("routes/".length).replace(/\.tsx?$/, "")}`;
+  if (rel.startsWith("routes/api/"))
+    return `/${rel.slice("routes/".length).replace(/\.tsx?$/, "")}`;
   if (rel.startsWith("routes/")) {
     const name = rel.slice("routes/".length).replace(/\.tsx?$/, "");
     const path = name

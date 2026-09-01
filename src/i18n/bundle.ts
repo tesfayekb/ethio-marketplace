@@ -44,7 +44,6 @@ export function bundleUrl(lang: string): string {
   return `/api/i18n/${encodeURIComponent(lang)}`;
 }
 
-
 /**
  * U4d — the ENTITY bundle reader. Same law as the UI bundle: approved rows
  * only, anon-callable, and a `{}` answer simply means "keep the column/base
@@ -118,4 +117,3 @@ export async function fetchUiBundle(lang: string): Promise<BundleResult> {
   if (error) return { bundle: null, reason: error.message };
   return shapeBundle(data);
 }
-
