@@ -1480,6 +1480,24 @@ test.describe("U4h device language star", () => {
   test("TR-28 hreflang alternates equal the anon publication gate", async ({ page }) => {
     await gotoReady(page, "/");
 
+    /**
+     * INC-121 (d) — READ THE GATE WHEN IT HAS ANSWERED, NOT WHEN IT IS SEEDED.
+     * The provider mirrors its snapshot from the FIRST frame, where the list is
+     * still the compiled seed (`["en"]`); the emission is the product of the
+     * SSR loader's gate read (en + am), so an immediate read compared a settled
+     * document against an unsettled mirror. The mirror carries `gateReady`
+     * exactly so a reader can wait for truth (J7: poll on truth, no sleep).
+     */
+    await page.waitForFunction(
+      () => {
+        const value = (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] as
+          | { gateReady?: boolean; codes?: string[] }
+          | undefined;
+        return value?.gateReady === true && (value.codes?.length ?? 0) > 0;
+      },
+      undefined,
+      { timeout: 15000 },
+    );
     const gate = await page.evaluate(() => {
       const value = (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] as
         | { codes: string[] }
@@ -1488,10 +1506,15 @@ test.describe("U4h device language star", () => {
     });
     expect(gate.length, await describeSwitcher(page)).toBeGreaterThan(0);
 
+    // Both sides normalised the same way: lower-cased, de-duplicated, sorted.
+    const normalise = (codes: string[]) =>
+      [...new Set(codes.map((code) => code.toLowerCase()))].sort();
     const alternates = await page
       .locator("link[rel='alternate']")
       .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("hreflang") ?? ""));
-    expect([...alternates].sort()).toEqual([...gate, "x-default"].sort());
+    expect(normalise(alternates), await describeSwitcher(page)).toEqual(
+      normalise([...gate, "x-default"]),
+    );
 
     // G1 — absolute URLs only.
     const hrefs = await page
@@ -1499,4 +1522,5 @@ test.describe("U4h device language star", () => {
       .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href") ?? ""));
     for (const href of hrefs) expect(href).toMatch(/^https?:\/\//);
   });
+
 });
