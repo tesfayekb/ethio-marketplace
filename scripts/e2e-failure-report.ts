@@ -28,7 +28,15 @@
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 
-const OUT = "docs/tracking/e2e-last-failure.md";
+/**
+ * INC-108 — THE OUTPUT PATH AND THE SOURCE LABEL ARE INPUTS, NOT CONSTANTS.
+ * The nightly runs the same reporter over its own artifacts and commits the
+ * evidence next to its heartbeat, so the destination file (E2E_OUT_PATH) and
+ * the single-source label (E2E_SOURCE_LABEL, e.g. `nightly`) are read from the
+ * environment. Defaults are the per-push contract, unchanged.
+ */
+const OUT = process.env["E2E_OUT_PATH"] ?? "docs/tracking/e2e-last-failure.md";
+const SINGLE_SOURCE_LABEL = process.env["E2E_SOURCE_LABEL"] ?? "all";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
 /** INC-084g — the describe-nested shape, captured from a real Playwright run. */
@@ -1113,7 +1121,7 @@ async function main() {
     const parsed = await readJson(path);
     if (parsed.json && countTests(parsed.json) > 0) found += 1;
     sources.push({
-      label: "all",
+      label: SINGLE_SOURCE_LABEL,
       json: parsed.json,
       logTail: parsed.error,
       serverErrors: [],
