@@ -806,7 +806,8 @@ function StringEditor({
             onClick={() =>
               run(async () => {
                 const result = await ai.mutateAsync([
-                  { key: row.key, source: row.sourceValue ?? "" },
+                  // U4i ① — the note rides along to the provider boundary.
+                  { key: row.key, source: row.sourceValue ?? "", context: row.context },
                 ]);
                 const failure = result.failed[0];
                 // F4 — a per-item refusal is an ERROR here, never a quiet no-op.
