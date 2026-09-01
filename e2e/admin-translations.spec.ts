@@ -983,7 +983,9 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, "/admin/translations/am?scope=data");
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(name);
-      const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-location-${id}-name`));
+      const row = translationsSurface(page).getByTestId(
+        rowTestId(page, `entity-row-location-${id}-name`),
+      );
       await expect(row).toBeVisible({ timeout: 20000 });
 
       await surfaceControl(page, `entity-expand-location-${id}-name`).click();
@@ -992,7 +994,9 @@ test.describe("U4b translations console", () => {
       await editor.getByTestId(`entity-input-location-${id}-name`).fill(marker);
       await editor.getByTestId(`entity-save-location-${id}-name`).click();
       await stepUpIfPrompted(page, secret);
-      await expect(editor.getByTestId(`entity-saved-location-${id}-name`)).toBeVisible({ timeout: 20000 });
+      await expect(editor.getByTestId(`entity-saved-location-${id}-name`)).toBeVisible({
+        timeout: 20000,
+      });
 
       await expect
         .poll(
@@ -1098,15 +1102,21 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(one.name);
-      const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-location-${one.id}-name`));
+      const row = translationsSurface(page).getByTestId(
+        rowTestId(page, `entity-row-location-${one.id}-name`),
+      );
       await expect(row).toBeVisible({ timeout: 20000 });
-      await expect(row.getByTestId(`entity-status-location-${one.id}-name`)).toHaveText(/untranslated/i);
+      await expect(row.getByTestId(`entity-status-location-${one.id}-name`)).toHaveText(
+        /untranslated/i,
+      );
       await surfaceControl(page, `entity-expand-location-${one.id}-name`).click();
       const editor = surfaceControl(page, `entity-editor-location-${one.id}-name`);
       await expect(editor).toBeVisible();
       await editor.getByTestId(`entity-ai-location-${one.id}-name`).click();
       await stepUpIfPrompted(page, secret);
-      await expect(editor.getByTestId(`entity-saved-location-${one.id}-name`)).toBeVisible({ timeout: 30000 });
+      await expect(editor.getByTestId(`entity-saved-location-${one.id}-name`)).toBeVisible({
+        timeout: 30000,
+      });
       await expect
         .poll(() => machineStatus(one.id), {
           timeout: 20000,

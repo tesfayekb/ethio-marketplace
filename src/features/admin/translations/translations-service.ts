@@ -484,7 +484,6 @@ export function entityRowSlug(row: {
   return `${row.entityType}-${row.entityId}-${row.field}`;
 }
 
-
 export interface EntityTranslationPage {
   rows: EntityTranslationRow[];
   totalCount: number;
