@@ -1704,11 +1704,13 @@ test.describe("U4g bulk approval, order and orphans", () => {
    * the same bytes and cannot race each other's assertions. The writes are
    * TABLE writes through the service client; the gated RPC is the app's seam.
    */
-  test("TR-22 a published DB-only language renders with no compiled catalog", async ({
+  test("TR-22 a published DB-only language renders with no compiled catalog @global-state", async ({
     page,
     clientErrors,
   }) => {
+    test.info().annotations.push({ type: "global-state", description: "INC-117" });
     test.setTimeout(120_000);
+
     const supabase = adminClient();
     const fence = bulkFence();
     await ensureFenceLanguage(fence);
