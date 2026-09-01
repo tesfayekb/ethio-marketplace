@@ -223,11 +223,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   // Restore the requested choice after hydration: URL override first, then the
-  // persisted preference. Both are validated against the gate below.
+  // persisted preference. INC-107: neither source is validated against the
+  // COMPILED registry — a DB-only language is a legitimate preference — only
+  // against the code SHAPE here and against the publication gate below.
   useEffect(() => {
     const fromUrl = requestedFromUrl();
     if (fromUrl !== null) {
-      if (isLanguage(fromUrl)) setLanguageState(fromUrl);
+      if (isLanguageCode(fromUrl)) setLanguageState(fromUrl);
       else console.warn(`[i18n] language "${fromUrl}" is not published — falling back to base`);
       return;
     }
@@ -237,8 +239,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {
       stored = null;
     }
-    if (isLanguage(stored) && stored !== BASE_LANGUAGE) setLanguageState(stored);
+    if (isLanguageCode(stored) && stored !== BASE_LANGUAGE) setLanguageState(stored);
   }, []);
+
 
   // Whatever the source (switcher, storage, URL), an active language that the
   // gate does not bless is revoked ONCE, as soon as the gate answers
