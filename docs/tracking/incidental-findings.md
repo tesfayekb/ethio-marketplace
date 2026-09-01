@@ -1243,12 +1243,14 @@ worker; the exposure is the request itself, which was cacheable by the HTTP
 cache and by any intermediary, and would be matched by a future worker route.
 
 FIX: the public-list read is uncacheable BY CONSTRUCTION — `cache: "no-store"`,
-`cache-control: no-cache`, and a per-request busting parameter (`_ts`) keyed to
-the request. The invariant is stated in the code beside the fetch. TR-22 and
-TR-17 now dump the provider's own `publicLanguages` snapshot
-(`window.__ethioPublicLanguages`: gateReady, active language, codes) plus the
-rendered options through `describeSwitcher(page)` in `e2e/helpers/ui.ts`, so a
-missing option names the seam (gate vs render) instead of timing out bare.
+`cache-control: no-cache`. NO query-string busting is used: PostgREST treats
+unknown query parameters as column filters, so a `_ts` parameter caused a 400
+and broke the gate read entirely (INC-113b). The invariant is stated in the code
+beside the fetch. TR-22 and TR-17 now dump the provider's own `publicLanguages`
+snapshot (`window.__ethioPublicLanguages`: gateReady, active language, codes)
+plus the rendered options through `describeSwitcher(page)` in
+`e2e/helpers/ui.ts`, so a missing option names the seam (gate vs render) instead
+of timing out bare.
 
 RULES:
 
@@ -1256,6 +1258,11 @@ RULES:
   and the rows the action touches are the SAME definition, in one place; two
   copies that agree today are a drift, not a coincidence.
 - GATE LISTS ARE NEVER CACHED ACROSS LOADS — publication, permission and other
-  gate reads are fetched `no-store` with their own busting key, and no caching
+  gate reads are fetched `no-store` with a `no-cache` header, and no caching
   layer (HTTP, intermediary, service worker) may answer them; an operator
-  decision must be visible on the next page load.
+  decision must be visible on the next page load. Busting must NOT be done with
+  a query parameter that PostgREST would interpret as a column filter.
+- GATE FETCH FAILURES SURFACE AND RETRY — a non-2xx gate read logs
+  `[client-error] gate fetch failed` with status and a 200-character body preview,
+  retries once, and only then falls back to the seed list; the fallback is never
+  silent (law F4).
