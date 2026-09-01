@@ -23,6 +23,7 @@ import { ApproveAllBar } from "./approve-bar";
 import { DataScope } from "./data-scope";
 import { HistoryDrawer } from "./history-drawer";
 import {
+  pickEntityStats,
   serverMessage,
   translationErrorKey,
   type LanguageRow,
@@ -34,6 +35,7 @@ import {
   useMyTranslatorLanguages,
   useSaveTranslation,
   useTranslationStatusAction,
+  useEntityTranslationStats,
   useTranslations,
   useTranslationStats,
 } from "./use-translations";
@@ -98,6 +100,8 @@ export function AdminTranslationsStringsPage({
 
   const languages = useLanguages();
   const stats = useTranslationStats(lang);
+  /** U4k — the CONTENT meter, so untranslated data work is visible on arrival. */
+  const entityStats = useEntityTranslationStats(lang);
   const scope = useMyTranslatorLanguages(!mayManage && (mayUpdate || mayApprove));
 
   const viewScope = search.scope === "data" ? "data" : "interface";
@@ -200,6 +204,7 @@ export function AdminTranslationsStringsPage({
     orphaned: langStats?.orphaned ?? 0,
   };
   const reviewable = langStats?.reviewable ?? 0;
+  const dataStats = pickEntityStats(entityStats.data, lang);
 
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
@@ -233,6 +238,15 @@ export function AdminTranslationsStringsPage({
             {t("admin.translations.coverage")
               .replace("{approved}", String(counts["approved"] ?? 0))
               .replace("{total}", String(counts["all"] ?? 0))}
+          </p>
+
+          {/* U4k — both meters side by side: interface AND content names. */}
+          <p data-testid="strings-meters" className="text-sm text-muted-foreground">
+            {t("admin.translations.meters")
+              .replace("{uiApproved}", String(counts["approved"] ?? 0))
+              .replace("{uiTotal}", String(counts["all"] ?? 0))
+              .replace("{dataApproved}", String(dataStats?.approved ?? 0))
+              .replace("{dataTotal}", String(dataStats?.total ?? 0))}
           </p>
 
           <div
@@ -287,7 +301,7 @@ export function AdminTranslationsStringsPage({
                 status="all"
                 query={query}
                 mayUpdate={mayUpdate}
-                mayApprove={mayApprove}
+                mayApprove={mayApprove && !(known?.isBase ?? false)}
                 mayMachine={mayMachine && !(known?.isBase ?? false)}
                 guard={guard}
               />

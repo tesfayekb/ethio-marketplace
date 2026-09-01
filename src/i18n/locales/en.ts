@@ -701,7 +701,8 @@ export const en = {
   "admin.translations.approve.entityConfirmBody":
     "{count} content names will go live for this language.",
   "admin.translations.approve.entitySummary": "{approved} content names approved.",
-  "admin.translations.meters": "Interface {uiApproved}/{uiTotal} · Content {dataApproved}/{dataTotal}",
+  "admin.translations.meters":
+    "Interface {uiApproved}/{uiTotal} · Content {dataApproved}/{dataTotal}",
   "admin.translations.order.up": "Move {language} up",
   "admin.translations.order.down": "Move {language} down",
   "admin.translations.order.note":

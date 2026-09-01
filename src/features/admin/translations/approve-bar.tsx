@@ -163,10 +163,7 @@ export function ApproveAllBar({
             <AlertDialogCancel data-testid={testid("approve-all-cancel")}>
               {t("admin.translations.approve.cancel")}
             </AlertDialogCancel>
-            <AlertDialogAction
-              data-testid={testid("approve-all-confirm-run")}
-              onClick={start}
-            >
+            <AlertDialogAction data-testid={testid("approve-all-confirm-run")} onClick={start}>
               {t("admin.translations.approve.confirmCta").replace("{count}", String(reviewable))}
             </AlertDialogAction>
           </AlertDialogFooter>

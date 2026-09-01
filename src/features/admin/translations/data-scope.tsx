@@ -196,7 +196,6 @@ export function DataScope({
         ) : null}
       </div>
 
-
       <DataTable
         columns={dataColumns(t, rtl)}
         rows={rows}
