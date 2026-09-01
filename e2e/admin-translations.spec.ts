@@ -149,7 +149,20 @@ function scratchKey(tag: string): string {
  * sharing one fence is the same collision the fence exists to prevent, so the
  * helper takes the code and every sweep names its own.
  */
-async function ensureFenceLanguage(code: string = fence) {
+/**
+ * U4g-25 (INC-115b) — the fence carries the PROJECT axis: a sweep test running
+ * on two viewports is two sweeps, so each Playwright project sweeps its own
+ * language (`zxx-m`/`zxx-d`, `zxy-m`/`zxy-d`).
+ */
+function bulkFence(): string {
+  return fenceLang("bulk", test.info().project.name);
+}
+
+function approveFence(): string {
+  return fenceLang("approve", test.info().project.name);
+}
+
+async function ensureFenceLanguage(code: string) {
   const { error } = await adminClient()
     .from("languages")
     .upsert(
@@ -642,7 +655,8 @@ test.describe("U4b translations console", () => {
     test.setTimeout(120_000);
     // INC-097d — the bulk is a SWEEP: it must run inside the fence language,
     // never on `am`, where it would translate sibling tests' scratch rows.
-    await ensureFenceLanguage();
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
     const base = scratchKey("tr12");
     const keys = [`${base}-b1`, `${base}-b2`, `${base}-b3`];
     for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`, fence);
@@ -1209,6 +1223,7 @@ test.describe("U4f — publication gate governs language choice", () => {
 test.describe("U4g bulk approval, order and orphans", () => {
   test("TR-19 approve-all approves reviewed rows and skips flagged ones", async ({ page }) => {
     test.setTimeout(120_000);
+    const fence = approveFence();
     await ensureFenceLanguage(fence);
     // U4g-6 (INC-101): approve-all is a SWEEP — it owns its own fence so it can
     // never approve TR-12's pending rows in the shared one.
@@ -1355,7 +1370,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
   test("TR-20 roster order is operator-editable and persists", async ({ page }) => {
     test.setTimeout(120_000);
-    await ensureFenceLanguage();
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
     const supabase = adminClient();
     const { data: before, error: beforeError } = await supabase
       .from("languages")
@@ -1485,7 +1501,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
   test("TR-21 a key missing from the synced catalog is orphaned and excluded", async ({ page }) => {
     test.setTimeout(120_000);
-    await ensureFenceLanguage();
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
     const supabase = adminClient();
     const key = scratchKey("tr21");
     await seedScratchKey(key, "Orphan source", fence);
@@ -1587,7 +1604,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
   }) => {
     test.setTimeout(120_000);
     const supabase = adminClient();
-    await ensureFenceLanguage();
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
 
     // Three REAL chrome keys, translated inside the fence only. `zxx` is a
     // language no operator and no other spec renders, so these rows are not a
