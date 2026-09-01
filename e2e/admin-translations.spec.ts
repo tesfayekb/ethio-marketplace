@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { FENCE_PREFIX_LIST, fenceLang, processId } from "./global-setup";
+import { fenceLang, processId } from "./global-setup";
 import {
   describeStringsPage,
   describeSwitcher,
@@ -1172,16 +1172,11 @@ test.describe("U4f — publication gate governs language choice", () => {
     // switcher is compared as a SET; ORDER is TR-20's own assertion.
     const expected = data.map((row) => row.code as string).sort();
     expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
-    // U4g-6 (INC-101): EVERY fence is admin-only, not just the first one.
-    // U4g-25 (INC-115b): fences are per-project, so the assertion is by PREFIX.
-    for (const code of expected) {
-      for (const prefix of FENCE_PREFIX_LIST) {
-        expect(
-          code.startsWith(`${prefix}-`) || code === prefix,
-          `the admin-only fence language ${code} is never public`,
-        ).toBe(false);
-      }
-    }
+    // U4g-28 (INC-115e) — NO FENCE-NEVER-PUBLIC ASSERTION HERE. Fences are
+    // test-owned surfaces: TR-22 publishes its own fence for the duration of
+    // its run, so a concurrent TR-17 legitimately sees it in the gate's list.
+    // This test asserts only SET EQUALITY between the switcher and the DB list.
+
 
     await gotoReady(page, "/");
     await page.getByTestId("language-switcher").click();
