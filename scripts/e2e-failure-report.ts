@@ -569,7 +569,9 @@ export function renderSources(
     // gate) with every concurrent project, so its red can be an artefact of a
     // sibling's legitimate mutation. The reporter LABELS it; gating stays with
     // the operator until the DEC-026 component-test layer covers the logic.
-    const quarantined = f.title.includes("@global-state");
+    // DEC-028 makes that formal: the label ALSO removes the failure from the
+    // verdict (see classifyFailures + the verdict file written by main).
+    const quarantined = isQuarantined(f.title);
     lines.push(
       `## ${f.title}`,
       "",
