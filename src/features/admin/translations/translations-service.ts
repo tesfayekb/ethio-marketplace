@@ -589,3 +589,34 @@ export async function listTranslationRevisions(input: {
     changedAt: row.changed_at,
   }));
 }
+
+/**
+ * U4j — the DATA coverage meter. Same universe as
+ * `admin_list_entity_translations` (active categories + active locations,
+ * field `name`), so the meter and the list can never disagree.
+ */
+export interface EntityTranslationStats {
+  langCode: string;
+  total: number;
+  approved: number;
+  machineCount: number;
+  edited: number;
+  untranslated: number;
+}
+
+export async function listEntityTranslationStats(
+  lang?: string,
+): Promise<EntityTranslationStats[]> {
+  const { data, error } = await supabase.rpc("admin_entity_translation_stats", {
+    ...(lang ? { p_lang: lang } : {}),
+  });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    langCode: row.lang_code,
+    total: Number(row.total),
+    approved: Number(row.approved),
+    machineCount: Number(row.machine_count),
+    edited: Number(row.edited),
+    untranslated: Number(row.untranslated),
+  }));
+}
