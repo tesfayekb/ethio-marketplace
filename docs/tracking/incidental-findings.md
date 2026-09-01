@@ -1707,3 +1707,48 @@ the client step-up gate safe under injected sessions. Levers 2 and 3 (shared
 build artifact, six shards) are retained as the measured win. Re-engaging lever
 1 requires a green feature-branch run with the knob removed and a DEC note
 naming the component-layer change.
+
+## INC-121 — U4h star flows: four sub-shapes, one convergence
+
+**Run.** 33569252582, attempt 2 (16 gating failures, all in
+`shell.spec.ts › U4h device language star`, both projects, smoke + shard 3).
+
+**(a) The account carry never ran — `star=null`, `html lang="en"` while the
+account preferred `am`.** `src/i18n/provider.tsx:419` guarded the carry with a
+once-per-MOUNT latch (`accountSyncedRef`). The provider mounts on `/auth` while
+signed OUT, so the first effect run consumed the latch, resolved `"no session"`,
+and the sign-in that followed was an in-page transition — no remount, therefore
+no second attempt. Fixed at root: the latch is keyed by the signed-in user id
+(mirrored from the auth event's own `session`, never a Supabase call inside the
+callback — law I5) and released on sign-out.
+**LAW.** A once-per-mount latch must not guard a session-dependent read; key it
+by identity.
+
+**(b) "rendered options: (none)" in the switcher dump.** `describeSwitcher`
+(`e2e/helpers/ui.ts:648`) read `[data-testid^='language-option-']`, which Radix
+renders into a PORTAL only while the menu is open. A closed menu therefore
+reported the same "(none)" as a missing gate row. The dump now states the
+menu's `aria-expanded` and also lists the star controls, so the two absences
+can never be confused.
+**LAW.** A failure dump never depends on an interaction; it names its own
+preconditions.
+
+**(c) "email field is not editable" ×6.** Not a pending auth state and not a
+redirect race: after the ★ the shell renders in AMHARIC, and
+`e2e/helpers/ui.ts:255` located the field by the ENGLISH accessible name
+(`getByRole('textbox', { name: /email/i })`) — element(s) not found. The same
+blindness applied to the submit button (`/^sign in$/i`) and to
+`signOutViaUi`'s English "Sign in" link assertion. All three now anchor on
+locale-free handles (`#auth-email`, the form's only `button[type=submit]`,
+`header a[href="/auth"]`), and the door is awaited with `toBeEditable` — a
+wait on truth, no `waitForTimeout` (DEC-027).
+**LAW.** A shell helper is locale-agnostic: ids, testids and destinations, never
+rendered labels (the INC-084g law, extended from menus to the auth door).
+
+**(d) hreflang `toEqual` off by `am`.** The EMISSION was right (SSR loader gate:
+`en`, `am`); the spec read `window.__ethioPublicLanguages` on the first frame,
+where the provider still holds the compiled SEED (`["en"]`). The spec now polls
+`gateReady === true` before reading and normalises both sides (lower-cased,
+de-duplicated, sorted, `x-default` included).
+**LAW.** Compare a settled document against a settled mirror: the gate snapshot
+publishes `gateReady` precisely so a reader can wait on truth (J7).

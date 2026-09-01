@@ -279,3 +279,4 @@
 - 2026-09-02 — ci(DEC-029-E): injection parked per pre-committed rule; build-once + six shards retained (INC-120c)
 - 2026-09-02 — chore(quality): DEC-025 typed clients + lint · DEC-026 component tests (seed suite + CI job) · DEC-027 spec lint — the pre-push floor
 - 2026-09-02 — feat(i18n): U4h — per-device ★ default language with account sync (device wins), dynamic hreflang from the publication gate
+- 2026-09-02 — fix(i18n/e2e): U4h star flows converge (INC-121)
