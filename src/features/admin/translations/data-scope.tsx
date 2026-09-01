@@ -143,7 +143,6 @@ export function DataScope({
         />
       ) : null}
 
-
       <DataTable
         columns={dataColumns(t, rtl)}
         rows={rows}
