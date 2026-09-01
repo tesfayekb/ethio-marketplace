@@ -721,3 +721,23 @@ Three levers, landed together; each is independently revertible.
    expected sources are `smoke,email,1,2,3,4,5,6,changed?` (default
    `smoke,1,2,3,4,5,6`), so a missing shard 5/6 is reported as a dead source
    rather than silently dropped. Smoke, email and the nightly are untouched.
+
+### DEC-029-B — the knob is ENGAGED (INC-120)
+
+Run 33560575803 produced 16 failures that all share one shape: a P0009
+`step-up required` 500 on a step-up-gated RPC, with no client prompt beforehand.
+Injection is therefore **off in CI** — every E2E job sets `E2E_UI_LOGIN: "1"`
+("DEC-029 revert knob engaged — injection under diagnosis, INC-120"). Levers 2
+and 3 (the `e2e-build` artifact and the six shards) STAY: they are unrelated to
+the seam and are the measured win.
+
+The seam and the fix in `injectSession` are recorded in INC-120. Injection stays
+knob-off until a follow-up landing proves the TR / RP / IMP families green with
+it on.
+
+**MEASURED (this run vs the last pre-DEC-029 green).** Build-once and six shards
+are already live: smoke 1.1m, shards ~2m each, plus a one-off `e2e-build` of
+~1.5m shared by all eight consumers — against the pre-029 shape where each of
+four shards paid its own ~1.5m build on top of a ~4m spec run. Exact per-job
+wall-clocks for THIS push are only readable from the Actions run it triggers;
+the numbers above are the observed shape, not a projection.

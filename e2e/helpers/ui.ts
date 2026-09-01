@@ -226,11 +226,18 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
  * authenticated-only account menu, and the persisted `sb-<ref>-auth-token`
  * localStorage entry written by @supabase/supabase-js.
  */
-export async function signIn(page: Page, email: string, password: string) {
+export async function signIn(
+  page: Page,
+  email: string,
+  password: string,
+  opts: { uiLogin?: boolean } = {},
+) {
   // DEC-029 — non-auth specs get the injected session instead of the form.
-  // The UI path below is kept intact and is what auth specs and the
-  // E2E_UI_LOGIN=1 revert knob still run.
-  if (sessionInjectionEnabled()) {
+  // The UI path below is kept intact and is what auth specs, the
+  // E2E_UI_LOGIN=1 revert knob and `{ uiLogin: true }` callers still run.
+  // INC-120 LAW: credential-lifecycle tests (password rotation, signed-out
+  // assertions) pass `{ uiLogin: true }` — their subject IS the credential.
+  if (!opts.uiLogin && sessionInjectionEnabled()) {
     await signInViaSession(page, email, password);
     return;
   }
@@ -327,8 +334,13 @@ export async function signInViaSession(page: Page, email: string, password: stri
  * never navigates to /auth while signed in — it signs out first, or uses a
  * fresh browser context.
  */
-export async function switchUser(page: Page, email: string, password: string) {
-  if (sessionInjectionEnabled()) {
+export async function switchUser(
+  page: Page,
+  email: string,
+  password: string,
+  opts: { uiLogin?: boolean } = {},
+) {
+  if (!opts.uiLogin && sessionInjectionEnabled()) {
     await signInViaSession(page, email, password);
     return;
   }
@@ -356,7 +368,7 @@ export async function switchUser(page: Page, email: string, password: string) {
   if (signedIn > 0) {
     await signOutViaUi(page);
   }
-  await signIn(page, email, password);
+  await signIn(page, email, password, opts);
 }
 
 /**
