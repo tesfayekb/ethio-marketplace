@@ -1297,11 +1297,30 @@ test.describe("U4g bulk approval, order and orphans", () => {
       });
 
       await step("TR-19 seed check", async () => {
-        // The seeded rows must be visible to the page's own source before the
-        // sweep runs — otherwise "approved nothing" is indistinguishable from
-        // "never loaded".
+        // U4g-30 (INC-117) — EVERY seeded row is written BEFORE the page is
+        // opened (above, outside this try), and the page's own rows query must
+        // have SEEN all four before the sweep runs — otherwise "approved
+        // nothing" is indistinguishable from "never loaded". The poll reloads
+        // once per turn so a query cached before the seed cannot stick.
+        await expect
+          .poll(
+            async () => {
+              const present = await Promise.all(
+                keys.map((key) => stringRow(page, slug(key)).count()),
+              );
+              const seen = present.filter((count) => count > 0).length;
+              if (seen < keys.length) await page.reload({ waitUntil: "domcontentloaded" });
+              return seen;
+            },
+            {
+              timeout: 30000,
+              message: "the strings list never rendered all four seeded TR-19 rows",
+            },
+          )
+          .toBe(keys.length);
         await expect(page.getByTestId("approve-all-start")).toBeEnabled({ timeout: 20000 });
       });
+
 
       await step("TR-19 approve-all start", async () => {
         await page.getByTestId("approve-all-start").click({ timeout: 15000 });
