@@ -1,6 +1,12 @@
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 
+import {
+  PSEUDO_LANG,
+  PSEUDO_LANG_NAME_EN,
+  PSEUDO_LANG_NAME_NATIVE,
+} from "./pseudo";
+
 /**
  * U4b — the Translations console's client seam.
  *
@@ -57,7 +63,10 @@ export interface TranslationRow {
   approvedAt: string | null;
   /** U4g — the key is absent from the compiled catalog the console last synced. */
   orphaned: boolean;
+  /** U4i ① — the translator note, stored once on the BASE row of the key. */
+  context: string;
 }
+
 
 export interface TranslationPage {
   rows: TranslationRow[];
@@ -154,6 +163,8 @@ export async function listTranslations({
       approvedBy: row.approved_by ?? null,
       approvedAt: row.approved_at ?? null,
       orphaned: row.orphaned,
+      context: row.context ?? "",
+
     })),
     totalCount: first ? Number(first.total_count) : 0,
   };
@@ -771,4 +782,81 @@ export function translationMapperSelfTest(): string {
     throw new Error("[rpc-shape] self-test: pickEntityStats returned a foreign language");
   }
   return "ok";
+}
+
+/* ===================== U4i — CONTEXT · IMPORT · PSEUDO ===================== */
+
+/**
+ * U4i ① — the key's translator note. Stored ONCE, on the base-language row of
+ * the key, and returned on every language's row by `admin_list_translations`,
+ * so a note written while reviewing Amharic is visible to the Tigrinya
+ * translator too. Gated `translations:manage` server-side (F3).
+ */
+export async function setKeyContext(input: { key: string; context: string }): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_key_context", {
+    p_key: input.key,
+    p_context: input.context,
+  });
+  if (error) throw error;
+}
+
+/**
+ * U4i ⑤ — IMPORT. The parsed rows go to `admin_import_translations`, which
+ * loops `admin_save_translation`: identical gates, placeholder validation,
+ * status `edited` (NEVER approved), revision capture and audit per row. The
+ * summary is the SERVER's count (F4) — the client never estimates it.
+ */
+export interface ImportResult {
+  imported: number;
+  flagged: number;
+  skipped: number;
+}
+
+export async function importTranslations(input: {
+  lang: string;
+  rows: { key: string; value: string }[];
+}): Promise<ImportResult> {
+  const { data, error } = await supabase.rpc("admin_import_translations", {
+    p_lang: input.lang,
+    p_items: input.rows,
+  });
+  if (error) throw error;
+  const payload =
+    data !== null && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
+  return {
+    imported: Number(payload["imported"] ?? 0),
+    flagged: Number(payload["flagged"] ?? 0),
+    skipped: Number(payload["skipped"] ?? 0),
+  };
+}
+
+/**
+ * U4i ⑦ — the pseudo-localization target. Created idempotently and left
+ * admin-only; `admin_set_language_flags` REFUSES to publish this code by rule
+ * (migration 20260901234603), so the server is the authority, not this call.
+ */
+export async function ensurePseudoLanguage(): Promise<void> {
+  await upsertLanguage({
+    code: PSEUDO_LANG,
+    nameEn: PSEUDO_LANG_NAME_EN,
+    nameNative: PSEUDO_LANG_NAME_NATIVE,
+    rtl: false,
+  });
+  await setLanguageFlags({ code: PSEUDO_LANG, enabledAdmin: true, enabledPublic: false });
+}
+
+/**
+ * U4i ⑦ — write one pseudo row. `admin_machine_translation` is the same writer
+ * the AI route uses: rows land `machine`, unapproved, placeholder-validated.
+ * Pseudo output is therefore reviewable and revertible like any machine row.
+ */
+export async function writePseudoRow(input: { key: string; value: string }): Promise<void> {
+  const { error } = await supabase.rpc("admin_machine_translation", {
+    p_key: input.key,
+    p_lang: PSEUDO_LANG,
+    p_value: input.value,
+  });
+  if (error) throw error;
 }

@@ -1,0 +1,1422 @@
+{
+  "generator": "scripts/i18n-usage-map.ts",
+  "scanned": 170,
+  "dynamicCallSites": 65,
+  "keys": {
+    "account.deactivatedBanner": [
+      "/settings"
+    ],
+    "admin.accessDenied": [
+      "/admin"
+    ],
+    "admin.audit.caption": [
+      "features/admin"
+    ],
+    "admin.audit.chart.bar": [
+      "features/admin"
+    ],
+    "admin.audit.chart.description": [
+      "features/admin"
+    ],
+    "admin.audit.chart.title": [
+      "features/admin"
+    ],
+    "admin.audit.col.action": [
+      "features/admin"
+    ],
+    "admin.audit.col.actor": [
+      "features/admin"
+    ],
+    "admin.audit.col.entity": [
+      "features/admin"
+    ],
+    "admin.audit.col.meta": [
+      "features/admin"
+    ],
+    "admin.audit.col.time": [
+      "features/admin"
+    ],
+    "admin.audit.collapse": [
+      "features/admin"
+    ],
+    "admin.audit.detailTitle": [
+      "features/admin"
+    ],
+    "admin.audit.empty": [
+      "features/admin"
+    ],
+    "admin.audit.error": [
+      "features/admin"
+    ],
+    "admin.audit.expand": [
+      "features/admin"
+    ],
+    "admin.audit.filter.action": [
+      "features/admin"
+    ],
+    "admin.audit.filter.actor": [
+      "features/admin"
+    ],
+    "admin.audit.filter.all": [
+      "features/admin"
+    ],
+    "admin.audit.filter.entity": [
+      "features/admin"
+    ],
+    "admin.audit.filter.from": [
+      "features/admin"
+    ],
+    "admin.audit.filter.to": [
+      "features/admin"
+    ],
+    "admin.audit.loading": [
+      "features/admin"
+    ],
+    "admin.audit.stat.activeImpersonations": [
+      "features/admin"
+    ],
+    "admin.audit.stat.events24h": [
+      "features/admin"
+    ],
+    "admin.audit.stat.events7d": [
+      "features/admin"
+    ],
+    "admin.audit.stat.topAction": [
+      "features/admin"
+    ],
+    "admin.audit.system": [
+      "features/admin"
+    ],
+    "admin.audit.title": [
+      "features/admin"
+    ],
+    "admin.comingSoon": [
+      "features/admin"
+    ],
+    "admin.landing.body": [
+      "/admin"
+    ],
+    "admin.landing.title": [
+      "/admin"
+    ],
+    "admin.loading": [
+      "/admin"
+    ],
+    "admin.nav.label": [
+      "features/admin"
+    ],
+    "admin.noSections.body": [
+      "/admin"
+    ],
+    "admin.noSections.title": [
+      "/admin"
+    ],
+    "admin.roles.col.display": [
+      "features/admin"
+    ],
+    "admin.roles.col.kind": [
+      "features/admin"
+    ],
+    "admin.roles.col.members": [
+      "features/admin"
+    ],
+    "admin.roles.col.name": [
+      "features/admin"
+    ],
+    "admin.roles.col.permissions": [
+      "features/admin"
+    ],
+    "admin.roles.create.cancel": [
+      "features/admin"
+    ],
+    "admin.roles.create.description": [
+      "features/admin"
+    ],
+    "admin.roles.create.descriptionField": [
+      "features/admin"
+    ],
+    "admin.roles.create.displayName": [
+      "features/admin"
+    ],
+    "admin.roles.create.name": [
+      "features/admin"
+    ],
+    "admin.roles.create.nameHelp": [
+      "features/admin"
+    ],
+    "admin.roles.create.open": [
+      "features/admin"
+    ],
+    "admin.roles.create.submit": [
+      "features/admin"
+    ],
+    "admin.roles.create.title": [
+      "features/admin"
+    ],
+    "admin.roles.danger.confirmHint": [
+      "features/admin"
+    ],
+    "admin.roles.danger.confirmLabel": [
+      "features/admin"
+    ],
+    "admin.roles.danger.delete": [
+      "features/admin"
+    ],
+    "admin.roles.danger.description": [
+      "features/admin"
+    ],
+    "admin.roles.danger.hasMembers": [
+      "features/admin"
+    ],
+    "admin.roles.danger.title": [
+      "features/admin"
+    ],
+    "admin.roles.detail.back": [
+      "features/admin"
+    ],
+    "admin.roles.detail.notFound": [
+      "features/admin"
+    ],
+    "admin.roles.empty": [
+      "features/admin"
+    ],
+    "admin.roles.error": [
+      "features/admin"
+    ],
+    "admin.roles.kind.custom": [
+      "features/admin"
+    ],
+    "admin.roles.kind.system": [
+      "features/admin"
+    ],
+    "admin.roles.loading": [
+      "features/admin"
+    ],
+    "admin.roles.members.count": [
+      "features/admin"
+    ],
+    "admin.roles.members.title": [
+      "features/admin"
+    ],
+    "admin.roles.members.view": [
+      "features/admin"
+    ],
+    "admin.roles.meta.description": [
+      "features/admin"
+    ],
+    "admin.roles.meta.save": [
+      "features/admin"
+    ],
+    "admin.roles.meta.saved": [
+      "features/admin"
+    ],
+    "admin.roles.meta.title": [
+      "features/admin"
+    ],
+    "admin.roles.perm.baselineBadge": [
+      "features/admin"
+    ],
+    "admin.roles.perm.coreNote": [
+      "features/admin"
+    ],
+    "admin.roles.perm.description": [
+      "features/admin"
+    ],
+    "admin.roles.perm.grant": [
+      "features/admin"
+    ],
+    "admin.roles.perm.granted": [
+      "features/admin"
+    ],
+    "admin.roles.perm.locked": [
+      "features/admin"
+    ],
+    "admin.roles.perm.notAssignable": [
+      "features/admin"
+    ],
+    "admin.roles.perm.revoke": [
+      "features/admin"
+    ],
+    "admin.roles.perm.stepUp": [
+      "features/admin"
+    ],
+    "admin.roles.perm.title": [
+      "features/admin"
+    ],
+    "admin.roles.subtitle": [
+      "/admin/roles"
+    ],
+    "admin.roles.systemLockedNote": [
+      "features/admin"
+    ],
+    "admin.roles.title": [
+      "/admin/roles",
+      "features/admin"
+    ],
+    "admin.translations.add.added": [
+      "features/admin"
+    ],
+    "admin.translations.add.code": [
+      "features/admin"
+    ],
+    "admin.translations.add.codePlaceholder": [
+      "features/admin"
+    ],
+    "admin.translations.add.countries": [
+      "features/admin"
+    ],
+    "admin.translations.add.countriesHint": [
+      "features/admin"
+    ],
+    "admin.translations.add.countriesLoading": [
+      "features/admin"
+    ],
+    "admin.translations.add.description": [
+      "features/admin"
+    ],
+    "admin.translations.add.fromList": [
+      "features/admin"
+    ],
+    "admin.translations.add.manual": [
+      "features/admin"
+    ],
+    "admin.translations.add.nameEn": [
+      "features/admin"
+    ],
+    "admin.translations.add.nameNative": [
+      "features/admin"
+    ],
+    "admin.translations.add.pick": [
+      "features/admin"
+    ],
+    "admin.translations.add.pickEmpty": [
+      "features/admin"
+    ],
+    "admin.translations.add.pickError": [
+      "features/admin"
+    ],
+    "admin.translations.add.pickLoading": [
+      "features/admin"
+    ],
+    "admin.translations.add.pickPlaceholder": [
+      "features/admin"
+    ],
+    "admin.translations.add.pickSelected": [
+      "features/admin"
+    ],
+    "admin.translations.add.rtl": [
+      "features/admin"
+    ],
+    "admin.translations.add.submit": [
+      "features/admin"
+    ],
+    "admin.translations.add.title": [
+      "features/admin"
+    ],
+    "admin.translations.ai.bulkAction": [
+      "features/admin"
+    ],
+    "admin.translations.ai.cancel": [
+      "features/admin"
+    ],
+    "admin.translations.ai.confirmBody": [
+      "features/admin"
+    ],
+    "admin.translations.ai.confirmCta": [
+      "features/admin"
+    ],
+    "admin.translations.ai.confirmTitle": [
+      "features/admin"
+    ],
+    "admin.translations.ai.failedList": [
+      "features/admin"
+    ],
+    "admin.translations.ai.pending": [
+      "features/admin"
+    ],
+    "admin.translations.ai.progress": [
+      "features/admin"
+    ],
+    "admin.translations.ai.row": [
+      "features/admin"
+    ],
+    "admin.translations.ai.summary": [
+      "features/admin"
+    ],
+    "admin.translations.approve.cancel": [
+      "features/admin"
+    ],
+    "admin.translations.approve.confirmCta": [
+      "features/admin"
+    ],
+    "admin.translations.approve.entitySummary": [
+      "features/admin"
+    ],
+    "admin.translations.approve.none": [
+      "features/admin"
+    ],
+    "admin.translations.approve.pending": [
+      "features/admin"
+    ],
+    "admin.translations.approve.summary": [
+      "features/admin"
+    ],
+    "admin.translations.badge.base": [
+      "features/admin"
+    ],
+    "admin.translations.badge.rtl": [
+      "features/admin"
+    ],
+    "admin.translations.badge.source": [
+      "features/admin"
+    ],
+    "admin.translations.caption": [
+      "features/admin"
+    ],
+    "admin.translations.col.admin": [
+      "features/admin"
+    ],
+    "admin.translations.col.coverage": [
+      "features/admin"
+    ],
+    "admin.translations.col.coverageData": [
+      "features/admin"
+    ],
+    "admin.translations.col.entity": [
+      "features/admin"
+    ],
+    "admin.translations.col.entityType": [
+      "features/admin"
+    ],
+    "admin.translations.col.key": [
+      "features/admin"
+    ],
+    "admin.translations.col.language": [
+      "features/admin"
+    ],
+    "admin.translations.col.nameEn": [
+      "features/admin"
+    ],
+    "admin.translations.col.provenance": [
+      "features/admin"
+    ],
+    "admin.translations.col.public": [
+      "features/admin"
+    ],
+    "admin.translations.col.source": [
+      "features/admin"
+    ],
+    "admin.translations.col.status": [
+      "features/admin"
+    ],
+    "admin.translations.col.value": [
+      "features/admin"
+    ],
+    "admin.translations.collapse": [
+      "features/admin"
+    ],
+    "admin.translations.coverage": [
+      "features/admin"
+    ],
+    "admin.translations.data.aiNote": [
+      "features/admin"
+    ],
+    "admin.translations.data.caption": [
+      "features/admin"
+    ],
+    "admin.translations.data.coverage": [
+      "features/admin"
+    ],
+    "admin.translations.data.empty": [
+      "features/admin"
+    ],
+    "admin.translations.data.gateNote": [
+      "features/admin"
+    ],
+    "admin.translations.editor.approve": [
+      "features/admin"
+    ],
+    "admin.translations.editor.clear": [
+      "features/admin"
+    ],
+    "admin.translations.editor.flagNote": [
+      "features/admin"
+    ],
+    "admin.translations.editor.label": [
+      "features/admin"
+    ],
+    "admin.translations.editor.notAssigned": [
+      "features/admin"
+    ],
+    "admin.translations.editor.placeholderRule": [
+      "features/admin"
+    ],
+    "admin.translations.editor.restoreHint": [
+      "features/admin"
+    ],
+    "admin.translations.editor.restorePlaceholders": [
+      "features/admin"
+    ],
+    "admin.translations.editor.save": [
+      "features/admin"
+    ],
+    "admin.translations.editor.saved": [
+      "features/admin"
+    ],
+    "admin.translations.editor.source": [
+      "features/admin"
+    ],
+    "admin.translations.empty": [
+      "features/admin"
+    ],
+    "admin.translations.error": [
+      "features/admin"
+    ],
+    "admin.translations.expand": [
+      "features/admin"
+    ],
+    "admin.translations.filter.search": [
+      "features/admin"
+    ],
+    "admin.translations.history.actor.system": [
+      "features/admin"
+    ],
+    "admin.translations.history.clearInstead": [
+      "features/admin"
+    ],
+    "admin.translations.history.confirm": [
+      "features/admin"
+    ],
+    "admin.translations.history.empty": [
+      "features/admin"
+    ],
+    "admin.translations.history.error": [
+      "features/admin"
+    ],
+    "admin.translations.history.loading": [
+      "features/admin"
+    ],
+    "admin.translations.history.noValue": [
+      "features/admin"
+    ],
+    "admin.translations.history.open": [
+      "features/admin"
+    ],
+    "admin.translations.history.restore": [
+      "features/admin"
+    ],
+    "admin.translations.history.restored": [
+      "features/admin"
+    ],
+    "admin.translations.history.title": [
+      "features/admin"
+    ],
+    "admin.translations.loading": [
+      "features/admin"
+    ],
+    "admin.translations.meterNote": [
+      "features/admin"
+    ],
+    "admin.translations.meters": [
+      "features/admin"
+    ],
+    "admin.translations.open": [
+      "features/admin"
+    ],
+    "admin.translations.order.down": [
+      "features/admin"
+    ],
+    "admin.translations.order.note": [
+      "features/admin"
+    ],
+    "admin.translations.order.up": [
+      "features/admin"
+    ],
+    "admin.translations.orphaned.chip": [
+      "features/admin"
+    ],
+    "admin.translations.orphaned.note": [
+      "features/admin"
+    ],
+    "admin.translations.provenance.approvedBy": [
+      "features/admin"
+    ],
+    "admin.translations.provenance.none": [
+      "features/admin"
+    ],
+    "admin.translations.publicGate": [
+      "features/admin"
+    ],
+    "admin.translations.scope.label": [
+      "features/admin"
+    ],
+    "admin.translations.stat.approved": [
+      "features/admin"
+    ],
+    "admin.translations.stat.languages": [
+      "features/admin"
+    ],
+    "admin.translations.stat.totalKeys": [
+      "features/admin"
+    ],
+    "admin.translations.status.flagged": [
+      "features/admin"
+    ],
+    "admin.translations.strings.back": [
+      "features/admin"
+    ],
+    "admin.translations.strings.caption": [
+      "features/admin"
+    ],
+    "admin.translations.strings.empty": [
+      "features/admin"
+    ],
+    "admin.translations.strings.error": [
+      "features/admin"
+    ],
+    "admin.translations.strings.loading": [
+      "features/admin"
+    ],
+    "admin.translations.strings.title": [
+      "features/admin"
+    ],
+    "admin.translations.strings.unknown": [
+      "features/admin"
+    ],
+    "admin.translations.subtitle": [
+      "features/admin"
+    ],
+    "admin.translations.switch.admin": [
+      "features/admin"
+    ],
+    "admin.translations.switch.public": [
+      "features/admin"
+    ],
+    "admin.translations.sync.action": [
+      "features/admin"
+    ],
+    "admin.translations.sync.description": [
+      "features/admin"
+    ],
+    "admin.translations.sync.done": [
+      "features/admin"
+    ],
+    "admin.translations.sync.note": [
+      "features/admin"
+    ],
+    "admin.translations.sync.title": [
+      "features/admin"
+    ],
+    "admin.translations.syncFirstTooltip": [
+      "features/admin"
+    ],
+    "admin.translations.title": [
+      "features/admin"
+    ],
+    "admin.translations.translator.audit": [
+      "features/admin"
+    ],
+    "admin.translations.translator.checkError": [
+      "features/admin"
+    ],
+    "admin.translations.translator.empty": [
+      "features/admin"
+    ],
+    "admin.translations.translator.noRole": [
+      "features/admin"
+    ],
+    "admin.translations.translator.none": [
+      "features/admin"
+    ],
+    "admin.translations.translator.save": [
+      "features/admin"
+    ],
+    "admin.translations.translator.saved": [
+      "features/admin"
+    ],
+    "admin.translations.translator.scopeNote": [
+      "features/admin"
+    ],
+    "admin.translations.translator.title": [
+      "features/admin"
+    ],
+    "admin.users.activity.empty": [
+      "features/admin"
+    ],
+    "admin.users.activity.loading": [
+      "features/admin"
+    ],
+    "admin.users.activity.title": [
+      "features/admin"
+    ],
+    "admin.users.col.country": [
+      "features/admin"
+    ],
+    "admin.users.col.email": [
+      "features/admin"
+    ],
+    "admin.users.col.joined": [
+      "features/admin"
+    ],
+    "admin.users.col.name": [
+      "features/admin"
+    ],
+    "admin.users.col.roles": [
+      "features/admin"
+    ],
+    "admin.users.col.status": [
+      "features/admin"
+    ],
+    "admin.users.detail.alias": [
+      "features/admin"
+    ],
+    "admin.users.detail.back": [
+      "features/admin"
+    ],
+    "admin.users.detail.identity": [
+      "features/admin"
+    ],
+    "admin.users.detail.joined": [
+      "features/admin"
+    ],
+    "admin.users.detail.lastSignIn": [
+      "features/admin"
+    ],
+    "admin.users.detail.never": [
+      "features/admin"
+    ],
+    "admin.users.detail.notFound": [
+      "features/admin"
+    ],
+    "admin.users.edit.alias": [
+      "features/admin"
+    ],
+    "admin.users.edit.aliasHelp": [
+      "features/admin"
+    ],
+    "admin.users.edit.country": [
+      "features/admin"
+    ],
+    "admin.users.edit.countryNone": [
+      "features/admin"
+    ],
+    "admin.users.edit.description": [
+      "features/admin"
+    ],
+    "admin.users.edit.displayName": [
+      "features/admin"
+    ],
+    "admin.users.edit.save": [
+      "features/admin"
+    ],
+    "admin.users.edit.saved": [
+      "features/admin"
+    ],
+    "admin.users.edit.title": [
+      "features/admin"
+    ],
+    "admin.users.empty": [
+      "features/admin"
+    ],
+    "admin.users.error": [
+      "features/admin"
+    ],
+    "admin.users.filter.all": [
+      "features/admin"
+    ],
+    "admin.users.loading": [
+      "features/admin"
+    ],
+    "admin.users.next": [
+      "features/admin"
+    ],
+    "admin.users.prev": [
+      "features/admin"
+    ],
+    "admin.users.roleFilter": [
+      "features/admin"
+    ],
+    "admin.users.roles.assign": [
+      "features/admin"
+    ],
+    "admin.users.roles.assignAction": [
+      "features/admin"
+    ],
+    "admin.users.roles.failed": [
+      "features/admin"
+    ],
+    "admin.users.roles.locked": [
+      "features/admin"
+    ],
+    "admin.users.roles.none": [
+      "features/admin"
+    ],
+    "admin.users.roles.remove": [
+      "features/admin"
+    ],
+    "admin.users.roles.title": [
+      "features/admin"
+    ],
+    "admin.users.searchLabel": [
+      "features/admin"
+    ],
+    "admin.users.searchPlaceholder": [
+      "/dev/primitives",
+      "features/admin"
+    ],
+    "admin.users.status.activate": [
+      "features/admin"
+    ],
+    "admin.users.status.active": [
+      "features/admin"
+    ],
+    "admin.users.status.changedAt": [
+      "features/admin"
+    ],
+    "admin.users.status.deactivate": [
+      "features/admin"
+    ],
+    "admin.users.status.deactivated": [
+      "features/admin"
+    ],
+    "admin.users.status.failed": [
+      "features/admin"
+    ],
+    "admin.users.status.ownAccount": [
+      "features/admin"
+    ],
+    "admin.users.status.reasonLabel": [
+      "features/admin"
+    ],
+    "admin.users.status.reasonPlaceholder": [
+      "features/admin"
+    ],
+    "admin.users.status.reasonRequired": [
+      "features/admin"
+    ],
+    "admin.users.status.title": [
+      "features/admin"
+    ],
+    "admin.users.statusFilter": [
+      "features/admin"
+    ],
+    "admin.users.title": [
+      "/admin/users",
+      "features/admin"
+    ],
+    "admin.users.total": [
+      "features/admin"
+    ],
+    "app.name": [
+      "/dev/primitives",
+      "/dev/tall",
+      "components/app-shell",
+      "components/shell"
+    ],
+    "auth.alreadyConfirmedSignIn": [
+      "/auth"
+    ],
+    "auth.backToSignIn": [
+      "/auth",
+      "/auth/callback"
+    ],
+    "auth.checkEmail": [
+      "/auth"
+    ],
+    "auth.checkEmailBody": [
+      "/auth"
+    ],
+    "auth.checkEmailSentTo": [
+      "/auth"
+    ],
+    "auth.checking": [
+      "/auth/callback",
+      "/auth/reset",
+      "/settings"
+    ],
+    "auth.confirmedBody": [
+      "/auth",
+      "/auth/callback"
+    ],
+    "auth.confirmedInline": [
+      "/auth"
+    ],
+    "auth.confirmedTitle": [
+      "/auth/callback"
+    ],
+    "auth.continue": [
+      "/auth",
+      "/auth/callback",
+      "/auth/reset"
+    ],
+    "auth.continueWithGoogle": [
+      "/auth"
+    ],
+    "auth.createAccount": [
+      "/auth",
+      "components/shell"
+    ],
+    "auth.email": [
+      "/auth"
+    ],
+    "auth.emailPlaceholder": [
+      "/auth",
+      "/settings"
+    ],
+    "auth.forgotPassword": [
+      "/auth"
+    ],
+    "auth.hidePassword": [
+      "/auth",
+      "/auth/reset"
+    ],
+    "auth.linkInvalid": [
+      "/auth/callback"
+    ],
+    "auth.linkInvalidBody": [
+      "/auth/callback"
+    ],
+    "auth.noSessionBody": [
+      "/auth/callback"
+    ],
+    "auth.noSessionTitle": [
+      "/auth/callback"
+    ],
+    "auth.orSeparator": [
+      "/auth"
+    ],
+    "auth.password": [
+      "/auth"
+    ],
+    "auth.passwordPlaceholder": [
+      "/auth",
+      "/auth/reset",
+      "/settings"
+    ],
+    "auth.resend": [
+      "/auth"
+    ],
+    "auth.resendCooldown": [
+      "/auth"
+    ],
+    "auth.resendLimitReached": [
+      "/auth"
+    ],
+    "auth.resendNeutral": [
+      "/auth"
+    ],
+    "auth.resetBody": [
+      "/auth"
+    ],
+    "auth.resetDone": [
+      "/auth/reset"
+    ],
+    "auth.resetLimit": [
+      "/auth"
+    ],
+    "auth.resetLinkInvalid": [
+      "/auth/reset"
+    ],
+    "auth.resetLinkInvalidBody": [
+      "/auth/reset"
+    ],
+    "auth.resetNeutral": [
+      "/auth"
+    ],
+    "auth.resetNewBody": [
+      "/auth/reset"
+    ],
+    "auth.resetNewTitle": [
+      "/auth/reset"
+    ],
+    "auth.resetSend": [
+      "/auth"
+    ],
+    "auth.resetSubmit": [
+      "/auth/reset"
+    ],
+    "auth.resetTitle": [
+      "/auth",
+      "/auth/reset"
+    ],
+    "auth.showPassword": [
+      "/auth",
+      "/auth/reset"
+    ],
+    "auth.signIn": [
+      "/auth",
+      "components/shell"
+    ],
+    "auth.signInButton": [
+      "/auth"
+    ],
+    "auth.signOut": [
+      "components/shell"
+    ],
+    "auth.signUpButton": [
+      "/auth"
+    ],
+    "auth.signedInAs": [
+      "components/shell"
+    ],
+    "auth.telegramSlot": [
+      "/auth"
+    ],
+    "auth.toggleToSignIn": [
+      "/auth"
+    ],
+    "auth.toggleToSignUp": [
+      "/auth"
+    ],
+    "auth.working": [
+      "/auth",
+      "/auth/reset",
+      "/settings"
+    ],
+    "common.cancel": [
+      "/dev/primitives"
+    ],
+    "common.close": [
+      "components/ui"
+    ],
+    "common.dismiss": [
+      "components/app-shell"
+    ],
+    "common.goHome": [
+      "(every page)"
+    ],
+    "common.loading": [
+      "/settings",
+      "components/shell"
+    ],
+    "common.retry": [
+      "components/marketplace"
+    ],
+    "common.save": [
+      "/dev/primitives"
+    ],
+    "common.tryAgain": [
+      "(every page)"
+    ],
+    "error.pageFailed": [
+      "(every page)"
+    ],
+    "error.pageFailedBody": [
+      "(every page)"
+    ],
+    "error.pageNotFound": [
+      "(every page)"
+    ],
+    "error.pageNotFoundBody": [
+      "(every page)"
+    ],
+    "feed.emptyBody": [
+      "components/marketplace"
+    ],
+    "feed.emptyTitle": [
+      "components/marketplace"
+    ],
+    "feed.errorBody": [
+      "components/marketplace"
+    ],
+    "feed.errorTitle": [
+      "components/marketplace"
+    ],
+    "feed.heading": [
+      "components/marketplace"
+    ],
+    "feed.loading": [
+      "components/marketplace"
+    ],
+    "feed.noPhoto": [
+      "components/marketplace"
+    ],
+    "feed.scopeAll": [
+      "components/marketplace"
+    ],
+    "feed.views": [
+      "components/marketplace"
+    ],
+    "footer.rights": [
+      "components/shell"
+    ],
+    "impersonation.backToUser": [
+      "features/admin"
+    ],
+    "impersonation.banner": [
+      "features/admin"
+    ],
+    "impersonation.endNow": [
+      "features/admin"
+    ],
+    "impersonation.endsIn": [
+      "features/admin"
+    ],
+    "impersonation.expired": [
+      "features/admin"
+    ],
+    "impersonation.listings.caption": [
+      "features/admin"
+    ],
+    "impersonation.listings.created": [
+      "features/admin"
+    ],
+    "impersonation.listings.empty": [
+      "features/admin"
+    ],
+    "impersonation.listings.price": [
+      "features/admin"
+    ],
+    "impersonation.listings.status": [
+      "features/admin"
+    ],
+    "impersonation.listings.title": [
+      "features/admin"
+    ],
+    "impersonation.open": [
+      "features/admin"
+    ],
+    "impersonation.profile.alias": [
+      "features/admin"
+    ],
+    "impersonation.profile.country": [
+      "features/admin"
+    ],
+    "impersonation.profile.joined": [
+      "features/admin"
+    ],
+    "impersonation.profile.name": [
+      "features/admin"
+    ],
+    "impersonation.profile.status": [
+      "features/admin"
+    ],
+    "impersonation.profileTitle": [
+      "features/admin"
+    ],
+    "impersonation.readOnlyNote": [
+      "features/admin"
+    ],
+    "impersonation.reasonLabel": [
+      "features/admin"
+    ],
+    "impersonation.reasonPlaceholder": [
+      "features/admin"
+    ],
+    "impersonation.roadmapNote": [
+      "features/admin"
+    ],
+    "impersonation.start": [
+      "features/admin"
+    ],
+    "impersonation.title": [
+      "features/admin"
+    ],
+    "impersonation.unknownTarget": [
+      "features/admin"
+    ],
+    "impersonation.viewAs": [
+      "features/admin"
+    ],
+    "language.label": [
+      "components/language-switcher"
+    ],
+    "location.anyArea": [
+      "components/shell"
+    ],
+    "location.empty": [
+      "components/shell"
+    ],
+    "location.label": [
+      "components/shell"
+    ],
+    "mfa.addedOn": [
+      "/settings"
+    ],
+    "mfa.codeLabel": [
+      "/settings",
+      "features/auth"
+    ],
+    "mfa.codePlaceholder": [
+      "/settings",
+      "features/auth"
+    ],
+    "mfa.description": [
+      "/settings"
+    ],
+    "mfa.enroll": [
+      "/settings"
+    ],
+    "mfa.factorName": [
+      "/settings"
+    ],
+    "mfa.qrAlt": [
+      "/settings"
+    ],
+    "mfa.remove": [
+      "/settings"
+    ],
+    "mfa.removeConfirm": [
+      "/settings"
+    ],
+    "mfa.removeConfirmYes": [
+      "/settings"
+    ],
+    "mfa.secretLabel": [
+      "/settings"
+    ],
+    "mfa.statusOff": [
+      "/settings"
+    ],
+    "mfa.statusOn": [
+      "/settings"
+    ],
+    "mfa.step1": [
+      "/settings"
+    ],
+    "mfa.step2": [
+      "/settings"
+    ],
+    "mfa.stepUpBody": [
+      "features/auth"
+    ],
+    "mfa.stepUpConfirm": [
+      "features/auth"
+    ],
+    "mfa.stepUpGoToSettings": [
+      "features/auth"
+    ],
+    "mfa.stepUpNoFactorBody": [
+      "/settings",
+      "features/auth"
+    ],
+    "mfa.stepUpNoFactorTitle": [
+      "features/auth"
+    ],
+    "mfa.stepUpTitle": [
+      "features/auth"
+    ],
+    "mfa.title": [
+      "/settings"
+    ],
+    "mfa.verifyActivate": [
+      "/settings"
+    ],
+    "nav.home": [
+      "components/shell"
+    ],
+    "nav.profile": [
+      "components/shell"
+    ],
+    "panel.admin": [
+      "components/shell"
+    ],
+    "price.contact": [
+      "components/marketplace"
+    ],
+    "price.free": [
+      "components/marketplace"
+    ],
+    "price.negotiable": [
+      "components/marketplace"
+    ],
+    "prim.state.empty": [
+      "/dev/primitives",
+      "components/shell"
+    ],
+    "prim.state.error": [
+      "/dev/primitives",
+      "components/shell"
+    ],
+    "prim.state.loading": [
+      "/dev/primitives",
+      "components/shell"
+    ],
+    "prim.table.actions": [
+      "/dev/primitives",
+      "components/shell"
+    ],
+    "prim.table.next": [
+      "components/shell"
+    ],
+    "prim.table.of": [
+      "components/shell"
+    ],
+    "prim.table.previous": [
+      "components/shell"
+    ],
+    "prim.table.selectAll": [
+      "components/shell"
+    ],
+    "prim.table.selectRow": [
+      "components/shell"
+    ],
+    "prim.table.selected": [
+      "components/shell"
+    ],
+    "session.idleWarning": [
+      "components/app-shell"
+    ],
+    "session.staySignedIn": [
+      "components/app-shell"
+    ],
+    "settings.cancel": [
+      "/settings",
+      "features/auth"
+    ],
+    "settings.changeEmail": [
+      "/settings"
+    ],
+    "settings.changePassword": [
+      "/settings"
+    ],
+    "settings.currentPassword": [
+      "/settings"
+    ],
+    "settings.deviceLanguage": [
+      "/settings"
+    ],
+    "settings.deviceLanguageNone": [
+      "/settings"
+    ],
+    "settings.displayName": [
+      "/settings"
+    ],
+    "settings.email": [
+      "/settings"
+    ],
+    "settings.identity": [
+      "/settings"
+    ],
+    "settings.lastMethodGuard": [
+      "/settings"
+    ],
+    "settings.lastUsed": [
+      "/settings"
+    ],
+    "settings.lastUsedNever": [
+      "/settings"
+    ],
+    "settings.linkGoogle": [
+      "/settings"
+    ],
+    "settings.memberSince": [
+      "/settings"
+    ],
+    "settings.methods": [
+      "/settings"
+    ],
+    "settings.navLabel": [
+      "components/shell"
+    ],
+    "settings.newEmail": [
+      "/settings"
+    ],
+    "settings.newPassword": [
+      "/auth/reset",
+      "/settings"
+    ],
+    "settings.passwordMethod": [
+      "/settings"
+    ],
+    "settings.passwordMethodAbsent": [
+      "/settings"
+    ],
+    "settings.passwordMethodPresent": [
+      "/settings"
+    ],
+    "settings.removePassword": [
+      "/settings"
+    ],
+    "settings.removePasswordConfirm": [
+      "/settings"
+    ],
+    "settings.removePasswordConfirmYes": [
+      "/settings"
+    ],
+    "settings.security": [
+      "/settings"
+    ],
+    "settings.setPasswordHint": [
+      "/settings"
+    ],
+    "settings.signOutOthers": [
+      "/settings"
+    ],
+    "settings.signOutOthersConfirm": [
+      "/settings"
+    ],
+    "settings.signOutOthersConfirmYes": [
+      "/settings"
+    ],
+    "settings.title": [
+      "/settings"
+    ],
+    "settings.unlink": [
+      "/settings"
+    ],
+    "shell.accountMenu": [
+      "components/shell"
+    ],
+    "shell.allCategories": [
+      "components/shell"
+    ],
+    "shell.breadcrumbLabel": [
+      "components/shell"
+    ],
+    "shell.categoriesEmpty": [
+      "components/shell"
+    ],
+    "shell.categoriesLabel": [
+      "components/shell"
+    ],
+    "shell.collapseRail": [
+      "components/shell"
+    ],
+    "shell.expandRail": [
+      "components/shell"
+    ],
+    "shell.mainNav": [
+      "components/shell"
+    ],
+    "shell.menuTitle": [
+      "components/shell"
+    ],
+    "shell.openMenu": [
+      "components/shell"
+    ],
+    "shell.panelLabel": [
+      "components/shell"
+    ],
+    "shell.placeholderBody": [
+      "components/app-shell"
+    ],
+    "shell.placeholderTitle": [
+      "components/app-shell"
+    ],
+    "shell.searchClose": [
+      "components/shell"
+    ],
+    "shell.searchLabel": [
+      "components/shell"
+    ],
+    "shell.searchPlaceholder": [
+      "components/shell"
+    ],
+    "shell.skipToContent": [
+      "components/app-shell"
+    ],
+    "shell.switchPanel": [
+      "components/shell"
+    ],
+    "shell.themeToggle": [
+      "components/shell"
+    ],
+    "tier.featured": [
+      "components/marketplace"
+    ],
+    "tier.premium": [
+      "components/marketplace"
+    ]
+  }
+}
