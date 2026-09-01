@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { fenceLang, processId } from "./global-setup";
+import { FENCE_PREFIX_LIST, fenceLang, processId } from "./global-setup";
 import {
   describeStringsPage,
   describeSwitcher,
