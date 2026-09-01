@@ -137,7 +137,7 @@ async function describeAuditRows(userId: string): Promise<string> {
       .select("action, entity_type, entity_id, created_at")
       .or(`entity_id.eq.${userId},actor_id.eq.${userId}`)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(10);
     if (error) return `[INC-114] audit_log read failed: ${error.message}`;
     const rows = data ?? [];
     if (rows.length === 0) return `[INC-114] audit_log rows for ${userId}: NONE`;
@@ -152,6 +152,38 @@ async function describeAuditRows(userId: string): Promise<string> {
     return `[INC-114] audit_log read threw: ${(error as Error).message}`;
   }
 }
+
+/**
+ * INC-115d — EVERY activity assertion on the user-detail surface carries the
+ * same dump, not just AU-3's. A bare "element(s) not found" cannot distinguish
+ * "no audit row was written" from "the activity RPC omits it" from "the list
+ * was never refetched"; the rethrow below reads all three in one shot.
+ */
+async function expectActivity(page: Page, action: string, userId: string) {
+  try {
+    await expect(page.getByTestId(`activity-${action}`).first()).toBeVisible({ timeout: 15000 });
+  } catch (error) {
+    throw new Error(
+      `${(error as Error).message}\n\n[INC-115d] expected activity row: ${action}\n${await describeUserDetail(
+        page,
+      )}\n${await describeAuditRows(userId)}`,
+    );
+  }
+}
+
+/** The negative twin: the row must be gone, with the same evidence on failure. */
+async function expectNoActivity(page: Page, action: string, userId: string, count = 0) {
+  try {
+    await expect(page.getByTestId(`activity-${action}`)).toHaveCount(count, { timeout: 15000 });
+  } catch (error) {
+    throw new Error(
+      `${(error as Error).message}\n\n[INC-115d] expected activity count ${count}: ${action}\n${await describeUserDetail(
+        page,
+      )}\n${await describeAuditRows(userId)}`,
+    );
+  }
+}
+
 
 test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
