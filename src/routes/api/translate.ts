@@ -511,7 +511,6 @@ async function handleGet(request: Request): Promise<Response> {
   }
 }
 
-
 export const Route = createFileRoute("/api/translate")({
   server: {
     handlers: {
@@ -523,6 +522,15 @@ export const Route = createFileRoute("/api/translate")({
           return json({ error: error instanceof Error ? error.message : "internal error" }, 500);
         }
       },
+      GET: async ({ request }) => {
+        try {
+          return await handleGet(request);
+        } catch (error) {
+          logRouteError(error);
+          return json({ error: error instanceof Error ? error.message : "internal error" }, 500);
+        }
+      },
     },
+
   },
 });
