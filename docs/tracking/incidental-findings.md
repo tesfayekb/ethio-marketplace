@@ -1071,3 +1071,14 @@ RULE: the nightly runs the SAME reporter over its own artifacts (source label
 `docs/tracking/nightly-last-failure.md` next to `nightly-status.md`, on the
 same `[skip ci]` tracking path and branch (dev). Every scheduled suite that
 can go red owes an evidence file, not a verdict.
+
+## INC-109 — blind 500s and a blind AU-3 (U4g-18)
+
+Run 33511926950 recorded `console.error: Failed to load resource: the server
+responded with a status of 500 ()` — a 500 with no method, no URL, no body —
+and AU-3 failed for the fifth time with nothing but `element(s) not found`.
+Neither failure carried the one fact needed to diagnose it.
+
+RULE: 5xx responses now log their URL; AU-3 dumps route + query-cache state on
+failure — five blind recurrences end here. An instrument that reports THAT
+something failed without reporting WHERE is not an instrument.
