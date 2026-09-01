@@ -1522,5 +1522,4 @@ test.describe("U4h device language star", () => {
       .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href") ?? ""));
     for (const href of hrefs) expect(href).toMatch(/^https?:\/\//);
   });
-
 });

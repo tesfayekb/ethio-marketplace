@@ -260,7 +260,6 @@ function useAuthIdentity(): { settled: boolean; userId: string | null } {
   return { settled, userId };
 }
 
-
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(BASE_LANGUAGE);
   const [messages, setMessages] = useState<Messages>(en);
@@ -288,7 +287,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   /** INC-107 — one warning per DB-only language, never one per effect run. */
   const warnedMissingRef = useRef<Set<string>>(new Set());
   const { settled: authSettled, userId } = useAuthIdentity();
-
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
   // INC-110: the read no longer waits for the auth settle signal, because it
@@ -453,7 +451,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setLanguageState(code);
     });
   }, [bootRead, authSettled, userId, star]);
-
 
   // Whatever the source (switcher, storage, URL, account carry), an active
   // language that the gate does not bless is revoked ONCE, as soon as the gate

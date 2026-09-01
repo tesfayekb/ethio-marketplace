@@ -325,7 +325,6 @@ export async function attemptSignIn(page: Page, email: string, password: string)
   await submit.click();
 }
 
-
 /**
  * Signed out = no account menu anywhere. (Pre-shell this asserted the absence
  * of a header sign-out button; the account menu is that button's successor and
@@ -669,7 +668,6 @@ export async function describeSwitcher(page: Page): Promise<string> {
   } catch (error) {
     options = `(options read threw: ${(error as Error).message})`;
   }
-
 
   const htmlLang = await page
     .locator("html")
