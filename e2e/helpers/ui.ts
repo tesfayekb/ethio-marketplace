@@ -211,6 +211,12 @@ export async function openRailScope(page: Page) {
  * THE ONE sign-out path for the suite (U0k). ONE CLICK: the affordance itself
  * performs the hard reset — there is no confirmation dialog any more. Resolves
  * only on the achieved state: URL "/", no account menu, sign-in link visible.
+ *
+ * INC-121 (b/c) LAW — A SHELL HELPER IS LOCALE-AGNOSTIC. The suite now runs
+ * flows in an Amharic shell (the device ★), where every English accessible
+ * name goes blind. The header's sign-in affordance carries no testid, so the
+ * locale-free anchor is its destination (`a[href="/auth"]`); the `labels`
+ * option stays for callers that want to assert a specific rendered label.
  */
 export async function signOutViaUi(page: Page, labels: { signIn?: string } = {}) {
   const scope = await openRailScope(page);
@@ -218,9 +224,23 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
 
   await page.waitForURL(/\/$/, { timeout: 15000 });
   await expect(page.getByTestId("account-menu")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: labels.signIn ?? en["auth.signIn"] })).toBeVisible({
+  const signInLink = labels.signIn
+    ? page.getByRole("link", { name: labels.signIn })
+    : page.locator('header a[href="/auth"]');
+  await expect(signInLink, "sign-in affordance never returned after sign-out").toBeVisible({
     timeout: 15000,
   });
+}
+
+/** INC-121 (c) — the /auth fields, anchored on ids, not on localised labels. */
+function authFields(page: Page) {
+  return {
+    email: page.locator("#auth-email"),
+    password: page.locator("#auth-password"),
+    // The form's only submit control; the "create an account" toggle, the
+    // resend button and the OAuth slots are all type="button".
+    submit: page.locator('form button[type="submit"]'),
+  };
 }
 
 /**
@@ -252,8 +272,11 @@ export async function signIn(
   await page.goto("/auth");
   await waitForHydration(page);
 
-  const emailInput = page.getByRole("textbox", { name: /email/i });
-  const passwordInput = page.locator("#auth-password");
+  const { email: emailInput, password: passwordInput, submit } = authFields(page);
+
+  // INC-121 (c): the door must be OPEN before we type — a form still resolving
+  // the signed-out branch is a wait, never a sleep (DEC-027).
+  await expect(emailInput, "sign-in form did not render on /auth").toBeEditable({ timeout: 15000 });
 
   await fillUntilStable(emailInput, email, "email");
   await fillUntilStable(passwordInput, password, "password");
@@ -261,8 +284,7 @@ export async function signIn(
   await expect(emailInput).toHaveValue(email);
   await expect(passwordInput).toHaveValue(password);
 
-  // Anchored: excludes "Create an account" toggle and the disabled OAuth slots.
-  await page.getByRole("button", { name: /^sign in$/i }).click();
+  await submit.click();
 
   // 1. The route the auth screen navigates to on password success.
   await page.waitForURL(/\/$/, { timeout: 15000 });
@@ -288,12 +310,11 @@ export async function attemptSignIn(page: Page, email: string, password: string)
   await page.goto("/auth");
   await waitForHydration(page);
 
-  const emailInput = page.getByRole("textbox", { name: /email/i });
-  const passwordInput = page.locator("#auth-password");
+  const { email: emailInput, password: passwordInput, submit } = authFields(page);
 
   // U0j-2 precondition: a missing sign-in form must fail HERE, not later as a
   // confusing fill timeout.
-  await expect(emailInput, "sign-in form did not render on /auth").toBeVisible({ timeout: 15000 });
+  await expect(emailInput, "sign-in form did not render on /auth").toBeEditable({ timeout: 15000 });
 
   await fillUntilStable(emailInput, email, "email");
   await fillUntilStable(passwordInput, password, "password");
@@ -301,8 +322,7 @@ export async function attemptSignIn(page: Page, email: string, password: string)
   await expect(emailInput).toHaveValue(email);
   await expect(passwordInput).toHaveValue(password);
 
-  // Anchored: excludes "Create an account" toggle and the disabled OAuth slots.
-  await page.getByRole("button", { name: /^sign in$/i }).click();
+  await submit.click();
 }
 
 /**
@@ -624,15 +644,27 @@ export async function describeSwitcher(page: Page): Promise<string> {
     snapshot = `(snapshot read threw: ${(error as Error).message})`;
   }
 
+  // INC-121 (b) — A DUMP NEVER DEPENDS ON AN OPEN MENU. The options live in a
+  // Radix portal that exists only while the dropdown is open, so "(none)" here
+  // used to read like a missing gate row when the menu was simply closed. The
+  // dump now states the menu's state, and falls back to the star controls (the
+  // same portal) so the two absences can never be confused again.
   let options = "(options unread)";
   try {
-    options = (
-      await page
-        .locator("[data-testid^='language-option-']")
-        .evaluateAll((nodes) =>
-          nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", "")),
-        )
-    ).join(",");
+    const trigger = page.getByTestId("language-switcher");
+    const menuOpen = (await trigger.count()) > 0 && (await trigger.getAttribute("aria-expanded"));
+    const codes = await page
+      .locator("[data-testid^='language-option-']")
+      .evaluateAll((nodes) =>
+        nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", "")),
+      );
+    const stars = await page
+      .locator("[data-testid^='language-star-']")
+      .evaluateAll((nodes) =>
+        nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-star-", "")),
+      );
+    const state = menuOpen === "true" ? "menu open" : "menu closed (options are portalled)";
+    options = `${codes.join(",") || "(none)"} · stars: ${stars.join(",") || "(none)"} · ${state}`;
   } catch (error) {
     options = `(options read threw: ${(error as Error).message})`;
   }

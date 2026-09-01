@@ -231,16 +231,21 @@ function requestedFromUrl(): string | null {
  * is raised on a macrotask hop so the lock is released first. A watchdog keeps
  * i18n from stalling forever if no event ever arrives.
  */
-function useAuthSettled(): boolean {
+function useAuthIdentity(): { settled: boolean; userId: string | null } {
   const [settled, setSettled] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const raise = () => {
       if (!cancelled) setSettled(true);
     };
-    const { data: subscription } = supabase.auth.onAuthStateChange(() => {
-      // No Supabase call here: only a deferred flag flip.
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      // No Supabase CALL here (law I5): the session is the event's own argument.
+      // INC-121 (a): the signed-in identity is what re-arms the account carry,
+      // so it is mirrored — equality-guarded, never a fresh object per event.
+      const next = session?.user?.id ?? null;
+      setUserId((current) => (current === next ? current : next));
       setTimeout(raise, 0);
     });
     // Watchdog (law F4: never a silent stall) — i18n proceeds regardless.
@@ -252,7 +257,7 @@ function useAuthSettled(): boolean {
     };
   }, []);
 
-  return settled;
+  return { settled, userId };
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -272,11 +277,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [bootRead, setBootRead] = useState(false);
   /** Loop guard (INC-098b): the gate revokes an unpublished language AT MOST once. */
   const reconciledRef = useRef(false);
-  /** U4h — the account carry is applied AT MOST once per mount. */
-  const accountSyncedRef = useRef(false);
+  /**
+   * U4h/INC-121 (a) — the account carry is applied AT MOST once PER SIGNED-IN
+   * IDENTITY, not once per mount: the provider mounts on /auth while signed
+   * out, and a once-per-mount latch consumed the attempt before any session
+   * existed, so the carry never ran for the user who then signed in.
+   */
+  const carriedForRef = useRef<string | null>(null);
   /** INC-107 — one warning per DB-only language, never one per effect run. */
   const warnedMissingRef = useRef<Set<string>>(new Set());
-  const authSettled = useAuthSettled();
+  const { settled: authSettled, userId } = useAuthIdentity();
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
   // INC-110: the read no longer waits for the auth settle signal, because it
@@ -408,17 +418,28 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * U4h — THE ACCOUNT CARRY (secondary, applied at most once).
+   * U4h — THE ACCOUNT CARRY (secondary, applied at most once per identity).
    *
-   * Runs only on a device with NO star. The account's language is applied AND
-   * immediately written as the device star, which is what makes it survive the
-   * next sign-out and session expiry: after this, the device owns the choice.
-   * A device that already starred something is never overwritten by an account.
+   * Runs only on a device with NO star, and only once a SESSION exists. The
+   * account's language is applied AND immediately written as the device star,
+   * which is what makes it survive the next sign-out and session expiry: after
+   * this, the device owns the choice. A device that already starred something
+   * is never overwritten by an account.
+   *
+   * INC-121 (a) LAW — A ONCE-PER-MOUNT LATCH MUST NOT GUARD A SESSION-DEPENDENT
+   * READ. Signing in is an in-page transition (no remount), so the latch is
+   * keyed by the signed-in user id and released on sign-out.
    */
   useEffect(() => {
-    if (!bootRead || !authSettled || accountSyncedRef.current) return;
+    if (!bootRead || !authSettled) return;
+    if (userId === null) {
+      // Signed out: nothing to carry, and the next sign-in gets its own attempt.
+      carriedForRef.current = null;
+      return;
+    }
+    if (carriedForRef.current === userId) return;
+    carriedForRef.current = userId;
     if (star !== null) return;
-    accountSyncedRef.current = true;
     void fetchPreferredLanguage().then(({ code, reason }) => {
       if (reason !== null) {
         if (reason !== "no session") console.warn(`[i18n] account language read failed: ${reason}`);
@@ -429,7 +450,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       writeDeviceStar(code);
       setLanguageState(code);
     });
-  }, [bootRead, authSettled, star]);
+  }, [bootRead, authSettled, userId, star]);
 
   // Whatever the source (switcher, storage, URL, account carry), an active
   // language that the gate does not bless is revoked ONCE, as soon as the gate
