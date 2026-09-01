@@ -1406,7 +1406,9 @@ test.describe("U4g bulk approval, order and orphans", () => {
    * above its former upper neighbour). Mobile keeps TR-20m: controls present
    * and enabled, no move.
    */
-  test("TR-20 roster order is operator-editable and persists", async ({ page }) => {
+  test("TR-20 roster order is operator-editable and persists @global-state", async ({ page }) => {
+    test.info().annotations.push({ type: "global-state", description: "INC-117" });
+
     test.skip(
       test.info().project.name !== "desktop-1280",
       "global order is a single list — one project mutates it",
