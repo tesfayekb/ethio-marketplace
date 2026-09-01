@@ -208,6 +208,31 @@ export async function approveAllTranslations(lang: string): Promise<ApproveAllRe
   };
 }
 
+/**
+ * U4k — DATA-SCOPE BULK APPROVAL.
+ *
+ * The entity layer has NO flag or revision machinery (stated in the migration),
+ * so the server returns ONE count. E6: zero approved is a legitimate answer and
+ * is reported as zero, never as an unknown.
+ */
+export interface ApproveAllEntityResult {
+  approved: number;
+}
+
+export async function approveAllEntityTranslations(
+  lang: string,
+): Promise<ApproveAllEntityResult> {
+  const { data, error } = await supabase.rpc("admin_approve_all_entity_translations", {
+    p_lang: lang,
+  });
+  if (error) throw error;
+  const record =
+    data !== null && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
+  return { approved: Number(record["approved"] ?? 0) };
+}
+
 /** U4g — roster order; the public language switcher follows `languages.sort`. */
 export async function setLanguageOrder(codes: string[]): Promise<void> {
   const { error } = await supabase.rpc("admin_set_language_order", { p_codes: codes });
