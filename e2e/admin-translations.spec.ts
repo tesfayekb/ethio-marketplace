@@ -1126,61 +1126,108 @@ test.describe("U4g bulk approval, order and orphans", () => {
     if (seedError) throw new Error(`[e2e:u4g] TR-19 seeding failed: ${seedError.message}`);
 
     try {
-      const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, `/admin/translations/${APPROVE_FENCE_LANG}`);
-      await page.getByTestId("approve-all-start").click();
-      await page.getByTestId("approve-all-confirm-run").click();
-      await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("approve-all-summary")).toBeVisible({ timeout: 30000 });
-
-      // DB truth per key (J4): reviewed → approved, flagged → untouched.
-      for (const key of reviewed) {
-        await expect
-          .poll(
-            async () => {
-              const { data, error } = await supabase
-                .from("ui_translations")
-                .select("status, approved_by")
-                .eq("key", key)
-                .eq("lang_code", APPROVE_FENCE_LANG)
-                .maybeSingle();
-              if (error) throw new Error(`[e2e:u4g] read failed for ${key}: ${error.message}`);
-              return `${data?.status ?? "none"}|${data?.approved_by === null ? "noactor" : "actor"}`;
-            },
-            { timeout: 30000, message: `TR-19 ${key} never became approved` },
-          )
-          .toBe("approved|actor");
-
-        // The approval captured its own revision (one per approved row).
-        let dump = "unread";
-        await expect
-          .poll(
-            async () => {
-              const revisions = await dumpRevisions(key, APPROVE_FENCE_LANG, "[e2e:u4g]");
-              dump = serializeRevisions(revisions);
-              return revisions.filter((row) => row.action === "approve").length;
-            },
-            { timeout: 30000, message: `TR-19 expected one approve revision for ${key}` },
-          )
-          .toBe(1)
-          .catch(async (error: unknown) => {
+      // U4g-20 (INC-112) — NAMED PHASES (J-law). The previous shape was one
+      // anonymous 120s budget: the report carried a footer-only snapshot and
+      // no indication of which interaction stalled. Every step below owns a
+      // budget strictly shorter than the test's, and rethrows with the shared
+      // describeStringsPage dump (route + query cache + testid presence).
+      const step = async (name: string, body: () => Promise<void>) =>
+        test.step(name, async () => {
+          try {
+            await body();
+          } catch (error) {
             throw new Error(
-              `[e2e:u4g] TR-19 revision mismatch for ${key}:\n${dump}\n` +
-                `(${error instanceof Error ? error.message : String(error)})`,
+              `${(error as Error).message}\n\n[INC-112] phase: ${name}\n${await describeStringsPage(page)}`,
             );
-          });
-      }
+          }
+        });
 
-      const { data: flaggedRow } = await supabase
-        .from("ui_translations")
-        .select("status, flagged")
-        .eq("key", flagged)
-        .eq("lang_code", APPROVE_FENCE_LANG)
-        .maybeSingle();
-      expect(
-        `${flaggedRow?.status ?? "none"}|${String(flaggedRow?.flagged)}`,
-        "a flagged row is skipped, never approved",
-      ).toBe("machine|true");
+      let secret = "";
+      await step("TR-19 sign-in", async () => {
+        const signed = await signInAsSuperAdmin(page);
+        secret = signed.secret;
+      });
+
+      await step("TR-19 open fence page", async () => {
+        await gotoReady(page, `/admin/translations/${APPROVE_FENCE_LANG}`);
+        await expect(page.getByTestId("approve-all-bar")).toBeVisible({ timeout: 20000 });
+      });
+
+      await step("TR-19 seed check", async () => {
+        // The seeded rows must be visible to the page's own source before the
+        // sweep runs — otherwise "approved nothing" is indistinguishable from
+        // "never loaded".
+        await expect(page.getByTestId("approve-all-start")).toBeEnabled({ timeout: 20000 });
+      });
+
+      await step("TR-19 approve-all start", async () => {
+        await page.getByTestId("approve-all-start").click({ timeout: 15000 });
+      });
+
+      await step("TR-19 confirm", async () => {
+        await expect(page.getByTestId("approve-all-confirm")).toBeVisible({ timeout: 15000 });
+        await page.getByTestId("approve-all-confirm-run").click({ timeout: 15000 });
+      });
+
+      await step("TR-19 step-up", async () => {
+        await stepUpIfPrompted(page, secret);
+      });
+
+      await step("TR-19 summary", async () => {
+        await expect(page.getByTestId("approve-all-summary")).toBeVisible({ timeout: 30000 });
+      });
+
+      await step("TR-19 poll DB truth", async () => {
+        // DB truth per key (J4): reviewed → approved, flagged → untouched.
+        for (const key of reviewed) {
+          await expect
+            .poll(
+              async () => {
+                const { data, error } = await supabase
+                  .from("ui_translations")
+                  .select("status, approved_by")
+                  .eq("key", key)
+                  .eq("lang_code", APPROVE_FENCE_LANG)
+                  .maybeSingle();
+                if (error) throw new Error(`[e2e:u4g] read failed for ${key}: ${error.message}`);
+                return `${data?.status ?? "none"}|${data?.approved_by === null ? "noactor" : "actor"}`;
+              },
+              { timeout: 20000, message: `TR-19 ${key} never became approved` },
+            )
+            .toBe("approved|actor");
+
+          // The approval captured its own revision (one per approved row).
+          let dump = "unread";
+          await expect
+            .poll(
+              async () => {
+                const revisions = await dumpRevisions(key, APPROVE_FENCE_LANG, "[e2e:u4g]");
+                dump = serializeRevisions(revisions);
+                return revisions.filter((row) => row.action === "approve").length;
+              },
+              { timeout: 20000, message: `TR-19 expected one approve revision for ${key}` },
+            )
+            .toBe(1)
+            .catch(async (error: unknown) => {
+              throw new Error(
+                `[e2e:u4g] TR-19 revision mismatch for ${key}:\n${dump}\n` +
+                  `(${error instanceof Error ? error.message : String(error)})`,
+              );
+            });
+        }
+
+        const { data: flaggedRow } = await supabase
+          .from("ui_translations")
+          .select("status, flagged")
+          .eq("key", flagged)
+          .eq("lang_code", APPROVE_FENCE_LANG)
+          .maybeSingle();
+        expect(
+          `${flaggedRow?.status ?? "none"}|${String(flaggedRow?.flagged)}`,
+          "a flagged row is skipped, never approved",
+        ).toBe("machine|true");
+      });
+
     } finally {
       for (const key of keys) {
         await supabase.from("ui_translation_revisions").delete().eq("key", key);
