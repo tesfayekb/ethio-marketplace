@@ -231,16 +231,21 @@ function requestedFromUrl(): string | null {
  * is raised on a macrotask hop so the lock is released first. A watchdog keeps
  * i18n from stalling forever if no event ever arrives.
  */
-function useAuthSettled(): boolean {
+function useAuthIdentity(): { settled: boolean; userId: string | null } {
   const [settled, setSettled] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const raise = () => {
       if (!cancelled) setSettled(true);
     };
-    const { data: subscription } = supabase.auth.onAuthStateChange(() => {
-      // No Supabase call here: only a deferred flag flip.
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      // No Supabase CALL here (law I5): the session is the event's own argument.
+      // INC-121 (a): the signed-in identity is what re-arms the account carry,
+      // so it is mirrored — equality-guarded, never a fresh object per event.
+      const next = session?.user?.id ?? null;
+      setUserId((current) => (current === next ? current : next));
       setTimeout(raise, 0);
     });
     // Watchdog (law F4: never a silent stall) — i18n proceeds regardless.
@@ -252,8 +257,9 @@ function useAuthSettled(): boolean {
     };
   }, []);
 
-  return settled;
+  return { settled, userId };
 }
+
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(BASE_LANGUAGE);
