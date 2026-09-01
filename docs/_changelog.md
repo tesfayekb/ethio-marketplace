@@ -253,3 +253,4 @@
 - 2026-09-01 — ci(DEC-019-B): worker compatibility date pinned; nightly cloudflare parity runs for real (INC-111)
 - 2026-09-01 — test(e2e): TR-19 phased + strings-page failure dump (INC-112)
 - 2026-09-01 — fix(translations): one shared reviewable predicate; gate list never cached (INC-113)
+- 2026-09-01 — fix(i18n): gate fetch without filter-shaped busting; failures surface and retry (INC-113b)
