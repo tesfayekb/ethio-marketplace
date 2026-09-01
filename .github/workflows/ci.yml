@@ -298,7 +298,9 @@ jobs:
       - name: Run the smoke tier (fail fast)
         run: |
           set -o pipefail
-          bunx playwright test --project=mobile-360 --project=desktop-1280 e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts 2>&1 | tee smoke.log
+          # DEC-028 — @global-state specs mutate a surface every concurrent
+          # project shares; they run in the SERIAL nightly only, never here.
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts 2>&1 | tee smoke.log
       # INC-081: the smoke tier used to upload nothing, so its failures never
       # reached docs/tracking/e2e-last-failure.md ("0 failed" while red).
       - name: Upload smoke results
@@ -450,7 +452,9 @@ jobs:
         if: steps.changed.outputs.specs != ''
         run: |
           set -o pipefail
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --workers=2 ${{ steps.changed.outputs.specs }} 2>&1 | tee changed.log
+          # DEC-028 — @global-state specs mutate a surface every concurrent
+          # project shares; they run in the SERIAL nightly only, never here.
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --workers=2 --grep-invert "@global-state" ${{ steps.changed.outputs.specs }} 2>&1 | tee changed.log
       - name: Upload changed-lane results
         if: always() && steps.changed.outputs.specs != ''
         uses: actions/upload-artifact@v4
@@ -565,7 +569,9 @@ jobs:
       - name: Run E2E shard (built app, served on node — DEC-018/DEC-019)
         run: |
           set -o pipefail
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --shard=${{ matrix.shard }}/4 2>&1 | tee ${{ matrix.shard }}.log
+          # DEC-028 — @global-state specs mutate a surface every concurrent
+          # project shares; they run in the SERIAL nightly only, never here.
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" --shard=${{ matrix.shard }}/4 2>&1 | tee ${{ matrix.shard }}.log
       - name: Capture shard log tail
         if: failure()
         uses: actions/upload-artifact@v4
