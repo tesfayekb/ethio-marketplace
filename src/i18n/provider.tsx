@@ -21,10 +21,27 @@ export const LANGUAGE_STORAGE_KEY = "ethio.lang";
 /** The base language: the last-resort catalog and the refusal fallback (U4f). */
 export const BASE_LANGUAGE: Language = "en";
 
-/** Only "en" is bundled statically; other locales are fetched on demand. */
-const loaders: Record<Exclude<Language, "en">, () => Promise<Messages>> = {
+/**
+ * INC-107 — A MISSING COMPILED LAYER IS EMPTY, NOT FATAL.
+ *
+ * The compiled catalogs are a SEED, not the language registry: a language the
+ * operator publishes in the console may legitimately exist in the DATABASE
+ * only, with no file here. The registry is therefore a partial map keyed by
+ * code, and a lookup miss means "the compiled layer for this language is `{}`"
+ * — the chain becomes compiled.en ▸ {} ▸ DB[lang], never a throw.
+ */
+const loaders: Partial<Record<string, () => Promise<Messages>>> = {
   am: () => import("./locales/am").then((m) => m.am),
 };
+
+/**
+ * A well-formed BCP-47-ish code. Shape only: whether a code may ACTIVATE is
+ * the publication gate's call (`isPublic`), never this function's.
+ */
+function isLanguageCode(value: string | null): value is Language {
+  return value !== null && /^[a-z]{2,8}(-[a-z]{2,8})?$/i.test(value);
+}
+
 
 /**
  * U4f (INC-098) — a PUBLIC language row, as the publication gate defines it.
