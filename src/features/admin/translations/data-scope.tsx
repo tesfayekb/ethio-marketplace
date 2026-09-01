@@ -13,8 +13,9 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { AiBulkBar } from "./ai-bulk-bar";
+import { AiBulkBar, type CountState } from "./ai-bulk-bar";
 import {
+  pickEntityStats,
   serverMessage,
   translationErrorKey,
   type EntityTranslationRow,

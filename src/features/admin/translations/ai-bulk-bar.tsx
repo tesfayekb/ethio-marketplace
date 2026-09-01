@@ -43,16 +43,25 @@ import { useAiTranslate, useAiTranslateEntities } from "./use-translations";
  * summary is an inline live region instead. Same information, same failure
  * list, no silent success (F4).
  */
+export type CountState = "success" | "pending" | "error" | "missing";
+
 export function AiBulkBar({
   lang,
   untranslated,
   guard,
   scope = "ui",
+  countState = "success",
 }: {
   lang: string;
   untranslated: number;
   guard: GuardFn;
   scope?: "ui" | "entity";
+  /**
+   * INC-119 — where the count came from. Only a `success` count may be
+   * rendered as a number or believed when it is zero; a pending, failed or
+   * absent count renders as pending/error and never as a quiet "(0)".
+   */
+  countState?: CountState;
 }) {
   const { t } = useI18n();
   const translateUi = useAiTranslate(lang);
@@ -160,6 +169,7 @@ export function AiBulkBar({
   };
 
   const busy = progress !== null || translate.isPending;
+  const countKnown = countState === "success";
 
   return (
     <div data-testid="ai-bulk-bar" className="flex min-w-0 flex-col gap-2">
@@ -169,11 +179,19 @@ export function AiBulkBar({
           variant="outline"
           className="min-h-11"
           data-testid="ai-bulk-start"
-          disabled={busy || untranslated === 0}
+          data-count-state={countState}
+          disabled={busy || !countKnown || untranslated === 0}
           onClick={() => setConfirming(true)}
         >
-          {t("admin.translations.ai.bulkAction").replace("{count}", String(untranslated))}
+          {countKnown
+            ? t("admin.translations.ai.bulkAction").replace("{count}", String(untranslated))
+            : t("admin.translations.ai.pending")}
         </Button>
+        {countState === "error" || countState === "missing" ? (
+          <span role="alert" data-testid="ai-bulk-count-error" className="text-sm text-destructive">
+            {t("admin.translations.strings.error")}
+          </span>
+        ) : null}
         {progress ? (
           <span
             role="status"
