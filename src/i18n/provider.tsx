@@ -278,11 +278,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [bootRead, setBootRead] = useState(false);
   /** Loop guard (INC-098b): the gate revokes an unpublished language AT MOST once. */
   const reconciledRef = useRef(false);
-  /** U4h — the account carry is applied AT MOST once per mount. */
-  const accountSyncedRef = useRef(false);
+  /**
+   * U4h/INC-121 (a) — the account carry is applied AT MOST once PER SIGNED-IN
+   * IDENTITY, not once per mount: the provider mounts on /auth while signed
+   * out, and a once-per-mount latch consumed the attempt before any session
+   * existed, so the carry never ran for the user who then signed in.
+   */
+  const carriedForRef = useRef<string | null>(null);
   /** INC-107 — one warning per DB-only language, never one per effect run. */
   const warnedMissingRef = useRef<Set<string>>(new Set());
-  const authSettled = useAuthSettled();
+  const { settled: authSettled, userId } = useAuthIdentity();
+
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
   // INC-110: the read no longer waits for the auth settle signal, because it
