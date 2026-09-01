@@ -672,6 +672,19 @@ test.describe("U4b translations console", () => {
 
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
+      // U4j-5 (INC-119b) — the universe must RENDER before the bar is read: at
+      // least one untranslated row exists on a fresh language.
+      await expect(page.locator("[data-testid^='entity-status-']").first()).toBeVisible({
+        timeout: 20000,
+      });
+      // The bar's count is only readable once the stats query is ready; poll
+      // for digits rather than racing a pending "(—)" into a false zero.
+      await expect
+        .poll(async () => (await startButton.innerText()).match(/[0-9]/) !== null, {
+          timeout: 20000,
+          message: "the Data bulk bar never reached a ready (numeric) count",
+        })
+        .toBe(true);
 
       await startButton.click();
       await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
@@ -983,16 +996,16 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, "/admin/translations/am?scope=data");
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(name);
-      const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${id}`));
+      const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-location-${id}-name`));
       await expect(row).toBeVisible({ timeout: 20000 });
 
-      await surfaceControl(page, `entity-expand-${id}`).click();
-      const editor = surfaceControl(page, `entity-editor-${id}`);
+      await surfaceControl(page, `entity-expand-location-${id}-name`).click();
+      const editor = surfaceControl(page, `entity-editor-location-${id}-name`);
       await expect(editor).toBeVisible();
-      await editor.getByTestId(`entity-input-${id}`).fill(marker);
-      await editor.getByTestId(`entity-save-${id}`).click();
+      await editor.getByTestId(`entity-input-location-${id}-name`).fill(marker);
+      await editor.getByTestId(`entity-save-location-${id}-name`).click();
       await stepUpIfPrompted(page, secret);
-      await expect(editor.getByTestId(`entity-saved-${id}`)).toBeVisible({ timeout: 20000 });
+      await expect(editor.getByTestId(`entity-saved-location-${id}-name`)).toBeVisible({ timeout: 20000 });
 
       await expect
         .poll(
@@ -1011,7 +1024,7 @@ test.describe("U4b translations console", () => {
         )
         .toBe(`edited:${marker}`);
 
-      await editor.getByTestId(`entity-approve-${id}`).click();
+      await editor.getByTestId(`entity-approve-location-${id}-name`).click();
       await stepUpIfPrompted(page, secret);
       await expect
         .poll(
@@ -1098,15 +1111,15 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(one.name);
-      const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${one.id}`));
+      const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-location-${one.id}-name`));
       await expect(row).toBeVisible({ timeout: 20000 });
-      await expect(row.getByTestId(`entity-status-${one.id}`)).toHaveText(/untranslated/i);
-      await surfaceControl(page, `entity-expand-${one.id}`).click();
-      const editor = surfaceControl(page, `entity-editor-${one.id}`);
+      await expect(row.getByTestId(`entity-status-location-${one.id}-name`)).toHaveText(/untranslated/i);
+      await surfaceControl(page, `entity-expand-location-${one.id}-name`).click();
+      const editor = surfaceControl(page, `entity-editor-location-${one.id}-name`);
       await expect(editor).toBeVisible();
-      await editor.getByTestId(`entity-ai-${one.id}`).click();
+      await editor.getByTestId(`entity-ai-location-${one.id}-name`).click();
       await stepUpIfPrompted(page, secret);
-      await expect(editor.getByTestId(`entity-saved-${one.id}`)).toBeVisible({ timeout: 30000 });
+      await expect(editor.getByTestId(`entity-saved-location-${one.id}-name`)).toBeVisible({ timeout: 30000 });
       await expect
         .poll(() => machineStatus(one.id), {
           timeout: 20000,
@@ -1118,6 +1131,19 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
+      // U4j-5 (INC-119b) — the universe must RENDER before the bar is read: at
+      // least one untranslated row exists on a fresh language.
+      await expect(page.locator("[data-testid^='entity-status-']").first()).toBeVisible({
+        timeout: 20000,
+      });
+      // The bar's count is only readable once the stats query is ready; poll
+      // for digits rather than racing a pending "(—)" into a false zero.
+      await expect
+        .poll(async () => (await startButton.innerText()).match(/[0-9]/) !== null, {
+          timeout: 20000,
+          message: "the Data bulk bar never reached a ready (numeric) count",
+        })
+        .toBe(true);
       // U4j-3 — the bar's work count is the UNIVERSE's untranslated count, so
       // it must already be non-zero on a language with no rows at all.
       const untranslatedBefore = Number(

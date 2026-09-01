@@ -622,6 +622,8 @@ export async function describeEntityStats(page: Page): Promise<string> {
   for (let index = 0; index < Math.min(count, 3); index += 1) {
     const cell = cells.nth(index);
     const id = (await cell.getAttribute("data-testid")) ?? "(no id)";
+    // U4j-5 (INC-119b) — the testid is the COMPOSITE entity identity
+    // (`<type>-<id>-<field>`), which is what the list now keys on.
     rows.push(`${id.replace("entity-status-", "")}=${(await cell.innerText()).trim()}`);
   }
 
