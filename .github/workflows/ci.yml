@@ -429,6 +429,8 @@ jobs:
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
       E2E_FAKE_TRANSLATE: "1"
+      # DEC-029 knob — injection parked pending DEC-026 component layer; INC-120c
+      E2E_UI_LOGIN: "1"
     steps:
       - uses: actions/checkout@v5
         with:
