@@ -42,7 +42,6 @@ function isLanguageCode(value: string | null): value is Language {
   return value !== null && /^[a-z]{2,8}(-[a-z]{2,8})?$/i.test(value);
 }
 
-
 /**
  * U4f (INC-098) — a PUBLIC language row, as the publication gate defines it.
  * The `languages` table's public RLS SELECT exposes exactly `enabled_public OR
@@ -84,9 +83,6 @@ type I18nValue = {
 };
 
 const I18nContext = createContext<I18nValue | null>(null);
-
-
-
 
 /** URL override (`?lang=xx`) — validated against the gate like every other source. */
 function requestedFromUrl(): string | null {
@@ -151,7 +147,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   /** INC-107 — one warning per DB-only language, never one per effect run. */
   const warnedMissingRef = useRef<Set<string>>(new Set());
   const authSettled = useAuthSettled();
-
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
   // Gated activation (U4f) and the once-only reconcile (U4f-2) are unchanged;
@@ -242,7 +237,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (isLanguageCode(stored) && stored !== BASE_LANGUAGE) setLanguageState(stored);
   }, []);
 
-
   // Whatever the source (switcher, storage, URL), an active language that the
   // gate does not bless is revoked ONCE, as soon as the gate answers
   // (INC-098b): equality-guarded, persisted, and ref-latched so the effect
@@ -314,7 +308,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-
   }, [language, authSettled]);
 
   useEffect(() => {
