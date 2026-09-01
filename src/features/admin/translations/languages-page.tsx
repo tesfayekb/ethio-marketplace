@@ -545,15 +545,58 @@ function SyncKeysCard({ guard }: { guard: GuardFn }) {
   );
 }
 
+/**
+ * U4j — GUIDED LANGUAGE CREATION.
+ *
+ * The code and English name come from the PROVIDER's supported list (so a
+ * created language is one the AI can actually fill), the native name is
+ * derived with `Intl.DisplayNames` and stays editable, RTL is derived from the
+ * script and stays editable, and the countries multi-select rides the same
+ * `countries` reference table the rest of the console reads. "Not listed"
+ * reveals the original free-text form — the guide is help, never a wall.
+ */
 function AddLanguageCard({ guard }: { guard: GuardFn }) {
   const { t } = useI18n();
   const upsert = useUpsertLanguage();
+  const countries = useCountries();
+  const [manual, setManual] = useState(false);
+  const [picked, setPicked] = useState<ProviderLanguage | null>(null);
   const [code, setCode] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [nameNative, setNameNative] = useState("");
   const [rtl, setRtl] = useState(false);
+  const [countryCodes, setCountryCodes] = useState<string[]>([]);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [saved, setSaved] = useState(false);
+
+  const reset = () => {
+    setPicked(null);
+    setCode("");
+    setNameEn("");
+    setNameNative("");
+    setRtl(false);
+    setCountryCodes([]);
+  };
+
+  const select = (language: ProviderLanguage) => {
+    const slug = language.code.trim().toLowerCase();
+    setPicked(language);
+    setCode(slug);
+    setNameEn(language.name);
+    setNameNative(nativeNameOf(slug, language.name));
+    setRtl(RTL_LANGUAGES.has(slug.split("-")[0] ?? slug));
+    setSaved(false);
+    setErrorKey(null);
+  };
+
+  const toggleCountry = (value: string) =>
+    setCountryCodes((current) =>
+      current.includes(value)
+        ? current.filter((entry) => entry !== value)
+        : [...current, value].sort(),
+    );
+
+  const showForm = manual || picked !== null;
 
   return (
     <FormSection
@@ -562,98 +605,170 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
       description={t("admin.translations.add.description")}
       columns={2}
       actions={
-        <>
-          <Button
-            className="min-h-11 w-full sm:w-auto"
-            data-testid="translations-add-submit"
-            disabled={upsert.isPending}
-            onClick={() => {
-              setSaved(false);
-              const slug = code.trim().toLowerCase();
-              if (
-                !LANGUAGE_CODE_RE.test(slug) ||
-                nameEn.trim() === "" ||
-                nameNative.trim() === ""
-              ) {
-                setErrorKey("admin.translations.error.codeInvalid");
-                return;
-              }
-              setErrorKey(null);
-              void guard(() =>
-                upsert.mutateAsync({
-                  code: slug,
-                  nameEn: nameEn.trim(),
-                  nameNative: nameNative.trim(),
-                  rtl,
-                }),
-              )
-                .then(() => {
-                  setSaved(true);
-                  setCode("");
-                  setNameEn("");
-                  setNameNative("");
-                  setRtl(false);
-                })
-                .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
-            }}
+        showForm ? (
+          <>
+            <Button
+              className="min-h-11 w-full sm:w-auto"
+              data-testid="translations-add-submit"
+              disabled={upsert.isPending}
+              onClick={() => {
+                setSaved(false);
+                const slug = code.trim().toLowerCase();
+                if (
+                  !LANGUAGE_CODE_RE.test(slug) ||
+                  nameEn.trim() === "" ||
+                  nameNative.trim() === ""
+                ) {
+                  setErrorKey("admin.translations.error.codeInvalid");
+                  return;
+                }
+                setErrorKey(null);
+                void guard(() =>
+                  upsert.mutateAsync({
+                    code: slug,
+                    nameEn: nameEn.trim(),
+                    nameNative: nameNative.trim(),
+                    rtl,
+                    countryCodes,
+                  }),
+                )
+                  .then(() => {
+                    setSaved(true);
+                    setManual(false);
+                    reset();
+                  })
+                  .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
+              }}
+            >
+              {t("admin.translations.add.submit")}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-11 w-full sm:w-auto"
+              data-testid="translations-add-back"
+              onClick={() => {
+                setManual(false);
+                reset();
+              }}
+            >
+              {t("admin.translations.add.fromList")}
+            </Button>
+            {saved ? (
+              <p
+                role="status"
+                data-testid="translations-add-saved"
+                className="text-sm text-muted-foreground"
+              >
+                {t("admin.translations.add.added")}
+              </p>
+            ) : null}
+            {errorKey ? (
+              <p
+                role="alert"
+                data-testid="translations-add-error"
+                className="text-sm text-destructive"
+              >
+                {t(errorKey)}
+              </p>
+            ) : null}
+          </>
+        ) : saved ? (
+          <p
+            role="status"
+            data-testid="translations-add-saved"
+            className="text-sm text-muted-foreground"
           >
-            {t("admin.translations.add.submit")}
-          </Button>
-          {saved ? (
-            <p
-              role="status"
-              data-testid="translations-add-saved"
-              className="text-sm text-muted-foreground"
-            >
-              {t("admin.translations.add.added")}
-            </p>
-          ) : null}
-          {errorKey ? (
-            <p
-              role="alert"
-              data-testid="translations-add-error"
-              className="text-sm text-destructive"
-            >
-              {t(errorKey)}
-            </p>
-          ) : null}
-        </>
+            {t("admin.translations.add.added")}
+          </p>
+        ) : null
       }
     >
-      <FormField label={t("admin.translations.add.code")} htmlFor="add-language-code">
-        <Input
-          id="add-language-code"
-          data-testid="translations-add-code"
-          value={code}
-          placeholder={t("admin.translations.add.codePlaceholder")}
-          onChange={(event) => setCode(event.target.value)}
-        />
-      </FormField>
-      <FormField label={t("admin.translations.add.nameEn")} htmlFor="add-language-name-en">
-        <Input
-          id="add-language-name-en"
-          data-testid="translations-add-name-en"
-          value={nameEn}
-          onChange={(event) => setNameEn(event.target.value)}
-        />
-      </FormField>
-      <FormField label={t("admin.translations.add.nameNative")} htmlFor="add-language-name-native">
-        <Input
-          id="add-language-name-native"
-          data-testid="translations-add-name-native"
-          value={nameNative}
-          onChange={(event) => setNameNative(event.target.value)}
-        />
-      </FormField>
-      <FormField label={t("admin.translations.add.rtl")} htmlFor="add-language-rtl">
-        <Switch
-          id="add-language-rtl"
-          data-testid="translations-add-rtl"
-          checked={rtl}
-          aria-label={t("admin.translations.add.rtl")}
-          onCheckedChange={setRtl}
-        />
-      </FormField>
+      {showForm ? null : (
+        <FormField label={t("admin.translations.add.pick")} htmlFor="translations-add-search">
+          <LanguagePicker onSelect={select} onManual={() => setManual(true)} />
+        </FormField>
+      )}
+
+      {showForm ? (
+        <>
+          {picked ? (
+            <p className="text-sm text-muted-foreground" data-testid="translations-add-picked">
+              {t("admin.translations.add.pickSelected").replace("{language}", picked.name)}
+            </p>
+          ) : null}
+          <FormField label={t("admin.translations.add.code")} htmlFor="add-language-code">
+            <Input
+              id="add-language-code"
+              data-testid="translations-add-code"
+              value={code}
+              placeholder={t("admin.translations.add.codePlaceholder")}
+              onChange={(event) => setCode(event.target.value)}
+            />
+          </FormField>
+          <FormField label={t("admin.translations.add.nameEn")} htmlFor="add-language-name-en">
+            <Input
+              id="add-language-name-en"
+              data-testid="translations-add-name-en"
+              value={nameEn}
+              onChange={(event) => setNameEn(event.target.value)}
+            />
+          </FormField>
+          <FormField
+            label={t("admin.translations.add.nameNative")}
+            htmlFor="add-language-name-native"
+          >
+            <Input
+              id="add-language-name-native"
+              data-testid="translations-add-name-native"
+              value={nameNative}
+              onChange={(event) => setNameNative(event.target.value)}
+            />
+          </FormField>
+          <FormField label={t("admin.translations.add.rtl")} htmlFor="add-language-rtl">
+            <Switch
+              id="add-language-rtl"
+              data-testid="translations-add-rtl"
+              checked={rtl}
+              aria-label={t("admin.translations.add.rtl")}
+              onCheckedChange={setRtl}
+            />
+          </FormField>
+          <FormField
+            label={t("admin.translations.add.countries")}
+            hint={t("admin.translations.add.countriesHint")}
+            htmlFor="translations-add-countries"
+          >
+            {countries.isLoading ? (
+              <p className="text-sm text-muted-foreground">
+                {t("admin.translations.add.countriesLoading")}
+              </p>
+            ) : (
+              <div
+                id="translations-add-countries"
+                data-testid="translations-add-countries"
+                className="max-h-48 min-w-0 space-y-1 overflow-y-auto"
+              >
+                {(countries.data ?? []).map((country) => (
+                  <label
+                    key={country.code}
+                    className="flex min-h-11 min-w-0 items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      data-testid={`translations-add-country-${country.code}`}
+                      checked={countryCodes.includes(country.code)}
+                      onChange={() => toggleCountry(country.code)}
+                    />
+                    <span className="truncate">{country.nameEn}</span>
+                    <span className="font-mono text-xs text-muted-foreground">{country.code}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </FormField>
+        </>
+      ) : null}
     </FormSection>
   );
 }
