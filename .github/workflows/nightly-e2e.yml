@@ -40,6 +40,9 @@ jobs:
       # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
       # needs no provider key and spends nothing. PROD is unaffected.
       E2E_FAKE_TRANSLATE: "1"
+      # DEC-030 — the NIGHTLY keeps the unretried truth: acceptance measurement
+      # (pass bar §6) needs retries: 0. Only the parallel matrix retries once.
+      E2E_RETRIES: "0"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2

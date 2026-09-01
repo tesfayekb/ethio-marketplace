@@ -14,8 +14,18 @@ export default defineConfig({
   globalTeardown: "./e2e/global-teardown.ts",
   fullyParallel: false,
   forbidOnly: !!process.env["CI"],
-  // Acceptance measurement requires retries: 0 (pass bar, §6 of the report).
-  retries: 0,
+  // DEC-030 — RETRIES ARE EVIDENCE, NOT CONCEALMENT. The parallel matrix
+  // (smoke / shards / changed lane) retries once so one infrastructural blip
+  // does not red a whole push; every test that fails then passes is recorded as
+  // "FLAKY (passed on retry)" in the evidence file AND appended to
+  // docs/tracking/flake-ledger.md. A test flaky 3× in 7 days gets an INC and
+  // root-cause work. The serial nightly keeps `retries: 0` (E2E_RETRIES=0):
+  // acceptance measurement needs the unretried truth (pass bar, §6).
+  retries: process.env["E2E_RETRIES"]
+    ? Number(process.env["E2E_RETRIES"])
+    : process.env["CI"]
+      ? 1
+      : 0,
   // DEC-024 — capacity knob. Shard jobs export E2E_WORKERS=2; the scratch-key
   // identity law (run×shard×worker×project×test) makes worker parallelism safe
   // by construction. REVERT RULE: any cross-worker interference class returns

@@ -844,7 +844,17 @@ jobs:
           reporter=0
           bun scripts/e2e-failure-report.ts || reporter=$?
 
+          # DEC-030 — THE FLAKE LEDGER PASS. A run whose only anomaly was a
+          # retry-recovered test is GREEN, so the green branch above would hide
+          # it. This second pass reads the same sources, writes neither the
+          # evidence file nor the verdict, and appends one line per flaky test
+          # to docs/tracking/flake-ledger.md. Retries are evidence, not
+          # concealment; a ledger failure is a ::warning, never a red.
+          E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts \
+            || echo "::warning::DEC-030 flake-ledger pass failed"
+
           cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
+          cp docs/tracking/flake-ledger.md /tmp/flake-ledger.md 2>/dev/null || true
           # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
           # the file is derived state owned by this run, so rewriting it on top
           # of whatever dev now holds can never conflict. A push failure is a
@@ -860,12 +870,18 @@ jobs:
             mkdir -p docs/tracking
             cp /tmp/e2e-last-failure.md docs/tracking/e2e-last-failure.md
             git add docs/tracking/e2e-last-failure.md
+            # DEC-030 — the ledger is APPEND-ONLY against the freshly fetched
+            # dev copy: re-run the flake pass after the reset so a concurrent
+            # run's lines are never overwritten by this run's stale snapshot.
+            E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts \
+              || echo "::warning::DEC-030 flake-ledger re-append failed"
+            git add docs/tracking/flake-ledger.md || true
             if git diff --cached --quiet; then
               echo "No report change; nothing to commit."
               pushed=1
               break
             fi
-            git commit -m "ci: e2e failure report [skip ci]"
+            git commit -m "ci: e2e failure report + flake ledger [skip ci]"
             if git push origin HEAD:dev; then
               pushed=1
               break

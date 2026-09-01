@@ -51,6 +51,16 @@ const MALFORMED_FIXTURE = "scripts/fixtures/e2e-results-malformed.json";
  */
 const EMPTY_FIXTURE = "scripts/fixtures/e2e-results-empty.json";
 
+/** DEC-030 — the ledger's header, written once when the file does not exist. */
+export const FLAKE_LEDGER_HEADER = [
+  "# Flake ledger (DEC-030 — auto-appended by scripts/e2e-failure-report.ts)",
+  "",
+  "One line per test that FAILED then PASSED on retry. Law (docs/features/ci-guards.md):",
+  "a test flaky 3× in 7 days gets an INC and root-cause work — retries are evidence,",
+  "not concealment.",
+  "",
+].join("\n");
+
 type PwResult = { status?: string; error?: { message?: string } };
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
 type PwSpec = { title?: string; ok?: boolean; file?: string; tests?: PwTest[] };
@@ -299,8 +309,29 @@ export function classifyFailures<T extends { title: string }>(
   };
 }
 
-export function collect(json: PwJson): { failures: Failure[]; passed: number; skipped: number } {
+/**
+ * DEC-030 — A FLAKY TEST IS NOT A PASS AND NOT A FAILURE. With `retries: 1` in
+ * the parallel matrix, Playwright records `status: "flaky"` for a test that
+ * failed then passed on retry. Retries are EVIDENCE, NOT CONCEALMENT: such a
+ * test never gates the run, but it is named in the report's Flake ledger and
+ * appended to docs/tracking/flake-ledger.md so a repeat offender is visible.
+ */
+export type Flake = {
+  project: string;
+  title: string;
+  /** First (failing) attempt's message, trimmed to one line for the ledger. */
+  message: string;
+  file: string;
+};
+
+export function collect(json: PwJson): {
+  failures: Failure[];
+  flaky: Flake[];
+  passed: number;
+  skipped: number;
+} {
   const failures: Failure[] = [];
+  const flaky: Flake[] = [];
 
   const walk = (suite: PwSuite, trail: string[], file: string, isRoot: boolean) => {
     const suiteFile = suite.file ?? file;
@@ -316,9 +347,19 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
         const raw = result?.error?.message ?? "(no error message captured)";
         const message = redact(raw).split("\n").slice(0, 40).join("\n");
         const specTitle = spec.title ?? "(untitled)";
+        const title = redact([suiteFile, ...path, specTitle].filter(Boolean).join(" › "));
+        if (status === "flaky") {
+          flaky.push({
+            project: test.projectName ?? "unknown",
+            title,
+            message: message.split("\n")[0] ?? "(no error message captured)",
+            file: spec.file ?? suiteFile,
+          });
+          continue;
+        }
         failures.push({
           project: test.projectName ?? "unknown",
-          title: redact([suiteFile, ...path, specTitle].filter(Boolean).join(" › ")),
+          title,
           message,
           file: spec.file ?? suiteFile,
           specTitle,
@@ -333,10 +374,26 @@ export function collect(json: PwJson): { failures: Failure[]; passed: number; sk
 
   return {
     failures,
+    flaky,
     passed: json.stats?.expected ?? 0,
     skipped: json.stats?.skipped ?? 0,
   };
 }
+
+/** DEC-030 — one ledger line per flaky test, appended by the CI ledger step. */
+export function ledgerLines(
+  flaky: (Flake & { source?: string })[],
+  meta: { runUrl?: string; runId: string; sha: string },
+  now = new Date(),
+): string[] {
+  const date = now.toISOString().slice(0, 10);
+  const run = meta.runUrl || meta.runId;
+  return flaky.map(
+    (f) =>
+      `- ${date} · \`${f.project}\` · ${f.title}${f.source ? ` · source \`${f.source}\`` : ""} · run ${run} · commit \`${meta.sha}\` · ${f.message}`,
+  );
+}
+
 
 /**
  * One CI job that produced (or failed to produce) test results. INC-081: the
@@ -512,6 +569,7 @@ export function renderSources(
   let passed = 0;
   let skipped = 0;
   const failures: (Failure & { source: string })[] = [];
+  const flaky: (Flake & { source: string })[] = [];
   /**
    * INC-086 — THREE-WAY CLASSIFICATION PER SOURCE:
    *  (a) results with >= 1 test  -> normal path;
@@ -535,7 +593,26 @@ export function renderSources(
     passed += collected.passed;
     skipped += collected.skipped;
     for (const f of collected.failures) failures.push({ ...f, source: source.label });
+    for (const f of collected.flaky) flaky.push({ ...f, source: source.label });
   }
+
+  // DEC-030 — the Flake ledger section. Rendered whether or not anything
+  // failed: a fully green run that only passed on retry must still say so.
+  const flakeSection =
+    flaky.length === 0
+      ? []
+      : [
+          "## Flake ledger (DEC-030)",
+          "",
+          "These tests FAILED then PASSED on retry. Retries are evidence, not concealment:",
+          "a test flaky 3× in 7 days gets an INC and root-cause work.",
+          "",
+          ...flaky.map(
+            (f) =>
+              `- FLAKY (passed on retry) · \`${f.project}\` · source \`${f.source}\` · ${f.title} — ${f.message}`,
+          ),
+          "",
+        ];
 
   const lines = [
     "# Last E2E failure (auto-generated — do not edit by hand)",
@@ -552,14 +629,19 @@ export function renderSources(
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     // DEC-028 — the verdict line: quarantined failures are excluded from it.
     `- Gating failures: ${classifyFailures(failures).gating.length} · Quarantined (@global-state, INC-117, non-gating): ${classifyFailures(failures).quarantined.length}`,
+    // DEC-030 — flaky tests are non-gating but never invisible.
+    `- Flaky (passed on retry, DEC-030, non-gating): ${flaky.length}`,
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
+    ...flakeSection,
   ];
 
   if (failures.length === 0 && silent.length === 0) {
     lines.push("No failed tests were recorded in the JSON reporter output.", "");
     return lines.join("\n");
   }
+
+
 
   const candidates = [...contexts.keys()];
 
@@ -1108,21 +1190,70 @@ async function main() {
       process.exit(1);
     }
 
+    // DEC-030 — THE FLAKE SPLIT, in both directions. A `flaky` test (failed,
+    // then passed on retry) must leave the failure list, appear in the Flake
+    // ledger section, and produce exactly one ledger line; an ordinary red must
+    // stay a failure. The fixture is the REAL captured results.json with the
+    // first test's status flipped to `flaky` — the shape is not invented.
+    const flakeJson = JSON.parse(JSON.stringify(fixture)) as PwJson;
+    const firstTest = flakeJson.suites?.[0]?.specs?.[0]?.tests?.[0];
+    if (!firstTest) {
+      console.error("SELF-TEST FAILED — the captured fixture has no test to mark flaky.");
+      process.exit(1);
+    }
+    const failuresBefore = collect(fixture).failures.length;
+    firstTest.status = "flaky";
+    const flakeCollected = collect(flakeJson);
+    const flakeReport = render(flakeJson, {
+      runId: "self-test",
+      runUrl: "",
+      sha: "self-test",
+    });
+    const lines = ledgerLines(
+      flakeCollected.flaky,
+      { runId: "self-test", runUrl: "", sha: "deadbeef" },
+      new Date("2026-09-01T00:00:00Z"),
+    );
+    if (
+      flakeCollected.flaky.length !== 1 ||
+      flakeCollected.failures.length !== failuresBefore - 1 ||
+      !flakeReport.includes("## Flake ledger (DEC-030)") ||
+      !flakeReport.includes("FLAKY (passed on retry)") ||
+      !flakeReport.includes("- Flaky (passed on retry, DEC-030, non-gating): 1") ||
+      lines.length !== 1 ||
+      !lines[0]?.startsWith("- 2026-09-01 · ") ||
+      !lines[0]?.includes("commit `deadbeef`") ||
+      // The ordinary red is untouched by the flake path.
+      render(fixture, { runId: "self-test", runUrl: "", sha: "self-test" }).includes(
+        "## Flake ledger (DEC-030)",
+      )
+    ) {
+      console.error("SELF-TEST FAILED — DEC-030 flake ledger did not record a retry-recovered test.");
+      process.exit(1);
+    }
+
     console.log(
-      "Self-test OK: DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
 
-  if (process.env["E2E_GREEN"] === "1") {
+  // DEC-030 — LEDGER-ONLY MODE. A run whose only anomaly was a retry-recovered
+  // test is GREEN to Playwright, so the green branch would hide it. CI runs the
+  // reporter once more with E2E_FLAKE_ONLY=1: it reads the same sources, appends
+  // the flake ledger, and writes neither the evidence file nor the verdict.
+  const flakeOnly = process.env["E2E_FLAKE_ONLY"] === "1";
+
+  if (process.env["E2E_GREEN"] === "1" && !flakeOnly) {
     await Bun.write(OUT, renderGreen(meta));
     // DEC-028 — a green run still publishes its verdict, so a consumer never
     // has to treat a missing verdict file as "probably green".
     const greenVerdict = process.env["E2E_VERDICT_PATH"];
-    if (greenVerdict) await Bun.write(greenVerdict, "gating=0\nquarantined=0\nsilent=0\n");
+    if (greenVerdict) await Bun.write(greenVerdict, "gating=0\nquarantined=0\nsilent=0\nflaky=0\n");
     console.log(`Wrote ${OUT} (green run ${meta.runId}).`);
     return;
   }
+
 
   // SHARDED RUNS: every source (smoke tier + four shards) uploads its own
   // results.json, so the reporter reads them ALL, labels each failure with its
@@ -1184,19 +1315,39 @@ async function main() {
     });
   }
 
-  const contexts = contextsDir ? collectContextFiles(contextsDir) : new Map<string, string>();
-  if (contextsDir && contexts.size === 0) reportEmptySearch(contextsDir, "context download");
+  const contexts =
+    contextsDir && !flakeOnly ? collectContextFiles(contextsDir) : new Map<string, string>();
+  if (contextsDir && !flakeOnly && contexts.size === 0)
+    reportEmptySearch(contextsDir, "context download");
 
-  await Bun.write(OUT, renderSources(sources, meta, contexts));
-  console.log(
-    `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
+  if (!flakeOnly) {
+    await Bun.write(OUT, renderSources(sources, meta, contexts));
+    console.log(
+      `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
+    );
+  }
+
+  // DEC-030 — THE FLAKE LEDGER. Every test that failed then passed on retry
+  // gets one appended line in docs/tracking/flake-ledger.md ([skip ci] path),
+  // so "it passed eventually" is a tracked event and never a silent one.
+  const allFlaky = sources.flatMap((s) =>
+    s.json ? collect(s.json).flaky.map((f) => ({ ...f, source: s.label })) : [],
   );
+  const ledgerPath = process.env["E2E_FLAKE_LEDGER"] ?? "docs/tracking/flake-ledger.md";
+  if (allFlaky.length > 0) {
+    const existing = await Bun.file(ledgerPath)
+      .text()
+      .catch(() => FLAKE_LEDGER_HEADER);
+    const body = existing.endsWith("\n") ? existing : `${existing}\n`;
+    await Bun.write(ledgerPath, `${body}${ledgerLines(allFlaky, meta).join("\n")}\n`);
+    console.log(`Flake ledger: appended ${allFlaky.length} line(s) to ${ledgerPath}.`);
+  }
 
   // DEC-028 — THE VERDICT FILE. The nightly (the only lane that runs
   // `@global-state` specs) decides its heartbeat from THIS, not from the raw
   // Playwright exit code, so a quarantined red is reported and labeled without
   // flipping the conclusion. `gating=` is the only field a verdict may read.
-  const verdictPath = process.env["E2E_VERDICT_PATH"];
+  const verdictPath = flakeOnly ? undefined : process.env["E2E_VERDICT_PATH"];
   if (verdictPath) {
     const all = sources.flatMap((s) => (s.json ? collect(s.json).failures : []));
     const { gating, quarantined } = classifyFailures(all);
@@ -1206,10 +1357,10 @@ async function main() {
     const gatingCount = gating.length + silentSources;
     await Bun.write(
       verdictPath,
-      `gating=${gatingCount}\nquarantined=${quarantined.length}\nsilent=${silentSources}\n`,
+      `gating=${gatingCount}\nquarantined=${quarantined.length}\nsilent=${silentSources}\nflaky=${allFlaky.length}\n`,
     );
     console.log(
-      `Verdict: gating=${gatingCount} quarantined=${quarantined.length} silent=${silentSources} (${verdictPath}).`,
+      `Verdict: gating=${gatingCount} quarantined=${quarantined.length} silent=${silentSources} flaky=${allFlaky.length} (${verdictPath}).`,
     );
   }
 }
