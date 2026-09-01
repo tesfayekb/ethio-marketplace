@@ -1089,6 +1089,25 @@ async function main() {
       process.exit(1);
     }
 
+    // DEC-028 — THE VERDICT SPLIT, in both directions. A quarantined red must
+    // be rendered AND labeled AND excluded from `gating`; an ordinary red must
+    // still gate. A predicate that only ever returns one answer proves nothing.
+    const quarantinedFixture = {
+      title: "e2e/admin-translations.spec.ts › TR-17 @global-state roster",
+    };
+    const gatingFixture = { title: "e2e/shell.spec.ts › SH-1 rail renders" };
+    const split = classifyFailures([quarantinedFixture, gatingFixture]);
+    if (
+      split.gating.length !== 1 ||
+      split.quarantined.length !== 1 ||
+      split.gating[0] !== gatingFixture ||
+      !isQuarantined(quarantinedFixture.title) ||
+      isQuarantined(gatingFixture.title)
+    ) {
+      console.error("SELF-TEST FAILED — DEC-028 verdict split misclassified a failure.");
+      process.exit(1);
+    }
+
     console.log(
       "Self-test OK: attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
