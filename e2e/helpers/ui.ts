@@ -319,6 +319,9 @@ export async function signInViaSession(page: Page, email: string, password: stri
   const session = await passwordGrant(email, password);
   await injectSession(page, session);
   await gotoReady(page, "/");
+  // INC-120b: identity BEFORE anything else — a persona mix-up must name both
+  // ids here, not surface later as an inexplicable permission assertion.
+  await assertInjectedIdentity(page, session);
   await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
   await page.waitForFunction(
     () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
@@ -326,6 +329,7 @@ export async function signInViaSession(page: Page, email: string, password: stri
     { timeout: 15000 },
   );
 }
+
 
 /**
  * INC-074 — /auth is NOT a sign-in form for an authenticated session (U0j
