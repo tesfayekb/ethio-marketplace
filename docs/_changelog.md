@@ -271,3 +271,4 @@
 - 2026-09-02 — fix(i18n): Data bulk count reads the entity stats correctly (INC-119); TR-24 self-describing
 - 2026-09-02 — fix(i18n): Data scope renders untranslated universe rows (composite entity keys); TR-24 waits for a ready count (INC-119b)
 - 2026-09-02 — test(e2e): TR-24 anchors its own scratch row via the twin helper; fence entity residue reaped (INC-119c)
+- 2026-09-02 — feat(i18n): U4k — Data-scope approve-all + status chips + dual meters (walk findings)

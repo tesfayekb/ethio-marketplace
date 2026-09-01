@@ -1240,7 +1240,9 @@ test.describe("U4b translations console", () => {
       return data?.status ?? "missing";
     };
     const chipCount = async (name: string) =>
-      Number((await page.getByTestId(`data-chip-${name}`).innerText()).replace(/[^0-9]/g, "") || "0");
+      Number(
+        (await page.getByTestId(`data-chip-${name}`).innerText()).replace(/[^0-9]/g, "") || "0",
+      );
 
     try {
       const { secret } = await signInAsSuperAdmin(page);
@@ -1319,8 +1321,6 @@ test.describe("U4b translations console", () => {
       await reapScratchLocation(two.id);
     }
   });
-
-
 
   /**
    * ────────────────── U4j — GUIDED LANGUAGE CREATION (TR-25) ─────────────────
