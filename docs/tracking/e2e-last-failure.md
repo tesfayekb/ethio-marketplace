@@ -2,44 +2,93 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33550797429
 - Commit: `07f2bb6802bb369045b972e5a7f0e6d9db715cf1`
-- Attempt: 1
-- Written (UTC): 2026-09-01T19:40:15.679Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4
+- Attempt: 2
+- Written (UTC): 2026-09-01T19:49:17.615Z
+- Passed: 366 · Skipped: 68 · Failed: 2
+- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 1
+- Sources without results: none
 
-## Server errors: smoke
+## Flake ledger (DEC-030)
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
 
-## Client errors: smoke
+- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-translations.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one — Error: expect(received).toBeGreaterThan(expected)
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+## admin-translations.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one
 
-## Server errors: email
+- Source: `shard 3`
+- Project: `desktop-1280`
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+```text
+Error: expect(received).toBeGreaterThan(expected)
 
-## Client errors: email
+Expected: > 0
+Received:   0
+```
 
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+Context:
 
-## Server errors: shard 1
+```text
+          - listitem [ref=e686]:
+            - generic [ref=e687]: About
+          - listitem [ref=e688]:
+            - generic [ref=e689]: How it works
+      - navigation "Help" [ref=e690]:
+        - heading "Help" [level=2] [ref=e691]
+        - list [ref=e692]:
+          - listitem [ref=e693]:
+            - generic [ref=e694]: Safety
+          - listitem [ref=e695]:
+            - generic [ref=e696]: Contact
+      - navigation "Legal" [ref=e697]:
+        - heading "Legal" [level=2] [ref=e698]
+        - list [ref=e699]:
+          - listitem [ref=e700]:
+            - generic [ref=e701]: Terms
+          - listitem [ref=e702]:
+            - generic [ref=e703]: Privacy
+    - paragraph [ref=e705]: © 2026 ethio.com — All rights reserved.
+```
+```
 
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+## admin-translations.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one
 
-## Client errors: shard 1
+- Source: `changed`
+- Project: `mobile-360`
 
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+```text
+Error: expect(received).toBeGreaterThan(expected)
 
-## Server errors: shard 2
+Expected: > 0
+Received:   0
+```
 
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+Context:
 
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+```text
+          - listitem [ref=e462]:
+            - generic [ref=e463]: About
+          - listitem [ref=e464]:
+            - generic [ref=e465]: How it works
+      - navigation "Help" [ref=e466]:
+        - heading "Help" [level=2] [ref=e467]
+        - list [ref=e468]:
+          - listitem [ref=e469]:
+            - generic [ref=e470]: Safety
+          - listitem [ref=e471]:
+            - generic [ref=e472]: Contact
+      - navigation "Legal" [ref=e473]:
+        - heading "Legal" [level=2] [ref=e474]
+        - list [ref=e475]:
+          - listitem [ref=e476]:
+            - generic [ref=e477]: Terms
+          - listitem [ref=e478]:
+            - generic [ref=e479]: Privacy
+    - paragraph [ref=e481]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors: shard 3
 
@@ -49,58 +98,10 @@ No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
 
 No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
-## Server errors: shard 4
+## Server errors: changed
 
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+No `[ssr-error]` lines in the `changed` log (or no log was uploaded).
 
-## Client errors: shard 4
+## Client errors: changed
 
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
+No `[client-error]` lines in the `changed` log (or no log was uploaded).
