@@ -1569,3 +1569,40 @@ days gets an INC and root-cause work.
   (`E2E_FLAKE_ONLY=1`) exists because the green branch writes no report.
 - A SOURCE WITH NO RESULTS IS STILL GATING (law F4) — retries change nothing
   about a dead runner.
+
+## INC-119 — the Data bulk bar reported "(0)" against a 129-row universe
+
+**Observed** (operator's Tigrinya walk; TR-24, both viewports): the Data scope
+bulk bar rendered `(0)` and stayed disabled while
+`admin_entity_translation_stats('ti')` counts `total=129, untranslated=129`.
+
+**Wire truth.** The RPC contract is
+`TABLE(lang_code text, total bigint, approved bigint, machine_count bigint,
+edited bigint, untranslated bigint)`, one row per non-base language over the
+universe `active categories ∪ active locations`; for the connected project the
+per-language counts are `am 129/15`, `om 129/129`, `ti 129/129`
+(total/untranslated).
+
+**Mismatch.** The client never asserted that contract:
+
+- `data-scope.tsx:96` read `(stats.data ?? [])[0]` — an INDEX, not the row whose
+  `lang_code` matches the page's language. With `p_lang` present the array holds
+  one row; with it absent, ignored, or the language missing from the result the
+  index silently answers for another language — or for nothing.
+- `data-scope.tsx:116` then passed `langStats?.untranslated ?? 0` to
+  `AiBulkBar`, collapsing pending, failed and no-row-for-this-language into the
+  same legitimate-looking zero, and `ai-bulk-bar.tsx:172` disabled the button on
+  that zero. A phantom count (law F4).
+- `translations-service.ts` mapped the row field-by-field with `Number(...)`, so
+  a renamed or absent column would have produced `NaN`/`0` instead of an error.
+
+The entity bar does NOT reuse the UI stats hook, and the list's status string
+for missing rows is `'untranslated'` — the same string the collector filters on;
+those two suspicions are cleared.
+
+**Law.** RPC responses are parsed by ONE typed mapper per function
+(`mapEntityStatsRow`), which asserts the shape it was promised and throws
+`RpcShapeError` naming the function and field otherwise; the mapper is proven by
+a self-test (`translationMapperSelfTest`) that TR-24 runs before the walk. Rows
+are selected by identity (`pickEntityStats(rows, lang)`), never by index, and an
+unknown count renders as pending/error — never as `0`.
