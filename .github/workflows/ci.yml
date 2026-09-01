@@ -195,7 +195,8 @@ jobs:
           echo "No high or critical advisories."
 
   # ── E2E TIERS ──────────────────────────────────────────────────────────────
-  # One preflight, one fast smoke tier, four parallel shards, one merged
+  # One preflight, ONE SHARED BUILD (DEC-029), one fast smoke tier, six
+  # parallel shards, one merged
   # verdict. The merged job keeps the historical name so the CI status
   # reporter's table row ("E2E (Playwright, ethio-staging)") is unchanged.
 
@@ -227,9 +228,54 @@ jobs:
       - name: Migration parity preflight (staging)
         run: bun scripts/e2e-migration-preflight.ts
 
+  # DEC-029 (lever 2) — ONE SHARED BUILD. Every E2E job used to run
+  # `bun run build:e2e` itself; the build is identical in all of them (VITE_E2E=1
+  # plus the staging VITE_SUPABASE_* pair, which are literals/vars, never
+  # per-job values), so it is done ONCE here and downloaded as `e2e-dist`.
+  # The serve scripts never build — `scripts/serve-e2e-node.ts` only executes
+  # dist/server/index.mjs — so a downloaded dist is served unchanged.
+  e2e-build:
+    name: E2E build (shared dist)
+    needs: e2e-preflight
+    runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_E2E: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Cache bun install
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build the app in E2E mode (VITE_E2E=1)
+        run: bun run build:e2e
+      # INC-085e — a missing artifact must name itself here, not as an ENOENT
+      # in some downstream job's serve step.
+      - name: Verify e2e build output
+        run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
+      # INC-100's re-run contract applies to this artifact too: `overwrite: true`
+      # so attempt >= 2 never serves attempt 1's bytes.
+      - name: Upload the shared e2e dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-dist
+          path: dist
+          retention-days: 1
+          overwrite: true
+
   e2e-smoke:
     name: E2E smoke tier
-    needs: e2e-preflight
+    needs: [e2e-preflight, e2e-build]
     runs-on: ubuntu-latest
     env:
       # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
@@ -280,16 +326,12 @@ jobs:
         run: echo "playwright cache-hit=${{ steps.pw-cache.outputs.cache-hit }}"
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
-      # DEC-018: E2E runs the PRODUCTION build in E2E mode. Each job builds its
-      # own dist/ (the build is seconds and needs the job's VITE_* env anyway);
-      # artifact-sharing was not worth the plumbing.
-      - name: Build the app in E2E mode (VITE_E2E=1)
-        run: bun run build:e2e
-      # INC-085e — the build step is not allowed to hand a missing artifact to
-      # the serve step: ENOENT at the serve step is a symptom of a build-time
-      # drift, and it cost six jobs once.
-      # DEC-019/INC-088 — the e2e serve runtime is nitro's node-server, so the
-      # artifact that must exist is the node entry, not wrangler.json.
+      # DEC-029 (lever 2) — the dist comes from the shared `e2e-build` job.
+      - name: Download the shared e2e dist
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-dist
+          path: dist
       - name: Verify e2e build output
         run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
       # The smoke tier is a FILE LIST, not a title grep: tagging shell.spec.ts
@@ -367,7 +409,7 @@ jobs:
   # this job; local runs then carry the same signal at zero CI cost.
   e2e-changed:
     name: E2E changed specs (fast lane)
-    needs: e2e-preflight
+    needs: [e2e-preflight, e2e-build]
     runs-on: ubuntu-latest
     # signal-only per DEC-023-B — surfaces in logs/report, never gates verdict or promote;
     # a lane-only failure with a green matrix is contention noise by definition
@@ -442,9 +484,13 @@ jobs:
       - name: Install Chromium
         if: steps.changed.outputs.specs != ''
         run: bunx playwright install --with-deps chromium
-      - name: Build the app in E2E mode (VITE_E2E=1)
+      # DEC-029 (lever 2) — shared dist, no per-job build.
+      - name: Download the shared e2e dist
         if: steps.changed.outputs.specs != ''
-        run: bun run build:e2e
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-dist
+          path: dist
       - name: Verify e2e build output
         if: steps.changed.outputs.specs != ''
         run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; exit 1; }
@@ -493,13 +539,13 @@ jobs:
           retention-days: 7
 
   e2e-shard:
-    name: E2E shard ${{ matrix.shard }}/4
-    needs: e2e-preflight
+    name: E2E shard ${{ matrix.shard }}/6
+    needs: [e2e-preflight, e2e-build]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     env:
       # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
       # the shard id is what makes each process's fixtures its own.
@@ -554,16 +600,12 @@ jobs:
         run: echo "playwright cache-hit=${{ steps.pw-cache.outputs.cache-hit }}"
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
-      # DEC-018: E2E runs the PRODUCTION build in E2E mode. Each job builds its
-      # own dist/ (the build is seconds and needs the job's VITE_* env anyway);
-      # artifact-sharing was not worth the plumbing.
-      - name: Build the app in E2E mode (VITE_E2E=1)
-        run: bun run build:e2e
-      # INC-085e — the build step is not allowed to hand a missing artifact to
-      # the serve step: ENOENT at the serve step is a symptom of a build-time
-      # drift, and it cost six jobs once.
-      # DEC-019/INC-088 — the e2e serve runtime is nitro's node-server, so the
-      # artifact that must exist is the node entry, not wrangler.json.
+      # DEC-029 (lever 2) — the dist comes from the shared `e2e-build` job.
+      - name: Download the shared e2e dist
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-dist
+          path: dist
       - name: Verify e2e build output
         run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
       - name: Run E2E shard (built app, served on node — DEC-018/DEC-019)
@@ -571,7 +613,7 @@ jobs:
           set -o pipefail
           # DEC-028 — @global-state specs mutate a surface every concurrent
           # project shares; they run in the SERIAL nightly only, never here.
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" --shard=${{ matrix.shard }}/4 2>&1 | tee ${{ matrix.shard }}.log
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" --shard=${{ matrix.shard }}/6 2>&1 | tee ${{ matrix.shard }}.log
       - name: Capture shard log tail
         if: failure()
         uses: actions/upload-artifact@v4
@@ -630,7 +672,7 @@ jobs:
     # and per-hour, so every email-sending spec runs here, in ONE process, and
     # never inside the shard matrix or the smoke tier.
     name: E2E email (serial, quota-bound)
-    needs: e2e-preflight
+    needs: [e2e-preflight, e2e-build]
     runs-on: ubuntu-latest
     env:
       E2E_SHARD: email
@@ -673,16 +715,12 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
-      # DEC-018: E2E runs the PRODUCTION build in E2E mode. Each job builds its
-      # own dist/ (the build is seconds and needs the job's VITE_* env anyway);
-      # artifact-sharing was not worth the plumbing.
-      - name: Build the app in E2E mode (VITE_E2E=1)
-        run: bun run build:e2e
-      # INC-085e — the build step is not allowed to hand a missing artifact to
-      # the serve step: ENOENT at the serve step is a symptom of a build-time
-      # drift, and it cost six jobs once.
-      # DEC-019/INC-088 — the e2e serve runtime is nitro's node-server, so the
-      # artifact that must exist is the node entry, not wrangler.json.
+      # DEC-029 (lever 2) — the dist comes from the shared `e2e-build` job.
+      - name: Download the shared e2e dist
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-dist
+          path: dist
       - name: Verify e2e build output
         run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
       - name: Run the email-serial project (single instance)
@@ -822,7 +860,7 @@ jobs:
           # DEC-023-B: `changed?` is OPTIONAL — labelled like any source when the
           # fast lane ran, silently omitted when it skipped. The lane is signal
           # only; this job's `needs:` and E2E_GREEN stay the full matrix.
-          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,changed?
+          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
 
           E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success' && needs.e2e-email.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -933,6 +971,7 @@ jobs:
         bundle-budget,
         dependency-audit,
         e2e-preflight,
+        e2e-build,
         e2e-smoke,
         e2e-shard,
         e2e-email,

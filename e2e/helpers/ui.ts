@@ -5,6 +5,7 @@ import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
 
+import { injectSession, passwordGrant, sessionInjectionEnabled } from "./session";
 import { totp } from "./totp";
 
 /** Escape a catalog value for literal use inside a RegExp. */
@@ -226,6 +227,14 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
  * localStorage entry written by @supabase/supabase-js.
  */
 export async function signIn(page: Page, email: string, password: string) {
+  // DEC-029 — non-auth specs get the injected session instead of the form.
+  // The UI path below is kept intact and is what auth specs and the
+  // E2E_UI_LOGIN=1 revert knob still run.
+  if (sessionInjectionEnabled()) {
+    await signInViaSession(page, email, password);
+    return;
+  }
+
   await page.goto("/auth");
   await waitForHydration(page);
 
@@ -292,6 +301,26 @@ export async function expectSignedOut(page: Page) {
 }
 
 /**
+ * DEC-029 — SESSION INJECTION PATH. `signInAs*` persona helpers all funnel
+ * here, so the fast path lives here and their signatures never change: a
+ * node-side password grant is injected as the persisted `sb-<ref>-auth-token`
+ * BEFORE the first navigation, then the SAME signed-in assertion the UI path
+ * ends on is made. Auth specs (e2e/auth-*.spec.ts) and `E2E_UI_LOGIN=1` never
+ * reach it — see e2e/helpers/session.ts for the law and the revert knob.
+ */
+export async function signInViaSession(page: Page, email: string, password: string) {
+  const session = await passwordGrant(email, password);
+  await injectSession(page, session);
+  await gotoReady(page, "/");
+  await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+  await page.waitForFunction(
+    () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
+    undefined,
+    { timeout: 15000 },
+  );
+}
+
+/**
  * INC-074 — /auth is NOT a sign-in form for an authenticated session (U0j
  * guard redirects it away), so a second `signIn` while still signed in hangs
  * on the email field until the test times out. CLASS RULE: multi-user E2E
@@ -299,6 +328,11 @@ export async function expectSignedOut(page: Page) {
  * fresh browser context.
  */
 export async function switchUser(page: Page, email: string, password: string) {
+  if (sessionInjectionEnabled()) {
+    await signInViaSession(page, email, password);
+    return;
+  }
+
   await gotoReady(page, "/");
 
   // Auth state must be SETTLED before branching — after a navigation/redirect

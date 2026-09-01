@@ -685,3 +685,39 @@ MECHANICS:
   captured `results.json` with one test's status flipped to `flaky`: the flaky
   test leaves the failure list, the ledger section and header line render, one
   ledger line is produced, and an ordinary red renders NO ledger section.
+
+## DEC-029 — E2E wall-clock: session injection, one build, six shards
+
+Three levers, landed together; each is independently revertible.
+
+1. **SESSION INJECTION** (`e2e/helpers/session.ts`). Specs whose subject is not
+   the auth door no longer drive the sign-in form. `signIn()` / `switchUser()`
+   keep their signatures; internally they do a node-side password grant against
+   staging (cached per persona per WORKER process), inject the exact bytes
+   supabase-js persists — `sb-<ref>-auth-token` in `localStorage`, plain JSON of
+   the GoTrue token response — via `addInitScript` BEFORE the first navigation,
+   then make the same signed-in assertion the UI path ended on.
+   - **LAW: auth specs never inject.** `isAuthSpec()` matches
+     `e2e/auth-*.spec.ts` by path, so sign-in, sign-up, sign-out, callback,
+     reset, Google and step-up enrolment keep the real UI flows. Opting in is
+     impossible; opting out is automatic.
+   - `stepUpIfPrompted` and the TOTP helpers are untouched everywhere.
+   - **REVERT KNOB (pre-committed): `E2E_UI_LOGIN=1`** restores the UI path
+     globally; the old code path is kept intact, not deleted. Any auth-derived
+     flake class after this landing FLIPS THE KNOB FIRST and diagnoses second.
+2. **ONE SHARED BUILD** — job `e2e-build` (after `e2e-preflight`) runs
+   `bun run build:e2e` once and uploads `dist` as artifact `e2e-dist`
+   (`overwrite: true`, INC-100's re-run contract). `e2e-smoke`, `e2e-changed`,
+   `e2e-shard` and `e2e-email` download it instead of building; each keeps its
+   `Verify e2e build output` step. The build was invoked as an explicit CI step
+   in those four jobs and nowhere else — `scripts/serve-e2e-node.ts` only
+   executes `dist/server/index.mjs`, so serving a downloaded dist needs no
+   change. `VITE_E2E=1` and the staging `VITE_SUPABASE_*` pair are identical for
+   every consumer, which is what makes one artifact legitimate; runtime env
+   (`E2E_FAKE_TRANSLATE`, `E2E_SHARD`, …) stays per-job.
+3. **SIX SHARDS** — the matrix is `[1..6]` and the split flag is
+   `--shard=${{ matrix.shard }}/6` (Playwright's flag; `E2E_SHARD` remains the
+   fixture-ownership axis and still carries the same id). The reporter's
+   expected sources are `smoke,email,1,2,3,4,5,6,changed?` (default
+   `smoke,1,2,3,4,5,6`), so a missing shard 5/6 is reported as a dead source
+   rather than silently dropped. Smoke, email and the nightly are untouched.
