@@ -5,7 +5,12 @@ import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
 
-import { injectSession, passwordGrant, sessionInjectionEnabled } from "./session";
+import {
+  assertInjectedIdentity,
+  injectSession,
+  passwordGrant,
+  sessionInjectionEnabled,
+} from "./session";
 import { totp } from "./totp";
 
 /** Escape a catalog value for literal use inside a RegExp. */
