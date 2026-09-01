@@ -117,11 +117,7 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
       .text()
       .then((t) => t.slice(0, 200))
       .catch(() => "<body unreadable>");
-    console.error(
-      "[client-error] gate fetch failed",
-      response.status,
-      preview,
-    );
+    console.error("[client-error] gate fetch failed", response.status, preview);
     // F4 — retry once before falling back; the fallback is never silent.
     response = await attemptOnce();
     if (response && !response.ok) {
@@ -130,11 +126,7 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
         .text()
         .then((t) => t.slice(0, 200))
         .catch(() => "<body unreadable>");
-      console.error(
-        "[client-error] gate fetch retry failed",
-        response.status,
-        secondPreview,
-      );
+      console.error("[client-error] gate fetch retry failed", response.status, secondPreview);
     }
   }
 

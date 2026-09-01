@@ -1279,8 +1279,7 @@ Bad Request. The provider's `try/catch` swallowed the failure and returned
 (33520274915) observed this as 34 Amharic test failures after the gate fetch
 failed — the UI fell back to English-only.
 
-EVIDENCE: seed-only `en` after a 400 gate response; 34 Amharic failures in run
-33520274915.
+EVIDENCE: seed-only `en` after a 400 gate response; 34 Amharic failures in run 33520274915.
 
 FIX (U4g-22):
 
