@@ -72,6 +72,22 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 interface Item {
   key: string;
   source: string;
+  /**
+   * U4i ① — the key's translator note.
+   *
+   * V2 MECHANISM RULING (law A3, stated rather than guessed): Cloud
+   * Translation **v2** exposes exactly four request fields — `q`, `source`,
+   * `target`, `format`. It has NO context, hint, domain or glossary parameter;
+   * those live in v3 (`translateText` with a glossary / adaptive dataset).
+   * Appending the note to `q` is NOT a substitute: the provider would translate
+   * the note and return it inside the string.
+   *
+   * So the note is ACCEPTED, VALIDATED and CARRIED to the provider boundary,
+   * and there it stops — a documented dead end, not a silent drop. It is used
+   * today by the human editor and by fake mode's determinism, and it is the
+   * field a future v3 adaptive call reads with no client change.
+   */
+  context?: string;
   /** entity scope only */
   type?: string;
   id?: string;
@@ -333,6 +349,12 @@ async function handlePost(request: Request): Promise<Response> {
   if (items.length === 0) return json({ error: "no items" }, 400);
   if (items.length > MAX_ITEMS) return json({ error: `too many items (max ${MAX_ITEMS})` }, 413);
   for (const item of items) {
+    if (item?.context !== undefined && typeof item.context !== "string") {
+      return json({ error: "context must be a string" }, 400);
+    }
+    if (typeof item?.context === "string" && item.context.length > 500) {
+      return json({ error: "context too long (max 500)" }, 400);
+    }
     if (typeof item?.key !== "string" || typeof item?.source !== "string") {
       return json({ error: "invalid item shape" }, 400);
     }

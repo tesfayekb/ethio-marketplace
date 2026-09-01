@@ -371,6 +371,8 @@ export function serverMessage(error: unknown): string | null {
  * again as the single writer.
  */
 export interface AiTranslateItem {
+  /** U4i ① — the key's context note; see the route for the v2 limitation. */
+  context?: string;
   key: string;
   source: string;
 }
