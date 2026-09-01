@@ -1212,6 +1212,117 @@ test.describe("U4b translations console", () => {
   });
 
   /**
+   * ───────────────── U4k — DATA-SCOPE BULK APPROVAL (TR-26) ──────────────────
+   *
+   * Walk findings (om/ti): content names could be machine-filled but never
+   * approved, so nothing reached the public entity bundle. This runs in the
+   * APPROVAL fence (J2) — its own per-project language — so approving "every
+   * machine row of this language" can never touch a sibling test's rows.
+   * Both anchors are per-run scratch locations, reaped in `finally` (J3).
+   */
+  test("TR-26 the Data scope approves every machine-filled content name", async ({ page }) => {
+    test.setTimeout(240_000);
+    const fence = approveFence();
+    await ensureFenceLanguage(fence);
+    const supabase = adminClient();
+    const one = await createScratchLocation("tr26a");
+    const two = await createScratchLocation("tr26b");
+    const statusOf = async (id: string) => {
+      const { data, error } = await supabase
+        .from("entity_translations")
+        .select("status")
+        .eq("entity_type", "location")
+        .eq("entity_id", id)
+        .eq("field", "name")
+        .eq("lang_code", fence)
+        .maybeSingle();
+      if (error) throw new Error(`[e2e:u4k] entity read failed for ${id}: ${error.message}`);
+      return data?.status ?? "missing";
+    };
+    const chipCount = async (name: string) =>
+      Number((await page.getByTestId(`data-chip-${name}`).innerText()).replace(/[^0-9]/g, "") || "0");
+
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+
+      // 1. FILL — the fence's universe (both scratch locations included) is
+      //    machine-translated through the Data bulk bar.
+      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+      await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
+      const fillButton = page.getByTestId("ai-bulk-start");
+      await expect
+        .poll(async () => (await fillButton.innerText()).match(/[0-9]/) !== null, {
+          timeout: 20000,
+          message: "the Data bulk bar never reached a ready (numeric) count",
+        })
+        .toBe(true);
+      await fillButton.click();
+      await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
+      await page.getByTestId("ai-bulk-confirm-run").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 180000 });
+      for (const anchor of [one, two]) {
+        await expect
+          .poll(() => statusOf(anchor.id), {
+            timeout: 30000,
+            message: `bulk entity AI never reached scratch location ${anchor.id}`,
+          })
+          .toBe("machine");
+      }
+
+      // 2. CHIPS before approval: machine work exists, approved does not yet
+      //    include it (the counts come from the same stats RPC as the bar).
+      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+      await expect(page.getByTestId("data-chips")).toBeVisible({ timeout: 20000 });
+      await expect
+        .poll(() => chipCount("machine"), {
+          timeout: 20000,
+          message: "the machine chip never counted the sweep",
+        })
+        .toBeGreaterThan(0);
+      const untranslatedBefore = await chipCount("untranslated");
+      const approvedBefore = await chipCount("approved");
+
+      // 3. APPROVE — the gated writer runs behind the same step-up.
+      const approveButton = page.getByTestId("entity-approve-all-start");
+      await expect(approveButton).toBeVisible({ timeout: 20000 });
+      await approveButton.click();
+      await expect(page.getByTestId("entity-approve-all-confirm")).toBeVisible();
+      await page.getByTestId("entity-approve-all-confirm-run").click();
+      await stepUpIfPrompted(page, secret);
+      const summary = page.getByTestId("entity-approve-all-summary");
+      await expect(summary).toBeVisible({ timeout: 60000 });
+      expect(Number((await summary.innerText()).replace(/[^0-9]/g, "") || "0")).toBeGreaterThan(0);
+
+      // 4. DB TRUTH per key — the assertion the summary can never stand in for.
+      for (const anchor of [one, two]) {
+        await expect
+          .poll(() => statusOf(anchor.id), {
+            timeout: 30000,
+            message: `approve-all never approved scratch location ${anchor.id}`,
+          })
+          .toBe("approved");
+      }
+
+      // 5. THE CHIPS MOVE — approved rises, untranslated does not grow.
+      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+      await expect(page.getByTestId("data-chips")).toBeVisible({ timeout: 20000 });
+      await expect
+        .poll(() => chipCount("approved"), {
+          timeout: 30000,
+          message: `the approved chip never rose above ${approvedBefore}`,
+        })
+        .toBeGreaterThan(approvedBefore);
+      expect(await chipCount("untranslated")).toBeLessThanOrEqual(untranslatedBefore);
+    } finally {
+      await reapScratchLocation(one.id);
+      await reapScratchLocation(two.id);
+    }
+  });
+
+
+
+  /**
    * ────────────────── U4j — GUIDED LANGUAGE CREATION (TR-25) ─────────────────
    *
    * INC-115e: creating a language mutates the GLOBAL roster, so this walk runs
