@@ -219,9 +219,7 @@ export interface ApproveAllEntityResult {
   approved: number;
 }
 
-export async function approveAllEntityTranslations(
-  lang: string,
-): Promise<ApproveAllEntityResult> {
+export async function approveAllEntityTranslations(lang: string): Promise<ApproveAllEntityResult> {
   const { data, error } = await supabase.rpc("admin_approve_all_entity_translations", {
     p_lang: lang,
   });
