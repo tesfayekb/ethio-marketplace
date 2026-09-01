@@ -62,14 +62,38 @@ const SEED_PUBLIC_LANGUAGES: PublicLanguage[] = [
   { code: "en", name_en: "English", name_native: "English", rtl: false, sort: 0 },
 ];
 
+/**
+ * INC-110 — THE REDIRECT PATH AWAITS NOTHING i18n-RELATED.
+ *
+ * This read used to go through the shared supabase-js client, so it competed
+ * for the SAME exclusive auth lock / session-token path that the route guard's
+ * permission RPC needs. With the languages response artificially delayed, the
+ * regular-user redirect off /admin inherited that delay (TR-18: 7181 ms
+ * against a 5000 ms law) even though no guard depends on i18n state.
+ *
+ * The public language list is anon-readable reference data (`enabled_public OR
+ * is_base` RLS), so it needs no session at all: a plain `fetch` with the
+ * publishable key touches neither the auth lock nor the session refresh, and
+ * the URL is unchanged so the delay harness still targets exactly this read.
+ */
 async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
-  const { data, error } = await supabase
-    .from("languages")
-    .select("code, name_en, name_native, rtl, sort")
-    .or("enabled_public.eq.true,is_base.eq.true")
-    .order("sort", { ascending: true });
-  if (error || !data) return null;
-  return data as PublicLanguage[];
+  const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+  const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
+  if (!url || !key) return null;
+  const query =
+    "select=code,name_en,name_native,rtl,sort" +
+    "&or=(enabled_public.eq.true,is_base.eq.true)" +
+    "&order=sort.asc";
+  try {
+    const response = await fetch(`${url}/rest/v1/languages?${query}`, {
+      headers: { apikey: key, accept: "application/json" },
+    });
+    if (!response.ok) return null;
+    const rows = (await response.json()) as PublicLanguage[];
+    return Array.isArray(rows) ? rows : null;
+  } catch {
+    return null;
+  }
 }
 
 type I18nValue = {
@@ -149,10 +173,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const authSettled = useAuthSettled();
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
-  // Gated activation (U4f) and the once-only reconcile (U4f-2) are unchanged;
-  // only the START of this read moves behind the settle signal above.
+  // INC-110: the read no longer waits for the auth settle signal, because it
+  // no longer touches the auth lock — it is a keyed anon fetch, off the
+  // critical path of every route guard.
   useEffect(() => {
-    if (!authSettled) return;
     let cancelled = false;
     void fetchPublicLanguages().then((rows) => {
       if (cancelled) return;
@@ -167,7 +191,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [authSettled]);
+  }, []);
 
   const isPublic = useCallback(
     (code: string) => publicLanguages.some((row) => row.code === code),

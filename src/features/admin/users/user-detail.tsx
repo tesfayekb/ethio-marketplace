@@ -348,16 +348,17 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
             <TranslatorLanguagesCard userId={user.userId} guard={guard} />
           ) : null}
 
+          {/* INC-110 — the activity list is NEVER behind a gesture, a
+              collapse or a twin-specific branch: the same <ul> renders at 360
+              and at 1280, and a background refetch keeps the rows already
+              known on screen (law C4: the caption sits BESIDE the rows, it
+              never replaces them). */}
           <PageCard className="space-y-3" testid="user-activity-card">
             <h2 className="text-sm font-semibold text-foreground">
               {t("admin.users.activity.title")}
             </h2>
-            {activity.isLoading ? (
-              <p className="text-sm text-muted-foreground">{t("admin.users.activity.loading")}</p>
-            ) : (activity.data ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("admin.users.activity.empty")}</p>
-            ) : (
-              <ul className="space-y-2 text-sm">
+            {(activity.data ?? []).length > 0 ? (
+              <ul data-testid="user-activity-list" className="space-y-2 text-sm">
                 {(activity.data ?? []).map((row) => (
                   <li key={row.id} data-testid={`activity-${row.action}`} className="min-w-0">
                     <span className="font-medium text-foreground">{row.action}</span>
@@ -373,7 +374,29 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                   </li>
                 ))}
               </ul>
-            )}
+            ) : null}
+            {activity.isPending ? (
+              <p
+                role="status"
+                aria-live="polite"
+                data-testid="user-activity-loading"
+                className="text-sm text-muted-foreground"
+              >
+                {t("admin.users.activity.loading")}
+              </p>
+            ) : activity.error ? (
+              <p
+                role="alert"
+                data-testid="user-activity-error"
+                className="text-sm text-destructive"
+              >
+                {t("admin.users.error")}
+              </p>
+            ) : (activity.data ?? []).length === 0 ? (
+              <p data-testid="user-activity-empty" className="text-sm text-muted-foreground">
+                {t("admin.users.activity.empty")}
+              </p>
+            ) : null}
           </PageCard>
         </div>
       )}
