@@ -1146,7 +1146,6 @@ test.describe("U4b translations console", () => {
       // prefix locator is reintroduced to re-find it).
       await page.getByTestId("data-search").fill("");
 
-
       // The bar's count is only readable once the stats query is ready; poll
       // for digits rather than racing a pending "(—)" into a false zero.
       await expect

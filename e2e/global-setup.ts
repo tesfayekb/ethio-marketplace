@@ -264,7 +264,6 @@ export default async function globalSetup() {
     reaped += staleFenceEntities?.length ?? 0;
   }
 
-
   const { data: staleLocations, error: locationError } = await supabase
     .from("locations")
     .select("id")
