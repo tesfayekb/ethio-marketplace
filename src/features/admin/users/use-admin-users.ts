@@ -137,7 +137,14 @@ export function useCountries() {
   });
 }
 
-/** U1g — the audited, step-up-gated profile edit. */
+/**
+ * U1g — the audited, step-up-gated profile edit.
+ *
+ * INC-115c — a profile edit writes a `user.profile_edit` audit row exactly as
+ * status and role changes do, so it invalidates through the SAME shared
+ * helper: the section prefix plus the exact detail and activity keys, forced
+ * and awaited. AU-9 reads that activity row immediately after saving.
+ */
 export function useUpdateProfile(userId: string) {
   const invalidate = useUserMutationInvalidator(userId);
   return useMutation({
@@ -145,3 +152,4 @@ export function useUpdateProfile(userId: string) {
     onSuccess: invalidate,
   });
 }
+
