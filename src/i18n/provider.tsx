@@ -354,6 +354,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = language;
   }, [language]);
 
+  // U4g-21 (INC-113) — the gate snapshot an E2E failure dump reads. Mirrored
+  // state only: nothing in the app reads it, and it is written, never watched.
+  useEffect(() => {
+    (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] = {
+      gateReady,
+      active: language,
+      codes: publicLanguages.map((row) => row.code),
+    };
+  }, [gateReady, language, publicLanguages]);
+
+
   const value = useMemo<I18nValue>(
     () => ({
       language,
