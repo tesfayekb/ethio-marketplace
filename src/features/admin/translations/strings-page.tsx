@@ -288,8 +288,10 @@ export function AdminTranslationsStringsPage({
                 query={query}
                 mayUpdate={mayUpdate}
                 mayApprove={mayApprove}
+                mayMachine={mayMachine && !(known?.isBase ?? false)}
                 guard={guard}
               />
+
             </>
           ) : (
             <>
