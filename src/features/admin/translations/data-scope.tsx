@@ -13,13 +13,16 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
+import { AiBulkBar } from "./ai-bulk-bar";
 import {
   serverMessage,
   translationErrorKey,
   type EntityTranslationRow,
 } from "./translations-service";
 import {
+  useAiTranslateEntities,
   useEntityTranslations,
+  useEntityTranslationStats,
   useEntityTranslationStatusAction,
   useSaveEntityTranslation,
 } from "./use-translations";
@@ -42,8 +45,11 @@ const ENTITY_LABELS: Record<string, MessageKey> = {
  * U4d — THE DATA SCOPE of the strings page.
  *
  * Content names (categories, locations) served from `entity_translations`.
- * NO AI control: entity machine translation is deferred and rides the REQ-004
- * engine — the helper text says so rather than hiding the absence.
+ *
+ * U4j — AI IS NO LONGER DEFERRED here: per-row and bulk machine fill run
+ * through the same `/api/translate` route as the interface scope, with
+ * `admin_machine_entity_translation` as the single writer. Results are
+ * provisional (`machine`) and still need approval.
  *
  * The S10 PUBLIC GATE remains UI-keys-only: this coverage line is a METER, not
  * a publish blocker (stated in docs/features/translations.md).
@@ -55,6 +61,7 @@ export function DataScope({
   query,
   mayUpdate,
   mayApprove,
+  mayMachine,
   guard,
 }: {
   lang: string;
@@ -63,6 +70,7 @@ export function DataScope({
   query: string;
   mayUpdate: boolean;
   mayApprove: boolean;
+  mayMachine: boolean;
   guard: GuardFn;
 }) {
   const { t } = useI18n();
@@ -79,9 +87,13 @@ export function DataScope({
     },
     true,
   );
-  // Two 1-row probes give an honest denominator/numerator without a new RPC.
-  const totalProbe = useEntityTranslations({ lang, status: "all", limit: 1 }, true);
-  const approvedProbe = useEntityTranslations({ lang, status: "approved", limit: 1 }, true);
+  /**
+   * U4j — one gated stats RPC replaces the two 1-row probes: the meter's
+   * numerator, denominator and the bulk bar's work count now come from the
+   * SAME server count over the SAME universe as the list.
+   */
+  const stats = useEntityTranslationStats(lang);
+  const langStats = (stats.data ?? [])[0];
 
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
@@ -90,12 +102,22 @@ export function DataScope({
     <div className="min-w-0 space-y-4" data-testid="admin-translations-data">
       <p data-testid="data-coverage" className="text-sm text-muted-foreground">
         {t("admin.translations.data.coverage")
-          .replace("{approved}", String(approvedProbe.data?.totalCount ?? 0))
-          .replace("{total}", String(totalProbe.data?.totalCount ?? 0))}
+          .replace("{approved}", String(langStats?.approved ?? 0))
+          .replace("{total}", String(langStats?.total ?? 0))}
       </p>
-      <p data-testid="data-ai-deferred" className="text-sm text-muted-foreground">
-        {t("admin.translations.data.aiDeferred")}
+      <p data-testid="data-ai-note" className="text-sm text-muted-foreground">
+        {t("admin.translations.data.aiNote")}
       </p>
+
+      {mayMachine ? (
+        <AiBulkBar
+          lang={lang}
+          scope="entity"
+          untranslated={langStats?.untranslated ?? 0}
+          guard={guard}
+        />
+      ) : null}
+
 
       <DataTable
         columns={dataColumns(t, rtl)}
