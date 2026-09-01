@@ -43,6 +43,7 @@ const guard: GuardFn = async (action) => {
 
 const revision: TranslationRevision = {
   id: "11111111-1111-4111-8111-111111111111",
+  changedBy: "22222222-2222-4222-8222-222222222222",
   action: "save",
   prevValue: "የቀድሞ ዋጋ",
   prevStatus: "machine",
