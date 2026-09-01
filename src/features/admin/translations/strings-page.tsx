@@ -22,6 +22,9 @@ import { AiBulkBar } from "./ai-bulk-bar";
 import { ApproveAllBar } from "./approve-bar";
 import { DataScope } from "./data-scope";
 import { HistoryDrawer } from "./history-drawer";
+import { isOverlong, lengthRatio } from "./pseudo";
+import { PseudoBar } from "./pseudo-bar";
+import { TransferBar } from "./transfer-bar";
 import {
   pickEntityStats,
   serverMessage,
@@ -34,7 +37,9 @@ import {
   useLanguages,
   useMyTranslatorLanguages,
   useSaveTranslation,
+  useSetKeyContext,
   useTranslationStatusAction,
+  useUsageMap,
   useEntityTranslationStats,
   useTranslations,
   useTranslationStats,
@@ -172,6 +177,7 @@ export function AdminTranslationsStringsPage({
    * from the i18n provider's public gate — and the page NEVER waits on it:
    * INC-102, an admin route that blanked while a readiness signal was pending.
    */
+  const usage = useUsageMap();
   const known: LanguageRow | undefined = (languages.data ?? []).find((row) => row.code === lang);
   const unavailable =
     !languages.isLoading &&
@@ -207,6 +213,7 @@ export function AdminTranslationsStringsPage({
   const dataStats = pickEntityStats(entityStats.data, lang);
 
   const rows = list.data?.rows ?? [];
+  const baseLang = (languages.data ?? []).find((row) => row.isBase)?.code ?? "en";
   const total = list.data?.totalCount ?? 0;
   const outOfScope =
     !mayManage &&
@@ -316,6 +323,12 @@ export function AdminTranslationsStringsPage({
                 <AiBulkBar lang={lang} untranslated={counts["untranslated"] ?? 0} guard={guard} />
               ) : null}
 
+              {/* U4i ⑤⑦ — bulk delivery tools; manage-gated, server is the authority. */}
+              {mayManage ? (
+                <TransferBar lang={lang} baseLang={baseLang} rows={rows} guard={guard} />
+              ) : null}
+              {mayManage && (known?.isBase ?? false) ? <PseudoBar guard={guard} /> : null}
+
               {outOfScope ? (
                 <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">
                   {t("admin.translations.editor.notAssigned")}
@@ -409,6 +422,8 @@ export function AdminTranslationsStringsPage({
                       mayUpdate={mayUpdate}
                       mayApprove={mayApprove}
                       mayMachine={mayMachine && !(known?.isBase ?? false)}
+                      mayManage={mayManage}
+                      usedOn={usage.data?.[row.key]}
                       guard={guard}
                       saved={savedKey === row.key}
                       onSaved={(next) => setSavedKey(next ? row.key : null)}
@@ -569,6 +584,8 @@ function StringEditor({
   mayUpdate,
   mayApprove,
   mayMachine,
+  mayManage,
+  usedOn,
   guard,
   saved,
   onSaved,
@@ -579,6 +596,10 @@ function StringEditor({
   mayUpdate: boolean;
   mayApprove: boolean;
   mayMachine: boolean;
+  /** U4i ① — only a manage holder may write the shared translator note. */
+  mayManage: boolean;
+  /** U4i ② — surfaces from the build-time map; `undefined` = not yet known. */
+  usedOn: string[] | undefined;
   guard: GuardFn;
   /** INC-104 — owned by the page, so a refetch cannot erase the marker. */
   saved: boolean;
@@ -588,7 +609,9 @@ function StringEditor({
   const save = useSaveTranslation(lang);
   const ai = useAiTranslate(lang);
   const statusAction = useTranslationStatusAction(lang);
+  const contextAction = useSetKeyContext();
   const [draft, setDraft] = useState(row.value ?? "");
+  const [contextDraft, setContextDraft] = useState(row.context);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const id = slug(row.key);
@@ -626,6 +649,58 @@ function StringEditor({
         </p>
       </div>
 
+      {/**
+       * U4i ① — CONTEXT NOTE. One note per KEY (stored on the base row), so a
+       * note written here is visible to every language's translator, and the
+       * AI route sends it to the provider as translation context.
+       */}
+      <div className="min-w-0 space-y-1">
+        <p className="text-xs font-medium text-muted-foreground">
+          {t("admin.translations.editor.context")}
+        </p>
+        {mayManage ? (
+          <div className="flex min-w-0 flex-col gap-2">
+            <Input
+              id={`string-context-${id}`}
+              data-testid={`string-context-${id}`}
+              value={contextDraft}
+              aria-label={t("admin.translations.editor.context")}
+              placeholder={t("admin.translations.editor.contextPlaceholder")}
+              onChange={(event) => setContextDraft(event.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 self-start"
+              data-testid={`string-context-save-${id}`}
+              disabled={contextAction.isPending || contextDraft === row.context}
+              onClick={() =>
+                run(() => contextAction.mutateAsync({ key: row.key, context: contextDraft }))
+              }
+            >
+              {t("admin.translations.editor.contextSave")}
+            </Button>
+          </div>
+        ) : (
+          <p data-testid={`string-context-${id}`} className="text-sm text-foreground">
+            {row.context === "" ? t("admin.translations.editor.contextNone") : row.context}
+          </p>
+        )}
+      </div>
+
+      {/**
+       * U4i ② — USED ON. Build-time truth from scripts/i18n-usage-map.ts.
+       * `undefined` (map not loaded) and an empty list (key not found in any
+       * literal call site → dynamic or unused) are DIFFERENT answers (E6).
+       */}
+      <p data-testid={`string-usedon-${id}`} className="text-xs text-muted-foreground">
+        {usedOn === undefined
+          ? t("admin.translations.editor.usedOnUnknown")
+          : usedOn.length === 0
+            ? t("admin.translations.editor.usedOnDynamic")
+            : t("admin.translations.editor.usedOn").replace("{surfaces}", usedOn.join(", "))}
+      </p>
+
       {row.flagged && row.flagNote ? (
         <p data-testid={`string-flagnote-${id}`} className="text-sm text-destructive">
           {`${t("admin.translations.editor.flagNote").replace("{note}", row.flagNote)} ${t(
@@ -645,6 +720,27 @@ function StringEditor({
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
       />
+
+      {/**
+       * U4i ③ — LENGTH WARNING. Advisory only: never a flag, never a block —
+       * the row still saves. Long Amharic renderings are legitimate; the chip
+       * exists so a translator can SEE a layout risk before QA does.
+       */}
+      {isOverlong(row.sourceValue, draft) ? (
+        // C3 note: the palette carries no `warning` token, and styles.css is
+        // outside this task's scope, so the advisory chip is a tokenised
+        // outline Badge rather than a hardcoded amber.
+        <Badge
+          variant="outline"
+          data-testid={`string-length-warning-${id}`}
+          className="w-fit text-xs font-medium"
+        >
+          {t("admin.translations.editor.lengthWarning").replace(
+            "{ratio}",
+            String(lengthRatio(row.sourceValue, draft)),
+          )}
+        </Badge>
+      ) : null}
 
       {/**
        * U4g-24 (INC-115) — ONE-CLICK PLACEHOLDER REPAIR. Positional rewrite
@@ -710,7 +806,8 @@ function StringEditor({
             onClick={() =>
               run(async () => {
                 const result = await ai.mutateAsync([
-                  { key: row.key, source: row.sourceValue ?? "" },
+                  // U4i ① — the note rides along to the provider boundary.
+                  { key: row.key, source: row.sourceValue ?? "", context: row.context },
                 ]);
                 const failure = result.failed[0];
                 // F4 — a per-item refusal is an ERROR here, never a quiet no-op.

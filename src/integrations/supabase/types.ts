@@ -911,6 +911,7 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          context: string | null
           created_at: string
           flag_note: string | null
           flagged: boolean
@@ -927,6 +928,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          context?: string | null
           created_at?: string
           flag_note?: string | null
           flagged?: boolean
@@ -943,6 +945,7 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          context?: string | null
           created_at?: string
           flag_note?: string | null
           flagged?: boolean
@@ -1134,6 +1137,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_import_translations: {
+        Args: { p_items: Json; p_lang: string }
+        Returns: Json
+      }
       admin_list_audit: {
         Args: {
           p_action?: string
@@ -1244,6 +1251,7 @@ export type Database = {
         Returns: {
           approved_at: string
           approved_by: string
+          context: string
           flag_note: string
           flagged: boolean
           key: string
@@ -1317,6 +1325,10 @@ export type Database = {
           p_lang: string
           p_type: string
         }
+        Returns: undefined
+      }
+      admin_set_key_context: {
+        Args: { p_context: string; p_key: string }
         Returns: undefined
       }
       admin_set_language_flags: {
@@ -1472,6 +1484,7 @@ export type Database = {
       }
       get_role_hierarchy: { Args: { p_role_id: string }; Returns: string[] }
       get_ui_bundle: { Args: { p_lang: string }; Returns: Json }
+      get_ui_bundle_version: { Args: { p_lang: string }; Returns: string }
       has_password: { Args: never; Returns: boolean }
       has_permission: {
         Args: { p_action: string; p_resource: string; p_user_id: string }

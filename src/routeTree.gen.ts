@@ -28,6 +28,7 @@ import { Route as AdminImagesRouteImport } from './routes/admin.images'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
+import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
 import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
@@ -128,6 +129,11 @@ const AdminAttributesRoute = AdminAttributesRouteImport.update({
   path: '/attributes',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiI18nLangRoute = ApiI18nLangRouteImport.update({
+  id: '/api/i18n/$lang',
+  path: '/api/i18n/$lang',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
   id: '/users_/$userId',
   path: '/users/$userId',
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/api/i18n/$lang': typeof ApiI18nLangRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/api/i18n/$lang': typeof ApiI18nLangRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
+  '/api/i18n/$lang': typeof ApiI18nLangRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
+    | '/api/i18n/$lang'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
+    | '/api/i18n/$lang'
   id:
     | '__root__'
     | '/'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/admin/roles_/$roleId'
     | '/admin/translations_/$lang'
     | '/admin/users_/$userId'
+    | '/api/i18n/$lang'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -313,6 +325,7 @@ export interface RootRouteChildren {
   CSlugRoute: typeof CSlugRoute
   DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevTallRoute: typeof DevTallRoute
+  ApiI18nLangRoute: typeof ApiI18nLangRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -450,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAttributesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/i18n/$lang': {
+      id: '/api/i18n/$lang'
+      path: '/api/i18n/$lang'
+      fullPath: '/api/i18n/$lang'
+      preLoaderRoute: typeof ApiI18nLangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/users_/$userId': {
       id: '/admin/users_/$userId'
       path: '/users/$userId'
@@ -526,6 +546,7 @@ const rootRouteChildren: RootRouteChildren = {
   CSlugRoute: CSlugRoute,
   DevPrimitivesRoute: DevPrimitivesRoute,
   DevTallRoute: DevTallRoute,
+  ApiI18nLangRoute: ApiI18nLangRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

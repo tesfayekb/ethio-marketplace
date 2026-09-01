@@ -27,6 +27,24 @@ export type EntityBundleResult =
   | { bundle: null; reason: string };
 
 /**
+ * U4i ④ — THE ETAG DERIVATION, in one place so the route and its unit test can
+ * never disagree. `version` is `get_ui_bundle_version(lang)`: an md5 over
+ * `max(updated_at) + count` of exactly the rows the bundle contains.
+ *
+ * The language rides in the tag so two languages can never collide on a shared
+ * cache, and the value is a STRONG validator (no `W/` prefix): the payload is
+ * byte-identical for a given version, not merely equivalent.
+ */
+export function bundleEtag(lang: string, version: string): string {
+  return `"${lang}.${version === "" ? "unknown" : version}"`;
+}
+
+/** The cacheable endpoint the provider reads (U4i ④). */
+export function bundleUrl(lang: string): string {
+  return `/api/i18n/${encodeURIComponent(lang)}`;
+}
+
+/**
  * U4d — the ENTITY bundle reader. Same law as the UI bundle: approved rows
  * only, anon-callable, and a `{}` answer simply means "keep the column/base
  * name" (never a blank label).
@@ -55,9 +73,7 @@ export async function fetchEntityBundle(lang: string): Promise<EntityBundleResul
   return { bundle: map, reason: null };
 }
 
-export async function fetchUiBundle(lang: string): Promise<BundleResult> {
-  const { data, error } = await supabase.rpc("get_ui_bundle", { p_lang: lang });
-  if (error) return { bundle: null, reason: error.message };
+function shapeBundle(data: unknown): BundleResult {
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
     return { bundle: null, reason: "bundle is not an object" };
   }
@@ -66,4 +82,38 @@ export async function fetchUiBundle(lang: string): Promise<BundleResult> {
   );
   if (entries.length === 0) return { bundle: null, reason: "bundle is empty" };
   return { bundle: Object.fromEntries(entries), reason: null };
+}
+
+/**
+ * U4i ④ — the UI bundle now arrives over the CACHEABLE GET endpoint
+ * (`/api/i18n/:lang`, ETag + max-age=300) instead of an uncacheable RPC POST.
+ * No `cache: "no-store"` here on purpose: this is the one read that is
+ * SUPPOSED to be cached. The gate LIST in the provider keeps its no-store
+ * (law I6) — the two reads have opposite requirements.
+ *
+ * The RPC stays as the fallback path so a route/edge failure degrades to the
+ * previous behaviour instead of blanking the overlay (D3), and the fallback is
+ * reported, never silent (F4).
+ */
+export async function fetchUiBundle(lang: string): Promise<BundleResult> {
+  try {
+    const response = await fetch(bundleUrl(lang), {
+      headers: { Accept: "application/json" },
+    });
+    if (response.ok) {
+      const payload = (await response.json()) as { bundle?: unknown };
+      return shapeBundle(payload.bundle ?? null);
+    }
+    console.warn(`[i18n] bundle route ${lang} → ${response.status}; falling back to rpc`);
+  } catch (error) {
+    console.warn(
+      `[i18n] bundle route ${lang} unreachable (${
+        error instanceof Error ? error.message : String(error)
+      }); falling back to rpc`,
+    );
+  }
+
+  const { data, error } = await supabase.rpc("get_ui_bundle", { p_lang: lang });
+  if (error) return { bundle: null, reason: error.message };
+  return shapeBundle(data);
 }

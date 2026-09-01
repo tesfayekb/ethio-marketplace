@@ -101,6 +101,22 @@ jobs:
       - name: Run migration guard
         run: bash scripts/check-migrations.sh
 
+  i18n-usage-map:
+    name: i18n used-on map is fresh (U4i ②)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      # The map is a pure function of src/: regenerating it must be a no-op.
+      # A diff here means someone added or removed a t("key") call site without
+      # rerunning `bun run i18n:usage`.
+      - name: Regenerate the map
+        run: bun run i18n:usage
+      - name: Assert no drift
+        run: git diff --exit-code -- docs/generated/i18n-usage.json public/i18n-usage.json
+
   string-scan:
     name: Hardcoded string scan (enforcing)
     runs-on: ubuntu-latest

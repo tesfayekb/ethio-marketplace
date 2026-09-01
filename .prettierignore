@@ -51,3 +51,9 @@ docs/tracking/e2e-last-failure.md
 # Machine-generated nightly failure evidence (written by nightly-e2e.yml,
 # INC-108). Same reporter-output class as e2e-last-failure.md.
 docs/tracking/nightly-last-failure.md
+
+# Machine-generated i18n used-on map (written by scripts/i18n-usage-map.ts,
+# U4i ②). Generated-file exemption, same class as routeTree.gen.ts (E5); the
+# served copy under public/ must stay byte-identical to the docs copy.
+docs/generated/i18n-usage.json
+public/i18n-usage.json

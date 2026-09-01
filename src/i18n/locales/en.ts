@@ -635,6 +635,37 @@ export const en = {
     "Counts must match first: the translation has {got} placeholders, the English source has {want}.",
   "admin.translations.editor.notAssigned":
     "You are not assigned to this language — the server will refuse changes.",
+  // U4i ① — the per-KEY translator note (stored on the base row, shared by
+  // every language, and sent to the AI provider as context).
+  "admin.translations.editor.context": "Context note",
+  "admin.translations.editor.contextPlaceholder": "Where this appears, tone, constraints…",
+  "admin.translations.editor.contextSave": "Save note",
+  "admin.translations.editor.contextNone": "No note yet.",
+  // U4i ② — build-time "used on" map.
+  "admin.translations.editor.usedOn": "Used on: {surfaces}",
+  "admin.translations.editor.usedOnUnknown": "Used on: checking…",
+  "admin.translations.editor.usedOnDynamic": "Used on: dynamic — no literal call site found.",
+  // U4i ③ — advisory length warning; never a flag, never a block.
+  "admin.translations.editor.lengthWarning":
+    "Long: {ratio}× the English source — check the layout.",
+  // U4i ⑤ — CSV / XLIFF export and import.
+  "admin.translations.transfer.title": "Export / import",
+  "admin.translations.transfer.note":
+    "Exports the rows currently listed. Imported rows land as edited and still need approval; broken placeholders are flagged, unknown keys are skipped.",
+  "admin.translations.transfer.exportCsv": "Export CSV",
+  "admin.translations.transfer.exportXliff": "Export XLIFF",
+  "admin.translations.transfer.import": "Import file",
+  "admin.translations.transfer.importing": "Importing…",
+  "admin.translations.transfer.summary":
+    "Imported {imported} · flagged {flagged} · skipped {skipped}.",
+  // U4i ⑦ — pseudo-localization for layout QA; never publishable.
+  "admin.translations.pseudo.title": "Pseudo-localization",
+  "admin.translations.pseudo.note":
+    "Fills the {code} layout-QA language with bracketed, stretched text. Admin-only and never publishable.",
+  "admin.translations.pseudo.run": "Generate pseudo-localization",
+  "admin.translations.pseudo.pending": "Generating…",
+  "admin.translations.pseudo.progress": "{done} of {total}",
+  "admin.translations.pseudo.summary": "Wrote {written} · failed {failed}.",
   // U4c — AI translation (machine fill; results are provisional).
   "admin.translations.ai.row": "AI translate",
   "admin.translations.ai.pending": "Translating…",
