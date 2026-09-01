@@ -14,6 +14,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
 import { AiBulkBar, type CountState } from "./ai-bulk-bar";
+import { ApproveAllBar } from "./approve-bar";
 import {
   entityRowSlug,
   pickEntityStats,
@@ -30,6 +31,15 @@ import {
 } from "./use-translations";
 
 const PAGE_SIZE = 25;
+
+/** U4k — the Data scope's own status chips (entity rows carry no flag). */
+const DATA_STATUS_CHIPS = [
+  { value: "all", labelKey: "admin.translations.filter.all" },
+  { value: "untranslated", labelKey: "admin.translations.status.untranslated" },
+  { value: "machine", labelKey: "admin.translations.status.machine" },
+  { value: "edited", labelKey: "admin.translations.status.edited" },
+  { value: "approved", labelKey: "admin.translations.status.approved" },
+] as const satisfies readonly { value: string; labelKey: MessageKey }[];
 
 const STATUS_LABELS: Record<string, MessageKey> = {
   untranslated: "admin.translations.status.untranslated",
