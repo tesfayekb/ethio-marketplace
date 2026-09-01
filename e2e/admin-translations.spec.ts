@@ -1141,8 +1141,11 @@ test.describe("U4b translations console", () => {
       await expect(readyRow.getByTestId(`entity-status-location-${two.id}-name`)).toHaveText(
         /untranslated/i,
       );
+      // The filter is cleared so the sweep confirmation reads the whole
+      // universe; the row itself may then sit on a later page (J5: no bare
+      // prefix locator is reintroduced to re-find it).
       await page.getByTestId("data-search").fill("");
-      await expect(readyRow).toBeVisible({ timeout: 20000 });
+
 
       // The bar's count is only readable once the stats query is ready; poll
       // for digits rather than racing a pending "(—)" into a false zero.
