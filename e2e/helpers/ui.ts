@@ -645,18 +645,31 @@ export async function describeSwitcher(page: Page): Promise<string> {
     snapshot = `(snapshot read threw: ${(error as Error).message})`;
   }
 
+  // INC-121 (b) — A DUMP NEVER DEPENDS ON AN OPEN MENU. The options live in a
+  // Radix portal that exists only while the dropdown is open, so "(none)" here
+  // used to read like a missing gate row when the menu was simply closed. The
+  // dump now states the menu's state, and falls back to the star controls (the
+  // same portal) so the two absences can never be confused again.
   let options = "(options unread)";
   try {
-    options = (
-      await page
-        .locator("[data-testid^='language-option-']")
-        .evaluateAll((nodes) =>
-          nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", "")),
-        )
-    ).join(",");
+    const trigger = page.getByTestId("language-switcher");
+    const menuOpen = (await trigger.count()) > 0 && (await trigger.getAttribute("aria-expanded"));
+    const codes = await page
+      .locator("[data-testid^='language-option-']")
+      .evaluateAll((nodes) =>
+        nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", "")),
+      );
+    const stars = await page
+      .locator("[data-testid^='language-star-']")
+      .evaluateAll((nodes) =>
+        nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-star-", "")),
+      );
+    const state = menuOpen === "true" ? "menu open" : "menu closed (options are portalled)";
+    options = `${codes.join(",") || "(none)"} · stars: ${stars.join(",") || "(none)"} · ${state}`;
   } catch (error) {
     options = `(options read threw: ${(error as Error).message})`;
   }
+
 
   const htmlLang = await page
     .locator("html")
