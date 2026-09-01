@@ -671,6 +671,12 @@ export const am: Messages = {
   "admin.translations.approve.pending": "በማጽደቅ ላይ…",
   "admin.translations.approve.summary": "{approved} ጸድቀዋል፣ {skipped} ተለጥፈው ተዘለዋል።",
   "admin.translations.approve.none": "ማጽደቅ የሚጠብቅ ነገር የለም።",
+  // U4k — የይዘት ስሞች የጅምላ ማጽደቅና ድርብ መለኪያዎች።
+  "admin.translations.approve.entityAction": "ሁሉንም የይዘት ስሞች አጽድቅ ({count})",
+  "admin.translations.approve.entityConfirmTitle": "ሁሉንም የተገመገሙ የይዘት ስሞች ማጽደቅ?",
+  "admin.translations.approve.entityConfirmBody": "{count} የይዘት ስሞች ለዚህ ቋንቋ ቀጥታ ይሆናሉ።",
+  "admin.translations.approve.entitySummary": "{approved} የይዘት ስሞች ጸድቀዋል።",
+  "admin.translations.meters": "በይነገጽ {uiApproved}/{uiTotal} · ይዘት {dataApproved}/{dataTotal}",
   "admin.translations.order.up": "{language}ን ወደ ላይ አንቀሳቅስ",
   "admin.translations.order.down": "{language}ን ወደ ታች አንቀሳቅስ",
   "admin.translations.order.note": "ይህ ቅደም ተከተል የሕዝብ ቋንቋ መቀየሪያውን ይመራል፤ መሠረታዊው ቋንቋ መጀመሪያ ይቆያል።",
