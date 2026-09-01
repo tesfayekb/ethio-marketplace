@@ -135,6 +135,10 @@ export function AdminTranslationsLanguagesPage() {
             guard={guard}
           />
 
+          <p className="text-sm text-muted-foreground" data-testid="translations-meter-note">
+            {t("admin.translations.meterNote")}
+          </p>
+
           {mayManage ? (
             <>
               <SyncKeysCard guard={guard} />
@@ -685,7 +689,7 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
       }
     >
       {showForm ? null : (
-        <FormField label={t("admin.translations.add.pick")} htmlFor="translations-add-search">
+        <FormField label={t("admin.translations.add.pick")} full>
           <LanguagePicker onSelect={select} onManual={() => setManual(true)} />
         </FormField>
       )}

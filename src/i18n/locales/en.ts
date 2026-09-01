@@ -534,6 +534,8 @@ export const en = {
   "admin.translations.col.language": "Language",
   "admin.translations.col.code": "Code",
   "admin.translations.col.nameEn": "English name",
+  "admin.translations.meterNote":
+    "Publication is gated on interface coverage only; content coverage is a meter.",
   "admin.translations.col.coverage": "Interface coverage",
   "admin.translations.col.coverageData": "Content coverage",
   "admin.translations.col.admin": "Staff",

@@ -523,6 +523,7 @@ export const am: Messages = {
   "admin.translations.col.language": "ቋንቋ",
   "admin.translations.col.code": "ኮድ",
   "admin.translations.col.nameEn": "የእንግሊዝኛ ስም",
+  "admin.translations.meterNote": "ማተም በገጽታ ሽፋን ብቻ ይወሰናል፤ የይዘት ሽፋን መለኪያ ብቻ ነው።",
   "admin.translations.col.coverage": "የገጽታ ሽፋን",
   "admin.translations.col.coverageData": "የይዘት ሽፋን",
   "admin.translations.col.admin": "ሠራተኞች",
