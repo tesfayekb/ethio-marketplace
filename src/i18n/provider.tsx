@@ -420,17 +420,28 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * U4h — THE ACCOUNT CARRY (secondary, applied at most once).
+   * U4h — THE ACCOUNT CARRY (secondary, applied at most once per identity).
    *
-   * Runs only on a device with NO star. The account's language is applied AND
-   * immediately written as the device star, which is what makes it survive the
-   * next sign-out and session expiry: after this, the device owns the choice.
-   * A device that already starred something is never overwritten by an account.
+   * Runs only on a device with NO star, and only once a SESSION exists. The
+   * account's language is applied AND immediately written as the device star,
+   * which is what makes it survive the next sign-out and session expiry: after
+   * this, the device owns the choice. A device that already starred something
+   * is never overwritten by an account.
+   *
+   * INC-121 (a) LAW — A ONCE-PER-MOUNT LATCH MUST NOT GUARD A SESSION-DEPENDENT
+   * READ. Signing in is an in-page transition (no remount), so the latch is
+   * keyed by the signed-in user id and released on sign-out.
    */
   useEffect(() => {
-    if (!bootRead || !authSettled || accountSyncedRef.current) return;
+    if (!bootRead || !authSettled) return;
+    if (userId === null) {
+      // Signed out: nothing to carry, and the next sign-in gets its own attempt.
+      carriedForRef.current = null;
+      return;
+    }
+    if (carriedForRef.current === userId) return;
+    carriedForRef.current = userId;
     if (star !== null) return;
-    accountSyncedRef.current = true;
     void fetchPreferredLanguage().then(({ code, reason }) => {
       if (reason !== null) {
         if (reason !== "no session") console.warn(`[i18n] account language read failed: ${reason}`);
@@ -441,7 +452,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       writeDeviceStar(code);
       setLanguageState(code);
     });
-  }, [bootRead, authSettled, star]);
+  }, [bootRead, authSettled, userId, star]);
+
 
   // Whatever the source (switcher, storage, URL, account carry), an active
   // language that the gate does not bless is revoked ONCE, as soon as the gate
