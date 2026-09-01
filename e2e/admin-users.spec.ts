@@ -153,7 +153,6 @@ async function describeAuditRows(userId: string): Promise<string> {
   }
 }
 
-
 test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await createUser({ confirmed: true });
