@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { en } from "./locales/en";
-import { SUPPORTED_LANGUAGES, type Language, type MessageKey, type Messages } from "./types";
+import { type Language, type MessageKey, type Messages } from "./types";
 
 export const LANGUAGE_STORAGE_KEY = "ethio.lang";
 
