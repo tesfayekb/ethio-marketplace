@@ -327,6 +327,7 @@ export type Database = {
       languages: {
         Row: {
           code: string
+          country_codes: string[]
           created_at: string
           enabled_admin: boolean
           enabled_public: boolean
@@ -339,6 +340,7 @@ export type Database = {
         }
         Insert: {
           code: string
+          country_codes?: string[]
           created_at?: string
           enabled_admin?: boolean
           enabled_public?: boolean
@@ -351,6 +353,7 @@ export type Database = {
         }
         Update: {
           code?: string
+          country_codes?: string[]
           created_at?: string
           enabled_admin?: boolean
           enabled_public?: boolean
@@ -1064,6 +1067,17 @@ export type Database = {
         Returns: string
       }
       admin_delete_role: { Args: { p_role_id: string }; Returns: undefined }
+      admin_entity_translation_stats: {
+        Args: { p_lang?: string }
+        Returns: {
+          approved: number
+          edited: number
+          lang_code: string
+          machine_count: number
+          total: number
+          untranslated: number
+        }[]
+      }
       admin_get_role: {
         Args: { p_role_id: string }
         Returns: {
@@ -1252,6 +1266,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_machine_entity_translation: {
+        Args: {
+          p_field: string
+          p_id: string
+          p_lang: string
+          p_type: string
+          p_value: string
+        }
+        Returns: undefined
+      }
       admin_machine_translation: {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
@@ -1343,6 +1367,7 @@ export type Database = {
       admin_upsert_language: {
         Args: {
           p_code: string
+          p_country_codes?: string[]
           p_name_en: string
           p_name_native: string
           p_rtl?: boolean

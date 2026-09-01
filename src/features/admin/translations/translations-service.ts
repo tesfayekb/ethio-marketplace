@@ -219,12 +219,15 @@ export async function upsertLanguage(input: {
   nameEn: string;
   nameNative: string;
   rtl: boolean;
+  /** U4j — ISO country codes this language is spoken in; validated server-side. */
+  countryCodes?: string[];
 }): Promise<void> {
   const { error } = await supabase.rpc("admin_upsert_language", {
     p_code: input.code,
     p_name_en: input.nameEn,
     p_name_native: input.nameNative,
     p_rtl: input.rtl,
+    p_country_codes: input.countryCodes ?? [],
   });
   if (error) throw error;
 }
@@ -347,10 +350,7 @@ export interface AiTranslateResult {
 /** The route's own hard cap; the caller chunks to this size. */
 export const AI_CHUNK_SIZE = 100;
 
-export async function aiTranslate(input: {
-  lang: string;
-  items: AiTranslateItem[];
-}): Promise<AiTranslateResult> {
+async function postTranslate(body: unknown): Promise<AiTranslateResult> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new Error("not signed in");
@@ -358,7 +358,7 @@ export async function aiTranslate(input: {
   const response = await fetch("/api/translate", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ target_lang: input.lang, items: input.items }),
+    body: JSON.stringify(body),
   });
 
   const payload = (await response.json().catch(() => null)) as
@@ -376,14 +376,73 @@ export async function aiTranslate(input: {
   };
 }
 
+export async function aiTranslate(input: {
+  lang: string;
+  items: AiTranslateItem[];
+}): Promise<AiTranslateResult> {
+  return postTranslate({ scope: "ui", target_lang: input.lang, items: input.items });
+}
+
+/**
+ * U4j — the DATA scope's AI seam. Same route, same gates; `scope: 'entity'`
+ * switches the route's single writer to `admin_machine_entity_translation`.
+ * `key` is the reporting handle only (`<type>:<id>`); the writer addresses the
+ * row by type/id/field.
+ */
+export interface AiEntityItem {
+  key: string;
+  source: string;
+  type: EntityType;
+  id: string;
+  field: string;
+}
+
+export async function aiTranslateEntities(input: {
+  lang: string;
+  items: AiEntityItem[];
+}): Promise<AiTranslateResult> {
+  return postTranslate({ scope: "entity", target_lang: input.lang, items: input.items });
+}
+
+/**
+ * U4j — the PROVIDER's supported target list, for the guided language picker.
+ * Served by `GET /api/translate` (see the route's path ruling), gated on
+ * `translations:manage`.
+ */
+export interface ProviderLanguage {
+  code: string;
+  name: string;
+}
+
+export async function listProviderLanguages(): Promise<ProviderLanguage[]> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error("not signed in");
+
+  const response = await fetch("/api/translate", {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const payload = (await response.json().catch(() => null)) as {
+    languages?: ProviderLanguage[];
+    error?: string;
+  } | null;
+  if (!response.ok) {
+    throw new Error(payload?.error ?? `language list failed (${response.status})`);
+  }
+  return (payload?.languages ?? []).filter(
+    (entry) => typeof entry?.code === "string" && typeof entry?.name === "string",
+  );
+}
+
 /**
  * U4d — ENTITY (DATA) TRANSLATIONS.
  *
  * Same seam discipline as the UI trio: definer RPCs only, every failure
- * thrown. Machine translation is DEFERRED for entities — there is no
- * `admin_machine_entity_translation`; entity machine fill rides the REQ-004
- * engine, so the console shows no AI control on this scope.
+ * thrown. U4j: machine translation is NO LONGER deferred — the AI route's
+ * `entity` scope writes through `admin_machine_entity_translation`.
  */
+
 export type EntityType = "category" | "location";
 
 export interface EntityTranslationRow {
@@ -527,5 +586,34 @@ export async function listTranslationRevisions(input: {
     changedBy: row.changed_by ?? null,
     changedByName: row.changed_by_name ?? null,
     changedAt: row.changed_at,
+  }));
+}
+
+/**
+ * U4j — the DATA coverage meter. Same universe as
+ * `admin_list_entity_translations` (active categories + active locations,
+ * field `name`), so the meter and the list can never disagree.
+ */
+export interface EntityTranslationStats {
+  langCode: string;
+  total: number;
+  approved: number;
+  machineCount: number;
+  edited: number;
+  untranslated: number;
+}
+
+export async function listEntityTranslationStats(lang?: string): Promise<EntityTranslationStats[]> {
+  const { data, error } = await supabase.rpc("admin_entity_translation_stats", {
+    ...(lang ? { p_lang: lang } : {}),
+  });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    langCode: row.lang_code,
+    total: Number(row.total),
+    approved: Number(row.approved),
+    machineCount: Number(row.machine_count),
+    edited: Number(row.edited),
+    untranslated: Number(row.untranslated),
   }));
 }

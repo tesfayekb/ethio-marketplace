@@ -516,3 +516,42 @@ E2E: TR-22 publishes the `zxx` fence, selects it from the switcher and asserts
 the page renders (`data-app-ready="1"`, no `pageerror`), that seeded keys show
 their fence values and that an unseeded key still shows English. The fence is
 returned to admin-only in `finally`.
+
+## U4j — data-layer AI and guided language creation
+
+**Data-layer AI.** The Data scope is no longer AI-less. Per-row and bulk
+machine fill run through the SAME `/api/translate` route as the interface
+scope (`scope: 'entity'`, items carrying `type/id/field`) and land through ONE
+writer, `admin_machine_entity_translation`: same gates (`translations:machine`
+→ step-up → language scope), same status machine (`untranslated|machine →
+machine`, an `edited`/`approved` row is never overwritten), same audit
+old→new. The placeholder validator does not apply — content names carry no
+tokens. Everything the provider returns is PROVISIONAL: it lands `machine` and
+still needs a human approval.
+
+The bulk bar is one component with a `scope` prop (law B3), so the confirm,
+chunking, progress and summary are identical in both scopes; only the collector
+and the writer differ.
+
+**Two meters, one gate.** The roster shows an INTERFACE coverage meter and a
+CONTENT coverage meter per language (`admin_entity_translation_stats` over
+category and location names). Publication stays gated on interface coverage
+alone — the page says so under the table (`translations-meter-note`); the
+content meter is a meter, never a blocker.
+
+**Guided language creation.** `GET /api/translate` (manage-gated, caller
+context, fake list in CI) returns the provider's supported target languages, so
+a language the console offers is one the AI can actually fill. Picking an entry
+fills the code and English name, derives the native name with
+`Intl.DisplayNames` and the RTL flag from the script list — both editable.
+Countries come from the `countries` reference table into
+`languages.country_codes`, validated against `public.countries` by trigger.
+Fence codes (`zx*`) are never offered. "Not listed — enter manually" reveals
+the original free-text form: the guide is help, never a wall. A failed provider
+list is SAID (F4), with the manual form as the way through.
+
+E2E: TR-24 (fence language, two axes-namespaced scratch locations) asserts a
+per-row machine write and a bulk sweep reaching the second row, plus the data
+meter's presence; TR-25 (desktop-only, `@global-state`) creates `sw` through
+the picker with a derived native name and one country, and deletes it in
+`finally`.

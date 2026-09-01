@@ -49,9 +49,31 @@ import { createClient } from "@supabase/supabase-js";
 const GOOGLE_CHUNK = 100; // Google v2 accepts many `q` params; 100 is our budget.
 const MAX_ITEMS = 600; // hard cap per request (413 beyond).
 
+/**
+ * U4j — SCOPES. `ui` writes `ui_translations` through
+ * `admin_machine_translation`; `entity` writes `entity_translations` through
+ * `admin_machine_entity_translation`. Same gates, same provider path, same
+ * per-item honesty; only the writer differs.
+ *
+ * U4j PATH RULING (law A3, stated before the code): the task named
+ * `GET /api/translate/languages`. TanStack's flat file routing would need a
+ * SECOND route file (`src/routes/api/translate.languages.ts`) for that path,
+ * and this task's scope names exactly one route file. The provider list is
+ * therefore served by `GET /api/translate` — same handler file, same gate,
+ * same contract; only the path differs from the spec's wording.
+ */
+type Scope = "ui" | "entity";
+
+const ENTITY_TYPES = new Set(["category", "location"]);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 interface Item {
   key: string;
   source: string;
+  /** entity scope only */
+  type?: string;
+  id?: string;
+  field?: string;
 }
 
 interface Failure {
@@ -82,20 +104,50 @@ function fail5xx(error: string, status: number): Response {
   return json({ error }, status);
 }
 
-/** Cold-start cache of the provider's supported target codes. */
-let supportedTargets: Set<string> | null = null;
+/** Cold-start cache of the provider's supported targets (code + English name). */
+export interface ProviderLanguage {
+  code: string;
+  name: string;
+}
 
-async function loadSupportedTargets(apiKey: string): Promise<Set<string>> {
-  if (supportedTargets) return supportedTargets;
+let supportedLanguages: ProviderLanguage[] | null = null;
+
+/**
+ * U4j FAKE LIST — deterministic, no provider call, no spend. Ethiopian and
+ * regional targets first so CI can add one (TR-25 uses `sw`).
+ */
+const FAKE_LANGUAGES: ProviderLanguage[] = [
+  { code: "am", name: "Amharic" },
+  { code: "om", name: "Oromo" },
+  { code: "ti", name: "Tigrinya" },
+  { code: "sw", name: "Swahili" },
+  { code: "so", name: "Somali" },
+  { code: "ar", name: "Arabic" },
+  { code: "fr", name: "French" },
+  { code: "en", name: "English" },
+];
+
+async function loadSupportedLanguages(apiKey: string): Promise<ProviderLanguage[]> {
+  if (supportedLanguages) return supportedLanguages;
   const response = await fetch(
-    `https://translation.googleapis.com/language/translate/v2/languages?key=${encodeURIComponent(apiKey)}`,
+    `https://translation.googleapis.com/language/translate/v2/languages?target=en&key=${encodeURIComponent(apiKey)}`,
   );
   if (!response.ok) throw new Error(`language list unavailable (${response.status})`);
-  const payload = (await response.json()) as { data?: { languages?: { language: string }[] } };
-  const codes = (payload.data?.languages ?? []).map((entry) => entry.language.toLowerCase());
-  if (codes.length === 0) throw new Error("language list empty");
-  supportedTargets = new Set(codes);
-  return supportedTargets;
+  const payload = (await response.json()) as {
+    data?: { languages?: { language: string; name?: string }[] };
+  };
+  const list = (payload.data?.languages ?? []).map((entry) => ({
+    code: entry.language.toLowerCase(),
+    name: entry.name ?? entry.language,
+  }));
+  if (list.length === 0) throw new Error("language list empty");
+  supportedLanguages = list;
+  return supportedLanguages;
+}
+
+async function loadSupportedTargets(apiKey: string): Promise<Set<string>> {
+  const list = await loadSupportedLanguages(apiKey);
+  return new Set(list.map((entry) => entry.code));
 }
 
 /**
@@ -260,15 +312,19 @@ async function handlePost(request: Request): Promise<Response> {
   const uid = userData?.user?.id;
   if (userError || !uid) return json({ error: "not signed in" }, 401);
 
-  let payload: { target_lang?: string; items?: Item[] };
+  let payload: { target_lang?: string; scope?: string; items?: Item[] };
   try {
     payload = (await request.json()) as typeof payload;
   } catch {
     return json({ error: "invalid json body" }, 400);
   }
 
+  const scope: Scope = payload.scope === "entity" ? "entity" : "ui";
   const target = (payload.target_lang ?? "").trim().toLowerCase();
   const items = Array.isArray(payload.items) ? payload.items : [];
+  if (payload.scope !== undefined && payload.scope !== "ui" && payload.scope !== "entity") {
+    return json({ error: "invalid scope" }, 400);
+  }
   if (!/^[a-z]{2,8}(-[a-z]{2,8})?$/.test(target)) {
     return json({ error: "invalid target_lang" }, 400);
   }
@@ -278,7 +334,20 @@ async function handlePost(request: Request): Promise<Response> {
     if (typeof item?.key !== "string" || typeof item?.source !== "string") {
       return json({ error: "invalid item shape" }, 400);
     }
+    if (scope === "entity") {
+      if (
+        typeof item.type !== "string" ||
+        !ENTITY_TYPES.has(item.type) ||
+        typeof item.id !== "string" ||
+        !UUID_RE.test(item.id) ||
+        typeof item.field !== "string" ||
+        item.field === ""
+      ) {
+        return json({ error: "invalid entity item shape" }, 400);
+      }
+    }
   }
+  const byKey = new Map(items.map((item) => [item.key, item]));
 
   // ---- GATE (before any provider call) ---------------------------
   const { data: mayMachine, error: machineError } = await supabase.rpc("has_permission", {
@@ -351,11 +420,21 @@ async function handlePost(request: Request): Promise<Response> {
   // ---- WRITES (the RPC is the single writer) ---------------------
   let done = 0;
   for (const [key, value] of translated) {
-    const { error } = await supabase.rpc("admin_machine_translation", {
-      p_key: key,
-      p_lang: target,
-      p_value: value,
-    });
+    const item = byKey.get(key);
+    const { error } =
+      scope === "entity" && item
+        ? await supabase.rpc("admin_machine_entity_translation", {
+            p_type: item.type as string,
+            p_id: item.id as string,
+            p_field: item.field as string,
+            p_lang: target,
+            p_value: value,
+          })
+        : await supabase.rpc("admin_machine_translation", {
+            p_key: key,
+            p_lang: target,
+            p_value: value,
+          });
     if (error) {
       failed.push({ key, reason: error.message });
       continue;
@@ -364,7 +443,9 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   let flagged = 0;
-  if (done > 0) {
+  // Entity names carry no {placeholders}, so the validator has nothing to flag;
+  // the flag read-back is a UI-scope concern only.
+  if (done > 0 && scope === "ui") {
     // Flag count read back from the rows the writer just validated.
     const { data: rows } = await supabase.rpc("admin_list_translations", {
       p_lang: target,
@@ -381,12 +462,66 @@ async function handlePost(request: Request): Promise<Response> {
   return json({ done, flagged, failed }, 200);
 }
 
+/**
+ * U4j — GET /api/translate: the PROVIDER's supported target list, for the
+ * guided "add a language" picker. Gated on `translations:manage` (the same
+ * permission `admin_upsert_language` requires), caller-context client, no
+ * service role. Fake mode answers from FAKE_LANGUAGES — no provider call.
+ */
+async function handleGet(request: Request): Promise<Response> {
+  const authorization = request.headers.get("Authorization") ?? "";
+  if (!authorization.toLowerCase().startsWith("bearer ")) {
+    return json({ error: "missing bearer token" }, 401);
+  }
+
+  const url = serverEnv("SUPABASE_URL");
+  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
+  if (url === "" || publishable === "") return fail5xx("supabase server env missing", 500);
+
+  const supabase = createClient(url, publishable, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const uid = userData?.user?.id;
+  if (userError || !uid) return json({ error: "not signed in" }, 401);
+
+  const { data: mayManage, error: manageError } = await supabase.rpc("has_permission", {
+    p_user_id: uid,
+    p_resource: "translations",
+    p_action: "manage",
+  });
+  if (manageError) return fail5xx(manageError.message, 500);
+  if (mayManage !== true) return json({ error: "permission denied" }, 403);
+
+  if (serverEnv("E2E_FAKE_TRANSLATE") === "1") {
+    return json({ languages: FAKE_LANGUAGES }, 200);
+  }
+
+  const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
+  if (apiKey === "") return fail5xx("translation provider is not configured", 503);
+  try {
+    return json({ languages: await loadSupportedLanguages(apiKey) }, 200);
+  } catch (error) {
+    return fail5xx((error as Error).message, 502);
+  }
+}
+
 export const Route = createFileRoute("/api/translate")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
           return await handlePost(request);
+        } catch (error) {
+          logRouteError(error);
+          return json({ error: error instanceof Error ? error.message : "internal error" }, 500);
+        }
+      },
+      GET: async ({ request }) => {
+        try {
+          return await handleGet(request);
         } catch (error) {
           logRouteError(error);
           return json({ error: error instanceof Error ? error.message : "internal error" }, 500);
