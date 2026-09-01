@@ -1549,3 +1549,23 @@ gated the push. DEC-028 moves the enforcement into the lanes:
 - UN-QUARANTINING REQUIRES A GREEN NIGHTLY STREAK OF 7 AND A DEC NOTE; until
   then the DEC-026 component-test layer is where that logic earns a gate.
 - A source with no results is NOT quarantinable: a dead runner gates (law F4).
+
+### INC-118 (DEC-030, 2026-09-01) — a retried pass was an unrecorded event
+
+`retries: 0` everywhere made every infrastructural blip a red push, and the
+obvious remedy (retries) hides the blip instead: Playwright's `flaky` status
+was, until now, collected by the reporter as an ordinary FAILURE, so switching
+retries on without touching the reporter would have turned a recovered test
+into a gating red — and switching it on *with* a naive fix would have turned it
+into silence.
+
+DEC-030 takes the third path: the parallel matrix retries once, the nightly does
+not, and every retry-recovered test is named twice — in the run's evidence file
+(`## Flake ledger (DEC-030)`, plus a header count) and as one appended line in
+`docs/tracking/flake-ledger.md`. A flaky test never gates; a test flaky 3× in 7
+days gets an INC and root-cause work.
+
+- A GREEN RUN CAN STILL CARRY EVIDENCE: the reporter's ledger-only pass
+  (`E2E_FLAKE_ONLY=1`) exists because the green branch writes no report.
+- A SOURCE WITH NO RESULTS IS STILL GATING (law F4) — retries change nothing
+  about a dead runner.

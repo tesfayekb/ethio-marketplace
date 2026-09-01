@@ -654,3 +654,34 @@ MECHANICS:
   `docs/tracking/nightly-last-failure.md` with its INC-117 label while
   `docs/tracking/nightly-status.md` stays SUCCESS; a MISSING verdict file is
   treated as gating, never as green.
+
+## DEC-030 — flake ledger: retries are evidence, not concealment (2026-09-01)
+
+The parallel matrix (smoke tier, four-way shard matrix, changed-spec fast lane)
+runs with `retries: 1` so ONE infrastructural blip does not red a whole push.
+The serial nightly keeps `retries: 0` — acceptance measurement needs the
+unretried truth. LAW: **a test flaky 3× in 7 days gets an INC and root-cause
+work; retries are evidence, not concealment.**
+
+MECHANICS:
+
+- `playwright.config.ts` — `retries: E2E_RETRIES ?? (CI ? 1 : 0)`; the nightly
+  workflow exports `E2E_RETRIES: "0"` for both of its runs.
+- `scripts/e2e-failure-report.ts` — `collect()` splits Playwright's `flaky`
+  status out of the failure list into its own `flaky[]`. The evidence file
+  carries `- Flaky (passed on retry, DEC-030, non-gating): N` in the header and
+  a `## Flake ledger (DEC-030)` section naming every one of them, and the
+  verdict file gains a `flaky=` field. A flaky test NEVER gates.
+- `docs/tracking/flake-ledger.md` — one appended line per flaky test
+  (`ledgerLines()`): date, project, title, lane, run URL, commit, first error
+  line. Append-only; CI commits it with `[skip ci]` on the same `dev` push as
+  the evidence file, re-appending after the fetch/reset so a concurrent run's
+  lines are never overwritten.
+- LEDGER-ONLY PASS — a run whose only anomaly was a retry-recovered test is
+  GREEN, so the green branch would hide it. CI runs the reporter a second time
+  with `E2E_FLAKE_ONLY=1`: same sources, ledger appended, no evidence file and
+  no verdict written.
+- SELF-TEST — `SELF_TEST=1` proves the split in both directions on the REAL
+  captured `results.json` with one test's status flipped to `flaky`: the flaky
+  test leaves the failure list, the ledger section and header line render, one
+  ledger line is produced, and an ordinary red renders NO ledger section.
