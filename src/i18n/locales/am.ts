@@ -616,6 +616,34 @@ export const am: Messages = {
   "admin.translations.editor.restoreHint":
     "መጀመሪያ ብዛታቸው መመሳሰል አለበት፦ ትርጉሙ {got} የቦታ ያዦች አሉት፣ የእንግሊዝኛው ምንጭ {want} አሉት።",
   "admin.translations.editor.notAssigned": "ለዚህ ቋንቋ አልተመደቡም — ሰርቨሩ ለውጦችን ይከለክላል።",
+  // U4i ① — የቁልፍ አውድ ማስታወሻ (በመሠረት ረድፍ ላይ ይቀመጣል፤ ለሁሉም ቋንቋዎች ይታያል)።
+  "admin.translations.editor.context": "የአውድ ማስታወሻ",
+  "admin.translations.editor.contextPlaceholder": "የት እንደሚታይ፣ ቃናው፣ ገደቦች…",
+  "admin.translations.editor.contextSave": "ማስታወሻ አስቀምጥ",
+  "admin.translations.editor.contextNone": "እስካሁን ማስታወሻ የለም።",
+  // U4i ② — በግንባታ ጊዜ የሚዘጋጅ "የት እንደሚውል" ካርታ።
+  "admin.translations.editor.usedOn": "የሚውለው በ፦ {surfaces}",
+  "admin.translations.editor.usedOnUnknown": "የሚውለው በ፦ በመፈተሽ ላይ…",
+  "admin.translations.editor.usedOnDynamic": "የሚውለው በ፦ ተለዋዋጭ — ቀጥተኛ ጥሪ አልተገኘም።",
+  // U4i ③ — የርዝመት ማስጠንቀቂያ ብቻ ነው፤ አያግድም።
+  "admin.translations.editor.lengthWarning": "ረጅም፦ ከእንግሊዝኛው {ratio}× — አቀማመጡን ይመልከቱ።",
+  // U4i ⑤ — CSV / XLIFF ወደ ውጭ መላክና ማስገባት።
+  "admin.translations.transfer.title": "ወደ ውጭ ላክ / አስገባ",
+  "admin.translations.transfer.note":
+    "አሁን የተዘረዘሩትን ረድፎች ይልካል። የገቡት ረድፎች እንደ የተስተካከሉ ሆነው ይቀመጣሉ፤ ማጽደቅ ይፈልጋሉ። የተበላሹ የቦታ ያዦች ይሰየማሉ፤ የማይታወቁ ቁልፎች ይዘለላሉ።",
+  "admin.translations.transfer.exportCsv": "CSV ላክ",
+  "admin.translations.transfer.exportXliff": "XLIFF ላክ",
+  "admin.translations.transfer.import": "ፋይል አስገባ",
+  "admin.translations.transfer.importing": "በማስገባት ላይ…",
+  "admin.translations.transfer.summary": "የገቡ {imported} · የተሰየሙ {flagged} · የተዘለሉ {skipped}።",
+  // U4i ⑦ — ለአቀማመጥ ምርመራ የሚያገለግል የውሸት ትርጉም፤ በጭራሽ አይታተምም።
+  "admin.translations.pseudo.title": "የውሸት ትርጉም (Pseudo)",
+  "admin.translations.pseudo.note":
+    "የ{code} የአቀማመጥ ምርመራ ቋንቋን በተዘረጋ ጽሑፍ ይሞላል። ለአስተዳዳሪ ብቻ ሲሆን በጭራሽ አይታተምም።",
+  "admin.translations.pseudo.run": "የውሸት ትርጉም አመንጭ",
+  "admin.translations.pseudo.pending": "በማመንጨት ላይ…",
+  "admin.translations.pseudo.progress": "{done} ከ{total}",
+  "admin.translations.pseudo.summary": "የተጻፉ {written} · ያልተሳኩ {failed}።",
   // U4c — በማሽን መተርጎም (ውጤቶቹ ጊዜያዊ ናቸው)።
   "admin.translations.ai.row": "በAI ተርጉም",
   "admin.translations.ai.pending": "በመተርጎም ላይ…",
