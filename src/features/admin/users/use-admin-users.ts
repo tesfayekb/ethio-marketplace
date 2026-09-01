@@ -66,9 +66,13 @@ export function useAdminUser(userId: string) {
 
 export function useAdminUserActivity(userId: string) {
   return useQuery({
-    queryKey: [...ADMIN_USERS_KEY, "activity", userId],
+    queryKey: adminUserActivityKey(userId),
     queryFn: () => listUserActivity(userId),
-    staleTime: 15_000,
+    // INC-110 — audit rows land as a side effect of mutations elsewhere in the
+    // section, so this list is stale the moment it is served: it re-reads on
+    // every mount and after every invalidation, on BOTH twins.
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 
@@ -80,18 +84,39 @@ export function useAdminRoles() {
   });
 }
 
-export function useSetAccountStatus(userId: string) {
+/**
+ * INC-110 — one invalidation contract for every audited user mutation: the
+ * section prefix (lists), plus the two EXACT keys the audit row feeds, forced
+ * to refetch whether or not an observer is currently mounted, and AWAITED so
+ * `mutateAsync` only settles once the reads are in flight.
+ */
+function useUserMutationInvalidator(userId: string) {
   const queryClient = useQueryClient();
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEY }),
+      queryClient.invalidateQueries({
+        queryKey: adminUserDetailKey(userId),
+        refetchType: "all",
+      }),
+      queryClient.invalidateQueries({
+        queryKey: adminUserActivityKey(userId),
+        refetchType: "all",
+      }),
+    ]);
+}
+
+export function useSetAccountStatus(userId: string) {
+  const invalidate = useUserMutationInvalidator(userId);
   return useMutation({
     mutationFn: (input: { status: AccountStatus; reason?: string }) =>
       setAccountStatus({ userId, ...input }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEY }),
+    onSuccess: invalidate,
   });
 }
 
 export function useRoleAssignment(userId: string) {
-  const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEY });
+  const invalidate = useUserMutationInvalidator(userId);
 
   const assign = useMutation({
     mutationFn: (roleName: string) => assignRole(userId, roleName),
@@ -103,6 +128,7 @@ export function useRoleAssignment(userId: string) {
   });
   return { assign, revoke };
 }
+
 
 /** U1g — countries for the edit form's select (public reference data). */
 export function useCountries() {
