@@ -1476,12 +1476,13 @@ test.describe("U4g bulk approval, order and orphans", () => {
         });
         await test.step("TR-20 move up · poll", async () => {
           await expect
-            .poll(() => positionOf(fence), {
+            .poll(() => offsetTo(neighbour), {
               timeout: 30000,
-              message: "moving up never changed the roster order",
+              message: "moving up never placed the fence above its former upper neighbour",
             })
-            .toBe(start - 1);
+            .toBe(-1);
         });
+
       });
 
       await test.step("TR-20 move down", async () => {
