@@ -291,7 +291,6 @@ export function AdminTranslationsStringsPage({
                 mayMachine={mayMachine && !(known?.isBase ?? false)}
                 guard={guard}
               />
-
             </>
           ) : (
             <>

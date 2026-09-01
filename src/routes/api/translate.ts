@@ -81,7 +81,6 @@ interface Failure {
   reason: string;
 }
 
-
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -150,7 +149,6 @@ async function loadSupportedTargets(apiKey: string): Promise<Set<string>> {
   const list = await loadSupportedLanguages(apiKey);
   return new Set(list.map((entry) => entry.code));
 }
-
 
 /**
  * U4g-24 / INC-115 — PLACEHOLDER PROTECTION.
@@ -351,7 +349,6 @@ async function handlePost(request: Request): Promise<Response> {
   }
   const byKey = new Map(items.map((item) => [item.key, item]));
 
-
   // ---- GATE (before any provider call) ---------------------------
   const { data: mayMachine, error: machineError } = await supabase.rpc("has_permission", {
     p_user_id: uid,
@@ -531,6 +528,5 @@ export const Route = createFileRoute("/api/translate")({
         }
       },
     },
-
   },
 });

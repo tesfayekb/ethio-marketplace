@@ -232,7 +232,6 @@ export async function upsertLanguage(input: {
   if (error) throw error;
 }
 
-
 export async function setLanguageFlags(input: {
   code: string;
   enabledAdmin: boolean;
@@ -604,9 +603,7 @@ export interface EntityTranslationStats {
   untranslated: number;
 }
 
-export async function listEntityTranslationStats(
-  lang?: string,
-): Promise<EntityTranslationStats[]> {
+export async function listEntityTranslationStats(lang?: string): Promise<EntityTranslationStats[]> {
   const { data, error } = await supabase.rpc("admin_entity_translation_stats", {
     ...(lang ? { p_lang: lang } : {}),
   });

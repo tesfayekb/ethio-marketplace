@@ -151,7 +151,6 @@ export function AiBulkBar({
     setSummary({ done, flagged, failed });
   };
 
-
   const start = () => {
     setConfirming(false);
     void guard(run).catch((failure: unknown) => {

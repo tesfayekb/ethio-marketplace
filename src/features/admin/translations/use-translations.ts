@@ -30,7 +30,6 @@ import {
   type TranslationFilters,
 } from "./translations-service";
 
-
 /**
  * U1g-3 purge law: every key starts at AUTH_DERIVED_ROOT, so one
  * removeQueries() on sign-out drops the whole console's cache.

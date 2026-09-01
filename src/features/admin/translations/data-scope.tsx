@@ -118,7 +118,6 @@ export function DataScope({
         />
       ) : null}
 
-
       <DataTable
         columns={dataColumns(t, rtl)}
         rows={rows}
@@ -149,7 +148,6 @@ export function DataScope({
             />
           ) : null
         }
-
         rowActions={(row) => (
           <Button
             type="button"
