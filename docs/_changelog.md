@@ -262,3 +262,4 @@
 - 2026-09-01 — test(e2e): TR-20 desktop-only relative order, TR-20m mobile controls, TR-17 set equality (INC-115e)
 - 2026-09-01 — fix(db): audit activity index + sargable predicate (statement timeout, INC-116); test(e2e): TR-22 mobile-visible anchor
 - 2026-09-01 — test(e2e): fence-filtered TR-17 set equality, TR-19 seed-before-navigate poll, @global-state quarantine label (INC-117)
+- 2026-09-01 — ci(DEC-028): global-state specs serial-only; quarantined failures reported, non-gating. format:check + reporter self-test; CI proves.

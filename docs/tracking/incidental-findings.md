@@ -1532,3 +1532,20 @@ RULES:
   the label exists now, the gating change is the operator's next step.
 - A SEED IS NOT VISIBLE UNTIL THE PAGE'S OWN QUERY HAS RETURNED IT; SEED BEFORE
   NAVIGATING AND POLL THE ROWS, NEVER THE BUTTON ALONE.
+
+### INC-117 addendum (DEC-028, 2026-09-01) — quarantine is now enforced by the lanes
+
+The label alone left a tagged spec free to run inside the parallel matrix,
+where its red was manufactured by a sibling's legitimate mutation and still
+gated the push. DEC-028 moves the enforcement into the lanes:
+
+- The per-push lanes (smoke, shard matrix, changed fast lane) EXCLUDE
+  `@global-state` via `--grep-invert`; those specs execute only in the serial
+  nightly, one worker.
+- The nightly VERDICT excludes quarantined failures: the reporter publishes
+  `gating=`/`quarantined=` (`E2E_VERDICT_PATH`) and both the heartbeat and the
+  outcome step read `gating` only. Quarantined reds are written to
+  `docs/tracking/nightly-last-failure.md` under the INC-117 label.
+- UN-QUARANTINING REQUIRES A GREEN NIGHTLY STREAK OF 7 AND A DEC NOTE; until
+  then the DEC-026 component-test layer is where that logic earns a gate.
+- A source with no results is NOT quarantinable: a dead runner gates (law F4).

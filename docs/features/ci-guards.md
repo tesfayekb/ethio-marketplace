@@ -623,3 +623,34 @@ BUMP RULE: raise the pin ONLY when the pinned wrangler supports the newer date,
 and land the pin and the wrangler version TOGETHER in one change. A parity
 refusal is no longer an excused runtime class — it is a gating failure whose
 remedy is exactly that bump.
+
+## DEC-028 — global-state specs are serial-only and non-gating (2026-09-01)
+
+Tests that mutate shared global state (`@global-state`) never run in the
+parallel matrix or the fast lane; they run in the serial nightly only.
+Quarantined failures are reported, labeled, and non-gating until DEC-026
+component coverage lands; un-quarantining requires a green nightly streak of 7
+and a DEC note.
+
+MECHANICS:
+
+- `.github/workflows/ci.yml` — the smoke tier, the four-way shard matrix and
+  the changed-spec fast lane all pass `--grep-invert "@global-state"`, so a
+  tagged spec cannot execute next to a sibling mutating the same surface.
+- `.github/workflows/nightly-e2e.yml` — after the real-elapsed-time cases, one
+  step runs the FULL suite (`--workers=1`, both projects) including the tagged
+  specs. Its results are collected as the reporter source `full` alongside
+  `nightly` (the first run's `results.json` is stashed before the second
+  overwrites it).
+- `scripts/e2e-failure-report.ts` — `isQuarantined()` / `classifyFailures()`
+  split the failures; the report header carries
+  `- Gating failures: N · Quarantined (@global-state, INC-117, non-gating): M`
+  and each quarantined block keeps its `Class:` label. With
+  `E2E_VERDICT_PATH` set, the reporter writes `gating=`/`quarantined=`/`silent=`
+  for the workflow to read. A source that produced NO results is never
+  quarantinable — the runner died, which gates on its own (law F4).
+- The nightly heartbeat conclusion and the final "Report test outcome" step
+  read `gating` only. A quarantined red therefore appears in
+  `docs/tracking/nightly-last-failure.md` with its INC-117 label while
+  `docs/tracking/nightly-status.md` stays SUCCESS; a MISSING verdict file is
+  treated as gating, never as green.
