@@ -72,17 +72,26 @@ export function DataScope({
   query: string;
   mayUpdate: boolean;
   mayApprove: boolean;
+  /** Already base-guarded by the caller: the base language is never machine-filled. */
   mayMachine: boolean;
   guard: GuardFn;
 }) {
   const { t } = useI18n();
   const [page, setPage] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
+  /**
+   * U4k — the STATUS CHIPS of the Data scope, mirroring the Interface ones.
+   * They are component state rather than a URL filter because the route file
+   * (the single parse point for search params, INC-073) is outside this task's
+   * scope; the incoming `status` prop remains the initial truth.
+   */
+  const [chip, setChip] = useState(status === "flagged" ? "all" : status);
+  const activeStatus = chip;
 
   const list = useEntityTranslations(
     {
       lang,
-      status: status === "flagged" ? "all" : status,
+      status: activeStatus === "flagged" ? "all" : activeStatus,
       search: query,
       limit: PAGE_SIZE,
       offset: page * PAGE_SIZE,
@@ -109,6 +118,16 @@ export function DataScope({
         ? "pending"
         : "missing";
 
+  const chipCounts: Record<string, number> = {
+    all: langStats?.total ?? 0,
+    untranslated: langStats?.untranslated ?? 0,
+    machine: langStats?.machineCount ?? 0,
+    edited: langStats?.edited ?? 0,
+    approved: langStats?.approved ?? 0,
+  };
+  /** The entity layer has no flags: everything machine|edited is approvable. */
+  const reviewable = (langStats?.machineCount ?? 0) + (langStats?.edited ?? 0);
+
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
 
@@ -134,15 +153,39 @@ export function DataScope({
         {t("admin.translations.data.aiNote")}
       </p>
 
-      {mayMachine ? (
-        <AiBulkBar
-          lang={lang}
-          scope="entity"
-          untranslated={langStats?.untranslated ?? 0}
-          countState={countState}
-          guard={guard}
-        />
-      ) : null}
+      <div className="flex min-w-0 flex-wrap gap-2" data-testid="data-chips">
+        {DATA_STATUS_CHIPS.map((entry) => (
+          <Button
+            key={entry.value}
+            type="button"
+            variant={activeStatus === entry.value ? "default" : "outline"}
+            className="min-h-11"
+            data-testid={`data-chip-${entry.value}`}
+            onClick={() => {
+              setPage(0);
+              setChip(entry.value);
+            }}
+          >
+            {`${t(entry.labelKey)} · ${chipCounts[entry.value] ?? 0}`}
+          </Button>
+        ))}
+      </div>
+
+      <div className="flex min-w-0 flex-wrap items-start gap-3">
+        {mayMachine ? (
+          <AiBulkBar
+            lang={lang}
+            scope="entity"
+            untranslated={langStats?.untranslated ?? 0}
+            countState={countState}
+            guard={guard}
+          />
+        ) : null}
+        {mayApprove ? (
+          <ApproveAllBar lang={lang} scope="entity" reviewable={reviewable} guard={guard} />
+        ) : null}
+      </div>
+
 
       <DataTable
         columns={dataColumns(t, rtl)}
