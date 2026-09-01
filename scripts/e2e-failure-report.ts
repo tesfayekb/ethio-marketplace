@@ -560,7 +560,6 @@ export function renderSources(
       "",
     );
 
-
     // INC-083 rule 2: the page snapshot Playwright wrote at the moment of
     // death is the diagnosable evidence — quote it, or say plainly that it is
     // missing. Never leave a failure body without one of the two.

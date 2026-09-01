@@ -1185,7 +1185,6 @@ test.describe("U4f — publication gate governs language choice", () => {
         0,
       );
 
-
       await gotoReady(page, "/");
       await page.getByTestId("language-switcher").click();
       await expect
@@ -1216,7 +1215,6 @@ test.describe("U4f — publication gate governs language choice", () => {
       await expect(page.locator("html")).toHaveAttribute("lang", "en", { timeout: 15000 });
     },
   );
-
 });
 
 /**
@@ -1320,7 +1318,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
           .toBe(keys.length);
         await expect(page.getByTestId("approve-all-start")).toBeEnabled({ timeout: 20000 });
       });
-
 
       await step("TR-19 approve-all start", async () => {
         await page.getByTestId("approve-all-start").click({ timeout: 15000 });
