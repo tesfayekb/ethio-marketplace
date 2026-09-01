@@ -246,6 +246,22 @@ export default async function globalSetup() {
       throw new Error(`[e2e:setup] reaping fence translations failed: ${fenceRowError.message}`);
     }
     reaped += staleFenceRows?.length ?? 0;
+
+    // INC-119c — the Data sweep writes ENTITY rows in the fence language too
+    // (one per category/location). They must not outlive their hour either,
+    // or the next run's fence universe is pre-translated.
+    const { data: staleFenceEntities, error: fenceEntityError } = await supabase
+      .from("entity_translations")
+      .delete()
+      .like("lang_code", `${prefix}%`)
+      .lt("updated_at", cutoff)
+      .select("entity_id");
+    if (fenceEntityError) {
+      throw new Error(
+        `[e2e:setup] reaping fence entity translations failed: ${fenceEntityError.message}`,
+      );
+    }
+    reaped += staleFenceEntities?.length ?? 0;
   }
 
   const { data: staleLocations, error: locationError } = await supabase

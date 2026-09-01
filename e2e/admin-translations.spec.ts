@@ -1128,11 +1128,24 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
-      // U4j-5 (INC-119b) — the universe must RENDER before the bar is read: at
-      // least one untranslated row exists on a fresh language.
-      await expect(page.locator("[data-testid^='entity-status-']").first()).toBeVisible({
-        timeout: 20000,
-      });
+      // U4j-6 (INC-119c) — READINESS ANCHORS ON THIS RUN'S OWN ROW. The old
+      // check was `[data-testid^='entity-status-']`.first(): a J5 violation
+      // that resolved the hidden card twin at 1280 and read "Machine" left by
+      // a prior sweep. The second scratch location is untranslated by
+      // construction, so it proves the universe rendered AND that N ≥ 1.
+      await page.getByTestId("data-search").fill(two.name);
+      const readyRow = translationsSurface(page).getByTestId(
+        rowTestId(page, `entity-row-location-${two.id}-name`),
+      );
+      await expect(readyRow).toBeVisible({ timeout: 20000 });
+      await expect(readyRow.getByTestId(`entity-status-location-${two.id}-name`)).toHaveText(
+        /untranslated/i,
+      );
+      // The filter is cleared so the sweep confirmation reads the whole
+      // universe; the row itself may then sit on a later page (J5: no bare
+      // prefix locator is reintroduced to re-find it).
+      await page.getByTestId("data-search").fill("");
+
       // The bar's count is only readable once the stats query is ready; poll
       // for digits rather than racing a pending "(—)" into a false zero.
       await expect

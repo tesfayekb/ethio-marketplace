@@ -1615,3 +1615,15 @@ nothing for fresh languages; rows now key on the entity identity
 the same composite (`entity-row-<type>-<id>-<field>`).
 
 RULE: list keys come from the entity, never from the optional translation row.
+
+## INC-119c — TR-24's readiness check anchored on nothing of its own
+
+The readiness assertion used `[data-testid^='entity-status-']` + `.first()` (a
+J5 violation — supervisor-dictated, logged): at 1280 the first match is the
+hidden card twin, and its text was `Machine`, left by a PRIOR sweep. The check
+therefore assumed a virgin fence universe it never owned.
+
+RULE: readiness anchors are per-run scratch entities, asserted through the
+twin-aware helper on the visible surface — never a bare prefix + `.first()`.
+Fence entity residue (`entity_translations` rows in a fence-prefixed
+`lang_code`) is reaped alongside fence UI rows once it is an hour old.
