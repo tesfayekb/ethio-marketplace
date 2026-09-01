@@ -236,4 +236,3 @@ export async function assertInjectedIdentity(page: Page, session: PersistedSessi
     );
   }
 }
-

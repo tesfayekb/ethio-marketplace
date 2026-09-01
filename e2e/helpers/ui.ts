@@ -335,7 +335,6 @@ export async function signInViaSession(page: Page, email: string, password: stri
   );
 }
 
-
 /**
  * INC-074 — /auth is NOT a sign-in form for an authenticated session (U0j
  * guard redirects it away), so a second `signIn` while still signed in hangs
