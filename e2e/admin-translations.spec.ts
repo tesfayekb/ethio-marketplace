@@ -1401,4 +1401,109 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await reapScratchKey(key);
     }
   });
+
+  /**
+   * TR-22 (INC-107) — A PUBLISHED LANGUAGE NEVER REQUIRES A COMPILED FILE.
+   *
+   * The fence language has no `src/i18n/locales/zxx.ts` and never will: it is
+   * a DATABASE-only language, exactly the shape an operator creates in the
+   * console. Publishing it used to crash every visitor who selected it (the
+   * compiled-loader registry was indexed unguarded). The compiled layer for
+   * such a language is `{}`, so the chain is compiled.en ▸ {} ▸ DB[zxx].
+   *
+   * J-laws: the fence stays admin-only outside this test — `enabled_public` is
+   * raised HERE and lowered in `finally`. The seeded values are DETERMINISTIC
+   * (never axes-stamped) so two projects running this case concurrently write
+   * the same bytes and cannot race each other's assertions. The writes are
+   * TABLE writes through the service client; the gated RPC is the app's seam.
+   */
+  test("TR-22 a published DB-only language renders with no compiled catalog", async ({
+    page,
+    clientErrors,
+  }) => {
+    test.setTimeout(120_000);
+    const supabase = adminClient();
+    await ensureFenceLanguage();
+
+    // Three REAL chrome keys, translated inside the fence only. `zxx` is a
+    // language no operator and no other spec renders, so these rows are not a
+    // mutation of a shared catalog surface (J2/J3).
+    const SEEDED = {
+      "app.name": "zxx-brand",
+      "auth.signIn": "zxx-sign-in",
+      "language.label": "zxx-language",
+    } as const;
+    // Deliberately NOT seeded: the feed heading must fall back to English.
+    const unseededHeading = en["feed.heading"].replace("{location}", en["feed.scopeAll"]);
+
+    const publishFence = async (enabled: boolean) => {
+      const { error } = await supabase
+        .from("languages")
+        .update({ enabled_public: enabled })
+        .eq("code", FENCE_LANG);
+      if (error)
+        throw new Error(`[e2e:u4g-17] fence enabled_public=${enabled} failed: ${error.message}`);
+    };
+
+    try {
+      const { error } = await supabase.from("ui_translations").upsert(
+        Object.entries(SEEDED).map(([key, value]) => ({
+          key,
+          lang_code: FENCE_LANG,
+          value,
+          status: "approved",
+          machine: false,
+        })),
+        { onConflict: "key,lang_code" },
+      );
+      if (error) throw new Error(`[e2e:u4g-17] fence seeding failed: ${error.message}`);
+      await publishFence(true);
+
+      // 1. The gate's own list now carries the fence, so the switcher lists it.
+      await gotoReady(page, "/");
+      await page.getByTestId("language-switcher").click();
+      const option = page.getByTestId(`language-option-${FENCE_LANG}`);
+      await expect(option, "the published fence language is missing from the switcher").toBeVisible(
+        { timeout: 20000 },
+      );
+
+      // 2. Selecting it must RENDER, not crash: the readiness contract is the
+      //    oracle (INC-085f), and the page keeps its hydrated marker.
+      await option.click();
+      await expect(page.locator("html")).toHaveAttribute("lang", FENCE_LANG, { timeout: 20000 });
+      await expect(page.locator("html")).toHaveAttribute("data-app-ready", "1");
+      await waitForHydration(page);
+
+      // 3. The seeded keys render their fence values …
+      await expect(
+        page.getByRole("link", { name: SEEDED["app.name"], exact: true }),
+        "the seeded brand key did not render its DB value",
+      ).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole("link", { name: SEEDED["auth.signIn"] })).toBeVisible();
+      await expect(page.getByTestId("language-switcher")).toHaveAttribute(
+        "aria-label",
+        SEEDED["language.label"],
+      );
+
+      // 4. … and an UNSEEDED key still renders English: a missing compiled
+      //    layer is empty, never a hole in the layer beneath (INC-095/INC-107).
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(unseededHeading);
+      await expectNoHorizontalOverflow(page);
+
+      // 5. No browser-side throw at any point (law F4 — a crash is never
+      //    allowed to hide behind a page that happens to paint).
+      expect(
+        clientErrors.filter((line) => line.startsWith("pageerror")),
+        "the DB-only language threw in the browser",
+      ).toEqual([]);
+    } finally {
+      await publishFence(false);
+      await supabase
+        .from("ui_translations")
+        .delete()
+        .eq("lang_code", FENCE_LANG)
+        .in("key", Object.keys(SEEDED));
+    }
+  });
 });
+
