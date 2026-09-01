@@ -255,7 +255,7 @@ export default async function globalSetup() {
       .delete()
       .like("lang_code", `${prefix}%`)
       .lt("updated_at", cutoff)
-      .select("id");
+      .select("entity_id");
     if (fenceEntityError) {
       throw new Error(
         `[e2e:setup] reaping fence entity translations failed: ${fenceEntityError.message}`,
