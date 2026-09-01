@@ -619,3 +619,67 @@ full of `machine` rows.
   moment a language is opened.
 - TR-26 walks it in the approval fence: bulk AI → approve-all through step-up →
   DB truth per key is `approved`, chips move, summary carries the count.
+
+## U4h — the device ★ (default language) and dynamic hreflang
+
+### The star is a DEVICE choice
+
+A visitor's default language belongs to the DEVICE, not the session: it must
+survive sign-out, session expiry and a cleared auth cookie. It is therefore
+stored twice:
+
+- `localStorage["ethio.lang.star"]` — the durable client record, read first;
+- cookie `ethio_lang_star` — the only channel SSR can read (`SameSite=Lax`,
+  one year, path `/`). It carries a language CODE and nothing else.
+
+The switcher renders one ★ toggle per gated language (≥44px, `aria-pressed`,
+labelled by `language.star` / `language.starred` in EN+AM). Starring also
+SELECTS the language — a default you cannot see is not a default — and the
+setter REPLACES rather than appends, so the one-favourite invariant is
+structural rather than policed.
+
+### Precedence at boot
+
+```text
+URL ?lang= override  ▸  device ★  ▸  last used language  ▸  base (en)
+```
+
+The ACCOUNT's `profiles.preferred_language` is not in that chain. It is a
+CARRY, applied at most once per load and only onto a device that has never
+starred anything: it then writes the device star, which is what makes it
+outlive the session. A device that already starred a language is never
+overwritten by an account.
+
+Starring while signed in syncs UP fire-and-forget through
+`user_set_preferred_language(p_code)` — a `SECURITY DEFINER`, own-row-only,
+audited RPC that refuses any code that is neither the base nor
+`enabled_public`. Direct column UPDATE is revoked for `authenticated`, so the
+RPC is the only entry point. Signed out is the ordinary case, not a failure.
+
+The publication gate still has the last word: a starred language that is later
+unpublished falls back to the base with exactly one warning, and the star is
+cleared so the next load cannot resurrect it.
+
+### SSR: `lang`, `dir` and hreflang
+
+Head-composition census: `<html lang|dir>` is composed in exactly one place —
+`RootShell` in `src/routes/__root.tsx`. Every `<meta>`/`<link>` is composed by
+a route's `head()` and printed by `<HeadContent />` in that same shell; there
+is no other head surface. Per-page titles/descriptions stay in their leaf
+routes; the root owns the app-wide tags and the hreflang alternates.
+
+The root loader reads the star cookie (validated by SHAPE only — the client
+reconciles against the gate) and the anon publication list, so the first byte
+already carries the right `lang` and `dir`. Public pages emit one
+`rel="alternate"` per published language plus `x-default`, with absolute URLs
+(law G1); admin/settings/auth/dev paths emit none. Publishing a language in the
+console changes the emitted set with no code change.
+
+### Coverage
+
+- Unit (`src/components/language-switcher-star.test.tsx`): pressed state, the
+  one-favourite invariant, and a DB-only language being starrable.
+- E2E (`e2e/shell.spec.ts`): TR-27 (a signed-out star survives reload, sign-in
+  and sign-out), TR-28 (the account carries onto a starless device and writes
+  the star; a device star beats the account), and the hreflang set equalling
+  the anon gate list.
