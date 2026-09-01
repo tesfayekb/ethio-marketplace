@@ -1085,12 +1085,18 @@ test.describe("U4b translations console", () => {
     try {
       const { secret } = await signInAsSuperAdmin(page);
 
+      // U4j-3 — the UNIVERSE, not the existing rows: the scratch location has
+      // no entity_translations row in the fence language yet, and must still be
+      // listed as `untranslated` so it can be translated at all.
+      expect(await machineStatus(one.id)).toBe("missing");
+
       // PER-ROW — seed exists before navigating, and is asserted rendered (J7).
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(one.name);
       const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${one.id}`));
       await expect(row).toBeVisible({ timeout: 20000 });
+      await expect(row.getByTestId(`entity-status-${one.id}`)).toHaveText(/untranslated/i);
       await surfaceControl(page, `entity-expand-${one.id}`).click();
       const editor = surfaceControl(page, `entity-editor-${one.id}`);
       await expect(editor).toBeVisible();
@@ -1108,6 +1114,12 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
+      // U4j-3 — the bar's work count is the UNIVERSE's untranslated count, so
+      // it must already be non-zero on a language with no rows at all.
+      const untranslatedBefore = Number(
+        (await startButton.innerText()).replace(/[^0-9]/g, "") || "0",
+      );
+      expect(untranslatedBefore).toBeGreaterThan(0);
       await startButton.click();
       await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
       await page.getByTestId("ai-bulk-confirm-run").click();
@@ -1119,6 +1131,22 @@ test.describe("U4b translations console", () => {
           message: "bulk entity AI never reached the second scratch location",
         })
         .toBe("machine|true|true");
+
+      // STATS MOVE — the same count, re-read from the server, has dropped.
+      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+      await expect
+        .poll(
+          async () => {
+            const bar = page.getByTestId("ai-bulk-start");
+            if ((await bar.count()) === 0) return untranslatedBefore;
+            return Number((await bar.innerText()).replace(/[^0-9]/g, "") || "0");
+          },
+          {
+            timeout: 30000,
+            message: `entity stats never moved below ${untranslatedBefore}`,
+          },
+        )
+        .toBeLessThan(untranslatedBefore);
 
       // THE DATA METER exists for this language and counts a real universe.
       // The meter is a CELL inside the language row (J5: cells are row-scoped).

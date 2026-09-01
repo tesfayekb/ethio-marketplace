@@ -555,3 +555,43 @@ per-row machine write and a bulk sweep reaching the second row, plus the data
 meter's presence; TR-25 (desktop-only, `@global-state`) creates `sw` through
 the picker with a derived native name and one country, and deletes it in
 `finally`.
+
+## U4j-3 — the Data scope enumerates the entity UNIVERSE
+
+**Walk finding.** A language with no `entity_translations` rows showed an empty
+Data scope: nothing to translate, so nothing could ever be translated. The law
+is now explicit and proved in-migration:
+
+- `admin_list_entity_translations(p_lang, …)` returns the UNIVERSE — every
+  active category and every active location, field `name`, with the English
+  source — LEFT JOINed to `entity_translations` for `p_lang`. A missing row is
+  `status = 'untranslated'`, `value = NULL`. `p_status`, `p_search`, `p_limit`
+  and `p_offset` all apply to the JOINED result, so filters and pagination see
+  the same universe the meter counts.
+- Ordering is `etype, elabel, eid`. The entity id is a UNIQUE tiebreak: two
+  locations may share a name, and without it LIMIT/OFFSET paging — which the
+  bulk collector walks page by page — could skip or repeat a row.
+- `admin_entity_translation_stats(p_lang)` counts the same universe:
+  `total = active categories + active locations`, and `untranslated = total −
+the existing rows whose status is not 'untranslated'`.
+- The writers (`admin_save_entity_translation`,
+  `admin_machine_entity_translation`) are UPSERTs, so the FIRST write on a
+  universe row CREATES it. Bodies unchanged; grants restated (INC-074),
+  including `service_role`.
+
+**UI unchanged.** `data-scope.tsx` and `ai-bulk-bar.tsx` already render from
+these RPCs; the empty state now appears only when the universe itself is empty.
+
+**Proofs (in-migration).** The gated RPCs cannot be CALLED during a migration
+(`auth.uid()` is NULL, so `has_permission` refuses), so the proof runs the
+universe SQL against a fresh scratch language (`zxx-pf`, reaped in the same
+block) and asserts `total = untranslated = count(active categories) +
+count(active locations)`; one machine row then moves `untranslated` to
+`total − 1`. It then asserts the SHIPPED bodies contain that same universe join
+and the unique `ORDER BY` tiebreak, so the counted SQL is the deployed SQL, and
+reads the grants back (anon: none; authenticated + service_role: EXECUTE).
+
+**E2E.** TR-24 asserts the scratch location has NO row in the fence language,
+that the Data scope nonetheless lists it as `untranslated`, that the bulk bar's
+work count is non-zero before any write, and that the count drops after the
+sweep. Both scratch locations are reaped in `finally`.
