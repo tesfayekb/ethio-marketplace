@@ -136,21 +136,50 @@ export async function passwordGrant(email: string, password: string): Promise<Pe
 }
 
 /**
- * Writes the session into the page BEFORE any script of the next navigation
- * runs, so the app's first frame already sees an authenticated client — there
- * is no signed-out flash to race. Later injections shadow earlier ones because
- * init scripts run in insertion order and the last write wins.
+ * INC-120 — WHY THIS IS ONE-SHOT AND HINT-CLEARING.
+ *
+ * The first implementation re-wrote the grant bytes on EVERY navigation
+ * (`addInitScript` runs before every document). Any token the app itself
+ * persisted in the meantime — crucially the AAL2 access token GoTrue returns
+ * from `supabase.auth.mfa.verify` (src/features/auth/mfa/mfa-service.ts:130) —
+ * was silently replaced by the ORIGINAL aal1 password-grant bytes at the next
+ * navigation, while the client's step-up freshness mirror
+ * (`sb-<ref>-stepped-up-at`, src/features/session/session-policy.ts:93) lived
+ * on in localStorage. The gate's three conditions
+ * (src/features/auth/mfa/mfa-service.ts:88-94) then all read TRUE — factor
+ * present, refreshed claim aal2, hint inside the window — so `useStepUp.guard`
+ * (src/features/auth/mfa/use-step-up.ts:76) ran the action WITHOUT prompting,
+ * and the server's stricter second condition (a `totp` amr row on the CURRENT
+ * session inside the window, docs/features/step-up-auth.md:136-138) refused
+ * with P0009. A UI login never diverges this way because the only writer of
+ * the token is the app's own client, so the storage always holds the newest
+ * session the server issued.
+ *
+ * Therefore: write the grant ONCE (guarded by a sentinel that survives in the
+ * same localStorage), never again, and clear any stale step-up hint at that
+ * moment so an injected session starts exactly where a fresh UI sign-in
+ * starts: aal1, no hint, gate prompts.
  */
 export async function injectSession(page: Page, session: PersistedSession): Promise<void> {
   await page.addInitScript(
-    ({ key, value }: { key: string; value: string }) => {
+    ({ key, value, sentinel }: { key: string; value: string; sentinel: string }) => {
       try {
+        if (window.localStorage.getItem(sentinel) === key) return;
         window.localStorage.setItem(key, value);
+        window.localStorage.setItem(sentinel, key);
+        // The step-up hint belongs to the session that earned it; an injected
+        // session has earned nothing yet.
+        for (const k of Object.keys(window.localStorage)) {
+          if (k.startsWith("sb-") && k.endsWith("-stepped-up-at")) {
+            window.localStorage.removeItem(k);
+          }
+        }
       } catch {
         // A storage-denied context is a real failure, but it must surface as a
         // signed-out assertion in the caller, not as an init-script crash.
       }
     },
-    { key: storageKey(), value: JSON.stringify(session) },
+    { key: storageKey(), value: JSON.stringify(session), sentinel: "__ethio-e2e-injected" },
   );
 }
+
