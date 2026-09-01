@@ -516,10 +516,19 @@ export async function listEntityTranslations({
   const rows = data ?? [];
   const first = rows[0];
   return {
-    rows: rows.map((row) => ({
-      entityType: row.entity_type === "category" ? "category" : "location",
-      entityId: row.entity_id,
-      field: row.field,
+    rows: rows.map((row) => {
+      const entityType: EntityType = row.entity_type === "category" ? "category" : "location";
+      const entityId = String(row.entity_id);
+      const field = String(row.field);
+      return {
+        key: entityRowKey(entityType, entityId, field),
+        // Universe rows have none; the writers UPSERT on first save (INC-119b).
+        translationId:
+          typeof (row as { id?: unknown }).id === "string" ? (row as { id: string }).id : null,
+        entityType,
+        entityId,
+        field,
+
       label: row.label,
       sourceValue: row.source_value ?? null,
       value: row.value ?? null,
