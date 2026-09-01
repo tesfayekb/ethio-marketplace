@@ -43,3 +43,7 @@ scripts/fixtures/e2e-context-sample/
 
 # Reporter output — verbatim evidence fidelity outranks style; Knowledge E5 / INC-011 class.
 docs/tracking/e2e-last-failure.md
+
+# Machine-generated nightly failure evidence (written by nightly-e2e.yml,
+# INC-108). Same reporter-output class as e2e-last-failure.md.
+docs/tracking/nightly-last-failure.md

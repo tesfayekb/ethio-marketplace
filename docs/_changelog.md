@@ -247,3 +247,4 @@
 - 2026-08-31 — fix(admin): one reorder control per twin, in its own twin (INC-106b)
 - 2026-08-31 — test(e2e): TR-20 locates row actions per twin and names click/step-up/poll phases (INC-106c)
 - 2026-08-31 — fix(ui): roster actions no longer overlap; scroll padding for the fixed band (INC-106d)
+- 2026-09-01 — fix(i18n): DB-only languages render (missing compiled layer is empty, not fatal — INC-107); ci: nightly writes its failure evidence (INC-108)
