@@ -8,3 +8,4 @@ Format: `- <date> · \`<project>\` · <title> · source \`<lane>\` · run <url> 
 
 <!-- entries below; append-only, written by CI with [skip ci] -->
 - 2026-09-01 · `desktop-1280` · admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key · source `shard 3` · run https://github.com/tesfayekb/ethio-marketplace/actions/runs/33540115350 · commit `36bc9b75a2795b21fdcb4db578881e0c25791778` · Test timeout of 120000ms exceeded.
+- 2026-09-01 · `desktop-1280` · admin-translations.spec.ts › U4g bulk approval, order and orphans › TR-21 a key missing from the synced catalog is orphaned and excluded · source `changed` · run https://github.com/tesfayekb/ethio-marketplace/actions/runs/33543828406 · commit `6f6ddf5c9ee2d6f2684c0efa7a16199ca0b4e36b` · Error: the sync never marked the absent key orphaned
