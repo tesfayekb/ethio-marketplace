@@ -52,7 +52,9 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   const user = await createUser({ confirmed: true });
   const newPassword = `${user.password}-rotated`;
 
-  await signIn(page, user.email, user.password);
+  // INC-120 LAW: this test's subject IS the credential (rotation + signed-out
+  // assertions), so it signs in through the real UI, never by injection.
+  await signIn(page, user.email, user.password, { uiLogin: true });
   await expectSignedIn(page, user.displayName);
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: en["settings.title"] })).toBeVisible({
@@ -88,7 +90,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await expectSignedOut(page);
 
   // New password does.
-  await signIn(page, user.email, newPassword);
+  await signIn(page, user.email, newPassword, { uiLogin: true });
   await expectSignedIn(page, user.displayName);
 });
 

@@ -274,3 +274,4 @@
 - 2026-09-02 — feat(i18n): U4k — Data-scope approve-all + status chips + dual meters (walk findings)
 - 2026-09-02 — ci(DEC-029): session injection for non-auth specs, single shared build, six shards — wall-clock roughly halved (revert knob E2E_UI_LOGIN)
 - 2026-09-02 — ci(DEC-029-B): revert knob engaged; injection/step-up seam under diagnosis (INC-120); build-artifact + 6 shards retained
+- 2026-09-02 — ci(DEC-029-C): session injection live (write-once sentinel, INC-120 closed); credential-lifecycle tests pinned to UI login

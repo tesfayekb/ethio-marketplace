@@ -281,8 +281,6 @@ jobs:
       # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
       # the shard id is what makes each process's fixtures its own.
       E2E_SHARD: smoke
-      # DEC-029 revert knob engaged — injection under diagnosis, INC-120.
-      E2E_UI_LOGIN: "1"
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
@@ -418,8 +416,6 @@ jobs:
     continue-on-error: true
     env:
       E2E_SHARD: changed
-      # DEC-029 revert knob engaged — injection under diagnosis, INC-120.
-      E2E_UI_LOGIN: "1"
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
@@ -554,8 +550,6 @@ jobs:
       # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
       # the shard id is what makes each process's fixtures its own.
       E2E_SHARD: ${{ matrix.shard }}
-      # DEC-029 revert knob engaged — injection under diagnosis, INC-120.
-      E2E_UI_LOGIN: "1"
       # DEC-024: shards run 2 workers — safe by construction under the
       # scratch-key identity law (run×shard×worker×project×test). REVERT RULE:
       # any cross-worker interference class returns this to "1" before the
@@ -682,8 +676,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       E2E_SHARD: email
-      # DEC-029 revert knob engaged — injection under diagnosis, INC-120.
-      E2E_UI_LOGIN: "1"
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
