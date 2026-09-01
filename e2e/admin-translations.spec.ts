@@ -1498,12 +1498,13 @@ test.describe("U4g bulk approval, order and orphans", () => {
         });
         await test.step("TR-20 move down · poll", async () => {
           await expect
-            .poll(() => positionOf(fence), {
+            .poll(() => offsetTo(neighbour), {
               timeout: 30000,
-              message: "moving down never restored the position",
+              message: "moving down never restored the fence below its neighbour",
             })
-            .toBe(start);
+            .toBe(1);
         });
+
       });
     } finally {
       // The roster is shared runtime: put the censused order back verbatim.
