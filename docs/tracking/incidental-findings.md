@@ -1266,3 +1266,36 @@ RULES:
   `[client-error] gate fetch failed` with status and a 200-character body preview,
   retries once, and only then falls back to the seed list; the fallback is never
   silent (law F4).
+
+## INC-113b — cache-bust via query param broke the gate read
+
+DATE: 2026-09-01 · PHASE: U4g-22 · TIER: B
+
+DEFECT: `src/i18n/provider.tsx` added a per-request `_ts` query parameter to the
+`/rest/v1/languages` gate fetch in U4g-21 (INC-113) to prevent caching. PostgREST
+treats unknown query parameters as column filters, so the request returned 400
+Bad Request. The provider's `try/catch` swallowed the failure and returned
+`null`, leaving only the seed language (`en`) active. The nightly E2E run
+(33520274915) observed this as 34 Amharic test failures after the gate fetch
+failed — the UI fell back to English-only.
+
+EVIDENCE: seed-only `en` after a 400 gate response; 34 Amharic failures in run
+33520274915.
+
+FIX (U4g-22):
+
+1. Removed the `_ts` parameter entirely. Cache invalidation now relies solely
+   on `cache: "no-store"` and the `cache-control: no-cache` header.
+2. Added explicit failure handling: a non-2xx response logs
+   `console.error("[client-error] gate fetch failed", status, <first 200 chars>)`,
+   retries once, and only then falls back to the seed list. The retry logs the
+   same way. The fallback is never silent (law F4).
+3. Added a code comment documenting why query-string busting is forbidden here:
+   PostgREST interprets unknown query params as filters.
+
+RULES (extends INC-113):
+
+- Gate-list reads must NOT use query parameters for cache busting when the
+  endpoint is PostgREST — unknown params are column filters.
+- Gate fetch failures must log, retry once, and only then fall back; a silent
+  fallback to a seed list is a defect.
