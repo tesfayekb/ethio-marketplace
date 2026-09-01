@@ -1298,3 +1298,40 @@ RULES (extends INC-113):
   endpoint is PostgREST — unknown params are column filters.
 - Gate fetch failures must log, retry once, and only then fall back; a silent
   fallback to a seed list is a defect.
+
+## INC-114 — scratch roles were never reaped; the 1000-row cap hid new ones
+
+DATE: 2026-09-01 · PHASE: U4g-23 · TIER: B
+
+DEFECT (1): every RP-2 run creates a scratch role (`e2e-…`) and only deletes it
+on the happy path. The graveyard grew past PostgREST's 1000-row read cap, so
+`admin_list_roles_detailed()` returned a full page of old roles and the freshly
+created one was not in it — RP-2's dump recorded `dataLength=1000`. The reaper
+in `e2e/global-setup.ts` covered translations, fence rows and scratch locations
+but no other scratch entity type.
+
+DEFECT (2): AU-3's activity assertion failed with zero activity rows, which is
+ambiguous — either no audit row was written, or the activity RPC filtered it
+out. The dump could not distinguish the two.
+
+EVIDENCE: RP-2 dump `dataLength=1000`; AU-3 dump with `dataLength=0` and no
+audit truth.
+
+FIX (U4g-23), test-side only — no product change:
+
+1. `e2e/global-setup.ts` reaps roles named `e2e-%` older than 60 minutes,
+   deleting their `role_permissions` and `user_roles` rows first (a role with
+   grants or members cannot be deleted), then the roles, and logs the count.
+2. `e2e/admin-users.spec.ts` — AU-3's failure dump reads the target's
+   `audit_log` rows with the service client (action, entity, created_at), so a
+   zero-activity failure is settled as "no audit row written" vs "activity RPC
+   filters it out".
+
+RULES:
+
+- REAPER LAW EXTENDS TO EVERY SCRATCH ENTITY TYPE — any test that mints a row
+  that survives a mid-test death is reaped by age in global setup, dependents
+  first. A cleanup that only runs on the happy path is not cleanup.
+- A COUNT-SHAPED FAILURE DUMPS THE UNDERLYING TRUTH — when an assertion fails
+  on "N rows rendered", the dump reads the same data from the database, so the
+  next failure distinguishes a missing write from a filtering read.
