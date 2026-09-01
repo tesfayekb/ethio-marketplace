@@ -123,6 +123,36 @@ async function describeUserDetail(page: Page): Promise<string> {
   ].join("\n");
 }
 
+/**
+ * INC-114 — AU-3's activity assertion failed with `dataLength=0`, which is
+ * ambiguous: either no audit row was written, or the activity RPC filtered it
+ * out. The dump now reads audit truth with the service client, so the next
+ * failure settles that question by itself.
+ */
+async function describeAuditRows(userId: string): Promise<string> {
+  try {
+    const supabase = adminClient();
+    const { data, error } = await supabase
+      .from("audit_log")
+      .select("action, entity_type, entity_id, created_at")
+      .or(`entity_id.eq.${userId},actor_id.eq.${userId}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) return `[INC-114] audit_log read failed: ${error.message}`;
+    const rows = data ?? [];
+    if (rows.length === 0) return `[INC-114] audit_log rows for ${userId}: NONE`;
+    return [
+      `[INC-114] audit_log rows for ${userId}: ${rows.length}`,
+      ...rows.map(
+        (row) =>
+          `  action=${row.action} entity=${row.entity_type}:${row.entity_id} created_at=${row.created_at}`,
+      ),
+    ].join("\n");
+  } catch (error) {
+    return `[INC-114] audit_log read threw: ${(error as Error).message}`;
+  }
+}
+
 test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await createUser({ confirmed: true });
@@ -191,7 +221,11 @@ test.describe("U1 admin users", () => {
         timeout: 15000,
       });
     } catch (error) {
-      throw new Error(`${(error as Error).message}\n\n${await describeUserDetail(page)}`);
+      throw new Error(
+        `${(error as Error).message}\n\n${await describeUserDetail(page)}\n${await describeAuditRows(
+          scratch.id,
+        )}`,
+      );
     }
 
     // U1d — the deactivated user sees the banner on their own settings page.

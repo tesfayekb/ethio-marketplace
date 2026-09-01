@@ -247,6 +247,42 @@ export default async function globalSetup() {
     reaped += 1;
   }
 
+  // INC-114 — SCRATCH ROLES were never reaped. PostgREST caps a read at 1000
+  // rows, so an accumulated graveyard of `e2e-%` roles hid newly created ones
+  // from RP-2's list (its dump showed dataLength=1000). The reaper law now
+  // covers every scratch entity type, not just translations.
+  const { data: staleRoles, error: staleRoleError } = await supabase
+    .from("roles")
+    .select("id")
+    .like("name", "e2e-%")
+    .lt("created_at", cutoff);
+  if (staleRoleError) {
+    throw new Error(`[e2e:setup] listing stale scratch roles failed: ${staleRoleError.message}`);
+  }
+  const staleRoleIds = (staleRoles ?? []).map((row) => row.id);
+  if (staleRoleIds.length > 0) {
+    // Dependents first: a role with grants or members cannot be deleted.
+    const { error: permError } = await supabase
+      .from("role_permissions")
+      .delete()
+      .in("role_id", staleRoleIds);
+    if (permError) {
+      throw new Error(`[e2e:setup] reaping scratch role permissions failed: ${permError.message}`);
+    }
+    const { error: memberError } = await supabase
+      .from("user_roles")
+      .delete()
+      .in("role_id", staleRoleIds);
+    if (memberError) {
+      throw new Error(`[e2e:setup] reaping scratch role members failed: ${memberError.message}`);
+    }
+    const { error: roleDeleteError } = await supabase.from("roles").delete().in("id", staleRoleIds);
+    if (roleDeleteError) {
+      throw new Error(`[e2e:setup] reaping scratch roles failed: ${roleDeleteError.message}`);
+    }
+  }
+  console.log(`[e2e:setup] reaped ${staleRoleIds.length} stale scratch role(s)`);
+
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 
   console.log(`[e2e:setup] state written; setup complete`);
