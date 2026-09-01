@@ -735,8 +735,9 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
             />
           </FormField>
           <FormField
+            full
             label={t("admin.translations.add.countries")}
-            hint={t("admin.translations.add.countriesHint")}
+            help={t("admin.translations.add.countriesHint")}
             htmlFor="translations-add-countries"
           >
             {countries.isLoading ? (
