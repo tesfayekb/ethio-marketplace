@@ -695,6 +695,14 @@ export const en = {
   "admin.translations.approve.pending": "Approving…",
   "admin.translations.approve.summary": "{approved} approved, {skipped} flagged and skipped.",
   "admin.translations.approve.none": "Nothing is waiting for approval.",
+  // U4k — content-name (Data scope) bulk approval + dual meters.
+  "admin.translations.approve.entityAction": "Approve all content names ({count})",
+  "admin.translations.approve.entityConfirmTitle": "Approve every reviewed content name?",
+  "admin.translations.approve.entityConfirmBody":
+    "{count} content names will go live for this language.",
+  "admin.translations.approve.entitySummary": "{approved} content names approved.",
+  "admin.translations.meters":
+    "Interface {uiApproved}/{uiTotal} · Content {dataApproved}/{dataTotal}",
   "admin.translations.order.up": "Move {language} up",
   "admin.translations.order.down": "Move {language} down",
   "admin.translations.order.note":

@@ -1037,6 +1037,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_approve_all_entity_translations: {
+        Args: { p_lang: string }
+        Returns: Json
+      }
       admin_approve_all_translations: {
         Args: { p_lang: string }
         Returns: Json
@@ -1385,6 +1389,10 @@ export type Database = {
           id: string
           meta: Json
         }[]
+      }
+      approve_all_entity_translations_impl: {
+        Args: { p_lang: string }
+        Returns: Json
       }
       approve_all_translations_impl: { Args: { p_lang: string }; Returns: Json }
       assign_role: {

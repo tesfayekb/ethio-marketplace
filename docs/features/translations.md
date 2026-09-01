@@ -595,3 +595,27 @@ reads the grants back (anon: none; authenticated + service_role: EXECUTE).
 that the Data scope nonetheless lists it as `untranslated`, that the bulk bar's
 work count is non-zero before any write, and that the count drops after the
 sweep. Both scratch locations are reaped in `finally`.
+
+## U4k — Data-scope approval, status chips and dual meters
+
+Walk findings (om/ti): content names could be machine-filled but never approved
+in bulk, so the entity bundle stayed empty for a language whose Data scope was
+full of `machine` rows.
+
+- Writer: `admin_approve_all_entity_translations(p_lang)` — gates
+  `translations:approve` → step-up → language scope, then moves every
+  `machine`/`edited` row of that language to `approved` with `approved_by/at`,
+  writes ONE audit entry `{lang, approved}` and returns `{approved}`. The base
+  language is refused. The entity layer has no flag or revision machinery, so
+  there is no skipped-flagged count and no per-row revision capture (the UI
+  layer keeps both). Law E6: zero rows approves zero and SAYS so.
+- UI: `ApproveAllBar` takes `scope: 'ui' | 'entity'`; the entity confirmation
+  states that content names will go live for the language. The Data scope also
+  renders the Interface scope's status chips (All / Untranslated / Machine /
+  Edited / Approved) with counts from `admin_entity_translation_stats`, wired to
+  the existing `p_status` filter.
+- The language page header shows BOTH meters side by side
+  ("Interface X/Y · Content A/B"), so untranslated content work is visible the
+  moment a language is opened.
+- TR-26 walks it in the approval fence: bulk AI → approve-all through step-up →
+  DB truth per key is `approved`, chips move, summary carries the count.

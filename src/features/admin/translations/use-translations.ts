@@ -5,6 +5,7 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import {
   aiTranslate,
   aiTranslateEntities,
+  approveAllEntityTranslations,
   approveAllTranslations,
   listEntityTranslations,
   listEntityTranslationStats,
@@ -119,6 +120,15 @@ export function useApproveAllTranslations(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
     mutationFn: () => approveAllTranslations(lang),
+    onSettled: invalidate,
+  });
+}
+
+/** U4k — approve every machine|edited CONTENT NAME of a language. */
+export function useApproveAllEntityTranslations(lang: string) {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: () => approveAllEntityTranslations(lang),
     onSettled: invalidate,
   });
 }
