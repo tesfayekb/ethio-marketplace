@@ -20,7 +20,8 @@
     "format:check": "prettier --check \"src/**\" \"e2e/**\" \"docs/**\" \"*.{json,js,ts,md}\"",
     "format:write": "prettier --write \"src/**\" \"e2e/**\" \"docs/**\" \"*.{json,js,ts,md}\"",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -81,6 +82,8 @@
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.13.1",
     "@playwright/test": "1.58.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
@@ -91,11 +94,13 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
+    "jsdom": "^30.0.1",
     "nitro": "3.0.260603-beta",
     "prettier": "3.8.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "nanoid": "^3.3.18",

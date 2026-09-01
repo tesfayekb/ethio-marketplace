@@ -34,6 +34,7 @@ async function signUpFresh(page: import("@playwright/test").Page, n: number) {
 async function assertNoSignUpError(page: import("@playwright/test").Page) {
   const alertRegion = page.getByRole("alert");
   if (await alertRegion.count()) {
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     const alertText = await alertRegion.first().innerText();
     expect(alertText, `sign-up surfaced an error instead of check-email`).toBe("");
   }
@@ -51,6 +52,7 @@ test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
   // INC-018: the staging mail sink (Ethereal, ruling R1) refuses sends issued
   // seconds apart, which surfaces as Supabase 500 "Error sending confirmation
   // email". Environment pacing only — no assertion is relaxed, no retry added.
+  // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
   await page.waitForTimeout(15_000);
   await signUpFresh(page, 103);
   await assertNoSignUpError(page);
@@ -67,12 +69,14 @@ test("A-3: three resends exhaust the per-visit limit", async ({ page }) => {
     await page.getByRole("button", { name: en["auth.resend"] }).click();
     if (i === 2) break;
     await expect(page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") })).toBeVisible();
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(61_000);
     await expect(page.getByRole("button", { name: en["auth.resend"] })).toBeEnabled();
   }
 
   await expect(page.getByText(en["auth.resendLimitReached"])).toBeVisible({ timeout: 15000 });
   // Further attempts are refused: the control stays disabled past the cooldown.
+  // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
   await page.waitForTimeout(61_000);
   await expect(
     page.getByRole("button", { name: new RegExp(en["auth.resend"], "i") }),

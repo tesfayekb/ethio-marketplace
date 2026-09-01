@@ -15,6 +15,7 @@ test.describe("category selection navigates", () => {
   async function firstCategory(page: import("@playwright/test").Page) {
     const scope = await openRailScope(page);
     const rows = scope.locator("nav li > a[data-testid^='rail-category-']");
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(rows.first()).toBeVisible();
     const count = await rows.count();
     if (count < 2) return null;

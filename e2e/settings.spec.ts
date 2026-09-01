@@ -43,6 +43,7 @@ test("S-2: settings renders all three sections and guards the only method", asyn
   const unlink = page.getByRole("button", { name: en["settings.unlink"] });
   await expect(unlink).toHaveCount(1);
   await expect(unlink).toBeDisabled();
+  // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
   await expect(page.getByText(en["settings.lastMethodGuard"]).first()).toBeVisible();
 });
 

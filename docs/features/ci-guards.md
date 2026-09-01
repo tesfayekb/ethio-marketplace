@@ -766,3 +766,92 @@ returning — flip the knob, then diagnose.
 `E2E_UI_LOGIN` removed from a feature branch, plus a DEC note naming the
 component-layer change (DEC-026) that makes the client step-up gate safe under
 injected sessions. Until that note exists, the knob stays engaged in `dev`.
+
+## DEC-025 — typed Supabase clients (2026-09-02)
+
+**Rule.** Every `createClient` in `src/**` passes the generated schema:
+`createClient<Database>(url, key, …)`. An ESLint rule
+(`no-restricted-syntax`, selector
+`CallExpression[callee.name='createClient']:not([typeArguments])`, censused
+against the installed `@typescript-eslint` — v6+ hangs the generic list off
+`typeArguments`) errors on any call without one; the message cites DEC-025.
+
+**Rationale.** An untyped client types every table, column and RPC argument as
+`any`, so the compiler cannot see a misspelled argument name.
+
+**The INC it would have prevented.** INC-096d — `_user_id` compiled and shipped
+against a function declaring `p_user_id`; PostgREST answered
+function-not-found at runtime instead of the build failing.
+
+**Scope note (honest).** The rule covers `src/**` only, as specified. The
+`e2e/` service client and the `scripts/` clients are left untyped and
+un-linted: they read tables the generated `Database` type also covers, but
+typing them is not in this landing's scope. `src/routes/api/translate.ts`
+(both caller-context clients) and `src/features/auth/auth-service.ts` (the
+password verifier) are the two call sites this landing typed.
+
+## DEC-026 — component tests (2026-09-02)
+
+**Rule.** `bun run test:unit` (vitest + Testing Library + jsdom, setup in
+`src/test/setup.ts`) runs as the gating CI job **Component tests**. Data seams
+are mocked at their `*-service.ts` boundary — a component test never reaches
+Supabase, the network, or the build pipeline.
+
+**LAW.** Every NEW component ships a states test (loading / empty / error /
+populated) in the SAME landing. A6 gains "test:unit ✓" for any
+component-touching work.
+
+**Rationale.** The presentation defects this project paid the most for were all
+observable in a single render; they were caught instead by a 20-minute
+Playwright shard, or by an operator's walk.
+
+**The seed suite, one test per past expensive class.**
+
+| File                                                      | Class                                                                                  | The INC it would have prevented |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------- |
+| `src/features/admin/translations/approve-bar.test.tsx`    | zero-state renders the caption BESIDE the control, never instead of it                 | INC-095l                        |
+| `src/components/language-switcher.test.tsx`               | options come from the gate's own list (incl. a DB-only language), ordered (sort, code) | INC-098 / INC-107 / INC-099b    |
+| `src/features/admin/translations/ai-bulk-bar.test.tsx`    | a pending/errored count never renders as "(0)"                                         | INC-119                         |
+| `src/features/admin/translations/history-drawer.test.tsx` | all four C4 states render and are translated                                           | C4                              |
+
+## DEC-027 — spec lint (2026-09-02)
+
+**Rule.** An `e2e/**` ESLint override errors on three constructs:
+
+```js
+{
+  files: ["e2e/**/*.ts"],
+  rules: {
+    "no-restricted-syntax": [
+      "error",
+      { selector: "CallExpression[callee.property.name='first']", message: "twin helpers per J5" },
+      {
+        selector: "MemberExpression[object.name='test'][property.name='only']",
+        message: "test.only never lands: it silently green-washes the whole file",
+      },
+      {
+        selector: "CallExpression[callee.property.name='waitForTimeout']",
+        message: "poll on truth, never sleep",
+      },
+    ],
+  },
+}
+```
+
+**Rationale.** `.first()` picks whichever twin the responsive layout happened
+to render, `test.only` green-washes a whole file, and a sleep asserts the
+clock instead of the truth.
+
+**The INC each would have prevented.** INC-095/INC-119c (bare-prefix `.first()`
+resolving to the hidden twin) and the timeout-shaped flakes behind DEC-030.
+
+**Grandfathering census (38 lines, all carrying a per-line disable that says
+why).** `.first()` — `shell.spec.ts` ×15, `helpers/ui.ts` ×2,
+`admin-audit.spec.ts` ×2, `fixtures.ts` ×1, `admin-roles.spec.ts` ×1,
+`admin-users.spec.ts` ×1, `auth-signup.spec.ts` ×1, `category-nav.spec.ts` ×1,
+`settings.spec.ts` ×1, `nightly/auth-resend-exhaustion.spec.ts` ×1.
+`waitForTimeout` — `shell.spec.ts` ×2, `helpers/ui.ts` ×3,
+`auth-signout.spec.ts` ×2, `nightly/auth-resend-exhaustion.spec.ts` ×3,
+`fixtures.ts` ×1, `mfa-stepup.spec.ts` ×1. `test.only` — zero occurrences. The
+disables are grandfathering, not absolution: each is a tracked sweep candidate,
+and NEW code cannot add one without saying why on the line.

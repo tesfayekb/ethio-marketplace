@@ -1,6 +1,7 @@
 import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import type { MessageKey } from "@/i18n";
 
 import type {
@@ -196,7 +197,7 @@ export async function changePassword(
   const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
   if (!url || !key) return { ok: false, errorKey: "auth.errorGeneric" };
 
-  const verifier = createClient(url, key, {
+  const verifier = createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
   const { error: verifyError } = await verifier.auth.signInWithPassword({

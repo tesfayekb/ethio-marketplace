@@ -92,6 +92,7 @@ async function assertNoSignUpError(page: Page, limit: ReturnType<typeof watchAut
       async () => {
         if (await heading.count()) return "ok";
         if (limit.hit()) return limit.reason();
+        // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
         if (await alertRegion.count()) return (await alertRegion.first().innerText()).trim();
         return "pending";
       },

@@ -47,6 +47,7 @@ export async function fillUntilStable(input: Locator, value: string, fieldName: 
       await expect(input, `${fieldName} fill attempt ${attempt} did not stick`).toHaveValue(value, {
         timeout: 500,
       });
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
       await input.page().waitForTimeout(150);
       await expect(input, `${fieldName} was cleared after fill attempt ${attempt}`).toHaveValue(
         value,
@@ -57,6 +58,7 @@ export async function fillUntilStable(input: Locator, value: string, fieldName: 
       // HELPER-WAIT LAW: exhaustion rethrows the NAMED per-attempt assertion
       // error ("<field> fill attempt 5 did not stick" / "was cleared after").
       if (attempt === 5) throw error;
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
       await input.page().waitForTimeout(150);
     }
   }
@@ -464,6 +466,7 @@ export async function expectAal2(page: Page) {
   for (let attempt = 0; attempt < 10; attempt += 1) {
     level = await readAal(page);
     if (level === "aal2") return;
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(500);
   }
   expect(
@@ -670,7 +673,9 @@ export async function describeEntityStats(page: Page): Promise<string> {
   const bar = page.getByTestId("ai-bulk-start");
   const barText =
     (await bar.count().catch(() => 0)) > 0
-      ? `text=${JSON.stringify(await bar.first().innerText())} countState=${
+      ? // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
+        `text=${JSON.stringify(await bar.first().innerText())} countState=${
+          // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
           (await bar.first().getAttribute("data-count-state")) ?? "(absent)"
         }`
       : "(no ai-bulk-start rendered)";

@@ -161,6 +161,7 @@ async function describeAuditRows(userId: string): Promise<string> {
  */
 async function expectActivity(page: Page, action: string, userId: string) {
   try {
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(page.getByTestId(`activity-${action}`).first()).toBeVisible({ timeout: 15000 });
   } catch (error) {
     throw new Error(
