@@ -727,15 +727,19 @@ function StringEditor({
        * exists so a translator can SEE a layout risk before QA does.
        */}
       {isOverlong(row.sourceValue, draft) ? (
-        <p
+        // C3 note: the palette carries no `warning` token, and styles.css is
+        // outside this task's scope, so the advisory chip is a tokenised
+        // outline Badge rather than a hardcoded amber.
+        <Badge
+          variant="outline"
           data-testid={`string-length-warning-${id}`}
-          className="text-xs font-medium text-amber-600 dark:text-amber-500"
+          className="w-fit text-xs font-medium"
         >
           {t("admin.translations.editor.lengthWarning").replace(
             "{ratio}",
             String(lengthRatio(row.sourceValue, draft)),
           )}
-        </p>
+        </Badge>
       ) : null}
 
       {/**
