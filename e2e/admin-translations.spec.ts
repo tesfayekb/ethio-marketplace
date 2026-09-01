@@ -1158,24 +1158,33 @@ test.describe("U4b translations console", () => {
  * and asserts the UI agrees with it.
  */
 test.describe("U4f — publication gate governs language choice", () => {
-  test("TR-17: switcher options equal the DB public list; a non-public ?lang falls back", async ({
-    page,
-  }) => {
-    const supabase = adminClient();
-    const { data, error } = await supabase
-      .from("languages")
-      .select("code, sort")
-      .or("enabled_public.eq.true,is_base.eq.true")
-      .order("sort", { ascending: true });
-    if (error || !data) throw new Error(`[e2e:u4f] public language read failed: ${error?.message}`);
-    // U4g — roster order is now operator-editable (TR-20 moves rows), so the
-    // switcher is compared as a SET; ORDER is TR-20's own assertion.
-    const expected = data.map((row) => row.code as string).sort();
-    expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
-    // U4g-28 (INC-115e) — NO FENCE-NEVER-PUBLIC ASSERTION HERE. Fences are
-    // test-owned surfaces: TR-22 publishes its own fence for the duration of
-    // its run, so a concurrent TR-17 legitimately sees it in the gate's list.
-    // This test asserts only SET EQUALITY between the switcher and the DB list.
+  test(
+    "TR-17: switcher options equal the DB public list; a non-public ?lang falls back",
+    { tag: "@global-state" },
+    async ({ page }) => {
+      test.info().annotations.push({ type: "global-state", description: "INC-117" });
+      const supabase = adminClient();
+      const { data, error } = await supabase
+        .from("languages")
+        .select("code, sort")
+        .or("enabled_public.eq.true,is_base.eq.true")
+        .order("sort", { ascending: true });
+      if (error || !data)
+        throw new Error(`[e2e:u4f] public language read failed: ${error?.message}`);
+      // U4g-30 (INC-117) — FENCES ARE TRANSIENT TEST STATE. A concurrent TR-22
+      // publishes its own fence for the duration of its run, so the fence code
+      // can appear in the DB list, in the rendered options, or in only one of
+      // them depending on when each side was read. It is filtered out of BOTH
+      // sides before the set comparison; real languages alone are compared.
+      const withoutFences = (codes: string[]) =>
+        codes.filter((code) => !FENCE_PREFIX_LIST.some((prefix) => code.startsWith(prefix))).sort();
+      // U4g — roster order is now operator-editable (TR-20 moves rows), so the
+      // switcher is compared as a SET; ORDER is TR-20's own assertion.
+      const expected = withoutFences(data.map((row) => row.code as string));
+      expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(
+        0,
+      );
+
 
     await gotoReady(page, "/");
     await page.getByTestId("language-switcher").click();
