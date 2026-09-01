@@ -141,9 +141,9 @@ export function useCountries() {
 
 /** U1g — the audited, step-up-gated profile edit. */
 export function useUpdateProfile(userId: string) {
-  const queryClient = useQueryClient();
+  const invalidate = useUserMutationInvalidator(userId);
   return useMutation({
     mutationFn: (input: Omit<UpdateProfileInput, "userId">) => updateProfile({ userId, ...input }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEY }),
+    onSuccess: invalidate,
   });
 }
