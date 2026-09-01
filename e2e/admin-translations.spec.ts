@@ -929,7 +929,7 @@ test.describe("U4b translations console", () => {
    * (level='country') = (parent_id IS NULL) — so a scratch city MUST hang off
    * an existing parent.
    */
-  async function createScratchLocation(): Promise<{ id: string; name: string }> {
+  async function createScratchLocation(tag = "tr14"): Promise<{ id: string; name: string }> {
     const supabase = adminClient();
     const { data: parent, error: parentError } = await supabase
       .from("locations")
@@ -940,7 +940,7 @@ test.describe("U4b translations console", () => {
     if (parentError || !parent) {
       throw new Error(`[e2e:u4d] no country location to parent onto: ${parentError?.message}`);
     }
-    const axes = scratchAxes("tr14");
+    const axes = scratchAxes(tag);
     const name = `E2E-Scratch-${axes}`;
     const { data, error } = await supabase
       .from("locations")
@@ -1050,6 +1050,148 @@ test.describe("U4b translations console", () => {
       await reapScratchLocation(id);
     }
   });
+  /**
+   * ─────────────────── U4j — DATA-LAYER AI (TR-24) ───────────────────────────
+   *
+   * The Data scope gained the same machine fill the Interface scope has, with
+   * `admin_machine_entity_translation` as its single writer. The sweep runs in
+   * the BULK FENCE language (J2) so it can never machine-translate a sibling
+   * test's content rows in `am`; both fixtures are axes-namespaced scratch
+   * locations, deleted with their translations in `finally` (J3).
+   */
+  test("TR-24 the Data scope machine-translates one row and then every untranslated one", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
+    const supabase = adminClient();
+    const one = await createScratchLocation("tr24a");
+    const two = await createScratchLocation("tr24b");
+    const machineStatus = async (id: string) => {
+      const { data, error } = await supabase
+        .from("entity_translations")
+        .select("value, status, machine")
+        .eq("entity_type", "location")
+        .eq("entity_id", id)
+        .eq("field", "name")
+        .eq("lang_code", fence)
+        .maybeSingle();
+      if (error) throw new Error(`[e2e:u4j] entity read failed for ${id}: ${error.message}`);
+      if (!data) return "missing";
+      return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes(`⟪${fence}⟫`)}`;
+    };
+
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+
+      // PER-ROW — seed exists before navigating, and is asserted rendered (J7).
+      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+      await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("data-search").fill(one.name);
+      const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${one.id}`));
+      await expect(row).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `entity-expand-${one.id}`).click();
+      const editor = surfaceControl(page, `entity-editor-${one.id}`);
+      await expect(editor).toBeVisible();
+      await editor.getByTestId(`entity-ai-${one.id}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect(editor.getByTestId(`entity-saved-${one.id}`)).toBeVisible({ timeout: 30000 });
+      await expect
+        .poll(() => machineStatus(one.id), {
+          timeout: 20000,
+          message: "per-row entity AI never landed",
+        })
+        .toBe("machine|true|true");
+
+      // BULK — the sweep covers the second scratch location too.
+      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+      const startButton = page.getByTestId("ai-bulk-start");
+      await expect(startButton).toBeVisible({ timeout: 20000 });
+      await startButton.click();
+      await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
+      await page.getByTestId("ai-bulk-confirm-run").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 150000 });
+      await expect
+        .poll(() => machineStatus(two.id), {
+          timeout: 30000,
+          message: "bulk entity AI never reached the second scratch location",
+        })
+        .toBe("machine|true|true");
+
+      // THE DATA METER exists for this language and counts a real universe.
+      await gotoReady(page, "/admin/translations");
+      const meter = translationsSurface(page).getByTestId(
+        rowTestId(page, `lang-data-coverage-${fence}`),
+      );
+      await expect(meter).toBeVisible({ timeout: 20000 });
+      expect(Number((await meter.innerText()).replace(/[^0-9]/g, "").length)).toBeGreaterThan(0);
+    } finally {
+      await reapScratchLocation(one.id);
+      await reapScratchLocation(two.id);
+    }
+  });
+
+  /**
+   * ────────────────── U4j — GUIDED LANGUAGE CREATION (TR-25) ─────────────────
+   *
+   * INC-115e: creating a language mutates the GLOBAL roster, so this walk runs
+   * in ONE project and carries the @global-state quarantine tag (INC-117).
+   * Fake mode's provider list contains `sw`, which the roster does not.
+   */
+  test(
+    "TR-25 the picker creates a language with a native name and countries",
+    { tag: "@global-state" },
+    async ({ page }) => {
+      test.skip(
+        test.info().project.name !== "desktop-1280",
+        "the language roster is a single global list — one project mutates it",
+      );
+      test.info().annotations.push({
+        type: "issue",
+        description: "INC-117 quarantined global-state test",
+      });
+      test.setTimeout(120_000);
+      const supabase = adminClient();
+      const code = "sw";
+      await supabase.from("languages").delete().eq("code", code);
+      try {
+        const { secret } = await signInAsSuperAdmin(page);
+        await gotoReady(page, "/admin/translations");
+        await expect(page.getByTestId("translations-add-picker")).toBeVisible({ timeout: 20000 });
+        await page.getByTestId("translations-add-search").fill("Swahili");
+        await page.getByTestId(`translations-add-option-${code}`).click();
+
+        await expect(page.getByTestId("translations-add-code")).toHaveValue(code);
+        await expect(page.getByTestId("translations-add-name-en")).toHaveValue("Swahili");
+        // The native name is DERIVED, never left blank for the operator to guess.
+        expect(await page.getByTestId("translations-add-name-native").inputValue()).not.toBe("");
+        await page.getByTestId("translations-add-country-ET").check();
+        await page.getByTestId("translations-add-submit").click();
+        await stepUpIfPrompted(page, secret);
+        await expect(page.getByTestId("translations-add-saved")).toBeVisible({ timeout: 20000 });
+
+        await expect
+          .poll(
+            async () => {
+              const { data } = await supabase
+                .from("languages")
+                .select("name_en, name_native, country_codes")
+                .eq("code", code)
+                .maybeSingle();
+              if (!data) return "missing";
+              return `${data.name_en}|${(data.name_native ?? "").length > 0}|${(data.country_codes ?? []).join(",")}`;
+            },
+            { timeout: 20000, message: "the created language never reached the roster" },
+          )
+          .toBe("Swahili|true|ET");
+      } finally {
+        await supabase.from("languages").delete().eq("code", code);
+      }
+    },
+  );
+
   /**
    * ───────────────────────── U4e — HISTORY + RESTORE (TR-16) ─────────────────
    * RESTORE IS A SAVE: the drawer calls admin_save_translation with a historical
