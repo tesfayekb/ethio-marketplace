@@ -222,7 +222,11 @@ test.describe("U1 admin users", () => {
         timeout: 15000,
       });
     } catch (error) {
-      throw new Error(`${(error as Error).message}\n\n${await describeUserDetail(page)}`);
+      throw new Error(
+        `${(error as Error).message}\n\n${await describeUserDetail(page)}\n${await describeAuditRows(
+          scratch.id,
+        )}`,
+      );
     }
 
     // U1d — the deactivated user sees the banner on their own settings page.
