@@ -78,18 +78,37 @@ jobs:
       # are on another domain and the per-user namespace assert refuses them.
       - name: Sweep stale E2E users (older than 24h)
         run: bun -e 'const m = await import("./e2e/global-teardown.ts"); await m.sweepStaleUsers();'
-      - name: Run nightly E2E
+      - name: Run nightly E2E (real-elapsed-time cases)
         id: run
         continue-on-error: true
         run: |
           set -o pipefail
           bunx playwright test -c playwright.nightly.config.ts 2>&1 | tee nightly.log
+      # DEC-028 — THE SERIAL LANE FOR @global-state SPECS. The per-push matrix
+      # excludes them (`--grep-invert "@global-state"`), so this ONE-WORKER run
+      # is the only place their logic executes end-to-end. Its results.json is
+      # collected as its own reporter source (`full`), because the second run
+      # overwrites the first's file.
+      - name: Stash the nightly results before the serial full run
+        if: always()
+        run: |
+          set -u
+          mkdir -p nightly-results/e2e-results-nightly nightly-logs/e2e-log-nightly
+          cp test-results/results.json nightly-results/e2e-results-nightly/results.json 2>/dev/null || true
+          cp nightly.log nightly-logs/e2e-log-nightly/nightly.log 2>/dev/null || true
+      - name: Run the full suite serially (includes @global-state)
+        id: runfull
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --workers=1 2>&1 | tee full.log
       # INC-108 — THE NIGHTLY WRITES ITS OWN EVIDENCE, not only a heartbeat.
       # A serial nightly failure used to be undiagnosable from the repo: the
       # heartbeat said FAILURE and nothing else. The per-push reporter is reused
       # verbatim over THIS job's artifacts, arranged in the shape it already
       # reads (one source, id `nightly`), and written to its own file.
       - name: Render nightly failure evidence
+        id: evidence
         if: always()
         env:
           E2E_OUT_PATH: docs/tracking/nightly-last-failure.md
@@ -97,20 +116,42 @@ jobs:
           E2E_RESULTS_DIR: nightly-results
           E2E_LOGS_DIR: nightly-logs
           E2E_CONTEXT_DIR: test-results
-          E2E_EXPECTED_SOURCES: nightly
-          E2E_GREEN: ${{ steps.run.outcome == 'success' && '1' || '0' }}
+          # DEC-028 — two sources: the real-time cases and the serial full run.
+          E2E_EXPECTED_SOURCES: nightly,full
+          E2E_GREEN: ${{ steps.run.outcome == 'success' && steps.runfull.outcome == 'success' && '1' || '0' }}
+          # DEC-028 — the reporter, not the raw Playwright exit code, decides the
+          # verdict: quarantined (@global-state) failures are rendered and
+          # labeled with INC-117 but excluded from `gating`.
+          E2E_VERDICT_PATH: /tmp/nightly-verdict.txt
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -u
           mkdir -p nightly-results/e2e-results-nightly nightly-logs/e2e-log-nightly
-          cp test-results/results.json nightly-results/e2e-results-nightly/results.json 2>/dev/null || true
-          cp nightly.log nightly-logs/e2e-log-nightly/nightly.log 2>/dev/null || true
+          mkdir -p nightly-results/e2e-results-full nightly-logs/e2e-log-full
+          cp test-results/results.json nightly-results/e2e-results-full/results.json 2>/dev/null || true
+          cp full.log nightly-logs/e2e-log-full/full.log 2>/dev/null || true
           # The reporter is never allowed to die silently; it renders its own
           # crash into the same file (NEVER-SILENT LAW).
           bun scripts/e2e-failure-report.ts || echo "::warning::nightly failure reporter exited non-zero"
           cp docs/tracking/nightly-last-failure.md /tmp/nightly-last-failure.md
+          # A missing verdict file is NOT a green verdict: the reporter crashed,
+          # which is itself gating (law F4).
+          if [ -f /tmp/nightly-verdict.txt ]; then
+            cat /tmp/nightly-verdict.txt
+            GATING=$(grep -o '^gating=[0-9]*' /tmp/nightly-verdict.txt | cut -d= -f2)
+            QUAR=$(grep -o '^quarantined=[0-9]*' /tmp/nightly-verdict.txt | cut -d= -f2)
+          else
+            GATING=1
+            QUAR=0
+            echo "::warning::no verdict file — the reporter did not publish one; treating as gating"
+          fi
+          echo "gating=${GATING}" >> "$GITHUB_OUTPUT"
+          echo "quarantined=${QUAR}" >> "$GITHUB_OUTPUT"
+          if [ "${QUAR:-0}" -gt 0 ]; then
+            echo "::warning::${QUAR} quarantined @global-state failure(s) reported in docs/tracking/nightly-last-failure.md (INC-117/DEC-028) — non-gating."
+          fi
       - name: Upload report on failure
-        if: always() && steps.run.outcome == 'failure'
+        if: always() && (steps.run.outcome == 'failure' || steps.runfull.outcome == 'failure')
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-nightly
@@ -136,7 +177,11 @@ jobs:
       - name: Write and push heartbeat
         if: always()
         env:
-          RUN_OUTCOME: ${{ steps.run.outcome }}
+          # DEC-028 — the heartbeat conclusion is the GATING verdict: a
+          # quarantined @global-state failure is recorded in the evidence file
+          # with its INC-117 label but never flips this to FAILURE.
+          RUN_GATING: ${{ steps.evidence.outputs.gating }}
+          RUN_QUARANTINED: ${{ steps.evidence.outputs.quarantined }}
           RUN_SHA: ${{ github.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -152,11 +197,13 @@ jobs:
               echo
               echo "Machine-generated by .github/workflows/nightly-e2e.yml. Do not edit."
               echo
-              if [ "$RUN_OUTCOME" = "success" ]; then
+              if [ "${RUN_GATING:-1}" = "0" ]; then
                 echo "- Conclusion: SUCCESS"
               else
                 echo "- Conclusion: FAILURE"
               fi
+              echo "- Gating failures: ${RUN_GATING:-unknown}"
+              echo "- Quarantined @global-state failures (INC-117, non-gating): ${RUN_QUARANTINED:-0}"
               echo "- Commit: ${RUN_SHA}"
               echo "- Timestamp (UTC): $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
               echo "- Run: ${RUN_URL}"
@@ -196,12 +243,21 @@ jobs:
       # Re-assert the authoritative outcome captured above.
       - name: Report test outcome
         if: always()
+        env:
+          RUN_GATING: ${{ steps.evidence.outputs.gating }}
+          RUN_QUARANTINED: ${{ steps.evidence.outputs.quarantined }}
         run: |
-          if [ "${{ steps.run.outcome }}" != "success" ]; then
-            echo "Nightly E2E suite failed."
+          # DEC-028 — the verdict EXCLUDES quarantined (@global-state) failures.
+          # They are reported and labeled in docs/tracking/nightly-last-failure.md
+          # and stay non-gating until DEC-026 component coverage lands.
+          if [ "${RUN_QUARANTINED:-0}" != "0" ]; then
+            echo "Quarantined @global-state failures: ${RUN_QUARANTINED} (reported, non-gating — INC-117/DEC-028)."
+          fi
+          if [ "${RUN_GATING:-1}" != "0" ]; then
+            echo "Nightly E2E suite failed (${RUN_GATING:-unknown} gating failure(s))."
             exit 1
           fi
-          echo "Nightly E2E suite passed."
+          echo "Nightly E2E suite passed (no gating failures)."
 
   # DEC-019 / INC-088 — CLOUDFLARE PARITY SMOKE.
   # The per-push suite serves the built app on nitro's node-server preset

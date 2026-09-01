@@ -278,6 +278,27 @@ type Failure = {
   titlePath: string[];
 };
 
+/**
+ * DEC-028 / INC-117 — QUARANTINE PREDICATE. A test tagged `@global-state`
+ * mutates a surface shared by every concurrent project (the language roster,
+ * the publication gate). Those specs run in the serial nightly ONLY; their
+ * failures are reported and labeled, never gating, until the DEC-026
+ * component-test layer covers their logic.
+ */
+export function isQuarantined(title: string): boolean {
+  return title.includes("@global-state");
+}
+
+/** DEC-028 — the verdict split every consumer (nightly, operator) reads. */
+export function classifyFailures<T extends { title: string }>(
+  failures: T[],
+): { gating: T[]; quarantined: T[] } {
+  return {
+    gating: failures.filter((f) => !isQuarantined(f.title)),
+    quarantined: failures.filter((f) => isQuarantined(f.title)),
+  };
+}
+
 export function collect(json: PwJson): { failures: Failure[]; passed: number; skipped: number } {
   const failures: Failure[] = [];
 
@@ -529,6 +550,8 @@ export function renderSources(
     attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
+    // DEC-028 — the verdict line: quarantined failures are excluded from it.
+    `- Gating failures: ${classifyFailures(failures).gating.length} · Quarantined (@global-state, INC-117, non-gating): ${classifyFailures(failures).quarantined.length}`,
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
   ];
@@ -546,7 +569,9 @@ export function renderSources(
     // gate) with every concurrent project, so its red can be an artefact of a
     // sibling's legitimate mutation. The reporter LABELS it; gating stays with
     // the operator until the DEC-026 component-test layer covers the logic.
-    const quarantined = f.title.includes("@global-state");
+    // DEC-028 makes that formal: the label ALSO removes the failure from the
+    // verdict (see classifyFailures + the verdict file written by main).
+    const quarantined = isQuarantined(f.title);
     lines.push(
       `## ${f.title}`,
       "",
@@ -1064,14 +1089,37 @@ async function main() {
       process.exit(1);
     }
 
+    // DEC-028 — THE VERDICT SPLIT, in both directions. A quarantined red must
+    // be rendered AND labeled AND excluded from `gating`; an ordinary red must
+    // still gate. A predicate that only ever returns one answer proves nothing.
+    const quarantinedFixture = {
+      title: "e2e/admin-translations.spec.ts › TR-17 @global-state roster",
+    };
+    const gatingFixture = { title: "e2e/shell.spec.ts › SH-1 rail renders" };
+    const split = classifyFailures([quarantinedFixture, gatingFixture]);
+    if (
+      split.gating.length !== 1 ||
+      split.quarantined.length !== 1 ||
+      split.gating[0] !== gatingFixture ||
+      !isQuarantined(quarantinedFixture.title) ||
+      isQuarantined(gatingFixture.title)
+    ) {
+      console.error("SELF-TEST FAILED — DEC-028 verdict split misclassified a failure.");
+      process.exit(1);
+    }
+
     console.log(
-      "Self-test OK: attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
     return;
   }
 
   if (process.env["E2E_GREEN"] === "1") {
     await Bun.write(OUT, renderGreen(meta));
+    // DEC-028 — a green run still publishes its verdict, so a consumer never
+    // has to treat a missing verdict file as "probably green".
+    const greenVerdict = process.env["E2E_VERDICT_PATH"];
+    if (greenVerdict) await Bun.write(greenVerdict, "gating=0\nquarantined=0\nsilent=0\n");
     console.log(`Wrote ${OUT} (green run ${meta.runId}).`);
     return;
   }
@@ -1143,6 +1191,27 @@ async function main() {
   console.log(
     `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
   );
+
+  // DEC-028 — THE VERDICT FILE. The nightly (the only lane that runs
+  // `@global-state` specs) decides its heartbeat from THIS, not from the raw
+  // Playwright exit code, so a quarantined red is reported and labeled without
+  // flipping the conclusion. `gating=` is the only field a verdict may read.
+  const verdictPath = process.env["E2E_VERDICT_PATH"];
+  if (verdictPath) {
+    const all = sources.flatMap((s) => (s.json ? collect(s.json).failures : []));
+    const { gating, quarantined } = classifyFailures(all);
+    // A source that produced no results at all is NEVER quarantinable: the
+    // runner died, which is a gating condition of its own (law F4).
+    const silentSources = sources.filter((s) => !s.json || countTests(s.json) === 0).length;
+    const gatingCount = gating.length + silentSources;
+    await Bun.write(
+      verdictPath,
+      `gating=${gatingCount}\nquarantined=${quarantined.length}\nsilent=${silentSources}\n`,
+    );
+    console.log(
+      `Verdict: gating=${gatingCount} quarantined=${quarantined.length} silent=${silentSources} (${verdictPath}).`,
+    );
+  }
 }
 
 /**
