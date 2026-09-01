@@ -541,9 +541,16 @@ export function renderSources(
   const candidates = [...contexts.keys()];
 
   for (const f of failures) {
+    // U4g-30 (INC-117) — QUARANTINE LABEL ONLY. A test tagged `@global-state`
+    // shares a single global surface (the language roster, the publication
+    // gate) with every concurrent project, so its red can be an artefact of a
+    // sibling's legitimate mutation. The reporter LABELS it; gating stays with
+    // the operator until the DEC-026 component-test layer covers the logic.
+    const quarantined = f.title.includes("@global-state");
     lines.push(
       `## ${f.title}`,
       "",
+      ...(quarantined ? ["- Class: **quarantined global-state** (INC-117, non-gating)", ""] : []),
       `- Source: \`${f.source}\``,
       `- Project: \`${f.project}\``,
       "",
@@ -552,6 +559,7 @@ export function renderSources(
       "```",
       "",
     );
+
 
     // INC-083 rule 2: the page snapshot Playwright wrote at the moment of
     // death is the diagnosable evidence — quote it, or say plainly that it is
