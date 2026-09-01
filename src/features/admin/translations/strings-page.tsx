@@ -520,6 +520,12 @@ function stringColumns(
       header: t("admin.translations.col.provenance"),
       priority: "detail",
       width: "w-[10%]",
+      /**
+       * U4g-24 (INC-115) — PROVENANCE IS THE TEXT'S ORIGIN, NEVER ITS REVIEW
+       * STATE. `machine=true` reads "Machine" even once the row is approved;
+       * approval is APPENDED ("Approved by …"), never substituted, so nobody
+       * can mistake reviewed machine text for human-written text.
+       */
       cell: (row) => (
         <span className="block truncate text-xs text-muted-foreground">
           {row.status === "untranslated"
@@ -529,6 +535,12 @@ function stringColumns(
                   ? "admin.translations.provenance.machine"
                   : "admin.translations.provenance.human",
               )}
+          {row.approvedAt
+            ? ` · ${t("admin.translations.provenance.approvedBy").replace(
+                "{who}",
+                row.approvedBy ?? "—",
+              )}`
+            : ""}
         </span>
       ),
     },
