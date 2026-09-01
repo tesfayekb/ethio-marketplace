@@ -286,16 +286,30 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    if (language === "en") {
+    if (language === BASE_LANGUAGE) {
       applyWithBundle(en);
       return () => {
         cancelled = true;
       };
     }
-    loaders[language]().then(applyWithBundle);
+    // INC-107 — a missing compiled layer is empty, not fatal: a published,
+    // DB-only language loads compiled.en underneath and DB[lang] on top.
+    const loader = loaders[language];
+    if (!loader) {
+      if (!warnedMissingRef.current.has(language)) {
+        warnedMissingRef.current.add(language);
+        console.warn(`[i18n] no compiled catalog for ${language}; DB-only`);
+      }
+      applyWithBundle(en);
+      return () => {
+        cancelled = true;
+      };
+    }
+    void loader().then(applyWithBundle);
     return () => {
       cancelled = true;
     };
+
   }, [language, authSettled]);
 
   useEffect(() => {
