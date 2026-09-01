@@ -1513,6 +1513,10 @@ export type Database = {
       translation_placeholders: { Args: { p_text: string }; Returns: string[] }
       translation_scope_ok: { Args: { p_lang: string }; Returns: boolean }
       ui_sync_mark_orphans: { Args: { p_en: Json }; Returns: Json }
+      ui_translation_reviewable: {
+        Args: { p_flagged: boolean; p_orphaned: boolean; p_status: string }
+        Returns: boolean
+      }
       user_has_translation_permission: {
         Args: { p_target: string }
         Returns: boolean
