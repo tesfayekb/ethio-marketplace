@@ -737,14 +737,19 @@ four shards paid its own ~1.5m build on top of a ~4m spec run. Exact per-job
 wall-clocks for THIS push are only readable from the Actions run it triggers;
 the numbers above are the observed shape, not a projection.
 
-### DEC-029-C — injection is LIVE; the knob is the standing rollback
+### DEC-029-E — injection is PARKED; the knob remains the standing rollback
 
-`E2E_UI_LOGIN` is removed from all four E2E jobs (`e2e-smoke`, `e2e-changed`,
-`e2e-shard`, `e2e-email`), so lever 1 runs under the fixed, write-once seam
-(INC-120). The variable itself is NOT removed from the harness: setting
-`E2E_UI_LOGIN=1` — in a job env, or locally for one run — still short-circuits
-every caller back to the UI path, and that remains the first move for any
-auth-derived flake class, diagnosis second.
+`E2E_UI_LOGIN: "1"` is set in all four E2E jobs (`e2e-smoke`, `e2e-changed`,
+`e2e-shard`, `e2e-email`) per the pre-committed DEC-029 rule: two successive
+injection-seam fixes (INC-120, INC-120b) each cured one persona shape and
+exposed another, so the lever is parked rather than chased. Levers 2 and 3 stay
+LIVE: the shared `e2e-build` artifact and the six-shard matrix are the measured
+win and are unchanged.
+
+The variable itself is NOT removed from the harness: removing `E2E_UI_LOGIN`
+from a job env (or unsetting it locally) would re-engage injection, and setting
+`E2E_UI_LOGIN=1` anywhere still short-circuits every caller back to the UI path.
+That remains the first move for any auth-derived flake class, diagnosis second.
 
 **The law, unchanged.** `e2e/auth-*.spec.ts` never inject (`isAuthSpec()`
 enforces it by file path). Credential-lifecycle tests — password rotation,
@@ -756,3 +761,8 @@ on both of its sign-in calls.
 surface: TR-11 / 13 / 16 / 23 / 26, RP-1 / 4 / 5 / 11, IMP-1 / 2, AU-10, S-3.
 A P0009 `step-up required` 500 with no preceding modal is the INC-120 shape
 returning — flip the knob, then diagnose.
+
+**When injection returns.** Re-engaging lever 1 requires a green CI run with
+`E2E_UI_LOGIN` removed from a feature branch, plus a DEC note naming the
+component-layer change (DEC-026) that makes the client step-up gate safe under
+injected sessions. Until that note exists, the knob stays engaged in `dev`.
