@@ -55,7 +55,6 @@ export function fenceLang(kind: FenceKind, project: string): string {
   return `${FENCE_PREFIXES[kind]}-${fenceProjectSuffix(project)}`;
 }
 
-
 export type E2EUser = {
   id: string;
   email: string;
@@ -243,7 +242,6 @@ export default async function globalSetup() {
     }
     reaped += staleFenceRows?.length ?? 0;
   }
-
 
   const { data: staleLocations, error: locationError } = await supabase
     .from("locations")

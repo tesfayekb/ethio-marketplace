@@ -1183,7 +1183,6 @@ test.describe("U4f — publication gate governs language choice", () => {
       }
     }
 
-
     await gotoReady(page, "/");
     await page.getByTestId("language-switcher").click();
     await expect
@@ -1461,9 +1460,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       });
 
       await test.step("TR-20 move down", async () => {
-        const down = actionsOf(page, `lang-row-${fence}`).getByTestId(
-          `lang-down-${fence}`,
-        );
+        const down = actionsOf(page, `lang-row-${fence}`).getByTestId(`lang-down-${fence}`);
         await test.step("TR-20 move down · click", async () => {
           await expect(down, "the fence's down control must be enabled").toBeEnabled({
             timeout: 20000,
