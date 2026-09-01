@@ -83,32 +83,64 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
   const query =
     "select=code,name_en,name_native,rtl,sort" +
     "&or=(enabled_public.eq.true,is_base.eq.true)" +
-    "&order=sort.asc" +
-    // U4g-21 (INC-113) — INVARIANT: A GATE LIST IS NEVER CACHED ACROSS LOADS.
-    // Publication is an operator decision that must be visible on the NEXT page
-    // load, so this read is uncacheable by construction: `cache: "no-store"`
-    // plus a per-request busting parameter defeats the HTTP cache, any
-    // intermediary, and any future service worker that might match the URL.
-    // (Census 2026-09-01: this project registers NO service worker — no
-    // VitePWA plugin, no src/sw*, no public/sw.js — so nothing caches
-    // /rest/v1/* today; the invariant is enforced here, at the request, so it
-    // survives REQ-039 landing a worker later.)
-    `&_ts=${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-  try {
-    const response = await fetch(`${url}/rest/v1/languages?${query}`, {
-      cache: "no-store",
-      headers: {
-        apikey: key,
-        accept: "application/json",
-        "cache-control": "no-cache",
-      },
-    });
-    if (!response.ok) return null;
-    const rows = (await response.json()) as PublicLanguage[];
-    return Array.isArray(rows) ? rows : null;
-  } catch {
-    return null;
+    "&order=sort.asc";
+  // U4g-21 (INC-113) — INVARIANT: A GATE LIST IS NEVER CACHED ACROSS LOADS.
+  // Publication is an operator decision that must be visible on the NEXT page
+  // load. `cache: "no-store"` plus `cache-control: no-cache` defeat the HTTP
+  // cache and any intermediary. NO query-string busting is used here: PostgREST
+  // treats unknown query params as column filters, so a `_ts` parameter returns
+  // 400 instead of busting (INC-113b). (Census 2026-09-01: this project
+  // registers NO service worker — no VitePWA plugin, no src/sw*, no
+  // public/sw.js — so nothing caches /rest/v1/* today; the invariant is enforced
+  // here, at the request, so it survives REQ-039 landing a worker later.)
+  const init: RequestInit = {
+    cache: "no-store",
+    headers: {
+      apikey: key,
+      accept: "application/json",
+      "cache-control": "no-cache",
+    },
+  };
+
+  async function attemptOnce(): Promise<Response | null> {
+    try {
+      return await fetch(`${url}/rest/v1/languages?${query}`, init);
+    } catch {
+      return null;
+    }
   }
+
+  let response = await attemptOnce();
+  if (response && !response.ok) {
+    const preview = await response
+      .clone()
+      .text()
+      .then((t) => t.slice(0, 200))
+      .catch(() => "<body unreadable>");
+    console.error(
+      "[client-error] gate fetch failed",
+      response.status,
+      preview,
+    );
+    // F4 — retry once before falling back; the fallback is never silent.
+    response = await attemptOnce();
+    if (response && !response.ok) {
+      const secondPreview = await response
+        .clone()
+        .text()
+        .then((t) => t.slice(0, 200))
+        .catch(() => "<body unreadable>");
+      console.error(
+        "[client-error] gate fetch retry failed",
+        response.status,
+        secondPreview,
+      );
+    }
+  }
+
+  if (!response || !response.ok) return null;
+  const rows = (await response.json()) as PublicLanguage[];
+  return Array.isArray(rows) ? rows : null;
 }
 
 type I18nValue = {
