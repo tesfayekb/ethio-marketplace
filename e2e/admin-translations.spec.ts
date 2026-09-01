@@ -1504,7 +1504,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
             })
             .toBe(1);
         });
-
       });
     } finally {
       // The roster is shared runtime: put the censused order back verbatim.
@@ -1522,6 +1521,57 @@ test.describe("U4g bulk approval, order and orphans", () => {
         });
     }
   });
+
+  /**
+   * TR-20m (U4g-28, INC-115e) — the MOBILE half of the move surface. It proves
+   * the reorder controls exist and are actionable at 360px WITHOUT mutating the
+   * single global roster (that is TR-20's business, on desktop only).
+   */
+  test("TR-20m mobile exposes both reorder controls for the parked fence", async ({ page }) => {
+    test.skip(
+      test.info().project.name === "desktop-1280",
+      "global order is a single list — one project mutates it",
+    );
+    test.setTimeout(120_000);
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
+    const supabase = adminClient();
+
+    // Park the fence away from the pinned base language so its "up" control is
+    // legitimately enabled. A fixture write is a table write (INC-105).
+    const { data: rows } = await supabase
+      .from("languages")
+      .select("code, sort")
+      .order("sort", { ascending: true })
+      .order("code", { ascending: true });
+    const codes = (rows ?? []).map((row) => row.code as string);
+    if (codes.indexOf(fence) <= 1) {
+      const maxSort = (rows ?? []).reduce(
+        (top, row) => Math.max(top, (row.sort as number) ?? 0),
+        0,
+      );
+      const { error } = await supabase
+        .from("languages")
+        .update({ sort: maxSort + 1 })
+        .eq("code", fence);
+      if (error) throw new Error(`[e2e:u4g] TR-20m parking the fence failed: ${error.message}`);
+    }
+
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/translations");
+    await expect(langRow(page, fence)).toBeVisible({ timeout: 20000 });
+
+    const actions = actionsOf(page, `lang-row-${fence}`);
+    const up = actions.getByTestId(`lang-up-${fence}`);
+    const down = actions.getByTestId(`lang-down-${fence}`);
+    await expect(up, "mobile must expose the up control").toBeVisible({ timeout: 20000 });
+    await expect(down, "mobile must expose the down control").toBeVisible({ timeout: 20000 });
+    await expect(up, "the parked fence's up control must be enabled").toBeEnabled({
+      timeout: 20000,
+    });
+  });
+
+
 
   test("TR-21 a key missing from the synced catalog is orphaned and excluded", async ({ page }) => {
     test.setTimeout(120_000);
