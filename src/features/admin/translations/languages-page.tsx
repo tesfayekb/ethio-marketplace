@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useAdminShell } from "@/features/admin/admin-context";
+import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -16,14 +17,18 @@ import { am } from "@/i18n/locales/am";
 import { en } from "@/i18n/locales/en";
 import type { MessageKey } from "@/i18n/types";
 
+import { LanguagePicker } from "./language-picker";
 import {
   serverMessage,
   translationErrorKey,
+  type EntityTranslationStats,
   type LanguageRow,
+  type ProviderLanguage,
   type SyncResult,
   type TranslationStats,
 } from "./translations-service";
 import {
+  useEntityTranslationStats,
   useLanguages,
   useSetLanguageFlags,
   useSetLanguageOrder,
@@ -32,7 +37,20 @@ import {
   useUpsertLanguage,
 } from "./use-translations";
 
-const LANGUAGE_CODE_RE = /^[a-z]{2,8}$/;
+/** Provider codes can carry a region subtag (`zh-CN`); the roster stores them lowercased. */
+const LANGUAGE_CODE_RE = /^[a-z]{2,8}(-[a-z0-9]{2,8})?$/;
+
+/** U4j — RTL is derived, never guessed by the operator; it stays editable. */
+const RTL_LANGUAGES = new Set(["ar", "he", "fa", "ur", "ps", "sd", "ug", "yi"]);
+
+function nativeNameOf(code: string, fallback: string): string {
+  try {
+    const display = new Intl.DisplayNames([code], { type: "language" });
+    return display.of(code) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * U4g-10 (INC-103) — ONE SORTED SOURCE. The roster's order law is (sort, code),
@@ -59,7 +77,12 @@ export function AdminTranslationsLanguagesPage() {
 
   const languages = useLanguages();
   const stats = useTranslationStats();
+  // U4j — the SECOND meter: content-name coverage, side by side with the UI one.
+  const dataStats = useEntityTranslationStats();
 
+  const dataByLang = new Map<string, EntityTranslationStats>(
+    (dataStats.data ?? []).map((row) => [row.langCode, row]),
+  );
   const statsByLang = new Map<string, TranslationStats>(
     (stats.data ?? []).map((row) => [row.langCode, row]),
   );
@@ -105,6 +128,7 @@ export function AdminTranslationsLanguagesPage() {
           <LanguagesTable
             rows={rows}
             statsByLang={statsByLang}
+            dataByLang={dataByLang}
             loading={languages.isLoading}
             error={languages.error}
             mayManage={mayManage}
@@ -132,6 +156,7 @@ function coverageOf(stats: TranslationStats | undefined) {
 function LanguagesTable({
   rows,
   statsByLang,
+  dataByLang,
   loading,
   error,
   mayManage,
@@ -139,6 +164,7 @@ function LanguagesTable({
 }: {
   rows: LanguageRow[];
   statsByLang: Map<string, TranslationStats>;
+  dataByLang: Map<string, EntityTranslationStats>;
   loading: boolean;
   error: unknown;
   mayManage: boolean;
@@ -279,7 +305,7 @@ function LanguagesTable({
       key: "coverage",
       header: t("admin.translations.col.coverage"),
       priority: "primary",
-      width: "w-[24%]",
+      width: "w-[18%]",
       cell: (row) => {
         const { total, approved } = coverageOf(statsByLang.get(row.code));
         const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
@@ -290,6 +316,36 @@ function LanguagesTable({
               className="block h-2 w-full overflow-hidden rounded-full bg-muted"
             >
               <span className="block h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+            </span>
+            <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
+              {t("admin.translations.coverage")
+                .replace("{approved}", String(approved))
+                .replace("{total}", String(total))}
+            </span>
+          </span>
+        );
+      },
+    },
+    {
+      key: "coverageData",
+      header: t("admin.translations.col.coverageData"),
+      priority: "secondary",
+      width: "w-[16%]",
+      cell: (row) => {
+        const entry = dataByLang.get(row.code);
+        const total = entry?.total ?? 0;
+        const approved = entry?.approved ?? 0;
+        const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
+        return (
+          <span className="block min-w-0" data-testid={`lang-data-coverage-${row.code}`}>
+            <span
+              aria-hidden="true"
+              className="block h-2 w-full overflow-hidden rounded-full bg-muted"
+            >
+              <span
+                className="block h-full rounded-full bg-secondary-foreground"
+                style={{ width: `${pct}%` }}
+              />
             </span>
             <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
               {t("admin.translations.coverage")
