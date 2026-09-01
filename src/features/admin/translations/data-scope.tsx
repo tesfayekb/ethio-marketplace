@@ -259,6 +259,7 @@ function EntityEditor({
   rtl,
   mayUpdate,
   mayApprove,
+  mayMachine,
   guard,
 }: {
   row: EntityTranslationRow;
@@ -266,10 +267,12 @@ function EntityEditor({
   rtl: boolean;
   mayUpdate: boolean;
   mayApprove: boolean;
+  mayMachine: boolean;
   guard: GuardFn;
 }) {
   const { t } = useI18n();
   const save = useSaveEntityTranslation(lang);
+  const ai = useAiTranslateEntities(lang);
   const statusAction = useEntityTranslationStatusAction(lang);
   const [draft, setDraft] = useState(row.value ?? "");
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
@@ -330,6 +333,32 @@ function EntityEditor({
             }
           >
             {t("admin.translations.editor.save")}
+          </Button>
+        ) : null}
+        {mayMachine ? (
+          <Button
+            variant="outline"
+            className="min-h-11"
+            data-testid={`entity-ai-${id}`}
+            disabled={ai.isPending || row.sourceValue === null}
+            onClick={() =>
+              run(async () => {
+                const result = await ai.mutateAsync([
+                  {
+                    key: `${row.entityType}:${row.entityId}`,
+                    source: row.sourceValue ?? "",
+                    type: row.entityType,
+                    id: row.entityId,
+                    field: row.field,
+                  },
+                ]);
+                const failure = result.failed[0];
+                // F4 — a per-item refusal is an ERROR here, never a quiet no-op.
+                if (failure) throw new Error(failure.reason);
+              })
+            }
+          >
+            {ai.isPending ? t("admin.translations.ai.pending") : t("admin.translations.ai.row")}
           </Button>
         ) : null}
         {mayApprove ? (
