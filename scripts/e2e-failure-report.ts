@@ -394,7 +394,6 @@ export function ledgerLines(
   );
 }
 
-
 /**
  * One CI job that produced (or failed to produce) test results. INC-081: the
  * merged report must name WHICH job a failure came from, and must quote a red
@@ -640,8 +639,6 @@ export function renderSources(
     lines.push("No failed tests were recorded in the JSON reporter output.", "");
     return lines.join("\n");
   }
-
-
 
   const candidates = [...contexts.keys()];
 
@@ -1228,7 +1225,9 @@ async function main() {
         "## Flake ledger (DEC-030)",
       )
     ) {
-      console.error("SELF-TEST FAILED — DEC-030 flake ledger did not record a retry-recovered test.");
+      console.error(
+        "SELF-TEST FAILED — DEC-030 flake ledger did not record a retry-recovered test.",
+      );
       process.exit(1);
     }
 
@@ -1253,7 +1252,6 @@ async function main() {
     console.log(`Wrote ${OUT} (green run ${meta.runId}).`);
     return;
   }
-
 
   // SHARDED RUNS: every source (smoke tier + four shards) uploads its own
   // results.json, so the reporter reads them ALL, labels each failure with its
