@@ -111,7 +111,6 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
   }
 }
 
-
 type I18nValue = {
   language: Language;
   setLanguage: (next: Language) => void;
@@ -363,7 +362,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       codes: publicLanguages.map((row) => row.code),
     };
   }, [gateReady, language, publicLanguages]);
-
 
   const value = useMemo<I18nValue>(
     () => ({
