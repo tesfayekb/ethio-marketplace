@@ -259,3 +259,4 @@
 - 2026-09-01 — test(e2e): per-project fence languages (INC-115b)
 - 2026-09-01 — fix: route-legal fence subtags; profile-edit invalidates activity (INC-115c)
 - 2026-09-01 — test(e2e): every user-detail activity assertion dumps detail + audit truth (INC-115d)
+- 2026-09-01 — test(e2e): TR-20 desktop-only relative order, TR-20m mobile controls, TR-17 set equality (INC-115e)

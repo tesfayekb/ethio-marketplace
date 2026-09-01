@@ -1433,3 +1433,30 @@ RULES:
   SAME SHAPE — otherwise the next failure re-buys the diagnosis.
 - A MISSING-ROW FAILURE NAMES WHICH LAYER IS EMPTY — write, read, or refetch —
   in one dump.
+
+## INC-115e — GLOBAL-ORDER MUTATIONS RUN IN ONE PROJECT
+
+EVIDENCE: two reds on the same green-otherwise run. TR-20 (`desktop-1280`)
+failed with `expected 9, received 10` — the roster is ONE global list, so an
+absolute index is only true if no sibling row moves. TR-17 failed with "the
+admin-only fence language zxx-mo is never public" while TR-22 was concurrently
+publishing that very fence for its own duration.
+
+CHANGE (`e2e/admin-translations.spec.ts`):
+
+- TR-17 asserts SET EQUALITY between the switcher's options and the DB public
+  list, and nothing else. The fence-never-public loop is gone.
+- TR-20 runs on `desktop-1280` only (`test.skip` elsewhere, reason: "global
+  order is a single list — one project mutates it") and asserts RELATIVE order:
+  after moving up the fence sits directly ABOVE its censused upper neighbour
+  (offset -1), and directly below it again after moving down (offset +1).
+- TR-20m (mobile) proves both reorder controls are present and the up control
+  enabled for the parked fence — it performs no move.
+
+RULES:
+
+- GLOBAL-ORDER MUTATIONS RUN IN ONE PROJECT; every other project asserts
+  presence and actionability only.
+- PUBLICATION OF A FENCE IS THAT FENCE'S OWN TEST'S BUSINESS — no sibling test
+  asserts a fence's publication state.
+- AN ASSERTION ON SHARED RUNTIME IS RELATIVE, NEVER AN ABSOLUTE INDEX.
