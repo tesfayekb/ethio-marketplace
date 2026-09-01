@@ -2,11 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
+import { PSEUDO_LANG } from "./pseudo";
+
 import {
   aiTranslate,
   aiTranslateEntities,
   approveAllEntityTranslations,
   approveAllTranslations,
+  ensurePseudoLanguage,
+  importTranslations,
   listEntityTranslations,
   listEntityTranslationStats,
   listLanguages,
@@ -19,11 +23,13 @@ import {
   saveTranslation,
   setEntityTranslationStatus,
   setLanguageFlags,
+  setKeyContext,
   setLanguageOrder,
   setTranslationStatus,
   setTranslatorLanguages,
   syncUiKeys,
   upsertLanguage,
+  writePseudoRow,
   type AiEntityItem,
   type AiTranslateItem,
   type EntityTranslationFilters,
@@ -252,5 +258,104 @@ export function useProviderLanguages(enabled: boolean) {
     queryFn: listProviderLanguages,
     enabled,
     staleTime: 60 * 60_000,
+  });
+}
+
+/* ========================= U4i — CONTEXT · IMPORT · PSEUDO · USED-ON ======== */
+
+/** U4i ① — write the key's translator note (manage-gated server-side). */
+export function useSetKeyContext() {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (input: { key: string; context: string }) => setKeyContext(input),
+    onSettled: invalidate,
+  });
+}
+
+/** U4i ⑤ — import parsed rows; the server writes them EDITED and audits each. */
+export function useImportTranslations(lang: string) {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (rows: { key: string; value: string }[]) => importTranslations({ lang, rows }),
+    onSettled: invalidate,
+  });
+}
+
+/**
+ * U4i ⑦ — generate the pseudo catalog.
+ *
+ * The base rows are read page by page through the ordinary list RPC (no new
+ * read seam), and each row is written by `admin_machine_translation`. Progress
+ * is reported honestly per row, and a per-row refusal is COUNTED rather than
+ * aborting the run — the summary states both numbers (F4).
+ */
+export function usePseudoGenerate() {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: async (input: {
+      transform: (source: string) => string;
+      onProgress?: (done: number, total: number) => void;
+    }) => {
+      await ensurePseudoLanguage();
+
+      const pageSize = 200;
+      let offset = 0;
+      let total = 0;
+      let written = 0;
+      let failed = 0;
+
+      for (;;) {
+        const page = await listTranslations({
+          lang: PSEUDO_LANG,
+          status: "all",
+          limit: pageSize,
+          offset,
+        });
+        total = page.totalCount;
+        if (page.rows.length === 0) break;
+        for (const row of page.rows) {
+          const source = row.sourceValue ?? "";
+          if (source === "") {
+            failed += 1;
+          } else {
+            try {
+              await writePseudoRow({ key: row.key, value: input.transform(source) });
+              written += 1;
+            } catch {
+              // A single refused row must not lose the other 400 (F4: counted).
+              failed += 1;
+            }
+          }
+          input.onProgress?.(written + failed, total);
+        }
+        offset += page.rows.length;
+        if (offset >= total) break;
+      }
+
+      return { written, failed, total };
+    },
+    onSettled: invalidate,
+  });
+}
+
+/**
+ * U4i ② — the build-time "used on" map, served as a static asset
+ * (`/i18n-usage.json`, written by scripts/i18n-usage-map.ts). No RPC, no auth:
+ * it is derived from the public source tree and contains no data.
+ *
+ * A fetch failure leaves the chips absent rather than claiming a key is unused
+ * — `undefined` and "nowhere" are different answers (E6).
+ */
+export function useUsageMap() {
+  return useQuery({
+    queryKey: ["i18n-usage-map"],
+    queryFn: async (): Promise<Record<string, string[]>> => {
+      const response = await fetch("/i18n-usage.json", { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error(`usage map ${response.status}`);
+      const payload = (await response.json()) as { keys?: Record<string, string[]> };
+      return payload.keys ?? {};
+    },
+    staleTime: 60 * 60_000,
+    retry: 1,
   });
 }
