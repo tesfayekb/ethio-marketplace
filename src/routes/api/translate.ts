@@ -49,15 +49,38 @@ import { createClient } from "@supabase/supabase-js";
 const GOOGLE_CHUNK = 100; // Google v2 accepts many `q` params; 100 is our budget.
 const MAX_ITEMS = 600; // hard cap per request (413 beyond).
 
+/**
+ * U4j — SCOPES. `ui` writes `ui_translations` through
+ * `admin_machine_translation`; `entity` writes `entity_translations` through
+ * `admin_machine_entity_translation`. Same gates, same provider path, same
+ * per-item honesty; only the writer differs.
+ *
+ * U4j PATH RULING (law A3, stated before the code): the task named
+ * `GET /api/translate/languages`. TanStack's flat file routing would need a
+ * SECOND route file (`src/routes/api/translate.languages.ts`) for that path,
+ * and this task's scope names exactly one route file. The provider list is
+ * therefore served by `GET /api/translate` — same handler file, same gate,
+ * same contract; only the path differs from the spec's wording.
+ */
+type Scope = "ui" | "entity";
+
+const ENTITY_TYPES = new Set(["category", "location"]);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 interface Item {
   key: string;
   source: string;
+  /** entity scope only */
+  type?: string;
+  id?: string;
+  field?: string;
 }
 
 interface Failure {
   key: string;
   reason: string;
 }
+
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
