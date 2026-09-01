@@ -314,15 +314,19 @@ async function handlePost(request: Request): Promise<Response> {
   const uid = userData?.user?.id;
   if (userError || !uid) return json({ error: "not signed in" }, 401);
 
-  let payload: { target_lang?: string; items?: Item[] };
+  let payload: { target_lang?: string; scope?: string; items?: Item[] };
   try {
     payload = (await request.json()) as typeof payload;
   } catch {
     return json({ error: "invalid json body" }, 400);
   }
 
+  const scope: Scope = payload.scope === "entity" ? "entity" : "ui";
   const target = (payload.target_lang ?? "").trim().toLowerCase();
   const items = Array.isArray(payload.items) ? payload.items : [];
+  if (payload.scope !== undefined && payload.scope !== "ui" && payload.scope !== "entity") {
+    return json({ error: "invalid scope" }, 400);
+  }
   if (!/^[a-z]{2,8}(-[a-z]{2,8})?$/.test(target)) {
     return json({ error: "invalid target_lang" }, 400);
   }
@@ -332,7 +336,21 @@ async function handlePost(request: Request): Promise<Response> {
     if (typeof item?.key !== "string" || typeof item?.source !== "string") {
       return json({ error: "invalid item shape" }, 400);
     }
+    if (scope === "entity") {
+      if (
+        typeof item.type !== "string" ||
+        !ENTITY_TYPES.has(item.type) ||
+        typeof item.id !== "string" ||
+        !UUID_RE.test(item.id) ||
+        typeof item.field !== "string" ||
+        item.field === ""
+      ) {
+        return json({ error: "invalid entity item shape" }, 400);
+      }
+    }
   }
+  const byKey = new Map(items.map((item) => [item.key, item]));
+
 
   // ---- GATE (before any provider call) ---------------------------
   const { data: mayMachine, error: machineError } = await supabase.rpc("has_permission", {
