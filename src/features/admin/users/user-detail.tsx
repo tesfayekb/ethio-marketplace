@@ -385,7 +385,11 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                 {t("admin.users.activity.loading")}
               </p>
             ) : activity.error ? (
-              <p role="alert" data-testid="user-activity-error" className="text-sm text-destructive">
+              <p
+                role="alert"
+                data-testid="user-activity-error"
+                className="text-sm text-destructive"
+              >
                 {t("admin.users.error")}
               </p>
             ) : (activity.data ?? []).length === 0 ? (
@@ -394,7 +398,6 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               </p>
             ) : null}
           </PageCard>
-
         </div>
       )}
     </StepUpGate>

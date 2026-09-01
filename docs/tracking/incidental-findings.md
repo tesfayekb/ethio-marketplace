@@ -1082,3 +1082,37 @@ Neither failure carried the one fact needed to diagnose it.
 RULE: 5xx responses now log their URL; AU-3 dumps route + query-cache state on
 failure — five blind recurrences end here. An instrument that reports THAT
 something failed without reporting WHERE is not an instrument.
+
+## INC-110 — activity list stale after its own mutation; redirect awaiting i18n (U4g-19)
+
+TRACE 1 (AU-3/AU-4, run 33513615863) — the Activity section is NOT collapsed,
+lazy or virtualized: it is one unconditional `<ul>` inside
+`user-activity-card`, identical at 360 and 1280. Its key is
+`["auth-derived","admin","users","activity",<userId>]`; the deactivate/assign
+mutations invalidated only the section PREFIX
+`["auth-derived","admin","users"]`, with the default `refetchType: "active"`,
+un-awaited, while the query carried `staleTime: 15_000`. So the refetch could
+be skipped (observer momentarily inactive behind the step-up modal path) or
+served from a cache captured before the audit row landed, and nothing re-read
+it afterwards.
+
+TRACE 2 (TR-18, 7181 ms against a 5000 ms law) — the redirect awaits
+`useAuth` + the `has_permission` RPC only, neither of which is i18n. The
+coupling was the CLIENT: the provider's public-language read went through the
+shared supabase-js client, whose request path resolves the session through the
+one exclusive auth lock. With `/rest/v1/languages` delayed 5 s, the guard's
+own permission read inherited the wait. The provider additionally gated that
+read behind the auth-settle signal (INC-101b), which existed only because the
+read took that lock.
+
+RULES:
+
+- MUTATIONS INVALIDATE THE EXACT KEYS THEIR AUDIT ROWS FEED — the section
+  prefix is a convenience, not the contract: every audited user mutation names
+  the detail and activity keys, forces `refetchType: "all"` and awaits them,
+  and the activity query is `staleTime: 0` / `refetchOnMount: "always"`.
+- NON-BLOCKING IS ASSERTED BY ORDERING, NOT ONLY BY CLOCK — TR-18 records
+  whether the delayed response had resolved at the moment the URL changed
+  (expected: not yet); the wall clock stays as a secondary signal.
+- Public reference data reads with a keyed anon fetch, never through the
+  session-bearing client, so they can never sit on a guard's critical path.

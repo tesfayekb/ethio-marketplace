@@ -249,3 +249,4 @@
 - 2026-08-31 — fix(ui): roster actions no longer overlap; scroll padding for the fixed band (INC-106d)
 - 2026-09-01 — fix(i18n): DB-only languages render (missing compiled layer is empty, not fatal — INC-107); ci: nightly writes its failure evidence (INC-108)
 - 2026-09-01 — test(e2e): 5xx URL capture; AU-3 self-describing failure dump (INC-109)
+- 2026-09-01 — fix(admin): activity list refreshes on mobile; redirect never awaits i18n (INC-110)

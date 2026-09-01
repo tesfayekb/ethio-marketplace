@@ -77,8 +77,8 @@ const SEED_PUBLIC_LANGUAGES: PublicLanguage[] = [
  * the URL is unchanged so the delay harness still targets exactly this read.
  */
 async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
-  const url = import.meta.env['VITE_SUPABASE_URL'] as string | undefined;
-  const key = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] as string | undefined;
+  const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+  const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
   if (!url || !key) return null;
   const query =
     "select=code,name_en,name_native,rtl,sort" +
@@ -95,7 +95,6 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
     return null;
   }
 }
-
 
 type I18nValue = {
   language: Language;
@@ -193,7 +192,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
-
 
   const isPublic = useCallback(
     (code: string) => publicLanguages.some((row) => row.code === code),

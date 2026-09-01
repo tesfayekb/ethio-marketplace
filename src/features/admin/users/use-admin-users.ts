@@ -37,7 +37,6 @@ export const adminUserActivityKey = (userId: string) =>
 export const adminUserDetailKey = (userId: string) =>
   [...ADMIN_USERS_KEY, "detail", userId] as const;
 
-
 /** 300ms debounce for the search box (U1: one request per pause, not per key). */
 export function useDebounced<T>(value: T, delay = 300): T {
   const [debounced, setDebounced] = useState(value);
@@ -128,7 +127,6 @@ export function useRoleAssignment(userId: string) {
   });
   return { assign, revoke };
 }
-
 
 /** U1g — countries for the edit form's select (public reference data). */
 export function useCountries() {

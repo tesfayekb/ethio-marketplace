@@ -1363,4 +1363,3 @@ test.describe("i18n gate is non-blocking (U4f-2)", () => {
     expect(elapsed).toBeLessThan(5000);
   });
 });
-
