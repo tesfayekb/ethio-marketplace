@@ -5,7 +5,12 @@ import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
 
-import { injectSession, passwordGrant, sessionInjectionEnabled } from "./session";
+import {
+  assertInjectedIdentity,
+  injectSession,
+  passwordGrant,
+  sessionInjectionEnabled,
+} from "./session";
 import { totp } from "./totp";
 
 /** Escape a catalog value for literal use inside a RegExp. */
@@ -319,6 +324,9 @@ export async function signInViaSession(page: Page, email: string, password: stri
   const session = await passwordGrant(email, password);
   await injectSession(page, session);
   await gotoReady(page, "/");
+  // INC-120b: identity BEFORE anything else — a persona mix-up must name both
+  // ids here, not surface later as an inexplicable permission assertion.
+  await assertInjectedIdentity(page, session);
   await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
   await page.waitForFunction(
     () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
@@ -333,6 +341,11 @@ export async function signInViaSession(page: Page, email: string, password: stri
  * on the email field until the test times out. CLASS RULE: multi-user E2E
  * never navigates to /auth while signed in — it signs out first, or uses a
  * fresh browser context.
+ *
+ * INC-120b — the injection branch is the SAME `signInViaSession` the first
+ * persona took: the sentinel is per-user, so switching clears the previous
+ * session and its step-up hint, writes the new grant once, and asserts the
+ * active identity. The UI-login branch below is untouched.
  */
 export async function switchUser(
   page: Page,
