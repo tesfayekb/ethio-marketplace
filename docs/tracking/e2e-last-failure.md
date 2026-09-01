@@ -1,71 +1,87 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33534679679
-- Commit: `1532e9941d0574feb749840a3637a0eaf3d83590`
-- Attempt: 2
-- Written (UTC): 2026-09-01T17:09:57.943Z
-- Passed: 402 · Skipped: 71 · Failed: 2
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33536756842
+- Commit: `bb3bf1127dff97a8ae408ea8c03035cee5dd8ca8`
+- Attempt: 1
+- Written (UTC): 2026-09-01T17:23:27.076Z
+- Passed: 334 · Skipped: 71 · Failed: 2
 - Sources without results: none
 
-## admin-translations.spec.ts › U4f — publication gate governs language choice › TR-17: switcher options equal the DB public list; a non-public ?lang falls back
+## admin-translations.spec.ts › U4g bulk approval, order and orphans › TR-19 approve-all approves reviewed rows and skips flagged ones @global-state
 
-- Source: `shard 3`
-- Project: `desktop-1280`
+- Class: **quarantined global-state** (INC-117, non-gating)
+
+- Source: `shard 1`
+- Project: `mobile-360`
 
 ```text
-Error: switcher options never matched the gate's public list
+Error: the strings list never rendered all four seeded TR-19 rows
 
-expect(received).toEqual(expected) // deep equality
+expect(received).toBe(expected) // Object.is equality
 
-- Expected  - 0
-+ Received  + 1
-
-  Array [
-    "am",
-    "en",
-+   "zxx-mo",
-  ]
+Expected: 4
+Received: 0
 
 Call Log:
-- Timeout 15000ms exceeded while waiting on the predicate
+- Timeout 30000ms exceeded while waiting on the predicate
 
-[INC-113] url: http://127.0.0.1:4173/
-[INC-113] html lang: en
-[INC-113] provider publicLanguages: {"gateReady":true,"active":"en","codes":["en","am","zxx-mo"]}
-[INC-113] rendered options: en,am,zxx-mo
+[INC-112] phase: TR-19 seed check
+[INC-112] url: http://127.0.0.1:4173/admin/translations/zxy-mo
+[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
+[INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
+[INC-112] queries:
+(no __ethioQueryClient — not an E2E build?)
 ```
 
-Context: context file not found for `admin-translations-U4f-publication-gate-governs-language-choice-TR-17-switcher-options-equal-the-DB-public-list-a-non-public-lang-falls-back-desktop-1280`
+Context:
 
-## admin-translations.spec.ts › U4g bulk approval, order and orphans › TR-19 approve-all approves reviewed rows and skips flagged ones
+```text
+          - listitem [ref=e497]:
+            - generic [ref=e498]: About
+          - listitem [ref=e499]:
+            - generic [ref=e500]: How it works
+      - navigation "Help" [ref=e501]:
+        - heading "Help" [level=2] [ref=e502]
+        - list [ref=e503]:
+          - listitem [ref=e504]:
+            - generic [ref=e505]: Safety
+          - listitem [ref=e506]:
+            - generic [ref=e507]: Contact
+      - navigation "Legal" [ref=e508]:
+        - heading "Legal" [level=2] [ref=e509]
+        - list [ref=e510]:
+          - listitem [ref=e511]:
+            - generic [ref=e512]: Terms
+          - listitem [ref=e513]:
+            - generic [ref=e514]: Privacy
+    - paragraph [ref=e516]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## admin-translations.spec.ts › U4g bulk approval, order and orphans › TR-19 approve-all approves reviewed rows and skips flagged ones @global-state
+
+- Class: **quarantined global-state** (INC-117, non-gating)
 
 - Source: `shard 3`
 - Project: `desktop-1280`
 
 ```text
-Error: expect(locator).toBeEnabled() failed
+Error: the strings list never rendered all four seeded TR-19 rows
 
-Locator:  getByTestId('approve-all-start')
-Expected: enabled
-Received: disabled
-Timeout:  20000ms
+expect(received).toBe(expected) // Object.is equality
 
-Call log:
-  - Expect "toBeEnabled" with timeout 20000ms
-  - waiting for getByTestId('approve-all-start')
-    24 × locator resolved to <button disabled type="button" data-testid="approve-all-start" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 p…>Approve all reviewed (0)</button>
-       - unexpected value "disabled"
+Expected: 4
+Received: 0
 
+Call Log:
+- Timeout 30000ms exceeded while waiting on the predicate
 
 [INC-112] phase: TR-19 seed check
 [INC-112] url: http://127.0.0.1:4173/admin/translations/zxy-de
-[INC-112] testids: strings-coverage=1 strings-search=1 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
+[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=0 approve-all-start=0 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
-  ["auth-derived","admin","translations","languages"] status=success error=none dataUpdatedAt=1788282506150 dataLength=14
-  ["auth-derived","admin","translations","stats","zxy-de"] status=success error=none dataUpdatedAt=1788282506166 dataLength=1
-  ["auth-derived","admin","translations","my-scope"] status=pending error=none dataUpdatedAt=0 dataLength=null
-  ["auth-derived","admin","translations","rows",{"lang":"zxy-de","status":"all","search":"","limit":25,"offset":0,"orphaned":false}] status=success error=none dataUpdatedAt=1788282506169 dataLength=keys:2
+  (no matching queries)
 ```
 
 Context:
@@ -92,6 +108,14 @@ Context:
     - paragraph [ref=e740]: © 2026 ethio.com — All rights reserved.
 ```
 ```
+
+## Server errors: shard 1
+
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Server errors: shard 3
 
