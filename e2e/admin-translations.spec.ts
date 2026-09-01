@@ -1121,10 +1121,9 @@ test.describe("U4b translations console", () => {
         .toBe("machine|true|true");
 
       // THE DATA METER exists for this language and counts a real universe.
+      // The meter is a CELL inside the language row (J5: cells are row-scoped).
       await gotoReady(page, "/admin/translations");
-      const meter = translationsSurface(page).getByTestId(
-        rowTestId(page, `lang-data-coverage-${fence}`),
-      );
+      const meter = langRow(page, fence).getByTestId(`lang-data-coverage-${fence}`);
       await expect(meter).toBeVisible({ timeout: 20000 });
       expect(Number((await meter.innerText()).replace(/[^0-9]/g, "").length)).toBeGreaterThan(0);
     } finally {
@@ -1744,89 +1743,94 @@ test.describe("U4g bulk approval, order and orphans", () => {
     });
   });
 
-  test("TR-21 a key missing from the synced catalog is orphaned and excluded", async ({ page }) => {
-    test.setTimeout(120_000);
-    const fence = bulkFence();
-    await ensureFenceLanguage(fence);
-    const supabase = adminClient();
-    const key = scratchKey("tr21");
-    await seedScratchKey(key, "Orphan source", fence);
-    // sync may only orphan sync-origin keys — INC-105. The seed is a TABLE
-    // write through the service client, stamped with the origin the sweep owns.
-    {
-      const { error } = await supabase
-        .from("ui_translations")
-        .update({ origin: "sync" })
-        .eq("key", key);
-      if (error) throw new Error(`[e2e:u4g] stamping ${key} origin failed: ${error.message}`);
-    }
+  test(
+    "TR-21 a key missing from the synced catalog is orphaned and excluded",
+    { tag: "@global-state" },
+    async ({ page }) => {
+      test.info().annotations.push({ type: "global-state", description: "INC-117" });
+      test.setTimeout(120_000);
+      const fence = bulkFence();
+      await ensureFenceLanguage(fence);
+      const supabase = adminClient();
+      const key = scratchKey("tr21");
+      await seedScratchKey(key, "Orphan source", fence);
+      // sync may only orphan sync-origin keys — INC-105. The seed is a TABLE
+      // write through the service client, stamped with the origin the sweep owns.
+      {
+        const { error } = await supabase
+          .from("ui_translations")
+          .update({ origin: "sync" })
+          .eq("key", key);
+        if (error) throw new Error(`[e2e:u4g] stamping ${key} origin failed: ${error.message}`);
+      }
 
-    // INC-099 (J-law): fixture reads are TABLE reads through the service
-    // client. The gated RPC is the app's seam, never the test's oracle.
-    const statOf = async (field: "total" | "orphaned") => {
-      const { count, error } = await supabase
-        .from("ui_translations")
-        .select("key", { count: "exact", head: true })
-        .eq("lang_code", fence)
-        .eq("orphaned", field === "orphaned");
-      if (error) throw new Error(`[e2e:u4g] stats table read failed: ${error.message}`);
-      return Number(count ?? 0);
-    };
+      // INC-099 (J-law): fixture reads are TABLE reads through the service
+      // client. The gated RPC is the app's seam, never the test's oracle.
+      const statOf = async (field: "total" | "orphaned") => {
+        const { count, error } = await supabase
+          .from("ui_translations")
+          .select("key", { count: "exact", head: true })
+          .eq("lang_code", fence)
+          .eq("orphaned", field === "orphaned");
+        if (error) throw new Error(`[e2e:u4g] stats table read failed: ${error.message}`);
+        return Number(count ?? 0);
+      };
 
-    try {
-      const { secret } = await signInAsSuperAdmin(page);
-      await gotoReady(page, `/admin/translations/${fence}`);
+      try {
+        const { secret } = await signInAsSuperAdmin(page);
+        await gotoReady(page, `/admin/translations/${fence}`);
 
-      // The compiled catalog never contains a scratch key, so the console's own
-      // sync is exactly the "payload lacking this key" the law describes.
-      const orphanedBefore = await statOf("orphaned");
-      await gotoReady(page, "/admin/translations");
-      await page.getByTestId("translations-sync-run").click();
-      await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 60000 });
-      // Siblings may fence-seed concurrently, so the count is asserted as a
-      // floor; the per-key flag below is the exact truth (J4).
-      await expect
-        .poll(() => statOf("orphaned"), {
-          timeout: 60000,
-          message: "the sync never marked the absent key orphaned",
-        })
-        .toBeGreaterThan(orphanedBefore - 1);
+        // The compiled catalog never contains a scratch key, so the console's own
+        // sync is exactly the "payload lacking this key" the law describes.
+        const orphanedBefore = await statOf("orphaned");
+        await gotoReady(page, "/admin/translations");
+        await page.getByTestId("translations-sync-run").click();
+        await stepUpIfPrompted(page, secret);
+        await expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 60000 });
+        // Siblings may fence-seed concurrently, so the count is asserted as a
+        // floor; the per-key flag below is the exact truth (J4).
+        await expect
+          .poll(() => statOf("orphaned"), {
+            timeout: 60000,
+            message: "the sync never marked the absent key orphaned",
+          })
+          .toBeGreaterThan(orphanedBefore - 1);
 
-      const { data: orphanRow } = await supabase
-        .from("ui_translations")
-        .select("orphaned")
-        .eq("key", key)
-        .eq("lang_code", fence)
-        .maybeSingle();
-      expect(orphanRow?.orphaned, "the absent key carries the orphan flag").toBe(true);
+        const { data: orphanRow } = await supabase
+          .from("ui_translations")
+          .select("orphaned")
+          .eq("key", key)
+          .eq("lang_code", fence)
+          .maybeSingle();
+        expect(orphanRow?.orphaned, "the absent key carries the orphan flag").toBe(true);
 
-      // Coverage excludes it, and the console shows it behind its own chip.
-      await gotoReady(page, `/admin/translations/${fence}`);
-      await expect(page.getByTestId("strings-chip-orphaned")).toContainText(/\d/);
-      await page.getByTestId("strings-chip-orphaned").click();
-      await page.getByTestId("strings-search").fill(key);
-      await expect(stringRow(page, slug(key))).toBeVisible({ timeout: 20000 });
+        // Coverage excludes it, and the console shows it behind its own chip.
+        await gotoReady(page, `/admin/translations/${fence}`);
+        await expect(page.getByTestId("strings-chip-orphaned")).toContainText(/\d/);
+        await page.getByTestId("strings-chip-orphaned").click();
+        await page.getByTestId("strings-search").fill(key);
+        await expect(stringRow(page, slug(key))).toBeVisible({ timeout: 20000 });
 
-      // Re-inserting the key into the catalog view clears the flag (the RPC's
-      // own contract): a direct re-sync would need the key in the compiled
-      // catalog, so the restoration is proven through the writer's flag reset.
-      const { error: restoreError } = await supabase
-        .from("ui_translations")
-        .update({ orphaned: false })
-        .eq("key", key);
-      if (restoreError) throw new Error(`[e2e:u4g] restore failed: ${restoreError.message}`);
-      await expect
-        .poll(() => statOf("total"), {
-          timeout: 30000,
-          message: "the restored key never returned to the live catalog",
-        })
-        .toBeGreaterThan(0);
-    } finally {
-      await supabase.from("ui_translation_revisions").delete().eq("key", key);
-      await reapScratchKey(key);
-    }
-  });
+        // Re-inserting the key into the catalog view clears the flag (the RPC's
+        // own contract): a direct re-sync would need the key in the compiled
+        // catalog, so the restoration is proven through the writer's flag reset.
+        const { error: restoreError } = await supabase
+          .from("ui_translations")
+          .update({ orphaned: false })
+          .eq("key", key);
+        if (restoreError) throw new Error(`[e2e:u4g] restore failed: ${restoreError.message}`);
+        await expect
+          .poll(() => statOf("total"), {
+            timeout: 30000,
+            message: "the restored key never returned to the live catalog",
+          })
+          .toBeGreaterThan(0);
+      } finally {
+        await supabase.from("ui_translation_revisions").delete().eq("key", key);
+        await reapScratchKey(key);
+      }
+    },
+  );
 
   /**
    * TR-22 (INC-107) — A PUBLISHED LANGUAGE NEVER REQUIRES A COMPILED FILE.
