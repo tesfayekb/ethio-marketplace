@@ -82,3 +82,33 @@ The clean-audit verdict itself comes only from CI — `bun audit` 404s in the sa
 Transitive advisories are remediated by `overrides` in the same push that
 detects them — never deferred, never accepted merely because the package is
 not in the runtime tree (law H2).
+
+## 2026-09-01 Audit — browserslist / update-browserslist-db, REMEDIATED
+
+- Packages: `browserslist` (build-chain, reached through `vite` and
+  `@babel/helper-compilation-targets`) and its `update-browserslist-db` CLI.
+- Action: `bun update browserslist update-browserslist-db`. A version at or
+  above the advisories' fix EXISTS, so the fix was LANDED — no ruling, no
+  deferral (law H2).
+- Resolved in `bun.lock`: `browserslist@4.28.8`, `update-browserslist-db@1.3.2`,
+  `caniuse-lite@1.0.30001810`.
+- Expressed as `package.json` `overrides`, not as direct dependencies. `bun
+update` on a transitive package promotes it into `dependencies`, which would
+  falsely declare a build-chain package as application code; the override form
+  also pulls the NESTED `@babel/helper-compilation-targets` copy (previously
+  pinned at 4.28.2) onto the same patched version, leaving exactly one
+  `browserslist` in the tree.
+- Verification: install clean, lockfile regenerated, typecheck/lint/build/
+  format:check green. `bun audit` cannot reach the advisory service from the
+  build sandbox (404), so the clean-audit verdict comes from the CI
+  `dependency-audit` job — which fails on high/critical and treats a transport
+  failure as its own distinct red, never as a pass.
+
+### Ruling mechanism (restated)
+
+There is no blanket skip and no `|| true`. When a fix version does NOT exist,
+the finding is recorded here as a DATED ruling naming the package, the reason
+it cannot be remediated ("build-time-only transitive; not in the shipped
+bundle"), and an explicit RE-CHECK DATE (detection + 14 days); the CI gate then
+points reviewers at this file. Nothing is accepted merely because it is not in
+the runtime tree.

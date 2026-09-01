@@ -1556,7 +1556,7 @@ gated the push. DEC-028 moves the enforcement into the lanes:
 obvious remedy (retries) hides the blip instead: Playwright's `flaky` status
 was, until now, collected by the reporter as an ordinary FAILURE, so switching
 retries on without touching the reporter would have turned a recovered test
-into a gating red — and switching it on *with* a naive fix would have turned it
+into a gating red — and switching it on _with_ a naive fix would have turned it
 into silence.
 
 DEC-030 takes the third path: the parallel matrix retries once, the nightly does
