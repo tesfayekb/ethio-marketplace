@@ -1143,3 +1143,29 @@ RULES:
   wrangler that supports it, in one landing.
 - A TRIPWIRE THAT CAN ONLY REFUSE IS NOT A TRIPWIRE — the parity job is gating,
   and its refusal message now names the remedy instead of excusing itself.
+
+## INC-112 — TR-19 timed out blank (2026-09-01)
+
+FINDING (verbatim, run 33517466975, shard 3, desktop-1280): "Test timeout of
+120000ms exceeded." with a footer-only ARIA snapshot, no phase names, no
+server errors and no client errors. The report could not say whether the
+strings page had loaded, whether the approve bar had rendered, whether a
+dialog was sitting over the surface, or which interaction consumed the budget.
+
+FIX: J-law applied. TR-19 now runs as named `test.step`s (sign-in / open fence
+page / seed check / approve-all start / confirm / step-up / summary / poll DB
+truth), every poll and wait budgeted strictly shorter than the test budget,
+and each step rethrows with a shared dump. `describeStringsPage(page)` in
+`e2e/helpers/ui.ts` (precedent: describeUserDetail, INC-109) reports the route,
+the live query-cache state for the roster / strings / stats queries (status,
+error, dataUpdatedAt, data length), presence counts for
+`strings-coverage` / `strings-search` / `strings-unavailable` / the approve
+bar, and whether the step-up or confirm dialog is open. It is available to
+every TR test on failure.
+
+RULES:
+
+- A TEST THAT CAN ONLY REPORT "TIMEOUT" IS NOT INSTRUMENTED — every long test
+  names its phases and every phase failure carries the surface's state.
+- A DUMP IS SHARED, NEVER INLINE — surface describers live in
+  `e2e/helpers/ui.ts` so the next test inherits the evidence for free.

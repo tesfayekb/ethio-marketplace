@@ -1228,7 +1228,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
           "a flagged row is skipped, never approved",
         ).toBe("machine|true");
       });
-
     } finally {
       for (const key of keys) {
         await supabase.from("ui_translation_revisions").delete().eq("key", key);
