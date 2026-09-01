@@ -1731,12 +1731,15 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await expect(page.locator("html")).toHaveAttribute("data-app-ready", "1");
       await waitForHydration(page);
 
-      // 3. The seeded keys render their fence values …
+      // 3. The seeded keys render their fence values. U4g-29 (INC-116): the
+      //    anchor must be visible at BOTH viewports — the wordmark (`app.name`)
+      //    is `md+` only, so the sign-in link and the switcher's aria-label are
+      //    the assertions. `app.name` stays seeded (the header still resolves
+      //    it) but is never the oracle.
       await expect(
-        page.getByRole("link", { name: SEEDED["app.name"], exact: true }),
-        "the seeded brand key did not render its DB value",
+        page.getByRole("link", { name: SEEDED["auth.signIn"] }),
+        "the seeded sign-in key did not render its DB value",
       ).toBeVisible({ timeout: 20000 });
-      await expect(page.getByRole("link", { name: SEEDED["auth.signIn"] })).toBeVisible();
       await expect(page.getByTestId("language-switcher")).toHaveAttribute(
         "aria-label",
         SEEDED["language.label"],
