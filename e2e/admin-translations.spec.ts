@@ -1362,8 +1362,22 @@ test.describe("U4g bulk approval, order and orphans", () => {
     }
   });
 
+  /**
+   * U4g-28 (INC-115e) — GLOBAL-ORDER MUTATIONS RUN IN ONE PROJECT. The roster
+   * is a SINGLE global list, not a per-project surface: two projects moving the
+   * same fence concurrently race on one row, and an absolute index assertion is
+   * then false through no fault of the feature. Move semantics therefore run on
+   * desktop-1280 only, and they assert RELATIVE order (the fence lands directly
+   * above its former upper neighbour). Mobile keeps TR-20m: controls present
+   * and enabled, no move.
+   */
   test("TR-20 roster order is operator-editable and persists", async ({ page }) => {
+    test.skip(
+      test.info().project.name !== "desktop-1280",
+      "global order is a single list — one project mutates it",
+    );
     test.setTimeout(120_000);
+
     const fence = bulkFence();
     await ensureFenceLanguage(fence);
     const supabase = adminClient();
