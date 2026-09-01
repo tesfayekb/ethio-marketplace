@@ -541,3 +541,49 @@ export async function describeStringsPage(page: Page): Promise<string> {
     `[INC-112] queries:\n${cache || "  (no matching queries)"}`,
   ].join("\n");
 }
+
+/**
+ * U4g-21 (INC-113) — THE SWITCHER'S OWN DUMP.
+ *
+ * A published language that is missing from the switcher used to fail as a
+ * bare "option not visible": nothing said whether the provider's gate list had
+ * arrived, what it contained, or which language was active. This reads the
+ * provider's mirrored snapshot (`window.__ethioPublicLanguages`) alongside the
+ * rendered options, so the next failure names the seam (gate vs render).
+ */
+export async function describeSwitcher(page: Page): Promise<string> {
+  let snapshot = "(provider snapshot unavailable)";
+  try {
+    snapshot = await page.evaluate(() => {
+      const value = (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"];
+      return value === undefined ? "(provider never published a snapshot)" : JSON.stringify(value);
+    });
+  } catch (error) {
+    snapshot = `(snapshot read threw: ${(error as Error).message})`;
+  }
+
+  let options = "(options unread)";
+  try {
+    options = (
+      await page
+        .locator("[data-testid^='language-option-']")
+        .evaluateAll((nodes) =>
+          nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", "")),
+        )
+    ).join(",");
+  } catch (error) {
+    options = `(options read threw: ${(error as Error).message})`;
+  }
+
+  const htmlLang = await page
+    .locator("html")
+    .getAttribute("lang")
+    .catch(() => "(unread)");
+
+  return [
+    `[INC-113] url: ${page.url()}`,
+    `[INC-113] html lang: ${htmlLang ?? "(none)"}`,
+    `[INC-113] provider publicLanguages: ${snapshot}`,
+    `[INC-113] rendered options: ${options || "(none)"}`,
+  ].join("\n");
+}

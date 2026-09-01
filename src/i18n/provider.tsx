@@ -83,10 +83,25 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
   const query =
     "select=code,name_en,name_native,rtl,sort" +
     "&or=(enabled_public.eq.true,is_base.eq.true)" +
-    "&order=sort.asc";
+    "&order=sort.asc" +
+    // U4g-21 (INC-113) — INVARIANT: A GATE LIST IS NEVER CACHED ACROSS LOADS.
+    // Publication is an operator decision that must be visible on the NEXT page
+    // load, so this read is uncacheable by construction: `cache: "no-store"`
+    // plus a per-request busting parameter defeats the HTTP cache, any
+    // intermediary, and any future service worker that might match the URL.
+    // (Census 2026-09-01: this project registers NO service worker — no
+    // VitePWA plugin, no src/sw*, no public/sw.js — so nothing caches
+    // /rest/v1/* today; the invariant is enforced here, at the request, so it
+    // survives REQ-039 landing a worker later.)
+    `&_ts=${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   try {
     const response = await fetch(`${url}/rest/v1/languages?${query}`, {
-      headers: { apikey: key, accept: "application/json" },
+      cache: "no-store",
+      headers: {
+        apikey: key,
+        accept: "application/json",
+        "cache-control": "no-cache",
+      },
     });
     if (!response.ok) return null;
     const rows = (await response.json()) as PublicLanguage[];
@@ -337,6 +352,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
+
+  // U4g-21 (INC-113) — the gate snapshot an E2E failure dump reads. Mirrored
+  // state only: nothing in the app reads it, and it is written, never watched.
+  useEffect(() => {
+    (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] = {
+      gateReady,
+      active: language,
+      codes: publicLanguages.map((row) => row.code),
+    };
+  }, [gateReady, language, publicLanguages]);
 
   const value = useMemo<I18nValue>(
     () => ({
