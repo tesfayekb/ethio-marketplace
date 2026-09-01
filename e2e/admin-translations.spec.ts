@@ -1186,33 +1186,37 @@ test.describe("U4f — publication gate governs language choice", () => {
       );
 
 
-    await gotoReady(page, "/");
-    await page.getByTestId("language-switcher").click();
-    await expect
-      .poll(
-        async () =>
-          page
-            .locator("[data-testid^='language-option-']")
-            .evaluateAll((nodes) =>
-              nodes
-                .map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", ""))
-                .sort(),
+      await gotoReady(page, "/");
+      await page.getByTestId("language-switcher").click();
+      await expect
+        .poll(
+          async () =>
+            withoutFences(
+              await page
+                .locator("[data-testid^='language-option-']")
+                .evaluateAll((nodes) =>
+                  nodes.map((n) =>
+                    (n.getAttribute("data-testid") ?? "").replace("language-option-", ""),
+                  ),
+                ),
             ),
-        { timeout: 15000, message: "switcher options never matched the gate's public list" },
-      )
-      .toEqual(expected)
-      // U4g-21 (INC-113): a gate-list mismatch dumps the provider snapshot.
-      .catch(async (error: unknown) => {
-        throw new Error(
-          `${error instanceof Error ? error.message : String(error)}\n\n${await describeSwitcher(page)}`,
-        );
-      });
-    await page.keyboard.press("Escape");
+          { timeout: 15000, message: "switcher options never matched the gate's public list" },
+        )
+        .toEqual(expected)
+        // U4g-21 (INC-113): a gate-list mismatch dumps the provider snapshot.
+        .catch(async (error: unknown) => {
+          throw new Error(
+            `${error instanceof Error ? error.message : String(error)}\n\n${await describeSwitcher(page)}`,
+          );
+        });
+      await page.keyboard.press("Escape");
 
-    // A forced non-public code is refused: the runtime renders the base language.
-    await gotoReady(page, "/?lang=om");
-    await expect(page.locator("html")).toHaveAttribute("lang", "en", { timeout: 15000 });
-  });
+      // A forced non-public code is refused: the runtime renders the base language.
+      await gotoReady(page, "/?lang=om");
+      await expect(page.locator("html")).toHaveAttribute("lang", "en", { timeout: 15000 });
+    },
+  );
+
 });
 
 /**
