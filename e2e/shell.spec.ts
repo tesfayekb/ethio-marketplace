@@ -1313,20 +1313,31 @@ test.describe("desktop layout laws (U0g)", () => {
  * depends on auth/permissions only, never on i18n state — must still fire.
  */
 test.describe("i18n gate is non-blocking (U4f-2)", () => {
-  /** Delays the public-language read so a blocking provider would be obvious. */
+  /**
+   * Delays the public-language read so a blocking provider would be obvious.
+   * INC-110 — the harness also REPORTS resolution: non-blocking is asserted by
+   * ORDERING (did the guard fire before this response landed?), with the
+   * wall clock kept only as a secondary signal.
+   */
   async function delayLanguagesRead(page: Page, ms: number) {
+    const state = { resolved: false };
     await page.route(/\/rest\/v1\/languages\?/, async (route) => {
       await new Promise((resolve) => setTimeout(resolve, ms));
+      state.resolved = true;
       await route.continue();
     });
+    return state;
   }
 
   test("TR-18 the header renders while the languages read is still in flight", async ({ page }) => {
-    await delayLanguagesRead(page, 5000);
+    const languages = await delayLanguagesRead(page, 5000);
 
     const started = Date.now();
     await page.goto("/");
     await expect(page.getByTestId("language-switcher")).toBeVisible({ timeout: 2000 });
+    // PRIMARY (ordering): the chrome painted before the delayed read resolved.
+    expect(languages.resolved).toBe(false);
+    // SECONDARY (clock): unchanged budget.
     expect(Date.now() - started).toBeLessThan(5000);
   });
 
@@ -1335,11 +1346,21 @@ test.describe("i18n gate is non-blocking (U4f-2)", () => {
   }) => {
     const user = await createUser({ confirmed: true });
     await signIn(page, user.email, user.password);
-    await delayLanguagesRead(page, 5000);
+    const languages = await delayLanguagesRead(page, 5000);
 
     const started = Date.now();
     await page.goto("/admin");
     await expect(page).toHaveURL(/\/$/, { timeout: 8000 });
-    expect(Date.now() - started).toBeLessThan(5000);
+    // PRIMARY (ordering): the URL changed while the languages read was STILL
+    // in flight — the guard awaited nothing i18n-related.
+    const resolvedAtRedirect = languages.resolved;
+    const elapsed = Date.now() - started;
+    expect(
+      resolvedAtRedirect,
+      `redirect took ${elapsed}ms and only happened after the delayed languages response`,
+    ).toBe(false);
+    // SECONDARY (clock): unchanged budget.
+    expect(elapsed).toBeLessThan(5000);
   });
 });
+
