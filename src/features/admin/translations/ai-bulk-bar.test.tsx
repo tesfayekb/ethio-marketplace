@@ -15,7 +15,9 @@ import { AiBulkBar } from "./ai-bulk-bar";
  */
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    // The real catalog interpolates `{count}`; the identity stub keeps the
+    // placeholder so the component's own substitution stays observable.
+    t: (key: string) => `${key} ({count})`,
     language: "en",
     setLanguage: () => {},
     publicLanguages: [],
@@ -60,6 +62,7 @@ describe("AiBulkBar", () => {
     const start = screen.getByTestId("ai-bulk-start");
     expect(start).toBeDisabled();
     expect(start).toHaveTextContent("admin.translations.ai.pending");
+    expect(start.textContent ?? "").not.toContain("{count}");
     expect(start.textContent ?? "").not.toContain("0");
   });
 

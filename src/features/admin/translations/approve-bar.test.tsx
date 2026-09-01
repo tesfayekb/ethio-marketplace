@@ -19,7 +19,9 @@ import { ApproveAllBar } from "./approve-bar";
  */
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    // The real catalog interpolates `{count}`; the identity stub keeps the
+    // placeholder so the component's own substitution stays observable.
+    t: (key: string) => `${key} ({count})`,
     language: "en",
     setLanguage: () => {},
     publicLanguages: [],
