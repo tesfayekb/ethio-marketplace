@@ -265,3 +265,4 @@
 - 2026-09-01 — ci(DEC-028): global-state specs serial-only; quarantined failures reported, non-gating. format:check + reporter self-test; CI proves.
 - 2026-09-01 — chore(deps): browserslist 4.28.8 + update-browserslist-db 1.3.2 via overrides (whole tree, no nested copy); audit ruling recorded
 - 2026-09-01 — ci(DEC-030): retries:1 in the parallel matrix (nightly stays 0); flake ledger rendered, appended and self-tested (INC-118)
+- 2026-09-02 — feat(i18n): U4j — data-layer AI (per-row + bulk), data coverage meters, guided language creation from the provider's list with native names, RTL and countries
