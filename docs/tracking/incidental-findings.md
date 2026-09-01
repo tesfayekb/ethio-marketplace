@@ -1169,3 +1169,93 @@ RULES:
   names its phases and every phase failure carries the surface's state.
 - A DUMP IS SHARED, NEVER INLINE — surface describers live in
   `e2e/helpers/ui.ts` so the next test inherits the evidence for free.
+
+## INC-113 — one predicate for count and action; gate lists are never cached
+
+DATE: 2026-09-01 · PHASE: U4g-21 · TIER: A
+
+### Finding 1 — `reviewable` was defined twice (verbatim census, 2026-09-01)
+
+`admin_translation_stats`, reviewable column (`pg_get_functiondef`):
+
+```sql
+count(*) FILTER (WHERE NOT t.orphaned AND NOT t.flagged
+                   AND t.status IN ('machine', 'edited'))
+```
+
+`approve_all_translations_impl`, row predicate (capture + update, identical in
+both statements):
+
+```sql
+WHERE t.lang_code = p_lang
+  AND t.status IN ('machine', 'edited')
+  AND NOT t.flagged AND NOT t.orphaned
+```
+
+TR-19's seed (`e2e/admin-translations.spec.ts`): three rows
+`status='machine', machine=true, flagged=false` and one row
+`status='machine', machine=true, flagged=true, flag_note='placeholder
+mismatch'`; `orphaned` and `origin` left at their defaults (`false`,
+`'manual'`); the fence language is `zxy`.
+
+HONESTY (law A3): the two expressions AGREE. A live probe against the seed
+shape (3 machine + 1 flagged + 1 orphaned in `zxy`) returned
+`stats_reviewable = 3` and `approve_target = 3` BEFORE any change, so the
+observed `reviewable = 0` in the TR-19 dump is NOT convicted at this seam — it
+is a client-side symptom (a stats query that errored, was pending, or was
+served for the wrong language), and the INC-112 dump now records exactly that
+state on the next occurrence. What IS a defect is the DUPLICATION: the number
+an operator reads and the rows the sweep touches were two independent copies of
+one rule, free to drift on any future edit.
+
+FIX: one shared definition, `public.ui_translation_reviewable(status, flagged,
+orphaned)` (IMMUTABLE, SECURITY INVOKER):
+
+```sql
+reviewable := status IN ('machine','edited') AND NOT flagged AND NOT orphaned
+```
+
+Both the stats count and approve-all's skip / capture / update predicates call
+it. Proof on staging after the apply: seeding 3 machine + 1 flagged + 1
+orphaned in `zxy` gave `reviewable_shared = 3`, and
+`approve_all_translations_impl('zxy')` returned
+`{"approved": 3, "skipped_flagged": 1}` with the flagged and orphaned rows
+still `machine`. Probe rows and the fence language were removed afterwards.
+
+### Finding 2 — the gate list could be served from cache across loads
+
+Provider read before the fix (`src/i18n/provider.tsx`, `fetchPublicLanguages`):
+
+```
+GET ${VITE_SUPABASE_URL}/rest/v1/languages
+    ?select=code,name_en,name_native,rtl,sort
+    &or=(enabled_public.eq.true,is_base.eq.true)
+    &order=sort.asc
+headers: { apikey, accept: "application/json" }   // no cache directive
+init:    (default `cache` mode; no cache key of its own)
+```
+
+Service-worker census (2026-09-01): this project registers NO service worker —
+no `VitePWA` plugin in `vite.config.ts`, no `src/sw*`, no `public/sw.js`; PWA
+mechanics are still unbuilt (REQ-039, gap register). So nothing caches
+`/rest/v1/*` today, and the reload-invisibility TR-22 saw cannot be blamed on a
+worker; the exposure is the request itself, which was cacheable by the HTTP
+cache and by any intermediary, and would be matched by a future worker route.
+
+FIX: the public-list read is uncacheable BY CONSTRUCTION — `cache: "no-store"`,
+`cache-control: no-cache`, and a per-request busting parameter (`_ts`) keyed to
+the request. The invariant is stated in the code beside the fetch. TR-22 and
+TR-17 now dump the provider's own `publicLanguages` snapshot
+(`window.__ethioPublicLanguages`: gateReady, active language, codes) plus the
+rendered options through `describeSwitcher(page)` in `e2e/helpers/ui.ts`, so a
+missing option names the seam (gate vs render) instead of timing out bare.
+
+RULES:
+
+- ONE PREDICATE FOR COUNT AND ACTION — a number an operator reads before acting
+  and the rows the action touches are the SAME definition, in one place; two
+  copies that agree today are a drift, not a coincidence.
+- GATE LISTS ARE NEVER CACHED ACROSS LOADS — publication, permission and other
+  gate reads are fetched `no-store` with their own busting key, and no caching
+  layer (HTTP, intermediary, service worker) may answer them; an operator
+  decision must be visible on the next page load.
