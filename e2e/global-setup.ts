@@ -28,9 +28,14 @@ const STAGING_REF = "jatpuhfdjfzctjipklmk";
  * U4g-25 (INC-115b) — FENCES CARRY THE PROJECT AXIS: a sweep test running on
  * two viewports is TWO sweeps. Desktop's approve-all swept mobile's freshly
  * seeded rows inside the shared `zxy` (mobile saw reviewable=0, 2 of 4 keys).
- * Every fence is therefore region-suffixed per Playwright project — `zxx-m` /
- * `zxx-d`, `zxy-m` / `zxy-d` — which still satisfies the route's
- * ^[a-z]{2,8}(-[a-z]{2,8})?$ contract.
+ * Every fence is therefore region-suffixed per Playwright project.
+ *
+ * U4g-26 (INC-115c) — THE SUBTAG MINIMUM IS TWO LETTERS: the route's
+ * ^[a-z]{2,8}(-[a-z]{2,8})?$ rejects a one-letter region, so `zxx-m` was
+ * refused and TR-12's bulk never produced a summary. Suffixes are `mo` / `de`
+ * (and any fallback is padded to at least two letters): `zxx-mo` / `zxx-de`,
+ * `zxy-mo` / `zxy-de`. The reaper's prefixes are unchanged — it matches by
+ * prefix, so a longer suffix is still swept.
  */
 export const FENCE_PREFIXES = { bulk: "zxx", approve: "zxy" } as const;
 
@@ -40,14 +45,14 @@ export type FenceKind = keyof typeof FENCE_PREFIXES;
 export const FENCE_PREFIX_LIST = Object.values(FENCE_PREFIXES);
 
 /**
- * The project axis, reduced to a region subtag: only [a-z]{1,8} survives, so
- * any future project name still yields a route-legal code.
+ * The project axis, reduced to a region subtag of 2–8 letters (INC-115c):
+ * anything shorter is not a legal subtag and the translate route refuses it.
  */
 export function fenceProjectSuffix(project: string): string {
   const letters = project.toLowerCase().replace(/[^a-z]/g, "");
-  if (letters.startsWith("mobile")) return "m";
-  if (letters.startsWith("desktop")) return "d";
-  return (letters || "x").slice(0, 8);
+  if (letters.startsWith("mobile")) return "mo";
+  if (letters.startsWith("desktop")) return "de";
+  return (letters || "xx").padEnd(2, "x").slice(0, 8);
 }
 
 /** The fence code a given sweep kind uses inside a given Playwright project. */

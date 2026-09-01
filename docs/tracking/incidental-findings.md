@@ -1391,3 +1391,24 @@ RULES:
   and two sweeps never share one fence (J2's addendum, extended).
 - A FENCE REAPER MATCHES THE FAMILY, NOT A LITERAL — residue is deleted by
   prefix so a newly suffixed fence can never outlive its run.
+
+## INC-115c — A REGION SUBTAG IS TWO LETTERS; AN AUDITED MUTATION INVALIDATES ITS ACTIVITY
+
+EVIDENCE: TR-12 failed four times — the AI bulk never produced a summary
+because `/api/translate` validates `target_lang` against
+`^[a-z]{2,8}(-[a-z]{2,8})?$`, and the per-project fence `zxx-m` carries a
+ONE-letter region, which that contract rejects.
+
+CHANGE: `fenceProjectSuffix` now yields two-letter subtags — `mo` / `de`, with
+any fallback padded to at least two letters — so the fences are `zxx-mo` /
+`zxx-de` and `zxy-mo` / `zxy-de`. The reaper's prefixes are unchanged: it
+matches by prefix, so a longer suffix is still swept. The profile-edit
+mutation (`useUpdateProfile`) invalidates through the same shared helper as
+status and role changes, naming the exact detail and activity keys.
+
+RULES:
+
+- A GENERATED IDENTIFIER IS CHECKED AGAINST THE CONSUMER'S GRAMMAR — a fence
+  code that a server route refuses is not a fence, it is a silent no-op.
+- EVERY AUDITED MUTATION INVALIDATES THE KEYS ITS AUDIT ROW FEEDS — one shared
+  invalidator, no per-mutation variants.
