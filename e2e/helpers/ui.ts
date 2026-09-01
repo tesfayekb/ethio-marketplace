@@ -228,8 +228,17 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
  * localStorage entry written by @supabase/supabase-js.
  */
 export async function signIn(page: Page, email: string, password: string) {
+  // DEC-029 — non-auth specs get the injected session instead of the form.
+  // The UI path below is kept intact and is what auth specs and the
+  // E2E_UI_LOGIN=1 revert knob still run.
+  if (sessionInjectionEnabled()) {
+    await signInViaSession(page, email, password);
+    return;
+  }
+
   await page.goto("/auth");
   await waitForHydration(page);
+
 
   const emailInput = page.getByRole("textbox", { name: /email/i });
   const passwordInput = page.locator("#auth-password");
