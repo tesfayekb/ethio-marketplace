@@ -182,4 +182,3 @@ export async function injectSession(page: Page, session: PersistedSession): Prom
     { key: storageKey(), value: JSON.stringify(session), sentinel: "__ethio-e2e-injected" },
   );
 }
-
