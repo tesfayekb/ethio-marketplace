@@ -148,7 +148,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [gateReady, setGateReady] = useState(false);
   /** Loop guard (INC-098b): the gate revokes an unpublished language AT MOST once. */
   const reconciledRef = useRef(false);
+  /** INC-107 — one warning per DB-only language, never one per effect run. */
+  const warnedMissingRef = useRef<Set<string>>(new Set());
   const authSettled = useAuthSettled();
+
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
   // Gated activation (U4f) and the once-only reconcile (U4f-2) are unchanged;
