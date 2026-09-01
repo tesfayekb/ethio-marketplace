@@ -573,7 +573,7 @@ is now explicit and proved in-migration:
   bulk collector walks page by page — could skip or repeat a row.
 - `admin_entity_translation_stats(p_lang)` counts the same universe:
   `total = active categories + active locations`, and `untranslated = total −
-  the existing rows whose status is not 'untranslated'`.
+the existing rows whose status is not 'untranslated'`.
 - The writers (`admin_save_entity_translation`,
   `admin_machine_entity_translation`) are UPSERTs, so the FIRST write on a
   universe row CREATES it. Bodies unchanged; grants restated (INC-074),

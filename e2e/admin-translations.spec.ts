@@ -1148,7 +1148,6 @@ test.describe("U4b translations console", () => {
         )
         .toBeLessThan(untranslatedBefore);
 
-
       // THE DATA METER exists for this language and counts a real universe.
       // The meter is a CELL inside the language row (J5: cells are row-scoped).
       await gotoReady(page, "/admin/translations");
