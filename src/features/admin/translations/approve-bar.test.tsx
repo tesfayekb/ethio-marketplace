@@ -35,9 +35,9 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
-const guard = vi.fn(async (action: () => Promise<void>) => {
+const guard: GuardFn = async (action) => {
   await action();
-});
+};
 
 describe("ApproveAllBar", () => {
   it("renders the control AND the zero caption together when nothing is reviewable", () => {
