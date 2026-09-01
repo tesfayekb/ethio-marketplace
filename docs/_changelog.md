@@ -251,3 +251,4 @@
 - 2026-09-01 — test(e2e): 5xx URL capture; AU-3 self-describing failure dump (INC-109)
 - 2026-09-01 — fix(admin): activity list refreshes on mobile; redirect never awaits i18n (INC-110)
 - 2026-09-01 — ci(DEC-019-B): worker compatibility date pinned; nightly cloudflare parity runs for real (INC-111)
+- 2026-09-01 — test(e2e): TR-19 phased + strings-page failure dump (INC-112)
