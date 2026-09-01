@@ -171,19 +171,6 @@ async function expectActivity(page: Page, action: string, userId: string) {
   }
 }
 
-/** The negative twin: the row must be gone, with the same evidence on failure. */
-async function expectNoActivity(page: Page, action: string, userId: string, count = 0) {
-  try {
-    await expect(page.getByTestId(`activity-${action}`)).toHaveCount(count, { timeout: 15000 });
-  } catch (error) {
-    throw new Error(
-      `${(error as Error).message}\n\n[INC-115d] expected activity count ${count}: ${action}\n${await describeUserDetail(
-        page,
-      )}\n${await describeAuditRows(userId)}`,
-    );
-  }
-}
-
 
 test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
@@ -318,12 +305,12 @@ test.describe("U1 admin users", () => {
     await stepUpIfPrompted(page, secret);
     await expectAal2(page);
     await expect(page.getByTestId("role-chip-moderator")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("activity-role.assign").first()).toBeVisible({ timeout: 15000 });
+    await expectActivity(page, "role.assign", scratch.id);
 
     await page.getByTestId("role-remove-moderator").click();
     await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("role-chip-moderator")).toHaveCount(0, { timeout: 15000 });
-    await expect(page.getByTestId("activity-role.revoke").first()).toBeVisible({ timeout: 15000 });
+    await expectActivity(page, "role.revoke", scratch.id);
   });
 
   test("AU-5 seam: a deactivated account cannot write a listing", async ({ page }) => {
@@ -390,9 +377,7 @@ test.describe("U1 admin users", () => {
     await expectAal2(page);
 
     await expect(page.getByTestId("edit-saved")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("activity-user.profile_edit").first()).toBeVisible({
-      timeout: 15000,
-    });
+    await expectActivity(page, "user.profile_edit", scratch.id);
 
     await page.reload();
     await waitForHydration(page);
