@@ -1,10 +1,10 @@
 import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import type { MessageKey } from "@/i18n";
 
 import type {
-import type { Database } from "@/integrations/supabase/types";
   AuthResult,
   Credentials,
   IdentitiesResult,
