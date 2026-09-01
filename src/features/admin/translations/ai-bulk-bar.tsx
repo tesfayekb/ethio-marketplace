@@ -17,19 +17,26 @@ import type { MessageKey } from "@/i18n/types";
 
 import {
   AI_CHUNK_SIZE,
+  listEntityTranslations,
   listTranslations,
   serverMessage,
   translationErrorKey,
+  type AiEntityItem,
   type AiTranslateItem,
 } from "./translations-service";
-import { useAiTranslate } from "./use-translations";
+import { useAiTranslate, useAiTranslateEntities } from "./use-translations";
 
 /**
  * U4c — BULK AI FILL.
  *
  * Provisional by construction: everything the provider returns lands as
- * `machine` status through `admin_machine_translation`, so a human still has to
+ * `machine` status through the scope's writer RPC, so a human still has to
  * approve it before it can ship (the coverage gate counts approved rows only).
+ *
+ * U4j — ONE BAR, TWO SCOPES (law B3: extend via props, never copy). `ui`
+ * collects untranslated KEYS and writes `ui_translations`; `entity` collects
+ * untranslated CONTENT NAMES and writes `entity_translations`. Confirm dialog,
+ * chunking, progress and summary are identical.
  *
  * NOTE (in-scope deviation from the spec's "toast"): no `<Toaster />` is
  * mounted in this app and `__root.tsx` is outside this task's scope, so the
@@ -40,13 +47,17 @@ export function AiBulkBar({
   lang,
   untranslated,
   guard,
+  scope = "ui",
 }: {
   lang: string;
   untranslated: number;
   guard: GuardFn;
+  scope?: "ui" | "entity";
 }) {
   const { t } = useI18n();
-  const translate = useAiTranslate(lang);
+  const translateUi = useAiTranslate(lang);
+  const translateEntities = useAiTranslateEntities(lang);
+  const translate = scope === "entity" ? translateEntities : translateUi;
   const [confirming, setConfirming] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [summary, setSummary] = useState<{
@@ -57,12 +68,8 @@ export function AiBulkBar({
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
-  const run = async () => {
-    setSummary(null);
-    setErrorKey(null);
-    setErrorDetail(null);
-
-    // Collect the untranslated keys up front so the progress count is honest.
+  /** Collect the untranslated work up front so the progress count is honest. */
+  const collectUi = async (): Promise<AiTranslateItem[]> => {
     const items: AiTranslateItem[] = [];
     let offset = 0;
     for (;;) {
@@ -80,6 +87,42 @@ export function AiBulkBar({
       offset += page.rows.length;
       if (page.rows.length === 0 || offset >= page.totalCount) break;
     }
+    return items;
+  };
+
+  const collectEntities = async (): Promise<AiEntityItem[]> => {
+    const items: AiEntityItem[] = [];
+    let offset = 0;
+    for (;;) {
+      const page = await listEntityTranslations({
+        lang,
+        status: "untranslated",
+        limit: AI_CHUNK_SIZE,
+        offset,
+      });
+      for (const row of page.rows) {
+        if (row.sourceValue !== null && row.sourceValue !== "") {
+          items.push({
+            key: `${row.entityType}:${row.entityId}`,
+            source: row.sourceValue,
+            type: row.entityType,
+            id: row.entityId,
+            field: row.field,
+          });
+        }
+      }
+      offset += page.rows.length;
+      if (page.rows.length === 0 || offset >= page.totalCount) break;
+    }
+    return items;
+  };
+
+  const run = async () => {
+    setSummary(null);
+    setErrorKey(null);
+    setErrorDetail(null);
+
+    const items = scope === "entity" ? await collectEntities() : await collectUi();
 
     if (items.length === 0) {
       setSummary({ done: 0, flagged: 0, failed: [] });
@@ -93,7 +136,10 @@ export function AiBulkBar({
     try {
       for (let index = 0; index < items.length; index += AI_CHUNK_SIZE) {
         const chunk = items.slice(index, index + AI_CHUNK_SIZE);
-        const result = await translate.mutateAsync(chunk);
+        const result =
+          scope === "entity"
+            ? await translateEntities.mutateAsync(chunk as AiEntityItem[])
+            : await translateUi.mutateAsync(chunk as AiTranslateItem[]);
         done += result.done;
         flagged += result.flagged;
         failed.push(...result.failed);
@@ -104,6 +150,7 @@ export function AiBulkBar({
     }
     setSummary({ done, flagged, failed });
   };
+
 
   const start = () => {
     setConfirming(false);
