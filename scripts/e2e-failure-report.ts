@@ -1168,6 +1168,27 @@ async function main() {
   console.log(
     `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
   );
+
+  // DEC-028 — THE VERDICT FILE. The nightly (the only lane that runs
+  // `@global-state` specs) decides its heartbeat from THIS, not from the raw
+  // Playwright exit code, so a quarantined red is reported and labeled without
+  // flipping the conclusion. `gating=` is the only field a verdict may read.
+  const verdictPath = process.env["E2E_VERDICT_PATH"];
+  if (verdictPath) {
+    const all = sources.flatMap((s) => (s.json ? collect(s.json).failures : []));
+    const { gating, quarantined } = classifyFailures(all);
+    // A source that produced no results at all is NEVER quarantinable: the
+    // runner died, which is a gating condition of its own (law F4).
+    const silentSources = sources.filter((s) => !s.json || countTests(s.json) === 0).length;
+    const gatingCount = gating.length + silentSources;
+    await Bun.write(
+      verdictPath,
+      `gating=${gatingCount}\nquarantined=${quarantined.length}\nsilent=${silentSources}\n`,
+    );
+    console.log(
+      `Verdict: gating=${gatingCount} quarantined=${quarantined.length} silent=${silentSources} (${verdictPath}).`,
+    );
+  }
 }
 
 /**
