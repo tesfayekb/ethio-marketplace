@@ -1606,3 +1606,12 @@ those two suspicions are cleared.
 a self-test (`translationMapperSelfTest`) that TR-24 runs before the walk. Rows
 are selected by identity (`pickEntityStats(rows, lang)`), never by index, and an
 unknown count renders as pending/error — never as `0`.
+
+## INC-119b — the Data scope rendered no universe rows
+
+Universe rows carry no translation id — the list keyed on it and rendered
+nothing for fresh languages; rows now key on the entity identity
+(`${entity_type}:${entity_id}:${field}`), and every marker/testid derives from
+the same composite (`entity-row-<type>-<id>-<field>`).
+
+RULE: list keys come from the entity, never from the optional translation row.
