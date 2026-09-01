@@ -552,6 +552,11 @@ function StringEditor({
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const id = slug(row.key);
 
+  // U4g-24 (INC-115) — positional placeholder repair (see the button below).
+  const sourceTokens = matchTokens(row.sourceValue ?? "");
+  const draftTokens = matchTokens(draft);
+  const canRestoreTokens = sourceTokens.length > 0 && draftTokens.length === sourceTokens.length;
+
   // MutationAction alias: the hardcoded-string scan reads an inline
   // arrow return type as JSX text (known scanner shape, not a violation).
   const run = (action: MutationAction) => {
