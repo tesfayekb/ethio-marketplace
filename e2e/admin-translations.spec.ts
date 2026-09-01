@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
-import { fenceLang, processId } from "./global-setup";
+import { FENCE_PREFIX_LIST, fenceLang, processId } from "./global-setup";
 import {
   describeStringsPage,
   describeSwitcher,
@@ -1158,52 +1158,63 @@ test.describe("U4b translations console", () => {
  * and asserts the UI agrees with it.
  */
 test.describe("U4f — publication gate governs language choice", () => {
-  test("TR-17: switcher options equal the DB public list; a non-public ?lang falls back", async ({
-    page,
-  }) => {
-    const supabase = adminClient();
-    const { data, error } = await supabase
-      .from("languages")
-      .select("code, sort")
-      .or("enabled_public.eq.true,is_base.eq.true")
-      .order("sort", { ascending: true });
-    if (error || !data) throw new Error(`[e2e:u4f] public language read failed: ${error?.message}`);
-    // U4g — roster order is now operator-editable (TR-20 moves rows), so the
-    // switcher is compared as a SET; ORDER is TR-20's own assertion.
-    const expected = data.map((row) => row.code as string).sort();
-    expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(0);
-    // U4g-28 (INC-115e) — NO FENCE-NEVER-PUBLIC ASSERTION HERE. Fences are
-    // test-owned surfaces: TR-22 publishes its own fence for the duration of
-    // its run, so a concurrent TR-17 legitimately sees it in the gate's list.
-    // This test asserts only SET EQUALITY between the switcher and the DB list.
+  test(
+    "TR-17: switcher options equal the DB public list; a non-public ?lang falls back",
+    { tag: "@global-state" },
+    async ({ page }) => {
+      test.info().annotations.push({ type: "global-state", description: "INC-117" });
+      const supabase = adminClient();
+      const { data, error } = await supabase
+        .from("languages")
+        .select("code, sort")
+        .or("enabled_public.eq.true,is_base.eq.true")
+        .order("sort", { ascending: true });
+      if (error || !data)
+        throw new Error(`[e2e:u4f] public language read failed: ${error?.message}`);
+      // U4g-30 (INC-117) — FENCES ARE TRANSIENT TEST STATE. A concurrent TR-22
+      // publishes its own fence for the duration of its run, so the fence code
+      // can appear in the DB list, in the rendered options, or in only one of
+      // them depending on when each side was read. It is filtered out of BOTH
+      // sides before the set comparison; real languages alone are compared.
+      const withoutFences = (codes: string[]) =>
+        codes.filter((code) => !FENCE_PREFIX_LIST.some((prefix) => code.startsWith(prefix))).sort();
+      // U4g — roster order is now operator-editable (TR-20 moves rows), so the
+      // switcher is compared as a SET; ORDER is TR-20's own assertion.
+      const expected = withoutFences(data.map((row) => row.code as string));
+      expect(expected.length, "the gate must publish at least the base language").toBeGreaterThan(
+        0,
+      );
 
-    await gotoReady(page, "/");
-    await page.getByTestId("language-switcher").click();
-    await expect
-      .poll(
-        async () =>
-          page
-            .locator("[data-testid^='language-option-']")
-            .evaluateAll((nodes) =>
-              nodes
-                .map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", ""))
-                .sort(),
+      await gotoReady(page, "/");
+      await page.getByTestId("language-switcher").click();
+      await expect
+        .poll(
+          async () =>
+            withoutFences(
+              await page
+                .locator("[data-testid^='language-option-']")
+                .evaluateAll((nodes) =>
+                  nodes.map((n) =>
+                    (n.getAttribute("data-testid") ?? "").replace("language-option-", ""),
+                  ),
+                ),
             ),
-        { timeout: 15000, message: "switcher options never matched the gate's public list" },
-      )
-      .toEqual(expected)
-      // U4g-21 (INC-113): a gate-list mismatch dumps the provider snapshot.
-      .catch(async (error: unknown) => {
-        throw new Error(
-          `${error instanceof Error ? error.message : String(error)}\n\n${await describeSwitcher(page)}`,
-        );
-      });
-    await page.keyboard.press("Escape");
+          { timeout: 15000, message: "switcher options never matched the gate's public list" },
+        )
+        .toEqual(expected)
+        // U4g-21 (INC-113): a gate-list mismatch dumps the provider snapshot.
+        .catch(async (error: unknown) => {
+          throw new Error(
+            `${error instanceof Error ? error.message : String(error)}\n\n${await describeSwitcher(page)}`,
+          );
+        });
+      await page.keyboard.press("Escape");
 
-    // A forced non-public code is refused: the runtime renders the base language.
-    await gotoReady(page, "/?lang=om");
-    await expect(page.locator("html")).toHaveAttribute("lang", "en", { timeout: 15000 });
-  });
+      // A forced non-public code is refused: the runtime renders the base language.
+      await gotoReady(page, "/?lang=om");
+      await expect(page.locator("html")).toHaveAttribute("lang", "en", { timeout: 15000 });
+    },
+  );
 });
 
 /**
@@ -1214,8 +1225,12 @@ test.describe("U4f — publication gate governs language choice", () => {
  * other spec — and no operator — depends on.
  */
 test.describe("U4g bulk approval, order and orphans", () => {
-  test("TR-19 approve-all approves reviewed rows and skips flagged ones", async ({ page }) => {
+  test("TR-19 approve-all approves reviewed rows and skips flagged ones @global-state", async ({
+    page,
+  }) => {
+    test.info().annotations.push({ type: "global-state", description: "INC-117" });
     test.setTimeout(120_000);
+
     const fence = approveFence();
     await ensureFenceLanguage(fence);
     // U4g-6 (INC-101): approve-all is a SWEEP — it owns its own fence so it can
@@ -1280,9 +1295,27 @@ test.describe("U4g bulk approval, order and orphans", () => {
       });
 
       await step("TR-19 seed check", async () => {
-        // The seeded rows must be visible to the page's own source before the
-        // sweep runs — otherwise "approved nothing" is indistinguishable from
-        // "never loaded".
+        // U4g-30 (INC-117) — EVERY seeded row is written BEFORE the page is
+        // opened (above, outside this try), and the page's own rows query must
+        // have SEEN all four before the sweep runs — otherwise "approved
+        // nothing" is indistinguishable from "never loaded". The poll reloads
+        // once per turn so a query cached before the seed cannot stick.
+        await expect
+          .poll(
+            async () => {
+              const present = await Promise.all(
+                keys.map((key) => stringRow(page, slug(key)).count()),
+              );
+              const seen = present.filter((count) => count > 0).length;
+              if (seen < keys.length) await page.reload({ waitUntil: "domcontentloaded" });
+              return seen;
+            },
+            {
+              timeout: 30000,
+              message: "the strings list never rendered all four seeded TR-19 rows",
+            },
+          )
+          .toBe(keys.length);
         await expect(page.getByTestId("approve-all-start")).toBeEnabled({ timeout: 20000 });
       });
 
@@ -1370,7 +1403,9 @@ test.describe("U4g bulk approval, order and orphans", () => {
    * above its former upper neighbour). Mobile keeps TR-20m: controls present
    * and enabled, no move.
    */
-  test("TR-20 roster order is operator-editable and persists", async ({ page }) => {
+  test("TR-20 roster order is operator-editable and persists @global-state", async ({ page }) => {
+    test.info().annotations.push({ type: "global-state", description: "INC-117" });
+
     test.skip(
       test.info().project.name !== "desktop-1280",
       "global order is a single list — one project mutates it",
@@ -1666,11 +1701,13 @@ test.describe("U4g bulk approval, order and orphans", () => {
    * the same bytes and cannot race each other's assertions. The writes are
    * TABLE writes through the service client; the gated RPC is the app's seam.
    */
-  test("TR-22 a published DB-only language renders with no compiled catalog", async ({
+  test("TR-22 a published DB-only language renders with no compiled catalog @global-state", async ({
     page,
     clientErrors,
   }) => {
+    test.info().annotations.push({ type: "global-state", description: "INC-117" });
     test.setTimeout(120_000);
+
     const supabase = adminClient();
     const fence = bulkFence();
     await ensureFenceLanguage(fence);

@@ -1500,3 +1500,35 @@ RULES:
 TR-22 (same landing): the assertion anchor must be visible at BOTH viewports —
 the wordmark is `md+` only, so the sign-in link and the switcher's aria-label
 carry the seeded-value proof.
+
+## INC-117 — GLOBAL-STATE TESTS ARE QUARANTINED, NOT TRUSTED AS GATES
+
+EVIDENCE: TR-17 compared the switcher against the DB roster while a concurrent
+TR-22 published its own fence — the two sides were read at different instants,
+so the fence appeared on one side only and the set comparison failed on a
+correct product. TR-19 asserted the approve button before proving the page's
+own rows query had seen the four seeded rows, so "approved nothing" and "never
+loaded" were the same red.
+
+CHANGE (spec-only):
+
+- TR-17 filters every `FENCE_PREFIX_LIST` code out of BOTH the DB list and the
+  rendered options before the set comparison. Fences are transient test state
+  and are never part of the product assertion.
+- TR-19 writes ALL four rows before the page is opened, and its "seed check"
+  phase polls the rendered rows query (reloading once per turn) until all four
+  keys are present; only then is the approve control asserted.
+- TR-17/19/20/22 carry the `@global-state` tag plus a
+  `test.info().annotations` entry; `scripts/e2e-failure-report.ts` labels such
+  a failure "quarantined global-state (INC-117, non-gating)".
+
+RULES:
+
+- A TEST THAT MUTATES OR READS A SINGLE GLOBAL SURFACE (the language roster,
+  the publication gate) IS QUARANTINED: its red, with a green product matrix,
+  is REPORTED, NOT GATING — until the DEC-026 component-test layer covers its
+  logic.
+- QUARANTINE IS APPLIED ON THE NEXT RED OF A TAGGED TEST, NOT PRE-EMPTIVELY:
+  the label exists now, the gating change is the operator's next step.
+- A SEED IS NOT VISIBLE UNTIL THE PAGE'S OWN QUERY HAS RETURNED IT; SEED BEFORE
+  NAVIGATING AND POLL THE ROWS, NEVER THE BUTTON ALONE.
