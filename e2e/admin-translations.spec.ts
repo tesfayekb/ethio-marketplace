@@ -7,6 +7,7 @@ import { en } from "../src/i18n/locales/en";
 import { APPROVE_FENCE_LANG, FENCE_LANG, processId } from "./global-setup";
 import {
   describeStringsPage,
+  describeSwitcher,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
@@ -1073,7 +1074,13 @@ test.describe("U4f — publication gate governs language choice", () => {
             ),
         { timeout: 15000, message: "switcher options never matched the gate's public list" },
       )
-      .toEqual(expected);
+      .toEqual(expected)
+      // U4g-21 (INC-113): a gate-list mismatch dumps the provider snapshot.
+      .catch(async (error: unknown) => {
+        throw new Error(
+          `${error instanceof Error ? error.message : String(error)}\n\n${await describeSwitcher(page)}`,
+        );
+      });
     await page.keyboard.press("Escape");
 
     // A forced non-public code is refused: the runtime renders the base language.
@@ -1510,9 +1517,16 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await gotoReady(page, "/");
       await page.getByTestId("language-switcher").click();
       const option = page.getByTestId(`language-option-${FENCE_LANG}`);
-      await expect(option, "the published fence language is missing from the switcher").toBeVisible(
-        { timeout: 20000 },
-      );
+      await expect(option, "the published fence language is missing from the switcher")
+        .toBeVisible({ timeout: 20000 })
+        // U4g-21 (INC-113): publication must survive a reload — if the option
+        // is absent, the dump says whether the gate list arrived and what it
+        // held (a cached gate list is the failure this catches).
+        .catch(async (error: unknown) => {
+          throw new Error(
+            `${error instanceof Error ? error.message : String(error)}\n\n${await describeSwitcher(page)}`,
+          );
+        });
 
       // 2. Selecting it must RENDER, not crash: the readiness contract is the
       //    oracle (INC-085f), and the page keeps its hydrated marker.
