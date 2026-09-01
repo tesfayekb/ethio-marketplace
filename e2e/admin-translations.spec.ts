@@ -1395,14 +1395,26 @@ test.describe("U4g bulk approval, order and orphans", () => {
     // J-law: a poll budget must be STRICTLY shorter than the test budget
     // (30s polls inside a 120s test) so a mismatch asserts with values
     // instead of consuming the test and reporting only a timeout.
-    const positionOf = async (code: string) => {
+    const rosterCodes = async (): Promise<string[]> => {
       const { data } = await supabase
         .from("languages")
         .select("code, sort")
         .order("sort", { ascending: true })
         .order("code", { ascending: true });
-      return (data ?? []).map((row) => row.code as string).indexOf(code);
+      return (data ?? []).map((row) => row.code as string);
     };
+    const positionOf = async (code: string) => (await rosterCodes()).indexOf(code);
+    /**
+     * RELATIVE order (INC-115e): the offset from the fence to its censused
+     * neighbour. -1 means the fence sits directly ABOVE the neighbour, +1
+     * directly below. A sibling row moving elsewhere in the list cannot change
+     * this, where an absolute index would.
+     */
+    const offsetTo = async (neighbour: string) => {
+      const codes = await rosterCodes();
+      return codes.indexOf(fence) - codes.indexOf(neighbour);
+    };
+
 
     try {
       // U4g-6 (INC-101) — NAMED PHASES (J-law): a stall must name the phase it
