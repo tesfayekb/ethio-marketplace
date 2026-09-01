@@ -141,9 +141,7 @@ function armClientErrorCapture(page: Page, buffer: string[]): void {
       } catch {
         body = "(body unavailable)";
       }
-      push(
-        `HTTP ${response.status()} ${response.request().method()} ${response.url()} (${body})`,
-      );
+      push(`HTTP ${response.status()} ${response.request().method()} ${response.url()} (${body})`);
     })();
   });
   page.on("console", (message) => {

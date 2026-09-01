@@ -96,11 +96,7 @@ async function describeUserDetail(page: Page): Promise<string> {
         .map((q) => {
           const error = q.state.error as { message?: string } | null;
           const data = q.state.data;
-          const length = Array.isArray(data)
-            ? data.length
-            : data == null
-              ? "null"
-              : "non-array";
+          const length = Array.isArray(data) ? data.length : data == null ? "null" : "non-array";
           return `  ${JSON.stringify(q.queryKey)} status=${q.state.status} error=${
             error?.message ?? "none"
           } dataUpdatedAt=${q.state.dataUpdatedAt} dataLength=${length}`;
@@ -113,7 +109,10 @@ async function describeUserDetail(page: Page): Promise<string> {
 
   const present: string[] = [];
   for (const id of ["admin-user-detail", "user-detail-error", "user-detail-loading"]) {
-    const count = await page.getByTestId(id).count().catch(() => -1);
+    const count = await page
+      .getByTestId(id)
+      .count()
+      .catch(() => -1);
     present.push(`${id}=${count}`);
   }
 
@@ -192,9 +191,7 @@ test.describe("U1 admin users", () => {
         timeout: 15000,
       });
     } catch (error) {
-      throw new Error(
-        `${(error as Error).message}\n\n${await describeUserDetail(page)}`,
-      );
+      throw new Error(`${(error as Error).message}\n\n${await describeUserDetail(page)}`);
     }
 
     // U1d — the deactivated user sees the banner on their own settings page.
