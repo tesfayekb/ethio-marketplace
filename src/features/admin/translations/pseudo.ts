@@ -120,6 +120,9 @@ const ACCENTS: Record<string, string> = {
 
 const TOKEN_RE = /\{[^{}]*\}/g;
 const PAD = "·";
+// A private-use sentinel, not NUL: it can never occur in a UI string and, unlike
+// a control character, it is a legal regex literal (eslint no-control-regex).
+const MARK = "\uE000";
 
 /**
  * ⑦ EVERY PLACEHOLDER SURVIVES VERBATIM. The writer
@@ -134,7 +137,7 @@ export function pseudoize(source: string, expansion: number = PSEUDO_EXPANSION):
   const tokens: string[] = [];
   const masked = source.replace(TOKEN_RE, (token) => {
     const index = tokens.push(token) - 1;
-    return `\u0000${index}\u0000`;
+    return `${MARK}${index}${MARK}`;
   });
 
   const accented = [...masked].map((char) => ACCENTS[char] ?? char).join("");
@@ -143,7 +146,7 @@ export function pseudoize(source: string, expansion: number = PSEUDO_EXPANSION):
   const padCount = Math.max(1, Math.ceil(bodyLength * expansion));
   const padded = `${accented}${PAD.repeat(padCount)}`;
 
-  const restored = padded.replace(/\u0000(\d+)\u0000/g, (whole, digits: string) => {
+  const restored = padded.replace(/\uE000(\d+)\uE000/g, (whole, digits: string) => {
     const token = tokens[Number(digits)];
     return token ?? whole;
   });
