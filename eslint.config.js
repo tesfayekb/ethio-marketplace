@@ -48,12 +48,17 @@ export default tseslint.config(
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
-      // DEC-025 — TYPED CLIENTS. An untyped `createClient` types every table,
-      // column and RPC argument as `any`, which is exactly what let the
-      // misspelled RPC argument `_user_id` compile and ship (INC-096d).
-      // Selector censused against the installed @typescript-eslint parser:
-      // the generic list hangs off `typeArguments` (v6+ name), so a call with
-      // no type argument is the `:not([typeArguments])` case.
+    },
+  },
+  {
+    // DEC-025 — TYPED CLIENTS (app code). An untyped `createClient` types every
+    // table, column and RPC argument as `any`, which is exactly what let the
+    // misspelled RPC argument `_user_id` compile and ship (INC-096d).
+    // Selector censused against the installed @typescript-eslint parser: the
+    // generic list hangs off `typeArguments` (the v6+ name), so a call with no
+    // type argument is the `:not([typeArguments])` case.
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
       "no-restricted-syntax": [
         "error",
         {
