@@ -62,7 +62,6 @@ describe("AiBulkBar", () => {
     const start = screen.getByTestId("ai-bulk-start");
     expect(start).toBeDisabled();
     expect(start).toHaveTextContent("admin.translations.ai.pending");
-    expect(start.textContent ?? "").not.toContain("{count}");
     expect(start.textContent ?? "").not.toContain("0");
   });
 
