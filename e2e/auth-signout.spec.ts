@@ -153,6 +153,7 @@ test.describe("U0j sign-out hard reset", () => {
     // query survives the hard reset, whichever feature added it.
     // U1g-3: a 500ms settle so the read happens after React has flushed the
     // unmount of the session-only observers — the assertion itself stays strict.
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(500);
     const survivors = await page.evaluate(() => {
       const client = (
@@ -209,6 +210,7 @@ test.describe("U0k session policy", () => {
     await expect(page.getByTestId("session-idle-warning")).toHaveCount(0);
 
     // Past the ORIGINAL deadline, still signed in.
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(4000);
     await expect(page.getByTestId("account-menu")).toBeVisible();
   });

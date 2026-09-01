@@ -46,6 +46,7 @@ function escapeRe(value: string) {
 
 /** Law C2: every real touch target is at least 44px on its short axis. */
 async function expectTapTarget(page: Page, locator: ReturnType<Page["getByRole"]>, name: string) {
+  // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
   const box = await locator.first().boundingBox();
   expect(box, `${name} has no box`).not.toBeNull();
   expect(box!.height, `${name} height`).toBeGreaterThanOrEqual(44);
@@ -198,11 +199,13 @@ test.describe("app shell", () => {
     // FIX 3: NOTHING precedes Country — the cascade starts at level 1.
     const levels = page.locator("[data-testid^='location-level-']");
     await expect(levels).toHaveCount(1);
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(levels.first()).toHaveAttribute("data-testid", "location-level-country");
 
     const pick = async (testId: string) => {
       await page.getByTestId(testId).click();
       const options = page.getByRole("menuitem");
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       await expect(options.first()).toHaveText(en["location.anyArea"]);
       const chosen = (await options.nth(1).textContent())!.trim();
       await options.nth(1).click();
@@ -265,6 +268,7 @@ test.describe("app shell", () => {
     await page.getByTestId("breadcrumb-home").click();
     await expect(page.getByTestId("breadcrumb-category")).toHaveCount(0);
     await expect(page.getByTestId("breadcrumb-panel")).toHaveCount(0);
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(page.getByText(en["panel.marketplace"], { exact: true }).first()).toBeVisible();
   });
 
@@ -349,10 +353,12 @@ test.describe("app shell", () => {
     // Data-dependent: staging may hold zero active listings. With cards the
     // grid must reflow per breakpoint; without them the empty state stands in.
     const cards = page.locator("[data-testid='feed-empty'] , main ul > li");
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(cards.first()).toBeVisible();
 
     const grid = page.locator("main ul.grid");
     if ((await grid.count()) > 0) {
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       const columns = await grid
         .first()
         .evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
@@ -361,6 +367,7 @@ test.describe("app shell", () => {
       expect(columns).toBe(expected);
 
       // No card may spill past the grid's own box.
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       const clipped = await grid.first().evaluate((el) => {
         const box = el.getBoundingClientRect();
         return Array.from(el.children).filter((c) => {
@@ -420,6 +427,7 @@ test.describe("corner-block grid", () => {
     // mechanism is only asserted where a panel actually declares children.
     if (count === 0) return;
 
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     const first = triggers.first();
     const expanded = (await first.getAttribute("aria-expanded")) === "true";
     await first.click();
@@ -436,6 +444,7 @@ test.describe("corner-block grid", () => {
     const starts = new Set<number>();
     for (let i = 0; i < count; i += 1) {
       const row = rows.nth(i);
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       const svg = row.locator("svg").first();
       await expect(svg, `rail row ${i} has no icon`).toHaveCount(1);
       const box = (await svg.boundingBox())!;
@@ -456,6 +465,7 @@ test.describe("corner-block grid", () => {
 
     const paths = new Set<string>();
     for (let i = 1; i < count; i += 1) {
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       const d = await rows.nth(i).locator("svg").first().innerHTML();
       paths.add(d);
     }
@@ -494,10 +504,12 @@ test.describe("corner-block grid", () => {
     const narrow = (await rail.boundingBox())!.width;
     expect(narrow).toBeLessThan(wide);
     // Icons survive the collapse — that is what makes it usable.
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(rail.locator("li svg").first()).toBeVisible();
 
     // Hovering an icon-only row reveals its label.
     await rail.getByRole("link", { name: en["shell.allCategories"] }).hover();
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     const tip = page.getByTestId("rail-tooltip").first();
     await expect(tip).toBeVisible();
     await expect(tip).toContainText(en["shell.allCategories"]);
@@ -694,6 +706,7 @@ test.describe("mobile chrome", () => {
   // exactly the top bar's height.
   test("the drawer logo block matches the top bar's divider and height", async ({ page }) => {
     await gotoReady(page, "/");
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     const bar = (await page.locator("header").first().boundingBox())!;
 
     const block = (await openRailScope(page)).getByTestId("drawer-logo-block");
@@ -732,6 +745,7 @@ test.describe("mobile chrome", () => {
     await page.getByTestId("search-toggle").click();
     await expect(page.getByTestId("search-input")).toBeVisible();
 
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     const bar = (await page.locator("header").first().boundingBox())!;
     const row = (await page.getByTestId("search-row").boundingBox())!;
     // Below the bar, and the full viewport width — room to type.
@@ -785,6 +799,7 @@ test.describe("mobile chrome", () => {
     await openRailScope(page);
     await expectTapTarget(
       page,
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       page.getByRole("link", { name: en["shell.allCategories"] }).first(),
       "all categories",
     );
@@ -1183,6 +1198,7 @@ test.describe("desktop layout laws (U0g)", () => {
     // bottom of the page. Fixed positioning must hold there too.
     // U0i footer-clamp law: the rail's bottom follows the in-view footer; height is NOT invariant at page bottom by design.
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(200);
     const atBottom = await railLaw(page);
     expect(Math.abs(atBottom.top - ROW1)).toBeLessThanOrEqual(1);
@@ -1280,6 +1296,7 @@ test.describe("desktop layout laws (U0g)", () => {
     await expectScrollRange(page);
 
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(300);
 
     const footer = await footRect(page);

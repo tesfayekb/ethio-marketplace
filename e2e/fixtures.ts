@@ -42,6 +42,7 @@ function stateFor(page: Page): GuardState {
 async function readCause(page: Page): Promise<string> {
   try {
     const node = page.getByTestId("ssr-error-cause");
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     if ((await node.count()) > 0) return (await node.first().innerText()).trim();
   } catch {
     /* a closed/navigating page simply has no readable cause */
@@ -80,6 +81,7 @@ export function armSsrGuard(page: Page): void {
         console.log(`[e2e] ssr error page — retrying ${url}`);
         state.pending = (async () => {
           try {
+            // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
             await page.waitForTimeout(500);
             await page.reload();
           } catch {

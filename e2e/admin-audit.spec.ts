@@ -112,10 +112,12 @@ test.describe("U3 audit & security", () => {
     // (roleRow/userRow law). The VISIBLE container is the card list at 360 and
     // the table at md+; both twins share the same row testids.
     const surface = auditSurface(page);
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     const trigger = surface.locator('[data-testid^="audit-expand-"]').first();
     await expect(trigger).toBeVisible();
     const rowId = ((await trigger.getAttribute("data-testid")) ?? "").replace("audit-expand-", "");
     await trigger.click();
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     const detail = surface.locator(`[data-testid="audit-row-${rowId}-expanded"]`).first();
     await expect(detail).toBeVisible();
     const adjacent = await detail.evaluate((element, id) => {

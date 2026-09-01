@@ -243,6 +243,7 @@ test.describe("U1f-4 step-up freshness", () => {
     const secret = await enrollThroughSettings(page);
 
     // Enrollment elevated the session; wait past the (shortened) window.
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(4000);
 
     await gotoReady(page, `/admin/users/${target.id}`);

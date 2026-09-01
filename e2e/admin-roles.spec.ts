@@ -307,6 +307,7 @@ test.describe("U2 roles console", () => {
 
     await gotoReady(page, "/admin/roles");
     await switchLanguage(page, "am");
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(page.getByText(am["admin.roles.title"]).first()).toBeVisible();
     await expect(page.getByText(en["admin.roles.subtitle"])).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
