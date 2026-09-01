@@ -120,9 +120,19 @@ test.describe("U1 admin users", () => {
       en["admin.users.status.deactivated"],
       { timeout: 15000 },
     );
-    await expect(page.getByTestId("activity-user.status_change").first()).toBeVisible({
-      timeout: 15000,
-    });
+    // INC-109 — this assertion has failed five times with nothing but
+    // "element(s) not found". No budget or assertion change: on failure the
+    // error now carries the route, the query-cache state and which of the
+    // detail testids actually rendered.
+    try {
+      await expect(page.getByTestId("activity-user.status_change").first()).toBeVisible({
+        timeout: 15000,
+      });
+    } catch (error) {
+      throw new Error(
+        `${(error as Error).message}\n\n${await describeUserDetail(page)}`,
+      );
+    }
 
     // U1d — the deactivated user sees the banner on their own settings page.
     await switchUser(page, scratch.email, scratch.password);
