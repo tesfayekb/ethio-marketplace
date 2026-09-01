@@ -446,6 +446,14 @@ export async function listProviderLanguages(): Promise<ProviderLanguage[]> {
 export type EntityType = "category" | "location";
 
 export interface EntityTranslationRow {
+  /**
+   * U4j-5 (INC-119b) — THE ROW'S IDENTITY IS THE ENTITY, NEVER THE OPTIONAL
+   * TRANSLATION ROW. Universe rows (a language with no `entity_translations`
+   * row yet) carry NO translation id; keying on it rendered nothing at all.
+   */
+  key: string;
+  /** The `entity_translations` row id when one exists — nullable by design. */
+  translationId: string | null;
   entityType: EntityType;
   entityId: string;
   field: string;
@@ -460,6 +468,20 @@ export interface EntityTranslationRow {
   updatedAt: string | null;
   approvedBy: string | null;
   approvedAt: string | null;
+}
+
+/** The one composite key: `${type}:${id}:${field}`. */
+export function entityRowKey(type: EntityType, id: string, field: string): string {
+  return `${type}:${id}:${field}`;
+}
+
+/** The testid stem for a universe row: `entity-row-<type>-<id>-<field>`. */
+export function entityRowSlug(row: {
+  entityType: EntityType;
+  entityId: string;
+  field: string;
+}): string {
+  return `${row.entityType}-${row.entityId}-${row.field}`;
 }
 
 export interface EntityTranslationPage {
@@ -493,22 +515,33 @@ export async function listEntityTranslations({
   const rows = data ?? [];
   const first = rows[0];
   return {
-    rows: rows.map((row) => ({
-      entityType: row.entity_type === "category" ? "category" : "location",
-      entityId: row.entity_id,
-      field: row.field,
-      label: row.label,
-      sourceValue: row.source_value ?? null,
-      value: row.value ?? null,
-      status: asStatus(row.status),
-      machine: row.machine,
-      flagged: row.flagged,
-      flagNote: row.flag_note ?? null,
-      updatedBy: row.updated_by ?? null,
-      updatedAt: row.updated_at ?? null,
-      approvedBy: row.approved_by ?? null,
-      approvedAt: row.approved_at ?? null,
-    })),
+    rows: rows.map((row) => {
+      const entityType: EntityType = row.entity_type === "category" ? "category" : "location";
+      const entityId = String(row.entity_id);
+      const field = String(row.field);
+      return {
+        key: entityRowKey(entityType, entityId, field),
+        // The universe RPC never projects a translation id — it is null by
+        // contract, and the writers UPSERT on first save (INC-119b).
+        translationId: null,
+
+        entityType,
+        entityId,
+        field,
+        label: row.label,
+        sourceValue: row.source_value ?? null,
+        value: row.value ?? null,
+        status: asStatus(row.status),
+        machine: row.machine,
+        flagged: row.flagged,
+        flagNote: row.flag_note ?? null,
+        updatedBy: row.updated_by ?? null,
+        updatedAt: row.updated_at ?? null,
+        approvedBy: row.approved_by ?? null,
+        approvedAt: row.approved_at ?? null,
+      };
+    }),
+
     totalCount: first ? Number(first.total_count) : 0,
   };
 }

@@ -15,6 +15,7 @@ import type { MessageKey } from "@/i18n/types";
 
 import { AiBulkBar, type CountState } from "./ai-bulk-bar";
 import {
+  entityRowSlug,
   pickEntityStats,
   serverMessage,
   translationErrorKey,
@@ -146,8 +147,8 @@ export function DataScope({
       <DataTable
         columns={dataColumns(t, rtl)}
         rows={rows}
-        rowKey={(row) => row.entityId}
-        rowTestId={(row) => `entity-row-${row.entityId}`}
+        rowKey={(row) => row.key}
+        rowTestId={(row) => `entity-row-${entityRowSlug(row)}`}
         caption={t("admin.translations.data.caption")}
         loading={list.isLoading}
         loadingState={
@@ -161,7 +162,7 @@ export function DataScope({
           <p className="text-sm text-muted-foreground">{t("admin.translations.data.empty")}</p>
         }
         expandedRow={(row) =>
-          row.entityId === expanded ? (
+          row.key === expanded ? (
             <EntityEditor
               row={row}
               lang={lang}
@@ -178,12 +179,10 @@ export function DataScope({
             type="button"
             variant="outline"
             className="min-h-11"
-            data-testid={`entity-expand-${row.entityId}`}
-            onClick={() =>
-              setExpanded((current) => (current === row.entityId ? null : row.entityId))
-            }
+            data-testid={`entity-expand-${entityRowSlug(row)}`}
+            onClick={() => setExpanded((current) => (current === row.key ? null : row.key))}
           >
-            {expanded === row.entityId
+            {expanded === row.key
               ? t("admin.translations.collapse")
               : t("admin.translations.expand")}
           </Button>
@@ -264,7 +263,7 @@ function dataColumns(
       priority: "primary",
       width: "w-[12%]",
       cell: (row) => (
-        <Badge variant="outline" data-testid={`entity-status-${row.entityId}`}>
+        <Badge variant="outline" data-testid={`entity-status-${entityRowSlug(row)}`}>
           {t(STATUS_LABELS[row.status] ?? "admin.translations.status.untranslated")}
         </Badge>
       ),
@@ -301,7 +300,8 @@ function EntityEditor({
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const id = row.entityId;
+  // INC-119b — every marker keys on the ENTITY identity, never a translation id.
+  const id = entityRowSlug(row);
 
   const run = (action: MutationAction) => {
     setSaved(false);
