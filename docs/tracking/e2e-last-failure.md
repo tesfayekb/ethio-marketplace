@@ -2,9 +2,9 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33520274915
 - Commit: `ca970d695822fa4edbe249fdc336e6f88216a7c2`
-- Attempt: 2
-- Written (UTC): 2026-09-01T14:47:14.362Z
-- Passed: 345 · Skipped: 66 · Failed: 34
+- Attempt: 3
+- Written (UTC): 2026-09-01T14:58:34.391Z
+- Passed: 344 · Skipped: 68 · Failed: 33
 - Sources without results: none
 
 ## shell.spec.ts › app shell › language toggle renders Amharic (Ge'ez path)
@@ -313,40 +313,6 @@ Context:
 ```
 ```
 
-## admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key
-
-- Source: `shard 1`
-- Project: `mobile-360`
-
-```text
-Test timeout of 120000ms exceeded.
-```
-
-Context:
-
-```text
-          - listitem [ref=e496]:
-            - generic [ref=e497]: About
-          - listitem [ref=e498]:
-            - generic [ref=e499]: How it works
-      - navigation "Help" [ref=e500]:
-        - heading "Help" [level=2] [ref=e501]
-        - list [ref=e502]:
-          - listitem [ref=e503]:
-            - generic [ref=e504]: Safety
-          - listitem [ref=e505]:
-            - generic [ref=e506]: Contact
-      - navigation "Legal" [ref=e507]:
-        - heading "Legal" [level=2] [ref=e508]
-        - list [ref=e509]:
-          - listitem [ref=e510]:
-            - generic [ref=e511]: Terms
-          - listitem [ref=e512]:
-            - generic [ref=e513]: Privacy
-    - paragraph [ref=e515]: © 2026 ethio.com — All rights reserved.
-```
-```
-
 ## admin-translations.spec.ts › U4f — publication gate governs language choice › TR-17: switcher options equal the DB public list; a non-public ?lang falls back
 
 - Source: `shard 1`
@@ -616,50 +582,6 @@ Context:
 ```
 ```
 
-## admin-roles.spec.ts › U2 roles console › RP-2 create: a super admin creates a custom role through step-up
-
-- Source: `shard 3`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('role-row-e2e-custom-thiqhn')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('role-row-e2e-custom-thiqhn')
-
-```
-
-Context:
-
-```text
-          - listitem [ref=e16197]:
-            - generic [ref=e16198]: About
-          - listitem [ref=e16199]:
-            - generic [ref=e16200]: How it works
-      - navigation "Help" [ref=e16201]:
-        - heading "Help" [level=2] [ref=e16202]
-        - list [ref=e16203]:
-          - listitem [ref=e16204]:
-            - generic [ref=e16205]: Safety
-          - listitem [ref=e16206]:
-            - generic [ref=e16207]: Contact
-      - navigation "Legal" [ref=e16208]:
-        - heading "Legal" [level=2] [ref=e16209]
-        - list [ref=e16210]:
-          - listitem [ref=e16211]:
-            - generic [ref=e16212]: Terms
-          - listitem [ref=e16213]:
-            - generic [ref=e16214]: Privacy
-    - paragraph [ref=e16216]: © 2026 ethio.com — All rights reserved.
-```
-```
-
 ## admin-roles.spec.ts › U2 roles console › RP-8 Amharic + no horizontal overflow
 
 - Source: `shard 3`
@@ -802,25 +724,12 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: switcher options never matched the gate's public list
+Error: the admin-only fence language zxx is never public
 
-expect(received).toEqual(expected) // deep equality
+expect(received).not.toContain(expected) // indexOf
 
-- Expected  - 1
-+ Received  + 0
-
-  Array [
--   "am",
-    "en",
-  ]
-
-Call Log:
-- Timeout 15000ms exceeded while waiting on the predicate
-
-[INC-113] url: http://127.0.0.1:4173/
-[INC-113] html lang: en
-[INC-113] provider publicLanguages: {"gateReady":true,"active":"en","codes":["en"]}
-[INC-113] rendered options: en
+Expected value: not "zxx"
+Received array:     ["am", "en", "zxx"]
 ```
 
 Context: context file not found for `admin-translations-U4f-publication-gate-governs-language-choice-TR-17-switcher-options-equal-the-DB-public-list-a-non-public-lang-falls-back-desktop-1280`
@@ -873,6 +782,98 @@ Context:
     - menuitem "English" [ref=e2]:
       - img [ref=e3]
       - text: English
+```
+```
+
+## i18n-coverage.spec.ts › i18n chrome coverage (Amharic) › the marketplace shell renders no English fallback
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toHaveAttribute(expected) failed
+
+Locator:  locator('html')
+Expected: "am"
+Received: "en"
+Timeout:  10000ms
+
+Call log:
+  - Expect "toHaveAttribute" with timeout 10000ms
+  - waiting for locator('html')
+    14 × locator resolved to <html lang="en" data-mode="light" data-app-ready="1" data-rail="expanded">…</html>
+       - unexpected value "en"
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e198]:
+            - generic [ref=e199]: About
+          - listitem [ref=e200]:
+            - generic [ref=e201]: How it works
+      - navigation "Help" [ref=e202]:
+        - heading "Help" [level=2] [ref=e203]
+        - list [ref=e204]:
+          - listitem [ref=e205]:
+            - generic [ref=e206]: Safety
+          - listitem [ref=e207]:
+            - generic [ref=e208]: Contact
+      - navigation "Legal" [ref=e209]:
+        - heading "Legal" [level=2] [ref=e210]
+        - list [ref=e211]:
+          - listitem [ref=e212]:
+            - generic [ref=e213]: Terms
+          - listitem [ref=e214]:
+            - generic [ref=e215]: Privacy
+    - paragraph [ref=e217]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## i18n-coverage.spec.ts › i18n chrome coverage (Amharic) › the admin shell renders no English fallback
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toHaveAttribute(expected) failed
+
+Locator:  locator('html')
+Expected: "am"
+Received: "en"
+Timeout:  10000ms
+
+Call log:
+  - Expect "toHaveAttribute" with timeout 10000ms
+  - waiting for locator('html')
+    14 × locator resolved to <html lang="en" data-mode="light" data-app-ready="1" data-rail="expanded">…</html>
+       - unexpected value "en"
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e198]:
+            - generic [ref=e199]: About
+          - listitem [ref=e200]:
+            - generic [ref=e201]: How it works
+      - navigation "Help" [ref=e202]:
+        - heading "Help" [level=2] [ref=e203]
+        - list [ref=e204]:
+          - listitem [ref=e205]:
+            - generic [ref=e206]: Safety
+          - listitem [ref=e207]:
+            - generic [ref=e208]: Contact
+      - navigation "Legal" [ref=e209]:
+        - heading "Legal" [level=2] [ref=e210]
+        - list [ref=e211]:
+          - listitem [ref=e212]:
+            - generic [ref=e213]: Terms
+          - listitem [ref=e214]:
+            - generic [ref=e215]: Privacy
+    - paragraph [ref=e217]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1085,40 +1086,6 @@ Context:
 ```
 ```
 
-## admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key
-
-- Source: `changed`
-- Project: `mobile-360`
-
-```text
-Test timeout of 120000ms exceeded.
-```
-
-Context:
-
-```text
-          - listitem [ref=e496]:
-            - generic [ref=e497]: About
-          - listitem [ref=e498]:
-            - generic [ref=e499]: How it works
-      - navigation "Help" [ref=e500]:
-        - heading "Help" [level=2] [ref=e501]
-        - list [ref=e502]:
-          - listitem [ref=e503]:
-            - generic [ref=e504]: Safety
-          - listitem [ref=e505]:
-            - generic [ref=e506]: Contact
-      - navigation "Legal" [ref=e507]:
-        - heading "Legal" [level=2] [ref=e508]
-        - list [ref=e509]:
-          - listitem [ref=e510]:
-            - generic [ref=e511]: Terms
-          - listitem [ref=e512]:
-            - generic [ref=e513]: Privacy
-    - paragraph [ref=e515]: © 2026 ethio.com — All rights reserved.
-```
-```
-
 ## admin-translations.spec.ts › U4b translations console › TR-9 the Amharic runtime still renders after the DB bundle merge
 
 - Source: `changed`
@@ -1320,7 +1287,7 @@ No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 ## Client errors: smoke
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×7
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×6
 ```
 
 ## Server errors: shard 1
@@ -1330,7 +1297,7 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 ## Client errors: shard 1
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×23
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×18
 ```
 
 ## Server errors: shard 2
@@ -1350,7 +1317,7 @@ No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
 ## Client errors: shard 3
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×26
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×18
 ```
 
 ## Server errors: shard 4
@@ -1360,7 +1327,7 @@ No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
 ## Client errors: shard 4
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×6
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×10
 ```
 
 ## Server errors: changed
@@ -1370,5 +1337,5 @@ No `[ssr-error]` lines in the `changed` log (or no log was uploaded).
 ## Client errors: changed
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×15
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×10
 ```
