@@ -441,6 +441,20 @@ function slug(key: string) {
   return key.replace(/[^a-zA-Z0-9]+/g, "-");
 }
 
+/**
+ * U4g-24 (INC-115) — the placeholder grammar the server validator uses:
+ * `{name}` tokens, in order of appearance.
+ */
+function matchTokens(text: string): string[] {
+  return text.match(/\{[^{}]*\}/g) ?? [];
+}
+
+/** Positional rewrite: token i of the draft becomes token i of the source. */
+function rewriteTokens(text: string, tokens: string[]): string {
+  let index = 0;
+  return text.replace(/\{[^{}]*\}/g, (whole) => tokens[index++] ?? whole);
+}
+
 function stringColumns(
   t: (key: MessageKey) => string,
   rtl: boolean,
