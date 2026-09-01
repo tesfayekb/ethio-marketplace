@@ -1116,3 +1116,30 @@ RULES:
   (expected: not yet); the wall clock stays as a secondary signal.
 - Public reference data reads with a keyed anon fetch, never through the
   session-bearing client, so they can never sit on a guard's critical path.
+
+## INC-111 — the parity smoke never ran (2026-09-01)
+
+FINDING (verbatim, nightly run 33516364647): the serial nightly suite PASSED,
+and the cloudflare-parity job died with "service core:user:ethio-marketplace:
+This Worker requires compatibility date \"2026-09-01\", but the newest date
+supported by this server binary is \"2026-08-27\"." The application was never
+exercised on workerd — on any day after the pinned wrangler's release day the
+job could only refuse, so DEC-019's tripwire had been silently dead.
+
+ROOT: nitro resolves an unset `compatibilityDate` to `"latest"` = the build
+day, and the cloudflare preset copies it into `dist/server/wrangler.json`.
+
+FIX: `vite.config.ts` pins `nitro.compatibilityDate: "2026-08-27"`. Local proof
+(sandbox env unset): `dist/server/wrangler.json` carries
+`"compatibility_date": "2026-08-27"`, and `bun run serve:e2e:built:cloudflare`
+reaches `[wrangler:info] Ready on http://127.0.0.1:4173` (HTTP 200 on `/`)
+instead of refusing.
+
+RULES:
+
+- A DATE THAT MOVES BY ITSELF IS NOT A CONFIGURATION — anything stamped from
+  the build clock into a runtime contract is pinned explicitly.
+- PIN AND RUNTIME MOVE TOGETHER — the compatibility pin is raised only with a
+  wrangler that supports it, in one landing.
+- A TRIPWIRE THAT CAN ONLY REFUSE IS NOT A TRIPWIRE — the parity job is gating,
+  and its refusal message now names the remedy instead of excusing itself.

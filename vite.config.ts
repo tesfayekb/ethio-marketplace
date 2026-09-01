@@ -36,15 +36,29 @@ export default defineConfig({
   // These values are verbatim the sandbox branch's, so both environments now
   // resolve identically; the sandbox branch still overrides them with the same
   // constants, so pinning here changes nothing for the deployed build.
+  // The wrapper's published `nitro` type is a narrowed subset (preset/output/
+  // cloudflare only), so the pin is asserted through the wrapper's own option
+  // type; nitro receives it verbatim (the wrapper spreads user nitro options).
   nitro: {
     preset: NITRO_PRESET,
     output: { dir: "dist", serverDir: "dist/server", publicDir: "dist/client" },
+    // DEC-019-B — WORKER COMPATIBILITY DATE IS PINNED, NEVER THE BUILD DAY.
+    // Censused on the installed nitro (3.0.260603-beta): the option is
+    // `compatibilityDate` on NitroConfig (string | per-platform object), and
+    // the cloudflare preset writes it verbatim into dist/server/wrangler.json
+    // as `compatibility_date` (unset resolves to "latest" = the build day —
+    // INC-088/INC-111). Pinning it to a date the pinned wrangler (4.125.0 in
+    // `serve:e2e:built:cloudflare`) supports makes the nightly parity smoke
+    // actually boot workerd instead of refusing on a calendar boundary.
+    // BUMP RULE: raise this pin only together with a wrangler that supports
+    // the newer date, in ONE landing.
+    compatibilityDate: "2026-08-27",
     // Cloudflare-only options belong to the cloudflare preset alone; nitro's
     // node-server target has no worker to configure.
     ...(NITRO_PRESET === "cloudflare-module"
       ? { cloudflare: { nodeCompat: true, deployConfig: true } }
       : {}),
-  },
+  } as NonNullable<Parameters<typeof defineConfig>[0]>["nitro"],
 
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).

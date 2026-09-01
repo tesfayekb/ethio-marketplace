@@ -207,9 +207,13 @@ jobs:
   # The per-push suite serves the built app on nitro's node-server preset
   # because `wrangler dev` cannot boot a worker whose compatibility_date is the
   # build day. The DEPLOY target is still Cloudflare, so exactly one job per
-  # night must prove the same code boots and serves on workerd. It is allowed
-  # to be red for the runtime reason alone — the step prints the distinction —
-  # but a genuine application break here is a real signal.
+  # night must prove the same code boots and serves on workerd.
+  # DEC-019-B / INC-111 — the worker's compatibility_date is now PINNED in
+  # vite.config.ts (`nitro.compatibilityDate`) to a date the pinned wrangler
+  # supports, so this job RUNS instead of refusing on a calendar boundary. A
+  # refusal is therefore no longer an excused runtime class: it means the pin
+  # or the wrangler version must be bumped (together, in one landing). The job
+  # is gating.
   cloudflare-parity-smoke:
     name: Cloudflare parity smoke (wrangler-served)
     runs-on: ubuntu-latest
@@ -247,14 +251,17 @@ jobs:
         run: bunx playwright install --with-deps chromium
       - name: Build the app for the Cloudflare target (VITE_E2E=1)
         run: bun run build:e2e:cloudflare
-      - name: Verify the worker artifact
-        run: test -f dist/server/wrangler.json || { echo "::error::cloudflare e2e build did not emit dist/server/wrangler.json — nitro target drift"; find dist -maxdepth 3 -type f | head -60; exit 1; }
+      - name: Verify the worker artifact and its pinned compatibility date
+        run: |
+          test -f dist/server/wrangler.json || { echo "::error::cloudflare e2e build did not emit dist/server/wrangler.json — nitro target drift"; find dist -maxdepth 3 -type f | head -60; exit 1; }
+          # DEC-019-B — the pin is the whole point of this job running; print it.
+          grep -o '"compatibility_date": *"[^"]*"' dist/server/wrangler.json || { echo "::error::wrangler.json carries no compatibility_date — the DEC-019-B pin was dropped from vite.config.ts"; exit 1; }
       - name: Run the smoke tier on workerd
         run: |
           set -o pipefail
           bunx playwright test --project=mobile-360 e2e/smoke-auth-i18n.spec.ts 2>&1 | tee cf-smoke.log || {
             if grep -q "newest date supported by this server binary" cf-smoke.log; then
-              echo "::error::workerd refused the build-day compatibility_date (INC-088 runtime class) — the application itself was never exercised."
+              echo "::error::workerd refused the PINNED compatibility_date (DEC-019-B/INC-111) — bump the pin in vite.config.ts together with the wrangler version in package.json, in one landing. This is a gating failure, not an excused runtime class."
             fi
             exit 1
           }
