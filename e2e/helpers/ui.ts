@@ -8,7 +8,6 @@ import { assertSsrHealthy } from "../fixtures";
 import { injectSession, passwordGrant, sessionInjectionEnabled } from "./session";
 import { totp } from "./totp";
 
-
 /** Escape a catalog value for literal use inside a RegExp. */
 function escapeRe(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -239,7 +238,6 @@ export async function signIn(page: Page, email: string, password: string) {
   await page.goto("/auth");
   await waitForHydration(page);
 
-
   const emailInput = page.getByRole("textbox", { name: /email/i });
   const passwordInput = page.locator("#auth-password");
 
@@ -336,7 +334,6 @@ export async function switchUser(page: Page, email: string, password: string) {
   }
 
   await gotoReady(page, "/");
-
 
   // Auth state must be SETTLED before branching — after a navigation/redirect
   // the header renders its auth branch asynchronously; an instantaneous count

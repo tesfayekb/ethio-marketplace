@@ -75,7 +75,8 @@ export function isAuthSpec(): boolean {
 /** Injection is allowed only outside auth specs, with the knob unset. */
 export function sessionInjectionEnabled(): boolean {
   if (uiLoginForced()) return false;
-  if (!process.env["E2E_SUPABASE_URL"] || !process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]) return false;
+  if (!process.env["E2E_SUPABASE_URL"] || !process.env["E2E_SUPABASE_PUBLISHABLE_KEY"])
+    return false;
   try {
     return !isAuthSpec();
   } catch {
