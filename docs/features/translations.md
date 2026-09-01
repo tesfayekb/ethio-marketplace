@@ -476,3 +476,24 @@ E2E: TR-19 (approve-all counts, statuses, revisions, flagged skip), TR-20
 (order moves and is restored in `finally`), TR-21 (sync orphans an absent key,
 stats exclude it, the chip lists it). All three work inside the `zxx` fence
 language (INC-097d).
+
+## DB-only languages (INC-107)
+
+A published language NEVER requires a compiled file. `src/i18n/locales/*.ts`
+is a SEED and a fallback, not the language registry: the operator creates and
+publishes languages in the console, so a code may exist in the database alone.
+The compiled loader registry is therefore a PARTIAL map — a lookup miss means
+"the compiled layer for this language is `{}`", and the chain collapses to
+
+    compiled.en  ▸  {}  ▸  DB[lang]
+
+with exactly one `console.warn("[i18n] no compiled catalog for <lang>; DB-only")`
+per language. A missing compiled layer is EMPTY, NOT FATAL. The persisted
+preference and the `?lang=` override are validated by code SHAPE only; whether
+a code may activate is the publication gate's call (`enabled_public OR
+is_base`), never the compiled registry's.
+
+E2E: TR-22 publishes the `zxx` fence, selects it from the switcher and asserts
+the page renders (`data-app-ready="1"`, no `pageerror`), that seeded keys show
+their fence values and that an unseeded key still shows English. The fence is
+returned to admin-only in `finally`.

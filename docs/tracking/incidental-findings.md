@@ -1047,3 +1047,27 @@ the click carrying a budget strictly shorter than the test's.
 Roster actions overlapped (link over button) and rows scrolled under the fixed
 band — both intercepted real clicks. CLASS RULE: interactive rows carry scroll
 margin for the fixed band; action groups never overlap.
+
+## INC-107 — a published DB-only language crashed the public app (U4g-17)
+
+Selecting a language published in the console but absent from
+`src/i18n/locales/` invoked an undefined compiled loader and threw during
+render — a Tier A public runtime crash.
+
+CLASS RULE: a published language never requires a compiled file; the compiled
+layer is OPTIONAL BY DESIGN. A missing compiled layer is empty, not fatal —
+the chain is compiled.en ▸ {} ▸ DB[lang], with one named warning. Nothing may
+validate an active language against the COMPILED registry; only the
+publication gate decides what may activate.
+
+## INC-108 — the nightly wrote only a heartbeat (U4g-17)
+
+The nightly published a one-line conclusion and nothing else, so serial-mode
+failures were undiagnosable from the repo: the per-push evidence file exists,
+the nightly simply never rendered one.
+
+RULE: the nightly runs the SAME reporter over its own artifacts (source label
+`nightly`, attempt line included) and commits
+`docs/tracking/nightly-last-failure.md` next to `nightly-status.md`, on the
+same `[skip ci]` tracking path and branch (dev). Every scheduled suite that
+can go red owes an evidence file, not a verdict.

@@ -81,7 +81,34 @@ jobs:
       - name: Run nightly E2E
         id: run
         continue-on-error: true
-        run: bunx playwright test -c playwright.nightly.config.ts
+        run: |
+          set -o pipefail
+          bunx playwright test -c playwright.nightly.config.ts 2>&1 | tee nightly.log
+      # INC-108 — THE NIGHTLY WRITES ITS OWN EVIDENCE, not only a heartbeat.
+      # A serial nightly failure used to be undiagnosable from the repo: the
+      # heartbeat said FAILURE and nothing else. The per-push reporter is reused
+      # verbatim over THIS job's artifacts, arranged in the shape it already
+      # reads (one source, id `nightly`), and written to its own file.
+      - name: Render nightly failure evidence
+        if: always()
+        env:
+          E2E_OUT_PATH: docs/tracking/nightly-last-failure.md
+          E2E_SOURCE_LABEL: nightly
+          E2E_RESULTS_DIR: nightly-results
+          E2E_LOGS_DIR: nightly-logs
+          E2E_CONTEXT_DIR: test-results
+          E2E_EXPECTED_SOURCES: nightly
+          E2E_GREEN: ${{ steps.run.outcome == 'success' && '1' || '0' }}
+          E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -u
+          mkdir -p nightly-results/e2e-results-nightly nightly-logs/e2e-log-nightly
+          cp test-results/results.json nightly-results/e2e-results-nightly/results.json 2>/dev/null || true
+          cp nightly.log nightly-logs/e2e-log-nightly/nightly.log 2>/dev/null || true
+          # The reporter is never allowed to die silently; it renders its own
+          # crash into the same file (NEVER-SILENT LAW).
+          bun scripts/e2e-failure-report.ts || echo "::warning::nightly failure reporter exited non-zero"
+          cp docs/tracking/nightly-last-failure.md /tmp/nightly-last-failure.md
       - name: Upload report on failure
         if: always() && steps.run.outcome == 'failure'
         uses: actions/upload-artifact@v4
@@ -104,6 +131,8 @@ jobs:
       # file is REGENERATED after every fetch (it is derived state — the run owns
       # every field, so rewriting is always safe and never conflicts), and a push
       # that still fails after 3 attempts is a warning, not a job failure.
+      # The heartbeat commit now carries the evidence file alongside the status
+      # file, on the same [skip ci] tracking path and the same branch (dev).
       - name: Write and push heartbeat
         if: always()
         env:
@@ -139,13 +168,18 @@ jobs:
             git fetch origin dev
             git reset --hard origin/dev
             write_status
-            git add docs/tracking/nightly-status.md
+            # The reset wipes the rendered evidence (it is derived state, like
+            # the status file), so restore the copy taken above.
+            if [ -f /tmp/nightly-last-failure.md ]; then
+              cp /tmp/nightly-last-failure.md docs/tracking/nightly-last-failure.md
+            fi
+            git add docs/tracking/nightly-status.md docs/tracking/nightly-last-failure.md
             if git diff --cached --quiet; then
               echo "No heartbeat change to commit."
               pushed=1
               break
             fi
-            git commit -m "chore(ci): nightly E2E heartbeat [skip ci]"
+            git commit -m "chore(ci): nightly E2E heartbeat + failure evidence [skip ci]"
             if git push origin HEAD:dev; then
               pushed=1
               break

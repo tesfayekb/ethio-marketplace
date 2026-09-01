@@ -14,17 +14,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { en } from "./locales/en";
-import { SUPPORTED_LANGUAGES, type Language, type MessageKey, type Messages } from "./types";
+import { type Language, type MessageKey, type Messages } from "./types";
 
 export const LANGUAGE_STORAGE_KEY = "ethio.lang";
 
 /** The base language: the last-resort catalog and the refusal fallback (U4f). */
 export const BASE_LANGUAGE: Language = "en";
 
-/** Only "en" is bundled statically; other locales are fetched on demand. */
-const loaders: Record<Exclude<Language, "en">, () => Promise<Messages>> = {
+/**
+ * INC-107 — A MISSING COMPILED LAYER IS EMPTY, NOT FATAL.
+ *
+ * The compiled catalogs are a SEED, not the language registry: a language the
+ * operator publishes in the console may legitimately exist in the DATABASE
+ * only, with no file here. The registry is therefore a partial map keyed by
+ * code, and a lookup miss means "the compiled layer for this language is `{}`"
+ * — the chain becomes compiled.en ▸ {} ▸ DB[lang], never a throw.
+ */
+const loaders: Partial<Record<string, () => Promise<Messages>>> = {
   am: () => import("./locales/am").then((m) => m.am),
 };
+
+/**
+ * A well-formed BCP-47-ish code. Shape only: whether a code may ACTIVATE is
+ * the publication gate's call (`isPublic`), never this function's.
+ */
+function isLanguageCode(value: string | null): value is Language {
+  return value !== null && /^[a-z]{2,8}(-[a-z]{2,8})?$/i.test(value);
+}
 
 /**
  * U4f (INC-098) — a PUBLIC language row, as the publication gate defines it.
@@ -67,10 +83,6 @@ type I18nValue = {
 };
 
 const I18nContext = createContext<I18nValue | null>(null);
-
-function isLanguage(value: string | null): value is Language {
-  return value !== null && (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
-}
 
 /** URL override (`?lang=xx`) — validated against the gate like every other source. */
 function requestedFromUrl(): string | null {
@@ -132,6 +144,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [gateReady, setGateReady] = useState(false);
   /** Loop guard (INC-098b): the gate revokes an unpublished language AT MOST once. */
   const reconciledRef = useRef(false);
+  /** INC-107 — one warning per DB-only language, never one per effect run. */
+  const warnedMissingRef = useRef<Set<string>>(new Set());
   const authSettled = useAuthSettled();
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
@@ -204,11 +218,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   // Restore the requested choice after hydration: URL override first, then the
-  // persisted preference. Both are validated against the gate below.
+  // persisted preference. INC-107: neither source is validated against the
+  // COMPILED registry — a DB-only language is a legitimate preference — only
+  // against the code SHAPE here and against the publication gate below.
   useEffect(() => {
     const fromUrl = requestedFromUrl();
     if (fromUrl !== null) {
-      if (isLanguage(fromUrl)) setLanguageState(fromUrl);
+      if (isLanguageCode(fromUrl)) setLanguageState(fromUrl);
       else console.warn(`[i18n] language "${fromUrl}" is not published — falling back to base`);
       return;
     }
@@ -218,7 +234,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {
       stored = null;
     }
-    if (isLanguage(stored) && stored !== BASE_LANGUAGE) setLanguageState(stored);
+    if (isLanguageCode(stored) && stored !== BASE_LANGUAGE) setLanguageState(stored);
   }, []);
 
   // Whatever the source (switcher, storage, URL), an active language that the
@@ -269,13 +285,26 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    if (language === "en") {
+    if (language === BASE_LANGUAGE) {
       applyWithBundle(en);
       return () => {
         cancelled = true;
       };
     }
-    loaders[language]().then(applyWithBundle);
+    // INC-107 — a missing compiled layer is empty, not fatal: a published,
+    // DB-only language loads compiled.en underneath and DB[lang] on top.
+    const loader = loaders[language];
+    if (!loader) {
+      if (!warnedMissingRef.current.has(language)) {
+        warnedMissingRef.current.add(language);
+        console.warn(`[i18n] no compiled catalog for ${language}; DB-only`);
+      }
+      applyWithBundle(en);
+      return () => {
+        cancelled = true;
+      };
+    }
+    void loader().then(applyWithBundle);
     return () => {
       cancelled = true;
     };
