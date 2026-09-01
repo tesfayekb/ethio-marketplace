@@ -6,6 +6,7 @@ import { en } from "../src/i18n/locales/en";
 
 import { FENCE_PREFIX_LIST, fenceLang, processId } from "./global-setup";
 import {
+  describeEntityStats,
   describeStringsPage,
   describeSwitcher,
   enrollAndStepUp,
@@ -18,6 +19,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
+import { translationMapperSelfTest } from "../src/features/admin/translations/translations-service";
 
 /**
  * Phase U4b — Translations console (TR-1..TR-10).
@@ -1063,6 +1065,8 @@ test.describe("U4b translations console", () => {
     page,
   }) => {
     test.setTimeout(180_000);
+    // INC-119 — the RPC mappers assert their own contract before the walk.
+    expect(translationMapperSelfTest()).toBe("ok");
     const fence = bulkFence();
     await ensureFenceLanguage(fence);
     const supabase = adminClient();
@@ -1119,6 +1123,17 @@ test.describe("U4b translations console", () => {
       const untranslatedBefore = Number(
         (await startButton.innerText()).replace(/[^0-9]/g, "") || "0",
       );
+      // U4j-4 (INC-119) — a zero here is a SHAPE problem, not a count: dump the
+      // stats query state and the first listed rows so it names itself forever.
+      if (untranslatedBefore === 0) {
+        throw new Error(
+          [
+            `[INC-119] the Data bulk bar reported 0 untranslated for ${fence} while the universe is non-empty`,
+            await describeEntityStats(page),
+            await describeStringsPage(page),
+          ].join("\n"),
+        );
+      }
       expect(untranslatedBefore).toBeGreaterThan(0);
       await startButton.click();
       await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
