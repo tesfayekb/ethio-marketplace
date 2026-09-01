@@ -39,6 +39,17 @@ export default defineConfig({
   nitro: {
     preset: NITRO_PRESET,
     output: { dir: "dist", serverDir: "dist/server", publicDir: "dist/client" },
+    // DEC-019-B — WORKER COMPATIBILITY DATE IS PINNED, NEVER THE BUILD DAY.
+    // Censused on the installed nitro (3.0.260603-beta): the option is
+    // `compatibilityDate` on NitroConfig (string | per-platform object), and
+    // the cloudflare preset writes it verbatim into dist/server/wrangler.json
+    // as `compatibility_date` (falling back to "latest" = the build day when
+    // unset — INC-088/INC-111). Pinning it to a date the pinned wrangler
+    // (4.125.0 in `serve:e2e:built:cloudflare`) supports makes the nightly
+    // parity smoke actually boot workerd instead of refusing on a calendar
+    // boundary. BUMP RULE: raise this pin only together with a wrangler that
+    // supports the newer date, in ONE landing.
+    compatibilityDate: "2026-08-27",
     // Cloudflare-only options belong to the cloudflare preset alone; nitro's
     // node-server target has no worker to configure.
     ...(NITRO_PRESET === "cloudflare-module"
