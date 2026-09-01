@@ -129,6 +129,21 @@ function armClientErrorCapture(page: Page, buffer: string[]): void {
   // INC-085i — preserve the complete stack in the attachment. Console lines
   // have a 2,000-character transport cap below; page errors are never capped.
   page.on("pageerror", (error) => push(`pageerror: ${error.stack ?? error.message}`));
+  // INC-109 — a 500 whose URL nobody recorded is an undiagnosable failure.
+  // Every 5xx response (document, fetch, xhr — any resource type) names its
+  // endpoint here, on the same `[client-error]` tag the reporter greps.
+  page.on("response", (response) => {
+    if (response.status() < 500) return;
+    void (async () => {
+      let body = "";
+      try {
+        body = (await response.text()).replace(/\s+/g, " ").slice(0, 200);
+      } catch {
+        body = "(body unavailable)";
+      }
+      push(`HTTP ${response.status()} ${response.request().method()} ${response.url()} (${body})`);
+    })();
+  });
   page.on("console", (message) => {
     if (message.type() !== "error") return;
     // INC-085g — React prints the message in arg 0 and the COMPONENT STACK in a
