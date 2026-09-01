@@ -1085,12 +1085,18 @@ test.describe("U4b translations console", () => {
     try {
       const { secret } = await signInAsSuperAdmin(page);
 
+      // U4j-3 — the UNIVERSE, not the existing rows: the scratch location has
+      // no entity_translations row in the fence language yet, and must still be
+      // listed as `untranslated` so it can be translated at all.
+      expect(await machineStatus(one.id)).toBe("missing");
+
       // PER-ROW — seed exists before navigating, and is asserted rendered (J7).
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(one.name);
       const row = translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${one.id}`));
       await expect(row).toBeVisible({ timeout: 20000 });
+      await expect(row.getByTestId(`entity-status-${one.id}`)).toHaveText(/untranslated/i);
       await surfaceControl(page, `entity-expand-${one.id}`).click();
       const editor = surfaceControl(page, `entity-editor-${one.id}`);
       await expect(editor).toBeVisible();
