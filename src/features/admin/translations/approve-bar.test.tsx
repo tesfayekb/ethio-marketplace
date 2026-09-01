@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+
 import { ApproveAllBar } from "./approve-bar";
 
 /**
