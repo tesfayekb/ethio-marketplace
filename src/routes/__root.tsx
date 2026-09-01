@@ -246,7 +246,6 @@ function RootShell({ children }: { children: ReactNode }) {
   const data = useRouterState({
     select: (state) => state.matches[0]?.loaderData as SsrLangContext | undefined,
   });
-  console.log("[u4h-shell]", JSON.stringify(data)?.slice(0,120));
   const star = data?.star ?? null;
   const dir = star && data?.languages.find((row) => row.code === star)?.rtl ? "rtl" : "ltr";
 
