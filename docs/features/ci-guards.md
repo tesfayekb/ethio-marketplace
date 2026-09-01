@@ -601,3 +601,25 @@ LAW, in two halves:
 
 READING RULE: a wipeout on attempt >= 2 with a green preflight now reads as
 "artifact contract broken", never as "no tests ran".
+
+## DEC-019-B — the worker compatibility date is pinned (2026-09-01)
+
+Nitro resolves an unset `compatibilityDate` to `"latest"`, i.e. the BUILD DAY,
+and the cloudflare preset writes it into `dist/server/wrangler.json` as
+`compatibility_date`. The pinned `wrangler` in `serve:e2e:built:cloudflare`
+runs a workerd binary whose newest supported date is never newer than its
+release day, so the nightly cloudflare-parity smoke refused to boot on every
+calendar boundary (nightly run 33516364647: "requires compatibility date
+2026-09-01, newest supported 2026-08-27") and the parity signal was, in
+practice, permanently absent.
+
+PIN: `vite.config.ts` sets `nitro.compatibilityDate: "2026-08-27"` (option name
+censused on the installed nitro 3.0.260603-beta: `compatibilityDate` on
+`NitroConfig`, string or per-platform object). The Lovable sandbox branch of
+the config wrapper re-applies the same constants for preset/output/cloudflare;
+the pin passes through verbatim, so both environments resolve identically.
+
+BUMP RULE: raise the pin ONLY when the pinned wrangler supports the newer date,
+and land the pin and the wrangler version TOGETHER in one change. A parity
+refusal is no longer an excused runtime class — it is a gating failure whose
+remedy is exactly that bump.
