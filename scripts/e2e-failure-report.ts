@@ -1097,6 +1097,10 @@ async function main() {
 
   if (process.env["E2E_GREEN"] === "1") {
     await Bun.write(OUT, renderGreen(meta));
+    // DEC-028 — a green run still publishes its verdict, so a consumer never
+    // has to treat a missing verdict file as "probably green".
+    const greenVerdict = process.env["E2E_VERDICT_PATH"];
+    if (greenVerdict) await Bun.write(greenVerdict, "gating=0\nquarantined=0\nsilent=0\n");
     console.log(`Wrote ${OUT} (green run ${meta.runId}).`);
     return;
   }
