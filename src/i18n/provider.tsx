@@ -174,10 +174,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const authSettled = useAuthSettled();
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
-  // Gated activation (U4f) and the once-only reconcile (U4f-2) are unchanged;
-  // only the START of this read moves behind the settle signal above.
+  // INC-110: the read no longer waits for the auth settle signal, because it
+  // no longer touches the auth lock — it is a keyed anon fetch, off the
+  // critical path of every route guard.
   useEffect(() => {
-    if (!authSettled) return;
     let cancelled = false;
     void fetchPublicLanguages().then((rows) => {
       if (cancelled) return;
@@ -192,7 +192,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [authSettled]);
+  }, []);
+
 
   const isPublic = useCallback(
     (code: string) => publicLanguages.some((row) => row.code === code),
