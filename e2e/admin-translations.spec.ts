@@ -723,6 +723,111 @@ test.describe("U4b translations console", () => {
     }
   });
 
+  /**
+   * TR-23 (U4g-24 / INC-115) — PLACEHOLDER PROTECTION AND ONE-CLICK REPAIR.
+   *
+   * Two seams in one walk, because they are two halves of one promise:
+   *  A. a machine translation of a token-bearing string KEEPS its `{token}`
+   *     verbatim (the endpoint masks before the provider and restores after),
+   *     so the row lands unflagged and usable.
+   *  B. when a translation IS mangled, the editor repairs it positionally —
+   *     the button is inert until the counts match, and the save that follows
+   *     clears the flag through the SAME server validator (no bypass).
+   *
+   * J-laws: both keys are axes-namespaced scratch keys, deleted in `finally`
+   * together with the revisions the writer captured for them.
+   */
+  test("TR-23 machine translation keeps placeholders, and the editor repairs a mangled one", async ({
+    page,
+  }) => {
+    const keptKey = scratchKey("tr23") + "-kept";
+    const brokenKey = scratchKey("tr23") + "-break";
+    await seedScratchKey(keptKey, "Hello {name}, you have {count} messages");
+    await seedScratchKey(brokenKey, "E2EBREAK Hello {name}");
+    const supabase = adminClient();
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations/am");
+
+      // ---- A. the token survives the round trip -------------------
+      const keptId = slug(keptKey);
+      await page.getByTestId("strings-search").fill(keptKey);
+      await expect(stringRow(page, keptId)).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `string-expand-${keptId}`).click();
+      await expansionControl(page, keptId, "string-ai").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, keptId, "string-saved")).toBeVisible({ timeout: 30000 });
+
+      const { data: kept, error: keptError } = await supabase
+        .from("ui_translations")
+        .select("value, flagged, flag_note, status, machine")
+        .eq("key", keptKey)
+        .eq("lang_code", "am")
+        .single();
+      if (keptError) throw new Error(`[e2e:u4g] kept read failed: ${keptError.message}`);
+      expect(
+        { value: kept?.value, flagged: kept?.flagged, note: kept?.flag_note },
+        "machine translation lost a placeholder",
+      ).toMatchObject({ flagged: false });
+      expect(kept?.value ?? "").toContain("{name}");
+      expect(kept?.value ?? "").toContain("{count}");
+      // Provenance is the ORIGIN, and it stays machine.
+      expect(kept?.machine).toBe(true);
+
+      // ---- B. repair of a genuinely mangled row -------------------
+      const brokenId = slug(brokenKey);
+      await page.getByTestId("strings-search").fill(brokenKey);
+      await expect(stringRow(page, brokenId)).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `string-expand-${brokenId}`).click();
+      await expansionControl(page, brokenId, "string-ai").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, brokenId, "string-saved")).toBeVisible({
+        timeout: 30000,
+      });
+      await expect(expansionControl(page, brokenId, "string-flagnote")).toBeVisible({
+        timeout: 20000,
+      });
+
+      // The repair tool refuses while the counts disagree …
+      const restore = expansionControl(page, brokenId, "string-restore-tokens");
+      await expect(restore).toBeDisabled();
+      await expect(expansionControl(page, brokenId, "string-restore-hint")).toBeVisible();
+
+      // … and rewrites positionally once they agree.
+      await expansionControl(page, brokenId, "string-input").fill("ሰላም {nam}");
+      await expect(restore).toBeEnabled();
+      await restore.click();
+      await expect(expansionControl(page, brokenId, "string-input")).toHaveValue("ሰላም {name}");
+
+      await expansionControl(page, brokenId, "string-save").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(expansionControl(page, brokenId, "string-saved")).toBeVisible({
+        timeout: 20000,
+      });
+
+      await expect
+        .poll(
+          async () => {
+            const { data } = await supabase
+              .from("ui_translations")
+              .select("flagged, status, value")
+              .eq("key", brokenKey)
+              .eq("lang_code", "am")
+              .maybeSingle();
+            if (!data) return "missing";
+            return `${String(data.flagged)}|${data.status}|${data.value ?? ""}`;
+          },
+          { timeout: 20000, message: "the repaired row never cleared its flag" },
+        )
+        .toBe("false|edited|ሰላም {name}");
+    } finally {
+      for (const key of [keptKey, brokenKey]) {
+        await supabase.from("ui_translation_revisions").delete().eq("key", key);
+        await reapScratchKey(key);
+      }
+    }
+  });
+
   test("TR-scope AI: a translator outside the language gets the structured refusal", async ({
     page,
   }) => {

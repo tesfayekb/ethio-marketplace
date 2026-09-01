@@ -608,6 +608,12 @@ export const en = {
   "admin.translations.editor.approve": "Approve",
   "admin.translations.editor.clear": "Clear",
   "admin.translations.editor.flagNote": "Flagged: {note}",
+  // U4g-24 (INC-115) — placeholder protection and one-click repair.
+  "admin.translations.editor.placeholderRule":
+    "Placeholders are filled by name — keep them exactly as in the English source.",
+  "admin.translations.editor.restorePlaceholders": "Restore placeholders",
+  "admin.translations.editor.restoreHint":
+    "Counts must match first: the translation has {got} placeholders, the English source has {want}.",
   "admin.translations.editor.notAssigned":
     "You are not assigned to this language — the server will refuse changes.",
   // U4c — AI translation (machine fill; results are provisional).

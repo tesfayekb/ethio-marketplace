@@ -65,6 +65,25 @@ row's** set. A mismatch does not refuse the write — it stores it with
 the console can surface it and an approver can decide. Values are **DATA**:
 stored and rendered as text, never HTML.
 
+### Placeholder protection in machine translation (U4g-24 / INC-115)
+
+`/api/translate` never sends a raw `{token}` to the provider. Each token is
+masked as `<span translate="no">⟦i⟧</span>` (request `format=html`) and
+restored by index in the response. The restore is total-or-nothing: if any
+sentinel is missing or duplicated, the provider's text is passed through
+untouched and the validator above flags the row — the endpoint never guesses a
+token back into place. Fake mode (`E2E_FAKE_TRANSLATE=1`) runs the identical
+mask/restore path, so CI exercises the mechanism without a provider key.
+
+On a flagged row the editor offers **Restore placeholders**: a positional
+rewrite (token _i_ of the draft becomes token _i_ of the English source),
+disabled until the two counts match and stating both counts when it refuses.
+It only fills the editor; the subsequent Save re-runs the server validator, so
+the flag clears only when the value is genuinely correct.
+
+Provenance is the text's ORIGIN, not its review state: an approved machine row
+still reads "Machine", with "Approved by …" appended.
+
 ## Coverage-gated publication (S10)
 
 `admin_set_language_flags(code, enabled_admin, enabled_public)` refuses

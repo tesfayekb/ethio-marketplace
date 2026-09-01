@@ -441,6 +441,20 @@ function slug(key: string) {
   return key.replace(/[^a-zA-Z0-9]+/g, "-");
 }
 
+/**
+ * U4g-24 (INC-115) — the placeholder grammar the server validator uses:
+ * `{name}` tokens, in order of appearance.
+ */
+function matchTokens(text: string): string[] {
+  return text.match(/\{[^{}]*\}/g) ?? [];
+}
+
+/** Positional rewrite: token i of the draft becomes token i of the source. */
+function rewriteTokens(text: string, tokens: string[]): string {
+  let index = 0;
+  return text.replace(/\{[^{}]*\}/g, (whole) => tokens[index++] ?? whole);
+}
+
 function stringColumns(
   t: (key: MessageKey) => string,
   rtl: boolean,
@@ -506,6 +520,12 @@ function stringColumns(
       header: t("admin.translations.col.provenance"),
       priority: "detail",
       width: "w-[10%]",
+      /**
+       * U4g-24 (INC-115) — PROVENANCE IS THE TEXT'S ORIGIN, NEVER ITS REVIEW
+       * STATE. `machine=true` reads "Machine" even once the row is approved;
+       * approval is APPENDED ("Approved by …"), never substituted, so nobody
+       * can mistake reviewed machine text for human-written text.
+       */
       cell: (row) => (
         <span className="block truncate text-xs text-muted-foreground">
           {row.status === "untranslated"
@@ -515,6 +535,12 @@ function stringColumns(
                   ? "admin.translations.provenance.machine"
                   : "admin.translations.provenance.human",
               )}
+          {row.approvedAt
+            ? ` · ${t("admin.translations.provenance.approvedBy").replace(
+                "{who}",
+                row.approvedBy ?? "—",
+              )}`
+            : ""}
         </span>
       ),
     },
@@ -552,6 +578,11 @@ function StringEditor({
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const id = slug(row.key);
 
+  // U4g-24 (INC-115) — positional placeholder repair (see the button below).
+  const sourceTokens = matchTokens(row.sourceValue ?? "");
+  const draftTokens = matchTokens(draft);
+  const canRestoreTokens = sourceTokens.length > 0 && draftTokens.length === sourceTokens.length;
+
   // MutationAction alias: the hardcoded-string scan reads an inline
   // arrow return type as JSX text (known scanner shape, not a violation).
   const run = (action: MutationAction) => {
@@ -582,7 +613,9 @@ function StringEditor({
 
       {row.flagged && row.flagNote ? (
         <p data-testid={`string-flagnote-${id}`} className="text-sm text-destructive">
-          {t("admin.translations.editor.flagNote").replace("{note}", row.flagNote)}
+          {`${t("admin.translations.editor.flagNote").replace("{note}", row.flagNote)} ${t(
+            "admin.translations.editor.placeholderRule",
+          )}`}
         </p>
       ) : null}
 
@@ -597,6 +630,34 @@ function StringEditor({
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
       />
+
+      {/**
+       * U4g-24 (INC-115) — ONE-CLICK PLACEHOLDER REPAIR. Positional rewrite
+       * only, and only when the counts already match: the tool never invents,
+       * drops or reorders a placeholder. It fills the EDITOR; nothing is
+       * written until Save, which re-runs the server-side validator.
+       */}
+      {row.flagged && mayUpdate ? (
+        <div className="min-w-0 space-y-1">
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            data-testid={`string-restore-tokens-${id}`}
+            disabled={!canRestoreTokens}
+            onClick={() => setDraft(rewriteTokens(draft, sourceTokens))}
+          >
+            {t("admin.translations.editor.restorePlaceholders")}
+          </Button>
+          {!canRestoreTokens ? (
+            <p data-testid={`string-restore-hint-${id}`} className="text-xs text-muted-foreground">
+              {t("admin.translations.editor.restoreHint")
+                .replace("{got}", String(draftTokens.length))
+                .replace("{want}", String(sourceTokens.length))}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <p data-testid={`string-provenance-${id}`} className="text-xs text-muted-foreground">
         {row.status === "untranslated"
