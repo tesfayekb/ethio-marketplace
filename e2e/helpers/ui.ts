@@ -445,3 +445,99 @@ export async function switchLanguage(page: Page, code: "en" | "am") {
   await page.getByTestId(`language-option-${code}`).click();
   await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
 }
+
+/**
+ * INC-112 — SELF-DESCRIBING FAILURE DUMP for the translations strings page.
+ *
+ * TR-19 timed out with nothing but a footer snapshot: no phase, no route, no
+ * clue whether the roster, the strings list or the stats query had ever
+ * resolved. Precedent: describeUserDetail (INC-109). Reads the live query
+ * cache through the E2E instrument (`__ethioQueryClient`, VITE_E2E-gated),
+ * the presence counts of the page's censused testids, and whether a modal
+ * (step-up or the approve-all confirm) is sitting over the surface.
+ *
+ * J-law: available to EVERY TR test on failure, never a per-test inline read.
+ */
+export async function describeStringsPage(page: Page): Promise<string> {
+  let cache = "(query cache unavailable)";
+  try {
+    cache = await page.evaluate(() => {
+      type Q = {
+        queryKey: unknown[];
+        state: { status: string; error: unknown; dataUpdatedAt: number; data: unknown };
+      };
+      const client = (
+        window as unknown as {
+          __ethioQueryClient?: { getQueryCache: () => { getAll: () => Q[] } };
+        }
+      ).__ethioQueryClient;
+      if (!client) return "(no __ethioQueryClient — not an E2E build?)";
+      return client
+        .getQueryCache()
+        .getAll()
+        .filter((q) => {
+          const key = q.queryKey.map((part) => String(part)).join("/");
+          return (
+            key.includes("translation") ||
+            key.includes("language") ||
+            key.includes("strings") ||
+            key.includes("stats")
+          );
+        })
+        .map((q) => {
+          const error = q.state.error as { message?: string } | null;
+          const data = q.state.data as unknown;
+          const length = Array.isArray(data)
+            ? data.length
+            : data == null
+              ? "null"
+              : typeof data === "object"
+                ? `keys:${Object.keys(data as object).length}`
+                : "scalar";
+          return `  ${JSON.stringify(q.queryKey)} status=${q.state.status} error=${
+            error?.message ?? "none"
+          } dataUpdatedAt=${q.state.dataUpdatedAt} dataLength=${length}`;
+        })
+        .join("\n");
+    });
+  } catch (error) {
+    cache = `(query cache read threw: ${(error as Error).message})`;
+  }
+
+  const present: string[] = [];
+  for (const id of [
+    "strings-coverage",
+    "strings-search",
+    "strings-unavailable",
+    "approve-all-bar",
+    "approve-all-start",
+    "approve-all-summary",
+    "approve-all-error",
+  ]) {
+    const count = await page
+      .getByTestId(id)
+      .count()
+      .catch(() => -1);
+    present.push(`${id}=${count}`);
+  }
+
+  const dialogs: string[] = [];
+  for (const id of ["step-up-modal", "approve-all-confirm"]) {
+    const visible = await page
+      .getByTestId(id)
+      .isVisible()
+      .catch(() => false);
+    dialogs.push(`${id}=${visible ? "open" : "closed"}`);
+  }
+  const roleDialogs = await page
+    .getByRole("dialog")
+    .count()
+    .catch(() => -1);
+
+  return [
+    `[INC-112] url: ${page.url()}`,
+    `[INC-112] testids: ${present.join(" ")}`,
+    `[INC-112] dialogs: ${dialogs.join(" ")} role=dialog count=${roleDialogs}`,
+    `[INC-112] queries:\n${cache || "  (no matching queries)"}`,
+  ].join("\n");
+}
