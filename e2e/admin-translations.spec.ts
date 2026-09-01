@@ -6,6 +6,7 @@ import { en } from "../src/i18n/locales/en";
 
 import { APPROVE_FENCE_LANG, FENCE_LANG, processId } from "./global-setup";
 import {
+  describeStringsPage,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
