@@ -154,7 +154,6 @@ export function AdminTranslationsLanguagesPage() {
               <PseudoBar guard={guard} />
             </>
           ) : null}
-
         </div>
       )}
     </StepUpGate>

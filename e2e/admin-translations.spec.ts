@@ -2254,14 +2254,14 @@ test.describe("U4g bulk approval, order and orphans", () => {
         .update({ status: "approved" })
         .eq("key", key)
         .eq("lang_code", fence);
-      if (approveError)
-        throw new Error(`[e2e:u4i] TR-29 approve failed: ${approveError.message}`);
+      if (approveError) throw new Error(`[e2e:u4i] TR-29 approve failed: ${approveError.message}`);
       const { count: revisionsBefore, error: countError } = await adminClient()
         .from("ui_translation_revisions")
         .select("id", { count: "exact", head: true })
         .eq("key", key)
         .eq("lang_code", fence);
-      if (countError) throw new Error(`[e2e:u4i] TR-29 revision count failed: ${countError.message}`);
+      if (countError)
+        throw new Error(`[e2e:u4i] TR-29 revision count failed: ${countError.message}`);
 
       await gotoReady(page, `/admin/translations/${fence}`);
       await page.getByTestId("strings-search").fill(key);
@@ -2282,7 +2282,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
         .eq("key", key)
         .eq("lang_code", fence)
         .maybeSingle();
-      if (afterError) throw new Error(`[e2e:u4i] TR-29 re-import read failed: ${afterError.message}`);
+      if (afterError)
+        throw new Error(`[e2e:u4i] TR-29 re-import read failed: ${afterError.message}`);
       expect(
         `${afterRow?.value}|${afterRow?.status}`,
         "an untouched re-import demoted an approved row",

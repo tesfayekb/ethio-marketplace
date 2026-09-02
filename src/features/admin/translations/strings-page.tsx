@@ -707,7 +707,6 @@ function StringEditor({
         ) : null}
       </div>
 
-
       {/**
        * U4i ② — USED ON. Build-time truth from scripts/i18n-usage-map.ts.
        * `undefined` (map not loaded) and an empty list (key not found in any
@@ -766,7 +765,6 @@ function StringEditor({
           )}
         </Badge>
       ) : null}
-
 
       {/**
        * U4g-24 (INC-115) — ONE-CLICK PLACEHOLDER REPAIR. Positional rewrite

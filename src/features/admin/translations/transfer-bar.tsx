@@ -100,7 +100,6 @@ export function TransferBar({
           .replace("{unchanged}", String(split.unchanged))
           .replace("{skipped}", String(result.skipped + parsed.malformed)),
       );
-
     }).catch((failure: unknown) => {
       setErrorKey(translationErrorKey(failure));
       setErrorDetail(serverMessage(failure));

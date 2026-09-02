@@ -159,8 +159,7 @@ function main(): void {
   for (const file of files) {
     const text = textOf.get(file) ?? "";
     const reached = routesReaching.get(file);
-    const surfaces =
-      reached && reached.size > 0 ? [...reached] : [componentNameFor(file)];
+    const surfaces = reached && reached.size > 0 ? [...reached] : [componentNameFor(file)];
     for (const match of text.matchAll(LITERAL_T)) {
       const key = match[1];
       if (key === undefined || !key.includes(".")) continue;
