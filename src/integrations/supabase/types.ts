@@ -874,6 +874,7 @@ export type Database = {
       ui_translation_revisions: {
         Row: {
           action: string
+          batch_id: string | null
           changed_at: string
           changed_by: string | null
           id: string
@@ -885,6 +886,7 @@ export type Database = {
         }
         Insert: {
           action: string
+          batch_id?: string | null
           changed_at?: string
           changed_by?: string | null
           id?: string
@@ -896,6 +898,7 @@ export type Database = {
         }
         Update: {
           action?: string
+          batch_id?: string | null
           changed_at?: string
           changed_by?: string | null
           id?: string
@@ -1372,6 +1375,7 @@ export type Database = {
           untranslated: number
         }[]
       }
+      admin_undo_import: { Args: { p_batch: string }; Returns: Json }
       admin_update_profile: {
         Args: {
           p_display_name: string
