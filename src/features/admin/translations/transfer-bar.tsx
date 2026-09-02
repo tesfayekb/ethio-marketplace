@@ -101,6 +101,8 @@ export function TransferBar({
 
   const onFile = (file: File) => {
     setSummary(null);
+    setUndoLine(null);
+    setBatchId(null);
     setErrorKey(null);
     setErrorDetail(null);
     void guard(async () => {
@@ -124,8 +126,10 @@ export function TransferBar({
       const split = partitionUnchanged(parsed.rows, current);
       const result =
         split.changed.length === 0
-          ? { imported: 0, flagged: 0, unchanged: 0, skipped: 0 }
+          ? { imported: 0, flagged: 0, unchanged: 0, skipped: 0, batchId: null }
           : await importRows.mutateAsync(split.changed);
+      // U4i-7 (INC-125) — a run that wrote nothing has nothing to take back.
+      setBatchId(result.imported > 0 ? result.batchId : null);
       setSummary(
         t("admin.translations.transfer.summary")
           .replace("{imported}", String(result.imported))
@@ -133,6 +137,29 @@ export function TransferBar({
           .replace("{unchanged}", String(result.unchanged + split.unchanged))
           .replace("{skipped}", String(result.skipped + parsed.malformed)),
       );
+    }).catch((failure: unknown) => {
+      setErrorKey(translationErrorKey(failure));
+      setErrorDetail(serverMessage(failure));
+    });
+  };
+
+  /**
+   * U4i-7 (INC-125) — UNDO. The gates re-run server-side; the button only
+   * carries the batch id and renders the SERVER's restored/conflicted counts.
+   * The batch is cleared afterwards: an undo is taken back once.
+   */
+  const onUndo = (batch: string) => {
+    setUndoLine(null);
+    setErrorKey(null);
+    setErrorDetail(null);
+    void guard(async () => {
+      const result = await undoRows.mutateAsync(batch);
+      setUndoLine(
+        t("admin.translations.transfer.undoResult")
+          .replace("{restored}", String(result.restored))
+          .replace("{conflicted}", String(result.conflicted)),
+      );
+      setBatchId(null);
     }).catch((failure: unknown) => {
       setErrorKey(translationErrorKey(failure));
       setErrorDetail(serverMessage(failure));
