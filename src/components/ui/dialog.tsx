@@ -30,14 +30,22 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+/**
+ * U4i-6 (a) — STACKING LAW (INC-124). Every dialog in this app paints at
+ * `z-50`, so the layer that wins is whichever portal mounted LAST — an
+ * accident, not a rule. Sensitive-action step-up must ALWAYS own the top
+ * layer, so the primitive exposes `overlayClassName` and honours `className`
+ * on the content: the step-up gate passes the dedicated top layer
+ * (`z-[100]`/`z-[101]`) and nothing else may use it.
+ */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { overlayClassName?: string }
+>(({ className, overlayClassName, children, ...props }, ref) => {
   const { t } = useI18n();
   return (
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay className={overlayClassName} />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(

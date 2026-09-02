@@ -107,21 +107,26 @@ export function TransferBar({
         throw new Error("no rows in file");
       }
       /**
-       * U4i-3 (d) — NO-OP LAW (INC-122). Rows identical to what is already
-       * stored are never sent: an untouched export re-imported writes nothing,
-       * so an approved row cannot be demoted to `edited` by round-trip noise.
+       * U4i-3 (d) / U4i-6 (b) — NO-OP LAW (INC-122, INC-124). Idempotency is
+       * SERVER law: `admin_import_translations` compares each incoming value to
+       * the stored one and writes nothing when they match, so an approved row
+       * cannot be demoted by round-trip noise even if this filter is wrong.
+       * The partition below is an ADVISORY fast path only — it shrinks the
+       * payload; it never decides the outcome. The rendered summary is the
+       * server's own count for everything the server saw (F4), plus the rows
+       * this fast path withheld.
        */
       const current = new Map<string, string | null>(rows.map((row) => [row.key, row.value]));
       const split = partitionUnchanged(parsed.rows, current);
       const result =
         split.changed.length === 0
-          ? { imported: 0, flagged: 0, skipped: 0 }
+          ? { imported: 0, flagged: 0, unchanged: 0, skipped: 0 }
           : await importRows.mutateAsync(split.changed);
       setSummary(
         t("admin.translations.transfer.summary")
           .replace("{imported}", String(result.imported))
           .replace("{flagged}", String(result.flagged))
-          .replace("{unchanged}", String(split.unchanged))
+          .replace("{unchanged}", String(result.unchanged + split.unchanged))
           .replace("{skipped}", String(result.skipped + parsed.malformed)),
       );
     }).catch((failure: unknown) => {

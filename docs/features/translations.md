@@ -832,3 +832,40 @@ target below `md` and shrinks to 36px above it (C2).
 - TR-31 — a per-axes scratch language is created and seeded, deleted through the
   operator's typed-confirm + step-up flow, and proven gone from the roster and
   from all four tables.
+
+## U4i-6 — import writer semantics, modal stacking, density (INC-124)
+
+**Server-side no-op law.** `admin_import_translations` re-runs the gates
+(`translations:update` → step-up → language scope) once up front and per row via
+`admin_save_translation`, then, for each row, compares the incoming value with
+the stored one after trimming TRAILING whitespace/newlines only (a leading space
+can be meaningful in a UI string). Equal ⇒ nothing is written: the row keeps its
+status (an `approved` row stays approved), no revision is captured, and the row
+is counted `unchanged` in the returned
+`{ imported, flagged, unchanged, skipped }`. Different ⇒ the existing `edited`
+path with placeholder validation, revision capture and audit. Unknown or
+orphaned keys are `skipped`, never invented. `TransferBar`'s client comparator
+is an advisory fast path that shrinks the payload; the summary renders the
+server's counts plus the rows the fast path withheld.
+
+Proof (staging, run inside a rolled-back transaction):
+full re-import of identical values ⇒ `{imported:0, unchanged:2}`, 0 revisions
+added, the approved row still `approved`; one changed value + one unknown key ⇒
+`{imported:1, unchanged:1, skipped:1}` and that row `edited`.
+
+**Stacking.** `DialogContent` accepts `overlayClassName`; `StepUpGate` renders
+through the dialog portal at `z-[100]`/`z-[101]` — above every other dialog —
+and moves focus into the code input while the arming dialog stays visible
+beneath.
+
+**Density.** Switcher rows: `py-0.5 leading-tight`, menu width unchanged (12rem).
+
+### Coverage (U4i-6)
+
+- `language-switcher-compact.test.tsx` asserts the row class (`py-0.5`,
+  `leading-tight`, never `py-1.5`).
+- TR-29 addendum: a re-import differing only by a trailing newline defeats the
+  client comparator, reaches the writer, and still leaves the row `approved`
+  with no new revision.
+- TR-31 addendum: after arming Delete, the step-up code input is visible and
+  focused with the delete dialog still open beneath.

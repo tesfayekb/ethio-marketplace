@@ -2316,6 +2316,48 @@ test.describe("U4g bulk approval, order and orphans", () => {
       expect(revisionsAfter ?? 0, "an untouched re-import captured a revision").toBe(
         revisionsBefore ?? 0,
       );
+
+      /**
+       * U4i-6 (b) ADDENDUM — IDEMPOTENCY IS SERVER LAW (INC-124). The same
+       * value with a trailing newline DEFEATS the client comparator, so the row
+       * really reaches `admin_import_translations`. The writer normalizes
+       * trailing whitespace on both sides and refuses to write: the approval
+       * survives and still no revision is captured. Only a true value change
+       * demotes.
+       */
+      const noisyCsv = ["key,source,translation", `${key},"${source}","${imported}\n"`]
+        .join("\r\n")
+        .concat("\r\n");
+      await page.getByTestId("strings-import-input").setInputFiles({
+        name: `${fence}-noisy.csv`,
+        mimeType: "text/csv",
+        buffer: Buffer.from(noisyCsv, "utf8"),
+      });
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("strings-transfer-summary")).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId("strings-transfer-error")).toHaveCount(0);
+
+      const { data: noisyRow, error: noisyError } = await adminClient()
+        .from("ui_translations")
+        .select("value, status")
+        .eq("key", key)
+        .eq("lang_code", fence)
+        .maybeSingle();
+      if (noisyError) throw new Error(`[e2e:u4i6] TR-29 noisy read failed: ${noisyError.message}`);
+      expect(
+        `${noisyRow?.value}|${noisyRow?.status}`,
+        "a whitespace-only re-import demoted an approved row (server no-op law)",
+      ).toBe(`${imported}|approved`);
+      const { count: noisyRevisions, error: noisyCountError } = await adminClient()
+        .from("ui_translation_revisions")
+        .select("id", { count: "exact", head: true })
+        .eq("key", key)
+        .eq("lang_code", fence);
+      if (noisyCountError)
+        throw new Error(`[e2e:u4i6] TR-29 noisy recount failed: ${noisyCountError.message}`);
+      expect(noisyRevisions ?? 0, "a whitespace-only re-import captured a revision").toBe(
+        revisionsBefore ?? 0,
+      );
     } finally {
       await adminClient().from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);
@@ -2380,6 +2422,24 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await page.getByTestId(`lang-delete-confirm-${code}`).fill(code);
       await expect(submit).toBeEnabled();
       await submit.click();
+
+      /**
+       * U4i-6 (a) ADDENDUM — STEP-UP OWNS THE TOP LAYER (INC-124). When the
+       * gate opens it must be USABLE while the delete dialog stays open
+       * beneath: the code input is visible AND holds focus. If the session is
+       * already AAL2 no gate opens — a legitimate outcome, so the assertions
+       * are conditional on the modal appearing (the helper below covers both).
+       */
+      const stepUp = page.getByTestId("step-up-modal");
+      const armed = await stepUp
+        .waitFor({ state: "visible", timeout: 5000 })
+        .then(() => true)
+        .catch(() => false);
+      if (armed) {
+        await expect(page.getByTestId("step-up-code")).toBeVisible();
+        await expect(page.getByTestId("step-up-code")).toBeFocused();
+        await expect(page.getByTestId(`lang-delete-counts-${code}`)).toBeVisible();
+      }
       await stepUpIfPrompted(page, secret);
 
       await expect(langRow(page, code)).toHaveCount(0, { timeout: 30000 });
