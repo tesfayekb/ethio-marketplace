@@ -231,8 +231,33 @@ export function TransferBar({
         />
       </div>
       {summary ? (
-        <p role="status" data-testid="strings-transfer-summary" className="text-sm text-foreground">
+        <p
+          role="status"
+          data-testid="strings-transfer-summary"
+          data-batch={batchId ?? ""}
+          className="text-sm text-foreground"
+        >
           {summary}
+        </p>
+      ) : null}
+      {batchId ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11 self-start"
+          data-testid="strings-import-undo"
+          title={t("admin.translations.transfer.undoHint")}
+          disabled={undoRows.isPending}
+          onClick={() => onUndo(batchId)}
+        >
+          {undoRows.isPending
+            ? t("admin.translations.transfer.undoing")
+            : t("admin.translations.transfer.undo")}
+        </Button>
+      ) : null}
+      {undoLine ? (
+        <p role="status" data-testid="strings-undo-result" className="text-sm text-foreground">
+          {undoLine}
         </p>
       ) : null}
       {errorKey ? (
