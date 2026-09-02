@@ -55,8 +55,12 @@ export function TransferBar({
 }) {
   const { t } = useI18n();
   const importRows = useImportTranslations(lang);
+  const undoRows = useUndoImport();
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
+  // U4i-7 (INC-125) — the last import's batch id: what "Undo" acts on.
+  const [batchId, setBatchId] = useState<string | null>(null);
+  const [undoLine, setUndoLine] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
