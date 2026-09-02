@@ -855,3 +855,11 @@ why).** `.first()` — `shell.spec.ts` ×15, `helpers/ui.ts` ×2,
 `fixtures.ts` ×1, `mfa-stepup.spec.ts` ×1. `test.only` — zero occurrences. The
 disables are grandfathering, not absolution: each is a tracked sweep candidate,
 and NEW code cannot add one without saying why on the line.
+
+## A6 addendum (U4i-5) — the usage map is generated, never hand-kept
+
+**LAW.** Key-adding landings run `bun run i18n:usage` and COMMIT the map
+(`docs/generated/i18n-usage.json` + the byte-identical `public/i18n-usage.json`).
+The freshness guard (`git diff --exit-code` after a regen) going red on a
+key-adding landing is the guard being CORRECT, not flaky: new keys landed
+without a regen. Fix is the regen and the commit, never a guard relaxation.
