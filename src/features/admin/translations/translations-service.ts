@@ -815,6 +815,12 @@ export interface ImportResult {
    */
   unchanged: number;
   skipped: number;
+  /**
+   * U4i-7 — INC-125. The run's BATCH ID. Every revision the import captured
+   * carries it, so the whole run can be taken back while nothing has touched
+   * the rows since. Empty when the server wrote nothing to take back.
+   */
+  batchId: string | null;
 }
 
 export async function importTranslations(input: {
