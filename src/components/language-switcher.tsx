@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Star } from "lucide-react";
+import { ChevronDown, Star } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -67,7 +67,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 p-1">
+      <DropdownMenuContent align="end" className="w-40 p-1">
         {/* U4g-3 (INC-099b) — (sort, code): the SAME ordering law the admin
             roster applies, so what the operator arranges is what visitors see.
             U4i-4 (c) (INC-123) — DENSITY IS A CONTROL, NOT A CANVAS: one row
@@ -88,16 +88,12 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                 // `py-px`, half again from `py-0.5`; leading stays tight and
                 // the 12rem menu width is unchanged. The star keeps its own
                 // ≥44px touch target, so the row never becomes untappable.
-                className="flex min-w-0 items-center gap-1 py-px pe-1 ps-2 leading-tight"
+                className={cn(
+                  "flex min-w-0 items-center gap-1 py-0.5 pe-1 ps-2 leading-none",
+                  row.code === language && "bg-accent text-accent-foreground",
+                )}
                 onSelect={() => setLanguage(row.code as Language)}
               >
-                <Check
-                  aria-hidden="true"
-                  className={cn(
-                    "h-4 w-4 shrink-0",
-                    row.code === language ? "opacity-100" : "opacity-0",
-                  )}
-                />
                 <span className="min-w-0 flex-1 truncate">{key ? t(key) : row.name_native}</span>
                 {/* U4h — the DEVICE ★. One favourite: `aria-pressed` is true on
                     exactly one row because the provider's setter REPLACES the

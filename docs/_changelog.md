@@ -287,3 +287,4 @@
 - 2026-09-02 — fix: delete control once per twin; usage map regenerated (guard catch); ACT-U4-7 registered
 - 2026-09-02 — fix(i18n): server-side import idempotency (approved never demoted by no-op), step-up always on top, compact switcher rows (INC-124)
 - 2026-09-02 — feat(i18n): U4i-7 — undoable imports (batch-tagged, conflict-safe) + final switcher density (INC-125)
+- 2026-09-02 — polish(i18n): compact switcher (selection by tint, no check), proportional roster columns, Interface/Content naming with tooltips, one-line actions (walk polish)

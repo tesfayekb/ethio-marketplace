@@ -43,13 +43,19 @@ describe("LanguageSwitcher density", () => {
       // One flex row: label and star are siblings, never stacked.
       expect(item.className).toContain("items-center");
       expect(item.className).not.toContain("flex-col");
-      // U4i-7 — INC-125: FINAL density, `py-px` with tight leading.
-      expect(item.className).toContain("py-px");
-      expect(item.className).toContain("leading-tight");
-      expect(item.className).not.toContain("py-0.5");
+      // U4i-8: compact rows use a 2px vertical inset and no line-height slack.
+      expect(item.className).toContain("py-0.5");
+      expect(item.className).toContain("leading-none");
+      expect(item.className).not.toContain("py-px");
       expect(item.className).not.toContain("py-1.5");
       const code = item.getAttribute("data-testid")?.replace("language-option-", "") ?? "";
       expect(item.querySelector(`[data-testid="language-star-${code}"]`)).not.toBeNull();
+      expect(item.querySelector('[data-lucide="check"]')).toBeNull();
     }
+
+    expect(screen.getByTestId("language-option-en").className.split(" ")).toContain("bg-accent");
+    expect(screen.getByTestId("language-option-am").className.split(" ")).not.toContain(
+      "bg-accent",
+    );
   });
 });
