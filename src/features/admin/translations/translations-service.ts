@@ -841,6 +841,32 @@ export async function importTranslations(input: {
     flagged: Number(payload["flagged"] ?? 0),
     unchanged: Number(payload["unchanged"] ?? 0),
     skipped: Number(payload["skipped"] ?? 0),
+    batchId: typeof payload["batch_id"] === "string" ? payload["batch_id"] : null,
+  };
+}
+
+/**
+ * U4i-7 — UNDO AN IMPORT (INC-125). `admin_undo_import` re-runs the gates
+ * (`translations:manage` + step-up), restores every row that STILL holds
+ * exactly what the import wrote — value, status and machine flag, so a row
+ * approved before the import is approved again — and COUNTS the rest as
+ * conflicted, leaving them untouched. Later work is never overwritten.
+ */
+export interface UndoImportResult {
+  restored: number;
+  conflicted: number;
+}
+
+export async function undoImport(batchId: string): Promise<UndoImportResult> {
+  const { data, error } = await supabase.rpc("admin_undo_import", { p_batch: batchId });
+  if (error) throw error;
+  const payload =
+    data !== null && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
+  return {
+    restored: Number(payload["restored"] ?? 0),
+    conflicted: Number(payload["conflicted"] ?? 0),
   };
 }
 
