@@ -2205,6 +2205,24 @@ test.describe("U4g bulk approval, order and orphans", () => {
         );
       }
 
+      /**
+       * U4i-4 (a) ADDENDUM — EXPORT IS CATALOG-SCOPED (INC-123). The walk
+       * exported one PAGE and called it the catalog. The file's data-line count
+       * is asserted against the fence language's OWN row count read with the
+       * service client (J4): per-key/DB truth, never the console's summary.
+       */
+      const { count: catalogCount, error: catalogError } = await adminClient()
+        .from("ui_translations")
+        .select("key", { count: "exact", head: true })
+        .eq("lang_code", fence);
+      if (catalogError)
+        throw new Error(`[e2e:u4i] TR-29 catalog count failed: ${catalogError.message}`);
+      const exportedRows = exported.split(/\r?\n/).filter((line) => line.trim() !== "").length - 1;
+      expect(
+        exportedRows,
+        `the CSV export was page-scoped: ${exportedRows} rows for a ${catalogCount ?? 0}-row catalog`,
+      ).toBe(catalogCount ?? 0);
+
       // The operator's edit, expressed as the file they would send back.
       const csv = ["key,source,translation", `${key},"${source}","${imported}"`, `${ghost},"x","y"`]
         .join("\r\n")
@@ -2302,6 +2320,98 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await adminClient().from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);
       await adminClient().from("ui_translations").delete().eq("key", ghost);
+    }
+  });
+
+  /**
+   * TR-31 (U4i-4 (b)) — DELETING A LANGUAGE, typed confirm and all four tables.
+   *
+   * NOT @global-state (J6): the language is created by this test, named across
+   * every parallelism axis (run × shard × project × worker), touched by nobody
+   * else and deleted by the flow under test — so it runs in the matrix.
+   *
+   * Walk: service-create the scratch language admin-only, seed two UI rows in
+   * it, then drive the OPERATOR's path — roster → "Delete language…" → typed
+   * code → step-up → confirm — and assert DB truth per table (J4): the roster
+   * row is gone and all four tables hold zero rows for the code.
+   */
+  test("TR-31 a scratch language deletes with a typed confirm and leaves no rows", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    const supabase = adminClient();
+    // 2–8 alnum subtag, every axis inside it (J1).
+    const suffix = `${scratchAxes("tr31")}`.replace(/[^a-z0-9]/gi, "").toLowerCase().slice(-8);
+    const code = `zzq-${suffix}`;
+    const keys = [`${scratchKey("tr31")}-d1`, `${scratchKey("tr31")}-d2`];
+
+    const { error: langError } = await supabase.from("languages").upsert(
+      {
+        code,
+        name_en: `E2E Scratch ${code}`,
+        name_native: "E2E",
+        enabled_admin: true,
+        enabled_public: false,
+      },
+      { onConflict: "code" },
+    );
+    if (langError) throw new Error(`[e2e:u4i4] TR-31 language create failed: ${langError.message}`);
+    for (const key of keys) await seedScratchKey(key, `Delete source ${key}`, code);
+
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations");
+      // Seed-before-navigate (J7): the roster must SHOW the row before the
+      // delete flow's assertions mean anything.
+      await expect(page.getByTestId(`lang-row-${code}`)).toBeVisible({ timeout: 20000 });
+
+      await page.getByTestId(`lang-delete-${code}`).click();
+      await expect(page.getByTestId(`lang-delete-counts-${code}`)).toBeVisible({ timeout: 20000 });
+      const submit = page.getByTestId(`lang-delete-submit-${code}`);
+      // The gate itself: nothing is armed until the code is typed.
+      await expect(submit).toBeDisabled();
+      await page.getByTestId(`lang-delete-confirm-${code}`).fill(code);
+      await expect(submit).toBeEnabled();
+      await submit.click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect(page.getByTestId(`lang-row-${code}`)).toHaveCount(0, { timeout: 30000 });
+
+      for (const table of [
+        "ui_translations",
+        "entity_translations",
+        "ui_translation_revisions",
+        "translator_languages",
+      ] as const) {
+        await expect
+          .poll(
+            async () => {
+              const { count, error } = await supabase
+                .from(table)
+                .select("lang_code", { count: "exact", head: true })
+                .eq("lang_code", code);
+              if (error) throw new Error(`[e2e:u4i4] TR-31 ${table} read failed: ${error.message}`);
+              return count ?? 0;
+            },
+            { timeout: 20000, message: `${table} still holds rows for ${code}` },
+          )
+          .toBe(0);
+      }
+      const { data: langRow, error: langReadError } = await supabase
+        .from("languages")
+        .select("code")
+        .eq("code", code)
+        .maybeSingle();
+      if (langReadError)
+        throw new Error(`[e2e:u4i4] TR-31 language read failed: ${langReadError.message}`);
+      expect(langRow, "the languages row survived its own deletion").toBeNull();
+    } finally {
+      // Idempotent residue sweep: the flow under test normally did all of this.
+      for (const key of keys) {
+        await supabase.from("ui_translation_revisions").delete().eq("key", key);
+        await supabase.from("ui_translations").delete().eq("key", key);
+      }
+      await supabase.from("languages").delete().eq("code", code);
     }
   });
 
