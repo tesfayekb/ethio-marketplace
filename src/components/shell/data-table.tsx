@@ -42,6 +42,17 @@ import { PageCard } from "./page-card";
 
 export type ColumnPriority = "primary" | "secondary" | "detail";
 
+/**
+ * U4i-10 (INC-126b) — THE MIN-WIDTH CONTRACT. A table cell that is squeezed
+ * below its content width renders vertical text; that is a defect the PAGE
+ * must never have to work around. Every column therefore declares the width
+ * below which it must not be compressed; the primitive sums them onto the
+ * table and lets the always-present scroll container do the rest.
+ */
+export const DEFAULT_COLUMN_MIN_WIDTH = 140;
+export const SELECTION_COLUMN_MIN_WIDTH = 48;
+export const ACTIONS_COLUMN_MIN_WIDTH = 160;
+
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
@@ -50,6 +61,8 @@ export interface DataTableColumn<T> {
   align?: "start" | "end";
   /** Optional fixed/max width utility class for the table cell. */
   width?: string;
+  /** Px floor for this column in the table twin (default 140). */
+  minWidth?: number;
   /** Opt-in sorting; the parent owns the state and receives onSort(key). */
   sortable?: boolean;
 }
@@ -97,6 +110,12 @@ export interface DataTableProps<T> {
   selection?: DataTableSelection<T>;
   /** Pagination controls slot, rendered under the table. */
   pagination?: ReactNode;
+  /**
+   * U4i-10 — the breakpoint at which the CARD twin gives way to the table
+   * twin. Dense tables set `"lg"` so the 768–1024 tablet band keeps cards
+   * instead of cramping columns. Default `"md"`.
+   */
+  cardUntil?: "md" | "lg";
   sortKey?: string;
   sortDirection?: "asc" | "desc";
   onSort?: (key: string) => void;
@@ -179,6 +198,7 @@ export function DataTable<T>({
   expandedRow,
   selection,
   pagination,
+  cardUntil = "md",
   sortKey,
   sortDirection,
   onSort,
@@ -188,6 +208,13 @@ export function DataTable<T>({
   const navigate = useNavigate();
   /** U1d: the FIRST primary column carries the row link inside the table. */
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
+  /** U4i-10: the twin breakpoint, expressed once for both halves. */
+  const cardsClass = cardUntil === "lg" ? "lg:hidden" : "md:hidden";
+  const tableClass = cardUntil === "lg" ? "hidden lg:block" : "hidden md:block";
+  const tableMinWidth =
+    columns.reduce((sum, column) => sum + (column.minWidth ?? DEFAULT_COLUMN_MIN_WIDTH), 0) +
+    (selection ? SELECTION_COLUMN_MIN_WIDTH : 0) +
+    (rowActions ? ACTIONS_COLUMN_MIN_WIDTH : 0);
 
   const toolbarBlock = toolbar ? (
     <PageCard testid="data-table-toolbar" className="min-w-0">
@@ -234,7 +261,7 @@ export function DataTable<T>({
         <ul
           data-testid="data-table-cards"
           aria-label={caption}
-          className="divide-y divide-border md:hidden"
+          className={cn("divide-y divide-border", cardsClass)}
         >
           {rows.map((row) => {
             const key = rowKey(row);
@@ -294,9 +321,14 @@ export function DataTable<T>({
           })}
         </ul>
 
-        {/* md+: a real table. overflow-x-auto is the last resort, never the plan. */}
-        <div className="hidden min-w-0 overflow-x-auto md:block">
-          <table className="w-full table-fixed text-start text-sm">
+        {/* U4i-10 (INC-126b): the table twin ALWAYS lives in a scroll
+            container and never compresses below the summed column contract —
+            a narrow band scrolls sideways instead of cramping cells. */}
+        <div data-testid="data-table-scroll" className={cn("min-w-0 overflow-x-auto", tableClass)}>
+          <table
+            className="w-full table-fixed text-start text-sm"
+            style={{ minWidth: `${tableMinWidth}px` }}
+          >
             <caption className="sr-only">{caption}</caption>
             <thead className="border-b border-border text-muted-foreground">
               <tr>
@@ -315,7 +347,10 @@ export function DataTable<T>({
                     key={column.key}
                     data-testid={`data-table-col-${column.key}`}
                     scope="col"
-                    className={cn(cellClass(column as DataTableColumn<unknown>), "font-medium")}
+                    className={cn(
+                      cellClass(column as DataTableColumn<unknown>),
+                      "whitespace-nowrap font-medium",
+                    )}
                     aria-sort={
                       sortKey === column.key
                         ? sortDirection === "desc"

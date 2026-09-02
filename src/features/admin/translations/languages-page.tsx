@@ -292,19 +292,20 @@ function LanguagesTable({
       header: t("admin.translations.col.language"),
       priority: "primary",
       width: "w-fit max-w-40",
+      minWidth: 200,
       cell: (row) => (
-        <span className="flex min-w-0 flex-nowrap items-center gap-1.5">
-          <span className="min-w-0 truncate font-medium text-foreground" title={row.nameNative}>
+        <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <span className="max-w-28 truncate font-medium text-foreground" title={row.nameNative}>
             {row.nameNative}
           </span>
-          <span className="shrink-0 font-mono text-xs text-muted-foreground">{row.code}</span>
+          <span className="font-mono text-xs text-muted-foreground">{row.code}</span>
           {row.isBase ? (
-            <Badge variant="outline" className="shrink-0" data-testid={`lang-base-${row.code}`}>
+            <Badge variant="outline" data-testid={`lang-base-${row.code}`}>
               {t("admin.translations.badge.base")}
             </Badge>
           ) : null}
           {row.rtl ? (
-            <Badge variant="outline" className="shrink-0" data-testid={`lang-rtl-${row.code}`}>
+            <Badge variant="outline" data-testid={`lang-rtl-${row.code}`}>
               {t("admin.translations.badge.rtl")}
             </Badge>
           ) : null}
@@ -316,6 +317,7 @@ function LanguagesTable({
       header: t("admin.translations.col.nameEn"),
       priority: "detail",
       width: "w-fit max-w-32",
+      minWidth: 160,
       cell: (row) => (
         <span className="block max-w-28 truncate text-muted-foreground" title={row.nameEn}>
           {row.nameEn}
@@ -331,14 +333,12 @@ function LanguagesTable({
       ),
       priority: "primary",
       width: "w-auto",
+      minWidth: 180,
       cell: (row) => {
         const { total, approved } = coverageOf(statsByLang.get(row.code));
         const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
         return (
           <span className="block min-w-0" data-testid={`lang-coverage-${row.code}`}>
-            <span className="mb-1 block text-xs font-medium text-foreground md:hidden">
-              {t("admin.translations.col.coverage")}
-            </span>
             <span
               aria-hidden="true"
               className="block h-2 w-full overflow-hidden rounded-full bg-muted"
@@ -363,6 +363,7 @@ function LanguagesTable({
       ),
       priority: "secondary",
       width: "w-auto",
+      minWidth: 180,
       cell: (row) => {
         const entry = dataByLang.get(row.code);
         const total = entry?.total ?? 0;
@@ -370,9 +371,6 @@ function LanguagesTable({
         const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
         return (
           <span className="block min-w-0" data-testid={`lang-data-coverage-${row.code}`}>
-            <span className="mb-1 block text-xs font-medium text-foreground md:hidden">
-              {t("admin.translations.col.coverageData")}
-            </span>
             <span
               aria-hidden="true"
               className="block h-2 w-full overflow-hidden rounded-full bg-muted"
@@ -400,19 +398,15 @@ function LanguagesTable({
       ),
       priority: "secondary",
       width: "w-16",
+      minWidth: 88,
       cell: (row) => (
-        <span className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:block">
-          <span className="text-sm text-foreground md:hidden">
-            {t("admin.translations.col.admin")}
-          </span>
-          <Switch
-            data-testid={`lang-admin-${row.code}`}
-            aria-label={t("admin.translations.switch.admin")}
-            checked={row.enabledAdmin}
-            disabled={!mayManage || row.isBase || flags.isPending}
-            onCheckedChange={(checked) => apply(row, { admin: checked })}
-          />
-        </span>
+        <Switch
+          data-testid={`lang-admin-${row.code}`}
+          aria-label={t("admin.translations.switch.admin")}
+          checked={row.enabledAdmin}
+          disabled={!mayManage || row.isBase || flags.isPending}
+          onCheckedChange={(checked) => apply(row, { admin: checked })}
+        />
       ),
     },
     {
@@ -424,6 +418,7 @@ function LanguagesTable({
       ),
       priority: "secondary",
       width: "w-16",
+      minWidth: 88,
       cell: (row) => {
         const { total, remaining } = coverageOf(statsByLang.get(row.code));
         // EMPTY-SET LAW (INC-095h): an empty catalog is not vacuously complete.
@@ -436,13 +431,7 @@ function LanguagesTable({
               .replace("{remaining}", String(remaining))
               .replace("{total}", String(total));
         return (
-          <span
-            className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:block"
-            title={blocked ? hint : undefined}
-          >
-            <span className="text-sm text-foreground md:hidden">
-              {t("admin.translations.col.public")}
-            </span>
+          <span className="block min-w-0" title={blocked ? hint : undefined}>
             <Switch
               data-testid={`lang-public-${row.code}`}
               aria-label={t("admin.translations.switch.public")}
@@ -453,7 +442,7 @@ function LanguagesTable({
             {blocked ? (
               <span
                 data-testid={`lang-public-gate-${row.code}`}
-                className="col-span-2 mt-1 block text-xs text-muted-foreground"
+                className="mt-1 block text-xs text-muted-foreground"
               >
                 {hint}
               </span>
@@ -468,6 +457,7 @@ function LanguagesTable({
     <>
       <DataTable
         columns={columns}
+        cardUntil="lg"
         rows={ordered}
         rowKey={(row) => row.code}
         rowTestId={(row) => `lang-row-${row.code}`}
@@ -481,7 +471,7 @@ function LanguagesTable({
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.empty")}</p>
         }
-        className="md:[&_table]:min-w-[56rem] [&_[data-testid=data-table-col-actions]]:w-60 [&_[data-testid$=-actions-cell]>span]:flex-nowrap"
+        className="[&_[data-testid=data-table-col-actions]]:w-60 [&_[data-testid$=-actions-cell]>span]:flex-nowrap"
         rowActions={(row) => {
           return row.isBase ? (
             <span
@@ -491,7 +481,7 @@ function LanguagesTable({
               {t("admin.translations.badge.source")}
             </span>
           ) : (
-            <span className="flex min-w-0 flex-wrap items-center gap-1 md:flex-nowrap md:justify-end [&>[data-testid^=lang-delete-]]:px-2 [&>[data-testid^=lang-delete-]]:text-xs md:[&>[data-testid^=lang-delete-]]:h-8 md:[&>[data-testid^=lang-delete-]]:min-h-8">
+            <span className="flex min-w-0 flex-nowrap items-center gap-1 md:justify-end [&>[data-testid^=lang-delete-]]:px-2 [&>[data-testid^=lang-delete-]]:text-xs md:[&>[data-testid^=lang-delete-]]:h-8 md:[&>[data-testid^=lang-delete-]]:min-h-8">
               {mayManage
                 ? // INC-106b — ONE copy per twin: the primitive renders this
                   // actions region once inside the card twin and once inside the

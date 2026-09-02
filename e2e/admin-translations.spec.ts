@@ -289,13 +289,21 @@ test.describe("U4b translations console", () => {
     }
     // en is the sync-owned base: it is never opened for editing.
     await expect(surfaceControl(page, "lang-source-en")).toBeVisible();
-    if (isMobile(page)) {
-      // INC-126 — dense rosters use the card twin below md; the table stays
-      // mounted but hidden. The shared shell helper guards document overflow.
-      await expect(page.getByTestId("data-table-cards")).toBeVisible();
-      await expect(page.locator('[data-testid="data-table"] table')).toBeHidden();
-    }
     await expectNoHorizontalOverflow(page);
+
+    // U4i-10 (INC-126b) — THE 768–1024 BAND'S STANDING GUARD. The template
+    // owned only 360 and 1280; the tablet band crushed the dense roster into
+    // vertical text. `cardUntil="lg"` makes the CARD twin the visible surface
+    // here, and nothing may exceed the viewport width.
+    const projectViewport = test.info().project.use.viewport ?? { width: 1280, height: 800 };
+    await page.setViewportSize({ width: 820, height: 1180 });
+    try {
+      await expect(page.getByTestId("data-table-cards")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole("table")).toBeHidden();
+      await expectNoHorizontalOverflow(page);
+    } finally {
+      await page.setViewportSize(projectViewport);
+    }
   });
 
   test("TR-3 the strings page lists keys with source and status", async ({ page }) => {
