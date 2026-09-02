@@ -1080,6 +1080,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_delete_language: { Args: { p_code: string }; Returns: Json }
       admin_delete_role: { Args: { p_role_id: string }; Returns: undefined }
       admin_entity_translation_stats: {
         Args: { p_lang?: string }
@@ -1141,6 +1142,7 @@ export type Database = {
         Args: { p_items: Json; p_lang: string }
         Returns: Json
       }
+      admin_language_delete_preview: { Args: { p_code: string }; Returns: Json }
       admin_list_audit: {
         Args: {
           p_action?: string
