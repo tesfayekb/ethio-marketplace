@@ -87,7 +87,11 @@ export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNo
                     onChange={(event) => setCode(event.target.value)}
                   />
                   {errorKey ? (
-                    <p role="alert" data-testid="step-up-error" className="text-sm text-destructive">
+                    <p
+                      role="alert"
+                      data-testid="step-up-error"
+                      className="text-sm text-destructive"
+                    >
                       {t(errorKey)}
                     </p>
                   ) : null}
