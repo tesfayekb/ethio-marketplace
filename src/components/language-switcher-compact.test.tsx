@@ -53,7 +53,9 @@ describe("LanguageSwitcher density", () => {
       expect(item.querySelector('[data-lucide="check"]')).toBeNull();
     }
 
-    expect(screen.getByTestId("language-option-en").className).toContain("bg-accent");
-    expect(screen.getByTestId("language-option-am").className).not.toContain("bg-accent");
+    expect(screen.getByTestId("language-option-en").className.split(" ")).toContain("bg-accent");
+    expect(screen.getByTestId("language-option-am").className.split(" ")).not.toContain(
+      "bg-accent",
+    );
   });
 });
