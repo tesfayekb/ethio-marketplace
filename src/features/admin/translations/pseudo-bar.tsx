@@ -1,5 +1,15 @@
 import { useState } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -31,8 +41,10 @@ export function PseudoBar({ guard }: { guard: GuardFn }) {
   const [summary, setSummary] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const run = () => {
+    setConfirming(false);
     setSummary(null);
     setErrorKey(null);
     setErrorDetail(null);
@@ -69,15 +81,42 @@ export function PseudoBar({ guard }: { guard: GuardFn }) {
           type="button"
           variant="outline"
           className="min-h-11"
-          data-testid="strings-pseudo-run"
+          data-testid="pseudo-generate"
           disabled={generate.isPending}
-          onClick={run}
+          onClick={() => setConfirming(true)}
         >
           {generate.isPending
             ? t("admin.translations.pseudo.pending")
             : t("admin.translations.pseudo.run")}
         </Button>
       </div>
+
+      {/* U4i-3 (e): a catalog-wide machine write confirms first, naming zxa. */}
+      <AlertDialog open={confirming} onOpenChange={setConfirming}>
+        <AlertDialogContent data-testid="pseudo-generate-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("admin.translations.pseudo.confirmTitle").replace("{code}", PSEUDO_LANG)}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.translations.pseudo.confirmBody").replaceAll("{code}", PSEUDO_LANG)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-h-11">
+              {t("admin.translations.pseudo.confirmCancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="min-h-11"
+              data-testid="pseudo-generate-confirm-action"
+              onClick={run}
+            >
+              {t("admin.translations.pseudo.confirmAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {progress && progress.total > 0 ? (
         <p role="status" data-testid="strings-pseudo-progress" className="text-xs text-foreground">
           {t("admin.translations.pseudo.progress")
