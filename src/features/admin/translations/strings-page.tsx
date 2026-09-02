@@ -23,7 +23,6 @@ import { ApproveAllBar } from "./approve-bar";
 import { DataScope } from "./data-scope";
 import { HistoryDrawer } from "./history-drawer";
 import { isOverlong, lengthRatio } from "./pseudo";
-import { PseudoBar } from "./pseudo-bar";
 import { TransferBar } from "./transfer-bar";
 import {
   pickEntityStats,
@@ -327,7 +326,6 @@ export function AdminTranslationsStringsPage({
               {mayManage ? (
                 <TransferBar lang={lang} baseLang={baseLang} rows={rows} guard={guard} />
               ) : null}
-              {mayManage && (known?.isBase ?? false) ? <PseudoBar guard={guard} /> : null}
 
               {outOfScope ? (
                 <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">

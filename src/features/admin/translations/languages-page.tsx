@@ -18,6 +18,7 @@ import { en } from "@/i18n/locales/en";
 import type { MessageKey } from "@/i18n/types";
 
 import { LanguagePicker } from "./language-picker";
+import { PseudoBar } from "./pseudo-bar";
 import {
   serverMessage,
   translationErrorKey,
