@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useState } from "react";
 
 import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
@@ -261,25 +262,25 @@ function LanguagesTable({
           type="button"
           variant="outline"
           size="icon"
-          className="min-h-11 min-w-11"
+          className="min-h-11 min-w-11 p-0 md:h-8 md:min-h-8 md:w-8 md:min-w-8"
           data-testid={`lang-up-${row.code}`}
           aria-label={t("admin.translations.order.up").replace("{language}", row.nameNative)}
           disabled={order.isPending || above === undefined || above.isBase}
           onClick={() => move(row, -1)}
         >
-          <span aria-hidden="true">↑</span>
+          <ArrowUp aria-hidden="true" />
         </Button>
         <Button
           type="button"
           variant="outline"
           size="icon"
-          className="min-h-11 min-w-11"
+          className="min-h-11 min-w-11 p-0 md:h-8 md:min-h-8 md:w-8 md:min-w-8"
           data-testid={`lang-down-${row.code}`}
           aria-label={t("admin.translations.order.down").replace("{language}", row.nameNative)}
           disabled={order.isPending || index < 0 || index >= ordered.length - 1}
           onClick={() => move(row, 1)}
         >
-          <span aria-hidden="true">↓</span>
+          <ArrowDown aria-hidden="true" />
         </Button>
       </>
     );
@@ -290,10 +291,12 @@ function LanguagesTable({
       key: "language",
       header: t("admin.translations.col.language"),
       priority: "primary",
-      width: "w-[26%]",
+      width: "w-fit max-w-40",
       cell: (row) => (
-        <span className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="truncate font-medium text-foreground">{row.nameNative}</span>
+        <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <span className="max-w-28 truncate font-medium text-foreground" title={row.nameNative}>
+            {row.nameNative}
+          </span>
           <span className="font-mono text-xs text-muted-foreground">{row.code}</span>
           {row.isBase ? (
             <Badge variant="outline" data-testid={`lang-base-${row.code}`}>
@@ -312,14 +315,22 @@ function LanguagesTable({
       key: "nameEn",
       header: t("admin.translations.col.nameEn"),
       priority: "detail",
-      width: "w-[16%]",
-      cell: (row) => <span className="block truncate text-muted-foreground">{row.nameEn}</span>,
+      width: "w-fit max-w-32",
+      cell: (row) => (
+        <span className="block max-w-28 truncate text-muted-foreground" title={row.nameEn}>
+          {row.nameEn}
+        </span>
+      ),
     },
     {
       key: "coverage",
-      header: t("admin.translations.col.coverage"),
+      header: (
+        <span title={t("admin.translations.col.interfaceTooltip")}>
+          {t("admin.translations.col.coverage")}
+        </span>
+      ),
       priority: "primary",
-      width: "w-[18%]",
+      width: "w-auto",
       cell: (row) => {
         const { total, approved } = coverageOf(statsByLang.get(row.code));
         const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
@@ -342,9 +353,13 @@ function LanguagesTable({
     },
     {
       key: "coverageData",
-      header: t("admin.translations.col.coverageData"),
+      header: (
+        <span title={t("admin.translations.col.contentTooltip")}>
+          {t("admin.translations.col.coverageData")}
+        </span>
+      ),
       priority: "secondary",
-      width: "w-[16%]",
+      width: "w-auto",
       cell: (row) => {
         const entry = dataByLang.get(row.code);
         const total = entry?.total ?? 0;
@@ -372,9 +387,13 @@ function LanguagesTable({
     },
     {
       key: "admin",
-      header: t("admin.translations.col.admin"),
+      header: (
+        <span title={t("admin.translations.col.staffTooltip")}>
+          {t("admin.translations.col.admin")}
+        </span>
+      ),
       priority: "secondary",
-      width: "w-[14%]",
+      width: "w-16",
       cell: (row) => (
         <Switch
           data-testid={`lang-admin-${row.code}`}
@@ -387,9 +406,13 @@ function LanguagesTable({
     },
     {
       key: "public",
-      header: t("admin.translations.col.public"),
+      header: (
+        <span title={t("admin.translations.col.publicTooltip")}>
+          {t("admin.translations.col.public")}
+        </span>
+      ),
       priority: "secondary",
-      width: "w-[14%]",
+      width: "w-16",
       cell: (row) => {
         const { total, remaining } = coverageOf(statsByLang.get(row.code));
         // EMPTY-SET LAW (INC-095h): an empty catalog is not vacuously complete.
@@ -441,6 +464,7 @@ function LanguagesTable({
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.empty")}</p>
         }
+        className="[&_[data-testid=data-table-col-actions]]:w-60 [&_[data-testid$=-actions-cell]>span]:flex-nowrap"
         rowActions={(row) => {
           return row.isBase ? (
             <span
@@ -450,7 +474,7 @@ function LanguagesTable({
               {t("admin.translations.badge.source")}
             </span>
           ) : (
-            <span className="flex min-w-0 flex-wrap items-center gap-2 md:w-64 md:justify-end">
+            <span className="flex min-w-0 flex-nowrap items-center gap-1 md:justify-end [&>[data-testid^=lang-delete-]]:px-2 [&>[data-testid^=lang-delete-]]:text-xs md:[&>[data-testid^=lang-delete-]]:h-8 md:[&>[data-testid^=lang-delete-]]:min-h-8">
               {mayManage
                 ? // INC-106b — ONE copy per twin: the primitive renders this
                   // actions region once inside the card twin and once inside the
@@ -462,7 +486,7 @@ function LanguagesTable({
                 to="/admin/translations/$lang"
                 params={{ lang: row.code }}
                 data-testid={`lang-open-${row.code}`}
-                className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-md border border-input px-3 text-sm text-foreground"
+                className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-md border border-input px-2 text-xs text-foreground hover:bg-accent hover:text-accent-foreground md:h-8 md:min-h-8"
               >
                 {t("admin.translations.open")}
               </Link>

@@ -540,10 +540,16 @@ export const en = {
   "admin.translations.col.nameEn": "English name",
   "admin.translations.meterNote":
     "Publication is gated on interface coverage only; content coverage is a meter.",
-  "admin.translations.col.coverage": "Interface coverage",
-  "admin.translations.col.coverageData": "Content coverage",
+  "admin.translations.col.coverage": "Interface",
+  "admin.translations.col.interfaceTooltip":
+    "App text: menus, buttons, messages (gates publication)",
+  "admin.translations.col.coverageData": "Content",
+  "admin.translations.col.contentTooltip": "Data names: categories and locations (meter only)",
   "admin.translations.col.admin": "Staff",
+  "admin.translations.col.staffTooltip":
+    "Visible in staff tools and previews; off hides it from the console rosters (base always on)",
   "admin.translations.col.public": "Public",
+  "admin.translations.col.publicTooltip": "Live on the site for visitors",
   "admin.translations.badge.rtl": "RTL",
   "admin.translations.badge.base": "Base",
   "admin.translations.badge.source": "Source language — synced, not edited here",
@@ -673,7 +679,7 @@ export const en = {
   // U4i-4 (b) — language deletion is destructive: typed confirm, live counts.
   "admin.translations.error.deletePublished": "Unpublish this language before deleting it.",
   "admin.translations.error.deleteBase": "The base language cannot be deleted.",
-  "admin.translations.delete.action": "Delete language…",
+  "admin.translations.delete.action": "Delete",
   "admin.translations.delete.title": "Delete {language} ({code})?",
   "admin.translations.delete.body":
     "This permanently removes the language and everything stored under it. It cannot be undone.",
