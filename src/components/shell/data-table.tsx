@@ -73,7 +73,6 @@ export interface DataTableSelection<T> {
   onToggleAll: (selected: boolean) => void;
 }
 
-
 export interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
   rows: T[];
@@ -122,7 +121,6 @@ export interface DataTableProps<T> {
   onSort?: (key: string) => void;
   className?: string;
 }
-
 
 function cellClass(column: DataTableColumn<unknown>) {
   return cn(
@@ -247,7 +245,6 @@ export function DataTable<T>({
   const selectedKeys = new Set(selection?.selectedKeys ?? []);
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
 
-
   return frame(
     <div className="min-w-0 space-y-4">
       {selection && selectedKeys.size > 0 ? (
@@ -266,7 +263,6 @@ export function DataTable<T>({
           aria-label={caption}
           className={cn("divide-y divide-border", cardsClass)}
         >
-
           {rows.map((row) => {
             const key = rowKey(row);
             const body = (
@@ -328,10 +324,7 @@ export function DataTable<T>({
         {/* U4i-10 (INC-126b): the table twin ALWAYS lives in a scroll
             container and never compresses below the summed column contract —
             a narrow band scrolls sideways instead of cramping cells. */}
-        <div
-          data-testid="data-table-scroll"
-          className={cn("min-w-0 overflow-x-auto", tableClass)}
-        >
+        <div data-testid="data-table-scroll" className={cn("min-w-0 overflow-x-auto", tableClass)}>
           <table
             className="w-full table-fixed text-start text-sm"
             style={{ minWidth: `${tableMinWidth}px` }}
@@ -358,7 +351,6 @@ export function DataTable<T>({
                       cellClass(column as DataTableColumn<unknown>),
                       "whitespace-nowrap font-medium",
                     )}
-
                     aria-sort={
                       sortKey === column.key
                         ? sortDirection === "desc"

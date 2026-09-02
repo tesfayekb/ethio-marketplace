@@ -306,7 +306,6 @@ test.describe("U4b translations console", () => {
     }
   });
 
-
   test("TR-3 the strings page lists keys with source and status", async ({ page }) => {
     const key = scratchKey("tr3");
     await seedScratchKey(key, "Scratch source");

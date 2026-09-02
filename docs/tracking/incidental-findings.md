@@ -1838,3 +1838,9 @@ transaction clock, so revisions written in one transaction tie and any
 ordering-based answer is arbitrary (the first cut's proof returned
 `{restored:1, conflicted:0}` for a case whose truth was `{restored:2,
 conflicted:1}`). Density final: `py-px`.
+
+## INC-126b — U4i-10 (2026-09-02)
+
+The template owned only two worlds; the tablet band belonged to no one.
+DataTable now owns horizontal scroll + per-column min-widths + `cardUntil`;
+dense tables opt to `'lg'`. Future tables inherit the law by construction.
