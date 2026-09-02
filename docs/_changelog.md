@@ -281,3 +281,4 @@
 - 2026-09-02 — feat(i18n): U4h — per-device ★ default language with account sync (device wins), dynamic hreflang from the publication gate
 - 2026-09-02 — fix(i18n/e2e): U4h star flows converge (INC-121)
 - 2026-09-02 — feat(i18n): U4i Tier B — context notes (v2 limitation stated), used-on map + CI freshness guard, advisory length warnings, ETag-cached /api/i18n/:lang, CSV/XLIFF transfer, pseudo-localization in the never-publishable zxa\n
+- 2026-09-02 — test(e2e): TR-26 per-key approval truth (J4).

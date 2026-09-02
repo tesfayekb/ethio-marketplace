@@ -1230,18 +1230,19 @@ test.describe("U4b translations console", () => {
     const supabase = adminClient();
     const one = await createScratchLocation("tr26a");
     const two = await createScratchLocation("tr26b");
-    const statusOf = async (id: string) => {
+    const rowOf = async (id: string) => {
       const { data, error } = await supabase
         .from("entity_translations")
-        .select("status")
+        .select("status, approved_by")
         .eq("entity_type", "location")
         .eq("entity_id", id)
         .eq("field", "name")
         .eq("lang_code", fence)
         .maybeSingle();
       if (error) throw new Error(`[e2e:u4k] entity read failed for ${id}: ${error.message}`);
-      return data?.status ?? "missing";
+      return data;
     };
+    const statusOf = async (id: string) => (await rowOf(id))?.status ?? "missing";
     const chipCount = async (name: string) =>
       Number(
         (await page.getByTestId(`data-chip-${name}`).innerText()).replace(/[^0-9]/g, "") || "0",
@@ -1285,7 +1286,6 @@ test.describe("U4b translations console", () => {
           message: "the machine chip never counted the sweep",
         })
         .toBeGreaterThan(0);
-      const untranslatedBefore = await chipCount("untranslated");
       const approvedBefore = await chipCount("approved");
 
       // 3. APPROVE — the gated writer runs behind the same step-up.
@@ -1309,7 +1309,7 @@ test.describe("U4b translations console", () => {
           .toBe("approved");
       }
 
-      // 5. THE CHIPS MOVE — approved rises, untranslated does not grow.
+      // 5. THE CHIPS MOVE — approved rises above its pre-approval count.
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await expect(page.getByTestId("data-chips")).toBeVisible({ timeout: 20000 });
       await expect
@@ -1318,7 +1318,26 @@ test.describe("U4b translations console", () => {
           message: `the approved chip never rose above ${approvedBefore}`,
         })
         .toBeGreaterThan(approvedBefore);
-      expect(await chipCount("untranslated")).toBeLessThanOrEqual(untranslatedBefore);
+
+      // 6. PER-KEY TRUTH (J4) — the fence's universe is SHARED, so aggregate
+      //    counts over it race with sibling activity (run 33574332982: an
+      //    "untranslated ≤ before" aggregate read 1 against 0). Aggregates
+      //    over shared universes race; own keys are the truth — both scratch
+      //    locations must be approved WITH an approver stamped.
+      for (const anchor of [one, two]) {
+        await expect
+          .poll(
+            async () => {
+              const row = await rowOf(anchor.id);
+              return row?.status === "approved" && row.approved_by !== null;
+            },
+            {
+              timeout: 20000,
+              message: `scratch location ${anchor.id} never read approved with approved_by set`,
+            },
+          )
+          .toBe(true);
+      }
     } finally {
       await reapScratchLocation(one.id);
       await reapScratchLocation(two.id);
