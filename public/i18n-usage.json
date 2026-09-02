@@ -385,6 +385,9 @@
     "admin.translations.col.admin": [
       "/admin/translations"
     ],
+    "admin.translations.col.contentTooltip": [
+      "/admin/translations"
+    ],
     "admin.translations.col.coverage": [
       "/admin/translations"
     ],
@@ -396,6 +399,9 @@
     ],
     "admin.translations.col.entityType": [
       "/admin/translations/$lang"
+    ],
+    "admin.translations.col.interfaceTooltip": [
+      "/admin/translations"
     ],
     "admin.translations.col.key": [
       "/admin/translations/$lang"
@@ -412,8 +418,14 @@
     "admin.translations.col.public": [
       "/admin/translations"
     ],
+    "admin.translations.col.publicTooltip": [
+      "/admin/translations"
+    ],
     "admin.translations.col.source": [
       "/admin/translations/$lang"
+    ],
+    "admin.translations.col.staffTooltip": [
+      "/admin/translations"
     ],
     "admin.translations.col.status": [
       "/admin/translations/$lang"
