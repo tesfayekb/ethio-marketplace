@@ -149,21 +149,28 @@ export function TransferBar({
           variant="outline"
           className="min-h-11"
           data-testid="strings-export-csv"
-          disabled={transferRows.length === 0}
+          title={t("admin.translations.transfer.exportAllHint")}
+          disabled={exporting || rows.length === 0}
           onClick={() => download("csv")}
         >
-          {t("admin.translations.transfer.exportCsv")}
+          {exporting
+            ? t("admin.translations.transfer.exporting")
+            : t("admin.translations.transfer.exportCsv")}
         </Button>
         <Button
           type="button"
           variant="outline"
           className="min-h-11"
           data-testid="strings-export-xliff"
-          disabled={transferRows.length === 0}
+          title={t("admin.translations.transfer.exportAllHint")}
+          disabled={exporting || rows.length === 0}
           onClick={() => download("xliff")}
         >
-          {t("admin.translations.transfer.exportXliff")}
+          {exporting
+            ? t("admin.translations.transfer.exporting")
+            : t("admin.translations.transfer.exportXliff")}
         </Button>
+
         <Button
           type="button"
           variant="outline"
