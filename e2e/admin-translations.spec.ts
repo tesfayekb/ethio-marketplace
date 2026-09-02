@@ -2372,9 +2372,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // primitive's single rowActions slot (same law as INC-106b), so a bare
       // `lang-delete-…` resolves to two elements. Every row action routes
       // through the viewport-aware twin helper (J5).
-      await actionsOf(page, `lang-row-${code}`)
-        .getByTestId(`lang-delete-${code}`)
-        .click();
+      await actionsOf(page, `lang-row-${code}`).getByTestId(`lang-delete-${code}`).click();
       await expect(page.getByTestId(`lang-delete-counts-${code}`)).toBeVisible({ timeout: 20000 });
       const submit = page.getByTestId(`lang-delete-submit-${code}`);
       // The gate itself: nothing is armed until the code is typed.
