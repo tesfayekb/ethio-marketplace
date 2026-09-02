@@ -747,22 +747,28 @@ function StringEditor({
        * U4i ③ — LENGTH WARNING. Advisory only: never a flag, never a block —
        * the row still saves. Long Amharic renderings are legitimate; the chip
        * exists so a translator can SEE a layout risk before QA does.
+       *
+       * U4i-3 (c) — DRESS ONLY. The sentence became the chip's title/tooltip
+       * and the label is the short "Long ×4.8"; the amber is the existing
+       * `--gold` token (C3), not a hardcoded colour. No behaviour changed.
        */}
       {isOverlong(row.sourceValue, draft) ? (
-        // C3 note: the palette carries no `warning` token, and styles.css is
-        // outside this task's scope, so the advisory chip is a tokenised
-        // outline Badge rather than a hardcoded amber.
         <Badge
           variant="outline"
           data-testid={`string-length-warning-${id}`}
-          className="w-fit text-xs font-medium"
+          className="w-fit border-gold text-xs font-medium text-gold"
+          title={t("admin.translations.editor.lengthWarning").replace(
+            "{ratio}",
+            String(lengthRatio(row.sourceValue, draft)),
+          )}
         >
-          {t("admin.translations.editor.lengthWarning").replace(
+          {t("admin.translations.editor.lengthChip").replace(
             "{ratio}",
             String(lengthRatio(row.sourceValue, draft)),
           )}
         </Badge>
       ) : null}
+
 
       {/**
        * U4g-24 (INC-115) — ONE-CLICK PLACEHOLDER REPAIR. Positional rewrite
