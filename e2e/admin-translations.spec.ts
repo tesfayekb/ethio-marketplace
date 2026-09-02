@@ -2366,9 +2366,15 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await gotoReady(page, "/admin/translations");
       // Seed-before-navigate (J7): the roster must SHOW the row before the
       // delete flow's assertions mean anything.
-      await expect(page.getByTestId(`lang-row-${code}`)).toBeVisible({ timeout: 20000 });
+      await expect(langRow(page, code)).toBeVisible({ timeout: 20000 });
 
-      await page.getByTestId(`lang-delete-${code}`).click();
+      // U4i-5 (1) — the roster renders the delete control ONCE PER TWIN via the
+      // primitive's single rowActions slot (same law as INC-106b), so a bare
+      // `lang-delete-…` resolves to two elements. Every row action routes
+      // through the viewport-aware twin helper (J5).
+      await actionsOf(page, `lang-row-${code}`)
+        .getByTestId(`lang-delete-${code}`)
+        .click();
       await expect(page.getByTestId(`lang-delete-counts-${code}`)).toBeVisible({ timeout: 20000 });
       const submit = page.getByTestId(`lang-delete-submit-${code}`);
       // The gate itself: nothing is armed until the code is typed.
@@ -2378,7 +2384,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await submit.click();
       await stepUpIfPrompted(page, secret);
 
-      await expect(page.getByTestId(`lang-row-${code}`)).toHaveCount(0, { timeout: 30000 });
+      await expect(langRow(page, code)).toHaveCount(0, { timeout: 30000 });
 
       for (const table of [
         "ui_translations",
