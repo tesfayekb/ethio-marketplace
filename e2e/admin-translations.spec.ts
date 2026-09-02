@@ -289,6 +289,12 @@ test.describe("U4b translations console", () => {
     }
     // en is the sync-owned base: it is never opened for editing.
     await expect(surfaceControl(page, "lang-source-en")).toBeVisible();
+    if (isMobile(page)) {
+      // INC-126 — dense rosters use the card twin below md; the table stays
+      // mounted but hidden. The shared shell helper guards document overflow.
+      await expect(page.getByTestId("data-table-cards")).toBeVisible();
+      await expect(page.locator('[data-testid="data-table"] table')).toBeHidden();
+    }
     await expectNoHorizontalOverflow(page);
   });
 

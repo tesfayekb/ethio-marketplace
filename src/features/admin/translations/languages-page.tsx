@@ -293,18 +293,18 @@ function LanguagesTable({
       priority: "primary",
       width: "w-fit max-w-40",
       cell: (row) => (
-        <span className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <span className="max-w-28 truncate font-medium text-foreground" title={row.nameNative}>
+        <span className="flex min-w-0 flex-nowrap items-center gap-1.5">
+          <span className="min-w-0 truncate font-medium text-foreground" title={row.nameNative}>
             {row.nameNative}
           </span>
-          <span className="font-mono text-xs text-muted-foreground">{row.code}</span>
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">{row.code}</span>
           {row.isBase ? (
-            <Badge variant="outline" data-testid={`lang-base-${row.code}`}>
+            <Badge variant="outline" className="shrink-0" data-testid={`lang-base-${row.code}`}>
               {t("admin.translations.badge.base")}
             </Badge>
           ) : null}
           {row.rtl ? (
-            <Badge variant="outline" data-testid={`lang-rtl-${row.code}`}>
+            <Badge variant="outline" className="shrink-0" data-testid={`lang-rtl-${row.code}`}>
               {t("admin.translations.badge.rtl")}
             </Badge>
           ) : null}
@@ -336,6 +336,9 @@ function LanguagesTable({
         const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
         return (
           <span className="block min-w-0" data-testid={`lang-coverage-${row.code}`}>
+            <span className="mb-1 block text-xs font-medium text-foreground md:hidden">
+              {t("admin.translations.col.coverage")}
+            </span>
             <span
               aria-hidden="true"
               className="block h-2 w-full overflow-hidden rounded-full bg-muted"
@@ -367,6 +370,9 @@ function LanguagesTable({
         const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
         return (
           <span className="block min-w-0" data-testid={`lang-data-coverage-${row.code}`}>
+            <span className="mb-1 block text-xs font-medium text-foreground md:hidden">
+              {t("admin.translations.col.coverageData")}
+            </span>
             <span
               aria-hidden="true"
               className="block h-2 w-full overflow-hidden rounded-full bg-muted"
@@ -395,13 +401,18 @@ function LanguagesTable({
       priority: "secondary",
       width: "w-16",
       cell: (row) => (
-        <Switch
-          data-testid={`lang-admin-${row.code}`}
-          aria-label={t("admin.translations.switch.admin")}
-          checked={row.enabledAdmin}
-          disabled={!mayManage || row.isBase || flags.isPending}
-          onCheckedChange={(checked) => apply(row, { admin: checked })}
-        />
+        <span className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:block">
+          <span className="text-sm text-foreground md:hidden">
+            {t("admin.translations.col.admin")}
+          </span>
+          <Switch
+            data-testid={`lang-admin-${row.code}`}
+            aria-label={t("admin.translations.switch.admin")}
+            checked={row.enabledAdmin}
+            disabled={!mayManage || row.isBase || flags.isPending}
+            onCheckedChange={(checked) => apply(row, { admin: checked })}
+          />
+        </span>
       ),
     },
     {
@@ -425,7 +436,13 @@ function LanguagesTable({
               .replace("{remaining}", String(remaining))
               .replace("{total}", String(total));
         return (
-          <span className="block min-w-0" title={blocked ? hint : undefined}>
+          <span
+            className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:block"
+            title={blocked ? hint : undefined}
+          >
+            <span className="text-sm text-foreground md:hidden">
+              {t("admin.translations.col.public")}
+            </span>
             <Switch
               data-testid={`lang-public-${row.code}`}
               aria-label={t("admin.translations.switch.public")}
@@ -436,7 +453,7 @@ function LanguagesTable({
             {blocked ? (
               <span
                 data-testid={`lang-public-gate-${row.code}`}
-                className="mt-1 block text-xs text-muted-foreground"
+                className="col-span-2 mt-1 block text-xs text-muted-foreground"
               >
                 {hint}
               </span>
@@ -464,7 +481,7 @@ function LanguagesTable({
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.empty")}</p>
         }
-        className="[&_[data-testid=data-table-col-actions]]:w-60 [&_[data-testid$=-actions-cell]>span]:flex-nowrap"
+        className="md:[&_table]:min-w-[56rem] [&_[data-testid=data-table-col-actions]]:w-60 [&_[data-testid$=-actions-cell]>span]:flex-nowrap"
         rowActions={(row) => {
           return row.isBase ? (
             <span
