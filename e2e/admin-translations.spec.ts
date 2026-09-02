@@ -2380,6 +2380,24 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await page.getByTestId(`lang-delete-confirm-${code}`).fill(code);
       await expect(submit).toBeEnabled();
       await submit.click();
+
+      /**
+       * U4i-6 (a) ADDENDUM — STEP-UP OWNS THE TOP LAYER (INC-124). When the
+       * gate opens it must be USABLE while the delete dialog stays open
+       * beneath: the code input is visible AND holds focus. If the session is
+       * already AAL2 no gate opens — a legitimate outcome, so the assertions
+       * are conditional on the modal appearing (the helper below covers both).
+       */
+      const stepUp = page.getByTestId("step-up-modal");
+      const armed = await stepUp
+        .waitFor({ state: "visible", timeout: 5000 })
+        .then(() => true)
+        .catch(() => false);
+      if (armed) {
+        await expect(page.getByTestId("step-up-code")).toBeVisible();
+        await expect(page.getByTestId("step-up-code")).toBeFocused();
+        await expect(page.getByTestId(`lang-delete-counts-${code}`)).toBeVisible();
+      }
       await stepUpIfPrompted(page, secret);
 
       await expect(langRow(page, code)).toHaveCount(0, { timeout: 30000 });
