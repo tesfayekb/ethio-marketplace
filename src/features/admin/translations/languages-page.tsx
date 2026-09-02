@@ -292,6 +292,7 @@ function LanguagesTable({
       header: t("admin.translations.col.language"),
       priority: "primary",
       width: "w-fit max-w-40",
+      minWidth: 200,
       cell: (row) => (
         <span className="flex min-w-0 flex-wrap items-center gap-1.5">
           <span className="max-w-28 truncate font-medium text-foreground" title={row.nameNative}>
@@ -316,6 +317,7 @@ function LanguagesTable({
       header: t("admin.translations.col.nameEn"),
       priority: "detail",
       width: "w-fit max-w-32",
+      minWidth: 160,
       cell: (row) => (
         <span className="block max-w-28 truncate text-muted-foreground" title={row.nameEn}>
           {row.nameEn}
@@ -331,6 +333,7 @@ function LanguagesTable({
       ),
       priority: "primary",
       width: "w-auto",
+      minWidth: 180,
       cell: (row) => {
         const { total, approved } = coverageOf(statsByLang.get(row.code));
         const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
@@ -360,6 +363,7 @@ function LanguagesTable({
       ),
       priority: "secondary",
       width: "w-auto",
+      minWidth: 180,
       cell: (row) => {
         const entry = dataByLang.get(row.code);
         const total = entry?.total ?? 0;
@@ -394,6 +398,7 @@ function LanguagesTable({
       ),
       priority: "secondary",
       width: "w-16",
+      minWidth: 88,
       cell: (row) => (
         <Switch
           data-testid={`lang-admin-${row.code}`}
@@ -413,6 +418,7 @@ function LanguagesTable({
       ),
       priority: "secondary",
       width: "w-16",
+      minWidth: 88,
       cell: (row) => {
         const { total, remaining } = coverageOf(statsByLang.get(row.code));
         // EMPTY-SET LAW (INC-095h): an empty catalog is not vacuously complete.
@@ -451,6 +457,7 @@ function LanguagesTable({
     <>
       <DataTable
         columns={columns}
+        cardUntil="lg"
         rows={ordered}
         rowKey={(row) => row.code}
         rowTestId={(row) => `lang-row-${row.code}`}
