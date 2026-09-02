@@ -869,3 +869,52 @@ beneath.
   with no new revision.
 - TR-31 addendum: after arming Delete, the step-up code input is visible and
   focused with the delete dialog still open beneath.
+
+## U4i-7 — undoable imports (INC-125)
+
+**An import is a transaction you can take back.** `admin_import_translations`
+generates ONE batch uuid per call, stamps it on every revision it captures,
+records alongside it the exact text it wrote (`post_value`), returns the id in
+`{ imported, flagged, unchanged, skipped, batch_id }` and carries it into the
+audit entry. Rows the no-op law skipped capture no revision, so there is
+nothing to take back for them.
+
+**`admin_undo_import(p_batch)`** — `translations:manage` + step-up. For every
+revision in the batch it compares the row's CURRENT value with `post_value`:
+equal ⇒ the row is untouched since the import, so `prev_value`, `prev_status`
+and `prev_machine` are restored (a row approved before the import is approved
+again) and the restore is captured as an `undo-import` revision carrying the
+same batch id; otherwise the row is COUNTED conflicted and left exactly as it
+stands. One audit entry; returns `{ restored, conflicted }`.
+
+**Why not "is this still the latest revision?"** The first cut asked exactly
+that, ordering revisions by `(changed_at, id)`. `changed_at` defaults to
+`now()` — the TRANSACTION clock — so two writes inside one transaction tie and
+the order is arbitrary; the proof returned `{restored:1, conflicted:0}` where
+`{restored:2, conflicted:1}` was true. The correction removes ordering from the
+decision entirely: identity by id-set difference, untouched-ness by value.
+
+Applied proofs (scratch fence language, cleaned up): 3-row import ⇒
+`{imported:3}` with 3 batch-tagged revisions; an identical re-import (trailing
+newline) ⇒ `{imported:0, unchanged:1}` with no new revision; undo ⇒
+`{restored:3, conflicted:0}` and all three rows back to their prior value AND
+status (`approved` restored as `approved`), trail `save×3 → undo-import×3`; a
+second import with one row hand-edited afterwards ⇒ `{restored:2,
+conflicted:1}` with the later edit intact; a permissionless caller ⇒
+`permission denied`. Grants restated in the migration.
+
+**UI.** The import summary carries the batch id (`data-batch`) and an "Undo
+this import" button appears while a run wrote something; it goes through
+`StepUpGate` and renders the SERVER's restored/conflicted counts. A batch
+HISTORY list is **ACT-U4-8**, not built here.
+
+**Density (final).** Switcher rows are `py-px` with `leading-tight`; the 12rem
+menu width is unchanged and the star keeps its own >=44px target.
+
+### Coverage (U4i-7)
+
+- TR-32 (`e2e/admin-translations.spec.ts`): export/import round trip inside the
+  bulk fence, batch id read from the summary, undo restores value AND status
+  per key via service-client reads, and a post-import hand edit yields one
+  restored + one conflicted with the later work untouched.
+- `language-switcher-compact.test.tsx` asserts the `py-px` row class.

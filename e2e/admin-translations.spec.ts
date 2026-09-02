@@ -2512,8 +2512,6 @@ test.describe("U4g bulk approval, order and orphans", () => {
     }
   });
 
-
-
   /**
    * TR-31 (U4i-4 (b)) — DELETING A LANGUAGE, typed confirm and all four tables.
    *
