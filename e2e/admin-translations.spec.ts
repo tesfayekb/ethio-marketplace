@@ -1230,18 +1230,19 @@ test.describe("U4b translations console", () => {
     const supabase = adminClient();
     const one = await createScratchLocation("tr26a");
     const two = await createScratchLocation("tr26b");
-    const statusOf = async (id: string) => {
+    const rowOf = async (id: string) => {
       const { data, error } = await supabase
         .from("entity_translations")
-        .select("status")
+        .select("status, approved_by")
         .eq("entity_type", "location")
         .eq("entity_id", id)
         .eq("field", "name")
         .eq("lang_code", fence)
         .maybeSingle();
       if (error) throw new Error(`[e2e:u4k] entity read failed for ${id}: ${error.message}`);
-      return data?.status ?? "missing";
+      return data;
     };
+    const statusOf = async (id: string) => (await rowOf(id))?.status ?? "missing";
     const chipCount = async (name: string) =>
       Number(
         (await page.getByTestId(`data-chip-${name}`).innerText()).replace(/[^0-9]/g, "") || "0",
