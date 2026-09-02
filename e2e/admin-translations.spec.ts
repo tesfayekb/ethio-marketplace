@@ -21,7 +21,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
-import { PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
+import { isPseudo, PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
 import { translationMapperSelfTest } from "../src/features/admin/translations/translations-service";
 
 /**
@@ -2240,7 +2240,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
    * afterwards exactly as the operator would leave it, admin-only.
    *
    * Two halves:
-   *  A. every filled row is `machine`, unapproved, bracketed and LONGER than
+   *  A. every filled row is `machine`, unapproved, pseudo-bracketed (⟪…⟫) and LONGER than
    *     its source (the whole point: it shows truncation before a real
    *     translation exists);
    *  B. the roster REFUSES to publish `zxa` — the server rule, not a hidden
@@ -2296,7 +2296,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
             return [
               data.status,
               String(data.machine),
-              String(value.startsWith("⟦") && value.endsWith("⟧")),
+              String(isPseudo(value)),
               String(value.length > baseValue.length),
             ].join("|");
           },
