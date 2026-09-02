@@ -17,6 +17,7 @@ import { am } from "@/i18n/locales/am";
 import { en } from "@/i18n/locales/en";
 import type { MessageKey } from "@/i18n/types";
 
+import { DeleteLanguageDialog } from "./delete-language-dialog";
 import { LanguagePicker } from "./language-picker";
 import { PseudoBar } from "./pseudo-bar";
 import {
@@ -465,6 +466,9 @@ function LanguagesTable({
               >
                 {t("admin.translations.open")}
               </Link>
+              {/* U4i-4 (b) — destructive, so it is last, typed-confirmed and
+                  step-upped. Base/published rows never reach here armed. */}
+              {mayManage ? <DeleteLanguageDialog row={row} guard={guard} /> : null}
             </span>
           );
         }}

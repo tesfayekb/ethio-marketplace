@@ -660,6 +660,28 @@ export const en = {
   "admin.translations.transfer.importing": "Importing…",
   "admin.translations.transfer.summary":
     "Imported {imported} · flagged {flagged} · unchanged {unchanged} · skipped {skipped}.",
+  "admin.translations.transfer.exporting": "Exporting…",
+  "admin.translations.transfer.exportAllHint":
+    "Exports the whole language and scope — the search and status filters are ignored.",
+  // U4i-4 (b) — language deletion is destructive: typed confirm, live counts.
+  "admin.translations.error.deletePublished": "Unpublish this language before deleting it.",
+  "admin.translations.error.deleteBase": "The base language cannot be deleted.",
+  "admin.translations.delete.action": "Delete language…",
+  "admin.translations.delete.title": "Delete {language} ({code})?",
+  "admin.translations.delete.body":
+    "This permanently removes the language and everything stored under it. It cannot be undone.",
+  "admin.translations.delete.counts":
+    "{ui} interface strings · {entity} content names · {revisions} history entries · {assignments} translator assignments",
+  "admin.translations.delete.countsLoading": "Counting what will be deleted…",
+  "admin.translations.delete.countsError": "Those counts could not be read.",
+  "admin.translations.delete.confirmLabel": "Type {code} to confirm",
+  "admin.translations.delete.cancel": "Cancel",
+  "admin.translations.delete.confirm": "Delete language",
+  "admin.translations.delete.pending": "Deleting…",
+  "admin.translations.delete.done":
+    "Deleted {code} — {ui} interface strings, {entity} content names, {revisions} history entries, {assignments} assignments.",
+  "admin.translations.delete.publishedBlocked":
+    "Published languages cannot be deleted. Turn off Public first.",
   // U4i ⑦ — pseudo-localization for layout QA; never publishable.
   "admin.translations.pseudo.title": "Pseudo-localization",
   "admin.translations.pseudo.note":

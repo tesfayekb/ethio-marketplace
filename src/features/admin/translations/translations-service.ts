@@ -339,6 +339,9 @@ export function translationErrorKey(error: unknown): MessageKey {
     return "admin.translations.error.flaggedApprove";
   if (/not assigned to this language/i.test(message)) return "admin.translations.error.scope";
   if (/not fully approved/i.test(message)) return "admin.translations.error.coverage";
+  if (/unpublish it first/i.test(message)) return "admin.translations.error.deletePublished";
+  if (/base language cannot be deleted/i.test(message))
+    return "admin.translations.error.deleteBase";
   if (/base language|sync-owned/i.test(message)) return "admin.translations.error.baseLocked";
   if (/permission denied/i.test(message)) return "admin.translations.error.permission";
   if (/language code/i.test(message)) return "admin.translations.error.codeInvalid";
@@ -855,4 +858,99 @@ export async function writePseudoRow(input: { key: string; value: string }): Pro
     p_value: input.value,
   });
   if (error) throw error;
+}
+
+/* ===================== U4i-4 — EXPORT-ALL · LANGUAGE DELETION ============== */
+
+/**
+ * U4i-4 (a) — EXPORT IS CATALOG-SCOPED (INC-123).
+ *
+ * The walk exported 25 rows because the bar serialised the rows the console
+ * happened to be holding — one PAGE. An export of "the catalog" that silently
+ * means "the page" is a phantom success (F4). The exporter therefore pages the
+ * SAME list RPC the console reads, in batches of `EXPORT_PAGE_SIZE`, until the
+ * language is exhausted. The current search/status chips are deliberately NOT
+ * applied: an export is the whole language + scope, always.
+ */
+export const EXPORT_PAGE_SIZE = 200;
+
+/** Hard stop so a server that keeps returning full pages cannot loop forever. */
+const EXPORT_MAX_PAGES = 500;
+
+export type TranslationPageFetcher = (offset: number, limit: number) => Promise<TranslationPage>;
+
+export async function fetchAllTranslationRows(
+  lang: string,
+  fetchPage?: TranslationPageFetcher,
+): Promise<TranslationRow[]> {
+  const read: TranslationPageFetcher =
+    fetchPage ??
+    ((offset, limit) =>
+      listTranslations({ lang, status: "all", search: "", limit, offset, orphaned: false }));
+
+  const rows: TranslationRow[] = [];
+  for (let page = 0; page < EXPORT_MAX_PAGES; page += 1) {
+    const result = await read(page * EXPORT_PAGE_SIZE, EXPORT_PAGE_SIZE);
+    rows.push(...result.rows);
+    // A short page is the end of the catalog; a full page that already covers
+    // the server's own total is too (the RPC reports `total_count` per row).
+    if (result.rows.length < EXPORT_PAGE_SIZE) return rows;
+    if (result.totalCount > 0 && rows.length >= result.totalCount) return rows;
+  }
+  throw new Error(`[export] ${lang}: page limit reached before the catalog was exhausted`);
+}
+
+/** `<lang>-<scope>-<yyyymmdd>.csv|.xlf` — the language, the scope, the day. */
+export function exportFilename(
+  lang: string,
+  scope: string,
+  format: "csv" | "xliff",
+  now: Date = new Date(),
+): string {
+  const stamp = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("");
+  return `${lang}-${scope}-${stamp}.${format === "xliff" ? "xlf" : "csv"}`;
+}
+
+/**
+ * U4i-4 (b) — LANGUAGE DELETION IS DESTRUCTIVE (INC-123).
+ *
+ * `admin_delete_language` re-gates manage + step-up, REFUSES the base language
+ * and any published one (unpublish first), then cascades in one transaction and
+ * writes ONE audit entry carrying the per-table counts it returns. The preview
+ * reader gives the confirm dialog the same four counts BEFORE anything happens.
+ */
+export interface LanguageDeleteCounts {
+  assignments: number;
+  uiRows: number;
+  entityRows: number;
+  revisions: number;
+}
+
+function mapDeleteCounts(payload: unknown): LanguageDeleteCounts {
+  const record =
+    payload !== null && typeof payload === "object" && !Array.isArray(payload)
+      ? (payload as Record<string, unknown>)
+      : {};
+  return {
+    assignments: Number(record["assignments"] ?? 0),
+    uiRows: Number(record["ui_rows"] ?? 0),
+    entityRows: Number(record["entity_rows"] ?? 0),
+    revisions: Number(record["revisions"] ?? 0),
+  };
+}
+
+export async function languageDeletePreview(code: string): Promise<LanguageDeleteCounts> {
+  const { data, error } = await supabase.rpc("admin_language_delete_preview", { p_code: code });
+  if (error) throw error;
+  return mapDeleteCounts(data);
+}
+
+export async function deleteLanguage(code: string): Promise<LanguageDeleteCounts> {
+  const { data, error } = await supabase.rpc("admin_delete_language", { p_code: code });
+  if (error) throw error;
+  return mapDeleteCounts(data);
 }

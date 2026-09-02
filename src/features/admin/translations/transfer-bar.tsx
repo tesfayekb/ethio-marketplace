@@ -11,20 +11,26 @@ import {
   partitionUnchanged,
   toCsv,
   toXliff,
-  transferFilename,
   type TransferFormat,
   type TransferRow,
 } from "./io-formats";
 
-import { serverMessage, translationErrorKey, type TranslationRow } from "./translations-service";
+import {
+  exportFilename,
+  fetchAllTranslationRows,
+  serverMessage,
+  translationErrorKey,
+  type TranslationRow,
+} from "./translations-service";
 import { useImportTranslations } from "./use-translations";
 
 /**
  * U4i ⑤ — EXPORT / IMPORT BAR (`translations:manage`).
  *
- * EXPORT is a pure client-side serialisation of the rows the console already
- * holds for the CURRENT filter — what you see is what you get, and no extra
- * read is issued.
+ * EXPORT is CATALOG-SCOPED (U4i-4 (a), INC-123): the bar pages the list RPC
+ * until the whole language+scope is in hand, and the console's current
+ * search/status chips are deliberately ignored — an export named after a
+ * language must contain that language, not the page that happened to be open.
  *
  * IMPORT NEVER APPROVES. The file is parsed here and handed to
  * `admin_import_translations`, which writes each row through
@@ -36,11 +42,14 @@ import { useImportTranslations } from "./use-translations";
 export function TransferBar({
   lang,
   baseLang,
+  scope = "interface",
   rows,
   guard,
 }: {
   lang: string;
   baseLang: string;
+  /** Names the exported file; the console renders one scope at a time. */
+  scope?: string;
   rows: TranslationRow[];
   guard: GuardFn;
 }) {
@@ -50,25 +59,40 @@ export function TransferBar({
   const [summary, setSummary] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
-  const transferRows: TransferRow[] = rows.map((row) => ({
-    key: row.key,
-    source: row.sourceValue ?? "",
-    value: row.value ?? "",
-    context: row.context,
-  }));
+  const asTransferRows = (source: TranslationRow[]): TransferRow[] =>
+    source.map((row) => ({
+      key: row.key,
+      source: row.sourceValue ?? "",
+      value: row.value ?? "",
+      context: row.context,
+    }));
 
   const download = (format: TransferFormat) => {
-    const text = format === "csv" ? toCsv(transferRows) : toXliff(transferRows, baseLang, lang);
-    // A Blob URL keeps Ge'ez intact (UTF-8) where a data: URI would need escaping.
-    const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = transferFilename(lang, format);
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
+    setSummary(null);
+    setErrorKey(null);
+    setErrorDetail(null);
+    setExporting(true);
+    void fetchAllTranslationRows(lang)
+      .then((all) => {
+        const transferRows = asTransferRows(all);
+        const text = format === "csv" ? toCsv(transferRows) : toXliff(transferRows, baseLang, lang);
+        // A Blob URL keeps Ge'ez intact (UTF-8) where a data: URI would need escaping.
+        const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = exportFilename(lang, scope, format);
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      })
+      .catch((failure: unknown) => {
+        setErrorKey(translationErrorKey(failure));
+        setErrorDetail(serverMessage(failure));
+      })
+      .finally(() => setExporting(false));
   };
 
   const onFile = (file: File) => {
@@ -121,21 +145,28 @@ export function TransferBar({
           variant="outline"
           className="min-h-11"
           data-testid="strings-export-csv"
-          disabled={transferRows.length === 0}
+          title={t("admin.translations.transfer.exportAllHint")}
+          disabled={exporting || rows.length === 0}
           onClick={() => download("csv")}
         >
-          {t("admin.translations.transfer.exportCsv")}
+          {exporting
+            ? t("admin.translations.transfer.exporting")
+            : t("admin.translations.transfer.exportCsv")}
         </Button>
         <Button
           type="button"
           variant="outline"
           className="min-h-11"
           data-testid="strings-export-xliff"
-          disabled={transferRows.length === 0}
+          title={t("admin.translations.transfer.exportAllHint")}
+          disabled={exporting || rows.length === 0}
           onClick={() => download("xliff")}
         >
-          {t("admin.translations.transfer.exportXliff")}
+          {exporting
+            ? t("admin.translations.transfer.exporting")
+            : t("admin.translations.transfer.exportXliff")}
         </Button>
+
         <Button
           type="button"
           variant="outline"

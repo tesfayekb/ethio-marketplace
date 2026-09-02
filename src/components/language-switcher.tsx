@@ -67,9 +67,13 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-48 p-1">
         {/* U4g-3 (INC-099b) — (sort, code): the SAME ordering law the admin
-            roster applies, so what the operator arranges is what visitors see. */}
+            roster applies, so what the operator arranges is what visitors see.
+            U4i-4 (c) (INC-123) — DENSITY IS A CONTROL, NOT A CANVAS: one row
+            per language on ONE line (check · label · star), ~12rem wide, no
+            vertical slack. The star keeps a ≥44px touch target on phones via
+            padding and shrinks to an icon-sized hit area from `md` up. */}
         {[...publicLanguages]
           .sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code))
           .map((row) => {
@@ -80,17 +84,17 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                 key={row.code}
                 lang={row.code}
                 data-testid={`language-option-${row.code}`}
-                className="min-h-11 gap-2 pe-1"
+                className="flex min-w-0 items-center gap-1 py-1.5 pe-1 ps-2"
                 onSelect={() => setLanguage(row.code as Language)}
               >
                 <Check
                   aria-hidden="true"
                   className={cn(
-                    "me-2 h-4 w-4",
+                    "h-4 w-4 shrink-0",
                     row.code === language ? "opacity-100" : "opacity-0",
                   )}
                 />
-                <span className="flex-1 truncate">{key ? t(key) : row.name_native}</span>
+                <span className="min-w-0 flex-1 truncate">{key ? t(key) : row.name_native}</span>
                 {/* U4h — the DEVICE ★. One favourite: `aria-pressed` is true on
                     exactly one row because the provider's setter REPLACES the
                     star rather than appending to a set. The click never reaches
@@ -109,7 +113,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                     setStar(row.code as Language);
                   }}
                   className={cn(
-                    "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md",
+                    "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md md:h-9 md:w-9",
                     "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     starred ? "text-primary" : "text-muted-foreground",
                   )}

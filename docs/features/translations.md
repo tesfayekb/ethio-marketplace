@@ -790,3 +790,45 @@ the pseudo catalog can never reach a real user.
   `{changed: [], unchanged: N}`); TR-29's addendum approves the scratch row,
   re-imports the SAME file and asserts the approval survives with no new
   revision; TR-30 drives the roster button and its confirm dialog.
+
+## U4i-4 — export-all, language deletion, switcher density (INC-123)
+
+**Export is catalog-scoped.** `fetchAllTranslationRows()` pages the list RPC in
+batches of `EXPORT_PAGE_SIZE` (200) until the language is exhausted, stopping on
+a short page or once the server's own `total_count` is covered, with a hard page
+cap that throws rather than looping. The console's search/status chips are NOT
+applied to an export; the button's tooltip says so. Files are named
+`<lang>-<scope>-<yyyymmdd>.csv|.xlf`.
+
+**Deleting a language** (`translations:manage` + step-up) runs entirely
+server-side in `admin_delete_language(p_code)`:
+
+- refuses the base language, and refuses any `enabled_public` language with
+  "unpublish it first" — the message names the remedy;
+- deletes, in order, `translator_languages`, `ui_translations`,
+  `entity_translations`, `ui_translation_revisions`, then the `languages` row;
+- writes ONE audit entry (`language.delete`) carrying the per-table counts and
+  returns them to the caller.
+
+`admin_language_delete_preview(p_code)` is the read-only twin the dialog uses
+for LIVE counts before anything happens. The dialog names what disappears,
+keeps its action disabled until the operator TYPES the code, and only then
+enters `StepUpGate`. Success is an inline `role="status"` line with the server's
+counts (this app mounts no `<Toaster />`). UI disabling of base/published rows
+is convenience; the RPC is the authority (F3).
+
+**Switcher density.** The public menu is ~12rem wide with `py-1.5` rows and one
+flex line per language (check · label · star). The star keeps a ≥44px touch
+target below `md` and shrinks to 36px above it (C2).
+
+### Coverage (U4i-4)
+
+- `export-all.test.ts` — the pagination loop against a mocked three-page reader,
+  the short-page stop, the exact-multiple stop, and the filename stamp.
+- `language-switcher-compact.test.tsx` — N gated languages render N single-line
+  items, each carrying its own star.
+- TR-29 addendum — the exported CSV's data-line count equals the fence
+  language's service-client row count (page-scoped export fails here).
+- TR-31 — a per-axes scratch language is created and seeded, deleted through the
+  operator's typed-confirm + step-up flow, and proven gone from the roster and
+  from all four tables.

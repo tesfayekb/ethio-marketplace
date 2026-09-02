@@ -9,8 +9,10 @@ import {
   aiTranslateEntities,
   approveAllEntityTranslations,
   approveAllTranslations,
+  deleteLanguage,
   ensurePseudoLanguage,
   importTranslations,
+  languageDeletePreview,
   listEntityTranslations,
   listEntityTranslationStats,
   listLanguages,
@@ -357,5 +359,31 @@ export function useUsageMap() {
     },
     staleTime: 60 * 60_000,
     retry: 1,
+  });
+}
+
+/* ===================== U4i-4 — LANGUAGE DELETION =========================== */
+
+/**
+ * U4i-4 (b) — the confirm dialog's LIVE counts. Fetched only while the dialog
+ * is open (`enabled`) and never cached: a stale count under a destructive
+ * button is worse than no count at all. A failure surfaces (F4).
+ */
+export function useLanguageDeletePreview(code: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...ADMIN_TRANSLATIONS_KEY, "delete-preview", code],
+    queryFn: () => languageDeletePreview(code),
+    enabled,
+    staleTime: 0,
+    gcTime: 0,
+  });
+}
+
+/** U4i-4 (b) — the destructive writer. The roster refetches on settle. */
+export function useDeleteLanguage() {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (code: string) => deleteLanguage(code),
+    onSettled: invalidate,
   });
 }

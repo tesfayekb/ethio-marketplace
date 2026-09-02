@@ -1780,3 +1780,26 @@ a new `unchanged` bucket.
 strings page, behind the manage gate, below the export bar — a place an
 operator has no reason to open. It moved to the Languages roster toolbar with a
 confirm dialog naming `zxa`.
+
+## INC-123 — U4i-4 walk (2026-09-02)
+
+**(a) Export was page-scoped.** The bar serialised the rows the console was
+holding (25 = one page). Exports are catalog-scoped BY DEFINITION: the bar now
+pages `admin_list_translations` in batches of 200 until the language is
+exhausted, ignoring the search/status chips (stated in the button tooltip), and
+names the file `<lang>-<scope>-<yyyymmdd>.csv|.xlf`.
+
+**(b) Languages were not deletable.** A mistyped or abandoned language could
+only be hidden, never removed, so the roster accumulated dead rows.
+`admin_delete_language(p_code)` now cascades `translator_languages` →
+`ui_translations` → `entity_translations` → `ui_translation_revisions` → the
+`languages` row inside one transaction, writes ONE audit entry carrying the
+per-table counts, and REFUSES the base language and any published one
+(unpublish first). The UI requires TYPING the code and passes through step-up.
+
+**(c) Switcher density.** The menu had grown into a canvas — tall rows, the
+star wrapping under the label. Density is a control, not a canvas: ~12rem wide,
+`py-1.5` rows, check · label · star on one line, ≥44px star target at <md.
+
+**(d) Context-note placement.** PASS as landed — visible and persistent in its
+labelled block; no change.

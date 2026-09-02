@@ -283,3 +283,4 @@
 - 2026-09-02 — feat(i18n): U4i Tier B — context notes (v2 limitation stated), used-on map + CI freshness guard, advisory length warnings, ETag-cached /api/i18n/:lang, CSV/XLIFF transfer, pseudo-localization in the never-publishable zxa\n
 - 2026-09-02 — test(e2e): TR-26 per-key approval truth (J4).
 - 2026-09-02 — fix(i18n): U4i walk findings — note render, route-based used-on, amber length chip, idempotent import (no-op on unchanged), pseudo button surfaced (INC-122)
+- 2026-09-02 — feat(i18n): U4i-4 — export-all (paged), delete-language (typed confirm, cascading counts, base/public refused), compact switcher (INC-123)
