@@ -833,6 +833,7 @@ export async function importTranslations(input: {
   return {
     imported: Number(payload["imported"] ?? 0),
     flagged: Number(payload["flagged"] ?? 0),
+    unchanged: Number(payload["unchanged"] ?? 0),
     skipped: Number(payload["skipped"] ?? 0),
   };
 }
