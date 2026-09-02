@@ -50,3 +50,8 @@
       FIT rule and dark mode are asserted numerically, which catches structural
       breakage but not visual drift (spacing, weight, colour). Screenshot
       baselines at 360/768/1280 in both modes are still owed.
+
+## Handed forward from the translation era (S33)
+
+- ACT-U4-4 (spec-lint sweep, 38 sites) · ACT-U4-5 (entity revisions/flags) · ACT-U4-6 (injection un-park per DEC-029) · ACT-U4-7 (spec split for shard balance) · ACT-U4-8 (import-batch history).
+- Translation post-launch set: TM/glossary, ICU plural validation, four-eyes approval, missing-key telemetry, entity MT via REQ-004 (ACT-U4-1), SSR bundle inlining (ACT-U4-2), history chip polish (ACT-U4-3).

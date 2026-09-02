@@ -19,3 +19,7 @@ Coverage meters and gated toggles explain themselves; provenance chips name mach
 ## Handed forward
 
 ACT-U4-1/2/3; DEC-023's dormant leg; Ops security review; name_am review now continuous through the console.
+
+## S33 addendum — U4f→U4k (2026-09-02)
+
+Security: gate enforced at data AND choice; imports land unapproved+validated, idempotent, batch-undoable; every mutation step-up'd incl. bulk/reorder/delete; deletion cascades counted + audited, base/public refused; step-up top-layer; audit reads indexed (57014 closed); no new definer exposure. Functionality: TR-17..32 green across six shards + serial nightly; five operator walks. Performance: ETag bundles (max-age 300 + SWR); build-time usage map; CI ≈halved; audit query 1.85ms. Usability: dual meters + chips answer "what's left" at a glance; placeholder restore, undo-import, delete, pseudo-loc, compact switcher, tablet-safe roster. Handed forward: ACT-U4-4 spec-lint sweep · ACT-U4-5 entity revisions/flags parity · ACT-U4-6 injection un-park criteria · ACT-U4-7 split admin-translations.spec (~2.5k lines) for shard balance · ACT-U4-8 import-batch history list · v2-context limitation (revisit with v3/glossaries) · HMR dev-only loader warning (upstream).

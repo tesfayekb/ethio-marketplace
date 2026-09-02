@@ -56,7 +56,7 @@
 - **U1 (Users) — COMPLETE 2026-08-19** (CI green 70f5176, 17/17 full suite; operator walk passed incl. step-up re-walk; four-lens review at docs/governance/reviews/u1-closeout.md; DEC-015 primitives + DEC-016 parity plan ratified). Next build target: U2 Roles & Permissions console.
 - **U2 (Roles & Permissions) — COMPLETE 2026-08-22** (CI green 52e184b, 17/17; operator walk passed; four-lens review at docs/governance/reviews/u2-closeout.md; DEC-016 permissions registered). Next build target: U3 Audit & Security + guardrailed impersonation.
 - **U2b + U3 (Assignable-scope · Audit & Security · Impersonation v1) — COMPLETE 2026-08-29** (production-build harness certified green, epoch closed at run 33228828535 under G22; operator walk passed; four-lens review at docs/governance/reviews/u3-closeout.md; DEC-017/018/019 shipped, DEC-020 ratified pending setup, DEC-021 registered → ACT-U3-1). Next build targets (operator-directed reorder 2026-08-29): **U4 Translations console**, then U5 Locations.
-- **U4 Translations (a–e) — COMPLETE 2026-08-31** (console + Google AI + entity adoption + history; walks passed; review at docs/governance/reviews/u4-closeout.md; DEC-022/023/023-B/024). NEXT: **U5 Locations** (spec session), consuming entity_translations.
+- **U4 Translations COMPLETE IN FULL (a–k) — 2026-09-02**; era reviews at reviews/u4-closeout.md (S32+S33). NEXT: **U5 Categories & Locations spec session (S34)** — consumes entity_translations; reference repo tesfayekb/apex-marketplace approved for direct Lovable reference (DEC-005 precedent).
 
 
 
