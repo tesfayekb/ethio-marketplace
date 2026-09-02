@@ -42,6 +42,17 @@ import { PageCard } from "./page-card";
 
 export type ColumnPriority = "primary" | "secondary" | "detail";
 
+/**
+ * U4i-10 (INC-126b) — THE MIN-WIDTH CONTRACT. A table cell that is squeezed
+ * below its content width renders vertical text; that is a defect the PAGE
+ * must never have to work around. Every column therefore declares the width
+ * below which it must not be compressed; the primitive sums them onto the
+ * table and lets the always-present scroll container do the rest.
+ */
+export const DEFAULT_COLUMN_MIN_WIDTH = 140;
+export const SELECTION_COLUMN_MIN_WIDTH = 48;
+export const ACTIONS_COLUMN_MIN_WIDTH = 160;
+
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
@@ -50,6 +61,8 @@ export interface DataTableColumn<T> {
   align?: "start" | "end";
   /** Optional fixed/max width utility class for the table cell. */
   width?: string;
+  /** Px floor for this column in the table twin (default 140). */
+  minWidth?: number;
   /** Opt-in sorting; the parent owns the state and receives onSort(key). */
   sortable?: boolean;
 }
@@ -59,6 +72,7 @@ export interface DataTableSelection<T> {
   onToggleRow: (row: T, selected: boolean) => void;
   onToggleAll: (selected: boolean) => void;
 }
+
 
 export interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
