@@ -325,9 +325,17 @@ export function DataTable<T>({
           })}
         </ul>
 
-        {/* md+: a real table. overflow-x-auto is the last resort, never the plan. */}
-        <div className="hidden min-w-0 overflow-x-auto md:block">
-          <table className="w-full table-fixed text-start text-sm">
+        {/* U4i-10 (INC-126b): the table twin ALWAYS lives in a scroll
+            container and never compresses below the summed column contract —
+            a narrow band scrolls sideways instead of cramping cells. */}
+        <div
+          data-testid="data-table-scroll"
+          className={cn("min-w-0 overflow-x-auto", tableClass)}
+        >
+          <table
+            className="w-full table-fixed text-start text-sm"
+            style={{ minWidth: `${tableMinWidth}px` }}
+          >
             <caption className="sr-only">{caption}</caption>
             <thead className="border-b border-border text-muted-foreground">
               <tr>
@@ -346,7 +354,11 @@ export function DataTable<T>({
                     key={column.key}
                     data-testid={`data-table-col-${column.key}`}
                     scope="col"
-                    className={cn(cellClass(column as DataTableColumn<unknown>), "font-medium")}
+                    className={cn(
+                      cellClass(column as DataTableColumn<unknown>),
+                      "whitespace-nowrap font-medium",
+                    )}
+
                     aria-sort={
                       sortKey === column.key
                         ? sortDirection === "desc"
