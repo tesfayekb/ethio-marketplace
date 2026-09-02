@@ -2316,6 +2316,48 @@ test.describe("U4g bulk approval, order and orphans", () => {
       expect(revisionsAfter ?? 0, "an untouched re-import captured a revision").toBe(
         revisionsBefore ?? 0,
       );
+
+      /**
+       * U4i-6 (b) ADDENDUM — IDEMPOTENCY IS SERVER LAW (INC-124). The same
+       * value with a trailing newline DEFEATS the client comparator, so the row
+       * really reaches `admin_import_translations`. The writer normalizes
+       * trailing whitespace on both sides and refuses to write: the approval
+       * survives and still no revision is captured. Only a true value change
+       * demotes.
+       */
+      const noisyCsv = ["key,source,translation", `${key},"${source}","${imported}\n"`]
+        .join("\r\n")
+        .concat("\r\n");
+      await page.getByTestId("strings-import-input").setInputFiles({
+        name: `${fence}-noisy.csv`,
+        mimeType: "text/csv",
+        buffer: Buffer.from(noisyCsv, "utf8"),
+      });
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("strings-transfer-summary")).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId("strings-transfer-error")).toHaveCount(0);
+
+      const { data: noisyRow, error: noisyError } = await adminClient()
+        .from("ui_translations")
+        .select("value, status")
+        .eq("key", key)
+        .eq("lang_code", fence)
+        .maybeSingle();
+      if (noisyError) throw new Error(`[e2e:u4i6] TR-29 noisy read failed: ${noisyError.message}`);
+      expect(
+        `${noisyRow?.value}|${noisyRow?.status}`,
+        "a whitespace-only re-import demoted an approved row (server no-op law)",
+      ).toBe(`${imported}|approved`);
+      const { count: noisyRevisions, error: noisyCountError } = await adminClient()
+        .from("ui_translation_revisions")
+        .select("id", { count: "exact", head: true })
+        .eq("key", key)
+        .eq("lang_code", fence);
+      if (noisyCountError)
+        throw new Error(`[e2e:u4i6] TR-29 noisy recount failed: ${noisyCountError.message}`);
+      expect(noisyRevisions ?? 0, "a whitespace-only re-import captured a revision").toBe(
+        revisionsBefore ?? 0,
+      );
     } finally {
       await adminClient().from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);
