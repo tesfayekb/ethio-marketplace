@@ -22,7 +22,7 @@ import {
   translationErrorKey,
   type TranslationRow,
 } from "./translations-service";
-import { useImportTranslations } from "./use-translations";
+import { useImportTranslations, useUndoImport } from "./use-translations";
 
 /**
  * U4i ⑤ — EXPORT / IMPORT BAR (`translations:manage`).
