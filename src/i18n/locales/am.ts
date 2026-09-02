@@ -640,14 +640,12 @@ export const am: Messages = {
     "የገቡ {imported} · የተሰየሙ {flagged} · ያልተቀየሩ {unchanged} · የተዘለሉ {skipped}።",
   // U4i ⑦ — ለአቀማመጥ ምርመራ የሚያገለግል የውሸት ትርጉም፤ በጭራሽ አይታተምም።
   "admin.translations.transfer.exporting": "በመላክ ላይ…",
-  "admin.translations.transfer.exportAllHint":
-    "ሙሉውን ቋንቋና ወሰን ይልካል — የፍለጋና የሁኔታ ማጣሪያዎች ችላ ይባላሉ።",
+  "admin.translations.transfer.exportAllHint": "ሙሉውን ቋንቋና ወሰን ይልካል — የፍለጋና የሁኔታ ማጣሪያዎች ችላ ይባላሉ።",
   "admin.translations.error.deletePublished": "ከመሰረዝዎ በፊት ይህን ቋንቋ ከሕዝብ ያንሱት።",
   "admin.translations.error.deleteBase": "የመሰረት ቋንቋ ሊሰረዝ አይችልም።",
   "admin.translations.delete.action": "ቋንቋ ሰርዝ…",
   "admin.translations.delete.title": "{language} ({code}) ይሰረዝ?",
-  "admin.translations.delete.body":
-    "ይህ ቋንቋውንና በእሱ ስር የተከማቸውን ሁሉ በቋሚነት ያስወግዳል። መመለስ አይቻልም።",
+  "admin.translations.delete.body": "ይህ ቋንቋውንና በእሱ ስር የተከማቸውን ሁሉ በቋሚነት ያስወግዳል። መመለስ አይቻልም።",
   "admin.translations.delete.counts":
     "{ui} የገጽታ ሐረጎች · {entity} የይዘት ስሞች · {revisions} የታሪክ ግቤቶች · {assignments} የተርጓሚ ምደባዎች",
   "admin.translations.delete.countsLoading": "የሚሰረዘውን በመቁጠር ላይ…",

@@ -104,9 +104,7 @@ export function DeleteLanguageDialog({
                 .replace("{language}", row.nameNative || row.nameEn)
                 .replace("{code}", row.code)}
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("admin.translations.delete.body")}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t("admin.translations.delete.body")}</AlertDialogDescription>
           </AlertDialogHeader>
 
           <p data-testid={`lang-delete-counts-${row.code}`} className="text-sm text-foreground">
@@ -133,7 +131,11 @@ export function DeleteLanguageDialog({
           </label>
 
           {errorKey ? (
-            <p role="alert" data-testid={`lang-delete-error-${row.code}`} className="text-sm text-destructive">
+            <p
+              role="alert"
+              data-testid={`lang-delete-error-${row.code}`}
+              className="text-sm text-destructive"
+            >
               {t(errorKey)}
               {errorDetail ? <span className="block text-xs opacity-80">{errorDetail}</span> : null}
             </p>

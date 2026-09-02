@@ -664,8 +664,7 @@ export const en = {
   "admin.translations.transfer.exportAllHint":
     "Exports the whole language and scope — the search and status filters are ignored.",
   // U4i-4 (b) — language deletion is destructive: typed confirm, live counts.
-  "admin.translations.error.deletePublished":
-    "Unpublish this language before deleting it.",
+  "admin.translations.error.deletePublished": "Unpublish this language before deleting it.",
   "admin.translations.error.deleteBase": "The base language cannot be deleted.",
   "admin.translations.delete.action": "Delete language…",
   "admin.translations.delete.title": "Delete {language} ({code})?",

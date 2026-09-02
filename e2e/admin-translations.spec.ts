@@ -2341,7 +2341,10 @@ test.describe("U4g bulk approval, order and orphans", () => {
     test.setTimeout(120_000);
     const supabase = adminClient();
     // 2–8 alnum subtag, every axis inside it (J1).
-    const suffix = `${scratchAxes("tr31")}`.replace(/[^a-z0-9]/gi, "").toLowerCase().slice(-8);
+    const suffix = `${scratchAxes("tr31")}`
+      .replace(/[^a-z0-9]/gi, "")
+      .toLowerCase()
+      .slice(-8);
     const code = `zzq-${suffix}`;
     const keys = [`${scratchKey("tr31")}-d1`, `${scratchKey("tr31")}-d2`];
 

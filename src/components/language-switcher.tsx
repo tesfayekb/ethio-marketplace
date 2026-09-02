@@ -124,7 +124,6 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             );
           })}
       </DropdownMenuContent>
-
     </DropdownMenu>
   );
 }
