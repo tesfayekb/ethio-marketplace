@@ -1838,3 +1838,9 @@ transaction clock, so revisions written in one transaction tie and any
 ordering-based answer is arbitrary (the first cut's proof returned
 `{restored:1, conflicted:0}` for a case whose truth was `{restored:2,
 conflicted:1}`). Density final: `py-px`.
+
+## INC-126 — U4i-9 mobile roster (2026-09-02)
+
+Fit-content columns crushed the roster at phone width — twins are the law for
+dense tables; scroll, never cramp, at mid-widths. A 360 layout assertion now
+guards the roster.
