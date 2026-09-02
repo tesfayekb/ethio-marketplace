@@ -491,7 +491,7 @@ function LanguagesTable({
               {t("admin.translations.badge.source")}
             </span>
           ) : (
-            <span className="flex min-w-0 flex-nowrap items-center gap-1 md:justify-end [&>[data-testid^=lang-delete-]]:px-2 [&>[data-testid^=lang-delete-]]:text-xs md:[&>[data-testid^=lang-delete-]]:h-8 md:[&>[data-testid^=lang-delete-]]:min-h-8">
+            <span className="flex min-w-0 flex-wrap items-center gap-1 md:flex-nowrap md:justify-end [&>[data-testid^=lang-delete-]]:px-2 [&>[data-testid^=lang-delete-]]:text-xs md:[&>[data-testid^=lang-delete-]]:h-8 md:[&>[data-testid^=lang-delete-]]:min-h-8">
               {mayManage
                 ? // INC-106b — ONE copy per twin: the primitive renders this
                   // actions region once inside the card twin and once inside the
