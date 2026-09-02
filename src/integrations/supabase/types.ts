@@ -1048,21 +1048,6 @@ export type Database = {
           },
         ]
       }
-      zz_proof_log: {
-        Row: {
-          i: number
-          note: string | null
-        }
-        Insert: {
-          i?: number
-          note?: string | null
-        }
-        Update: {
-          i?: number
-          note?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
