@@ -648,6 +648,8 @@ export const en = {
   // U4i ③ — advisory length warning; never a flag, never a block.
   "admin.translations.editor.lengthWarning":
     "Long: {ratio}× the English source — check the layout.",
+  // U4i-3 (c) — the chip label; the sentence above rides along as its tooltip.
+  "admin.translations.editor.lengthChip": "Long ×{ratio}",
   // U4i ⑤ — CSV / XLIFF export and import.
   "admin.translations.transfer.title": "Export / import",
   "admin.translations.transfer.note":
@@ -657,7 +659,7 @@ export const en = {
   "admin.translations.transfer.import": "Import file",
   "admin.translations.transfer.importing": "Importing…",
   "admin.translations.transfer.summary":
-    "Imported {imported} · flagged {flagged} · skipped {skipped}.",
+    "Imported {imported} · flagged {flagged} · unchanged {unchanged} · skipped {skipped}.",
   // U4i ⑦ — pseudo-localization for layout QA; never publishable.
   "admin.translations.pseudo.title": "Pseudo-localization",
   "admin.translations.pseudo.note":
@@ -666,6 +668,12 @@ export const en = {
   "admin.translations.pseudo.pending": "Generating…",
   "admin.translations.pseudo.progress": "{done} of {total}",
   "admin.translations.pseudo.summary": "Wrote {written} · failed {failed}.",
+  // U4i-3 (e) — the button now lives on the Languages page and confirms first.
+  "admin.translations.pseudo.confirmTitle": "Generate the {code} pseudo catalog?",
+  "admin.translations.pseudo.confirmBody":
+    "Every English string is rewritten into the {code} layout-QA language as machine text. {code} is admin-only and can never be published.",
+  "admin.translations.pseudo.confirmCancel": "Cancel",
+  "admin.translations.pseudo.confirmAction": "Generate",
   // U4c — AI translation (machine fill; results are provisional).
   "admin.translations.ai.row": "AI translate",
   "admin.translations.ai.pending": "Translating…",
