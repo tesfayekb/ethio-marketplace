@@ -639,6 +639,26 @@ export const am: Messages = {
   "admin.translations.transfer.summary":
     "የገቡ {imported} · የተሰየሙ {flagged} · ያልተቀየሩ {unchanged} · የተዘለሉ {skipped}።",
   // U4i ⑦ — ለአቀማመጥ ምርመራ የሚያገለግል የውሸት ትርጉም፤ በጭራሽ አይታተምም።
+  "admin.translations.transfer.exporting": "በመላክ ላይ…",
+  "admin.translations.transfer.exportAllHint":
+    "ሙሉውን ቋንቋና ወሰን ይልካል — የፍለጋና የሁኔታ ማጣሪያዎች ችላ ይባላሉ።",
+  "admin.translations.error.deletePublished": "ከመሰረዝዎ በፊት ይህን ቋንቋ ከሕዝብ ያንሱት።",
+  "admin.translations.error.deleteBase": "የመሰረት ቋንቋ ሊሰረዝ አይችልም።",
+  "admin.translations.delete.action": "ቋንቋ ሰርዝ…",
+  "admin.translations.delete.title": "{language} ({code}) ይሰረዝ?",
+  "admin.translations.delete.body":
+    "ይህ ቋንቋውንና በእሱ ስር የተከማቸውን ሁሉ በቋሚነት ያስወግዳል። መመለስ አይቻልም።",
+  "admin.translations.delete.counts":
+    "{ui} የገጽታ ሐረጎች · {entity} የይዘት ስሞች · {revisions} የታሪክ ግቤቶች · {assignments} የተርጓሚ ምደባዎች",
+  "admin.translations.delete.countsLoading": "የሚሰረዘውን በመቁጠር ላይ…",
+  "admin.translations.delete.countsError": "እነዚያ ቁጥሮች ሊነበቡ አልቻሉም።",
+  "admin.translations.delete.confirmLabel": "ለማረጋገጥ {code} ይተይቡ",
+  "admin.translations.delete.cancel": "ተወው",
+  "admin.translations.delete.confirm": "ቋንቋ ሰርዝ",
+  "admin.translations.delete.pending": "በመሰረዝ ላይ…",
+  "admin.translations.delete.done":
+    "{code} ተሰርዟል — {ui} የገጽታ ሐረጎች፣ {entity} የይዘት ስሞች፣ {revisions} የታሪክ ግቤቶች፣ {assignments} ምደባዎች።",
+  "admin.translations.delete.publishedBlocked": "የታተሙ ቋንቋዎች መሰረዝ አይችሉም። መጀመሪያ ሕዝባዊውን ያጥፉ።",
   "admin.translations.pseudo.title": "የውሸት ትርጉም (Pseudo)",
   "admin.translations.pseudo.note":
     "የ{code} የአቀማመጥ ምርመራ ቋንቋን በተዘረጋ ጽሑፍ ይሞላል። ለአስተዳዳሪ ብቻ ሲሆን በጭራሽ አይታተምም።",
