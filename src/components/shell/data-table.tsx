@@ -200,6 +200,7 @@ export function DataTable<T>({
   expandedRow,
   selection,
   pagination,
+  cardUntil = "md",
   sortKey,
   sortDirection,
   onSort,
@@ -209,6 +210,13 @@ export function DataTable<T>({
   const navigate = useNavigate();
   /** U1d: the FIRST primary column carries the row link inside the table. */
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
+  /** U4i-10: the twin breakpoint, expressed once for both halves. */
+  const cardsClass = cardUntil === "lg" ? "lg:hidden" : "md:hidden";
+  const tableClass = cardUntil === "lg" ? "hidden lg:block" : "hidden md:block";
+  const tableMinWidth =
+    columns.reduce((sum, column) => sum + (column.minWidth ?? DEFAULT_COLUMN_MIN_WIDTH), 0) +
+    (selection ? SELECTION_COLUMN_MIN_WIDTH : 0) +
+    (rowActions ? ACTIONS_COLUMN_MIN_WIDTH : 0);
 
   const toolbarBlock = toolbar ? (
     <PageCard testid="data-table-toolbar" className="min-w-0">
@@ -238,6 +246,7 @@ export function DataTable<T>({
   const cardColumns = columns.filter((column) => column.priority !== "detail");
   const selectedKeys = new Set(selection?.selectedKeys ?? []);
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
+
 
   return frame(
     <div className="min-w-0 space-y-4">
