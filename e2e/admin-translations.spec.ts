@@ -1310,7 +1310,7 @@ test.describe("U4b translations console", () => {
           .toBe("approved");
       }
 
-      // 5. THE CHIPS MOVE — approved rises, untranslated does not grow.
+      // 5. THE CHIPS MOVE — approved rises above its pre-approval count.
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await expect(page.getByTestId("data-chips")).toBeVisible({ timeout: 20000 });
       await expect
@@ -1319,7 +1319,26 @@ test.describe("U4b translations console", () => {
           message: `the approved chip never rose above ${approvedBefore}`,
         })
         .toBeGreaterThan(approvedBefore);
-      expect(await chipCount("untranslated")).toBeLessThanOrEqual(untranslatedBefore);
+
+      // 6. PER-KEY TRUTH (J4) — the fence's universe is SHARED, so aggregate
+      //    counts over it race with sibling activity (run 33574332982: an
+      //    "untranslated ≤ before" aggregate read 1 against 0). Aggregates
+      //    over shared universes race; own keys are the truth — both scratch
+      //    locations must be approved WITH an approver stamped.
+      for (const anchor of [one, two]) {
+        await expect
+          .poll(
+            async () => {
+              const row = await rowOf(anchor.id);
+              return row?.status === "approved" && row.approved_by !== null;
+            },
+            {
+              timeout: 20000,
+              message: `scratch location ${anchor.id} never read approved with approved_by set`,
+            },
+          )
+          .toBe(true);
+      }
     } finally {
       await reapScratchLocation(one.id);
       await reapScratchLocation(two.id);
