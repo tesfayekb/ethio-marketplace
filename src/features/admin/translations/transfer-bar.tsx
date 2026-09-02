@@ -8,12 +8,14 @@ import type { MessageKey } from "@/i18n/types";
 import {
   detectFormat,
   parseTransfer,
+  partitionUnchanged,
   toCsv,
   toXliff,
   transferFilename,
   type TransferFormat,
   type TransferRow,
 } from "./io-formats";
+
 import { serverMessage, translationErrorKey, type TranslationRow } from "./translations-service";
 import { useImportTranslations } from "./use-translations";
 
