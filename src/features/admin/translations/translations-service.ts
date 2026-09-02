@@ -808,6 +808,12 @@ export async function setKeyContext(input: { key: string; context: string }): Pr
 export interface ImportResult {
   imported: number;
   flagged: number;
+  /**
+   * U4i-6 (b) — INC-124. The SERVER's no-op count: rows whose value already
+   * equals the stored one under one normalization are not written at all, so
+   * an approved row survives a round-trip. The client comparator is advisory.
+   */
+  unchanged: number;
   skipped: number;
 }
 
