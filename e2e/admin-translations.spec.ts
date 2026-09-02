@@ -1286,7 +1286,6 @@ test.describe("U4b translations console", () => {
           message: "the machine chip never counted the sweep",
         })
         .toBeGreaterThan(0);
-      const untranslatedBefore = await chipCount("untranslated");
       const approvedBefore = await chipCount("approved");
 
       // 3. APPROVE — the gated writer runs behind the same step-up.
