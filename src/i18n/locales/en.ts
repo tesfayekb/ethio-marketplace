@@ -663,6 +663,13 @@ export const en = {
   "admin.translations.transfer.exporting": "Exporting…",
   "admin.translations.transfer.exportAllHint":
     "Exports the whole language and scope — the search and status filters are ignored.",
+  // U4i-7 (INC-125) — an import is a transaction you can take back.
+  "admin.translations.transfer.undo": "Undo this import",
+  "admin.translations.transfer.undoing": "Undoing…",
+  "admin.translations.transfer.undoResult":
+    "Restored {restored} · left alone {conflicted} (changed since the import).",
+  "admin.translations.transfer.undoHint":
+    "Restores rows that still hold what this import wrote, including their previous review status. Rows edited since are left untouched.",
   // U4i-4 (b) — language deletion is destructive: typed confirm, live counts.
   "admin.translations.error.deletePublished": "Unpublish this language before deleting it.",
   "admin.translations.error.deleteBase": "The base language cannot be deleted.",
