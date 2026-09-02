@@ -26,14 +26,35 @@ export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNo
       {children(guard)}
 
       {mode === "closed" ? null : (
-        <div
-          data-testid="step-up-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="step-up-title"
-          className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center"
+        <Dialog
+          open
+          onOpenChange={(next) => {
+            if (!next && !busy) {
+              setCode("");
+              close();
+            }
+          }}
         >
-          <PageCard className="w-full max-w-sm space-y-3">
+          {/* U4i-6 (a) — STEP-UP OWNS THE TOP LAYER (INC-124). Rendered through
+              the dialog primitive's portal so it stacks ABOVE any dialog that
+              armed the action (a delete confirm stays open beneath), and so
+              Radix's own focus scope moves focus INTO the code input rather
+              than the underlying dialog trapping it. */}
+          <DialogContent
+            data-testid="step-up-modal"
+            aria-labelledby="step-up-title"
+            overlayClassName="z-[100] bg-foreground/40"
+            className="z-[101] block w-[min(24rem,calc(100vw-1.5rem))] max-w-sm p-0"
+            onOpenAutoFocus={(event) => {
+              if (mode !== "code") return;
+              event.preventDefault();
+              codeRef.current?.focus();
+            }}
+          >
+            <DialogTitle className="sr-only">
+              {mode === "code" ? t("mfa.stepUpTitle") : t("mfa.stepUpNoFactorTitle")}
+            </DialogTitle>
+            <PageCard className="w-full space-y-3">
             <h2 id="step-up-title" className="text-base font-semibold text-foreground">
               {mode === "code" ? t("mfa.stepUpTitle") : t("mfa.stepUpNoFactorTitle")}
             </h2>
