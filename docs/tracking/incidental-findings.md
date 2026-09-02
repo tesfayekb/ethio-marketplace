@@ -1803,3 +1803,28 @@ star wrapping under the label. Density is a control, not a canvas: ~12rem wide,
 
 **(d) Context-note placement.** PASS as landed — visible and persistent in its
 labelled block; no change.
+
+## INC-124 — U4i-6 walk findings (2026-09-02b)
+
+**(a) Step-up owns the top layer.** The gate was a plain in-tree
+`fixed inset-0 z-50` panel while every Radix dialog portals to the end of
+`<body>` at the SAME `z-50`. The dialog that ARMS a sensitive action (the
+typed-confirm delete) therefore painted over the gate and kept the focus trap:
+the code input was unreachable. Fixed at the primitive — `DialogContent` now
+takes `overlayClassName`, and `StepUpGate` renders through the dialog portal on
+a dedicated TOP layer (`z-[100]` overlay / `z-[101]` content) with focus moved
+into the code input. Only step-up may use that layer.
+
+**(b) Idempotency is server law; a client comparator is advisory.** The no-op
+filter landed in U4i-3 lived in the browser, so anything reaching the RPC by
+another path (a bypassed filter, a value differing only by trailing whitespace)
+re-wrote the row and DEMOTED an approved translation to `edited`.
+`admin_import_translations` now compares the incoming value to the stored one
+under one normalization (trailing whitespace/newlines trimmed) and, when equal,
+writes nothing: no status change, no revision, no audit row of its own —
+counted `unchanged` in the RETURN. The client filter stays as a payload-shrinking
+fast path; the rendered summary is the SERVER's counts.
+
+**(c) Density is a control.** Switcher rows drop to `py-0.5` with
+`leading-tight` (about half the previous rhythm); the 12rem menu width from
+U4i-4 is unchanged.
