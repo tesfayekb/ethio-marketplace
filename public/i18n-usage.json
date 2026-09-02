@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 173,
-  "dynamicCallSites": 67,
+  "scanned": 174,
+  "dynamicCallSites": 68,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -443,6 +443,42 @@
     "admin.translations.data.gateNote": [
       "/admin/translations/$lang"
     ],
+    "admin.translations.delete.action": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.body": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.cancel": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.confirm": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.confirmLabel": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.counts": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.countsError": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.countsLoading": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.done": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.pending": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.publishedBlocked": [
+      "/admin/translations"
+    ],
+    "admin.translations.delete.title": [
+      "/admin/translations"
+    ],
     "admin.translations.editor.approve": [
       "/admin/translations/$lang"
     ],
@@ -681,10 +717,16 @@
     "admin.translations.title": [
       "/admin/translations"
     ],
+    "admin.translations.transfer.exportAllHint": [
+      "/admin/translations/$lang"
+    ],
     "admin.translations.transfer.exportCsv": [
       "/admin/translations/$lang"
     ],
     "admin.translations.transfer.exportXliff": [
+      "/admin/translations/$lang"
+    ],
+    "admin.translations.transfer.exporting": [
       "/admin/translations/$lang"
     ],
     "admin.translations.transfer.import": [
