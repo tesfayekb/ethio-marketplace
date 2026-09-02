@@ -653,13 +653,27 @@ function StringEditor({
        * U4i ① — CONTEXT NOTE. One note per KEY (stored on the base row), so a
        * note written here is visible to every language's translator, and the
        * AI route sends it to the provider as translation context.
+       *
+       * U4i-3 (a) — THE NOTE IS ALWAYS RENDERED (INC-122). The miss: for a
+       * `translations:manage` holder the editor rendered the INPUT ONLY, so a
+       * saved note produced no text under the source — the write had landed,
+       * the read-back had nowhere to show. The saved value is now its own
+       * paragraph for every reader, and the manage input sits beneath it.
+       * `savedContext` shows the just-written note immediately, then stands
+       * down (equality-guarded, I3) once the refetch carries the same value.
        */}
       <div className="min-w-0 space-y-1">
         <p className="text-xs font-medium text-muted-foreground">
           {t("admin.translations.editor.context")}
         </p>
+        <p
+          data-testid={`string-context-value-${id}`}
+          className="min-w-0 break-words text-sm text-foreground"
+        >
+          {note === "" ? t("admin.translations.editor.contextNone") : note}
+        </p>
         {mayManage ? (
-          <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-2 pt-1">
             <Input
               id={`string-context-${id}`}
               data-testid={`string-context-${id}`}
@@ -673,20 +687,20 @@ function StringEditor({
               variant="outline"
               className="min-h-11 self-start"
               data-testid={`string-context-save-${id}`}
-              disabled={contextAction.isPending || contextDraft === row.context}
+              disabled={contextAction.isPending || contextDraft === note}
               onClick={() =>
-                run(() => contextAction.mutateAsync({ key: row.key, context: contextDraft }))
+                run(async () => {
+                  await contextAction.mutateAsync({ key: row.key, context: contextDraft });
+                  setSavedContext(contextDraft);
+                })
               }
             >
               {t("admin.translations.editor.contextSave")}
             </Button>
           </div>
-        ) : (
-          <p data-testid={`string-context-${id}`} className="text-sm text-foreground">
-            {row.context === "" ? t("admin.translations.editor.contextNone") : row.context}
-          </p>
-        )}
+        ) : null}
       </div>
+
 
       {/**
        * U4i ② — USED ON. Build-time truth from scripts/i18n-usage-map.ts.
