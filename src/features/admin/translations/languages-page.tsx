@@ -143,8 +143,17 @@ export function AdminTranslationsLanguagesPage() {
             <>
               <SyncKeysCard guard={guard} />
               <AddLanguageCard guard={guard} />
+              {/**
+               * U4i-3 (e) — PSEUDO-LOCALIZATION lives on the roster, next to
+               * the other language-level tools. It used to render only inside
+               * the BASE language's strings page, behind the manage gate, below
+               * the export bar — a place an operator had no reason to open, so
+               * the walk reported "not found".
+               */}
+              <PseudoBar guard={guard} />
             </>
           ) : null}
+
         </div>
       )}
     </StepUpGate>
