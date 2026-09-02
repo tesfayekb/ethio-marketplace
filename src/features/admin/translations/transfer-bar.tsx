@@ -22,7 +22,7 @@ import {
   translationErrorKey,
   type TranslationRow,
 } from "./translations-service";
-import { useImportTranslations } from "./use-translations";
+import { useImportTranslations, useUndoImport } from "./use-translations";
 
 /**
  * U4i ⑤ — EXPORT / IMPORT BAR (`translations:manage`).
@@ -55,8 +55,12 @@ export function TransferBar({
 }) {
   const { t } = useI18n();
   const importRows = useImportTranslations(lang);
+  const undoRows = useUndoImport();
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
+  // U4i-7 (INC-125) — the last import's batch id: what "Undo" acts on.
+  const [batchId, setBatchId] = useState<string | null>(null);
+  const [undoLine, setUndoLine] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -97,6 +101,8 @@ export function TransferBar({
 
   const onFile = (file: File) => {
     setSummary(null);
+    setUndoLine(null);
+    setBatchId(null);
     setErrorKey(null);
     setErrorDetail(null);
     void guard(async () => {
@@ -120,8 +126,10 @@ export function TransferBar({
       const split = partitionUnchanged(parsed.rows, current);
       const result =
         split.changed.length === 0
-          ? { imported: 0, flagged: 0, unchanged: 0, skipped: 0 }
+          ? { imported: 0, flagged: 0, unchanged: 0, skipped: 0, batchId: null }
           : await importRows.mutateAsync(split.changed);
+      // U4i-7 (INC-125) — a run that wrote nothing has nothing to take back.
+      setBatchId(result.imported > 0 ? result.batchId : null);
       setSummary(
         t("admin.translations.transfer.summary")
           .replace("{imported}", String(result.imported))
@@ -129,6 +137,29 @@ export function TransferBar({
           .replace("{unchanged}", String(result.unchanged + split.unchanged))
           .replace("{skipped}", String(result.skipped + parsed.malformed)),
       );
+    }).catch((failure: unknown) => {
+      setErrorKey(translationErrorKey(failure));
+      setErrorDetail(serverMessage(failure));
+    });
+  };
+
+  /**
+   * U4i-7 (INC-125) — UNDO. The gates re-run server-side; the button only
+   * carries the batch id and renders the SERVER's restored/conflicted counts.
+   * The batch is cleared afterwards: an undo is taken back once.
+   */
+  const onUndo = (batch: string) => {
+    setUndoLine(null);
+    setErrorKey(null);
+    setErrorDetail(null);
+    void guard(async () => {
+      const result = await undoRows.mutateAsync(batch);
+      setUndoLine(
+        t("admin.translations.transfer.undoResult")
+          .replace("{restored}", String(result.restored))
+          .replace("{conflicted}", String(result.conflicted)),
+      );
+      setBatchId(null);
     }).catch((failure: unknown) => {
       setErrorKey(translationErrorKey(failure));
       setErrorDetail(serverMessage(failure));
@@ -200,8 +231,33 @@ export function TransferBar({
         />
       </div>
       {summary ? (
-        <p role="status" data-testid="strings-transfer-summary" className="text-sm text-foreground">
+        <p
+          role="status"
+          data-testid="strings-transfer-summary"
+          data-batch={batchId ?? ""}
+          className="text-sm text-foreground"
+        >
           {summary}
+        </p>
+      ) : null}
+      {batchId ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11 self-start"
+          data-testid="strings-import-undo"
+          title={t("admin.translations.transfer.undoHint")}
+          disabled={undoRows.isPending}
+          onClick={() => onUndo(batchId)}
+        >
+          {undoRows.isPending
+            ? t("admin.translations.transfer.undoing")
+            : t("admin.translations.transfer.undo")}
+        </Button>
+      ) : null}
+      {undoLine ? (
+        <p role="status" data-testid="strings-undo-result" className="text-sm text-foreground">
+          {undoLine}
         </p>
       ) : null}
       {errorKey ? (

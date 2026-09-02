@@ -84,9 +84,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                 key={row.code}
                 lang={row.code}
                 data-testid={`language-option-${row.code}`}
-                // U4i-6 (c) — DENSITY IS A CONTROL (INC-124): rows at half the
-                // previous vertical rhythm; the 12rem menu width is unchanged.
-                className="flex min-w-0 items-center gap-1 py-0.5 pe-1 ps-2 leading-tight"
+                // U4i-7 — DENSITY IS A CONTROL, FINAL (INC-125): rows at
+                // `py-px`, half again from `py-0.5`; leading stays tight and
+                // the 12rem menu width is unchanged. The star keeps its own
+                // ≥44px touch target, so the row never becomes untappable.
+                className="flex min-w-0 items-center gap-1 py-px pe-1 ps-2 leading-tight"
                 onSelect={() => setLanguage(row.code as Language)}
               >
                 <Check

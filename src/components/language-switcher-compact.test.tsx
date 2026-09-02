@@ -43,9 +43,10 @@ describe("LanguageSwitcher density", () => {
       // One flex row: label and star are siblings, never stacked.
       expect(item.className).toContain("items-center");
       expect(item.className).not.toContain("flex-col");
-      // U4i-6 (c) — INC-124: half the previous vertical rhythm, tight leading.
-      expect(item.className).toContain("py-0.5");
+      // U4i-7 — INC-125: FINAL density, `py-px` with tight leading.
+      expect(item.className).toContain("py-px");
       expect(item.className).toContain("leading-tight");
+      expect(item.className).not.toContain("py-0.5");
       expect(item.className).not.toContain("py-1.5");
       const code = item.getAttribute("data-testid")?.replace("language-option-", "") ?? "";
       expect(item.querySelector(`[data-testid="language-star-${code}"]`)).not.toBeNull();

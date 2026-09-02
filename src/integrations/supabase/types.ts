@@ -874,33 +874,39 @@ export type Database = {
       ui_translation_revisions: {
         Row: {
           action: string
+          batch_id: string | null
           changed_at: string
           changed_by: string | null
           id: string
           key: string
           lang_code: string
+          post_value: string | null
           prev_machine: boolean
           prev_status: string | null
           prev_value: string | null
         }
         Insert: {
           action: string
+          batch_id?: string | null
           changed_at?: string
           changed_by?: string | null
           id?: string
           key: string
           lang_code: string
+          post_value?: string | null
           prev_machine?: boolean
           prev_status?: string | null
           prev_value?: string | null
         }
         Update: {
           action?: string
+          batch_id?: string | null
           changed_at?: string
           changed_by?: string | null
           id?: string
           key?: string
           lang_code?: string
+          post_value?: string | null
           prev_machine?: boolean
           prev_status?: string | null
           prev_value?: string | null
@@ -1041,6 +1047,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      zz_proof_log: {
+        Row: {
+          i: number
+          note: string | null
+        }
+        Insert: {
+          i?: number
+          note?: string | null
+        }
+        Update: {
+          i?: number
+          note?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -1372,6 +1393,7 @@ export type Database = {
           untranslated: number
         }[]
       }
+      admin_undo_import: { Args: { p_batch: string }; Returns: Json }
       admin_update_profile: {
         Args: {
           p_display_name: string

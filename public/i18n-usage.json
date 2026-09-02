@@ -744,6 +744,18 @@
     "admin.translations.transfer.title": [
       "/admin/translations/$lang"
     ],
+    "admin.translations.transfer.undo": [
+      "/admin/translations/$lang"
+    ],
+    "admin.translations.transfer.undoHint": [
+      "/admin/translations/$lang"
+    ],
+    "admin.translations.transfer.undoResult": [
+      "/admin/translations/$lang"
+    ],
+    "admin.translations.transfer.undoing": [
+      "/admin/translations/$lang"
+    ],
     "admin.translations.translator.audit": [
       "/admin/users/$userId"
     ],
@@ -1130,9 +1142,12 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
       "/admin/translations/$lang",
-      "/c/$slug",
-      "component: dialog"
+      "/admin/users/$userId",
+      "/c/$slug"
     ],
     "common.dismiss": [
       "(every page)",

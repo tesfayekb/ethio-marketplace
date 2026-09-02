@@ -1828,3 +1828,13 @@ fast path; the rendered summary is the SERVER's counts.
 **(c) Density is a control.** Switcher rows drop to `py-0.5` with
 `leading-tight` (about half the previous rhythm); the 12rem menu width from
 U4i-4 is unchanged.
+
+## INC-125 — U4i-7 (2026-09-02)
+
+Imports are batch-tagged and undoable while untouched; conflicts never
+overwrite later work. The undo's "untouched" test is the row's VALUE against
+what the import wrote, not revision ordering: `changed_at` defaults to the
+transaction clock, so revisions written in one transaction tie and any
+ordering-based answer is arbitrary (the first cut's proof returned
+`{restored:1, conflicted:0}` for a case whose truth was `{restored:2,
+conflicted:1}`). Density final: `py-px`.

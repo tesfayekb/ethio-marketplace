@@ -2366,6 +2366,153 @@ test.describe("U4g bulk approval, order and orphans", () => {
   });
 
   /**
+   * TR-32 (U4i-7) — AN IMPORT IS A TRANSACTION YOU CAN TAKE BACK (INC-125).
+   *
+   * Inside this project's BULK FENCE (J2), two axes-namespaced scratch keys are
+   * seeded with a prior value and a prior STATUS (one approved, one edited), a
+   * CSV changes both, and the summary's `data-batch` carries the run's batch id.
+   * Undo restores value AND status per key — read with the service client (J4),
+   * never from the rendered counts. Then a second import is partly overwritten
+   * by a later edit: undo restores the untouched row and reports the other as
+   * conflicted, leaving the later work exactly as it stands.
+   */
+  test("TR-32 an import is undoable while nothing has touched the rows", async ({ page }) => {
+    test.setTimeout(150_000);
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
+    const keyA = scratchKey("tr32") + "-a";
+    const keyB = scratchKey("tr32") + "-b";
+    const priorA = `⟪undo⟫ prior A ${keyA}`;
+    const priorB = `⟪undo⟫ prior B ${keyB}`;
+    await seedScratchKey(keyA, `Undo source ${keyA}`, fence);
+    await seedScratchKey(keyB, `Undo source ${keyB}`, fence);
+
+    const readRow = async (key: string) => {
+      const { data, error } = await adminClient()
+        .from("ui_translations")
+        .select("value, status")
+        .eq("key", key)
+        .eq("lang_code", fence)
+        .maybeSingle();
+      if (error) throw new Error(`[e2e:u4i7] TR-32 read failed for ${key}: ${error.message}`);
+      return `${data?.value ?? "missing"}|${data?.status ?? "missing"}`;
+    };
+
+    const importCsv = async (secret: string, rows: [string, string][], name: string) => {
+      const csv = ["key,source,translation"]
+        .concat(rows.map(([key, value]) => `${key},"src","${value}"`))
+        .join("\r\n")
+        .concat("\r\n");
+      await page.getByTestId("strings-import-input").setInputFiles({
+        name,
+        mimeType: "text/csv",
+        buffer: Buffer.from(csv, "utf8"),
+      });
+      await stepUpIfPrompted(page, secret);
+      const summary = page.getByTestId("strings-transfer-summary");
+      await expect(summary).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId("strings-transfer-error")).toHaveCount(0);
+      // The batch id is the SERVER's, surfaced on the summary the operator sees.
+      await expect(page.getByTestId("strings-import-undo")).toBeVisible({ timeout: 20000 });
+      const batch = await summary.getAttribute("data-batch");
+      expect(batch, "the import summary carried no batch id").toBeTruthy();
+      return batch as string;
+    };
+
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      // PRIOR STATE, seeded before navigating (J7): the approval is what an undo
+      // has to bring back — a restore that loses the status is not a restore.
+      const { error: seedError } = await adminClient()
+        .from("ui_translations")
+        .upsert(
+          [
+            { key: keyA, lang_code: fence, value: priorA, status: "approved", machine: false },
+            { key: keyB, lang_code: fence, value: priorB, status: "edited", machine: false },
+          ],
+          { onConflict: "key,lang_code" },
+        );
+      if (seedError) throw new Error(`[e2e:u4i7] TR-32 seed failed: ${seedError.message}`);
+
+      await gotoReady(page, `/admin/translations/${fence}`);
+      await page.getByTestId("strings-search").fill(keyA);
+      await expect(stringRow(page, slug(keyA))).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("strings-search").fill("");
+
+      const batch = await importCsv(
+        secret,
+        [
+          [keyA, `⟪undo⟫ imported A`],
+          [keyB, `⟪undo⟫ imported B`],
+        ],
+        `${fence}-undo.csv`,
+      );
+      expect(batch.length, "the batch id is not a uuid").toBeGreaterThan(30);
+      await expect
+        .poll(async () => `${await readRow(keyA)}::${await readRow(keyB)}`, {
+          timeout: 20000,
+          message: "the import never landed for both keys",
+        })
+        .toBe(`⟪undo⟫ imported A|edited::⟪undo⟫ imported B|edited`);
+
+      await page.getByTestId("strings-import-undo").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("strings-undo-result")).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId("strings-transfer-error")).toHaveCount(0);
+      await expect
+        .poll(async () => `${await readRow(keyA)}::${await readRow(keyB)}`, {
+          timeout: 20000,
+          message: "the undo did not restore both rows to their exact prior value and status",
+        })
+        .toBe(`${priorA}|approved::${priorB}|edited`);
+
+      // CONFLICT — later work is never overwritten.
+      await gotoReady(page, `/admin/translations/${fence}`);
+      await page.getByTestId("strings-search").fill(keyA);
+      await expect(stringRow(page, slug(keyA))).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("strings-search").fill("");
+      await importCsv(
+        secret,
+        [
+          [keyA, `⟪undo⟫ second A`],
+          [keyB, `⟪undo⟫ second B`],
+        ],
+        `${fence}-undo-2.csv`,
+      );
+      await expect
+        .poll(async () => await readRow(keyB), {
+          timeout: 20000,
+          message: "the second import never landed",
+        })
+        .toBe(`⟪undo⟫ second B|edited`);
+
+      const later = `⟪undo⟫ later hand edit ${keyB}`;
+      const { error: laterError } = await adminClient()
+        .from("ui_translations")
+        .update({ value: later })
+        .eq("key", keyB)
+        .eq("lang_code", fence);
+      if (laterError) throw new Error(`[e2e:u4i7] TR-32 later edit failed: ${laterError.message}`);
+
+      await page.getByTestId("strings-import-undo").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("strings-undo-result")).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId("strings-transfer-error")).toHaveCount(0);
+      await expect
+        .poll(async () => `${await readRow(keyA)}::${await readRow(keyB)}`, {
+          timeout: 20000,
+          message: "the conflicted undo did not restore exactly one row",
+        })
+        .toBe(`${priorA}|approved::${later}|edited`);
+    } finally {
+      for (const key of [keyA, keyB]) {
+        await adminClient().from("ui_translation_revisions").delete().eq("key", key);
+        await reapScratchKey(key);
+      }
+    }
+  });
+
+  /**
    * TR-31 (U4i-4 (b)) — DELETING A LANGUAGE, typed confirm and all four tables.
    *
    * NOT @global-state (J6): the language is created by this test, named across

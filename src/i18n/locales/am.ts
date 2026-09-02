@@ -641,6 +641,13 @@ export const am: Messages = {
   // U4i ⑦ — ለአቀማመጥ ምርመራ የሚያገለግል የውሸት ትርጉም፤ በጭራሽ አይታተምም።
   "admin.translations.transfer.exporting": "በመላክ ላይ…",
   "admin.translations.transfer.exportAllHint": "ሙሉውን ቋንቋና ወሰን ይልካል — የፍለጋና የሁኔታ ማጣሪያዎች ችላ ይባላሉ።",
+  // U4i-7 (INC-125)
+  "admin.translations.transfer.undo": "ይህን ማስገባት መልስ",
+  "admin.translations.transfer.undoing": "በመመለስ ላይ…",
+  "admin.translations.transfer.undoResult":
+    "{restored} ተመልሰዋል · {conflicted} አልተነኩም (ከማስገባቱ በኋላ ተቀይረዋል)።",
+  "admin.translations.transfer.undoHint":
+    "ይህ ማስገባት የጻፈውን አሁንም የያዙ ረድፎችን ከቀድሞው የግምገማ ሁኔታቸው ጋር ይመልሳል። ከዚያ በኋላ የተስተካከሉ ረድፎች አይነኩም።",
   "admin.translations.error.deletePublished": "ከመሰረዝዎ በፊት ይህን ቋንቋ ከሕዝብ ያንሱት።",
   "admin.translations.error.deleteBase": "የመሰረት ቋንቋ ሊሰረዝ አይችልም።",
   "admin.translations.delete.action": "ቋንቋ ሰርዝ…",
