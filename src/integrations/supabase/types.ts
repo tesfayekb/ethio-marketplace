@@ -880,6 +880,7 @@ export type Database = {
           id: string
           key: string
           lang_code: string
+          post_value: string | null
           prev_machine: boolean
           prev_status: string | null
           prev_value: string | null
@@ -892,6 +893,7 @@ export type Database = {
           id?: string
           key: string
           lang_code: string
+          post_value?: string | null
           prev_machine?: boolean
           prev_status?: string | null
           prev_value?: string | null
@@ -904,6 +906,7 @@ export type Database = {
           id?: string
           key?: string
           lang_code?: string
+          post_value?: string | null
           prev_machine?: boolean
           prev_status?: string | null
           prev_value?: string | null
@@ -1044,6 +1047,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      zz_proof_log: {
+        Row: {
+          i: number
+          note: string | null
+        }
+        Insert: {
+          i?: number
+          note?: string | null
+        }
+        Update: {
+          i?: number
+          note?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
