@@ -84,7 +84,9 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                 key={row.code}
                 lang={row.code}
                 data-testid={`language-option-${row.code}`}
-                className="flex min-w-0 items-center gap-1 py-1.5 pe-1 ps-2"
+                // U4i-6 (c) — DENSITY IS A CONTROL (INC-124): rows at half the
+                // previous vertical rhythm; the 12rem menu width is unchanged.
+                className="flex min-w-0 items-center gap-1 py-0.5 pe-1 ps-2 leading-tight"
                 onSelect={() => setLanguage(row.code as Language)}
               >
                 <Check
