@@ -683,3 +683,80 @@ console changes the emitted set with no code change.
   and sign-out), TR-28 (the account carries onto a starless device and writes
   the star; a device star beats the account), and the hreflang set equalling
   the anon gate list.
+
+## U4i (Tier B) — context, used-on map, length advisories, cacheable bundles, transfer, pseudo
+
+Seven seams landed together on migration `20260901234603`; nothing here is a new
+read path for the public site — the marketplace still reads exactly `get_ui_bundle`.
+
+### ① Context notes
+
+`ui_translations.context` holds a translator note on the BASE row, so a key
+carries one note across every language. `admin_set_key_context` is the only
+writer (gated `translations:update` + step-up), the note renders in the row
+expansion, and it is what the editor reads before choosing a wording.
+
+The note travels to the AI route as `items[].context`, is validated there
+(string, ≤500 chars) — and stops at the provider boundary. **Stated limitation
+(law A3):** Cloud Translation **v2** accepts only `q`, `source`, `target`,
+`format`; it has no context/hint/domain/glossary field (those are v3 glossaries
+and adaptive datasets). Appending the note to `q` would translate the note into
+the output, so the route deliberately does not. The field is carried, not
+dropped: a future v3 adaptive call reads it with no client change.
+
+### ② Used-on map
+
+`scripts/i18n-usage-map.ts` scans `src/` for literal `t("key")` call sites and
+writes `docs/generated/i18n-usage.json` plus the served copy
+`public/i18n-usage.json` (both are generated-file exempt, `.prettierignore`).
+Dynamic call sites are COUNTED, never guessed — the console shows the literal
+sites it knows and the map states how many it cannot resolve.
+
+`bun run i18n:usage` regenerates it; CI job `i18n-usage-map` regenerates and
+asserts `git diff --exit-code`, so adding or deleting a `t()` call site without
+regenerating fails the run. The console reads the static asset — no new RPC.
+
+### ③ Length advisories
+
+`isOverlong` compares a translation against its base value by grapheme count and
+warns past the threshold. ADVISORY ONLY: it renders as a Badge next to the row
+and never blocks a save. Truncation is a design fact, not a data error.
+
+### ④ Cacheable bundles
+
+`GET /api/i18n/:lang` serves the approved bundle with
+`ETag: "<lang>.<get_ui_bundle_version>"` and `max-age=300`, answering `304` on a
+match. `fetchUiBundle` tries the GET and falls back to the `get_ui_bundle` RPC
+on any failure, so the D3 overlay chain is unchanged: DB ▸ compiled[lang] ▸
+compiled.en. The version is `md5` over the approved rows' count and newest
+`updated_at`, and an unpublished language yields the constant `"empty"` version
+beside `get_ui_bundle`'s `{}`.
+
+### ⑤ Transfer (CSV / XLIFF)
+
+`io-formats.ts` writes and reads RFC 4180 CSV (`key,source,translation`) and
+XLIFF 1.2 (CDATA-wrapped). Import goes through `admin_import_translations`,
+which runs the gates once up front (F5) and then writes each row through
+`admin_save_translation` — same validator, same revision capture, no bypass.
+Unknown or orphaned keys are SKIPPED and counted; an empty file is a refusal.
+The summary states imported / flagged / skipped.
+
+### ⑦ Pseudo-localization
+
+`pseudoize` accents Latin letters, pads to +40%, and wraps in `⟪…⟫` so a clipped
+string visibly loses its closing bracket. Placeholders are masked out first, so
+every `{token}` survives verbatim and the server validator cannot flag the
+generator's own output. Rows land in the reserved `zxa` language through
+`admin_machine_translation`, i.e. `machine`, unapproved, and revertible through
+History. `admin_set_language_flags` REFUSES `enabled_public` for `zxa` by rule:
+the pseudo catalog can never reach a real user.
+
+### Coverage (U4i)
+
+- Unit: `pseudo.test.ts` (placeholder survival, expansion, threshold),
+  `io-formats.test.ts` (CSV/XLIFF round trips, malformed rows counted),
+  `bundle.test.ts` (ETag derivation).
+- E2E (`e2e/admin-translations.spec.ts`): TR-29 exports real CSV bytes from the
+  browser and imports an edited file, asserting per-key DB truth and that an
+  unknown key is never invented; TR-30 fills `zxa` and proves the publication
+  refusal (`@global-state`, one project, INC-117 quarantine).

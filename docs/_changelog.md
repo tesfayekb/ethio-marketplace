@@ -280,3 +280,4 @@
 - 2026-09-02 — chore(quality): DEC-025 typed clients + lint · DEC-026 component tests (seed suite + CI job) · DEC-027 spec lint — the pre-push floor
 - 2026-09-02 — feat(i18n): U4h — per-device ★ default language with account sync (device wins), dynamic hreflang from the publication gate
 - 2026-09-02 — fix(i18n/e2e): U4h star flows converge (INC-121)
+- 2026-09-02 — feat(i18n): U4i Tier B — context notes (v2 limitation stated), used-on map + CI freshness guard, advisory length warnings, ETag-cached /api/i18n/:lang, CSV/XLIFF transfer, pseudo-localization in the never-publishable zxa\n
