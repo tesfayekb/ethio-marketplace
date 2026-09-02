@@ -1752,3 +1752,31 @@ where the provider still holds the compiled SEED (`["en"]`). The spec now polls
 de-duplicated, sorted, `x-default` included).
 **LAW.** Compare a settled document against a settled mirror: the gate snapshot
 publishes `gateReady` precisely so a reader can wait on truth (J7).
+
+## INC-122 — U4i walk findings (2026-09-02)
+
+**(a) Context note saved, nothing under the source.** The write landed; the
+editor simply had no read-back element for a `translations:manage` holder — the
+saved note was rendered ONLY in the non-manage branch, and manage holders saw
+the input alone. Root fix: the note is always its own paragraph under the
+source, with the input beneath it.
+**LAW.** An editable field never replaces the display of its own value.
+
+**(b) Used-on showed file paths.** `features/admin` is not a surface a
+translator can act on. The scanner now resolves call sites through the static
+import graph to the ROUTE PATHS that reach them, and falls back to
+`component: <name>` only when no route does.
+
+**(c) Length warning was a sentence.** Dressed as an amber `--gold` chip
+(`Long ×4.8`) with the sentence as its tooltip. No behaviour change.
+
+**(d) Import counted round-trip noise as edits.** A re-imported untouched
+export reported "changed 2 · Imported 25" and would DEMOTE approved rows to
+`edited`. The importer now normalises both sides and skips identical rows into
+a new `unchanged` bucket.
+**LAW.** Imports are idempotent: an untouched export re-imported is a no-op.
+
+**(e) Pseudo button not found.** It rendered only inside the BASE language's
+strings page, behind the manage gate, below the export bar — a place an
+operator has no reason to open. It moved to the Languages roster toolbar with a
+confirm dialog naming `zxa`.

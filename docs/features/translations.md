@@ -751,6 +751,32 @@ generator's own output. Rows land in the reserved `zxa` language through
 History. `admin_set_language_flags` REFUSES `enabled_public` for `zxa` by rule:
 the pseudo catalog can never reach a real user.
 
+## U4i-3 — walk findings (INC-122)
+
+- **Context note renders.** The saved note is its own paragraph under the
+  English source (`string-context-value-<id>`) for EVERY reader; the
+  manage-only input sits beneath it. Previously a manage holder saw the input
+  ALONE, so a saved note produced no visible text. The just-written value shows
+  immediately and stands down (equality-guarded) once the refetch carries it.
+- **Used-on = pages.** `scripts/i18n-usage-map.ts` walks the static import
+  graph from every file under `src/routes/**` and reports the ROUTE PATHS that
+  reach a call site (e.g. `/admin/translations/$lang`). A file no route reaches
+  reports `component: <name>` — the honest answer, never an invented page.
+  Routes sort before components. The CI freshness guard is unchanged.
+- **Length chip.** The advisory is dressed as an amber (`--gold`) outline chip
+  labelled `Long ×4.8`, with the full sentence as its title. Behaviour is
+  identical: advisory only, never a flag, never a block.
+- **Import no-op law.** The importer normalises both sides identically (CRLF →
+  LF, trailing whitespace dropped) and SKIPS rows whose value did not truly
+  change; only real diffs reach `admin_import_translations`. An untouched
+  export re-imported writes nothing, so an approved row can no longer be
+  demoted to `edited` by round-trip noise. The summary gained an `unchanged`
+  bucket.
+- **Pseudo button.** It now lives on the Languages roster
+  (`pseudo-generate`, manage-gated) behind a confirm dialog naming `zxa`. It
+  used to render only inside the BASE language's strings page below the export
+  bar, where an operator had no reason to look.
+
 ### Coverage (U4i)
 
 - Unit: `pseudo.test.ts` (placeholder survival, expansion, threshold),
@@ -760,3 +786,7 @@ the pseudo catalog can never reach a real user.
   browser and imports an edited file, asserting per-key DB truth and that an
   unknown key is never invented; TR-30 fills `zxa` and proves the publication
   refusal (`@global-state`, one project, INC-117 quarantine).
+- U4i-3: `io-formats.test.ts` adds the no-op law (untouched export re-import =
+  `{changed: [], unchanged: N}`); TR-29's addendum approves the scratch row,
+  re-imports the SAME file and asserts the approval survives with no new
+  revision; TR-30 drives the roster button and its confirm dialog.
