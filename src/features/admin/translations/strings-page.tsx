@@ -612,6 +612,14 @@ function StringEditor({
   const contextAction = useSetKeyContext();
   const [draft, setDraft] = useState(row.value ?? "");
   const [contextDraft, setContextDraft] = useState(row.context);
+  // U4i-3 (a): the just-saved note, shown until the refetch carries it.
+  const [savedContext, setSavedContext] = useState<string | null>(null);
+  const note = savedContext ?? row.context;
+  if (savedContext !== null && row.context === savedContext) {
+    // Equality-guarded stand-down (I3): render-time reconcile, no effect loop.
+    setSavedContext(null);
+  }
+
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const id = slug(row.key);
