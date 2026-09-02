@@ -2406,14 +2406,14 @@ test.describe("U4g bulk approval, order and orphans", () => {
           )
           .toBe(0);
       }
-      const { data: langRow, error: langReadError } = await supabase
+      const { data: languagesRow, error: langReadError } = await supabase
         .from("languages")
         .select("code")
         .eq("code", code)
         .maybeSingle();
       if (langReadError)
         throw new Error(`[e2e:u4i4] TR-31 language read failed: ${langReadError.message}`);
-      expect(langRow, "the languages row survived its own deletion").toBeNull();
+      expect(languagesRow, "the languages row survived its own deletion").toBeNull();
     } finally {
       // Idempotent residue sweep: the flow under test normally did all of this.
       for (const key of keys) {
