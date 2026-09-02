@@ -2242,6 +2242,62 @@ test.describe("U4g bulk approval, order and orphans", () => {
         .eq("key", ghost);
       if (ghostError) throw new Error(`[e2e:u4i] TR-29 ghost read failed: ${ghostError.message}`);
       expect(ghostRows ?? [], "the importer invented a key that has no base row").toEqual([]);
+
+      /**
+       * U4i-3 (d) ADDENDUM — IMPORTS ARE IDEMPOTENT (INC-122). The row is
+       * approved by fiat, then the SAME untouched file is imported again: a
+       * round trip that changed nothing must write nothing, so the approval
+       * survives and no new revision is captured.
+       */
+      const { error: approveError } = await adminClient()
+        .from("ui_translations")
+        .update({ status: "approved" })
+        .eq("key", key)
+        .eq("lang_code", fence);
+      if (approveError) throw new Error(`[e2e:u4i] TR-29 approve failed: ${approveError.message}`);
+      const { count: revisionsBefore, error: countError } = await adminClient()
+        .from("ui_translation_revisions")
+        .select("id", { count: "exact", head: true })
+        .eq("key", key)
+        .eq("lang_code", fence);
+      if (countError)
+        throw new Error(`[e2e:u4i] TR-29 revision count failed: ${countError.message}`);
+
+      await gotoReady(page, `/admin/translations/${fence}`);
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, slug(key))).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("strings-search").fill("");
+      await page.getByTestId("strings-import-input").setInputFiles({
+        name: `${fence}.csv`,
+        mimeType: "text/csv",
+        buffer: Buffer.from(csv, "utf8"),
+      });
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("strings-transfer-summary")).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId("strings-transfer-error")).toHaveCount(0);
+
+      const { data: afterRow, error: afterError } = await adminClient()
+        .from("ui_translations")
+        .select("value, status")
+        .eq("key", key)
+        .eq("lang_code", fence)
+        .maybeSingle();
+      if (afterError)
+        throw new Error(`[e2e:u4i] TR-29 re-import read failed: ${afterError.message}`);
+      expect(
+        `${afterRow?.value}|${afterRow?.status}`,
+        "an untouched re-import demoted an approved row",
+      ).toBe(`${imported}|approved`);
+      const { count: revisionsAfter, error: afterCountError } = await adminClient()
+        .from("ui_translation_revisions")
+        .select("id", { count: "exact", head: true })
+        .eq("key", key)
+        .eq("lang_code", fence);
+      if (afterCountError)
+        throw new Error(`[e2e:u4i] TR-29 revision recount failed: ${afterCountError.message}`);
+      expect(revisionsAfter ?? 0, "an untouched re-import captured a revision").toBe(
+        revisionsBefore ?? 0,
+      );
     } finally {
       await adminClient().from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);
@@ -2284,8 +2340,10 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // key, read-only to this spec (J2) — pseudo rows live in zxa alone.
       const probe = "admin.translations.title";
 
-      await gotoReady(page, "/admin/translations/am");
-      await page.getByTestId("strings-pseudo-run").click();
+      // U4i-3 (e): the pseudo tool lives on the Languages roster and confirms.
+      await gotoReady(page, "/admin/translations");
+      await page.getByTestId("pseudo-generate").click();
+      await page.getByTestId("pseudo-generate-confirm-action").click();
       await stepUpIfPrompted(page, secret);
       await expect(page.getByTestId("strings-pseudo-summary")).toBeVisible({ timeout: 240_000 });
       await expect(page.getByTestId("strings-pseudo-error")).toHaveCount(0);

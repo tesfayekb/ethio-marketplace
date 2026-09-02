@@ -10,88 +10,91 @@
       "/admin"
     ],
     "admin.audit.caption": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.chart.bar": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.chart.description": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.chart.title": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.col.action": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.col.actor": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.col.entity": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.col.meta": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.col.time": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.collapse": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.detailTitle": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.empty": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.error": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.expand": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.filter.action": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.filter.actor": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.filter.all": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.filter.entity": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.filter.from": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.filter.to": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.loading": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.stat.activeImpersonations": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.stat.events24h": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.stat.events7d": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.stat.topAction": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.system": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.audit.title": [
-      "features/admin"
+      "/admin/audit"
     ],
     "admin.comingSoon": [
-      "features/admin"
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/images",
+      "/admin/locations"
     ],
     "admin.landing.body": [
       "/admin"
@@ -103,7 +106,7 @@
       "/admin"
     ],
     "admin.nav.label": [
-      "features/admin"
+      "/admin"
     ],
     "admin.noSections.body": [
       "/admin"
@@ -112,769 +115,799 @@
       "/admin"
     ],
     "admin.roles.col.display": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.col.kind": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.col.members": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.col.name": [
-      "features/admin"
+      "/admin/roles",
+      "/admin/roles/$roleId"
     ],
     "admin.roles.col.permissions": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.create.cancel": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.create.description": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.create.descriptionField": [
-      "features/admin"
+      "/admin/roles",
+      "/admin/roles/$roleId"
     ],
     "admin.roles.create.displayName": [
-      "features/admin"
+      "/admin/roles",
+      "/admin/roles/$roleId"
     ],
     "admin.roles.create.name": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.create.nameHelp": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.create.open": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.create.submit": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.create.title": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.danger.confirmHint": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.danger.confirmLabel": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.danger.delete": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.danger.description": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.danger.hasMembers": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.danger.title": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.detail.back": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.detail.notFound": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.empty": [
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.roles.error": [
-      "features/admin"
+      "/admin/roles",
+      "/admin/roles/$roleId"
     ],
     "admin.roles.kind.custom": [
-      "features/admin"
+      "/admin/roles",
+      "/admin/roles/$roleId"
     ],
     "admin.roles.kind.system": [
-      "features/admin"
+      "/admin/roles",
+      "/admin/roles/$roleId"
     ],
     "admin.roles.loading": [
-      "features/admin"
+      "/admin/roles",
+      "/admin/roles/$roleId"
     ],
     "admin.roles.members.count": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.members.title": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.members.view": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.meta.description": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.meta.save": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.meta.saved": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.meta.title": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.baselineBadge": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.coreNote": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.description": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.grant": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.granted": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.locked": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.notAssignable": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.revoke": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.stepUp": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.perm.title": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.subtitle": [
       "/admin/roles"
     ],
     "admin.roles.systemLockedNote": [
-      "features/admin"
+      "/admin/roles/$roleId"
     ],
     "admin.roles.title": [
-      "/admin/roles",
-      "features/admin"
+      "/admin/roles"
     ],
     "admin.translations.add.added": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.code": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.codePlaceholder": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.countries": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.countriesHint": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.countriesLoading": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.description": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.fromList": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.manual": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.nameEn": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.nameNative": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.pick": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.pickEmpty": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.pickError": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.pickLoading": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.pickPlaceholder": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.pickSelected": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.rtl": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.submit": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.add.title": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.ai.bulkAction": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.cancel": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.confirmBody": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.confirmCta": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.confirmTitle": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.failedList": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.pending": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.progress": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.row": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.ai.summary": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.approve.cancel": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.approve.confirmCta": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.approve.entitySummary": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.approve.none": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.approve.pending": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.approve.summary": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.badge.base": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.badge.rtl": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.badge.source": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.caption": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.col.admin": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.col.coverage": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.col.coverageData": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.col.entity": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.col.entityType": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.col.key": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.col.language": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.col.nameEn": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.col.provenance": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.col.public": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.col.source": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.col.status": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.col.value": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.collapse": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.coverage": [
-      "features/admin"
+      "/admin/translations",
+      "/admin/translations/$lang"
     ],
     "admin.translations.data.aiNote": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.data.caption": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.data.coverage": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.data.empty": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.data.gateNote": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.approve": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.clear": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.context": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.contextNone": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.contextPlaceholder": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.contextSave": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.flagNote": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.label": [
-      "features/admin"
+      "/admin/translations/$lang"
+    ],
+    "admin.translations.editor.lengthChip": [
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.lengthWarning": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.notAssigned": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.placeholderRule": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.restoreHint": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.restorePlaceholders": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.save": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.saved": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.source": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.usedOn": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.usedOnDynamic": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.editor.usedOnUnknown": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.empty": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.error": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.expand": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.filter.search": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.actor.system": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.clearInstead": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.confirm": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.empty": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.error": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.loading": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.noValue": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.open": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.restore": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.restored": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.history.title": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.loading": [
-      "features/admin"
+      "/admin/translations",
+      "/admin/users/$userId"
     ],
     "admin.translations.meterNote": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.meters": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.open": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.order.down": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.order.note": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.order.up": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.orphaned.chip": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.orphaned.note": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.provenance.approvedBy": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.provenance.none": [
-      "features/admin"
+      "/admin/translations/$lang"
+    ],
+    "admin.translations.pseudo.confirmAction": [
+      "/admin/translations"
+    ],
+    "admin.translations.pseudo.confirmBody": [
+      "/admin/translations"
+    ],
+    "admin.translations.pseudo.confirmCancel": [
+      "/admin/translations"
+    ],
+    "admin.translations.pseudo.confirmTitle": [
+      "/admin/translations"
     ],
     "admin.translations.pseudo.note": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.pseudo.pending": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.pseudo.progress": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.pseudo.run": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.pseudo.summary": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.pseudo.title": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.publicGate": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.scope.label": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.stat.approved": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.stat.languages": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.stat.totalKeys": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.status.flagged": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.strings.back": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.strings.caption": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.strings.empty": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.strings.error": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.strings.loading": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.strings.title": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.strings.unknown": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.subtitle": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.switch.admin": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.switch.public": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.sync.action": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.sync.description": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.sync.done": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.sync.note": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.sync.title": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.syncFirstTooltip": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.title": [
-      "features/admin"
+      "/admin/translations"
     ],
     "admin.translations.transfer.exportCsv": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.transfer.exportXliff": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.transfer.import": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.transfer.importing": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.transfer.note": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.transfer.summary": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.transfer.title": [
-      "features/admin"
+      "/admin/translations/$lang"
     ],
     "admin.translations.translator.audit": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.translations.translator.checkError": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.translations.translator.empty": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.translations.translator.noRole": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.translations.translator.none": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.translations.translator.save": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.translations.translator.saved": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.translations.translator.scopeNote": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.translations.translator.title": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.activity.empty": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.activity.loading": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.activity.title": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.col.country": [
-      "features/admin"
+      "/admin/users",
+      "/admin/users/$userId"
     ],
     "admin.users.col.email": [
-      "features/admin"
+      "/admin/users",
+      "/admin/users/$userId"
     ],
     "admin.users.col.joined": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.col.name": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.col.roles": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.col.status": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.detail.alias": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.detail.back": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.detail.identity": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.detail.joined": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.detail.lastSignIn": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.detail.never": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.detail.notFound": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.alias": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.aliasHelp": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.country": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.countryNone": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.description": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.displayName": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.save": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.saved": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.edit.title": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.empty": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.error": [
-      "features/admin"
+      "/admin/users",
+      "/admin/users/$userId"
     ],
     "admin.users.filter.all": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.loading": [
-      "features/admin"
+      "/admin/users",
+      "/admin/users/$userId"
     ],
     "admin.users.next": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.prev": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.roleFilter": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.roles.assign": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.roles.assignAction": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.roles.failed": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.roles.locked": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.roles.none": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.roles.remove": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.roles.title": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.searchLabel": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.searchPlaceholder": [
-      "/dev/primitives",
-      "features/admin"
+      "/admin/users",
+      "/dev/primitives"
     ],
     "admin.users.status.activate": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.status.active": [
-      "features/admin"
+      "/admin/users",
+      "/admin/users/$userId"
     ],
     "admin.users.status.changedAt": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.status.deactivate": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.status.deactivated": [
-      "features/admin"
+      "/admin/users",
+      "/admin/users/$userId"
     ],
     "admin.users.status.failed": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.status.ownAccount": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.status.reasonLabel": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.status.reasonPlaceholder": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.status.reasonRequired": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.status.title": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "admin.users.statusFilter": [
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.title": [
-      "/admin/users",
-      "features/admin"
+      "/admin/users"
     ],
     "admin.users.total": [
-      "features/admin"
+      "/admin/users"
     ],
     "app.name": [
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug",
       "/dev/primitives",
-      "/dev/tall",
-      "components/app-shell",
-      "components/shell"
+      "/dev/tall"
     ],
     "auth.alreadyConfirmedSignIn": [
       "/auth"
@@ -916,8 +949,11 @@
       "/auth"
     ],
     "auth.createAccount": [
+      "(every page)",
+      "/",
+      "/admin",
       "/auth",
-      "components/shell"
+      "/c/$slug"
     ],
     "auth.email": [
       "/auth"
@@ -1007,20 +1043,29 @@
       "/auth/reset"
     ],
     "auth.signIn": [
+      "(every page)",
+      "/",
+      "/admin",
       "/auth",
-      "components/shell"
+      "/c/$slug"
     ],
     "auth.signInButton": [
       "/auth"
     ],
     "auth.signOut": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "auth.signUpButton": [
       "/auth"
     ],
     "auth.signedInAs": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "auth.telegramSlot": [
       "/auth"
@@ -1040,20 +1085,32 @@
       "/dev/primitives"
     ],
     "common.close": [
-      "components/ui"
+      "(every page)",
+      "/",
+      "/admin",
+      "/admin/translations/$lang",
+      "/c/$slug",
+      "component: dialog"
     ],
     "common.dismiss": [
-      "components/app-shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "common.goHome": [
       "(every page)"
     ],
     "common.loading": [
-      "/settings",
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug",
+      "/settings"
     ],
     "common.retry": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "common.save": [
       "/dev/primitives"
@@ -1074,135 +1131,182 @@
       "(every page)"
     ],
     "feed.emptyBody": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "feed.emptyTitle": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "feed.errorBody": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "feed.errorTitle": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "feed.heading": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "feed.loading": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "feed.noPhoto": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "feed.scopeAll": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "feed.views": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "footer.rights": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "impersonation.backToUser": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.banner": [
-      "features/admin"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "impersonation.endNow": [
-      "features/admin"
+      "(every page)",
+      "/",
+      "/admin",
+      "/admin/impersonation/$sessionId",
+      "/c/$slug"
     ],
     "impersonation.endsIn": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.expired": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.listings.caption": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.listings.created": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.listings.empty": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.listings.price": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.listings.status": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.listings.title": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.open": [
-      "features/admin"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "impersonation.profile.alias": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.profile.country": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.profile.joined": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.profile.name": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.profile.status": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.profileTitle": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.readOnlyNote": [
-      "features/admin"
+      "/admin/impersonation/$sessionId",
+      "/admin/users/$userId"
     ],
     "impersonation.reasonLabel": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "impersonation.reasonPlaceholder": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "impersonation.roadmapNote": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.start": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "impersonation.title": [
-      "features/admin"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.unknownTarget": [
-      "features/admin"
+      "(every page)",
+      "/",
+      "/admin",
+      "/admin/impersonation/$sessionId",
+      "/c/$slug"
     ],
     "impersonation.viewAs": [
-      "features/admin"
+      "/admin/users/$userId"
     ],
     "language.label": [
-      "components/language-switcher"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "location.anyArea": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "location.empty": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "location.label": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "mfa.addedOn": [
       "/settings"
     ],
     "mfa.codeLabel": [
-      "/settings",
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId",
+      "/settings"
     ],
     "mfa.codePlaceholder": [
-      "/settings",
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId",
+      "/settings"
     ],
     "mfa.description": [
       "/settings"
@@ -1241,23 +1345,47 @@
       "/settings"
     ],
     "mfa.stepUpBody": [
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId"
     ],
     "mfa.stepUpConfirm": [
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId"
     ],
     "mfa.stepUpGoToSettings": [
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId"
     ],
     "mfa.stepUpNoFactorBody": [
-      "/settings",
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId",
+      "/settings"
     ],
     "mfa.stepUpNoFactorTitle": [
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId"
     ],
     "mfa.stepUpTitle": [
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId"
     ],
     "mfa.title": [
       "/settings"
@@ -1266,66 +1394,133 @@
       "/settings"
     ],
     "nav.home": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "nav.profile": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "panel.admin": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "price.contact": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "price.free": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "price.negotiable": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "prim.state.empty": [
-      "/dev/primitives",
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/dev/primitives"
     ],
     "prim.state.error": [
-      "/dev/primitives",
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/dev/primitives"
     ],
     "prim.state.loading": [
-      "/dev/primitives",
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/admin/translations",
+      "/dev/primitives"
     ],
     "prim.table.actions": [
-      "/dev/primitives",
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives"
     ],
     "prim.table.next": [
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives"
     ],
     "prim.table.of": [
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives"
     ],
     "prim.table.previous": [
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives"
     ],
     "prim.table.selectAll": [
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives"
     ],
     "prim.table.selectRow": [
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives"
     ],
     "prim.table.selected": [
-      "components/shell"
+      "/admin/audit",
+      "/admin/impersonation/$sessionId",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives"
     ],
     "session.idleWarning": [
-      "components/app-shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "session.staySignedIn": [
-      "components/app-shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "settings.cancel": [
-      "/settings",
-      "features/auth"
+      "/admin/roles",
+      "/admin/roles/$roleId",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users/$userId",
+      "/settings"
     ],
     "settings.changeEmail": [
       "/settings"
@@ -1370,7 +1565,10 @@
       "/settings"
     ],
     "settings.navLabel": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "settings.newEmail": [
       "/settings"
@@ -1419,67 +1617,126 @@
       "/settings"
     ],
     "shell.accountMenu": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.allCategories": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.breadcrumbLabel": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.categoriesEmpty": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.categoriesLabel": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.collapseRail": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.expandRail": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.mainNav": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.menuTitle": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.openMenu": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.panelLabel": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.placeholderBody": [
-      "components/app-shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.placeholderTitle": [
-      "components/app-shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.searchClose": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.searchLabel": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.searchPlaceholder": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.skipToContent": [
-      "components/app-shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.switchPanel": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "shell.themeToggle": [
-      "components/shell"
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
     ],
     "tier.featured": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ],
     "tier.premium": [
-      "components/marketplace"
+      "/",
+      "/c/$slug"
     ]
   }
 }

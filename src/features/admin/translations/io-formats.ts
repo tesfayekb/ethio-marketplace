@@ -218,3 +218,53 @@ export function parseTransfer(format: TransferFormat, text: string): ParsedTrans
 export function transferFilename(lang: string, format: TransferFormat): string {
   return `ethio-ui-${lang}.${format === "xliff" ? "xlf" : "csv"}`;
 }
+
+/* ----------------------- U4i-3 (d) NO-OP LAW ---------------------- */
+
+/**
+ * U4i-3 (d) — IMPORTS ARE IDEMPOTENT (INC-122).
+ *
+ * A CSV round-trip carries formatting noise the translator never typed (Excel's
+ * trailing CRLF, a stray trailing newline inside a quoted cell). Writing those
+ * rows back counted them as edits and DEMOTED approved rows to `edited`. The
+ * importer therefore normalises BOTH sides identically and skips rows whose
+ * value did not truly change.
+ *
+ * Normalisation is deliberately minimal — it must never hide a real edit:
+ * CRLF → LF, and trailing newlines/spaces dropped. Interior whitespace,
+ * casing and placeholders are compared verbatim.
+ */
+export function normalizeTransferValue(value: string | null | undefined): string {
+  return (value ?? "").replace(/\r\n/g, "\n").replace(/[\s\u00a0]+$/u, "");
+}
+
+export interface TransferPartition {
+  /** Rows whose value truly differs from the current one (these are written). */
+  changed: { key: string; value: string }[];
+  /** Rows identical to the stored value after normalisation (never written). */
+  unchanged: number;
+}
+
+/**
+ * Split parsed rows against the values currently on screen. A key with no
+ * current entry is NOT counted unchanged — it goes to the server, which is the
+ * only authority on whether that key exists (F3, E6).
+ */
+export function partitionUnchanged(
+  incoming: { key: string; value: string }[],
+  current: Map<string, string | null>,
+): TransferPartition {
+  const changed: { key: string; value: string }[] = [];
+  let unchanged = 0;
+  for (const row of incoming) {
+    if (
+      current.has(row.key) &&
+      normalizeTransferValue(current.get(row.key)) === normalizeTransferValue(row.value)
+    ) {
+      unchanged += 1;
+      continue;
+    }
+    changed.push(row);
+  }
+  return { changed, unchanged };
+}

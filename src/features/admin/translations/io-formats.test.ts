@@ -4,7 +4,9 @@ import {
   detectFormat,
   fromCsv,
   fromXliff,
+  normalizeTransferValue,
   parseTransfer,
+  partitionUnchanged,
   toCsv,
   toXliff,
   transferFilename,
@@ -103,5 +105,38 @@ describe("⑤ dispatch", () => {
   it("names downloads per language and format", () => {
     expect(transferFilename("am", "csv")).toBe("ethio-ui-am.csv");
     expect(transferFilename("am", "xliff")).toBe("ethio-ui-am.xlf");
+  });
+});
+
+describe("⑤ no-op law (U4i-3 d, INC-122)", () => {
+  const current = new Map<string, string | null>(ROWS.map((row) => [row.key, row.value]));
+
+  it("treats an untouched export re-import as a full no-op", () => {
+    const parsed = fromCsv(toCsv(ROWS));
+    const split = partitionUnchanged(parsed.rows, current);
+    expect(split.changed).toEqual([]);
+    expect(split.unchanged).toBe(ROWS.length);
+  });
+
+  it("normalizes round-trip noise but never an interior edit", () => {
+    expect(normalizeTransferValue("Save\r\n")).toBe("Save");
+    expect(normalizeTransferValue("Save  ")).toBe("Save");
+    expect(normalizeTransferValue("Sa  ve")).toBe("Sa  ve");
+  });
+
+  it("sends a real edit and an unknown key to the server", () => {
+    const split = partitionUnchanged(
+      [
+        { key: "common.save", value: "አስቀምጥ " },
+        { key: "common.save", value: "ተለወጠ" },
+        { key: "ghost.key", value: "x" },
+      ],
+      current,
+    );
+    expect(split.unchanged).toBe(1);
+    expect(split.changed).toEqual([
+      { key: "common.save", value: "ተለወጠ" },
+      { key: "ghost.key", value: "x" },
+    ]);
   });
 });

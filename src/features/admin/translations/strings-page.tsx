@@ -23,7 +23,6 @@ import { ApproveAllBar } from "./approve-bar";
 import { DataScope } from "./data-scope";
 import { HistoryDrawer } from "./history-drawer";
 import { isOverlong, lengthRatio } from "./pseudo";
-import { PseudoBar } from "./pseudo-bar";
 import { TransferBar } from "./transfer-bar";
 import {
   pickEntityStats,
@@ -327,7 +326,6 @@ export function AdminTranslationsStringsPage({
               {mayManage ? (
                 <TransferBar lang={lang} baseLang={baseLang} rows={rows} guard={guard} />
               ) : null}
-              {mayManage && (known?.isBase ?? false) ? <PseudoBar guard={guard} /> : null}
 
               {outOfScope ? (
                 <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">
@@ -612,6 +610,14 @@ function StringEditor({
   const contextAction = useSetKeyContext();
   const [draft, setDraft] = useState(row.value ?? "");
   const [contextDraft, setContextDraft] = useState(row.context);
+  // U4i-3 (a): the just-saved note, shown until the refetch carries it.
+  const [savedContext, setSavedContext] = useState<string | null>(null);
+  const note = savedContext ?? row.context;
+  if (savedContext !== null && row.context === savedContext) {
+    // Equality-guarded stand-down (I3): render-time reconcile, no effect loop.
+    setSavedContext(null);
+  }
+
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const id = slug(row.key);
@@ -653,13 +659,27 @@ function StringEditor({
        * U4i ① — CONTEXT NOTE. One note per KEY (stored on the base row), so a
        * note written here is visible to every language's translator, and the
        * AI route sends it to the provider as translation context.
+       *
+       * U4i-3 (a) — THE NOTE IS ALWAYS RENDERED (INC-122). The miss: for a
+       * `translations:manage` holder the editor rendered the INPUT ONLY, so a
+       * saved note produced no text under the source — the write had landed,
+       * the read-back had nowhere to show. The saved value is now its own
+       * paragraph for every reader, and the manage input sits beneath it.
+       * `savedContext` shows the just-written note immediately, then stands
+       * down (equality-guarded, I3) once the refetch carries the same value.
        */}
       <div className="min-w-0 space-y-1">
         <p className="text-xs font-medium text-muted-foreground">
           {t("admin.translations.editor.context")}
         </p>
+        <p
+          data-testid={`string-context-value-${id}`}
+          className="min-w-0 break-words text-sm text-foreground"
+        >
+          {note === "" ? t("admin.translations.editor.contextNone") : note}
+        </p>
         {mayManage ? (
-          <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-2 pt-1">
             <Input
               id={`string-context-${id}`}
               data-testid={`string-context-${id}`}
@@ -673,19 +693,18 @@ function StringEditor({
               variant="outline"
               className="min-h-11 self-start"
               data-testid={`string-context-save-${id}`}
-              disabled={contextAction.isPending || contextDraft === row.context}
+              disabled={contextAction.isPending || contextDraft === note}
               onClick={() =>
-                run(() => contextAction.mutateAsync({ key: row.key, context: contextDraft }))
+                run(async () => {
+                  await contextAction.mutateAsync({ key: row.key, context: contextDraft });
+                  setSavedContext(contextDraft);
+                })
               }
             >
               {t("admin.translations.editor.contextSave")}
             </Button>
           </div>
-        ) : (
-          <p data-testid={`string-context-${id}`} className="text-sm text-foreground">
-            {row.context === "" ? t("admin.translations.editor.contextNone") : row.context}
-          </p>
-        )}
+        ) : null}
       </div>
 
       {/**
@@ -725,17 +744,22 @@ function StringEditor({
        * U4i ③ — LENGTH WARNING. Advisory only: never a flag, never a block —
        * the row still saves. Long Amharic renderings are legitimate; the chip
        * exists so a translator can SEE a layout risk before QA does.
+       *
+       * U4i-3 (c) — DRESS ONLY. The sentence became the chip's title/tooltip
+       * and the label is the short "Long ×4.8"; the amber is the existing
+       * `--gold` token (C3), not a hardcoded colour. No behaviour changed.
        */}
       {isOverlong(row.sourceValue, draft) ? (
-        // C3 note: the palette carries no `warning` token, and styles.css is
-        // outside this task's scope, so the advisory chip is a tokenised
-        // outline Badge rather than a hardcoded amber.
         <Badge
           variant="outline"
           data-testid={`string-length-warning-${id}`}
-          className="w-fit text-xs font-medium"
+          className="w-fit border-gold text-xs font-medium text-gold"
+          title={t("admin.translations.editor.lengthWarning").replace(
+            "{ratio}",
+            String(lengthRatio(row.sourceValue, draft)),
+          )}
         >
-          {t("admin.translations.editor.lengthWarning").replace(
+          {t("admin.translations.editor.lengthChip").replace(
             "{ratio}",
             String(lengthRatio(row.sourceValue, draft)),
           )}

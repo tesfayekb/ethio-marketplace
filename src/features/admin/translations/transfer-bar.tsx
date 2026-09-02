@@ -8,12 +8,14 @@ import type { MessageKey } from "@/i18n/types";
 import {
   detectFormat,
   parseTransfer,
+  partitionUnchanged,
   toCsv,
   toXliff,
   transferFilename,
   type TransferFormat,
   type TransferRow,
 } from "./io-formats";
+
 import { serverMessage, translationErrorKey, type TranslationRow } from "./translations-service";
 import { useImportTranslations } from "./use-translations";
 
@@ -80,11 +82,22 @@ export function TransferBar({
         // An empty file is a REFUSAL, never a silent success (F4, E6).
         throw new Error("no rows in file");
       }
-      const result = await importRows.mutateAsync(parsed.rows);
+      /**
+       * U4i-3 (d) — NO-OP LAW (INC-122). Rows identical to what is already
+       * stored are never sent: an untouched export re-imported writes nothing,
+       * so an approved row cannot be demoted to `edited` by round-trip noise.
+       */
+      const current = new Map<string, string | null>(rows.map((row) => [row.key, row.value]));
+      const split = partitionUnchanged(parsed.rows, current);
+      const result =
+        split.changed.length === 0
+          ? { imported: 0, flagged: 0, skipped: 0 }
+          : await importRows.mutateAsync(split.changed);
       setSummary(
         t("admin.translations.transfer.summary")
           .replace("{imported}", String(result.imported))
           .replace("{flagged}", String(result.flagged))
+          .replace("{unchanged}", String(split.unchanged))
           .replace("{skipped}", String(result.skipped + parsed.malformed)),
       );
     }).catch((failure: unknown) => {

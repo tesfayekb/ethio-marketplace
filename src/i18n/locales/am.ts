@@ -627,6 +627,7 @@ export const am: Messages = {
   "admin.translations.editor.usedOnDynamic": "የሚውለው በ፦ ተለዋዋጭ — ቀጥተኛ ጥሪ አልተገኘም።",
   // U4i ③ — የርዝመት ማስጠንቀቂያ ብቻ ነው፤ አያግድም።
   "admin.translations.editor.lengthWarning": "ረጅም፦ ከእንግሊዝኛው {ratio}× — አቀማመጡን ይመልከቱ።",
+  "admin.translations.editor.lengthChip": "ረጅም ×{ratio}",
   // U4i ⑤ — CSV / XLIFF ወደ ውጭ መላክና ማስገባት።
   "admin.translations.transfer.title": "ወደ ውጭ ላክ / አስገባ",
   "admin.translations.transfer.note":
@@ -635,7 +636,8 @@ export const am: Messages = {
   "admin.translations.transfer.exportXliff": "XLIFF ላክ",
   "admin.translations.transfer.import": "ፋይል አስገባ",
   "admin.translations.transfer.importing": "በማስገባት ላይ…",
-  "admin.translations.transfer.summary": "የገቡ {imported} · የተሰየሙ {flagged} · የተዘለሉ {skipped}።",
+  "admin.translations.transfer.summary":
+    "የገቡ {imported} · የተሰየሙ {flagged} · ያልተቀየሩ {unchanged} · የተዘለሉ {skipped}።",
   // U4i ⑦ — ለአቀማመጥ ምርመራ የሚያገለግል የውሸት ትርጉም፤ በጭራሽ አይታተምም።
   "admin.translations.pseudo.title": "የውሸት ትርጉም (Pseudo)",
   "admin.translations.pseudo.note":
@@ -644,6 +646,11 @@ export const am: Messages = {
   "admin.translations.pseudo.pending": "በማመንጨት ላይ…",
   "admin.translations.pseudo.progress": "{done} ከ{total}",
   "admin.translations.pseudo.summary": "የተጻፉ {written} · ያልተሳኩ {failed}።",
+  "admin.translations.pseudo.confirmTitle": "የ{code} የውሸት ትርጉም ይመንጭ?",
+  "admin.translations.pseudo.confirmBody":
+    "እያንዳንዱ የእንግሊዝኛ ጽሑፍ ወደ {code} የአቀማመጥ ምርመራ ቋንቋ በማሽን ይጻፋል። {code} ለአስተዳዳሪ ብቻ ነው፤ በጭራሽ አይታተምም።",
+  "admin.translations.pseudo.confirmCancel": "ተወው",
+  "admin.translations.pseudo.confirmAction": "አመንጭ",
   // U4c — በማሽን መተርጎም (ውጤቶቹ ጊዜያዊ ናቸው)።
   "admin.translations.ai.row": "በAI ተርጉም",
   "admin.translations.ai.pending": "በመተርጎም ላይ…",
