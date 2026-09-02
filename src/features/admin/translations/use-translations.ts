@@ -12,6 +12,7 @@ import {
   deleteLanguage,
   ensurePseudoLanguage,
   importTranslations,
+  undoImport,
   languageDeletePreview,
   listEntityTranslations,
   listEntityTranslationStats,
@@ -279,6 +280,18 @@ export function useImportTranslations(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
     mutationFn: (rows: { key: string; value: string }[]) => importTranslations({ lang, rows }),
+    onSettled: invalidate,
+  });
+}
+
+/**
+ * U4i-7 — UNDO AN IMPORT (INC-125). The batch id comes from the import's own
+ * summary; the server decides what is still restorable.
+ */
+export function useUndoImport() {
+  const invalidate = useInvalidateTranslations();
+  return useMutation({
+    mutationFn: (batchId: string) => undoImport(batchId),
     onSettled: invalidate,
   });
 }
