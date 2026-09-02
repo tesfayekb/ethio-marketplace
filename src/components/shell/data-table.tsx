@@ -111,11 +111,18 @@ export interface DataTableProps<T> {
   selection?: DataTableSelection<T>;
   /** Pagination controls slot, rendered under the table. */
   pagination?: ReactNode;
+  /**
+   * U4i-10 — the breakpoint at which the CARD twin gives way to the table
+   * twin. Dense tables set `"lg"` so the 768–1024 tablet band keeps cards
+   * instead of cramping columns. Default `"md"`.
+   */
+  cardUntil?: "md" | "lg";
   sortKey?: string;
   sortDirection?: "asc" | "desc";
   onSort?: (key: string) => void;
   className?: string;
 }
+
 
 function cellClass(column: DataTableColumn<unknown>) {
   return cn(
