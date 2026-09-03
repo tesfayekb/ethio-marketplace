@@ -8,10 +8,10 @@
  */
 import {
   canvas,
+  decodeImage,
   compositeOver,
   contentBounds,
   crop,
-  decodePng,
   drawRotatedText,
   encodePng,
   resize,
@@ -32,6 +32,60 @@ const PRIMARY: Rgba = [0x1e, 0x5a, 0x43, 255];
 const WATERMARK_TEXT = "ethio.com";
 const WATERMARK_OPACITY = 0.28;
 const WATERMARK_ANGLE = -30;
+
+/**
+ * C5a-3 PART B — STAGE TAGS. Every failure carries the stage that produced it,
+ * so no operator ever sees a bare 502 again. The stages, in order:
+ *   model-call · decode · process · watermark · encode · upload · persist
+ * (`model-call`, `upload` and `persist` are wrapped by the route, which owns
+ * those calls; the rest are wrapped here.)
+ */
+export type PipelineStage =
+  | "model-call"
+  | "decode"
+  | "process"
+  | "watermark"
+  | "encode"
+  | "upload"
+  | "persist";
+
+export class StageError extends Error {
+  readonly stage: PipelineStage;
+  readonly status: number;
+  constructor(stage: PipelineStage, message: string, status = 500) {
+    super(message);
+    this.name = "StageError";
+    this.stage = stage;
+    this.status = status;
+  }
+}
+
+/** Runs `fn`, re-throwing anything it raises tagged with `stage`. */
+export function atStage<T>(stage: PipelineStage, fn: () => T): T {
+  try {
+    return fn();
+  } catch (error) {
+    if (error instanceof StageError) throw error;
+    const message = error instanceof Error ? error.message : "unknown error";
+    const status = typeof (error as { status?: unknown })?.status === "number"
+      ? (error as { status: number }).status
+      : 500;
+    throw new StageError(stage, message, status);
+  }
+}
+
+export async function atStageAsync<T>(stage: PipelineStage, fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (error instanceof StageError) throw error;
+    const message = error instanceof Error ? error.message : "unknown error";
+    const status = typeof (error as { status?: unknown })?.status === "number"
+      ? (error as { status: number }).status
+      : 500;
+    throw new StageError(stage, message, status);
+  }
+}
 
 export interface Timings {
   genMs: number;
@@ -82,40 +136,49 @@ function fitInto(icon: Raster, box: number): Raster {
 export function processGeneratedPng(source: Uint8Array, genMs: number): PipelineOutput {
   const start = performance.now();
 
-  const decoded = decodePng(source);
-  const transparent = whiteToTransparent(decoded);
-  const cropped = crop(transparent, contentBounds(transparent));
+  // decode — sniffed by magic bytes (PART C), never by the declared mime.
+  const decoded = atStage("decode", () => decodeImage(source));
 
-  // --- card 512 -------------------------------------------------------
-  const cardIcon = fitInto(cropped, CARD_SIZE);
-  const card = canvas(CARD_SIZE, CARD_SIZE, WHITE);
-  watermark(card, 3);
-  compositeOver(
-    card,
-    cardIcon,
-    Math.round((CARD_SIZE - cardIcon.width) / 2),
-    Math.round((CARD_SIZE - cardIcon.height) / 2),
-  );
+  // process — alpha keying, content crop, scaling.
+  const { cropped, cardIcon, ogIcon } = atStage("process", () => {
+    const transparent = whiteToTransparent(decoded);
+    const cropped_ = crop(transparent, contentBounds(transparent));
+    return {
+      cropped: cropped_,
+      cardIcon: fitInto(cropped_, CARD_SIZE),
+      ogIcon: fitInto(cropped_, OG_HEIGHT),
+    };
+  });
+  void cropped;
 
-  // --- thumb 128 (derived from the card, so they can never disagree) ---
-  const thumb = resize(card, THUMB_SIZE, THUMB_SIZE);
+  // watermark — brand canvases with the diagonal marks drawn BEHIND the icon.
+  const { card, og } = atStage("watermark", () => {
+    const card_ = canvas(CARD_SIZE, CARD_SIZE, WHITE);
+    watermark(card_, 3);
+    compositeOver(
+      card_,
+      cardIcon,
+      Math.round((CARD_SIZE - cardIcon.width) / 2),
+      Math.round((CARD_SIZE - cardIcon.height) / 2),
+    );
+    const og_ = canvas(OG_WIDTH, OG_HEIGHT, WHITE);
+    watermark(og_, 5);
+    compositeOver(
+      og_,
+      ogIcon,
+      Math.round((OG_WIDTH - ogIcon.width) / 2),
+      Math.round((OG_HEIGHT - ogIcon.height) / 2),
+    );
+    return { card: card_, og: og_ };
+  });
 
-  // --- og 1200x630 (brand canvas + centred icon; no second AI call) ----
-  const ogIcon = fitInto(cropped, OG_HEIGHT);
-  const og = canvas(OG_WIDTH, OG_HEIGHT, WHITE);
-  watermark(og, 5);
-  compositeOver(
-    og,
-    ogIcon,
-    Math.round((OG_WIDTH - ogIcon.width) / 2),
-    Math.round((OG_HEIGHT - ogIcon.height) / 2),
-  );
-
-  const encoded = {
+  // encode — the 128 thumb is derived from the card so they can never disagree.
+  const encoded = atStage("encode", () => ({
     card: encodePng(card),
-    thumb: encodePng(thumb),
+    thumb: encodePng(resize(card, THUMB_SIZE, THUMB_SIZE)),
     og: encodePng(og),
-  };
+  }));
+
   const processMs = performance.now() - start;
 
   return {
