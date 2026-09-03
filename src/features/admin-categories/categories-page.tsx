@@ -35,6 +35,7 @@ import {
   EditCategoryDialog,
   RetireCategoryDialog,
   SELECT_CLASS,
+  useSubmitError,
 } from "./category-dialogs";
 import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
 import { useAdminCategories, useReactivateCategory, useReorderCategories } from "./use-categories";
@@ -129,6 +130,8 @@ export function AdminCategoriesPage() {
     }
   };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
+  // UI-FIX-7 — the verb bar's own refusal line, filled by the shared runner.
+  const { message: verbError, setMessage: setVerbError, fail: failVerb } = useSubmitError();
 
   const mayCreate = permissions.includes("categories:create");
   const mayUpdate = permissions.includes("categories:update");
@@ -191,6 +194,11 @@ export function AdminCategoriesPage() {
       ? null
       : (roster.find((row) => row.id === dialog.id) ?? null);
 
+  // A newly opened dialog never inherits the previous verb's refusal.
+  useEffect(() => {
+    setVerbError(null);
+  }, [dialog, setVerbError]);
+
   /** ... and the editor closes gracefully when its row vanishes (delete). */
   useEffect(() => {
     if (dialog.kind === "none" || dialog.kind === "create") return;
@@ -200,6 +208,22 @@ export function AdminCategoriesPage() {
 
   const siblingsOf = (row: CategoryNode) => roster.filter((peer) => peer.parentId === row.parentId);
 
+  /**
+   * UI-FIX-7 (INC-144) — ONE GUARDED RUNNER FOR EVERY BAR VERB.
+   *
+   * The shared step-up flow already replays the pending action after a
+   * successful verification (`use-step-up.submitCode` → `runGuarded`); what the
+   * verb bar lacked was the working consumers' `.catch` (see
+   * translations/languages-page `apply`/`move`): a refusal used to reject an
+   * un-awaited promise, so a failed verb looked like nothing happened (F4).
+   * Every guarded verb now goes through this one function — never a per-verb
+   * patch — and its refusal renders translated in the bar.
+   */
+  const runVerb = (guard: GuardFn, action: () => Promise<void>) => {
+    setVerbError(null);
+    void guard(action).catch(failVerb);
+  };
+
   const move = (row: CategoryNode, delta: number, guard: GuardFn) => {
     const siblings = siblingsOf(row);
     const index = siblings.findIndex((peer) => peer.id === row.id);
@@ -208,7 +232,7 @@ export function AdminCategoriesPage() {
     const ordered = siblings.map((peer) => peer.id);
     const [moved] = ordered.splice(index, 1);
     ordered.splice(next, 0, moved!);
-    void guard(async () => {
+    runVerb(guard, async () => {
       await reorder.mutateAsync({ parentId: row.parentId, orderedChildIds: ordered });
     });
   };
@@ -405,6 +429,15 @@ export function AdminCategoriesPage() {
 
     return (
       <div className="flex flex-wrap gap-2" data-testid="category-verb-bar">
+        {verbError === null ? null : (
+          <p
+            role="alert"
+            data-testid="category-verb-error"
+            className="w-full text-sm text-destructive"
+          >
+            {verbError}
+          </p>
+        )}
         {mayUpdate
           ? [
               verb(
@@ -462,11 +495,10 @@ export function AdminCategoriesPage() {
                     `category-reactivate-${row.slug}`,
                     t("admin.categories.action.reactivate"),
                     <RotateCcw aria-hidden="true" className="size-4" />,
-                    () => {
-                      void guard(async () => {
+                    () =>
+                      runVerb(guard, async () => {
                         await reactivate.mutateAsync({ id: row.id });
-                      });
-                    },
+                      }),
                   ),
               row.isActive
                 ? null

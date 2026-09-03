@@ -647,39 +647,91 @@ test.describe("C2 categories console", () => {
   });
 
   /**
-   * CT-12 (C2d) — the reactivate walk. A retired scratch node comes back to
-   * life through step-up and is active again in DB truth and in the roster.
+   * CT-12 (C2d, re-armed by UI-FIX-7) — the reactivate walk. A retired scratch
+   * node comes back to life through step-up and is active again in DB truth
+   * and in the roster.
+   *
+   * J7 — EVERY wait here is a BOUNDED poll (≤15s) whose failure carries the
+   * standing dump computed AT FAILURE TIME (mounted dialog/step-up testids,
+   * is_active from the service client, the page's [client-error] lines), so a
+   * red CT-12 says why instead of expiring on a default timeout.
    */
   test("CT-12 lifecycle: a retired category is reactivated through step-up", async ({ page }) => {
     bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
+    const clientErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") clientErrors.push(`[client-error] ${message.text()}`);
+    });
     try {
       slug = await createViaUi(page, secret);
       const scratch = await readCategory(slug);
       await adminClient().from("categories").update({ is_active: false }).eq("id", scratch!.id);
       await page.reload();
       await waitForHydration(page);
-      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
 
-      const clientErrors: string[] = [];
-      page.on("console", (message) => {
-        if (message.type() === "error") clientErrors.push(`[client-error] ${message.text()}`);
-      });
+      const step = async (label: string, read: () => Promise<unknown>, expected: unknown) => {
+        try {
+          await expect.poll(read, { timeout: 15000, message: label }).toEqual(expected);
+        } catch {
+          throw new Error(`${label} — ${await lifecycleDump(page, slug, clientErrors)}`);
+        }
+      };
 
-      await openEditor(page, slug);
-      await action(page, slug, "reactivate").click();
+      await step(
+        "CT-12 the retired row is on the roster",
+        () => categoryRow(page, slug).count(),
+        1,
+      );
+      await step(
+        "CT-12 the row's Edit verb is clickable",
+        () => action(page, slug, "edit").isVisible(),
+        true,
+      );
+      await action(page, slug, "edit").click({ timeout: 15000 });
+      await step(
+        "CT-12 the editor's verb bar is open",
+        () => page.getByTestId("category-verb-bar").isVisible(),
+        true,
+      );
+      await step(
+        "CT-12 a retired row offers Reactivate",
+        () => action(page, slug, "reactivate").isVisible(),
+        true,
+      );
+
+      await action(page, slug, "reactivate").click({ timeout: 15000 });
       await stepUpIfPrompted(page, secret);
 
-      await expect
-        .poll(async () => (await readCategory(slug))?.is_active, {
-          timeout: 20000,
-          message: await lifecycleDump(page, slug, clientErrors),
-        })
-        .toBe(true);
+      // DB truth, not the rendered badge (J4).
+      await step(
+        "CT-12 the row is active again in DB truth",
+        async () => (await readCategory(slug))?.is_active,
+        true,
+      );
+
       // Active again means the retire verb is the one on offer once more.
-      await openEditor(page, slug);
-      await expect(action(page, slug, "retire")).toBeVisible({ timeout: 20000 });
+      await step(
+        "CT-12 the reactivated row is still on the roster",
+        () => categoryRow(page, slug).count(),
+        1,
+      );
+      await step(
+        "CT-12 the editor re-opens",
+        async () => {
+          if (!(await page.getByTestId("category-verb-bar").isVisible())) {
+            await action(page, slug, "edit").click({ timeout: 5000 });
+          }
+          return page.getByTestId("category-verb-bar").isVisible();
+        },
+        true,
+      );
+      await step(
+        "CT-12 an active row offers Retire",
+        () => action(page, slug, "retire").isVisible(),
+        true,
+      );
     } finally {
       if (slug) await destroyCategory(slug);
     }
@@ -795,8 +847,11 @@ test.describe("C2 categories console", () => {
     await page.getByTestId("category-dialog-cancel").click();
 
     // (c) the catch-all row's editor exposes no Move verbs.
+    // J5 — the row, its actions region and its verbs all resolve through the
+    // twin helpers, exactly as CT-9b resolves a card row: never a bare prefix.
     await page.getByTestId("category-search").fill(catchall!.slug);
     await expect(categoryRow(page, catchall!.slug)).toBeVisible({ timeout: 20000 });
+    await expect(actionsOf(page, catchall!.slug)).toBeVisible({ timeout: 20000 });
     await openEditor(page, catchall!.slug);
     await expect(action(page, catchall!.slug, "up")).toHaveCount(0);
     await expect(action(page, catchall!.slug, "down")).toHaveCount(0);
