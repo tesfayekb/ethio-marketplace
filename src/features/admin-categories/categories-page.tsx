@@ -91,10 +91,11 @@ export function AdminCategoriesPage() {
       minWidth: "min-w-56",
       cell: (row) => (
         <span className="block min-w-0 break-words font-medium text-foreground" title={row.nameEn}>
-          <span aria-hidden="true" className="text-muted-foreground">
-            {"".padStart(0)}
-            {row.depth > 0 ? `${"· ".repeat(row.depth)}` : null}
-          </span>
+          {row.depth > 0 ? (
+            <span aria-hidden="true" className="text-muted-foreground">
+              {"· ".repeat(row.depth)}
+            </span>
+          ) : null}
           {row.nameEn}
         </span>
       ),
