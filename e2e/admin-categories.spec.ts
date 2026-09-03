@@ -33,6 +33,18 @@ function rand() {
   return Math.random().toString(36).slice(2, 8);
 }
 
+/** The literal prefix every seeded slug shares (derived, never reconstructed). */
+function sharedPrefix(values: string[]): string {
+  if (values.length === 0) return "";
+  let prefix = values[0] ?? "";
+  for (const value of values.slice(1)) {
+    let index = 0;
+    while (index < prefix.length && prefix[index] === value[index]) index += 1;
+    prefix = prefix.slice(0, index);
+  }
+  return prefix;
+}
+
 function scratchSlug() {
   const worker = process.env["TEST_WORKER_INDEX"] ?? "0";
   return `e2e-cat-${RUN}-${worker}-${rand()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
@@ -1290,7 +1302,9 @@ test.describe("C2 categories console", () => {
       await gotoReady(page, "/admin/categories");
       await step("category-missing-filter", (locator) => locator.click());
       await step("category-search", (locator) => locator.fill(prefix));
-      await step("category-page-size", (locator) => locator.selectOption("100"));
+      await step("category-page-size", async (locator) => {
+        await locator.selectOption("100");
+      });
       await expect
         .poll(async () => page.getByRole("table").locator("tbody tr").count(), {
           timeout: 15000,
