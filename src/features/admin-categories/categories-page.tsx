@@ -430,18 +430,25 @@ export function AdminCategoriesPage() {
                 <Share2 aria-hidden="true" className="size-4" />,
                 () => setDialog({ kind: "pointer", id: row.id }),
               ),
-              verb(
-                `category-up-${row.slug}`,
-                t("admin.categories.action.up"),
-                <ArrowUp aria-hidden="true" className="size-4" />,
-                () => move(row, -1, guard),
-              ),
-              verb(
-                `category-down-${row.slug}`,
-                t("admin.categories.action.down"),
-                <ArrowDown aria-hidden="true" className="size-4" />,
-                () => move(row, 1, guard),
-              ),
+              // C2g — a catch-all is pinned last by the server, so it carries
+              // no Move verbs at all (the console never offers a refused move).
+              row.isCatchall
+                ? null
+                : verb(
+                    `category-up-${row.slug}`,
+                    t("admin.categories.action.up"),
+                    <ArrowUp aria-hidden="true" className="size-4" />,
+                    () => move(row, -1, guard),
+                  ),
+              row.isCatchall
+                ? null
+                : verb(
+                    `category-down-${row.slug}`,
+                    t("admin.categories.action.down"),
+                    <ArrowDown aria-hidden="true" className="size-4" />,
+                    () => move(row, 1, guard),
+                  ),
+
               // C2d — a retired row swaps Retire for Reactivate and gains the
               // one destructive verb in the console: Delete, typed-confirm.
               row.isActive
