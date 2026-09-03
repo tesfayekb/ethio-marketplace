@@ -46,6 +46,7 @@ export type Database = {
       }
       categories: {
         Row: {
+          allow_listings: boolean
           created_at: string
           description_am: string | null
           description_en: string | null
@@ -53,8 +54,11 @@ export type Database = {
           expiry_days: number
           icon: string | null
           id: string
+          image_generation_prompt: string | null
+          image_thumb_url: string | null
           image_url: string | null
           is_active: boolean
+          is_catchall: boolean
           is_restricted: boolean
           name_am: string | null
           name_en: string
@@ -62,8 +66,11 @@ export type Database = {
           price_enabled: boolean
           slug: string
           updated_at: string
+          visible_from: string | null
+          visible_until: string | null
         }
         Insert: {
+          allow_listings?: boolean
           created_at?: string
           description_am?: string | null
           description_en?: string | null
@@ -71,8 +78,11 @@ export type Database = {
           expiry_days?: number
           icon?: string | null
           id?: string
+          image_generation_prompt?: string | null
+          image_thumb_url?: string | null
           image_url?: string | null
           is_active?: boolean
+          is_catchall?: boolean
           is_restricted?: boolean
           name_am?: string | null
           name_en: string
@@ -80,8 +90,11 @@ export type Database = {
           price_enabled?: boolean
           slug: string
           updated_at?: string
+          visible_from?: string | null
+          visible_until?: string | null
         }
         Update: {
+          allow_listings?: boolean
           created_at?: string
           description_am?: string | null
           description_en?: string | null
@@ -89,8 +102,11 @@ export type Database = {
           expiry_days?: number
           icon?: string | null
           id?: string
+          image_generation_prompt?: string | null
+          image_thumb_url?: string | null
           image_url?: string | null
           is_active?: boolean
+          is_catchall?: boolean
           is_restricted?: boolean
           name_am?: string | null
           name_en?: string
@@ -98,6 +114,8 @@ export type Database = {
           price_enabled?: boolean
           slug?: string
           updated_at?: string
+          visible_from?: string | null
+          visible_until?: string | null
         }
         Relationships: []
       }
