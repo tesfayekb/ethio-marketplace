@@ -42,6 +42,9 @@ import { PageCard } from "./page-card";
 
 export type ColumnPriority = "primary" | "secondary" | "detail";
 
+/** C7 / INC-130 — where the card twin gives way to the table twin. */
+export type CardUntil = "md" | "lg";
+
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
@@ -50,9 +53,18 @@ export interface DataTableColumn<T> {
   align?: "start" | "end";
   /** Optional fixed/max width utility class for the table cell. */
   width?: string;
+  /**
+   * C7 / INC-130 — MIN-WIDTH CONTRACT. A design-token min-width utility class
+   * (`min-w-24`, `min-w-40`, …) declared by the column. When ANY column
+   * declares one the primitive switches the table to auto layout and lets its
+   * own `overflow-x-auto` wrapper scroll — dense tables scroll, they never
+   * cramp, and no consumer adds a per-page width hack.
+   */
+  minWidth?: string;
   /** Opt-in sorting; the parent owns the state and receives onSort(key). */
   sortable?: boolean;
 }
+
 
 export interface DataTableSelection<T> {
   selectedKeys: string[];
