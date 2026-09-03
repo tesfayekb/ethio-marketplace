@@ -47,7 +47,6 @@ export const ICON_ALLOWLIST = [
   "Stethoscope",
   "Scale",
   "Calculator",
-  "Camera",
   "Music",
   "Dumbbell",
   "Trophy",
