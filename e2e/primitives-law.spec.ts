@@ -183,4 +183,33 @@ test.describe("display primitives law (test-once responsiveness)", () => {
       await expectNoPageOverflow(page);
     });
   }
+
+  /**
+   * L10 (INC-132) — the SCROLLER CHAIN law. At 1024 the `cardUntil="lg"` table
+   * twin is live and its declared min-widths exceed the column, so the
+   * primitive's OWN scroller must actually engage — and the last cell must be
+   * reachable by scrolling it, not by overflowing the page.
+   */
+  test("L10 the primitive scroller engages and reaches the last cell", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await gotoReady(page, "/dev/primitives?variant=lg");
+    await expect(page.getByTestId("prim-fixture")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("table")).toBeVisible();
+
+    const scroller = page.getByTestId("data-table-scroller");
+    await expect
+      .poll(async () => scroller.evaluate((el) => el.scrollWidth - el.clientWidth), {
+        timeout: 10000,
+      })
+      .toBeGreaterThan(0);
+
+    await scroller.evaluate((el) => {
+      el.scrollLeft = el.scrollWidth;
+    });
+    const lastCell = page.getByTestId("prim-row-row-1").locator("td").last();
+    await expect(lastCell).toBeInViewport();
+
+    // The PAGE still never scrolls horizontally — the scroller absorbed it.
+    await expectNoPageOverflow(page);
+  });
 });

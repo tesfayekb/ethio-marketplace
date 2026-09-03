@@ -150,7 +150,7 @@
     "admin.categories.col.order": [
       "/admin/categories"
     ],
-    "admin.categories.col.slug": [
+    "admin.categories.col.parent": [
       "/admin/categories"
     ],
     "admin.categories.col.status": [
@@ -228,7 +228,43 @@
     "admin.categories.field.priceEnabled": [
       "/admin/categories"
     ],
+    "admin.categories.filter.allRoots": [
+      "/admin/categories"
+    ],
+    "admin.categories.filter.root": [
+      "/admin/categories"
+    ],
     "admin.categories.loading": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.add": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.addSubmit": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.empty": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.error": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.hint": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.loading": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.moveTo": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.remove": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.root": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.title": [
       "/admin/categories"
     ],
     "admin.categories.pointer.hint": [

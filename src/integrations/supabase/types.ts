@@ -1244,6 +1244,7 @@ export type Database = {
         Returns: {
           allow_listings: boolean
           display_order: number
+          excluded_country_codes: string[]
           exclusion_count: number
           expiry_days: number
           icon: string
@@ -1257,6 +1258,16 @@ export type Database = {
           slug: string
           visible_from: string
           visible_until: string
+        }[]
+      }
+      admin_list_category_pointers: {
+        Args: { p_category_id: string }
+        Returns: {
+          display_order: number
+          parent_id: string
+          parent_name_en: string
+          parent_slug: string
+          pointer_id: string
         }[]
       }
       admin_list_entity_translations: {

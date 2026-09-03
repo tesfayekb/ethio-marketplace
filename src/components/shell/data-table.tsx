@@ -228,8 +228,17 @@ export function DataTable<T>({
     </PageCard>
   ) : null;
 
+  /**
+   * INC-132 — THE SCROLLER CHAIN. `overflow-x-auto` only engages when every
+   * ancestor between it and the page column is allowed to be narrower than
+   * its content. A single flex/grid ancestor at its default `min-width:auto`
+   * silently widens the whole chain and the scroller never activates — the
+   * page overflows instead. The primitive therefore owns `min-w-0 max-w-full`
+   * on EVERY link of its own chain (frame → body → card → scroller); a
+   * consumer never adds a width hack (C7).
+   */
   const frame = (body: ReactNode) => (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("min-w-0 max-w-full space-y-4", className)}>
       {toolbarBlock}
       {body}
     </div>
@@ -250,7 +259,7 @@ export function DataTable<T>({
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
 
   return frame(
-    <div className="min-w-0 space-y-4">
+    <div className="min-w-0 max-w-full space-y-4">
       {selection && selectedKeys.size > 0 ? (
         <div
           data-testid="data-table-selection"
@@ -260,7 +269,7 @@ export function DataTable<T>({
         </div>
       ) : null}
 
-      <PageCard testid="data-table" className="min-w-0 p-0">
+      <PageCard testid="data-table" className="min-w-0 max-w-full p-0">
         {/* 360-first: a card per row, primary + secondary stacked. */}
         <ul
           data-testid="data-table-cards"
@@ -328,7 +337,7 @@ export function DataTable<T>({
         {/* md+: a real table. overflow-x-auto is the last resort, never the plan. */}
         <div
           data-testid="data-table-scroller"
-          className={cn("hidden min-w-0 overflow-x-auto", tableShownClass)}
+          className={cn("hidden min-w-0 max-w-full overflow-x-auto", tableShownClass)}
         >
           <table
             className={cn("w-full text-start text-sm", hasMinWidths ? "min-w-max" : "table-fixed")}

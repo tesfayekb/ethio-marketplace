@@ -296,3 +296,4 @@
 - 2026-09-03 · C2-fix · permission-string consumers migrated (sections gate → categories:view) + D2 keys for restructure/assets (EN+AM); usage map regenerated.
 - 2026-09-03 · C2-audit-rewrite · INC-129 closed: admin_list_audit bounded (capped total_count, page-scoped profiles join, trigram entity_id search); contract unchanged.
 - 2026-09-03 · C2-UI · categories console shipped (roster, create/edit, visibility window, country exclusions, reorder, pointer, retire) + CT-1..CT-7; INC-130 re-land: C7 DataTable contract (cardUntil, min-width, totalLabel) with unit + law L9 proofs; DEC-031 scratch-category reaper.
+- 2026-09-03 · C2-UI-FIX · C2b migration (admin_list_categories gains excluded_country_codes; new admin_list_category_pointers) + INC-132 primitive scroller chain + console UX (datetime-local window, icon action row, slug under name, Parent column, root filter, 25/page, pre-ticked exclusions, Browse paths move/remove/add); CT-7b/CT-8/CT-9 and law L10.

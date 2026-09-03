@@ -1,6 +1,11 @@
-import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, CalendarClock, Globe, Pencil, Share2, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
+import {
+  DataTable,
+  DataTablePagination,
+  type DataTableColumn,
+} from "@/components/shell/data-table";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,12 +17,13 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
 import {
-  AddPointerDialog,
   CategoryExclusionsDialog,
+  CategoryPathsDialog,
   CategoryWindowDialog,
   CreateCategoryDialog,
   EditCategoryDialog,
   RetireCategoryDialog,
+  SELECT_CLASS,
 } from "./category-dialogs";
 import { toRoster, type CategoryNode } from "./categories-service";
 import { useAdminCategories, useReorderCategories } from "./use-categories";
@@ -30,7 +36,16 @@ import { useAdminCategories, useReorderCategories } from "./use-categories";
  * flat depth-ordered list rendered through the DataTable primitive with
  * `cardUntil="lg"` and per-column min-widths (law C7) — cards through the
  * tablet band, a scrolling table from lg, and never a per-page width hack.
+ *
+ * C2-UI-FIX: the table twin's actions are ONE horizontal icon row (edit,
+ * visibility, countries, up, down) plus an inline overflow disclosure for the
+ * rarer restructure/retire verbs. The disclosure is a `<details>`, NOT a
+ * portalled menu, so the actions region stays a single DOM subtree that the
+ * twin-aware E2E locators can scope to (J5). The card twin keeps full-text
+ * buttons — a 360 card has the room and no hover affordance.
  */
+
+const PAGE_SIZE = 25;
 
 type DialogState =
   | { kind: "none" }
@@ -44,6 +59,8 @@ export function AdminCategoriesPage() {
   const countries = useCountries();
   const reorder = useReorderCategories();
   const [search, setSearch] = useState("");
+  const [rootFilter, setRootFilter] = useState("");
+  const [offset, setOffset] = useState(0);
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
 
   const mayCreate = permissions.includes("categories:create");
@@ -51,17 +68,33 @@ export function AdminCategoriesPage() {
   const mayRestructure = permissions.includes("categories:restructure");
 
   const roster = useMemo(() => toRoster(data ?? []), [data]);
+  const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
+  const roots = useMemo(() => roster.filter((row) => row.parentId === null), [roster]);
+
+  /** The root a node hangs under — the filter is a whole-subtree filter. */
+  const rootOf = (row: CategoryNode): string => {
+    let current: CategoryNode | undefined = row;
+    while (current && current.parentId !== null) current = byId.get(current.parentId);
+    return current?.id ?? row.id;
+  };
+
   const needle = search.trim().toLowerCase();
-  const rows = useMemo(
+  const filtered = useMemo(
     () =>
-      needle === ""
-        ? roster
-        : roster.filter(
-            (row) =>
-              row.nameEn.toLowerCase().includes(needle) || row.slug.toLowerCase().includes(needle),
-          ),
-    [roster, needle],
+      roster.filter((row) => {
+        if (rootFilter !== "" && rootOf(row) !== rootFilter) return false;
+        if (needle === "") return true;
+        return row.nameEn.toLowerCase().includes(needle) || row.slug.toLowerCase().includes(needle);
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [roster, needle, rootFilter, byId],
   );
+
+  useEffect(() => {
+    setOffset(0);
+  }, [needle, rootFilter]);
+
+  const rows = filtered.slice(offset, offset + PAGE_SIZE);
 
   const selected =
     dialog.kind === "none" || dialog.kind === "create"
@@ -88,32 +121,37 @@ export function AdminCategoriesPage() {
       key: "name",
       header: t("admin.categories.col.name"),
       priority: "primary",
-      minWidth: "min-w-56",
+      minWidth: "min-w-52",
       cell: (row) => (
-        <span className="block min-w-0 break-words font-medium text-foreground" title={row.nameEn}>
-          {row.depth > 0 ? (
-            <span aria-hidden="true" className="text-muted-foreground">
-              {"· ".repeat(row.depth)}
-            </span>
-          ) : null}
-          {row.nameEn}
+        <span className="block min-w-0">
+          <span className="block break-words font-medium text-foreground" title={row.nameEn}>
+            {row.depth > 0 ? (
+              <span aria-hidden="true" className="text-muted-foreground">
+                {"· ".repeat(row.depth)}
+              </span>
+            ) : null}
+            {row.nameEn}
+          </span>
+          <span className="block break-all text-xs text-muted-foreground">{row.slug}</span>
         </span>
       ),
     },
     {
-      key: "slug",
-      header: t("admin.categories.col.slug"),
-      priority: "primary",
-      minWidth: "min-w-44",
+      key: "parent",
+      header: t("admin.categories.col.parent"),
+      priority: "secondary",
+      minWidth: "min-w-40",
       cell: (row) => (
-        <span className="block min-w-0 break-all text-muted-foreground">{row.slug}</span>
+        <span className="block min-w-0 break-words text-muted-foreground">
+          {row.parentId === null ? "—" : (byId.get(row.parentId)?.nameEn ?? "—")}
+        </span>
       ),
     },
     {
       key: "status",
       header: t("admin.categories.col.status"),
       priority: "secondary",
-      minWidth: "min-w-28",
+      minWidth: "min-w-24",
       cell: (row) => (
         <Badge variant={row.isActive ? "secondary" : "destructive"}>
           {row.isActive ? t("admin.categories.badge.active") : t("admin.categories.badge.inactive")}
@@ -124,7 +162,7 @@ export function AdminCategoriesPage() {
       key: "flags",
       header: t("admin.categories.col.flags"),
       priority: "secondary",
-      minWidth: "min-w-44",
+      minWidth: "min-w-32",
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
           {row.isCatchall ? (
@@ -147,7 +185,7 @@ export function AdminCategoriesPage() {
       header: t("admin.categories.col.order"),
       priority: "detail",
       align: "end",
-      minWidth: "min-w-20",
+      minWidth: "min-w-16",
       cell: (row) => <span className="block tabular-nums">{row.displayOrder}</span>,
     },
     {
@@ -155,7 +193,7 @@ export function AdminCategoriesPage() {
       header: t("admin.categories.col.listings"),
       priority: "detail",
       align: "end",
-      minWidth: "min-w-24",
+      minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.listingCount}</span>,
     },
     {
@@ -163,10 +201,99 @@ export function AdminCategoriesPage() {
       header: t("admin.categories.col.exclusions"),
       priority: "detail",
       align: "end",
-      minWidth: "min-w-24",
+      minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.exclusionCount}</span>,
     },
   ];
+
+  /**
+   * ONE button set, two presentations (J5): the SAME element carries the
+   * canonical `category-<verb>-<slug>` testid at every viewport — a duplicated
+   * icon twin would put two matches inside one actions region and every
+   * twin-aware locator would resolve the hidden one. At lg the label collapses
+   * into `aria-label`/`title` and the row becomes a compact icon strip; below
+   * lg the card keeps full text. Targets are ≥44px in both presentations.
+   */
+  const rowActions = (row: CategoryNode, guard: GuardFn) => {
+    const verb = (
+      testid: string,
+      label: string,
+      icon: React.ReactNode,
+      onClick: () => void,
+      disabled?: boolean,
+    ) => (
+      <Button
+        key={testid}
+        type="button"
+        variant="outline"
+        className="min-h-11 shrink-0 lg:size-11 lg:p-0"
+        data-testid={testid}
+        aria-label={label}
+        title={label}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        {icon}
+        <span className="ms-2 lg:hidden">{label}</span>
+      </Button>
+    );
+
+    return (
+      <span className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end lg:gap-1">
+        {mayUpdate
+          ? [
+              verb(
+                `category-edit-${row.slug}`,
+                t("admin.categories.action.edit"),
+                <Pencil aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "edit", id: row.id }),
+              ),
+              verb(
+                `category-window-${row.slug}`,
+                t("admin.categories.action.window"),
+                <CalendarClock aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "window", id: row.id }),
+              ),
+              verb(
+                `category-exclusions-${row.slug}`,
+                t("admin.categories.action.exclusions"),
+                <Globe aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "exclusions", id: row.id }),
+              ),
+            ]
+          : null}
+        {mayRestructure
+          ? [
+              verb(
+                `category-up-${row.slug}`,
+                t("admin.categories.action.up"),
+                <ArrowUp aria-hidden="true" className="size-4" />,
+                () => move(row, -1, guard),
+              ),
+              verb(
+                `category-down-${row.slug}`,
+                t("admin.categories.action.down"),
+                <ArrowDown aria-hidden="true" className="size-4" />,
+                () => move(row, 1, guard),
+              ),
+              verb(
+                `category-pointer-${row.slug}`,
+                t("admin.categories.action.pointer"),
+                <Share2 aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "pointer", id: row.id }),
+              ),
+              verb(
+                `category-retire-${row.slug}`,
+                t("admin.categories.action.retire"),
+                <Trash2 aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "retire", id: row.id }),
+                !row.isActive || row.isCatchall,
+              ),
+            ]
+          : null}
+      </span>
+    );
+  };
 
   return (
     <StepUpGate>
@@ -208,90 +335,41 @@ export function AdminCategoriesPage() {
               <p className="text-sm text-muted-foreground">{t("admin.categories.empty")}</p>
             }
             toolbar={
-              <Input
-                data-testid="category-search"
-                className="md:w-72"
-                placeholder={t("admin.categories.searchPlaceholder")}
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
+              <>
+                <Input
+                  data-testid="category-search"
+                  className="md:w-72"
+                  placeholder={t("admin.categories.searchPlaceholder")}
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+                <select
+                  data-testid="category-root-filter"
+                  aria-label={t("admin.categories.filter.root")}
+                  className={`${SELECT_CLASS} md:w-64`}
+                  value={rootFilter}
+                  onChange={(event) => setRootFilter(event.target.value)}
+                >
+                  <option value="">{t("admin.categories.filter.allRoots")}</option>
+                  {roots.map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {row.nameEn}
+                    </option>
+                  ))}
+                </select>
+              </>
+            }
+            pagination={
+              <DataTablePagination
+                offset={offset}
+                pageSize={PAGE_SIZE}
+                total={filtered.length}
+                onPrevious={() => setOffset((prev) => Math.max(0, prev - PAGE_SIZE))}
+                onNext={() => setOffset((prev) => prev + PAGE_SIZE)}
+                testid="category-pagination"
               />
             }
-            rowActions={(row) => (
-              <>
-                {mayUpdate ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11"
-                      data-testid={`category-edit-${row.slug}`}
-                      onClick={() => setDialog({ kind: "edit", id: row.id })}
-                    >
-                      {t("admin.categories.action.edit")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11"
-                      data-testid={`category-window-${row.slug}`}
-                      onClick={() => setDialog({ kind: "window", id: row.id })}
-                    >
-                      {t("admin.categories.action.window")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11"
-                      data-testid={`category-exclusions-${row.slug}`}
-                      onClick={() => setDialog({ kind: "exclusions", id: row.id })}
-                    >
-                      {t("admin.categories.action.exclusions")}
-                    </Button>
-                  </>
-                ) : null}
-                {mayRestructure ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11"
-                      data-testid={`category-up-${row.slug}`}
-                      onClick={() => move(row, -1, guard)}
-                    >
-                      {t("admin.categories.action.up")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11"
-                      data-testid={`category-down-${row.slug}`}
-                      onClick={() => move(row, 1, guard)}
-                    >
-                      {t("admin.categories.action.down")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11"
-                      data-testid={`category-pointer-${row.slug}`}
-                      onClick={() => setDialog({ kind: "pointer", id: row.id })}
-                    >
-                      {t("admin.categories.action.pointer")}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11"
-                      data-testid={`category-retire-${row.slug}`}
-                      disabled={!row.isActive || row.isCatchall}
-                      onClick={() => setDialog({ kind: "retire", id: row.id })}
-                    >
-                      {t("admin.categories.action.retire")}
-                    </Button>
-                  </>
-                ) : null}
-              </>
-            )}
+            rowActions={(row) => rowActions(row, guard)}
           />
 
           {dialog.kind === "create" ? (
@@ -335,7 +413,7 @@ export function AdminCategoriesPage() {
             />
           ) : null}
           {selected && dialog.kind === "pointer" ? (
-            <AddPointerDialog
+            <CategoryPathsDialog
               category={selected}
               parents={roster}
               guard={guard}

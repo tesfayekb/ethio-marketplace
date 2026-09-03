@@ -20,10 +20,15 @@ Images: every node carries thumbnail / card 512 / large 1200×630; the card imag
 - **Create** — `admin_create_category` (slug, English name, icon, optional parent, accepts-listings).
 - **Edit** — `admin_update_category` (name, icon, display order, listing expiry, accepts-listings, price field).
 - **Visibility window** — `admin_set_category_window`; an empty date removes that bound. Times are UTC.
-- **Country exclusions** — `admin_set_country_exclusions`. WRITE-ONLY BY DESIGN: the C2 migration denies client reads on `category_country_exclusions`, so the dialog shows the exclusion COUNT from the roster and submits a full replacement set; it cannot pre-tick the current codes.
-- **Restructure** — `admin_reorder_categories` (move up/down within siblings) and `admin_add_category_pointer` (a second parent without duplication).
+- **Country exclusions** — `admin_set_country_exclusions`. The table stays client-unreadable; C2b instead returns `excluded_country_codes` on the roster RPC, so the dialog PRE-TICKS the current set and still submits a full replacement.
+- **Restructure** — `admin_reorder_categories` (move up/down within siblings) and the **Browse paths** dialog: `admin_list_category_pointers` lists every pointer whose child is this category (parent name/slug, pointer id, order) and `admin_add_category_pointer` / `admin_move_category_pointer` / `admin_remove_category_pointer` write through step-up.
 - **Retire** — `admin_retire_category` with a required reassignment target; catch-alls and already-retired nodes are refused.
 
-LIMITATION: pointer MOVE and REMOVE (`admin_move_category_pointer`, `admin_remove_category_pointer`) have no UI — `admin_list_categories` does not return pointer ids, so the console cannot address an existing pointer. Surfacing them needs a pointer-listing contract, not a UI-side invention.
+## C2-UI-FIX (2026-09-03)
 
-E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-7) covers gating, roster + search, create/edit, visibility window, exclusions, retirement and step-up. Scratch nodes are slugged `e2e-cat-%` and swept by the global-setup reaper (DEC-031).
+- **C2b contract** — `admin_list_categories` gains `excluded_country_codes text[]` (every pre-existing column name and the gate are byte-identical); `admin_list_category_pointers(p_category_id uuid)` is a new `categories:view`-gated SECURITY DEFINER read returning `(pointer_id, parent_id, parent_slug, parent_name_en, display_order)`. The former pointer MOVE/REMOVE limitation is CLOSED.
+- **Visibility window** — `datetime-local` controls. The stored instant renders in the operator's zone and serialises back to a zone-correct UTC ISO string; an empty control sends NULL, never a midnight guess.
+- **Roster shape** — Slug moved under Name as muted text; a Parent column (roots read "—"); compact flags; a root-subtree filter beside search; `DataTablePagination` at 25 rows per page.
+- **Row actions** — ONE button set with two presentations: full text in the 360 card, a compact icon strip from lg with the label in `aria-label`/`title`. DELIBERATE DEVIATION from the requested overflow menu: a second icon-only twin (or a portalled menu) would put two matches for `category-<verb>-<slug>` inside one actions region and break the twin-aware locators (J5), so every verb stays a single element at ≥44px.
+
+E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search, create/edit, visibility window, exclusions, retirement, step-up, pointer-move refusal without a proven factor (CT-7b), tablet-band action reachability at 1024 (CT-8) and the Parent column + 25-row page (CT-9). Scratch nodes are slugged `e2e-cat-%` and swept by the global-setup reaper (DEC-031).
