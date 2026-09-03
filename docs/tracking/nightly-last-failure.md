@@ -1,13 +1,135 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33599691973
-- Commit: `b99f0c1af076a050ab94a40ea817214b90124e5b`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33723683790
+- Commit: `ae4e5af7a1539f3ed5cf254b0e1926d72704e8c7`
 - Attempt: 1
-- Written (UTC): 2026-09-02T07:06:41.220Z
-- Passed: 272 · Skipped: 36 · Failed: 7
-- Gating failures: 5 · Quarantined (@global-state, INC-117, non-gating): 2
+- Written (UTC): 2026-09-03T07:08:35.242Z
+- Passed: 305 · Skipped: 40 · Failed: 10
+- Gating failures: 8 · Quarantined (@global-state, INC-117, non-gating): 2
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Sources without results: none
+
+## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
+
+- Source: `full`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+      - generic [ref=e28]:
+        - generic [ref=e29]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e30]: "30"
+      - generic [ref=e31]:
+        - checkbox "Accepts listings" [checked] [ref=e32] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e33]:
+        - checkbox "Price field enabled" [checked] [ref=e34] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e35]:
+        - button "Cancel" [ref=e36] [cursor=pointer]
+        - button "Save" [ref=e37] [cursor=pointer]
+    - button "Close" [ref=e38] [cursor=pointer]:
+      - img [ref=e39]
+      - generic [ref=e42]: Close
+```
+```
+
+## admin-categories.spec.ts › C2 categories console › CT-11 roster controls: missing-assets filter and a device page size
+
+- Source: `full`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('table').getByTestId('category-row-vehicles')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByRole('table').getByTestId('category-row-vehicles')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e970]:
+            - generic [ref=e971]: About
+          - listitem [ref=e972]:
+            - generic [ref=e973]: How it works
+      - navigation "Help" [ref=e974]:
+        - heading "Help" [level=2] [ref=e975]
+        - list [ref=e976]:
+          - listitem [ref=e977]:
+            - generic [ref=e978]: Safety
+          - listitem [ref=e979]:
+            - generic [ref=e980]: Contact
+      - navigation "Legal" [ref=e981]:
+        - heading "Legal" [level=2] [ref=e982]
+        - list [ref=e983]:
+          - listitem [ref=e984]:
+            - generic [ref=e985]: Terms
+          - listitem [ref=e986]:
+            - generic [ref=e987]: Privacy
+    - paragraph [ref=e989]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
+
+- Source: `full`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('table').getByTestId('category-row-e2e-cat-nightly-6-b2xad4')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByRole('table').getByTestId('category-row-e2e-cat-nightly-6-b2xad4')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e981]:
+            - generic [ref=e982]: About
+          - listitem [ref=e983]:
+            - generic [ref=e984]: How it works
+      - navigation "Help" [ref=e985]:
+        - heading "Help" [level=2] [ref=e986]
+        - list [ref=e987]:
+          - listitem [ref=e988]:
+            - generic [ref=e989]: Safety
+          - listitem [ref=e990]:
+            - generic [ref=e991]: Contact
+      - navigation "Legal" [ref=e992]:
+        - heading "Legal" [level=2] [ref=e993]
+        - list [ref=e994]:
+          - listitem [ref=e995]:
+            - generic [ref=e996]: Terms
+          - listitem [ref=e997]:
+            - generic [ref=e998]: Privacy
+    - paragraph [ref=e1000]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## admin-roles.spec.ts › U2 roles console › RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects
 
@@ -33,25 +155,25 @@ Call log:
 Context:
 
 ```text
-          - listitem [ref=e379]:
-            - generic [ref=e380]: About
-          - listitem [ref=e381]:
-            - generic [ref=e382]: How it works
-      - navigation "Help" [ref=e383]:
-        - heading "Help" [level=2] [ref=e384]
-        - list [ref=e385]:
-          - listitem [ref=e386]:
-            - generic [ref=e387]: Safety
-          - listitem [ref=e388]:
-            - generic [ref=e389]: Contact
-      - navigation "Legal" [ref=e390]:
-        - heading "Legal" [level=2] [ref=e391]
-        - list [ref=e392]:
-          - listitem [ref=e393]:
-            - generic [ref=e394]: Terms
-          - listitem [ref=e395]:
-            - generic [ref=e396]: Privacy
-    - paragraph [ref=e398]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e392]:
+            - generic [ref=e393]: About
+          - listitem [ref=e394]:
+            - generic [ref=e395]: How it works
+      - navigation "Help" [ref=e396]:
+        - heading "Help" [level=2] [ref=e397]
+        - list [ref=e398]:
+          - listitem [ref=e399]:
+            - generic [ref=e400]: Safety
+          - listitem [ref=e401]:
+            - generic [ref=e402]: Contact
+      - navigation "Legal" [ref=e403]:
+        - heading "Legal" [level=2] [ref=e404]
+        - list [ref=e405]:
+          - listitem [ref=e406]:
+            - generic [ref=e407]: Terms
+          - listitem [ref=e408]:
+            - generic [ref=e409]: Privacy
+    - paragraph [ref=e411]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -61,43 +183,40 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: expect(locator).toHaveCount(expected) failed
+Error: expect(page).not.toHaveURL(expected) failed
 
-Locator:  getByTestId('role-permissions')
-Expected: 0
-Received: 1
-Timeout:  10000ms
+Expected pattern: not /\/admin\/roles\//
+Received string: "http://127.0.0.1:4173/admin/roles/b894e541-eace-4224-aad2-c8fff67fe28b"
+Timeout: 10000ms
 
 Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('role-permissions')
-    14 × locator resolved to 1 element
-       - unexpected value "1"
+  - Expect "not toHaveURL" with timeout 10000ms
+    14 × unexpected value "http://127.0.0.1:4173/admin/roles/b894e541-eace-4224-aad2-c8fff67fe28b"
 
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e460]:
-            - generic [ref=e461]: About
-          - listitem [ref=e462]:
-            - generic [ref=e463]: How it works
-      - navigation "Help" [ref=e464]:
-        - heading "Help" [level=2] [ref=e465]
-        - list [ref=e466]:
-          - listitem [ref=e467]:
-            - generic [ref=e468]: Safety
-          - listitem [ref=e469]:
-            - generic [ref=e470]: Contact
-      - navigation "Legal" [ref=e471]:
-        - heading "Legal" [level=2] [ref=e472]
-        - list [ref=e473]:
-          - listitem [ref=e474]:
-            - generic [ref=e475]: Terms
-          - listitem [ref=e476]:
-            - generic [ref=e477]: Privacy
-    - paragraph [ref=e479]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e473]:
+            - generic [ref=e474]: About
+          - listitem [ref=e475]:
+            - generic [ref=e476]: How it works
+      - navigation "Help" [ref=e477]:
+        - heading "Help" [level=2] [ref=e478]
+        - list [ref=e479]:
+          - listitem [ref=e480]:
+            - generic [ref=e481]: Safety
+          - listitem [ref=e482]:
+            - generic [ref=e483]: Contact
+      - navigation "Legal" [ref=e484]:
+        - heading "Legal" [level=2] [ref=e485]
+        - list [ref=e486]:
+          - listitem [ref=e487]:
+            - generic [ref=e488]: Terms
+          - listitem [ref=e489]:
+            - generic [ref=e490]: Privacy
+    - paragraph [ref=e492]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -121,7 +240,7 @@ Call Log:
 
 [INC-112] phase: TR-19 seed check
 [INC-112] url: http://127.0.0.1:4173/admin/translations/zxy-mo
-[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=0 approve-all-start=0 approve-all-summary=0 approve-all-error=0
+[INC-112] testids: strings-coverage=0 strings-search=1 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
 (no __ethioQueryClient — not an E2E build?)
@@ -175,7 +294,7 @@ Call Log:
 [INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
-  (no matching queries)
+(no __ethioQueryClient — not an E2E build?)
 ```
 
 Context:
@@ -209,15 +328,18 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: pseudo text never landed for admin.translations.title
+Error: expect(locator).toBeVisible() failed
 
-expect(received).toBe(expected) // Object.is equality
+Locator: getByTestId('lang-public-zxa')
+Expected: visible
+Error: strict mode violation: getByTestId('lang-public-zxa') resolved to 2 elements:
+    1) <button disabled value="on" type="button" role="switch" data-disabled="" aria-checked="false" data-state="unchecked" data-testid="lang-public-zxa" aria-label="Published to visitors" class="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 d…>…</button> aka getByTestId('lang-row-zxa-card').getByTestId('lang-public-zxa')
+    2) <button disabled value="on" type="button" role="switch" data-disabled="" aria-checked="false" data-state="unchecked" data-testid="lang-public-zxa" aria-label="Published to visitors" class="peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 d…>…</button> aka getByTestId('lang-row-zxa').getByTestId('lang-public-zxa')
 
-Expected: "machine|true|true|true"
-Received: "missing"
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('lang-public-zxa')
 
-Call Log:
-- Timeout 30000ms exceeded while waiting on the predicate
 ```
 
 Context:
