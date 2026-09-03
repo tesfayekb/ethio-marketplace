@@ -369,49 +369,59 @@ test.describe("C2 categories console", () => {
   });
 
   /**
-   * CT-8 (INC-132) — at 1024 the table twin is live and its declared
-   * min-widths exceed the viewport: every action must stay reachable by
-   * scrolling the PRIMITIVE'S OWN scroller, never by overflowing the page.
+   * CT-8 (INC-132/134/136, rewritten to the C2-UI-FIX-3 law) — the laptop
+   * band is CARDS. At 1024 and 1240 the roster must render its card twin,
+   * every action must be reachable and clickable, and NOTHING may scroll
+   * horizontally — not the page, not a scroller, because below xl there is no
+   * table to scroll. At 1440 the table earns its width and still does not
+   * engage a scroller.
    */
-  test("CT-8 tablet band: actions stay reachable through the primitive scroller", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1024, height: 800 });
+  test("CT-8 laptop band renders cards with no horizontal scroll anywhere", async ({ page }) => {
+    bandOnly(page, "desktop");
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
-    await gotoReady(page, "/admin/categories");
-    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
 
-    await expectNoHorizontalOverflow(page);
+    for (const width of [1024, 1240]) {
+      await page.setViewportSize({ width, height: 800 });
+      await gotoReady(page, "/admin/categories");
+      await expect(page.getByTestId("data-table-cards")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole("table")).toBeHidden();
+      await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
 
-    const scroller = page.getByTestId("data-table-scroller");
-    await scroller.evaluate((el) => {
-      el.scrollLeft = el.scrollWidth;
-    });
-    await expect(action(page, "vehicles", "edit")).toBeInViewport();
+      await expectNoHorizontalOverflow(page);
+      const cards = await page
+        .getByTestId("data-table-cards")
+        .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
+      expect(cards.scrollWidth, `cards scroll sideways at ${width}`).toBeLessThanOrEqual(
+        cards.clientWidth + 1,
+      );
 
-    // INC-134 — the same must hold at 1240×800, the band where the shared
-    // admin content region used to widen instead of letting the primitive
-    // scroll. Either the scroller engages or the wide tier has hidden enough
-    // that no scroll is needed; in BOTH readings the action is reachable and
-    // the PAGE never overflows.
-    await page.setViewportSize({ width: 1240, height: 800 });
-    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
-    await expectNoHorizontalOverflow(page);
-    const geometry = await scroller.evaluate((el) => ({
-      scrollWidth: el.scrollWidth,
-      clientWidth: el.clientWidth,
-    }));
-    if (geometry.scrollWidth > geometry.clientWidth) {
-      await scroller.evaluate((el) => {
-        el.scrollLeft = el.scrollWidth;
-      });
+      const edit = action(page, "vehicles", "edit");
+      await expect(edit).toBeVisible();
+      await expect(edit).toBeInViewport();
+      await edit.click();
+      await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("category-edit-dialog")).toBeHidden();
     }
-    await expect(action(page, "vehicles", "edit")).toBeInViewport();
+
+    // 1440 — the table twin, wide columns present, scroller inert.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await gotoReady(page, "/admin/categories");
+    await expect(page.getByRole("table")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("data-table-col-order")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    const geometry = await page
+      .getByTestId("data-table-scroller")
+      .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
+    expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
   });
 
-  test("CT-9 roster shape: a parent column and a 25-row page", async ({ page }) => {
+  /** CT-9a — TABLE shape. Guarded to the band that actually has a table. */
+  test("CT-9a roster shape: the parent column and a 25-row page (table twin)", async ({ page }) => {
+    bandOnly(page, "desktop");
+    await page.setViewportSize({ width: 1440, height: 900 });
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
@@ -426,6 +436,22 @@ test.describe("C2 categories console", () => {
     await page.getByTestId("category-pagination-next").click();
     await expect(page.getByTestId("category-pagination-range")).toContainText("26–50");
   });
+
+  /** CT-9b — the SAME facts inside cards at 360: nothing is hidden there. */
+  test("CT-9b roster shape: the parent line and pagination inside cards", async ({ page }) => {
+    bandOnly(page, "mobile");
+    const admin = await createUser({ confirmed: true });
+    await grantRole(admin.id, "admin");
+    await switchUser(page, admin.email, admin.password);
+    await gotoReady(page, "/admin/categories");
+    const row = categoryRow(page, "vehicles");
+    await expect(row).toBeVisible({ timeout: 20000 });
+
+    await expect(row.getByText("Parent", { exact: false })).toBeVisible();
+    await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
+    await expectNoHorizontalOverflow(page);
+  });
+
 
   /**
    * CT-10 (C2c) — a RETIRED node is not a destination. The picker must not
