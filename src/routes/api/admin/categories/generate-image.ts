@@ -207,10 +207,12 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
           return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
         } catch (error) {
           const { GeminiError } = await import("@/server/category-images/gemini");
+          const message = error instanceof Error ? error.message : "unknown error";
+          console.error(`[ssr-error] ${PATH} image_generate_failed ${message}`);
           if (error instanceof GeminiError && error.status < 500) {
             return json({ error: error.message }, error.status);
           }
-          return fail5xx(PATH, error instanceof Error ? error.message : "unknown error", 502);
+          return fail5xx(PATH, message, 502);
         }
       },
     },
