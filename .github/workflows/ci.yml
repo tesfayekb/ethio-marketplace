@@ -118,12 +118,28 @@ jobs:
         run: git diff --exit-code -- docs/generated/i18n-usage.json public/i18n-usage.json
 
   string-scan:
-    name: Hardcoded string scan (enforcing)
+    name: Hardcoded string scan (enforcing, with self-test)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      # Direction 1: the guard must PASS on real source.
       - name: Run string scan
         run: bash scripts/check-hardcoded-strings.sh
+      # Direction 2 (INC-133): the guard must FAIL on a genuine hardcoded
+      # string, and must NOT fire on a TypeScript generic. A guard that only
+      # ever passes proves nothing; a guard that fires on generics gets ignored.
+      - name: Self-test — guard must reject the hardcoded-text fixture
+        run: |
+          set +e
+          bash scripts/check-hardcoded-strings.sh scripts/fixtures/string-scan-bad
+          STATUS=$?
+          if [ "$STATUS" -eq 0 ]; then
+            echo "::error::GUARD SELF-TEST FAILED: hardcoded text was not flagged."
+            exit 1
+          fi
+          echo "Self-test OK: hardcoded text correctly flagged."
+      - name: Self-test — guard must accept the generic-type fixture
+        run: bash scripts/check-hardcoded-strings.sh scripts/fixtures/string-scan-good
 
   listing-write-seam:
     name: Listing-write seam guard (with self-test)
