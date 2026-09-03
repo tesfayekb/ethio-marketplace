@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { ROSTER_COLUMN_PRIORITIES } from "./categories-service";
@@ -9,7 +10,10 @@ import { ROSTER_COLUMN_PRIORITIES } from "./categories-service";
  * the primitive owns width behaviour for every console table (law C7), so the
  * consumer declares priorities and nothing else.
  */
-const PAGE = readFileSync(new URL("./categories-page.tsx", import.meta.url), "utf8");
+const PAGE = readFileSync(
+  path.join(process.cwd(), "src/features/admin-categories/categories-page.tsx"),
+  "utf8",
+);
 
 describe("categories roster column contract", () => {
   it("declares priorities only — no minWidth anywhere in the roster", () => {
