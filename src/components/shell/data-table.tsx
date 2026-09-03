@@ -480,7 +480,11 @@ export function DataTable<T>({
                     >
                       {selection ? (
                         <td
-                          className="p-3 align-top"
+                          className={cn(
+                            "p-3 align-top",
+                            stickyFirstColumn && "sticky start-0 z-10 bg-card",
+                          )}
+
                           onClick={(event) => event.stopPropagation()}
                           onKeyDown={(event) => event.stopPropagation()}
                         >
