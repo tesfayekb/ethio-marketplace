@@ -14,11 +14,10 @@ import { adminClient, createUser } from "./helpers/users";
 /**
  * C2-UI — THE CATEGORIES CONSOLE (CT-1..CT-7).
  *
- * TWIN LAW (J5): this console is the first surface built on the C7 primitive
- * contract `cardUntil="lg"`, so its twin boundary is 1024, NOT the 768 that
- * `helpers/ui.isMobile` encodes for every other screen. The helpers below are
- * therefore local and breakpoint-explicit — a bare shared `isMobile` would
- * resolve the HIDDEN twin across the whole tablet band.
+ * TWIN LAW (J5): C2-UI-FIX-5 put this console back on the primitive's default
+ * breakpoint, so its twin boundary is 768 like every other console table. The
+ * helpers below stay local and breakpoint-explicit so a shape assertion can
+ * never resolve the HIDDEN twin.
  *
  * FIXTURE LAW (J1/J3): every category this spec creates is slugged
  * `e2e-cat-<run>-<worker>-<rand>` and retired + deleted in `finally`; the
@@ -37,8 +36,12 @@ function scratchSlug() {
   return `e2e-cat-${RUN}-${worker}-${rand()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 }
 
-/** The C7 twin boundary for THIS console (C2-UI-FIX-3: cardUntil="xl"). */
-const TWIN_BOUNDARY = 1280;
+/**
+ * The twin boundary for THIS console. C2-UI-FIX-5 dropped the `cardUntil`
+ * override, so the roster uses the primitive's DEFAULT (cards below md) — the
+ * same boundary every other console table uses.
+ */
+const TWIN_BOUNDARY = 768;
 
 function isCardTwin(page: Page) {
   return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
@@ -178,6 +181,49 @@ async function createViaUi(page: Page, secret: string) {
   await stepUpIfPrompted(page, secret);
   await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
   return slug;
+}
+
+
+/**
+ * C2-UI-FIX-5 (D3) — SELF-DIAGNOSING GEOMETRY. A width failure must name its
+ * cause, so every geometry assertion carries this dump: the scroller, the
+ * table, the last cell and each ancestor's overflow/max-width. The assertions
+ * themselves are unchanged — only their failure message got honest.
+ */
+async function geometryDump(page: Page, label: string): Promise<string> {
+  const data = await page.evaluate(() => {
+    const scroller = document.querySelector('[data-testid="data-table-scroller"]');
+    const table = document.querySelector("table");
+    const cells = table ? table.querySelectorAll("tbody tr:first-child td") : [];
+    const last = cells[cells.length - 1] as HTMLElement | undefined;
+    const chain: unknown[] = [];
+    let node: HTMLElement | null = (scroller as HTMLElement | null) ?? null;
+    while (node && node !== document.documentElement) {
+      const style = getComputedStyle(node);
+      chain.push({
+        tag: node.tagName,
+        cls: String(node.className).slice(0, 80),
+        overflowX: style.overflowX,
+        maxWidth: style.maxWidth,
+        width: Math.round(node.getBoundingClientRect().width),
+        scrollWidth: node.scrollWidth,
+      });
+      node = node.parentElement;
+    }
+    return {
+      doc: {
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      },
+      scroller: scroller
+        ? { scrollWidth: scroller.scrollWidth, clientWidth: scroller.clientWidth }
+        : null,
+      table: table ? table.scrollWidth : null,
+      lastCell: last ? last.getBoundingClientRect().toJSON() : null,
+      chain,
+    };
+  });
+  return `[e2e:c2] geometry @ ${label}: ${JSON.stringify(data)}`;
 }
 
 test.describe("C2 categories console", () => {
