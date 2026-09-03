@@ -47,7 +47,9 @@ function surface(page: Page): Locator {
 }
 
 function categoryRow(page: Page, slug: string): Locator {
-  return surface(page).getByTestId(isCardTwin(page) ? `category-row-${slug}-card` : `category-row-${slug}`);
+  return surface(page).getByTestId(
+    isCardTwin(page) ? `category-row-${slug}-card` : `category-row-${slug}`,
+  );
 }
 
 /** The actions REGION differs per twin (INC-106c): card sibling vs table cell. */
@@ -102,9 +104,16 @@ async function destroyCategory(slug: string) {
   const supabase = adminClient();
   const row = await readCategory(slug);
   if (!row) return;
-  await supabase.from("category_tree_pointers").delete().or(`child_id.eq.${row.id},parent_id.eq.${row.id}`);
+  await supabase
+    .from("category_tree_pointers")
+    .delete()
+    .or(`child_id.eq.${row.id},parent_id.eq.${row.id}`);
   await supabase.from("category_country_exclusions").delete().eq("category_id", row.id);
-  await supabase.from("entity_translations").delete().eq("entity_type", "category").eq("entity_id", row.id);
+  await supabase
+    .from("entity_translations")
+    .delete()
+    .eq("entity_type", "category")
+    .eq("entity_id", row.id);
   await supabase.from("categories").delete().eq("id", row.id);
 }
 

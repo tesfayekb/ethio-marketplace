@@ -839,12 +839,14 @@ export const en = {
   "admin.categories.exclusions.hint": "Saving replaces the whole exclusion set for this category.",
   "admin.categories.exclusions.current": "Currently excluded",
   "admin.categories.retire.title": "Retire category",
-  "admin.categories.retire.hint": "The category is deactivated and its listings move to the category you choose.",
+  "admin.categories.retire.hint":
+    "The category is deactivated and its listings move to the category you choose.",
   "admin.categories.retire.reassign": "Reassign listings to",
   "admin.categories.retire.reassignPlaceholder": "Choose a category",
   "admin.categories.retire.confirm": "Retire",
   "admin.categories.pointer.title": "Add tree pointer",
-  "admin.categories.pointer.hint": "A pointer shows this category under a second parent without duplicating it.",
+  "admin.categories.pointer.hint":
+    "A pointer shows this category under a second parent without duplicating it.",
   "admin.categories.pointer.parent": "Additional parent",
   "admin.categories.pointer.parentPlaceholder": "Choose a parent",
   "admin.categories.error.saveFailed": "The change could not be saved.",

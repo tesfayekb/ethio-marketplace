@@ -351,7 +351,9 @@ export default async function globalSetup() {
         `child_id.in.(${staleCategoryIds.join(",")}),parent_id.in.(${staleCategoryIds.join(",")})`,
       );
     if (pointerError) {
-      throw new Error(`[e2e:setup] reaping scratch category pointers failed: ${pointerError.message}`);
+      throw new Error(
+        `[e2e:setup] reaping scratch category pointers failed: ${pointerError.message}`,
+      );
     }
     const { error: exclusionError } = await supabase
       .from("category_country_exclusions")

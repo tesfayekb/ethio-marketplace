@@ -31,9 +31,7 @@ import { useI18n } from "@/i18n";
 type FixtureState = "default" | "empty" | "loading" | "error";
 
 export const Route = createFileRoute("/dev/primitives")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { state?: FixtureState; variant?: "lg" } => {
+  validateSearch: (search: Record<string, unknown>): { state?: FixtureState; variant?: "lg" } => {
     const raw = String(search["state"] ?? "");
     const state = (["empty", "loading", "error"] as const).includes(raw as "empty")
       ? { state: raw as FixtureState }

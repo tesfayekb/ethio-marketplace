@@ -65,7 +65,6 @@ export interface DataTableColumn<T> {
   sortable?: boolean;
 }
 
-
 export interface DataTableSelection<T> {
   selectedKeys: string[];
   onToggleRow: (row: T, selected: boolean) => void;
@@ -332,12 +331,8 @@ export function DataTable<T>({
           className={cn("hidden min-w-0 overflow-x-auto", tableShownClass)}
         >
           <table
-            className={cn(
-              "w-full text-start text-sm",
-              hasMinWidths ? "min-w-max" : "table-fixed",
-            )}
+            className={cn("w-full text-start text-sm", hasMinWidths ? "min-w-max" : "table-fixed")}
           >
-
             <caption className="sr-only">{caption}</caption>
             <thead className="border-b border-border text-muted-foreground">
               <tr>
