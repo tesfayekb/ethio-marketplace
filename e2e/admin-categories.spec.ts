@@ -226,6 +226,27 @@ async function geometryDump(page: Page, label: string): Promise<string> {
   return `[e2e:c2] geometry @ ${label}: ${JSON.stringify(data)}`;
 }
 
+/**
+ * C2-UI-FIX-5 (D1) — the lifecycle dump. When a verb does not land, the
+ * failure must say WHY: which dialogs are mounted, whether the step-up modal
+ * is on screen, what DB truth says about the row, and every client error the
+ * page logged. The assertion keeps its meaning; only its evidence grew.
+ */
+async function lifecycleDump(page: Page, slug: string, errors: string[]): Promise<string> {
+  const dom = await page.evaluate(() => ({
+    dialogs: Array.from(document.querySelectorAll("[data-testid]"))
+      .map((el) => el.getAttribute("data-testid") ?? "")
+      .filter((id) => id.includes("dialog") || id.includes("step-up") || id.includes("verb-bar")),
+    openDialogs: document.querySelectorAll('[role="dialog"]').length,
+  }));
+  const row = await adminClient()
+    .from("categories")
+    .select("id, slug, is_active")
+    .eq("slug", slug)
+    .maybeSingle();
+  return `[e2e:c2] lifecycle ${slug}: dom=${JSON.stringify(dom)} db=${JSON.stringify(row.data)} clientErrors=${JSON.stringify(errors.slice(-5))}`;
+}
+
 test.describe("C2 categories console", () => {
   test("CT-1 gating: a plain user is refused; the section renders for an admin", async ({
     page,
@@ -533,8 +554,11 @@ test.describe("C2 categories console", () => {
     await gotoReady(page, "/admin/categories");
     await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
 
-    // Parent column: a root reads "—".
-    await expect(page.getByTestId("data-table-col-parent")).toBeVisible();
+    // Parent column: a root reads "—". A miss dumps the geometry that hid it.
+    await expect(
+      page.getByTestId("data-table-col-parent"),
+      await geometryDump(page, "CT-9a @ 1440"),
+    ).toBeVisible();
 
     // The ratified taxonomy is 113 nodes, so page one is exactly PAGE_SIZE.
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
@@ -640,12 +664,20 @@ test.describe("C2 categories console", () => {
       await waitForHydration(page);
       await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
 
+      const clientErrors: string[] = [];
+      page.on("console", (message) => {
+        if (message.type() === "error") clientErrors.push(`[client-error] ${message.text()}`);
+      });
+
       await openEditor(page, slug);
       await action(page, slug, "reactivate").click();
       await stepUpIfPrompted(page, secret);
 
       await expect
-        .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
+        .poll(async () => (await readCategory(slug))?.is_active, {
+          timeout: 20000,
+          message: await lifecycleDump(page, slug, clientErrors),
+        })
         .toBe(true);
       // Active again means the retire verb is the one on offer once more.
       await openEditor(page, slug);
