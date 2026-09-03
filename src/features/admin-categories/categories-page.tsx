@@ -324,12 +324,13 @@ export function AdminCategoriesPage() {
   ];
 
   /**
-   * ONE button set, two presentations (J5): the SAME element carries the
+   * ONE button set, one presentation (J5): the SAME element carries the
    * canonical `category-<verb>-<slug>` testid at every viewport — a duplicated
    * icon twin would put two matches inside one actions region and every
-   * twin-aware locator would resolve the hidden one. At lg the label collapses
-   * into `aria-label`/`title` and the row becomes a compact icon strip; below
-   * lg the card keeps full text. Targets are ≥44px in both presentations.
+   * twin-aware locator would resolve the hidden one. C2-UI-FIX-3 makes the
+   * strip a 44px ICON strip everywhere and lets it WRAP, so the card twin
+   * (now the whole sub-xl band) never scrolls sideways. The label lives in
+   * `aria-label`/`title`.
    */
   const rowActions = (row: CategoryNode, guard: GuardFn) => {
     const verb = (
@@ -338,12 +339,13 @@ export function AdminCategoriesPage() {
       icon: React.ReactNode,
       onClick: () => void,
       disabled?: boolean,
+      danger?: boolean,
     ) => (
       <Button
         key={testid}
         type="button"
-        variant="outline"
-        className="min-h-11 shrink-0 lg:size-11 lg:p-0"
+        variant={danger ? "destructive" : "outline"}
+        className="size-11 shrink-0 p-0"
         data-testid={testid}
         aria-label={label}
         title={label}
@@ -351,12 +353,11 @@ export function AdminCategoriesPage() {
         onClick={onClick}
       >
         {icon}
-        <span className="ms-2 lg:hidden">{label}</span>
       </Button>
     );
 
     return (
-      <span className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end lg:gap-1">
+      <span className="flex flex-wrap items-center gap-2 xl:justify-end">
         {mayUpdate
           ? [
               verb(
@@ -399,17 +400,41 @@ export function AdminCategoriesPage() {
                 <Share2 aria-hidden="true" className="size-4" />,
                 () => setDialog({ kind: "pointer", id: row.id }),
               ),
-              verb(
-                `category-retire-${row.slug}`,
-                t("admin.categories.action.retire"),
-                <Trash2 aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "retire", id: row.id }),
-                !row.isActive || row.isCatchall,
-              ),
+              // C2d — a retired row swaps Retire for Reactivate and gains the
+              // one destructive verb in the console: Delete, typed-confirm.
+              row.isActive
+                ? verb(
+                    `category-retire-${row.slug}`,
+                    t("admin.categories.action.retire"),
+                    <Trash2 aria-hidden="true" className="size-4" />,
+                    () => setDialog({ kind: "retire", id: row.id }),
+                    row.isCatchall,
+                  )
+                : verb(
+                    `category-reactivate-${row.slug}`,
+                    t("admin.categories.action.reactivate"),
+                    <RotateCcw aria-hidden="true" className="size-4" />,
+                    () => {
+                      void guard(async () => {
+                        await reactivate.mutateAsync({ id: row.id });
+                      });
+                    },
+                  ),
+              row.isActive
+                ? null
+                : verb(
+                    `category-delete-${row.slug}`,
+                    t("admin.categories.action.delete"),
+                    <Trash aria-hidden="true" className="size-4" />,
+                    () => setDialog({ kind: "delete", id: row.id }),
+                    false,
+                    true,
+                  ),
             ]
           : null}
       </span>
     );
+
   };
 
   return (
