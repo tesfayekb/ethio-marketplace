@@ -405,8 +405,7 @@ export function DataTable<T>({
                     scope="col"
                     className={cn(
                       cellClass(
-                        column as DataTableColumn<unknown>,
-                        stickyFirstColumn && index === 0,
+                        column as DataTableColumn<unknown>, stickyFor(index),
                       ),
                       "font-medium",
                     )}
@@ -492,8 +491,7 @@ export function DataTable<T>({
                         <td
                           key={column.key}
                           className={cellClass(
-                            column as DataTableColumn<unknown>,
-                            stickyFirstColumn && index === 0,
+                            column as DataTableColumn<unknown>, stickyFor(index),
                           )}
                         >
                           {href && column.key === linkColumnKey ? (
