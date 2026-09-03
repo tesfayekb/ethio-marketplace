@@ -240,10 +240,17 @@ function DialogActions({
 export function EditCategoryDialog({
   category,
   guard,
+  verbBar,
   onClose,
 }: {
   category: CategoryRow;
   guard: GuardFn;
+  /**
+   * UI-FIX-4 — the editor is the console's ONE interaction surface (the Roles
+   * model). The row carries Edit alone; every other verb arrives here as a
+   * wrapping full-text bar rendered above the fields.
+   */
+  verbBar?: ReactNode;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -286,6 +293,7 @@ export function EditCategoryDialog({
       title={t("admin.categories.edit.title")}
       onClose={onClose}
     >
+      {verbBar}
       <FormField label={t("admin.categories.field.name")} htmlFor="category-edit-name">
         <Input
           id="category-edit-name"
