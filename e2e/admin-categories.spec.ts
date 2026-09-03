@@ -319,10 +319,18 @@ test.describe("C2 categories console", () => {
       const rootValue = await select.locator("option").nth(1).getAttribute("value");
       await select.selectOption(rootValue!);
 
-      // Give the refusal a bounded window, then prove nothing moved.
-      await page.waitForTimeout(3000);
-      const after = await readPointers(id!);
-      expect(after.map((row) => row.parent_id)).toEqual(before.map((row) => row.parent_id));
+      // Poll DB truth for the whole refusal window: the parent set must stay
+      // byte-identical for every sample, never "eventually correct".
+      const expected = before.map((row) => row.parent_id);
+      await expect
+        .poll(
+          async () => {
+            const after = await readPointers(id!);
+            return after.map((row) => row.parent_id);
+          },
+          { timeout: 5000, intervals: [500, 500, 500, 500, 500] },
+        )
+        .toEqual(expected);
     } finally {
       if (slug) await destroyCategory(slug);
     }

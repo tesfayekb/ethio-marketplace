@@ -206,7 +206,7 @@ test.describe("display primitives law (test-once responsiveness)", () => {
     await scroller.evaluate((el) => {
       el.scrollLeft = el.scrollWidth;
     });
-    const lastCell = page.locator("table tbody tr").first().locator("td").last();
+    const lastCell = page.getByTestId("prim-row-1").locator("td").last();
     await expect(lastCell).toBeInViewport();
 
     // The PAGE still never scrolls horizontally — the scroller absorbed it.
