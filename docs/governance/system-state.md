@@ -56,51 +56,18 @@
 - **U1 (Users) — COMPLETE 2026-08-19** (CI green 70f5176, 17/17 full suite; operator walk passed incl. step-up re-walk; four-lens review at docs/governance/reviews/u1-closeout.md; DEC-015 primitives + DEC-016 parity plan ratified). Next build target: U2 Roles & Permissions console.
 - **U2 (Roles & Permissions) — COMPLETE 2026-08-22** (CI green 52e184b, 17/17; operator walk passed; four-lens review at docs/governance/reviews/u2-closeout.md; DEC-016 permissions registered). Next build target: U3 Audit & Security + guardrailed impersonation.
 - **U2b + U3 (Assignable-scope · Audit & Security · Impersonation v1) — COMPLETE 2026-08-29** (production-build harness certified green, epoch closed at run 33228828535 under G22; operator walk passed; four-lens review at docs/governance/reviews/u3-closeout.md; DEC-017/018/019 shipped, DEC-020 ratified pending setup, DEC-021 registered → ACT-U3-1). Next build targets (operator-directed reorder 2026-08-29): **U4 Translations console**, then U5 Locations.
-- **U4 Translations COMPLETE IN FULL (a–k) — 2026-09-02**; era reviews at reviews/u4-closeout.md (S32+S33). NEXT: **U5 Categories & Locations spec session (S34)** — consumes entity_translations; reference repo tesfayekb/apex-marketplace approved for direct Lovable reference (DEC-005 precedent).
+- **U4 Translations COMPLETE IN FULL (a–k) — 2026-09-02**; era reviews at reviews/u4-closeout.md (S32+S33). NEXT: **Category Era: D0 landed; next C1** — consumes entity_translations; spec ratified 2026-09-02 at /docs/governance/category-era-spec.md.
 
 
 
-## The three standing supervisor reads
+## Standing reads
 
-1. `docs/tracking/ci-status.md` — the two-step SHA check: read the file, then confirm
-   its recorded commit matches the HEAD you cloned. A stale SHA means the verdict
-   belongs to an older commit and proves nothing about the current one.
-2. `docs/tracking/nightly-status.md` — the 48h staleness rule: a timestamp older than
-   ~48 hours means the nightly schedule stopped, which is itself a failure.
-3. **Guard Proof** (`.github/workflows/guard-proof.yml`) — dispatched and green at
-   every phase gate; it proves the B-3 and C-4 guards fail against mutation fixtures,
-   not merely that they pass on clean source.
+Governing instructions: Claude supervisor v1.8 · Lovable Project Knowledge v3.6. Canonical truth: this file + /docs/spec/spec-ledger.md. Evidence channels: docs/tracking/ci-status.md (two-step SHA check), docs/tracking/e2e-last-failure.md, nightly-last-failure.md, flake-ledger.
 
-## Standing environment facts
+## Environment
 
-- Staging E2E mail sink: **Ethereal** (ruling R1). `E2E_EMAIL_SINK=1` gates the
-  sign-up/recovery E2E cases.
-- Production SMTP: Resend **test** domain until the launch-gate custom sending domain
-  lands — only the account owner's address completes a real send today.
-- Databases: `ethio-prod` (real) and `ethio-staging` (E2E target).
+Prod = published site (human testers). Staging = ethio-staging (automated suite only; Ethereal SMTP sink, ephemeral). Branch law DEC-020: dev is the working branch; main promote-on-green only.
 
-## Phase 2 progress
+## Current position
 
-- P2-a geography — CLOSED
-- P2-b categories + attributes — CLOSED
-- P2-c listings core + screening seam — CLOSED
-- P2-c-tier `listings.tier` (LIVE ranking lever) — CLOSED on `ethio-prod`;
-  **pending operator apply on `ethio-staging`**
-- Design foundation (AppShell, panels, tokens, typography, brand, feed shape) — CLOSED
-
-Planning documents for the posting epoch (read in this order): `docs/features/performance-strategy.md`,
-`docs/spec/posting-flow-spec.md`, `docs/spec/posting-foundations-build-plan.md`; thread context in
-`docs/governance/handoffs/2026-08-05-thread3-handoff.md`.
-
-Next: **P2-c-form** (the Post a Listing body on the My Listings panel), then view-tracking
-and location-scoping with real ranking — the two pre-launch backend features that fill the
-feed's documented seams.
-
-## Governing instructions
-
-Claude Project v1.4 (project settings; intent mirrored in `governance.md`). Lovable
-Knowledge: v3.1 + H2 (`docs/governance/lovable-knowledge.md`).
-
-Launch-gate items: see `docs/governance/launch-gate.md`.
-
-Updated: 2026-08-05
+U4 Translations era COMPLETE (a–k, S33). CATEGORY ERA open (spec ratified 2026-09-02): D0 governance import landing → NEXT: C1 taxonomy migration, then C2 console/RBAC/visibility, C3 attributes, C4 tags, C5 AI images; Locations era follows (DEC-033).
