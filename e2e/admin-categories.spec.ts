@@ -913,16 +913,18 @@ test.describe("C2 categories console", () => {
         if (error) throw new Error(`[e2e:c2] seeding ${slug} failed: ${error.message}`);
         const id = data.id as string;
 
-        const existing = await supabase
-          .from("category_tree_pointers")
-          .select("display_order")
-          .eq("parent_id", parent as string)
-          .order("display_order", { ascending: false })
-          .limit(1);
-        if (existing.error)
-          throw new Error(`[e2e:c2] reading sibling order failed: ${existing.error.message}`);
-        const nextOrder =
-          parent === null ? 900000 : ((existing.data?.[0]?.display_order ?? -1) as number) + 1;
+        let nextOrder = 900000;
+        if (parent !== null) {
+          const existing = await supabase
+            .from("category_tree_pointers")
+            .select("display_order")
+            .eq("parent_id", parent)
+            .order("display_order", { ascending: false })
+            .limit(1);
+          if (existing.error)
+            throw new Error(`[e2e:c2] reading sibling order failed: ${existing.error.message}`);
+          nextOrder = (existing.data?.[0]?.display_order ?? -1) + 1;
+        }
 
         const { error: pointerError } = await supabase
           .from("category_tree_pointers")
