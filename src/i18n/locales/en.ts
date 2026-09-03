@@ -843,6 +843,8 @@ export const en = {
   "admin.categories.paths.root": "Top level (root)",
   "admin.categories.paths.moveTo": "Move this path to",
   "admin.categories.paths.remove": "Remove path",
+  "admin.categories.paths.primary": "Primary",
+  "admin.categories.paths.primaryTip": "Shown as the Parent in the roster and breadcrumbs.",
   "admin.categories.paths.add": "Add another browse path",
   "admin.categories.paths.addSubmit": "Add path",
   "admin.categories.action.pointer": "Add pointer",
