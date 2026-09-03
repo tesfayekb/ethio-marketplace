@@ -363,6 +363,9 @@ export function AdminAuditPage() {
             offset={page * PAGE_SIZE}
             pageSize={PAGE_SIZE}
             total={total}
+            /* INC-129 — admin_list_audit caps the count at 10,001; the raw
+               boundary number is never rendered as truth (C7 totalLabel). */
+            totalLabel={total > 10000 ? t("admin.audit.total.capped") : undefined}
             onPrevious={() => setPage((current) => Math.max(0, current - 1))}
             onNext={() =>
               setPage((current) => ((current + 1) * PAGE_SIZE < total ? current + 1 : current))
