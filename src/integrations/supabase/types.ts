@@ -1564,6 +1564,10 @@ export type Database = {
         Returns: Json
       }
       approve_all_translations_impl: { Args: { p_lang: string }; Returns: Json }
+      assert_parent_not_catchall: {
+        Args: { p_parent_id: string }
+        Returns: undefined
+      }
       assign_role: {
         Args: {
           p_role_name: string
