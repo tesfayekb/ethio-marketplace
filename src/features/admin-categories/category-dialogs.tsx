@@ -43,11 +43,14 @@ export const SELECT_CLASS =
 export function CategoryModal({
   testid,
   title,
+  openedBy,
   onClose,
   children,
 }: {
   testid: string;
   title: string;
+  /** C2-GHOST PART B — the confession channel: WHO opened this surface. */
+  openedBy: string;
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -60,6 +63,7 @@ export function CategoryModal({
     >
       <DialogContent
         data-testid={testid}
+        data-opened-by={openedBy}
         className="block w-[min(32rem,calc(100vw-1.5rem))] max-w-lg border-0 bg-transparent p-0 shadow-none"
       >
         <DialogTitle asChild>
@@ -111,10 +115,12 @@ export function useSubmitError() {
 export function CreateCategoryDialog({
   parents,
   guard,
+  openedBy,
   onClose,
 }: {
   parents: CategoryNode[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -149,6 +155,7 @@ export function CreateCategoryDialog({
   return (
     <CategoryModal
       testid="category-create-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
@@ -256,6 +263,7 @@ export function EditCategoryDialog({
   category,
   guard,
   verbBar,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
@@ -266,6 +274,7 @@ export function EditCategoryDialog({
    * wrapping full-text bar rendered above the fields.
    */
   verbBar?: ReactNode;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -308,6 +317,7 @@ export function EditCategoryDialog({
   return (
     <CategoryModal
       testid="category-edit-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.edit.title")}
       onClose={onClose}
     >
@@ -410,10 +420,12 @@ function fromLocalInput(value: string): string | null {
 export function CategoryWindowDialog({
   category,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -441,6 +453,7 @@ export function CategoryWindowDialog({
   return (
     <CategoryModal
       testid="category-window-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.window.title")}
       onClose={onClose}
     >
@@ -480,11 +493,13 @@ export function CategoryExclusionsDialog({
   category,
   countries,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   countries: { code: string; nameEn: string }[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -510,6 +525,7 @@ export function CategoryExclusionsDialog({
   return (
     <CategoryModal
       testid="category-exclusions-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.exclusions.title")}
       onClose={onClose}
     >
@@ -549,11 +565,13 @@ export function RetireCategoryDialog({
   category,
   targets,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   targets: CategoryNode[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -593,6 +611,7 @@ export function RetireCategoryDialog({
   return (
     <CategoryModal
       testid="category-retire-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.retire.title")}
       onClose={onClose}
     >
@@ -645,11 +664,13 @@ export function AddPointerDialog({
   category,
   parents,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   parents: CategoryNode[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -676,6 +697,7 @@ export function AddPointerDialog({
   return (
     <CategoryModal
       testid="category-pointer-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.pointer.title")}
       onClose={onClose}
     >
@@ -719,11 +741,13 @@ export function CategoryPathsDialog({
   category,
   parents,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   parents: CategoryNode[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -753,6 +777,7 @@ export function CategoryPathsDialog({
   return (
     <CategoryModal
       testid="category-paths-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.paths.title")}
       onClose={onClose}
     >
@@ -867,10 +892,12 @@ export function CategoryPathsDialog({
 export function DeleteCategoryDialog({
   category,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -897,6 +924,7 @@ export function DeleteCategoryDialog({
   return (
     <CategoryModal
       testid="category-delete-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.delete.title")}
       onClose={onClose}
     >
