@@ -56,7 +56,6 @@ export type ColumnPriority = "primary" | "secondary" | "detail" | "wide";
  */
 export type CardUntil = "md" | "lg" | "xl";
 
-
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
@@ -138,7 +137,10 @@ export interface DataTableProps<T> {
   className?: string;
 }
 
-function cellClass(column: DataTableColumn<unknown>, sticky: false | "start-0" | "start-10" = false) {
+function cellClass(
+  column: DataTableColumn<unknown>,
+  sticky: false | "start-0" | "start-10" = false,
+) {
   return cn(
     "p-3 align-top",
     column.align === "end" ? "text-end" : "text-start",
@@ -155,7 +157,6 @@ function cellClass(column: DataTableColumn<unknown>, sticky: false | "start-0" |
     column.minWidth,
   );
 }
-
 
 /** The standard pagination filling: Prev / Next plus "from–to of total". */
 export function DataTablePagination({
@@ -396,7 +397,6 @@ export function DataTable<T>({
                       stickyFirstColumn && "sticky start-0 z-10 bg-card",
                     )}
                   >
-
                     <Checkbox
                       aria-label={t("prim.table.selectAll")}
                       data-testid="data-table-select-all"
@@ -411,9 +411,7 @@ export function DataTable<T>({
                     data-testid={`data-table-col-${column.key}`}
                     scope="col"
                     className={cn(
-                      cellClass(
-                        column as DataTableColumn<unknown>, stickyFor(index),
-                      ),
+                      cellClass(column as DataTableColumn<unknown>, stickyFor(index)),
                       "font-medium",
                     )}
                     aria-sort={
@@ -484,7 +482,6 @@ export function DataTable<T>({
                             "p-3 align-top",
                             stickyFirstColumn && "sticky start-0 z-10 bg-card",
                           )}
-
                           onClick={(event) => event.stopPropagation()}
                           onKeyDown={(event) => event.stopPropagation()}
                         >
@@ -502,7 +499,8 @@ export function DataTable<T>({
                         <td
                           key={column.key}
                           className={cellClass(
-                            column as DataTableColumn<unknown>, stickyFor(index),
+                            column as DataTableColumn<unknown>,
+                            stickyFor(index),
                           )}
                         >
                           {href && column.key === linkColumnKey ? (
