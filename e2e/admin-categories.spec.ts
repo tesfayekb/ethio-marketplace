@@ -465,17 +465,14 @@ test.describe("C2 categories console", () => {
             : page.getByTestId(`category-row-${slug}`),
         ).toBeVisible({ timeout: 20000 });
 
+        const doc = await page.evaluate(() => ({
+          scrollWidth: document.documentElement.scrollWidth,
+          clientWidth: document.documentElement.clientWidth,
+        }));
         expect(
-          await page.evaluate(() => ({
-            scrollWidth: document.documentElement.scrollWidth,
-            clientWidth: document.documentElement.clientWidth,
-          })),
-          await geometryDump(page, `page @ ${width}`),
-        ).toEqual(
-          expect.objectContaining({
-            scrollWidth: expect.any(Number) as unknown as number,
-          }),
-        );
+          doc.scrollWidth,
+          `${await geometryDump(page, `page @ ${width}`)} — the page scrolls sideways`,
+        ).toBeLessThanOrEqual(doc.clientWidth + 1);
         await expectNoHorizontalOverflow(page);
 
         await page
