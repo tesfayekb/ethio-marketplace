@@ -31,7 +31,6 @@ export function isFakeMode(): boolean {
   return true;
 }
 
-
 export function imageModel(): string {
   const value = serverEnv("GEMINI_IMAGE_MODEL").trim();
   return value === "" ? "gemini-2.5-flash-image" : value;
