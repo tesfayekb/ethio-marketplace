@@ -1250,24 +1250,68 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "desktop");
     const { secret } = await signInAsSuperAdmin(page);
     const slugs: string[] = [];
+    // INC-153 (second occurrence) — SCOPING LAW:
+    // "specs never assume a globally empty table; they scope their emptiness."
+    // The bulk verb runs over the VISIBLE filtered/searched set, so this test
+    // narrows the roster to exactly its own three seeded rows before running.
+    const prefix = `e2e-cat-${RUN}-${process.env["TEST_WORKER_INDEX"] ?? "0"}-`;
+    const bulkDump = async (label: string) => {
+      const progress = await page
+        .getByTestId("category-bulk-progress")
+        .textContent()
+        .catch(() => null);
+      const summary = await page
+        .getByTestId("category-bulk-summary")
+        .textContent()
+        .catch(() => null);
+      const truth: string[] = [];
+      for (const slug of slugs) truth.push(`${slug}=${(await readImages(slug))?.image_url ?? "∅"}`);
+      return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} rows: ${truth.join(" | ")}`;
+    };
     try {
       for (let index = 0; index < 3; index += 1) {
         slugs.push(await createViaUi(page, secret));
       }
       await gotoReady(page, "/admin/categories");
-      await page.getByTestId("category-search").fill(`e2e-cat-${RUN}-`);
+      await page.getByTestId("category-missing-filter").click();
+      await page.getByTestId("category-search").fill(prefix);
+      await expect
+        .poll(async () => page.getByTestId("data-table-cards").locator("li").count(), {
+          timeout: 15000,
+          message: await bulkDump("visible-set"),
+        })
+        .toBe(0);
+      for (const slug of slugs) {
+        await expect(categoryRow(page, slug)).toBeVisible({ timeout: 15000 });
+      }
+
       await page.getByTestId("category-bulk-generate").click();
-      await expect(page.getByTestId("category-bulk-summary")).toBeVisible({ timeout: 120000 });
+      await expect
+        .poll(
+          async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "",
+          { timeout: 15000, message: await bulkDump("summary") },
+        )
+        .toContain(`3 ${en["admin.categories.bulk.generated"]}`);
+      await expect
+        .poll(async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "", {
+          timeout: 15000,
+          message: await bulkDump("failures"),
+        })
+        .toContain(`0 ${en["admin.categories.bulk.failed"]}`);
 
       for (const slug of slugs) {
         await expect
-          .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
+          .poll(async () => (await readImages(slug))?.image_url ?? null, {
+            timeout: 15000,
+            message: await bulkDump(`db-truth ${slug}`),
+          })
           .not.toBeNull();
       }
     } finally {
       for (const slug of slugs) await destroyCategory(slug);
     }
   });
+
 
   /**
    * CT-17 (C5b PART B) — THE CREATE FLOW HAS NO MANUAL ICON. The icon is
