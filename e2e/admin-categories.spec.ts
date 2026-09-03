@@ -431,10 +431,18 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "any");
     const { user, secret } = await signInAsSuperAdmin(page);
     let slug = "";
+    let targetSlug = "";
     let listingId = "";
     try {
       slug = await createViaUi(page, secret);
+      /**
+       * C2-CT6-IDENTITY (INC-151) — the test owns its reassign target. It is
+       * created with the same existing UI helper (edge included), held by slug,
+       * and selected by that identity — never by index or by "first".
+       */
+      targetSlug = await createViaUi(page, secret);
       const scratch = await readCategory(slug);
+      const target = await readCategory(targetSlug);
 
       /**
        * C2-CLOSE Part B (J7) — SEED BEFORE NAVIGATE. The dialog only offers
@@ -453,17 +461,18 @@ test.describe("C2 categories console", () => {
         en["admin.categories.retire.reassignCount"].replace("{count}", "1"),
       );
       await expect(page.getByTestId("category-retire-target")).toBeVisible();
-      await page.getByTestId("category-retire-target").selectOption({ index: 1 });
+      // INC-151: select by the target's identity (slug == name_en == option label).
+      await page.getByTestId("category-retire-target").selectOption({ label: targetSlug });
       await page.getByTestId("category-retire-submit").click();
       await stepUpIfPrompted(page, secret);
 
       await expect
         .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
         .toBe(false);
-      // The listing kept a home: it now hangs under the reassignment target.
+      // The listing kept a home: it now lands under the EXACT target category.
       await expect
         .poll(async () => (await readListing(listingId))?.category_id, { timeout: 20000 })
-        .not.toBe(scratch!.id);
+        .toBe(target!.id);
       // The row stays in the console (retired ≠ deleted) but reads as retired.
       await findRow(page, slug);
       await openEditor(page, slug);
@@ -472,6 +481,7 @@ test.describe("C2 categories console", () => {
     } finally {
       if (listingId) await adminClient().from("listings").delete().eq("id", listingId);
       if (slug) await destroyCategory(slug);
+      if (targetSlug) await destroyCategory(targetSlug);
     }
   });
 
