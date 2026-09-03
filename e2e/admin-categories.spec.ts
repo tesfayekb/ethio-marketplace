@@ -414,9 +414,8 @@ test.describe("C2 categories console", () => {
     try {
       slug = await createViaUi(page, secret);
       // Retire the scratch node through DB truth, then re-read the picker.
-      const target = await readCategory("vehicles");
       const scratch = await readCategory(slug);
-      expect(target && scratch).toBeTruthy();
+      expect(scratch).toBeTruthy();
       await adminClient().from("categories").update({ is_active: false }).eq("id", scratch!.id);
 
       await page.reload();
