@@ -115,6 +115,7 @@ test.describe("C5a — category AI foundation routes", () => {
       });
       expect(response.status(), await response.text()).toBe(200);
       const body = (await response.json()) as {
+        stage: string;
         imageUrl: string;
         thumbUrl: string;
         ogUrl: string;
@@ -122,6 +123,7 @@ test.describe("C5a — category AI foundation routes", () => {
         timings: { genMs: number; processMs: number; totalMs: number };
       };
 
+      expect(body.stage).toBe("done");
       expect(body.imageUrl).toContain(`category-assets/${category.id}/card-512.png`);
       expect(body.thumbUrl).toContain(`category-assets/${category.id}/thumb-128.png`);
       expect(body.ogUrl).toContain(`category-assets/${category.id}/og-1200x630.png`);
@@ -142,6 +144,16 @@ test.describe("C5a — category AI foundation routes", () => {
     } finally {
       await cleanup(category.id);
     }
+  });
+
+  test("CI-2b unknown categoryId is an honest 404, never a 502", async ({ request }) => {
+    const token = await assetsToken();
+    const response = await request.post(GENERATE, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { categoryId: crypto.randomUUID() },
+    });
+    expect(response.status(), await response.text()).toBe(404);
+    expect((await response.json()) as { error: string }).toEqual({ error: "category not found" });
   });
 
   test("CI-3 suggest-icon returns an allowlisted value", async ({ request }) => {

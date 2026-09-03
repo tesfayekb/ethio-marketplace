@@ -25,6 +25,7 @@ interface Body {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface RunResult {
+  stage: "done";
   imageUrl: string;
   thumbUrl: string;
   ogUrl: string;
@@ -33,24 +34,33 @@ interface RunResult {
   bytes: { card: Uint8Array; thumb: Uint8Array; og: Uint8Array };
 }
 
+/** Thrown when the category does not exist, or RLS hides it (PART D). */
+export class CategoryNotFoundError extends Error {
+  constructor() {
+    super("category not found");
+    this.name = "CategoryNotFoundError";
+  }
+}
+
 async function run(
   supabase: SupabaseClient<Database>,
   categoryId: string,
   customPrompt: string | undefined,
 ): Promise<RunResult> {
   const { buildPrompt } = await import("@/server/category-images/prompt");
-  const { processGeneratedPng } = await import("@/server/category-images/pipeline");
+  const { processGeneratedPng, atStageAsync, StageError } =
+    await import("@/server/category-images/pipeline");
   const { fakeGeneratedPng } = await import("@/server/category-images/fixture");
-  const { generateImageBytes, isFakeMode, GeminiError } =
-    await import("@/server/category-images/gemini");
+  const { generateImageBytes, isFakeMode } = await import("@/server/category-images/gemini");
 
   const { data: category, error: categoryError } = await supabase
     .from("categories")
     .select("id, name_en")
     .eq("id", categoryId)
     .maybeSingle();
-  if (categoryError) throw new GeminiError(categoryError.message, 500);
-  if (!category) throw new GeminiError("category not found", 404);
+  if (categoryError) throw new StageError("persist", categoryError.message, 500);
+  // PART D — unknown OR RLS-hidden is the SAME honest answer: 404.
+  if (!category) throw new CategoryNotFoundError();
 
   // Primary browse parent (lowest display_order edge) supplies the prompt context.
   const { data: pointer } = await supabase
@@ -75,7 +85,9 @@ async function run(
   const prompt = buildPrompt({ nameEn: category.name_en, parentName, customPrompt });
 
   const genStart = performance.now();
-  const source = isFakeMode() ? fakeGeneratedPng() : await generateImageBytes(prompt);
+  const source = await atStageAsync("model-call", async () =>
+    isFakeMode() ? fakeGeneratedPng() : (await generateImageBytes(prompt)).bytes,
+  );
   const genMs = performance.now() - genStart;
 
   const output = processGeneratedPng(source, genMs);
@@ -86,28 +98,33 @@ async function run(
     [`${base}/thumb-128.png`, output.thumb],
     [`${base}/og-1200x630.png`, output.og],
   ];
-  for (const [path, bytes] of uploads) {
-    const { error } = await supabase.storage
-      .from("category-assets")
-      .upload(path, bytes, { contentType: "image/png", upsert: true });
-    if (error) throw new GeminiError(`storage upload failed: ${error.message}`, 500);
-  }
+  await atStageAsync("upload", async () => {
+    for (const [path, bytes] of uploads) {
+      const { error } = await supabase.storage
+        .from("category-assets")
+        .upload(path, bytes, { contentType: "image/png", upsert: true });
+      if (error) throw new StageError("upload", `storage upload failed: ${error.message}`, 500);
+    }
+  });
 
   const publicBase = `${process.env["SUPABASE_URL"] ?? ""}/storage/v1/object/public/category-assets`;
   const imageUrl = `${publicBase}/${base}/card-512.png`;
   const thumbUrl = `${publicBase}/${base}/thumb-128.png`;
   const ogUrl = `${publicBase}/${base}/og-1200x630.png`;
 
-  const { error: updateError } = await supabase.rpc("admin_set_category_images", {
-    p_id: categoryId,
-    p_image_url: imageUrl,
-    p_image_thumb_url: thumbUrl,
-    p_og_image_url: ogUrl,
-    p_generation_prompt: prompt,
+  await atStageAsync("persist", async () => {
+    const { error } = await supabase.rpc("admin_set_category_images", {
+      p_id: categoryId,
+      p_image_url: imageUrl,
+      p_image_thumb_url: thumbUrl,
+      p_og_image_url: ogUrl,
+      p_generation_prompt: prompt,
+    });
+    if (error) throw new StageError("persist", error.message, 500);
   });
-  if (updateError) throw new GeminiError(updateError.message, 500);
 
   return {
+    stage: "done",
     imageUrl,
     thumbUrl,
     ogUrl,
@@ -135,8 +152,7 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { gateCategoriesAssets, json, fail5xx } =
-          await import("@/server/category-images/gate");
+        const { gateCategoriesAssets, json } = await import("@/server/category-images/gate");
         const gate = await gateCategoriesAssets(request, PATH);
         if (!gate.ok) return gate.response;
 
@@ -159,6 +175,7 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
           const result = await run(gate.supabase, categoryId, body.customPrompt);
           return json(
             {
+              stage: result.stage,
               imageUrl: result.imageUrl,
               thumbUrl: result.thumbUrl,
               ogUrl: result.ogUrl,
@@ -168,23 +185,26 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
             200,
           );
         } catch (error) {
-          const { GeminiError } = await import("@/server/category-images/gemini");
-          const message = error instanceof Error ? error.message : "unknown error";
-          // PART B (F4): the true cause reaches the log with a stable code before
-          // the generic body leaves.
-          console.error(`[ssr-error] ${PATH} image_generate_failed ${message}`);
-          if (error instanceof GeminiError) {
-            if (error.status >= 500) return fail5xx(PATH, error.message, 502);
-            return json({ error: error.message }, error.status);
+          // PART D — honest 404 before any 5xx wrapping.
+          if (error instanceof CategoryNotFoundError) {
+            return json({ error: "category not found" }, 404);
           }
-          return fail5xx(PATH, message);
+          const { StageError } = await import("@/server/category-images/pipeline");
+          const message = error instanceof Error ? error.message : "unknown error";
+          const stage = error instanceof StageError ? error.stage : "unknown";
+          // PART B (F4): stage + true cause reach the log before the generic body.
+          console.error(`[ssr-error] ${PATH} image_generate_failed stage=${stage} ${message}`);
+          if (error instanceof StageError && error.status < 500 && error.status >= 400) {
+            return json({ error: message, stage }, error.status);
+          }
+          // Non-probe POST keeps the GENERIC body.
+          return json({ error: "server error" }, 502);
         }
       },
 
       // A7 WALK SURFACE: the full flow, rendered inline with its timings.
       GET: async ({ request }) => {
-        const { gateCategoriesAssets, json, fail5xx } =
-          await import("@/server/category-images/gate");
+        const { gateCategoriesAssets, json } = await import("@/server/category-images/gate");
         const url = new URL(request.url);
         if (url.searchParams.get("probe") !== "1") {
           return json({ error: "probe=1 required" }, 400);
@@ -210,13 +230,17 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
 </body></html>`;
           return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
         } catch (error) {
-          const { GeminiError } = await import("@/server/category-images/gemini");
-          const message = error instanceof Error ? error.message : "unknown error";
-          console.error(`[ssr-error] ${PATH} image_generate_failed ${message}`);
-          if (error instanceof GeminiError && error.status < 500) {
-            return json({ error: error.message }, error.status);
+          if (error instanceof CategoryNotFoundError) {
+            return json({ error: "category not found" }, 404);
           }
-          return fail5xx(PATH, message, 502);
+          const { StageError } = await import("@/server/category-images/pipeline");
+          const message = error instanceof Error ? error.message : "unknown error";
+          const stage = error instanceof StageError ? error.stage : "unknown";
+          console.error(`[ssr-error] ${PATH} image_generate_failed stage=${stage} ${message}`);
+          // ADMIN-GATED PROBE ONLY: the gate above proved `categories:assets`,
+          // so the true stage and message are admin-eyes-only detail (F4).
+          const status = error instanceof StageError && error.status >= 400 ? error.status : 502;
+          return json({ error: message, stage }, status >= 500 ? 502 : status);
         }
       },
     },

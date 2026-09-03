@@ -33,12 +33,12 @@ export function isFakeMode(): boolean {
 
 export function imageModel(): string {
   const value = serverEnv("GEMINI_IMAGE_MODEL").trim();
-  return value === "" ? "gemini-2.5-flash-image" : value;
+  return value === "" ? "gemini-3.1-flash-image" : value;
 }
 
 export function textModel(): string {
   const value = serverEnv("GEMINI_TEXT_MODEL").trim();
-  return value === "" ? "gemini-2.5-flash-lite" : value;
+  return value === "" ? "gemini-3.5-flash-lite" : value;
 }
 
 export class GeminiError extends Error {
@@ -87,8 +87,23 @@ async function callGemini(model: string, body: unknown): Promise<GeminiResponse>
   return parsed;
 }
 
-/** Returns the raw generated image bytes (base64-decoded inlineData). */
-export async function generateImageBytes(prompt: string): Promise<Uint8Array> {
+/**
+ * Returns the raw generated image bytes together with the mime the provider
+ * DECLARED (advisory only — the pipeline sniffs the magic bytes).
+ *
+ * REQUEST SHAPE CENSUS (v1beta :generateContent): the image-capable models take
+ * `generationConfig.responseModalities: ["TEXT","IMAGE"]`. There is NO
+ * output-image-mime hint on this endpoint — `responseMimeType` governs the TEXT
+ * part only, and sending an image mime there is rejected — so the output format
+ * cannot be pinned to PNG at request time. PART C's sniff-and-decode is the
+ * supported path; `imageConfig` is not accepted by v1beta generateContent.
+ */
+export interface GeneratedImage {
+  bytes: Uint8Array;
+  declaredMimeType: string;
+}
+
+export async function generateImageBytes(prompt: string): Promise<GeneratedImage> {
   const parsed = await callGemini(imageModel(), {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
@@ -100,7 +115,7 @@ export async function generateImageBytes(prompt: string): Promise<Uint8Array> {
   const binary = atob(data);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-  return bytes;
+  return { bytes, declaredMimeType: inline?.inlineData?.mimeType ?? "unknown" };
 }
 
 /** JSON-mode icon suggestion, constrained to the allowlist by responseSchema. */
