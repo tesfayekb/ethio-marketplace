@@ -725,9 +725,7 @@ export function AdminCategoriesPage() {
                     className="min-h-11"
                     data-testid="category-bulk-generate"
                     disabled={bulkBusy}
-                    onClick={() =>
-                      void runBulkFill(filtered.filter((row) => !row.hasImage))
-                    }
+                    onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
                   >
                     {t("admin.categories.bulk.generateMissing")}
                   </Button>
@@ -752,7 +750,10 @@ export function AdminCategoriesPage() {
                   </p>
                 )}
                 {bulkFailures.length === 0 ? null : (
-                  <ul data-testid="category-bulk-failures" className="w-full text-sm text-destructive">
+                  <ul
+                    data-testid="category-bulk-failures"
+                    className="w-full text-sm text-destructive"
+                  >
                     {bulkFailures.map((line) => (
                       <li key={line}>{line}</li>
                     ))}

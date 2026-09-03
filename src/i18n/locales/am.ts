@@ -821,7 +821,8 @@ export const am: Messages = {
   // C5b — category imagery + AI-assisted creation.
   "admin.categories.action.image": "ምስል",
   "admin.categories.image.title": "የምድብ ምስል",
-  "admin.categories.image.review": "የተፈጠሩ ምስሎች ወዲያውኑ ይቀመጣሉ እና እዚህ ይገመገማሉ፤ ትክክል እስኪሆን ድረስ እንደገና ያመንጩ።",
+  "admin.categories.image.review":
+    "የተፈጠሩ ምስሎች ወዲያውኑ ይቀመጣሉ እና እዚህ ይገመገማሉ፤ ትክክል እስኪሆን ድረስ እንደገና ያመንጩ።",
   "admin.categories.image.empty": "ለዚህ ምድብ ገና ምስል የለም።",
   "admin.categories.image.generate": "ምስል አመንጭ",
   "admin.categories.image.regenerate": "ምስል እንደገና አመንጭ",

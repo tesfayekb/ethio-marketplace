@@ -859,7 +859,8 @@ export const en = {
   // C5b — category imagery + AI-assisted creation.
   "admin.categories.action.image": "Image",
   "admin.categories.image.title": "Category image",
-  "admin.categories.image.review": "Generated assets are saved immediately and reviewed here; regenerate until the artwork is right.",
+  "admin.categories.image.review":
+    "Generated assets are saved immediately and reviewed here; regenerate until the artwork is right.",
   "admin.categories.image.empty": "No image yet for this category.",
   "admin.categories.image.generate": "Generate image",
   "admin.categories.image.regenerate": "Regenerate image",
@@ -869,13 +870,15 @@ export const en = {
   "admin.categories.image.og": "Social image 1200x630",
   "admin.categories.image.stageLabel": "stage:",
   "admin.categories.image.customPrompt": "Custom prompt",
-  "admin.categories.image.customPromptHelp": "Optional. Leave empty to use the house prompt for this category.",
+  "admin.categories.image.customPromptHelp":
+    "Optional. Leave empty to use the house prompt for this category.",
   "admin.categories.error.imageFailed": "Image generation failed",
   "admin.categories.create.iconSuggesting": "Suggesting an icon…",
   "admin.categories.create.iconSuggested": "Suggested icon",
   "admin.categories.create.iconChange": "Change",
   "admin.categories.create.iconPick": "Pick an icon",
-  "admin.categories.error.iconSuggestFailed": "Icon suggestion failed; the default icon was applied.",
+  "admin.categories.error.iconSuggestFailed":
+    "Icon suggestion failed; the default icon was applied.",
   "admin.categories.create.generateTitle": "Generate image now?",
   "admin.categories.create.generateSkip": "Skip",
   "admin.categories.bulk.generateMissing": "Generate missing (max 25)",

@@ -1212,10 +1212,10 @@ test.describe("C2 categories console", () => {
       }
       await expect(page.getByTestId("category-image-timings")).toBeVisible();
 
-      const first = await expect
+      await expect
         .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
-        .not.toBeNull()
-        .then(async () => await readImages(slug));
+        .not.toBeNull();
+      const first = await readImages(slug);
       expect(first?.image_thumb_url).toBeTruthy();
       expect(first?.og_image_url).toBeTruthy();
 
@@ -1281,7 +1281,8 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-create-name").blur();
       await expect
         .poll(
-          async () => (await page.getByTestId("category-create-icon-suggested").textContent()) ?? "",
+          async () =>
+            (await page.getByTestId("category-create-icon-suggested").textContent()) ?? "",
           { timeout: 20000 },
         )
         .not.toBe(en["admin.categories.create.iconSuggesting"]);
