@@ -1,13 +1,4 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  CalendarClock,
-  Globe,
-  MoreHorizontal,
-  Pencil,
-  Share2,
-  Trash2,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarClock, Globe, Pencil, Share2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -245,160 +236,94 @@ export function AdminCategoriesPage() {
     },
   ];
 
-  const rowActions = (row: CategoryNode, guard: GuardFn) => (
-    <>
-      {/* card twin: full-text buttons */}
-      <span className="flex flex-wrap gap-2 lg:hidden">
-        {mayUpdate ? (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid={`category-edit-${row.slug}`}
-              onClick={() => setDialog({ kind: "edit", id: row.id })}
-            >
-              {t("admin.categories.action.edit")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid={`category-window-${row.slug}`}
-              onClick={() => setDialog({ kind: "window", id: row.id })}
-            >
-              {t("admin.categories.action.window")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid={`category-exclusions-${row.slug}`}
-              onClick={() => setDialog({ kind: "exclusions", id: row.id })}
-            >
-              {t("admin.categories.action.exclusions")}
-            </Button>
-          </>
-        ) : null}
-        {mayRestructure ? (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid={`category-up-${row.slug}`}
-              onClick={() => move(row, -1, guard)}
-            >
-              {t("admin.categories.action.up")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid={`category-down-${row.slug}`}
-              onClick={() => move(row, 1, guard)}
-            >
-              {t("admin.categories.action.down")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid={`category-pointer-${row.slug}`}
-              onClick={() => setDialog({ kind: "pointer", id: row.id })}
-            >
-              {t("admin.categories.action.pointer")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid={`category-retire-${row.slug}`}
-              disabled={!row.isActive || row.isCatchall}
-              onClick={() => setDialog({ kind: "retire", id: row.id })}
-            >
-              {t("admin.categories.action.retire")}
-            </Button>
-          </>
-        ) : null}
-      </span>
+  /**
+   * ONE button set, two presentations (J5): the SAME element carries the
+   * canonical `category-<verb>-<slug>` testid at every viewport — a duplicated
+   * icon twin would put two matches inside one actions region and every
+   * twin-aware locator would resolve the hidden one. At lg the label collapses
+   * into `aria-label`/`title` and the row becomes a compact icon strip; below
+   * lg the card keeps full text. Targets are ≥44px in both presentations.
+   */
+  const rowActions = (row: CategoryNode, guard: GuardFn) => {
+    const verb = (
+      testid: string,
+      label: string,
+      icon: React.ReactNode,
+      onClick: () => void,
+      disabled?: boolean,
+    ) => (
+      <Button
+        key={testid}
+        type="button"
+        variant="outline"
+        className="min-h-11 shrink-0 lg:size-11 lg:p-0"
+        data-testid={testid}
+        aria-label={label}
+        title={label}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        {icon}
+        <span className="ms-2 lg:hidden">{label}</span>
+      </Button>
+    );
 
-      {/* table twin: one icon row + an inline overflow disclosure */}
-      <span className="hidden items-center justify-end gap-1 lg:flex">
-        {mayUpdate ? (
-          <>
-            <IconAction
-              testid={`category-edit-${row.slug}-icon`}
-              label={t("admin.categories.action.edit")}
-              icon={<Pencil aria-hidden="true" className="size-4" />}
-              onClick={() => setDialog({ kind: "edit", id: row.id })}
-            />
-            <IconAction
-              testid={`category-window-${row.slug}-icon`}
-              label={t("admin.categories.action.window")}
-              icon={<CalendarClock aria-hidden="true" className="size-4" />}
-              onClick={() => setDialog({ kind: "window", id: row.id })}
-            />
-            <IconAction
-              testid={`category-exclusions-${row.slug}-icon`}
-              label={t("admin.categories.action.exclusions")}
-              icon={<Globe aria-hidden="true" className="size-4" />}
-              onClick={() => setDialog({ kind: "exclusions", id: row.id })}
-            />
-          </>
-        ) : null}
-        {mayRestructure ? (
-          <>
-            <IconAction
-              testid={`category-up-${row.slug}-icon`}
-              label={t("admin.categories.action.up")}
-              icon={<ArrowUp aria-hidden="true" className="size-4" />}
-              onClick={() => move(row, -1, guard)}
-            />
-            <IconAction
-              testid={`category-down-${row.slug}-icon`}
-              label={t("admin.categories.action.down")}
-              icon={<ArrowDown aria-hidden="true" className="size-4" />}
-              onClick={() => move(row, 1, guard)}
-            />
-            <details className="relative shrink-0">
-              <summary
-                data-testid={`category-more-${row.slug}`}
-                aria-label={t("admin.categories.action.more")}
-                title={t("admin.categories.action.more")}
-                className="flex size-11 cursor-pointer list-none items-center justify-center rounded-md border border-input text-foreground"
-              >
-                <MoreHorizontal aria-hidden="true" className="size-4" />
-              </summary>
-              <span className="absolute end-0 z-20 mt-1 flex w-52 flex-col gap-1 rounded-md border border-border bg-popover p-1 shadow-md">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="min-h-11 justify-start"
-                  data-testid={`category-pointer-${row.slug}`}
-                  onClick={() => setDialog({ kind: "pointer", id: row.id })}
-                >
-                  <Share2 aria-hidden="true" className="me-2 size-4" />
-                  {t("admin.categories.action.pointer")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="min-h-11 justify-start"
-                  data-testid={`category-retire-${row.slug}`}
-                  disabled={!row.isActive || row.isCatchall}
-                  onClick={() => setDialog({ kind: "retire", id: row.id })}
-                >
-                  <Trash2 aria-hidden="true" className="me-2 size-4" />
-                  {t("admin.categories.action.retire")}
-                </Button>
-              </span>
-            </details>
-          </>
-        ) : null}
+    return (
+      <span className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end lg:gap-1">
+        {mayUpdate
+          ? [
+              verb(
+                `category-edit-${row.slug}`,
+                t("admin.categories.action.edit"),
+                <Pencil aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "edit", id: row.id }),
+              ),
+              verb(
+                `category-window-${row.slug}`,
+                t("admin.categories.action.window"),
+                <CalendarClock aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "window", id: row.id }),
+              ),
+              verb(
+                `category-exclusions-${row.slug}`,
+                t("admin.categories.action.exclusions"),
+                <Globe aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "exclusions", id: row.id }),
+              ),
+            ]
+          : null}
+        {mayRestructure
+          ? [
+              verb(
+                `category-up-${row.slug}`,
+                t("admin.categories.action.up"),
+                <ArrowUp aria-hidden="true" className="size-4" />,
+                () => move(row, -1, guard),
+              ),
+              verb(
+                `category-down-${row.slug}`,
+                t("admin.categories.action.down"),
+                <ArrowDown aria-hidden="true" className="size-4" />,
+                () => move(row, 1, guard),
+              ),
+              verb(
+                `category-pointer-${row.slug}`,
+                t("admin.categories.action.pointer"),
+                <Share2 aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "pointer", id: row.id }),
+              ),
+              verb(
+                `category-retire-${row.slug}`,
+                t("admin.categories.action.retire"),
+                <Trash2 aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "retire", id: row.id }),
+                !row.isActive || row.isCatchall,
+              ),
+            ]
+          : null}
       </span>
-    </>
-  );
+    );
+  };
 
   return (
     <StepUpGate>
