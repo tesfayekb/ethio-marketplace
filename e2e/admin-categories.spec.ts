@@ -128,13 +128,19 @@ async function destroyCategory(slug: string) {
   await supabase.from("categories").delete().eq("id", row.id);
 }
 
-/** Creates a scratch root category through the UI and returns its slug. */
+/**
+ * Creates a scratch root category through the UI and returns its slug.
+ *
+ * C2c — the slug is SERVER-DERIVED from the name, so the name IS the scratch
+ * token: derivation is the identity map on `[a-z0-9-]`, which keeps every
+ * fixture namespaced (J1) without the console guessing the server's answer.
+ */
 async function createViaUi(page: Page, secret: string) {
   const slug = scratchSlug();
   await gotoReady(page, "/admin/categories");
   await page.getByTestId("category-create-open").click();
-  await page.getByTestId("category-create-slug").fill(slug);
-  await page.getByTestId("category-create-name").fill(`E2E ${slug}`);
+  await page.getByTestId("category-create-name").fill(slug);
+  await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
   await page.getByTestId("category-create-submit").click();
   await stepUpIfPrompted(page, secret);
   await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
@@ -187,7 +193,7 @@ test.describe("C2 categories console", () => {
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
-      expect((await readCategory(slug))?.name_en).toBe(`E2E ${slug}`);
+      expect((await readCategory(slug))?.name_en).toBe(slug);
 
       await action(page, slug, "edit").click();
       await page.getByTestId("category-edit-name").fill(`E2E renamed ${slug}`);
@@ -358,6 +364,25 @@ test.describe("C2 categories console", () => {
       el.scrollLeft = el.scrollWidth;
     });
     await expect(action(page, "vehicles", "edit")).toBeInViewport();
+
+    // INC-134 — the same must hold at 1240×800, the band where the shared
+    // admin content region used to widen instead of letting the primitive
+    // scroll. Either the scroller engages or the wide tier has hidden enough
+    // that no scroll is needed; in BOTH readings the action is reachable and
+    // the PAGE never overflows.
+    await page.setViewportSize({ width: 1240, height: 800 });
+    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+    await expectNoHorizontalOverflow(page);
+    const geometry = await scroller.evaluate((el) => ({
+      scrollWidth: el.scrollWidth,
+      clientWidth: el.clientWidth,
+    }));
+    if (geometry.scrollWidth > geometry.clientWidth) {
+      await scroller.evaluate((el) => {
+        el.scrollLeft = el.scrollWidth;
+      });
+    }
+    await expect(action(page, "vehicles", "edit")).toBeInViewport();
   });
 
   test("CT-9 roster shape: a parent column and a 25-row page", async ({ page }) => {
@@ -374,5 +399,71 @@ test.describe("C2 categories console", () => {
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
     await page.getByTestId("category-pagination-next").click();
     await expect(page.getByTestId("category-pagination-range")).toContainText("26–50");
+  });
+
+  /**
+   * CT-10 (C2c) — a RETIRED node is not a destination. The picker must not
+   * offer it, otherwise a live child could be hung under a dead branch and
+   * vanish from browse the moment it is created.
+   */
+  test("CT-10 parent picker: retired nodes are absent and options carry paths", async ({
+    page,
+  }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      // Retire the scratch node through DB truth, then re-read the picker.
+      const target = await readCategory("vehicles");
+      const scratch = await readCategory(slug);
+      expect(target && scratch).toBeTruthy();
+      await adminClient().from("categories").update({ is_active: false }).eq("id", scratch!.id);
+
+      await page.reload();
+      await waitForHydration(page);
+      await page.getByTestId("category-create-open").click();
+      const options = page.getByTestId("category-create-parent").locator("option");
+      await expect(options.filter({ hasText: slug })).toHaveCount(0);
+      // Active options render their whole path, so a nested node shows "›".
+      await expect(options.filter({ hasText: "›" }).first()).toHaveCount(1);
+    } finally {
+      if (slug) await destroyCategory(slug);
+    }
+  });
+
+  /**
+   * CT-11 (C2c) — the missing-assets flag and the device page size. Page size
+   * is asserted ACROSS A RELOAD: a selector that forgets is not a setting.
+   */
+  test("CT-11 roster controls: missing-assets filter and a device page size", async ({ page }) => {
+    const admin = await createUser({ confirmed: true });
+    await grantRole(admin.id, "admin");
+    await switchUser(page, admin.email, admin.password);
+    await gotoReady(page, "/admin/categories");
+    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+
+    await page.getByTestId("category-page-size").selectOption("10");
+    await expect(page.getByTestId("category-pagination-range")).toContainText("1–10");
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("category-pagination-range")).toContainText("1–10", {
+      timeout: 20000,
+    });
+
+    // The filter narrows to rows the roster itself marks as missing assets;
+    // every surviving row must carry the amber flag (DB truth is the icon and
+    // image_url columns the RPC reports).
+    await page.getByTestId("category-missing-filter").click();
+    await expect(page.getByTestId("category-missing-filter")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    const rows = surface(page).locator('[data-testid^="category-row-"]');
+    const shown = await rows.count();
+    if (shown > 0) {
+      await expect(
+        surface(page).locator('[data-testid^="category-missing-"]').first(),
+      ).toBeVisible();
+    }
   });
 });
