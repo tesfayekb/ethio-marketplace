@@ -1687,6 +1687,8 @@ export type Database = {
         Args: { p_codes: string[] }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       submit_listing: {
         Args: {
           p_attributes?: Json

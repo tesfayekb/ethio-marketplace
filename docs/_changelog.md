@@ -294,3 +294,4 @@
 - 2026-09-03 — feat(db): C1 category era taxonomy migration applied (20260903022519) — 113 active nodes (14 roots, 14 catch-alls), pointer tree rebuilt, jobs retired, am names into entity layer, offer_type at 9 leaves; mark 20260903030000
 - 2026-09-03 · C2-mig · category console machinery: exclusions table, cycle trigger, granular categories permissions (manage retired), visibility-law browse RPC + admin RPC set.
 - 2026-09-03 · C2-fix · permission-string consumers migrated (sections gate → categories:view) + D2 keys for restructure/assets (EN+AM); usage map regenerated.
+- 2026-09-03 · C2-audit-rewrite · INC-129 closed: admin_list_audit bounded (capped total_count, page-scoped profiles join, trigram entity_id search); contract unchanged.
