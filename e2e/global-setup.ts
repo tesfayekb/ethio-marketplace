@@ -328,6 +328,62 @@ export default async function globalSetup() {
   }
   console.log(`[e2e:setup] reaped ${staleRoleIds.length} stale scratch role(s)`);
 
+  // DEC-031 — SCRATCH CATEGORIES. C2-UI's console creates real tree rows
+  // (`e2e-cat-%`); an unreaped graveyard would both hide new rows behind
+  // PostgREST's 1000-row cap and pollute the browse tree. Dependents first:
+  // pointers and exclusions reference the category, translations key off it.
+  const { data: staleCategories, error: staleCategoryError } = await supabase
+    .from("categories")
+    .select("id")
+    .like("slug", "e2e-cat-%")
+    .lt("created_at", cutoff);
+  if (staleCategoryError) {
+    throw new Error(
+      `[e2e:setup] listing stale scratch categories failed: ${staleCategoryError.message}`,
+    );
+  }
+  const staleCategoryIds = (staleCategories ?? []).map((row) => row.id);
+  if (staleCategoryIds.length > 0) {
+    const { error: pointerError } = await supabase
+      .from("category_tree_pointers")
+      .delete()
+      .or(
+        `category_id.in.(${staleCategoryIds.join(",")}),parent_id.in.(${staleCategoryIds.join(",")})`,
+      );
+    if (pointerError) {
+      throw new Error(`[e2e:setup] reaping scratch category pointers failed: ${pointerError.message}`);
+    }
+    const { error: exclusionError } = await supabase
+      .from("category_country_exclusions")
+      .delete()
+      .in("category_id", staleCategoryIds);
+    if (exclusionError) {
+      throw new Error(
+        `[e2e:setup] reaping scratch category exclusions failed: ${exclusionError.message}`,
+      );
+    }
+    const { error: categoryTranslationError } = await supabase
+      .from("entity_translations")
+      .delete()
+      .eq("entity_type", "category")
+      .in("entity_id", staleCategoryIds);
+    if (categoryTranslationError) {
+      throw new Error(
+        `[e2e:setup] reaping scratch category translations failed: ${categoryTranslationError.message}`,
+      );
+    }
+    const { error: categoryDeleteError } = await supabase
+      .from("categories")
+      .delete()
+      .in("id", staleCategoryIds);
+    if (categoryDeleteError) {
+      throw new Error(
+        `[e2e:setup] reaping scratch categories failed: ${categoryDeleteError.message}`,
+      );
+    }
+  }
+  console.log(`[e2e:setup] reaped ${staleCategoryIds.length} stale scratch categor(ies)`);
+
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 
   console.log(`[e2e:setup] state written; setup complete`);
