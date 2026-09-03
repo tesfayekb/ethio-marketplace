@@ -12,7 +12,10 @@ import { useI18n } from "@/i18n";
 import type { CategoryNode, CategoryRow } from "./categories-service";
 import {
   useAddCategoryPointer,
+  useCategoryPointers,
   useCreateCategory,
+  useMoveCategoryPointer,
+  useRemoveCategoryPointer,
   useRetireCategory,
   useSetCategoryWindow,
   useSetCountryExclusions,
@@ -638,6 +641,154 @@ export function AddPointerDialog({
         onSubmit={submit}
         busy={addPointer.isPending}
         submitTestId="category-pointer-submit"
+      />
+    </CategoryModal>
+  );
+}
+
+/* ----------------------------- browse paths ------------------------------ */
+
+/**
+ * C2-UI-FIX — BROWSE PATHS. `admin_list_category_pointers` (C2b) finally gives
+ * the console pointer IDs, so move and remove stop being a documented
+ * limitation. Every write goes through the same step-up `guard`; the RPC
+ * re-checks `categories:restructure` and the step-up server-side (F3).
+ */
+export function CategoryPathsDialog({
+  category,
+  parents,
+  guard,
+  onClose,
+}: {
+  category: CategoryRow;
+  parents: CategoryNode[];
+  guard: GuardFn;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const pointers = useCategoryPointers(category.id);
+  const movePointer = useMoveCategoryPointer();
+  const removePointer = useRemoveCategoryPointer();
+  const addPointer = useAddCategoryPointer();
+  const { message, setMessage, fail } = useSubmitError();
+  const [addParentId, setAddParentId] = useState("");
+
+  const candidates = parents.filter((row) => row.id !== category.id);
+
+  const run = (work: () => Promise<unknown>) => {
+    setMessage(null);
+    void guard(async () => {
+      try {
+        await work();
+      } catch (error) {
+        fail(error);
+      }
+    });
+  };
+
+  const busy = movePointer.isPending || removePointer.isPending || addPointer.isPending;
+
+  return (
+    <CategoryModal
+      testid="category-paths-dialog"
+      title={t("admin.categories.paths.title")}
+      onClose={onClose}
+    >
+      <p className="text-sm text-muted-foreground">{t("admin.categories.paths.hint")}</p>
+
+      {pointers.isLoading ? (
+        <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+          {t("admin.categories.paths.loading")}
+        </p>
+      ) : pointers.error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {t("admin.categories.paths.error")}
+        </p>
+      ) : (pointers.data ?? []).length === 0 ? (
+        <p data-testid="category-paths-empty" className="text-sm text-muted-foreground">
+          {t("admin.categories.paths.empty")}
+        </p>
+      ) : (
+        <ul className="min-w-0 space-y-2">
+          {(pointers.data ?? []).map((pointer) => (
+            <li
+              key={pointer.pointerId}
+              data-testid={`category-path-${pointer.pointerId}`}
+              className="min-w-0 space-y-2 rounded-md border border-border p-3"
+            >
+              <p className="min-w-0 break-words text-sm text-foreground">
+                {pointer.parentNameEn ?? t("admin.categories.paths.root")}
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <select
+                  aria-label={t("admin.categories.paths.moveTo")}
+                  data-testid={`category-path-move-${pointer.pointerId}`}
+                  className={SELECT_CLASS}
+                  value={pointer.parentId ?? ""}
+                  disabled={busy}
+                  onChange={(event) => {
+                    const next = event.target.value === "" ? null : event.target.value;
+                    run(() =>
+                      movePointer.mutateAsync({ pointerId: pointer.pointerId, newParentId: next }),
+                    );
+                  }}
+                >
+                  <option value="">{t("admin.categories.paths.root")}</option>
+                  {candidates.map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {`${"— ".repeat(row.depth)}${row.nameEn}`}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11"
+                  data-testid={`category-path-remove-${pointer.pointerId}`}
+                  disabled={busy}
+                  onClick={() => run(() => removePointer.mutateAsync(pointer.pointerId))}
+                >
+                  {t("admin.categories.paths.remove")}
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <FormField label={t("admin.categories.paths.add")} htmlFor="category-paths-add">
+        <select
+          id="category-paths-add"
+          data-testid="category-paths-add"
+          className={SELECT_CLASS}
+          value={addParentId}
+          disabled={busy}
+          onChange={(event) => setAddParentId(event.target.value)}
+        >
+          <option value="">{t("admin.categories.pointer.parentPlaceholder")}</option>
+          {candidates.map((row) => (
+            <option key={row.id} value={row.id}>
+              {`${"— ".repeat(row.depth)}${row.nameEn}`}
+            </option>
+          ))}
+        </select>
+      </FormField>
+      <ErrorLine message={message} />
+      <DialogActions
+        onCancel={onClose}
+        onSubmit={() => {
+          if (addParentId === "") {
+            setMessage(t("admin.categories.error.parentRequired"));
+            return;
+          }
+          run(async () => {
+            await addPointer.mutateAsync({ parentId: addParentId, childId: category.id });
+            setAddParentId("");
+          });
+        }}
+        busy={busy}
+        submitTestId="category-paths-add-submit"
+        submitLabel={t("admin.categories.paths.addSubmit")}
       />
     </CategoryModal>
   );
