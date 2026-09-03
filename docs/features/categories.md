@@ -227,9 +227,11 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
 - **Pipeline** (`src/server/category-images/**`, pure JS on `pngjs`): master
   prompt verbatim in code (palette #1E5A43 primary / #C98A2B accent, white
   background, flat vector, no text, ~85% fill); decode → white-to-transparent →
-  content-bounds crop → scale to 85% fill → six diagonal "ethio.com" watermarks
-  at −30° / 28% opacity drawn BEHIND the icon → 512 card → 128 thumb derived
-  from the card → 1200×630 OG composed programmatically (no second AI call).
+  content-bounds crop → scale to 85% fill → three diagonal "ethio.com" watermarks
+  at −30° / 10% opacity drawn BEHIND the icon (C5c) → 512 card → 128 thumb
+  derived from the card → 1200×630 OG composed programmatically (no second AI
+  call), its icon at 75% of the SHORTER dimension (≈470px) so the canvas reads
+  as one composition rather than empty flanks.
   Every stage is timed and returned as `{genMs, processMs, totalMs}`.
 - **Routes.** `POST /api/admin/categories/generate-image` (body
   `{categoryId, customPrompt?}`) uploads the three assets and persists
@@ -250,7 +252,10 @@ The Image tab of the category editor is the review surface for AI-generated
 artwork. Generation is not a draft: the gated route writes the three objects
 (card 512, thumbnail 128, social 1200x630) and the category row in one call,
 and the operator reviews the result here and regenerates until it is right. A
-custom prompt is optional and is persisted with the row. A draft-asset state
+The prompt is
+UNIFORM (C5c): the console offers no prompt field, every generation uses the
+house prompt, and `image_generation_prompt` is written only when a genuinely
+custom prompt is supplied by a future caller — today it persists NULL. A draft-asset state
 (generate, hold, publish) arrives when listings consume category imagery — the
 ruling logged with C5b keeps today's model deliberately simple.
 

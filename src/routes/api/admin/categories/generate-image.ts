@@ -120,9 +120,8 @@ async function run(
       p_og_image_url: ogUrl,
       // C5c PART C.2 — the column records a CUSTOM prompt only; the uniform
       // house prompt is code truth, not row truth, so it persists as NULL.
-      p_generation_prompt: (customPrompt ?? "").trim() === ""
-        ? (null as unknown as string)
-        : prompt,
+      p_generation_prompt:
+        (customPrompt ?? "").trim() === "" ? (null as unknown as string) : prompt,
     });
     if (error) throw new StageError("persist", error.message, 500);
   });

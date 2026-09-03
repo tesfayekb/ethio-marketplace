@@ -312,12 +312,6 @@
     "admin.categories.image.card": [
       "/admin/categories"
     ],
-    "admin.categories.image.customPrompt": [
-      "/admin/categories"
-    ],
-    "admin.categories.image.customPromptHelp": [
-      "/admin/categories"
-    ],
     "admin.categories.image.empty": [
       "/admin/categories"
     ],

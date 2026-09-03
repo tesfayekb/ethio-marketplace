@@ -1290,7 +1290,7 @@ test.describe("C2 categories console", () => {
     };
     // C5c PART A — the dump is LAZY: it is built inside the failure path only,
     // never on the happy path (six eager dumps cost six DB round-trips a run).
-    const lazily = async <T,>(label: string, run: () => Promise<T>): Promise<T> => {
+    const lazily = async <T>(label: string, run: () => Promise<T>): Promise<T> => {
       try {
         return await run();
       } catch (error) {
