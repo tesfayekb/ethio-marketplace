@@ -40,7 +40,13 @@ import { PageCard } from "./page-card";
  * `data-table-selection`.
  */
 
-export type ColumnPriority = "primary" | "secondary" | "detail";
+/**
+ * C7 / INC-135 — `wide` is the tier ABOVE `detail`: a column that only earns
+ * its horizontal budget on a genuinely wide desktop (xl and up). Dense rosters
+ * park their numeric tail there so the tablet/laptop band shows the columns an
+ * operator acts on, and the scroller carries the rest.
+ */
+export type ColumnPriority = "primary" | "secondary" | "detail" | "wide";
 
 /** C7 / INC-130 — where the card twin gives way to the table twin. */
 export type CardUntil = "md" | "lg";
