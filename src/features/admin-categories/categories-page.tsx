@@ -10,7 +10,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { DataTable, DataTablePagination, type DataTableColumn } from "@/components/shell/data-table";
+import {
+  DataTable,
+  DataTablePagination,
+  type DataTableColumn,
+} from "@/components/shell/data-table";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -119,9 +123,7 @@ export function AdminCategoriesPage() {
       roster.filter((row) => {
         if (rootFilter !== "" && rootOf(row) !== rootFilter) return false;
         if (needle === "") return true;
-        return (
-          row.nameEn.toLowerCase().includes(needle) || row.slug.toLowerCase().includes(needle)
-        );
+        return row.nameEn.toLowerCase().includes(needle) || row.slug.toLowerCase().includes(needle);
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [roster, needle, rootFilter, byId],

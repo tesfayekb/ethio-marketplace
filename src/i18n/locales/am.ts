@@ -783,7 +783,8 @@ export const am: Messages = {
   "admin.categories.filter.root": "በዋና ምድብ አጣራ",
   "admin.categories.filter.allRoots": "ሁሉም ዋና ምድቦች",
   "admin.categories.paths.title": "የአሰሳ መንገዶች",
-  "admin.categories.paths.hint": "ይህ ምድብ በአሰሳ ዛፉ ውስጥ የሚታይባቸው ሁሉም ቦታዎች። መንገድን ማንቀሳቀስ ወይም ማስወገድ ምድቡን አያባዛም።",
+  "admin.categories.paths.hint":
+    "ይህ ምድብ በአሰሳ ዛፉ ውስጥ የሚታይባቸው ሁሉም ቦታዎች። መንገድን ማንቀሳቀስ ወይም ማስወገድ ምድቡን አያባዛም።",
   "admin.categories.paths.loading": "የአሰሳ መንገዶች በመጫን ላይ…",
   "admin.categories.paths.error": "የአሰሳ መንገዶችን መጫን አልተቻለም።",
   "admin.categories.paths.empty": "ይህ ምድብ እስካሁን የአሰሳ መንገድ የለውም።",

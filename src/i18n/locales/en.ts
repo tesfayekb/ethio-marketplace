@@ -819,7 +819,8 @@ export const en = {
   "admin.categories.filter.root": "Filter by root category",
   "admin.categories.filter.allRoots": "All root categories",
   "admin.categories.paths.title": "Browse paths",
-  "admin.categories.paths.hint": "Every place this category appears in the browse tree. Moving or removing a path never duplicates the category itself.",
+  "admin.categories.paths.hint":
+    "Every place this category appears in the browse tree. Moving or removing a path never duplicates the category itself.",
   "admin.categories.paths.loading": "Loading browse paths…",
   "admin.categories.paths.error": "Browse paths could not be loaded.",
   "admin.categories.paths.empty": "This category has no browse path yet.",

@@ -96,6 +96,21 @@ describe("DataTable C7 contract", () => {
     expect(container.querySelector("table")?.className).toContain("table-fixed");
   });
 
+  it("owns min-w-0/max-w-full on every link of its own scroller chain (INC-132)", () => {
+    renderTable({ columns: columns("min-w-40"), className: "flex-1" });
+    // frame → body → card → scroller: a single ancestor at min-width:auto
+    // would widen the chain and the scroller would never engage.
+    const scroller = screen.getByTestId("data-table-scroller");
+    expect(scroller.className).toContain("min-w-0");
+    expect(scroller.className).toContain("max-w-full");
+    const card = screen.getByTestId("data-table");
+    expect(card.className).toContain("min-w-0");
+    expect(card.className).toContain("max-w-full");
+    const frame = card.parentElement!.parentElement!;
+    expect(frame.className).toContain("min-w-0");
+    expect(frame.className).toContain("max-w-full");
+  });
+
   it("renders the empty, loading and error slots unchanged", () => {
     const empty = renderTable({ rows: [] });
     expect(screen.getByTestId("slot-empty")).toBeTruthy();
