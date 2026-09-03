@@ -230,3 +230,43 @@ export function toRoster(rows: CategoryRow[]): CategoryNode[] {
   walk(null, 0);
   return out;
 }
+
+/**
+ * C2c — the CREATE dialog's read-only slug preview. It mirrors the server's
+ * derivation (lower, non-alphanumerics → '-', trim '-') but never decides
+ * anything: the RPC owns the final value and its uniqueness suffix (F3).
+ */
+export function deriveSlugPreview(nameEn: string): string {
+  const base = nameEn
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return base === "" ? "category" : base;
+}
+
+export interface ParentOption {
+  id: string;
+  /** The whole browse path, e.g. "Vehicles › Cars › Sedans". */
+  label: string;
+}
+
+/**
+ * C2c — parent pickers offer ACTIVE nodes only, each rendered with its path.
+ * A retired node is not a destination: hanging a live category under it would
+ * hide the child from browse the moment it is created.
+ */
+export function activeParentOptions(roster: CategoryNode[], excludeId?: string): ParentOption[] {
+  const byId = new Map(roster.map((row) => [row.id, row]));
+  const pathOf = (row: CategoryNode): string => {
+    const parts: string[] = [];
+    let current: CategoryNode | undefined = row;
+    while (current) {
+      parts.unshift(current.nameEn);
+      current = current.parentId === null ? undefined : byId.get(current.parentId);
+    }
+    return parts.join(" › ");
+  };
+  return roster
+    .filter((row) => row.isActive && row.id !== excludeId)
+    .map((row) => ({ id: row.id, label: pathOf(row) }));
+}
