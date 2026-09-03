@@ -89,7 +89,8 @@ export interface UpdateCategoryInput {
   displayOrder: number;
   allowListings: boolean;
   priceEnabled: boolean;
-  expiryDays: number;
+  /** C2g/INC-143 — NULL is "no expiry"; the console never invents a number. */
+  expiryDays: number | null;
 }
 
 export async function updateCategory(input: UpdateCategoryInput): Promise<void> {
@@ -100,7 +101,7 @@ export async function updateCategory(input: UpdateCategoryInput): Promise<void> 
     p_display_order: input.displayOrder,
     p_allow_listings: input.allowListings,
     p_price_enabled: input.priceEnabled,
-    p_expiry_days: input.expiryDays,
+    p_expiry_days: input.expiryDays as number,
   });
   if (error) throw error;
 }
@@ -253,7 +254,9 @@ export interface ParentOption {
 /**
  * C2c — parent pickers offer ACTIVE nodes only, each rendered with its path.
  * A retired node is not a destination: hanging a live category under it would
- * hide the child from browse the moment it is created.
+ * hide the child from browse the moment it is created. C2g adds the catch-all
+ * law: an "Other <Root>" bucket is terminal and never a parent — the server
+ * refuses it, so the picker never offers it.
  */
 export function activeParentOptions(roster: CategoryNode[], excludeId?: string): ParentOption[] {
   const byId = new Map(roster.map((row) => [row.id, row]));
@@ -267,7 +270,7 @@ export function activeParentOptions(roster: CategoryNode[], excludeId?: string):
     return parts.join(" › ");
   };
   return roster
-    .filter((row) => row.isActive && row.id !== excludeId)
+    .filter((row) => row.isActive && !row.isCatchall && row.id !== excludeId)
     .map((row) => ({ id: row.id, label: pathOf(row) }));
 }
 

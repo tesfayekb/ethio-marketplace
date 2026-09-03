@@ -261,7 +261,10 @@ export function EditCategoryDialog({
   const [displayOrder, setDisplayOrder] = useState(String(category.displayOrder));
   const [allowListings, setAllowListings] = useState(category.allowListings);
   const [priceEnabled, setPriceEnabled] = useState(category.priceEnabled);
-  const [expiryDays, setExpiryDays] = useState(String(category.expiryDays ?? 30));
+  // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal anywhere.
+  const [expiryDays, setExpiryDays] = useState(
+    category.expiryDays === null ? "" : String(category.expiryDays),
+  );
 
   const submit = () => {
     setMessage(null);
@@ -278,7 +281,7 @@ export function EditCategoryDialog({
           displayOrder: Number(displayOrder) || 0,
           allowListings,
           priceEnabled,
-          expiryDays: Number(expiryDays) || 0,
+          expiryDays: expiryDays.trim() === "" ? null : Number(expiryDays),
         });
         onClose();
       } catch (error) {
@@ -324,6 +327,7 @@ export function EditCategoryDialog({
           id="category-edit-expiry"
           data-testid="category-edit-expiry"
           inputMode="numeric"
+          placeholder={t("admin.categories.field.expiryNone")}
           value={expiryDays}
           onChange={(event) => setExpiryDays(event.target.value)}
         />
