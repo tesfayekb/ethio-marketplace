@@ -37,9 +37,27 @@ function scratchSlug() {
   return `e2e-cat-${RUN}-${worker}-${rand()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 }
 
-/** The C7 twin boundary for THIS console (cardUntil="lg"). */
+/** The C7 twin boundary for THIS console (C2-UI-FIX-3: cardUntil="xl"). */
+const TWIN_BOUNDARY = 1280;
+
 function isCardTwin(page: Page) {
-  return (page.viewportSize()?.width ?? 1280) < 1024;
+  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
+}
+
+/**
+ * SPEC VIEWPORT LAW (C2-UI-FIX-3) — every test block opens by declaring the
+ * band it asserts, so a table-shape assertion never runs in the 360 project
+ * (where there is no table) and a card assertion never runs at 1280. Blocks
+ * that resize the page themselves declare `desktop`: they own the viewport
+ * and must execute exactly once, in one project.
+ */
+function bandOnly(page: Page, band: "mobile" | "desktop" | "any") {
+  if (band === "any") return;
+  const width = page.viewportSize()?.width ?? TWIN_BOUNDARY;
+  test.skip(
+    band === "mobile" ? width >= TWIN_BOUNDARY : width < TWIN_BOUNDARY,
+    `this block asserts the ${band} band`,
+  );
 }
 
 function surface(page: Page): Locator {
@@ -151,6 +169,7 @@ test.describe("C2 categories console", () => {
   test("CT-1 gating: a plain user is refused; the section renders for an admin", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const plain = await createUser({ confirmed: true });
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/categories");
@@ -168,6 +187,7 @@ test.describe("C2 categories console", () => {
   test("CT-2 roster: the ratified tree renders, search narrows it, nothing overflows", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
@@ -189,6 +209,7 @@ test.describe("C2 categories console", () => {
   test("CT-3 create + edit: a scratch category is born and renamed through step-up", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -209,6 +230,7 @@ test.describe("C2 categories console", () => {
   });
 
   test("CT-4 visibility window: a future window is stored as DB truth", async ({ page }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -227,6 +249,7 @@ test.describe("C2 categories console", () => {
   });
 
   test("CT-5 exclusions: saving a country set writes the exclusion rows", async ({ page }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -257,6 +280,7 @@ test.describe("C2 categories console", () => {
   test("CT-6 retirement: a retired category leaves the active tree and keeps its listings home", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -278,6 +302,7 @@ test.describe("C2 categories console", () => {
   });
 
   test("CT-7 step-up: the server refuses the write until AAL2 is proven", async ({ page }) => {
+    bandOnly(page, "any");
     // A super admin who has NOT stepped up: the create dialog submits, the
     // gate intercepts, and no row exists until the code is entered (F3/F5 —
     // a refused attempt leaves no trace).
@@ -303,6 +328,7 @@ test.describe("C2 categories console", () => {
    * the attempt (F5 — a refused attempt leaves no trace).
    */
   test("CT-7b browse paths: an unproven factor cannot move a pointer", async ({ page }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -409,6 +435,7 @@ test.describe("C2 categories console", () => {
   test("CT-10 parent picker: retired nodes are absent and options carry paths", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -435,6 +462,7 @@ test.describe("C2 categories console", () => {
    * is asserted ACROSS A RELOAD: a selector that forgets is not a setting.
    */
   test("CT-11 roster controls: missing-assets filter and a device page size", async ({ page }) => {
+    bandOnly(page, "any");
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
