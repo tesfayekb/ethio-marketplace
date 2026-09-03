@@ -672,6 +672,7 @@ export function AdminCategoriesPage() {
           {dialog.kind === "create" ? (
             <CreateCategoryDialog
               parents={roster}
+              openedBy="create-button"
               guard={guard}
               onClose={() => closeDialog({ kind: "none" })}
             />
@@ -680,6 +681,7 @@ export function AdminCategoriesPage() {
             <EditCategoryDialog
               category={selected}
               guard={guard}
+              openedBy={dialog.openedBy}
               verbBar={editorVerbs(selected, guard)}
               onClose={() => closeDialog({ kind: "none" })}
             />
@@ -687,6 +689,7 @@ export function AdminCategoriesPage() {
           {selected && dialog.kind === "edit" && dialog.sub === "window" ? (
             <CategoryWindowDialog
               category={selected}
+              openedBy="verb-window"
               guard={guard}
               onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
             />
@@ -694,6 +697,7 @@ export function AdminCategoriesPage() {
           {selected && dialog.kind === "edit" && dialog.sub === "exclusions" ? (
             <CategoryExclusionsDialog
               category={selected}
+              openedBy="verb-exclusions"
               countries={(countries.data ?? []).map((country) => ({
                 code: country.code,
                 nameEn: country.nameEn,
@@ -705,6 +709,7 @@ export function AdminCategoriesPage() {
           {selected && dialog.kind === "edit" && dialog.sub === "retire" ? (
             <RetireCategoryDialog
               category={selected}
+              openedBy="verb-retire"
               targets={roster.filter((row) => row.isActive)}
               guard={guard}
               onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
@@ -713,6 +718,7 @@ export function AdminCategoriesPage() {
           {selected && dialog.kind === "edit" && dialog.sub === "delete" ? (
             <DeleteCategoryDialog
               category={selected}
+              openedBy="verb-delete"
               guard={guard}
               onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
             />
@@ -720,6 +726,7 @@ export function AdminCategoriesPage() {
           {selected && dialog.kind === "edit" && dialog.sub === "pointer" ? (
             <CategoryPathsDialog
               category={selected}
+              openedBy="verb-pointer"
               parents={roster}
               guard={guard}
               onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
