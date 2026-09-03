@@ -270,12 +270,18 @@ async function createViaUi(page: Page, secret: string) {
   await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
   await page.getByTestId("category-create-submit").click();
   await stepUpIfPrompted(page, secret);
-  // C2-GHOST PART B — the state right after step-up is the ghost's birthplace.
-  const afterStepUp = await dialogDump(page, `createViaUi(${slug}) after step-up`);
+  // C5b-HELPER — the create dialog advances to the Generate-now step; most
+  // tests skip it so CT-17 remains the only test exercising Generate.
+  await expect(page.getByTestId("category-create-generate-step")).toBeVisible({ timeout: 20000 });
+  await page.getByTestId("category-create-generate-skip").click();
+  await expect(page.getByTestId("category-create-dialog")).toHaveCount(0, { timeout: 20000 });
+  // C2-GHOST PART B — the state right after the create dialog closes is the
+  // ghost's birthplace; the dump names any dialog still open.
+  const afterCreate = await dialogDump(page, `createViaUi(${slug}) after create`);
   try {
     await findRow(page, slug);
   } catch (error) {
-    throw new Error(`${error instanceof Error ? error.message : String(error)}\n${afterStepUp}`);
+    throw new Error(`${error instanceof Error ? error.message : String(error)}\n${afterCreate}`);
   }
   return slug;
 }
