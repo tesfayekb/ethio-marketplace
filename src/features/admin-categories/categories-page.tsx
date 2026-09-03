@@ -199,9 +199,7 @@ export function AdminCategoriesPage() {
    * (retire / reactivate) the moment the query settles.
    */
   const selected =
-    dialog.kind === "none" || dialog.kind === "create"
-      ? null
-      : (roster.find((row) => row.id === dialog.id) ?? null);
+    dialog.kind === "edit" ? (roster.find((row) => row.id === dialog.id) ?? null) : null;
 
   // A newly opened dialog never inherits the previous verb's refusal.
   useEffect(() => {
@@ -210,7 +208,7 @@ export function AdminCategoriesPage() {
 
   /** ... and the editor closes gracefully when its row vanishes (delete). */
   useEffect(() => {
-    if (dialog.kind === "none" || dialog.kind === "create") return;
+    if (dialog.kind !== "edit") return;
     if (isLoading) return;
     if (!roster.some((row) => row.id === dialog.id)) setDialog({ kind: "none" });
   }, [dialog, roster, isLoading]);
@@ -411,7 +409,7 @@ export function AdminCategoriesPage() {
           data-testid={`category-edit-${row.slug}`}
           aria-label={t("admin.categories.action.edit")}
           title={t("admin.categories.action.edit")}
-          onClick={() => setDialog({ kind: "edit", id: row.id })}
+          onClick={() => setDialog({ kind: "edit", id: row.id, sub: null })}
         >
           <Pencil aria-hidden="true" className="size-4" />
         </Button>
@@ -465,13 +463,13 @@ export function AdminCategoriesPage() {
                 `category-window-${row.slug}`,
                 t("admin.categories.action.window"),
                 <CalendarClock aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "window", id: row.id }),
+                () => setDialog({ kind: "edit", id: row.id, sub: "window" }),
               ),
               verb(
                 `category-exclusions-${row.slug}`,
                 t("admin.categories.action.exclusions"),
                 <Globe aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "exclusions", id: row.id }),
+                () => setDialog({ kind: "edit", id: row.id, sub: "exclusions" }),
               ),
             ]
           : null}
@@ -481,7 +479,7 @@ export function AdminCategoriesPage() {
                 `category-pointer-${row.slug}`,
                 t("admin.categories.action.pointer"),
                 <Share2 aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "pointer", id: row.id }),
+                () => setDialog({ kind: "edit", id: row.id, sub: "pointer" }),
               ),
               // C2g — a catch-all is pinned last by the server, so it carries
               // no Move verbs at all (the console never offers a refused move).
@@ -509,7 +507,7 @@ export function AdminCategoriesPage() {
                     `category-retire-${row.slug}`,
                     t("admin.categories.action.retire"),
                     <Trash2 aria-hidden="true" className="size-4" />,
-                    () => setDialog({ kind: "retire", id: row.id }),
+                    () => setDialog({ kind: "edit", id: row.id, sub: "retire" }),
                     row.isCatchall,
                   )
                 : verb(
@@ -527,7 +525,7 @@ export function AdminCategoriesPage() {
                     `category-delete-${row.slug}`,
                     t("admin.categories.action.delete"),
                     <Trash aria-hidden="true" className="size-4" />,
-                    () => setDialog({ kind: "delete", id: row.id }),
+                    () => setDialog({ kind: "edit", id: row.id, sub: "delete" }),
                     false,
                     true,
                   ),
@@ -643,7 +641,7 @@ export function AdminCategoriesPage() {
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
-          {selected && dialog.kind === "edit" ? (
+          {selected && dialog.kind === "edit" && dialog.sub === null ? (
             <EditCategoryDialog
               category={selected}
               guard={guard}
@@ -651,14 +649,14 @@ export function AdminCategoriesPage() {
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
-          {selected && dialog.kind === "window" ? (
+          {selected && dialog.kind === "edit" && dialog.sub === "window" ? (
             <CategoryWindowDialog
               category={selected}
               guard={guard}
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
-          {selected && dialog.kind === "exclusions" ? (
+          {selected && dialog.kind === "edit" && dialog.sub === "exclusions" ? (
             <CategoryExclusionsDialog
               category={selected}
               countries={(countries.data ?? []).map((country) => ({
@@ -669,7 +667,7 @@ export function AdminCategoriesPage() {
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
-          {selected && dialog.kind === "retire" ? (
+          {selected && dialog.kind === "edit" && dialog.sub === "retire" ? (
             <RetireCategoryDialog
               category={selected}
               targets={roster.filter((row) => row.isActive)}
@@ -677,14 +675,14 @@ export function AdminCategoriesPage() {
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
-          {selected && dialog.kind === "delete" ? (
+          {selected && dialog.kind === "edit" && dialog.sub === "delete" ? (
             <DeleteCategoryDialog
               category={selected}
               guard={guard}
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
-          {selected && dialog.kind === "pointer" ? (
+          {selected && dialog.kind === "edit" && dialog.sub === "pointer" ? (
             <CategoryPathsDialog
               category={selected}
               parents={roster}
