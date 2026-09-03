@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
-import type { CategoryNode, CategoryRow } from "./categories-service";
+import {
+  activeParentOptions,
+  deriveSlugPreview,
+  type CategoryNode,
+  type CategoryRow,
+} from "./categories-service";
 import {
   useAddCategoryPointer,
   useCategoryPointers,
@@ -99,7 +104,6 @@ export function CreateCategoryDialog({
   const { t } = useI18n();
   const create = useCreateCategory();
   const { message, setMessage, fail } = useSubmitError();
-  const [slug, setSlug] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [icon, setIcon] = useState("");
   const [parentId, setParentId] = useState("");
@@ -107,10 +111,6 @@ export function CreateCategoryDialog({
 
   const submit = () => {
     setMessage(null);
-    if (slug.trim().length === 0) {
-      setMessage(t("admin.categories.error.slugRequired"));
-      return;
-    }
     if (nameEn.trim().length === 0) {
       setMessage(t("admin.categories.error.nameRequired"));
       return;
@@ -118,7 +118,6 @@ export function CreateCategoryDialog({
     void guard(async () => {
       try {
         await create.mutateAsync({
-          slug: slug.trim(),
           nameEn: nameEn.trim(),
           icon: icon.trim(),
           parentId: parentId === "" ? null : parentId,
@@ -137,14 +136,6 @@ export function CreateCategoryDialog({
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
-      <FormField label={t("admin.categories.create.slug")} htmlFor="category-create-slug">
-        <Input
-          id="category-create-slug"
-          data-testid="category-create-slug"
-          value={slug}
-          onChange={(event) => setSlug(event.target.value)}
-        />
-      </FormField>
       <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
         <Input
           id="category-create-name"
@@ -153,6 +144,15 @@ export function CreateCategoryDialog({
           onChange={(event) => setNameEn(event.target.value)}
         />
       </FormField>
+      {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
+          server will derive; the RPC owns the final value and any -2/-3
+          uniqueness suffix, so there is exactly one authority (F3). */}
+      <p className="text-sm text-muted-foreground">
+        <span>{t("admin.categories.create.slugPreview")}</span>{" "}
+        <span data-testid="category-create-slug-preview" className="break-all font-mono">
+          {deriveSlugPreview(nameEn.trim())}
+        </span>
+      </p>
       <FormField label={t("admin.categories.create.icon")} htmlFor="category-create-icon">
         <Input
           id="category-create-icon"
@@ -170,9 +170,9 @@ export function CreateCategoryDialog({
           onChange={(event) => setParentId(event.target.value)}
         >
           <option value="">{t("admin.categories.create.parentRoot")}</option>
-          {parents.map((row) => (
-            <option key={row.id} value={row.id}>
-              {`${"— ".repeat(row.depth)}${row.nameEn}`}
+          {activeParentOptions(parents).map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
             </option>
           ))}
         </select>
@@ -626,13 +626,11 @@ export function AddPointerDialog({
           onChange={(event) => setParentId(event.target.value)}
         >
           <option value="">{t("admin.categories.pointer.parentPlaceholder")}</option>
-          {parents
-            .filter((row) => row.id !== category.id)
-            .map((row) => (
-              <option key={row.id} value={row.id}>
-                {`${"— ".repeat(row.depth)}${row.nameEn}`}
-              </option>
-            ))}
+          {activeParentOptions(parents, category.id).map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
         </select>
       </FormField>
       <ErrorLine message={message} />
@@ -673,7 +671,8 @@ export function CategoryPathsDialog({
   const { message, setMessage, fail } = useSubmitError();
   const [addParentId, setAddParentId] = useState("");
 
-  const candidates = parents.filter((row) => row.id !== category.id);
+  /** C2c — active destinations only, each rendered with its whole path. */
+  const candidates = activeParentOptions(parents, category.id);
 
   const run = (work: () => Promise<unknown>) => {
     setMessage(null);
@@ -734,9 +733,9 @@ export function CategoryPathsDialog({
                   }}
                 >
                   <option value="">{t("admin.categories.paths.root")}</option>
-                  {candidates.map((row) => (
-                    <option key={row.id} value={row.id}>
-                      {`${"— ".repeat(row.depth)}${row.nameEn}`}
+                  {candidates.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
                     </option>
                   ))}
                 </select>
@@ -766,9 +765,9 @@ export function CategoryPathsDialog({
           onChange={(event) => setAddParentId(event.target.value)}
         >
           <option value="">{t("admin.categories.pointer.parentPlaceholder")}</option>
-          {candidates.map((row) => (
-            <option key={row.id} value={row.id}>
-              {`${"— ".repeat(row.depth)}${row.nameEn}`}
+          {candidates.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
             </option>
           ))}
         </select>
