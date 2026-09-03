@@ -200,6 +200,22 @@ export function AdminCategoriesPage() {
 
   const siblingsOf = (row: CategoryNode) => roster.filter((peer) => peer.parentId === row.parentId);
 
+  /**
+   * UI-FIX-7 (INC-144) — ONE GUARDED RUNNER FOR EVERY BAR VERB.
+   *
+   * The shared step-up flow already replays the pending action after a
+   * successful verification (`use-step-up.submitCode` → `runGuarded`); what the
+   * verb bar lacked was the working consumers' `.catch` (see
+   * translations/languages-page `apply`/`move`): a refusal used to reject an
+   * un-awaited promise, so a failed verb looked like nothing happened (F4).
+   * Every guarded verb now goes through this one function — never a per-verb
+   * patch — and its refusal renders translated in the bar.
+   */
+  const runVerb = (guard: GuardFn, action: () => Promise<void>) => {
+    setVerbError(null);
+    void guard(action).catch(failVerb);
+  };
+
   const move = (row: CategoryNode, delta: number, guard: GuardFn) => {
     const siblings = siblingsOf(row);
     const index = siblings.findIndex((peer) => peer.id === row.id);
@@ -208,10 +224,12 @@ export function AdminCategoriesPage() {
     const ordered = siblings.map((peer) => peer.id);
     const [moved] = ordered.splice(index, 1);
     ordered.splice(next, 0, moved!);
-    void guard(async () => {
+    runVerb(guard, async () => {
       await reorder.mutateAsync({ parentId: row.parentId, orderedChildIds: ordered });
     });
   };
+
+
 
   /**
    * C2-UI-FIX-5 — THE ROSTER CONFORMS TO THE AUDIT TABLE. No per-column
