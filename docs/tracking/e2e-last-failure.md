@@ -1,224 +1,76 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33709508377
-- Commit: `1a030c69798c42d7526ae82b15b2d3e096aad0ea`
-- Attempt: 2
-- Written (UTC): 2026-09-03T03:06:00.511Z
-- Passed: 346 · Skipped: 69 · Failed: 4
-- Gating failures: 4 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33710526034
+- Commit: `4e9087df88d3a596187ced45def3114764fd5660`
+- Attempt: 1
+- Written (UTC): 2026-09-03T03:24:27.423Z
+- Passed: 346 · Skipped: 69 · Failed: 1
+- Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 3
 - Sources without results: none
 
-## shell.spec.ts › rail scroll regions (U0f) › md+ rail: items scroll, header fixed
+## Flake ledger (DEC-030)
 
-- Source: `smoke`
-- Project: `desktop-1280`
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
 
-```text
-Error: expect(locator).not.toBeInViewport() failed
+- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · auth-signout.spec.ts › U0k session policy › SP-1 idle: the warning appears, then the session is hard-reset — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · mfa-stepup.spec.ts › U1f step-up authentication › MF-5 unenroll requires a fresh verification — Error: expect(locator).toHaveText(expected) failed
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-roles.spec.ts › U2 roles console › RP-3 matrix: grant then revoke a benign permission, persisted across reload — Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  getByTestId('app-rail').getByTestId('rail-scroll').locator('li').last()
-Expected: not in viewport
-Received: in viewport
-Timeout:  10000ms
+## admin-audit.spec.ts › U3 audit & security › AS-2 filters: an action filter narrows the list
 
-Call log:
-  - Expect "not toBeInViewport" with timeout 10000ms
-  - waiting for getByTestId('app-rail').getByTestId('rail-scroll').locator('li').last()
-    14 × locator resolved to <li>…</li>
-       - unexpected value "viewport ratio 0.6590909361839294"
-
-```
-
-Context:
-
-```text
-          - listitem [ref=e167]:
-            - generic [ref=e168]: About
-          - listitem [ref=e169]:
-            - generic [ref=e170]: How it works
-      - navigation "Help" [ref=e171]:
-        - heading "Help" [level=2] [ref=e172]
-        - list [ref=e173]:
-          - listitem [ref=e174]:
-            - generic [ref=e175]: Safety
-          - listitem [ref=e176]:
-            - generic [ref=e177]: Contact
-      - navigation "Legal" [ref=e178]:
-        - heading "Legal" [level=2] [ref=e179]
-        - list [ref=e180]:
-          - listitem [ref=e181]:
-            - generic [ref=e182]: Terms
-          - listitem [ref=e183]:
-            - generic [ref=e184]: Privacy
-    - paragraph [ref=e186]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## i18n-coverage.spec.ts › i18n chrome coverage (Amharic) › the roles permission matrix renders no raw English vocabulary
-
-- Source: `shard 2`
+- Source: `shard 1`
 - Project: `mobile-360`
 
 ```text
-Error: matrix vocabulary: raw English actions/resources rendered
+Error: expect(locator).toBeVisible() failed
 
-expect(received).toEqual(expected) // deep equality
-
-- Expected  - 1
-+ Received  + 4
-
-- Array []
-+ Array [
-+   "assets",
-+   "restructure",
-+ ]
-```
-
-Context:
-
-```text
-          - listitem [ref=e376]:
-            - generic [ref=e377]: ስለ እኛ
-          - listitem [ref=e378]:
-            - generic [ref=e379]: እንዴት እንደሚሰራ
-      - navigation "እገዛ" [ref=e380]:
-        - heading "እገዛ" [level=2] [ref=e381]
-        - list [ref=e382]:
-          - listitem [ref=e383]:
-            - generic [ref=e384]: ደህንነት
-          - listitem [ref=e385]:
-            - generic [ref=e386]: ያግኙን
-      - navigation "ሕጋዊ" [ref=e387]:
-        - heading "ሕጋዊ" [level=2] [ref=e388]
-        - list [ref=e389]:
-          - listitem [ref=e390]:
-            - generic [ref=e391]: ውሎች
-          - listitem [ref=e392]:
-            - generic [ref=e393]: ግላዊነት
-    - paragraph [ref=e395]: © 2026 ethio.com — መብቱ በሙሉ የተጠበቀ ነው።
-```
-```
-
-## i18n-coverage.spec.ts › i18n chrome coverage (Amharic) › the roles permission matrix renders no raw English vocabulary
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Error: matrix vocabulary: raw English actions/resources rendered
-
-expect(received).toEqual(expected) // deep equality
-
-- Expected  - 1
-+ Received  + 4
-
-- Array []
-+ Array [
-+   "assets",
-+   "restructure",
-+ ]
-```
-
-Context:
-
-```text
-          - listitem [ref=e438]:
-            - generic [ref=e439]: ስለ እኛ
-          - listitem [ref=e440]:
-            - generic [ref=e441]: እንዴት እንደሚሰራ
-      - navigation "እገዛ" [ref=e442]:
-        - heading "እገዛ" [level=2] [ref=e443]
-        - list [ref=e444]:
-          - listitem [ref=e445]:
-            - generic [ref=e446]: ደህንነት
-          - listitem [ref=e447]:
-            - generic [ref=e448]: ያግኙን
-      - navigation "ሕጋዊ" [ref=e449]:
-        - heading "ሕጋዊ" [level=2] [ref=e450]
-        - list [ref=e451]:
-          - listitem [ref=e452]:
-            - generic [ref=e453]: ውሎች
-          - listitem [ref=e454]:
-            - generic [ref=e455]: ግላዊነት
-    - paragraph [ref=e457]: © 2026 ethio.com — መብቱ በሙሉ የተጠበቀ ነው።
-```
-```
-
-## shell.spec.ts › rail scroll regions (U0f) › md+ rail: items scroll, header fixed
-
-- Source: `shard 6`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).not.toBeInViewport() failed
-
-Locator:  getByTestId('app-rail').getByTestId('rail-scroll').locator('li').last()
-Expected: not in viewport
-Received: in viewport
-Timeout:  10000ms
+Locator: getByTestId('data-table-cards').locator('[data-testid^="audit-expand-"]').first()
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
 
 Call log:
-  - Expect "not toBeInViewport" with timeout 10000ms
-  - waiting for getByTestId('app-rail').getByTestId('rail-scroll').locator('li').last()
-    14 × locator resolved to <li>…</li>
-       - unexpected value "viewport ratio 0.6590909361839294"
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('data-table-cards').locator('[data-testid^="audit-expand-"]').first()
 
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e167]:
-            - generic [ref=e168]: About
-          - listitem [ref=e169]:
-            - generic [ref=e170]: How it works
-      - navigation "Help" [ref=e171]:
-        - heading "Help" [level=2] [ref=e172]
-        - list [ref=e173]:
-          - listitem [ref=e174]:
-            - generic [ref=e175]: Safety
-          - listitem [ref=e176]:
-            - generic [ref=e177]: Contact
-      - navigation "Legal" [ref=e178]:
-        - heading "Legal" [level=2] [ref=e179]
-        - list [ref=e180]:
-          - listitem [ref=e181]:
-            - generic [ref=e182]: Terms
-          - listitem [ref=e183]:
-            - generic [ref=e184]: Privacy
-    - paragraph [ref=e186]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e130]:
+            - generic [ref=e131]: About
+          - listitem [ref=e132]:
+            - generic [ref=e133]: How it works
+      - navigation "Help" [ref=e134]:
+        - heading "Help" [level=2] [ref=e135]
+        - list [ref=e136]:
+          - listitem [ref=e137]:
+            - generic [ref=e138]: Safety
+          - listitem [ref=e139]:
+            - generic [ref=e140]: Contact
+      - navigation "Legal" [ref=e141]:
+        - heading "Legal" [level=2] [ref=e142]
+        - list [ref=e143]:
+          - listitem [ref=e144]:
+            - generic [ref=e145]: Terms
+          - listitem [ref=e146]:
+            - generic [ref=e147]: Privacy
+    - paragraph [ref=e149]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## Server errors: smoke
+## Server errors: shard 1
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
-## Client errors: smoke
+## Client errors: shard 1
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
-
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 5
-
-No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Client errors: shard 5
-
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Server errors: shard 6
-
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## Client errors: shard 6
-
-No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+```text
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
+[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_list_audit ({"code":"57014","details":null,"hint":null,"message":"canceling statement due to statement timeout"})
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
+[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_list_audit ({"code":"57014","details":null,"hint":null,"message":"canceling statement due to statement timeout"})
+```
