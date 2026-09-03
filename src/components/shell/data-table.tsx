@@ -123,6 +123,12 @@ export interface DataTableProps<T> {
    * tablet band, where dense tables used to crush.
    */
   cardUntil?: CardUntil;
+  /**
+   * C7 / INC-135 — pin the FIRST column while the table scrolls horizontally,
+   * so the row's identity never leaves the viewport. Logical `start-0` keeps it
+   * RTL-correct; the card twin is unaffected.
+   */
+  stickyFirstColumn?: boolean;
   className?: string;
 }
 
