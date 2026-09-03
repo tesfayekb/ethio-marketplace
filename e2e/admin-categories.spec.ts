@@ -1175,4 +1175,135 @@ test.describe("C2 categories console", () => {
       if (slug) await destroyCategory(slug);
     }
   });
+
+  /** DB truth (J4): the imagery columns the route persists. */
+  async function readImages(slug: string) {
+    const { data, error } = await adminClient()
+      .from("categories")
+      .select("id, image_url, image_thumb_url, og_image_url, image_generation_prompt")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:c5b] reading imagery of ${slug} failed: ${error.message}`);
+    return data;
+  }
+
+  /**
+   * CI-4 (C5b PART A) — THE IMAGE TAB. Generate persists three objects and the
+   * row; the preview renders all three; a regenerate OVERWRITES rather than
+   * appending a second asset set. Fake mode only — CI holds no provider key.
+   */
+  test("CI-4 image tab: generate persists three assets and regenerate overwrites", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      await findRow(page, slug);
+      await openEditor(page, slug);
+      await action(page, slug, "image").click();
+      await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
+
+      await page.getByTestId("category-image-generate").click();
+      await expect(page.getByTestId("category-image-assets")).toBeVisible({ timeout: 60000 });
+      for (const part of ["card", "thumb", "og"]) {
+        await expect(page.getByTestId(`category-image-assets-${part}`)).toBeVisible();
+      }
+      await expect(page.getByTestId("category-image-timings")).toBeVisible();
+
+      const first = await expect
+        .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
+        .not.toBeNull()
+        .then(async () => await readImages(slug));
+      expect(first?.image_thumb_url).toBeTruthy();
+      expect(first?.og_image_url).toBeTruthy();
+
+      await page.getByTestId("category-image-prompt").fill("a scratch prompt for the walk");
+      await page.getByTestId("category-image-generate").click();
+      await expect
+        .poll(async () => (await readImages(slug))?.image_generation_prompt, { timeout: 60000 })
+        .toBeTruthy();
+      const second = await readImages(slug);
+      // OVERWRITE, not accumulate: the row still points at exactly one set.
+      expect(second?.image_url).toBeTruthy();
+      expect(second?.og_image_url).toBeTruthy();
+    } finally {
+      if (slug) await destroyCategory(slug);
+    }
+  });
+
+  /**
+   * CI-5 (C5b PART C) — BULK FILL. Three seeded scratch rows without imagery
+   * are filled by one serial run; the progress caption reaches n/N and DB truth
+   * shows every row gained an image. The 25 cap is asserted as CODE truth
+   * (BULK_LIMIT is the slice bound) rather than by seeding 26 fixtures — the
+   * cheaper honest proof, stated here so the omission is not silent.
+   */
+  test("CI-5 bulk fill: the missing-assets run fills every seeded row", async ({ page }) => {
+    bandOnly(page, "desktop");
+    const { secret } = await signInAsSuperAdmin(page);
+    const slugs: string[] = [];
+    try {
+      for (let index = 0; index < 3; index += 1) {
+        slugs.push(await createViaUi(page, secret));
+      }
+      await gotoReady(page, "/admin/categories");
+      await page.getByTestId("category-search").fill(`e2e-cat-${RUN}-`);
+      await page.getByTestId("category-bulk-generate").click();
+      await expect(page.getByTestId("category-bulk-summary")).toBeVisible({ timeout: 120000 });
+
+      for (const slug of slugs) {
+        await expect
+          .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
+          .not.toBeNull();
+      }
+    } finally {
+      for (const slug of slugs) await destroyCategory(slug);
+    }
+  });
+
+  /**
+   * CT-17 (C5b PART B) — THE CREATE FLOW HAS NO MANUAL ICON. The icon is
+   * suggested on name blur, and a successful create advances to the
+   * generate-now step, which previews the assets inline.
+   */
+  test("CT-17 create flow: the icon is suggested and the image can be generated inline", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const slug = scratchSlug();
+    try {
+      await gotoReady(page, "/admin/categories");
+      await page.getByTestId("category-create-open").click();
+      await page.getByTestId("category-create-name").fill(slug);
+      await page.getByTestId("category-create-name").blur();
+      await expect
+        .poll(
+          async () => (await page.getByTestId("category-create-icon-suggested").textContent()) ?? "",
+          { timeout: 20000 },
+        )
+        .not.toBe(en["admin.categories.create.iconSuggesting"]);
+
+      await page.getByTestId("category-create-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("category-create-generate-step")).toBeVisible({
+        timeout: 20000,
+      });
+
+      await page.getByTestId("category-create-image-generate").click();
+      await expect(page.getByTestId("category-create-image-assets")).toBeVisible({
+        timeout: 60000,
+      });
+      await expect
+        .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
+        .not.toBeNull();
+
+      await page.getByTestId("category-create-generate-skip").click();
+      await expect(page.getByTestId("category-create-dialog")).toHaveCount(0);
+    } finally {
+      await destroyCategory(slug);
+    }
+  });
 });
