@@ -802,4 +802,3 @@ test.describe("C2 categories console", () => {
     await expect(action(page, catchall!.slug, "down")).toHaveCount(0);
   });
 });
-

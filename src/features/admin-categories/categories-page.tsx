@@ -198,7 +198,6 @@ export function AdminCategoriesPage() {
     if (!roster.some((row) => row.id === dialog.id)) setDialog({ kind: "none" });
   }, [dialog, roster, isLoading]);
 
-
   const siblingsOf = (row: CategoryNode) => roster.filter((peer) => peer.parentId === row.parentId);
 
   const move = (row: CategoryNode, delta: number, guard: GuardFn) => {

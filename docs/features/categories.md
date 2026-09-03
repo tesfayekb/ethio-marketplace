@@ -138,3 +138,27 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
   service client, the last client errors), and L10 scrolls the last cell into
   the vertical viewport before asserting horizontal reachability, dumping the
   whole wrapper chain on failure. No assertion changed meaning.
+
+## C2g + UI-FIX-6 — fresh rows, honest expiry, the catch-all parent law (2026-09-04)
+
+- **INC-142 — the editor reads the LIVE row.** The dialog state carries only
+  the category id; the rendered row is looked up in the roster query data on
+  every render, so Retire → Reactivate swaps the moment the query settles, and
+  the editor closes gracefully when its row vanishes (delete).
+- **INC-143 — expiry is honest.** A NULL `expiry_days` renders an EMPTY input
+  with a translated "No expiry" placeholder; saving an empty field sends NULL.
+  No coalesce to a numeric literal survives in the form or the service mapping.
+- **C2g (mark 20260904040000) — the catch-all parent law.** A catch-all is a
+  terminal posting bucket, never a branch. `assert_parent_not_catchall(uuid)`
+  is the single authority and raises `admin.categories.error.catchallParent`;
+  `admin_create_category`, `admin_add_category_pointer` and
+  `admin_move_category_pointer` delegate to it, and
+  `admin_reorder_categories` drops catch-alls from an operator-supplied order
+  and always pins them last. Every touched definer restates its REVOKE/GRANT
+  pair in the same file.
+- **Console.** Parent pickers (create + browse paths) offer active,
+  non-catch-all nodes only; a catch-all row shows no Move verbs; a server
+  refusal that names a key is rendered through `t`, never as a raw key (F4).
+- **E2E.** CT-14 asserts the refusal read-back through the service client, the
+  absent picker option and the absent Move verbs; CT-12 is unchanged and now
+  passes against the live-row editor.
