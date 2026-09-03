@@ -1,8 +1,6 @@
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/i18n";
 
 import { CategoryModal } from "./category-dialogs";
@@ -111,15 +109,14 @@ export function GeneratePanel({
   const { message, setMessage, fail } = useImageFailure();
   const [busy, setBusy] = useState(false);
   const [assets, setAssets] = useState<GeneratedAssets | null>(null);
-  const [prompt, setPrompt] = useState("");
 
   const run = async () => {
     setMessage(null);
     setBusy(true);
     try {
-      const result = await generateCategoryImage({ categoryId, customPrompt: prompt });
+      // C5c PART C — UNIFORM PROMPT: the house prompt is the only prompt.
+      const result = await generateCategoryImage({ categoryId });
       setAssets(result);
-      setPrompt(result.prompt);
       onGenerated?.(result);
     } catch (error) {
       fail(error);
@@ -145,19 +142,6 @@ export function GeneratePanel({
           {`${t("admin.categories.image.stageLabel")} ${assets.stage} · ${assets.timings.genMs}/${assets.timings.processMs}/${assets.timings.totalMs} ms`}
         </p>
       )}
-      <FormField
-        label={t("admin.categories.image.customPrompt")}
-        htmlFor={`${testid}-prompt`}
-        help={t("admin.categories.image.customPromptHelp")}
-      >
-        <Textarea
-          id={`${testid}-prompt`}
-          data-testid={`${testid}-prompt`}
-          rows={3}
-          value={prompt}
-          onChange={(event) => setPrompt(event.target.value)}
-        />
-      </FormField>
       {message === null ? null : (
         <p role="alert" data-testid={`${testid}-error`} className="text-sm text-destructive">
           {message}

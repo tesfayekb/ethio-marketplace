@@ -831,8 +831,6 @@ export const am: Messages = {
   "admin.categories.image.thumb": "አነስተኛ ምስል 128",
   "admin.categories.image.og": "የማኅበራዊ ምስል 1200x630",
   "admin.categories.image.stageLabel": "ደረጃ:",
-  "admin.categories.image.customPrompt": "ብጁ መመሪያ",
-  "admin.categories.image.customPromptHelp": "አማራጭ። ለዚህ ምድብ መደበኛውን መመሪያ ለመጠቀም ባዶ ይተዉት።",
   "admin.categories.error.imageFailed": "ምስል ማመንጨት አልተሳካም",
   "admin.categories.create.iconSuggesting": "አዶ በመጠቆም ላይ…",
   "admin.categories.create.iconSuggested": "የተጠቆመ አዶ",

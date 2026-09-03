@@ -869,9 +869,6 @@ export const en = {
   "admin.categories.image.thumb": "Thumbnail 128",
   "admin.categories.image.og": "Social image 1200x630",
   "admin.categories.image.stageLabel": "stage:",
-  "admin.categories.image.customPrompt": "Custom prompt",
-  "admin.categories.image.customPromptHelp":
-    "Optional. Leave empty to use the house prompt for this category.",
   "admin.categories.error.imageFailed": "Image generation failed",
   "admin.categories.create.iconSuggesting": "Suggesting an icon…",
   "admin.categories.create.iconSuggested": "Suggested icon",
