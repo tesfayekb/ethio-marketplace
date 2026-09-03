@@ -75,6 +75,22 @@ function categoryRow(page: Page, slug: string): Locator {
   );
 }
 
+/**
+ * C2k / INC-147 — SEARCH IS THE ANCHOR, PAGE POSITION NEVER WAS.
+ *
+ * A freshly created or edited scratch row lands wherever the roster's order
+ * puts it — which is a server invariant about the TREE, not about page one.
+ * Every site that expects such a row narrows the roster with the roster
+ * search first (the proven anchor, CT-2) and then asserts the twin row.
+ */
+async function findRow(page: Page, slug: string): Promise<Locator> {
+  await page.getByTestId("category-search").fill(slug);
+  const row = categoryRow(page, slug);
+  await expect(row).toBeVisible({ timeout: 20000 });
+  return row;
+}
+
+
 /** The actions REGION differs per twin (INC-106c): card sibling vs table cell. */
 function actionsOf(page: Page, slug: string): Locator {
   return surface(page).getByTestId(
