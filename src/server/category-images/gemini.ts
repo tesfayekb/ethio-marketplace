@@ -12,9 +12,25 @@ export function serverEnv(name: string, fallback = ""): string {
   return process.env[name] ?? fallback;
 }
 
+/**
+ * PART A — MODE PRECEDENCE, decided in exactly one place:
+ *   GEMINI_FAKE=1  ⇒ fake
+ *   else key present ⇒ real
+ *   else ⇒ fake (fail-safe; warned once on the [ssr-error] channel).
+ * No caller may throw for a missing key.
+ */
+let keylessWarned = false;
+
 export function isFakeMode(): boolean {
-  return serverEnv("GEMINI_FAKE") === "1";
+  if (serverEnv("GEMINI_FAKE") === "1") return true;
+  if (serverEnv("GEMINI_API_KEY").trim() !== "") return false;
+  if (!keylessWarned) {
+    keylessWarned = true;
+    console.error("[ssr-error] category-images: no GEMINI_API_KEY — fake mode");
+  }
+  return true;
 }
+
 
 export function imageModel(): string {
   const value = serverEnv("GEMINI_IMAGE_MODEL").trim();
