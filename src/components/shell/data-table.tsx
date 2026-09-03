@@ -48,8 +48,14 @@ import { PageCard } from "./page-card";
  */
 export type ColumnPriority = "primary" | "secondary" | "detail" | "wide";
 
-/** C7 / INC-130 — where the card twin gives way to the table twin. */
-export type CardUntil = "md" | "lg";
+/**
+ * C7 / INC-130 — where the card twin gives way to the table twin. `"xl"`
+ * (C2-UI-FIX-3) keeps cards through the whole laptop band: a roster whose
+ * table only earns its width on a genuinely wide desktop never scrolls
+ * sideways at all, because below xl there is no table to scroll.
+ */
+export type CardUntil = "md" | "lg" | "xl";
+
 
 export interface DataTableColumn<T> {
   key: string;
