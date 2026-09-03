@@ -335,15 +335,37 @@ export function AdminCategoriesPage() {
   ];
 
   /**
-   * ONE button set, one presentation (J5): the SAME element carries the
-   * canonical `category-<verb>-<slug>` testid at every viewport — a duplicated
-   * icon twin would put two matches inside one actions region and every
-   * twin-aware locator would resolve the hidden one. C2-UI-FIX-3 makes the
-   * strip a 44px ICON strip everywhere and lets it WRAP, so the card twin
-   * (now the whole sub-xl band) never scrolls sideways. The label lives in
-   * `aria-label`/`title`.
+   * C2e / UI-FIX-4 — THE ROLES INTERACTION MODEL. The row carries exactly ONE
+   * verb: Edit. Every other verb (visibility, countries, browse paths, move,
+   * retire/reactivate, delete) lives in the editor's verb bar, so the actions
+   * column fits one button at every width and the card twin never wraps a
+   * strip. The canonical `category-<verb>-<slug>` testids are preserved —
+   * they simply moved inside the dialog (J5: still one match each).
    */
-  const rowActions = (row: CategoryNode, guard: GuardFn) => {
+  const rowActions = (row: CategoryNode) =>
+    mayUpdate ? (
+      <span className="flex items-center xl:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          className="size-11 shrink-0 p-0"
+          data-testid={`category-edit-${row.slug}`}
+          aria-label={t("admin.categories.action.edit")}
+          title={t("admin.categories.action.edit")}
+          onClick={() => setDialog({ kind: "edit", id: row.id })}
+        >
+          <Pencil aria-hidden="true" className="size-4" />
+        </Button>
+      </span>
+    ) : null;
+
+  /**
+   * The editor's verb bar: full-text buttons, ≥44px, wrapping by construction
+   * so a 360px dialog and a 1440px dialog both show every verb without a
+   * horizontal scroller. Gates and step-up are unchanged — each verb opens the
+   * same dialog / mutation it did from the row.
+   */
+  const editorVerbs = (row: CategoryNode, guard: GuardFn) => {
     const verb = (
       testid: string,
       label: string,
@@ -356,27 +378,21 @@ export function AdminCategoriesPage() {
         key={testid}
         type="button"
         variant={danger ? "destructive" : "outline"}
-        className="size-11 shrink-0 p-0"
+        className="min-h-11"
         data-testid={testid}
-        aria-label={label}
         title={label}
         disabled={disabled}
         onClick={onClick}
       >
         {icon}
+        <span>{label}</span>
       </Button>
     );
 
     return (
-      <span className="flex flex-wrap items-center gap-2 xl:justify-end">
+      <div className="flex flex-wrap gap-2" data-testid="category-verb-bar">
         {mayUpdate
           ? [
-              verb(
-                `category-edit-${row.slug}`,
-                t("admin.categories.action.edit"),
-                <Pencil aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "edit", id: row.id }),
-              ),
               verb(
                 `category-window-${row.slug}`,
                 t("admin.categories.action.window"),
@@ -394,6 +410,12 @@ export function AdminCategoriesPage() {
         {mayRestructure
           ? [
               verb(
+                `category-pointer-${row.slug}`,
+                t("admin.categories.action.pointer"),
+                <Share2 aria-hidden="true" className="size-4" />,
+                () => setDialog({ kind: "pointer", id: row.id }),
+              ),
+              verb(
                 `category-up-${row.slug}`,
                 t("admin.categories.action.up"),
                 <ArrowUp aria-hidden="true" className="size-4" />,
@@ -404,12 +426,6 @@ export function AdminCategoriesPage() {
                 t("admin.categories.action.down"),
                 <ArrowDown aria-hidden="true" className="size-4" />,
                 () => move(row, 1, guard),
-              ),
-              verb(
-                `category-pointer-${row.slug}`,
-                t("admin.categories.action.pointer"),
-                <Share2 aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "pointer", id: row.id }),
               ),
               // C2d — a retired row swaps Retire for Reactivate and gains the
               // one destructive verb in the console: Delete, typed-confirm.
@@ -443,7 +459,7 @@ export function AdminCategoriesPage() {
                   ),
             ]
           : null}
-      </span>
+      </div>
     );
   };
 
@@ -544,7 +560,7 @@ export function AdminCategoriesPage() {
                 testid="category-pagination"
               />
             }
-            rowActions={(row) => rowActions(row, guard)}
+            rowActions={(row) => rowActions(row)}
           />
 
           {dialog.kind === "create" ? (
@@ -558,6 +574,7 @@ export function AdminCategoriesPage() {
             <EditCategoryDialog
               category={selected}
               guard={guard}
+              verbBar={editorVerbs(selected, guard)}
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
