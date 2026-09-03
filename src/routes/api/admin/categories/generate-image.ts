@@ -11,6 +11,9 @@
  * nothing from `src/server/**` can enter the client graph.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { Database } from "@/integrations/supabase/types";
 
 const PATH = "/api/admin/categories/generate-image";
 
@@ -50,7 +53,7 @@ async function run(
   if (!category) throw new GeminiError("category not found", 404);
 
   // Primary browse parent (lowest display_order edge) supplies the prompt context.
-  const { data: pointer } = await supabaseAdmin
+  const { data: pointer } = await supabase
     .from("category_tree_pointers")
     .select("parent_id, display_order")
     .eq("child_id", categoryId)
@@ -61,7 +64,7 @@ async function run(
 
   let parentName: string | null = null;
   if (pointer?.parent_id) {
-    const { data: parent } = await supabaseAdmin
+    const { data: parent } = await supabase
       .from("categories")
       .select("name_en")
       .eq("id", pointer.parent_id)
@@ -84,7 +87,7 @@ async function run(
     [`${base}/og-1200x630.png`, output.og],
   ];
   for (const [path, bytes] of uploads) {
-    const { error } = await supabaseAdmin.storage
+    const { error } = await supabase.storage
       .from("category-assets")
       .upload(path, bytes, { contentType: "image/png", upsert: true });
     if (error) throw new GeminiError(`storage upload failed: ${error.message}`, 500);
@@ -95,15 +98,13 @@ async function run(
   const thumbUrl = `${publicBase}/${base}/thumb-128.png`;
   const ogUrl = `${publicBase}/${base}/og-1200x630.png`;
 
-  const { error: updateError } = await supabaseAdmin
-    .from("categories")
-    .update({
-      image_url: imageUrl,
-      image_thumb_url: thumbUrl,
-      og_image_url: ogUrl,
-      image_generation_prompt: prompt,
-    })
-    .eq("id", categoryId);
+  const { error: updateError } = await supabase.rpc("admin_set_category_images", {
+    p_id: categoryId,
+    p_image_url: imageUrl,
+    p_image_thumb_url: thumbUrl,
+    p_og_image_url: ogUrl,
+    p_generation_prompt: prompt,
+  });
   if (updateError) throw new GeminiError(updateError.message, 500);
 
   return {
@@ -155,7 +156,7 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
         }
 
         try {
-          const result = await run(categoryId, body.customPrompt);
+          const result = await run(gate.supabase, categoryId, body.customPrompt);
           return json(
             {
               imageUrl: result.imageUrl,
@@ -195,7 +196,7 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
         if (!UUID_RE.test(categoryId)) return json({ error: "invalid categoryId" }, 400);
 
         try {
-          const result = await run(categoryId, undefined);
+          const result = await run(gate.supabase, categoryId, undefined);
           const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <title>category image probe</title>
 <style>body{font:14px system-ui;margin:24px;background:#fafafa}img{background:#fff;border:1px solid #ddd;max-width:100%}pre{background:#fff;border:1px solid #ddd;padding:12px;overflow:auto}</style>
