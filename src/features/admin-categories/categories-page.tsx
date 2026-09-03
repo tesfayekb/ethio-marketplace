@@ -59,6 +59,31 @@ type DialogState =
   | { kind: "create" }
   | { kind: "edit" | "window" | "exclusions" | "retire" | "pointer"; id: string };
 
+/**
+ * C2c — every status/flag badge carries an ACCESSIBLE description. `title`
+ * serves the pointer, `aria-label` serves the screen reader; the visible text
+ * stays the short chip so a 360px row still reads.
+ */
+function tipBadge(
+  variant: "secondary" | "destructive" | "outline",
+  label: string,
+  description: string,
+  className?: string,
+  testid?: string,
+) {
+  return (
+    <Badge
+      variant={variant}
+      className={className}
+      title={description}
+      aria-label={`${label}: ${description}`}
+      data-testid={testid}
+    >
+      {label}
+    </Badge>
+  );
+}
+
 export function AdminCategoriesPage() {
   const { t } = useI18n();
   const { permissions } = useAdminShell();
@@ -200,11 +225,20 @@ export function AdminCategoriesPage() {
       header: t("admin.categories.col.status"),
       priority: "secondary",
       minWidth: "min-w-24",
-      cell: (row) => (
-        <Badge variant={row.isActive ? "secondary" : "destructive"}>
-          {row.isActive ? t("admin.categories.badge.active") : t("admin.categories.badge.inactive")}
-        </Badge>
-      ),
+      cell: (row) =>
+        row.isActive
+          ? tipBadge(
+              "secondary",
+              t("admin.categories.badge.active"),
+              t("admin.categories.tip.active"),
+            )
+          : tipBadge(
+              "destructive",
+              t("admin.categories.badge.inactive"),
+              // The exact Retired description: a retired node keeps its history
+              // and its browse pointers, but no new listing can be posted to it.
+              t("admin.categories.tip.retired"),
+            ),
     },
     {
       key: "flags",
@@ -213,25 +247,47 @@ export function AdminCategoriesPage() {
       minWidth: "min-w-32",
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
-          {row.isCatchall ? (
-            <Badge variant="outline">{t("admin.categories.badge.catchall")}</Badge>
-          ) : null}
-          {row.allowListings ? (
-            <Badge variant="outline">{t("admin.categories.badge.listings")}</Badge>
-          ) : null}
-          {row.priceEnabled ? (
-            <Badge variant="outline">{t("admin.categories.badge.price")}</Badge>
-          ) : null}
-          {row.visibleFrom || row.visibleUntil ? (
-            <Badge variant="outline">{t("admin.categories.badge.window")}</Badge>
-          ) : null}
+          {row.isCatchall
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.catchall"),
+                t("admin.categories.tip.catchall"),
+              )
+            : null}
+          {row.allowListings
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.listings"),
+                t("admin.categories.tip.listings"),
+              )
+            : null}
+          {row.priceEnabled
+            ? tipBadge("outline", t("admin.categories.badge.price"), t("admin.categories.tip.price"))
+            : null}
+          {row.visibleFrom || row.visibleUntil
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.window"),
+                t("admin.categories.tip.window"),
+              )
+            : null}
+          {missingAssets(row)
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.missingAssets"),
+                t("admin.categories.tip.missingAssets"),
+                "border-amber-500 text-amber-600 dark:text-amber-400",
+                `category-missing-${row.slug}`,
+              )
+            : null}
         </span>
       ),
     },
     {
       key: "order",
       header: t("admin.categories.col.order"),
-      priority: "detail",
+      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
+      priority: "wide",
       align: "end",
       minWidth: "min-w-16",
       cell: (row) => <span className="block tabular-nums">{row.displayOrder}</span>,
@@ -239,7 +295,8 @@ export function AdminCategoriesPage() {
     {
       key: "listings",
       header: t("admin.categories.col.listings"),
-      priority: "detail",
+      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
+      priority: "wide",
       align: "end",
       minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.listingCount}</span>,
@@ -247,7 +304,8 @@ export function AdminCategoriesPage() {
     {
       key: "exclusions",
       header: t("admin.categories.col.exclusions"),
-      priority: "detail",
+      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
+      priority: "wide",
       align: "end",
       minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.exclusionCount}</span>,
@@ -362,6 +420,7 @@ export function AdminCategoriesPage() {
 
           <DataTable<CategoryNode>
             cardUntil="lg"
+            stickyFirstColumn
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
@@ -401,7 +460,30 @@ export function AdminCategoriesPage() {
                   <option value="">{t("admin.categories.filter.allRoots")}</option>
                   {roots.map((row) => (
                     <option key={row.id} value={row.id}>
-                      {row.nameEn}
+                      {`${row.nameEn} (${rootCounts.get(row.id) ?? 0})`}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  variant={missingOnly ? "default" : "outline"}
+                  className="min-h-11"
+                  aria-pressed={missingOnly}
+                  data-testid="category-missing-filter"
+                  onClick={() => setMissingOnly((prev) => !prev)}
+                >
+                  {t("admin.categories.filter.missingAssets")}
+                </Button>
+                <select
+                  data-testid="category-page-size"
+                  aria-label={t("admin.categories.filter.pageSize")}
+                  className={`${SELECT_CLASS} md:w-32`}
+                  value={String(pageSize)}
+                  onChange={(event) => choosePageSize(Number(event.target.value))}
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {String(size)}
                     </option>
                   ))}
                 </select>
