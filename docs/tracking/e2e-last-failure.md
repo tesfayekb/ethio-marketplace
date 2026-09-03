@@ -2,28 +2,148 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33722704275
 - Commit: `5f6ae365f0d8db308b82a7487091786981fca1bc`
-- Attempt: 1
-- Written (UTC): 2026-09-03T06:20:40.015Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Attempt: 2
+- Written (UTC): 2026-09-03T06:32:22.901Z
+- Passed: 436 · Skipped: 73 · Failed: 4
+- Gating failures: 4 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Sources without results: none
 
-## Server errors: smoke
+## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+- Source: `shard 1`
+- Project: `mobile-360`
 
-## Client errors: smoke
+```text
+Test timeout of 60000ms exceeded.
+```
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+Context:
 
-## Server errors: email
+```text
+      - generic [ref=e28]:
+        - generic [ref=e29]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e30]: "30"
+      - generic [ref=e31]:
+        - checkbox "Accepts listings" [checked] [ref=e32] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e33]:
+        - checkbox "Price field enabled" [checked] [ref=e34] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e35]:
+        - button "Cancel" [ref=e36] [cursor=pointer]
+        - button "Save" [ref=e37] [cursor=pointer]
+    - button "Close" [ref=e38] [cursor=pointer]:
+      - img [ref=e39]
+      - generic [ref=e42]: Close
+```
+```
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
 
-## Client errors: email
+- Source: `shard 4`
+- Project: `desktop-1280`
 
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+      - generic [ref=e28]:
+        - generic [ref=e29]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e30]: "30"
+      - generic [ref=e31]:
+        - checkbox "Accepts listings" [checked] [ref=e32] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e33]:
+        - checkbox "Price field enabled" [checked] [ref=e34] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e35]:
+        - button "Cancel" [ref=e36] [cursor=pointer]
+        - button "Save" [ref=e37] [cursor=pointer]
+    - button "Close" [ref=e38] [cursor=pointer]:
+      - img [ref=e39]
+      - generic [ref=e42]: Close
+```
+```
+
+## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+      - generic [ref=e28]:
+        - generic [ref=e29]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e30]: "30"
+      - generic [ref=e31]:
+        - checkbox "Accepts listings" [checked] [ref=e32] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e33]:
+        - checkbox "Price field enabled" [checked] [ref=e34] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e35]:
+        - button "Cancel" [ref=e36] [cursor=pointer]
+        - button "Save" [ref=e37] [cursor=pointer]
+    - button "Close" [ref=e38] [cursor=pointer]:
+      - img [ref=e39]
+      - generic [ref=e42]: Close
+```
+```
+
+## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+      - generic [ref=e28]:
+        - generic [ref=e29]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e30]: "30"
+      - generic [ref=e31]:
+        - checkbox "Accepts listings" [checked] [ref=e32] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e33]:
+        - checkbox "Price field enabled" [checked] [ref=e34] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e35]:
+        - button "Cancel" [ref=e36] [cursor=pointer]
+        - button "Save" [ref=e37] [cursor=pointer]
+    - button "Close" [ref=e38] [cursor=pointer]:
+      - img [ref=e39]
+      - generic [ref=e42]: Close
+```
+```
 
 ## Server errors: shard 1
 
@@ -33,22 +153,6 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
 No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 3
-
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
 ## Server errors: shard 4
 
 No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
@@ -57,82 +161,10 @@ No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
 
 No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 
-## Server errors: shard 5
+## Server errors: changed
 
-No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+No `[ssr-error]` lines in the `changed` log (or no log was uploaded).
 
-## Client errors: shard 5
+## Client errors: changed
 
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Server errors: shard 6
-
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## Client errors: shard 6
-
-No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
+No `[client-error]` lines in the `changed` log (or no log was uploaded).
