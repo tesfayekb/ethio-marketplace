@@ -33,6 +33,18 @@ function rand() {
   return Math.random().toString(36).slice(2, 8);
 }
 
+/** The literal prefix every seeded slug shares (derived, never reconstructed). */
+function sharedPrefix(values: string[]): string {
+  if (values.length === 0) return "";
+  let prefix = values[0] ?? "";
+  for (const value of values.slice(1)) {
+    let index = 0;
+    while (index < prefix.length && prefix[index] === value[index]) index += 1;
+    prefix = prefix.slice(0, index);
+  }
+  return prefix;
+}
+
 function scratchSlug() {
   const worker = process.env["TEST_WORKER_INDEX"] ?? "0";
   return `e2e-cat-${RUN}-${worker}-${rand()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
@@ -1254,7 +1266,6 @@ test.describe("C2 categories console", () => {
     // "specs never assume a globally empty table; they scope their emptiness."
     // The bulk verb runs over the VISIBLE filtered/searched set, so this test
     // narrows the roster to exactly its own three seeded rows before running.
-    const prefix = `e2e-cat-${RUN}-${process.env["TEST_WORKER_INDEX"] ?? "0"}-`;
     const bulkDump = async (label: string) => {
       const progress = await page
         .getByTestId("category-bulk-progress")
@@ -1268,13 +1279,32 @@ test.describe("C2 categories console", () => {
       for (const slug of slugs) truth.push(`${slug}=${(await readImages(slug))?.image_url ?? "∅"}`);
       return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} rows: ${truth.join(" | ")}`;
     };
+    // Every pre-poll interaction is bounded (≤15s) and dumps on failure, so an
+    // id mismatch fails loudly here instead of dying silent at the 60s wall.
+    const step = async (testid: string, action: (locator: Locator) => Promise<void>) => {
+      const locator = page.getByTestId(testid);
+      await expect
+        .poll(async () => locator.count(), {
+          timeout: 15000,
+          message: await bulkDump(`step ${testid}`),
+        })
+        .toBeGreaterThan(0);
+      await action(locator);
+    };
     try {
       for (let index = 0; index < 3; index += 1) {
         slugs.push(await createViaUi(page, secret));
       }
+      // The search prefix is the seeder's OWN shared literal prefix, never
+      // reconstructed from env.
+      const prefix = sharedPrefix(slugs);
+      expect(prefix.length).toBeGreaterThan(0);
       await gotoReady(page, "/admin/categories");
-      await page.getByTestId("category-missing-filter").click();
-      await page.getByTestId("category-search").fill(prefix);
+      await step("category-missing-filter", (locator) => locator.click());
+      await step("category-search", (locator) => locator.fill(prefix));
+      await step("category-page-size", async (locator) => {
+        await locator.selectOption("100");
+      });
       await expect
         .poll(async () => page.getByRole("table").locator("tbody tr").count(), {
           timeout: 15000,
@@ -1288,7 +1318,8 @@ test.describe("C2 categories console", () => {
       // The progress caption is transient (it clears when the run ends), so
       // the highest value it reached is captured while polling.
       let progressSeen = "";
-      await page.getByTestId("category-bulk-generate").click();
+      await step("category-bulk-generate", (locator) => locator.click());
+
       await expect
         .poll(
           async () => {
