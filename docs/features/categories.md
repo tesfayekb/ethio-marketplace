@@ -84,3 +84,26 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
   because only the header was sticky and the 40px selection column was not. The
   primitive now pins the selection cell at `start-0` and the first data column
   at `start-10` for header AND body cells (unit tests + law L11).
+
+## C2e + UI-FIX-4 — one row verb, one editor (2026-09-04)
+
+- **INC-137.** `admin_create_category` was last replaced by C2c with
+  `CREATE OR REPLACE`, which keeps the privileges but leaves that file without
+  its own REVOKE/GRANT pair. C2e restates the ACL for
+  `admin_create_category(text, text, text, uuid, boolean)` in one file —
+  revoked from PUBLIC and `anon`, executable by `authenticated` and
+  `service_role` — with an in-file privilege proof. No behaviour change.
+- **The Roles interaction model.** The roster row carries exactly ONE button:
+  Edit. Every other verb — Visibility, Countries, Browse paths, Move up, Move
+  down, Retire (active only) / Reactivate (retired only) and Delete (retired
+  only, danger) — is a full-text ≥44px button in a wrapping verb bar at the top
+  of the editor. Testids (`category-<verb>-<slug>`), permission gates and
+  step-up flows are unchanged; only the door moved. The actions column now
+  needs room for a single button, so the roster fits at every width by
+  construction while `cardUntil="xl"` stays.
+- **E2E.** `action()` resolves `edit` in the row's actions region and every
+  other verb inside the open editor, so each verb still has exactly one match
+  (J5). CT-8 is the reachability law: at 360/768/1024/1240 the editor exposes
+  every verb, visible, clickable and ≥44px, with no horizontal scroll on the
+  page or the dialog; at 1440 the table renders wide columns with an inert
+  scroller. CT-6, CT-12 and CT-13 drive their verbs from the bar.
