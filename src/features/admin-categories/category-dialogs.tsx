@@ -273,7 +273,6 @@ export function EditCategoryDialog({
   const { message, setMessage, fail } = useSubmitError();
   const [nameEn, setNameEn] = useState(category.nameEn);
   const [icon, setIcon] = useState(category.icon ?? "");
-  const [displayOrder, setDisplayOrder] = useState(String(category.displayOrder));
   const [allowListings, setAllowListings] = useState(category.allowListings);
   const [priceEnabled, setPriceEnabled] = useState(category.priceEnabled);
   // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal anywhere.
@@ -293,7 +292,8 @@ export function EditCategoryDialog({
           id: category.id,
           nameEn: nameEn.trim(),
           icon: icon.trim(),
-          displayOrder: Number(displayOrder) || 0,
+          // C2-CLOSE Part C — the order is not typed here; Move up/down owns it.
+          displayOrder: category.displayOrder,
           allowListings,
           priceEnabled,
           expiryDays: expiryDays.trim() === "" ? null : Number(expiryDays),
@@ -328,13 +328,23 @@ export function EditCategoryDialog({
           onChange={(event) => setIcon(event.target.value)}
         />
       </FormField>
-      <FormField label={t("admin.categories.field.order")} htmlFor="category-edit-order">
+      {/**
+       * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field mirrors
+       * the LIVE roster row (the editor re-reads it on every render, INC-142),
+       * so a Move up/down updates it immediately; the operator changes it with
+       * the Move verbs, never by typing.
+       */}
+      <FormField
+        label={t("admin.categories.field.order")}
+        htmlFor="category-edit-order"
+        help={t("admin.categories.field.orderManaged")}
+      >
         <Input
           id="category-edit-order"
           data-testid="category-edit-order"
           inputMode="numeric"
-          value={displayOrder}
-          onChange={(event) => setDisplayOrder(event.target.value)}
+          readOnly
+          value={String(category.displayOrder)}
         />
       </FormField>
       <FormField label={t("admin.categories.field.expiryDays")} htmlFor="category-edit-expiry">
