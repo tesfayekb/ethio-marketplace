@@ -334,8 +334,6 @@ export function AdminCategoriesPage() {
     },
   ];
 
-
-
   /**
    * C2e / UI-FIX-4 — THE ROLES INTERACTION MODEL. The row carries exactly ONE
    * verb: Edit. Every other verb (visibility, countries, browse paths, move,
@@ -464,7 +462,6 @@ export function AdminCategoriesPage() {
       </div>
     );
   };
-
 
   return (
     <StepUpGate>

@@ -456,7 +456,6 @@ test.describe("C2 categories console", () => {
     expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
   });
 
-
   /** CT-9a — TABLE shape. Guarded to the band that actually has a table. */
   test("CT-9a roster shape: the parent column and a 25-row page (table twin)", async ({ page }) => {
     bandOnly(page, "desktop");
