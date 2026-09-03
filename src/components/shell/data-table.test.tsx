@@ -178,7 +178,7 @@ describe("DataTable C7 contract", () => {
         rowTestId={(row) => `row-${row.id}`}
         caption="fixture"
         stickyFirstColumn
-        selection={{ selectedKeys: [], onToggle: () => {}, onToggleAll: () => {} }}
+        selection={{ selectedKeys: [], onToggleRow: () => {}, onToggleAll: () => {} }}
         emptyState={<p>empty</p>}
       />,
     );
@@ -189,7 +189,6 @@ describe("DataTable C7 contract", () => {
     expect(bodyCell.className).toContain("sticky");
     expect(bodyCell.className).toContain("start-10");
   });
-
 
   it("renders the empty, loading and error slots unchanged", () => {
     const empty = renderTable({ rows: [] });

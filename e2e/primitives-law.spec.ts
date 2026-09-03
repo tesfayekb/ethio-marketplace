@@ -251,7 +251,6 @@ test.describe("display primitives law (test-once responsiveness)", () => {
     const after = await head.boundingBox();
     expect(Math.abs((after?.x ?? 0) - (before?.x ?? 0))).toBeLessThan(2);
 
-
     // At xl the wide tier earns its space.
     await page.setViewportSize({ width: 1440, height: 800 });
     await expect(page.getByTestId("data-table-col-views")).toBeVisible();
