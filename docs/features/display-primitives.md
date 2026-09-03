@@ -74,3 +74,18 @@ Re-landed 2026-09-03 (the U4i-10 contract was recorded but absent from the primi
 - `DataTablePagination({ totalLabel })` — replaces the numeric total in the range string (the audit console's capped `10,000+` from INC-129). Paging arithmetic is unchanged.
 
 Proof: `src/components/shell/data-table.test.tsx` (DEC-025 floor) covers the default split, the `lg` split, min-width layout, and the label substitution; law L9 in `e2e/primitives-law.spec.ts` proves the variant geometry on `/dev/primitives?variant=lg` (cards at 360 AND 768, table at 1280) without touching L3's default case.
+
+## INC-132 — the scroller chain
+
+`overflow-x-auto` only engages when every ancestor between it and the page
+column may be narrower than its content; one flex/grid ancestor left at
+`min-width: auto` widens the whole chain and the PAGE overflows instead. The
+primitive therefore owns `min-w-0 max-w-full` on every link of its own chain —
+frame -> body -> `data-table` card -> `data-table-scroller`. Consumers never add
+a width hack.
+
+Proof: the constrained-container case in `src/components/shell/data-table.test.tsx`
+and law **L10** in `e2e/primitives-law.spec.ts` (1024x800 on
+`/dev/primitives?variant=lg`: `scrollWidth > clientWidth` on the scroller, the
+last cell in viewport after scrolling it, and no page overflow). L3 and L9 are
+unmodified.
