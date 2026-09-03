@@ -112,6 +112,12 @@ export interface DataTableProps<T> {
   sortKey?: string;
   sortDirection?: "asc" | "desc";
   onSort?: (key: string) => void;
+  /**
+   * C7 / INC-130 — the card/table twin split. `"md"` (default) keeps every
+   * pre-existing consumer byte-identical; `"lg"` keeps cards through the
+   * tablet band, where dense tables used to crush.
+   */
+  cardUntil?: CardUntil;
   className?: string;
 }
 
@@ -121,6 +127,7 @@ function cellClass(column: DataTableColumn<unknown>) {
     column.align === "end" ? "text-end" : "text-start",
     column.priority === "detail" && "hidden lg:table-cell",
     column.width,
+    column.minWidth,
   );
 }
 
@@ -129,6 +136,7 @@ export function DataTablePagination({
   offset,
   pageSize,
   total,
+  totalLabel,
   onPrevious,
   onNext,
   testid = "data-table-pagination",
@@ -136,6 +144,11 @@ export function DataTablePagination({
   offset: number;
   pageSize: number;
   total: number;
+  /**
+   * C7 / INC-130 — replaces the numeric total in the range string (the audit
+   * console's capped "10,000+"). Paging arithmetic is unchanged.
+   */
+  totalLabel?: string;
   onPrevious: () => void;
   onNext: () => void;
   testid?: string;
@@ -146,8 +159,9 @@ export function DataTablePagination({
   return (
     <div data-testid={testid} className="flex min-w-0 flex-wrap items-center justify-between gap-3">
       <span data-testid={`${testid}-range`} className="text-sm tabular-nums text-muted-foreground">
-        {`${from}–${to} ${t("prim.table.of")} ${total}`}
+        {`${from}–${to} ${t("prim.table.of")} ${totalLabel ?? total}`}
       </span>
+
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
