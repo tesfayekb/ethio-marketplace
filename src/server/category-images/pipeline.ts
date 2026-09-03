@@ -67,9 +67,10 @@ export function atStage<T>(stage: PipelineStage, fn: () => T): T {
   } catch (error) {
     if (error instanceof StageError) throw error;
     const message = error instanceof Error ? error.message : "unknown error";
-    const status = typeof (error as { status?: unknown })?.status === "number"
-      ? (error as { status: number }).status
-      : 500;
+    const status =
+      typeof (error as { status?: unknown })?.status === "number"
+        ? (error as { status: number }).status
+        : 500;
     throw new StageError(stage, message, status);
   }
 }
@@ -80,9 +81,10 @@ export async function atStageAsync<T>(stage: PipelineStage, fn: () => Promise<T>
   } catch (error) {
     if (error instanceof StageError) throw error;
     const message = error instanceof Error ? error.message : "unknown error";
-    const status = typeof (error as { status?: unknown })?.status === "number"
-      ? (error as { status: number }).status
-      : 500;
+    const status =
+      typeof (error as { status?: unknown })?.status === "number"
+        ? (error as { status: number }).status
+        : 500;
     throw new StageError(stage, message, status);
   }
 }
