@@ -1075,4 +1075,39 @@ test.describe("C2 categories console", () => {
       for (const slug of slugs) await destroyCategory(slug);
     }
   });
+  /**
+   * CT-16 (C2-CLOSE Part D, INC-150) — THE DIALOG RETURN PATH. A secondary
+   * surface is an axis OF the editor, not a replacement for it: closing
+   * Countries returns to the OPEN editor, and only closing the editor returns
+   * to the table.
+   */
+  test("CT-16 return path: closing a secondary dialog returns to the open editor", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      await openEditor(page, slug);
+
+      await action(page, slug, "exclusions").click();
+      await expect(page.getByTestId("category-exclusions-dialog")).toBeVisible({ timeout: 20000 });
+      // The editor yields the surface while its sub-dialog is open.
+      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
+
+      await page.getByTestId("category-exclusions-cancel").click();
+      // ... and comes straight back: the editor is open, the table is not the
+      // destination of a sub-dialog close.
+      await expect(page.getByTestId("category-exclusions-dialog")).toHaveCount(0);
+      await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("category-verb-bar")).toBeVisible();
+
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
+      await findRow(page, slug);
+    } finally {
+      if (slug) await destroyCategory(slug);
+    }
+  });
 });
