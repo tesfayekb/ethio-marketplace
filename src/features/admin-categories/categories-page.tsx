@@ -45,7 +45,14 @@ import { useAdminCategories, useReorderCategories } from "./use-categories";
  * buttons — a 360 card has the room and no hover affordance.
  */
 
-const PAGE_SIZE = 25;
+/**
+ * C2c — PAGE SIZE IS A DEVICE SETTING. Same storage discipline as the language
+ * star: localStorage is the durable per-device record, read after mount so SSR
+ * and the first client frame agree.
+ */
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 25;
+const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
 
 type DialogState =
   | { kind: "none" }
@@ -60,7 +67,30 @@ export function AdminCategoriesPage() {
   const reorder = useReorderCategories();
   const [search, setSearch] = useState("");
   const [rootFilter, setRootFilter] = useState("");
+  const [missingOnly, setMissingOnly] = useState(false);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    try {
+      const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+      if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
+        setPageSize(stored);
+      }
+    } catch {
+      /* no storage access on this device; the default answers */
+    }
+  }, []);
+
+  const choosePageSize = (next: number) => {
+    setPageSize(next);
+    setOffset(0);
+    try {
+      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+    } catch {
+      /* the choice still holds for this session */
+    }
+  };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
 
   const mayCreate = permissions.includes("categories:create");
@@ -78,23 +108,41 @@ export function AdminCategoriesPage() {
     return current?.id ?? row.id;
   };
 
+  /** C2c — a category with no icon AND/OR no image is not launch-ready. */
+  const missingAssets = (row: CategoryNode) => row.icon === null || !row.hasImage;
+
   const needle = search.trim().toLowerCase();
   const filtered = useMemo(
     () =>
       roster.filter((row) => {
         if (rootFilter !== "" && rootOf(row) !== rootFilter) return false;
+        if (missingOnly && !missingAssets(row)) return false;
         if (needle === "") return true;
-        return row.nameEn.toLowerCase().includes(needle) || row.slug.toLowerCase().includes(needle);
+        const parentName =
+          row.parentId === null ? "" : (byId.get(row.parentId)?.nameEn.toLowerCase() ?? "");
+        return (
+          row.nameEn.toLowerCase().includes(needle) ||
+          row.slug.toLowerCase().includes(needle) ||
+          parentName.includes(needle)
+        );
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [roster, needle, rootFilter, byId],
+    [roster, needle, rootFilter, missingOnly, byId],
   );
+
+  /** Per-root counts, so the filter says how much each subtree holds. */
+  const rootCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const row of roster) counts.set(rootOf(row), (counts.get(rootOf(row)) ?? 0) + 1);
+    return counts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roster, byId]);
 
   useEffect(() => {
     setOffset(0);
-  }, [needle, rootFilter]);
+  }, [needle, rootFilter, missingOnly]);
 
-  const rows = filtered.slice(offset, offset + PAGE_SIZE);
+  const rows = filtered.slice(offset, offset + pageSize);
 
   const selected =
     dialog.kind === "none" || dialog.kind === "create"
@@ -362,10 +410,10 @@ export function AdminCategoriesPage() {
             pagination={
               <DataTablePagination
                 offset={offset}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 total={filtered.length}
-                onPrevious={() => setOffset((prev) => Math.max(0, prev - PAGE_SIZE))}
-                onNext={() => setOffset((prev) => prev + PAGE_SIZE)}
+                onPrevious={() => setOffset((prev) => Math.max(0, prev - pageSize))}
+                onNext={() => setOffset((prev) => prev + pageSize)}
                 testid="category-pagination"
               />
             }
