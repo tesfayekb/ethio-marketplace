@@ -86,10 +86,23 @@ function ErrorLine({ message }: { message: string | null }) {
 function useSubmitError() {
   const { t } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
-  const fail = (error: unknown) =>
-    setMessage(error instanceof Error ? error.message : t("admin.categories.error.saveFailed"));
+  /**
+   * F4 — a server refusal raises a TRANSLATION KEY (e.g. C2g's
+   * `admin.categories.error.catchallParent`); it is rendered through `t`, so
+   * the operator never reads a raw key. Anything else falls back to the
+   * generic save failure.
+   */
+  const fail = (error: unknown) => {
+    const raw = error instanceof Error ? error.message : "";
+    if (raw.startsWith("admin.categories.error.")) {
+      setMessage(t(raw as Parameters<typeof t>[0]));
+      return;
+    }
+    setMessage(raw === "" ? t("admin.categories.error.saveFailed") : raw);
+  };
   return { message, setMessage, fail };
 }
+
 
 /* ------------------------------- create ---------------------------------- */
 
