@@ -74,7 +74,7 @@ export function CategoryModal({
   );
 }
 
-export function ErrorLine({ message }: { message: string | null }) {
+function ErrorLine({ message }: { message: string | null }) {
   if (!message) return null;
   return (
     <p role="alert" data-testid="category-dialog-error" className="text-sm text-destructive">
