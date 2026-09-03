@@ -99,6 +99,17 @@ async function readCategory(slug: string) {
   return data;
 }
 
+/** The pointer rows of a category, read as DB truth (J4). */
+async function readPointers(categoryId: string) {
+  const { data, error } = await adminClient()
+    .from("category_tree_pointers")
+    .select("id, parent_id, display_order")
+    .eq("child_id", categoryId)
+    .order("display_order");
+  if (error) throw new Error(`[e2e:c2] reading pointers failed: ${error.message}`);
+  return data ?? [];
+}
+
 /** Hard cleanup — never leaves a scratch node in the ratified tree. */
 async function destroyCategory(slug: string) {
   const supabase = adminClient();
@@ -277,5 +288,83 @@ test.describe("C2 categories console", () => {
     } finally {
       if (slug) await destroyCategory(slug);
     }
+  });
+
+  /**
+   * CT-7b (C2b) — a pointer MOVE without a proven factor changes nothing. The
+   * user has no enrolled factor at all, so the step-up gate can never be
+   * satisfied and the server refuses: DB truth must be byte-identical after
+   * the attempt (F5 — a refused attempt leaves no trace).
+   */
+  test("CT-7b browse paths: an unproven factor cannot move a pointer", async ({ page }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      const id = (await readCategory(slug))?.id;
+      const before = await readPointers(id!);
+      expect(before.length).toBeGreaterThan(0);
+
+      // A second super admin with NO enrolled factor.
+      const weak = await createUser({ confirmed: true });
+      await grantRole(weak.id, "super_admin");
+      await switchUser(page, weak.email, weak.password);
+      await gotoReady(page, "/admin/categories");
+      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+
+      await action(page, slug, "pointer").click();
+      const pointerId = before[0]!.id;
+      const select = page.getByTestId(`category-path-move-${pointerId}`);
+      await expect(select).toBeVisible({ timeout: 20000 });
+      const rootValue = await select.locator("option").nth(1).getAttribute("value");
+      await select.selectOption(rootValue!);
+
+      // Give the refusal a bounded window, then prove nothing moved.
+      await page.waitForTimeout(3000);
+      const after = await readPointers(id!);
+      expect(after.map((row) => row.parent_id)).toEqual(before.map((row) => row.parent_id));
+    } finally {
+      if (slug) await destroyCategory(slug);
+    }
+  });
+
+  /**
+   * CT-8 (INC-132) — at 1024 the table twin is live and its declared
+   * min-widths exceed the viewport: every action must stay reachable by
+   * scrolling the PRIMITIVE'S OWN scroller, never by overflowing the page.
+   */
+  test("CT-8 tablet band: actions stay reachable through the primitive scroller", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    const admin = await createUser({ confirmed: true });
+    await grantRole(admin.id, "admin");
+    await switchUser(page, admin.email, admin.password);
+    await gotoReady(page, "/admin/categories");
+    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+
+    await expectNoHorizontalOverflow(page);
+
+    const scroller = page.getByTestId("data-table-scroller");
+    await scroller.evaluate((el) => {
+      el.scrollLeft = el.scrollWidth;
+    });
+    await expect(action(page, "vehicles", "edit")).toBeInViewport();
+  });
+
+  test("CT-9 roster shape: a parent column and a 25-row page", async ({ page }) => {
+    const admin = await createUser({ confirmed: true });
+    await grantRole(admin.id, "admin");
+    await switchUser(page, admin.email, admin.password);
+    await gotoReady(page, "/admin/categories");
+    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+
+    // Parent column: a root reads "—".
+    await expect(page.getByTestId("data-table-col-parent")).toBeVisible();
+
+    // The ratified taxonomy is 113 nodes, so page one is exactly PAGE_SIZE.
+    await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
+    await page.getByTestId("category-pagination-next").click();
+    await expect(page.getByTestId("category-pagination-range")).toContainText("26–50");
   });
 });
