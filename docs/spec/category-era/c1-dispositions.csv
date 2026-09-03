@@ -1,0 +1,509 @@
+live_id,path,slug,action,target,reason
+15,Real Estate,real-estate,MERGE→real-estate,real-estate,
+16,Auto & Parts,auto-parts,MERGE→vehicles,vehicles,
+17,Furniture & Appliances,furniture-and-appliances,MERGE→home-garden,home-garden,
+18,Construction Material,construction-material,MERGE→construction,construction,
+19,Electronics,electronics,MERGE→electronics,electronics,
+20,Clothing & Luggage,clothing-and-luggage,MERGE→fashion,fashion,
+21,Cosmetics & Personal Care,cosmetics-and-personal-care,MERGE→beauty-personal-care,beauty-personal-care,
+22,Health & Fitness,health-and-fitness,SPLIT,,"root split: equipment→sports-leisure, services→health-services, OTC→beauty (REQ-017 pharma rule)"
+23,Events & Gatherings,events-and-gatherings,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+24,Education & Training,education-and-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+25,Travel & Accommodation,travel-and-accommodation,MERGE→travel,travel,
+26,Services,services,MERGE→services,services,
+27,Jobs & Vacancies,jobs-and-vacancies,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+28,"Shops, Marts, Cafés & Restaurants",shops-marts-cafe-restaurants,DROP,,"seller-type, → storefronts (REQ-008)"
+29,Bookstore & Music Shops,bookstore-music-shops,MERGE→books-media,books-media,Bookstore root folded to leaf
+30,Real Estate > Single Family Houses,single-family-house,MERGE→houses,houses,
+31,Real Estate > Condominium,condominium,MERGE→apartments-condos,apartments-condos,type attr: apartment/condominium; L1 kil
+32,Real Estate > Apartment,apartment,MERGE→apartments-condos,apartments-condos,type attr: apartment/condominium; L1 kil
+33,Real Estate > Townhomes,townhome,MERGE→houses,houses,
+34,Real Estate > Office & Retail Space,office-or-retail-space,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+35,Real Estate > Industrial Properties & Warehouses,industrial-property-or-warehouse,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+36,Real Estate > Land,land,MERGE→land-plots,land-plots,land_type attr (residential/commercial/f
+37,Real Estate > Realtor & Related Services,realtor-related-services,MERGE→realtor-services,realtor-services,
+38,Real Estate > Others,others,DROP,,bare Others (empty-depth); catch-all system replaces
+39,Auto & Parts > Personal Cars,personal-cars,MERGE→cars,cars,"attrs: offer_type(sale/hire), body(sedan"
+40,"Auto & Parts > Buses, Vans & Taxi",buses-vans-taxi,MERGE→buses-vans,buses-vans,
+41,Auto & Parts > Large Transport Trucks,large-transport-trucks,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+42,"Auto & Parts > Motorbikes, Tuk Tuks & Bicycles",motorbikes-bicycles,MERGE→motorbikes-bicycles,motorbikes-bicycles,type attr: motorbike/tuktuk/bicycle
+43,Auto & Parts > Auto Parts & Accessories,auto-parts-accessories,MERGE→vehicle-parts,vehicle-parts,
+44,Auto & Parts > Heavy Duty Trucks & Machinery,heavy-duty-trucks-machinery,MERGE→heavy-machinery,heavy-machinery,L2: also under Construction & Agricultur
+47,Auto & Parts > Auto Services,auto-services,MERGE→auto-services,auto-services,absorbs Services>Automobile Repair (495)
+48,Furniture & Appliances > Office Furniture,office-furniture,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+49,Furniture & Appliances > House Furniture,house-furniture,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+50,Furniture & Appliances > Appliances,appliances,MERGE→appliances,appliances,
+51,Furniture & Appliances > Cookware & Utensils,cookware-and-utensil,MERGE→kitchen-dining,kitchen-dining,
+52,Furniture & Appliances > Commercial Furniture,commercial-furniture,MERGE→restaurant-equipment,restaurant-equipment,+commercial furniture(52)
+53,Furniture & Appliances > Appliance Services,appliance-services,MERGE→repair-maintenance,repair-maintenance,appliance services
+54,Construction Material > Metals,metals,MERGE→steel-metals,steel-metals,
+55,Construction Material > Concrete & Masonry,concrete-and-masonry,MERGE→cement-concrete,cement-concrete,
+56,Construction Material > Plumbing Materials,plumbing-materials,MERGE→plumbing,plumbing,
+57,Construction Material > Electrical & Lighting Materials,electrical-lighting-materials,MERGE→electrical-lighting,electrical-lighting,generators here
+58,Construction Material > Wood Materials & Products,wood-materials-and-products,MERGE→wood-timber,wood-timber,
+59,"Construction Material > Roofing, Ceiling & Wall Materials",roofing-ceiling-wall-materials,MERGE→roofing-doors,roofing-doors,
+60,"Construction Material > Floors, Tiles & Paints",floor-tile-and-paint,MERGE→tiles-paint,tiles-paint,
+61,Construction Material > Construction Tools & Machinery,construction-tools-machinery,MERGE→construction-tools,construction-tools,"+Construction Services(62,215,216,217)→n"
+62,Construction Material > Construction Services,construction-services,MERGE→construction-tools,construction-tools,contractor listings; provider_type attr
+63,"Electronics > Phones, Parts & Accessories",phones-parts-accessories,MERGE→phones-tablets,phones-tablets,type attr: smartphone/feature/basic/tabl
+64,"Electronics > Computers, Parts & Accessories",computers-parts-accessories,MERGE→computers,computers,
+65,"Electronics > Camera, Parts & Accessories",camera-parts-accessories,MERGE→cameras-drones,cameras-drones,absorbs Drones branch; VR here
+66,"Electronics > TV, Video, Games",tv-video-games,MERGE→tv-video,tv-video,
+67,"Electronics > Audio, Radio, & Accessories",audio-radio-accessories,MERGE→audio-sound,audio-sound,
+68,"Electronics > Printers, Copiers, Scanners, & Faxes",printer-copier-scanner-fax,MERGE→printers-office,printers-office,+projectors(328)
+69,Electronics > Drones & Parts,drones-parts,MERGE→cameras-drones,cameras-drones,absorbs Drones branch; VR here
+70,"Electronics > Accessories, Parts & Others",accessories-parts-others,MERGE→electronics-accessories,electronics-accessories,
+71,Electronics > Electronic Tools & Services,electronic-tools-services,MERGE→electronics-accessories,electronics-accessories,tools&services
+72,Clothing & Luggage > Women Clothing,women-clothing,MERGE→womens-clothing,womens-clothing,wedding/occasion = attr occasion
+73,Clothing & Luggage > Men Clothing,men-clothing,MERGE→mens-clothing,mens-clothing,
+74,Clothing & Luggage > Teens Clothing,teens-clothing,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+75,Clothing & Luggage > Newborn and infant clothing,newborn-and-infant-clothing,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+76,Clothing & Luggage > Toddler Clothing,toddler-clothing,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+77,Clothing & Luggage > Traditional Cloth,traditional-cloth,MERGE→traditional-cloth,traditional-cloth,Tibeb/Netela/Gabi = product_type attr; c
+78,Clothing & Luggage > Uniforms,uniforms,MERGE→uniforms,uniforms,
+79,Clothing & Luggage > Luggage & Travel Accessories,luggage-and-travel-accessories,MERGE→bags-luggage,bags-luggage,
+80,Cosmetics & Personal Care > Skin Care Products,skin-care-products,MERGE→skincare,skincare,
+81,Cosmetics & Personal Care > Makeup Products,makeup-products,MERGE→makeup,makeup,
+82,Cosmetics & Personal Care > Haircare Products,hair-care-products,MERGE→haircare,haircare,
+83,Cosmetics & Personal Care > Fragrance,fragrance,MERGE→fragrances,fragrances,
+84,Cosmetics & Personal Care > Men Shaving Products,men-shaving-products,MERGE→mens-grooming,mens-grooming,
+85,Cosmetics & Personal Care > Nail Care Products,nail-care-products,MERGE→nail-hand-foot,nail-hand-foot,
+86,Cosmetics & Personal Care > Personal Care Services,personal-care-services,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+87,Cosmetics & Personal Care > Hand & Foot Care,hand-foot-care,MERGE→nail-hand-foot,nail-hand-foot,
+88,Health & Fitness > Pharmacy,pharmacy,MERGE→health-wellness,health-wellness,OTC/vitamins per REQ-017; +medical equip
+89,Health & Fitness > Health Service Providers,health-service-providers,MERGE→health-services,health-services,clinics/diagnostics/homecare; NO pharmac
+90,Health & Fitness > Medical Equipment Providers,medical-equipment-providers,MERGE→health-wellness,health-wellness,OTC/vitamins per REQ-017; +medical equip
+91,Health & Fitness > Sport & Fitness Centers,sport-and-fitness-centers,MERGE→fitness-centers,fitness-centers,
+92,Health & Fitness > Sport & Fitness Equipment Supplies,sport-and-fitness-equipment-supplies,MERGE→fitness-equipment,fitness-equipment,
+93,Health & Fitness > Pharmacy with Prescription,pharmacy-with-prescription,RETIRE,,Prescription pharmacy excluded (REQ-017)
+94,Events & Gatherings > Religious Holiday Events,religious-holiday-events,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+95,Events & Gatherings > National Holiday Events,national-holiday-events,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+96,Events & Gatherings > Traditional & Cultural Events,traditional-cultural-events,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+97,Events & Gatherings > Sporting Events,sporting-events,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+98,Events & Gatherings > Concerts,concerts,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+99,Events & Gatherings > Special Cause Events,special-cause-events,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+100,Events & Gatherings > Educational Event,educational-event,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+101,Events & Gatherings > Event Space Rental Services,even-space-rental,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+102,Events & Gatherings > Event Organizing Services,event-organizing-services,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+103,Education & Training > Vocational Training,vocational-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+104,Education & Training > K to 12 Schools,k-to-12-schools,MERGE→education-training,education-training,R4: Education root folded; childcare her
+105,Education & Training > Language Training,language-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+106,Education & Training > Certificate & Diploma Training,certificatediploma-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+107,Education & Training > Graduate Training,graduate-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+108,Education & Training > Post Graduate Training,post-graduate-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+110,Travel & Accommodation > Travel Booking Services,travel-booking-service,MERGE→tours-tickets,tours-tickets,
+111,Travel & Accommodation > Tourist Destinations,tourist-destinations,MERGE→tours-tickets,tours-tickets,
+112,Travel & Accommodation > Transportation,transportation,MERGE→tours-tickets,tours-tickets,
+113,Travel & Accommodation > Accommodation,accommodation,MERGE→hotels-guesthouses,hotels-guesthouses,
+114,Travel & Accommodation > Dinning & Entertainments,dinning-and-entertainments,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+115,Travel & Accommodation > Travel Organizers,travel-organizer,MERGE→tours-tickets,tours-tickets,
+116,Travel & Accommodation > Tour Guides,tour-guides,MERGE→tours-tickets,tours-tickets,
+117,Travel & Accommodation > Travel Related Services & Goods,travel-related-services-and-goods,MERGE→travel-services,travel-services,
+118,Services > Financial Services,financial-services,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+119,Services > Office Space & Secretarial Services,office-space-and-secretarial-services,MERGE→professional-services,professional-services,
+120,Services > Personal Care Services,personal-care-services-services,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+121,Services > Maintenance & Repair Services,maintenance-and-repair-services,MERGE→repair-maintenance,repair-maintenance,electronic/appliance/machinery repair; p
+122,Services > Printing & Photography Services,printing-and-photography-service,MERGE→printing-photography,printing-photography,+AV(318)+photo services(326)
+123,Services > Cleaning Services,cleaning-services,MERGE→home-services,home-services,cleaning+laundry+garbage
+124,Services > Logistics & Cargo Services,logistics-or-cargo-service,MERGE→logistics-cargo,logistics-cargo,
+125,Services > Recreational Services,recreational-services,MERGE→attractions,attractions,
+126,"Services > Educational, Tutoring & Childcare Services",educational-tutoring-and-childcare-services,MERGE→education-training,education-training,R4: Education root folded; childcare her
+127,Services > Utility & Other Services,utility-and-others-services,DROP,,container emptied (only child 523 retired)
+128,Jobs & Vacancies > Job Openings,job-openings,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+129,Jobs & Vacancies > Job Seekers,job-seeker,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+130,Jobs & Vacancies > Tenders,tenders,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+131,Real Estate > Single Family Houses > For Sale,for-sale,MERGE→houses,houses,
+132,Real Estate > Single Family Houses > For Rent or Lease,for-rent-or-lease,MERGE→houses,houses,
+137,Real Estate > Townhomes > Townhomes for Sale,for-sale-townhome,MERGE→houses,houses,
+138,Real Estate > Townhomes > Townhomes for Rent,for-rent,MERGE→houses,houses,
+139,Real Estate > Office & Retail Space > Office Space,office-space,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+140,Real Estate > Office & Retail Space > Retail Space & Stores,retail-space-or-store,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+141,Real Estate > Industrial Properties & Warehouses > Industrial Property,industrial-property,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+142,Real Estate > Industrial Properties & Warehouses > Storage & Warehouses,storage-or-warehouse,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+143,Real Estate > Land > Residential,residential,MERGE→land-plots,land-plots,land_type attr (residential/commercial/f
+144,Real Estate > Land > Commercial Land,commercial-land,MERGE→land-plots,land-plots,land_type attr (residential/commercial/f
+145,Real Estate > Land > Farmland,farm-land,MERGE→land-plots,land-plots,land_type attr (residential/commercial/f
+146,Real Estate > Land > Industrial Land,industrial-land,MERGE→land-plots,land-plots,land_type attr (residential/commercial/f
+147,Real Estate > Land > Mixed Use Land,mixed-use-land,MERGE→land-plots,land-plots,land_type attr (residential/commercial/f
+148,Real Estate > Realtor & Related Services > Realtor Services,realtor-services,MERGE→realtor-services,realtor-services,
+149,Real Estate > Realtor & Related Services > Mortgage Loan Services,mortgage-loan-service,MERGE→realtor-services,realtor-services,
+150,Real Estate > Realtor & Related Services > Real Estate Attorneys,real-estate-attorneys,MERGE→realtor-services,realtor-services,
+151,Real Estate > Realtor & Related Services > Property Management Services,property-management-service,MERGE→realtor-services,realtor-services,
+152,Auto & Parts > Personal Cars > For Sale,for-sale-personal-use-cars,MERGE→cars,cars,"attrs: offer_type(sale/hire), body(sedan"
+153,Auto & Parts > Personal Cars > For Hire,for-rent-personal-use-cars,MERGE→cars,cars,"attrs: offer_type(sale/hire), body(sedan"
+154,"Auto & Parts > Buses, Vans & Taxi > For Sale",for-sale-buses-vans-taxi,MERGE→buses-vans,buses-vans,
+155,"Auto & Parts > Buses, Vans & Taxi > For Rent",for-rent-buses-vans-taxi,MERGE→buses-vans,buses-vans,
+156,Auto & Parts > Large Transport Trucks > Flat Bed Trucks,flat-bed-trucks,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+157,Auto & Parts > Large Transport Trucks > Dump Trucks,dump-truck,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+158,Auto & Parts > Large Transport Trucks > Box Trucks,box-trucks,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+159,Auto & Parts > Large Transport Trucks > Open Load Trucks,open-load-trucks,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+160,Auto & Parts > Large Transport Trucks > Liquid Transport Trucks,liquid-transport-trucks,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+161,Auto & Parts > Large Transport Trucks > Tractor Heads,tractorhead,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+162,Auto & Parts > Large Transport Trucks > Trailers & SemiTrailers,trailers-semitrailers,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+163,Auto & Parts > Large Transport Trucks > Transport Containers,transport-containers,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+164,Auto & Parts > Large Transport Trucks > Other Large Trucks,other-large-trucks,MERGE→trucks-trailers,trucks-trailers,truck_type attr from 9 live leaves
+165,"Auto & Parts > Motorbikes, Tuk Tuks & Bicycles > Motorbikes",motorbike,MERGE→motorbikes-bicycles,motorbikes-bicycles,type attr: motorbike/tuktuk/bicycle
+167,"Auto & Parts > Motorbikes, Tuk Tuks & Bicycles > Bicycles",bicycle,MERGE→motorbikes-bicycles,motorbikes-bicycles,type attr: motorbike/tuktuk/bicycle
+168,Auto & Parts > Auto Parts & Accessories > Car & Truck Parts & Accessories,car-truck-parts-accessories,MERGE→vehicle-parts,vehicle-parts,
+169,Auto & Parts > Auto Parts & Accessories > Motor Bike Parts & Accessories,motor-bike-parts-accessories,MERGE→vehicle-parts,vehicle-parts,
+170,Auto & Parts > Auto Parts & Accessories > Bicycle Parts & Accessories,bicycle-parts-accessories,MERGE→vehicle-parts,vehicle-parts,
+171,Auto & Parts > Auto Parts & Accessories > Other Parts & Accessories,other-parts-accessories,MERGE→vehicle-parts,vehicle-parts,
+172,Auto & Parts > Heavy Duty Trucks & Machinery > Construction Trucks & Machinery,construction-trucks-machinery,MERGE→heavy-machinery,heavy-machinery,L2: also under Construction & Agricultur
+173,Auto & Parts > Heavy Duty Trucks & Machinery > Farming Trucks & Machinery,farming-trucks-machinery,MERGE→heavy-machinery,heavy-machinery,L2: also under Construction & Agricultur
+174,Auto & Parts > Heavy Duty Trucks & Machinery > Industrial Machinery,industrial-machinary,MERGE→heavy-machinery,heavy-machinery,L2: also under Construction & Agricultur
+175,Auto & Parts > Heavy Duty Trucks & Machinery > Other Trucks & Machinery,other-trucks-machinery,MERGE→heavy-machinery,heavy-machinery,L2: also under Construction & Agricultur
+176,Auto & Parts > Auto Services > Auto Repair Services,repair-services,MERGE→auto-services,auto-services,absorbs Services>Automobile Repair (495)
+177,Auto & Parts > Auto Services > Towing Services,towing-services,MERGE→auto-services,auto-services,absorbs Services>Automobile Repair (495)
+178,Auto & Parts > Auto Services > Auto Insurance Services,auto-insurance-services,MERGE→auto-services,auto-services,absorbs Services>Automobile Repair (495)
+179,Auto & Parts > Auto Services > Other Auto Services,other-auto-services,MERGE→auto-services,auto-services,absorbs Services>Automobile Repair (495)
+180,Furniture & Appliances > Office Furniture > Office Desk and Tables,office-desk-and-tables,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+181,Furniture & Appliances > Office Furniture > Office Chairs & Benches,office-chairs-and-benches,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+182,Furniture & Appliances > Office Furniture > Office Cabinets & Shelves,office-cabinets-and-shelves,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+183,Furniture & Appliances > Office Furniture > Office Decors,office-decors,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+184,Furniture & Appliances > Office Furniture > Work Stations,work-stations,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+185,Furniture & Appliances > House Furniture > Living Room Furniture,living-room-furniture,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+186,Furniture & Appliances > House Furniture > Bedroom Furniture & Bedding,bedroom-furniture-bedding,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+187,Furniture & Appliances > House Furniture > Dinning Room Furniture,dinning-room-furniture,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+188,Furniture & Appliances > House Furniture > Kids Furniture,kids-furniture,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+189,Furniture & Appliances > House Furniture > Outdoor Furniture,outdoor-furniture,MERGE→furniture,furniture,"room attr; office furniture folded (48,1"
+190,Furniture & Appliances > Appliances > Refrigerators & Freezers,refrigerators-and-freezers,MERGE→appliances,appliances,
+191,Furniture & Appliances > Appliances > Cooktops & Ovens,cooktops-and-ovens,MERGE→appliances,appliances,
+192,Furniture & Appliances > Appliances > Laundry Appliances,laundry-appliances,MERGE→appliances,appliances,
+193,Furniture & Appliances > Appliances > Dishwashers,dishwashers,MERGE→appliances,appliances,
+194,Furniture & Appliances > Appliances > Microwaves,microwaves,MERGE→appliances,appliances,
+195,Furniture & Appliances > Appliances > Kitchen Countertop Appliances,kitchen-counter-top-appliances,MERGE→appliances,appliances,
+196,Furniture & Appliances > Appliances > Other Kitchen Appliances,other-kitchen-appliances,MERGE→appliances,appliances,
+197,Furniture & Appliances > Cookware & Utensils > Cooking Pot & Pans,cooking-pot-and-pans,MERGE→kitchen-dining,kitchen-dining,
+198,Furniture & Appliances > Cookware & Utensils > Bakeware,bakeware,MERGE→kitchen-dining,kitchen-dining,
+199,Furniture & Appliances > Cookware & Utensils > Kitchen Knifes,kitchen-knifes,MERGE→kitchen-dining,kitchen-dining,
+200,Furniture & Appliances > Cookware & Utensils > Dining Utensils,dining-utensils,MERGE→kitchen-dining,kitchen-dining,
+201,Furniture & Appliances > Cookware & Utensils > Other Kitchen Utensils,other-kitchen-utensils,MERGE→kitchen-dining,kitchen-dining,
+202,Furniture & Appliances > Cookware & Utensils > Food Storage,food-storage,MERGE→kitchen-dining,kitchen-dining,
+203,Furniture & Appliances > Cookware & Utensils > Kitchen Accessories,kitchen-accessories,MERGE→kitchen-dining,kitchen-dining,
+204,Furniture & Appliances > Commercial Furniture > School Desks,school-desk,MERGE→restaurant-equipment,restaurant-equipment,+commercial furniture(52)
+205,Furniture & Appliances > Commercial Furniture > Student Chairs,student-chair,MERGE→restaurant-equipment,restaurant-equipment,+commercial furniture(52)
+206,Furniture & Appliances > Commercial Furniture > Blackboards & Whiteboards,blackboard-or-white-board,MERGE→restaurant-equipment,restaurant-equipment,+commercial furniture(52)
+207,Furniture & Appliances > Commercial Furniture > Restaurant Tables & Chairs,restaurant-tables-and-chairs,MERGE→restaurant-equipment,restaurant-equipment,+commercial furniture(52)
+208,Furniture & Appliances > Appliance Services > Appliance Installation Services,appliance-installation,MERGE→repair-maintenance,repair-maintenance,
+209,Furniture & Appliances > Appliance Services > Appliance Maintenance & Repair Services,appliance-maintenance-and-repair-services,MERGE→repair-maintenance,repair-maintenance,
+210,"Construction Material > Concrete & Masonry > Cement, Sand & Gravel",cement-sand-gravel,MERGE→cement-concrete,cement-concrete,
+211,Construction Material > Concrete & Masonry > Aggregates & Concrete Mix,aggregates-concrete-mix,MERGE→cement-concrete,cement-concrete,
+212,Construction Material > Concrete & Masonry > Clay or Concrete Blocks & Stones,clay-or-concrete-blocks-and-stone,MERGE→cement-concrete,cement-concrete,
+213,Construction Material > Concrete & Masonry > Precast Concrete Products,precast-concrete-products,MERGE→cement-concrete,cement-concrete,
+214,Construction Material > Concrete & Masonry > Services & Accessories,services-accessories,MERGE→cement-concrete,cement-concrete,
+215,Construction Material > Construction Services > General Construction Contractors,general-construction-contractors,MERGE→construction-tools,construction-tools,
+216,Construction Material > Construction Services > Civil Engineering Contractor,civil-engineering-contractor,MERGE→construction-tools,construction-tools,
+217,Construction Material > Construction Services > Construction Machinery Maintenance Service,construction-machinery-maintenance-service,MERGE→repair-maintenance,repair-maintenance,machinery maintenance
+218,Construction Material > Construction Tools & Machinery > Construction Machinery,construction-machinery,MERGE→construction-tools,construction-tools,"+Construction Services(62,215,216,217)→n"
+219,Construction Material > Construction Tools & Machinery > Construction Hand Tools,construction-hand-tools,MERGE→construction-tools,construction-tools,"+Construction Services(62,215,216,217)→n"
+220,Construction Material > Construction Tools & Machinery > Construction Power Tools,construction-power-tools,MERGE→construction-tools,construction-tools,"+Construction Services(62,215,216,217)→n"
+221,Construction Material > Electrical & Lighting Materials > Electrical Wire & Cable,electrical-wire-and-cable,MERGE→electrical-lighting,electrical-lighting,generators here
+222,"Construction Material > Electrical & Lighting Materials > Electrical Boxes, Conduits & Fittings",electrical-boxes-conduits-and-fittings,MERGE→electrical-lighting,electrical-lighting,generators here
+223,Construction Material > Electrical & Lighting Materials > Generators,generators,MERGE→electrical-lighting,electrical-lighting,generators here
+224,"Construction Material > Electrical & Lighting Materials > Switches, Dimmers & Outlets",switches-dimmers-outlets,MERGE→electrical-lighting,electrical-lighting,generators here
+225,Construction Material > Electrical & Lighting Materials > Circuit Breakers & Power Meters,circuit-breakers-and-power-meters,MERGE→electrical-lighting,electrical-lighting,generators here
+226,Construction Material > Electrical & Lighting Materials > Lighting Fixtures & Fans,lighting-fixtures-and-fans,MERGE→electrical-lighting,electrical-lighting,generators here
+227,Construction Material > Electrical & Lighting Materials > Low Voltage Wires & Accessories,low-voltage-wires-and-accessories,MERGE→electrical-lighting,electrical-lighting,generators here
+228,Construction Material > Electrical & Lighting Materials > Electrical Tools & Accessories,electrical-tools-and-accessories,MERGE→electrical-lighting,electrical-lighting,generators here
+229,Construction Material > Electrical & Lighting Materials > Electrical Services,electrical-services,MERGE→electrical-lighting,electrical-lighting,generators here
+230,"Construction Material > Floors, Tiles & Paints > Floor, Wall Tiles & Planks",floor-and-wall-tile-or-planks,MERGE→tiles-paint,tiles-paint,
+231,"Construction Material > Floors, Tiles & Paints > Carpet & Rugs",carpet-and-rugs,MERGE→tiles-paint,tiles-paint,
+232,"Construction Material > Floors, Tiles & Paints > Paint",paint,MERGE→tiles-paint,tiles-paint,
+233,"Construction Material > Floors, Tiles & Paints > Wallpaper",wall-paper,MERGE→tiles-paint,tiles-paint,
+234,"Construction Material > Floors, Tiles & Paints > Accessories",accessories,MERGE→tiles-paint,tiles-paint,
+235,"Construction Material > Floors, Tiles & Paints > Flooring, Carpeting & Tiling Services",flooring-carpeting-and-tile-services,MERGE→tiles-paint,tiles-paint,
+236,Construction Material > Metals > Hollow Structural Sections or Tube,hollow-structural-sections-or-tube,MERGE→steel-metals,steel-metals,
+237,Construction Material > Metals > Structural Steel,structural-steel,MERGE→steel-metals,steel-metals,
+238,Construction Material > Metals > LTZ Sections,ltz-sections,MERGE→steel-metals,steel-metals,
+239,Construction Material > Metals > Metal Pipes & Tubes,metal-pipe-and-tube,MERGE→steel-metals,steel-metals,
+240,"Construction Material > Metals > Metal Plates, Sheets & Coil",metal-plates-sheets-and-coil,MERGE→steel-metals,steel-metals,
+241,Construction Material > Metals > Metal Structures & Accessories,metal-structures-accessories,MERGE→steel-metals,steel-metals,
+242,Construction Material > Metals > Metal Working & Related Services,metal-working-related-services,MERGE→steel-metals,steel-metals,
+243,Construction Material > Plumbing Materials > Pipes and Tubes,pipe-and-tube,MERGE→plumbing,plumbing,
+244,Construction Material > Plumbing Materials > Plumbing Fittings,plumbing-fittings,MERGE→plumbing,plumbing,
+245,Construction Material > Plumbing Materials > Bathroom & Kitchen Fixtures,bathroom-and-kitchen-fixtures,MERGE→plumbing,plumbing,
+246,Construction Material > Plumbing Materials > Water Heaters & Boilers,water-heaters-boilers,MERGE→plumbing,plumbing,
+247,Construction Material > Plumbing Materials > Plumbing Accessories,plumbing-accessories,MERGE→plumbing,plumbing,
+248,Construction Material > Plumbing Materials > Plumbing Services,plumbing-services,MERGE→plumbing,plumbing,
+249,"Construction Material > Roofing, Ceiling & Wall Materials > Roofing Materials",roofing-materials,MERGE→roofing-doors,roofing-doors,
+250,"Construction Material > Roofing, Ceiling & Wall Materials > Ceiling Materials",ceiling-materials,MERGE→roofing-doors,roofing-doors,
+251,"Construction Material > Roofing, Ceiling & Wall Materials > Wall Materials",wall-materials,MERGE→roofing-doors,roofing-doors,
+252,"Construction Material > Wood Materials & Products > Wood Logs, Posts & Poles",wood-logs-posts-and-poles,MERGE→wood-timber,wood-timber,
+253,Construction Material > Wood Materials & Products > Timber & Lumber,timber-and-lumber,MERGE→wood-timber,wood-timber,
+254,Construction Material > Wood Materials & Products > Engineered Wood,engineered-wood,MERGE→wood-timber,wood-timber,
+255,Construction Material > Wood Materials & Products > Laminated Veneer Lumber (LVL),lvl-laminated-veneer-lumber,MERGE→wood-timber,wood-timber,
+256,Construction Material > Wood Materials & Products > Wood Products,wood-products,MERGE→wood-timber,wood-timber,
+257,Construction Material > Wood Materials & Products > Carpentry Services,carpentry-services,MERGE→wood-timber,wood-timber,
+258,Construction Material > Wood Materials & Products > Carpentry Tools,carpentry-tools,MERGE→wood-timber,wood-timber,
+259,Cosmetics & Personal Care > Fragrance > For Women,for-women,MERGE→fragrances,fragrances,
+260,Cosmetics & Personal Care > Fragrance > For Men,for-men,MERGE→fragrances,fragrances,
+261,Cosmetics & Personal Care > Fragrance > Bath Oils & Foam Baths,bath-oils-and-foam-bath,MERGE→fragrances,fragrances,
+262,Cosmetics & Personal Care > Fragrance > Shower Gels,shower-gels,MERGE→fragrances,fragrances,
+263,Cosmetics & Personal Care > Haircare Products > Hair & Scalp Treatments,hair-scalp-treatments,MERGE→haircare,haircare,
+265,Cosmetics & Personal Care > Haircare Products > Hair Extensions & Wigs,hair-extensions-wigs,MERGE→haircare,haircare,
+266,Cosmetics & Personal Care > Haircare Products > Hair Styling Products,hair-styling-products,MERGE→haircare,haircare,
+267,Cosmetics & Personal Care > Haircare Products > Hair Coloring Products,hair-coloring-products,MERGE→haircare,haircare,
+268,Cosmetics & Personal Care > Haircare Products > Hair Loss Products,hair-loss-products,MERGE→haircare,haircare,
+269,Cosmetics & Personal Care > Haircare Products > Hair Accessories,hair-accessories,MERGE→haircare,haircare,
+270,Cosmetics & Personal Care > Haircare Products > Haircare Tools,hair-care-tools,MERGE→haircare,haircare,
+271,Cosmetics & Personal Care > Haircare Products > Hair Salons,hair-salons,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+272,Cosmetics & Personal Care > Hand & Foot Care > Hand Creams & Lotions,hand-creams-and-lotions,MERGE→nail-hand-foot,nail-hand-foot,
+273,Cosmetics & Personal Care > Hand & Foot Care > Hand Wash,hand-wash,MERGE→nail-hand-foot,nail-hand-foot,
+274,Cosmetics & Personal Care > Hand & Foot Care > Foot Creams & Lotions,foot-creams-and-lotions,MERGE→nail-hand-foot,nail-hand-foot,
+275,Cosmetics & Personal Care > Hand & Foot Care > Moisturizing Soaks & Salts,moisturizing-soaks-salts,MERGE→nail-hand-foot,nail-hand-foot,
+276,Cosmetics & Personal Care > Hand & Foot Care > Scrubs,scrubs,MERGE→nail-hand-foot,nail-hand-foot,
+277,Cosmetics & Personal Care > Makeup Products > Face Makeup Products,face-makeup-product,MERGE→makeup,makeup,
+278,Cosmetics & Personal Care > Makeup Products > Eye Makeup,eye-makeup,MERGE→makeup,makeup,
+279,Cosmetics & Personal Care > Makeup Products > Lip Makeup,lip-makeup,MERGE→makeup,makeup,
+280,Cosmetics & Personal Care > Makeup Products > Body Makeup,body-makeup,MERGE→makeup,makeup,
+281,Cosmetics & Personal Care > Makeup Products > Cosmetology Services,cosmetology-service,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+282,Cosmetics & Personal Care > Men Shaving Products > Manual Shavers,manual-shavers,MERGE→mens-grooming,mens-grooming,
+283,Cosmetics & Personal Care > Men Shaving Products > Electrical Shavers,electrical-shavers,MERGE→mens-grooming,mens-grooming,
+284,Cosmetics & Personal Care > Men Shaving Products > Shaving Creams & Foam,shaving-creams-or-foam,MERGE→mens-grooming,mens-grooming,
+285,Cosmetics & Personal Care > Men Shaving Products > Aftershave Cream & Oil,after-shave-cream-or-oil,MERGE→mens-grooming,mens-grooming,
+286,Cosmetics & Personal Care > Men Shaving Products > Beard & Mustache Combs,beard-mustache-combs,MERGE→mens-grooming,mens-grooming,
+287,Cosmetics & Personal Care > Men Shaving Products > Shaving Accessories & Sets,shaving-accessories-and-sets,MERGE→mens-grooming,mens-grooming,
+288,Cosmetics & Personal Care > Nail Care Products > Nail Art & Polish,nail-art-polish,MERGE→nail-hand-foot,nail-hand-foot,
+289,Cosmetics & Personal Care > Nail Care Products > Nail Care Products,nail-care-products-nail-care-products,MERGE→nail-hand-foot,nail-hand-foot,
+290,Cosmetics & Personal Care > Nail Care Products > Nail Tools & Accessories,nail-tools-accessories,MERGE→nail-hand-foot,nail-hand-foot,
+291,Cosmetics & Personal Care > Nail Care Products > Manicure & Pedicure Services,manicure-pedicure-services,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+292,Cosmetics & Personal Care > Personal Care Services > Female Hair Salons,female-hair-salon,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+293,Cosmetics & Personal Care > Personal Care Services > Traveling Hair Stylists,traveling-hair-stylist,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+294,Cosmetics & Personal Care > Personal Care Services > Barber Shops,barber-shops,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+295,Cosmetics & Personal Care > Personal Care Services > Traveling Braiding Services,traveling-braiding-service,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+296,"Cosmetics & Personal Care > Skin Care Products > Body Lotions, Oils & Other Products",body-lotion-oil-and-other-products,MERGE→skincare,skincare,
+297,Cosmetics & Personal Care > Skin Care Products > Sunscreen & Tanners,sunscreen-and-tanners,MERGE→skincare,skincare,
+298,Cosmetics & Personal Care > Skin Care Products > Facial Products,facial-products,MERGE→skincare,skincare,
+299,Cosmetics & Personal Care > Skin Care Products > Eye Care Products,eye-care-products,MERGE→skincare,skincare,
+300,Cosmetics & Personal Care > Skin Care Products > Lip Care Products,lip-care-products,MERGE→skincare,skincare,
+301,Cosmetics & Personal Care > Skin Care Products > Hair Removal Products,hair-removal-products,MERGE→skincare,skincare,
+302,Cosmetics & Personal Care > Skin Care Products > Body Soaps,body-soaps,MERGE→skincare,skincare,
+303,Cosmetics & Personal Care > Skin Care Products > Dusting Powder,dusting-powder,MERGE→skincare,skincare,
+304,Education & Training > Vocational Training > Mechanical & Automotive Trainings,mechanical-and-automotive-trainings,MERGE→education-training,education-training,R4: Education root folded; childcare her
+305,Education & Training > Vocational Training > Construction Industry Training,construction-industry-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+306,Education & Training > Vocational Training > Healthcare,health-care,MERGE→education-training,education-training,R4: Education root folded; childcare her
+307,Education & Training > Vocational Training > Educational,educational,MERGE→education-training,education-training,R4: Education root folded; childcare her
+308,Education & Training > Vocational Training > IT Training,it-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+309,Education & Training > Vocational Training > Art & Design,art-and-design,MERGE→education-training,education-training,R4: Education root folded; childcare her
+310,Education & Training > Vocational Training > Law & Safety Training,law-and-safety-training,MERGE→education-training,education-training,R4: Education root folded; childcare her
+311,Education & Training > Vocational Training > Business & Administrative Courses,business-and-administrative-courses,MERGE→education-training,education-training,R4: Education root folded; childcare her
+312,"Electronics > Audio, Radio, & Accessories > Sound Systems",sound-systems,MERGE→audio-sound,audio-sound,
+313,"Electronics > Audio, Radio, & Accessories > Speakers & Subwoofers",speakers-and-subwoofers,MERGE→audio-sound,audio-sound,
+314,"Electronics > Audio, Radio, & Accessories > Sound Bars",sound-bars,MERGE→audio-sound,audio-sound,
+315,"Electronics > Audio, Radio, & Accessories > Microphones",microphones,MERGE→audio-sound,audio-sound,
+316,"Electronics > Audio, Radio, & Accessories > Players & Recorders",players-and-recorders,MERGE→audio-sound,audio-sound,
+317,"Electronics > Audio, Radio, & Accessories > Accessories",accessories-audio-radio-accessories,MERGE→audio-sound,audio-sound,
+318,"Electronics > Audio, Radio, & Accessories > Audio Visual Services",audio-visual-services,MERGE→printing-photography,printing-photography,+AV(318)+photo services(326)
+319,"Electronics > Computers, Parts & Accessories > Desktops",desktop,MERGE→computers,computers,
+320,"Electronics > Computers, Parts & Accessories > Laptops",laptop,MERGE→computers,computers,
+321,"Electronics > Computers, Parts & Accessories > Computer Parts & Accessories",computer-parts-and-accessories,MERGE→computers,computers,
+322,"Electronics > Computers, Parts & Accessories > Computer & Networking Services",computer-and-networking-services,MERGE→repair-maintenance,repair-maintenance,computer services
+323,"Electronics > Camera, Parts & Accessories > Digital Cameras",digital-cameras,MERGE→cameras-drones,cameras-drones,absorbs Drones branch; VR here
+324,"Electronics > Camera, Parts & Accessories > Regular Cameras",regular-cameras,MERGE→cameras-drones,cameras-drones,absorbs Drones branch; VR here
+325,"Electronics > Camera, Parts & Accessories > Camera Parts & Accessories",camera-parts-accessories-camera-parts-accessories,MERGE→cameras-drones,cameras-drones,absorbs Drones branch; VR here
+326,"Electronics > Camera, Parts & Accessories > Photography & Video Services",photography-and-video-services,MERGE→printing-photography,printing-photography,+AV(318)+photo services(326)
+327,Electronics > Drones & Parts > Drones,drones,MERGE→cameras-drones,cameras-drones,absorbs Drones branch; VR here
+328,Electronics > Drones & Parts > Projectors,projectors,MERGE→printers-office,printers-office,+projectors(328)
+329,Electronics > Drones & Parts > Virtual Reality Equipment,virtual-reality-equipment,MERGE→cameras-drones,cameras-drones,absorbs Drones branch; VR here
+330,Electronics > Drones & Parts > Accessories and Parts,accessories-and-parts,MERGE→cameras-drones,cameras-drones,absorbs Drones branch; VR here
+331,"Electronics > Phones, Parts & Accessories > Smartphones",smart-phones,MERGE→phones-tablets,phones-tablets,type attr: smartphone/feature/basic/tabl
+332,"Electronics > Phones, Parts & Accessories > Basic Phones",basic-phones,MERGE→phones-tablets,phones-tablets,type attr: smartphone/feature/basic/tabl
+333,"Electronics > Phones, Parts & Accessories > Feature Phones",feature-phones,MERGE→phones-tablets,phones-tablets,type attr: smartphone/feature/basic/tabl
+334,"Electronics > Phones, Parts & Accessories > Tablets",tablets,MERGE→phones-tablets,phones-tablets,type attr: smartphone/feature/basic/tabl
+335,"Electronics > Phones, Parts & Accessories > Phone Services",phone-services,MERGE→repair-maintenance,repair-maintenance,phone services
+336,"Electronics > Phones, Parts & Accessories > Phone Repair Services",phone-repair-services,MERGE→repair-maintenance,repair-maintenance,phone repair
+337,"Electronics > Phones, Parts & Accessories > Others",others-phones-parts-accessories,MERGE→phones-tablets,phones-tablets,type attr: smartphone/feature/basic/tabl
+339,"Electronics > TV, Video, Games > TV",tv,MERGE→tv-video,tv-video,
+340,"Electronics > TV, Video, Games > Video Game Consoles",video-game-console,MERGE→gaming,gaming,
+341,"Electronics > TV, Video, Games > DVD Players",dvd-players,MERGE→tv-video,tv-video,
+342,"Electronics > TV, Video, Games > Blue Ray Players",blue-ray-player,MERGE→tv-video,tv-video,
+343,"Electronics > TV, Video, Games > Accessories",accessories-tv-video-games,MERGE→tv-video,tv-video,
+344,Events & Gatherings > Event Organizing Services > Event Organizers,event-organizers,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+345,Events & Gatherings > Event Organizing Services > Event Safety & Security Services,event-safety-security-service,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+346,Events & Gatherings > Event Organizing Services > Event Catering Services,event-catering-service,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+347,Events & Gatherings > Event Organizing Services > Event Attendant Services,event-attendant-service,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+348,Events & Gatherings > Event Organizing Services > Decorating Services,decorating-service,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+349,Events & Gatherings > Event Organizing Services > Event Media Services,event-media-service,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+350,Health & Fitness > Health Service Providers > Acute Care Service Providers,acute-care-service-providers,MERGE→health-services,health-services,clinics/diagnostics/homecare; NO pharmac
+351,Health & Fitness > Health Service Providers > Diagnostic Centers,diagnostic-centers,MERGE→health-services,health-services,clinics/diagnostics/homecare; NO pharmac
+352,Health & Fitness > Health Service Providers > Family Planning Services Providers,family-planning-services-providers,MERGE→health-services,health-services,clinics/diagnostics/homecare; NO pharmac
+353,Health & Fitness > Health Service Providers > Specialized Care Service Providers,specialized-care-service-providers,MERGE→health-services,health-services,clinics/diagnostics/homecare; NO pharmac
+354,Health & Fitness > Health Service Providers > EMT Services,emt-services,MERGE→health-services,health-services,clinics/diagnostics/homecare; NO pharmac
+355,Health & Fitness > Health Service Providers > Homecare Services,home-care-services,MERGE→health-services,health-services,clinics/diagnostics/homecare; NO pharmac
+356,Health & Fitness > Health Service Providers > Other Service Providers,other-service-providers,MERGE→health-services,health-services,clinics/diagnostics/homecare; NO pharmac
+357,Health & Fitness > Pharmacy > OTC Medicines & Treatments,otc-medicines-and-treatments,MERGE→health-wellness,health-wellness,OTC/vitamins per REQ-017; +medical equip
+358,Health & Fitness > Pharmacy > Child Health and Wellbeing Needs,child-health-and-wellbeing-needs,MERGE→health-wellness,health-wellness,OTC/vitamins per REQ-017; +medical equip
+359,Health & Fitness > Pharmacy > Home Healthcare Solutions,home-health-care-solutions,MERGE→health-wellness,health-wellness,OTC/vitamins per REQ-017; +medical equip
+360,Health & Fitness > Pharmacy > Personal Care,personal-care,MERGE→health-wellness,health-wellness,OTC/vitamins per REQ-017; +medical equip
+361,Health & Fitness > Pharmacy > Vitamins & Supplements,vitamins-and-supplements,MERGE→health-wellness,health-wellness,OTC/vitamins per REQ-017; +medical equip
+362,Health & Fitness > Pharmacy with Prescription > Antimicrobials,antimicrobials,RETIRE,,Prescription pharmacy excluded (REQ-017)
+363,Health & Fitness > Pharmacy with Prescription > Cardiovascular Medicines,cardiovascular-medicines,RETIRE,,Prescription pharmacy excluded (REQ-017)
+364,Health & Fitness > Pharmacy with Prescription > Digestive & Respiratory System Medicines,digestive-and-breathing-system-medicines,RETIRE,,Prescription pharmacy excluded (REQ-017)
+365,Health & Fitness > Pharmacy with Prescription > Kidneys & Hormonal Medication,kidneys-and-hormonal-medication,RETIRE,,Prescription pharmacy excluded (REQ-017)
+366,Health & Fitness > Pharmacy with Prescription > Anti Inflammatory & Pain Medications,anti-inflammatory-and-pain-medications,RETIRE,,Prescription pharmacy excluded (REQ-017)
+367,Health & Fitness > Pharmacy with Prescription > Neurological & Psychiatric Medication,neurological-psychiatric-medications,RETIRE,,Prescription pharmacy excluded (REQ-017)
+368,Health & Fitness > Pharmacy with Prescription > Topical Medication,topical-medicines,RETIRE,,Prescription pharmacy excluded (REQ-017)
+369,Health & Fitness > Pharmacy with Prescription > Antiallergy Medication,anti-allergy-medicines,RETIRE,,Prescription pharmacy excluded (REQ-017)
+370,Health & Fitness > Sport & Fitness Centers > Fitness Centers,fitness-centers,MERGE→fitness-centers,fitness-centers,
+371,Health & Fitness > Sport & Fitness Centers > Fitness Centers with Coaches,fitness-centers-with-coaches,MERGE→fitness-centers,fitness-centers,
+372,Health & Fitness > Sport & Fitness Centers > Fitness Coaching,fitness-coaching,MERGE→fitness-centers,fitness-centers,
+373,Health & Fitness > Sport & Fitness Centers > Outdoor Sports Centers,outdoor-sport-centers,MERGE→fitness-centers,fitness-centers,
+374,Health & Fitness > Sport & Fitness Centers > Indoor Sports Centers,indoor-sport-centers,MERGE→fitness-centers,fitness-centers,
+375,Health & Fitness > Sport & Fitness Centers > Track & Field Training Centers,track-field-training-centers,MERGE→fitness-centers,fitness-centers,
+376,Health & Fitness > Sport & Fitness Equipment Supplies > Fitness Equipment,fitness-equipment,MERGE→fitness-equipment,fitness-equipment,
+377,Health & Fitness > Sport & Fitness Equipment Supplies > Soccer Supplies,soccer-supplies,MERGE→sports-equipment,sports-equipment,sport attr
+378,Health & Fitness > Sport & Fitness Equipment Supplies > Track & Field Supplies,track-and-field-supplies,MERGE→sports-equipment,sports-equipment,sport attr
+379,Health & Fitness > Sport & Fitness Equipment Supplies > Tennis & Racquet Sports,tennis-and-racquet-sports,MERGE→sports-equipment,sports-equipment,sport attr
+380,Health & Fitness > Sport & Fitness Equipment Supplies > Basketball,basketball,MERGE→sports-equipment,sports-equipment,sport attr
+381,Health & Fitness > Sport & Fitness Equipment Supplies > Swimming & Boxing Supplies,swimming-and-boxing-supplies,MERGE→sports-equipment,sports-equipment,sport attr
+382,Health & Fitness > Sport & Fitness Equipment Supplies > Bicycles & Related Accessories,bicycles-and-related-accessories,MERGE→sports-equipment,sports-equipment,sport attr
+383,Travel & Accommodation > Accommodation > Hotels & Inns,hotels-and-inns,MERGE→hotels-guesthouses,hotels-guesthouses,
+384,Travel & Accommodation > Accommodation > Resorts,resorts,MERGE→resorts-lodges,resorts-lodges,
+385,Travel & Accommodation > Accommodation > Bed & Breakfast,bed-and-breakfast,MERGE→hotels-guesthouses,hotels-guesthouses,
+386,Travel & Accommodation > Accommodation > Lodges & Condos,lodges-and-condos,MERGE→hotels-guesthouses,hotels-guesthouses,
+387,Travel & Accommodation > Accommodation > Guest House,gust-house,MERGE→hotels-guesthouses,hotels-guesthouses,
+388,Travel & Accommodation > Accommodation > Motels & Hostels,motels-and-hostels,MERGE→hotels-guesthouses,hotels-guesthouses,
+389,Travel & Accommodation > Dinning & Entertainments > Restaurants,restaurants,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+390,Travel & Accommodation > Dinning & Entertainments > Bars & Sport Bars,bars-and-sport-bars,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+391,Travel & Accommodation > Dinning & Entertainments > Nightclubs,night-clubs,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+392,Travel & Accommodation > Dinning & Entertainments > Fast Food Restaurants,fast-food-restaurants,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+393,Travel & Accommodation > Dinning & Entertainments > Community Pubs,community-pubs,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+394,Travel & Accommodation > Dinning & Entertainments > Breakfast Cafés,breakfast-cafes,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+395,Travel & Accommodation > Dinning & Entertainments > Bakeries & Cake Shops,bakeries-and-cake-shops,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+396,Travel & Accommodation > Dinning & Entertainments > Coffee & Tea Shops,coffee-and-tea-shops,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
+397,Travel & Accommodation > Tour Guides > Historic Tour Guides,historic-tour-guide,MERGE→tours-tickets,tours-tickets,
+398,Travel & Accommodation > Tour Guides > Religious Tour Guides,religious-tour-guide,MERGE→tours-tickets,tours-tickets,
+399,Travel & Accommodation > Transportation > International Flight,international-flight,MERGE→tours-tickets,tours-tickets,
+400,Travel & Accommodation > Transportation > Domestic Flights,domestic-flights,MERGE→tours-tickets,tours-tickets,
+401,Travel & Accommodation > Transportation > Long Distance Bus Services,long-distance-bus-services,MERGE→tours-tickets,tours-tickets,
+402,Travel & Accommodation > Transportation > Short Distance Transport Services,short-distance-transport-services,MERGE→tours-tickets,tours-tickets,
+403,"Travel & Accommodation > Transportation > Taxi, Shuttle & Limousine Services",taxi-shuttle-or-limousine-services,MERGE→tours-tickets,tours-tickets,
+404,Travel & Accommodation > Transportation > Public Mass Transport Services,public-mass-transport-services,MERGE→tours-tickets,tours-tickets,
+405,Travel & Accommodation > Transportation > Car Rentals,car-rental,MERGE→vehicle-hire,vehicle-hire,canonical here; pointer from Travel
+406,Travel & Accommodation > Travel Organizers > Private Tour Organizers,private-tour-organisers,MERGE→tours-tickets,tours-tickets,
+407,Travel & Accommodation > Travel Organizers > Religious Tour Organizers,religious-tour-organizers,MERGE→tours-tickets,tours-tickets,
+408,Travel & Accommodation > Travel Organizers > Group Tour Organizers,group-tour-organizers,MERGE→tours-tickets,tours-tickets,
+409,Travel & Accommodation > Travel Organizers > Hiking & Camping Tour Organizers,hiking-and-camping-tour-organizers,MERGE→tours-tickets,tours-tickets,
+410,Travel & Accommodation > Travel Organizers > Historic Tour Organizers,historic-tour-organizers,MERGE→tours-tickets,tours-tickets,
+411,Travel & Accommodation > Travel Related Services & Goods > Travel Document Services,travel-document-services,MERGE→travel-services,travel-services,
+412,Travel & Accommodation > Travel Related Services & Goods > Travel Required Immunization,travel-required-immunization,MERGE→travel-services,travel-services,
+413,Travel & Accommodation > Travel Related Services & Goods > Travel Related Medical Screening & Testing Services,travel-related-medical-screening-and-testing-service,MERGE→travel-services,travel-services,
+414,Travel & Accommodation > Travel Related Services & Goods > Travel Accessories,travel-accessories,MERGE→travel-services,travel-services,
+416,Clothing & Luggage > Women Clothing > Outerwear,outerwear,MERGE→womens-clothing,womens-clothing,wedding/occasion = attr occasion
+417,Clothing & Luggage > Women Clothing > Innerwear,innerwear,MERGE→womens-clothing,womens-clothing,wedding/occasion = attr occasion
+418,Clothing & Luggage > Women Clothing > Activewear,activewear,MERGE→womens-clothing,womens-clothing,wedding/occasion = attr occasion
+419,Clothing & Luggage > Women Clothing > Nightwear & Loungewear,nightwear-and-loungewear,MERGE→womens-clothing,womens-clothing,wedding/occasion = attr occasion
+420,Clothing & Luggage > Women Clothing > Wedding & Occasion Dressing,wedding-and-occasion-dressing,MERGE→womens-clothing,womens-clothing,wedding/occasion = attr occasion
+421,Clothing & Luggage > Women Clothing > Shoes,shoes,MERGE→shoes,shoes,gender attr
+422,Clothing & Luggage > Women Clothing > Handbags & Wallets,handbags-and-wallets,MERGE→bags-luggage,bags-luggage,
+423,Clothing & Luggage > Women Clothing > Jewelry & Watches,jewelry-and-watches,MERGE→jewelry-watches,jewelry-watches,cur 'accessories' renamed
+424,Clothing & Luggage > Women Clothing > Fashion Accessories,fashion-accessories,MERGE→womens-clothing,womens-clothing,wedding/occasion = attr occasion
+425,Clothing & Luggage > Men Clothing > Pants and Shorts,pants-and-shorts,MERGE→mens-clothing,mens-clothing,
+426,Clothing & Luggage > Men Clothing > Shirts,shirts,MERGE→mens-clothing,mens-clothing,
+427,Clothing & Luggage > Men Clothing > Sweaters,sweaters,MERGE→mens-clothing,mens-clothing,
+428,Clothing & Luggage > Men Clothing > Suits,suits,MERGE→mens-clothing,mens-clothing,
+429,Clothing & Luggage > Men Clothing > Outerwear,outerwear-men-clothing,MERGE→mens-clothing,mens-clothing,
+430,Clothing & Luggage > Men Clothing > Sportwear,sportwear,MERGE→mens-clothing,mens-clothing,
+431,Clothing & Luggage > Men Clothing > Shoes,shoes-men-clothing,MERGE→shoes,shoes,gender attr
+432,Clothing & Luggage > Men Clothing > Innerwear,innerwear-men-clothing,MERGE→mens-clothing,mens-clothing,
+433,Clothing & Luggage > Men Clothing > Men clothing & Shoe Services,men-clothing-and-shoe-services,MERGE→personal-care-services,personal-care-services,clothing/shoe services
+434,Clothing & Luggage > Men Clothing > Men Fashion Accessories,men-fashion-accessories,MERGE→mens-clothing,mens-clothing,
+435,Clothing & Luggage > Teens Clothing > Girls Clothing,girls-clothing,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+436,Clothing & Luggage > Teens Clothing > Boys Clothing,boys-clothing,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+437,Clothing & Luggage > Newborn and infant clothing > Baby Girl,baby-girl,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+438,Clothing & Luggage > Newborn and infant clothing > Baby Boy,baby-boy,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+439,Clothing & Luggage > Newborn and infant clothing > Newborn Accessories,newborn-accessories,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+440,Clothing & Luggage > Toddler Clothing > Toddler Girl,toddler-girl,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+441,Clothing & Luggage > Toddler Clothing > Toddler Boy,toddler-boy,MERGE→kids-clothing,kids-clothing,canonical under Babies&Kids; pointer fro
+442,Clothing & Luggage > Traditional Cloth > Tibeb with Netela,tibeb-with-netela,MERGE→traditional-cloth,traditional-cloth,Tibeb/Netela/Gabi = product_type attr; c
+443,Clothing & Luggage > Traditional Cloth > Netela,netela,MERGE→traditional-cloth,traditional-cloth,Tibeb/Netela/Gabi = product_type attr; c
+444,Clothing & Luggage > Traditional Cloth > Gabi,gabi,MERGE→traditional-cloth,traditional-cloth,Tibeb/Netela/Gabi = product_type attr; c
+445,Clothing & Luggage > Uniforms > school Uniform,school-uniform,MERGE→uniforms,uniforms,
+446,Clothing & Luggage > Uniforms > Medical Uniform,medical-uniform,MERGE→uniforms,uniforms,
+447,Clothing & Luggage > Uniforms > Restaurant Uniforms,restaurant-uniforms,MERGE→uniforms,uniforms,
+448,Clothing & Luggage > Uniforms > Food Processing Uniforms,food-processing-uniforms,MERGE→uniforms,uniforms,
+449,Clothing & Luggage > Uniforms > Office Uniforms,office-uniforms,MERGE→uniforms,uniforms,
+450,Clothing & Luggage > Uniforms > Industrial Uniforms,industrial-uniforms,MERGE→uniforms,uniforms,
+451,Clothing & Luggage > Uniforms > Services,services-uniforms,MERGE→uniforms,uniforms,uniform services
+452,Clothing & Luggage > Luggage & Travel Accessories > Luggage,luggage,MERGE→bags-luggage,bags-luggage,
+453,Clothing & Luggage > Luggage & Travel Accessories > Travel Totes,travel-totes,MERGE→bags-luggage,bags-luggage,
+454,Clothing & Luggage > Luggage & Travel Accessories > Gym Bags,gym-bags,MERGE→bags-luggage,bags-luggage,
+455,Clothing & Luggage > Luggage & Travel Accessories > Backpacks,backpacks,MERGE→bags-luggage,bags-luggage,
+456,Clothing & Luggage > Luggage & Travel Accessories > Laptop & Messenger Bags,lap-top-and-messenger-bags,MERGE→bags-luggage,bags-luggage,
+457,Clothing & Luggage > Luggage & Travel Accessories > Travel Accessories,travel-accessories-luggage-and-travel-accessories,MERGE→bags-luggage,bags-luggage,
+458,Jobs & Vacancies > Job Openings > Tourism & Hospitality Industry Jobs,tourism-and-hospitality-industry-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+459,Jobs & Vacancies > Job Openings > Construction & Transport Jobs,construction-and-transport-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+460,Jobs & Vacancies > Job Openings > Business & Administrative Jobs,business-and-administrative-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+461,"Jobs & Vacancies > Job Openings > Finance, Accounting & Marketing Jobs",finance-accounting-and-marketing-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+462,Jobs & Vacancies > Job Openings > IT Jobs,it-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+463,"Jobs & Vacancies > Job Openings > Legal, Safety & Security Jobs",legal-safety-and-security-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+464,"Jobs & Vacancies > Job Openings > Auto, Machinery & Industrial jobs",auto-machinery-and-industrial-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+465,Jobs & Vacancies > Job Openings > Academic Jobs,academic-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+466,Jobs & Vacancies > Job Openings > Healthcare Jobs,health-care-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+467,Jobs & Vacancies > Job Seekers > Tourism & Hospitality Jobs,tourism-and-hospitality-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+468,Jobs & Vacancies > Job Seekers > Construction & Transportation Jobs,construction-and-transportation-jobseekers,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+469,Jobs & Vacancies > Job Seekers > Business & Administrative Jobs,business-and-administrative,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+470,"Jobs & Vacancies > Job Seekers > Sales, Marketing & Finance",sales-marketing-and-finance,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+471,Jobs & Vacancies > Job Seekers > IT Jobs,it-job-seekers,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+472,"Jobs & Vacancies > Job Seekers > Legal, Safety & Security Jobs",legal-safety-and-security-jobs-jobs,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+473,"Jobs & Vacancies > Job Seekers > Auto, Machinery & Industrial Jobs",auto-machinery-and-industrial-jobs-job-seeker,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+474,Jobs & Vacancies > Job Seekers > Academic Jobs,academic,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+475,Jobs & Vacancies > Job Seekers > Healthcare Jobs,health-care-job-seeker,RETIRE,,Jobs: not a marketplace category (REQ-017 amend); Tenders incl.
+476,Services > Cleaning Services > Office & Business Cleaning Services,office-and-business-cleaning-services,MERGE→home-services,home-services,cleaning+laundry+garbage
+477,Services > Cleaning Services > Residential Cleaning Services,residential-cleaning-service,MERGE→home-services,home-services,cleaning+laundry+garbage
+478,Services > Cleaning Services > Laundry Services,laundry-services,MERGE→home-services,home-services,cleaning+laundry+garbage
+479,Services > Cleaning Services > Garbage Disposal Services,garbage-disposal-service,MERGE→home-services,home-services,cleaning+laundry+garbage
+480,"Services > Educational, Tutoring & Childcare Services > Childcare Services",childcare-services,MERGE→education-training,education-training,R4: Education root folded; childcare her
+481,"Services > Educational, Tutoring & Childcare Services > Private Tutoring Services",private-tutoring-services,MERGE→education-training,education-training,R4: Education root folded; childcare her
+482,"Services > Educational, Tutoring & Childcare Services > K-12 Schools",k-12-schools,MERGE→education-training,education-training,R4: Education root folded; childcare her
+483,Services > Financial Services > Banking Services,banking-services,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+484,Services > Financial Services > Insurance Services,insurance-service,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+485,Services > Financial Services > Brokerage Services,brokerage-services,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+486,Services > Financial Services > Financial Consulting Services,financial-consulting-services,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+487,Services > Financial Services > Tax Services,tax-services,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+488,Services > Financial Services > Auditing Services,auditing-service,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+489,Services > Financial Services > Mortgage Loan Services,mortgage-loan-services,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+490,Services > Financial Services > Realtor Services,realtor-services-financial-services,MERGE→financial-legal,financial-legal,banking/insurance/tax/audit; mortgage ca
+491,Services > Logistics & Cargo Services > Mailing Services,mailing-service,MERGE→logistics-cargo,logistics-cargo,
+492,Services > Logistics & Cargo Services > Delivery Services,delivery-services,MERGE→logistics-cargo,logistics-cargo,
+493,Services > Logistics & Cargo Services > Cargo Services,cargo-services,MERGE→logistics-cargo,logistics-cargo,
+494,Services > Logistics & Cargo Services > Moving Services,moving-services,MERGE→logistics-cargo,logistics-cargo,
+495,Services > Maintenance & Repair Services > Automobile Repair Services,automobile-repair-service,MERGE→auto-services,auto-services,absorbs Services>Automobile Repair (495)
+496,Services > Maintenance & Repair Services > Machinery & Heavy Equipment Repair Services,machinery-and-heavy-equipment-repair-service,MERGE→repair-maintenance,repair-maintenance,electronic/appliance/machinery repair; p
+497,Services > Maintenance & Repair Services > Industrial Machinery Repair Services,industrial-machinery-repair-service,MERGE→repair-maintenance,repair-maintenance,electronic/appliance/machinery repair; p
+498,Services > Maintenance & Repair Services > Power Tool Repair,power-tool-repair,MERGE→repair-maintenance,repair-maintenance,electronic/appliance/machinery repair; p
+499,Services > Maintenance & Repair Services > Appliance Repair Services,appliance-repair-service,MERGE→repair-maintenance,repair-maintenance,electronic/appliance/machinery repair; p
+500,Services > Maintenance & Repair Services > Electronic Repair Services,electronic-repair-services,MERGE→repair-maintenance,repair-maintenance,electronic/appliance/machinery repair; p
+501,Services > Maintenance & Repair Services > Building Maintenance & Repairs,building-maintenance-and-repair,MERGE→repair-maintenance,repair-maintenance,electronic/appliance/machinery repair; p
+502,Services > Office Space & Secretarial Services > Internet Café,internet-cafe,MERGE→professional-services,professional-services,
+503,Services > Office Space & Secretarial Services > Secretarial Services,secretarial-service,MERGE→professional-services,professional-services,
+504,Services > Office Space & Secretarial Services > Bulk Document Preparation Services,bulk-document-preparation-service,MERGE→professional-services,professional-services,
+505,Services > Personal Care Services > Barber Shops,barber-shops-personal-care-services-services,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+506,Services > Personal Care Services > Hair Salon,hair-salon,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+507,Services > Personal Care Services > Manicure & Pedicure Services,manicure-and-pedicure-service,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+508,Services > Personal Care Services > Massage Services & Spa,massage-services-and-spa,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+509,Services > Personal Care Services > Sauna,sauna,MERGE→personal-care-services,personal-care-services,L2 canonical: salons/barbers/spa dupes c
+510,Services > Printing & Photography Services > Photography Services,photography-service,MERGE→printing-photography,printing-photography,+AV(318)+photo services(326)
+511,Services > Printing & Photography Services > Design & Printing Services,design-and-printing-service,MERGE→printing-photography,printing-photography,+AV(318)+photo services(326)
+512,"Services > Printing & Photography Services > Magazines, Posters & Brochure Printing",magazine-poster-brochure-printing,MERGE→printing-photography,printing-photography,+AV(318)+photo services(326)
+513,Services > Printing & Photography Services > Books & Other Printing Services,books-and-other-printing-services,MERGE→printing-photography,printing-photography,+AV(318)+photo services(326)
+514,Services > Recreational Services > Parks,parks,MERGE→attractions,attractions,
+515,Services > Recreational Services > Zoo,zoo,MERGE→attractions,attractions,
+516,Services > Recreational Services > Museums,museums,MERGE→attractions,attractions,
+517,Services > Recreational Services > Kids Theme Parks,kids-theme-parks,MERGE→attractions,attractions,
+518,Services > Recreational Services > Aquarium,aquarium,MERGE→attractions,attractions,
+519,Services > Recreational Services > Theater Halls,theater-halls,MERGE→attractions,attractions,
+520,Services > Recreational Services > Cinemas,cinemas,MERGE→attractions,attractions,
+521,Services > Recreational Services > Music Shows,music-shows,MERGE→attractions,attractions,
+522,Services > Recreational Services > Sport Events,sport-events,MERGE→attractions,attractions,
+523,Services > Utility & Other Services > House Helps,household-aidmaid,RETIRE,,domestic-labor recruitment: out with Jobs rationale (higher risk)
+527,Real Estate > Office & Retail Space > Office Space > For Sale,for-sale-office-space,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+528,Real Estate > Office & Retail Space > Office Space > For Rent or Lease,for-rent-or-lease-office-space,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+529,Real Estate > Office & Retail Space > Retail Space & Stores > For Sale,for-sale-retail-space-or-store,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+530,Real Estate > Office & Retail Space > Retail Space & Stores > For Rent or Lease,for-rent-or-lease-retail-space-or-store,MERGE→commercial-property,commercial-property,type attr: office/retail/industrial/ware
+531,"Auto & Parts > Personal Cars > For Sale > Sedan, Compact, & Station Wagons",sedan-compact-station-wagon,MERGE→cars,cars,"attrs: offer_type(sale/hire), body(sedan"
+532,Auto & Parts > Personal Cars > For Sale > SUVs & 4X4s,suv-4x4,MERGE→cars,cars,"attrs: offer_type(sale/hire), body(sedan"
+4248,Clothing & Luggage > Clothing Store,clothing-store,DROP,,"seller-type, → storefronts (REQ-008)"
+4249,"Shops, Marts, Cafés & Restaurants > Catering Service",catering-service,MERGE→events-services,events-services,R3: Events root folded; +Catering(4249)
+4250,"Shops, Marts, Cafés & Restaurants > Shops, Marts",shops-marts,DROP,,"seller-type, → storefronts (REQ-008)"
+4251,"Shops, Marts, Cafés & Restaurants > Restaurants, Café', Bakery",restaurants-cafe-bakery,MERGE→restaurants-cafes,restaurants-cafes,live Dinning branch + Restaurants(4251)
