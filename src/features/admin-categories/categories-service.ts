@@ -289,3 +289,21 @@ export async function deleteCategory(input: { id: string; confirmSlug: string })
   });
   if (error) throw error;
 }
+
+/**
+ * C2-UI-FIX-5 — THE ROSTER'S COLUMN CONTRACT (INC-139).
+ *
+ * The categories roster conforms to the audit table: the DataTable primitive's
+ * defaults decide everything. No per-column `minWidth`, no `cardUntil`
+ * override, no pinned first column — priorities alone. The map lives here so
+ * the conformance is asserted by a unit test without rendering the console.
+ */
+export const ROSTER_COLUMN_PRIORITIES = {
+  name: "primary",
+  status: "primary",
+  flags: "primary",
+  parent: "secondary",
+  order: "detail",
+  listings: "detail",
+  exclusions: "detail",
+} as const;

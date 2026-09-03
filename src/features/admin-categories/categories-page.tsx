@@ -36,7 +36,11 @@ import {
   RetireCategoryDialog,
   SELECT_CLASS,
 } from "./category-dialogs";
-import { toRoster, type CategoryNode } from "./categories-service";
+import {
+  ROSTER_COLUMN_PRIORITIES,
+  toRoster,
+  type CategoryNode,
+} from "./categories-service";
 import { useAdminCategories, useReactivateCategory, useReorderCategories } from "./use-categories";
 
 /**
@@ -47,7 +51,6 @@ import { useAdminCategories, useReactivateCategory, useReorderCategories } from 
  * flat depth-ordered list rendered through the DataTable primitive with the
  * primitive's DEFAULTS — cards below md, priorities only, no min-widths and no
  * per-page width hack (C2-UI-FIX-5: the roster reads like the audit table).
-
  *
  * C2-UI-FIX: the table twin's actions are ONE horizontal icon row (edit,
  * visibility, countries, up, down) plus an inline overflow disclosure for the
