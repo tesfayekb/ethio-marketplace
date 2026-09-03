@@ -64,3 +64,13 @@ The frame measures the plot area with a `ResizeObserver` and calls `children({ w
 ## Adoption
 
 Feature screens adopt these primitives as each U section ships; no feature page was migrated in U1c.
+
+## C7 / INC-130 — the DataTable density contract
+
+Re-landed 2026-09-03 (the U4i-10 contract was recorded but absent from the primitive).
+
+- `cardUntil?: "md" | "lg"` — where the card twin gives way to the table twin. `"md"` is the default, so every pre-existing consumer renders byte-identically with the prop absent. Dense tables declare `cardUntil="lg"` and keep cards through the tablet band (768–1023), which is where they used to crush.
+- `DataTableColumn.minWidth?: string` — a design-token min-width utility (`min-w-24`, `min-w-56`, …). When ANY column declares one the table drops `table-fixed` for auto layout and the primitive's OWN `overflow-x-auto` wrapper (`data-table-scroller`) absorbs the excess. Consumers never add a per-page width hack — the primitive owns scroll-not-cramp.
+- `DataTablePagination({ totalLabel })` — replaces the numeric total in the range string (the audit console's capped `10,000+` from INC-129). Paging arithmetic is unchanged.
+
+Proof: `src/components/shell/data-table.test.tsx` (DEC-025 floor) covers the default split, the `lg` split, min-width layout, and the label substitution; law L9 in `e2e/primitives-law.spec.ts` proves the variant geometry on `/dev/primitives?variant=lg` (cards at 360 AND 768, table at 1280) without touching L3's default case.
