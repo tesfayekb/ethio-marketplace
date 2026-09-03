@@ -266,7 +266,7 @@ export function DataTable<T>({
         <ul
           data-testid="data-table-cards"
           aria-label={caption}
-          className="divide-y divide-border md:hidden"
+          className={cn("divide-y divide-border", cardsHiddenClass)}
         >
           {rows.map((row) => {
             const key = rowKey(row);
