@@ -327,8 +327,17 @@ export function DataTable<T>({
         </ul>
 
         {/* md+: a real table. overflow-x-auto is the last resort, never the plan. */}
-        <div className="hidden min-w-0 overflow-x-auto md:block">
-          <table className="w-full table-fixed text-start text-sm">
+        <div
+          data-testid="data-table-scroller"
+          className={cn("hidden min-w-0 overflow-x-auto", tableShownClass)}
+        >
+          <table
+            className={cn(
+              "w-full text-start text-sm",
+              hasMinWidths ? "min-w-max" : "table-fixed",
+            )}
+          >
+
             <caption className="sr-only">{caption}</caption>
             <thead className="border-b border-border text-muted-foreground">
               <tr>
