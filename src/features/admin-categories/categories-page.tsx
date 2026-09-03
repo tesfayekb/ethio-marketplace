@@ -334,15 +334,8 @@ export function AdminCategoriesPage() {
     },
   ];
 
-  /**
-   * ONE button set, one presentation (J5): the SAME element carries the
-   * canonical `category-<verb>-<slug>` testid at every viewport — a duplicated
-   * icon twin would put two matches inside one actions region and every
-   * twin-aware locator would resolve the hidden one. C2-UI-FIX-3 makes the
-   * strip a 44px ICON strip everywhere and lets it WRAP, so the card twin
-   * (now the whole sub-xl band) never scrolls sideways. The label lives in
-   * `aria-label`/`title`.
-   */
+
+
   /**
    * C2e / UI-FIX-4 — THE ROLES INTERACTION MODEL. The row carries exactly ONE
    * verb: Edit. Every other verb (visibility, countries, browse paths, move,
