@@ -52,6 +52,7 @@ export async function listCategories(): Promise<CategoryRow[]> {
     visibleUntil: row.visible_until ?? null,
     listingCount: Number(row.listing_count ?? 0),
     exclusionCount: Number(row.exclusion_count ?? 0),
+    excludedCountryCodes: (row.excluded_country_codes ?? []) as string[],
   }));
 }
 
@@ -140,6 +141,47 @@ export async function addCategoryPointer(input: {
   });
   if (error) throw error;
   return data as string;
+}
+
+export interface CategoryPointer {
+  pointerId: string;
+  parentId: string | null;
+  parentSlug: string | null;
+  parentNameEn: string | null;
+  displayOrder: number;
+}
+
+/** C2b — every browse path this category appears on (parent NULL = a root). */
+export async function listCategoryPointers(categoryId: string): Promise<CategoryPointer[]> {
+  const { data, error } = await supabase.rpc("admin_list_category_pointers", {
+    p_category_id: categoryId,
+  });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    pointerId: row.pointer_id,
+    parentId: row.parent_id ?? null,
+    parentSlug: row.parent_slug ?? null,
+    parentNameEn: row.parent_name_en ?? null,
+    displayOrder: Number(row.display_order ?? 0),
+  }));
+}
+
+export async function moveCategoryPointer(input: {
+  pointerId: string;
+  newParentId: string | null;
+}): Promise<void> {
+  const { error } = await supabase.rpc("admin_move_category_pointer", {
+    p_pointer_id: input.pointerId,
+    p_new_parent_id: input.newParentId as string,
+  });
+  if (error) throw error;
+}
+
+export async function removeCategoryPointer(pointerId: string): Promise<void> {
+  const { error } = await supabase.rpc("admin_remove_category_pointer", {
+    p_pointer_id: pointerId,
+  });
+  if (error) throw error;
 }
 
 export async function reorderCategories(input: {

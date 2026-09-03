@@ -6,6 +6,9 @@ import {
   addCategoryPointer,
   createCategory,
   listCategories,
+  listCategoryPointers,
+  moveCategoryPointer,
+  removeCategoryPointer,
   reorderCategories,
   retireCategory,
   setCategoryWindow,
@@ -79,6 +82,33 @@ export function useAddCategoryPointer() {
   const invalidate = useInvalidateCategories();
   return useMutation({
     mutationFn: (input: { parentId: string; childId: string }) => addCategoryPointer(input),
+    onSettled: invalidate,
+  });
+}
+
+/** C2b — the browse paths of one category (pointer-listing contract). */
+export function useCategoryPointers(categoryId: string | null) {
+  return useQuery({
+    queryKey: [...ADMIN_CATEGORIES_KEY, "pointers", categoryId ?? "none"],
+    queryFn: () => listCategoryPointers(categoryId as string),
+    enabled: categoryId !== null,
+    staleTime: 30_000,
+  });
+}
+
+export function useMoveCategoryPointer() {
+  const invalidate = useInvalidateCategories();
+  return useMutation({
+    mutationFn: (input: { pointerId: string; newParentId: string | null }) =>
+      moveCategoryPointer(input),
+    onSettled: invalidate,
+  });
+}
+
+export function useRemoveCategoryPointer() {
+  const invalidate = useInvalidateCategories();
+  return useMutation({
+    mutationFn: (pointerId: string) => removeCategoryPointer(pointerId),
     onSettled: invalidate,
   });
 }
