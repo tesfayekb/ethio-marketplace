@@ -93,6 +93,9 @@
     "admin.audit.total.capped": [
       "/admin/audit"
     ],
+    "admin.categories.action.delete": [
+      "/admin/categories"
+    ],
     "admin.categories.action.down": [
       "/admin/categories"
     ],
@@ -103,6 +106,9 @@
       "/admin/categories"
     ],
     "admin.categories.action.pointer": [
+      "/admin/categories"
+    ],
+    "admin.categories.action.reactivate": [
       "/admin/categories"
     ],
     "admin.categories.action.retire": [
@@ -178,6 +184,21 @@
       "/admin/categories"
     ],
     "admin.categories.create.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.delete.confirm": [
+      "/admin/categories"
+    ],
+    "admin.categories.delete.confirmLabel": [
+      "/admin/categories"
+    ],
+    "admin.categories.delete.hint": [
+      "/admin/categories"
+    ],
+    "admin.categories.delete.mismatch": [
+      "/admin/categories"
+    ],
+    "admin.categories.delete.title": [
       "/admin/categories"
     ],
     "admin.categories.edit.title": [

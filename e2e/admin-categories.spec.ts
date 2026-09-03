@@ -447,10 +447,8 @@ test.describe("C2 categories console", () => {
     const row = categoryRow(page, "vehicles");
     await expect(row).toBeVisible({ timeout: 20000 });
 
-    // Structure, never English copy (J5): the card twin renders one labelled
-    // block per non-detail column, so the parent block is present by count.
-    const blocks = await row.locator("div > dl > div, [data-testid$='-field']").count();
-    expect(blocks === 0 ? row : row).toBeTruthy();
+    // Structure, never English copy (J5): a root's parent block renders the
+    // em-dash placeholder inside the card, so the parent field is present.
     await expect(row).toContainText("—");
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
     await expectNoHorizontalOverflow(page);
@@ -520,6 +518,105 @@ test.describe("C2 categories console", () => {
       await expect(
         surface(page).locator('[data-testid^="category-missing-"]').first(),
       ).toBeVisible();
+    }
+  });
+
+  /**
+   * CT-12 (C2d) — the reactivate walk. A retired scratch node comes back to
+   * life through step-up and is active again in DB truth and in the roster.
+   */
+  test("CT-12 lifecycle: a retired category is reactivated through step-up", async ({ page }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      await adminClient().from("categories").update({ is_active: false }).eq("id", scratch!.id);
+      await page.reload();
+      await waitForHydration(page);
+      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+
+      await action(page, slug, "reactivate").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect
+        .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
+        .toBe(true);
+      // Active again means the retire verb is the one on offer once more.
+      await expect(action(page, slug, "retire")).toBeVisible({ timeout: 20000 });
+    } finally {
+      if (slug) await destroyCategory(slug);
+    }
+  });
+
+  /**
+   * CT-13 (C2d) — the delete walk. A wrong slug is refused with nothing
+   * deleted (F5); the correct slug deletes the row AND its pointer, exclusion
+   * and translation dependents, all asserted as service-client DB truth (J4).
+   */
+  test("CT-13 lifecycle: a typed-slug delete removes the row and its dependents", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      const id = scratch!.id;
+      const supabase = adminClient();
+
+      // Seed the dependents the cascade must take with it.
+      const { data: country } = await supabase.from("countries").select("code").limit(1).single();
+      await supabase.from("category_country_exclusions").insert({
+        category_id: id,
+        country_code: country!.code,
+        created_by: "00000000-0000-0000-0000-000000000000",
+      });
+      await supabase.from("entity_translations").insert({
+        entity_type: "category",
+        entity_id: id,
+        field: "name",
+        lang_code: "am",
+        value: `e2e ${slug}`,
+        status: "machine",
+        machine: true,
+      });
+      await supabase.from("categories").update({ is_active: false }).eq("id", id);
+
+      await page.reload();
+      await waitForHydration(page);
+      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+
+      // Wrong slug: refused, nothing deleted.
+      await action(page, slug, "delete").click();
+      await page.getByTestId("category-delete-slug").fill(`${slug}-wrong`);
+      await page.getByTestId("category-delete-submit").click();
+      await expect(page.getByTestId("category-dialog-error")).toBeVisible();
+      expect(await readCategory(slug)).toBeTruthy();
+
+      // Correct slug: the row and every dependent go.
+      await page.getByTestId("category-delete-slug").fill(slug);
+      await page.getByTestId("category-delete-submit").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect.poll(async () => await readCategory(slug), { timeout: 20000 }).toBeNull();
+      await expect(categoryRow(page, slug)).toHaveCount(0);
+      expect((await readPointers(id)).length).toBe(0);
+      const { data: excl } = await supabase
+        .from("category_country_exclusions")
+        .select("country_code")
+        .eq("category_id", id);
+      expect(excl ?? []).toEqual([]);
+      const { data: translations } = await supabase
+        .from("entity_translations")
+        .select("field")
+        .eq("entity_type", "category")
+        .eq("entity_id", id);
+      expect(translations ?? []).toEqual([]);
+    } finally {
+      if (slug) await destroyCategory(slug);
     }
   });
 });
