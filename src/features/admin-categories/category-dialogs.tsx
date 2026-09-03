@@ -83,6 +83,9 @@ function ErrorLine({ message }: { message: string | null }) {
   );
 }
 
+// The page's verb bar shares this exact refusal mapping (B1: one utility per
+// concern); the rule only warns about fast-refresh granularity, not correctness.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSubmitError() {
   const { t } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
