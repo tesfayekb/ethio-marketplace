@@ -859,6 +859,7 @@ export const en = {
   "admin.categories.field.icon": "Icon",
   "admin.categories.field.order": "Display order",
   "admin.categories.field.expiryDays": "Listing expiry (days)",
+  "admin.categories.field.expiryNone": "No expiry",
   "admin.categories.field.allowListings": "Accepts listings",
   "admin.categories.field.priceEnabled": "Price field enabled",
   "admin.categories.window.title": "Visibility window",
@@ -887,6 +888,8 @@ export const en = {
   "admin.categories.pointer.parentPlaceholder": "Choose a parent",
   "admin.categories.error.saveFailed": "The change could not be saved.",
   "admin.categories.error.nameRequired": "A name is required.",
+  "admin.categories.error.catchallParent":
+    "A catch-all category cannot be a parent. Choose another destination.",
   "admin.categories.error.reassignRequired": "Choose where the listings go.",
   "admin.categories.error.parentRequired": "Choose a parent.",
   "admin.audit.total.capped": "10,000+",

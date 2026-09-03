@@ -181,10 +181,22 @@ export function AdminCategoriesPage() {
 
   const rows = filtered.slice(offset, offset + pageSize);
 
+  /**
+   * INC-142 — the dialog stores ONLY the id; the rendered row is looked up in
+   * the live roster on every render, so the verb bar tracks a status change
+   * (retire / reactivate) the moment the query settles.
+   */
   const selected =
     dialog.kind === "none" || dialog.kind === "create"
       ? null
       : (roster.find((row) => row.id === dialog.id) ?? null);
+
+  /** ... and the editor closes gracefully when its row vanishes (delete). */
+  useEffect(() => {
+    if (dialog.kind === "none" || dialog.kind === "create") return;
+    if (isLoading) return;
+    if (!roster.some((row) => row.id === dialog.id)) setDialog({ kind: "none" });
+  }, [dialog, roster, isLoading]);
 
   const siblingsOf = (row: CategoryNode) => roster.filter((peer) => peer.parentId === row.parentId);
 
@@ -417,18 +429,25 @@ export function AdminCategoriesPage() {
                 <Share2 aria-hidden="true" className="size-4" />,
                 () => setDialog({ kind: "pointer", id: row.id }),
               ),
-              verb(
-                `category-up-${row.slug}`,
-                t("admin.categories.action.up"),
-                <ArrowUp aria-hidden="true" className="size-4" />,
-                () => move(row, -1, guard),
-              ),
-              verb(
-                `category-down-${row.slug}`,
-                t("admin.categories.action.down"),
-                <ArrowDown aria-hidden="true" className="size-4" />,
-                () => move(row, 1, guard),
-              ),
+              // C2g — a catch-all is pinned last by the server, so it carries
+              // no Move verbs at all (the console never offers a refused move).
+              row.isCatchall
+                ? null
+                : verb(
+                    `category-up-${row.slug}`,
+                    t("admin.categories.action.up"),
+                    <ArrowUp aria-hidden="true" className="size-4" />,
+                    () => move(row, -1, guard),
+                  ),
+              row.isCatchall
+                ? null
+                : verb(
+                    `category-down-${row.slug}`,
+                    t("admin.categories.action.down"),
+                    <ArrowDown aria-hidden="true" className="size-4" />,
+                    () => move(row, 1, guard),
+                  ),
+
               // C2d — a retired row swaps Retire for Reactivate and gains the
               // one destructive verb in the console: Delete, typed-confirm.
               row.isActive

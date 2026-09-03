@@ -86,8 +86,20 @@ function ErrorLine({ message }: { message: string | null }) {
 function useSubmitError() {
   const { t } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
-  const fail = (error: unknown) =>
-    setMessage(error instanceof Error ? error.message : t("admin.categories.error.saveFailed"));
+  /**
+   * F4 — a server refusal raises a TRANSLATION KEY (e.g. C2g's
+   * `admin.categories.error.catchallParent`); it is rendered through `t`, so
+   * the operator never reads a raw key. Anything else falls back to the
+   * generic save failure.
+   */
+  const fail = (error: unknown) => {
+    const raw = error instanceof Error ? error.message : "";
+    if (raw.startsWith("admin.categories.error.")) {
+      setMessage(t(raw as Parameters<typeof t>[0]));
+      return;
+    }
+    setMessage(raw === "" ? t("admin.categories.error.saveFailed") : raw);
+  };
   return { message, setMessage, fail };
 }
 
@@ -261,7 +273,10 @@ export function EditCategoryDialog({
   const [displayOrder, setDisplayOrder] = useState(String(category.displayOrder));
   const [allowListings, setAllowListings] = useState(category.allowListings);
   const [priceEnabled, setPriceEnabled] = useState(category.priceEnabled);
-  const [expiryDays, setExpiryDays] = useState(String(category.expiryDays ?? 30));
+  // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal anywhere.
+  const [expiryDays, setExpiryDays] = useState(
+    category.expiryDays === null ? "" : String(category.expiryDays),
+  );
 
   const submit = () => {
     setMessage(null);
@@ -278,7 +293,7 @@ export function EditCategoryDialog({
           displayOrder: Number(displayOrder) || 0,
           allowListings,
           priceEnabled,
-          expiryDays: Number(expiryDays) || 0,
+          expiryDays: expiryDays.trim() === "" ? null : Number(expiryDays),
         });
         onClose();
       } catch (error) {
@@ -324,6 +339,7 @@ export function EditCategoryDialog({
           id="category-edit-expiry"
           data-testid="category-edit-expiry"
           inputMode="numeric"
+          placeholder={t("admin.categories.field.expiryNone")}
           value={expiryDays}
           onChange={(event) => setExpiryDays(event.target.value)}
         />

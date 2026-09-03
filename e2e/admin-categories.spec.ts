@@ -755,4 +755,50 @@ test.describe("C2 categories console", () => {
       if (slug) await destroyCategory(slug);
     }
   });
+
+  /**
+   * CT-14 (C2g) — THE CATCH-ALL PARENT LAW. A catch-all is a terminal posting
+   * bucket: it is never offered as a parent, the SERVER refuses it whatever
+   * the client sends, and it carries no Move verbs because its order is not
+   * the operator's to choose.
+   */
+  test("CT-14 catch-all law: never a parent, refused server-side, no move verbs", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const supabase = adminClient();
+    const { data: catchall, error } = await supabase
+      .from("categories")
+      .select("id, slug, name_en")
+      .eq("is_catchall", true)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:c2] reading a catch-all failed: ${error.message}`);
+    expect(catchall, "the ratified tree ships catch-alls").toBeTruthy();
+
+    // (a) the server refuses the law's target directly — the console cannot
+    //     talk it out of the refusal (F3).
+    const refusal = await supabase.rpc("assert_parent_not_catchall", {
+      p_parent_id: catchall!.id,
+    });
+    expect(refusal.error?.message ?? "").toContain("admin.categories.error.catchallParent");
+
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/categories");
+    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+
+    // (b) the create dialog's parent picker never offers it.
+    await page.getByTestId("category-create-open").click();
+    const options = page.getByTestId("category-create-parent").locator("option");
+    await expect(options.filter({ hasText: catchall!.name_en })).toHaveCount(0);
+    await page.getByTestId("category-dialog-cancel").click();
+
+    // (c) the catch-all row's editor exposes no Move verbs.
+    await page.getByTestId("category-search").fill(catchall!.slug);
+    await expect(categoryRow(page, catchall!.slug)).toBeVisible({ timeout: 20000 });
+    await openEditor(page, catchall!.slug);
+    await expect(action(page, catchall!.slug, "up")).toHaveCount(0);
+    await expect(action(page, catchall!.slug, "down")).toHaveCount(0);
+  });
 });

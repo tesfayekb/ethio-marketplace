@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 178,
-  "dynamicCallSites": 68,
+  "dynamicCallSites": 69,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -235,6 +235,9 @@
       "/admin/categories"
     ],
     "admin.categories.field.expiryDays": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.expiryNone": [
       "/admin/categories"
     ],
     "admin.categories.field.icon": [
