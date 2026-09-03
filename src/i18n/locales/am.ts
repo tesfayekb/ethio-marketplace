@@ -776,12 +776,14 @@ export const am: Messages = {
   "admin.categories.badge.window": "የተያዘለት",
   "admin.categories.badge.missingAssets": "ንብረቶች ይጎድላሉ",
   "admin.categories.tip.active": "በአሰሳ ውስጥ ንቁ ነው፦ ገዢዎች ሊደርሱበት እና ሻጮች ሊለጥፉበት ይችላሉ።",
-  "admin.categories.tip.retired": "ተቋርጧል፦ ታሪኩንና የአሰሳ አገናኞቹን ይይዛል፣ ነገር ግን አዲስ ማስታወቂያ ሊለጠፍበት አይችልም እና እንደ መድረሻ አይታይም።",
+  "admin.categories.tip.retired":
+    "ተቋርጧል፦ ታሪኩንና የአሰሳ አገናኞቹን ይይዛል፣ ነገር ግን አዲስ ማስታወቂያ ሊለጠፍበት አይችልም እና እንደ መድረሻ አይታይም።",
   "admin.categories.tip.catchall": "ሁሉንም ተቀባይ፦ ከእህት ምድብ የተቋረጡ ማስታወቂያዎች ወደዚህ ይዛወራሉ።",
   "admin.categories.tip.listings": "ሻጮች በቀጥታ በዚህ ምድብ ውስጥ ማስታወቂያ መለጠፍ ይችላሉ።",
   "admin.categories.tip.price": "በዚህ ምድብ ውስጥ ያሉ ማስታወቂያዎች ዋጋ ይይዛሉ።",
   "admin.categories.tip.window": "ታይነቱ ተይዞለታል፦ ምድቡ በቀን ገደቡ ውስጥ ብቻ ይታያል።",
-  "admin.categories.tip.missingAssets": "ንብረቶች ይጎድላሉ፦ ይህ ምድብ አዶ ወይም ምስል የለውም፣ ስለዚህ በአሰሳ ላይ ባዶ ሆኖ ይታያል።",
+  "admin.categories.tip.missingAssets":
+    "ንብረቶች ይጎድላሉ፦ ይህ ምድብ አዶ ወይም ምስል የለውም፣ ስለዚህ በአሰሳ ላይ ባዶ ሆኖ ይታያል።",
   "admin.categories.filter.missingAssets": "ንብረቶች የሚጎድላቸው",
   "admin.categories.filter.pageSize": "በአንድ ገጽ ረድፎች",
   "admin.categories.create.slugPreview": "ስም-መለያ (በአገልጋዩ የሚመነጭ)፦",

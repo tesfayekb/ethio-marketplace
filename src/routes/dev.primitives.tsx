@@ -288,8 +288,7 @@ function PrimitivesFixture() {
     ...column,
     width: undefined,
     minWidth: column.priority === "primary" ? "min-w-56" : "min-w-40",
-    priority:
-      column.key === "views" || column.key === "updated" ? "wide" : column.priority,
+    priority: column.key === "views" || column.key === "updated" ? "wide" : column.priority,
   }));
 
   return (

@@ -262,7 +262,11 @@ export function AdminCategoriesPage() {
               )
             : null}
           {row.priceEnabled
-            ? tipBadge("outline", t("admin.categories.badge.price"), t("admin.categories.tip.price"))
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.price"),
+                t("admin.categories.tip.price"),
+              )
             : null}
           {row.visibleFrom || row.visibleUntil
             ? tipBadge(

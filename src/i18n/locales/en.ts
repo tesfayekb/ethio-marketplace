@@ -812,12 +812,16 @@ export const en = {
   "admin.categories.badge.window": "Scheduled",
   "admin.categories.badge.missingAssets": "Missing assets",
   "admin.categories.tip.active": "Live in browse: buyers can reach it and sellers can post to it.",
-  "admin.categories.tip.retired": "Retired: it keeps its history and its browse pointers, but no new listing can be posted to it and it no longer appears as a destination.",
-  "admin.categories.tip.catchall": "Catch-all: listings retired from a sibling category are reassigned here.",
+  "admin.categories.tip.retired":
+    "Retired: it keeps its history and its browse pointers, but no new listing can be posted to it and it no longer appears as a destination.",
+  "admin.categories.tip.catchall":
+    "Catch-all: listings retired from a sibling category are reassigned here.",
   "admin.categories.tip.listings": "Sellers can post listings directly into this category.",
   "admin.categories.tip.price": "Listings in this category carry a price.",
-  "admin.categories.tip.window": "Visibility is scheduled: the category appears only inside its date window.",
-  "admin.categories.tip.missingAssets": "Missing assets: this category has no icon or no image, so it renders bare in browse.",
+  "admin.categories.tip.window":
+    "Visibility is scheduled: the category appears only inside its date window.",
+  "admin.categories.tip.missingAssets":
+    "Missing assets: this category has no icon or no image, so it renders bare in browse.",
   "admin.categories.filter.missingAssets": "Missing assets",
   "admin.categories.filter.pageSize": "Rows per page",
   "admin.categories.create.slugPreview": "Slug (derived by the server):",
