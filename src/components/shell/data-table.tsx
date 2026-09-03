@@ -208,11 +208,17 @@ export function DataTable<T>({
   sortKey,
   sortDirection,
   onSort,
+  cardUntil = "md",
   className,
 }: DataTableProps<T>) {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const cardsHiddenClass = cardUntil === "lg" ? "lg:hidden" : "md:hidden";
+  const tableShownClass = cardUntil === "lg" ? "lg:block" : "md:block";
+  /** Any declared min-width switches the table off fixed layout (C7). */
+  const hasMinWidths = columns.some((column) => Boolean(column.minWidth));
   /** U1d: the FIRST primary column carries the row link inside the table. */
+
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
 
   const toolbarBlock = toolbar ? (
