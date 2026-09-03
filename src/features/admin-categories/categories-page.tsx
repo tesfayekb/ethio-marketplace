@@ -44,9 +44,10 @@ import { useAdminCategories, useReactivateCategory, useReorderCategories } from 
  *
  * Gate tier: `categories:view` opens the section; every write RPC re-checks
  * its own granular permission and step-up server-side (F3). The roster is one
- * flat depth-ordered list rendered through the DataTable primitive with
- * `cardUntil="lg"` and per-column min-widths (law C7) — cards through the
- * tablet band, a scrolling table from lg, and never a per-page width hack.
+ * flat depth-ordered list rendered through the DataTable primitive with the
+ * primitive's DEFAULTS — cards below md, priorities only, no min-widths and no
+ * per-page width hack (C2-UI-FIX-5: the roster reads like the audit table).
+
  *
  * C2-UI-FIX: the table twin's actions are ONE horizontal icon row (edit,
  * visibility, countries, up, down) plus an inline overflow disclosure for the
