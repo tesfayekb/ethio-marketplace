@@ -898,28 +898,45 @@ test.describe("C2 categories console", () => {
     });
 
     try {
-      const seed = async (slug: string, catchall: boolean) => {
+      /**
+       * C2j / DEC-034 — FIXTURE INVARIANT: a seeded category ALWAYS gets its
+       * pointer edge in the same step. A row without an edge is an orphan by
+       * construction, and an orphan is not the thing these specs are about.
+       * The edge's order is the next free slot under the given parent.
+       */
+      const seed = async (slug: string, catchall: boolean, parent: string | null) => {
         const { data, error } = await supabase
           .from("categories")
           .insert({ slug, name_en: slug, is_active: true, is_catchall: catchall })
           .select("id")
           .single();
         if (error) throw new Error(`[e2e:c2] seeding ${slug} failed: ${error.message}`);
-        return data.id as string;
-      };
-      const parentId = await seed(parentSlug, false);
-      const aId = await seed(aSlug, false);
-      const bId = await seed(bSlug, false);
-      const otherId = await seed(otherSlug, true);
+        const id = data.id as string;
 
-      const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
-        { parent_id: null, child_id: parentId, display_order: 900000 },
-        { parent_id: parentId, child_id: aId, display_order: 0 },
-        { parent_id: parentId, child_id: bId, display_order: 1 },
-        { parent_id: parentId, child_id: otherId, display_order: 2 },
-      ]);
-      if (pointerError)
-        throw new Error(`[e2e:c2] seeding pointers failed: ${pointerError.message}`);
+        let nextOrder = 900000;
+        if (parent !== null) {
+          const existing = await supabase
+            .from("category_tree_pointers")
+            .select("display_order")
+            .eq("parent_id", parent)
+            .order("display_order", { ascending: false })
+            .limit(1);
+          if (existing.error)
+            throw new Error(`[e2e:c2] reading sibling order failed: ${existing.error.message}`);
+          nextOrder = (existing.data?.[0]?.display_order ?? -1) + 1;
+        }
+
+        const { error: pointerError } = await supabase
+          .from("category_tree_pointers")
+          .insert({ parent_id: parent, child_id: id, display_order: nextOrder });
+        if (pointerError)
+          throw new Error(`[e2e:c2] seeding pointer for ${slug} failed: ${pointerError.message}`);
+        return id;
+      };
+      const parentId = await seed(parentSlug, false, null);
+      const aId = await seed(aSlug, false, parentId);
+      const bId = await seed(bSlug, false, parentId);
+      const otherId = await seed(otherSlug, true, parentId);
 
       // J7 — seed BEFORE navigate, and assert the seeded rows rendered before
       // acting on any of them.
