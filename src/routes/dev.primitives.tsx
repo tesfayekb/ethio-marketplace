@@ -279,11 +279,17 @@ function PrimitivesFixture() {
     },
   ];
 
-  /** C7 / INC-130 — dense columns that DECLARE their min-widths. */
+  /**
+   * C7 / INC-130 + INC-135 — dense columns that DECLARE their min-widths, with
+   * the numeric tail parked on the `wide` tier so the demo also exercises the
+   * xl-only column class alongside the pinned first column.
+   */
   const denseColumns: DataTableColumn<FixtureRow>[] = columns.map((column) => ({
     ...column,
     width: undefined,
     minWidth: column.priority === "primary" ? "min-w-56" : "min-w-40",
+    priority:
+      column.key === "views" || column.key === "updated" ? "wide" : column.priority,
   }));
 
   return (
@@ -394,6 +400,7 @@ function PrimitivesFixture() {
       <div data-testid="prim-data-table" className="min-w-0">
         <DataTable
           cardUntil={variant === "lg" ? "lg" : "md"}
+          stickyFirstColumn={variant === "lg"}
           columns={variant === "lg" ? denseColumns : columns}
           rows={rows}
           rowKey={(row) => row.id}
