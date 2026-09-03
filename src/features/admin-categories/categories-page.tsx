@@ -213,10 +213,9 @@ export function AdminCategoriesPage() {
       key: "name",
       header: t("admin.categories.col.name"),
       priority: ROSTER_COLUMN_PRIORITIES.name,
-
       cell: (row) => (
         <span className="block min-w-0">
-          <span className="block break-words font-medium text-foreground" title={row.nameEn}>
+          <span className="block truncate font-medium text-foreground" title={row.nameEn}>
             {row.depth > 0 ? (
               <span aria-hidden="true" className="text-muted-foreground">
                 {"· ".repeat(row.depth)}
@@ -224,9 +223,12 @@ export function AdminCategoriesPage() {
             ) : null}
             {row.nameEn}
           </span>
-          <span className="block break-all text-xs text-muted-foreground">{row.slug}</span>
+          <span className="block truncate text-xs text-muted-foreground" title={row.slug}>
+            {row.slug}
+          </span>
         </span>
       ),
+
     },
     {
       key: "parent",
