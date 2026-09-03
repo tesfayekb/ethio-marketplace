@@ -74,10 +74,26 @@ const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
  */
 type EditorSub = "window" | "exclusions" | "retire" | "pointer" | "delete";
 
+/**
+ * C2-GHOST (INC-152) — the editor records HOW it was opened, so a ghost dialog
+ * confesses its opener in the E2E dump instead of leaving a silent surface.
+ */
+type OpenedBy = "row-click" | "keyboard" | "create-button" | `verb-${EditorSub}`;
+
 type DialogState =
   | { kind: "none" }
   | { kind: "create" }
-  | { kind: "edit"; id: string; sub: EditorSub | null };
+  | { kind: "edit"; id: string; sub: EditorSub | null; openedBy: OpenedBy };
+
+/**
+ * C2-GHOST PART A — STRUCTURAL KILL. The re-open guard: a click (or keyboard
+ * activation) on the single edit-opener is a NO-OP unless no dialog is open
+ * AND at least this many milliseconds have passed since the last dialog
+ * closed. A dialog's closing animation used to hand its click straight back to
+ * the row underneath, re-opening a "ghost" editor.
+ */
+const REOPEN_GUARD_MS = 350;
+
 
 /**
  * C2c — every status/flag badge carries an ACCESSIBLE description. `title`
