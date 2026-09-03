@@ -9,7 +9,7 @@ import {
   Trash,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   DataTable,
@@ -154,6 +154,21 @@ export function AdminCategoriesPage() {
     }
   };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
+  /**
+   * C2-GHOST PART A — the ONE timestamp every dialog stamps on its way out.
+   * `closeDialog` is the only close path, so no surface can forget it.
+   */
+  const lastClosedAt = useRef(0);
+  const closeDialog = (next: DialogState) => {
+    lastClosedAt.current = Date.now();
+    setDialog(next);
+  };
+  /** The single edit-opener; a no-op while a dialog is open or just closed. */
+  const openEditor = (id: string, openedBy: "row-click" | "keyboard") => {
+    if (dialog.kind !== "none") return;
+    if (Date.now() - lastClosedAt.current < REOPEN_GUARD_MS) return;
+    setDialog({ kind: "edit", id, sub: null, openedBy });
+  };
   // UI-FIX-7 — the verb bar's own refusal line, filled by the shared runner.
   const { message: verbError, setMessage: setVerbError, fail: failVerb } = useSubmitError();
 
@@ -225,7 +240,7 @@ export function AdminCategoriesPage() {
   useEffect(() => {
     if (dialog.kind !== "edit") return;
     if (isLoading) return;
-    if (!roster.some((row) => row.id === dialog.id)) setDialog({ kind: "none" });
+    if (!roster.some((row) => row.id === dialog.id)) closeDialog({ kind: "none" });
   }, [dialog, roster, isLoading]);
 
   const siblingsOf = (row: CategoryNode) => roster.filter((peer) => peer.parentId === row.parentId);
@@ -424,7 +439,12 @@ export function AdminCategoriesPage() {
           data-testid={`category-edit-${row.slug}`}
           aria-label={t("admin.categories.action.edit")}
           title={t("admin.categories.action.edit")}
-          onClick={() => setDialog({ kind: "edit", id: row.id, sub: null })}
+          onClick={() => openEditor(row.id, "row-click")}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            openEditor(row.id, "keyboard");
+          }}
         >
           <Pencil aria-hidden="true" className="size-4" />
         </Button>
@@ -478,13 +498,13 @@ export function AdminCategoriesPage() {
                 `category-window-${row.slug}`,
                 t("admin.categories.action.window"),
                 <CalendarClock aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "edit", id: row.id, sub: "window" }),
+                () => setDialog({ kind: "edit", id: row.id, sub: "window", openedBy: "verb-window" }),
               ),
               verb(
                 `category-exclusions-${row.slug}`,
                 t("admin.categories.action.exclusions"),
                 <Globe aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "edit", id: row.id, sub: "exclusions" }),
+                () => setDialog({ kind: "edit", id: row.id, sub: "exclusions", openedBy: "verb-exclusions" }),
               ),
             ]
           : null}
@@ -494,7 +514,7 @@ export function AdminCategoriesPage() {
                 `category-pointer-${row.slug}`,
                 t("admin.categories.action.pointer"),
                 <Share2 aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "edit", id: row.id, sub: "pointer" }),
+                () => setDialog({ kind: "edit", id: row.id, sub: "pointer", openedBy: "verb-pointer" }),
               ),
               // C2g — a catch-all is pinned last by the server, so it carries
               // no Move verbs at all (the console never offers a refused move).
@@ -522,7 +542,7 @@ export function AdminCategoriesPage() {
                     `category-retire-${row.slug}`,
                     t("admin.categories.action.retire"),
                     <Trash2 aria-hidden="true" className="size-4" />,
-                    () => setDialog({ kind: "edit", id: row.id, sub: "retire" }),
+                    () => setDialog({ kind: "edit", id: row.id, sub: "retire", openedBy: "verb-retire" }),
                     row.isCatchall,
                   )
                 : verb(
@@ -540,7 +560,7 @@ export function AdminCategoriesPage() {
                     `category-delete-${row.slug}`,
                     t("admin.categories.action.delete"),
                     <Trash aria-hidden="true" className="size-4" />,
-                    () => setDialog({ kind: "edit", id: row.id, sub: "delete" }),
+                    () => setDialog({ kind: "edit", id: row.id, sub: "delete", openedBy: "verb-delete" }),
                     false,
                     true,
                   ),
@@ -653,7 +673,7 @@ export function AdminCategoriesPage() {
             <CreateCategoryDialog
               parents={roster}
               guard={guard}
-              onClose={() => setDialog({ kind: "none" })}
+              onClose={() => closeDialog({ kind: "none" })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === null ? (
@@ -661,14 +681,14 @@ export function AdminCategoriesPage() {
               category={selected}
               guard={guard}
               verbBar={editorVerbs(selected, guard)}
-              onClose={() => setDialog({ kind: "none" })}
+              onClose={() => closeDialog({ kind: "none" })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "window" ? (
             <CategoryWindowDialog
               category={selected}
               guard={guard}
-              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
+              onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "exclusions" ? (
@@ -679,7 +699,7 @@ export function AdminCategoriesPage() {
                 nameEn: country.nameEn,
               }))}
               guard={guard}
-              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
+              onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "retire" ? (
@@ -687,14 +707,14 @@ export function AdminCategoriesPage() {
               category={selected}
               targets={roster.filter((row) => row.isActive)}
               guard={guard}
-              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
+              onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "delete" ? (
             <DeleteCategoryDialog
               category={selected}
               guard={guard}
-              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
+              onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "pointer" ? (
@@ -702,7 +722,7 @@ export function AdminCategoriesPage() {
               category={selected}
               parents={roster}
               guard={guard}
-              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
+              onClose={() => closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })}
             />
           ) : null}
         </div>
