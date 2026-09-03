@@ -190,6 +190,42 @@ export type Database = {
           },
         ]
       }
+      category_country_exclusions: {
+        Row: {
+          category_id: string
+          country_code: string
+          created_at: string
+          created_by: string
+        }
+        Insert: {
+          category_id: string
+          country_code: string
+          created_at?: string
+          created_by: string
+        }
+        Update: {
+          category_id?: string
+          country_code?: string
+          created_at?: string
+          created_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_country_exclusions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_country_exclusions_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       category_tree_pointers: {
         Row: {
           child_id: string
@@ -1071,6 +1107,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_add_category_pointer: {
+        Args: { p_child_id: string; p_parent_id: string }
+        Returns: string
+      }
       admin_approve_all_entity_translations: {
         Args: { p_lang: string }
         Returns: Json
@@ -1095,6 +1135,16 @@ export type Database = {
           days: Json
           top_actions: Json
         }[]
+      }
+      admin_create_category: {
+        Args: {
+          p_allow_listings: boolean
+          p_icon: string
+          p_name_en: string
+          p_parent_id: string
+          p_slug: string
+        }
+        Returns: string
       }
       admin_create_role: {
         Args: {
@@ -1187,6 +1237,26 @@ export type Database = {
           id: string
           meta: Json
           total_count: number
+        }[]
+      }
+      admin_list_categories: {
+        Args: never
+        Returns: {
+          allow_listings: boolean
+          display_order: number
+          exclusion_count: number
+          expiry_days: number
+          icon: string
+          id: string
+          is_active: boolean
+          is_catchall: boolean
+          listing_count: number
+          name_en: string
+          parent_id: string
+          price_enabled: boolean
+          slug: string
+          visible_from: string
+          visible_until: string
         }[]
       }
       admin_list_entity_translations: {
@@ -1325,6 +1395,22 @@ export type Database = {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
       }
+      admin_move_category_pointer: {
+        Args: { p_new_parent_id: string; p_pointer_id: string }
+        Returns: undefined
+      }
+      admin_remove_category_pointer: {
+        Args: { p_pointer_id: string }
+        Returns: undefined
+      }
+      admin_reorder_categories: {
+        Args: { p_ordered_child_ids: string[]; p_parent_id: string }
+        Returns: undefined
+      }
+      admin_retire_category: {
+        Args: { p_id: string; p_reassign_to: string }
+        Returns: undefined
+      }
       admin_save_entity_translation: {
         Args: {
           p_field: string
@@ -1341,6 +1427,14 @@ export type Database = {
       }
       admin_set_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_category_window: {
+        Args: { p_id: string; p_visible_from: string; p_visible_until: string }
+        Returns: undefined
+      }
+      admin_set_country_exclusions: {
+        Args: { p_country_codes: string[]; p_id: string }
         Returns: undefined
       }
       admin_set_entity_translation_status: {
@@ -1397,6 +1491,18 @@ export type Database = {
         }[]
       }
       admin_undo_import: { Args: { p_batch: string }; Returns: Json }
+      admin_update_category: {
+        Args: {
+          p_allow_listings: boolean
+          p_display_order: number
+          p_expiry_days: number
+          p_icon: string
+          p_id: string
+          p_name_en: string
+          p_price_enabled: boolean
+        }
+        Returns: undefined
+      }
       admin_update_profile: {
         Args: {
           p_display_name: string
@@ -1471,6 +1577,18 @@ export type Database = {
           id: string
           target_id: string
           target_name: string
+        }[]
+      }
+      get_browse_tree: {
+        Args: { p_country_code: string }
+        Returns: {
+          allow_listings: boolean
+          display_order: number
+          icon: string
+          id: string
+          is_catchall: boolean
+          parent_id: string
+          slug: string
         }[]
       }
       get_category_attributes: {
