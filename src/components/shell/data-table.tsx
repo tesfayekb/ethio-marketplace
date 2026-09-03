@@ -42,6 +42,9 @@ import { PageCard } from "./page-card";
 
 export type ColumnPriority = "primary" | "secondary" | "detail";
 
+/** C7 / INC-130 — where the card twin gives way to the table twin. */
+export type CardUntil = "md" | "lg";
+
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
@@ -50,6 +53,14 @@ export interface DataTableColumn<T> {
   align?: "start" | "end";
   /** Optional fixed/max width utility class for the table cell. */
   width?: string;
+  /**
+   * C7 / INC-130 — MIN-WIDTH CONTRACT. A design-token min-width utility class
+   * (`min-w-24`, `min-w-40`, …) declared by the column. When ANY column
+   * declares one the primitive switches the table to auto layout and lets its
+   * own `overflow-x-auto` wrapper scroll — dense tables scroll, they never
+   * cramp, and no consumer adds a per-page width hack.
+   */
+  minWidth?: string;
   /** Opt-in sorting; the parent owns the state and receives onSort(key). */
   sortable?: boolean;
 }
@@ -100,6 +111,12 @@ export interface DataTableProps<T> {
   sortKey?: string;
   sortDirection?: "asc" | "desc";
   onSort?: (key: string) => void;
+  /**
+   * C7 / INC-130 — the card/table twin split. `"md"` (default) keeps every
+   * pre-existing consumer byte-identical; `"lg"` keeps cards through the
+   * tablet band, where dense tables used to crush.
+   */
+  cardUntil?: CardUntil;
   className?: string;
 }
 
@@ -109,6 +126,7 @@ function cellClass(column: DataTableColumn<unknown>) {
     column.align === "end" ? "text-end" : "text-start",
     column.priority === "detail" && "hidden lg:table-cell",
     column.width,
+    column.minWidth,
   );
 }
 
@@ -117,6 +135,7 @@ export function DataTablePagination({
   offset,
   pageSize,
   total,
+  totalLabel,
   onPrevious,
   onNext,
   testid = "data-table-pagination",
@@ -124,6 +143,11 @@ export function DataTablePagination({
   offset: number;
   pageSize: number;
   total: number;
+  /**
+   * C7 / INC-130 — replaces the numeric total in the range string (the audit
+   * console's capped "10,000+"). Paging arithmetic is unchanged.
+   */
+  totalLabel?: string;
   onPrevious: () => void;
   onNext: () => void;
   testid?: string;
@@ -134,8 +158,9 @@ export function DataTablePagination({
   return (
     <div data-testid={testid} className="flex min-w-0 flex-wrap items-center justify-between gap-3">
       <span data-testid={`${testid}-range`} className="text-sm tabular-nums text-muted-foreground">
-        {`${from}–${to} ${t("prim.table.of")} ${total}`}
+        {`${from}–${to} ${t("prim.table.of")} ${totalLabel ?? total}`}
       </span>
+
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
@@ -182,11 +207,17 @@ export function DataTable<T>({
   sortKey,
   sortDirection,
   onSort,
+  cardUntil = "md",
   className,
 }: DataTableProps<T>) {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const cardsHiddenClass = cardUntil === "lg" ? "lg:hidden" : "md:hidden";
+  const tableShownClass = cardUntil === "lg" ? "lg:block" : "md:block";
+  /** Any declared min-width switches the table off fixed layout (C7). */
+  const hasMinWidths = columns.some((column) => Boolean(column.minWidth));
   /** U1d: the FIRST primary column carries the row link inside the table. */
+
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
 
   const toolbarBlock = toolbar ? (
@@ -234,7 +265,7 @@ export function DataTable<T>({
         <ul
           data-testid="data-table-cards"
           aria-label={caption}
-          className="divide-y divide-border md:hidden"
+          className={cn("divide-y divide-border", cardsHiddenClass)}
         >
           {rows.map((row) => {
             const key = rowKey(row);
@@ -295,8 +326,13 @@ export function DataTable<T>({
         </ul>
 
         {/* md+: a real table. overflow-x-auto is the last resort, never the plan. */}
-        <div className="hidden min-w-0 overflow-x-auto md:block">
-          <table className="w-full table-fixed text-start text-sm">
+        <div
+          data-testid="data-table-scroller"
+          className={cn("hidden min-w-0 overflow-x-auto", tableShownClass)}
+        >
+          <table
+            className={cn("w-full text-start text-sm", hasMinWidths ? "min-w-max" : "table-fixed")}
+          >
             <caption className="sr-only">{caption}</caption>
             <thead className="border-b border-border text-muted-foreground">
               <tr>

@@ -31,11 +31,12 @@ import { useI18n } from "@/i18n";
 type FixtureState = "default" | "empty" | "loading" | "error";
 
 export const Route = createFileRoute("/dev/primitives")({
-  validateSearch: (search: Record<string, unknown>): { state?: FixtureState } => {
+  validateSearch: (search: Record<string, unknown>): { state?: FixtureState; variant?: "lg" } => {
     const raw = String(search["state"] ?? "");
-    return (["empty", "loading", "error"] as const).includes(raw as "empty")
+    const state = (["empty", "loading", "error"] as const).includes(raw as "empty")
       ? { state: raw as FixtureState }
       : {};
+    return String(search["variant"] ?? "") === "lg" ? { ...state, variant: "lg" } : state;
   },
   head: () => ({
     meta: [
@@ -146,7 +147,7 @@ const FIELDS = [
 /* -------------------------------- fixture -------------------------------- */
 
 function PrimitivesFixture() {
-  const { state = "default" } = Route.useSearch();
+  const { state = "default", variant } = Route.useSearch();
   const { t } = useI18n();
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
@@ -278,6 +279,13 @@ function PrimitivesFixture() {
     },
   ];
 
+  /** C7 / INC-130 — dense columns that DECLARE their min-widths. */
+  const denseColumns: DataTableColumn<FixtureRow>[] = columns.map((column) => ({
+    ...column,
+    width: undefined,
+    minWidth: column.priority === "primary" ? "min-w-56" : "min-w-40",
+  }));
+
   return (
     <div data-testid="prim-fixture" className="mx-auto w-full min-w-0 max-w-6xl space-y-6 pb-10">
       <PageCard testid="prim-page-card" className="min-w-0">
@@ -375,9 +383,18 @@ function PrimitivesFixture() {
         />
       </div>
 
+      {/*
+        C7 / INC-130 — the VARIANT demo. `?variant=lg` swaps the default table
+        for a `cardUntil="lg"` + `minWidth` twin. It REPLACES rather than sits
+        beside the default one on purpose: the law suite's L3 case locates the
+        table with a bare `page.locator("table")`, and two DataTables on one
+        page would turn that (unmodified, never-weakened) assertion into a
+        strict-mode violation. One page, one table, two laws.
+      */}
       <div data-testid="prim-data-table" className="min-w-0">
         <DataTable
-          columns={columns}
+          cardUntil={variant === "lg" ? "lg" : "md"}
+          columns={variant === "lg" ? denseColumns : columns}
           rows={rows}
           rowKey={(row) => row.id}
           rowTestId={(row) => `prim-row-${row.id}`}

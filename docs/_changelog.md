@@ -295,3 +295,4 @@
 - 2026-09-03 · C2-mig · category console machinery: exclusions table, cycle trigger, granular categories permissions (manage retired), visibility-law browse RPC + admin RPC set.
 - 2026-09-03 · C2-fix · permission-string consumers migrated (sections gate → categories:view) + D2 keys for restructure/assets (EN+AM); usage map regenerated.
 - 2026-09-03 · C2-audit-rewrite · INC-129 closed: admin_list_audit bounded (capped total_count, page-scoped profiles join, trigram entity_id search); contract unchanged.
+- 2026-09-03 · C2-UI · categories console shipped (roster, create/edit, visibility window, country exclusions, reorder, pointer, retire) + CT-1..CT-7; INC-130 re-land: C7 DataTable contract (cardUntil, min-width, totalLabel) with unit + law L9 proofs; DEC-031 scratch-category reaper.

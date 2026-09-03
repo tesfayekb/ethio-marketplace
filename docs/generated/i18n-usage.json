@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 174,
+  "scanned": 178,
   "dynamicCallSites": 68,
   "keys": {
     "account.deactivatedBanner": [
@@ -90,9 +90,191 @@
     "admin.audit.title": [
       "/admin/audit"
     ],
+    "admin.audit.total.capped": [
+      "/admin/audit"
+    ],
+    "admin.categories.action.down": [
+      "/admin/categories"
+    ],
+    "admin.categories.action.edit": [
+      "/admin/categories"
+    ],
+    "admin.categories.action.exclusions": [
+      "/admin/categories"
+    ],
+    "admin.categories.action.pointer": [
+      "/admin/categories"
+    ],
+    "admin.categories.action.retire": [
+      "/admin/categories"
+    ],
+    "admin.categories.action.up": [
+      "/admin/categories"
+    ],
+    "admin.categories.action.window": [
+      "/admin/categories"
+    ],
+    "admin.categories.badge.active": [
+      "/admin/categories"
+    ],
+    "admin.categories.badge.catchall": [
+      "/admin/categories"
+    ],
+    "admin.categories.badge.inactive": [
+      "/admin/categories"
+    ],
+    "admin.categories.badge.listings": [
+      "/admin/categories"
+    ],
+    "admin.categories.badge.price": [
+      "/admin/categories"
+    ],
+    "admin.categories.badge.window": [
+      "/admin/categories"
+    ],
+    "admin.categories.caption": [
+      "/admin/categories"
+    ],
+    "admin.categories.col.exclusions": [
+      "/admin/categories"
+    ],
+    "admin.categories.col.flags": [
+      "/admin/categories"
+    ],
+    "admin.categories.col.listings": [
+      "/admin/categories"
+    ],
+    "admin.categories.col.name": [
+      "/admin/categories"
+    ],
+    "admin.categories.col.order": [
+      "/admin/categories"
+    ],
+    "admin.categories.col.slug": [
+      "/admin/categories"
+    ],
+    "admin.categories.col.status": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.icon": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.name": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.open": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.parent": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.parentRoot": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.slug": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.edit.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.empty": [
+      "/admin/categories"
+    ],
+    "admin.categories.error": [
+      "/admin/categories"
+    ],
+    "admin.categories.error.nameRequired": [
+      "/admin/categories"
+    ],
+    "admin.categories.error.parentRequired": [
+      "/admin/categories"
+    ],
+    "admin.categories.error.reassignRequired": [
+      "/admin/categories"
+    ],
+    "admin.categories.error.saveFailed": [
+      "/admin/categories"
+    ],
+    "admin.categories.error.slugRequired": [
+      "/admin/categories"
+    ],
+    "admin.categories.exclusions.current": [
+      "/admin/categories"
+    ],
+    "admin.categories.exclusions.hint": [
+      "/admin/categories"
+    ],
+    "admin.categories.exclusions.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.allowListings": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.expiryDays": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.icon": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.name": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.order": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.priceEnabled": [
+      "/admin/categories"
+    ],
+    "admin.categories.loading": [
+      "/admin/categories"
+    ],
+    "admin.categories.pointer.hint": [
+      "/admin/categories"
+    ],
+    "admin.categories.pointer.parent": [
+      "/admin/categories"
+    ],
+    "admin.categories.pointer.parentPlaceholder": [
+      "/admin/categories"
+    ],
+    "admin.categories.pointer.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.retire.confirm": [
+      "/admin/categories"
+    ],
+    "admin.categories.retire.hint": [
+      "/admin/categories"
+    ],
+    "admin.categories.retire.reassign": [
+      "/admin/categories"
+    ],
+    "admin.categories.retire.reassignPlaceholder": [
+      "/admin/categories"
+    ],
+    "admin.categories.retire.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.searchPlaceholder": [
+      "/admin/categories"
+    ],
+    "admin.categories.window.from": [
+      "/admin/categories"
+    ],
+    "admin.categories.window.hint": [
+      "/admin/categories"
+    ],
+    "admin.categories.window.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.window.until": [
+      "/admin/categories"
+    ],
     "admin.comingSoon": [
       "/admin/attributes",
-      "/admin/categories",
       "/admin/images",
       "/admin/locations"
     ],
@@ -1148,12 +1330,14 @@
       "/settings"
     ],
     "common.cancel": [
+      "/admin/categories",
       "/dev/primitives"
     ],
     "common.close": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1182,6 +1366,7 @@
       "/c/$slug"
     ],
     "common.save": [
+      "/admin/categories",
       "/dev/primitives"
     ],
     "common.tryAgain": [
@@ -1362,6 +1547,7 @@
       "/settings"
     ],
     "mfa.codeLabel": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1370,6 +1556,7 @@
       "/settings"
     ],
     "mfa.codePlaceholder": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1414,6 +1601,7 @@
       "/settings"
     ],
     "mfa.stepUpBody": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1421,6 +1609,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpConfirm": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1428,6 +1617,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpGoToSettings": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1435,6 +1625,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpNoFactorBody": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1443,6 +1634,7 @@
       "/settings"
     ],
     "mfa.stepUpNoFactorTitle": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1450,6 +1642,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpTitle": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -1510,6 +1703,7 @@
     ],
     "prim.table.actions": [
       "/admin/audit",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/admin/roles",
       "/admin/translations",
@@ -1519,6 +1713,7 @@
     ],
     "prim.table.next": [
       "/admin/audit",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/admin/roles",
       "/admin/translations",
@@ -1528,6 +1723,7 @@
     ],
     "prim.table.of": [
       "/admin/audit",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/admin/roles",
       "/admin/translations",
@@ -1537,6 +1733,7 @@
     ],
     "prim.table.previous": [
       "/admin/audit",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/admin/roles",
       "/admin/translations",
@@ -1546,6 +1743,7 @@
     ],
     "prim.table.selectAll": [
       "/admin/audit",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/admin/roles",
       "/admin/translations",
@@ -1555,6 +1753,7 @@
     ],
     "prim.table.selectRow": [
       "/admin/audit",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/admin/roles",
       "/admin/translations",
@@ -1564,6 +1763,7 @@
     ],
     "prim.table.selected": [
       "/admin/audit",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/admin/roles",
       "/admin/translations",
@@ -1584,6 +1784,7 @@
       "/c/$slug"
     ],
     "settings.cancel": [
+      "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",

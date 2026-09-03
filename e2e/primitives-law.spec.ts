@@ -154,4 +154,33 @@ test.describe("display primitives law (test-once responsiveness)", () => {
       await expectNoPageOverflow(page);
     });
   }
+  /**
+   * L9 (INC-130 / C7) — the VARIANT law. `cardUntil="lg"` keeps the card twin
+   * through the tablet band (360 AND 768) and only promotes the table at 1280,
+   * where the primitive's own scroller — not a per-page hack — absorbs the
+   * declared column min-widths. L3's default-table case above is untouched.
+   */
+  for (const viewport of VIEWPORTS) {
+    test(`L9 cardUntil=lg keeps cards at ${viewport.name} until lg`, async ({ page }) => {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await gotoReady(page, "/dev/primitives?variant=lg");
+      await expect(page.getByTestId("prim-fixture")).toBeVisible({ timeout: 15000 });
+
+      if (viewport.width < 1024) {
+        await expect(page.getByTestId("data-table-cards")).toBeVisible();
+        await expect(page.locator("table")).toBeHidden();
+      } else {
+        await expect(page.locator("table")).toBeVisible();
+        await expect(page.getByTestId("data-table-cards")).toBeHidden();
+        // The min-width contract lives on the primitive's own scroller.
+        const scroller = await page.getByTestId("data-table-scroller").evaluate((el) => ({
+          overflowX: getComputedStyle(el).overflowX,
+        }));
+        expect(scroller.overflowX).toBe("auto");
+      }
+
+      // L1 still holds: the PAGE never scrolls, whatever the table does.
+      await expectNoPageOverflow(page);
+    });
+  }
 });
