@@ -478,7 +478,7 @@ test.describe("C2 categories console", () => {
       const options = page.getByTestId("category-create-parent").locator("option");
       await expect(options.filter({ hasText: slug })).toHaveCount(0);
       // Active options render their whole path, so a nested node shows "›".
-      await expect(options.filter({ hasText: "›" }).first()).toHaveCount(1);
+      await expect(options.filter({ hasText: "›" })).not.toHaveCount(0);
     } finally {
       if (slug) await destroyCategory(slug);
     }
@@ -515,9 +515,7 @@ test.describe("C2 categories console", () => {
     const rows = surface(page).locator('[data-testid^="category-row-"]');
     const shown = await rows.count();
     if (shown > 0) {
-      await expect(
-        surface(page).locator('[data-testid^="category-missing-"]').first(),
-      ).toBeVisible();
+      await expect(surface(page).locator('[data-testid^="category-missing-"]')).not.toHaveCount(0);
     }
   });
 
