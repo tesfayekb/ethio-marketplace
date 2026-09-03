@@ -194,9 +194,9 @@ export function AdminCategoriesPage() {
   /** ... and the editor closes gracefully when its row vanishes (delete). */
   useEffect(() => {
     if (dialog.kind === "none" || dialog.kind === "create") return;
-    if (categories.isPending) return;
+    if (isLoading) return;
     if (!roster.some((row) => row.id === dialog.id)) setDialog({ kind: "none" });
-  }, [dialog, roster, categories.isPending]);
+  }, [dialog, roster, isLoading]);
 
 
   const siblingsOf = (row: CategoryNode) => roster.filter((peer) => peer.parentId === row.parentId);
