@@ -140,16 +140,14 @@ export function processGeneratedPng(source: Uint8Array, genMs: number): Pipeline
   const decoded = atStage("decode", () => decodeImage(source));
 
   // process — alpha keying, content crop, scaling.
-  const { cropped, cardIcon, ogIcon } = atStage("process", () => {
+  const { cardIcon, ogIcon } = atStage("process", () => {
     const transparent = whiteToTransparent(decoded);
-    const cropped_ = crop(transparent, contentBounds(transparent));
+    const cropped = crop(transparent, contentBounds(transparent));
     return {
-      cropped: cropped_,
-      cardIcon: fitInto(cropped_, CARD_SIZE),
-      ogIcon: fitInto(cropped_, OG_HEIGHT),
+      cardIcon: fitInto(cropped, CARD_SIZE),
+      ogIcon: fitInto(cropped, OG_HEIGHT),
     };
   });
-  void cropped;
 
   // watermark — brand canvases with the diagonal marks drawn BEHIND the icon.
   const { card, og } = atStage("watermark", () => {
