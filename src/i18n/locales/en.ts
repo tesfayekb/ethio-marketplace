@@ -858,6 +858,7 @@ export const en = {
   "admin.categories.field.name": "Name (English)",
   "admin.categories.field.icon": "Icon",
   "admin.categories.field.order": "Display order",
+  "admin.categories.field.orderManaged": "Managed by Move up/down.",
   "admin.categories.field.expiryDays": "Listing expiry (days)",
   "admin.categories.field.expiryNone": "No expiry",
   "admin.categories.field.allowListings": "Accepts listings",
