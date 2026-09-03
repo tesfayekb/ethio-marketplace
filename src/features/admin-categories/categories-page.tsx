@@ -181,10 +181,23 @@ export function AdminCategoriesPage() {
 
   const rows = filtered.slice(offset, offset + pageSize);
 
+  /**
+   * INC-142 — the dialog stores ONLY the id; the rendered row is looked up in
+   * the live roster on every render, so the verb bar tracks a status change
+   * (retire / reactivate) the moment the query settles.
+   */
   const selected =
     dialog.kind === "none" || dialog.kind === "create"
       ? null
       : (roster.find((row) => row.id === dialog.id) ?? null);
+
+  /** ... and the editor closes gracefully when its row vanishes (delete). */
+  useEffect(() => {
+    if (dialog.kind === "none" || dialog.kind === "create") return;
+    if (categories.isPending) return;
+    if (!roster.some((row) => row.id === dialog.id)) setDialog({ kind: "none" });
+  }, [dialog, roster, categories.isPending]);
+
 
   const siblingsOf = (row: CategoryNode) => roster.filter((peer) => peer.parentId === row.parentId);
 
