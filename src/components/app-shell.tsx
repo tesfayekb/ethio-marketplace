@@ -453,7 +453,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Mobile keeps the one-column grid. From md up the layout is FIXED
             geometry (U0g-2): the band and the rail are position:fixed and the
             content column offsets itself with padding/margin. */}
-        <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr] md:block">
+        {/* INC-134 — the SHARED content region is the last link of every
+            page's scroller chain. This element was the first ancestor above a
+            DataTable scroller still at `min-width:auto` (census, 1240×800), so
+            a dense table could widen the chain instead of scrolling. The fix
+            is here, once, for every page — never a per-page width hack (C7). */}
+        <div className="grid min-w-0 max-w-full flex-1 grid-cols-1 grid-rows-[auto_1fr] md:block">
           <a
             href="#main"
             className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
