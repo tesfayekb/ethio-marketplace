@@ -30,15 +30,18 @@ interface RunResult {
   bytes: { card: Uint8Array; thumb: Uint8Array; og: Uint8Array };
 }
 
-async function run(categoryId: string, customPrompt: string | undefined): Promise<RunResult> {
+async function run(
+  supabase: SupabaseClient<Database>,
+  categoryId: string,
+  customPrompt: string | undefined,
+): Promise<RunResult> {
   const { buildPrompt } = await import("@/server/category-images/prompt");
   const { processGeneratedPng } = await import("@/server/category-images/pipeline");
   const { fakeGeneratedPng } = await import("@/server/category-images/fixture");
   const { generateImageBytes, isFakeMode, GeminiError } =
     await import("@/server/category-images/gemini");
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  const { data: category, error: categoryError } = await supabaseAdmin
+  const { data: category, error: categoryError } = await supabase
     .from("categories")
     .select("id, name_en")
     .eq("id", categoryId)
