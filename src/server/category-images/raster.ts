@@ -10,6 +10,8 @@
  */
 import { PNG } from "pngjs";
 
+import { GLYPH_HEIGHT, GLYPH_WIDTH, glyphRows } from "./font";
+
 export interface Raster {
   width: number;
   height: number;
@@ -186,9 +188,6 @@ export interface RotatedTextOptions {
  * continuous at any angle.
  */
 export function drawRotatedText(img: Raster, opts: RotatedTextOptions): void {
-  // Local import keeps the font table out of every other consumer's graph.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { glyphRows, GLYPH_WIDTH, GLYPH_HEIGHT } = fontModule;
   const advance = GLYPH_WIDTH + 1;
   const totalWidth = opts.text.length * advance * opts.scale;
   const totalHeight = GLYPH_HEIGHT * opts.scale;
@@ -213,5 +212,3 @@ export function drawRotatedText(img: Raster, opts: RotatedTextOptions): void {
     }
   }
 }
-
-import * as fontModule from "./font";
