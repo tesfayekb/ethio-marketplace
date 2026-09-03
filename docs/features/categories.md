@@ -107,3 +107,34 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
   every verb, visible, clickable and ≥44px, with no horizontal scroll on the
   page or the dialog; at 1440 the table renders wide columns with an inert
   scroller. CT-6, CT-12 and CT-13 drive their verbs from the bar.
+
+## C2-UI-FIX-5 + C2f + TR-29 — the roster conforms; the tree tells the truth (2026-09-04)
+
+- **The roster conforms to the audit table (INC-139).** Every per-column
+  `minWidth`, the `cardUntil` override and the sticky/wide leftovers are gone
+  from the categories consumer: the primitive's defaults decide everything, and
+  priorities alone place a column — Name (+slug line) and Status and Flags are
+  primary, Parent is secondary, Order/Listings/Excluded are detail, Actions
+  holds the single Edit button. The Name cell truncates with a `title`. The
+  priority map lives in `categories-service.ts` as `ROSTER_COLUMN_PRIORITIES`
+  and a unit test machine-checks the conformance (no `minWidth`, no
+  `cardUntil`, no `stickyFirstColumn` in the page) without rendering it.
+- **C2f (mark 20260904030000, INC-138).** Pointer edges whose parent is a
+  retired category are deleted, and `admin_list_categories` now resolves a
+  category's parent deterministically: the NULL-parent (root) pointer when one
+  exists, else the lowest-`display_order` pointer whose parent is ACTIVE. The
+  17-column contract, including the trailing `has_image`, is byte-identical and
+  the definer ACL is restated in the same file.
+- **TR-29 / INC-141 — the export is total.** The export LOOP was already
+  total-complete (it pages until a short page or the server's own
+  `total_count`); its SCOPE was not. The reader filtered `orphaned = false`, so
+  a language whose catalog holds orphaned keys exported fewer rows than it
+  owns. `listTranslations` now accepts `orphaned: null` — no orphan predicate
+  at all — and the export reader uses it, so "every page until exhausted" and
+  "every row the language owns" finally mean the same thing.
+- **Self-diagnosing specs.** CT-8 and CT-9a carry a geometry dump (scroller,
+  table, last cell and each ancestor's overflow/max-width), CT-12 polls with a
+  lifecycle dump (mounted dialogs, step-up state, the row's `is_active` via the
+  service client, the last client errors), and L10 scrolls the last cell into
+  the vertical viewport before asserting horizontal reachability, dumping the
+  whole wrapper chain on failure. No assertion changed meaning.

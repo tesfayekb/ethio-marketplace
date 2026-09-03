@@ -36,7 +36,7 @@ import {
   RetireCategoryDialog,
   SELECT_CLASS,
 } from "./category-dialogs";
-import { toRoster, type CategoryNode } from "./categories-service";
+import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
 import { useAdminCategories, useReactivateCategory, useReorderCategories } from "./use-categories";
 
 /**
@@ -44,9 +44,9 @@ import { useAdminCategories, useReactivateCategory, useReorderCategories } from 
  *
  * Gate tier: `categories:view` opens the section; every write RPC re-checks
  * its own granular permission and step-up server-side (F3). The roster is one
- * flat depth-ordered list rendered through the DataTable primitive with
- * `cardUntil="lg"` and per-column min-widths (law C7) — cards through the
- * tablet band, a scrolling table from lg, and never a per-page width hack.
+ * flat depth-ordered list rendered through the DataTable primitive with the
+ * primitive's DEFAULTS — cards below md, priorities only, no min-widths and no
+ * per-page width hack (C2-UI-FIX-5: the roster reads like the audit table).
  *
  * C2-UI-FIX: the table twin's actions are ONE horizontal icon row (edit,
  * visibility, countries, up, down) plus an inline overflow disclosure for the
@@ -201,15 +201,21 @@ export function AdminCategoriesPage() {
     });
   };
 
+  /**
+   * C2-UI-FIX-5 — THE ROSTER CONFORMS TO THE AUDIT TABLE. No per-column
+   * min-widths, no card-breakpoint override, no pinned column: priorities alone
+   * decide what a width shows, exactly as every other console table does.
+   * The priorities themselves live in the service so they can be asserted
+   * without rendering (see categories-service.test.ts).
+   */
   const columns: DataTableColumn<CategoryNode>[] = [
     {
       key: "name",
       header: t("admin.categories.col.name"),
-      priority: "primary",
-      minWidth: "min-w-52",
+      priority: ROSTER_COLUMN_PRIORITIES.name,
       cell: (row) => (
         <span className="block min-w-0">
-          <span className="block break-words font-medium text-foreground" title={row.nameEn}>
+          <span className="block truncate font-medium text-foreground" title={row.nameEn}>
             {row.depth > 0 ? (
               <span aria-hidden="true" className="text-muted-foreground">
                 {"· ".repeat(row.depth)}
@@ -217,15 +223,16 @@ export function AdminCategoriesPage() {
             ) : null}
             {row.nameEn}
           </span>
-          <span className="block break-all text-xs text-muted-foreground">{row.slug}</span>
+          <span className="block truncate text-xs text-muted-foreground" title={row.slug}>
+            {row.slug}
+          </span>
         </span>
       ),
     },
     {
       key: "parent",
       header: t("admin.categories.col.parent"),
-      priority: "secondary",
-      minWidth: "min-w-40",
+      priority: ROSTER_COLUMN_PRIORITIES.parent,
       cell: (row) => (
         <span className="block min-w-0 break-words text-muted-foreground">
           {row.parentId === null ? "—" : (byId.get(row.parentId)?.nameEn ?? "—")}
@@ -235,8 +242,7 @@ export function AdminCategoriesPage() {
     {
       key: "status",
       header: t("admin.categories.col.status"),
-      priority: "secondary",
-      minWidth: "min-w-24",
+      priority: ROSTER_COLUMN_PRIORITIES.status,
       cell: (row) =>
         row.isActive
           ? tipBadge(
@@ -255,8 +261,7 @@ export function AdminCategoriesPage() {
     {
       key: "flags",
       header: t("admin.categories.col.flags"),
-      priority: "secondary",
-      minWidth: "min-w-32",
+      priority: ROSTER_COLUMN_PRIORITIES.flags,
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
           {row.isCatchall
@@ -308,28 +313,25 @@ export function AdminCategoriesPage() {
     {
       key: "order",
       header: t("admin.categories.col.order"),
-      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
-      priority: "wide",
+      // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
+      priority: ROSTER_COLUMN_PRIORITIES.order,
       align: "end",
-      minWidth: "min-w-16",
       cell: (row) => <span className="block tabular-nums">{row.displayOrder}</span>,
     },
     {
       key: "listings",
       header: t("admin.categories.col.listings"),
-      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
-      priority: "wide",
+      // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
+      priority: ROSTER_COLUMN_PRIORITIES.listings,
       align: "end",
-      minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.listingCount}</span>,
     },
     {
       key: "exclusions",
       header: t("admin.categories.col.exclusions"),
-      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
-      priority: "wide",
+      // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
+      priority: ROSTER_COLUMN_PRIORITIES.exclusions,
       align: "end",
-      minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.exclusionCount}</span>,
     },
   ];
@@ -481,7 +483,6 @@ export function AdminCategoriesPage() {
           ) : null}
 
           <DataTable<CategoryNode>
-            cardUntil="xl"
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
