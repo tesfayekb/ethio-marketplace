@@ -1276,22 +1276,34 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-missing-filter").click();
       await page.getByTestId("category-search").fill(prefix);
       await expect
-        .poll(async () => page.getByTestId("data-table-cards").locator("li").count(), {
-          timeout: 15000,
-          message: await bulkDump("visible-set"),
-        })
-        .toBe(0);
+        .poll(
+          async () => page.getByRole("table").locator("tbody tr").count(),
+          { timeout: 15000, message: await bulkDump("visible-set") },
+        )
+        .toBe(3);
       for (const slug of slugs) {
         await expect(categoryRow(page, slug)).toBeVisible({ timeout: 15000 });
       }
 
+      // The progress caption is transient (it clears when the run ends), so
+      // the highest value it reached is captured while polling.
+      let progressSeen = "";
       await page.getByTestId("category-bulk-generate").click();
       await expect
         .poll(
-          async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "",
+          async () => {
+            const line = await page
+              .getByTestId("category-bulk-progress")
+              .textContent()
+              .catch(() => null);
+            if (line) progressSeen = line;
+            return (await page.getByTestId("category-bulk-summary").textContent()) ?? "";
+          },
           { timeout: 15000, message: await bulkDump("summary") },
         )
         .toContain(`3 ${en["admin.categories.bulk.generated"]}`);
+      expect(progressSeen).toContain("3/3");
+
       await expect
         .poll(async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "", {
           timeout: 15000,
