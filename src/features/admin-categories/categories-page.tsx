@@ -423,8 +423,8 @@ export function AdminCategoriesPage() {
           ) : null}
 
           <DataTable<CategoryNode>
-            cardUntil="lg"
-            stickyFirstColumn
+            cardUntil="xl"
+
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
