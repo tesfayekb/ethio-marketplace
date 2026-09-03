@@ -729,33 +729,25 @@ test.describe("C2 categories console", () => {
         true,
       );
 
-      // Active again means the retire verb is the one on offer once more.
-      await step(
-        "CT-12 the reactivated row is still on the roster",
-        () => categoryRow(page, slug).count(),
-        1,
-      );
-      await step(
-        "CT-12 the editor re-opens",
-        async () => {
-          if (!(await page.getByTestId("category-verb-bar").isVisible())) {
-            await action(page, slug, "edit").click({ timeout: 5000 });
-          }
-          return page.getByTestId("category-verb-bar").isVisible();
-        },
-        true,
-      );
       /**
-       * C2h / CT-12-TRUTH — the closing check asserts the PRODUCT'S CORRECT
-       * behaviour: a reactivated category IS on the roster, carries the Active
-       * status badge, and offers Retire while Reactivate is gone. (The former
-       * line asserted the inverse.) The badge is resolved through its
-       * accessible description, never through raw English in the spec (J5).
+       * C2-CLOSE Part A — THE CLOSING TRUTH, SEARCH-ANCHORED. The editor is
+       * dismissed so the roster search (the only proven anchor, CT-2/INC-147)
+       * can narrow to the scratch row; the row IS on the roster, carries the
+       * Active badge — resolved through its accessible description, never raw
+       * English (J5) — and its editor offers Retire with Reactivate gone.
        */
+      await page.keyboard.press("Escape");
+      await step(
+        "CT-12 the editor is dismissed before the roster search",
+        () => page.getByTestId("category-edit-dialog").count(),
+        0,
+      );
+      await findRow(page, slug);
       const activeBadge = categoryRow(page, slug).locator(
         `[aria-label="${en["admin.categories.badge.active"]}: ${en["admin.categories.tip.active"]}"]`,
       );
       await step("CT-12 the roster shows the row as Active", () => activeBadge.count(), 1);
+      await openEditor(page, slug);
       await step(
         "CT-12 an active row offers Retire",
         () => action(page, slug, "retire").isVisible(),
@@ -766,6 +758,7 @@ test.describe("C2 categories console", () => {
         () => action(page, slug, "reactivate").count(),
         0,
       );
+
     } finally {
       if (slug) await destroyCategory(slug);
     }
