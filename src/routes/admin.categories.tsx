@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AdminSectionPage } from "@/features/admin/section-page";
+import { AdminCategoriesPage } from "@/features/admin-categories/categories-page";
 
+/**
+ * C2-UI — the Categories section. The /admin layout owns the `categories:view`
+ * gate and the AdminShellProvider; this file renders the body only.
+ */
 export const Route = createFileRoute("/admin/categories")({
-  component: AdminCategoriesPage,
+  component: AdminCategoriesRoute,
 });
 
-function AdminCategoriesPage() {
-  return <AdminSectionPage id="categories" />;
+function AdminCategoriesRoute() {
+  return <AdminCategoriesPage />;
 }
