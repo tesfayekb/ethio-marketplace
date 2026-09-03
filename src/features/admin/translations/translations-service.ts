@@ -114,8 +114,12 @@ export interface TranslationFilters {
   search?: string;
   limit?: number;
   offset?: number;
-  /** U4g — undefined/false = the live catalog; true = the orphaned set only. */
-  orphaned?: boolean;
+  /**
+   * U4g — undefined/false = the live catalog; true = the orphaned set only.
+   * INC-141 — `null` means NO orphan filter at all (the WHOLE catalog): the
+   * export must serialise every row the language owns, orphans included.
+   */
+  orphaned?: boolean | null;
 }
 
 function asStatus(value: string): TranslationStatus {
@@ -138,7 +142,8 @@ export async function listTranslations({
     p_search: search,
     p_limit: limit,
     p_offset: offset,
-    p_orphaned: orphaned,
+    // `null` = the RPC's own default: no orphan predicate, the whole catalog.
+    ...(orphaned === null ? {} : { p_orphaned: orphaned }),
   });
   if (error) throw error;
   const rows = data ?? [];
@@ -910,6 +915,13 @@ export async function writePseudoRow(input: { key: string; value: string }): Pro
  * SAME list RPC the console reads, in batches of `EXPORT_PAGE_SIZE`, until the
  * language is exhausted. The current search/status chips are deliberately NOT
  * applied: an export is the whole language + scope, always.
+ *
+ * C2-UI-FIX-5 / INC-141 — the LOOP was already total-complete (short page OR
+ * the server's own `total_count`); what was not total was its SCOPE. The
+ * reader filtered `orphaned = false`, so an export of a catalog holding
+ * orphaned keys came back short of the language's real row count. The reader
+ * now passes NO orphan predicate, so "every page until exhausted" and "every
+ * row the language owns" finally mean the same thing.
  */
 export const EXPORT_PAGE_SIZE = 200;
 
@@ -925,7 +937,7 @@ export async function fetchAllTranslationRows(
   const read: TranslationPageFetcher =
     fetchPage ??
     ((offset, limit) =>
-      listTranslations({ lang, status: "all", search: "", limit, offset, orphaned: false }));
+      listTranslations({ lang, status: "all", search: "", limit, offset, orphaned: null }));
 
   const rows: TranslationRow[] = [];
   for (let page = 0; page < EXPORT_MAX_PAGES; page += 1) {
