@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 
 import { FormField } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -797,14 +798,31 @@ export function CategoryPathsDialog({
         </p>
       ) : (
         <ul className="min-w-0 space-y-2">
-          {(pointers.data ?? []).map((pointer) => (
+          {(pointers.data ?? []).map((pointer, index) => (
             <li
               key={pointer.pointerId}
               data-testid={`category-path-${pointer.pointerId}`}
               className="min-w-0 space-y-2 rounded-md border border-border p-3"
             >
-              <p className="min-w-0 break-words text-sm text-foreground">
-                {pointer.parentNameEn ?? t("admin.categories.paths.root")}
+              <p className="flex min-w-0 flex-wrap items-center gap-2 break-words text-sm text-foreground">
+                <span className="min-w-0 break-words">
+                  {pointer.parentNameEn ?? t("admin.categories.paths.root")}
+                </span>
+                {/*
+                  C2-GHOST PART C — the PRIMARY path. `admin_list_category_pointers`
+                  returns the edges in display_order, so the first card is the
+                  lowest-order edge: the one the roster and the breadcrumbs read.
+                */}
+                {index === 0 ? (
+                  <Badge
+                    variant="secondary"
+                    data-testid={`category-path-primary-${pointer.pointerId}`}
+                    title={t("admin.categories.paths.primaryTip")}
+                    aria-label={`${t("admin.categories.paths.primary")}: ${t("admin.categories.paths.primaryTip")}`}
+                  >
+                    {t("admin.categories.paths.primary")}
+                  </Badge>
+                ) : null}
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <select
