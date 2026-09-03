@@ -51,11 +51,14 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
           const raw = await suggestIconName(name, parentName, ICON_ALLOWLIST);
           return json({ icon: validateIcon(raw), fake: false }, 200);
         } catch (error) {
+          const message = error instanceof Error ? error.message : "unknown error";
+          // PART B (F4): true cause + stable code before the generic body.
+          console.error(`[ssr-error] ${PATH} icon_suggest_failed ${message}`);
           if (error instanceof GeminiError) {
             if (error.status >= 500) return fail5xx(PATH, error.message, 502);
             return json({ error: error.message }, error.status);
           }
-          return fail5xx(PATH, error instanceof Error ? error.message : "unknown error");
+          return fail5xx(PATH, message);
         }
       },
     },
