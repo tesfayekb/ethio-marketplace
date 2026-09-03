@@ -21,6 +21,41 @@ echo "================================================================"
 echo " ENFORCING: hardcoded string scan — findings FAIL the run"
 echo "================================================================"
 
+# --- scan core -------------------------------------------------------------
+# Emits the finding lines for the given roots on stdout; no verdict.
+scan() {
+  local out
+  out="$(
+    grep -RnE '>[[:space:]]*[A-Za-z][A-Za-z0-9 ,.:;!?%\-]{2,}[[:space:]]*</' \
+      --include='*.tsx' --include='*.tsx.txt' "$@" 2>/dev/null
+    grep -RnE '(title|label|placeholder|alt|aria-label)="[^"{}]{2,}"' \
+      --include='*.tsx' --include='*.tsx.txt' "$@" 2>/dev/null
+  )"
+  printf '%s' "$out" | sed '/^$/d' | sort -u
+}
+
+count() { scan "$@" | grep -c . ; }
+
+# --- IN-SCRIPT SELF-TEST (C2-UI-FIX-3) -------------------------------------
+# The guard proves itself before it judges anything: the bad fixture must
+# produce at least one finding, the good fixture exactly zero. A guard that
+# cannot bite (or that bites a TypeScript generic) is worse than no guard, so
+# a mismatch is a hard exit 2 — never a scan verdict.
+BAD_FIXTURE="scripts/fixtures/string-scan-bad"
+GOOD_FIXTURE="scripts/fixtures/string-scan-good"
+if [ -d "$BAD_FIXTURE" ] && [ -d "$GOOD_FIXTURE" ]; then
+  bad_n="$(count "$BAD_FIXTURE")"
+  good_n="$(count "$GOOD_FIXTURE")"
+  echo "self-test: bad fixture findings=$bad_n (expect >=1), good fixture findings=$good_n (expect 0)"
+  if [ "$bad_n" -lt 1 ] || [ "$good_n" -ne 0 ]; then
+    echo "SELF-TEST FAILED: guard does not discriminate (bad=$bad_n good=$good_n)."
+    exit 2
+  fi
+else
+  echo "SELF-TEST FAILED: fixture pair missing ($BAD_FIXTURE / $GOOD_FIXTURE)."
+  exit 2
+fi
+
 targets=()
 if [ "$#" -gt 0 ]; then
   targets=("$@")
@@ -35,23 +70,14 @@ if [ ${#targets[@]} -eq 0 ]; then
   exit 0
 fi
 
+
 findings=0
-tmp="$(mktemp)"
-trap 'rm -f "$tmp"' EXIT
-
-# JSX text content: >Some Text</   (letters only; the closing anchor is a real
-# closing tag, so generics such as Promise<unknown> cannot match).
-grep -RnE '>[[:space:]]*[A-Za-z][A-Za-z0-9 ,.:;!?%\-]{2,}[[:space:]]*</' \
-  --include='*.tsx' --include='*.tsx.txt' "${targets[@]}" >>"$tmp" 2>/dev/null || true
-
-# Common user-facing string props with literal string values.
-grep -RnE '(title|label|placeholder|alt|aria-label)="[^"{}]{2,}"' \
-  --include='*.tsx' --include='*.tsx.txt' "${targets[@]}" >>"$tmp" 2>/dev/null || true
-
-if [ -s "$tmp" ]; then
-  sort -u "$tmp"
-  findings=$(sort -u "$tmp" | wc -l | tr -d ' ')
+report="$(scan "${targets[@]}")"
+if [ -n "$report" ]; then
+  printf '%s\n' "$report"
+  findings=$(printf '%s\n' "$report" | grep -c .)
 fi
+
 
 echo "findings: $findings"
 if [ "$findings" -gt 0 ]; then

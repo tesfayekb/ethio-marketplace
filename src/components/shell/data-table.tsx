@@ -48,8 +48,13 @@ import { PageCard } from "./page-card";
  */
 export type ColumnPriority = "primary" | "secondary" | "detail" | "wide";
 
-/** C7 / INC-130 — where the card twin gives way to the table twin. */
-export type CardUntil = "md" | "lg";
+/**
+ * C7 / INC-130 — where the card twin gives way to the table twin. `"xl"`
+ * (C2-UI-FIX-3) keeps cards through the whole laptop band: a roster whose
+ * table only earns its width on a genuinely wide desktop never scrolls
+ * sideways at all, because below xl there is no table to scroll.
+ */
+export type CardUntil = "md" | "lg" | "xl";
 
 export interface DataTableColumn<T> {
   key: string;
@@ -132,16 +137,22 @@ export interface DataTableProps<T> {
   className?: string;
 }
 
-function cellClass(column: DataTableColumn<unknown>, sticky = false) {
+function cellClass(
+  column: DataTableColumn<unknown>,
+  sticky: false | "start-0" | "start-10" = false,
+) {
   return cn(
     "p-3 align-top",
     column.align === "end" ? "text-end" : "text-start",
     column.priority === "detail" && "hidden lg:table-cell",
     column.priority === "wide" && "hidden xl:table-cell",
-    // INC-135 — the pinned first column. `start-0` is a LOGICAL offset, so the
-    // pin lands on the correct edge in RTL, and the background is the card
-    // token (never a hardcoded colour) so scrolled cells pass under it.
-    sticky && "sticky start-0 z-10 bg-card",
+    // INC-135 / INC-136 — the pinned first column. `start-*` is a LOGICAL
+    // offset, so the pin lands on the correct edge in RTL, and the background
+    // is the card token (never a hardcoded colour) so scrolled cells pass
+    // under it. When a selection column precedes it, the pin offset is that
+    // column's own width (w-10 → start-10); pinning both at 0 made the first
+    // data column jump 40px left on the first scroll tick (L11 drift).
+    sticky !== false && cn("sticky z-10 bg-card", sticky),
     column.width,
     column.minWidth,
   );
@@ -230,8 +241,21 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const cardsHiddenClass = cardUntil === "lg" ? "lg:hidden" : "md:hidden";
-  const tableShownClass = cardUntil === "lg" ? "lg:block" : "md:block";
+  const cardsHiddenClass =
+    cardUntil === "xl" ? "xl:hidden" : cardUntil === "lg" ? "lg:hidden" : "md:hidden";
+  const tableShownClass =
+    cardUntil === "xl" ? "xl:block" : cardUntil === "lg" ? "lg:block" : "md:block";
+  /**
+   * INC-136 — the pin offset. A selection column is 40px (`w-10`) wide and is
+   * itself pinned at 0, so the first data column pins at `start-10`.
+   */
+  const stickyOffset: false | "start-0" | "start-10" = stickyFirstColumn
+    ? selection
+      ? "start-10"
+      : "start-0"
+    : false;
+  const stickyFor = (index: number) => (index === 0 ? stickyOffset : false);
+
   /** Any declared min-width switches the table off fixed layout (C7). */
   const hasMinWidths = columns.some((column) => Boolean(column.minWidth));
   /** U1d: the FIRST primary column carries the row link inside the table. */
@@ -272,9 +296,16 @@ export function DataTable<T>({
     return frame(<PageCard testid="data-table-empty">{emptyState}</PageCard>);
   }
 
+  /**
+   * C2-UI-FIX-3 — when the split is at `xl` the card twin is the ONLY
+   * presentation below a wide desktop, so dropping the `wide` tier there would
+   * hide that content outright. A vertical card has the room the table row did
+   * not: at `cardUntil="xl"` the card carries every column except `detail`.
+   */
   const cardColumns = columns.filter(
-    (column) => column.priority !== "detail" && column.priority !== "wide",
+    (column) => column.priority !== "detail" && (cardUntil === "xl" || column.priority !== "wide"),
   );
+
   const selectedKeys = new Set(selection?.selectedKeys ?? []);
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
 
@@ -366,7 +397,13 @@ export function DataTable<T>({
             <thead className="border-b border-border text-muted-foreground">
               <tr>
                 {selection ? (
-                  <th scope="col" className="w-10 p-3 align-top">
+                  <th
+                    scope="col"
+                    className={cn(
+                      "w-10 p-3 align-top",
+                      stickyFirstColumn && "sticky start-0 z-10 bg-card",
+                    )}
+                  >
                     <Checkbox
                       aria-label={t("prim.table.selectAll")}
                       data-testid="data-table-select-all"
@@ -381,10 +418,7 @@ export function DataTable<T>({
                     data-testid={`data-table-col-${column.key}`}
                     scope="col"
                     className={cn(
-                      cellClass(
-                        column as DataTableColumn<unknown>,
-                        stickyFirstColumn && index === 0,
-                      ),
+                      cellClass(column as DataTableColumn<unknown>, stickyFor(index)),
                       "font-medium",
                     )}
                     aria-sort={
@@ -451,7 +485,10 @@ export function DataTable<T>({
                     >
                       {selection ? (
                         <td
-                          className="p-3 align-top"
+                          className={cn(
+                            "p-3 align-top",
+                            stickyFirstColumn && "sticky start-0 z-10 bg-card",
+                          )}
                           onClick={(event) => event.stopPropagation()}
                           onKeyDown={(event) => event.stopPropagation()}
                         >
@@ -470,7 +507,7 @@ export function DataTable<T>({
                           key={column.key}
                           className={cellClass(
                             column as DataTableColumn<unknown>,
-                            stickyFirstColumn && index === 0,
+                            stickyFor(index),
                           )}
                         >
                           {href && column.key === linkColumnKey ? (

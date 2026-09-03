@@ -37,9 +37,27 @@ function scratchSlug() {
   return `e2e-cat-${RUN}-${worker}-${rand()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 }
 
-/** The C7 twin boundary for THIS console (cardUntil="lg"). */
+/** The C7 twin boundary for THIS console (C2-UI-FIX-3: cardUntil="xl"). */
+const TWIN_BOUNDARY = 1280;
+
 function isCardTwin(page: Page) {
-  return (page.viewportSize()?.width ?? 1280) < 1024;
+  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
+}
+
+/**
+ * SPEC VIEWPORT LAW (C2-UI-FIX-3) — every test block opens by declaring the
+ * band it asserts, so a table-shape assertion never runs in the 360 project
+ * (where there is no table) and a card assertion never runs at 1280. Blocks
+ * that resize the page themselves declare `desktop`: they own the viewport
+ * and must execute exactly once, in one project.
+ */
+function bandOnly(page: Page, band: "mobile" | "desktop" | "any") {
+  if (band === "any") return;
+  const width = page.viewportSize()?.width ?? TWIN_BOUNDARY;
+  test.skip(
+    band === "mobile" ? width >= TWIN_BOUNDARY : width < TWIN_BOUNDARY,
+    `this block asserts the ${band} band`,
+  );
 }
 
 function surface(page: Page): Locator {
@@ -151,6 +169,7 @@ test.describe("C2 categories console", () => {
   test("CT-1 gating: a plain user is refused; the section renders for an admin", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const plain = await createUser({ confirmed: true });
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/categories");
@@ -168,6 +187,7 @@ test.describe("C2 categories console", () => {
   test("CT-2 roster: the ratified tree renders, search narrows it, nothing overflows", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
@@ -189,6 +209,7 @@ test.describe("C2 categories console", () => {
   test("CT-3 create + edit: a scratch category is born and renamed through step-up", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -209,6 +230,7 @@ test.describe("C2 categories console", () => {
   });
 
   test("CT-4 visibility window: a future window is stored as DB truth", async ({ page }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -227,6 +249,7 @@ test.describe("C2 categories console", () => {
   });
 
   test("CT-5 exclusions: saving a country set writes the exclusion rows", async ({ page }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -257,6 +280,7 @@ test.describe("C2 categories console", () => {
   test("CT-6 retirement: a retired category leaves the active tree and keeps its listings home", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -278,6 +302,7 @@ test.describe("C2 categories console", () => {
   });
 
   test("CT-7 step-up: the server refuses the write until AAL2 is proven", async ({ page }) => {
+    bandOnly(page, "any");
     // A super admin who has NOT stepped up: the create dialog submits, the
     // gate intercepts, and no row exists until the code is entered (F3/F5 —
     // a refused attempt leaves no trace).
@@ -303,6 +328,7 @@ test.describe("C2 categories console", () => {
    * the attempt (F5 — a refused attempt leaves no trace).
    */
   test("CT-7b browse paths: an unproven factor cannot move a pointer", async ({ page }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -343,49 +369,59 @@ test.describe("C2 categories console", () => {
   });
 
   /**
-   * CT-8 (INC-132) — at 1024 the table twin is live and its declared
-   * min-widths exceed the viewport: every action must stay reachable by
-   * scrolling the PRIMITIVE'S OWN scroller, never by overflowing the page.
+   * CT-8 (INC-132/134/136, rewritten to the C2-UI-FIX-3 law) — the laptop
+   * band is CARDS. At 1024 and 1240 the roster must render its card twin,
+   * every action must be reachable and clickable, and NOTHING may scroll
+   * horizontally — not the page, not a scroller, because below xl there is no
+   * table to scroll. At 1440 the table earns its width and still does not
+   * engage a scroller.
    */
-  test("CT-8 tablet band: actions stay reachable through the primitive scroller", async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1024, height: 800 });
+  test("CT-8 laptop band renders cards with no horizontal scroll anywhere", async ({ page }) => {
+    bandOnly(page, "desktop");
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
-    await gotoReady(page, "/admin/categories");
-    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
 
-    await expectNoHorizontalOverflow(page);
+    for (const width of [1024, 1240]) {
+      await page.setViewportSize({ width, height: 800 });
+      await gotoReady(page, "/admin/categories");
+      await expect(page.getByTestId("data-table-cards")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByRole("table")).toBeHidden();
+      await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
 
-    const scroller = page.getByTestId("data-table-scroller");
-    await scroller.evaluate((el) => {
-      el.scrollLeft = el.scrollWidth;
-    });
-    await expect(action(page, "vehicles", "edit")).toBeInViewport();
+      await expectNoHorizontalOverflow(page);
+      const cards = await page
+        .getByTestId("data-table-cards")
+        .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
+      expect(cards.scrollWidth, `cards scroll sideways at ${width}`).toBeLessThanOrEqual(
+        cards.clientWidth + 1,
+      );
 
-    // INC-134 — the same must hold at 1240×800, the band where the shared
-    // admin content region used to widen instead of letting the primitive
-    // scroll. Either the scroller engages or the wide tier has hidden enough
-    // that no scroll is needed; in BOTH readings the action is reachable and
-    // the PAGE never overflows.
-    await page.setViewportSize({ width: 1240, height: 800 });
-    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
-    await expectNoHorizontalOverflow(page);
-    const geometry = await scroller.evaluate((el) => ({
-      scrollWidth: el.scrollWidth,
-      clientWidth: el.clientWidth,
-    }));
-    if (geometry.scrollWidth > geometry.clientWidth) {
-      await scroller.evaluate((el) => {
-        el.scrollLeft = el.scrollWidth;
-      });
+      const edit = action(page, "vehicles", "edit");
+      await expect(edit).toBeVisible();
+      await expect(edit).toBeInViewport();
+      await edit.click();
+      await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("category-edit-dialog")).toBeHidden();
     }
-    await expect(action(page, "vehicles", "edit")).toBeInViewport();
+
+    // 1440 — the table twin, wide columns present, scroller inert.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await gotoReady(page, "/admin/categories");
+    await expect(page.getByRole("table")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("data-table-col-order")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    const geometry = await page
+      .getByTestId("data-table-scroller")
+      .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
+    expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
   });
 
-  test("CT-9 roster shape: a parent column and a 25-row page", async ({ page }) => {
+  /** CT-9a — TABLE shape. Guarded to the band that actually has a table. */
+  test("CT-9a roster shape: the parent column and a 25-row page (table twin)", async ({ page }) => {
+    bandOnly(page, "desktop");
+    await page.setViewportSize({ width: 1440, height: 900 });
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
@@ -401,6 +437,23 @@ test.describe("C2 categories console", () => {
     await expect(page.getByTestId("category-pagination-range")).toContainText("26–50");
   });
 
+  /** CT-9b — the SAME facts inside cards at 360: nothing is hidden there. */
+  test("CT-9b roster shape: the parent line and pagination inside cards", async ({ page }) => {
+    bandOnly(page, "mobile");
+    const admin = await createUser({ confirmed: true });
+    await grantRole(admin.id, "admin");
+    await switchUser(page, admin.email, admin.password);
+    await gotoReady(page, "/admin/categories");
+    const row = categoryRow(page, "vehicles");
+    await expect(row).toBeVisible({ timeout: 20000 });
+
+    // Structure, never English copy (J5): a root's parent block renders the
+    // em-dash placeholder inside the card, so the parent field is present.
+    await expect(row).toContainText("—");
+    await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
+    await expectNoHorizontalOverflow(page);
+  });
+
   /**
    * CT-10 (C2c) — a RETIRED node is not a destination. The picker must not
    * offer it, otherwise a live child could be hung under a dead branch and
@@ -409,6 +462,7 @@ test.describe("C2 categories console", () => {
   test("CT-10 parent picker: retired nodes are absent and options carry paths", async ({
     page,
   }) => {
+    bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     let slug = "";
     try {
@@ -424,7 +478,7 @@ test.describe("C2 categories console", () => {
       const options = page.getByTestId("category-create-parent").locator("option");
       await expect(options.filter({ hasText: slug })).toHaveCount(0);
       // Active options render their whole path, so a nested node shows "›".
-      await expect(options.filter({ hasText: "›" }).first()).toHaveCount(1);
+      await expect(options.filter({ hasText: "›" })).not.toHaveCount(0);
     } finally {
       if (slug) await destroyCategory(slug);
     }
@@ -435,6 +489,7 @@ test.describe("C2 categories console", () => {
    * is asserted ACROSS A RELOAD: a selector that forgets is not a setting.
    */
   test("CT-11 roster controls: missing-assets filter and a device page size", async ({ page }) => {
+    bandOnly(page, "any");
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
@@ -460,9 +515,106 @@ test.describe("C2 categories console", () => {
     const rows = surface(page).locator('[data-testid^="category-row-"]');
     const shown = await rows.count();
     if (shown > 0) {
-      await expect(
-        surface(page).locator('[data-testid^="category-missing-"]').first(),
-      ).toBeVisible();
+      await expect(surface(page).locator('[data-testid^="category-missing-"]')).not.toHaveCount(0);
+    }
+  });
+
+  /**
+   * CT-12 (C2d) — the reactivate walk. A retired scratch node comes back to
+   * life through step-up and is active again in DB truth and in the roster.
+   */
+  test("CT-12 lifecycle: a retired category is reactivated through step-up", async ({ page }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      await adminClient().from("categories").update({ is_active: false }).eq("id", scratch!.id);
+      await page.reload();
+      await waitForHydration(page);
+      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+
+      await action(page, slug, "reactivate").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect
+        .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
+        .toBe(true);
+      // Active again means the retire verb is the one on offer once more.
+      await expect(action(page, slug, "retire")).toBeVisible({ timeout: 20000 });
+    } finally {
+      if (slug) await destroyCategory(slug);
+    }
+  });
+
+  /**
+   * CT-13 (C2d) — the delete walk. A wrong slug is refused with nothing
+   * deleted (F5); the correct slug deletes the row AND its pointer, exclusion
+   * and translation dependents, all asserted as service-client DB truth (J4).
+   */
+  test("CT-13 lifecycle: a typed-slug delete removes the row and its dependents", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      const id = scratch!.id;
+      const supabase = adminClient();
+
+      // Seed the dependents the cascade must take with it.
+      const { data: country } = await supabase.from("countries").select("code").limit(1).single();
+      await supabase.from("category_country_exclusions").insert({
+        category_id: id,
+        country_code: country!.code,
+        created_by: "00000000-0000-0000-0000-000000000000",
+      });
+      await supabase.from("entity_translations").insert({
+        entity_type: "category",
+        entity_id: id,
+        field: "name",
+        lang_code: "am",
+        value: `e2e ${slug}`,
+        status: "machine",
+        machine: true,
+      });
+      await supabase.from("categories").update({ is_active: false }).eq("id", id);
+
+      await page.reload();
+      await waitForHydration(page);
+      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+
+      // Wrong slug: refused, nothing deleted.
+      await action(page, slug, "delete").click();
+      await page.getByTestId("category-delete-slug").fill(`${slug}-wrong`);
+      await page.getByTestId("category-delete-submit").click();
+      await expect(page.getByTestId("category-dialog-error")).toBeVisible();
+      expect(await readCategory(slug)).toBeTruthy();
+
+      // Correct slug: the row and every dependent go.
+      await page.getByTestId("category-delete-slug").fill(slug);
+      await page.getByTestId("category-delete-submit").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect.poll(async () => await readCategory(slug), { timeout: 20000 }).toBeNull();
+      await expect(categoryRow(page, slug)).toHaveCount(0);
+      expect((await readPointers(id)).length).toBe(0);
+      const { data: excl } = await supabase
+        .from("category_country_exclusions")
+        .select("country_code")
+        .eq("category_id", id);
+      expect(excl ?? []).toEqual([]);
+      const { data: translations } = await supabase
+        .from("entity_translations")
+        .select("field")
+        .eq("entity_type", "category")
+        .eq("entity_id", id);
+      expect(translations ?? []).toEqual([]);
+    } finally {
+      if (slug) await destroyCategory(slug);
     }
   });
 });

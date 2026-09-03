@@ -270,3 +270,22 @@ export function activeParentOptions(roster: CategoryNode[], excludeId?: string):
     .filter((row) => row.isActive && row.id !== excludeId)
     .map((row) => ({ id: row.id, label: pathOf(row) }));
 }
+
+/**
+ * C2d — LIFECYCLE. Reactivate is the exact inverse of retire; delete is the
+ * one destructive verb, guarded server-side by a typed-slug match, a retired
+ * row and a zero listing count (F3). Both re-check permission + step-up in
+ * the RPC; the console only carries the confirmation UX.
+ */
+export async function reactivateCategory(input: { id: string }): Promise<void> {
+  const { error } = await supabase.rpc("admin_reactivate_category", { p_id: input.id });
+  if (error) throw error;
+}
+
+export async function deleteCategory(input: { id: string; confirmSlug: string }): Promise<void> {
+  const { error } = await supabase.rpc("admin_delete_category", {
+    p_id: input.id,
+    p_confirm_slug: input.confirmSlug,
+  });
+  if (error) throw error;
+}

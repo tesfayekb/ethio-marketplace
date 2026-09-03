@@ -229,6 +229,20 @@ test.describe("display primitives law (test-once responsiveness)", () => {
     await expect(head).toBeVisible();
     expect(await head.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
 
+    // INC-136 — the pin is a COLUMN, not a header: the body cell must be
+    // sticky too, and both must sit at the same logical offset (the selection
+    // column's own width), or the row drifts out from under its header on the
+    // first scroll tick.
+    const firstCell = page.getByTestId("prim-row-row-1").locator("td").nth(1);
+    const cellStyle = await firstCell.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { position: style.position, start: style.insetInlineStart };
+    });
+    expect(cellStyle.position).toBe("sticky");
+    expect(await head.evaluate((el) => getComputedStyle(el).insetInlineStart)).toBe(
+      cellStyle.start,
+    );
+
     const before = await head.boundingBox();
     const scroller = page.getByTestId("data-table-scroller");
     await scroller.evaluate((el) => {

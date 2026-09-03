@@ -5,9 +5,11 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import {
   addCategoryPointer,
   createCategory,
+  deleteCategory,
   listCategories,
   listCategoryPointers,
   moveCategoryPointer,
+  reactivateCategory,
   removeCategoryPointer,
   reorderCategories,
   retireCategory,
@@ -118,6 +120,23 @@ export function useReorderCategories() {
   return useMutation({
     mutationFn: (input: { parentId: string | null; orderedChildIds: string[] }) =>
       reorderCategories(input),
+    onSettled: invalidate,
+  });
+}
+
+/** C2d — lifecycle mutations; both invalidate the roster on settle. */
+export function useReactivateCategory() {
+  const invalidate = useInvalidateCategories();
+  return useMutation({
+    mutationFn: (input: { id: string }) => reactivateCategory(input),
+    onSettled: invalidate,
+  });
+}
+
+export function useDeleteCategory() {
+  const invalidate = useInvalidateCategories();
+  return useMutation({
+    mutationFn: (input: { id: string; confirmSlug: string }) => deleteCategory(input),
     onSettled: invalidate,
   });
 }

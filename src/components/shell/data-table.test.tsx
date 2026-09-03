@@ -144,6 +144,52 @@ describe("DataTable C7 contract", () => {
     expect(screen.getByTestId("data-table-col-name").className).not.toContain("sticky");
   });
 
+  it('splits the twins at xl when cardUntil="xl" (C2-UI-FIX-3)', () => {
+    renderTable({ cardUntil: "xl" });
+    expect(screen.getByTestId("data-table-cards").className).toContain("xl:hidden");
+    expect(screen.getByTestId("data-table-scroller").className).toContain("xl:block");
+    expect(screen.getByTestId("data-table-scroller").className).not.toContain("lg:block");
+  });
+
+  it('keeps "wide" columns in the card twin when cardUntil="xl"', () => {
+    renderTable({
+      cardUntil: "xl",
+      columns: [
+        ...columns(),
+        {
+          key: "tail",
+          header: "Tail",
+          priority: "wide",
+          cell: () => <span data-testid="wide-cell">tail</span>,
+        },
+      ],
+    });
+    // Cards are the only presentation below xl, so hiding the wide tier there
+    // would drop the content outright: every card carries it.
+    expect(screen.getAllByTestId("wide-cell").length).toBeGreaterThan(ROWS.length);
+  });
+
+  it("pins header AND body cells at the same offset when a selection column exists (INC-136)", () => {
+    render(
+      <DataTable<Row>
+        columns={columns("min-w-40")}
+        rows={ROWS}
+        rowKey={(row) => row.id}
+        rowTestId={(row) => `row-${row.id}`}
+        caption="fixture"
+        stickyFirstColumn
+        selection={{ selectedKeys: [], onToggleRow: () => {}, onToggleAll: () => {} }}
+        emptyState={<p>empty</p>}
+      />,
+    );
+    const head = screen.getByTestId("data-table-col-name");
+    expect(head.className).toContain("sticky");
+    expect(head.className).toContain("start-10");
+    const bodyCell = screen.getByTestId("row-a").querySelectorAll("td")[1]!;
+    expect(bodyCell.className).toContain("sticky");
+    expect(bodyCell.className).toContain("start-10");
+  });
+
   it("renders the empty, loading and error slots unchanged", () => {
     const empty = renderTable({ rows: [] });
     expect(screen.getByTestId("slot-empty")).toBeTruthy();

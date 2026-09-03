@@ -829,6 +829,8 @@ export const en = {
   "admin.categories.action.window": "Visibility",
   "admin.categories.action.exclusions": "Countries",
   "admin.categories.action.retire": "Retire",
+  "admin.categories.action.reactivate": "Reactivate",
+  "admin.categories.action.delete": "Delete",
   "admin.categories.col.parent": "Parent",
   "admin.categories.filter.root": "Filter by root category",
   "admin.categories.filter.allRoots": "All root categories",
@@ -872,6 +874,12 @@ export const en = {
   "admin.categories.retire.reassign": "Reassign listings to",
   "admin.categories.retire.reassignPlaceholder": "Choose a category",
   "admin.categories.retire.confirm": "Retire",
+  "admin.categories.delete.title": "Delete category",
+  "admin.categories.delete.hint":
+    "This permanently deletes the retired category, its browse placements, country exclusions, attributes and translations. It cannot be undone.",
+  "admin.categories.delete.confirmLabel": "Type the slug to confirm",
+  "admin.categories.delete.confirm": "Delete permanently",
+  "admin.categories.delete.mismatch": "The slug does not match.",
   "admin.categories.pointer.title": "Add tree pointer",
   "admin.categories.pointer.hint":
     "A pointer shows this category under a second parent without duplicating it.",

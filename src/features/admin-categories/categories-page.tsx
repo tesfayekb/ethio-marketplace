@@ -1,4 +1,14 @@
-import { ArrowDown, ArrowUp, CalendarClock, Globe, Pencil, Share2, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  CalendarClock,
+  Globe,
+  Pencil,
+  RotateCcw,
+  Share2,
+  Trash,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -21,12 +31,13 @@ import {
   CategoryPathsDialog,
   CategoryWindowDialog,
   CreateCategoryDialog,
+  DeleteCategoryDialog,
   EditCategoryDialog,
   RetireCategoryDialog,
   SELECT_CLASS,
 } from "./category-dialogs";
 import { toRoster, type CategoryNode } from "./categories-service";
-import { useAdminCategories, useReorderCategories } from "./use-categories";
+import { useAdminCategories, useReactivateCategory, useReorderCategories } from "./use-categories";
 
 /**
  * C2-UI — THE CATEGORIES CONSOLE.
@@ -57,7 +68,7 @@ const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
 type DialogState =
   | { kind: "none" }
   | { kind: "create" }
-  | { kind: "edit" | "window" | "exclusions" | "retire" | "pointer"; id: string };
+  | { kind: "edit" | "window" | "exclusions" | "retire" | "pointer" | "delete"; id: string };
 
 /**
  * C2c — every status/flag badge carries an ACCESSIBLE description. `title`
@@ -90,6 +101,7 @@ export function AdminCategoriesPage() {
   const { data, isLoading, error } = useAdminCategories();
   const countries = useCountries();
   const reorder = useReorderCategories();
+  const reactivate = useReactivateCategory();
   const [search, setSearch] = useState("");
   const [rootFilter, setRootFilter] = useState("");
   const [missingOnly, setMissingOnly] = useState(false);
@@ -254,21 +266,27 @@ export function AdminCategoriesPage() {
                 t("admin.categories.tip.catchall"),
               )
             : null}
-          {row.allowListings
+          {/*
+            C2-UI-FIX-3 — a RETIRED row states only what still applies to it.
+            "Accepts listings" and "Price" describe posting behaviour a retired
+            node no longer has, so they are not rendered at all; the row reads
+            Retired (+ Missing assets when its media is absent).
+          */}
+          {row.isActive && row.allowListings
             ? tipBadge(
                 "outline",
                 t("admin.categories.badge.listings"),
                 t("admin.categories.tip.listings"),
               )
             : null}
-          {row.priceEnabled
+          {row.isActive && row.priceEnabled
             ? tipBadge(
                 "outline",
                 t("admin.categories.badge.price"),
                 t("admin.categories.tip.price"),
               )
             : null}
-          {row.visibleFrom || row.visibleUntil
+          {row.isActive && (row.visibleFrom || row.visibleUntil)
             ? tipBadge(
                 "outline",
                 t("admin.categories.badge.window"),
@@ -317,12 +335,13 @@ export function AdminCategoriesPage() {
   ];
 
   /**
-   * ONE button set, two presentations (J5): the SAME element carries the
+   * ONE button set, one presentation (J5): the SAME element carries the
    * canonical `category-<verb>-<slug>` testid at every viewport — a duplicated
    * icon twin would put two matches inside one actions region and every
-   * twin-aware locator would resolve the hidden one. At lg the label collapses
-   * into `aria-label`/`title` and the row becomes a compact icon strip; below
-   * lg the card keeps full text. Targets are ≥44px in both presentations.
+   * twin-aware locator would resolve the hidden one. C2-UI-FIX-3 makes the
+   * strip a 44px ICON strip everywhere and lets it WRAP, so the card twin
+   * (now the whole sub-xl band) never scrolls sideways. The label lives in
+   * `aria-label`/`title`.
    */
   const rowActions = (row: CategoryNode, guard: GuardFn) => {
     const verb = (
@@ -331,12 +350,13 @@ export function AdminCategoriesPage() {
       icon: React.ReactNode,
       onClick: () => void,
       disabled?: boolean,
+      danger?: boolean,
     ) => (
       <Button
         key={testid}
         type="button"
-        variant="outline"
-        className="min-h-11 shrink-0 lg:size-11 lg:p-0"
+        variant={danger ? "destructive" : "outline"}
+        className="size-11 shrink-0 p-0"
         data-testid={testid}
         aria-label={label}
         title={label}
@@ -344,12 +364,11 @@ export function AdminCategoriesPage() {
         onClick={onClick}
       >
         {icon}
-        <span className="ms-2 lg:hidden">{label}</span>
       </Button>
     );
 
     return (
-      <span className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end lg:gap-1">
+      <span className="flex flex-wrap items-center gap-2 xl:justify-end">
         {mayUpdate
           ? [
               verb(
@@ -392,13 +411,36 @@ export function AdminCategoriesPage() {
                 <Share2 aria-hidden="true" className="size-4" />,
                 () => setDialog({ kind: "pointer", id: row.id }),
               ),
-              verb(
-                `category-retire-${row.slug}`,
-                t("admin.categories.action.retire"),
-                <Trash2 aria-hidden="true" className="size-4" />,
-                () => setDialog({ kind: "retire", id: row.id }),
-                !row.isActive || row.isCatchall,
-              ),
+              // C2d — a retired row swaps Retire for Reactivate and gains the
+              // one destructive verb in the console: Delete, typed-confirm.
+              row.isActive
+                ? verb(
+                    `category-retire-${row.slug}`,
+                    t("admin.categories.action.retire"),
+                    <Trash2 aria-hidden="true" className="size-4" />,
+                    () => setDialog({ kind: "retire", id: row.id }),
+                    row.isCatchall,
+                  )
+                : verb(
+                    `category-reactivate-${row.slug}`,
+                    t("admin.categories.action.reactivate"),
+                    <RotateCcw aria-hidden="true" className="size-4" />,
+                    () => {
+                      void guard(async () => {
+                        await reactivate.mutateAsync({ id: row.id });
+                      });
+                    },
+                  ),
+              row.isActive
+                ? null
+                : verb(
+                    `category-delete-${row.slug}`,
+                    t("admin.categories.action.delete"),
+                    <Trash aria-hidden="true" className="size-4" />,
+                    () => setDialog({ kind: "delete", id: row.id }),
+                    false,
+                    true,
+                  ),
             ]
           : null}
       </span>
@@ -423,8 +465,7 @@ export function AdminCategoriesPage() {
           ) : null}
 
           <DataTable<CategoryNode>
-            cardUntil="lg"
-            stickyFirstColumn
+            cardUntil="xl"
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
@@ -542,6 +583,13 @@ export function AdminCategoriesPage() {
             <RetireCategoryDialog
               category={selected}
               targets={roster.filter((row) => row.isActive)}
+              guard={guard}
+              onClose={() => setDialog({ kind: "none" })}
+            />
+          ) : null}
+          {selected && dialog.kind === "delete" ? (
+            <DeleteCategoryDialog
+              category={selected}
               guard={guard}
               onClose={() => setDialog({ kind: "none" })}
             />

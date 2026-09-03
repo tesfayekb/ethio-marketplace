@@ -51,7 +51,7 @@ export type Database = {
           description_am: string | null
           description_en: string | null
           display_order: number
-          expiry_days: number
+          expiry_days: number | null
           icon: string | null
           id: string
           image_generation_prompt: string | null
@@ -75,7 +75,7 @@ export type Database = {
           description_am?: string | null
           description_en?: string | null
           display_order?: number
-          expiry_days?: number
+          expiry_days?: number | null
           icon?: string | null
           id?: string
           image_generation_prompt?: string | null
@@ -99,7 +99,7 @@ export type Database = {
           description_am?: string | null
           description_en?: string | null
           display_order?: number
-          expiry_days?: number
+          expiry_days?: number | null
           icon?: string | null
           id?: string
           image_generation_prompt?: string | null
@@ -1154,6 +1154,10 @@ export type Database = {
         }
         Returns: string
       }
+      admin_delete_category: {
+        Args: { p_confirm_slug: string; p_id: string }
+        Returns: undefined
+      }
       admin_delete_language: { Args: { p_code: string }; Returns: Json }
       admin_delete_role: { Args: { p_role_id: string }; Returns: undefined }
       admin_entity_translation_stats: {
@@ -1411,6 +1415,7 @@ export type Database = {
         Args: { p_new_parent_id: string; p_pointer_id: string }
         Returns: undefined
       }
+      admin_reactivate_category: { Args: { p_id: string }; Returns: undefined }
       admin_remove_category_pointer: {
         Args: { p_pointer_id: string }
         Returns: undefined
