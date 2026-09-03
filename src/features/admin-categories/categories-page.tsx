@@ -105,6 +105,7 @@ export function AdminCategoriesPage() {
   const { data, isLoading, error } = useAdminCategories();
   const countries = useCountries();
   const reorder = useReorderCategories();
+  const reactivate = useReactivateCategory();
   const [search, setSearch] = useState("");
   const [rootFilter, setRootFilter] = useState("");
   const [missingOnly, setMissingOnly] = useState(false);
