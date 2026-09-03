@@ -152,6 +152,54 @@ async function readCategory(slug: string) {
   return data;
 }
 
+/**
+ * C2-CLOSE Part B — THE LISTING FIXTURE (J1/J3/J7). One `status: 'active'`
+ * listing under a scratch category, written with every REQUIRED column
+ * (seller, location, home country, title, description) through the service
+ * client, before the console is ever navigated. Deleted in the test's
+ * `finally`; it never touches a ratified row.
+ */
+async function seedActiveListing(categoryId: string, sellerId: string): Promise<string> {
+  const supabase = adminClient();
+  const { data: location, error: locationError } = await supabase
+    .from("locations")
+    .select("id, country_code")
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
+  if (locationError || !location) {
+    throw new Error(`[e2e:c2] no active location: ${locationError?.message ?? "no row"}`);
+  }
+  const { data, error } = await supabase
+    .from("listings")
+    .insert({
+      category_id: categoryId,
+      seller_id: sellerId,
+      location_id: location.id,
+      home_country_code: location.country_code,
+      title: `e2e-cat listing ${RUN}-${rand()}`,
+      description: "e2e scratch listing for the retire walk",
+      status: "active",
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:c2] seeding the listing failed: ${error?.message ?? "no row"}`);
+  }
+  return data.id;
+}
+
+/** DB truth (J4): where a seeded listing now lives. */
+async function readListing(listingId: string) {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("id, category_id, status")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:c2] reading listing failed: ${error.message}`);
+  return data;
+}
+
 /** The pointer rows of a category, read as DB truth (J4). */
 async function readPointers(categoryId: string) {
   const { data, error } = await adminClient()
