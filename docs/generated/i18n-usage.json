@@ -126,6 +126,9 @@
     "admin.categories.badge.listings": [
       "/admin/categories"
     ],
+    "admin.categories.badge.missingAssets": [
+      "/admin/categories"
+    ],
     "admin.categories.badge.price": [
       "/admin/categories"
     ],
@@ -171,7 +174,7 @@
     "admin.categories.create.parentRoot": [
       "/admin/categories"
     ],
-    "admin.categories.create.slug": [
+    "admin.categories.create.slugPreview": [
       "/admin/categories"
     ],
     "admin.categories.create.title": [
@@ -196,9 +199,6 @@
       "/admin/categories"
     ],
     "admin.categories.error.saveFailed": [
-      "/admin/categories"
-    ],
-    "admin.categories.error.slugRequired": [
       "/admin/categories"
     ],
     "admin.categories.exclusions.current": [
@@ -229,6 +229,12 @@
       "/admin/categories"
     ],
     "admin.categories.filter.allRoots": [
+      "/admin/categories"
+    ],
+    "admin.categories.filter.missingAssets": [
+      "/admin/categories"
+    ],
+    "admin.categories.filter.pageSize": [
       "/admin/categories"
     ],
     "admin.categories.filter.root": [
@@ -295,6 +301,27 @@
       "/admin/categories"
     ],
     "admin.categories.searchPlaceholder": [
+      "/admin/categories"
+    ],
+    "admin.categories.tip.active": [
+      "/admin/categories"
+    ],
+    "admin.categories.tip.catchall": [
+      "/admin/categories"
+    ],
+    "admin.categories.tip.listings": [
+      "/admin/categories"
+    ],
+    "admin.categories.tip.missingAssets": [
+      "/admin/categories"
+    ],
+    "admin.categories.tip.price": [
+      "/admin/categories"
+    ],
+    "admin.categories.tip.retired": [
+      "/admin/categories"
+    ],
+    "admin.categories.tip.window": [
       "/admin/categories"
     ],
     "admin.categories.window.from": [
