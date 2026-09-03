@@ -498,6 +498,14 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-retire-submit").click();
       await stepUpIfPrompted(page, secret);
 
+      /**
+       * C2-SETTLE PART B — the completed sub-verb returned to the OPEN editor;
+       * it is dismissed and GONE before any findRow/roster assertion below, so
+       * a later openEditor can never be swallowed by the kind guard.
+       */
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
+
       await expect
         .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
         .toBe(false);
@@ -994,6 +1002,11 @@ test.describe("C2 categories console", () => {
     await openEditor(page, catchall!.slug);
     await expect(action(page, catchall!.slug, "up")).toHaveCount(0);
     await expect(action(page, catchall!.slug, "down")).toHaveCount(0);
+
+    // C2-SETTLE PART B — the editor is dismissed and GONE before the test
+    // ends; no later roster assertion may run against an open dialog.
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
   });
 
   /**
@@ -1028,7 +1041,16 @@ test.describe("C2 categories console", () => {
       const seed = async (slug: string, catchall: boolean, parent: string | null) => {
         const { data, error } = await supabase
           .from("categories")
-          .insert({ slug, name_en: slug, is_active: true, is_catchall: catchall })
+          // C2-SETTLE PART D — scratch rows are born publicly INVISIBLE (the
+          // epoch window); the admin roster is unaffected. CT-4 sets its own
+          // explicit window through the UI and is untouched.
+          .insert({
+            slug,
+            name_en: slug,
+            is_active: true,
+            is_catchall: catchall,
+            visible_until: new Date(0).toISOString(),
+          })
           .select("id")
           .single();
         if (error) throw new Error(`[e2e:c2] seeding ${slug} failed: ${error.message}`);

@@ -139,11 +139,32 @@ test.describe("app shell", () => {
   });
 
   test("feed renders its empty state", async ({ page }) => {
-    await page.goto("/");
-    const empty = page.getByTestId("feed-empty");
-    await expect(empty).toBeVisible();
-    await expect(empty.getByText(en["feed.emptyTitle"], { exact: true })).toBeVisible();
-    await expect(empty.getByText(en["feed.emptyBody"], { exact: true })).toBeVisible();
+    /**
+     * C2-SETTLE PART C (INC-153) — SCOPED EMPTINESS. The class rule, verbatim:
+     * "specs never assume a globally empty table; they scope their emptiness."
+     * The fence scope here is a scratch top-level category with zero listings:
+     * the feed of /c/<slug> is empty BY CONSTRUCTION, whatever the rest of the
+     * table holds.
+     */
+    const fenceSlug = `e2e-feed-empty-${Date.now().toString(36)}`;
+    const supabase = adminClient();
+    const { data: fence, error: fenceError } = await supabase
+      .from("categories")
+      .insert({ slug: fenceSlug, name_en: fenceSlug, is_active: true })
+      .select("id")
+      .single();
+    if (fenceError || !fence) {
+      throw new Error(`[e2e:shell] seeding the fence category failed: ${fenceError?.message}`);
+    }
+    try {
+      await gotoReady(page, `/c/${fenceSlug}`);
+      const empty = page.getByTestId("feed-empty");
+      await expect(empty).toBeVisible({ timeout: 20000 });
+      await expect(empty.getByText(en["feed.emptyTitle"], { exact: true })).toBeVisible();
+      await expect(empty.getByText(en["feed.emptyBody"], { exact: true })).toBeVisible();
+    } finally {
+      await supabase.from("categories").delete().eq("id", fence.id);
+    }
   });
 
   test("language toggle renders Amharic (Ge'ez path)", async ({ page }) => {

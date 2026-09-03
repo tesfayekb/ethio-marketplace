@@ -9,7 +9,7 @@ import {
   Trash,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   DataTable,
@@ -86,13 +86,12 @@ type DialogState =
   | { kind: "edit"; id: string; sub: EditorSub | null; openedBy: OpenedBy };
 
 /**
- * C2-GHOST PART A — STRUCTURAL KILL. The re-open guard: a click (or keyboard
- * activation) on the single edit-opener is a NO-OP unless no dialog is open
- * AND at least this many milliseconds have passed since the last dialog
- * closed. A dialog's closing animation used to hand its click straight back to
- * the row underneath, re-opening a "ghost" editor.
+ * C2-GHOST PART A — STRUCTURAL KILL, retuned by C2-SETTLE. The single
+ * edit-opener is a NO-OP while any dialog is open: a closing dialog's
+ * animation used to hand its click straight back to the row underneath,
+ * re-opening a "ghost" editor. The kind-check alone proved sufficient, so the
+ * 350ms time-window and its timestamp ref were removed here (INC-152 closed).
  */
-const REOPEN_GUARD_MS = 350;
 
 /**
  * C2c — every status/flag badge carries an ACCESSIBLE description. `title`
@@ -153,19 +152,14 @@ export function AdminCategoriesPage() {
     }
   };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
+  /** C2-GHOST — the only close path, so no surface can forget the transition. */
+  const closeDialog = (next: DialogState) => setDialog(next);
   /**
-   * C2-GHOST PART A — the ONE timestamp every dialog stamps on its way out.
-   * `closeDialog` is the only close path, so no surface can forget it.
+   * The single edit-opener; a no-op while a dialog is open (C2-SETTLE Part A:
+   * the kind check alone — no time-window, no close timestamp).
    */
-  const lastClosedAt = useRef(0);
-  const closeDialog = (next: DialogState) => {
-    lastClosedAt.current = Date.now();
-    setDialog(next);
-  };
-  /** The single edit-opener; a no-op while a dialog is open or just closed. */
   const openEditor = (id: string, openedBy: "row-click" | "keyboard") => {
     if (dialog.kind !== "none") return;
-    if (Date.now() - lastClosedAt.current < REOPEN_GUARD_MS) return;
     setDialog({ kind: "edit", id, sub: null, openedBy });
   };
   // UI-FIX-7 — the verb bar's own refusal line, filled by the shared runner.
