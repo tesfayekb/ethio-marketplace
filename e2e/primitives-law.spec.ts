@@ -212,4 +212,35 @@ test.describe("display primitives law (test-once responsiveness)", () => {
     // The PAGE still never scrolls horizontally — the scroller absorbed it.
     await expectNoPageOverflow(page);
   });
+
+  /**
+   * L11 (INC-135) — the WIDE tier and the PINNED first column. A `wide` column
+   * is absent below xl (it is reference, not an action), and the pinned first
+   * column stays put while the scroller moves, so a scrolled row never loses
+   * its identity.
+   */
+  test("L11 wide columns hide below xl and the first column stays pinned", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await gotoReady(page, "/dev/primitives?variant=lg");
+    await expect(page.getByTestId("prim-fixture")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("data-table-col-views")).toBeHidden();
+
+    const head = page.getByTestId("data-table-col-name");
+    await expect(head).toBeVisible();
+    expect(await head.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
+
+    const before = await head.boundingBox();
+    const scroller = page.getByTestId("data-table-scroller");
+    await scroller.evaluate((el) => {
+      el.scrollLeft = el.scrollWidth;
+    });
+    const after = await head.boundingBox();
+    expect(Math.abs((after?.x ?? 0) - (before?.x ?? 0))).toBeLessThan(2);
+
+    // At xl the wide tier earns its space.
+    await page.setViewportSize({ width: 1440, height: 800 });
+    await expect(page.getByTestId("data-table-col-views")).toBeVisible();
+
+    await expectNoPageOverflow(page);
+  });
 });
