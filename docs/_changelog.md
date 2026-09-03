@@ -292,3 +292,4 @@
 - 2026-09-02 — docs: S33 gate — translation era closed (U4f–U4k); DEC-019-B..030 recorded; roadmap.md + era handoff imported; next U5 Categories & Locations
   2026-09-02 · S34/D0 · Category Era spec + taxonomy artifacts imported; roadmap, categories.md, system-state, ledger (REQ-017 a–e, DEC-031..033), build-plan banner, ACT backfill.
 - 2026-09-03 — feat(db): C1 category era taxonomy migration applied (20260903022519) — 113 active nodes (14 roots, 14 catch-alls), pointer tree rebuilt, jobs retired, am names into entity layer, offer_type at 9 leaves; mark 20260903030000
+- 2026-09-03 · C2-mig · category console machinery: exclusions table, cycle trigger, granular categories permissions (manage retired), visibility-law browse RPC + admin RPC set.
