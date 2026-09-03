@@ -86,8 +86,34 @@ function categoryRow(page: Page, slug: string): Locator {
 async function findRow(page: Page, slug: string): Promise<Locator> {
   await page.getByTestId("category-search").fill(slug);
   const row = categoryRow(page, slug);
-  await expect(row).toBeVisible({ timeout: 20000 });
+  try {
+    await expect(row).toBeVisible({ timeout: 20000 });
+  } catch (error) {
+    throw new Error(
+      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `findRow(${slug})`)}`,
+    );
+  }
   return row;
+}
+
+/**
+ * C2-GHOST PART B (INC-152) — THE CONFESSION CHANNEL. A row that never appears
+ * is usually a GHOST DIALOG covering the roster, so every failure path names
+ * each open dialog together with the opener that put it there
+ * (`data-opened-by`, stamped by the page's single edit-opener and each verb).
+ */
+async function dialogDump(page: Page, label: string): Promise<string> {
+  const open = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-testid$="-dialog"]')].map((node) => ({
+      testid: node.getAttribute("data-testid"),
+      openedBy: node.getAttribute("data-opened-by"),
+    })),
+  );
+  const rendered =
+    open.length === 0
+      ? "none"
+      : open.map((entry) => `${entry.testid} opened-by=${entry.openedBy ?? "?"}`).join(" | ");
+  return `[dialog-dump ${label}] open dialogs: ${rendered}`;
 }
 
 /** The actions REGION differs per twin (INC-106c): card sibling vs table cell. */
@@ -244,7 +270,13 @@ async function createViaUi(page: Page, secret: string) {
   await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
   await page.getByTestId("category-create-submit").click();
   await stepUpIfPrompted(page, secret);
-  await findRow(page, slug);
+  // C2-GHOST PART B — the state right after step-up is the ghost's birthplace.
+  const afterStepUp = await dialogDump(page, `createViaUi(${slug}) after step-up`);
+  try {
+    await findRow(page, slug);
+  } catch (error) {
+    throw new Error(`${error instanceof Error ? error.message : String(error)}\n${afterStepUp}`);
+  }
   return slug;
 }
 

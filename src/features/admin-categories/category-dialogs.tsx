@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 
 import { FormField } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -43,11 +44,14 @@ export const SELECT_CLASS =
 export function CategoryModal({
   testid,
   title,
+  openedBy,
   onClose,
   children,
 }: {
   testid: string;
   title: string;
+  /** C2-GHOST PART B — the confession channel: WHO opened this surface. */
+  openedBy: string;
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -60,6 +64,7 @@ export function CategoryModal({
     >
       <DialogContent
         data-testid={testid}
+        data-opened-by={openedBy}
         className="block w-[min(32rem,calc(100vw-1.5rem))] max-w-lg border-0 bg-transparent p-0 shadow-none"
       >
         <DialogTitle asChild>
@@ -111,10 +116,12 @@ export function useSubmitError() {
 export function CreateCategoryDialog({
   parents,
   guard,
+  openedBy,
   onClose,
 }: {
   parents: CategoryNode[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -149,6 +156,7 @@ export function CreateCategoryDialog({
   return (
     <CategoryModal
       testid="category-create-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
@@ -256,6 +264,7 @@ export function EditCategoryDialog({
   category,
   guard,
   verbBar,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
@@ -266,6 +275,7 @@ export function EditCategoryDialog({
    * wrapping full-text bar rendered above the fields.
    */
   verbBar?: ReactNode;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -308,6 +318,7 @@ export function EditCategoryDialog({
   return (
     <CategoryModal
       testid="category-edit-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.edit.title")}
       onClose={onClose}
     >
@@ -410,10 +421,12 @@ function fromLocalInput(value: string): string | null {
 export function CategoryWindowDialog({
   category,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -441,6 +454,7 @@ export function CategoryWindowDialog({
   return (
     <CategoryModal
       testid="category-window-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.window.title")}
       onClose={onClose}
     >
@@ -480,11 +494,13 @@ export function CategoryExclusionsDialog({
   category,
   countries,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   countries: { code: string; nameEn: string }[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -510,6 +526,7 @@ export function CategoryExclusionsDialog({
   return (
     <CategoryModal
       testid="category-exclusions-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.exclusions.title")}
       onClose={onClose}
     >
@@ -549,11 +566,13 @@ export function RetireCategoryDialog({
   category,
   targets,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   targets: CategoryNode[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -593,6 +612,7 @@ export function RetireCategoryDialog({
   return (
     <CategoryModal
       testid="category-retire-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.retire.title")}
       onClose={onClose}
     >
@@ -645,11 +665,13 @@ export function AddPointerDialog({
   category,
   parents,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   parents: CategoryNode[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -676,6 +698,7 @@ export function AddPointerDialog({
   return (
     <CategoryModal
       testid="category-pointer-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.pointer.title")}
       onClose={onClose}
     >
@@ -719,11 +742,13 @@ export function CategoryPathsDialog({
   category,
   parents,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   parents: CategoryNode[];
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -750,9 +775,15 @@ export function CategoryPathsDialog({
 
   const busy = movePointer.isPending || removePointer.isPending || addPointer.isPending;
 
+  /** The PRIMARY path is the lowest-display_order edge (roster + breadcrumbs). */
+  const primaryPointerId =
+    [...(pointers.data ?? [])].sort((a, b) => a.displayOrder - b.displayOrder)[0]?.pointerId ??
+    null;
+
   return (
     <CategoryModal
       testid="category-paths-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.paths.title")}
       onClose={onClose}
     >
@@ -778,8 +809,25 @@ export function CategoryPathsDialog({
               data-testid={`category-path-${pointer.pointerId}`}
               className="min-w-0 space-y-2 rounded-md border border-border p-3"
             >
-              <p className="min-w-0 break-words text-sm text-foreground">
-                {pointer.parentNameEn ?? t("admin.categories.paths.root")}
+              <p className="flex min-w-0 flex-wrap items-center gap-2 break-words text-sm text-foreground">
+                <span className="min-w-0 break-words">
+                  {pointer.parentNameEn ?? t("admin.categories.paths.root")}
+                </span>
+                {/*
+                  C2-GHOST PART C — the PRIMARY path. `admin_list_category_pointers`
+                  returns the edges in display_order, so the first card is the
+                  lowest-order edge: the one the roster and the breadcrumbs read.
+                */}
+                {pointer.pointerId === primaryPointerId ? (
+                  <Badge
+                    variant="secondary"
+                    data-testid={`category-path-primary-${pointer.pointerId}`}
+                    title={t("admin.categories.paths.primaryTip")}
+                    aria-label={`${t("admin.categories.paths.primary")}: ${t("admin.categories.paths.primaryTip")}`}
+                  >
+                    {t("admin.categories.paths.primary")}
+                  </Badge>
+                ) : null}
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <select
@@ -867,10 +915,12 @@ export function CategoryPathsDialog({
 export function DeleteCategoryDialog({
   category,
   guard,
+  openedBy,
   onClose,
 }: {
   category: CategoryRow;
   guard: GuardFn;
+  openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -897,6 +947,7 @@ export function DeleteCategoryDialog({
   return (
     <CategoryModal
       testid="category-delete-dialog"
+      openedBy={openedBy}
       title={t("admin.categories.delete.title")}
       onClose={onClose}
     >

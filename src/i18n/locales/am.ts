@@ -805,6 +805,8 @@ export const am: Messages = {
   "admin.categories.paths.root": "ከፍተኛ ደረጃ (ዋና)",
   "admin.categories.paths.moveTo": "ይህን መንገድ ወደዚህ አንቀሳቅስ",
   "admin.categories.paths.remove": "መንገድ አስወግድ",
+  "admin.categories.paths.primary": "ዋና",
+  "admin.categories.paths.primaryTip": "በዝርዝሩና በዳሰሳ መስመሩ ውስጥ እንደ ወላጅ ይታያል።",
   "admin.categories.paths.add": "ሌላ የአሰሳ መንገድ ጨምር",
   "admin.categories.paths.addSubmit": "መንገድ ጨምር",
   "admin.categories.action.pointer": "ጠቋሚ ጨምር",

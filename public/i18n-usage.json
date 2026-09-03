@@ -291,6 +291,12 @@
     "admin.categories.paths.moveTo": [
       "/admin/categories"
     ],
+    "admin.categories.paths.primary": [
+      "/admin/categories"
+    ],
+    "admin.categories.paths.primaryTip": [
+      "/admin/categories"
+    ],
     "admin.categories.paths.remove": [
       "/admin/categories"
     ],
