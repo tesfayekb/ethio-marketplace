@@ -225,6 +225,7 @@ export function DataTable<T>({
   sortDirection,
   onSort,
   cardUntil = "md",
+  stickyFirstColumn = false,
   className,
 }: DataTableProps<T>) {
   const { t } = useI18n();
@@ -271,7 +272,9 @@ export function DataTable<T>({
     return frame(<PageCard testid="data-table-empty">{emptyState}</PageCard>);
   }
 
-  const cardColumns = columns.filter((column) => column.priority !== "detail");
+  const cardColumns = columns.filter(
+    (column) => column.priority !== "detail" && column.priority !== "wide",
+  );
   const selectedKeys = new Set(selection?.selectedKeys ?? []);
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
 
@@ -372,12 +375,18 @@ export function DataTable<T>({
                     />
                   </th>
                 ) : null}
-                {columns.map((column) => (
+                {columns.map((column, index) => (
                   <th
                     key={column.key}
                     data-testid={`data-table-col-${column.key}`}
                     scope="col"
-                    className={cn(cellClass(column as DataTableColumn<unknown>), "font-medium")}
+                    className={cn(
+                      cellClass(
+                        column as DataTableColumn<unknown>,
+                        stickyFirstColumn && index === 0,
+                      ),
+                      "font-medium",
+                    )}
                     aria-sort={
                       sortKey === column.key
                         ? sortDirection === "desc"
@@ -456,10 +465,13 @@ export function DataTable<T>({
                           />
                         </td>
                       ) : null}
-                      {columns.map((column) => (
+                      {columns.map((column, index) => (
                         <td
                           key={column.key}
-                          className={cellClass(column as DataTableColumn<unknown>)}
+                          className={cellClass(
+                            column as DataTableColumn<unknown>,
+                            stickyFirstColumn && index === 0,
+                          )}
                         >
                           {href && column.key === linkColumnKey ? (
                             <Link
