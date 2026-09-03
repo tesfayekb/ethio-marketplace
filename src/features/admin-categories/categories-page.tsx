@@ -653,7 +653,7 @@ export function AdminCategoriesPage() {
             <CategoryWindowDialog
               category={selected}
               guard={guard}
-              onClose={() => setDialog({ kind: "none" })}
+              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "exclusions" ? (
@@ -664,7 +664,7 @@ export function AdminCategoriesPage() {
                 nameEn: country.nameEn,
               }))}
               guard={guard}
-              onClose={() => setDialog({ kind: "none" })}
+              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "retire" ? (
@@ -672,14 +672,14 @@ export function AdminCategoriesPage() {
               category={selected}
               targets={roster.filter((row) => row.isActive)}
               guard={guard}
-              onClose={() => setDialog({ kind: "none" })}
+              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "delete" ? (
             <DeleteCategoryDialog
               category={selected}
               guard={guard}
-              onClose={() => setDialog({ kind: "none" })}
+              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "pointer" ? (
@@ -687,7 +687,7 @@ export function AdminCategoriesPage() {
               category={selected}
               parents={roster}
               guard={guard}
-              onClose={() => setDialog({ kind: "none" })}
+              onClose={() => setDialog({ kind: "edit", id: dialog.id, sub: null })}
             />
           ) : null}
         </div>
