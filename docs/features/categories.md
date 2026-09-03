@@ -162,3 +162,33 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
 - **E2E.** CT-14 asserts the refusal read-back through the service client, the
   absent picker option and the absent Move verbs; CT-12 is unchanged and now
   passes against the live-row editor.
+
+## C2h + CT-12-TRUTH — reorder is a plain update; the roster reads the tree's order (2026-09-04)
+
+- **Census verdicts.** `admin_reorder_categories` writes
+  `category_tree_pointers.display_order` (the POINTER EDGE) and already gated on
+  `('categories','update')` — but it also called
+  `require_step_up_if_needed('categories','update')`. `get_browse_tree` orders by
+  that same pointer edge; `admin_list_categories` returned `c.display_order`, the
+  ROW COLUMN. So the write target matched the TREE but not the ADMIN READ: a
+  reorder landed in the database and never moved the console's roster.
+- **C2h (mark 20260904050000).** The reorder gate is restated as
+  `categories:update` with NO step-up call, and `admin_list_categories` now
+  reports the `display_order` of the very parent edge it already resolves
+  (falling back to the row column when a category has no pointer). The 17-column
+  contract, its names and types, are byte-identical; catch-alls are still pinned
+  last. Both definers restate their REVOKE/GRANT pair in the same file, and the
+  in-file proofs reorder as a plain-update principal (aal1 claims, no step-up),
+  read the flipped order back and assert the catch-all stayed last.
+- **Retire dialog clarity.** The dialog reads the row's active listing count.
+  At zero the reassign picker is hidden and the body reads "No listings to move
+  — the category will simply be hidden from browse and posting."; the RPC
+  already accepts a NULL target in exactly that case. With listings, the picker
+  keeps its behaviour and its label carries the count ("Move N listings to").
+- **E2E.** CT-12's closing check is corrected to the product's truth: the
+  reactivated row IS on the roster, carries the Active badge and offers Retire
+  while Reactivate is absent (dump machinery unchanged). CT-15 seeds two scratch
+  siblings plus a scratch catch-all under a scratch parent, drives Move up on the
+  second, and asserts the flip in DB truth, the ABSENCE of the step-up modal and
+  the catch-all still last — twin helpers, viewport guard and failure dumps per
+  standing law.

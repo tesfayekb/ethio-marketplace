@@ -835,6 +835,8 @@ export const am: Messages = {
   "admin.categories.retire.hint": "ምድቡ ይቦዝናል፤ ዝርዝሮቹ ወደ መረጡት ምድብ ይዛወራሉ።",
   "admin.categories.retire.reassign": "ዝርዝሮችን ወደ",
   "admin.categories.retire.reassignPlaceholder": "ምድብ ይምረጡ",
+  "admin.categories.retire.reassignCount": "{count} ዝርዝሮችን ወደ አዛውር",
+  "admin.categories.retire.noListings": "የሚዛወር ዝርዝር የለም — ምድቡ ከአሰሳና ከመለጠፍ ብቻ ይሰወራል።",
   "admin.categories.retire.confirm": "ጡረታ አውጣ",
   "admin.categories.delete.title": "ምድብ ሰርዝ",
   "admin.categories.delete.hint":

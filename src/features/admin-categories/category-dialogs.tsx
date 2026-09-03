@@ -551,15 +551,28 @@ export function RetireCategoryDialog({
   const { message, setMessage, fail } = useSubmitError();
   const [reassignTo, setReassignTo] = useState("");
 
+  /**
+   * C2h — RETIRE DIALOG CLARITY. A category with no active listings has
+   * nothing to move: the picker is hidden and the body says so plainly. The
+   * server already accepts a NULL target in exactly that case (it only
+   * demands one when live listings exist), so the console stops inventing a
+   * destination the operator does not need to choose.
+   */
+  const listingCount = category.listingCount;
+  const hasListings = listingCount > 0;
+
   const submit = () => {
     setMessage(null);
-    if (reassignTo === "") {
+    if (hasListings && reassignTo === "") {
       setMessage(t("admin.categories.error.reassignRequired"));
       return;
     }
     void guard(async () => {
       try {
-        await retire.mutateAsync({ id: category.id, reassignTo });
+        await retire.mutateAsync({
+          id: category.id,
+          reassignTo: hasListings ? reassignTo : (null as unknown as string),
+        });
         onClose();
       } catch (error) {
         fail(error);
@@ -574,24 +587,36 @@ export function RetireCategoryDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.categories.retire.hint")}</p>
-      <FormField label={t("admin.categories.retire.reassign")} htmlFor="category-retire-target">
-        <select
-          id="category-retire-target"
-          data-testid="category-retire-target"
-          className={SELECT_CLASS}
-          value={reassignTo}
-          onChange={(event) => setReassignTo(event.target.value)}
+      {hasListings ? (
+        <FormField
+          label={t("admin.categories.retire.reassignCount").replace(
+            "{count}",
+            String(listingCount),
+          )}
+          htmlFor="category-retire-target"
         >
-          <option value="">{t("admin.categories.retire.reassignPlaceholder")}</option>
-          {targets
-            .filter((row) => row.id !== category.id)
-            .map((row) => (
-              <option key={row.id} value={row.id}>
-                {`${"— ".repeat(row.depth)}${row.nameEn}`}
-              </option>
-            ))}
-        </select>
-      </FormField>
+          <select
+            id="category-retire-target"
+            data-testid="category-retire-target"
+            className={SELECT_CLASS}
+            value={reassignTo}
+            onChange={(event) => setReassignTo(event.target.value)}
+          >
+            <option value="">{t("admin.categories.retire.reassignPlaceholder")}</option>
+            {targets
+              .filter((row) => row.id !== category.id)
+              .map((row) => (
+                <option key={row.id} value={row.id}>
+                  {`${"— ".repeat(row.depth)}${row.nameEn}`}
+                </option>
+              ))}
+          </select>
+        </FormField>
+      ) : (
+        <p className="text-sm text-muted-foreground" data-testid="category-retire-no-listings">
+          {t("admin.categories.retire.noListings")}
+        </p>
+      )}
       <ErrorLine message={message} />
       <DialogActions
         onCancel={onClose}

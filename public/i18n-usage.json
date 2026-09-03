@@ -315,7 +315,10 @@
     "admin.categories.retire.hint": [
       "/admin/categories"
     ],
-    "admin.categories.retire.reassign": [
+    "admin.categories.retire.noListings": [
+      "/admin/categories"
+    ],
+    "admin.categories.retire.reassignCount": [
       "/admin/categories"
     ],
     "admin.categories.retire.reassignPlaceholder": [
