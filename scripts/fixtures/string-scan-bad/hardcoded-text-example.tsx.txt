@@ -1,0 +1,5 @@
+// INERT FIXTURE (INC-133) — never imported, never compiled. It exists so the
+// hardcoded-string guard is proven to BITE: this file must FAIL the scan.
+export function BadPanel() {
+  return <p>Hardcoded text</p>;
+}
