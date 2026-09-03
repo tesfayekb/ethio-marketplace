@@ -212,3 +212,77 @@ export function drawRotatedText(img: Raster, opts: RotatedTextOptions): void {
     }
   }
 }
+
+/**
+ * C5a-3 PART C — FORMAT TOLERANCE.
+ *
+ * Providers may answer with PNG, JPEG or WebP `inlineData`. The mime the
+ * provider declares is advisory; the MAGIC BYTES are the truth, so the format
+ * is sniffed from the payload itself.
+ *
+ * DEPENDENCY VERDICT (G2): `pngjs` (PNG) and `jpeg-js` (JPEG, pure JS, ~120 KB,
+ * zero native bindings) are both Worker-safe. NO pure-JS WebP decoder exists at
+ * a comparable weight (every candidate ships a wasm/native payload — the same
+ * class G2 already rejected for Photon), so WebP is NOT guessed at: it is
+ * reported honestly with its sniffed mime so the caller can re-request.
+ */
+export type SniffedImageMime = "image/png" | "image/jpeg" | "image/webp" | "unknown";
+
+export function sniffImageMime(bytes: Uint8Array): SniffedImageMime {
+  if (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47
+  ) {
+    return "image/png";
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  return "unknown";
+}
+
+export class UnsupportedImageFormatError extends Error {
+  readonly mimeType: SniffedImageMime;
+  constructor(mimeType: SniffedImageMime) {
+    super(`unsupported image format from provider: ${mimeType}`);
+    this.name = "UnsupportedImageFormatError";
+    this.mimeType = mimeType;
+  }
+}
+
+function decodeJpeg(bytes: Uint8Array): Raster {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const jpeg = require("jpeg-js") as {
+    decode: (b: Buffer, o?: { useTArray?: boolean }) => {
+      width: number;
+      height: number;
+      data: Uint8Array;
+    };
+  };
+  const out = jpeg.decode(Buffer.from(bytes), { useTArray: true });
+  return { width: out.width, height: out.height, data: new Uint8Array(out.data) };
+}
+
+/** Decodes by SNIFFED magic bytes; never by the provider's declared mime. */
+export function decodeImage(bytes: Uint8Array): Raster {
+  const mime = sniffImageMime(bytes);
+  if (mime === "image/png") return decodePng(bytes);
+  if (mime === "image/jpeg") return decodeJpeg(bytes);
+  throw new UnsupportedImageFormatError(mime);
+}
