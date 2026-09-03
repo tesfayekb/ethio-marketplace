@@ -240,8 +240,21 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const cardsHiddenClass = cardUntil === "lg" ? "lg:hidden" : "md:hidden";
-  const tableShownClass = cardUntil === "lg" ? "lg:block" : "md:block";
+  const cardsHiddenClass =
+    cardUntil === "xl" ? "xl:hidden" : cardUntil === "lg" ? "lg:hidden" : "md:hidden";
+  const tableShownClass =
+    cardUntil === "xl" ? "xl:block" : cardUntil === "lg" ? "lg:block" : "md:block";
+  /**
+   * INC-136 — the pin offset. A selection column is 40px (`w-10`) wide and is
+   * itself pinned at 0, so the first data column pins at `start-10`.
+   */
+  const stickyOffset: false | "start-0" | "start-10" = stickyFirstColumn
+    ? selection
+      ? "start-10"
+      : "start-0"
+    : false;
+  const stickyFor = (index: number) => (index === 0 ? stickyOffset : false);
+
   /** Any declared min-width switches the table off fixed layout (C7). */
   const hasMinWidths = columns.some((column) => Boolean(column.minWidth));
   /** U1d: the FIRST primary column carries the row link inside the table. */
