@@ -8,6 +8,7 @@
  * (both Worker-safe with nodejs_compat) and is ~90 KB. Photon was installed,
  * measured and REMOVED; `pngjs` is the landed choice.
  */
+import jpeg from "jpeg-js";
 import { PNG } from "pngjs";
 
 import { GLYPH_HEIGHT, GLYPH_WIDTH, glyphRows } from "./font";
@@ -267,14 +268,6 @@ export class UnsupportedImageFormatError extends Error {
 }
 
 function decodeJpeg(bytes: Uint8Array): Raster {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const jpeg = require("jpeg-js") as {
-    decode: (b: Buffer, o?: { useTArray?: boolean }) => {
-      width: number;
-      height: number;
-      data: Uint8Array;
-    };
-  };
   const out = jpeg.decode(Buffer.from(bytes), { useTArray: true });
   return { width: out.width, height: out.height, data: new Uint8Array(out.data) };
 }
