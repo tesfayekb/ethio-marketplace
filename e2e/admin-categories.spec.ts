@@ -77,8 +77,23 @@ function actionsOf(page: Page, slug: string): Locator {
   );
 }
 
+/**
+ * UI-FIX-4 — THE ROLES INTERACTION MODEL. The row carries exactly one verb
+ * (Edit); every other verb lives in the editor's verb bar. `action()` keeps
+ * its name and its canonical testid, but resolves `edit` in the row's actions
+ * region and every other verb inside the open editor dialog — still exactly
+ * one match per verb (J5).
+ */
 function action(page: Page, slug: string, verb: string): Locator {
-  return actionsOf(page, slug).getByTestId(`category-${verb}-${slug}`);
+  if (verb === "edit") return actionsOf(page, slug).getByTestId(`category-edit-${slug}`);
+  return page.getByTestId("category-edit-dialog").getByTestId(`category-${verb}-${slug}`);
+}
+
+/** Opens a row's editor — the single door to every non-edit verb. */
+async function openEditor(page: Page, slug: string) {
+  await action(page, slug, "edit").click();
+  await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId("category-verb-bar")).toBeVisible();
 }
 
 async function grantRole(userId: string, roleName: string) {
@@ -235,6 +250,7 @@ test.describe("C2 categories console", () => {
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
+      await openEditor(page, slug);
       await action(page, slug, "window").click();
       await page.getByTestId("category-window-from").fill("2030-01-01T00:00");
       await page.getByTestId("category-window-submit").click();
@@ -254,6 +270,7 @@ test.describe("C2 categories console", () => {
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
+      await openEditor(page, slug);
       await action(page, slug, "exclusions").click();
       await page.getByTestId("category-exclusion-ET").check();
       await page.getByTestId("category-exclusions-submit").click();
@@ -285,6 +302,7 @@ test.describe("C2 categories console", () => {
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
+      await openEditor(page, slug);
       await action(page, slug, "retire").click();
       await page.getByTestId("category-retire-target").selectOption({ index: 1 });
       await page.getByTestId("category-retire-submit").click();
@@ -295,7 +313,9 @@ test.describe("C2 categories console", () => {
         .toBe(false);
       // The row stays in the console (retired ≠ deleted) but reads as retired.
       await expect(categoryRow(page, slug)).toBeVisible();
-      await expect(action(page, slug, "retire")).toBeDisabled();
+      await openEditor(page, slug);
+      await expect(action(page, slug, "reactivate")).toBeVisible({ timeout: 20000 });
+      await expect(action(page, slug, "retire")).toHaveCount(0);
     } finally {
       if (slug) await destroyCategory(slug);
     }
@@ -344,6 +364,7 @@ test.describe("C2 categories console", () => {
       await gotoReady(page, "/admin/categories");
       await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
 
+      await openEditor(page, slug);
       await action(page, slug, "pointer").click();
       const pointerId = before[0]!.id;
       const select = page.getByTestId(`category-path-move-${pointerId}`);
@@ -535,6 +556,7 @@ test.describe("C2 categories console", () => {
       await waitForHydration(page);
       await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
 
+      await openEditor(page, slug);
       await action(page, slug, "reactivate").click();
       await stepUpIfPrompted(page, secret);
 
@@ -542,6 +564,7 @@ test.describe("C2 categories console", () => {
         .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
         .toBe(true);
       // Active again means the retire verb is the one on offer once more.
+      await openEditor(page, slug);
       await expect(action(page, slug, "retire")).toBeVisible({ timeout: 20000 });
     } finally {
       if (slug) await destroyCategory(slug);
@@ -588,6 +611,7 @@ test.describe("C2 categories console", () => {
       await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
 
       // Wrong slug: refused, nothing deleted.
+      await openEditor(page, slug);
       await action(page, slug, "delete").click();
       await page.getByTestId("category-delete-slug").fill(`${slug}-wrong`);
       await page.getByTestId("category-delete-submit").click();
