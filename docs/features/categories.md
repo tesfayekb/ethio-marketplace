@@ -57,3 +57,30 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
   frame agree. CT-11 asserts it survives a reload.
 - **Column tiers.** Order / Listings / Excluded moved to the `wide` tier and the
   Name column is pinned, so the 1024–1240 band shows identity plus actions.
+
+## C2d — lifecycle (2026-09-04)
+
+- **Expiry is optional.** `categories.expiry_days` is now nullable with default
+  NULL and a `(expiry_days IS NULL OR expiry_days > 0)` check; existing values
+  were cleared. "No expiry" is the norm, not an unrepresentable state.
+- **Reactivate.** `admin_reactivate_category(p_id)` is the exact inverse of
+  retire: `categories:restructure` + step-up, refused on an already-active row
+  (`admin.categories.error.already_active`), audited as `category.reactivate`.
+  The console swaps Retire → Reactivate on a retired row (CT-12).
+- **Delete.** `admin_delete_category(p_id, p_confirm_slug)` is the console's one
+  destructive verb: `categories:restructure` + step-up, refused unless the row
+  is retired, the typed slug matches exactly, and no listing references it (the
+  refusal carries the count). It removes pointers (both directions), country
+  exclusions, attributes and entity translations before the row, and audits the
+  full old row. The console shows it on retired rows only, behind a typed-slug
+  dialog (CT-13).
+- **Cards until xl.** The roster runs at `cardUntil="xl"`: below a wide desktop
+  there is no table at all, so nothing scrolls sideways in the laptop band. The
+  card carries every column — parent, flags, order, missing-assets — plus a
+  wrapping 44px icon action strip. A retired row hides the Accepts-listings and
+  Price flags: only Retired and Missing-assets read there. CT-8 asserts cards at
+  1024/1240 with no horizontal scroll anywhere and the table at 1440.
+- **INC-136.** The pinned first column drifted 40px on the first scroll tick
+  because only the header was sticky and the 40px selection column was not. The
+  primitive now pins the selection cell at `start-0` and the first data column
+  at `start-10` for header AND body cells (unit tests + law L11).
