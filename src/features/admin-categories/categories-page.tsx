@@ -79,7 +79,6 @@ type DialogState =
   | { kind: "create" }
   | { kind: "edit"; id: string; sub: EditorSub | null };
 
-
 /**
  * C2c — every status/flag badge carries an ACCESSIBLE description. `title`
  * serves the pointer, `aria-label` serves the screen reader; the visible text

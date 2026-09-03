@@ -475,7 +475,6 @@ test.describe("C2 categories console", () => {
     }
   });
 
-
   test("CT-7 step-up: the server refuses the write until AAL2 is proven", async ({ page }) => {
     bandOnly(page, "any");
     // A super admin who has NOT stepped up: the create dialog submits, the
@@ -830,7 +829,6 @@ test.describe("C2 categories console", () => {
         () => action(page, slug, "reactivate").count(),
         0,
       );
-
     } finally {
       if (slug) await destroyCategory(slug);
     }
@@ -1096,7 +1094,10 @@ test.describe("C2 categories console", () => {
       // The editor yields the surface while its sub-dialog is open.
       await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
 
-      await page.getByTestId("category-exclusions-cancel").click();
+      await page
+        .getByTestId("category-exclusions-dialog")
+        .getByTestId("category-dialog-cancel")
+        .click();
       // ... and comes straight back: the editor is open, the table is not the
       // destination of a sub-dialog close.
       await expect(page.getByTestId("category-exclusions-dialog")).toHaveCount(0);
