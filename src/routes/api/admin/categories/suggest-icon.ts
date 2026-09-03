@@ -53,7 +53,7 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
         } catch (error) {
           const message = error instanceof Error ? error.message : "unknown error";
           // PART B (F4): true cause + stable code before the generic body.
-          console.error(`[ssr-error] ${PATH} icon_suggest_failed ${message}`);
+          console.error(`[ssr-error] ${PATH} icon_suggest_failed stage=model-call ${message}`);
           if (error instanceof GeminiError) {
             if (error.status >= 500) return fail5xx(PATH, error.message, 502);
             return json({ error: error.message }, error.status);
