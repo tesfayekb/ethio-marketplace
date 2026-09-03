@@ -207,7 +207,7 @@ export function AdminCategoriesPage() {
 
   /**
    * C2-UI-FIX-5 — THE ROSTER CONFORMS TO THE AUDIT TABLE. No per-column
-   * min-widths, no `cardUntil` override, no pinned column: priorities alone
+   * min-widths, no card-breakpoint override, no pinned column: priorities alone
    * decide what a width shows, exactly as every other console table does.
    * The priorities themselves live in the service so they can be asserted
    * without rendering (see categories-service.test.ts).
