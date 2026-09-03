@@ -775,6 +775,11 @@ export function CategoryPathsDialog({
 
   const busy = movePointer.isPending || removePointer.isPending || addPointer.isPending;
 
+  /** The PRIMARY path is the lowest-display_order edge (roster + breadcrumbs). */
+  const primaryPointerId =
+    [...(pointers.data ?? [])].sort((a, b) => a.displayOrder - b.displayOrder)[0]?.pointerId ??
+    null;
+
   return (
     <CategoryModal
       testid="category-paths-dialog"
@@ -798,7 +803,7 @@ export function CategoryPathsDialog({
         </p>
       ) : (
         <ul className="min-w-0 space-y-2">
-          {(pointers.data ?? []).map((pointer, index) => (
+          {(pointers.data ?? []).map((pointer) => (
             <li
               key={pointer.pointerId}
               data-testid={`category-path-${pointer.pointerId}`}
@@ -813,7 +818,7 @@ export function CategoryPathsDialog({
                   returns the edges in display_order, so the first card is the
                   lowest-order edge: the one the roster and the breadcrumbs read.
                 */}
-                {index === 0 ? (
+                {pointer.pointerId === primaryPointerId ? (
                   <Badge
                     variant="secondary"
                     data-testid={`category-path-primary-${pointer.pointerId}`}
