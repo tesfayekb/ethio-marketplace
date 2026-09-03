@@ -390,41 +390,58 @@ test.describe("C2 categories console", () => {
   });
 
   /**
-   * CT-8 (INC-132/134/136, rewritten to the C2-UI-FIX-3 law) — the laptop
-   * band is CARDS. At 1024 and 1240 the roster must render its card twin,
-   * every action must be reachable and clickable, and NOTHING may scroll
-   * horizontally — not the page, not a scroller, because below xl there is no
-   * table to scroll. At 1440 the table earns its width and still does not
-   * engage a scroller.
+   * CT-8 (UI-FIX-4) — THE REACHABILITY LAW. At 360, 768, 1024 and 1240 the
+   * roster is cards, the row carries one verb, and opening the editor must
+   * expose EVERY verb: visible, clickable, with no horizontal scroll on the
+   * page OR inside the dialog. At 1440 the table renders slim columns and the
+   * scroller stays inert. The block owns the viewport, so it runs once.
    */
-  test("CT-8 laptop band renders cards with no horizontal scroll anywhere", async ({ page }) => {
+  test("CT-8 every verb is reachable from the editor with no horizontal scroll", async ({
+    page,
+  }) => {
     bandOnly(page, "desktop");
-    const admin = await createUser({ confirmed: true });
-    await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
 
-    for (const width of [1024, 1240]) {
-      await page.setViewportSize({ width, height: 800 });
-      await gotoReady(page, "/admin/categories");
-      await expect(page.getByTestId("data-table-cards")).toBeVisible({ timeout: 20000 });
-      await expect(page.getByRole("table")).toBeHidden();
-      await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+      for (const width of [360, 768, 1024, 1240]) {
+        await page.setViewportSize({ width, height: 800 });
+        await gotoReady(page, "/admin/categories");
+        await expect(page.getByTestId("data-table-cards")).toBeVisible({ timeout: 20000 });
+        await expect(page.getByRole("table")).toBeHidden();
+        await page.getByTestId("category-search").fill(slug);
+        await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
 
-      await expectNoHorizontalOverflow(page);
-      const cards = await page
-        .getByTestId("data-table-cards")
-        .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
-      expect(cards.scrollWidth, `cards scroll sideways at ${width}`).toBeLessThanOrEqual(
-        cards.clientWidth + 1,
-      );
+        await expectNoHorizontalOverflow(page);
+        const cards = await page
+          .getByTestId("data-table-cards")
+          .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
+        expect(cards.scrollWidth, `cards scroll sideways at ${width}`).toBeLessThanOrEqual(
+          cards.clientWidth + 1,
+        );
 
-      const edit = action(page, "vehicles", "edit");
-      await expect(edit).toBeVisible();
-      await expect(edit).toBeInViewport();
-      await edit.click();
-      await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
-      await page.keyboard.press("Escape");
-      await expect(page.getByTestId("category-edit-dialog")).toBeHidden();
+        await openEditor(page, slug);
+        for (const verb of ["window", "exclusions", "pointer", "up", "down", "retire"]) {
+          const button = action(page, slug, verb);
+          await expect(button, `${verb} missing at ${width}`).toBeVisible();
+          await expect(button).toBeInViewport();
+          await expect(button).toBeEnabled();
+          const box = await button.boundingBox();
+          expect(box!.height, `${verb} target at ${width}`).toBeGreaterThanOrEqual(43);
+        }
+        const dialog = await page
+          .getByTestId("category-edit-dialog")
+          .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
+        expect(dialog.scrollWidth, `dialog scrolls sideways at ${width}`).toBeLessThanOrEqual(
+          dialog.clientWidth + 1,
+        );
+        await expectNoHorizontalOverflow(page);
+        await page.keyboard.press("Escape");
+        await expect(page.getByTestId("category-edit-dialog")).toBeHidden();
+      }
+    } finally {
+      if (slug) await destroyCategory(slug);
     }
 
     // 1440 — the table twin, wide columns present, scroller inert.
@@ -438,6 +455,7 @@ test.describe("C2 categories console", () => {
       .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
     expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
   });
+
 
   /** CT-9a — TABLE shape. Guarded to the band that actually has a table. */
   test("CT-9a roster shape: the parent column and a 25-row page (table twin)", async ({ page }) => {
