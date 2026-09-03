@@ -874,4 +874,107 @@ test.describe("C2 categories console", () => {
     await expect(action(page, catchall!.slug, "up")).toHaveCount(0);
     await expect(action(page, catchall!.slug, "down")).toHaveCount(0);
   });
+
+  /**
+   * CT-15 (C2h) — REORDER IS A PLAIN UPDATE. Two scratch siblings under a
+   * scratch parent: Move up on the second flips the roster order, no step-up
+   * modal ever appears (its ABSENCE is asserted, not merely unobserved), and
+   * the sibling catch-all stays last. J1/J3 — every row here is scratch and
+   * destroyed in `finally`; the ratified tree is read-only to this spec.
+   */
+  test("CT-15 reorder: Move up flips the order with no step-up, catch-all last", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const supabase = adminClient();
+    const parentSlug = scratchSlug();
+    const aSlug = `${scratchSlug()}-a`;
+    const bSlug = `${scratchSlug()}-b`;
+    const otherSlug = `${scratchSlug()}-other`;
+    const slugs = [parentSlug, aSlug, bSlug, otherSlug];
+    const clientErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") clientErrors.push(`[client-error] ${message.text()}`);
+    });
+
+    try {
+      const seed = async (slug: string, catchall: boolean) => {
+        const { data, error } = await supabase
+          .from("categories")
+          .insert({ slug, name_en: slug, is_active: true, is_catchall: catchall })
+          .select("id")
+          .single();
+        if (error) throw new Error(`[e2e:c2] seeding ${slug} failed: ${error.message}`);
+        return data.id as string;
+      };
+      const parentId = await seed(parentSlug, false);
+      const aId = await seed(aSlug, false);
+      const bId = await seed(bSlug, false);
+      const otherId = await seed(otherSlug, true);
+
+      const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
+        { parent_id: null, child_id: parentId, display_order: 900000 },
+        { parent_id: parentId, child_id: aId, display_order: 0 },
+        { parent_id: parentId, child_id: bId, display_order: 1 },
+        { parent_id: parentId, child_id: otherId, display_order: 2 },
+      ]);
+      if (pointerError)
+        throw new Error(`[e2e:c2] seeding pointers failed: ${pointerError.message}`);
+
+      // J7 — seed BEFORE navigate, and assert the seeded rows rendered before
+      // acting on any of them.
+      const { secret } = await signInAsSuperAdmin(page);
+      expect(secret, "the walk owns a proven factor").toBeTruthy();
+      await gotoReady(page, "/admin/categories");
+      await page.getByTestId("category-search").fill(parentSlug.slice(0, 18));
+      await expect(categoryRow(page, aSlug)).toBeVisible({ timeout: 20000 });
+      await expect(categoryRow(page, bSlug)).toBeVisible({ timeout: 20000 });
+
+      const orderOf = async (childId: string) => {
+        const { data, error } = await supabase
+          .from("category_tree_pointers")
+          .select("display_order")
+          .eq("parent_id", parentId)
+          .eq("child_id", childId)
+          .single();
+        if (error) throw new Error(`[e2e:c2] reading order failed: ${error.message}`);
+        return data.display_order as number;
+      };
+      expect(await orderOf(aId)).toBeLessThan(await orderOf(bId));
+
+      await openEditor(page, bSlug);
+      await action(page, bSlug, "up").click({ timeout: 15000 });
+
+      // The ABSENCE of the gate is the assertion: reorder is a plain update.
+      await expect(page.getByTestId("step-up-modal")).toHaveCount(0);
+
+      const dump = async (label: string) =>
+        `${label} — ${await lifecycleDump(page, bSlug, clientErrors)} orders=${JSON.stringify({
+          a: await orderOf(aId),
+          b: await orderOf(bId),
+          other: await orderOf(otherId),
+        })}`;
+
+      try {
+        await expect
+          .poll(async () => (await orderOf(bId)) < (await orderOf(aId)), {
+            timeout: 15000,
+            message: "CT-15 the order flipped",
+          })
+          .toBe(true);
+      } catch {
+        throw new Error(await dump("CT-15 the order did not flip"));
+      }
+
+      // The catch-all is pinned last by the server, whatever the operator sent.
+      expect(await orderOf(otherId)).toBeGreaterThan(await orderOf(aId));
+      expect(await orderOf(otherId)).toBeGreaterThan(await orderOf(bId));
+
+      // The step-up gate never opened at any point in the walk.
+      await expect(page.getByTestId("step-up-modal")).toHaveCount(0);
+      await expect(page.getByTestId("category-verb-error")).toHaveCount(0);
+    } finally {
+      for (const slug of slugs) await destroyCategory(slug);
+    }
+  });
 });

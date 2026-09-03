@@ -875,7 +875,8 @@ export const en = {
   "admin.categories.retire.reassign": "Reassign listings to",
   "admin.categories.retire.reassignPlaceholder": "Choose a category",
   "admin.categories.retire.reassignCount": "Move {count} listings to",
-  "admin.categories.retire.noListings": "No listings to move — the category will simply be hidden from browse and posting.",
+  "admin.categories.retire.noListings":
+    "No listings to move — the category will simply be hidden from browse and posting.",
   "admin.categories.retire.confirm": "Retire",
   "admin.categories.delete.title": "Delete category",
   "admin.categories.delete.hint":
