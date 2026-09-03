@@ -74,7 +74,7 @@ export function CategoryModal({
   );
 }
 
-function ErrorLine({ message }: { message: string | null }) {
+export function ErrorLine({ message }: { message: string | null }) {
   if (!message) return null;
   return (
     <p role="alert" data-testid="category-dialog-error" className="text-sm text-destructive">
@@ -83,7 +83,7 @@ function ErrorLine({ message }: { message: string | null }) {
   );
 }
 
-function useSubmitError() {
+export function useSubmitError() {
   const { t } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   /**
