@@ -126,11 +126,16 @@ export interface DataTableProps<T> {
   className?: string;
 }
 
-function cellClass(column: DataTableColumn<unknown>) {
+function cellClass(column: DataTableColumn<unknown>, sticky = false) {
   return cn(
     "p-3 align-top",
     column.align === "end" ? "text-end" : "text-start",
     column.priority === "detail" && "hidden lg:table-cell",
+    column.priority === "wide" && "hidden xl:table-cell",
+    // INC-135 — the pinned first column. `start-0` is a LOGICAL offset, so the
+    // pin lands on the correct edge in RTL, and the background is the card
+    // token (never a hardcoded colour) so scrolled cells pass under it.
+    sticky && "sticky start-0 z-10 bg-card",
     column.width,
     column.minWidth,
   );
