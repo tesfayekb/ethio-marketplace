@@ -152,6 +152,54 @@ async function readCategory(slug: string) {
   return data;
 }
 
+/**
+ * C2-CLOSE Part B — THE LISTING FIXTURE (J1/J3/J7). One `status: 'active'`
+ * listing under a scratch category, written with every REQUIRED column
+ * (seller, location, home country, title, description) through the service
+ * client, before the console is ever navigated. Deleted in the test's
+ * `finally`; it never touches a ratified row.
+ */
+async function seedActiveListing(categoryId: string, sellerId: string): Promise<string> {
+  const supabase = adminClient();
+  const { data: location, error: locationError } = await supabase
+    .from("locations")
+    .select("id, country_code")
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
+  if (locationError || !location) {
+    throw new Error(`[e2e:c2] no active location: ${locationError?.message ?? "no row"}`);
+  }
+  const { data, error } = await supabase
+    .from("listings")
+    .insert({
+      category_id: categoryId,
+      seller_id: sellerId,
+      location_id: location.id,
+      home_country_code: location.country_code,
+      title: `e2e-cat listing ${RUN}-${rand()}`,
+      description: "e2e scratch listing for the retire walk",
+      status: "active",
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:c2] seeding the listing failed: ${error?.message ?? "no row"}`);
+  }
+  return data.id;
+}
+
+/** DB truth (J4): where a seeded listing now lives. */
+async function readListing(listingId: string) {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("id, category_id, status")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:c2] reading listing failed: ${error.message}`);
+  return data;
+}
+
 /** The pointer rows of a category, read as DB truth (J4). */
 async function readPointers(categoryId: string) {
   const { data, error } = await adminClient()
@@ -381,12 +429,30 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { user, secret } = await signInAsSuperAdmin(page);
     let slug = "";
+    let listingId = "";
     try {
       slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+
+      /**
+       * C2-CLOSE Part B (J7) — SEED BEFORE NAVIGATE. The dialog only offers
+       * the reassign picker when the category HOLDS active listings, so the
+       * fixture writes one `status: 'active'` listing with every required
+       * column and only THEN loads the console, which reads the count.
+       */
+      listingId = await seedActiveListing(scratch!.id, user.id);
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
       await openEditor(page, slug);
       await action(page, slug, "retire").click();
+      await expect(page.getByTestId("category-retire-dialog")).toBeVisible({ timeout: 20000 });
+      // The picker is present and its label carries the live count.
+      await expect(page.getByTestId("category-retire-dialog")).toContainText(
+        en["admin.categories.retire.reassignCount"].replace("{count}", "1"),
+      );
+      await expect(page.getByTestId("category-retire-target")).toBeVisible();
       await page.getByTestId("category-retire-target").selectOption({ index: 1 });
       await page.getByTestId("category-retire-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -394,12 +460,17 @@ test.describe("C2 categories console", () => {
       await expect
         .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
         .toBe(false);
+      // The listing kept a home: it now hangs under the reassignment target.
+      await expect
+        .poll(async () => (await readListing(listingId))?.category_id, { timeout: 20000 })
+        .not.toBe(scratch!.id);
       // The row stays in the console (retired ≠ deleted) but reads as retired.
       await findRow(page, slug);
       await openEditor(page, slug);
       await expect(action(page, slug, "reactivate")).toBeVisible({ timeout: 20000 });
       await expect(action(page, slug, "retire")).toHaveCount(0);
     } finally {
+      if (listingId) await adminClient().from("listings").delete().eq("id", listingId);
       if (slug) await destroyCategory(slug);
     }
   });
@@ -729,33 +800,25 @@ test.describe("C2 categories console", () => {
         true,
       );
 
-      // Active again means the retire verb is the one on offer once more.
-      await step(
-        "CT-12 the reactivated row is still on the roster",
-        () => categoryRow(page, slug).count(),
-        1,
-      );
-      await step(
-        "CT-12 the editor re-opens",
-        async () => {
-          if (!(await page.getByTestId("category-verb-bar").isVisible())) {
-            await action(page, slug, "edit").click({ timeout: 5000 });
-          }
-          return page.getByTestId("category-verb-bar").isVisible();
-        },
-        true,
-      );
       /**
-       * C2h / CT-12-TRUTH — the closing check asserts the PRODUCT'S CORRECT
-       * behaviour: a reactivated category IS on the roster, carries the Active
-       * status badge, and offers Retire while Reactivate is gone. (The former
-       * line asserted the inverse.) The badge is resolved through its
-       * accessible description, never through raw English in the spec (J5).
+       * C2-CLOSE Part A — THE CLOSING TRUTH, SEARCH-ANCHORED. The editor is
+       * dismissed so the roster search (the only proven anchor, CT-2/INC-147)
+       * can narrow to the scratch row; the row IS on the roster, carries the
+       * Active badge — resolved through its accessible description, never raw
+       * English (J5) — and its editor offers Retire with Reactivate gone.
        */
+      await page.keyboard.press("Escape");
+      await step(
+        "CT-12 the editor is dismissed before the roster search",
+        () => page.getByTestId("category-edit-dialog").count(),
+        0,
+      );
+      await findRow(page, slug);
       const activeBadge = categoryRow(page, slug).locator(
         `[aria-label="${en["admin.categories.badge.active"]}: ${en["admin.categories.tip.active"]}"]`,
       );
       await step("CT-12 the roster shows the row as Active", () => activeBadge.count(), 1);
+      await openEditor(page, slug);
       await step(
         "CT-12 an active row offers Retire",
         () => action(page, slug, "retire").isVisible(),
@@ -1008,6 +1071,44 @@ test.describe("C2 categories console", () => {
       await expect(page.getByTestId("category-verb-error")).toHaveCount(0);
     } finally {
       for (const slug of slugs) await destroyCategory(slug);
+    }
+  });
+  /**
+   * CT-16 (C2-CLOSE Part D, INC-150) — THE DIALOG RETURN PATH. A secondary
+   * surface is an axis OF the editor, not a replacement for it: closing
+   * Countries returns to the OPEN editor, and only closing the editor returns
+   * to the table.
+   */
+  test("CT-16 return path: closing a secondary dialog returns to the open editor", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      await openEditor(page, slug);
+
+      await action(page, slug, "exclusions").click();
+      await expect(page.getByTestId("category-exclusions-dialog")).toBeVisible({ timeout: 20000 });
+      // The editor yields the surface while its sub-dialog is open.
+      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
+
+      await page
+        .getByTestId("category-exclusions-dialog")
+        .getByTestId("category-dialog-cancel")
+        .click();
+      // ... and comes straight back: the editor is open, the table is not the
+      // destination of a sub-dialog close.
+      await expect(page.getByTestId("category-exclusions-dialog")).toHaveCount(0);
+      await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("category-verb-bar")).toBeVisible();
+
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
+      await findRow(page, slug);
+    } finally {
+      if (slug) await destroyCategory(slug);
     }
   });
 });

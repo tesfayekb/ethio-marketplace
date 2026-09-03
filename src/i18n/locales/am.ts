@@ -820,6 +820,7 @@ export const am: Messages = {
   "admin.categories.field.name": "ስም (እንግሊዝኛ)",
   "admin.categories.field.icon": "አዶ",
   "admin.categories.field.order": "የማሳያ ቅደም ተከተል",
+  "admin.categories.field.orderManaged": "በ«ወደ ላይ አንቀሳቅስ/ወደ ታች አንቀሳቅስ» ይተዳደራል።",
   "admin.categories.field.expiryDays": "የዝርዝር ማብቂያ (ቀናት)",
   "admin.categories.field.expiryNone": "ማብቂያ የለም",
   "admin.categories.field.allowListings": "ዝርዝሮችን ይቀበላል",

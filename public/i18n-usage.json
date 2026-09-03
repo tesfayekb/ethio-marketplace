@@ -249,6 +249,9 @@
     "admin.categories.field.order": [
       "/admin/categories"
     ],
+    "admin.categories.field.orderManaged": [
+      "/admin/categories"
+    ],
     "admin.categories.field.priceEnabled": [
       "/admin/categories"
     ],
