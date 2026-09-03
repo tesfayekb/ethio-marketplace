@@ -165,11 +165,15 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
           );
         } catch (error) {
           const { GeminiError } = await import("@/server/category-images/gemini");
+          const message = error instanceof Error ? error.message : "unknown error";
+          // PART B (F4): the true cause reaches the log with a stable code before
+          // the generic body leaves.
+          console.error(`[ssr-error] ${PATH} image_generate_failed ${message}`);
           if (error instanceof GeminiError) {
             if (error.status >= 500) return fail5xx(PATH, error.message, 502);
             return json({ error: error.message }, error.status);
           }
-          return fail5xx(PATH, error instanceof Error ? error.message : "unknown error");
+          return fail5xx(PATH, message);
         }
       },
 
