@@ -29,6 +29,8 @@ export interface CategoryRow {
   visibleUntil: string | null;
   listingCount: number;
   exclusionCount: number;
+  /** C2b — the exclusion codes themselves, so the dialog pre-ticks (INC-131). */
+  excludedCountryCodes: string[];
 }
 
 export async function listCategories(): Promise<CategoryRow[]> {
