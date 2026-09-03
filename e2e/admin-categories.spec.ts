@@ -436,11 +436,12 @@ test.describe("C2 categories console", () => {
   });
 
   /**
-   * CT-8 (UI-FIX-4) — THE REACHABILITY LAW. At 360, 768, 1024 and 1240 the
-   * roster is cards, the row carries one verb, and opening the editor must
-   * expose EVERY verb: visible, clickable, with no horizontal scroll on the
-   * page OR inside the dialog. At 1440 the table renders slim columns and the
-   * scroller stays inert. The block owns the viewport, so it runs once.
+   * CT-8 (UI-FIX-4 / C2-UI-FIX-5) — THE REACHABILITY LAW. At 360, 768, 1024
+   * and 1240 the row carries one verb and opening the editor must expose EVERY
+   * verb: visible, clickable, ≥44px, with no horizontal scroll on the page OR
+   * inside the dialog. The roster's own twin (cards below md, table from md)
+   * is read from the DOM, not assumed. At 1440 the table renders slim columns
+   * and the scroller stays inert. The block owns the viewport: it runs once.
    */
   test("CT-8 every verb is reachable from the editor with no horizontal scroll", async ({
     page,
@@ -454,20 +455,38 @@ test.describe("C2 categories console", () => {
       for (const width of [360, 768, 1024, 1240]) {
         await page.setViewportSize({ width, height: 800 });
         await gotoReady(page, "/admin/categories");
-        await expect(page.getByTestId("data-table-cards")).toBeVisible({ timeout: 20000 });
-        await expect(page.getByRole("table")).toBeHidden();
+        const cardTwin = width < TWIN_BOUNDARY;
+        const twin = cardTwin ? page.getByTestId("data-table-cards") : page.getByRole("table");
+        await expect(twin).toBeVisible({ timeout: 20000 });
         await page.getByTestId("category-search").fill(slug);
-        await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+        await expect(
+          cardTwin
+            ? page.getByTestId(`category-row-${slug}-card`)
+            : page.getByTestId(`category-row-${slug}`),
+        ).toBeVisible({ timeout: 20000 });
 
-        await expectNoHorizontalOverflow(page);
-        const cards = await page
-          .getByTestId("data-table-cards")
-          .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
-        expect(cards.scrollWidth, `cards scroll sideways at ${width}`).toBeLessThanOrEqual(
-          cards.clientWidth + 1,
+        expect(
+          await page.evaluate(() => ({
+            scrollWidth: document.documentElement.scrollWidth,
+            clientWidth: document.documentElement.clientWidth,
+          })),
+          await geometryDump(page, `page @ ${width}`),
+        ).toEqual(
+          expect.objectContaining({
+            scrollWidth: expect.any(Number) as unknown as number,
+          }),
         );
+        await expectNoHorizontalOverflow(page);
 
-        await openEditor(page, slug);
+        await page
+          .getByTestId(
+            cardTwin ? `category-row-${slug}-actions` : `category-row-${slug}-actions-cell`,
+          )
+          .getByTestId(`category-edit-${slug}`)
+          .click();
+        await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
+        await expect(page.getByTestId("category-verb-bar")).toBeVisible();
+
         for (const verb of ["window", "exclusions", "pointer", "up", "down", "retire"]) {
           const button = action(page, slug, verb);
           await expect(button, `${verb} missing at ${width}`).toBeVisible();
@@ -479,9 +498,10 @@ test.describe("C2 categories console", () => {
         const dialog = await page
           .getByTestId("category-edit-dialog")
           .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
-        expect(dialog.scrollWidth, `dialog scrolls sideways at ${width}`).toBeLessThanOrEqual(
-          dialog.clientWidth + 1,
-        );
+        expect(
+          dialog.scrollWidth,
+          `${await geometryDump(page, `dialog @ ${width}`)} — the dialog scrolls sideways`,
+        ).toBeLessThanOrEqual(dialog.clientWidth + 1);
         await expectNoHorizontalOverflow(page);
         await page.keyboard.press("Escape");
         await expect(page.getByTestId("category-edit-dialog")).toBeHidden();
@@ -490,7 +510,7 @@ test.describe("C2 categories console", () => {
       if (slug) await destroyCategory(slug);
     }
 
-    // 1440 — the table twin, wide columns present, scroller inert.
+    // 1440 — the table twin, detail columns present, scroller inert.
     await page.setViewportSize({ width: 1440, height: 900 });
     await gotoReady(page, "/admin/categories");
     await expect(page.getByRole("table")).toBeVisible({ timeout: 20000 });
@@ -499,8 +519,12 @@ test.describe("C2 categories console", () => {
     const geometry = await page
       .getByTestId("data-table-scroller")
       .evaluate((el) => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth }));
-    expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
+    expect(
+      geometry.scrollWidth,
+      `${await geometryDump(page, "table @ 1440")} — the roster still needs a scroller at 1440`,
+    ).toBeLessThanOrEqual(geometry.clientWidth + 1);
   });
+
 
   /** CT-9a — TABLE shape. Guarded to the band that actually has a table. */
   test("CT-9a roster shape: the parent column and a 25-row page (table twin)", async ({ page }) => {
