@@ -1,0 +1,104 @@
+current_slug,current_name,action
+accessories,Accessories,RENAME/MERGE→jewelry-watches
+agriculture-farming,Agriculture & Farming,KEEP→agriculture-farming
+apartments-for-rent,Apartments for Rent,RENAME/MERGE→apartments-condos
+apartments-for-sale,Apartments for Sale,RENAME/MERGE→apartments-condos
+audio-headphones,Audio & Headphones,RENAME/MERGE→audio-sound
+auto-parts,Parts & Accessories,MERGE (leaf absorbed — executor states target by name match)
+automotive,Automotive,RENAME/MERGE→vehicles
+babies-kids,Babies & Kids,KEEP→babies-kids
+baby-clothing,Baby Clothing,RENAME/MERGE→kids-clothing
+baby-kids,?,RENAME/MERGE→babies-kids
+beauty-personal-care,Beauty & Personal Care,KEEP→beauty-personal-care
+birds,Birds,RENAME/MERGE→birds-fish
+business-industrial,?,RENAME/MERGE→commercial-equipment
+cameras-photography,Cameras & Photography,RENAME/MERGE→cameras-drones
+cars,Cars,KEEP→cars
+cats,Cats,RENAME/MERGE→dogs-cats
+commercial-equipment,Commercial Equipment,KEEP→commercial-equipment
+commercial-property,Commercial Property,KEEP→commercial-property
+compact-sedans,Compact Sedans,MERGE (leaf absorbed — executor states target by name match)
+computer-accessories,Computer Accessories,MERGE (leaf absorbed — executor states target by name match)
+computer-components,Components & Parts,MERGE (leaf absorbed — executor states target by name match)
+computers,Computers,KEEP→computers
+construction-equipment,Construction Equipment,RENAME/MERGE→construction-tools
+coupes,Coupes,MERGE (leaf absorbed — executor states target by name match)
+creative-services,Creative Services,RENAME/MERGE→professional-services
+desktops,Desktops,MERGE (leaf absorbed — executor states target by name match)
+dogs,Dogs,RENAME/MERGE→dogs-cats
+education-training,Education & Training,KEEP→education-training
+electric-vehicles,Electric Vehicles,MERGE (leaf absorbed — executor states target by name match)
+electronics,Electronics,KEEP→electronics
+farm-equipment,Farm Equipment,KEEP→farm-equipment
+fashion,Fashion,KEEP→fashion
+fashion-clothing,?,RENAME/MERGE→fashion
+feature-phones,Feature Phones,MERGE (leaf absorbed — executor states target by name match)
+fertilizers-chemicals,Fertilizers & Chemicals,RENAME/MERGE→seeds-inputs
+fish-aquariums,Fish & Aquariums,RENAME/MERGE→birds-fish
+fitness-gym,Fitness & Gym,RENAME/MERGE→fitness-equipment
+fragrances,Fragrances,KEEP→fragrances
+freelance-contract,Freelance & Contract,RETIRE (is_active=false; REQ-017 amend)
+full-time-jobs,Full-time Jobs,RETIRE (is_active=false; REQ-017 amend)
+fullsize-sedans,Full-size Sedans,MERGE (leaf absorbed — executor states target by name match)
+furniture,Furniture,KEEP→furniture
+garden-outdoor,Garden & Outdoor,KEEP→garden-outdoor
+hair-care,Hair Care,RENAME/MERGE→haircare
+harvested-produce,Harvested Produce,KEEP→harvested-produce
+hatchbacks,Hatchbacks,MERGE (leaf absorbed — executor states target by name match)
+health-beauty,?,RENAME/MERGE→beauty-personal-care
+home-decor,Home Decor,KEEP→home-decor
+home-furniture,?,RENAME/MERGE→home-garden
+home-garden,Home & Garden,KEEP→home-garden
+home-services,Home Services,KEEP→home-services
+houses-for-rent,Houses for Rent,RENAME/MERGE→houses
+houses-for-sale,Houses for Sale,RENAME/MERGE→houses
+internships,Internships,RETIRE (is_active=false; REQ-017 amend)
+job-seekers-cvs,Job Seekers & CVs,RETIRE (is_active=false; REQ-017 amend)
+jobs,Jobs,RETIRE (is_active=false; REQ-017 amend)
+kids-clothing,Kids Clothing,KEEP→kids-clothing
+kitchen-dining,Kitchen & Dining,KEEP→kitchen-dining
+land-plots,Land & Plots,KEEP→land-plots
+laptops,Laptops,MERGE (leaf absorbed — executor states target by name match)
+livestock,Livestock,KEEP→livestock
+livestock-feed,Livestock Feed,RENAME/MERGE→seeds-inputs
+luxury-cars,Luxury,MERGE (leaf absorbed — executor states target by name match)
+makeup,Makeup,KEEP→makeup
+medical-equipment,Medical Equipment,KEEP→medical-equipment
+mens-clothing,Men's Clothing,KEEP→mens-clothing
+midsize-sedans,Mid-size Sedans,MERGE (leaf absorbed — executor states target by name match)
+motorcycles,Motorcycles,RENAME/MERGE→motorbikes-bicycles
+nursery-furniture,Nursery Furniture,RENAME/MERGE→baby-gear
+office-equipment,Office Equipment,KEEP→office-equipment
+other-computers,Other Computers,MERGE (leaf absorbed — executor states target by name match)
+outdoor-recreation,Outdoor Recreation,KEEP→outdoor-recreation
+part-time-jobs,Part-time Jobs,RETIRE (is_active=false; REQ-017 amend)
+pet-services,Pet Services,RENAME/MERGE→pet-supplies-services
+pet-supplies,Pet Supplies,RENAME/MERGE→pet-supplies-services
+pets-animals,Pets & Animals,KEEP→pets-animals
+phone-accessories,Phone Accessories,MERGE (leaf absorbed — executor states target by name match)
+phone-repair-services,Repair Services,MERGE (leaf absorbed — executor states target by name match)
+phones-tablets,Phones & Tablets,KEEP→phones-tablets
+professional-services,Professional Services,KEEP→professional-services
+real-estate,Real Estate,KEEP→real-estate
+restaurant-equipment,Restaurant Equipment,KEEP→restaurant-equipment
+roommates-shared,Roommates & Shared,KEEP→roommates-shared
+sedans,Sedans,MERGE (leaf absorbed — executor states target by name match)
+seeds-plants,Seeds & Plants,RENAME/MERGE→seeds-inputs
+services,Services,KEEP→services
+shoes-footwear,Shoes & Footwear,RENAME/MERGE→shoes
+short-term-rentals,Short-term Rentals,KEEP→short-term-rentals
+skincare,Skincare,KEEP→skincare
+smartphones,Smartphones,MERGE (leaf absorbed — executor states target by name match)
+software,Software,MERGE (leaf absorbed — executor states target by name match)
+sports-equipment,Sports Equipment,KEEP→sports-equipment
+sports-hobbies,?,RENAME/MERGE→sports-leisure
+sports-leisure,Sports & Leisure,KEEP→sports-leisure
+strollers-car-seats,Strollers & Car Seats,RENAME/MERGE→baby-gear
+suvs,SUVs,MERGE (leaf absorbed — executor states target by name match)
+tablets,Tablets,MERGE (leaf absorbed — executor states target by name match)
+toys-games,Toys & Games,KEEP→toys-games
+trucks,Trucks,MERGE (leaf absorbed — executor states target by name match)
+vehicles,Vehicles,KEEP→vehicles
+wellness-fitness,Wellness & Fitness,RENAME/MERGE→health-wellness
+womens-clothing,Women's Clothing,KEEP→womens-clothing
+work-from-home,Work from Home,RETIRE (is_active=false; REQ-017 amend)
