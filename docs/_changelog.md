@@ -290,3 +290,4 @@
 - 2026-09-02 — polish(i18n): compact switcher (selection by tint, no check), proportional roster columns, Interface/Content naming with tooltips, one-line actions (walk polish)
 - 2026-09-02 — fix(ui): languages roster card twin at mobile, scroll-not-cramp at mid-widths, 360 guard (INC-126)
 - 2026-09-02 — docs: S33 gate — translation era closed (U4f–U4k); DEC-019-B..030 recorded; roadmap.md + era handoff imported; next U5 Categories & Locations
+2026-09-02 · S34/D0 · Category Era spec + taxonomy artifacts imported; roadmap, categories.md, system-state, ledger (REQ-017 a–e, DEC-031..033), build-plan banner, ACT backfill.

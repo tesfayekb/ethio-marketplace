@@ -5,3 +5,11 @@
 | ACT-001  | 2026-07-29 | Documentation foundation                                                                                                                             | DONE   |
 | ACT-U4-8 | 2026-09-02 | Import BATCH HISTORY list (past import runs per language, each undoable while untouched) — U4i-7 shipped undo for the run just performed only        | OPEN   |
 | ACT-U4-7 | 2026-09-02 | Split `e2e/admin-translations.spec.ts` (~2.5k lines) into console / data / governance spec files for shard balance; test identities preserved per J1 | OPEN   |
+| ACT-U0-1 | 2026-09-02 | On Supabase Pro upgrade — set Sessions time-box to 7 days + inactivity timeout to 4 hours AND enable compromised-refresh-token detection, on ethio-prod AND ethio-staging. Until then the client session policy (U0k) is the effective enforcement. | OPEN |
+| ACT-U3-1 | 2026-09-02 | DEC-021 full act-as impersonation builds in the Ops phase — prerequisite: the write-guard census across every user-writable table and RPC (impersonator_id refusal clause); requirement text in spec-ledger DEC-021 and docs/features/admin-audit-security.md. | OPEN |
+| ACT-U4-1 | 2026-09-02 | entity machine translation rides the REQ-004 engine (deferred by design). | OPEN |
+| ACT-U4-2 | 2026-09-02 | SSR inlining of the active language bundle (root loader) — client-merge limitation stands until then. | OPEN |
+| ACT-U4-3 | 2026-09-02 | history prior-state chip polish | OPEN |
+| ACT-U4-4 | 2026-09-02 | ACT-U4-4 (spec-lint sweep, 38 sites) | OPEN |
+| ACT-U4-5 | 2026-09-02 | ACT-U4-5 (entity revisions/flags) | OPEN |
+| ACT-U4-6 | 2026-09-02 | ACT-U4-6 (injection un-park per DEC-029) | OPEN |
