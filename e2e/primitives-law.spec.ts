@@ -207,7 +207,41 @@ test.describe("display primitives law (test-once responsiveness)", () => {
       el.scrollLeft = el.scrollWidth;
     });
     const lastCell = page.getByTestId("prim-row-row-1").locator("td").last();
-    await expect(lastCell).toBeInViewport();
+
+    /**
+     * C2-UI-FIX-5 — the law is HORIZONTAL reachability: the scroller, not the
+     * page, must bring the last cell into the column. The row sits far down a
+     * long demo page, so it is brought into the VERTICAL viewport first —
+     * otherwise the assertion reports a scrolling defect that is really just
+     * page position. The failure path dumps the whole chain (D2).
+     */
+    await lastCell.scrollIntoViewIfNeeded();
+    const dump = await page.evaluate(() => {
+      const el = document.querySelector('[data-testid="data-table-scroller"]');
+      const table = document.querySelector("table");
+      const cells = document.querySelectorAll('[data-testid="prim-row-row-1"] td');
+      const last = cells[cells.length - 1] as HTMLElement | undefined;
+      const chain: unknown[] = [];
+      let node = (el as HTMLElement | null) ?? null;
+      while (node && node !== document.documentElement) {
+        const style = getComputedStyle(node);
+        chain.push({
+          tag: node.tagName,
+          cls: String(node.className).slice(0, 80),
+          overflowX: style.overflowX,
+          maxWidth: style.maxWidth,
+          width: Math.round(node.getBoundingClientRect().width),
+        });
+        node = node.parentElement;
+      }
+      return {
+        scroller: el ? { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth } : null,
+        table: table ? table.scrollWidth : null,
+        lastCell: last ? last.getBoundingClientRect().toJSON() : null,
+        chain,
+      };
+    });
+    await expect(lastCell, `[e2e:L10] ${JSON.stringify(dump)}`).toBeInViewport();
 
     // The PAGE still never scrolls horizontally — the scroller absorbed it.
     await expectNoPageOverflow(page);

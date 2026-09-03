@@ -183,7 +183,6 @@ async function createViaUi(page: Page, secret: string) {
   return slug;
 }
 
-
 /**
  * C2-UI-FIX-5 (D3) — SELF-DIAGNOSING GEOMETRY. A width failure must name its
  * cause, so every geometry assertion carries this dump: the scroller, the
@@ -542,7 +541,6 @@ test.describe("C2 categories console", () => {
       `${await geometryDump(page, "table @ 1440")} — the roster still needs a scroller at 1440`,
     ).toBeLessThanOrEqual(geometry.clientWidth + 1);
   });
-
 
   /** CT-9a — TABLE shape. Guarded to the band that actually has a table. */
   test("CT-9a roster shape: the parent column and a 25-row page (table twin)", async ({ page }) => {
