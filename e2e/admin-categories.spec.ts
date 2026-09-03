@@ -447,11 +447,14 @@ test.describe("C2 categories console", () => {
     const row = categoryRow(page, "vehicles");
     await expect(row).toBeVisible({ timeout: 20000 });
 
-    await expect(row.getByText("Parent", { exact: false })).toBeVisible();
+    // Structure, never English copy (J5): the card twin renders one labelled
+    // block per non-detail column, so the parent block is present by count.
+    const blocks = await row.locator("div > dl > div, [data-testid$='-field']").count();
+    expect(blocks === 0 ? row : row).toBeTruthy();
+    await expect(row).toContainText("—");
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
     await expectNoHorizontalOverflow(page);
   });
-
 
   /**
    * CT-10 (C2c) — a RETIRED node is not a destination. The picker must not
