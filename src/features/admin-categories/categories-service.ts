@@ -31,6 +31,8 @@ export interface CategoryRow {
   exclusionCount: number;
   /** C2b — the exclusion codes themselves, so the dialog pre-ticks (INC-131). */
   excludedCountryCodes: string[];
+  /** C2c — false when the category has no image_url: a missing-assets flag. */
+  hasImage: boolean;
 }
 
 export async function listCategories(): Promise<CategoryRow[]> {
@@ -53,11 +55,11 @@ export async function listCategories(): Promise<CategoryRow[]> {
     listingCount: Number(row.listing_count ?? 0),
     exclusionCount: Number(row.exclusion_count ?? 0),
     excludedCountryCodes: (row.excluded_country_codes ?? []) as string[],
+    hasImage: row.has_image === true,
   }));
 }
 
 export interface CreateCategoryInput {
-  slug: string;
   nameEn: string;
   icon: string;
   parentId: string | null;
@@ -65,8 +67,12 @@ export interface CreateCategoryInput {
 }
 
 export async function createCategory(input: CreateCategoryInput): Promise<string> {
+  /**
+   * C2c — the slug is SERVER-DERIVED. The console no longer sends one: the
+   * RPC lowercases the name, collapses non-alphanumerics and uniquifies with
+   * a numeric suffix, so uniqueness has exactly one authority (F3).
+   */
   const { data, error } = await supabase.rpc("admin_create_category", {
-    p_slug: input.slug,
     p_name_en: input.nameEn,
     p_icon: input.icon,
     p_parent_id: input.parentId as string,
@@ -223,4 +229,44 @@ export function toRoster(rows: CategoryRow[]): CategoryNode[] {
   };
   walk(null, 0);
   return out;
+}
+
+/**
+ * C2c — the CREATE dialog's read-only slug preview. It mirrors the server's
+ * derivation (lower, non-alphanumerics → '-', trim '-') but never decides
+ * anything: the RPC owns the final value and its uniqueness suffix (F3).
+ */
+export function deriveSlugPreview(nameEn: string): string {
+  const base = nameEn
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return base === "" ? "category" : base;
+}
+
+export interface ParentOption {
+  id: string;
+  /** The whole browse path, e.g. "Vehicles › Cars › Sedans". */
+  label: string;
+}
+
+/**
+ * C2c — parent pickers offer ACTIVE nodes only, each rendered with its path.
+ * A retired node is not a destination: hanging a live category under it would
+ * hide the child from browse the moment it is created.
+ */
+export function activeParentOptions(roster: CategoryNode[], excludeId?: string): ParentOption[] {
+  const byId = new Map(roster.map((row) => [row.id, row]));
+  const pathOf = (row: CategoryNode): string => {
+    const parts: string[] = [];
+    let current: CategoryNode | undefined = row;
+    while (current) {
+      parts.unshift(current.nameEn);
+      current = current.parentId === null ? undefined : byId.get(current.parentId);
+    }
+    return parts.join(" › ");
+  };
+  return roster
+    .filter((row) => row.isActive && row.id !== excludeId)
+    .map((row) => ({ id: row.id, label: pathOf(row) }));
 }

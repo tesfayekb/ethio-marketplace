@@ -45,12 +45,44 @@ import { useAdminCategories, useReorderCategories } from "./use-categories";
  * buttons — a 360 card has the room and no hover affordance.
  */
 
-const PAGE_SIZE = 25;
+/**
+ * C2c — PAGE SIZE IS A DEVICE SETTING. Same storage discipline as the language
+ * star: localStorage is the durable per-device record, read after mount so SSR
+ * and the first client frame agree.
+ */
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 25;
+const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
 
 type DialogState =
   | { kind: "none" }
   | { kind: "create" }
   | { kind: "edit" | "window" | "exclusions" | "retire" | "pointer"; id: string };
+
+/**
+ * C2c — every status/flag badge carries an ACCESSIBLE description. `title`
+ * serves the pointer, `aria-label` serves the screen reader; the visible text
+ * stays the short chip so a 360px row still reads.
+ */
+function tipBadge(
+  variant: "secondary" | "destructive" | "outline",
+  label: string,
+  description: string,
+  className?: string,
+  testid?: string,
+) {
+  return (
+    <Badge
+      variant={variant}
+      className={className}
+      title={description}
+      aria-label={`${label}: ${description}`}
+      data-testid={testid}
+    >
+      {label}
+    </Badge>
+  );
+}
 
 export function AdminCategoriesPage() {
   const { t } = useI18n();
@@ -60,7 +92,30 @@ export function AdminCategoriesPage() {
   const reorder = useReorderCategories();
   const [search, setSearch] = useState("");
   const [rootFilter, setRootFilter] = useState("");
+  const [missingOnly, setMissingOnly] = useState(false);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    try {
+      const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+      if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
+        setPageSize(stored);
+      }
+    } catch {
+      /* no storage access on this device; the default answers */
+    }
+  }, []);
+
+  const choosePageSize = (next: number) => {
+    setPageSize(next);
+    setOffset(0);
+    try {
+      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+    } catch {
+      /* the choice still holds for this session */
+    }
+  };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
 
   const mayCreate = permissions.includes("categories:create");
@@ -78,23 +133,41 @@ export function AdminCategoriesPage() {
     return current?.id ?? row.id;
   };
 
+  /** C2c — a category with no icon AND/OR no image is not launch-ready. */
+  const missingAssets = (row: CategoryNode) => row.icon === null || !row.hasImage;
+
   const needle = search.trim().toLowerCase();
   const filtered = useMemo(
     () =>
       roster.filter((row) => {
         if (rootFilter !== "" && rootOf(row) !== rootFilter) return false;
+        if (missingOnly && !missingAssets(row)) return false;
         if (needle === "") return true;
-        return row.nameEn.toLowerCase().includes(needle) || row.slug.toLowerCase().includes(needle);
+        const parentName =
+          row.parentId === null ? "" : (byId.get(row.parentId)?.nameEn.toLowerCase() ?? "");
+        return (
+          row.nameEn.toLowerCase().includes(needle) ||
+          row.slug.toLowerCase().includes(needle) ||
+          parentName.includes(needle)
+        );
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [roster, needle, rootFilter, byId],
+    [roster, needle, rootFilter, missingOnly, byId],
   );
+
+  /** Per-root counts, so the filter says how much each subtree holds. */
+  const rootCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const row of roster) counts.set(rootOf(row), (counts.get(rootOf(row)) ?? 0) + 1);
+    return counts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roster, byId]);
 
   useEffect(() => {
     setOffset(0);
-  }, [needle, rootFilter]);
+  }, [needle, rootFilter, missingOnly]);
 
-  const rows = filtered.slice(offset, offset + PAGE_SIZE);
+  const rows = filtered.slice(offset, offset + pageSize);
 
   const selected =
     dialog.kind === "none" || dialog.kind === "create"
@@ -152,11 +225,20 @@ export function AdminCategoriesPage() {
       header: t("admin.categories.col.status"),
       priority: "secondary",
       minWidth: "min-w-24",
-      cell: (row) => (
-        <Badge variant={row.isActive ? "secondary" : "destructive"}>
-          {row.isActive ? t("admin.categories.badge.active") : t("admin.categories.badge.inactive")}
-        </Badge>
-      ),
+      cell: (row) =>
+        row.isActive
+          ? tipBadge(
+              "secondary",
+              t("admin.categories.badge.active"),
+              t("admin.categories.tip.active"),
+            )
+          : tipBadge(
+              "destructive",
+              t("admin.categories.badge.inactive"),
+              // The exact Retired description: a retired node keeps its history
+              // and its browse pointers, but no new listing can be posted to it.
+              t("admin.categories.tip.retired"),
+            ),
     },
     {
       key: "flags",
@@ -165,25 +247,51 @@ export function AdminCategoriesPage() {
       minWidth: "min-w-32",
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
-          {row.isCatchall ? (
-            <Badge variant="outline">{t("admin.categories.badge.catchall")}</Badge>
-          ) : null}
-          {row.allowListings ? (
-            <Badge variant="outline">{t("admin.categories.badge.listings")}</Badge>
-          ) : null}
-          {row.priceEnabled ? (
-            <Badge variant="outline">{t("admin.categories.badge.price")}</Badge>
-          ) : null}
-          {row.visibleFrom || row.visibleUntil ? (
-            <Badge variant="outline">{t("admin.categories.badge.window")}</Badge>
-          ) : null}
+          {row.isCatchall
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.catchall"),
+                t("admin.categories.tip.catchall"),
+              )
+            : null}
+          {row.allowListings
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.listings"),
+                t("admin.categories.tip.listings"),
+              )
+            : null}
+          {row.priceEnabled
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.price"),
+                t("admin.categories.tip.price"),
+              )
+            : null}
+          {row.visibleFrom || row.visibleUntil
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.window"),
+                t("admin.categories.tip.window"),
+              )
+            : null}
+          {missingAssets(row)
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.missingAssets"),
+                t("admin.categories.tip.missingAssets"),
+                "border-amber-500 text-amber-600 dark:text-amber-400",
+                `category-missing-${row.slug}`,
+              )
+            : null}
         </span>
       ),
     },
     {
       key: "order",
       header: t("admin.categories.col.order"),
-      priority: "detail",
+      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
+      priority: "wide",
       align: "end",
       minWidth: "min-w-16",
       cell: (row) => <span className="block tabular-nums">{row.displayOrder}</span>,
@@ -191,7 +299,8 @@ export function AdminCategoriesPage() {
     {
       key: "listings",
       header: t("admin.categories.col.listings"),
-      priority: "detail",
+      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
+      priority: "wide",
       align: "end",
       minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.listingCount}</span>,
@@ -199,7 +308,8 @@ export function AdminCategoriesPage() {
     {
       key: "exclusions",
       header: t("admin.categories.col.exclusions"),
-      priority: "detail",
+      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
+      priority: "wide",
       align: "end",
       minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.exclusionCount}</span>,
@@ -314,6 +424,7 @@ export function AdminCategoriesPage() {
 
           <DataTable<CategoryNode>
             cardUntil="lg"
+            stickyFirstColumn
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
@@ -353,7 +464,30 @@ export function AdminCategoriesPage() {
                   <option value="">{t("admin.categories.filter.allRoots")}</option>
                   {roots.map((row) => (
                     <option key={row.id} value={row.id}>
-                      {row.nameEn}
+                      {`${row.nameEn} (${rootCounts.get(row.id) ?? 0})`}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  variant={missingOnly ? "default" : "outline"}
+                  className="min-h-11"
+                  aria-pressed={missingOnly}
+                  data-testid="category-missing-filter"
+                  onClick={() => setMissingOnly((prev) => !prev)}
+                >
+                  {t("admin.categories.filter.missingAssets")}
+                </Button>
+                <select
+                  data-testid="category-page-size"
+                  aria-label={t("admin.categories.filter.pageSize")}
+                  className={`${SELECT_CLASS} md:w-32`}
+                  value={String(pageSize)}
+                  onChange={(event) => choosePageSize(Number(event.target.value))}
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <option key={size} value={size}>
+                      {String(size)}
                     </option>
                   ))}
                 </select>
@@ -362,10 +496,10 @@ export function AdminCategoriesPage() {
             pagination={
               <DataTablePagination
                 offset={offset}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 total={filtered.length}
-                onPrevious={() => setOffset((prev) => Math.max(0, prev - PAGE_SIZE))}
-                onNext={() => setOffset((prev) => prev + PAGE_SIZE)}
+                onPrevious={() => setOffset((prev) => Math.max(0, prev - pageSize))}
+                onNext={() => setOffset((prev) => prev + pageSize)}
                 testid="category-pagination"
               />
             }

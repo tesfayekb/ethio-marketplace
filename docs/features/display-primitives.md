@@ -89,3 +89,20 @@ and law **L10** in `e2e/primitives-law.spec.ts` (1024x800 on
 `/dev/primitives?variant=lg`: `scrollWidth > clientWidth` on the scroller, the
 last cell in viewport after scrolling it, and no page overflow). L3 and L9 are
 unmodified.
+
+## C7 round 3 — the wide tier, the pinned column, and the shared chain (INC-134/135)
+
+- **`priority: "wide"`** sits above `detail`: hidden below `xl`, and excluded from
+  the card twin entirely. Dense rosters park their numeric tail there so the
+  tablet/laptop band shows what an operator acts on and the scroller carries the
+  rest. Unit-pinned in `data-table.test.tsx`; E2E-pinned by L11.
+- **`stickyFirstColumn`** pins the first column during horizontal scroll. The
+  offset is the logical `start-0` (RTL-safe) and the background is the `bg-card`
+  token, never a hardcoded colour. Off by default; the categories roster and the
+  `?variant=lg` demo enable it.
+- **INC-134 — the shared chain.** The scroller only engages when EVERY ancestor
+  is at `min-width: 0`. The 1240×800 census convicted the admin content region
+  in `src/components/app-shell.tsx` (the shell grid wrapper, still at
+  `min-width: auto`). It now carries `min-w-0 max-w-full`. The fix is at the
+  shared shell, once, for every page — a per-page width hack would violate C7 and
+  would have to be repeated by every future table.

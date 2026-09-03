@@ -40,7 +40,13 @@ import { PageCard } from "./page-card";
  * `data-table-selection`.
  */
 
-export type ColumnPriority = "primary" | "secondary" | "detail";
+/**
+ * C7 / INC-135 — `wide` is the tier ABOVE `detail`: a column that only earns
+ * its horizontal budget on a genuinely wide desktop (xl and up). Dense rosters
+ * park their numeric tail there so the tablet/laptop band shows the columns an
+ * operator acts on, and the scroller carries the rest.
+ */
+export type ColumnPriority = "primary" | "secondary" | "detail" | "wide";
 
 /** C7 / INC-130 — where the card twin gives way to the table twin. */
 export type CardUntil = "md" | "lg";
@@ -117,14 +123,25 @@ export interface DataTableProps<T> {
    * tablet band, where dense tables used to crush.
    */
   cardUntil?: CardUntil;
+  /**
+   * C7 / INC-135 — pin the FIRST column while the table scrolls horizontally,
+   * so the row's identity never leaves the viewport. Logical `start-0` keeps it
+   * RTL-correct; the card twin is unaffected.
+   */
+  stickyFirstColumn?: boolean;
   className?: string;
 }
 
-function cellClass(column: DataTableColumn<unknown>) {
+function cellClass(column: DataTableColumn<unknown>, sticky = false) {
   return cn(
     "p-3 align-top",
     column.align === "end" ? "text-end" : "text-start",
     column.priority === "detail" && "hidden lg:table-cell",
+    column.priority === "wide" && "hidden xl:table-cell",
+    // INC-135 — the pinned first column. `start-0` is a LOGICAL offset, so the
+    // pin lands on the correct edge in RTL, and the background is the card
+    // token (never a hardcoded colour) so scrolled cells pass under it.
+    sticky && "sticky start-0 z-10 bg-card",
     column.width,
     column.minWidth,
   );
@@ -208,6 +225,7 @@ export function DataTable<T>({
   sortDirection,
   onSort,
   cardUntil = "md",
+  stickyFirstColumn = false,
   className,
 }: DataTableProps<T>) {
   const { t } = useI18n();
@@ -254,7 +272,9 @@ export function DataTable<T>({
     return frame(<PageCard testid="data-table-empty">{emptyState}</PageCard>);
   }
 
-  const cardColumns = columns.filter((column) => column.priority !== "detail");
+  const cardColumns = columns.filter(
+    (column) => column.priority !== "detail" && column.priority !== "wide",
+  );
   const selectedKeys = new Set(selection?.selectedKeys ?? []);
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
 
@@ -355,12 +375,18 @@ export function DataTable<T>({
                     />
                   </th>
                 ) : null}
-                {columns.map((column) => (
+                {columns.map((column, index) => (
                   <th
                     key={column.key}
                     data-testid={`data-table-col-${column.key}`}
                     scope="col"
-                    className={cn(cellClass(column as DataTableColumn<unknown>), "font-medium")}
+                    className={cn(
+                      cellClass(
+                        column as DataTableColumn<unknown>,
+                        stickyFirstColumn && index === 0,
+                      ),
+                      "font-medium",
+                    )}
                     aria-sort={
                       sortKey === column.key
                         ? sortDirection === "desc"
@@ -439,10 +465,13 @@ export function DataTable<T>({
                           />
                         </td>
                       ) : null}
-                      {columns.map((column) => (
+                      {columns.map((column, index) => (
                         <td
                           key={column.key}
-                          className={cellClass(column as DataTableColumn<unknown>)}
+                          className={cellClass(
+                            column as DataTableColumn<unknown>,
+                            stickyFirstColumn && index === 0,
+                          )}
                         >
                           {href && column.key === linkColumnKey ? (
                             <Link

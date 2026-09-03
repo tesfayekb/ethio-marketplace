@@ -32,3 +32,28 @@ Images: every node carries thumbnail / card 512 / large 1200×630; the card imag
 - **Row actions** — ONE button set with two presentations: full text in the 360 card, a compact icon strip from lg with the label in `aria-label`/`title`. DELIBERATE DEVIATION from the requested overflow menu: a second icon-only twin (or a portalled menu) would put two matches for `category-<verb>-<slug>` inside one actions region and break the twin-aware locators (J5), so every verb stays a single element at ≥44px.
 
 E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search, create/edit, visibility window, exclusions, retirement, step-up, pointer-move refusal without a proven factor (CT-7b), tablet-band action reachability at 1024 (CT-8) and the Parent column + 25-row page (CT-9). Scratch nodes are slugged `e2e-cat-%` and swept by the global-setup reaper (DEC-031).
+
+## C2c — server-derived slugs, missing assets, and roster controls
+
+- **The slug is no longer typed.** Create takes a name; `admin_create_category`
+  derives the slug, collapses non-alphanumerics and appends a numeric suffix on
+  collision. The dialog shows a read-only PREVIEW (`deriveSlugPreview`) that
+  mirrors the derivation but decides nothing — uniqueness has exactly one
+  authority, the server (F3).
+- **Missing assets.** `admin_list_categories` now returns `has_image`. A category
+  with no icon or no image carries an amber flag with a tooltip, and the roster
+  gains a "Missing assets" filter, so the launch gap is visible rather than
+  discovered in browse.
+- **Badge tooltips.** Every status/flag badge carries `title` plus an
+  `aria-label` of the form `<chip>: <description>`. Retired reads exactly:
+  it keeps its history and its browse pointers, but no new listing can be posted
+  to it and it no longer appears as a destination.
+- **Parent pickers offer ACTIVE nodes only**, each rendered with its full path
+  (`Vehicles › Cars`). A retired node is not a destination; hanging a live child
+  under one would hide it from browse at birth. CT-10 asserts the absence.
+- **Roster controls.** Search matches name, slug AND parent name; the root filter
+  prints per-root counts; page size is a DEVICE setting (10/25/50/100, default 25)
+  persisted in localStorage and read after mount, so SSR and the first client
+  frame agree. CT-11 asserts it survives a reload.
+- **Column tiers.** Order / Listings / Excluded moved to the `wide` tier and the
+  Name column is pinned, so the 1024–1240 band shows identity plus actions.

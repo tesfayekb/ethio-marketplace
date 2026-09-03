@@ -1,0 +1,6 @@
+// INERT FIXTURE (INC-133) — never imported, never compiled. It exists so the
+// hardcoded-string guard is proven NOT to bite on TypeScript generics: this
+// file must PASS the scan even though it contains ">…<".
+export function GoodPanel({ run }: { run: () => Promise<unknown> }) {
+  return <button onClick={() => void run()}>{"ok"}</button>;
+}

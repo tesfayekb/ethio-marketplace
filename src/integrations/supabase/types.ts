@@ -1138,11 +1138,11 @@ export type Database = {
       }
       admin_create_category: {
         Args: {
-          p_allow_listings: boolean
-          p_icon: string
+          p_allow_listings?: boolean
+          p_icon?: string
           p_name_en: string
-          p_parent_id: string
-          p_slug: string
+          p_parent_id?: string
+          p_slug?: string
         }
         Returns: string
       }
@@ -1247,6 +1247,7 @@ export type Database = {
           excluded_country_codes: string[]
           exclusion_count: number
           expiry_days: number
+          has_image: boolean
           icon: string
           id: string
           is_active: boolean
@@ -1573,6 +1574,7 @@ export type Database = {
           session_id: string
         }[]
       }
+      category_slug_candidate: { Args: { p_name: string }; Returns: string }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       e2e_migration_ledger: { Args: never; Returns: string[] }
       end_impersonation: { Args: { p_session: string }; Returns: undefined }

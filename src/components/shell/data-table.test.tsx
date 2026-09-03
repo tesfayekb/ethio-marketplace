@@ -111,6 +111,39 @@ describe("DataTable C7 contract", () => {
     expect(frame.className).toContain("max-w-full");
   });
 
+  it('hides a "wide" column below xl and keeps it out of the card twin (INC-135)', () => {
+    renderTable({
+      columns: [
+        ...columns(),
+        {
+          key: "tail",
+          header: "Tail",
+          priority: "wide",
+          cell: () => <span data-testid="wide-cell">tail</span>,
+        },
+      ],
+    });
+    expect(screen.getByTestId("data-table-col-tail").className).toContain("hidden");
+    expect(screen.getByTestId("data-table-col-tail").className).toContain("xl:table-cell");
+    // Card twin: primary + secondary only, so a wide column never renders there.
+    expect(screen.getAllByTestId("wide-cell")).toHaveLength(ROWS.length);
+  });
+
+  it("pins the first column when stickyFirstColumn is set (INC-135)", () => {
+    renderTable({ columns: columns("min-w-40"), stickyFirstColumn: true });
+    const head = screen.getByTestId("data-table-col-name");
+    expect(head.className).toContain("sticky");
+    // Logical offset (RTL-safe) and a token background, never a hardcoded one.
+    expect(head.className).toContain("start-0");
+    expect(head.className).toContain("bg-card");
+    expect(screen.getByTestId("data-table-col-note").className).not.toContain("sticky");
+  });
+
+  it("leaves the first column unpinned by default", () => {
+    renderTable();
+    expect(screen.getByTestId("data-table-col-name").className).not.toContain("sticky");
+  });
+
   it("renders the empty, loading and error slots unchanged", () => {
     const empty = renderTable({ rows: [] });
     expect(screen.getByTestId("slot-empty")).toBeTruthy();
