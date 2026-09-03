@@ -102,9 +102,6 @@
     "admin.categories.action.exclusions": [
       "/admin/categories"
     ],
-    "admin.categories.action.more": [
-      "/admin/categories"
-    ],
     "admin.categories.action.pointer": [
       "/admin/categories"
     ],

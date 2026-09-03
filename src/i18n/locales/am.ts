@@ -779,7 +779,6 @@ export const am: Messages = {
   "admin.categories.action.exclusions": "አገሮች",
   "admin.categories.action.retire": "ጡረታ አውጣ",
   "admin.categories.col.parent": "ወላጅ",
-  "admin.categories.action.more": "ተጨማሪ እርምጃዎች",
   "admin.categories.filter.root": "በዋና ምድብ አጣራ",
   "admin.categories.filter.allRoots": "ሁሉም ዋና ምድቦች",
   "admin.categories.paths.title": "የአሰሳ መንገዶች",

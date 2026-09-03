@@ -52,36 +52,6 @@ type DialogState =
   | { kind: "create" }
   | { kind: "edit" | "window" | "exclusions" | "retire" | "pointer"; id: string };
 
-function IconAction({
-  testid,
-  label,
-  icon,
-  disabled,
-  onClick,
-}: {
-  testid: string;
-  label: string;
-  icon: React.ReactNode;
-  disabled?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon"
-      className="size-11 shrink-0"
-      data-testid={testid}
-      aria-label={label}
-      title={label}
-      disabled={disabled}
-      onClick={onClick}
-    >
-      {icon}
-    </Button>
-  );
-}
-
 export function AdminCategoriesPage() {
   const { t } = useI18n();
   const { permissions } = useAdminShell();

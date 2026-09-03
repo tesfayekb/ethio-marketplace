@@ -815,7 +815,6 @@ export const en = {
   "admin.categories.action.exclusions": "Countries",
   "admin.categories.action.retire": "Retire",
   "admin.categories.col.parent": "Parent",
-  "admin.categories.action.more": "More actions",
   "admin.categories.filter.root": "Filter by root category",
   "admin.categories.filter.allRoots": "All root categories",
   "admin.categories.paths.title": "Browse paths",
