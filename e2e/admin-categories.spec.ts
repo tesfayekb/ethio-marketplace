@@ -381,12 +381,30 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { user, secret } = await signInAsSuperAdmin(page);
     let slug = "";
+    let listingId = "";
     try {
       slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+
+      /**
+       * C2-CLOSE Part B (J7) — SEED BEFORE NAVIGATE. The dialog only offers
+       * the reassign picker when the category HOLDS active listings, so the
+       * fixture writes one `status: 'active'` listing with every required
+       * column and only THEN loads the console, which reads the count.
+       */
+      listingId = await seedActiveListing(scratch!.id, user.id);
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
       await openEditor(page, slug);
       await action(page, slug, "retire").click();
+      await expect(page.getByTestId("category-retire-dialog")).toBeVisible({ timeout: 20000 });
+      // The picker is present and its label carries the live count.
+      await expect(page.getByTestId("category-retire-dialog")).toContainText(
+        en["admin.categories.retire.reassignCount"].replace("{count}", "1"),
+      );
+      await expect(page.getByTestId("category-retire-target")).toBeVisible();
       await page.getByTestId("category-retire-target").selectOption({ index: 1 });
       await page.getByTestId("category-retire-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -394,15 +412,21 @@ test.describe("C2 categories console", () => {
       await expect
         .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
         .toBe(false);
+      // The listing kept a home: it now hangs under the reassignment target.
+      await expect
+        .poll(async () => (await readListing(listingId))?.category_id, { timeout: 20000 })
+        .not.toBe(scratch!.id);
       // The row stays in the console (retired ≠ deleted) but reads as retired.
       await findRow(page, slug);
       await openEditor(page, slug);
       await expect(action(page, slug, "reactivate")).toBeVisible({ timeout: 20000 });
       await expect(action(page, slug, "retire")).toHaveCount(0);
     } finally {
+      if (listingId) await adminClient().from("listings").delete().eq("id", listingId);
       if (slug) await destroyCategory(slug);
     }
   });
+
 
   test("CT-7 step-up: the server refuses the write until AAL2 is proven", async ({ page }) => {
     bandOnly(page, "any");
