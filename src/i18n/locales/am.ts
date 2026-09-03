@@ -821,6 +821,7 @@ export const am: Messages = {
   "admin.categories.field.icon": "አዶ",
   "admin.categories.field.order": "የማሳያ ቅደም ተከተል",
   "admin.categories.field.expiryDays": "የዝርዝር ማብቂያ (ቀናት)",
+  "admin.categories.field.expiryNone": "ማብቂያ የለም",
   "admin.categories.field.allowListings": "ዝርዝሮችን ይቀበላል",
   "admin.categories.field.priceEnabled": "የዋጋ መስክ ነቅቷል",
   "admin.categories.window.title": "የታይነት መስኮት",
@@ -846,6 +847,8 @@ export const am: Messages = {
   "admin.categories.pointer.parent": "ተጨማሪ ወላጅ",
   "admin.categories.pointer.parentPlaceholder": "ወላጅ ይምረጡ",
   "admin.categories.error.saveFailed": "ለውጡን ማስቀመጥ አልተቻለም።",
+  "admin.categories.error.catchallParent":
+    "የተረፈ-ሁሉ ምድብ ወላጅ ሊሆን አይችልም። ሌላ መድረሻ ይምረጡ።",
   "admin.categories.error.nameRequired": "ስም ያስፈልጋል።",
   "admin.categories.error.reassignRequired": "ዝርዝሮቹ የሚሄዱበትን ይምረጡ።",
   "admin.categories.error.parentRequired": "ወላጅ ይምረጡ።",
