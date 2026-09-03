@@ -34,9 +34,8 @@ async function run(categoryId: string, customPrompt: string | undefined): Promis
   const { buildPrompt } = await import("@/server/category-images/prompt");
   const { processGeneratedPng } = await import("@/server/category-images/pipeline");
   const { fakeGeneratedPng } = await import("@/server/category-images/fixture");
-  const { generateImageBytes, isFakeMode, GeminiError } = await import(
-    "@/server/category-images/gemini"
-  );
+  const { generateImageBytes, isFakeMode, GeminiError } =
+    await import("@/server/category-images/gemini");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const { data: category, error: categoryError } = await supabaseAdmin
@@ -132,7 +131,8 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { gateCategoriesAssets, json, fail5xx } = await import("@/server/category-images/gate");
+        const { gateCategoriesAssets, json, fail5xx } =
+          await import("@/server/category-images/gate");
         const gate = await gateCategoriesAssets(request, PATH);
         if (!gate.ok) return gate.response;
 
@@ -175,7 +175,8 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
 
       // A7 WALK SURFACE: the full flow, rendered inline with its timings.
       GET: async ({ request }) => {
-        const { gateCategoriesAssets, json, fail5xx } = await import("@/server/category-images/gate");
+        const { gateCategoriesAssets, json, fail5xx } =
+          await import("@/server/category-images/gate");
         const url = new URL(request.url);
         if (url.searchParams.get("probe") !== "1") {
           return json({ error: "probe=1 required" }, 400);

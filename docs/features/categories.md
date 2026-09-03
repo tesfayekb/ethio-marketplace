@@ -210,3 +210,36 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
   reassign picker's count, the reassignment and the listing's new home. CT-16
   is the return-path law: editor → Countries → close → editor still open →
   close → table.
+
+## C5a — AI asset foundation (2026-09-03)
+
+- **Keys and models.** `GEMINI_API_KEY` is a server-env secret, read inside the
+  handler only (F1). `GEMINI_IMAGE_MODEL` (default `gemini-2.5-flash-image`) and
+  `GEMINI_TEXT_MODEL` (default `gemini-2.5-flash-lite`) are overridable;
+  `GEMINI_FAKE=1` short-circuits the model call with a deterministic in-repo
+  fixture so CI proves the whole pipeline with no key and no spend.
+- **Storage.** Bucket `category-assets`, one folder per category id
+  (`<id>/card-512.png`, `thumb-128.png`, `og-1200x630.png`). Read is open to
+  `anon`/`authenticated`; INSERT/UPDATE/DELETE are service-role only, with
+  in-file proofs. LIMITATION: the workspace blocks public buckets, so the bucket
+  is PRIVATE — an operator must flip it public before the stored
+  `/storage/v1/object/public/...` URLs render in a browser.
+- **Pipeline** (`src/server/category-images/**`, pure JS on `pngjs`): master
+  prompt verbatim in code (palette #1E5A43 primary / #C98A2B accent, white
+  background, flat vector, no text, ~85% fill); decode → white-to-transparent →
+  content-bounds crop → scale to 85% fill → six diagonal "ethio.com" watermarks
+  at −30° / 28% opacity drawn BEHIND the icon → 512 card → 128 thumb derived
+  from the card → 1200×630 OG composed programmatically (no second AI call).
+  Every stage is timed and returned as `{genMs, processMs, totalMs}`.
+- **Routes.** `POST /api/admin/categories/generate-image` (body
+  `{categoryId, customPrompt?}`) uploads the three assets and persists
+  `image_url`, `image_thumb_url`, `og_image_url`, `image_generation_prompt`.
+  `GET /api/admin/categories/generate-image?probe=1&categoryId=…` is the A7 walk
+  surface: the same flow rendered as an HTML page with the three images inline
+  and the timing JSON. `POST /api/admin/categories/suggest-icon` returns one
+  lucide name from the server-side allowlist (`Package` fallback). Both gate on
+  auth + `categories:assets` exactly as the U4c translations route does, log
+  every 5xx as `[ssr-error]`, and pass provider 402/429 through untouched.
+- **E2E.** `e2e/category-image-routes.spec.ts` (CI-1..CI-3) in fake mode:
+  unauthenticated refusal, a fake generate proved against DB truth, and an
+  allowlisted icon. Scratch category and bucket objects are deleted in `finally`.

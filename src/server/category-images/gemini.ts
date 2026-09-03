@@ -64,7 +64,10 @@ async function callGemini(model: string, body: unknown): Promise<GeminiResponse>
   }
   if (!response.ok) {
     // 429 (rate limit) and 402 (billing) are surfaced with their own status.
-    throw new GeminiError(parsed.error?.message ?? `provider error ${response.status}`, response.status);
+    throw new GeminiError(
+      parsed.error?.message ?? `provider error ${response.status}`,
+      response.status,
+    );
   }
   return parsed;
 }
@@ -101,7 +104,7 @@ export async function suggestIconName(
               "Pick the single best lucide-react icon for an online marketplace category.",
               `Category name: ${name}.`,
               parentName ? `Parent section: ${parentName}.` : "",
-              "Answer with JSON only: {\"icon\": \"<one name from the allowed list>\"}.",
+              'Answer with JSON only: {"icon": "<one name from the allowed list>"}.',
             ]
               .filter(Boolean)
               .join(" "),
@@ -118,7 +121,9 @@ export async function suggestIconName(
       },
     },
   });
-  const text = parsed.candidates?.[0]?.content?.parts?.find((p) => typeof p.text === "string")?.text;
+  const text = parsed.candidates?.[0]?.content?.parts?.find(
+    (p) => typeof p.text === "string",
+  )?.text;
   if (!text) return null;
   try {
     return (JSON.parse(text) as { icon?: unknown }).icon;

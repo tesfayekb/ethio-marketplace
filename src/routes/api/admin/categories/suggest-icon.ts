@@ -21,7 +21,8 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { gateCategoriesAssets, json, fail5xx } = await import("@/server/category-images/gate");
+        const { gateCategoriesAssets, json, fail5xx } =
+          await import("@/server/category-images/gate");
         const gate = await gateCategoriesAssets(request, PATH);
         if (!gate.ok) return gate.response;
 
@@ -39,9 +40,8 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
         }
 
         const { ICON_ALLOWLIST, validateIcon } = await import("@/server/category-images/icons");
-        const { isFakeMode, suggestIconName, GeminiError } = await import(
-          "@/server/category-images/gemini"
-        );
+        const { isFakeMode, suggestIconName, GeminiError } =
+          await import("@/server/category-images/gemini");
 
         if (isFakeMode()) {
           return json({ icon: validateIcon(FAKE_ICON), fake: true }, 200);
