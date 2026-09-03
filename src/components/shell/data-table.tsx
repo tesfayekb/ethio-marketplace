@@ -296,9 +296,17 @@ export function DataTable<T>({
     return frame(<PageCard testid="data-table-empty">{emptyState}</PageCard>);
   }
 
+  /**
+   * C2-UI-FIX-3 — when the split is at `xl` the card twin is the ONLY
+   * presentation below a wide desktop, so dropping the `wide` tier there would
+   * hide that content outright. A vertical card has the room the table row did
+   * not: at `cardUntil="xl"` the card carries every column except `detail`.
+   */
   const cardColumns = columns.filter(
-    (column) => column.priority !== "detail" && column.priority !== "wide",
+    (column) =>
+      column.priority !== "detail" && (cardUntil === "xl" || column.priority !== "wide"),
   );
+
   const selectedKeys = new Set(selection?.selectedKeys ?? []);
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
 
