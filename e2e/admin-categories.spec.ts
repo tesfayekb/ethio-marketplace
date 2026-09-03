@@ -1,6 +1,8 @@
 import { type Locator, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
+import { en } from "../src/i18n/locales/en";
+
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -727,10 +729,26 @@ test.describe("C2 categories console", () => {
         },
         true,
       );
+      /**
+       * C2h / CT-12-TRUTH — the closing check asserts the PRODUCT'S CORRECT
+       * behaviour: a reactivated category IS on the roster, carries the Active
+       * status badge, and offers Retire while Reactivate is gone. (The former
+       * line asserted the inverse.) The badge is resolved through its
+       * accessible description, never through raw English in the spec (J5).
+       */
+      const activeBadge = categoryRow(page, slug).locator(
+        `[aria-label="${en["admin.categories.badge.active"]}: ${en["admin.categories.tip.active"]}"]`,
+      );
+      await step("CT-12 the roster shows the row as Active", () => activeBadge.count(), 1);
       await step(
         "CT-12 an active row offers Retire",
         () => action(page, slug, "retire").isVisible(),
         true,
+      );
+      await step(
+        "CT-12 an active row no longer offers Reactivate",
+        () => action(page, slug, "reactivate").count(),
+        0,
       );
     } finally {
       if (slug) await destroyCategory(slug);
