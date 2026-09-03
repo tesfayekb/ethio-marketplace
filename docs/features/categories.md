@@ -243,3 +243,24 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
 - **E2E.** `e2e/category-image-routes.spec.ts` (CI-1..CI-3) in fake mode:
   unauthenticated refusal, a fake generate proved against DB truth, and an
   allowlisted icon. Scratch category and bucket objects are deleted in `finally`.
+
+## Category imagery (C5b)
+
+The Image tab of the category editor is the review surface for AI-generated
+artwork. Generation is not a draft: the gated route writes the three objects
+(card 512, thumbnail 128, social 1200x630) and the category row in one call,
+and the operator reviews the result here and regenerates until it is right. A
+custom prompt is optional and is persisted with the row. A draft-asset state
+(generate, hold, publish) arrives when listings consume category imagery — the
+ruling logged with C5b keeps today's model deliberately simple.
+
+The create dialog carries no manual icon field. On name blur the dialog asks
+the suggester route for an allowlisted icon; the manual picker is the fallback
+(opened with "Change", or applied automatically with the `Package` default when
+the suggester errs, which is surfaced translated). After a successful create
+the dialog offers to generate the image immediately.
+
+Beside the missing-assets filter, "Generate missing (max 25)" runs a serial
+client-driven fill over the filtered rows lacking imagery: a live n/N caption,
+per-row failures reported with their pipeline stage without stopping the run,
+and a closing summary that says when another pass is needed.

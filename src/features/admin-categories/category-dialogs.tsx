@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { FormField } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
+import { GeneratePanel } from "./category-image-dialog";
+import { ICON_CHOICES, suggestCategoryIcon } from "./category-images-service";
 import {
   activeParentOptions,
   deriveSlugPreview,
@@ -128,9 +130,48 @@ export function CreateCategoryDialog({
   const create = useCreateCategory();
   const { message, setMessage, fail } = useSubmitError();
   const [nameEn, setNameEn] = useState("");
-  const [icon, setIcon] = useState("");
   const [parentId, setParentId] = useState("");
   const [allowListings, setAllowListings] = useState(true);
+  /**
+   * C5b PART B — NO MANUAL ICON. The operator names the category; the icon is
+   * suggested by the (allowlist-constrained) route on name blur. The manual
+   * picker is the FALLBACK, opened by "Change" or by a suggester failure — the
+   * failure is surfaced translated and the `Package` default is applied (F4).
+   */
+  const [icon, setIcon] = useState("Package");
+  const [suggesting, setSuggesting] = useState(false);
+  const [iconNotice, setIconNotice] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  /** C5b PART B — after a successful create the dialog advances to this step. */
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (suggestTimer.current !== null) clearTimeout(suggestTimer.current);
+    },
+    [],
+  );
+
+  const parentName =
+    parentId === "" ? null : (parents.find((row) => row.id === parentId)?.nameEn ?? null);
+
+  /** Debounced so a blur-then-blur never fires two calls (I3). */
+  const requestSuggestion = (name: string) => {
+    if (name.trim().length === 0 || createdId !== null) return;
+    if (suggestTimer.current !== null) clearTimeout(suggestTimer.current);
+    suggestTimer.current = setTimeout(() => {
+      setIconNotice(null);
+      setSuggesting(true);
+      void suggestCategoryIcon({ name: name.trim(), parentName })
+        .then((suggested) => setIcon(suggested))
+        .catch(() => {
+          setIcon("Package");
+          setIconNotice(t("admin.categories.error.iconSuggestFailed"));
+        })
+        .finally(() => setSuggesting(false));
+    }, 300);
+  };
 
   const submit = () => {
     setMessage(null);
@@ -140,13 +181,13 @@ export function CreateCategoryDialog({
     }
     void guard(async () => {
       try {
-        await create.mutateAsync({
+        const id = await create.mutateAsync({
           nameEn: nameEn.trim(),
           icon: icon.trim(),
           parentId: parentId === "" ? null : parentId,
           allowListings,
         });
-        onClose();
+        setCreatedId(id);
       } catch (error) {
         fail(error);
       }
@@ -160,62 +201,127 @@ export function CreateCategoryDialog({
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
-      <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
-        <Input
-          id="category-create-name"
-          data-testid="category-create-name"
-          value={nameEn}
-          onChange={(event) => setNameEn(event.target.value)}
-        />
-      </FormField>
-      {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
-          server will derive; the RPC owns the final value and any -2/-3
-          uniqueness suffix, so there is exactly one authority (F3). */}
-      <p className="text-sm text-muted-foreground">
-        <span>{t("admin.categories.create.slugPreview")}</span>{" "}
-        <span data-testid="category-create-slug-preview" className="break-all font-mono">
-          {deriveSlugPreview(nameEn.trim())}
-        </span>
-      </p>
-      <FormField label={t("admin.categories.create.icon")} htmlFor="category-create-icon">
-        <Input
-          id="category-create-icon"
-          data-testid="category-create-icon"
-          value={icon}
-          onChange={(event) => setIcon(event.target.value)}
-        />
-      </FormField>
-      <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
-        <select
-          id="category-create-parent"
-          data-testid="category-create-parent"
-          className={SELECT_CLASS}
-          value={parentId}
-          onChange={(event) => setParentId(event.target.value)}
-        >
-          <option value="">{t("admin.categories.create.parentRoot")}</option>
-          {activeParentOptions(parents).map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </FormField>
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid="category-create-allow"
-          checked={allowListings}
-          onCheckedChange={(checked) => setAllowListings(checked === true)}
-        />
-        {t("admin.categories.field.allowListings")}
-      </label>
-      <ErrorLine message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={create.isPending}
-        submitTestId="category-create-submit"
-      />
+      {createdId === null ? (
+        <>
+          <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
+            <Input
+              id="category-create-name"
+              data-testid="category-create-name"
+              value={nameEn}
+              onChange={(event) => setNameEn(event.target.value)}
+              onBlur={(event) => requestSuggestion(event.target.value)}
+            />
+          </FormField>
+          {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
+              server will derive; the RPC owns the final value and any -2/-3
+              uniqueness suffix, so there is exactly one authority (F3). */}
+          <p className="text-sm text-muted-foreground">
+            <span>{t("admin.categories.create.slugPreview")}</span>{" "}
+            <span data-testid="category-create-slug-preview" className="break-all font-mono">
+              {deriveSlugPreview(nameEn.trim())}
+            </span>
+          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-foreground">
+              <span>{t("admin.categories.create.iconSuggested")}</span>{" "}
+              <span data-testid="category-create-icon-suggested" className="font-mono">
+                {suggesting ? t("admin.categories.create.iconSuggesting") : icon}
+              </span>
+            </p>
+            {iconNotice === null ? null : (
+              <p
+                role="alert"
+                data-testid="category-create-icon-notice"
+                className="text-sm text-destructive"
+              >
+                {iconNotice}
+              </p>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              data-testid="category-create-icon-change"
+              onClick={() => setPickerOpen((prev) => !prev)}
+            >
+              {t("admin.categories.create.iconChange")}
+            </Button>
+            {pickerOpen ? (
+              <FormField
+                label={t("admin.categories.create.iconPick")}
+                htmlFor="category-create-icon"
+              >
+                <select
+                  id="category-create-icon"
+                  data-testid="category-create-icon"
+                  className={SELECT_CLASS}
+                  value={icon}
+                  onChange={(event) => setIcon(event.target.value)}
+                >
+                  {ICON_CHOICES.map((choice) => (
+                    <option key={choice} value={choice}>
+                      {choice}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            ) : null}
+          </div>
+          <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
+            <select
+              id="category-create-parent"
+              data-testid="category-create-parent"
+              className={SELECT_CLASS}
+              value={parentId}
+              onChange={(event) => setParentId(event.target.value)}
+            >
+              <option value="">{t("admin.categories.create.parentRoot")}</option>
+              {activeParentOptions(parents).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+            <Checkbox
+              data-testid="category-create-allow"
+              checked={allowListings}
+              onCheckedChange={(checked) => setAllowListings(checked === true)}
+            />
+            {t("admin.categories.field.allowListings")}
+          </label>
+          <ErrorLine message={message} />
+          <DialogActions
+            onCancel={onClose}
+            onSubmit={submit}
+            busy={create.isPending}
+            submitTestId="category-create-submit"
+          />
+        </>
+      ) : (
+        <div className="space-y-3" data-testid="category-create-generate-step">
+          <p className="text-sm font-medium text-foreground">
+            {t("admin.categories.create.generateTitle")}
+          </p>
+          <GeneratePanel
+            categoryId={createdId}
+            hasExisting={false}
+            testid="category-create-image"
+          />
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              data-testid="category-create-generate-skip"
+              onClick={onClose}
+            >
+              {t("admin.categories.create.generateSkip")}
+            </Button>
+          </div>
+        </div>
+      )}
     </CategoryModal>
   );
 }

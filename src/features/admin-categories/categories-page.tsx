@@ -3,6 +3,7 @@ import {
   ArrowUp,
   CalendarClock,
   Globe,
+  ImageIcon,
   Pencil,
   RotateCcw,
   Share2,
@@ -10,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
   DataTable,
@@ -26,6 +28,8 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
+import { CategoryImageDialog } from "./category-image-dialog";
+import { CategoryImageError, generateCategoryImage } from "./category-images-service";
 import {
   CategoryExclusionsDialog,
   CategoryPathsDialog,
@@ -38,7 +42,12 @@ import {
   useSubmitError,
 } from "./category-dialogs";
 import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
-import { useAdminCategories, useReactivateCategory, useReorderCategories } from "./use-categories";
+import {
+  ADMIN_CATEGORIES_KEY,
+  useAdminCategories,
+  useReactivateCategory,
+  useReorderCategories,
+} from "./use-categories";
 
 /**
  * C2-UI — THE CATEGORIES CONSOLE.
@@ -72,7 +81,10 @@ const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
  * Delete) opens ON TOP of `kind: "edit"` and closing it clears only `sub`, so
  * the operator returns to the OPEN editor, never to the bare table.
  */
-type EditorSub = "window" | "exclusions" | "retire" | "pointer" | "delete";
+type EditorSub = "window" | "exclusions" | "retire" | "pointer" | "delete" | "image";
+
+/** C5b PART C — the bulk fill never runs more than this in one pass. */
+const BULK_LIMIT = 25;
 
 /**
  * C2-GHOST (INC-152) — the editor records HOW it was opened, so a ghost dialog
@@ -168,6 +180,19 @@ export function AdminCategoriesPage() {
   const mayCreate = permissions.includes("categories:create");
   const mayUpdate = permissions.includes("categories:update");
   const mayRestructure = permissions.includes("categories:restructure");
+  const mayAssets = permissions.includes("categories:assets");
+
+  /**
+   * C5b PART C — BULK FILL. A client-driven SERIAL loop over the rows the
+   * current filter shows without imagery: one gated route call at a time, a
+   * live n/N caption, and a per-row failure (with its stage) that NEVER stops
+   * the run (F4). One run at a time; the controls disable while it is live.
+   */
+  const queryClient = useQueryClient();
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
+  const [bulkFailures, setBulkFailures] = useState<string[]>([]);
+  const [bulkSummary, setBulkSummary] = useState<string | null>(null);
 
   const roster = useMemo(() => toRoster(data ?? []), [data]);
   const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
@@ -444,6 +469,37 @@ export function AdminCategoriesPage() {
       </span>
     ) : null;
 
+  const runBulkFill = async (candidates: CategoryNode[]) => {
+    const batch = candidates.slice(0, BULK_LIMIT);
+    const remaining = candidates.length - batch.length;
+    setBulkBusy(true);
+    setBulkFailures([]);
+    setBulkSummary(null);
+    setBulkProgress({ done: 0, total: batch.length });
+    let generated = 0;
+    const failures: string[] = [];
+    for (const [index, row] of batch.entries()) {
+      try {
+        await generateCategoryImage({ categoryId: row.id });
+        generated += 1;
+      } catch (error) {
+        const stage = error instanceof CategoryImageError && error.stage ? ` ${error.stage}` : "";
+        const detail = error instanceof Error ? error.message : "";
+        failures.push(`${row.slug}: ${t("admin.categories.image.stageLabel")}${stage} ${detail}`);
+      }
+      setBulkProgress({ done: index + 1, total: batch.length });
+    }
+    setBulkFailures(failures);
+    setBulkSummary(
+      `${generated} ${t("admin.categories.bulk.generated")} · ${failures.length} ${t("admin.categories.bulk.failed")}${
+        remaining > 0 ? ` · ${t("admin.categories.bulk.more")}` : ""
+      }`,
+    );
+    setBulkBusy(false);
+    setBulkProgress(null);
+    await queryClient.invalidateQueries({ queryKey: ADMIN_CATEGORIES_KEY });
+  };
+
   /**
    * The editor's verb bar: full-text buttons, ≥44px, wrapping by construction
    * so a 360px dialog and a 1440px dialog both show every verb without a
@@ -507,6 +563,14 @@ export function AdminCategoriesPage() {
                   }),
               ),
             ]
+          : null}
+        {mayAssets
+          ? verb(
+              `category-image-${row.slug}`,
+              t("admin.categories.action.image"),
+              <ImageIcon aria-hidden="true" className="size-4" />,
+              () => setDialog({ kind: "edit", id: row.id, sub: "image", openedBy: "verb-image" }),
+            )
           : null}
         {mayRestructure
           ? [
@@ -654,6 +718,47 @@ export function AdminCategoriesPage() {
                 >
                   {t("admin.categories.filter.missingAssets")}
                 </Button>
+                {mayAssets ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="min-h-11"
+                    data-testid="category-bulk-generate"
+                    disabled={bulkBusy}
+                    onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
+                  >
+                    {t("admin.categories.bulk.generateMissing")}
+                  </Button>
+                ) : null}
+                {bulkProgress === null ? null : (
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    data-testid="category-bulk-progress"
+                    className="self-center text-sm text-muted-foreground"
+                  >
+                    {`${t("admin.categories.bulk.progress")} ${bulkProgress.done}/${bulkProgress.total}`}
+                  </p>
+                )}
+                {bulkSummary === null ? null : (
+                  <p
+                    role="status"
+                    data-testid="category-bulk-summary"
+                    className="self-center text-sm text-muted-foreground"
+                  >
+                    {bulkSummary}
+                  </p>
+                )}
+                {bulkFailures.length === 0 ? null : (
+                  <ul
+                    data-testid="category-bulk-failures"
+                    className="w-full text-sm text-destructive"
+                  >
+                    {bulkFailures.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                )}
                 <select
                   data-testid="category-page-size"
                   aria-label={t("admin.categories.filter.pageSize")}
@@ -739,6 +844,15 @@ export function AdminCategoriesPage() {
               category={selected}
               openedBy="verb-delete"
               guard={guard}
+              onClose={() =>
+                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
+              }
+            />
+          ) : null}
+          {selected && dialog.kind === "edit" && dialog.sub === "image" ? (
+            <CategoryImageDialog
+              category={selected}
+              openedBy="verb-image"
               onClose={() =>
                 closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
               }

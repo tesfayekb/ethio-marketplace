@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 188,
+  "scanned": 190,
   "dynamicCallSites": 69,
   "keys": {
     "account.deactivatedBanner": [
@@ -105,6 +105,9 @@
     "admin.categories.action.exclusions": [
       "/admin/categories"
     ],
+    "admin.categories.action.image": [
+      "/admin/categories"
+    ],
     "admin.categories.action.pointer": [
       "/admin/categories"
     ],
@@ -141,6 +144,21 @@
     "admin.categories.badge.window": [
       "/admin/categories"
     ],
+    "admin.categories.bulk.failed": [
+      "/admin/categories"
+    ],
+    "admin.categories.bulk.generateMissing": [
+      "/admin/categories"
+    ],
+    "admin.categories.bulk.generated": [
+      "/admin/categories"
+    ],
+    "admin.categories.bulk.more": [
+      "/admin/categories"
+    ],
+    "admin.categories.bulk.progress": [
+      "/admin/categories"
+    ],
     "admin.categories.caption": [
       "/admin/categories"
     ],
@@ -165,7 +183,22 @@
     "admin.categories.col.status": [
       "/admin/categories"
     ],
-    "admin.categories.create.icon": [
+    "admin.categories.create.generateSkip": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.generateTitle": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.iconChange": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.iconPick": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.iconSuggested": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.iconSuggesting": [
       "/admin/categories"
     ],
     "admin.categories.create.name": [
@@ -208,6 +241,12 @@
       "/admin/categories"
     ],
     "admin.categories.error": [
+      "/admin/categories"
+    ],
+    "admin.categories.error.iconSuggestFailed": [
+      "/admin/categories"
+    ],
+    "admin.categories.error.imageFailed": [
       "/admin/categories"
     ],
     "admin.categories.error.nameRequired": [
@@ -265,6 +304,42 @@
       "/admin/categories"
     ],
     "admin.categories.filter.root": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.busy": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.card": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.customPrompt": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.customPromptHelp": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.empty": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.generate": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.og": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.regenerate": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.review": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.stageLabel": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.thumb": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.title": [
       "/admin/categories"
     ],
     "admin.categories.loading": [
