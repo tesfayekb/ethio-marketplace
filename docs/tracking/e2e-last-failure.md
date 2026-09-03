@@ -2,28 +2,216 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33736131036
 - Commit: `eaa0e46e3d09f5e2ab30cf8a8fa085ba4c160ad2`
-- Attempt: 1
-- Written (UTC): 2026-09-03T08:57:20.929Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Attempt: 2
+- Written (UTC): 2026-09-03T09:10:31.924Z
+- Passed: 442 · Skipped: 73 · Failed: 6
+- Gating failures: 6 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Sources without results: none
 
-## Server errors: smoke
+## admin-categories.spec.ts › C2 categories console › CT-6 retirement: a retired category leaves the active tree and keeps its listings home
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+- Source: `shard 1`
+- Project: `mobile-360`
 
-## Client errors: smoke
+```text
+Test timeout of 60000ms exceeded.
+```
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+Context:
 
-## Server errors: email
+```text
+            - list:
+              - listitem:
+                - generic: Terms
+              - listitem:
+                - generic: Privacy
+        - generic:
+          - paragraph: © 2026 ethio.com — All rights reserved.
+  - dialog "Retire category" [ref=e2]:
+    - heading "Retire category" [level=2] [ref=e3]
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: Retire category
+      - paragraph [ref=e6]: The category is deactivated and its listings move to the category you choose.
+      - paragraph [ref=e7]: No listings to move — the category will simply be hidden from browse and posting.
+      - generic [ref=e8]:
+        - button "Cancel" [active] [ref=e9] [cursor=pointer]
+        - button "Retire" [ref=e10] [cursor=pointer]
+    - button "Close" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]
+      - generic [ref=e15]: Close
+```
+```
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+## admin-categories.spec.ts › C2 categories console › CT-6 retirement: a retired category leaves the active tree and keeps its listings home
 
-## Client errors: email
+- Source: `shard 4`
+- Project: `desktop-1280`
 
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+            - list:
+              - listitem:
+                - generic: Terms
+              - listitem:
+                - generic: Privacy
+        - generic:
+          - paragraph: © 2026 ethio.com — All rights reserved.
+  - dialog "Retire category" [ref=e2]:
+    - heading "Retire category" [level=2] [ref=e3]
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: Retire category
+      - paragraph [ref=e6]: The category is deactivated and its listings move to the category you choose.
+      - paragraph [ref=e7]: No listings to move — the category will simply be hidden from browse and posting.
+      - generic [ref=e8]:
+        - button "Cancel" [active] [ref=e9] [cursor=pointer]
+        - button "Retire" [ref=e10] [cursor=pointer]
+    - button "Close" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]
+      - generic [ref=e15]: Close
+```
+```
+
+## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: CT-12 the reactivated row is still on the roster — [e2e:c2] lifecycle e2e-cat-4-4-t7pk5k: dom={"dialogs":["category-edit-dialog","category-verb-bar","category-dialog-cancel"],"openDialogs":1} db={"id":"6f71470a-5626-4f89-b1a4-da707f71f587","slug":"e2e-cat-4-4-t7pk5k","is_active":true} clientErrors=[]
+```
+
+Context:
+
+```text
+        - generic [ref=e29]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e30]:
+          - /placeholder: No expiry
+      - generic [ref=e31]:
+        - checkbox "Accepts listings" [checked] [ref=e32] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e33]:
+        - checkbox "Price field enabled" [checked] [ref=e34] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e35]:
+        - button "Cancel" [ref=e36] [cursor=pointer]
+        - button "Save" [ref=e37] [cursor=pointer]
+    - button "Close" [ref=e38] [cursor=pointer]:
+      - img [ref=e39]
+      - generic [ref=e42]: Close
+```
+```
+
+## admin-categories.spec.ts › C2 categories console › CT-6 retirement: a retired category leaves the active tree and keeps its listings home
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+            - list:
+              - listitem:
+                - generic: Terms
+              - listitem:
+                - generic: Privacy
+        - generic:
+          - paragraph: © 2026 ethio.com — All rights reserved.
+  - dialog "Retire category" [ref=e2]:
+    - heading "Retire category" [level=2] [ref=e3]
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: Retire category
+      - paragraph [ref=e6]: The category is deactivated and its listings move to the category you choose.
+      - paragraph [ref=e7]: No listings to move — the category will simply be hidden from browse and posting.
+      - generic [ref=e8]:
+        - button "Cancel" [active] [ref=e9] [cursor=pointer]
+        - button "Retire" [ref=e10] [cursor=pointer]
+    - button "Close" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]
+      - generic [ref=e15]: Close
+```
+```
+
+## admin-categories.spec.ts › C2 categories console › CT-6 retirement: a retired category leaves the active tree and keeps its listings home
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+            - list:
+              - listitem:
+                - generic: Terms
+              - listitem:
+                - generic: Privacy
+        - generic:
+          - paragraph: © 2026 ethio.com — All rights reserved.
+  - dialog "Retire category" [ref=e2]:
+    - heading "Retire category" [level=2] [ref=e3]
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: Retire category
+      - paragraph [ref=e6]: The category is deactivated and its listings move to the category you choose.
+      - paragraph [ref=e7]: No listings to move — the category will simply be hidden from browse and posting.
+      - generic [ref=e8]:
+        - button "Cancel" [active] [ref=e9] [cursor=pointer]
+        - button "Retire" [ref=e10] [cursor=pointer]
+    - button "Close" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]
+      - generic [ref=e15]: Close
+```
+```
+
+## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: CT-12 the reactivated row is still on the roster — [e2e:c2] lifecycle e2e-cat-changed-6-i0epzu: dom={"dialogs":["category-edit-dialog","category-verb-bar","category-dialog-cancel"],"openDialogs":1} db={"id":"cf780aff-ba4f-4137-ab7a-dbfb497e03ad","slug":"e2e-cat-changed-6-i0epzu","is_active":true} clientErrors=[]
+```
+
+Context:
+
+```text
+        - generic [ref=e29]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e30]:
+          - /placeholder: No expiry
+      - generic [ref=e31]:
+        - checkbox "Accepts listings" [checked] [ref=e32] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e33]:
+        - checkbox "Price field enabled" [checked] [ref=e34] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e35]:
+        - button "Cancel" [ref=e36] [cursor=pointer]
+        - button "Save" [ref=e37] [cursor=pointer]
+    - button "Close" [ref=e38] [cursor=pointer]:
+      - img [ref=e39]
+      - generic [ref=e42]: Close
+```
+```
 
 ## Server errors: shard 1
 
@@ -33,22 +221,6 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
 No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 3
-
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
 ## Server errors: shard 4
 
 No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
@@ -57,82 +229,10 @@ No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
 
 No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 
-## Server errors: shard 5
+## Server errors: changed
 
-No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+No `[ssr-error]` lines in the `changed` log (or no log was uploaded).
 
-## Client errors: shard 5
+## Client errors: changed
 
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Server errors: shard 6
-
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## Client errors: shard 6
-
-No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
+No `[client-error]` lines in the `changed` log (or no log was uploaded).
