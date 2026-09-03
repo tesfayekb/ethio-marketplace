@@ -66,10 +66,19 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
 
+/**
+ * C2-CLOSE (INC-150) — THE SUB-DIALOG IS ITS OWN AXIS. The editor is the one
+ * door: a secondary surface (Visibility / Countries / Browse paths / Retire /
+ * Delete) opens ON TOP of `kind: "edit"` and closing it clears only `sub`, so
+ * the operator returns to the OPEN editor, never to the bare table.
+ */
+type EditorSub = "window" | "exclusions" | "retire" | "pointer" | "delete";
+
 type DialogState =
   | { kind: "none" }
   | { kind: "create" }
-  | { kind: "edit" | "window" | "exclusions" | "retire" | "pointer" | "delete"; id: string };
+  | { kind: "edit"; id: string; sub: EditorSub | null };
+
 
 /**
  * C2c — every status/flag badge carries an ACCESSIBLE description. `title`
