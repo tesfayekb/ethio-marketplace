@@ -345,6 +345,27 @@ export function EditCategoryDialog({
 
 /* ------------------------------- window ---------------------------------- */
 
+/**
+ * C2-UI-FIX — the visibility window is a MOMENT, not a day. `datetime-local`
+ * carries no zone, so we render the stored instant in the operator's own zone
+ * and serialise back through `Date` (which reads the value as local time and
+ * emits a zone-correct UTC instant). An empty control clears the bound: the
+ * RPC receives NULL, never a midnight guess.
+ */
+function toLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "";
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}T${pad(at.getHours())}:${pad(at.getMinutes())}`;
+}
+
+function fromLocalInput(value: string): string | null {
+  if (value.trim() === "") return null;
+  const at = new Date(value);
+  return Number.isNaN(at.getTime()) ? null : at.toISOString();
+}
+
 export function CategoryWindowDialog({
   category,
   guard,
@@ -357,8 +378,8 @@ export function CategoryWindowDialog({
   const { t } = useI18n();
   const setWindow = useSetCategoryWindow();
   const { message, setMessage, fail } = useSubmitError();
-  const [from, setFrom] = useState(category.visibleFrom?.slice(0, 10) ?? "");
-  const [until, setUntil] = useState(category.visibleUntil?.slice(0, 10) ?? "");
+  const [from, setFrom] = useState(toLocalInput(category.visibleFrom));
+  const [until, setUntil] = useState(toLocalInput(category.visibleUntil));
 
   const submit = () => {
     setMessage(null);
@@ -366,8 +387,8 @@ export function CategoryWindowDialog({
       try {
         await setWindow.mutateAsync({
           id: category.id,
-          visibleFrom: from === "" ? null : new Date(`${from}T00:00:00Z`).toISOString(),
-          visibleUntil: until === "" ? null : new Date(`${until}T23:59:59Z`).toISOString(),
+          visibleFrom: fromLocalInput(from),
+          visibleUntil: fromLocalInput(until),
         });
         onClose();
       } catch (error) {
@@ -387,7 +408,7 @@ export function CategoryWindowDialog({
         <Input
           id="category-window-from"
           data-testid="category-window-from"
-          type="date"
+          type="datetime-local"
           value={from}
           onChange={(event) => setFrom(event.target.value)}
         />
@@ -396,7 +417,7 @@ export function CategoryWindowDialog({
         <Input
           id="category-window-until"
           data-testid="category-window-until"
-          type="date"
+          type="datetime-local"
           value={until}
           onChange={(event) => setUntil(event.target.value)}
         />
@@ -428,7 +449,7 @@ export function CategoryExclusionsDialog({
   const { t } = useI18n();
   const setExclusions = useSetCountryExclusions();
   const { message, setMessage, fail } = useSubmitError();
-  const [codes, setCodes] = useState<string[]>([]);
+  const [codes, setCodes] = useState<string[]>(category.excludedCountryCodes);
 
   const toggle = (code: string, on: boolean) =>
     setCodes((prev) => (on ? [...prev, code] : prev.filter((entry) => entry !== code)));
