@@ -1,23 +1,13 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33738163031
-- Commit: `428cab206f492c3690e8fa05688480be02a558f5`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33739836007
+- Commit: `80a5353f8799e04ed4c7d80622e697a8974d55ee`
 - Attempt: 1
-- Written (UTC): 2026-09-03T09:32:33.091Z
-- Passed: 441 · Skipped: 76 · Failed: 4
+- Written (UTC): 2026-09-03T09:49:10.856Z
+- Passed: 451 · Skipped: 70 · Failed: 4
 - Gating failures: 4 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 4
+- Flaky (passed on retry, DEC-030, non-gating): 0
 - Sources without results: none
-
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-audit.spec.ts › U3 audit & security › IMP-3 server refusals: self, super-admin target, and a non-super caller — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · admin-users.spec.ts › U1 admin users › AU-4 roles: assign and remove, super_admin/user never offered — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · shell.spec.ts › panel follows the route › admin panel is absent for a normal signed-in user — Error: expect(locator).toContainText(expected) failed
-- FLAKY (passed on retry) · `mobile-360` · source `changed` · admin-categories.spec.ts › C2 categories console › CT-4 visibility window: a future window is stored as DB truth — Test timeout of 60000ms exceeded.
 
 ## admin-categories.spec.ts › C2 categories console › CT-6 retirement: a retired category leaves the active tree and keeps its listings home
 
@@ -25,37 +15,41 @@ a test flaky 3× in 7 days gets an INC and root-cause work.
 - Project: `mobile-360`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
+Error: expect(locator).toBeVisible() failed
 
-Expected: false
-Received: true
+Locator: getByTestId('data-table-cards').getByTestId('category-row-e2e-cat-1-1-oxvdeo-card')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
 
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('data-table-cards').getByTestId('category-row-e2e-cat-1-1-oxvdeo-card')
+
 ```
 
 Context:
 
 ```text
-          - option "e2e-cat-changed-38-ox6sdm"
-          - option "e2e-cat-changed-4-75etj0"
-          - option "e2e-cat-changed-40-4b6k4w"
-          - option "e2e-cat-changed-40-jtiemo"
-          - option "e2e-cat-changed-5-t7qugv"
-          - option "e2e-cat-changed-6-n2jhzw"
-          - option "e2e-cat-changed-7-ocgocg"
-          - option "e2e-cat-changed-8-q9xjjy"
-          - option "e2e-cat-changed-9-gyhh46"
-          - option "e2e-cat-4-2-fqzs4l"
-          - option "e2e-cat-changed-3-htqopr"
-          - option "e2e-cat-changed-2-t27rm7"
-      - alert [ref=e10]: The change could not be saved.
-      - generic [ref=e11]:
-        - button "Cancel" [ref=e12] [cursor=pointer]
-        - button "Retire" [ref=e13] [cursor=pointer]
-    - button "Close" [ref=e14] [cursor=pointer]:
-      - img [ref=e15]
-      - generic [ref=e18]: Close
+        - generic [ref=e32]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e33]:
+          - /placeholder: No expiry
+      - generic [ref=e34]:
+        - checkbox "Accepts listings" [checked] [ref=e35] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e36]:
+        - checkbox "Price field enabled" [checked] [ref=e37] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e38]:
+        - button "Cancel" [ref=e39] [cursor=pointer]
+        - button "Save" [ref=e40] [cursor=pointer]
+    - button "Close" [ref=e41] [cursor=pointer]:
+      - img [ref=e42]
+      - generic [ref=e45]: Close
 ```
 ```
 
@@ -65,31 +59,41 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Test timeout of 60000ms exceeded.
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('table').getByTestId('category-row-e2e-cat-4-2-mc4swa')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByRole('table').getByTestId('category-row-e2e-cat-4-2-mc4swa')
+
 ```
 
 Context:
 
 ```text
-          - option "e2e-cat-changed-38-ox6sdm"
-          - option "e2e-cat-changed-4-75etj0"
-          - option "e2e-cat-changed-40-4b6k4w"
-          - option "e2e-cat-changed-40-jtiemo"
-          - option "e2e-cat-changed-5-t7qugv"
-          - option "e2e-cat-changed-6-n2jhzw"
-          - option "e2e-cat-changed-7-ocgocg"
-          - option "e2e-cat-changed-8-q9xjjy"
-          - option "e2e-cat-changed-9-gyhh46"
-          - option "e2e-cat-1-1-osox0v"
-          - option "e2e-cat-changed-3-htqopr"
-          - option "e2e-cat-changed-2-t27rm7"
-      - alert [ref=e10]: The change could not be saved.
-      - generic [ref=e11]:
-        - button "Cancel" [ref=e12] [cursor=pointer]
-        - button "Retire" [ref=e13] [cursor=pointer]
-    - button "Close" [ref=e14] [cursor=pointer]:
-      - img [ref=e15]
-      - generic [ref=e18]: Close
+        - generic [ref=e32]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e33]:
+          - /placeholder: No expiry
+      - generic [ref=e34]:
+        - checkbox "Accepts listings" [checked] [ref=e35] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e36]:
+        - checkbox "Price field enabled" [checked] [ref=e37] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e38]:
+        - button "Cancel" [ref=e39] [cursor=pointer]
+        - button "Save" [ref=e40] [cursor=pointer]
+    - button "Close" [ref=e41] [cursor=pointer]:
+      - img [ref=e42]
+      - generic [ref=e45]: Close
 ```
 ```
 
@@ -99,37 +103,41 @@ Context:
 - Project: `mobile-360`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
+Error: expect(locator).toBeVisible() failed
 
-Expected: false
-Received: true
+Locator: getByTestId('data-table-cards').getByTestId('category-row-e2e-cat-changed-0-yut6ps-card')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
 
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('data-table-cards').getByTestId('category-row-e2e-cat-changed-0-yut6ps-card')
+
 ```
 
 Context:
 
 ```text
-          - option "e2e-cat-changed-38-ox6sdm"
-          - option "e2e-cat-changed-4-75etj0"
-          - option "e2e-cat-changed-40-4b6k4w"
-          - option "e2e-cat-changed-40-jtiemo"
-          - option "e2e-cat-changed-5-t7qugv"
-          - option "e2e-cat-changed-6-n2jhzw"
-          - option "e2e-cat-changed-7-ocgocg"
-          - option "e2e-cat-changed-8-q9xjjy"
-          - option "e2e-cat-changed-9-gyhh46"
-          - option "e2e-cat-4-2-fqzs4l"
-          - option "e2e-cat-changed-3-htqopr"
-          - option "e2e-cat-changed-2-t27rm7"
-      - alert [ref=e10]: The change could not be saved.
-      - generic [ref=e11]:
-        - button "Cancel" [ref=e12] [cursor=pointer]
-        - button "Retire" [ref=e13] [cursor=pointer]
-    - button "Close" [ref=e14] [cursor=pointer]:
-      - img [ref=e15]
-      - generic [ref=e18]: Close
+        - generic [ref=e32]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e33]:
+          - /placeholder: No expiry
+      - generic [ref=e34]:
+        - checkbox "Accepts listings" [checked] [ref=e35] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e36]:
+        - checkbox "Price field enabled" [checked] [ref=e37] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e38]:
+        - button "Cancel" [ref=e39] [cursor=pointer]
+        - button "Save" [ref=e40] [cursor=pointer]
+    - button "Close" [ref=e41] [cursor=pointer]:
+      - img [ref=e42]
+      - generic [ref=e45]: Close
 ```
 ```
 
@@ -139,37 +147,41 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
+Error: expect(locator).toBeVisible() failed
 
-Expected: false
-Received: true
+Locator: getByRole('table').getByTestId('category-row-e2e-cat-changed-2-fxr2jo')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
 
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByRole('table').getByTestId('category-row-e2e-cat-changed-2-fxr2jo')
+
 ```
 
 Context:
 
 ```text
-          - option "e2e-cat-changed-38-ox6sdm"
-          - option "e2e-cat-changed-4-75etj0"
-          - option "e2e-cat-changed-40-4b6k4w"
-          - option "e2e-cat-changed-40-jtiemo"
-          - option "e2e-cat-changed-5-t7qugv"
-          - option "e2e-cat-changed-6-n2jhzw"
-          - option "e2e-cat-changed-7-ocgocg"
-          - option "e2e-cat-changed-8-q9xjjy"
-          - option "e2e-cat-changed-9-gyhh46"
-          - option "e2e-cat-1-1-osox0v"
-          - option "e2e-cat-changed-3-htqopr"
-          - option "e2e-cat-changed-2-t27rm7"
-      - alert [ref=e10]: The change could not be saved.
-      - generic [ref=e11]:
-        - button "Cancel" [ref=e12] [cursor=pointer]
-        - button "Retire" [ref=e13] [cursor=pointer]
-    - button "Close" [ref=e14] [cursor=pointer]:
-      - img [ref=e15]
-      - generic [ref=e18]: Close
+        - generic [ref=e32]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e33]:
+          - /placeholder: No expiry
+      - generic [ref=e34]:
+        - checkbox "Accepts listings" [checked] [ref=e35] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e36]:
+        - checkbox "Price field enabled" [checked] [ref=e37] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e38]:
+        - button "Cancel" [ref=e39] [cursor=pointer]
+        - button "Save" [ref=e40] [cursor=pointer]
+    - button "Close" [ref=e41] [cursor=pointer]:
+      - img [ref=e42]
+      - generic [ref=e45]: Close
 ```
 ```
 
@@ -179,16 +191,7 @@ No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Client errors: shard 1
 
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_audit_facets ({"code":"57014","details":null,"hint":null,"message":"canceling statement due to statement timeout"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_retire_category ({"code":"P0010","details":null,"hint":null,"message":"admin.categories.error.reassign_target_invalid"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_retire_category ({"code":"P0010","details":null,"hint":null,"message":"admin.categories.error.reassign_target_invalid"})
-```
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Server errors: shard 4
 
@@ -196,12 +199,7 @@ No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Client errors: shard 4
 
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_retire_category ({"code":"P0010","details":null,"hint":null,"message":"admin.categories.error.reassign_target_invalid"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_retire_category ({"code":"P0010","details":null,"hint":null,"message":"admin.categories.error.reassign_target_invalid"})
-```
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Server errors: changed
 
@@ -209,13 +207,4 @@ No `[ssr-error]` lines in the `changed` log (or no log was uploaded).
 
 ## Client errors: changed
 
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_retire_category ({"code":"P0010","details":null,"hint":null,"message":"admin.categories.error.reassign_target_invalid"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_retire_category ({"code":"P0010","details":null,"hint":null,"message":"admin.categories.error.reassign_target_invalid"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_retire_category ({"code":"P0010","details":null,"hint":null,"message":"admin.categories.error.reassign_target_invalid"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_retire_category ({"code":"P0010","details":null,"hint":null,"message":"admin.categories.error.reassign_target_invalid"})
-```
+No `[client-error]` lines in the `changed` log (or no log was uploaded).
