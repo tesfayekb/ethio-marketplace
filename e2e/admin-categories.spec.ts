@@ -1237,11 +1237,14 @@ test.describe("C2 categories console", () => {
       expect(first?.image_thumb_url).toBeTruthy();
       expect(first?.og_image_url).toBeTruthy();
 
-      await page.getByTestId("category-image-prompt").fill("a scratch prompt for the walk");
+      // C5c PART C.3 — the console sends no prompt any more: the house prompt is
+      // code truth, so the column stays NULL after a house generation.
       await page.getByTestId("category-image-generate").click();
       await expect
-        .poll(async () => (await readImages(slug))?.image_generation_prompt, { timeout: 60000 })
-        .toBeTruthy();
+        .poll(async () => (await readImages(slug))?.image_generation_prompt ?? null, {
+          timeout: 60000,
+        })
+        .toBeNull();
       const second = await readImages(slug);
       // OVERWRITE, not accumulate: the row still points at exactly one set.
       expect(second?.image_url).toBeTruthy();
@@ -1259,6 +1262,12 @@ test.describe("C2 categories console", () => {
    * cheaper honest proof, stated here so the omission is not silent.
    */
   test("CI-5 bulk fill: the missing-assets run fills every seeded row", async ({ page }) => {
+    // C5c PART A — BUDGET TRUTH. The workload is 3 serial creations plus 3
+    // serial generations, each decode → process → watermark → encode → 3
+    // uploads → persist. At ~10-20s apiece plus sign-in that exceeds the 60s
+    // default, so the budget is stated honestly rather than discovered as a
+    // timeout.
+    test.setTimeout(120_000);
     bandOnly(page, "desktop");
     const { secret } = await signInAsSuperAdmin(page);
     const slugs: string[] = [];
@@ -1279,16 +1288,23 @@ test.describe("C2 categories console", () => {
       for (const slug of slugs) truth.push(`${slug}=${(await readImages(slug))?.image_url ?? "∅"}`);
       return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} rows: ${truth.join(" | ")}`;
     };
+    // C5c PART A — the dump is LAZY: it is built inside the failure path only,
+    // never on the happy path (six eager dumps cost six DB round-trips a run).
+    const lazily = async <T>(label: string, run: () => Promise<T>): Promise<T> => {
+      try {
+        return await run();
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new Error(`${reason}\n${await bulkDump(label)}`);
+      }
+    };
     // Every pre-poll interaction is bounded (≤15s) and dumps on failure, so an
     // id mismatch fails loudly here instead of dying silent at the 60s wall.
     const step = async (testid: string, action: (locator: Locator) => Promise<void>) => {
       const locator = page.getByTestId(testid);
-      await expect
-        .poll(async () => locator.count(), {
-          timeout: 15000,
-          message: await bulkDump(`step ${testid}`),
-        })
-        .toBeGreaterThan(0);
+      await lazily(`step ${testid}`, async () => {
+        await expect.poll(async () => locator.count(), { timeout: 15000 }).toBeGreaterThan(0);
+      });
       await action(locator);
     };
     try {
@@ -1305,12 +1321,13 @@ test.describe("C2 categories console", () => {
       await step("category-page-size", async (locator) => {
         await locator.selectOption("100");
       });
-      await expect
-        .poll(async () => page.getByRole("table").locator("tbody tr").count(), {
-          timeout: 15000,
-          message: await bulkDump("visible-set"),
-        })
-        .toBe(3);
+      await lazily("visible-set", async () => {
+        await expect
+          .poll(async () => page.getByRole("table").locator("tbody tr").count(), {
+            timeout: 15000,
+          })
+          .toBe(3);
+      });
       for (const slug of slugs) {
         await expect(categoryRow(page, slug)).toBeVisible({ timeout: 15000 });
       }
@@ -1320,35 +1337,37 @@ test.describe("C2 categories console", () => {
       let progressSeen = "";
       await step("category-bulk-generate", (locator) => locator.click());
 
-      await expect
-        .poll(
-          async () => {
-            const line = await page
-              .getByTestId("category-bulk-progress")
-              .textContent()
-              .catch(() => null);
-            if (line) progressSeen = line;
-            return (await page.getByTestId("category-bulk-summary").textContent()) ?? "";
-          },
-          { timeout: 15000, message: await bulkDump("summary") },
-        )
-        .toContain(`3 ${en["admin.categories.bulk.generated"]}`);
+      await lazily("summary", async () => {
+        await expect
+          .poll(
+            async () => {
+              const line = await page
+                .getByTestId("category-bulk-progress")
+                .textContent()
+                .catch(() => null);
+              if (line) progressSeen = line;
+              return (await page.getByTestId("category-bulk-summary").textContent()) ?? "";
+            },
+            { timeout: 60000 },
+          )
+          .toContain(`3 ${en["admin.categories.bulk.generated"]}`);
+      });
       expect(progressSeen).toContain("3/3");
 
-      await expect
-        .poll(async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "", {
-          timeout: 15000,
-          message: await bulkDump("failures"),
-        })
-        .toContain(`0 ${en["admin.categories.bulk.failed"]}`);
+      await lazily("failures", async () => {
+        await expect
+          .poll(async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "", {
+            timeout: 15000,
+          })
+          .toContain(`0 ${en["admin.categories.bulk.failed"]}`);
+      });
 
       for (const slug of slugs) {
-        await expect
-          .poll(async () => (await readImages(slug))?.image_url ?? null, {
-            timeout: 15000,
-            message: await bulkDump(`db-truth ${slug}`),
-          })
-          .not.toBeNull();
+        await lazily(`db-truth ${slug}`, async () => {
+          await expect
+            .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 15000 })
+            .not.toBeNull();
+        });
       }
     } finally {
       for (const slug of slugs) await destroyCategory(slug);

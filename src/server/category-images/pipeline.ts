@@ -26,11 +26,17 @@ export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 /** Target fill of the square canvas by the icon's longest side. */
 export const FILL_RATIO = 0.85;
+/**
+ * C5c PART B.1 — the OG icon fills ~75% of the SHORTER dimension (≈470px of
+ * the 630px height) so the 1200x630 canvas no longer reads as empty flanks.
+ */
+export const OG_FILL_RATIO = 0.75;
 
 const WHITE: Rgba = [255, 255, 255, 255];
 const PRIMARY: Rgba = [0x1e, 0x5a, 0x43, 255];
 const WATERMARK_TEXT = "ethio.com";
-const WATERMARK_OPACITY = 0.28;
+// C5c PART B.2 — three marks at ~0.10: visible only to someone who looks.
+const WATERMARK_OPACITY = 0.1;
 const WATERMARK_ANGLE = -30;
 
 /**
@@ -102,16 +108,20 @@ export interface PipelineOutput {
   timings: Timings;
 }
 
-/** Six diagonal "ethio.com" texts, evenly spread, drawn before the icon. */
+/** Three diagonal "ethio.com" texts, evenly spread, drawn before the icon. */
 function watermark(target: Raster, scale: number): void {
-  const cols = 2;
-  const rows = 3;
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
+  // Three marks on the leading diagonal, evenly spread.
+  const spots: [number, number][] = [
+    [0.22, 0.22],
+    [0.5, 0.5],
+    [0.78, 0.78],
+  ];
+  for (const [fx, fy] of spots) {
+    {
       drawRotatedText(target, {
         text: WATERMARK_TEXT,
-        cx: ((c + 0.5) / cols) * target.width,
-        cy: ((r + 0.5) / rows) * target.height,
+        cx: fx * target.width,
+        cy: fy * target.height,
         scale,
         angleDeg: WATERMARK_ANGLE,
         color: PRIMARY,
@@ -121,9 +131,9 @@ function watermark(target: Raster, scale: number): void {
   }
 }
 
-function fitInto(icon: Raster, box: number): Raster {
+function fitInto(icon: Raster, box: number, ratio = FILL_RATIO): Raster {
   const longest = Math.max(icon.width, icon.height);
-  const factor = (box * FILL_RATIO) / longest;
+  const factor = (box * ratio) / longest;
   return resize(
     icon,
     Math.max(1, Math.round(icon.width * factor)),
@@ -147,7 +157,7 @@ export function processGeneratedPng(source: Uint8Array, genMs: number): Pipeline
     const cropped = crop(transparent, contentBounds(transparent));
     return {
       cardIcon: fitInto(cropped, CARD_SIZE),
-      ogIcon: fitInto(cropped, OG_HEIGHT),
+      ogIcon: fitInto(cropped, OG_HEIGHT, OG_FILL_RATIO),
     };
   });
 

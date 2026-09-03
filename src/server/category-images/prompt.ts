@@ -1,6 +1,7 @@
 /**
  * C5a — the master prompt, verbatim in code (never assembled from the console,
- * never editable by a caller beyond the appended `customPrompt` line).
+ * never editable by a caller beyond the appended `customPrompt` line, which the
+ * console no longer sends — C5c PART C made the house prompt uniform).
  *
  * Palette lines are the ethio.com house style: #1E5A43 primary, #C98A2B accent.
  */
