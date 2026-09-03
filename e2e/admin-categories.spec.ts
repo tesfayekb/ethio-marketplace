@@ -1276,10 +1276,10 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-missing-filter").click();
       await page.getByTestId("category-search").fill(prefix);
       await expect
-        .poll(
-          async () => page.getByRole("table").locator("tbody tr").count(),
-          { timeout: 15000, message: await bulkDump("visible-set") },
-        )
+        .poll(async () => page.getByRole("table").locator("tbody tr").count(), {
+          timeout: 15000,
+          message: await bulkDump("visible-set"),
+        })
         .toBe(3);
       for (const slug of slugs) {
         await expect(categoryRow(page, slug)).toBeVisible({ timeout: 15000 });
@@ -1323,7 +1323,6 @@ test.describe("C2 categories console", () => {
       for (const slug of slugs) await destroyCategory(slug);
     }
   });
-
 
   /**
    * CT-17 (C5b PART B) — THE CREATE FLOW HAS NO MANUAL ICON. The icon is
