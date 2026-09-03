@@ -563,7 +563,7 @@ export function AdminCategoriesPage() {
                 testid="category-pagination"
               />
             }
-            rowActions={(row) => rowActions(row, guard)}
+            rowActions={(row) => rowActions(row)}
           />
 
           {dialog.kind === "create" ? (
@@ -577,6 +577,7 @@ export function AdminCategoriesPage() {
             <EditCategoryDialog
               category={selected}
               guard={guard}
+              verbBar={editorVerbs(selected, guard)}
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
