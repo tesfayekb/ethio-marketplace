@@ -233,8 +233,7 @@ export function AdminCategoriesPage() {
     {
       key: "parent",
       header: t("admin.categories.col.parent"),
-      priority: "secondary",
-      minWidth: "min-w-40",
+      priority: ROSTER_COLUMN_PRIORITIES.parent,
       cell: (row) => (
         <span className="block min-w-0 break-words text-muted-foreground">
           {row.parentId === null ? "—" : (byId.get(row.parentId)?.nameEn ?? "—")}
@@ -244,8 +243,7 @@ export function AdminCategoriesPage() {
     {
       key: "status",
       header: t("admin.categories.col.status"),
-      priority: "secondary",
-      minWidth: "min-w-24",
+      priority: ROSTER_COLUMN_PRIORITIES.status,
       cell: (row) =>
         row.isActive
           ? tipBadge(
@@ -264,8 +262,7 @@ export function AdminCategoriesPage() {
     {
       key: "flags",
       header: t("admin.categories.col.flags"),
-      priority: "secondary",
-      minWidth: "min-w-32",
+      priority: ROSTER_COLUMN_PRIORITIES.flags,
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
           {row.isCatchall
@@ -317,28 +314,25 @@ export function AdminCategoriesPage() {
     {
       key: "order",
       header: t("admin.categories.col.order"),
-      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
-      priority: "wide",
+      // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
+      priority: ROSTER_COLUMN_PRIORITIES.order,
       align: "end",
-      minWidth: "min-w-16",
       cell: (row) => <span className="block tabular-nums">{row.displayOrder}</span>,
     },
     {
       key: "listings",
       header: t("admin.categories.col.listings"),
-      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
-      priority: "wide",
+      // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
+      priority: ROSTER_COLUMN_PRIORITIES.listings,
       align: "end",
-      minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.listingCount}</span>,
     },
     {
       key: "exclusions",
       header: t("admin.categories.col.exclusions"),
-      // INC-135 — numeric tail: reference, not an action. It earns space at xl.
-      priority: "wide",
+      // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
+      priority: ROSTER_COLUMN_PRIORITIES.exclusions,
       align: "end",
-      minWidth: "min-w-20",
       cell: (row) => <span className="block tabular-nums">{row.exclusionCount}</span>,
     },
   ];
@@ -490,7 +484,6 @@ export function AdminCategoriesPage() {
           ) : null}
 
           <DataTable<CategoryNode>
-            cardUntil="xl"
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
