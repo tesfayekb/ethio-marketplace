@@ -483,7 +483,7 @@ export function AdminCategoriesPage() {
                     `category-up-${row.slug}`,
                     t("admin.categories.action.up"),
                     <ArrowUp aria-hidden="true" className="size-4" />,
-                    () => move(row, -1, guard),
+                    () => move(row, -1),
                   ),
               row.isCatchall
                 ? null
@@ -491,7 +491,7 @@ export function AdminCategoriesPage() {
                     `category-down-${row.slug}`,
                     t("admin.categories.action.down"),
                     <ArrowDown aria-hidden="true" className="size-4" />,
-                    () => move(row, 1, guard),
+                    () => move(row, 1),
                   ),
 
               // C2d — a retired row swaps Retire for Reactivate and gains the
