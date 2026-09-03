@@ -72,22 +72,12 @@ fi
 
 
 findings=0
-tmp="$(mktemp)"
-trap 'rm -f "$tmp"' EXIT
-
-# JSX text content: >Some Text</   (letters only; the closing anchor is a real
-# closing tag, so generics such as Promise<unknown> cannot match).
-grep -RnE '>[[:space:]]*[A-Za-z][A-Za-z0-9 ,.:;!?%\-]{2,}[[:space:]]*</' \
-  --include='*.tsx' --include='*.tsx.txt' "${targets[@]}" >>"$tmp" 2>/dev/null || true
-
-# Common user-facing string props with literal string values.
-grep -RnE '(title|label|placeholder|alt|aria-label)="[^"{}]{2,}"' \
-  --include='*.tsx' --include='*.tsx.txt' "${targets[@]}" >>"$tmp" 2>/dev/null || true
-
-if [ -s "$tmp" ]; then
-  sort -u "$tmp"
-  findings=$(sort -u "$tmp" | wc -l | tr -d ' ')
+report="$(scan "${targets[@]}")"
+if [ -n "$report" ]; then
+  printf '%s\n' "$report"
+  findings=$(printf '%s\n' "$report" | grep -c .)
 fi
+
 
 echo "findings: $findings"
 if [ "$findings" -gt 0 ]; then
