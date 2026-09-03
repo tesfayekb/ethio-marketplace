@@ -254,21 +254,27 @@ export function AdminCategoriesPage() {
                 t("admin.categories.tip.catchall"),
               )
             : null}
-          {row.allowListings
+          {/*
+            C2-UI-FIX-3 — a RETIRED row states only what still applies to it.
+            "Accepts listings" and "Price" describe posting behaviour a retired
+            node no longer has, so they are not rendered at all; the row reads
+            Retired (+ Missing assets when its media is absent).
+          */}
+          {row.isActive && row.allowListings
             ? tipBadge(
                 "outline",
                 t("admin.categories.badge.listings"),
                 t("admin.categories.tip.listings"),
               )
             : null}
-          {row.priceEnabled
+          {row.isActive && row.priceEnabled
             ? tipBadge(
                 "outline",
                 t("admin.categories.badge.price"),
                 t("admin.categories.tip.price"),
               )
             : null}
-          {row.visibleFrom || row.visibleUntil
+          {row.isActive && (row.visibleFrom || row.visibleUntil)
             ? tipBadge(
                 "outline",
                 t("admin.categories.badge.window"),
@@ -286,6 +292,7 @@ export function AdminCategoriesPage() {
             : null}
         </span>
       ),
+
     },
     {
       key: "order",
