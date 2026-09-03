@@ -1446,6 +1446,16 @@ export type Database = {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: undefined
       }
+      admin_set_category_images: {
+        Args: {
+          p_generation_prompt: string
+          p_id: string
+          p_image_thumb_url: string
+          p_image_url: string
+          p_og_image_url: string
+        }
+        Returns: undefined
+      }
       admin_set_category_window: {
         Args: { p_id: string; p_visible_from: string; p_visible_until: string }
         Returns: undefined
