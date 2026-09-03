@@ -679,38 +679,63 @@ test.describe("C2 categories console", () => {
         }
       };
 
-      await step("CT-12 the retired row is on the roster", () => categoryRow(page, slug).count(), 1);
-      await step("CT-12 the row's Edit verb is clickable", () =>
-        action(page, slug, "edit").isVisible(), true);
+      await step(
+        "CT-12 the retired row is on the roster",
+        () => categoryRow(page, slug).count(),
+        1,
+      );
+      await step(
+        "CT-12 the row's Edit verb is clickable",
+        () => action(page, slug, "edit").isVisible(),
+        true,
+      );
       await action(page, slug, "edit").click({ timeout: 15000 });
-      await step("CT-12 the editor's verb bar is open", () =>
-        page.getByTestId("category-verb-bar").isVisible(), true);
-      await step("CT-12 a retired row offers Reactivate", () =>
-        action(page, slug, "reactivate").isVisible(), true);
+      await step(
+        "CT-12 the editor's verb bar is open",
+        () => page.getByTestId("category-verb-bar").isVisible(),
+        true,
+      );
+      await step(
+        "CT-12 a retired row offers Reactivate",
+        () => action(page, slug, "reactivate").isVisible(),
+        true,
+      );
 
       await action(page, slug, "reactivate").click({ timeout: 15000 });
       await stepUpIfPrompted(page, secret);
 
       // DB truth, not the rendered badge (J4).
-      await step("CT-12 the row is active again in DB truth", async () =>
-        (await readCategory(slug))?.is_active, true);
+      await step(
+        "CT-12 the row is active again in DB truth",
+        async () => (await readCategory(slug))?.is_active,
+        true,
+      );
 
       // Active again means the retire verb is the one on offer once more.
-      await step("CT-12 the reactivated row is still on the roster", () =>
-        categoryRow(page, slug).count(), 1);
-      await step("CT-12 the editor re-opens", async () => {
-        if (!(await page.getByTestId("category-verb-bar").isVisible())) {
-          await action(page, slug, "edit").click({ timeout: 5000 });
-        }
-        return page.getByTestId("category-verb-bar").isVisible();
-      }, true);
-      await step("CT-12 an active row offers Retire", () =>
-        action(page, slug, "retire").isVisible(), true);
+      await step(
+        "CT-12 the reactivated row is still on the roster",
+        () => categoryRow(page, slug).count(),
+        1,
+      );
+      await step(
+        "CT-12 the editor re-opens",
+        async () => {
+          if (!(await page.getByTestId("category-verb-bar").isVisible())) {
+            await action(page, slug, "edit").click({ timeout: 5000 });
+          }
+          return page.getByTestId("category-verb-bar").isVisible();
+        },
+        true,
+      );
+      await step(
+        "CT-12 an active row offers Retire",
+        () => action(page, slug, "retire").isVisible(),
+        true,
+      );
     } finally {
       if (slug) await destroyCategory(slug);
     }
   });
-
 
   /**
    * CT-13 (C2d) — the delete walk. A wrong slug is refused with nothing
@@ -822,8 +847,11 @@ test.describe("C2 categories console", () => {
     await page.getByTestId("category-dialog-cancel").click();
 
     // (c) the catch-all row's editor exposes no Move verbs.
+    // J5 — the row, its actions region and its verbs all resolve through the
+    // twin helpers, exactly as CT-9b resolves a card row: never a bare prefix.
     await page.getByTestId("category-search").fill(catchall!.slug);
     await expect(categoryRow(page, catchall!.slug)).toBeVisible({ timeout: 20000 });
+    await expect(actionsOf(page, catchall!.slug)).toBeVisible({ timeout: 20000 });
     await openEditor(page, catchall!.slug);
     await expect(action(page, catchall!.slug, "up")).toHaveCount(0);
     await expect(action(page, catchall!.slug, "down")).toHaveCount(0);
