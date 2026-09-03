@@ -228,8 +228,17 @@ export function DataTable<T>({
     </PageCard>
   ) : null;
 
+  /**
+   * INC-132 — THE SCROLLER CHAIN. `overflow-x-auto` only engages when every
+   * ancestor between it and the page column is allowed to be narrower than
+   * its content. A single flex/grid ancestor at its default `min-width:auto`
+   * silently widens the whole chain and the scroller never activates — the
+   * page overflows instead. The primitive therefore owns `min-w-0 max-w-full`
+   * on EVERY link of its own chain (frame → body → card → scroller); a
+   * consumer never adds a width hack (C7).
+   */
   const frame = (body: ReactNode) => (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("min-w-0 max-w-full space-y-4", className)}>
       {toolbarBlock}
       {body}
     </div>
