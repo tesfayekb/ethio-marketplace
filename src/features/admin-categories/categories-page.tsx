@@ -224,7 +224,17 @@ export function AdminCategoriesPage() {
     void guard(action).catch(failVerb);
   };
 
-  const move = (row: CategoryNode, delta: number, guard: GuardFn) => {
+  /**
+   * C2k / INC-148 — MOVE CARRIES NO PRE-EMPTIVE STEP-UP FLAG.
+   *
+   * `guard()` pre-checks the client's step-up freshness and opens the modal
+   * BEFORE any RPC. Reorder is not step-up gated on the server (C2h), so that
+   * pre-check was a client-side flag inventing a prompt the server never asks
+   * for. Move now calls the mutation directly; if any server ever answers
+   * `step-up required` (P0009), the shared defence-in-depth path in
+   * `use-step-up` still opens the modal and replays the action.
+   */
+  const move = (row: CategoryNode, delta: number) => {
     const siblings = siblingsOf(row);
     const index = siblings.findIndex((peer) => peer.id === row.id);
     const next = index + delta;
@@ -232,10 +242,13 @@ export function AdminCategoriesPage() {
     const ordered = siblings.map((peer) => peer.id);
     const [moved] = ordered.splice(index, 1);
     ordered.splice(next, 0, moved!);
-    runVerb(guard, async () => {
-      await reorder.mutateAsync({ parentId: row.parentId, orderedChildIds: ordered });
-    });
+    setVerbError(null);
+    void reorder
+      .mutateAsync({ parentId: row.parentId, orderedChildIds: ordered })
+      .then(() => undefined)
+      .catch(failVerb);
   };
+
 
   /**
    * C2-UI-FIX-5 — THE ROSTER CONFORMS TO THE AUDIT TABLE. No per-column
