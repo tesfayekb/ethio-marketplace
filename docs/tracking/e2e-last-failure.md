@@ -1,120 +1,138 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33749855148
-- Commit: `33ba860c482b66c4b4032f625580dd9d511f07e1`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33751773924
+- Commit: `b24a61db17b35ede920a1277ffe2e4ec93bcb32a`
 - Attempt: 1
-- Written (UTC): 2026-09-03T11:40:16.382Z
-- Passed: 401 · Skipped: 72 · Failed: 4
-- Gating failures: 4 · Quarantined (@global-state, INC-117, non-gating): 0
+- Written (UTC): 2026-09-03T11:49:46.805Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
-- Sources without results: none
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-## category-image-routes.spec.ts › C5a — category AI foundation routes › CI-2 fake generate produces three assets and updates the row
+## Server errors: smoke
 
-- Source: `shard 2`
-- Project: `mobile-360`
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-```text
-Error: {"error":"server error"}
+## Client errors: smoke
 
-expect(received).toBe(expected) // Object.is equality
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-Expected: 200
-Received: 500
-```
+## Server errors: email
 
-Context: context file not found for `category-image-routes-C5a-category-AI-foundation-routes-CI-2-fake-generate-produces-three-assets-and-updates-the-row-mobile-360`
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
 
-## category-image-routes.spec.ts › C5a — category AI foundation routes › CI-2 fake generate produces three assets and updates the row
+## Client errors: email
 
-- Source: `shard 5`
-- Project: `desktop-1280`
+No `[client-error]` lines in the `email` log (or no log was uploaded).
 
-```text
-Error: {"error":"server error"}
+## Server errors: shard 1
 
-expect(received).toBe(expected) // Object.is equality
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
-Expected: 200
-Received: 500
-```
+## Client errors: shard 1
 
-Context: context file not found for `category-image-routes-C5a-category-AI-foundation-routes-CI-2-fake-generate-produces-three-assets-and-updates-the-row-desktop-1280`
-
-## category-image-routes.spec.ts › C5a — category AI foundation routes › CI-2 fake generate produces three assets and updates the row
-
-- Source: `changed`
-- Project: `mobile-360`
-
-```text
-Error: {"error":"server error"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 200
-Received: 500
-```
-
-Context: context file not found for `category-image-routes-C5a-category-AI-foundation-routes-CI-2-fake-generate-produces-three-assets-and-updates-the-row-mobile-360`
-
-## category-image-routes.spec.ts › C5a — category AI foundation routes › CI-2 fake generate produces three assets and updates the row
-
-- Source: `changed`
-- Project: `desktop-1280`
-
-```text
-Error: {"error":"server error"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 200
-Received: 500
-```
-
-Context: context file not found for `category-image-routes-C5a-category-AI-foundation-routes-CI-2-fake-generate-produces-three-assets-and-updates-the-row-desktop-1280`
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Server errors: shard 2
 
-```text
-[WebServer] [ssr-error] /api/admin/categories/generate-image image_generate_failed Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image image_generate_failed Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-```
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
 
 ## Client errors: shard 2
 
 No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
 ## Server errors: shard 5
 
-```text
-[WebServer] [ssr-error] /api/admin/categories/generate-image image_generate_failed Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image image_generate_failed Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-```
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
 
 ## Client errors: shard 5
 
 No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
 
-## Server errors: changed
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-[WebServer] [ssr-error] /api/admin/categories/generate-image image_generate_failed Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image image_generate_failed Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image image_generate_failed Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image image_generate_failed Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] /api/admin/categories/generate-image Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+(no log tail was uploaded for this source)
 ```
 
-## Client errors: changed
+## email: no results file
 
-No `[client-error]` lines in the `changed` log (or no log was uploaded).
+email: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
