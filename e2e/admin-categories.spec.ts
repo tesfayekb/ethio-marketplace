@@ -90,7 +90,6 @@ async function findRow(page: Page, slug: string): Promise<Locator> {
   return row;
 }
 
-
 /** The actions REGION differs per twin (INC-106c): card sibling vs table cell. */
 function actionsOf(page: Page, slug: string): Locator {
   return surface(page).getByTestId(
@@ -197,7 +196,7 @@ async function createViaUi(page: Page, secret: string) {
   await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
   await page.getByTestId("category-create-submit").click();
   await stepUpIfPrompted(page, secret);
-  await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+  await findRow(page, slug);
   return slug;
 }
 
@@ -396,7 +395,7 @@ test.describe("C2 categories console", () => {
         .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
         .toBe(false);
       // The row stays in the console (retired ≠ deleted) but reads as retired.
-      await expect(categoryRow(page, slug)).toBeVisible();
+      await findRow(page, slug);
       await openEditor(page, slug);
       await expect(action(page, slug, "reactivate")).toBeVisible({ timeout: 20000 });
       await expect(action(page, slug, "retire")).toHaveCount(0);
@@ -446,7 +445,7 @@ test.describe("C2 categories console", () => {
       await grantRole(weak.id, "super_admin");
       await switchUser(page, weak.email, weak.password);
       await gotoReady(page, "/admin/categories");
-      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+      await findRow(page, slug);
 
       await openEditor(page, slug);
       await action(page, slug, "pointer").click();
@@ -688,6 +687,7 @@ test.describe("C2 categories console", () => {
       await adminClient().from("categories").update({ is_active: false }).eq("id", scratch!.id);
       await page.reload();
       await waitForHydration(page);
+      await findRow(page, slug);
 
       const step = async (label: string, read: () => Promise<unknown>, expected: unknown) => {
         try {
@@ -808,7 +808,7 @@ test.describe("C2 categories console", () => {
 
       await page.reload();
       await waitForHydration(page);
-      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+      await findRow(page, slug);
 
       // Wrong slug: refused, nothing deleted.
       await openEditor(page, slug);

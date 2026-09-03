@@ -249,7 +249,6 @@ export function AdminCategoriesPage() {
       .catch(failVerb);
   };
 
-
   /**
    * C2-UI-FIX-5 — THE ROSTER CONFORMS TO THE AUDIT TABLE. No per-column
    * min-widths, no card-breakpoint override, no pinned column: priorities alone
