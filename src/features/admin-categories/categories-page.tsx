@@ -194,6 +194,11 @@ export function AdminCategoriesPage() {
       ? null
       : (roster.find((row) => row.id === dialog.id) ?? null);
 
+  // A newly opened dialog never inherits the previous verb's refusal.
+  useEffect(() => {
+    setVerbError(null);
+  }, [dialog, setVerbError]);
+
   /** ... and the editor closes gracefully when its row vanishes (delete). */
   useEffect(() => {
     if (dialog.kind === "none" || dialog.kind === "create") return;
@@ -231,8 +236,6 @@ export function AdminCategoriesPage() {
       await reorder.mutateAsync({ parentId: row.parentId, orderedChildIds: ordered });
     });
   };
-
-
 
   /**
    * C2-UI-FIX-5 — THE ROSTER CONFORMS TO THE AUDIT TABLE. No per-column
