@@ -259,7 +259,7 @@ export function DataTable<T>({
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
 
   return frame(
-    <div className="min-w-0 space-y-4">
+    <div className="min-w-0 max-w-full space-y-4">
       {selection && selectedKeys.size > 0 ? (
         <div
           data-testid="data-table-selection"
@@ -269,7 +269,7 @@ export function DataTable<T>({
         </div>
       ) : null}
 
-      <PageCard testid="data-table" className="min-w-0 p-0">
+      <PageCard testid="data-table" className="min-w-0 max-w-full p-0">
         {/* 360-first: a card per row, primary + secondary stacked. */}
         <ul
           data-testid="data-table-cards"
@@ -337,7 +337,7 @@ export function DataTable<T>({
         {/* md+: a real table. overflow-x-auto is the last resort, never the plan. */}
         <div
           data-testid="data-table-scroller"
-          className={cn("hidden min-w-0 overflow-x-auto", tableShownClass)}
+          className={cn("hidden min-w-0 max-w-full overflow-x-auto", tableShownClass)}
         >
           <table
             className={cn("w-full text-start text-sm", hasMinWidths ? "min-w-max" : "table-fixed")}
