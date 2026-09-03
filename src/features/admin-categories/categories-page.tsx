@@ -36,11 +36,7 @@ import {
   RetireCategoryDialog,
   SELECT_CLASS,
 } from "./category-dialogs";
-import {
-  ROSTER_COLUMN_PRIORITIES,
-  toRoster,
-  type CategoryNode,
-} from "./categories-service";
+import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
 import { useAdminCategories, useReactivateCategory, useReorderCategories } from "./use-categories";
 
 /**
@@ -232,7 +228,6 @@ export function AdminCategoriesPage() {
           </span>
         </span>
       ),
-
     },
     {
       key: "parent",
