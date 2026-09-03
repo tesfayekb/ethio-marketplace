@@ -35,6 +35,7 @@ import {
   EditCategoryDialog,
   RetireCategoryDialog,
   SELECT_CLASS,
+  useSubmitError,
 } from "./category-dialogs";
 import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
 import { useAdminCategories, useReactivateCategory, useReorderCategories } from "./use-categories";
@@ -129,6 +130,8 @@ export function AdminCategoriesPage() {
     }
   };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
+  // UI-FIX-7 — the verb bar's own refusal line, filled by the shared runner.
+  const { message: verbError, setMessage: setVerbError, fail: failVerb } = useSubmitError();
 
   const mayCreate = permissions.includes("categories:create");
   const mayUpdate = permissions.includes("categories:update");
@@ -423,6 +426,15 @@ export function AdminCategoriesPage() {
 
     return (
       <div className="flex flex-wrap gap-2" data-testid="category-verb-bar">
+        {verbError === null ? null : (
+          <p
+            role="alert"
+            data-testid="category-verb-error"
+            className="w-full text-sm text-destructive"
+          >
+            {verbError}
+          </p>
+        )}
         {mayUpdate
           ? [
               verb(
@@ -480,11 +492,10 @@ export function AdminCategoriesPage() {
                     `category-reactivate-${row.slug}`,
                     t("admin.categories.action.reactivate"),
                     <RotateCcw aria-hidden="true" className="size-4" />,
-                    () => {
-                      void guard(async () => {
+                    () =>
+                      runVerb(guard, async () => {
                         await reactivate.mutateAsync({ id: row.id });
-                      });
-                    },
+                      }),
                   ),
               row.isActive
                 ? null
