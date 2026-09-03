@@ -1,4 +1,14 @@
-import { ArrowDown, ArrowUp, CalendarClock, Globe, Pencil, Share2, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  CalendarClock,
+  Globe,
+  Pencil,
+  RotateCcw,
+  Share2,
+  Trash,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -21,12 +31,17 @@ import {
   CategoryPathsDialog,
   CategoryWindowDialog,
   CreateCategoryDialog,
+  DeleteCategoryDialog,
   EditCategoryDialog,
   RetireCategoryDialog,
   SELECT_CLASS,
 } from "./category-dialogs";
 import { toRoster, type CategoryNode } from "./categories-service";
-import { useAdminCategories, useReorderCategories } from "./use-categories";
+import {
+  useAdminCategories,
+  useReactivateCategory,
+  useReorderCategories,
+} from "./use-categories";
 
 /**
  * C2-UI — THE CATEGORIES CONSOLE.
@@ -57,7 +72,7 @@ const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
 type DialogState =
   | { kind: "none" }
   | { kind: "create" }
-  | { kind: "edit" | "window" | "exclusions" | "retire" | "pointer"; id: string };
+  | { kind: "edit" | "window" | "exclusions" | "retire" | "pointer" | "delete"; id: string };
 
 /**
  * C2c — every status/flag badge carries an ACCESSIBLE description. `title`
@@ -574,6 +589,13 @@ export function AdminCategoriesPage() {
             <RetireCategoryDialog
               category={selected}
               targets={roster.filter((row) => row.isActive)}
+              guard={guard}
+              onClose={() => setDialog({ kind: "none" })}
+            />
+          ) : null}
+          {selected && dialog.kind === "delete" ? (
+            <DeleteCategoryDialog
+              category={selected}
               guard={guard}
               onClose={() => setDialog({ kind: "none" })}
             />

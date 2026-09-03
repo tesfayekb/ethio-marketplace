@@ -19,6 +19,7 @@ import {
   useAddCategoryPointer,
   useCategoryPointers,
   useCreateCategory,
+  useDeleteCategory,
   useMoveCategoryPointer,
   useRemoveCategoryPointer,
   useRetireCategory,
@@ -788,6 +789,73 @@ export function CategoryPathsDialog({
         busy={busy}
         submitTestId="category-paths-add-submit"
         submitLabel={t("admin.categories.paths.addSubmit")}
+      />
+    </CategoryModal>
+  );
+}
+
+/* -------------------------------- delete ---------------------------------- */
+
+/**
+ * C2d — the one destructive verb. A retired row only: the operator types the
+ * slug exactly, and the RPC re-checks the match, the retired state and the
+ * zero listing count server-side (F3). A refusal renders as a translated
+ * message; nothing is deleted optimistically (F4).
+ */
+export function DeleteCategoryDialog({
+  category,
+  guard,
+  onClose,
+}: {
+  category: CategoryRow;
+  guard: GuardFn;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const remove = useDeleteCategory();
+  const { message, setMessage, fail } = useSubmitError();
+  const [typed, setTyped] = useState("");
+
+  const submit = () => {
+    setMessage(null);
+    if (typed !== category.slug) {
+      setMessage(t("admin.categories.delete.mismatch"));
+      return;
+    }
+    void guard(async () => {
+      try {
+        await remove.mutateAsync({ id: category.id, confirmSlug: typed });
+        onClose();
+      } catch (error) {
+        fail(error);
+      }
+    });
+  };
+
+  return (
+    <CategoryModal
+      testid="category-delete-dialog"
+      title={t("admin.categories.delete.title")}
+      onClose={onClose}
+    >
+      <p className="text-sm text-muted-foreground">{t("admin.categories.delete.hint")}</p>
+      <FormField label={t("admin.categories.delete.confirmLabel")} htmlFor="category-delete-slug">
+        <Input
+          id="category-delete-slug"
+          data-testid="category-delete-slug"
+          className="h-11"
+          value={typed}
+          placeholder={category.slug}
+          onChange={(event) => setTyped(event.target.value)}
+        />
+      </FormField>
+      <ErrorLine message={message} />
+      <DialogActions
+        onCancel={onClose}
+        onSubmit={submit}
+        busy={remove.isPending}
+        submitTestId="category-delete-submit"
+        submitLabel={t("admin.categories.delete.confirm")}
       />
     </CategoryModal>
   );
