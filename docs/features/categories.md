@@ -192,3 +192,21 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
   second, and asserts the flip in DB truth, the ABSENCE of the step-up modal and
   the catch-all still last — twin helpers, viewport guard and failure dumps per
   standing law.
+
+## C2-CLOSE — the console's four finals (2026-09-04)
+
+- **Display order is live, never typed.** The editor's Display-order field is
+  read-only and bound to the LIVE roster row (INC-142's lookup), so a Move
+  up/down updates it the moment the roster query settles. It no longer enters
+  the update payload; the caption reads "Managed by Move up/down."
+- **The dialog return path (INC-150).** The state machine is
+  `{ kind: 'edit', id, sub }`: Visibility, Countries, Browse paths, Retire and
+  Delete are axes OF the open editor, not replacements for it. Closing a
+  secondary dialog restores the editor; only closing the editor returns to the
+  table. Step-up keeps its top-layer behaviour unchanged.
+- **E2E.** CT-12's closing check is search-anchored (`findRow`) and asserts the
+  Active badge plus Retire-present / Reactivate-absent. CT-6 seeds one active
+  listing with every required column before navigating (J7) and asserts the
+  reassign picker's count, the reassignment and the listing's new home. CT-16
+  is the return-path law: editor → Countries → close → editor still open →
+  close → table.
