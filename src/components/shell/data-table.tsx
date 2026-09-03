@@ -389,7 +389,14 @@ export function DataTable<T>({
             <thead className="border-b border-border text-muted-foreground">
               <tr>
                 {selection ? (
-                  <th scope="col" className="w-10 p-3 align-top">
+                  <th
+                    scope="col"
+                    className={cn(
+                      "w-10 p-3 align-top",
+                      stickyFirstColumn && "sticky start-0 z-10 bg-card",
+                    )}
+                  >
+
                     <Checkbox
                       aria-label={t("prim.table.selectAll")}
                       data-testid="data-table-select-all"
