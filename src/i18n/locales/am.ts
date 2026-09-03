@@ -784,7 +784,7 @@ export const am: Messages = {
   "admin.categories.tip.missingAssets": "ንብረቶች ይጎድላሉ፦ ይህ ምድብ አዶ ወይም ምስል የለውም፣ ስለዚህ በአሰሳ ላይ ባዶ ሆኖ ይታያል።",
   "admin.categories.filter.missingAssets": "ንብረቶች የሚጎድላቸው",
   "admin.categories.filter.pageSize": "በአንድ ገጽ ረድፎች",
-  "admin.categories.create.slugPreview": "ስлаг (በአገልጋዩ የሚመነጭ)፦",
+  "admin.categories.create.slugPreview": "ስም-መለያ (በአገልጋዩ የሚመነጭ)፦",
   "admin.categories.action.edit": "አርትዕ",
   "admin.categories.action.window": "ታይነት",
   "admin.categories.action.exclusions": "አገሮች",
