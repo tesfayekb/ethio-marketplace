@@ -1,5 +1,7 @@
 # ethio.com — Posting Foundations: Final Build Plan
 
+> SUPERSESSION NOTE (2026-09-02): all category-system content in this plan (the A1 taxonomy/attribute import design, §2 category system, §3.1) is superseded by /docs/governance/category-era-spec.md and the ratified artifacts in /docs/spec/category-era/. Phases covering the posting flow itself remain current.
+
 Status: OPERATOR-DECIDED scope, informed by direct study of the Apex repository
 (github.com/tesfayekb/apex-marketplace). This supersedes the open questions in
 posting-flow-spec.md Part E — all six decisions are now made. This document is the
