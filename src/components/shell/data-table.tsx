@@ -303,8 +303,7 @@ export function DataTable<T>({
    * not: at `cardUntil="xl"` the card carries every column except `detail`.
    */
   const cardColumns = columns.filter(
-    (column) =>
-      column.priority !== "detail" && (cardUntil === "xl" || column.priority !== "wide"),
+    (column) => column.priority !== "detail" && (cardUntil === "xl" || column.priority !== "wide"),
   );
 
   const selectedKeys = new Set(selection?.selectedKeys ?? []);

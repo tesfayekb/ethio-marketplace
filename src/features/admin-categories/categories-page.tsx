@@ -37,11 +37,7 @@ import {
   SELECT_CLASS,
 } from "./category-dialogs";
 import { toRoster, type CategoryNode } from "./categories-service";
-import {
-  useAdminCategories,
-  useReactivateCategory,
-  useReorderCategories,
-} from "./use-categories";
+import { useAdminCategories, useReactivateCategory, useReorderCategories } from "./use-categories";
 
 /**
  * C2-UI — THE CATEGORIES CONSOLE.
@@ -308,7 +304,6 @@ export function AdminCategoriesPage() {
             : null}
         </span>
       ),
-
     },
     {
       key: "order",
@@ -450,7 +445,6 @@ export function AdminCategoriesPage() {
           : null}
       </span>
     );
-
   };
 
   return (
@@ -472,7 +466,6 @@ export function AdminCategoriesPage() {
 
           <DataTable<CategoryNode>
             cardUntil="xl"
-
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
