@@ -348,7 +348,7 @@ export default async function globalSetup() {
       .from("category_tree_pointers")
       .delete()
       .or(
-        `category_id.in.(${staleCategoryIds.join(",")}),parent_id.in.(${staleCategoryIds.join(",")})`,
+        `child_id.in.(${staleCategoryIds.join(",")}),parent_id.in.(${staleCategoryIds.join(",")})`,
       );
     if (pointerError) {
       throw new Error(`[e2e:setup] reaping scratch category pointers failed: ${pointerError.message}`);
