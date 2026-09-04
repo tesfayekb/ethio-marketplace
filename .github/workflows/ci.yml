@@ -209,7 +209,6 @@ jobs:
       - name: Audit
         run: bash scripts/audit-gate.sh
 
-
   # ── E2E TIERS ──────────────────────────────────────────────────────────────
   # One preflight, ONE SHARED BUILD (DEC-029), one fast smoke tier, six
   # parallel shards, one merged
