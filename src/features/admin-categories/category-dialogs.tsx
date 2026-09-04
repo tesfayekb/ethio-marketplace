@@ -218,52 +218,9 @@ export function CreateCategoryDialog({
               {deriveSlugPreview(nameEn.trim())}
             </span>
           </p>
-          <div className="space-y-2">
-            <p className="text-sm text-foreground">
-              <span>{t("admin.categories.create.iconSuggested")}</span>{" "}
-              <span data-testid="category-create-icon-suggested" className="font-mono">
-                {suggesting ? t("admin.categories.create.iconSuggesting") : icon}
-              </span>
-            </p>
-            {iconNotice === null ? null : (
-              <p
-                role="alert"
-                data-testid="category-create-icon-notice"
-                className="text-sm text-destructive"
-              >
-                {iconNotice}
-              </p>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid="category-create-icon-change"
-              onClick={() => setPickerOpen((prev) => !prev)}
-            >
-              {t("admin.categories.create.iconChange")}
-            </Button>
-            {pickerOpen ? (
-              <FormField
-                label={t("admin.categories.create.iconPick")}
-                htmlFor="category-create-icon"
-              >
-                <select
-                  id="category-create-icon"
-                  data-testid="category-create-icon"
-                  className={SELECT_CLASS}
-                  value={icon}
-                  onChange={(event) => setIcon(event.target.value)}
-                >
-                  {ICON_CHOICES.map((choice) => (
-                    <option key={choice} value={choice}>
-                      {choice}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-            ) : null}
-          </div>
+          {/* C5e PART D — the icon machinery is INVISIBLE here: no label, no
+              value, no Change control. It is decided silently and can still be
+              corrected in the edit dialog. */}
           <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
             <select
               id="category-create-parent"
