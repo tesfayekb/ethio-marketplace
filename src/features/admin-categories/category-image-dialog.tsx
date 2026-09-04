@@ -6,7 +6,6 @@ import { useI18n } from "@/i18n";
 import { CategoryModal } from "./category-dialogs";
 import {
   CategoryImageError,
-
   generateCategoryImage,
   type GeneratedAssets,
 } from "./category-images-service";

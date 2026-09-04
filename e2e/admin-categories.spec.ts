@@ -1324,9 +1324,7 @@ test.describe("C2 categories console", () => {
         return await Promise.race([run(), watchdog]);
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
-        throw new Error(
-          `${reason}\n${await bulkDump(label)}\n[trail]\n  ${trail.join("\n  ")}`,
-        );
+        throw new Error(`${reason}\n${await bulkDump(label)}\n[trail]\n  ${trail.join("\n  ")}`);
       }
     };
     // Every pre-poll interaction is bounded (≤15s) and dumps on failure, so an
@@ -1425,7 +1423,6 @@ test.describe("C2 categories console", () => {
       // Silent machinery: neither the suggestion text nor the Change control exists.
       await expect(page.getByTestId("category-create-icon-suggested")).toHaveCount(0);
       await expect(page.getByTestId("category-create-icon-change")).toHaveCount(0);
-
 
       await page.getByTestId("category-create-submit").click();
       await stepUpIfPrompted(page, secret);

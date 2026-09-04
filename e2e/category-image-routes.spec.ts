@@ -123,12 +123,8 @@ test.describe("C5a — category AI foundation routes", () => {
 
       expect(body.stage).toBe("done");
       // C5e PART B — VERSIONED object names: `<id>/card-<genTs>.png`.
-      expect(body.imageUrl).toMatch(
-        new RegExp(`category-assets/${category.id}/card-\\d+\\.png$`),
-      );
-      expect(body.thumbUrl).toMatch(
-        new RegExp(`category-assets/${category.id}/thumb-\\d+\\.png$`),
-      );
+      expect(body.imageUrl).toMatch(new RegExp(`category-assets/${category.id}/card-\\d+\\.png$`));
+      expect(body.thumbUrl).toMatch(new RegExp(`category-assets/${category.id}/thumb-\\d+\\.png$`));
       expect(body.ogUrl).toMatch(new RegExp(`category-assets/${category.id}/og-\\d+\\.png$`));
       expect(body.prompt).toContain("#1E5A43");
       // C5e PART A — the pipeline demonstrably processed, fake mode included.
