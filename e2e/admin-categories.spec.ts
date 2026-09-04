@@ -1328,13 +1328,13 @@ test.describe("C2 categories console", () => {
     };
     try {
       for (let index = 0; index < 3; index += 1) {
-        slugs.push(await createViaUi(page, secret));
+        slugs.push(await lazily(`seed ${index + 1}/3`, () => createViaUi(page, secret)));
       }
       // The search prefix is the seeder's OWN shared literal prefix, never
       // reconstructed from env.
       const prefix = sharedPrefix(slugs);
       expect(prefix.length).toBeGreaterThan(0);
-      await gotoReady(page, "/admin/categories");
+      await lazily("goto roster", () => gotoReady(page, "/admin/categories"));
       await step("category-missing-filter", (locator) => locator.click());
       await step("category-search", (locator) => locator.fill(prefix));
       await step("category-page-size", async (locator) => {
