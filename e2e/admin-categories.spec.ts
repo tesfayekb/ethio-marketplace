@@ -1296,9 +1296,17 @@ test.describe("C2 categories console", () => {
         .getByTestId("category-bulk-summary")
         .textContent()
         .catch(() => null);
+      // C5f PART B — the failures list is part of the dump: with the service's
+      // client-timeout stage, a hang reads as progress=3/3, failures carrying
+      // "client-timeout" entries, and db-truth naming the rows the server
+      // actually filled — self-explanatory by construction.
+      const failures = await page
+        .getByTestId("category-bulk-failures")
+        .textContent()
+        .catch(() => null);
       const truth: string[] = [];
       for (const slug of slugs) truth.push(`${slug}=${(await readImages(slug))?.image_url ?? "∅"}`);
-      return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} rows: ${truth.join(" | ")}`;
+      return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} failures=${failures ?? "∅"} rows: ${truth.join(" | ")}`;
     };
     // C5e PART E — BREADCRUMB WATCHDOG. Every awaited line labels itself, and
     // a 110s watchdog (inside the 120s budget) rejects with the whole trail, so
