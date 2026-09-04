@@ -1,106 +1,138 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33837792845
-- Commit: `899537b1e5c8f813ae1ec8abed79c71968c11064`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33839348080
+- Commit: `66c9ae87e3039a4f2232db2fdf7f872caf9015d0`
 - Attempt: 1
-- Written (UTC): 2026-09-04T04:56:40.377Z
-- Passed: 450 · Skipped: 75 · Failed: 2
-- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 2
-- Sources without results: none
+- Written (UTC): 2026-09-04T05:08:21.339Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-## Flake ledger (DEC-030)
+## Server errors: smoke
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key — Error: expect(locator).toBeVisible() failed
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key — Error: expect(locator).toBeVisible() failed
+## Client errors: smoke
 
-## admin-categories.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-- Source: `shard 4`
-- Project: `desktop-1280`
+## Server errors: email
 
-```text
-Test timeout of 120000ms exceeded.
-```
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
 
-Context:
+## Client errors: email
 
-```text
-          - listitem [ref=e190]:
-            - generic [ref=e191]: About
-          - listitem [ref=e192]:
-            - generic [ref=e193]: How it works
-      - navigation "Help" [ref=e194]:
-        - heading "Help" [level=2] [ref=e195]
-        - list [ref=e196]:
-          - listitem [ref=e197]:
-            - generic [ref=e198]: Safety
-          - listitem [ref=e199]:
-            - generic [ref=e200]: Contact
-      - navigation "Legal" [ref=e201]:
-        - heading "Legal" [level=2] [ref=e202]
-        - list [ref=e203]:
-          - listitem [ref=e204]:
-            - generic [ref=e205]: Terms
-          - listitem [ref=e206]:
-            - generic [ref=e207]: Privacy
-    - paragraph [ref=e209]: © 2026 ethio.com — All rights reserved.
-```
-```
+No `[client-error]` lines in the `email` log (or no log was uploaded).
 
-## admin-categories.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row
+## Server errors: shard 1
 
-- Source: `changed`
-- Project: `desktop-1280`
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
-```text
-Test timeout of 120000ms exceeded.
-```
+## Client errors: shard 1
 
-Context:
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
-```text
-          - listitem [ref=e190]:
-            - generic [ref=e191]: About
-          - listitem [ref=e192]:
-            - generic [ref=e193]: How it works
-      - navigation "Help" [ref=e194]:
-        - heading "Help" [level=2] [ref=e195]
-        - list [ref=e196]:
-          - listitem [ref=e197]:
-            - generic [ref=e198]: Safety
-          - listitem [ref=e199]:
-            - generic [ref=e200]: Contact
-      - navigation "Legal" [ref=e201]:
-        - heading "Legal" [level=2] [ref=e202]
-        - list [ref=e203]:
-          - listitem [ref=e204]:
-            - generic [ref=e205]: Terms
-          - listitem [ref=e206]:
-            - generic [ref=e207]: Privacy
-    - paragraph [ref=e209]: © 2026 ethio.com — All rights reserved.
-```
-```
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
 ## Server errors: shard 4
 
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-```
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Client errors: shard 4
 
 No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 
-## Server errors: changed
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+(no log tail was uploaded for this source)
 ```
 
-## Client errors: changed
+## email: no results file
 
-No `[client-error]` lines in the `changed` log (or no log was uploaded).
+email: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
