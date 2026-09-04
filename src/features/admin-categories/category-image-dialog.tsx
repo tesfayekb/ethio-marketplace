@@ -130,13 +130,12 @@ export function GeneratePanel({
   };
 
   /**
-   * C5e PART B — VERSIONED ASSETS. Object names now carry the generation
-   * timestamp, so there is no deterministic URL to guess: the preview renders
-   * the URLs THIS generation returned, and an already-imaged category simply
-   * shows its caption until it is regenerated. `hasExisting` still decides the
-   * Generate/Regenerate label.
+   * C5e PART B — VERSIONED ASSETS: object names carry the generation timestamp,
+   * so there is no URL to guess. C5h PART B closes the gap the other way — the
+   * caller supplies the row's STORED urls, and this generation's result simply
+   * supersedes them. `hasExisting` still decides the Generate/Regenerate label.
    */
-  const shown = assets;
+  const shown = assets ?? stored ?? null;
 
   return (
     <div className="space-y-3" data-testid={testid}>
