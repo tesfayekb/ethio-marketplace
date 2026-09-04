@@ -1250,16 +1250,29 @@ test.describe("C2 categories console", () => {
       expect(first?.image_thumb_url).toBeTruthy();
       expect(first?.og_image_url).toBeTruthy();
 
-      // C5g PART C — ACCEPT stamps the row; the badge appears.
+      // C5i PART A — ACCEPT-CLOSES (the shipped flow): accept stamps the row and
+      // the dialog closes itself; the badge is then read from STORED truth on
+      // reopen, not from the local generation state.
       expect(first?.image_accepted_at).toBeNull();
       await page.getByTestId("category-image-accept").click();
       await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("category-image-accepted-badge")).toBeVisible({
-        timeout: 20000,
-      });
+      await expect(page.getByTestId("category-image-dialog")).toBeHidden({ timeout: 20000 });
       await expect
         .poll(async () => (await readImages(slug))?.image_accepted_at ?? null, { timeout: 30000 })
         .not.toBeNull();
+
+      // Reopen: stored assets render and the accepted badge is present.
+      await action(page, slug, "image").click();
+      await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("category-image-assets")).toBeVisible({ timeout: 30000 });
+      for (const part of ["card", "thumb", "og"]) {
+        await expect(page.getByTestId(`category-image-assets-${part}`)).toBeVisible();
+      }
+      await expect(page.getByTestId("category-image-accepted-badge")).toBeVisible({
+        timeout: 20000,
+      });
+      // …and no Accept button while the shown generation is the accepted one.
+      await expect(page.getByTestId("category-image-accept")).toBeHidden();
 
       // C5c PART C.3 — the console sends no prompt any more: the house prompt is
       // code truth, so the column stays NULL after a house generation.
@@ -1278,8 +1291,13 @@ test.describe("C2 categories console", () => {
       expect(second?.image_url).not.toBe(first?.image_url);
       expect(second?.image_thumb_url).not.toBe(first?.image_thumb_url);
       expect(second?.og_image_url).not.toBe(first?.og_image_url);
-      // …and a NEW generation un-accepts: acceptance is per-generation.
+      // …and a NEW generation un-accepts: acceptance is per-generation, so the
+      // badge disappears and Accept returns on the fresh assets (C5i PART A).
       expect(second?.image_accepted_at).toBeNull();
+      await expect(page.getByTestId("category-image-accepted-badge")).toBeHidden({
+        timeout: 20000,
+      });
+      await expect(page.getByTestId("category-image-accept")).toBeVisible({ timeout: 20000 });
     } finally {
       if (slug) await destroyCategory(slug);
     }
