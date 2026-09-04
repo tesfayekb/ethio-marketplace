@@ -125,7 +125,14 @@ export function GeneratePanel({
     }
   };
 
-  const shown = assets ?? (hasExisting ? categoryAssetUrls(categoryId) : null);
+  /**
+   * C5e PART B — VERSIONED ASSETS. Object names now carry the generation
+   * timestamp, so there is no deterministic URL to guess: the preview renders
+   * the URLs THIS generation returned, and an already-imaged category simply
+   * shows its caption until it is regenerated. `hasExisting` still decides the
+   * Generate/Regenerate label.
+   */
+  const shown = assets;
 
   return (
     <div className="space-y-3" data-testid={testid}>
