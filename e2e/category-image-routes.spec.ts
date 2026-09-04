@@ -133,7 +133,9 @@ test.describe("C5a — category AI foundation routes", () => {
       // DB TRUTH (J4) — read the row back with the service client.
       const { data: row, error } = await adminClient()
         .from("categories")
-        .select("image_url, image_thumb_url, og_image_url, image_generation_prompt")
+        .select(
+          "image_url, image_thumb_url, og_image_url, image_generation_prompt, image_accepted_at",
+        )
         .eq("id", category.id)
         .single();
       expect(error).toBeNull();
@@ -142,6 +144,8 @@ test.describe("C5a — category AI foundation routes", () => {
       expect(row?.og_image_url).toBe(body.ogUrl);
       // C5e PART C — the uniform house prompt is CODE truth: the column is NULL.
       expect(row?.image_generation_prompt).toBeNull();
+      // C5g PART C — a persist never lands pre-accepted.
+      expect(row?.image_accepted_at).toBeNull();
     } finally {
       await cleanup(category.id);
     }

@@ -246,7 +246,11 @@ export function CategoryImageDialog({
         </p>
       )}
       {message === null ? null : (
-        <p role="alert" data-testid="category-image-accept-error" className="text-sm text-destructive">
+        <p
+          role="alert"
+          data-testid="category-image-accept-error"
+          className="text-sm text-destructive"
+        >
           {message}
         </p>
       )}

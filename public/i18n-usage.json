@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 190,
-  "dynamicCallSites": 69,
+  "dynamicCallSites": 70,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -183,10 +183,7 @@
     "admin.categories.col.status": [
       "/admin/categories"
     ],
-    "admin.categories.create.generateSkip": [
-      "/admin/categories"
-    ],
-    "admin.categories.create.generateTitle": [
+    "admin.categories.create.created": [
       "/admin/categories"
     ],
     "admin.categories.create.name": [
@@ -291,6 +288,12 @@
     "admin.categories.filter.root": [
       "/admin/categories"
     ],
+    "admin.categories.image.accept": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.accepted": [
+      "/admin/categories"
+    ],
     "admin.categories.image.busy": [
       "/admin/categories"
     ],
@@ -304,6 +307,9 @@
       "/admin/categories"
     ],
     "admin.categories.image.og": [
+      "/admin/categories"
+    ],
+    "admin.categories.image.reaccept": [
       "/admin/categories"
     ],
     "admin.categories.image.regenerate": [

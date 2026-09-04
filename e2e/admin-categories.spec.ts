@@ -1202,7 +1202,9 @@ test.describe("C2 categories console", () => {
   async function readImages(slug: string) {
     const { data, error } = await adminClient()
       .from("categories")
-      .select("id, image_url, image_thumb_url, og_image_url, image_generation_prompt, image_accepted_at")
+      .select(
+        "id, image_url, image_thumb_url, og_image_url, image_generation_prompt, image_accepted_at",
+      )
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw new Error(`[e2e:c5b] reading imagery of ${slug} failed: ${error.message}`);
@@ -1297,151 +1299,166 @@ test.describe("C2 categories console", () => {
     // (INC-117 mechanism), still run and still reporting on every push.
     { tag: "@global-state" },
     async ({ page }) => {
-    // C5c PART A — BUDGET TRUTH. The workload is 3 serial creations plus 3
-    // serial generations, each decode → process → watermark → encode → 3
-    // uploads → persist. At ~10-20s apiece plus sign-in that exceeds the 60s
-    // default, so the budget is stated honestly rather than discovered as a
-    // timeout.
-    test.setTimeout(120_000);
-    bandOnly(page, "desktop");
-    const { secret } = await signInAsSuperAdmin(page);
-    const slugs: string[] = [];
-    // INC-153 (second occurrence) — SCOPING LAW:
-    // "specs never assume a globally empty table; they scope their emptiness."
-    // The bulk verb runs over the VISIBLE filtered/searched set, so this test
-    // narrows the roster to exactly its own three seeded rows before running.
-    const bulkDump = async (label: string) => {
-      const progress = await page
-        .getByTestId("category-bulk-progress")
-        .textContent()
-        .catch(() => null);
-      const summary = await page
-        .getByTestId("category-bulk-summary")
-        .textContent()
-        .catch(() => null);
-      // C5f PART B — the failures list is part of the dump: with the service's
-      // client-timeout stage, a hang reads as progress=3/3, failures carrying
-      // "client-timeout" entries, and db-truth naming the rows the server
-      // actually filled — self-explanatory by construction.
-      const failures = await page
-        .getByTestId("category-bulk-failures")
-        .textContent()
-        .catch(() => null);
-      const truth: string[] = [];
-      for (const slug of slugs) truth.push(`${slug}=${(await readImages(slug))?.image_url ?? "∅"}`);
-      return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} failures=${failures ?? "∅"} rows: ${truth.join(" | ")}`;
-    };
-    // C5e PART E — BREADCRUMB WATCHDOG. Every awaited line labels itself, and
-    // a 110s watchdog (inside the 120s budget) rejects with the whole trail, so
-    // a hang names the exact line it hung on instead of dying anonymous.
-    const started = Date.now();
-    const trail: string[] = [];
-    const trace = (label: string) => {
-      trail.push(`+${Math.round((Date.now() - started) / 1000)}s ${label}`);
-    };
-    let armed: ReturnType<typeof setTimeout> | null = null;
-    const watchdog = new Promise<never>((_, reject) => {
-      armed = setTimeout(() => {
-        reject(new Error(`[ci5-watchdog 110s] trail:\n  ${trail.join("\n  ")}`));
-      }, 110_000);
-    });
-    // Playwright fails the test on an unhandled rejection otherwise.
-    watchdog.catch(() => {});
-    // C5c PART A — the dump is LAZY: it is built inside the failure path only,
-    // never on the happy path (six eager dumps cost six DB round-trips a run).
-    const lazily = async <T>(label: string, run: () => Promise<T>): Promise<T> => {
-      trace(label);
+      test.info().annotations.push({ type: "global-state", description: "INC-117 / INC-155" });
+      // C5c PART A — BUDGET TRUTH. The workload is 3 serial creations plus 3
+      // serial generations, each decode → process → watermark → encode → 3
+      // uploads → persist. At ~10-20s apiece plus sign-in that exceeds the 60s
+      // default, so the budget is stated honestly rather than discovered as a
+      // timeout.
+      test.setTimeout(120_000);
+      bandOnly(page, "desktop");
+      const { secret } = await signInAsSuperAdmin(page);
+      const slugs: string[] = [];
+      // INC-153 (second occurrence) — SCOPING LAW:
+      // "specs never assume a globally empty table; they scope their emptiness."
+      // The bulk verb runs over the VISIBLE filtered/searched set, so this test
+      // narrows the roster to exactly its own three seeded rows before running.
+      const bulkDump = async (label: string) => {
+        const progress = await page
+          .getByTestId("category-bulk-progress")
+          .textContent()
+          .catch(() => null);
+        const summary = await page
+          .getByTestId("category-bulk-summary")
+          .textContent()
+          .catch(() => null);
+        // C5f PART B — the failures list is part of the dump: with the service's
+        // client-timeout stage, a hang reads as progress=3/3, failures carrying
+        // "client-timeout" entries, and db-truth naming the rows the server
+        // actually filled — self-explanatory by construction.
+        const failures = await page
+          .getByTestId("category-bulk-failures")
+          .textContent()
+          .catch(() => null);
+        const truth: string[] = [];
+        for (const slug of slugs)
+          truth.push(`${slug}=${(await readImages(slug))?.image_url ?? "∅"}`);
+        return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} failures=${failures ?? "∅"} rows: ${truth.join(" | ")}`;
+      };
+      // C5e PART E — BREADCRUMB WATCHDOG. Every awaited line labels itself, and
+      // a 110s watchdog (inside the 120s budget) rejects with the whole trail, so
+      // a hang names the exact line it hung on instead of dying anonymous.
+      const started = Date.now();
+      const trail: string[] = [];
+      const trace = (label: string) => {
+        trail.push(`+${Math.round((Date.now() - started) / 1000)}s ${label}`);
+      };
+      let armed: ReturnType<typeof setTimeout> | null = null;
+      const watchdog = new Promise<never>((_, reject) => {
+        armed = setTimeout(() => {
+          reject(new Error(`[ci5-watchdog 110s] trail:\n  ${trail.join("\n  ")}`));
+        }, 110_000);
+      });
+      // Playwright fails the test on an unhandled rejection otherwise.
+      watchdog.catch(() => {});
+      // C5c PART A — the dump is LAZY: it is built inside the failure path only,
+      // never on the happy path (six eager dumps cost six DB round-trips a run).
+      const lazily = async <T>(label: string, run: () => Promise<T>): Promise<T> => {
+        trace(label);
+        try {
+          return await Promise.race([run(), watchdog]);
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : String(error);
+          throw new Error(`${reason}\n${await bulkDump(label)}\n[trail]\n  ${trail.join("\n  ")}`);
+        }
+      };
+      // Every pre-poll interaction is bounded (≤15s) and dumps on failure, so an
+      // id mismatch fails loudly here instead of dying silent at the 60s wall.
+      const step = async (testid: string, action: (locator: Locator) => Promise<void>) => {
+        const locator = page.getByTestId(testid);
+        await lazily(`step ${testid}`, async () => {
+          await expect.poll(async () => locator.count(), { timeout: 15000 }).toBeGreaterThan(0);
+        });
+        await lazily(`act ${testid}`, () => action(locator));
+      };
+      // C5g PART E — the watchdog is raced around the ENTIRE awaited chain, so a
+      // hang on a line that is not individually wrapped still rejects with the
+      // full breadcrumb trail and the standing dump.
+      const chain = async () => {
+        for (let index = 0; index < 3; index += 1) {
+          slugs.push(await lazily(`seed ${index + 1}/3`, () => createViaUi(page, secret)));
+        }
+        // The search prefix is the seeder's OWN shared literal prefix, never
+        // reconstructed from env.
+        const prefix = sharedPrefix(slugs);
+        expect(prefix.length).toBeGreaterThan(0);
+        await lazily("goto roster", () => gotoReady(page, "/admin/categories"));
+        await step("category-missing-filter", (locator) => locator.click());
+        await step("category-search", (locator) => locator.fill(prefix));
+        await step("category-page-size", async (locator) => {
+          await locator.selectOption("100");
+        });
+        await lazily("visible-set", async () => {
+          await expect
+            .poll(async () => page.getByRole("table").locator("tbody tr").count(), {
+              timeout: 15000,
+            })
+            .toBe(3);
+        });
+        for (const slug of slugs) {
+          await expect(categoryRow(page, slug)).toBeVisible({ timeout: 15000 });
+        }
+
+        // The progress caption is transient (it clears when the run ends), so
+        // the highest value it reached is captured while polling.
+        let progressSeen = "";
+        await step("category-bulk-generate", (locator) => locator.click());
+
+        await lazily("summary", async () => {
+          await expect
+            .poll(
+              async () => {
+                const line = await page
+                  .getByTestId("category-bulk-progress")
+                  .textContent()
+                  .catch(() => null);
+                if (line) progressSeen = line;
+                return (await page.getByTestId("category-bulk-summary").textContent()) ?? "";
+              },
+              { timeout: 60000 },
+            )
+            .toContain(`3 ${en["admin.categories.bulk.generated"]}`);
+        });
+        // C5f PART B — the progress assert fails with the full dump too.
+        await lazily("progress-peak", async () => {
+          expect(progressSeen).toContain("3/3");
+        });
+
+        await lazily("failures", async () => {
+          await expect
+            .poll(
+              async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "",
+              {
+                timeout: 15000,
+              },
+            )
+            .toContain(`0 ${en["admin.categories.bulk.failed"]}`);
+        });
+
+        for (const slug of slugs) {
+          await lazily(`db-truth ${slug}`, async () => {
+            await expect
+              .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 15000 })
+              .not.toBeNull();
+          });
+        }
+      };
       try {
-        return await Promise.race([run(), watchdog]);
+        await Promise.race([chain(), watchdog]);
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
-        throw new Error(`${reason}\n${await bulkDump(label)}\n[trail]\n  ${trail.join("\n  ")}`);
+        throw new Error(`${reason}\n${await bulkDump("chain")}\n[trail]\n  ${trail.join("\n  ")}`);
+      } finally {
+        if (armed !== null) clearTimeout(armed);
+        for (const slug of slugs) await destroyCategory(slug);
       }
-    };
-    // Every pre-poll interaction is bounded (≤15s) and dumps on failure, so an
-    // id mismatch fails loudly here instead of dying silent at the 60s wall.
-    const step = async (testid: string, action: (locator: Locator) => Promise<void>) => {
-      const locator = page.getByTestId(testid);
-      await lazily(`step ${testid}`, async () => {
-        await expect.poll(async () => locator.count(), { timeout: 15000 }).toBeGreaterThan(0);
-      });
-      await lazily(`act ${testid}`, () => action(locator));
-    };
-    try {
-      for (let index = 0; index < 3; index += 1) {
-        slugs.push(await lazily(`seed ${index + 1}/3`, () => createViaUi(page, secret)));
-      }
-      // The search prefix is the seeder's OWN shared literal prefix, never
-      // reconstructed from env.
-      const prefix = sharedPrefix(slugs);
-      expect(prefix.length).toBeGreaterThan(0);
-      await lazily("goto roster", () => gotoReady(page, "/admin/categories"));
-      await step("category-missing-filter", (locator) => locator.click());
-      await step("category-search", (locator) => locator.fill(prefix));
-      await step("category-page-size", async (locator) => {
-        await locator.selectOption("100");
-      });
-      await lazily("visible-set", async () => {
-        await expect
-          .poll(async () => page.getByRole("table").locator("tbody tr").count(), {
-            timeout: 15000,
-          })
-          .toBe(3);
-      });
-      for (const slug of slugs) {
-        await expect(categoryRow(page, slug)).toBeVisible({ timeout: 15000 });
-      }
-
-      // The progress caption is transient (it clears when the run ends), so
-      // the highest value it reached is captured while polling.
-      let progressSeen = "";
-      await step("category-bulk-generate", (locator) => locator.click());
-
-      await lazily("summary", async () => {
-        await expect
-          .poll(
-            async () => {
-              const line = await page
-                .getByTestId("category-bulk-progress")
-                .textContent()
-                .catch(() => null);
-              if (line) progressSeen = line;
-              return (await page.getByTestId("category-bulk-summary").textContent()) ?? "";
-            },
-            { timeout: 60000 },
-          )
-          .toContain(`3 ${en["admin.categories.bulk.generated"]}`);
-      });
-      // C5f PART B — the progress assert fails with the full dump too.
-      await lazily("progress-peak", async () => {
-        expect(progressSeen).toContain("3/3");
-      });
-
-      await lazily("failures", async () => {
-        await expect
-          .poll(async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "", {
-            timeout: 15000,
-          })
-          .toContain(`0 ${en["admin.categories.bulk.failed"]}`);
-      });
-
-      for (const slug of slugs) {
-        await lazily(`db-truth ${slug}`, async () => {
-          await expect
-            .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 15000 })
-            .not.toBeNull();
-        });
-      }
-    } finally {
-      if (armed !== null) clearTimeout(armed);
-      for (const slug of slugs) await destroyCategory(slug);
-    }
-  });
+    },
+  );
 
   /**
-   * CT-17 (C5e PART D) — THE CREATE FLOW HAS NO ICON UI AT ALL. The suggestion
+   * CT-17 (C5g PART D) — THE CREATE FLOW HAS NO ICON UI AT ALL: the suggestion
    * runs silently on name blur (no text, no Change control), and a successful
-   * create advances to the generate-now step, which previews the assets inline.
+   * create opens the FULL editor on the new row with the Image surface first.
    */
   test("CT-17 create flow: the icon is silent and the editor opens on the image", async ({
     page,

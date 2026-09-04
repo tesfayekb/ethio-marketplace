@@ -200,59 +200,58 @@ export function CreateCategoryDialog({
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
-        <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
-          <Input
-            id="category-create-name"
-            data-testid="category-create-name"
-            value={nameEn}
-            onChange={(event) => setNameEn(event.target.value)}
-            onBlur={(event) => requestSuggestion(event.target.value)}
-          />
-        </FormField>
-        {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
+      <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
+        <Input
+          id="category-create-name"
+          data-testid="category-create-name"
+          value={nameEn}
+          onChange={(event) => setNameEn(event.target.value)}
+          onBlur={(event) => requestSuggestion(event.target.value)}
+        />
+      </FormField>
+      {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
             server will derive; the RPC owns the final value and any -2/-3
             uniqueness suffix, so there is exactly one authority (F3). */}
-        <p className="text-sm text-muted-foreground">
-          <span>{t("admin.categories.create.slugPreview")}</span>{" "}
-          <span data-testid="category-create-slug-preview" className="break-all font-mono">
-            {deriveSlugPreview(nameEn.trim())}
-          </span>
-        </p>
-        {/* C5e PART D — the icon machinery is INVISIBLE here: no label, no
+      <p className="text-sm text-muted-foreground">
+        <span>{t("admin.categories.create.slugPreview")}</span>{" "}
+        <span data-testid="category-create-slug-preview" className="break-all font-mono">
+          {deriveSlugPreview(nameEn.trim())}
+        </span>
+      </p>
+      {/* C5e PART D — the icon machinery is INVISIBLE here: no label, no
             value, no Change control. It is decided silently and can still be
             corrected in the edit dialog. */}
-        <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
-          <select
-            id="category-create-parent"
-            data-testid="category-create-parent"
-            className={SELECT_CLASS}
-            value={parentId}
-            onChange={(event) => setParentId(event.target.value)}
-          >
-            <option value="">{t("admin.categories.create.parentRoot")}</option>
-            {activeParentOptions(parents).map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-          <Checkbox
-            data-testid="category-create-allow"
-            checked={allowListings}
-            onCheckedChange={(checked) => setAllowListings(checked === true)}
-          />
-          {t("admin.categories.field.allowListings")}
-        </label>
-        <ErrorLine message={message} />
-        <DialogActions
-          onCancel={onClose}
-          onSubmit={submit}
-          busy={create.isPending}
-          submitTestId="category-create-submit"
+      <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
+        <select
+          id="category-create-parent"
+          data-testid="category-create-parent"
+          className={SELECT_CLASS}
+          value={parentId}
+          onChange={(event) => setParentId(event.target.value)}
+        >
+          <option value="">{t("admin.categories.create.parentRoot")}</option>
+          {activeParentOptions(parents).map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </FormField>
+      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+        <Checkbox
+          data-testid="category-create-allow"
+          checked={allowListings}
+          onCheckedChange={(checked) => setAllowListings(checked === true)}
         />
-      
+        {t("admin.categories.field.allowListings")}
+      </label>
+      <ErrorLine message={message} />
+      <DialogActions
+        onCancel={onClose}
+        onSubmit={submit}
+        busy={create.isPending}
+        submitTestId="category-create-submit"
+      />
     </CategoryModal>
   );
 }
