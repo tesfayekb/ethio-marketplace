@@ -149,6 +149,23 @@ async function run(
   };
 }
 
+  // C5e PART B — PRUNE. Best effort only: the row already points at the new
+  // set, so a failed cleanup is logged (never silent, F4) and never fails the
+  // generation the operator just paid for.
+  try {
+    const { data: existing } = await supabase.storage.from("category-assets").list(base);
+    const stale = (existing ?? [])
+      .map((entry) => entry.name)
+      .filter((name) => name !== names.card && name !== names.thumb && name !== names.og)
+      .map((name) => `${base}/${name}`);
+    if (stale.length > 0) await supabase.storage.from("category-assets").remove(stale);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.error(`[ssr-error] ${PATH} image_prune_failed ${message}`);
+  }
+
+
+
 function toDataUrl(bytes: Uint8Array): string {
   let binary = "";
   for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]!);
