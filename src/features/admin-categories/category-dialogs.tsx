@@ -11,7 +11,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
 import { GeneratePanel } from "./category-image-dialog";
-import { ICON_CHOICES, suggestCategoryIcon } from "./category-images-service";
+import { suggestCategoryIcon } from "./category-images-service";
 import {
   activeParentOptions,
   deriveSlugPreview,
