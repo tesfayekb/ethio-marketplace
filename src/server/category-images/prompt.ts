@@ -13,6 +13,11 @@ export const MASTER_PROMPT = [
   "no shadows, no 3D, no photographic texture, no perspective.",
   "Palette: primary #1E5A43 (deep green), accent #C98A2B (warm gold); use only these",
   "two colours plus their tints, on a pure white background (#FFFFFF).",
+  // C5g PART B — COLOUR LAW, verbatim.
+  "Colour roles: the deep green #1E5A43 is the dominant colour of the main subject;",
+  "the warm gold #C98A2B appears as ONE small accent element only (at most ~15% of",
+  "the inked area); never alternate the two colours across similar elements; never",
+  "split one object between the two colours.",
   "Composition: one centred subject filling about 85% of the square frame,",
   "generous even margins, perfectly centred, square 1:1 aspect.",
   "Absolutely no text, no letters, no numbers, no watermark, no logo, no border,",
