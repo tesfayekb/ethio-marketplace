@@ -54,6 +54,7 @@ export type Database = {
           expiry_days: number | null
           icon: string | null
           id: string
+          image_accepted_at: string | null
           image_generation_prompt: string | null
           image_thumb_url: string | null
           image_url: string | null
@@ -78,6 +79,7 @@ export type Database = {
           expiry_days?: number | null
           icon?: string | null
           id?: string
+          image_accepted_at?: string | null
           image_generation_prompt?: string | null
           image_thumb_url?: string | null
           image_url?: string | null
@@ -102,6 +104,7 @@ export type Database = {
           expiry_days?: number | null
           icon?: string | null
           id?: string
+          image_accepted_at?: string | null
           image_generation_prompt?: string | null
           image_thumb_url?: string | null
           image_url?: string | null
@@ -1107,6 +1110,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_accept_category_image: { Args: { p_id: string }; Returns: string }
       admin_add_category_pointer: {
         Args: { p_child_id: string; p_parent_id: string }
         Returns: string
