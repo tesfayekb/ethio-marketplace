@@ -1,12 +1,12 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33833219383
-- Commit: `4c78579453500ee18a3500f536b447e90de42125`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33837792845
+- Commit: `899537b1e5c8f813ae1ec8abed79c71968c11064`
 - Attempt: 1
-- Written (UTC): 2026-09-04T03:40:48.966Z
-- Passed: 449 · Skipped: 77 · Failed: 2
+- Written (UTC): 2026-09-04T04:56:40.377Z
+- Passed: 450 · Skipped: 75 · Failed: 2
 - Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Flaky (passed on retry, DEC-030, non-gating): 2
 - Sources without results: none
 
 ## Flake ledger (DEC-030)
@@ -15,6 +15,7 @@ These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
 - FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-translations.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key — Error: expect(locator).toBeVisible() failed
 
 ## admin-categories.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row
 
@@ -22,10 +23,7 @@ a test flaky 3× in 7 days gets an INC and root-cause work.
 - Project: `desktop-1280`
 
 ```text
-Error: expect(received).toContain(expected) // indexOf
-
-Expected substring: "3/3"
-Received string:    "Generating 0/3"
+Test timeout of 120000ms exceeded.
 ```
 
 Context:
@@ -59,10 +57,7 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: expect(received).toContain(expected) // indexOf
-
-Expected substring: "3/3"
-Received string:    "Generating 0/3"
+Test timeout of 120000ms exceeded.
 ```
 
 Context:
