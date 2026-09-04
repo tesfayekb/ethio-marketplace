@@ -3,13 +3,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 
+import { relativeTime } from "@/lib/relative-time";
+
 import { CategoryModal } from "./category-dialogs";
 import {
+  acceptCategoryImage,
   CategoryImageError,
   generateCategoryImage,
   type GeneratedAssets,
 } from "./category-images-service";
-import type { CategoryRow } from "./categories-service";
 
 /**
  * C5b PART A — THE IMAGE SURFACE.
@@ -170,16 +172,53 @@ export function GeneratePanel({
   );
 }
 
+/**
+ * C5g PART C — the ACCEPT surface. Acceptance is per-GENERATION: a fresh
+ * generation clears the server-side stamp (the RPC does it), so this surface
+ * drops back to "Accept" the moment new assets land, and shows "Re-accept"
+ * only after the newer generation has been reviewed.
+ */
 export function CategoryImageDialog({
-  category,
+  categoryId,
+  hasImage,
   openedBy,
+  guard,
   onClose,
 }: {
-  category: CategoryRow;
+  categoryId: string;
+  hasImage: boolean;
   openedBy: string;
+  guard: (run: () => Promise<void>) => Promise<void>;
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const { message, setMessage, fail } = useImageFailure();
+  const [acceptedAt, setAcceptedAt] = useState<string | null>(null);
+  const [hadNewGeneration, setHadNewGeneration] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [current, setCurrent] = useState(hasImage);
+
+  const accept = () => {
+    setMessage(null);
+    setBusy(true);
+    void guard(async () => {
+      const at = await acceptCategoryImage(categoryId);
+      setAcceptedAt(at);
+      setHadNewGeneration(false);
+    })
+      .catch((error: unknown) => {
+        const raw = error instanceof Error ? error.message : "";
+        if (raw.startsWith("admin.categories.error.")) {
+          setMessage(t(raw as Parameters<typeof t>[0]));
+          return;
+        }
+        fail(error);
+      })
+      .finally(() => {
+        setBusy(false);
+      });
+  };
+
   return (
     <CategoryModal
       testid="category-image-dialog"
@@ -188,10 +227,42 @@ export function CategoryImageDialog({
       onClose={onClose}
     >
       <GeneratePanel
-        categoryId={category.id}
-        hasExisting={category.hasImage}
+        categoryId={categoryId}
+        hasExisting={current}
         testid="category-image"
+        onGenerated={() => {
+          // A NEW generation is not the accepted one (the RPC cleared it too).
+          setAcceptedAt(null);
+          setHadNewGeneration(true);
+          setCurrent(true);
+        }}
       />
+      {acceptedAt === null ? null : (
+        <p
+          data-testid="category-image-accepted-badge"
+          className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground"
+        >
+          {`${t("admin.categories.image.accepted")} · ${relativeTime(acceptedAt, language)}`}
+        </p>
+      )}
+      {message === null ? null : (
+        <p role="alert" data-testid="category-image-accept-error" className="text-sm text-destructive">
+          {message}
+        </p>
+      )}
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          type="button"
+          className="min-h-11"
+          data-testid="category-image-accept"
+          disabled={busy || !current}
+          onClick={accept}
+        >
+          {acceptedAt !== null && !hadNewGeneration
+            ? t("admin.categories.image.reaccept")
+            : t("admin.categories.image.accept")}
+        </Button>
+      </div>
       <div className="flex justify-end">
         <Button
           type="button"
