@@ -18,6 +18,7 @@ import {
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
+import { categoryGlyph } from "@/components/shell/app-rail";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -318,21 +319,29 @@ export function AdminCategoriesPage() {
       key: "name",
       header: t("admin.categories.col.name"),
       priority: ROSTER_COLUMN_PRIORITIES.name,
-      cell: (row) => (
-        <span className="block min-w-0">
-          <span className="block truncate font-medium text-foreground" title={row.nameEn}>
-            {row.depth > 0 ? (
-              <span aria-hidden="true" className="text-muted-foreground">
-                {"· ".repeat(row.depth)}
+      cell: (row) => {
+        // C5i PART B.1 — the row's chosen glyph, rendered before the name in
+        // BOTH twins. An unknown/missing icon resolves to Package.
+        const Glyph = categoryGlyph(row.icon);
+        return (
+          <span className="flex min-w-0 items-start gap-2">
+            <Glyph aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <span className="block min-w-0">
+              <span className="block truncate font-medium text-foreground" title={row.nameEn}>
+                {row.depth > 0 ? (
+                  <span aria-hidden="true" className="text-muted-foreground">
+                    {"· ".repeat(row.depth)}
+                  </span>
+                ) : null}
+                {row.nameEn}
               </span>
-            ) : null}
-            {row.nameEn}
+              <span className="block truncate text-xs text-muted-foreground" title={row.slug}>
+                {row.slug}
+              </span>
+            </span>
           </span>
-          <span className="block truncate text-xs text-muted-foreground" title={row.slug}>
-            {row.slug}
-          </span>
-        </span>
-      ),
+        );
+      },
     },
     {
       key: "parent",

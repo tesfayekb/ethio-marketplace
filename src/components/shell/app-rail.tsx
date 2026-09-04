@@ -1,5 +1,73 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, LogOut, Tag } from "lucide-react";
+import {
+  Baby,
+  Bed,
+  Beef,
+  Bike,
+  Bird,
+  BookOpen,
+  Briefcase,
+  Building2,
+  Bus,
+  Calculator,
+  Camera,
+  Car,
+  Cat,
+  ChevronRight,
+  Dog,
+  Drill,
+  Dumbbell,
+  Factory,
+  Fish,
+  Footprints,
+  Forklift,
+  Gamepad2,
+  Gem,
+  Glasses,
+  GraduationCap,
+  Hammer,
+  HardHat,
+  Headphones,
+  Heart,
+  Home,
+  Lamp,
+  Laptop,
+  LogOut,
+  MapPin,
+  Monitor,
+  Mountain,
+  Music,
+  Package,
+  PaintRoller,
+  Palette,
+  Plane,
+  Refrigerator,
+  Scale,
+  Scissors,
+  Ship,
+  Shirt,
+  Smartphone,
+  Sofa,
+  Sparkles,
+  Sprout,
+  Stethoscope,
+  Store,
+  Tag,
+  Tent,
+  ToyBrick,
+  Tractor,
+  TreePine,
+  Trophy,
+  Truck,
+  Tv,
+  UtensilsCrossed,
+  Wallet,
+  WashingMachine,
+  Watch,
+  Wheat,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/app-shell";
@@ -42,7 +110,89 @@ const ITEM_IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar
 /** Selection is GREEN, never a cream tint — the one emphasis surface. */
 const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foreground";
 
+/**
+ * C5i PART B.3 — THE STORED ICON IS THE GLYPH.
+ *
+ * `categories.icon` (the allowlisted lucide name the suggester writes) is the
+ * operator's chosen glyph, so the public rail renders IT. The slug map in
+ * src/config/panels.ts stays the fallback for rows that carry no icon yet, and
+ * `Package` is the last resort for a name that is not in this map — exactly the
+ * server-side allowlist's fallback, so console and rail never disagree.
+ */
+const GLYPHS: Record<string, LucideIcon> = {
+  Baby,
+  Bed,
+  Beef,
+  Bike,
+  Bird,
+  BookOpen,
+  Briefcase,
+  Building2,
+  Bus,
+  Calculator,
+  Camera,
+  Car,
+  Cat,
+  Dog,
+  Drill,
+  Dumbbell,
+  Factory,
+  Fish,
+  Footprints,
+  Forklift,
+  Gamepad2,
+  Gem,
+  Glasses,
+  GraduationCap,
+  Hammer,
+  HardHat,
+  Headphones,
+  Heart,
+  Home,
+  Lamp,
+  Laptop,
+  MapPin,
+  Monitor,
+  Mountain,
+  Music,
+  Package,
+  PaintRoller,
+  Palette,
+  Plane,
+  Refrigerator,
+  Scale,
+  Scissors,
+  Ship,
+  Shirt,
+  Smartphone,
+  Sofa,
+  Sparkles,
+  Sprout,
+  Stethoscope,
+  Store,
+  Tent,
+  ToyBrick,
+  Tractor,
+  TreePine,
+  Trophy,
+  Truck,
+  Tv,
+  UtensilsCrossed,
+  Wallet,
+  WashingMachine,
+  Watch,
+  Wheat,
+  Wrench,
+};
+
+/** The glyph for a stored icon name; `Package` when the name is unknown. */
+export function categoryGlyph(name: string | null | undefined): LucideIcon {
+  if (!name) return Package;
+  return GLYPHS[name.trim()] ?? Package;
+}
+
 /** True only after hydration on a collapsed desktop rail. */
+
 const CollapsedContext = createContext(false);
 
 /**
@@ -229,10 +379,11 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     key: category.id,
     testid: `rail-category-${category.slug}`,
     label: entityName("category", category, entities),
-    // Categories are DATA, not config, so their glyph comes from the slug map
-    // in src/config/panels.ts — DISTINCT per category, so the collapsed rail is
-    // readable without hovering (INC-039). Unmapped slugs fall back to Tag.
-    icon: categoryIcon(category.slug),
+    // C5i PART B.3 — the STORED icon first (the operator's choice, visible on
+    // the public rail), then the slug map in src/config/panels.ts, then Tag.
+    // Unknown stored names resolve to Package via categoryGlyph.
+    icon: category.icon ? categoryGlyph(category.icon) : categoryIcon(category.slug),
+
     active: category.slug === selectedCategorySlug,
     path: "/c/$slug",
     params: { slug: category.slug },

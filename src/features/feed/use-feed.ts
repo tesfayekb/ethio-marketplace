@@ -149,6 +149,8 @@ export interface FeedCategory {
   nameEn: string;
   nameAm: string | null;
   slug: string;
+  /** C5i — the stored lucide glyph name; the rail renders it. */
+  icon: string | null;
 }
 
 /**
@@ -166,7 +168,7 @@ async function readCategories(): Promise<FeedCategory[]> {
   const [{ data: cats }, { data: pointers }] = await Promise.all([
     supabase
       .from("categories")
-      .select("id,name_en,name_am,slug,display_order")
+      .select("id,name_en,name_am,slug,icon,display_order")
       .eq("is_active", true)
       .order("display_order", { ascending: true }),
     supabase.from("category_tree_pointers").select("child_id,parent_id"),
@@ -176,7 +178,13 @@ async function readCategories(): Promise<FeedCategory[]> {
   );
   return (cats ?? [])
     .filter((c) => !childOfSomething.has(c.id))
-    .map((c) => ({ id: c.id, nameEn: c.name_en, nameAm: c.name_am, slug: c.slug }));
+    .map((c) => ({
+      id: c.id,
+      nameEn: c.name_en,
+      nameAm: c.name_am,
+      slug: c.slug,
+      icon: c.icon,
+    }));
 }
 
 /**
