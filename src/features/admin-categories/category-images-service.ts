@@ -119,6 +119,19 @@ export async function suggestCategoryIcon(input: {
 }
 
 /**
+ * C5g PART C — ACCEPT. The gated definer RPC stamps `image_accepted_at` and
+ * returns it; every later persist clears it again, so an accepted badge always
+ * refers to the generation the operator actually looked at. Refusals raise the
+ * RPC's message (a translation key for the domain refusals) — F4, never a
+ * silent no-op.
+ */
+export async function acceptCategoryImage(categoryId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("admin_accept_category_image", { p_id: categoryId });
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
+/**
  * The three asset paths are DETERMINISTIC (`<id>/card-512.png` etc. in the
  * public `category-assets` bucket), so an already-generated category renders
  * without a second read. The roster's `has_image` decides whether they exist.
