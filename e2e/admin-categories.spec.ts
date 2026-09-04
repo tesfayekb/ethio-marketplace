@@ -282,11 +282,15 @@ async function createViaUi(page: Page, secret: string) {
   await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
   await page.getByTestId("category-create-submit").click();
   await stepUpIfPrompted(page, secret);
-  // C5b-HELPER — the create dialog advances to the Generate-now step; most
-  // tests skip it so CT-17 remains the only test exercising Generate.
-  await expect(page.getByTestId("category-create-generate-step")).toBeVisible({ timeout: 20000 });
-  await page.getByTestId("category-create-generate-skip").click();
+  // C5g PART D — a successful create closes the create dialog and opens the
+  // FULL editor on the new row with the Image surface in front; a helper that
+  // only seeds dismisses both (Escape) before touching the roster.
+  await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
   await expect(page.getByTestId("category-create-dialog")).toHaveCount(0, { timeout: 20000 });
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("category-image-dialog")).toHaveCount(0, { timeout: 20000 });
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
   // C2-GHOST PART B — the state right after the create dialog closes is the
   // ghost's birthplace; the dump names any dialog still open.
   const afterCreate = await dialogDump(page, `createViaUi(${slug}) after create`);
@@ -1198,7 +1202,7 @@ test.describe("C2 categories console", () => {
   async function readImages(slug: string) {
     const { data, error } = await adminClient()
       .from("categories")
-      .select("id, image_url, image_thumb_url, og_image_url, image_generation_prompt")
+      .select("id, image_url, image_thumb_url, og_image_url, image_generation_prompt, image_accepted_at")
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw new Error(`[e2e:c5b] reading imagery of ${slug} failed: ${error.message}`);
@@ -1244,6 +1248,17 @@ test.describe("C2 categories console", () => {
       expect(first?.image_thumb_url).toBeTruthy();
       expect(first?.og_image_url).toBeTruthy();
 
+      // C5g PART C — ACCEPT stamps the row; the badge appears.
+      expect(first?.image_accepted_at).toBeNull();
+      await page.getByTestId("category-image-accept").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("category-image-accepted-badge")).toBeVisible({
+        timeout: 20000,
+      });
+      await expect
+        .poll(async () => (await readImages(slug))?.image_accepted_at ?? null, { timeout: 30000 })
+        .not.toBeNull();
+
       // C5c PART C.3 — the console sends no prompt any more: the house prompt is
       // code truth, so the column stays NULL after a house generation.
       await page.getByTestId("category-image-generate").click();
@@ -1261,6 +1276,8 @@ test.describe("C2 categories console", () => {
       expect(second?.image_url).not.toBe(first?.image_url);
       expect(second?.image_thumb_url).not.toBe(first?.image_thumb_url);
       expect(second?.og_image_url).not.toBe(first?.og_image_url);
+      // …and a NEW generation un-accepts: acceptance is per-generation.
+      expect(second?.image_accepted_at).toBeNull();
     } finally {
       if (slug) await destroyCategory(slug);
     }
@@ -1273,7 +1290,13 @@ test.describe("C2 categories console", () => {
    * (BULK_LIMIT is the slice bound) rather than by seeding 26 fixtures — the
    * cheaper honest proof, stated here so the omission is not silent.
    */
-  test("CI-5 bulk fill: the missing-assets run fills every seeded row", async ({ page }) => {
+  test(
+    "CI-5 bulk fill: the missing-assets run fills every seeded row",
+    // C5g PART E (INC-155) — the bulk verb walks the whole visible roster and
+    // writes imagery, so it is a global-state walk: quarantined non-gating
+    // (INC-117 mechanism), still run and still reporting on every push.
+    { tag: "@global-state" },
+    async ({ page }) => {
     // C5c PART A — BUDGET TRUTH. The workload is 3 serial creations plus 3
     // serial generations, each decode → process → watermark → encode → 3
     // uploads → persist. At ~10-20s apiece plus sign-in that exceeds the 60s
@@ -1420,7 +1443,7 @@ test.describe("C2 categories console", () => {
    * runs silently on name blur (no text, no Change control), and a successful
    * create advances to the generate-now step, which previews the assets inline.
    */
-  test("CT-17 create flow: the icon is silent and the image can be generated inline", async ({
+  test("CT-17 create flow: the icon is silent and the editor opens on the image", async ({
     page,
   }) => {
     bandOnly(page, "any");
@@ -1437,20 +1460,24 @@ test.describe("C2 categories console", () => {
 
       await page.getByTestId("category-create-submit").click();
       await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("category-create-generate-step")).toBeVisible({
-        timeout: 20000,
-      });
+      // C5g PART D — create → the FULL editor opens on the new row with the
+      // Image surface in front, and the creation is confirmed inline.
+      await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("category-create-dialog")).toHaveCount(0);
+      await expect(page.getByTestId("category-created-notice")).toBeVisible();
 
-      await page.getByTestId("category-create-image-generate").click();
-      await expect(page.getByTestId("category-create-image-assets")).toBeVisible({
+      await page.getByTestId("category-image-generate").click();
+      await expect(page.getByTestId("category-image-assets")).toBeVisible({
         timeout: 60000,
       });
       await expect
         .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
         .not.toBeNull();
 
-      await page.getByTestId("category-create-generate-skip").click();
-      await expect(page.getByTestId("category-create-dialog")).toHaveCount(0);
+      // Closing the image surface returns to the editor, where every other
+      // verb is present from second one.
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
     } finally {
       await destroyCategory(slug);
     }
