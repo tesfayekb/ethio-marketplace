@@ -1206,11 +1206,11 @@ test.describe("C2 categories console", () => {
   }
 
   /**
-   * CI-4 (C5b PART A) — THE IMAGE TAB. Generate persists three objects and the
-   * row; the preview renders all three; a regenerate OVERWRITES rather than
-   * appending a second asset set. Fake mode only — CI holds no provider key.
+   * CI-4 (C5e PART B) — THE IMAGE TAB. Generate persists three objects and the
+   * row; the preview renders all three; a regenerate produces a NEW VERSIONED
+   * set, so all three URLs change. Fake mode only — CI holds no provider key.
    */
-  test("CI-4 image tab: generate persists three assets and regenerate overwrites", async ({
+  test("CI-4 image tab: generate persists three assets and regenerate re-versions them", async ({
     page,
   }) => {
     bandOnly(page, "any");
@@ -1228,7 +1228,14 @@ test.describe("C2 categories console", () => {
       for (const part of ["card", "thumb", "og"]) {
         await expect(page.getByTestId(`category-image-assets-${part}`)).toBeVisible();
       }
-      await expect(page.getByTestId("category-image-timings")).toBeVisible();
+      // C5e PART A — the pipeline demonstrably ran: a done stage with 0ms of
+      // processing was the regression's tell, so the timing line is asserted.
+      const timings = page.getByTestId("category-image-timings");
+      await expect(timings).toBeVisible();
+      const processMs = Number(
+        /·\s*\d+\/(\d+)\//.exec((await timings.textContent()) ?? "")?.[1] ?? "0",
+      );
+      expect(processMs, (await timings.textContent()) ?? "").toBeGreaterThan(0);
 
       await expect
         .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
@@ -1245,10 +1252,15 @@ test.describe("C2 categories console", () => {
           timeout: 60000,
         })
         .toBeNull();
+      // C5e PART B — VERSIONED: all three URLs must CHANGE between generations
+      // (stronger than "overwrite" — a stale CDN copy can no longer be served).
+      await expect
+        .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 60000 })
+        .not.toBe(first?.image_url);
       const second = await readImages(slug);
-      // OVERWRITE, not accumulate: the row still points at exactly one set.
-      expect(second?.image_url).toBeTruthy();
-      expect(second?.og_image_url).toBeTruthy();
+      expect(second?.image_url).not.toBe(first?.image_url);
+      expect(second?.image_thumb_url).not.toBe(first?.image_thumb_url);
+      expect(second?.og_image_url).not.toBe(first?.og_image_url);
     } finally {
       if (slug) await destroyCategory(slug);
     }
@@ -1288,14 +1300,31 @@ test.describe("C2 categories console", () => {
       for (const slug of slugs) truth.push(`${slug}=${(await readImages(slug))?.image_url ?? "∅"}`);
       return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} rows: ${truth.join(" | ")}`;
     };
+    // C5e PART E — BREADCRUMB WATCHDOG. Every awaited line labels itself, and
+    // a 110s watchdog (inside the 120s budget) rejects with the whole trail, so
+    // a hang names the exact line it hung on instead of dying anonymous.
+    const started = Date.now();
+    const trail: string[] = [];
+    const trace = (label: string) => {
+      trail.push(`+${Math.round((Date.now() - started) / 1000)}s ${label}`);
+    };
+    let armed: ReturnType<typeof setTimeout> | null = null;
+    const watchdog = new Promise<never>((_, reject) => {
+      armed = setTimeout(() => {
+        reject(new Error(`[ci5-watchdog 110s] trail:\n  ${trail.join("\n  ")}`));
+      }, 110_000);
+    });
+    // Playwright fails the test on an unhandled rejection otherwise.
+    watchdog.catch(() => {});
     // C5c PART A — the dump is LAZY: it is built inside the failure path only,
     // never on the happy path (six eager dumps cost six DB round-trips a run).
     const lazily = async <T>(label: string, run: () => Promise<T>): Promise<T> => {
+      trace(label);
       try {
-        return await run();
+        return await Promise.race([run(), watchdog]);
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
-        throw new Error(`${reason}\n${await bulkDump(label)}`);
+        throw new Error(`${reason}\n${await bulkDump(label)}\n[trail]\n  ${trail.join("\n  ")}`);
       }
     };
     // Every pre-poll interaction is bounded (≤15s) and dumps on failure, so an
@@ -1305,17 +1334,17 @@ test.describe("C2 categories console", () => {
       await lazily(`step ${testid}`, async () => {
         await expect.poll(async () => locator.count(), { timeout: 15000 }).toBeGreaterThan(0);
       });
-      await action(locator);
+      await lazily(`act ${testid}`, () => action(locator));
     };
     try {
       for (let index = 0; index < 3; index += 1) {
-        slugs.push(await createViaUi(page, secret));
+        slugs.push(await lazily(`seed ${index + 1}/3`, () => createViaUi(page, secret)));
       }
       // The search prefix is the seeder's OWN shared literal prefix, never
       // reconstructed from env.
       const prefix = sharedPrefix(slugs);
       expect(prefix.length).toBeGreaterThan(0);
-      await gotoReady(page, "/admin/categories");
+      await lazily("goto roster", () => gotoReady(page, "/admin/categories"));
       await step("category-missing-filter", (locator) => locator.click());
       await step("category-search", (locator) => locator.fill(prefix));
       await step("category-page-size", async (locator) => {
@@ -1370,16 +1399,17 @@ test.describe("C2 categories console", () => {
         });
       }
     } finally {
+      if (armed !== null) clearTimeout(armed);
       for (const slug of slugs) await destroyCategory(slug);
     }
   });
 
   /**
-   * CT-17 (C5b PART B) — THE CREATE FLOW HAS NO MANUAL ICON. The icon is
-   * suggested on name blur, and a successful create advances to the
-   * generate-now step, which previews the assets inline.
+   * CT-17 (C5e PART D) — THE CREATE FLOW HAS NO ICON UI AT ALL. The suggestion
+   * runs silently on name blur (no text, no Change control), and a successful
+   * create advances to the generate-now step, which previews the assets inline.
    */
-  test("CT-17 create flow: the icon is suggested and the image can be generated inline", async ({
+  test("CT-17 create flow: the icon is silent and the image can be generated inline", async ({
     page,
   }) => {
     bandOnly(page, "any");
@@ -1390,13 +1420,9 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-create-open").click();
       await page.getByTestId("category-create-name").fill(slug);
       await page.getByTestId("category-create-name").blur();
-      await expect
-        .poll(
-          async () =>
-            (await page.getByTestId("category-create-icon-suggested").textContent()) ?? "",
-          { timeout: 20000 },
-        )
-        .not.toBe(en["admin.categories.create.iconSuggesting"]);
+      // Silent machinery: neither the suggestion text nor the Change control exists.
+      await expect(page.getByTestId("category-create-icon-suggested")).toHaveCount(0);
+      await expect(page.getByTestId("category-create-icon-change")).toHaveCount(0);
 
       await page.getByTestId("category-create-submit").click();
       await stepUpIfPrompted(page, secret);

@@ -105,6 +105,8 @@ export interface PipelineOutput {
   card: Uint8Array;
   thumb: Uint8Array;
   og: Uint8Array;
+  /** C5e PART A — the stages that demonstrably executed, in order. */
+  stages: PipelineStage[];
   timings: Timings;
 }
 
@@ -142,17 +144,30 @@ function fitInto(icon: Raster, box: number, ratio = FILL_RATIO): Raster {
 }
 
 /**
- * Runs every post-processing stage on a generated PNG.
- * `genMs` is measured by the caller (the model call) and passed through.
+ * C5e PART A — STAGE REGRESSION.
+ *
+ * The four stages below ALWAYS run (fake mode included), but the Worker clock
+ * is frozen between I/O boundaries: `performance.now()` returns the SAME value
+ * before and after pure CPU work, so `processMs` reported 0 while `stage` said
+ * `done` — reading like a pipeline that never ran. The fix is twofold:
+ *   1. every stage records itself in `stages`, so execution is observable;
+ *   2. the elapsed time is floored at 1ms once work completed, so a frozen
+ *      clock can never again report "no processing happened".
  */
 export function processGeneratedPng(source: Uint8Array, genMs: number): PipelineOutput {
   const start = performance.now();
+  const stages: PipelineStage[] = [];
+  const run = <T>(stage: PipelineStage, fn: () => T): T => {
+    const value = atStage(stage, fn);
+    stages.push(stage);
+    return value;
+  };
 
   // decode — sniffed by magic bytes (PART C), never by the declared mime.
-  const decoded = atStage("decode", () => decodeImage(source));
+  const decoded = run("decode", () => decodeImage(source));
 
   // process — alpha keying, content crop, scaling.
-  const { cardIcon, ogIcon } = atStage("process", () => {
+  const { cardIcon, ogIcon } = run("process", () => {
     const transparent = whiteToTransparent(decoded);
     const cropped = crop(transparent, contentBounds(transparent));
     return {
@@ -162,7 +177,7 @@ export function processGeneratedPng(source: Uint8Array, genMs: number): Pipeline
   });
 
   // watermark — brand canvases with the diagonal marks drawn BEHIND the icon.
-  const { card, og } = atStage("watermark", () => {
+  const { card, og } = run("watermark", () => {
     const card_ = canvas(CARD_SIZE, CARD_SIZE, WHITE);
     watermark(card_, 3);
     compositeOver(
@@ -183,20 +198,24 @@ export function processGeneratedPng(source: Uint8Array, genMs: number): Pipeline
   });
 
   // encode — the 128 thumb is derived from the card so they can never disagree.
-  const encoded = atStage("encode", () => ({
+  const encoded = run("encode", () => ({
     card: encodePng(card),
     thumb: encodePng(resize(card, THUMB_SIZE, THUMB_SIZE)),
     og: encodePng(og),
   }));
 
-  const processMs = performance.now() - start;
+  if (stages.length !== 4) {
+    throw new StageError("process", `pipeline ran ${stages.length}/4 stages`, 500);
+  }
+  const processMs = Math.max(1, Math.round(performance.now() - start));
 
   return {
     ...encoded,
+    stages,
     timings: {
       genMs: Math.round(genMs),
-      processMs: Math.round(processMs),
-      totalMs: Math.round(genMs + processMs),
+      processMs,
+      totalMs: Math.round(genMs) + processMs,
     },
   };
 }

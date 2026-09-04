@@ -219,7 +219,12 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
   `GEMINI_FAKE=1` short-circuits the model call with a deterministic in-repo
   fixture so CI proves the whole pipeline with no key and no spend.
 - **Storage.** Bucket `category-assets`, one folder per category id
-  (`<id>/card-512.png`, `thumb-128.png`, `og-1200x630.png`). Read is open to
+  and VERSIONED object names (C5e): `<id>/card-<genTs>.png`, `thumb-<genTs>.png`,
+  `og-<genTs>.png`, where `genTs` is the generation's epoch-ms. A regenerate
+  therefore changes the three persisted URLs (no CDN or browser can serve a
+  stale asset) and the previous objects under the id prefix are pruned
+  best-effort AFTER the row points at the new set — a failed prune is logged as
+  `[ssr-error] … image_prune_failed`, never fails the generation. Read is open to
   `anon`/`authenticated`; INSERT/UPDATE/DELETE are service-role only, with
   in-file proofs. LIMITATION: the workspace blocks public buckets, so the bucket
   is PRIVATE — an operator must flip it public before the stored
@@ -232,7 +237,11 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
   derived from the card → 1200×630 OG composed programmatically (no second AI
   call), its icon at 75% of the SHORTER dimension (≈470px) so the canvas reads
   as one composition rather than empty flanks.
-  Every stage is timed and returned as `{genMs, processMs, totalMs}`.
+  Every stage is timed and returned as `{genMs, processMs, totalMs}`. C5e: the
+  four stages record themselves and the pipeline refuses to report fewer than
+  four; because the Worker clock is frozen across pure CPU work, `processMs` is
+  floored at 1ms once the stages completed — a `done` stage with 0ms processing
+  (the regression's tell) can no longer be reported, and CI-2/CI-4 assert it.
 - **Routes.** `POST /api/admin/categories/generate-image` (body
   `{categoryId, customPrompt?}`) uploads the three assets and persists
   `image_url`, `image_thumb_url`, `og_image_url`, `image_generation_prompt`.
@@ -253,6 +262,13 @@ artwork. Generation is not a draft: the gated route writes the three objects
 (card 512, thumbnail 128, social 1200x630) and the category row in one call,
 and the operator reviews the result here and regenerates until it is right. A
 The prompt is
+CREATE FLOW (C5e): the create dialog shows NO icon machinery — no suggested
+value, no Change control, no picker. The suggestion runs silently on name blur
+and a failure silently keeps `Package`; the icon stays editable in the EDIT
+dialog only. The create action no longer swallows its own error, so a step-up
+refusal reaches the shared guard and the create replays — which is what makes
+the Generate-now step appear after EVERY successful create.
+
 UNIFORM (C5c): the console offers no prompt field, every generation uses the
 house prompt, and `image_generation_prompt` is written only when a genuinely
 custom prompt is supplied by a future caller — today it persists NULL. A draft-asset state

@@ -189,18 +189,6 @@
     "admin.categories.create.generateTitle": [
       "/admin/categories"
     ],
-    "admin.categories.create.iconChange": [
-      "/admin/categories"
-    ],
-    "admin.categories.create.iconPick": [
-      "/admin/categories"
-    ],
-    "admin.categories.create.iconSuggested": [
-      "/admin/categories"
-    ],
-    "admin.categories.create.iconSuggesting": [
-      "/admin/categories"
-    ],
     "admin.categories.create.name": [
       "/admin/categories"
     ],
@@ -241,9 +229,6 @@
       "/admin/categories"
     ],
     "admin.categories.error": [
-      "/admin/categories"
-    ],
-    "admin.categories.error.iconSuggestFailed": [
       "/admin/categories"
     ],
     "admin.categories.error.imageFailed": [

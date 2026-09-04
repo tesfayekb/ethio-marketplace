@@ -11,7 +11,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
 import { GeneratePanel } from "./category-image-dialog";
-import { ICON_CHOICES, suggestCategoryIcon } from "./category-images-service";
+import { suggestCategoryIcon } from "./category-images-service";
 import {
   activeParentOptions,
   deriveSlugPreview,
@@ -133,15 +133,12 @@ export function CreateCategoryDialog({
   const [parentId, setParentId] = useState("");
   const [allowListings, setAllowListings] = useState(true);
   /**
-   * C5b PART B — NO MANUAL ICON. The operator names the category; the icon is
-   * suggested by the (allowlist-constrained) route on name blur. The manual
-   * picker is the FALLBACK, opened by "Change" or by a suggester failure — the
-   * failure is surfaced translated and the `Package` default is applied (F4).
+   * C5e PART D — SILENT ICON. The operator never sees icon machinery in the
+   * create dialog: the suggestion runs on name blur, applies silently, and a
+   * failure silently keeps the `Package` default. The icon stays editable in
+   * the EDIT dialog, which is the one place it is a decision.
    */
-  const [icon, setIcon] = useState("Package");
-  const [suggesting, setSuggesting] = useState(false);
-  const [iconNotice, setIconNotice] = useState<string | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const iconRef = useRef("Package");
   /** C5b PART B — after a successful create the dialog advances to this step. */
   const [createdId, setCreatedId] = useState<string | null>(null);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,18 +158,22 @@ export function CreateCategoryDialog({
     if (name.trim().length === 0 || createdId !== null) return;
     if (suggestTimer.current !== null) clearTimeout(suggestTimer.current);
     suggestTimer.current = setTimeout(() => {
-      setIconNotice(null);
-      setSuggesting(true);
       void suggestCategoryIcon({ name: name.trim(), parentName })
-        .then((suggested) => setIcon(suggested))
-        .catch(() => {
-          setIcon("Package");
-          setIconNotice(t("admin.categories.error.iconSuggestFailed"));
+        .then((suggested) => {
+          iconRef.current = suggested;
         })
-        .finally(() => setSuggesting(false));
+        .catch(() => {
+          iconRef.current = "Package";
+        });
     }, 300);
   };
 
+  /**
+   * C5e PART D — the create action no longer swallows its own failure: a
+   * step-up refusal MUST reach `guard`, which is what replays the create after
+   * the modal. Catching it here (the old shape) left the create unfinished, so
+   * `createdId` stayed null and the Generate-now step never appeared.
+   */
   const submit = () => {
     setMessage(null);
     if (nameEn.trim().length === 0) {
@@ -180,18 +181,14 @@ export function CreateCategoryDialog({
       return;
     }
     void guard(async () => {
-      try {
-        const id = await create.mutateAsync({
-          nameEn: nameEn.trim(),
-          icon: icon.trim(),
-          parentId: parentId === "" ? null : parentId,
-          allowListings,
-        });
-        setCreatedId(id);
-      } catch (error) {
-        fail(error);
-      }
-    });
+      const id = await create.mutateAsync({
+        nameEn: nameEn.trim(),
+        icon: iconRef.current.trim(),
+        parentId: parentId === "" ? null : parentId,
+        allowListings,
+      });
+      setCreatedId(id);
+    }).catch(fail);
   };
 
   return (
@@ -221,52 +218,9 @@ export function CreateCategoryDialog({
               {deriveSlugPreview(nameEn.trim())}
             </span>
           </p>
-          <div className="space-y-2">
-            <p className="text-sm text-foreground">
-              <span>{t("admin.categories.create.iconSuggested")}</span>{" "}
-              <span data-testid="category-create-icon-suggested" className="font-mono">
-                {suggesting ? t("admin.categories.create.iconSuggesting") : icon}
-              </span>
-            </p>
-            {iconNotice === null ? null : (
-              <p
-                role="alert"
-                data-testid="category-create-icon-notice"
-                className="text-sm text-destructive"
-              >
-                {iconNotice}
-              </p>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid="category-create-icon-change"
-              onClick={() => setPickerOpen((prev) => !prev)}
-            >
-              {t("admin.categories.create.iconChange")}
-            </Button>
-            {pickerOpen ? (
-              <FormField
-                label={t("admin.categories.create.iconPick")}
-                htmlFor="category-create-icon"
-              >
-                <select
-                  id="category-create-icon"
-                  data-testid="category-create-icon"
-                  className={SELECT_CLASS}
-                  value={icon}
-                  onChange={(event) => setIcon(event.target.value)}
-                >
-                  {ICON_CHOICES.map((choice) => (
-                    <option key={choice} value={choice}>
-                      {choice}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-            ) : null}
-          </div>
+          {/* C5e PART D — the icon machinery is INVISIBLE here: no label, no
+              value, no Change control. It is decided silently and can still be
+              corrected in the edit dialog. */}
           <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
             <select
               id="category-create-parent"

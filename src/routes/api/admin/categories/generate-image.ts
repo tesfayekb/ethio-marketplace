@@ -92,11 +92,23 @@ async function run(
 
   const output = processGeneratedPng(source, genMs);
 
+  /**
+   * C5e PART B — VERSIONED ASSETS. The object name carries the generation
+   * timestamp (`card-<genTs>.png`), so a regenerate can never be served stale
+   * from a CDN or browser cache: the URL itself changes. Older objects under
+   * the id prefix are removed best-effort AFTER the row points at the new set.
+   */
   const base = `${categoryId}`;
+  const genTs = Date.now();
+  const names = {
+    card: `card-${genTs}.png`,
+    thumb: `thumb-${genTs}.png`,
+    og: `og-${genTs}.png`,
+  };
   const uploads: [string, Uint8Array][] = [
-    [`${base}/card-512.png`, output.card],
-    [`${base}/thumb-128.png`, output.thumb],
-    [`${base}/og-1200x630.png`, output.og],
+    [`${base}/${names.card}`, output.card],
+    [`${base}/${names.thumb}`, output.thumb],
+    [`${base}/${names.og}`, output.og],
   ];
   await atStageAsync("upload", async () => {
     for (const [path, bytes] of uploads) {
@@ -108,9 +120,9 @@ async function run(
   });
 
   const publicBase = `${process.env["SUPABASE_URL"] ?? ""}/storage/v1/object/public/category-assets`;
-  const imageUrl = `${publicBase}/${base}/card-512.png`;
-  const thumbUrl = `${publicBase}/${base}/thumb-128.png`;
-  const ogUrl = `${publicBase}/${base}/og-1200x630.png`;
+  const imageUrl = `${publicBase}/${base}/${names.card}`;
+  const thumbUrl = `${publicBase}/${base}/${names.thumb}`;
+  const ogUrl = `${publicBase}/${base}/${names.og}`;
 
   await atStageAsync("persist", async () => {
     const { error } = await supabase.rpc("admin_set_category_images", {
@@ -125,6 +137,21 @@ async function run(
     });
     if (error) throw new StageError("persist", error.message, 500);
   });
+
+  // C5e PART B — PRUNE. Best effort only: the row already points at the new
+  // set, so a failed cleanup is logged (never silent, F4) and never fails the
+  // generation the operator just paid for.
+  try {
+    const { data: existing } = await supabase.storage.from("category-assets").list(base);
+    const stale = (existing ?? [])
+      .map((entry) => entry.name)
+      .filter((name) => name !== names.card && name !== names.thumb && name !== names.og)
+      .map((name) => `${base}/${name}`);
+    if (stale.length > 0) await supabase.storage.from("category-assets").remove(stale);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.error(`[ssr-error] ${PATH} image_prune_failed ${message}`);
+  }
 
   return {
     stage: "done",
