@@ -1389,7 +1389,10 @@ test.describe("C2 categories console", () => {
           )
           .toContain(`3 ${en["admin.categories.bulk.generated"]}`);
       });
-      expect(progressSeen).toContain("3/3");
+      // C5f PART B — the progress assert fails with the full dump too.
+      await lazily("progress-peak", async () => {
+        expect(progressSeen).toContain("3/3");
+      });
 
       await lazily("failures", async () => {
         await expect
