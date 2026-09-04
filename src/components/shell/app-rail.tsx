@@ -111,7 +111,89 @@ const ITEM_IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar
 /** Selection is GREEN, never a cream tint — the one emphasis surface. */
 const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foreground";
 
+/**
+ * C5i PART B.3 — THE STORED ICON IS THE GLYPH.
+ *
+ * `categories.icon` (the allowlisted lucide name the suggester writes) is the
+ * operator's chosen glyph, so the public rail renders IT. The slug map in
+ * src/config/panels.ts stays the fallback for rows that carry no icon yet, and
+ * `Package` is the last resort for a name that is not in this map — exactly the
+ * server-side allowlist's fallback, so console and rail never disagree.
+ */
+const GLYPHS: Record<string, LucideIcon> = {
+  Baby,
+  Bed,
+  Beef,
+  Bike,
+  Bird,
+  BookOpen,
+  Briefcase,
+  Building2,
+  Bus,
+  Calculator,
+  Camera,
+  Car,
+  Cat,
+  Dog,
+  Drill,
+  Dumbbell,
+  Factory,
+  Fish,
+  Footprints,
+  Forklift,
+  Gamepad2,
+  Gem,
+  Glasses,
+  GraduationCap,
+  Hammer,
+  HardHat,
+  Headphones,
+  Heart,
+  Home,
+  Lamp,
+  Laptop,
+  MapPin,
+  Monitor,
+  Mountain,
+  Music,
+  Package,
+  PaintRoller,
+  Palette,
+  Plane,
+  Refrigerator,
+  Scale,
+  Scissors,
+  Ship,
+  Shirt,
+  Smartphone,
+  Sofa,
+  Sparkles,
+  Sprout,
+  Stethoscope,
+  Store,
+  Tent,
+  ToyBrick,
+  Tractor,
+  TreePine,
+  Trophy,
+  Truck,
+  Tv,
+  UtensilsCrossed,
+  Wallet,
+  WashingMachine,
+  Watch,
+  Wheat,
+  Wrench,
+};
+
+/** The glyph for a stored icon name; `Package` when the name is unknown. */
+export function categoryGlyph(name: string | null | undefined): LucideIcon {
+  if (!name) return Package;
+  return GLYPHS[name.trim()] ?? Package;
+}
+
 /** True only after hydration on a collapsed desktop rail. */
+
 const CollapsedContext = createContext(false);
 
 /**
