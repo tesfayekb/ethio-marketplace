@@ -1288,14 +1288,33 @@ test.describe("C2 categories console", () => {
       for (const slug of slugs) truth.push(`${slug}=${(await readImages(slug))?.image_url ?? "∅"}`);
       return `[bulk-dump ${label}] progress=${progress ?? "∅"} summary=${summary ?? "∅"} rows: ${truth.join(" | ")}`;
     };
+    // C5e PART E — BREADCRUMB WATCHDOG. Every awaited line labels itself, and
+    // a 110s watchdog (inside the 120s budget) rejects with the whole trail, so
+    // a hang names the exact line it hung on instead of dying anonymous.
+    const started = Date.now();
+    const trail: string[] = [];
+    const trace = (label: string) => {
+      trail.push(`+${Math.round((Date.now() - started) / 1000)}s ${label}`);
+    };
+    let armed: ReturnType<typeof setTimeout> | null = null;
+    const watchdog = new Promise<never>((_, reject) => {
+      armed = setTimeout(() => {
+        reject(new Error(`[ci5-watchdog 110s] trail:\n  ${trail.join("\n  ")}`));
+      }, 110_000);
+    });
+    // Playwright fails the test on an unhandled rejection otherwise.
+    watchdog.catch(() => {});
     // C5c PART A — the dump is LAZY: it is built inside the failure path only,
     // never on the happy path (six eager dumps cost six DB round-trips a run).
     const lazily = async <T>(label: string, run: () => Promise<T>): Promise<T> => {
+      trace(label);
       try {
-        return await run();
+        return await Promise.race([run(), watchdog]);
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
-        throw new Error(`${reason}\n${await bulkDump(label)}`);
+        throw new Error(
+          `${reason}\n${await bulkDump(label)}\n[trail]\n  ${trail.join("\n  ")}`,
+        );
       }
     };
     // Every pre-poll interaction is bounded (≤15s) and dumps on failure, so an
@@ -1305,7 +1324,7 @@ test.describe("C2 categories console", () => {
       await lazily(`step ${testid}`, async () => {
         await expect.poll(async () => locator.count(), { timeout: 15000 }).toBeGreaterThan(0);
       });
-      await action(locator);
+      await lazily(`act ${testid}`, () => action(locator));
     };
     try {
       for (let index = 0; index < 3; index += 1) {
