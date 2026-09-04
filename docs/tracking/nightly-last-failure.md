@@ -1,133 +1,84 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33723683790
-- Commit: `ae4e5af7a1539f3ed5cf254b0e1926d72704e8c7`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33844774729
+- Commit: `4e6b2f6eb100605f8b3db593b835911541a04f15`
 - Attempt: 1
-- Written (UTC): 2026-09-03T07:08:35.242Z
-- Passed: 305 · Skipped: 40 · Failed: 10
-- Gating failures: 8 · Quarantined (@global-state, INC-117, non-gating): 2
+- Written (UTC): 2026-09-04T07:17:26.880Z
+- Passed: 324 · Skipped: 44 · Failed: 9
+- Gating failures: 7 · Quarantined (@global-state, INC-117, non-gating): 2
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Sources without results: none
 
-## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
+## admin-categories.spec.ts › C2 categories console › CT-8 every verb is reachable from the editor with no horizontal scroll
 
 - Source: `full`
-- Project: `mobile-360`
+- Project: `desktop-1280`
 
 ```text
-Test timeout of 60000ms exceeded.
+Error: window target at 768
+
+expect(received).toBeGreaterThanOrEqual(expected)
+
+Expected: >= 43
+Received:    42.69871520996094
 ```
 
 Context:
 
 ```text
-      - generic [ref=e28]:
-        - generic [ref=e29]: Listing expiry (days)
-        - textbox "Listing expiry (days)" [ref=e30]: "30"
-      - generic [ref=e31]:
-        - checkbox "Accepts listings" [checked] [ref=e32] [cursor=pointer]:
+        - generic [ref=e38]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e39]:
+          - /placeholder: No expiry
+      - generic [ref=e40]:
+        - checkbox "Accepts listings" [checked] [ref=e41] [cursor=pointer]:
           - generic:
             - img
         - text: Accepts listings
-      - generic [ref=e33]:
-        - checkbox "Price field enabled" [checked] [ref=e34] [cursor=pointer]:
+      - generic [ref=e42]:
+        - checkbox "Price field enabled" [checked] [ref=e43] [cursor=pointer]:
           - generic:
             - img
         - text: Price field enabled
-      - generic [ref=e35]:
-        - button "Cancel" [ref=e36] [cursor=pointer]
-        - button "Save" [ref=e37] [cursor=pointer]
-    - button "Close" [ref=e38] [cursor=pointer]:
-      - img [ref=e39]
-      - generic [ref=e42]: Close
+      - generic [ref=e44]:
+        - button "Cancel" [ref=e45] [cursor=pointer]
+        - button "Save" [ref=e46] [cursor=pointer]
+    - button "Close" [ref=e47] [cursor=pointer]:
+      - img [ref=e48]
+      - generic [ref=e51]: Close
 ```
 ```
 
-## admin-categories.spec.ts › C2 categories console › CT-11 roster controls: missing-assets filter and a device page size
+## admin-categories.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row
 
 - Source: `full`
 - Project: `desktop-1280`
 
 ```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('category-row-vehicles')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('category-row-vehicles')
-
+Test timeout of 120000ms exceeded.
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e970]:
-            - generic [ref=e971]: About
-          - listitem [ref=e972]:
-            - generic [ref=e973]: How it works
-      - navigation "Help" [ref=e974]:
-        - heading "Help" [level=2] [ref=e975]
-        - list [ref=e976]:
-          - listitem [ref=e977]:
-            - generic [ref=e978]: Safety
-          - listitem [ref=e979]:
-            - generic [ref=e980]: Contact
-      - navigation "Legal" [ref=e981]:
-        - heading "Legal" [level=2] [ref=e982]
-        - list [ref=e983]:
-          - listitem [ref=e984]:
-            - generic [ref=e985]: Terms
-          - listitem [ref=e986]:
-            - generic [ref=e987]: Privacy
-    - paragraph [ref=e989]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-categories.spec.ts › C2 categories console › CT-12 lifecycle: a retired category is reactivated through step-up
-
-- Source: `full`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('category-row-e2e-cat-nightly-6-b2xad4')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('category-row-e2e-cat-nightly-6-b2xad4')
-
-```
-
-Context:
-
-```text
-          - listitem [ref=e981]:
-            - generic [ref=e982]: About
-          - listitem [ref=e983]:
-            - generic [ref=e984]: How it works
-      - navigation "Help" [ref=e985]:
-        - heading "Help" [level=2] [ref=e986]
-        - list [ref=e987]:
-          - listitem [ref=e988]:
-            - generic [ref=e989]: Safety
-          - listitem [ref=e990]:
-            - generic [ref=e991]: Contact
-      - navigation "Legal" [ref=e992]:
-        - heading "Legal" [level=2] [ref=e993]
-        - list [ref=e994]:
-          - listitem [ref=e995]:
-            - generic [ref=e996]: Terms
-          - listitem [ref=e997]:
-            - generic [ref=e998]: Privacy
-    - paragraph [ref=e1000]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e190]:
+            - generic [ref=e191]: About
+          - listitem [ref=e192]:
+            - generic [ref=e193]: How it works
+      - navigation "Help" [ref=e194]:
+        - heading "Help" [level=2] [ref=e195]
+        - list [ref=e196]:
+          - listitem [ref=e197]:
+            - generic [ref=e198]: Safety
+          - listitem [ref=e199]:
+            - generic [ref=e200]: Contact
+      - navigation "Legal" [ref=e201]:
+        - heading "Legal" [level=2] [ref=e202]
+        - list [ref=e203]:
+          - listitem [ref=e204]:
+            - generic [ref=e205]: Terms
+          - listitem [ref=e206]:
+            - generic [ref=e207]: Privacy
+    - paragraph [ref=e209]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -137,18 +88,15 @@ Context:
 - Project: `mobile-360`
 
 ```text
-Error: expect(locator).toHaveCount(expected) failed
+Error: expect(page).not.toHaveURL(expected) failed
 
-Locator:  getByTestId('role-permissions')
-Expected: 0
-Received: 1
-Timeout:  10000ms
+Expected pattern: not /\/admin\/roles\//
+Received string: "http://127.0.0.1:4173/admin/roles/b894e541-eace-4224-aad2-c8fff67fe28b"
+Timeout: 10000ms
 
 Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('role-permissions')
-    14 × locator resolved to 1 element
-       - unexpected value "1"
+  - Expect "not toHaveURL" with timeout 10000ms
+    14 × unexpected value "http://127.0.0.1:4173/admin/roles/b894e541-eace-4224-aad2-c8fff67fe28b"
 
 ```
 
@@ -240,7 +188,7 @@ Call Log:
 
 [INC-112] phase: TR-19 seed check
 [INC-112] url: http://127.0.0.1:4173/admin/translations/zxy-mo
-[INC-112] testids: strings-coverage=0 strings-search=1 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
+[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=0 approve-all-start=0 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
 (no __ethioQueryClient — not an E2E build?)
@@ -291,10 +239,10 @@ Call Log:
 
 [INC-112] phase: TR-19 seed check
 [INC-112] url: http://127.0.0.1:4173/admin/translations/zxy-de
-[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
+[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=0 approve-all-start=0 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
-(no __ethioQueryClient — not an E2E build?)
+  (no matching queries)
 ```
 
 Context:
@@ -457,7 +405,10 @@ Context:
 
 ## Server errors: full
 
-No `[ssr-error]` lines in the `full` log (or no log was uploaded).
+```text
+[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[WebServer] [ssr-error] /api/i18n <!DOCTYPE html>
+```
 
 ## Client errors: full
 
