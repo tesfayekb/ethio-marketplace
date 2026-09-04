@@ -90,7 +90,7 @@ const BULK_LIMIT = 25;
  * C2-GHOST (INC-152) — the editor records HOW it was opened, so a ghost dialog
  * confesses its opener in the E2E dump instead of leaving a silent surface.
  */
-type OpenedBy = "row-click" | "keyboard" | "create-button" | `verb-${EditorSub}`;
+type OpenedBy = "row-click" | "keyboard" | "create-button" | "create-success" | `verb-${EditorSub}`;
 
 type DialogState =
   | { kind: "none" }
@@ -164,6 +164,8 @@ export function AdminCategoriesPage() {
     }
   };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
+  /** C5g PART D — the inline "Category created" confirmation (no global toaster). */
+  const [createdNotice, setCreatedNotice] = useState<string | null>(null);
   /** C2-GHOST — the only close path, so no surface can forget the transition. */
   const closeDialog = (next: DialogState) => setDialog(next);
   /**
@@ -787,11 +789,27 @@ export function AdminCategoriesPage() {
             rowActions={(row) => rowActions(row)}
           />
 
+          {createdNotice === null ? null : (
+            <p
+              role="status"
+              aria-live="polite"
+              data-testid="category-created-notice"
+              className="text-sm text-muted-foreground"
+            >
+              {createdNotice}
+            </p>
+          )}
+
           {dialog.kind === "create" ? (
             <CreateCategoryDialog
               parents={roster}
               openedBy="create-button"
               guard={guard}
+              onCreated={(id) => {
+                // C5g PART D — straight into the FULL editor, Image first.
+                setCreatedNotice(t("admin.categories.create.created"));
+                closeDialog({ kind: "edit", id, sub: "image", openedBy: "create-success" });
+              }}
               onClose={() => closeDialog({ kind: "none" })}
             />
           ) : null}
@@ -849,10 +867,15 @@ export function AdminCategoriesPage() {
               }
             />
           ) : null}
-          {selected && dialog.kind === "edit" && dialog.sub === "image" ? (
+          {dialog.kind === "edit" && dialog.sub === "image" ? (
+            // The freshly created row may not be in the roster yet (the list
+            // refetch is async), so this surface is keyed by ID, never by the
+            // roster row — the editor behind it waits for the row itself.
             <CategoryImageDialog
-              category={selected}
-              openedBy="verb-image"
+              categoryId={dialog.id}
+              hasImage={selected?.hasImage ?? false}
+              guard={guard}
+              openedBy={dialog.openedBy === "create-success" ? "create-success" : "verb-image"}
               onClose={() =>
                 closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
               }

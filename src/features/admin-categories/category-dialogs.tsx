@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
-import { GeneratePanel } from "./category-image-dialog";
 import { suggestCategoryIcon } from "./category-images-service";
 import {
   activeParentOptions,
@@ -119,11 +118,14 @@ export function CreateCategoryDialog({
   parents,
   guard,
   openedBy,
+  onCreated,
   onClose,
 }: {
   parents: CategoryNode[];
   guard: GuardFn;
   openedBy: string;
+  /** C5g PART D — the page owns what happens next: the full editor opens. */
+  onCreated: (id: string) => void;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -139,8 +141,6 @@ export function CreateCategoryDialog({
    * the EDIT dialog, which is the one place it is a decision.
    */
   const iconRef = useRef("Package");
-  /** C5b PART B — after a successful create the dialog advances to this step. */
-  const [createdId, setCreatedId] = useState<string | null>(null);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -155,7 +155,7 @@ export function CreateCategoryDialog({
 
   /** Debounced so a blur-then-blur never fires two calls (I3). */
   const requestSuggestion = (name: string) => {
-    if (name.trim().length === 0 || createdId !== null) return;
+    if (name.trim().length === 0) return;
     if (suggestTimer.current !== null) clearTimeout(suggestTimer.current);
     suggestTimer.current = setTimeout(() => {
       void suggestCategoryIcon({ name: name.trim(), parentName })
@@ -171,8 +171,10 @@ export function CreateCategoryDialog({
   /**
    * C5e PART D — the create action no longer swallows its own failure: a
    * step-up refusal MUST reach `guard`, which is what replays the create after
-   * the modal. Catching it here (the old shape) left the create unfinished, so
-   * `createdId` stayed null and the Generate-now step never appeared.
+   * the modal. C5g PART D removed the separate Generate-now step: a successful
+   * create hands the id up and the FULL editor opens on the new row, so every
+   * verb (Visibility, Countries, Browse paths, Move, Image) is one click away
+   * from second one.
    */
   const submit = () => {
     setMessage(null);
@@ -187,7 +189,7 @@ export function CreateCategoryDialog({
         parentId: parentId === "" ? null : parentId,
         allowListings,
       });
-      setCreatedId(id);
+      onCreated(id);
     }).catch(fail);
   };
 
@@ -198,84 +200,58 @@ export function CreateCategoryDialog({
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
-      {createdId === null ? (
-        <>
-          <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
-            <Input
-              id="category-create-name"
-              data-testid="category-create-name"
-              value={nameEn}
-              onChange={(event) => setNameEn(event.target.value)}
-              onBlur={(event) => requestSuggestion(event.target.value)}
-            />
-          </FormField>
-          {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
-              server will derive; the RPC owns the final value and any -2/-3
-              uniqueness suffix, so there is exactly one authority (F3). */}
-          <p className="text-sm text-muted-foreground">
-            <span>{t("admin.categories.create.slugPreview")}</span>{" "}
-            <span data-testid="category-create-slug-preview" className="break-all font-mono">
-              {deriveSlugPreview(nameEn.trim())}
-            </span>
-          </p>
-          {/* C5e PART D — the icon machinery is INVISIBLE here: no label, no
-              value, no Change control. It is decided silently and can still be
-              corrected in the edit dialog. */}
-          <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
-            <select
-              id="category-create-parent"
-              data-testid="category-create-parent"
-              className={SELECT_CLASS}
-              value={parentId}
-              onChange={(event) => setParentId(event.target.value)}
-            >
-              <option value="">{t("admin.categories.create.parentRoot")}</option>
-              {activeParentOptions(parents).map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-            <Checkbox
-              data-testid="category-create-allow"
-              checked={allowListings}
-              onCheckedChange={(checked) => setAllowListings(checked === true)}
-            />
-            {t("admin.categories.field.allowListings")}
-          </label>
-          <ErrorLine message={message} />
-          <DialogActions
-            onCancel={onClose}
-            onSubmit={submit}
-            busy={create.isPending}
-            submitTestId="category-create-submit"
-          />
-        </>
-      ) : (
-        <div className="space-y-3" data-testid="category-create-generate-step">
-          <p className="text-sm font-medium text-foreground">
-            {t("admin.categories.create.generateTitle")}
-          </p>
-          <GeneratePanel
-            categoryId={createdId}
-            hasExisting={false}
-            testid="category-create-image"
-          />
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid="category-create-generate-skip"
-              onClick={onClose}
-            >
-              {t("admin.categories.create.generateSkip")}
-            </Button>
-          </div>
-        </div>
-      )}
+      <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
+        <Input
+          id="category-create-name"
+          data-testid="category-create-name"
+          value={nameEn}
+          onChange={(event) => setNameEn(event.target.value)}
+          onBlur={(event) => requestSuggestion(event.target.value)}
+        />
+      </FormField>
+      {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
+            server will derive; the RPC owns the final value and any -2/-3
+            uniqueness suffix, so there is exactly one authority (F3). */}
+      <p className="text-sm text-muted-foreground">
+        <span>{t("admin.categories.create.slugPreview")}</span>{" "}
+        <span data-testid="category-create-slug-preview" className="break-all font-mono">
+          {deriveSlugPreview(nameEn.trim())}
+        </span>
+      </p>
+      {/* C5e PART D — the icon machinery is INVISIBLE here: no label, no
+            value, no Change control. It is decided silently and can still be
+            corrected in the edit dialog. */}
+      <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
+        <select
+          id="category-create-parent"
+          data-testid="category-create-parent"
+          className={SELECT_CLASS}
+          value={parentId}
+          onChange={(event) => setParentId(event.target.value)}
+        >
+          <option value="">{t("admin.categories.create.parentRoot")}</option>
+          {activeParentOptions(parents).map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </FormField>
+      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+        <Checkbox
+          data-testid="category-create-allow"
+          checked={allowListings}
+          onCheckedChange={(checked) => setAllowListings(checked === true)}
+        />
+        {t("admin.categories.field.allowListings")}
+      </label>
+      <ErrorLine message={message} />
+      <DialogActions
+        onCancel={onClose}
+        onSubmit={submit}
+        busy={create.isPending}
+        submitTestId="category-create-submit"
+      />
     </CategoryModal>
   );
 }

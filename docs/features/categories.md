@@ -262,12 +262,31 @@ artwork. Generation is not a draft: the gated route writes the three objects
 (card 512, thumbnail 128, social 1200x630) and the category row in one call,
 and the operator reviews the result here and regenerates until it is right. A
 The prompt is
-CREATE FLOW (C5e): the create dialog shows NO icon machinery — no suggested
-value, no Change control, no picker. The suggestion runs silently on name blur
-and a failure silently keeps `Package`; the icon stays editable in the EDIT
-dialog only. The create action no longer swallows its own error, so a step-up
-refusal reaches the shared guard and the create replays — which is what makes
-the Generate-now step appear after EVERY successful create.
+CREATE FLOW (C5g, supersedes C5e's Generate-now step): the create dialog shows
+NO icon machinery — no suggested value, no Change control, no picker. The
+suggestion runs silently on name blur and a failure silently keeps `Package`;
+the icon stays editable in the EDIT dialog only. On success the create dialog
+closes, an inline "Category created." status appears, and the FULL editor opens
+on the new row with the Image surface in front — Visibility, Countries, Browse
+paths, Move and Image are all one Escape away from second one. The create
+action still refuses to swallow its own error, so a step-up refusal reaches the
+shared guard and the create replays.
+
+ACCEPT (C5g): `categories.image_accepted_at` records that an operator agreed
+the CURRENT artwork is good. `admin_accept_category_image(p_id)` is a gated
+(`categories:assets`), step-up-aware, audited definer RPC that stamps `now()`
+and refuses an imageless category with `admin.categories.error.acceptNoImage`.
+Acceptance is per-GENERATION: `admin_set_category_images` clears the stamp on
+every persist, so a regeneration un-accepts and the dialog drops from
+"Re-accept" back to "Accept". The roster's 17-column contract is untouched, so
+the accepted badge reflects the acceptance made in the open dialog; the durable
+truth lives in the column and the audit log.
+
+GEOMETRY (C5g): the OG icon is scaled to 0.88 of the 630px canvas HEIGHT
+(554.4px, up from C5c's 0.75 → 472.5px); the card stays at 0.85 of 512 and the
+128 thumb is still derived from the card. The house prompt additionally carries
+the colour-role law: deep green dominant, warm gold as ONE small accent (≤~15%
+of the inked area), never alternating and never splitting one object.
 
 UNIFORM (C5c): the console offers no prompt field, every generation uses the
 house prompt, and `image_generation_prompt` is written only when a genuinely

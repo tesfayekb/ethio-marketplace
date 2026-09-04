@@ -27,10 +27,13 @@ export const OG_HEIGHT = 630;
 /** Target fill of the square canvas by the icon's longest side. */
 export const FILL_RATIO = 0.85;
 /**
- * C5c PART B.1 — the OG icon fills ~75% of the SHORTER dimension (≈470px of
- * the 630px height) so the 1200x630 canvas no longer reads as empty flanks.
+ * C5g PART A — OG GEOMETRY. The OG icon is scaled against the CANVAS HEIGHT:
+ * C5c's 0.75 produced 630 * 0.75 = 472.5px of inked height on a 630px canvas
+ * (the operator's "40% empty" reading); 0.88 produces 630 * 0.88 = 554.4px,
+ * i.e. ~17% larger and 88% of the shorter dimension. The card stays at
+ * FILL_RATIO (0.85 of 512 = 435.2px) and the 128 thumb is derived from it.
  */
-export const OG_FILL_RATIO = 0.75;
+export const OG_FILL_RATIO = 0.88;
 
 const WHITE: Rgba = [255, 255, 255, 255];
 const PRIMARY: Rgba = [0x1e, 0x5a, 0x43, 255];
