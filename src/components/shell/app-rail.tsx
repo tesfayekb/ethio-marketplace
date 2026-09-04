@@ -380,10 +380,11 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     key: category.id,
     testid: `rail-category-${category.slug}`,
     label: entityName("category", category, entities),
-    // Categories are DATA, not config, so their glyph comes from the slug map
-    // in src/config/panels.ts — DISTINCT per category, so the collapsed rail is
-    // readable without hovering (INC-039). Unmapped slugs fall back to Tag.
-    icon: categoryIcon(category.slug),
+    // C5i PART B.3 — the STORED icon first (the operator's choice, visible on
+    // the public rail), then the slug map in src/config/panels.ts, then Tag.
+    // Unknown stored names resolve to Package via categoryGlyph.
+    icon: category.icon ? categoryGlyph(category.icon) : categoryIcon(category.slug),
+
     active: category.slug === selectedCategorySlug,
     path: "/c/$slug",
     params: { slug: category.slug },
