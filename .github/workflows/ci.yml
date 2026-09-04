@@ -207,24 +207,8 @@ jobs:
       # Accepted, documented exceptions live in docs/features/dependency-audit.md
       # and are listed here explicitly — never as a blanket "|| true".
       - name: Audit
-        run: |
-          set +e
-          bun audit --audit-level=high >/tmp/audit.txt 2>&1
-          STATUS=$?
-          cat /tmp/audit.txt
-          # A transport failure is NOT a clean bill of health and NOT a finding.
-          # It is reported as its own distinct red so nobody reads a broken
-          # registry call as "no vulnerabilities" (law F4).
-          if grep -qi "audit request failed" /tmp/audit.txt; then
-            echo "::error::'bun audit' could not reach the advisory service. This gate did NOT run."
-            exit 1
-          fi
-          if [ "$STATUS" -ne 0 ]; then
-            echo "::error::High or critical vulnerabilities reported by 'bun audit'."
-            echo "Review docs/features/dependency-audit.md, then remediate or record a ruling."
-            exit 1
-          fi
-          echo "No high or critical advisories."
+        run: bash scripts/audit-gate.sh
+
 
   # ── E2E TIERS ──────────────────────────────────────────────────────────────
   # One preflight, ONE SHARED BUILD (DEC-029), one fast smoke tier, six
