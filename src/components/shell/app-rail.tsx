@@ -70,7 +70,6 @@ import {
 } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
-
 import { useShell } from "@/components/app-shell";
 import { Logo } from "@/components/brand/logo";
 import { PanelHeader } from "@/components/shell/panel-header";

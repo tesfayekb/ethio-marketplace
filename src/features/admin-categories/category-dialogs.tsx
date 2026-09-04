@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import { categoryGlyph } from "@/components/shell/app-rail";
 import { FormField } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,21 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
 import { suggestCategoryIcon } from "./category-images-service";
+
+/** C5i PART B.2 — the live glyph a typed icon name resolves to. */
+function IconPreview({ name }: { name: string }) {
+  const Glyph = categoryGlyph(name);
+  return (
+    <span
+      data-testid="category-edit-icon-preview"
+      data-icon={categoryGlyph(name) === categoryGlyph("") ? "Package" : name.trim()}
+      className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground"
+    >
+      <Glyph aria-hidden="true" className="size-5" />
+    </span>
+  );
+}
+
 import {
   activeParentOptions,
   deriveSlugPreview,
