@@ -138,17 +138,6 @@ async function run(
     if (error) throw new StageError("persist", error.message, 500);
   });
 
-  return {
-    stage: "done",
-    imageUrl,
-    thumbUrl,
-    ogUrl,
-    prompt,
-    timings: output.timings,
-    bytes: { card: output.card, thumb: output.thumb, og: output.og },
-  };
-}
-
   // C5e PART B — PRUNE. Best effort only: the row already points at the new
   // set, so a failed cleanup is logged (never silent, F4) and never fails the
   // generation the operator just paid for.
@@ -163,6 +152,19 @@ async function run(
     const message = error instanceof Error ? error.message : "unknown error";
     console.error(`[ssr-error] ${PATH} image_prune_failed ${message}`);
   }
+
+  return {
+    stage: "done",
+    imageUrl,
+    thumbUrl,
+    ogUrl,
+    prompt,
+    timings: output.timings,
+    bytes: { card: output.card, thumb: output.thumb, og: output.og },
+  };
+}
+
+
 
 
 
