@@ -368,12 +368,18 @@ export function EditCategoryDialog({
         />
       </FormField>
       <FormField label={t("admin.categories.field.icon")} htmlFor="category-edit-icon">
-        <Input
-          id="category-edit-icon"
-          data-testid="category-edit-icon"
-          value={icon}
-          onChange={(event) => setIcon(event.target.value)}
-        />
+        {/* C5i PART B.2 — a LIVE glyph preview beside the input: the operator
+            sees what the name resolves to (Package when it resolves to nothing)
+            before saving. RTL-safe: flex + gap, no directional margins. */}
+        <span className="flex items-center gap-2">
+          <IconPreview name={icon} />
+          <Input
+            id="category-edit-icon"
+            data-testid="category-edit-icon"
+            value={icon}
+            onChange={(event) => setIcon(event.target.value)}
+          />
+        </span>
       </FormField>
       {/**
        * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field mirrors
