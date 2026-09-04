@@ -277,10 +277,18 @@ the CURRENT artwork is good. `admin_accept_category_image(p_id)` is a gated
 (`categories:assets`), step-up-aware, audited definer RPC that stamps `now()`
 and refuses an imageless category with `admin.categories.error.acceptNoImage`.
 Acceptance is per-GENERATION: `admin_set_category_images` clears the stamp on
-every persist, so a regeneration un-accepts and the dialog drops from
-"Re-accept" back to "Accept". The roster's 17-column contract is untouched, so
-the accepted badge reflects the acceptance made in the open dialog; the durable
-truth lives in the column and the audit log.
+every persist, so a regeneration un-accepts and Accept returns.
+
+STORED TRUTH (C5h): the roster's 17-column contract stays frozen, so the Image
+surface reads the row directly. `admin_get_category_images(p_id)` is a gated
+(`categories:assets`), STABLE, read-only definer returning the three URLs plus
+`image_accepted_at` — one row for a known id, the empty set for an unknown one.
+The dialog fetches it on open behind a translated loading state, renders stored
+assets exactly like fresh ones, and shows the Accepted badge with its date on
+reopen. BUTTON LAW: no imagery → no Accept button at all; imagery present and
+unaccepted → Accept enabled; accept succeeds → translated confirmation and the
+dialog CLOSES; accepted → badge only; Regenerate (which server-clears the
+stamp) brings Accept back with the fresh assets. The `reaccept` key is retired.
 
 GEOMETRY (C5g): the OG icon is scaled to 0.88 of the 630px canvas HEIGHT
 (554.4px, up from C5c's 0.75 → 472.5px); the card stays at 0.85 of 512 and the
