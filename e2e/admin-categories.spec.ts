@@ -1206,11 +1206,11 @@ test.describe("C2 categories console", () => {
   }
 
   /**
-   * CI-4 (C5b PART A) — THE IMAGE TAB. Generate persists three objects and the
-   * row; the preview renders all three; a regenerate OVERWRITES rather than
-   * appending a second asset set. Fake mode only — CI holds no provider key.
+   * CI-4 (C5e PART B) — THE IMAGE TAB. Generate persists three objects and the
+   * row; the preview renders all three; a regenerate produces a NEW VERSIONED
+   * set, so all three URLs change. Fake mode only — CI holds no provider key.
    */
-  test("CI-4 image tab: generate persists three assets and regenerate overwrites", async ({
+  test("CI-4 image tab: generate persists three assets and regenerate re-versions them", async ({
     page,
   }) => {
     bandOnly(page, "any");
@@ -1228,7 +1228,14 @@ test.describe("C2 categories console", () => {
       for (const part of ["card", "thumb", "og"]) {
         await expect(page.getByTestId(`category-image-assets-${part}`)).toBeVisible();
       }
-      await expect(page.getByTestId("category-image-timings")).toBeVisible();
+      // C5e PART A — the pipeline demonstrably ran: a done stage with 0ms of
+      // processing was the regression's tell, so the timing line is asserted.
+      const timings = page.getByTestId("category-image-timings");
+      await expect(timings).toBeVisible();
+      const processMs = Number(
+        /·\s*\d+\/(\d+)\//.exec((await timings.textContent()) ?? "")?.[1] ?? "0",
+      );
+      expect(processMs, (await timings.textContent()) ?? "").toBeGreaterThan(0);
 
       await expect
         .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
