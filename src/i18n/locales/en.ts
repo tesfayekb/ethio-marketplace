@@ -870,8 +870,6 @@ export const en = {
   "admin.categories.image.og": "Social image 1200x630",
   "admin.categories.image.stageLabel": "stage:",
   "admin.categories.error.imageFailed": "Image generation failed",
-  "admin.categories.error.iconSuggestFailed":
-    "Icon suggestion failed; the default icon was applied.",
   "admin.categories.create.generateTitle": "Generate image now?",
   "admin.categories.create.generateSkip": "Skip",
   "admin.categories.bulk.generateMissing": "Generate missing (max 25)",

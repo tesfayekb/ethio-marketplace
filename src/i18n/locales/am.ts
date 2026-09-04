@@ -832,7 +832,6 @@ export const am: Messages = {
   "admin.categories.image.og": "የማኅበራዊ ምስል 1200x630",
   "admin.categories.image.stageLabel": "ደረጃ:",
   "admin.categories.error.imageFailed": "ምስል ማመንጨት አልተሳካም",
-  "admin.categories.error.iconSuggestFailed": "የአዶ ጥቆማ አልተሳካም፤ ነባሪው አዶ ተተግብሯል።",
   "admin.categories.create.generateTitle": "አሁን ምስል ይመንጭ?",
   "admin.categories.create.generateSkip": "ዝለል",
   "admin.categories.bulk.generateMissing": "የጎደሉትን አመንጭ (ቢበዛ 25)",
