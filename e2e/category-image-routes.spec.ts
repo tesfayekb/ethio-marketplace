@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 
+import type { Database } from "../src/integrations/supabase/types";
+
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -23,6 +25,17 @@ function scratchSlug() {
   const worker = process.env["TEST_WORKER_INDEX"] ?? "0";
   const rand = Math.random().toString(36).slice(2, 8);
   return `e2e-cat-${RUN}-${worker}-${rand}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+}
+
+/** A caller-context client carrying a real bearer token (RLS + gates apply). */
+function callerClient(token: string) {
+  const url = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
+  const key =
+    process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
+  return createClient<Database>(url, key, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
 }
 
 function anonClient() {
@@ -159,6 +172,56 @@ test.describe("C5a — category AI foundation routes", () => {
     });
     expect(response.status(), await response.text()).toBe(404);
     expect((await response.json()) as { error: string }).toEqual({ error: "category not found" });
+  });
+
+  /**
+   * C5h PART D — STORED TRUTH re-anchor. The UI CI-4 (admin-categories.spec.ts)
+   * proves the dialog; this HTTP-surface twin proves the contract underneath it:
+   * generate -> accept -> the gated reader answers the stored URLs AND the
+   * acceptance stamp, which is what a REOPENED dialog renders.
+   */
+  test("CI-4b stored truth: generate, accept, and the reader returns assets + stamp", async ({
+    request,
+  }) => {
+    const token = await assetsToken();
+    const category = await seedCategory();
+    try {
+      const gen = await request.post(GENERATE, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { categoryId: category.id },
+      });
+      expect(gen.status(), await gen.text()).toBe(200);
+      const assets = (await gen.json()) as { imageUrl: string; thumbUrl: string; ogUrl: string };
+
+      const caller = callerClient(token);
+      const { data: accepted, error: acceptError } = await caller.rpc(
+        "admin_accept_category_image",
+        { p_id: category.id },
+      );
+      expect(acceptError, JSON.stringify(acceptError)).toBeNull();
+      expect(accepted).not.toBeNull();
+
+      // The reader is the dialog's source on reopen.
+      const { data: rows, error: readError } = await caller.rpc("admin_get_category_images", {
+        p_id: category.id,
+      });
+      expect(readError, JSON.stringify(readError)).toBeNull();
+      const row = (rows ?? [])[0];
+      expect(row?.image_url).toBe(assets.imageUrl);
+      expect(row?.image_thumb_url).toBe(assets.thumbUrl);
+      expect(row?.og_image_url).toBe(assets.ogUrl);
+      expect(row?.image_accepted_at).toBe(accepted);
+
+      // DB TRUTH (J4) — the service client agrees with the gated reader.
+      const { data: truth } = await adminClient()
+        .from("categories")
+        .select("image_accepted_at")
+        .eq("id", category.id)
+        .single();
+      expect(truth?.image_accepted_at).toBe(accepted);
+    } finally {
+      await cleanup(category.id);
+    }
   });
 
   test("CI-3 suggest-icon returns an allowlisted value", async ({ request }) => {

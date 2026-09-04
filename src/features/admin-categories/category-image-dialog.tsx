@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
@@ -11,6 +11,7 @@ import {
   CategoryImageError,
   generateCategoryImage,
   type GeneratedAssets,
+  loadCategoryImages,
 } from "./category-images-service";
 
 /**
@@ -97,13 +98,14 @@ export function AssetsPreview({
 /** The generate control + preview + timings, shared by the tab and the create flow. */
 export function GeneratePanel({
   categoryId,
-  hasExisting,
   testid,
+  stored,
   onGenerated,
 }: {
   categoryId: string;
-  hasExisting: boolean;
   testid: string;
+  /** C5h PART B — the row's STORED assets, rendered exactly like fresh ones. */
+  stored?: { imageUrl: string; thumbUrl: string; ogUrl: string } | null;
   onGenerated?: (assets: GeneratedAssets) => void;
 }) {
   const { t } = useI18n();
@@ -127,13 +129,12 @@ export function GeneratePanel({
   };
 
   /**
-   * C5e PART B — VERSIONED ASSETS. Object names now carry the generation
-   * timestamp, so there is no deterministic URL to guess: the preview renders
-   * the URLs THIS generation returned, and an already-imaged category simply
-   * shows its caption until it is regenerated. `hasExisting` still decides the
-   * Generate/Regenerate label.
+   * C5e PART B — VERSIONED ASSETS: object names carry the generation timestamp,
+   * so there is no URL to guess. C5h PART B closes the gap the other way — the
+   * caller supplies the row's STORED urls, and this generation's result simply
+   * supersedes them. `hasExisting` still decides the Generate/Regenerate label.
    */
-  const shown = assets;
+  const shown = assets ?? stored ?? null;
 
   return (
     <div className="space-y-3" data-testid={testid}>
@@ -173,14 +174,16 @@ export function GeneratePanel({
 }
 
 /**
- * C5g PART C — the ACCEPT surface. Acceptance is per-GENERATION: a fresh
- * generation clears the server-side stamp (the RPC does it), so this surface
- * drops back to "Accept" the moment new assets land, and shows "Re-accept"
- * only after the newer generation has been reviewed.
+ * C5g PART C / C5h PARTS B+C — the ACCEPT surface, reading STORED truth.
+ *
+ * On open the surface asks the row what it holds (gated definer reader), so a
+ * reopened dialog renders the saved assets and the acceptance badge exactly
+ * like a fresh generation. BUTTON LAW: no image -> no Accept button at all;
+ * image present and unaccepted -> Accept; accepted -> badge only. Acceptance
+ * succeeds -> translated confirmation, then the dialog closes.
  */
 export function CategoryImageDialog({
   categoryId,
-  hasImage,
   openedBy,
   guard,
   onClose,
@@ -193,10 +196,40 @@ export function CategoryImageDialog({
 }) {
   const { t, language } = useI18n();
   const { message, setMessage, fail } = useImageFailure();
+  const [loading, setLoading] = useState(true);
   const [acceptedAt, setAcceptedAt] = useState<string | null>(null);
-  const [hadNewGeneration, setHadNewGeneration] = useState(false);
+  const [stored, setStored] = useState<{
+    imageUrl: string;
+    thumbUrl: string;
+    ogUrl: string;
+  } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [current, setCurrent] = useState(hasImage);
+  const [done, setDone] = useState(false);
+
+  // PART B — truth on open. A failed read is surfaced (F4), never a silent
+  // "no image": the Accept button stays absent because nothing is known.
+  useEffect(() => {
+    let live = true;
+    setLoading(true);
+    loadCategoryImages(categoryId)
+      .then((row) => {
+        if (!live) return;
+        if (row && row.imageUrl !== null && row.thumbUrl !== null && row.ogUrl !== null) {
+          setStored({ imageUrl: row.imageUrl, thumbUrl: row.thumbUrl, ogUrl: row.ogUrl });
+        }
+        setAcceptedAt(row?.acceptedAt ?? null);
+      })
+      .catch((error: unknown) => {
+        if (live) fail(error);
+      })
+      .finally(() => {
+        if (live) setLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId]);
 
   const accept = () => {
     setMessage(null);
@@ -204,7 +237,9 @@ export function CategoryImageDialog({
     void guard(async () => {
       const at = await acceptCategoryImage(categoryId);
       setAcceptedAt(at);
-      setHadNewGeneration(false);
+      setDone(true);
+      // PART C — accept-closes: the confirmation is read, then the surface goes.
+      window.setTimeout(onClose, 1200);
     })
       .catch((error: unknown) => {
         const raw = error instanceof Error ? error.message : "";
@@ -219,6 +254,8 @@ export function CategoryImageDialog({
       });
   };
 
+  const hasAssets = stored !== null;
+
   return (
     <CategoryModal
       testid="category-image-dialog"
@@ -226,17 +263,27 @@ export function CategoryImageDialog({
       title={t("admin.categories.image.title")}
       onClose={onClose}
     >
-      <GeneratePanel
-        categoryId={categoryId}
-        hasExisting={current}
-        testid="category-image"
-        onGenerated={() => {
-          // A NEW generation is not the accepted one (the RPC cleared it too).
-          setAcceptedAt(null);
-          setHadNewGeneration(true);
-          setCurrent(true);
-        }}
-      />
+      {loading ? (
+        <p className="text-sm text-muted-foreground" data-testid="category-image-loading">
+          {t("admin.categories.image.loading")}
+        </p>
+      ) : (
+        <GeneratePanel
+          categoryId={categoryId}
+          testid="category-image"
+          stored={stored}
+          onGenerated={(assets) => {
+            // A NEW generation is not the accepted one (the RPC cleared it too).
+            setAcceptedAt(null);
+            setDone(false);
+            setStored({
+              imageUrl: assets.imageUrl,
+              thumbUrl: assets.thumbUrl,
+              ogUrl: assets.ogUrl,
+            });
+          }}
+        />
+      )}
       {acceptedAt === null ? null : (
         <p
           data-testid="category-image-accepted-badge"
@@ -245,6 +292,15 @@ export function CategoryImageDialog({
           {`${t("admin.categories.image.accepted")} · ${relativeTime(acceptedAt, language)}`}
         </p>
       )}
+      {done ? (
+        <p
+          role="status"
+          data-testid="category-image-accept-toast"
+          className="rounded-md bg-muted px-2 py-1 text-sm text-foreground"
+        >
+          {t("admin.categories.image.acceptToast")}
+        </p>
+      ) : null}
       {message === null ? null : (
         <p
           role="alert"
@@ -254,19 +310,19 @@ export function CategoryImageDialog({
           {message}
         </p>
       )}
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button
-          type="button"
-          className="min-h-11"
-          data-testid="category-image-accept"
-          disabled={busy || !current}
-          onClick={accept}
-        >
-          {acceptedAt !== null && !hadNewGeneration
-            ? t("admin.categories.image.reaccept")
-            : t("admin.categories.image.accept")}
-        </Button>
-      </div>
+      {!loading && hasAssets && acceptedAt === null ? (
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            type="button"
+            className="min-h-11"
+            data-testid="category-image-accept"
+            disabled={busy}
+            onClick={accept}
+          >
+            {t("admin.categories.image.accept")}
+          </Button>
+        </div>
+      ) : null}
       <div className="flex justify-end">
         <Button
           type="button"

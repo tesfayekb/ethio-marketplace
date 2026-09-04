@@ -291,6 +291,9 @@
     "admin.categories.image.accept": [
       "/admin/categories"
     ],
+    "admin.categories.image.acceptToast": [
+      "/admin/categories"
+    ],
     "admin.categories.image.accepted": [
       "/admin/categories"
     ],
@@ -306,10 +309,10 @@
     "admin.categories.image.generate": [
       "/admin/categories"
     ],
-    "admin.categories.image.og": [
+    "admin.categories.image.loading": [
       "/admin/categories"
     ],
-    "admin.categories.image.reaccept": [
+    "admin.categories.image.og": [
       "/admin/categories"
     ],
     "admin.categories.image.regenerate": [

@@ -132,20 +132,28 @@ export async function acceptCategoryImage(categoryId: string): Promise<string> {
 }
 
 /**
- * The three asset paths are DETERMINISTIC (`<id>/card-512.png` etc. in the
- * public `category-assets` bucket), so an already-generated category renders
- * without a second read. The roster's `has_image` decides whether they exist.
+ * C5h PART B — STORED TRUTH. Asset object names are VERSIONED (C5e PART B), so
+ * there is no URL to guess: the surface asks the row what it holds. The gated
+ * definer reader answers the three URLs plus the acceptance stamp, or `null`
+ * when the id is unknown (the RPC's empty set — E6, explicit).
  */
-export function categoryAssetUrls(categoryId: string): {
-  imageUrl: string;
-  thumbUrl: string;
-  ogUrl: string;
-} {
-  const base = `${import.meta.env.VITE_SUPABASE_URL ?? ""}/storage/v1/object/public/category-assets/${categoryId}`;
+export interface StoredAssets {
+  imageUrl: string | null;
+  thumbUrl: string | null;
+  ogUrl: string | null;
+  acceptedAt: string | null;
+}
+
+export async function loadCategoryImages(categoryId: string): Promise<StoredAssets | null> {
+  const { data, error } = await supabase.rpc("admin_get_category_images", { p_id: categoryId });
+  if (error) throw new Error(error.message);
+  const row = (data ?? [])[0];
+  if (!row) return null;
   return {
-    imageUrl: `${base}/card-512.png`,
-    thumbUrl: `${base}/thumb-128.png`,
-    ogUrl: `${base}/og-1200x630.png`,
+    imageUrl: row.image_url,
+    thumbUrl: row.image_thumb_url,
+    ogUrl: row.og_image_url,
+    acceptedAt: row.image_accepted_at,
   };
 }
 
