@@ -37,17 +37,40 @@ export class CategoryImageError extends Error {
   }
 }
 
-async function post(path: string, body: unknown): Promise<unknown> {
+async function post(path: string, body: unknown, timeoutMs?: number): Promise<unknown> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token ?? "";
-  const response = await fetch(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token === "" ? {} : { Authorization: `Bearer ${token}` }),
-    },
-    body: JSON.stringify(body),
-  });
+  // C5f PART A — CLIENT TIMEOUT. This guards the CLIENT's wait only: the
+  // server-side generation is not cancelled and may still persist its assets,
+  // which the caller's db-truth dump then reveals. The controller is aborted
+  // by an explicit timer because this is our own app route, not a Gateway
+  // fetch; the budget is a large multiple of the fake-mode pipeline cost.
+  const controller = timeoutMs === undefined ? null : new AbortController();
+  const timer =
+    controller === null
+      ? null
+      : setTimeout(() => {
+          controller.abort();
+        }, timeoutMs);
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token === "" ? {} : { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify(body),
+      ...(controller === null ? {} : { signal: controller.signal }),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new CategoryImageError("client-timeout", 0, "client-timeout");
+    }
+    throw error;
+  } finally {
+    if (timer !== null) clearTimeout(timer);
+  }
   const text = await response.text();
   let parsed: { error?: string; stage?: string } = {};
   try {
@@ -69,12 +92,18 @@ export async function generateCategoryImage(input: {
   categoryId: string;
   customPrompt?: string;
 }): Promise<GeneratedAssets> {
-  const payload = await post("/api/admin/categories/generate-image", {
-    categoryId: input.categoryId,
-    ...(input.customPrompt && input.customPrompt.trim() !== ""
-      ? { customPrompt: input.customPrompt.trim() }
-      : {}),
-  });
+  // C5f PART A — 30s client budget; a hang becomes a stage-labelled failure
+  // ("client-timeout") that the bulk loop surfaces and advances past (F4).
+  const payload = await post(
+    "/api/admin/categories/generate-image",
+    {
+      categoryId: input.categoryId,
+      ...(input.customPrompt && input.customPrompt.trim() !== ""
+        ? { customPrompt: input.customPrompt.trim() }
+        : {}),
+    },
+    30_000,
+  );
   return payload as GeneratedAssets;
 }
 
