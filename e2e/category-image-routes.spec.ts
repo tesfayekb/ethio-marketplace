@@ -86,13 +86,11 @@ async function seedCategory(): Promise<{ id: string; slug: string }> {
 
 async function cleanup(categoryId: string) {
   const supabase = adminClient();
-  await supabase.storage
-    .from("category-assets")
-    .remove([
-      `${categoryId}/card-512.png`,
-      `${categoryId}/thumb-128.png`,
-      `${categoryId}/og-1200x630.png`,
-    ]);
+  // C5e PART B — object names are VERSIONED (`card-<genTs>.png`), so cleanup
+  // lists the prefix instead of guessing three fixed names.
+  const { data: objects } = await supabase.storage.from("category-assets").list(categoryId);
+  const paths = (objects ?? []).map((entry) => `${categoryId}/${entry.name}`);
+  if (paths.length > 0) await supabase.storage.from("category-assets").remove(paths);
   await supabase.from("categories").delete().eq("id", categoryId);
 }
 
