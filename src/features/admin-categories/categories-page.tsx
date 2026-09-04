@@ -90,7 +90,12 @@ const BULK_LIMIT = 25;
  * C2-GHOST (INC-152) — the editor records HOW it was opened, so a ghost dialog
  * confesses its opener in the E2E dump instead of leaving a silent surface.
  */
-type OpenedBy = "row-click" | "keyboard" | "create-button" | `verb-${EditorSub}`;
+type OpenedBy =
+  | "row-click"
+  | "keyboard"
+  | "create-button"
+  | "create-success"
+  | `verb-${EditorSub}`;
 
 type DialogState =
   | { kind: "none" }
