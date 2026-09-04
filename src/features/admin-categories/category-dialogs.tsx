@@ -133,15 +133,12 @@ export function CreateCategoryDialog({
   const [parentId, setParentId] = useState("");
   const [allowListings, setAllowListings] = useState(true);
   /**
-   * C5b PART B — NO MANUAL ICON. The operator names the category; the icon is
-   * suggested by the (allowlist-constrained) route on name blur. The manual
-   * picker is the FALLBACK, opened by "Change" or by a suggester failure — the
-   * failure is surfaced translated and the `Package` default is applied (F4).
+   * C5e PART D — SILENT ICON. The operator never sees icon machinery in the
+   * create dialog: the suggestion runs on name blur, applies silently, and a
+   * failure silently keeps the `Package` default. The icon stays editable in
+   * the EDIT dialog, which is the one place it is a decision.
    */
-  const [icon, setIcon] = useState("Package");
-  const [suggesting, setSuggesting] = useState(false);
-  const [iconNotice, setIconNotice] = useState<string | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const iconRef = useRef("Package");
   /** C5b PART B — after a successful create the dialog advances to this step. */
   const [createdId, setCreatedId] = useState<string | null>(null);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,18 +158,22 @@ export function CreateCategoryDialog({
     if (name.trim().length === 0 || createdId !== null) return;
     if (suggestTimer.current !== null) clearTimeout(suggestTimer.current);
     suggestTimer.current = setTimeout(() => {
-      setIconNotice(null);
-      setSuggesting(true);
       void suggestCategoryIcon({ name: name.trim(), parentName })
-        .then((suggested) => setIcon(suggested))
-        .catch(() => {
-          setIcon("Package");
-          setIconNotice(t("admin.categories.error.iconSuggestFailed"));
+        .then((suggested) => {
+          iconRef.current = suggested;
         })
-        .finally(() => setSuggesting(false));
+        .catch(() => {
+          iconRef.current = "Package";
+        });
     }, 300);
   };
 
+  /**
+   * C5e PART D — the create action no longer swallows its own failure: a
+   * step-up refusal MUST reach `guard`, which is what replays the create after
+   * the modal. Catching it here (the old shape) left the create unfinished, so
+   * `createdId` stayed null and the Generate-now step never appeared.
+   */
   const submit = () => {
     setMessage(null);
     if (nameEn.trim().length === 0) {
@@ -180,18 +181,14 @@ export function CreateCategoryDialog({
       return;
     }
     void guard(async () => {
-      try {
-        const id = await create.mutateAsync({
-          nameEn: nameEn.trim(),
-          icon: icon.trim(),
-          parentId: parentId === "" ? null : parentId,
-          allowListings,
-        });
-        setCreatedId(id);
-      } catch (error) {
-        fail(error);
-      }
-    });
+      const id = await create.mutateAsync({
+        nameEn: nameEn.trim(),
+        icon: iconRef.current.trim(),
+        parentId: parentId === "" ? null : parentId,
+        allowListings,
+      });
+      setCreatedId(id);
+    }).catch(fail);
   };
 
   return (
