@@ -1252,10 +1252,15 @@ test.describe("C2 categories console", () => {
           timeout: 60000,
         })
         .toBeNull();
+      // C5e PART B — VERSIONED: all three URLs must CHANGE between generations
+      // (stronger than "overwrite" — a stale CDN copy can no longer be served).
+      await expect
+        .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 60000 })
+        .not.toBe(first?.image_url);
       const second = await readImages(slug);
-      // OVERWRITE, not accumulate: the row still points at exactly one set.
-      expect(second?.image_url).toBeTruthy();
-      expect(second?.og_image_url).toBeTruthy();
+      expect(second?.image_url).not.toBe(first?.image_url);
+      expect(second?.image_thumb_url).not.toBe(first?.image_thumb_url);
+      expect(second?.og_image_url).not.toBe(first?.og_image_url);
     } finally {
       if (slug) await destroyCategory(slug);
     }
