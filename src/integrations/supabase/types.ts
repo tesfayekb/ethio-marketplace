@@ -1175,6 +1175,15 @@ export type Database = {
           untranslated: number
         }[]
       }
+      admin_get_category_images: {
+        Args: { p_id: string }
+        Returns: {
+          image_accepted_at: string
+          image_thumb_url: string
+          image_url: string
+          og_image_url: string
+        }[]
+      }
       admin_get_role: {
         Args: { p_role_id: string }
         Returns: {
