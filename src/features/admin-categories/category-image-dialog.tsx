@@ -97,13 +97,11 @@ export function AssetsPreview({
 /** The generate control + preview + timings, shared by the tab and the create flow. */
 export function GeneratePanel({
   categoryId,
-  hasExisting,
   testid,
   stored,
   onGenerated,
 }: {
   categoryId: string;
-  hasExisting: boolean;
   testid: string;
   /** C5h PART B — the row's STORED assets, rendered exactly like fresh ones. */
   stored?: { imageUrl: string; thumbUrl: string; ogUrl: string } | null;
