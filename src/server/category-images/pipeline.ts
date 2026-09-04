@@ -105,6 +105,8 @@ export interface PipelineOutput {
   card: Uint8Array;
   thumb: Uint8Array;
   og: Uint8Array;
+  /** C5e PART A — the stages that demonstrably executed, in order. */
+  stages: PipelineStage[];
   timings: Timings;
 }
 
