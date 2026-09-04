@@ -122,11 +122,17 @@ test.describe("C5a — category AI foundation routes", () => {
       };
 
       expect(body.stage).toBe("done");
-      expect(body.imageUrl).toContain(`category-assets/${category.id}/card-512.png`);
-      expect(body.thumbUrl).toContain(`category-assets/${category.id}/thumb-128.png`);
-      expect(body.ogUrl).toContain(`category-assets/${category.id}/og-1200x630.png`);
+      // C5e PART B — VERSIONED object names: `<id>/card-<genTs>.png`.
+      expect(body.imageUrl).toMatch(
+        new RegExp(`category-assets/${category.id}/card-\\d+\\.png$`),
+      );
+      expect(body.thumbUrl).toMatch(
+        new RegExp(`category-assets/${category.id}/thumb-\\d+\\.png$`),
+      );
+      expect(body.ogUrl).toMatch(new RegExp(`category-assets/${category.id}/og-\\d+\\.png$`));
       expect(body.prompt).toContain("#1E5A43");
-      expect(typeof body.timings.processMs).toBe("number");
+      // C5e PART A — the pipeline demonstrably processed, fake mode included.
+      expect(body.timings.processMs).toBeGreaterThan(0);
 
       // DB TRUTH (J4) — read the row back with the service client.
       const { data: row, error } = await adminClient()
@@ -138,7 +144,8 @@ test.describe("C5a — category AI foundation routes", () => {
       expect(row?.image_url).toBe(body.imageUrl);
       expect(row?.image_thumb_url).toBe(body.thumbUrl);
       expect(row?.og_image_url).toBe(body.ogUrl);
-      expect(row?.image_generation_prompt).toBe(body.prompt);
+      // C5e PART C — the uniform house prompt is CODE truth: the column is NULL.
+      expect(row?.image_generation_prompt).toBeNull();
     } finally {
       await cleanup(category.id);
     }
