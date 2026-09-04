@@ -252,7 +252,7 @@ export function CreateCategoryDialog({
           busy={create.isPending}
           submitTestId="category-create-submit"
         />
-      </>
+      
     </CategoryModal>
   );
 }
