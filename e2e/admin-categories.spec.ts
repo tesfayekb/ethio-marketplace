@@ -1389,16 +1389,17 @@ test.describe("C2 categories console", () => {
         });
       }
     } finally {
+      if (armed !== null) clearTimeout(armed);
       for (const slug of slugs) await destroyCategory(slug);
     }
   });
 
   /**
-   * CT-17 (C5b PART B) — THE CREATE FLOW HAS NO MANUAL ICON. The icon is
-   * suggested on name blur, and a successful create advances to the
-   * generate-now step, which previews the assets inline.
+   * CT-17 (C5e PART D) — THE CREATE FLOW HAS NO ICON UI AT ALL. The suggestion
+   * runs silently on name blur (no text, no Change control), and a successful
+   * create advances to the generate-now step, which previews the assets inline.
    */
-  test("CT-17 create flow: the icon is suggested and the image can be generated inline", async ({
+  test("CT-17 create flow: the icon is silent and the image can be generated inline", async ({
     page,
   }) => {
     bandOnly(page, "any");
@@ -1409,13 +1410,10 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-create-open").click();
       await page.getByTestId("category-create-name").fill(slug);
       await page.getByTestId("category-create-name").blur();
-      await expect
-        .poll(
-          async () =>
-            (await page.getByTestId("category-create-icon-suggested").textContent()) ?? "",
-          { timeout: 20000 },
-        )
-        .not.toBe(en["admin.categories.create.iconSuggesting"]);
+      // Silent machinery: neither the suggestion text nor the Change control exists.
+      await expect(page.getByTestId("category-create-icon-suggested")).toHaveCount(0);
+      await expect(page.getByTestId("category-create-icon-change")).toHaveCount(0);
+
 
       await page.getByTestId("category-create-submit").click();
       await stepUpIfPrompted(page, secret);
