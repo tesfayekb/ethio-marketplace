@@ -183,7 +183,10 @@ async function signInAsSuperAdmin(page: Page) {
 async function readCategory(slug: string) {
   const { data, error } = await adminClient()
     .from("categories")
-    .select("id, slug, name_en, is_active, allow_listings, display_order, visible_from")
+    .select(
+      "id, slug, name_en, is_active, allow_listings, display_order, visible_from, visible_until, price_enabled, expiry_days",
+    )
+
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw new Error(`[e2e:c2] reading ${slug} failed: ${error.message}`);
