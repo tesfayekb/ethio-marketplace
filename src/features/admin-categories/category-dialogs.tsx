@@ -18,7 +18,6 @@ import {
   type CategoryFormValues,
 } from "./category-form-fields";
 
-
 import {
   activeParentOptions,
   deriveSlugPreview,
@@ -50,7 +49,6 @@ import {
 /** C5k — the select style now lives with the shared form; re-exported here so
  *  the page's existing import keeps working (one definition, B2). */
 export { SELECT_CLASS };
-
 
 export function CategoryModal({
   testid,

@@ -219,7 +219,10 @@ export function CategoryFormFields({
             />
           </FormField>
           {/* Countries live in the editor: they need the row to exist. */}
-          <p data-testid="category-create-countries-later" className="text-sm text-muted-foreground">
+          <p
+            data-testid="category-create-countries-later"
+            className="text-sm text-muted-foreground"
+          >
             {t("admin.categories.create.countriesLater")}
           </p>
         </>

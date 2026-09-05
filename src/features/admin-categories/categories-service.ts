@@ -94,7 +94,6 @@ export async function createCategory(input: CreateCategoryInput): Promise<string
   return data as string;
 }
 
-
 export interface UpdateCategoryInput {
   id: string;
   nameEn: string;
