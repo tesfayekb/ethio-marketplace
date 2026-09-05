@@ -31,11 +31,14 @@ import {
   useDeleteCategory,
   useMoveCategoryPointer,
   useRemoveCategoryPointer,
+  useReorderCategories,
   useRetireCategory,
   useSetCategoryWindow,
   useSetCountryExclusions,
   useUpdateCategory,
 } from "./use-categories";
+
+import { CategoryImagePanel } from "./category-image-dialog";
 
 /**
  * C2-UI — the categories console's write surfaces.
