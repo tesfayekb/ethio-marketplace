@@ -2,9 +2,9 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33949910210
 - Commit: `f37b2da63590e5cefc6eb2ec1037719f3000fc22`
-- Attempt: 1
-- Written (UTC): 2026-09-05T07:07:19.463Z
-- Passed: 326 · Skipped: 43 · Failed: 8
+- Attempt: 2
+- Written (UTC): 2026-09-05T08:52:16.303Z
+- Passed: 327 · Skipped: 42 · Failed: 8
 - Gating failures: 6 · Quarantined (@global-state, INC-117, non-gating): 2
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Sources without results: none
@@ -155,7 +155,7 @@ Call Log:
 [INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
-(no __ethioQueryClient — not an E2E build?)
+  (no matching queries)
 ```
 
 Context:
@@ -203,10 +203,10 @@ Call Log:
 
 [INC-112] phase: TR-19 seed check
 [INC-112] url: http://127.0.0.1:4173/admin/translations/zxy-de
-[INC-112] testids: strings-coverage=1 strings-search=1 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
+[INC-112] testids: strings-coverage=0 strings-search=1 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
-  (no matching queries)
+(no __ethioQueryClient — not an E2E build?)
 ```
 
 Context:
