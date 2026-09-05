@@ -64,6 +64,11 @@ export interface CreateCategoryInput {
   icon: string;
   parentId: string | null;
   allowListings: boolean;
+  /** C5k — inline create: optional, defaulted server-side to today's behavior. */
+  priceEnabled?: boolean;
+  expiryDays?: number | null;
+  visibleFrom?: string | null;
+  visibleUntil?: string | null;
 }
 
 export async function createCategory(input: CreateCategoryInput): Promise<string> {
@@ -71,16 +76,24 @@ export async function createCategory(input: CreateCategoryInput): Promise<string
    * C2c — the slug is SERVER-DERIVED. The console no longer sends one: the
    * RPC lowercases the name, collapses non-alphanumerics and uniquifies with
    * a numeric suffix, so uniqueness has exactly one authority (F3).
+   *
+   * C5k — the same call now carries price, expiry and the visibility window;
+   * every one of them is optional and defaults to the pre-C5k behavior.
    */
   const { data, error } = await supabase.rpc("admin_create_category", {
     p_name_en: input.nameEn,
     p_icon: input.icon,
     p_parent_id: input.parentId as string,
     p_allow_listings: input.allowListings,
+    p_price_enabled: input.priceEnabled ?? true,
+    p_expiry_days: (input.expiryDays ?? null) as number,
+    p_visible_from: (input.visibleFrom ?? null) as string,
+    p_visible_until: (input.visibleUntil ?? null) as string,
   });
   if (error) throw error;
   return data as string;
 }
+
 
 export interface UpdateCategoryInput {
   id: string;
