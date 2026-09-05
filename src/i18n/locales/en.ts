@@ -892,11 +892,10 @@ export const en = {
   "admin.categories.field.iconChange": "Change",
   // C5l — two-step inline create: details (with countries + position), then image.
   "admin.categories.field.iconHint": "Suggested after you enter a name.",
-  "admin.categories.create.stepDetails": "Step 1 of 2 — Details",
-  "admin.categories.create.stepImage": "Step 2 of 2 — Image (optional)",
-  "admin.categories.create.finish": "Finish",
   "admin.categories.create.position": "Position",
-  "admin.categories.create.positionEnd": "At the end",
+  "admin.categories.create.positionEnd": "At the end (position {n})",
+  "admin.categories.create.positionBefore": "Before {name}",
+  "admin.categories.create.positionCount": "{n} subcategories in {parent}",
   "admin.categories.create.countries": "Hide in countries",
   "admin.categories.create.countriesHint":
     "The category stays hidden in every country you tick; you can change this later.",
