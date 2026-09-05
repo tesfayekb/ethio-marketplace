@@ -18,11 +18,16 @@ import { activeParentOptions, deriveSlugPreview, type CategoryNode } from "./cat
  * through (B3: extend via props, never copy-paste).
  *
  * Mode differences, all of them deliberate:
- *  - create renders the slug preview, the parent picker and the visibility
- *    window (the create RPC now persists all of it in one call);
+ *  - create renders the slug preview, the parent picker, the visibility
+ *    window, the Countries multi-select and the Position select (C5l PART A —
+ *    everything a creation needs is decided in ONE dialog now);
  *  - edit renders the live read-only order field (`extra`) and keeps the
- *    Visibility verb dialog as the place a window is CHANGED, because the
- *    update RPC does not carry the window.
+ *    Visibility/Countries verb dialogs as the place those are CHANGED, because
+ *    the update RPC does not carry them.
+ *
+ * C5l PART B — THE ICON IS EMPTY UNTIL NAMED. The field shows a translated
+ * hint until the silent name-blur suggestion lands; "Package" is applied at
+ * SAVE time if no suggestion ever succeeded, never as a prefilled value.
  */
 
 export const SELECT_CLASS =
@@ -30,6 +35,7 @@ export const SELECT_CLASS =
 
 export interface CategoryFormValues {
   nameEn: string;
+  /** C5l — "" until the suggestion (or a Change) fills it; save maps "" → "Package". */
   icon: string;
   parentId: string;
   allowListings: boolean;
@@ -39,18 +45,24 @@ export interface CategoryFormValues {
   /** `datetime-local` strings; "" removes that bound. */
   visibleFrom: string;
   visibleUntil: string;
+  /** C5l — create only: the inline Countries selection (excluded codes). */
+  excludedCodes: string[];
+  /** C5l — create only: "" = "At the end"; otherwise the sibling id to precede. */
+  positionBefore: string;
 }
 
 export function emptyCategoryForm(): CategoryFormValues {
   return {
     nameEn: "",
-    icon: "Package",
+    icon: "",
     parentId: "",
     allowListings: true,
     priceEnabled: true,
     expiryDays: "",
     visibleFrom: "",
     visibleUntil: "",
+    excludedCodes: [],
+    positionBefore: "",
   };
 }
 
@@ -76,6 +88,8 @@ export function CategoryFormFields({
   iconOpen,
   onIconOpen,
   onNameBlur,
+  countries,
+  positionOptions,
   extra,
 }: {
   mode: "create" | "edit";
@@ -87,12 +101,22 @@ export function CategoryFormFields({
   iconOpen?: boolean;
   onIconOpen?: () => void;
   onNameBlur?: (name: string) => void;
+  /** Create only (C5l): the inline Countries multi-select's options. */
+  countries?: { code: string; nameEn: string }[];
+  /** Create only (C5l): ACTIVE siblings of the chosen parent, in roster order. */
+  positionOptions?: { id: string; label: string }[];
   /** Edit only: the live read-only display-order field. */
   extra?: ReactNode;
 }) {
   const { t } = useI18n();
   const p = mode === "create" ? "category-create" : "category-edit";
   const showIconInput = mode === "edit" || iconOpen === true;
+  const toggleCode = (code: string, on: boolean) =>
+    onChange({
+      excludedCodes: on
+        ? [...values.excludedCodes, code]
+        : values.excludedCodes.filter((entry) => entry !== code),
+    });
 
   return (
     <>
@@ -116,11 +140,20 @@ export function CategoryFormFields({
         </p>
       ) : null}
 
-      {/* C5k — the icon is SUGGESTED silently and shown as a glyph; the name
-          of the icon is machinery the operator only meets after Change. */}
+      {/* C5l PART B — EMPTY UNTIL NAMED: no icon yet shows the hint, not a
+          prefilled Package; the suggestion (or Change) fills the glyph. */}
       <FormField label={t("admin.categories.field.icon")} htmlFor={`${p}-icon`}>
         <span className="flex items-center gap-2">
-          <IconPreview name={values.icon} testid={`${p}-icon-preview`} />
+          {values.icon.trim() === "" && !showIconInput ? (
+            <span
+              data-testid={`${p}-icon-hint`}
+              className="text-sm text-muted-foreground italic"
+            >
+              {t("admin.categories.field.iconHint")}
+            </span>
+          ) : (
+            <IconPreview name={values.icon} testid={`${p}-icon-preview`} />
+          )}
           {showIconInput ? (
             <Input
               id={`${p}-icon`}
@@ -149,10 +182,35 @@ export function CategoryFormFields({
             data-testid="category-create-parent"
             className={SELECT_CLASS}
             value={values.parentId}
-            onChange={(event) => onChange({ parentId: event.target.value })}
+            onChange={(event) => onChange({ parentId: event.target.value, positionBefore: "" })}
           >
             <option value="">{t("admin.categories.create.parentRoot")}</option>
             {activeParentOptions(parents ?? []).map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
+      ) : null}
+
+      {mode === "create" && positionOptions !== undefined ? (
+        /* C5l PARTS A+C — POSITION: "At the end" by default, or before a
+           chosen ACTIVE sibling; placement rides admin_reorder_categories
+           post-create (no RPC change). */
+        <FormField
+          label={t("admin.categories.create.position")}
+          htmlFor="category-create-position"
+        >
+          <select
+            id="category-create-position"
+            data-testid="category-create-position"
+            className={SELECT_CLASS}
+            value={values.positionBefore}
+            onChange={(event) => onChange({ positionBefore: event.target.value })}
+          >
+            <option value="">{t("admin.categories.create.positionEnd")}</option>
+            {positionOptions.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.label}
               </option>
@@ -218,13 +276,35 @@ export function CategoryFormFields({
               onChange={(event) => onChange({ visibleUntil: event.target.value })}
             />
           </FormField>
-          {/* Countries live in the editor: they need the row to exist. */}
-          <p
-            data-testid="category-create-countries-later"
-            className="text-sm text-muted-foreground"
-          >
-            {t("admin.categories.create.countriesLater")}
-          </p>
+          {countries !== undefined ? (
+            /* C5l PART A — INLINE COUNTRIES: the same exclusion set the editor's
+               Countries verb manages, chained after the create call. */
+            <FormField
+              label={t("admin.categories.create.countries")}
+              htmlFor="category-create-countries"
+              help={t("admin.categories.create.countriesHint")}
+            >
+              <div
+                id="category-create-countries"
+                data-testid="category-create-countries"
+                className="grid max-h-48 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2"
+              >
+                {countries.map((country) => (
+                  <label
+                    key={country.code}
+                    className="flex min-h-11 items-center gap-2 text-sm text-foreground"
+                  >
+                    <Checkbox
+                      data-testid={`category-create-exclusion-${country.code}`}
+                      checked={values.excludedCodes.includes(country.code)}
+                      onCheckedChange={(checked) => toggleCode(country.code, checked === true)}
+                    />
+                    <span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>
+                  </label>
+                ))}
+              </div>
+            </FormField>
+          ) : null}
         </>
       ) : null}
     </>
