@@ -189,9 +189,6 @@
     "admin.categories.create.countriesHint": [
       "/admin/categories"
     ],
-    "admin.categories.create.finish": [
-      "/admin/categories"
-    ],
     "admin.categories.create.open": [
       "/admin/categories"
     ],
@@ -204,16 +201,16 @@
     "admin.categories.create.position": [
       "/admin/categories"
     ],
+    "admin.categories.create.positionBefore": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.positionCount": [
+      "/admin/categories"
+    ],
     "admin.categories.create.positionEnd": [
       "/admin/categories"
     ],
     "admin.categories.create.slugPreview": [
-      "/admin/categories"
-    ],
-    "admin.categories.create.stepDetails": [
-      "/admin/categories"
-    ],
-    "admin.categories.create.stepImage": [
       "/admin/categories"
     ],
     "admin.categories.create.title": [
