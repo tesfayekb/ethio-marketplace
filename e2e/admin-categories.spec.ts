@@ -1600,13 +1600,62 @@ test.describe("C2 categories console", () => {
       // The "Before <sibling>" OPTION is polled by its EXACT rendered label,
       // then selected by that same label — never by index.
       const beforeLabel = en["admin.categories.create.positionBefore"].replace("{name}", bSlug);
-      await present(
-        `CT-17 the "${beforeLabel}" position option`,
-        page.getByTestId("category-create-position").locator("option", { hasText: beforeLabel }),
-      );
-      await step("CT-17 position select by label", async () => {
-        await page.getByTestId("category-create-position").selectOption({ label: beforeLabel });
-      });
+      /**
+       * CT17-OPTIONS — the position dump convicts in ONE line: every rendered
+       * option label, service-client truth for both seeded siblings (id, the
+       * primary edge's parent_id, is_active, is_catchall), and the form's
+       * currently selected parentId.
+       */
+      const positionDump = async () => {
+        const labels = await page
+          .getByTestId("category-create-position")
+          .locator("option")
+          .allTextContents();
+        const truth: string[] = [];
+        for (const [name, id] of [
+          [aSlug, aId],
+          [bSlug, bId],
+        ] as const) {
+          const { data: row } = await supabase
+            .from("categories")
+            .select("id,is_active,is_catchall")
+            .eq("id", id)
+            .maybeSingle();
+          const { data: edges } = await supabase
+            .from("category_tree_pointers")
+            .select("parent_id,display_order")
+            .eq("child_id", id)
+            .order("display_order", { ascending: true });
+          truth.push(
+            `${name}: id=${id} parents=${JSON.stringify(edges ?? [])} is_active=${String(
+              row?.is_active,
+            )} is_catchall=${String(row?.is_catchall)}`,
+          );
+        }
+        const selectedParent = await page
+          .getByTestId("category-create-parent")
+          .inputValue()
+          .catch(() => "(unreadable)");
+        return [
+          `[CT-17 position] options=${JSON.stringify(labels)}`,
+          `[CT-17 position] expected=${JSON.stringify(beforeLabel)}`,
+          ...truth.map((line) => `[CT-17 position] ${line}`),
+          `[CT-17 position] form parentId=${selectedParent} (seeded parent ${parentId})`,
+        ].join("\n");
+      };
+      try {
+        await present(
+          `CT-17 the "${beforeLabel}" position option`,
+          page.getByTestId("category-create-position").locator("option", { hasText: beforeLabel }),
+        );
+        await step("CT-17 position select by label", async () => {
+          await page.getByTestId("category-create-position").selectOption({ label: beforeLabel });
+        });
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new Error(`${reason}\n${await positionDump()}`);
+      }
+
       await step("CT-17 price off", () => page.getByTestId("category-create-price").click());
       await step("CT-17 expiry fill", () => page.getByTestId("category-create-expiry").fill("45"));
       await step("CT-17 window fill", () =>
