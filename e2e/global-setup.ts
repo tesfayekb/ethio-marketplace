@@ -495,9 +495,7 @@ export default async function globalSetup() {
         .eq("status", "approved")
         .in("entity_id", ids.slice(index, index + 200));
       if (translationError) {
-        console.log(
-          `[e2e:maintenance] ratified-am probe unavailable: ${translationError.message}`,
-        );
+        console.log(`[e2e:maintenance] ratified-am probe unavailable: ${translationError.message}`);
         translated.clear();
         break;
       }
@@ -510,7 +508,6 @@ export default async function globalSetup() {
       console.log(`[e2e:maintenance] RATIFIED-AM GAP: ${gaps.length} rows: ${gaps.join(", ")}`);
     }
   }
-
 
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 
