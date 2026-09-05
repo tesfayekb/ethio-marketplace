@@ -1602,9 +1602,7 @@ test.describe("C2 categories console", () => {
         await page.getByTestId("category-create-position").selectOption({ label: beforeLabel });
       });
       await step("CT-17 price off", () => page.getByTestId("category-create-price").click());
-      await step("CT-17 expiry fill", () =>
-        page.getByTestId("category-create-expiry").fill("45"),
-      );
+      await step("CT-17 expiry fill", () => page.getByTestId("category-create-expiry").fill("45"));
       await step("CT-17 window fill", () =>
         page.getByTestId("category-create-visible-from").fill(fromLocal),
       );

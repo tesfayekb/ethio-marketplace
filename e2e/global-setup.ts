@@ -124,9 +124,7 @@ export function adminClient() {
  * maintenance sweep scopes its audit deletes to these ids so a real account's
  * audit trail can never be touched.
  */
-export async function listE2EUserIds(
-  supabase: ReturnType<typeof adminClient>,
-): Promise<string[]> {
+export async function listE2EUserIds(supabase: ReturnType<typeof adminClient>): Promise<string[]> {
   const ids: string[] = [];
   for (let page = 1; page <= 50; page += 1) {
     const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
@@ -470,9 +468,7 @@ export default async function globalSetup() {
       prunedObjects += stalePaths.length;
     }
   }
-  console.log(
-    `[e2e:maintenance] pruned ${prunedAudit} audit rows, ${prunedObjects} objects`,
-  );
+  console.log(`[e2e:maintenance] pruned ${prunedAudit} audit rows, ${prunedObjects} objects`);
 
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 
