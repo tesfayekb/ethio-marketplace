@@ -297,18 +297,21 @@ export function EditCategoryDialog({
   const { t } = useI18n();
   const update = useUpdateCategory();
   const { message, setMessage, fail } = useSubmitError();
-  const [nameEn, setNameEn] = useState(category.nameEn);
-  const [icon, setIcon] = useState(category.icon ?? "");
-  const [allowListings, setAllowListings] = useState(category.allowListings);
-  const [priceEnabled, setPriceEnabled] = useState(category.priceEnabled);
-  // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal anywhere.
-  const [expiryDays, setExpiryDays] = useState(
-    category.expiryDays === null ? "" : String(category.expiryDays),
-  );
+  /** C5k PART B — the edit dialog now drives the SAME value object. */
+  const [form, setForm] = useState<CategoryFormValues>(() => ({
+    ...emptyCategoryForm(),
+    nameEn: category.nameEn,
+    icon: category.icon ?? "",
+    allowListings: category.allowListings,
+    priceEnabled: category.priceEnabled,
+    // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal anywhere.
+    expiryDays: category.expiryDays === null ? "" : String(category.expiryDays),
+  }));
+  const patch = (next: Partial<CategoryFormValues>) => setForm((prev) => ({ ...prev, ...next }));
 
   const submit = () => {
     setMessage(null);
-    if (nameEn.trim().length === 0) {
+    if (form.nameEn.trim().length === 0) {
       setMessage(t("admin.categories.error.nameRequired"));
       return;
     }
@@ -316,13 +319,13 @@ export function EditCategoryDialog({
       try {
         await update.mutateAsync({
           id: category.id,
-          nameEn: nameEn.trim(),
-          icon: icon.trim(),
+          nameEn: form.nameEn.trim(),
+          icon: form.icon.trim(),
           // C2-CLOSE Part C — the order is not typed here; Move up/down owns it.
           displayOrder: category.displayOrder,
-          allowListings,
-          priceEnabled,
-          expiryDays: expiryDays.trim() === "" ? null : Number(expiryDays),
+          allowListings: form.allowListings,
+          priceEnabled: form.priceEnabled,
+          expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
         });
         onClose();
       } catch (error) {
@@ -339,73 +342,32 @@ export function EditCategoryDialog({
       onClose={onClose}
     >
       {verbBar}
-      <FormField label={t("admin.categories.field.name")} htmlFor="category-edit-name">
-        <Input
-          id="category-edit-name"
-          data-testid="category-edit-name"
-          value={nameEn}
-          onChange={(event) => setNameEn(event.target.value)}
-        />
-      </FormField>
-      <FormField label={t("admin.categories.field.icon")} htmlFor="category-edit-icon">
-        {/* C5i PART B.2 — a LIVE glyph preview beside the input: the operator
-            sees what the name resolves to (Package when it resolves to nothing)
-            before saving. RTL-safe: flex + gap, no directional margins. */}
-        <span className="flex items-center gap-2">
-          <IconPreview name={icon} />
-          <Input
-            id="category-edit-icon"
-            data-testid="category-edit-icon"
-            value={icon}
-            onChange={(event) => setIcon(event.target.value)}
-          />
-        </span>
-      </FormField>
-      {/**
-       * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field mirrors
-       * the LIVE roster row (the editor re-reads it on every render, INC-142),
-       * so a Move up/down updates it immediately; the operator changes it with
-       * the Move verbs, never by typing.
-       */}
-      <FormField
-        label={t("admin.categories.field.order")}
-        htmlFor="category-edit-order"
-        help={t("admin.categories.field.orderManaged")}
-      >
-        <Input
-          id="category-edit-order"
-          data-testid="category-edit-order"
-          inputMode="numeric"
-          readOnly
-          value={String(category.displayOrder)}
-        />
-      </FormField>
-      <FormField label={t("admin.categories.field.expiryDays")} htmlFor="category-edit-expiry">
-        <Input
-          id="category-edit-expiry"
-          data-testid="category-edit-expiry"
-          inputMode="numeric"
-          placeholder={t("admin.categories.field.expiryNone")}
-          value={expiryDays}
-          onChange={(event) => setExpiryDays(event.target.value)}
-        />
-      </FormField>
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid="category-edit-allow"
-          checked={allowListings}
-          onCheckedChange={(checked) => setAllowListings(checked === true)}
-        />
-        {t("admin.categories.field.allowListings")}
-      </label>
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid="category-edit-price"
-          checked={priceEnabled}
-          onCheckedChange={(checked) => setPriceEnabled(checked === true)}
-        />
-        {t("admin.categories.field.priceEnabled")}
-      </label>
+      <CategoryFormFields
+        mode="edit"
+        values={form}
+        onChange={patch}
+        extra={
+          /**
+           * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field
+           * mirrors the LIVE roster row (the editor re-reads it on every
+           * render, INC-142), so a Move up/down updates it immediately.
+           */
+          <FormField
+            label={t("admin.categories.field.order")}
+            htmlFor="category-edit-order"
+            help={t("admin.categories.field.orderManaged")}
+          >
+            <Input
+              id="category-edit-order"
+              data-testid="category-edit-order"
+              inputMode="numeric"
+              readOnly
+              value={String(category.displayOrder)}
+            />
+          </FormField>
+        }
+      />
+
       <ErrorLine message={message} />
       <DialogActions
         onCancel={onClose}
