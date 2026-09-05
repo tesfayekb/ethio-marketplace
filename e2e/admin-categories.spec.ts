@@ -1648,8 +1648,10 @@ test.describe("C2 categories console", () => {
       expect(orderNew).toBeGreaterThan(orderA);
       expect(orderNew).toBeLessThan(orderB);
 
-      await page.getByTestId("category-editor-close").click();
-      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
+      await step("CT-17 close leaves the dialog gone", async () => {
+        await page.getByTestId("category-editor-close").click();
+        await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
+      });
     } finally {
       await destroyCategory(slug);
       await destroyCategory(aSlug);
