@@ -17,7 +17,13 @@ Images: every node carries thumbnail / card 512 / large 1200×630; the card imag
 `/admin/categories` (`src/features/admin-categories/**`) is gated by `categories:view`; each write re-checks its own granular permission and step-up on the server (F3).
 
 - **Roster** — one depth-ordered list of the whole tree from `admin_list_categories`, rendered through the DataTable primitive with `cardUntil="lg"` and per-column min-widths (law C7). Search narrows on name or slug. Loading / empty / error states are translated.
-- **Create** — `admin_create_category` (slug, English name, icon, optional parent, accepts-listings).
+- **Create** — `admin_create_category` (English name, icon, optional parent, accepts-listings,
+  and — C5k, inline create — price-enabled, expiry days and the visibility window;
+  every new parameter is optional and defaults to the pre-C5k behavior, the slug
+  stays server-derived). Countries/exclusions remain an editor verb: they need the
+  row to exist, and the create dialog says so in a translated caption.
+  Create and edit render ONE shared field set (`category-form-fields.tsx`); the
+  create-side icon is still suggested silently and only names itself behind Change.
 - **Edit** — `admin_update_category` (name, icon, display order, listing expiry, accepts-listings, price field).
 - **Visibility window** — `admin_set_category_window`; an empty date removes that bound. Times are UTC.
 - **Country exclusions** — `admin_set_country_exclusions`. The table stays client-unreadable; C2b instead returns `excluded_country_codes` on the roster RPC, so the dialog PRE-TICKS the current set and still submits a full replacement.

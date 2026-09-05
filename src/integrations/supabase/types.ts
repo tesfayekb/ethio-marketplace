@@ -1143,10 +1143,14 @@ export type Database = {
       admin_create_category: {
         Args: {
           p_allow_listings?: boolean
+          p_expiry_days?: number
           p_icon?: string
           p_name_en: string
           p_parent_id?: string
+          p_price_enabled?: boolean
           p_slug?: string
+          p_visible_from?: string
+          p_visible_until?: string
         }
         Returns: string
       }

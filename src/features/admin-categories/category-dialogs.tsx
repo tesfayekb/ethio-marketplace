@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { categoryGlyph } from "@/components/shell/app-rail";
 import { FormField } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
@@ -12,20 +11,12 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
 import { suggestCategoryIcon } from "./category-images-service";
-
-/** C5i PART B.2 — the live glyph a typed icon name resolves to. */
-function IconPreview({ name }: { name: string }) {
-  const Glyph = categoryGlyph(name);
-  return (
-    <span
-      data-testid="category-edit-icon-preview"
-      data-icon={categoryGlyph(name) === categoryGlyph("") ? "Package" : name.trim()}
-      className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground"
-    >
-      <Glyph aria-hidden="true" className="size-5" />
-    </span>
-  );
-}
+import {
+  CategoryFormFields,
+  emptyCategoryForm,
+  SELECT_CLASS,
+  type CategoryFormValues,
+} from "./category-form-fields";
 
 import {
   activeParentOptions,
@@ -55,8 +46,9 @@ import {
  * no-op (F4). 360-first: full-width controls, ≥44px targets, logical spacing.
  */
 
-export const SELECT_CLASS =
-  "h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground";
+/** C5k — the select style now lives with the shared form; re-exported here so
+ *  the page's existing import keeps working (one definition, B2). */
+export { SELECT_CLASS };
 
 export function CategoryModal({
   testid,
@@ -147,16 +139,16 @@ export function CreateCategoryDialog({
   const { t } = useI18n();
   const create = useCreateCategory();
   const { message, setMessage, fail } = useSubmitError();
-  const [nameEn, setNameEn] = useState("");
-  const [parentId, setParentId] = useState("");
-  const [allowListings, setAllowListings] = useState(true);
+  /** C5k PART B — one form value object, shared with the edit dialog. */
+  const [form, setForm] = useState<CategoryFormValues>(emptyCategoryForm);
+  const patch = (next: Partial<CategoryFormValues>) => setForm((prev) => ({ ...prev, ...next }));
   /**
-   * C5e PART D — SILENT ICON. The operator never sees icon machinery in the
-   * create dialog: the suggestion runs on name blur, applies silently, and a
-   * failure silently keeps the `Package` default. The icon stays editable in
-   * the EDIT dialog, which is the one place it is a decision.
+   * C5e PART D / C5k — the icon is still SUGGESTED silently on name blur; the
+   * operator only meets its name after pressing Change, and a manual edit is
+   * never overwritten by a later suggestion.
    */
-  const iconRef = useRef("Package");
+  const [iconOpen, setIconOpen] = useState(false);
+  const iconTouched = useRef(false);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -167,43 +159,45 @@ export function CreateCategoryDialog({
   );
 
   const parentName =
-    parentId === "" ? null : (parents.find((row) => row.id === parentId)?.nameEn ?? null);
+    form.parentId === "" ? null : (parents.find((row) => row.id === form.parentId)?.nameEn ?? null);
 
   /** Debounced so a blur-then-blur never fires two calls (I3). */
   const requestSuggestion = (name: string) => {
-    if (name.trim().length === 0) return;
+    if (name.trim().length === 0 || iconTouched.current) return;
     if (suggestTimer.current !== null) clearTimeout(suggestTimer.current);
     suggestTimer.current = setTimeout(() => {
       void suggestCategoryIcon({ name: name.trim(), parentName })
         .then((suggested) => {
-          iconRef.current = suggested;
+          if (!iconTouched.current) patch({ icon: suggested });
         })
         .catch(() => {
-          iconRef.current = "Package";
+          if (!iconTouched.current) patch({ icon: "Package" });
         });
     }, 300);
   };
 
   /**
-   * C5e PART D — the create action no longer swallows its own failure: a
-   * step-up refusal MUST reach `guard`, which is what replays the create after
-   * the modal. C5g PART D removed the separate Generate-now step: a successful
-   * create hands the id up and the FULL editor opens on the new row, so every
-   * verb (Visibility, Countries, Browse paths, Move, Image) is one click away
-   * from second one.
+   * C5k PART A — INLINE CREATE. One call now carries price, expiry and the
+   * visibility window as well; countries still belong to the editor, because
+   * they need the row to exist. A step-up refusal MUST reach `guard`, which
+   * replays the create after the modal.
    */
   const submit = () => {
     setMessage(null);
-    if (nameEn.trim().length === 0) {
+    if (form.nameEn.trim().length === 0) {
       setMessage(t("admin.categories.error.nameRequired"));
       return;
     }
     void guard(async () => {
       const id = await create.mutateAsync({
-        nameEn: nameEn.trim(),
-        icon: iconRef.current.trim(),
-        parentId: parentId === "" ? null : parentId,
-        allowListings,
+        nameEn: form.nameEn.trim(),
+        icon: form.icon.trim(),
+        parentId: form.parentId === "" ? null : form.parentId,
+        allowListings: form.allowListings,
+        priceEnabled: form.priceEnabled,
+        expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
+        visibleFrom: fromLocalInput(form.visibleFrom),
+        visibleUntil: fromLocalInput(form.visibleUntil),
       });
       onCreated(id);
     }).catch(fail);
@@ -216,52 +210,20 @@ export function CreateCategoryDialog({
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
-      <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
-        <Input
-          id="category-create-name"
-          data-testid="category-create-name"
-          value={nameEn}
-          onChange={(event) => setNameEn(event.target.value)}
-          onBlur={(event) => requestSuggestion(event.target.value)}
-        />
-      </FormField>
-      {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
-            server will derive; the RPC owns the final value and any -2/-3
-            uniqueness suffix, so there is exactly one authority (F3). */}
-      <p className="text-sm text-muted-foreground">
-        <span>{t("admin.categories.create.slugPreview")}</span>{" "}
-        <span data-testid="category-create-slug-preview" className="break-all font-mono">
-          {deriveSlugPreview(nameEn.trim())}
-        </span>
-      </p>
-      {/* C5e PART D — the icon machinery is INVISIBLE here: no label, no
-            value, no Change control. It is decided silently and can still be
-            corrected in the edit dialog. */}
-      <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
-        <select
-          id="category-create-parent"
-          data-testid="category-create-parent"
-          className={SELECT_CLASS}
-          value={parentId}
-          onChange={(event) => setParentId(event.target.value)}
-        >
-          <option value="">{t("admin.categories.create.parentRoot")}</option>
-          {activeParentOptions(parents).map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </FormField>
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid="category-create-allow"
-          checked={allowListings}
-          onCheckedChange={(checked) => setAllowListings(checked === true)}
-        />
-        {t("admin.categories.field.allowListings")}
-      </label>
+      <CategoryFormFields
+        mode="create"
+        values={form}
+        parents={parents}
+        iconOpen={iconOpen}
+        onIconOpen={() => setIconOpen(true)}
+        onNameBlur={requestSuggestion}
+        onChange={(next) => {
+          if (next.icon !== undefined) iconTouched.current = true;
+          patch(next);
+        }}
+      />
       <ErrorLine message={message} />
+
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -333,18 +295,21 @@ export function EditCategoryDialog({
   const { t } = useI18n();
   const update = useUpdateCategory();
   const { message, setMessage, fail } = useSubmitError();
-  const [nameEn, setNameEn] = useState(category.nameEn);
-  const [icon, setIcon] = useState(category.icon ?? "");
-  const [allowListings, setAllowListings] = useState(category.allowListings);
-  const [priceEnabled, setPriceEnabled] = useState(category.priceEnabled);
-  // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal anywhere.
-  const [expiryDays, setExpiryDays] = useState(
-    category.expiryDays === null ? "" : String(category.expiryDays),
-  );
+  /** C5k PART B — the edit dialog now drives the SAME value object. */
+  const [form, setForm] = useState<CategoryFormValues>(() => ({
+    ...emptyCategoryForm(),
+    nameEn: category.nameEn,
+    icon: category.icon ?? "",
+    allowListings: category.allowListings,
+    priceEnabled: category.priceEnabled,
+    // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal anywhere.
+    expiryDays: category.expiryDays === null ? "" : String(category.expiryDays),
+  }));
+  const patch = (next: Partial<CategoryFormValues>) => setForm((prev) => ({ ...prev, ...next }));
 
   const submit = () => {
     setMessage(null);
-    if (nameEn.trim().length === 0) {
+    if (form.nameEn.trim().length === 0) {
       setMessage(t("admin.categories.error.nameRequired"));
       return;
     }
@@ -352,13 +317,13 @@ export function EditCategoryDialog({
       try {
         await update.mutateAsync({
           id: category.id,
-          nameEn: nameEn.trim(),
-          icon: icon.trim(),
+          nameEn: form.nameEn.trim(),
+          icon: form.icon.trim(),
           // C2-CLOSE Part C — the order is not typed here; Move up/down owns it.
           displayOrder: category.displayOrder,
-          allowListings,
-          priceEnabled,
-          expiryDays: expiryDays.trim() === "" ? null : Number(expiryDays),
+          allowListings: form.allowListings,
+          priceEnabled: form.priceEnabled,
+          expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
         });
         onClose();
       } catch (error) {
@@ -375,73 +340,32 @@ export function EditCategoryDialog({
       onClose={onClose}
     >
       {verbBar}
-      <FormField label={t("admin.categories.field.name")} htmlFor="category-edit-name">
-        <Input
-          id="category-edit-name"
-          data-testid="category-edit-name"
-          value={nameEn}
-          onChange={(event) => setNameEn(event.target.value)}
-        />
-      </FormField>
-      <FormField label={t("admin.categories.field.icon")} htmlFor="category-edit-icon">
-        {/* C5i PART B.2 — a LIVE glyph preview beside the input: the operator
-            sees what the name resolves to (Package when it resolves to nothing)
-            before saving. RTL-safe: flex + gap, no directional margins. */}
-        <span className="flex items-center gap-2">
-          <IconPreview name={icon} />
-          <Input
-            id="category-edit-icon"
-            data-testid="category-edit-icon"
-            value={icon}
-            onChange={(event) => setIcon(event.target.value)}
-          />
-        </span>
-      </FormField>
-      {/**
-       * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field mirrors
-       * the LIVE roster row (the editor re-reads it on every render, INC-142),
-       * so a Move up/down updates it immediately; the operator changes it with
-       * the Move verbs, never by typing.
-       */}
-      <FormField
-        label={t("admin.categories.field.order")}
-        htmlFor="category-edit-order"
-        help={t("admin.categories.field.orderManaged")}
-      >
-        <Input
-          id="category-edit-order"
-          data-testid="category-edit-order"
-          inputMode="numeric"
-          readOnly
-          value={String(category.displayOrder)}
-        />
-      </FormField>
-      <FormField label={t("admin.categories.field.expiryDays")} htmlFor="category-edit-expiry">
-        <Input
-          id="category-edit-expiry"
-          data-testid="category-edit-expiry"
-          inputMode="numeric"
-          placeholder={t("admin.categories.field.expiryNone")}
-          value={expiryDays}
-          onChange={(event) => setExpiryDays(event.target.value)}
-        />
-      </FormField>
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid="category-edit-allow"
-          checked={allowListings}
-          onCheckedChange={(checked) => setAllowListings(checked === true)}
-        />
-        {t("admin.categories.field.allowListings")}
-      </label>
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid="category-edit-price"
-          checked={priceEnabled}
-          onCheckedChange={(checked) => setPriceEnabled(checked === true)}
-        />
-        {t("admin.categories.field.priceEnabled")}
-      </label>
+      <CategoryFormFields
+        mode="edit"
+        values={form}
+        onChange={patch}
+        extra={
+          /**
+           * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field
+           * mirrors the LIVE roster row (the editor re-reads it on every
+           * render, INC-142), so a Move up/down updates it immediately.
+           */
+          <FormField
+            label={t("admin.categories.field.order")}
+            htmlFor="category-edit-order"
+            help={t("admin.categories.field.orderManaged")}
+          >
+            <Input
+              id="category-edit-order"
+              data-testid="category-edit-order"
+              inputMode="numeric"
+              readOnly
+              value={String(category.displayOrder)}
+            />
+          </FormField>
+        }
+      />
+
       <ErrorLine message={message} />
       <DialogActions
         onCancel={onClose}

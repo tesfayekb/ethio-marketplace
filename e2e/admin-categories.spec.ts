@@ -183,7 +183,10 @@ async function signInAsSuperAdmin(page: Page) {
 async function readCategory(slug: string) {
   const { data, error } = await adminClient()
     .from("categories")
-    .select("id, slug, name_en, is_active, allow_listings, display_order, visible_from")
+    .select(
+      "id, slug, name_en, is_active, allow_listings, display_order, visible_from, visible_until, price_enabled, expiry_days",
+    )
+
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw new Error(`[e2e:c2] reading ${slug} failed: ${error.message}`);
@@ -1474,9 +1477,11 @@ test.describe("C2 categories console", () => {
   );
 
   /**
-   * CT-17 (C5g PART D) — THE CREATE FLOW HAS NO ICON UI AT ALL: the suggestion
-   * runs silently on name blur (no text, no Change control), and a successful
-   * create opens the FULL editor on the new row with the Image surface first.
+   * CT-17 (C5g PART D · extended by C5k) — the icon SUGGESTION is silent (no
+   * suggestion text), the name of the icon only appears behind Change, and a
+   * successful create opens the FULL editor on the new row with the Image
+   * surface first. C5k adds the inline-create truth: price, expiry and the
+   * visibility window set in the create dialog are PERSISTED by the one call.
    */
   test("CT-17 create flow: the icon is silent and the editor opens on the image", async ({
     page,
@@ -1484,14 +1489,26 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     const slug = scratchSlug();
+    // C5k PART C — a window that starts in the future, to the minute.
+    const from = new Date(Date.now() + 86_400_000);
+    from.setSeconds(0, 0);
+    const pad = (value: number) => String(value).padStart(2, "0");
+    const fromLocal = `${from.getFullYear()}-${pad(from.getMonth() + 1)}-${pad(from.getDate())}T${pad(from.getHours())}:${pad(from.getMinutes())}`;
     try {
       await gotoReady(page, "/admin/categories");
       await page.getByTestId("category-create-open").click();
       await page.getByTestId("category-create-name").fill(slug);
       await page.getByTestId("category-create-name").blur();
-      // Silent machinery: neither the suggestion text nor the Change control exists.
+      // Silent machinery: the suggestion never announces itself in words.
       await expect(page.getByTestId("category-create-icon-suggested")).toHaveCount(0);
-      await expect(page.getByTestId("category-create-icon-change")).toHaveCount(0);
+      // C5k PART B — the shared form: a glyph preview plus a Change control.
+      await expect(page.getByTestId("category-create-icon-preview")).toBeVisible();
+      await expect(page.getByTestId("category-create-icon-change")).toBeVisible();
+
+      // C5k PART C — the three inline fields the create call now carries.
+      await page.getByTestId("category-create-price").click();
+      await page.getByTestId("category-create-expiry").fill("45");
+      await page.getByTestId("category-create-visible-from").fill(fromLocal);
 
       await page.getByTestId("category-create-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -1500,6 +1517,12 @@ test.describe("C2 categories console", () => {
       await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
       await expect(page.getByTestId("category-create-dialog")).toHaveCount(0);
       await expect(page.getByTestId("category-created-notice")).toBeVisible();
+
+      // C5k PART C — DB truth: all three inline fields landed on the row.
+      const created = await readCategory(slug);
+      expect(created?.price_enabled).toBe(false);
+      expect(created?.expiry_days).toBe(45);
+      expect(new Date(created?.visible_from ?? 0).getTime()).toBe(new Date(fromLocal).getTime());
 
       await page.getByTestId("category-image-generate").click();
       await expect(page.getByTestId("category-image-assets")).toBeVisible({
