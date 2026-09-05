@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 190,
+  "scanned": 191,
   "dynamicCallSites": 70,
   "keys": {
     "account.deactivatedBanner": [
@@ -183,10 +183,10 @@
     "admin.categories.col.status": [
       "/admin/categories"
     ],
-    "admin.categories.create.created": [
+    "admin.categories.create.countriesLater": [
       "/admin/categories"
     ],
-    "admin.categories.create.name": [
+    "admin.categories.create.created": [
       "/admin/categories"
     ],
     "admin.categories.create.open": [
@@ -262,6 +262,9 @@
       "/admin/categories"
     ],
     "admin.categories.field.icon": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.iconChange": [
       "/admin/categories"
     ],
     "admin.categories.field.name": [

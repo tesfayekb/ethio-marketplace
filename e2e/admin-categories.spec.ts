@@ -1510,7 +1510,6 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-create-expiry").fill("45");
       await page.getByTestId("category-create-visible-from").fill(fromLocal);
 
-
       await page.getByTestId("category-create-submit").click();
       await stepUpIfPrompted(page, secret);
       // C5g PART D — create → the FULL editor opens on the new row with the
@@ -1523,11 +1522,7 @@ test.describe("C2 categories console", () => {
       const created = await readCategory(slug);
       expect(created?.price_enabled).toBe(false);
       expect(created?.expiry_days).toBe(45);
-      expect(new Date(created?.visible_from ?? 0).getTime()).toBe(
-        new Date(fromLocal).getTime(),
-      );
-
-
+      expect(new Date(created?.visible_from ?? 0).getTime()).toBe(new Date(fromLocal).getTime());
 
       await page.getByTestId("category-image-generate").click();
       await expect(page.getByTestId("category-image-assets")).toBeVisible({
