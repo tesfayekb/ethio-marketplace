@@ -1312,7 +1312,7 @@ test.describe("C2 categories console", () => {
    * cheaper honest proof, stated here so the omission is not silent.
    */
   test(
-    "CI-5 bulk fill: the missing-assets run fills every seeded row",
+    "CI-5 bulk fill: the missing-assets run fills every seeded row @global-state",
     // C5g PART E (INC-155) — the bulk verb walks the whole visible roster and
     // writes imagery, so it is a global-state walk: quarantined non-gating
     // (INC-117 mechanism), still run and still reporting on every push.
