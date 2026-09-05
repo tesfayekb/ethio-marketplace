@@ -285,15 +285,13 @@ async function createViaUi(page: Page, secret: string) {
   await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
   await page.getByTestId("category-create-submit").click();
   await stepUpIfPrompted(page, secret);
-  // C5g PART D — a successful create closes the create dialog and opens the
-  // FULL editor on the new row with the Image surface in front; a helper that
-  // only seeds dismisses both (Escape) before touching the roster.
-  await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
+  // C5l — a successful create ADVANCES IN-DIALOG to Step 2 (the shared image
+  // surface); a helper that only seeds presses Finish, then finds the row.
+  await expect(page.getByTestId("category-create-generate-step")).toBeVisible({
+    timeout: 20000,
+  });
+  await page.getByTestId("category-create-finish").click();
   await expect(page.getByTestId("category-create-dialog")).toHaveCount(0, { timeout: 20000 });
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("category-image-dialog")).toHaveCount(0, { timeout: 20000 });
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
   // C2-GHOST PART B — the state right after the create dialog closes is the
   // ghost's birthplace; the dump names any dialog still open.
   const afterCreate = await dialogDump(page, `createViaUi(${slug}) after create`);
