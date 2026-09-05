@@ -125,30 +125,51 @@ export function useSubmitError() {
 
 /* ------------------------------- create ---------------------------------- */
 
+/**
+ * C5l PART A — TWO-STEP CREATE. One dialog, two steps:
+ *
+ *   Step 1 "Details" — the full shared field set + Countries multi-select +
+ *   Position ("At the end" default, or before a chosen ACTIVE sibling of the
+ *   selected parent). Save creates via the RPC, then CHAINS the country
+ *   exclusions and the position placement (admin_reorder_categories — no RPC
+ *   change; the create RPC always appends, so placement is a reorder).
+ *
+ *   Step 2 "Image" — the SAME generation surface the editor uses
+ *   (CategoryImagePanel, no fork): Generate/Accept live here, Finish closes.
+ *
+ * PARTIAL-FAILURE LAW: the create RPC succeeding makes the row REAL. A chained
+ * step (exclusions / position) failing surfaces the translated refusal on
+ * Step 2 — the row is never lost, and the editor can finish the setup.
+ */
 export function CreateCategoryDialog({
   parents,
+  countries,
   guard,
   openedBy,
-  onCreated,
   onClose,
 }: {
   parents: CategoryNode[];
+  /** C5l — the inline Countries options (same source as the editor verb). */
+  countries: { code: string; nameEn: string }[];
   guard: GuardFn;
   openedBy: string;
-  /** C5g PART D — the page owns what happens next: the full editor opens. */
-  onCreated: (id: string) => void;
   onClose: () => void;
 }) {
   const { t } = useI18n();
   const create = useCreateCategory();
+  const setExclusions = useSetCountryExclusions();
+  const reorder = useReorderCategories();
   const { message, setMessage, fail } = useSubmitError();
   /** C5k PART B — one form value object, shared with the edit dialog. */
   const [form, setForm] = useState<CategoryFormValues>(emptyCategoryForm);
   const patch = (next: Partial<CategoryFormValues>) => setForm((prev) => ({ ...prev, ...next }));
+  const [step, setStep] = useState<"details" | "image">("details");
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   /**
-   * C5e PART D / C5k — the icon is still SUGGESTED silently on name blur; the
-   * operator only meets its name after pressing Change, and a manual edit is
-   * never overwritten by a later suggestion.
+   * C5e PART D / C5l PART B — the icon is EMPTY until the silent name-blur
+   * suggestion lands; Change reveals the machinery, and a manual edit is never
+   * overwritten by a later suggestion.
    */
   const [iconOpen, setIconOpen] = useState(false);
   const iconTouched = useRef(false);
@@ -164,6 +185,20 @@ export function CreateCategoryDialog({
   const parentName =
     form.parentId === "" ? null : (parents.find((row) => row.id === form.parentId)?.nameEn ?? null);
 
+  /**
+   * C5l PART C — ACTIVE-ONLY SIBLINGS, in roster order (toRoster sorts the
+   * buckets by the pointer's display_order). Catch-alls are excluded: they
+   * always sort last server-side, so "before a catch-all" is meaningless.
+   */
+  const positionOptions = parents
+    .filter(
+      (row) =>
+        row.parentId === (form.parentId === "" ? null : form.parentId) &&
+        row.isActive &&
+        !row.isCatchall,
+    )
+    .map((row) => ({ id: row.id, label: row.nameEn }));
+
   /** Debounced so a blur-then-blur never fires two calls (I3). */
   const requestSuggestion = (name: string) => {
     if (name.trim().length === 0 || iconTouched.current) return;
@@ -174,36 +209,59 @@ export function CreateCategoryDialog({
           if (!iconTouched.current) patch({ icon: suggested });
         })
         .catch(() => {
-          if (!iconTouched.current) patch({ icon: "Package" });
+          /* C5l — no fallback value: save-time applies Package if still empty. */
         });
     }, 300);
   };
 
-  /**
-   * C5k PART A — INLINE CREATE. One call now carries price, expiry and the
-   * visibility window as well; countries still belong to the editor, because
-   * they need the row to exist. A step-up refusal MUST reach `guard`, which
-   * replays the create after the modal.
-   */
   const submit = () => {
     setMessage(null);
     if (form.nameEn.trim().length === 0) {
       setMessage(t("admin.categories.error.nameRequired"));
       return;
     }
+    const parentId = form.parentId === "" ? null : form.parentId;
+    setBusy(true);
     void guard(async () => {
       const id = await create.mutateAsync({
         nameEn: form.nameEn.trim(),
-        icon: form.icon.trim(),
-        parentId: form.parentId === "" ? null : form.parentId,
+        // C5l PART B — Package is the SAVE-TIME default, never a prefill.
+        icon: form.icon.trim() === "" ? "Package" : form.icon.trim(),
+        parentId,
         allowListings: form.allowListings,
         priceEnabled: form.priceEnabled,
         expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
         visibleFrom: fromLocalInput(form.visibleFrom),
         visibleUntil: fromLocalInput(form.visibleUntil),
       });
-      onCreated(id);
-    }).catch(fail);
+      // The row exists from here on — a chained failure can never lose it.
+      setCreatedId(id);
+      try {
+        if (form.excludedCodes.length > 0) {
+          await setExclusions.mutateAsync({ id, countryCodes: form.excludedCodes });
+        }
+        if (form.positionBefore !== "") {
+          const siblings = parents
+            .filter((row) => row.parentId === parentId && !row.isCatchall)
+            .map((row) => row.id);
+          const at = siblings.indexOf(form.positionBefore);
+          if (at >= 0) {
+            siblings.splice(at, 0, id);
+            await reorder.mutateAsync({ parentId, orderedChildIds: siblings });
+          }
+        }
+      } catch (chainError) {
+        // PARTIAL FAILURE — the create landed; surface the refusal and still
+        // advance, so the operator reviews the image step and finishes.
+        setCreatedId(id);
+        setStep("image");
+        fail(chainError);
+        return;
+      }
+      setStep("image");
+    })
+      .catch(fail)
+      .finally(() => setBusy(false));
   };
 
   return (
@@ -213,26 +271,53 @@ export function CreateCategoryDialog({
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
-      <CategoryFormFields
-        mode="create"
-        values={form}
-        parents={parents}
-        iconOpen={iconOpen}
-        onIconOpen={() => setIconOpen(true)}
-        onNameBlur={requestSuggestion}
-        onChange={(next) => {
-          if (next.icon !== undefined) iconTouched.current = true;
-          patch(next);
-        }}
-      />
-      <ErrorLine message={message} />
-
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={create.isPending}
-        submitTestId="category-create-submit"
-      />
+      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        {step === "details"
+          ? t("admin.categories.create.stepDetails")
+          : t("admin.categories.create.stepImage")}
+      </p>
+      {step === "details" ? (
+        <>
+          <CategoryFormFields
+            mode="create"
+            values={form}
+            parents={parents}
+            iconOpen={iconOpen}
+            onIconOpen={() => setIconOpen(true)}
+            onNameBlur={requestSuggestion}
+            countries={countries}
+            positionOptions={positionOptions}
+            onChange={(next) => {
+              if (next.icon !== undefined) iconTouched.current = true;
+              patch(next);
+            }}
+          />
+          <ErrorLine message={message} />
+          <DialogActions
+            onCancel={onClose}
+            onSubmit={submit}
+            busy={busy || create.isPending}
+            submitTestId="category-create-submit"
+          />
+        </>
+      ) : (
+        <div data-testid="category-create-generate-step" className="space-y-3">
+          {createdId === null ? null : (
+            <CategoryImagePanel categoryId={createdId} guard={guard} />
+          )}
+          <ErrorLine message={message} />
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              className="min-h-11"
+              data-testid="category-create-finish"
+              onClick={onClose}
+            >
+              {t("admin.categories.create.finish")}
+            </Button>
+          </div>
+        </div>
+      )}
     </CategoryModal>
   );
 }
