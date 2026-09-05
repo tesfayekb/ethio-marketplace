@@ -1510,6 +1510,11 @@ test.describe("C2 categories console", () => {
     };
     try {
       // J7 — seed BEFORE navigate: a scratch parent holding two ACTIVE siblings.
+      // CT17-OPTIONS VERDICT — a ROOT needs its NULL-parent POINTER row. The
+      // roster's `edge` CTE only admits categories that have SOME pointer row;
+      // a pointer-less parent lands in the orphan tail, and its children (which
+      // do have an edge) are then unreachable from `walk` — absent from the
+      // roster entirely, so the position select renders zero sibling options.
       const seed = async (seedSlug: string, parent: string | null) => {
         const { data, error } = await supabase
           .from("categories")
@@ -1524,22 +1529,23 @@ test.describe("C2 categories console", () => {
           .single();
         if (error) throw new Error(`[e2e:c5l] seeding ${seedSlug} failed: ${error.message}`);
         const id = data.id as string;
-        if (parent !== null) {
-          const existing = await supabase
-            .from("category_tree_pointers")
-            .select("display_order")
-            .eq("parent_id", parent)
-            .order("display_order", { ascending: false })
-            .limit(1);
-          const nextOrder = (existing.data?.[0]?.display_order ?? -1) + 1;
-          const { error: pointerError } = await supabase
-            .from("category_tree_pointers")
-            .insert({ parent_id: parent, child_id: id, display_order: nextOrder });
-          if (pointerError)
-            throw new Error(`[e2e:c5l] seeding pointer failed: ${pointerError.message}`);
-        }
+        const query = supabase
+          .from("category_tree_pointers")
+          .select("display_order")
+          .order("display_order", { ascending: false })
+          .limit(1);
+        const existing = await (parent === null
+          ? query.is("parent_id", null)
+          : query.eq("parent_id", parent));
+        const nextOrder = (existing.data?.[0]?.display_order ?? -1) + 1;
+        const { error: pointerError } = await supabase
+          .from("category_tree_pointers")
+          .insert({ parent_id: parent, child_id: id, display_order: nextOrder });
+        if (pointerError)
+          throw new Error(`[e2e:c5l] seeding pointer failed: ${pointerError.message}`);
         return id;
       };
+
       const parentId = await seed(parentSlug, null);
       const aId = await seed(aSlug, parentId);
       const bId = await seed(bSlug, parentId);
