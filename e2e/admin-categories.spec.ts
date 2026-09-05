@@ -285,13 +285,11 @@ async function createViaUi(page: Page, secret: string) {
   await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
   await page.getByTestId("category-create-submit").click();
   await stepUpIfPrompted(page, secret);
-  // C5l — a successful create ADVANCES IN-DIALOG to Step 2 (the shared image
-  // surface); a helper that only seeds presses Finish, then finds the row.
-  await expect(page.getByTestId("category-create-generate-step")).toBeVisible({
-    timeout: 20000,
-  });
-  await page.getByTestId("category-create-finish").click();
-  await expect(page.getByTestId("category-create-dialog")).toHaveCount(0, { timeout: 20000 });
+  // C5m — ONE dialog: the SAME testid persists and now shows the Image
+  // surface; Escape leaves it, and the roster is asserted after it is gone.
+  await expect(page.getByTestId("category-editor-image")).toBeVisible({ timeout: 20000 });
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
   // C2-GHOST PART B — the state right after the create dialog closes is the
   // ghost's birthplace; the dump names any dialog still open.
   const afterCreate = await dialogDump(page, `createViaUi(${slug}) after create`);
@@ -1549,18 +1547,15 @@ test.describe("C2 categories console", () => {
       await gotoReady(page, "/admin/categories");
       await page.getByTestId("category-create-open").click();
 
-      // C5l PART B — EMPTY UNTIL NAMED: the hint, not a glyph, before any name.
+      // C5m PART C — a THIN create-mode case: the mode-specific truth only
+      // (icon hint, position options, chained exclusion + placement), then the
+      // shared editor surface the other CTs already assert.
       await expect(page.getByTestId("category-create-icon-hint")).toBeVisible();
       await page.getByTestId("category-create-name").fill(slug);
       await page.getByTestId("category-create-name").blur();
-      // Silent machinery: the suggestion never announces itself in words.
-      await expect(page.getByTestId("category-create-icon-suggested")).toHaveCount(0);
-      await expect(page.getByTestId("category-create-icon-preview")).toBeVisible();
-      await expect(page.getByTestId("category-create-icon-change")).toBeVisible();
-
-      // Step 1 — the full field set, incl. parent, position and a country.
       await page.getByTestId("category-create-parent").selectOption({ value: parentId });
-      await expect(page.getByTestId("category-create-position")).toBeVisible();
+      // PART B — options are the ACTIVE children of the SELECTED parent.
+      await expect(page.getByTestId("category-create-position-caption")).toContainText(parentSlug);
       await page.getByTestId("category-create-position").selectOption({ value: bId });
       await page.getByTestId("category-create-price").click();
       await page.getByTestId("category-create-expiry").fill("45");
@@ -1570,10 +1565,8 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-create-submit").click();
       await stepUpIfPrompted(page, secret);
 
-      // Step 2 — the dialog ADVANCES IN PLACE to the shared image surface.
-      await expect(page.getByTestId("category-create-generate-step")).toBeVisible({
-        timeout: 20000,
-      });
+      // The SAME dialog transitions in place to the image surface.
+      await expect(page.getByTestId("category-editor-image")).toBeVisible({ timeout: 20000 });
 
       // DB truth: the row, the chained exclusion, and the edge BETWEEN the
       // two siblings it was placed before (a < new < b).
@@ -1601,16 +1594,8 @@ test.describe("C2 categories console", () => {
       expect(orderNew).toBeGreaterThan(orderA);
       expect(orderNew).toBeLessThan(orderB);
 
-      // Step 2 — generate (fake), assets render, Finish closes the dialog.
-      await page.getByTestId("category-image-generate").click();
-      await expect(page.getByTestId("category-image-assets")).toBeVisible({
-        timeout: 60000,
-      });
-      await expect
-        .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
-        .not.toBeNull();
-      await page.getByTestId("category-create-finish").click();
-      await expect(page.getByTestId("category-create-dialog")).toHaveCount(0, { timeout: 20000 });
+      await page.getByTestId("category-editor-close").click();
+      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
     } finally {
       await destroyCategory(slug);
       await destroyCategory(aSlug);

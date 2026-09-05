@@ -90,6 +90,8 @@ export function CategoryFormFields({
   onNameBlur,
   countries,
   positionOptions,
+  positionEndLabel,
+  positionCaption,
   extra,
 }: {
   mode: "create" | "edit";
@@ -103,8 +105,12 @@ export function CategoryFormFields({
   onNameBlur?: (name: string) => void;
   /** Create only (C5l): the inline Countries multi-select's options. */
   countries?: { code: string; nameEn: string }[];
-  /** Create only (C5l): ACTIVE siblings of the chosen parent, in roster order. */
+  /** Create only (C5m): ACTIVE siblings of the chosen parent, in roster order. */
   positionOptions?: { id: string; label: string }[];
+  /** Create only (C5m): "At the end (position N+1)". */
+  positionEndLabel?: string;
+  /** Create only (C5m): "N subcategories in <parent>". */
+  positionCaption?: string;
   /** Edit only: the live read-only display-order field. */
   extra?: ReactNode;
 }) {
@@ -203,13 +209,19 @@ export function CategoryFormFields({
             value={values.positionBefore}
             onChange={(event) => onChange({ positionBefore: event.target.value })}
           >
-            <option value="">{t("admin.categories.create.positionEnd")}</option>
+            <option value="">{positionEndLabel ?? ""}</option>
             {positionOptions.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.label}
               </option>
             ))}
           </select>
+          <p
+            data-testid="category-create-position-caption"
+            className="text-xs text-muted-foreground"
+          >
+            {positionCaption}
+          </p>
         </FormField>
       ) : null}
 

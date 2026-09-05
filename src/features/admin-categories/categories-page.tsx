@@ -35,9 +35,8 @@ import {
   CategoryExclusionsDialog,
   CategoryPathsDialog,
   CategoryWindowDialog,
-  CreateCategoryDialog,
+  CategoryEditorDialog,
   DeleteCategoryDialog,
-  EditCategoryDialog,
   RetireCategoryDialog,
   SELECT_CLASS,
   useSubmitError,
@@ -803,27 +802,24 @@ export function AdminCategoriesPage() {
             rowActions={(row) => rowActions(row)}
           />
 
-          {dialog.kind === "create" ? (
-            /* C5l — TWO-STEP CREATE lives entirely IN the dialog; the page's
-               C5g editor auto-open handoff is removed (pure product decision —
-               the in-dialog Image step supersedes it). */
-            <CreateCategoryDialog
+          {dialog.kind === "create" ||
+          (selected && dialog.kind === "edit" && dialog.sub === null) ? (
+            /* C5m PART A — ONE surface, two modes. The create-mode dialog
+               transitions in place to edit-mode on the new id (no reopen). */
+            <CategoryEditorDialog
+              key="category-editor"
+              mode={dialog.kind === "create" ? "create" : "edit"}
+              category={dialog.kind === "edit" ? selected : null}
               parents={roster}
               countries={(countries.data ?? []).map((country) => ({
                 code: country.code,
                 nameEn: country.nameEn,
               }))}
-              openedBy="create-button"
               guard={guard}
-              onClose={() => closeDialog({ kind: "none" })}
-            />
-          ) : null}
-          {selected && dialog.kind === "edit" && dialog.sub === null ? (
-            <EditCategoryDialog
-              category={selected}
-              guard={guard}
-              openedBy={dialog.openedBy}
-              verbBar={editorVerbs(selected, guard)}
+              verbBar={
+                dialog.kind === "edit" && selected ? editorVerbs(selected, guard) : undefined
+              }
+              openedBy={dialog.kind === "create" ? "create-button" : dialog.openedBy}
               onClose={() => closeDialog({ kind: "none" })}
             />
           ) : null}
