@@ -802,7 +802,8 @@ export function AdminCategoriesPage() {
             rowActions={(row) => rowActions(row)}
           />
 
-          {dialog.kind === "create" || (selected && dialog.kind === "edit" && dialog.sub === null) ? (
+          {dialog.kind === "create" ||
+          (selected && dialog.kind === "edit" && dialog.sub === null) ? (
             /* C5m PART A — ONE surface, two modes. The create-mode dialog
                transitions in place to edit-mode on the new id (no reopen). */
             <CategoryEditorDialog

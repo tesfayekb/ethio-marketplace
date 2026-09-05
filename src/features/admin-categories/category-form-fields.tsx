@@ -216,7 +216,10 @@ export function CategoryFormFields({
               </option>
             ))}
           </select>
-          <p data-testid="category-create-position-caption" className="text-xs text-muted-foreground">
+          <p
+            data-testid="category-create-position-caption"
+            className="text-xs text-muted-foreground"
+          >
             {positionCaption}
           </p>
         </FormField>
