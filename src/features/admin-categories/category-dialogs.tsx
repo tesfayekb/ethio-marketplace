@@ -123,53 +123,70 @@ export function useSubmitError() {
   return { message, setMessage, fail };
 }
 
-/* ------------------------------- create ---------------------------------- */
+/* ------------------------------- editor ---------------------------------- */
 
 /**
- * C5l PART A — TWO-STEP CREATE. One dialog, two steps:
+ * C5m PART A — ONE DIALOG, TWO MODES.
  *
- *   Step 1 "Details" — the full shared field set + Countries multi-select +
- *   Position ("At the end" default, or before a chosen ACTIVE sibling of the
- *   selected parent). Save creates via the RPC, then CHAINS the country
- *   exclusions and the position placement (admin_reorder_categories — no RPC
- *   change; the create RPC always appends, so placement is a reorder).
- *
- *   Step 2 "Image" — the SAME generation surface the editor uses
- *   (CategoryImagePanel, no fork): Generate/Accept live here, Finish closes.
+ * The console has a SINGLE write surface. `mode="create"` renders the same
+ * shell and the same shared Details fields (plus Countries and Position);
+ * lifecycle verbs and the Image surface are hidden until the row exists.
+ * Saving runs the create RPC, chains the exclusions and the position
+ * placement, and then transitions THIS OPEN DIALOG in place to edit-mode bound
+ * to the new id, Image surface in front — no close, no reopen, no second
+ * component (the standalone create dialog is deleted).
  *
  * PARTIAL-FAILURE LAW: the create RPC succeeding makes the row REAL. A chained
- * step (exclusions / position) failing surfaces the translated refusal on
- * Step 2 — the row is never lost, and the editor can finish the setup.
+ * step failing surfaces the translated refusal on the image surface — the row
+ * is never lost.
  */
-export function CreateCategoryDialog({
+export function CategoryEditorDialog({
+  mode,
+  category,
   parents,
   countries,
   guard,
+  verbBar,
   openedBy,
   onClose,
 }: {
+  mode: "create" | "edit";
+  /** Edit-mode: the LIVE roster row (INC-142). Null in create-mode. */
+  category: CategoryRow | null;
   parents: CategoryNode[];
-  /** C5l — the inline Countries options (same source as the editor verb). */
   countries: { code: string; nameEn: string }[];
   guard: GuardFn;
+  /** UI-FIX-4 — the editor's wrapping verb bar; hidden in create-mode. */
+  verbBar?: ReactNode;
   openedBy: string;
   onClose: () => void;
 }) {
   const { t } = useI18n();
   const create = useCreateCategory();
+  const update = useUpdateCategory();
   const setExclusions = useSetCountryExclusions();
   const reorder = useReorderCategories();
   const { message, setMessage, fail } = useSubmitError();
-  /** C5k PART B — one form value object, shared with the edit dialog. */
-  const [form, setForm] = useState<CategoryFormValues>(emptyCategoryForm);
-  const patch = (next: Partial<CategoryFormValues>) => setForm((prev) => ({ ...prev, ...next }));
-  const [step, setStep] = useState<"details" | "image">("details");
+  /** Set by a successful create — from here the SAME dialog is an editor. */
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState<CategoryFormValues>(() =>
+    category === null
+      ? emptyCategoryForm()
+      : {
+          ...emptyCategoryForm(),
+          nameEn: category.nameEn,
+          icon: category.icon ?? "",
+          allowListings: category.allowListings,
+          priceEnabled: category.priceEnabled,
+          // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal.
+          expiryDays: category.expiryDays === null ? "" : String(category.expiryDays),
+        },
+  );
+  const patch = (next: Partial<CategoryFormValues>) => setForm((prev) => ({ ...prev, ...next }));
   /**
-   * C5e PART D / C5l PART B — the icon is EMPTY until the silent name-blur
-   * suggestion lands; Change reveals the machinery, and a manual edit is never
-   * overwritten by a later suggestion.
+   * C5e/C5l — the icon is EMPTY until the silent name-blur suggestion lands;
+   * Change reveals the input, and a manual edit is never overwritten.
    */
   const [iconOpen, setIconOpen] = useState(false);
   const iconTouched = useRef(false);
@@ -182,22 +199,31 @@ export function CreateCategoryDialog({
     [],
   );
 
+  const creating = mode === "create" && createdId === null;
+  const parentId = form.parentId === "" ? null : form.parentId;
   const parentName =
-    form.parentId === "" ? null : (parents.find((row) => row.id === form.parentId)?.nameEn ?? null);
+    parentId === null ? null : (parents.find((row) => row.id === parentId)?.nameEn ?? null);
 
   /**
-   * C5l PART C — ACTIVE-ONLY SIBLINGS, in roster order (toRoster sorts the
-   * buckets by the pointer's display_order). Catch-alls are excluded: they
+   * C5m PART B — POSITION reads the ACTIVE, non-catch-all CHILDREN OF THE
+   * CURRENTLY SELECTED PARENT (root parent ⇒ root-level siblings), in roster
+   * order, and is reactive to a parent change. Catch-alls are excluded: they
    * always sort last server-side, so "before a catch-all" is meaningless.
    */
-  const positionOptions = parents
-    .filter(
-      (row) =>
-        row.parentId === (form.parentId === "" ? null : form.parentId) &&
-        row.isActive &&
-        !row.isCatchall,
-    )
-    .map((row) => ({ id: row.id, label: row.nameEn }));
+  const siblings = parents.filter(
+    (row) => row.parentId === parentId && row.isActive && !row.isCatchall,
+  );
+  const positionOptions = siblings.map((row) => ({
+    id: row.id,
+    label: t("admin.categories.create.positionBefore").replace("{name}", row.nameEn),
+  }));
+  const positionEndLabel = t("admin.categories.create.positionEnd").replace(
+    "{n}",
+    String(siblings.length + 1),
+  );
+  const positionCaption = t("admin.categories.create.positionCount")
+    .replace("{n}", String(siblings.length))
+    .replace("{parent}", parentName ?? t("admin.categories.create.parentRoot"));
 
   /** Debounced so a blur-then-blur never fires two calls (I3). */
   const requestSuggestion = (name: string) => {
@@ -209,23 +235,17 @@ export function CreateCategoryDialog({
           if (!iconTouched.current) patch({ icon: suggested });
         })
         .catch(() => {
-          /* C5l — no fallback value: save-time applies Package if still empty. */
+          /* no fallback value: save-time applies Package if still empty. */
         });
     }, 300);
   };
 
-  const submit = () => {
-    setMessage(null);
-    if (form.nameEn.trim().length === 0) {
-      setMessage(t("admin.categories.error.nameRequired"));
-      return;
-    }
-    const parentId = form.parentId === "" ? null : form.parentId;
+  const submitCreate = () => {
     setBusy(true);
     void guard(async () => {
       const id = await create.mutateAsync({
         nameEn: form.nameEn.trim(),
-        // C5l PART B — Package is the SAVE-TIME default, never a prefill.
+        // Package is the SAVE-TIME default, never a prefill.
         icon: form.icon.trim() === "" ? "Package" : form.icon.trim(),
         parentId,
         allowListings: form.allowListings,
@@ -241,42 +261,64 @@ export function CreateCategoryDialog({
           await setExclusions.mutateAsync({ id, countryCodes: form.excludedCodes });
         }
         if (form.positionBefore !== "") {
-          const siblings = parents
+          const ordered = parents
             .filter((row) => row.parentId === parentId && !row.isCatchall)
             .map((row) => row.id);
-          const at = siblings.indexOf(form.positionBefore);
+          const at = ordered.indexOf(form.positionBefore);
           if (at >= 0) {
-            siblings.splice(at, 0, id);
-            await reorder.mutateAsync({ parentId, orderedChildIds: siblings });
+            ordered.splice(at, 0, id);
+            await reorder.mutateAsync({ parentId, orderedChildIds: ordered });
           }
         }
       } catch (chainError) {
-        // PARTIAL FAILURE — the create landed; surface the refusal and still
-        // advance, so the operator reviews the image step and finishes.
-        setCreatedId(id);
-        setStep("image");
         fail(chainError);
-        return;
       }
-      setStep("image");
     })
       .catch(fail)
       .finally(() => setBusy(false));
   };
 
+  const submitEdit = (row: CategoryRow) => {
+    void guard(async () => {
+      try {
+        await update.mutateAsync({
+          id: row.id,
+          nameEn: form.nameEn.trim(),
+          icon: form.icon.trim(),
+          // C2-CLOSE Part C — the order is not typed here; Move up/down owns it.
+          displayOrder: row.displayOrder,
+          allowListings: form.allowListings,
+          priceEnabled: form.priceEnabled,
+          expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
+        });
+        onClose();
+      } catch (error) {
+        fail(error);
+      }
+    });
+  };
+
+  const submit = () => {
+    setMessage(null);
+    if (form.nameEn.trim().length === 0) {
+      setMessage(t("admin.categories.error.nameRequired"));
+      return;
+    }
+    if (creating) {
+      submitCreate();
+      return;
+    }
+    if (category !== null) submitEdit(category);
+  };
+
   return (
     <CategoryModal
-      testid="category-create-dialog"
+      testid="category-edit-dialog"
       openedBy={openedBy}
-      title={t("admin.categories.create.title")}
+      title={creating ? t("admin.categories.create.title") : t("admin.categories.edit.title")}
       onClose={onClose}
     >
-      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        {step === "details"
-          ? t("admin.categories.create.stepDetails")
-          : t("admin.categories.create.stepImage")}
-      </p>
-      {step === "details" ? (
+      {creating ? (
         <>
           <CategoryFormFields
             mode="create"
@@ -287,6 +329,8 @@ export function CreateCategoryDialog({
             onNameBlur={requestSuggestion}
             countries={countries}
             positionOptions={positionOptions}
+            positionEndLabel={positionEndLabel}
+            positionCaption={positionCaption}
             onChange={(next) => {
               if (next.icon !== undefined) iconTouched.current = true;
               patch(next);
@@ -300,21 +344,57 @@ export function CreateCategoryDialog({
             submitTestId="category-create-submit"
           />
         </>
-      ) : (
-        <div data-testid="category-create-generate-step" className="space-y-3">
-          {createdId === null ? null : <CategoryImagePanel categoryId={createdId} guard={guard} />}
+      ) : createdId !== null ? (
+        /* C5m — the SAME dialog, now bound to the new id: Image in front. */
+        <div data-testid="category-editor-image" className="space-y-3">
+          <CategoryImagePanel categoryId={createdId} guard={guard} />
           <ErrorLine message={message} />
           <div className="flex justify-end">
             <Button
               type="button"
               className="min-h-11"
-              data-testid="category-create-finish"
+              data-testid="category-editor-close"
               onClick={onClose}
             >
-              {t("admin.categories.create.finish")}
+              {t("common.close")}
             </Button>
           </div>
         </div>
+      ) : (
+        <>
+          {verbBar}
+          <CategoryFormFields
+            mode="edit"
+            values={form}
+            onChange={patch}
+            extra={
+              /**
+               * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field
+               * mirrors the LIVE roster row (INC-142).
+               */
+              <FormField
+                label={t("admin.categories.field.order")}
+                htmlFor="category-edit-order"
+                help={t("admin.categories.field.orderManaged")}
+              >
+                <Input
+                  id="category-edit-order"
+                  data-testid="category-edit-order"
+                  inputMode="numeric"
+                  readOnly
+                  value={String(category?.displayOrder ?? 0)}
+                />
+              </FormField>
+            }
+          />
+          <ErrorLine message={message} />
+          <DialogActions
+            onCancel={onClose}
+            onSubmit={submit}
+            busy={update.isPending}
+            submitTestId="category-edit-submit"
+          />
+        </>
       )}
     </CategoryModal>
   );
@@ -355,111 +435,6 @@ function DialogActions({
         {submitLabel ?? t("common.save")}
       </Button>
     </div>
-  );
-}
-
-/* -------------------------------- edit ----------------------------------- */
-
-export function EditCategoryDialog({
-  category,
-  guard,
-  verbBar,
-  openedBy,
-  onClose,
-}: {
-  category: CategoryRow;
-  guard: GuardFn;
-  /**
-   * UI-FIX-4 — the editor is the console's ONE interaction surface (the Roles
-   * model). The row carries Edit alone; every other verb arrives here as a
-   * wrapping full-text bar rendered above the fields.
-   */
-  verbBar?: ReactNode;
-  openedBy: string;
-  onClose: () => void;
-}) {
-  const { t } = useI18n();
-  const update = useUpdateCategory();
-  const { message, setMessage, fail } = useSubmitError();
-  /** C5k PART B — the edit dialog now drives the SAME value object. */
-  const [form, setForm] = useState<CategoryFormValues>(() => ({
-    ...emptyCategoryForm(),
-    nameEn: category.nameEn,
-    icon: category.icon ?? "",
-    allowListings: category.allowListings,
-    priceEnabled: category.priceEnabled,
-    // INC-143 — NULL renders EMPTY. No coalesce to a numeric literal anywhere.
-    expiryDays: category.expiryDays === null ? "" : String(category.expiryDays),
-  }));
-  const patch = (next: Partial<CategoryFormValues>) => setForm((prev) => ({ ...prev, ...next }));
-
-  const submit = () => {
-    setMessage(null);
-    if (form.nameEn.trim().length === 0) {
-      setMessage(t("admin.categories.error.nameRequired"));
-      return;
-    }
-    void guard(async () => {
-      try {
-        await update.mutateAsync({
-          id: category.id,
-          nameEn: form.nameEn.trim(),
-          icon: form.icon.trim(),
-          // C2-CLOSE Part C — the order is not typed here; Move up/down owns it.
-          displayOrder: category.displayOrder,
-          allowListings: form.allowListings,
-          priceEnabled: form.priceEnabled,
-          expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
-        });
-        onClose();
-      } catch (error) {
-        fail(error);
-      }
-    });
-  };
-
-  return (
-    <CategoryModal
-      testid="category-edit-dialog"
-      openedBy={openedBy}
-      title={t("admin.categories.edit.title")}
-      onClose={onClose}
-    >
-      {verbBar}
-      <CategoryFormFields
-        mode="edit"
-        values={form}
-        onChange={patch}
-        extra={
-          /**
-           * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field
-           * mirrors the LIVE roster row (the editor re-reads it on every
-           * render, INC-142), so a Move up/down updates it immediately.
-           */
-          <FormField
-            label={t("admin.categories.field.order")}
-            htmlFor="category-edit-order"
-            help={t("admin.categories.field.orderManaged")}
-          >
-            <Input
-              id="category-edit-order"
-              data-testid="category-edit-order"
-              inputMode="numeric"
-              readOnly
-              value={String(category.displayOrder)}
-            />
-          </FormField>
-        }
-      />
-
-      <ErrorLine message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={update.isPending}
-        submitTestId="category-edit-submit"
-      />
-    </CategoryModal>
   );
 }
 
