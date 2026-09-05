@@ -47,8 +47,10 @@ import {
  * no-op (F4). 360-first: full-width controls, ≥44px targets, logical spacing.
  */
 
-export const SELECT_CLASS =
-  "h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground";
+/** C5k — the select style now lives with the shared form; re-exported here so
+ *  the page's existing import keeps working (one definition, B2). */
+export { SELECT_CLASS };
+
 
 export function CategoryModal({
   testid,
