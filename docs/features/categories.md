@@ -308,21 +308,30 @@ custom prompt is supplied by a future caller — today it persists NULL. A draft
 (generate, hold, publish) arrives when listings consume category imagery — the
 ruling logged with C5b keeps today's model deliberately simple.
 
-## Create flow (C5l — TWO-STEP INLINE CREATE)
+## Create flow (C5m — ONE DIALOG, TWO MODES)
 
-One dialog, two steps. Step 1 "Details" carries the full shared field set
-(name, slug preview, icon, parent, expiry, accepts-listings, price, visibility
-window) plus an inline Countries multi-select and a Position select ("At the
-end" default, or before a chosen ACTIVE sibling of the selected parent —
-catch-alls excluded, they always sort last). Save creates via
-`admin_create_category`, then CHAINS `admin_set_country_exclusions` (when codes
-were picked) and `admin_reorder_categories` (when a position was chosen — the
-create RPC always appends, so placement is a post-create reorder; no RPC
-change). Step 2 "Image" is the SAME `CategoryImagePanel` surface the editor's
-Image verb uses (extracted, not forked — B3): Generate/Accept live there,
-Finish closes. The page's C5g editor auto-open handoff is removed; a chained
-step failing never loses the created row — the translated refusal is surfaced
-on Step 2 and the editor can finish the setup.
+The console has ONE write surface: `CategoryEditorDialog`, rendered with
+`mode="create"` or `mode="edit"` (testid `category-edit-dialog` in both, so a
+transition is observable as the same surface). Create-mode shows the shared
+Details fields (name, slug preview, icon, parent, expiry, accepts-listings,
+price, visibility window) plus the inline Countries multi-select and the
+Position select; lifecycle verbs (Retire/Reactivate/Delete/Move/Add
+pointer/Browse paths) and the Image surface are hidden until the row exists.
+Save creates via `admin_create_category`, then CHAINS
+`admin_set_country_exclusions` (when codes were picked) and
+`admin_reorder_categories` (when a position was chosen — the create RPC always
+appends, so placement is a post-create reorder; no RPC change), and the SAME
+open dialog transitions in place to edit-mode bound to the new id with the
+shared `CategoryImagePanel` in front (`category-editor-image`). No close, no
+reopen, no second component — the standalone create dialog and its step
+machinery are deleted, its keys retired. A chained step failing never loses the
+created row: the translated refusal renders on the image surface.
+
+POSITION (C5m PART B): the options are the ACTIVE, non-catch-all CHILDREN OF
+THE CURRENTLY SELECTED PARENT (root parent ⇒ root-level siblings), reactive to
+a parent change, rendered as "Before <name>" entries beside the default "At the
+end (position N+1)", under a caption "N subcategories in <parent>". DB-truth
+semantics are unchanged.
 
 ICON (C5l PART B): the icon field is EMPTY until the category is named — a
 translated hint, not a prefilled value. The silent name-blur suggestion fills
