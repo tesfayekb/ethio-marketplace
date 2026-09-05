@@ -101,7 +101,51 @@ async function roleId(name: string) {
   return data.id as string;
 }
 
+/**
+ * RP-1 SELF-HEALING BASELINE. The deny walk only means something when the
+ * moderator identity really lacks the roles console. Staging drifts: earlier
+ * runs (or an operator) can leave stray `roles:*` grants on the seeded
+ * moderator role. This asserts the baseline through the service client and
+ * RESTORES it by deleting exactly the stray rows, logging what it healed.
+ */
+async function healModeratorBaseline() {
+  const supabase = adminClient();
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id, role_permissions(id, permissions(action, resources(name)))")
+    .eq("name", "moderator")
+    .single();
+  if (roleError || !role) {
+    throw new Error(`[e2e:u2] moderator role unreadable: ${roleError?.message ?? "no row"}`);
+  }
+  type Row = {
+    id: string;
+    role_permissions: {
+      id: string;
+      permissions: { action: string; resources: { name: string } | null } | null;
+    }[];
+  };
+  const grants = (role as unknown as Row).role_permissions;
+  const stray = grants.filter((row) => row.permissions?.resources?.name === "roles");
+  if (stray.length === 0) {
+    console.log("[e2e:u2] RP-1 baseline intact: moderator holds no roles:* grant");
+    return;
+  }
+  const slugs = stray.map((row) => `roles:${row.permissions?.action ?? "?"}`);
+  const { error } = await supabase
+    .from("role_permissions")
+    .delete()
+    .in(
+      "id",
+      stray.map((row) => row.id),
+    );
+  if (error) throw new Error(`[e2e:u2] healing moderator baseline failed: ${error.message}`);
+  console.log(`[e2e:u2] RP-1 baseline HEALED: removed ${slugs.join(", ")} from moderator`);
+}
+
 test.describe("U2 roles console", () => {
+  test.beforeAll(healModeratorBaseline);
+
   test("RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects", async ({
     page,
   }) => {

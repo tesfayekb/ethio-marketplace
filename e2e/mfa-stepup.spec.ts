@@ -71,6 +71,23 @@ async function enrollThroughSettings(page: Page): Promise<string> {
   return secret;
 }
 
+/**
+ * FRESHNESS CENSUS (mfa-service.isStepUpFresh): the shared guard treats a
+ * session as stepped up only when (1) a verified TOTP factor exists, (2) the
+ * session claims aal2, AND (3) the local stamp `sb-<ref>-stepped-up-at`
+ * (session-policy.markSteppedUp / readSteppedUpAt) is inside the window.
+ * A nightly session can still carry the aal2 claim after a re-sign-in, so the
+ * spec neutralizes condition (3) the supported way — the same stamp reset
+ * unenroll performs (markSteppedUp(0)) — leaving the modal guaranteed.
+ */
+async function clearStepUpFreshness(page: Page) {
+  await page.evaluate(() => {
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.endsWith("-stepped-up-at")) window.localStorage.setItem(key, "0");
+    }
+  });
+}
+
 function userRow(page: Page, userId: string) {
   return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
 }
@@ -111,6 +128,7 @@ test.describe("U1f step-up authentication", () => {
 
     // A fresh sign-in is aal1 again — the gate must fire.
     await switchUser(page, staff.email, staff.password);
+    await clearStepUpFreshness(page);
     await gotoReady(page, `/admin/users/${target.id}`);
     await page.getByTestId("deactivate-reason").fill("MF-2 proof");
     await page.getByTestId("deactivate-user").click();

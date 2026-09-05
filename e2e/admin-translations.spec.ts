@@ -2652,7 +2652,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
    *     button — and the language stays unpublished in the database.
    */
   test(
-    "TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published",
+    "TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state",
     { tag: "@global-state" },
     async ({ page }) => {
       test.skip(
