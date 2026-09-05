@@ -195,8 +195,10 @@ export default async function globalSetup() {
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
 
   // 6. Reap the fixture graveyard (INC-096g): a mid-test death leaves scratch
-  //    rows behind. Anything older than an hour cannot belong to a live run.
-  const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  //    rows behind.
+  //    DEC-036 — the window is THREE HOURS (was 24h, then 1h): same-day
+  //    pileups die young; Pro's headroom makes 3h safe for a live run.
+  const cutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
   let reaped = 0;
   const { data: staleRevisions, error: revisionError } = await supabase
     .from("ui_translation_revisions")
