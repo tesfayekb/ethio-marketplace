@@ -141,16 +141,16 @@ export function CreateCategoryDialog({
   const { t } = useI18n();
   const create = useCreateCategory();
   const { message, setMessage, fail } = useSubmitError();
-  const [nameEn, setNameEn] = useState("");
-  const [parentId, setParentId] = useState("");
-  const [allowListings, setAllowListings] = useState(true);
+  /** C5k PART B — one form value object, shared with the edit dialog. */
+  const [form, setForm] = useState<CategoryFormValues>(emptyCategoryForm);
+  const patch = (next: Partial<CategoryFormValues>) => setForm((prev) => ({ ...prev, ...next }));
   /**
-   * C5e PART D — SILENT ICON. The operator never sees icon machinery in the
-   * create dialog: the suggestion runs on name blur, applies silently, and a
-   * failure silently keeps the `Package` default. The icon stays editable in
-   * the EDIT dialog, which is the one place it is a decision.
+   * C5e PART D / C5k — the icon is still SUGGESTED silently on name blur; the
+   * operator only meets its name after pressing Change, and a manual edit is
+   * never overwritten by a later suggestion.
    */
-  const iconRef = useRef("Package");
+  const [iconOpen, setIconOpen] = useState(false);
+  const iconTouched = useRef(false);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -161,43 +161,45 @@ export function CreateCategoryDialog({
   );
 
   const parentName =
-    parentId === "" ? null : (parents.find((row) => row.id === parentId)?.nameEn ?? null);
+    form.parentId === "" ? null : (parents.find((row) => row.id === form.parentId)?.nameEn ?? null);
 
   /** Debounced so a blur-then-blur never fires two calls (I3). */
   const requestSuggestion = (name: string) => {
-    if (name.trim().length === 0) return;
+    if (name.trim().length === 0 || iconTouched.current) return;
     if (suggestTimer.current !== null) clearTimeout(suggestTimer.current);
     suggestTimer.current = setTimeout(() => {
       void suggestCategoryIcon({ name: name.trim(), parentName })
         .then((suggested) => {
-          iconRef.current = suggested;
+          if (!iconTouched.current) patch({ icon: suggested });
         })
         .catch(() => {
-          iconRef.current = "Package";
+          if (!iconTouched.current) patch({ icon: "Package" });
         });
     }, 300);
   };
 
   /**
-   * C5e PART D — the create action no longer swallows its own failure: a
-   * step-up refusal MUST reach `guard`, which is what replays the create after
-   * the modal. C5g PART D removed the separate Generate-now step: a successful
-   * create hands the id up and the FULL editor opens on the new row, so every
-   * verb (Visibility, Countries, Browse paths, Move, Image) is one click away
-   * from second one.
+   * C5k PART A — INLINE CREATE. One call now carries price, expiry and the
+   * visibility window as well; countries still belong to the editor, because
+   * they need the row to exist. A step-up refusal MUST reach `guard`, which
+   * replays the create after the modal.
    */
   const submit = () => {
     setMessage(null);
-    if (nameEn.trim().length === 0) {
+    if (form.nameEn.trim().length === 0) {
       setMessage(t("admin.categories.error.nameRequired"));
       return;
     }
     void guard(async () => {
       const id = await create.mutateAsync({
-        nameEn: nameEn.trim(),
-        icon: iconRef.current.trim(),
-        parentId: parentId === "" ? null : parentId,
-        allowListings,
+        nameEn: form.nameEn.trim(),
+        icon: form.icon.trim(),
+        parentId: form.parentId === "" ? null : form.parentId,
+        allowListings: form.allowListings,
+        priceEnabled: form.priceEnabled,
+        expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
+        visibleFrom: fromLocalInput(form.visibleFrom),
+        visibleUntil: fromLocalInput(form.visibleUntil),
       });
       onCreated(id);
     }).catch(fail);
@@ -210,52 +212,20 @@ export function CreateCategoryDialog({
       title={t("admin.categories.create.title")}
       onClose={onClose}
     >
-      <FormField label={t("admin.categories.create.name")} htmlFor="category-create-name">
-        <Input
-          id="category-create-name"
-          data-testid="category-create-name"
-          value={nameEn}
-          onChange={(event) => setNameEn(event.target.value)}
-          onBlur={(event) => requestSuggestion(event.target.value)}
-        />
-      </FormField>
-      {/* C2c — the slug is no longer typed. This is a PREVIEW of what the
-            server will derive; the RPC owns the final value and any -2/-3
-            uniqueness suffix, so there is exactly one authority (F3). */}
-      <p className="text-sm text-muted-foreground">
-        <span>{t("admin.categories.create.slugPreview")}</span>{" "}
-        <span data-testid="category-create-slug-preview" className="break-all font-mono">
-          {deriveSlugPreview(nameEn.trim())}
-        </span>
-      </p>
-      {/* C5e PART D — the icon machinery is INVISIBLE here: no label, no
-            value, no Change control. It is decided silently and can still be
-            corrected in the edit dialog. */}
-      <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
-        <select
-          id="category-create-parent"
-          data-testid="category-create-parent"
-          className={SELECT_CLASS}
-          value={parentId}
-          onChange={(event) => setParentId(event.target.value)}
-        >
-          <option value="">{t("admin.categories.create.parentRoot")}</option>
-          {activeParentOptions(parents).map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </FormField>
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid="category-create-allow"
-          checked={allowListings}
-          onCheckedChange={(checked) => setAllowListings(checked === true)}
-        />
-        {t("admin.categories.field.allowListings")}
-      </label>
+      <CategoryFormFields
+        mode="create"
+        values={form}
+        parents={parents}
+        iconOpen={iconOpen}
+        onIconOpen={() => setIconOpen(true)}
+        onNameBlur={requestSuggestion}
+        onChange={(next) => {
+          if (next.icon !== undefined) iconTouched.current = true;
+          patch(next);
+        }}
+      />
       <ErrorLine message={message} />
+
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
