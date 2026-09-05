@@ -91,7 +91,7 @@ const BULK_LIMIT = 25;
  * C2-GHOST (INC-152) — the editor records HOW it was opened, so a ghost dialog
  * confesses its opener in the E2E dump instead of leaving a silent surface.
  */
-type OpenedBy = "row-click" | "keyboard" | "create-button" | "create-success" | `verb-${EditorSub}`;
+type OpenedBy = "row-click" | "keyboard" | "create-button" | `verb-${EditorSub}`;
 
 type DialogState =
   | { kind: "none" }
@@ -803,27 +803,18 @@ export function AdminCategoriesPage() {
             rowActions={(row) => rowActions(row)}
           />
 
-          {createdNotice === null ? null : (
-            <p
-              role="status"
-              aria-live="polite"
-              data-testid="category-created-notice"
-              className="text-sm text-muted-foreground"
-            >
-              {createdNotice}
-            </p>
-          )}
-
           {dialog.kind === "create" ? (
+            /* C5l — TWO-STEP CREATE lives entirely IN the dialog; the page's
+               C5g editor auto-open handoff is removed (pure product decision —
+               the in-dialog Image step supersedes it). */
             <CreateCategoryDialog
               parents={roster}
+              countries={(countries.data ?? []).map((country) => ({
+                code: country.code,
+                nameEn: country.nameEn,
+              }))}
               openedBy="create-button"
               guard={guard}
-              onCreated={(id) => {
-                // C5g PART D — straight into the FULL editor, Image first.
-                setCreatedNotice(t("admin.categories.create.created"));
-                closeDialog({ kind: "edit", id, sub: "image", openedBy: "create-success" });
-              }}
               onClose={() => closeDialog({ kind: "none" })}
             />
           ) : null}
@@ -889,7 +880,7 @@ export function AdminCategoriesPage() {
               categoryId={dialog.id}
               hasImage={selected?.hasImage ?? false}
               guard={guard}
-              openedBy={dialog.openedBy === "create-success" ? "create-success" : "verb-image"}
+              openedBy="verb-image"
               onClose={() =>
                 closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
               }
