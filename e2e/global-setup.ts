@@ -118,6 +118,28 @@ export function adminClient() {
   });
 }
 
+/**
+ * DEC-036 — every user id in the reserved, non-deliverable e2e namespace
+ * (`e2e+*@ethio-e2e.invalid`, the same namespace the teardown guards). The
+ * maintenance sweep scopes its audit deletes to these ids so a real account's
+ * audit trail can never be touched.
+ */
+export async function listE2EUserIds(supabase: ReturnType<typeof adminClient>): Promise<string[]> {
+  const ids: string[] = [];
+  for (let page = 1; page <= 50; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) throw new Error(`[e2e:setup] listUsers page ${page} failed: ${error.message}`);
+    const users = data?.users ?? [];
+    for (const user of users) {
+      if (user.email?.startsWith("e2e+") && user.email.endsWith("@ethio-e2e.invalid")) {
+        ids.push(user.id);
+      }
+    }
+    if (users.length < 200) break;
+  }
+  return ids;
+}
+
 export default async function globalSetup() {
   // 0. Migration parity (INC-074): staging must carry the newest local migration,
   //    or the suite fails once with the filename instead of N cryptic reds.
@@ -195,8 +217,10 @@ export default async function globalSetup() {
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
 
   // 6. Reap the fixture graveyard (INC-096g): a mid-test death leaves scratch
-  //    rows behind. Anything older than an hour cannot belong to a live run.
-  const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  //    rows behind.
+  //    DEC-036 — the window is THREE HOURS (was 24h, then 1h): same-day
+  //    pileups die young; Pro's headroom makes 3h safe for a live run.
+  const cutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
   let reaped = 0;
   const { data: staleRevisions, error: revisionError } = await supabase
     .from("ui_translation_revisions")
@@ -385,6 +409,66 @@ export default async function globalSetup() {
     }
   }
   console.log(`[e2e:setup] reaped ${staleCategoryIds.length} stale scratch categor(ies)`);
+
+  // DEC-036 PART B.2 — STAGING MAINTENANCE SWEEP (staging only by
+  // construction: adminClient() refuses any URL but ethio-staging). Two
+  // classes the fixture reapers never covered:
+  //   (a) audit_log rows older than 7 days whose actor is an e2e user — the
+  //       audit table is append-only for the app, so without this sweep it
+  //       grows without bound and slows every gated read.
+  //   (b) category-assets objects belonging to e2e-created categories, older
+  //       than the 3h fixture window — destroyCategory never touches storage,
+  //       and a mid-test death orphans the folder entirely.
+  const auditCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const e2eUserIds = await listE2EUserIds(supabase);
+  let prunedAudit = 0;
+  for (let index = 0; index < e2eUserIds.length; index += 200) {
+    const batch = e2eUserIds.slice(index, index + 200);
+    const { data: pruned, error: pruneError } = await supabase
+      .from("audit_log")
+      .delete()
+      .in("actor_id", batch)
+      .lt("created_at", auditCutoff)
+      .select("id");
+    if (pruneError) {
+      throw new Error(`[e2e:setup] audit maintenance failed: ${pruneError.message}`);
+    }
+    prunedAudit += pruned?.length ?? 0;
+  }
+
+  const { data: e2eCategories, error: e2eCategoryError } = await supabase
+    .from("categories")
+    .select("id")
+    .like("slug", "e2e-cat-%");
+  if (e2eCategoryError) {
+    throw new Error(
+      `[e2e:setup] listing e2e categories for the storage sweep failed: ${e2eCategoryError.message}`,
+    );
+  }
+  let prunedObjects = 0;
+  for (const category of e2eCategories ?? []) {
+    const { data: objects, error: listError } = await supabase.storage
+      .from("category-assets")
+      .list(category.id);
+    if (listError) {
+      throw new Error(
+        `[e2e:setup] listing category-assets/${category.id} failed: ${listError.message}`,
+      );
+    }
+    const stalePaths = (objects ?? [])
+      .filter((entry) => Date.parse(entry.created_at ?? "") < Date.parse(cutoff))
+      .map((entry) => `${category.id}/${entry.name}`);
+    if (stalePaths.length > 0) {
+      const { error: removeError } = await supabase.storage
+        .from("category-assets")
+        .remove(stalePaths);
+      if (removeError) {
+        throw new Error(`[e2e:setup] storage maintenance failed: ${removeError.message}`);
+      }
+      prunedObjects += stalePaths.length;
+    }
+  }
+  console.log(`[e2e:maintenance] pruned ${prunedAudit} audit rows, ${prunedObjects} objects`);
 
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 

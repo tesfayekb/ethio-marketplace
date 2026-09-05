@@ -1547,26 +1547,78 @@ test.describe("C2 categories console", () => {
       await gotoReady(page, "/admin/categories");
       await page.getByTestId("category-create-open").click();
 
+      /**
+       * STAB-1 PART A — THE BOUNDED LAW. Every pre-Save interaction polls its
+       * control (≤15s) and names that control on a stall; post-Save awaits the
+       * unified dialog's Image surface bounded. No bare awaits in this block.
+       */
+      const step = async (label: string, run: () => Promise<void>) => {
+        try {
+          await run();
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : String(error);
+          throw new Error(`${label} — ${reason}\n${await dialogDump(page, `CT-17 ${label}`)}`);
+        }
+      };
+      const present = async (label: string, locator: Locator) => {
+        await step(label, async () => {
+          await expect
+            .poll(async () => locator.count(), { timeout: 15000, message: label })
+            .toBeGreaterThan(0);
+        });
+      };
+
       // C5m PART C — a THIN create-mode case: the mode-specific truth only
       // (icon hint, position options, chained exclusion + placement), then the
       // shared editor surface the other CTs already assert.
-      await expect(page.getByTestId("category-create-icon-hint")).toBeVisible();
-      await page.getByTestId("category-create-name").fill(slug);
-      await page.getByTestId("category-create-name").blur();
-      await page.getByTestId("category-create-parent").selectOption({ value: parentId });
+      await present("CT-17 the icon hint", page.getByTestId("category-create-icon-hint"));
+      await step("CT-17 name fill + blur", async () => {
+        await page.getByTestId("category-create-name").fill(slug);
+        await page.getByTestId("category-create-name").blur();
+      });
+      // The parent OPTION must be present before it can be selected.
+      await present(
+        "CT-17 the scratch parent option",
+        page.getByTestId("category-create-parent").locator(`option[value="${parentId}"]`),
+      );
+      await step("CT-17 parent select", async () => {
+        await page.getByTestId("category-create-parent").selectOption({ value: parentId });
+      });
       // PART B — options are the ACTIVE children of the SELECTED parent.
-      await expect(page.getByTestId("category-create-position-caption")).toContainText(parentSlug);
-      await page.getByTestId("category-create-position").selectOption({ value: bId });
-      await page.getByTestId("category-create-price").click();
-      await page.getByTestId("category-create-expiry").fill("45");
-      await page.getByTestId("category-create-visible-from").fill(fromLocal);
-      await page.getByTestId("category-create-exclusion-ET").check();
+      await step("CT-17 position caption names the parent", async () => {
+        await expect(page.getByTestId("category-create-position-caption")).toContainText(
+          parentSlug,
+          { timeout: 15000 },
+        );
+      });
+      // The "Before <sibling>" OPTION is polled by its EXACT rendered label,
+      // then selected by that same label — never by index.
+      const beforeLabel = en["admin.categories.create.positionBefore"].replace("{name}", bSlug);
+      await present(
+        `CT-17 the "${beforeLabel}" position option`,
+        page.getByTestId("category-create-position").locator("option", { hasText: beforeLabel }),
+      );
+      await step("CT-17 position select by label", async () => {
+        await page.getByTestId("category-create-position").selectOption({ label: beforeLabel });
+      });
+      await step("CT-17 price off", () => page.getByTestId("category-create-price").click());
+      await step("CT-17 expiry fill", () => page.getByTestId("category-create-expiry").fill("45"));
+      await step("CT-17 window fill", () =>
+        page.getByTestId("category-create-visible-from").fill(fromLocal),
+      );
+      await step("CT-17 ET exclusion", () =>
+        page.getByTestId("category-create-exclusion-ET").check(),
+      );
 
-      await page.getByTestId("category-create-submit").click();
-      await stepUpIfPrompted(page, secret);
+      await step("CT-17 save", async () => {
+        await page.getByTestId("category-create-submit").click();
+        await stepUpIfPrompted(page, secret);
+      });
 
-      // The SAME dialog transitions in place to the image surface.
-      await expect(page.getByTestId("category-editor-image")).toBeVisible({ timeout: 20000 });
+      // The SAME dialog transitions in place to the image surface (bounded).
+      await step("CT-17 the dialog advances to the image surface", async () => {
+        await expect(page.getByTestId("category-editor-image")).toBeVisible({ timeout: 20000 });
+      });
 
       // DB truth: the row, the chained exclusion, and the edge BETWEEN the
       // two siblings it was placed before (a < new < b).
@@ -1594,8 +1646,10 @@ test.describe("C2 categories console", () => {
       expect(orderNew).toBeGreaterThan(orderA);
       expect(orderNew).toBeLessThan(orderB);
 
-      await page.getByTestId("category-editor-close").click();
-      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
+      await step("CT-17 close leaves the dialog gone", async () => {
+        await page.getByTestId("category-editor-close").click();
+        await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
+      });
     } finally {
       await destroyCategory(slug);
       await destroyCategory(aSlug);
