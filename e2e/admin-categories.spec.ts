@@ -1519,6 +1519,16 @@ test.describe("C2 categories console", () => {
       await expect(page.getByTestId("category-create-dialog")).toHaveCount(0);
       await expect(page.getByTestId("category-created-notice")).toBeVisible();
 
+      // C5k PART C — DB truth: all three inline fields landed on the row.
+      const created = await readCategory(slug);
+      expect(created?.price_enabled).toBe(false);
+      expect(created?.expiry_days).toBe(45);
+      expect(new Date(created?.visible_from ?? 0).getTime()).toBe(
+        new Date(fromLocal).getTime(),
+      );
+
+
+
       await page.getByTestId("category-image-generate").click();
       await expect(page.getByTestId("category-image-assets")).toBeVisible({
         timeout: 60000,
