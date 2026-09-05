@@ -1315,6 +1315,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug",
       "/dev/primitives",
       "/dev/tall"
@@ -1362,6 +1363,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/auth",
       "/c/$slug"
     ],
@@ -1456,6 +1458,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/auth",
       "/c/$slug"
     ],
@@ -1466,6 +1469,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "auth.signUpButton": [
@@ -1475,6 +1479,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "auth.telegramSlot": [
@@ -1511,6 +1516,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "common.goHome": [
@@ -1520,6 +1526,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug",
       "/settings"
     ],
@@ -1586,6 +1593,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "impersonation.backToUser": [
@@ -1595,12 +1603,14 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "impersonation.endNow": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/c/$slug"
     ],
@@ -1632,6 +1642,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "impersonation.profile.alias": [
@@ -1675,6 +1686,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/c/$slug"
     ],
@@ -1685,24 +1697,28 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "location.anyArea": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "location.empty": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "location.label": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "mfa.addedOn": [
@@ -1821,18 +1837,21 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "nav.profile": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "panel.admin": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "price.contact": [
@@ -1937,12 +1956,14 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "session.staySignedIn": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "settings.cancel": [
@@ -2000,6 +2021,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "settings.newEmail": [
@@ -2052,114 +2074,133 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.allCategories": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.breadcrumbLabel": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.categoriesEmpty": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.categoriesLabel": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.collapseRail": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.expandRail": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.mainNav": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.menuTitle": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.openMenu": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.panelLabel": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.placeholderBody": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.placeholderTitle": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.searchClose": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.searchLabel": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.searchPlaceholder": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.skipToContent": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.switchPanel": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "shell.themeToggle": [
       "(every page)",
       "/",
       "/admin",
+      "/admin/categories",
       "/c/$slug"
     ],
     "tier.featured": [
