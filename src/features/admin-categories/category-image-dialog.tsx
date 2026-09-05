@@ -174,25 +174,26 @@ export function GeneratePanel({
 }
 
 /**
+ * C5l PART A — THE SHARED IMAGE SURFACE.
+ *
  * C5g PART C / C5h PARTS B+C — the ACCEPT surface, reading STORED truth.
  *
  * On open the surface asks the row what it holds (gated definer reader), so a
- * reopened dialog renders the saved assets and the acceptance badge exactly
+ * reopened surface renders the saved assets and the acceptance badge exactly
  * like a fresh generation. BUTTON LAW: no image -> no Accept button at all;
- * image present and unaccepted -> Accept; accepted -> badge only. Acceptance
- * succeeds -> translated confirmation, then the dialog closes.
+ * image present and unaccepted -> Accept; accepted -> badge only. `onAccepted`
+ * decides what a successful accept does next (the editor dialog closes after a
+ * beat; the create flow's Step 2 leaves closing to its Finish button). This is
+ * the ONE surface — editor and create flow reuse it, no fork (B3).
  */
-export function CategoryImageDialog({
+export function CategoryImagePanel({
   categoryId,
-  openedBy,
   guard,
-  onClose,
+  onAccepted,
 }: {
   categoryId: string;
-  hasImage: boolean;
-  openedBy: string;
   guard: (run: () => Promise<void>) => Promise<void>;
-  onClose: () => void;
+  onAccepted?: () => void;
 }) {
   const { t, language } = useI18n();
   const { message, setMessage, fail } = useImageFailure();
@@ -238,8 +239,7 @@ export function CategoryImageDialog({
       const at = await acceptCategoryImage(categoryId);
       setAcceptedAt(at);
       setDone(true);
-      // PART C — accept-closes: the confirmation is read, then the surface goes.
-      window.setTimeout(onClose, 1200);
+      onAccepted?.();
     })
       .catch((error: unknown) => {
         const raw = error instanceof Error ? error.message : "";
@@ -257,12 +257,7 @@ export function CategoryImageDialog({
   const hasAssets = stored !== null;
 
   return (
-    <CategoryModal
-      testid="category-image-dialog"
-      openedBy={openedBy}
-      title={t("admin.categories.image.title")}
-      onClose={onClose}
-    >
+    <>
       {loading ? (
         <p className="text-sm text-muted-foreground" data-testid="category-image-loading">
           {t("admin.categories.image.loading")}
@@ -323,6 +318,38 @@ export function CategoryImageDialog({
           </Button>
         </div>
       ) : null}
+    </>
+  );
+}
+
+/** The editor's Image door: the shared panel in a titled, closable dialog. */
+export function CategoryImageDialog({
+  categoryId,
+  openedBy,
+  guard,
+  onClose,
+}: {
+  categoryId: string;
+  hasImage: boolean;
+  openedBy: string;
+  guard: (run: () => Promise<void>) => Promise<void>;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+
+  return (
+    <CategoryModal
+      testid="category-image-dialog"
+      openedBy={openedBy}
+      title={t("admin.categories.image.title")}
+      onClose={onClose}
+    >
+      <CategoryImagePanel
+        categoryId={categoryId}
+        guard={guard}
+        // PART C — accept-closes: the confirmation is read, then the surface goes.
+        onAccepted={() => window.setTimeout(onClose, 1200)}
+      />
       <div className="flex justify-end">
         <Button
           type="button"
