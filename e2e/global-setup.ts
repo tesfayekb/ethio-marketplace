@@ -470,6 +470,45 @@ export default async function globalSetup() {
   }
   console.log(`[e2e:maintenance] pruned ${prunedAudit} audit rows, ${prunedObjects} objects`);
 
+  // INC-158 — RATIFIED-AM TRIPWIRE. Evidence only, never fatal: every ACTIVE
+  // non-e2e category must carry an APPROVED Amharic name. When one stops doing
+  // so, the exact run that caused it is timestamped and its test list is the
+  // conviction.
+  const { data: activeCategories, error: ratifiedError } = await supabase
+    .from("categories")
+    .select("id,slug")
+    .eq("is_active", true)
+    .not("slug", "like", "e2e-%");
+  if (ratifiedError) {
+    console.log(`[e2e:maintenance] ratified-am probe unavailable: ${ratifiedError.message}`);
+  } else {
+    const rows = activeCategories ?? [];
+    const translated = new Set<string>();
+    const ids = rows.map((row) => row.id);
+    for (let index = 0; index < ids.length; index += 200) {
+      const { data: approved, error: translationError } = await supabase
+        .from("entity_translations")
+        .select("entity_id")
+        .eq("entity_type", "category")
+        .eq("field", "name")
+        .eq("lang_code", "am")
+        .eq("status", "approved")
+        .in("entity_id", ids.slice(index, index + 200));
+      if (translationError) {
+        console.log(`[e2e:maintenance] ratified-am probe unavailable: ${translationError.message}`);
+        translated.clear();
+        break;
+      }
+      for (const row of approved ?? []) translated.add(row.entity_id as string);
+    }
+    const gaps = rows.filter((row) => !translated.has(row.id)).map((row) => row.slug);
+    if (gaps.length === 0) {
+      console.log(`[e2e:maintenance] ratified-am intact`);
+    } else {
+      console.log(`[e2e:maintenance] RATIFIED-AM GAP: ${gaps.length} rows: ${gaps.join(", ")}`);
+    }
+  }
+
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 
   console.log(`[e2e:setup] state written; setup complete`);
