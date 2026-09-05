@@ -890,6 +890,8 @@ export const en = {
   "admin.categories.field.expiryNone": "No expiry",
   "admin.categories.field.allowListings": "Accepts listings",
   "admin.categories.field.priceEnabled": "Price field enabled",
+  "admin.categories.field.iconChange": "Change",
+  "admin.categories.create.countriesLater": "Country visibility is set after creation.",
   "admin.categories.window.title": "Visibility window",
   "admin.categories.window.hint": "Leave a date empty to remove that bound. Times are UTC.",
   "admin.categories.window.from": "Visible from",

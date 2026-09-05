@@ -852,6 +852,8 @@ export const am: Messages = {
   "admin.categories.field.expiryNone": "ማብቂያ የለም",
   "admin.categories.field.allowListings": "ዝርዝሮችን ይቀበላል",
   "admin.categories.field.priceEnabled": "የዋጋ መስክ ነቅቷል",
+  "admin.categories.field.iconChange": "ቀይር",
+  "admin.categories.create.countriesLater": "የአገር ታይነት ከተፈጠረ በኋላ ይዘጋጃል።",
   "admin.categories.window.title": "የታይነት መስኮት",
   "admin.categories.window.hint": "ገደቡን ለማስወገድ ቀኑን ባዶ ይተዉት። ሰዓቶች በUTC ናቸው።",
   "admin.categories.window.from": "የሚታይ ከ",
