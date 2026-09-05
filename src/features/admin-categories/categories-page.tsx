@@ -165,8 +165,6 @@ export function AdminCategoriesPage() {
     }
   };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
-  /** C5g PART D — the inline "Category created" confirmation (no global toaster). */
-  const [createdNotice, setCreatedNotice] = useState<string | null>(null);
   /** C2-GHOST — the only close path, so no surface can forget the transition. */
   const closeDialog = (next: DialogState) => setDialog(next);
   /**
@@ -230,10 +228,17 @@ export function AdminCategoriesPage() {
     [roster, needle, rootFilter, missingOnly, byId],
   );
 
-  /** Per-root counts, so the filter says how much each subtree holds. */
+  /**
+   * Per-root counts, so the filter says how much each subtree holds.
+   * C5l PART C — ACTIVE-ONLY: a count inflated by retired rows lies about
+   * what browsing operators actually work with.
+   */
   const rootCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const row of roster) counts.set(rootOf(row), (counts.get(rootOf(row)) ?? 0) + 1);
+    for (const row of roster) {
+      if (!row.isActive) continue;
+      counts.set(rootOf(row), (counts.get(rootOf(row)) ?? 0) + 1);
+    }
     return counts;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roster, byId]);
