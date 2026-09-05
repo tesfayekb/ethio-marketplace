@@ -183,10 +183,13 @@
     "admin.categories.col.status": [
       "/admin/categories"
     ],
-    "admin.categories.create.countriesLater": [
+    "admin.categories.create.countries": [
       "/admin/categories"
     ],
-    "admin.categories.create.created": [
+    "admin.categories.create.countriesHint": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.finish": [
       "/admin/categories"
     ],
     "admin.categories.create.open": [
@@ -198,7 +201,19 @@
     "admin.categories.create.parentRoot": [
       "/admin/categories"
     ],
+    "admin.categories.create.position": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.positionEnd": [
+      "/admin/categories"
+    ],
     "admin.categories.create.slugPreview": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.stepDetails": [
+      "/admin/categories"
+    ],
+    "admin.categories.create.stepImage": [
       "/admin/categories"
     ],
     "admin.categories.create.title": [
@@ -265,6 +280,9 @@
       "/admin/categories"
     ],
     "admin.categories.field.iconChange": [
+      "/admin/categories"
+    ],
+    "admin.categories.field.iconHint": [
       "/admin/categories"
     ],
     "admin.categories.field.name": [
