@@ -872,7 +872,6 @@ export const en = {
   "admin.categories.image.acceptToast": "Image accepted.",
   "admin.categories.image.accept": "Accept this image",
   "admin.categories.image.accepted": "Accepted",
-  "admin.categories.create.created": "Category created.",
   "admin.categories.error.acceptNoImage": "Generate an image before accepting it.",
   "admin.categories.image.stageLabel": "stage:",
   "admin.categories.error.imageFailed": "Image generation failed",
@@ -891,7 +890,18 @@ export const en = {
   "admin.categories.field.allowListings": "Accepts listings",
   "admin.categories.field.priceEnabled": "Price field enabled",
   "admin.categories.field.iconChange": "Change",
-  "admin.categories.create.countriesLater": "Country visibility is set after creation.",
+  // C5l — two-step inline create: details (with countries + position), then image.
+  "admin.categories.field.iconHint": "Suggested after you enter a name.",
+  "admin.categories.create.stepDetails": "Step 1 of 2 — Details",
+  "admin.categories.create.stepImage": "Step 2 of 2 — Image (optional)",
+  "admin.categories.create.finish": "Finish",
+  "admin.categories.create.position": "Position",
+  "admin.categories.create.positionEnd": "At the end",
+  "admin.categories.create.countries": "Hide in countries",
+  "admin.categories.create.countriesHint":
+    "The category stays hidden in every country you tick; you can change this later.",
+  "admin.categories.error.createPartial":
+    "The category was created, but a follow-up step failed. Open it from the roster to finish setting it up.",
   "admin.categories.window.title": "Visibility window",
   "admin.categories.window.hint": "Leave a date empty to remove that bound. Times are UTC.",
   "admin.categories.window.from": "Visible from",

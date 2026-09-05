@@ -285,15 +285,13 @@ async function createViaUi(page: Page, secret: string) {
   await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
   await page.getByTestId("category-create-submit").click();
   await stepUpIfPrompted(page, secret);
-  // C5g PART D — a successful create closes the create dialog and opens the
-  // FULL editor on the new row with the Image surface in front; a helper that
-  // only seeds dismisses both (Escape) before touching the roster.
-  await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
+  // C5l — a successful create ADVANCES IN-DIALOG to Step 2 (the shared image
+  // surface); a helper that only seeds presses Finish, then finds the row.
+  await expect(page.getByTestId("category-create-generate-step")).toBeVisible({
+    timeout: 20000,
+  });
+  await page.getByTestId("category-create-finish").click();
   await expect(page.getByTestId("category-create-dialog")).toHaveCount(0, { timeout: 20000 });
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("category-image-dialog")).toHaveCount(0, { timeout: 20000 });
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
   // C2-GHOST PART B — the state right after the create dialog closes is the
   // ghost's birthplace; the dump names any dialog still open.
   const afterCreate = await dialogDump(page, `createViaUi(${slug}) after create`);
@@ -1477,53 +1475,133 @@ test.describe("C2 categories console", () => {
   );
 
   /**
-   * CT-17 (C5g PART D · extended by C5k) — the icon SUGGESTION is silent (no
-   * suggestion text), the name of the icon only appears behind Change, and a
-   * successful create opens the FULL editor on the new row with the Image
-   * surface first. C5k adds the inline-create truth: price, expiry and the
-   * visibility window set in the create dialog are PERSISTED by the one call.
+   * CT-17 (C5l — the create saga's closing spec) — the TWO-STEP dialog:
+   *
+   *  Step 1 "Details" carries the FULL field set: the silent icon machinery
+   *  (empty until named, the name only behind Change), price, expiry, the
+   *  visibility window, a COUNTRY EXCLUSION and a "before sibling" POSITION.
+   *  Save creates, then chains the exclusions and the reorder.
+   *  Step 2 "Image" is the shared surface: generate (fake) → assets render →
+   *  Finish closes.
+   *
+   *  DB truth: the row's fields, the exclusion row, and the pointer's edge
+   *  order sitting BETWEEN the two seeded siblings it was placed before/after.
    */
-  test("CT-17 create flow: the icon is silent and the editor opens on the image", async ({
-    page,
-  }) => {
+  test("CT-17 create flow: two steps, chained countries + position, image", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const parentSlug = scratchSlug();
+    const aSlug = scratchSlug();
+    const bSlug = scratchSlug();
     const slug = scratchSlug();
-    // C5k PART C — a window that starts in the future, to the minute.
+    const supabase = adminClient();
+    const { secret } = await signInAsSuperAdmin(page);
+    // C5l — a window that starts in the future, to the minute.
     const from = new Date(Date.now() + 86_400_000);
     from.setSeconds(0, 0);
     const pad = (value: number) => String(value).padStart(2, "0");
     const fromLocal = `${from.getFullYear()}-${pad(from.getMonth() + 1)}-${pad(from.getDate())}T${pad(from.getHours())}:${pad(from.getMinutes())}`;
+    const orderOf = async (parentId: string, childId: string) => {
+      const { data, error } = await supabase
+        .from("category_tree_pointers")
+        .select("display_order")
+        .eq("parent_id", parentId)
+        .eq("child_id", childId)
+        .single();
+      if (error) throw new Error(`[e2e:c5l] reading order failed: ${error.message}`);
+      return data.display_order as number;
+    };
     try {
+      // J7 — seed BEFORE navigate: a scratch parent holding two ACTIVE siblings.
+      const seed = async (seedSlug: string, parent: string | null) => {
+        const { data, error } = await supabase
+          .from("categories")
+          .insert({
+            slug: seedSlug,
+            name_en: seedSlug,
+            is_active: true,
+            is_catchall: false,
+            visible_until: new Date(0).toISOString(),
+          })
+          .select("id")
+          .single();
+        if (error) throw new Error(`[e2e:c5l] seeding ${seedSlug} failed: ${error.message}`);
+        const id = data.id as string;
+        if (parent !== null) {
+          const existing = await supabase
+            .from("category_tree_pointers")
+            .select("display_order")
+            .eq("parent_id", parent)
+            .order("display_order", { ascending: false })
+            .limit(1);
+          const nextOrder = (existing.data?.[0]?.display_order ?? -1) + 1;
+          const { error: pointerError } = await supabase
+            .from("category_tree_pointers")
+            .insert({ parent_id: parent, child_id: id, display_order: nextOrder });
+          if (pointerError)
+            throw new Error(`[e2e:c5l] seeding pointer failed: ${pointerError.message}`);
+        }
+        return id;
+      };
+      const parentId = await seed(parentSlug, null);
+      const aId = await seed(aSlug, parentId);
+      const bId = await seed(bSlug, parentId);
+
       await gotoReady(page, "/admin/categories");
       await page.getByTestId("category-create-open").click();
+
+      // C5l PART B — EMPTY UNTIL NAMED: the hint, not a glyph, before any name.
+      await expect(page.getByTestId("category-create-icon-hint")).toBeVisible();
       await page.getByTestId("category-create-name").fill(slug);
       await page.getByTestId("category-create-name").blur();
       // Silent machinery: the suggestion never announces itself in words.
       await expect(page.getByTestId("category-create-icon-suggested")).toHaveCount(0);
-      // C5k PART B — the shared form: a glyph preview plus a Change control.
       await expect(page.getByTestId("category-create-icon-preview")).toBeVisible();
       await expect(page.getByTestId("category-create-icon-change")).toBeVisible();
 
-      // C5k PART C — the three inline fields the create call now carries.
+      // Step 1 — the full field set, incl. parent, position and a country.
+      await page.getByTestId("category-create-parent").selectOption({ value: parentId });
+      await expect(page.getByTestId("category-create-position")).toBeVisible();
+      await page.getByTestId("category-create-position").selectOption({ value: bId });
       await page.getByTestId("category-create-price").click();
       await page.getByTestId("category-create-expiry").fill("45");
       await page.getByTestId("category-create-visible-from").fill(fromLocal);
+      await page.getByTestId("category-create-exclusion-ET").check();
 
       await page.getByTestId("category-create-submit").click();
       await stepUpIfPrompted(page, secret);
-      // C5g PART D — create → the FULL editor opens on the new row with the
-      // Image surface in front, and the creation is confirmed inline.
-      await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
-      await expect(page.getByTestId("category-create-dialog")).toHaveCount(0);
-      await expect(page.getByTestId("category-created-notice")).toBeVisible();
 
-      // C5k PART C — DB truth: all three inline fields landed on the row.
+      // Step 2 — the dialog ADVANCES IN PLACE to the shared image surface.
+      await expect(page.getByTestId("category-create-generate-step")).toBeVisible({
+        timeout: 20000,
+      });
+
+      // DB truth: the row, the chained exclusion, and the edge BETWEEN the
+      // two siblings it was placed before (a < new < b).
       const created = await readCategory(slug);
       expect(created?.price_enabled).toBe(false);
       expect(created?.expiry_days).toBe(45);
       expect(new Date(created?.visible_from ?? 0).getTime()).toBe(new Date(fromLocal).getTime());
+      await expect
+        .poll(
+          async () => {
+            const { data } = await supabase
+              .from("category_country_exclusions")
+              .select("country_code")
+              .eq("category_id", created!.id);
+            return (data ?? []).map((row) => row.country_code);
+          },
+          { timeout: 20000 },
+        )
+        .toEqual(["ET"]);
+      const [orderA, orderNew, orderB] = [
+        await orderOf(parentId, aId),
+        await orderOf(parentId, created!.id),
+        await orderOf(parentId, bId),
+      ];
+      expect(orderNew).toBeGreaterThan(orderA);
+      expect(orderNew).toBeLessThan(orderB);
 
+      // Step 2 — generate (fake), assets render, Finish closes the dialog.
       await page.getByTestId("category-image-generate").click();
       await expect(page.getByTestId("category-image-assets")).toBeVisible({
         timeout: 60000,
@@ -1531,13 +1609,13 @@ test.describe("C2 categories console", () => {
       await expect
         .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
         .not.toBeNull();
-
-      // Closing the image surface returns to the editor, where every other
-      // verb is present from second one.
-      await page.keyboard.press("Escape");
-      await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("category-create-finish").click();
+      await expect(page.getByTestId("category-create-dialog")).toHaveCount(0, { timeout: 20000 });
     } finally {
       await destroyCategory(slug);
+      await destroyCategory(aSlug);
+      await destroyCategory(bSlug);
+      await destroyCategory(parentSlug);
     }
   });
 });
