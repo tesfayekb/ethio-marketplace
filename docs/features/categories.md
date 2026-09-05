@@ -308,11 +308,30 @@ custom prompt is supplied by a future caller — today it persists NULL. A draft
 (generate, hold, publish) arrives when listings consume category imagery — the
 ruling logged with C5b keeps today's model deliberately simple.
 
-The create dialog carries no manual icon field. On name blur the dialog asks
-the suggester route for an allowlisted icon; the manual picker is the fallback
-(opened with "Change", or applied automatically with the `Package` default when
-the suggester errs, which is surfaced translated). After a successful create
-the dialog offers to generate the image immediately.
+## Create flow (C5l — TWO-STEP INLINE CREATE)
+
+One dialog, two steps. Step 1 "Details" carries the full shared field set
+(name, slug preview, icon, parent, expiry, accepts-listings, price, visibility
+window) plus an inline Countries multi-select and a Position select ("At the
+end" default, or before a chosen ACTIVE sibling of the selected parent —
+catch-alls excluded, they always sort last). Save creates via
+`admin_create_category`, then CHAINS `admin_set_country_exclusions` (when codes
+were picked) and `admin_reorder_categories` (when a position was chosen — the
+create RPC always appends, so placement is a post-create reorder; no RPC
+change). Step 2 "Image" is the SAME `CategoryImagePanel` surface the editor's
+Image verb uses (extracted, not forked — B3): Generate/Accept live there,
+Finish closes. The page's C5g editor auto-open handoff is removed; a chained
+step failing never loses the created row — the translated refusal is surfaced
+on Step 2 and the editor can finish the setup.
+
+ICON (C5l PART B): the icon field is EMPTY until the category is named — a
+translated hint, not a prefilled value. The silent name-blur suggestion fills
+it (a suggestion failure leaves it empty, never announces itself); "Package"
+is applied at SAVE time only if no suggestion ever landed. Change reveals the
+manual input as before.
+
+COUNTS (C5l PART C): the Position options and the root-filter counts enumerate
+ACTIVE rows only — retired rows no longer inflate either number.
 
 Beside the missing-assets filter, "Generate missing (max 25)" runs a serial
 client-driven fill over the filtered rows lacking imagery: a live n/N caption,
