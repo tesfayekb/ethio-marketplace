@@ -1,52 +1,13 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33844774729
-- Commit: `4e6b2f6eb100605f8b3db593b835911541a04f15`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/33949910210
+- Commit: `f37b2da63590e5cefc6eb2ec1037719f3000fc22`
 - Attempt: 1
-- Written (UTC): 2026-09-04T07:17:26.880Z
-- Passed: 324 · Skipped: 44 · Failed: 9
-- Gating failures: 7 · Quarantined (@global-state, INC-117, non-gating): 2
+- Written (UTC): 2026-09-05T07:07:19.463Z
+- Passed: 326 · Skipped: 43 · Failed: 8
+- Gating failures: 6 · Quarantined (@global-state, INC-117, non-gating): 2
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Sources without results: none
-
-## admin-categories.spec.ts › C2 categories console › CT-8 every verb is reachable from the editor with no horizontal scroll
-
-- Source: `full`
-- Project: `desktop-1280`
-
-```text
-Error: window target at 768
-
-expect(received).toBeGreaterThanOrEqual(expected)
-
-Expected: >= 43
-Received:    42.69871520996094
-```
-
-Context:
-
-```text
-        - generic [ref=e38]: Listing expiry (days)
-        - textbox "Listing expiry (days)" [ref=e39]:
-          - /placeholder: No expiry
-      - generic [ref=e40]:
-        - checkbox "Accepts listings" [checked] [ref=e41] [cursor=pointer]:
-          - generic:
-            - img
-        - text: Accepts listings
-      - generic [ref=e42]:
-        - checkbox "Price field enabled" [checked] [ref=e43] [cursor=pointer]:
-          - generic:
-            - img
-        - text: Price field enabled
-      - generic [ref=e44]:
-        - button "Cancel" [ref=e45] [cursor=pointer]
-        - button "Save" [ref=e46] [cursor=pointer]
-    - button "Close" [ref=e47] [cursor=pointer]:
-      - img [ref=e48]
-      - generic [ref=e51]: Close
-```
-```
 
 ## admin-categories.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row
 
@@ -131,15 +92,18 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: expect(page).not.toHaveURL(expected) failed
+Error: expect(locator).toHaveCount(expected) failed
 
-Expected pattern: not /\/admin\/roles\//
-Received string: "http://127.0.0.1:4173/admin/roles/b894e541-eace-4224-aad2-c8fff67fe28b"
-Timeout: 10000ms
+Locator:  getByTestId('role-permissions')
+Expected: 0
+Received: 1
+Timeout:  10000ms
 
 Call log:
-  - Expect "not toHaveURL" with timeout 10000ms
-    14 × unexpected value "http://127.0.0.1:4173/admin/roles/b894e541-eace-4224-aad2-c8fff67fe28b"
+  - Expect "toHaveCount" with timeout 10000ms
+  - waiting for getByTestId('role-permissions')
+    14 × locator resolved to 1 element
+       - unexpected value "1"
 
 ```
 
@@ -188,7 +152,7 @@ Call Log:
 
 [INC-112] phase: TR-19 seed check
 [INC-112] url: http://127.0.0.1:4173/admin/translations/zxy-mo
-[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=0 approve-all-start=0 approve-all-summary=0 approve-all-error=0
+[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
 (no __ethioQueryClient — not an E2E build?)
@@ -239,7 +203,7 @@ Call Log:
 
 [INC-112] phase: TR-19 seed check
 [INC-112] url: http://127.0.0.1:4173/admin/translations/zxy-de
-[INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=0 approve-all-start=0 approve-all-summary=0 approve-all-error=0
+[INC-112] testids: strings-coverage=1 strings-search=1 strings-unavailable=0 approve-all-bar=1 approve-all-start=1 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
   (no matching queries)
@@ -407,7 +371,6 @@ Context:
 
 ```text
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/i18n <!DOCTYPE html>
 ```
 
 ## Client errors: full
