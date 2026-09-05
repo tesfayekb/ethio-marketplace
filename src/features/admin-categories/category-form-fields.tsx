@@ -145,10 +145,7 @@ export function CategoryFormFields({
       <FormField label={t("admin.categories.field.icon")} htmlFor={`${p}-icon`}>
         <span className="flex items-center gap-2">
           {values.icon.trim() === "" && !showIconInput ? (
-            <span
-              data-testid={`${p}-icon-hint`}
-              className="text-sm text-muted-foreground italic"
-            >
+            <span data-testid={`${p}-icon-hint`} className="text-sm text-muted-foreground italic">
               {t("admin.categories.field.iconHint")}
             </span>
           ) : (
@@ -198,10 +195,7 @@ export function CategoryFormFields({
         /* C5l PARTS A+C — POSITION: "At the end" by default, or before a
            chosen ACTIVE sibling; placement rides admin_reorder_categories
            post-create (no RPC change). */
-        <FormField
-          label={t("admin.categories.create.position")}
-          htmlFor="category-create-position"
-        >
+        <FormField label={t("admin.categories.create.position")} htmlFor="category-create-position">
           <select
             id="category-create-position"
             data-testid="category-create-position"

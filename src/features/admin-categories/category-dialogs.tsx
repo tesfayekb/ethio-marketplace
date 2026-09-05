@@ -302,9 +302,7 @@ export function CreateCategoryDialog({
         </>
       ) : (
         <div data-testid="category-create-generate-step" className="space-y-3">
-          {createdId === null ? null : (
-            <CategoryImagePanel categoryId={createdId} guard={guard} />
-          )}
+          {createdId === null ? null : <CategoryImagePanel categoryId={createdId} guard={guard} />}
           <ErrorLine message={message} />
           <div className="flex justify-end">
             <Button

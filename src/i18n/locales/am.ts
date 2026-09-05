@@ -861,8 +861,7 @@ export const am: Messages = {
   "admin.categories.create.positionEnd": "በመጨረሻ",
   "admin.categories.create.countries": "በእነዚህ አገሮች ደብቅ",
   "admin.categories.create.countriesHint": "ምድቡ በመለሰው አገር ሁሉ ይደበቃል፤ በኋላ መቀየር ይችላሉ።",
-  "admin.categories.error.createPartial":
-    "ምድቡ ተፈጥሯል፣ ግን የተከተለው ደረጃ አልተሳካም። ማጠናቀቅ ከዝርዝሩ ውስጥ ክፈቱት።",
+  "admin.categories.error.createPartial": "ምድቡ ተፈጥሯል፣ ግን የተከተለው ደረጃ አልተሳካም። ማጠናቀቅ ከዝርዝሩ ውስጥ ክፈቱት።",
   "admin.categories.window.title": "የታይነት መስኮት",
   "admin.categories.window.hint": "ገደቡን ለማስወገድ ቀኑን ባዶ ይተዉት። ሰዓቶች በUTC ናቸው።",
   "admin.categories.window.from": "የሚታይ ከ",
