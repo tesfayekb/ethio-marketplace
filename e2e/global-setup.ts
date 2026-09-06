@@ -395,7 +395,6 @@ export default async function globalSetup() {
   }
   console.log(`[e2e:setup] reaped ${(reapedListings ?? []).length} stale scratch listing(s)`);
 
-
   // DEC-031 — SCRATCH CATEGORIES. C2-UI's console creates real tree rows
   // (`e2e-cat-%`); an unreaped graveyard would both hide new rows behind
   // PostgREST's 1000-row cap and pollute the browse tree. Dependents first:
