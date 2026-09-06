@@ -257,6 +257,8 @@ export function DeleteAttributeDialog({
     const raw = error instanceof Error ? error.message : "";
     const match = /^admin\.attributes\.error\.deleteHasLinks:(\d+)$/.exec(raw);
     if (match !== null) {
+      // F4 / AT5-ONE-MESSAGE: clear the generic error state so the node is
+      // removed entirely; only the amber blast-radius line renders.
       setMessage(null);
       setBlastCount(Number(match[1]));
       return;
