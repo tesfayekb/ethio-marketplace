@@ -1,8 +1,8 @@
 import { type Locator, type Page } from "@playwright/test";
 
 import { expect, test } from "../fixtures";
-import { enrollAndStepUp, gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./ui";
-import { adminClient, createUser } from "./users";
+import { gotoReady, stepUpIfPrompted, useJobSuperAdmin } from "./ui";
+import { adminClient } from "./users";
 
 /**
  * L1 (DEC-037) — SHARED CATEGORIES-CONSOLE HELPERS.
@@ -157,36 +157,14 @@ export async function grantRole(userId: string, roleName: string) {
 }
 
 /**
- * L1c — CLEANUP CO-LOCATION LAW. The minting site owns the disposal. This
- * helper mints a fresh super-admin per call; before L1c its ONLY reaper was
- * the process-wide global teardown in a SIBLING file, so a mint whose home
- * moved (the L1 split) left users behind. Registration happens on the line
- * after the mint — before anything else can throw — and the helper's own
- * `afterEach` disposes whatever the test minted, whatever file it lives in.
- * No assertion, title, tag or identity changes (J1): call sites are untouched.
+ * L4 (DEC-038) — THE JOB POOL. This helper used to mint a fresh super admin and
+ * enrol a TOTP factor on every call; it now delegates to the job-scoped pooled
+ * identity (`useJobSuperAdmin`), so nothing is minted here and the L1c
+ * co-located disposer it owned has no mint left to reap. Call sites, titles,
+ * tags and assertions are untouched (J1); the returned shape is unchanged.
  */
-const mintedSuperAdmins: string[] = [];
-
-test.afterEach(async () => {
-  const ids = mintedSuperAdmins.splice(0, mintedSuperAdmins.length);
-  const supabase = adminClient();
-  for (const id of ids) {
-    const { error } = await supabase.auth.admin.deleteUser(id);
-    // Already gone (a sibling reaper won the race) is success, not a failure.
-    if (error && !/not.?found/i.test(error.message)) {
-      throw new Error(`[e2e:c2] disposing super-admin ${id} failed: ${error.message}`);
-    }
-  }
-});
-
 export async function signInAsSuperAdmin(page: Page) {
-  const user = await createUser({ confirmed: true });
-  mintedSuperAdmins.push(user.id);
-  await grantRole(user.id, "super_admin");
-  await switchUser(page, user.email, user.password);
-  await waitForHydration(page);
-  const secret = await enrollAndStepUp(page);
-  return { user, secret };
+  return useJobSuperAdmin(page);
 }
 
 /** DB truth (J4): the scratch category row read through the service client. */
