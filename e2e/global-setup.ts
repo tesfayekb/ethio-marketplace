@@ -366,6 +366,36 @@ export default async function globalSetup() {
   }
   console.log(`[e2e:setup] reaped ${staleRoleIds.length} stale scratch role(s)`);
 
+  // STAB-H PART B (INC-165) — SCRATCH LISTINGS. seedActiveListing() writes a
+  // real `status: 'active'` row; a mid-test death leaves it in the public feed
+  // (and blocks its category's reaping below). Two independent handles, either
+  // of which convicts a row: an e2e seller (users minted in the reserved
+  // '@ethio-e2e.invalid' namespace, whose display_name is the local part) or
+  // the scratch title prefix.
+  const { data: e2eSellers, error: e2eSellerError } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .like("display_name", "e2e+%");
+  if (e2eSellerError) {
+    throw new Error(`[e2e:setup] listing e2e sellers failed: ${e2eSellerError.message}`);
+  }
+  const sellerIds = (e2eSellers ?? []).map((row) => row.user_id);
+  const listingFilter = [
+    "title.like.e2e-cat-listing-%",
+    ...(sellerIds.length > 0 ? [`seller_id.in.(${sellerIds.join(",")})`] : []),
+  ].join(",");
+  const { data: reapedListings, error: listingError } = await supabase
+    .from("listings")
+    .delete()
+    .lt("created_at", cutoff)
+    .or(listingFilter)
+    .select("id");
+  if (listingError) {
+    throw new Error(`[e2e:setup] reaping scratch listings failed: ${listingError.message}`);
+  }
+  console.log(`[e2e:setup] reaped ${(reapedListings ?? []).length} stale scratch listing(s)`);
+
+
   // DEC-031 — SCRATCH CATEGORIES. C2-UI's console creates real tree rows
   // (`e2e-cat-%`); an unreaped graveyard would both hide new rows behind
   // PostgREST's 1000-row cap and pollute the browse tree. Dependents first:
