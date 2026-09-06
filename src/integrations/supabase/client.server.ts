@@ -53,7 +53,15 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     }
 
     headers.set("apikey", supabaseKey);
-    return fetch(input, { ...init, headers });
+    const startedAt = Date.now();
+    try {
+      return await fetch(input, { ...init, headers });
+    } finally {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed > SLOW_CALL_MS) {
+        console.warn(`[slow-rpc] ${callLabel(input)} ${elapsed}`);
+      }
+    }
   };
 }
 
