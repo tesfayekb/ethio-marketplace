@@ -160,6 +160,118 @@ export async function listE2EUserIds(supabase: ReturnType<typeof adminClient>): 
   return ids;
 }
 
+/** The anon-facing key GoTrue's REST surface requires on every call. */
+export function authApiKey(): string {
+  const key =
+    process.env["E2E_SUPABASE_PUBLISHABLE_KEY"] ?? process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"];
+  if (!key) throw new Error("[e2e:setup] no Supabase key available for the GoTrue REST surface.");
+  return key;
+}
+
+export function authBaseUrl(): string {
+  const url = process.env["E2E_SUPABASE_URL"];
+  if (!url) throw new Error("[e2e:setup] E2E_SUPABASE_URL is not set.");
+  return `${url.replace(/\/+$/, "")}/auth/v1`;
+}
+
+async function authFetch(
+  path: string,
+  init: { method: string; body?: unknown; accessToken?: string },
+): Promise<Record<string, unknown>> {
+  const response = await fetch(`${authBaseUrl()}${path}`, {
+    method: init.method,
+    headers: {
+      "content-type": "application/json",
+      apikey: authApiKey(),
+      ...(init.accessToken ? { authorization: `Bearer ${init.accessToken}` } : {}),
+    },
+    ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+  });
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`[e2e:setup] ${init.method} ${path} failed (${response.status}): ${text}`);
+  }
+  return text ? (JSON.parse(text) as Record<string, unknown>) : {};
+}
+
+/**
+ * L4 (DEC-038) — mint the job's ONE super admin and enrol its ONE TOTP factor,
+ * through the same GoTrue MFA endpoints the app's client uses (enrol →
+ * challenge → verify). Fails loudly: a half-made pool identity would surface
+ * later as an inexplicable permission or step-up failure in an unrelated test.
+ */
+async function mintPooledSuperAdmin(
+  supabase: ReturnType<typeof adminClient>,
+): Promise<E2ESuperAdmin> {
+  const email = mintEmail(2);
+  const password = `Pw-${randomBytes(18).toString("base64url")}`;
+
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { country_guess: "ET" },
+  });
+  if (error || !data?.user?.id) {
+    throw new Error(
+      `[e2e:setup] pooled super admin create failed for ${email}: ${error?.message ?? "no user id"}`,
+    );
+  }
+  const id = data.user.id;
+
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id")
+    .eq("name", "super_admin")
+    .maybeSingle();
+  if (roleError || !role) {
+    throw new Error(`[e2e:setup] role super_admin not found: ${roleError?.message ?? "no row"}`);
+  }
+  const { error: grantError } = await supabase
+    .from("user_roles")
+    .insert({ user_id: id, role_id: role.id, scope_type: "global" });
+  if (grantError) {
+    throw new Error(`[e2e:setup] granting super_admin to the pool failed: ${grantError.message}`);
+  }
+
+  const grant = await authFetch("/token?grant_type=password", {
+    method: "POST",
+    body: { email, password },
+  });
+  const accessToken = grant["access_token"];
+  if (typeof accessToken !== "string") {
+    throw new Error("[e2e:setup] pooled super admin password grant returned no access token.");
+  }
+
+  const enrolled = await authFetch("/factors", {
+    method: "POST",
+    accessToken,
+    body: { factor_type: "totp", friendly_name: `e2e-pool-${processId()}` },
+  });
+  const factorId = enrolled["id"];
+  const secret = (enrolled["totp"] as Record<string, unknown> | undefined)?.["secret"];
+  if (typeof factorId !== "string" || typeof secret !== "string" || secret.length < 10) {
+    throw new Error("[e2e:setup] TOTP enrolment returned no factor id or secret.");
+  }
+
+  const challenge = await authFetch(`/factors/${factorId}/challenge`, {
+    method: "POST",
+    accessToken,
+  });
+  const challengeId = challenge["id"];
+  if (typeof challengeId !== "string") {
+    throw new Error("[e2e:setup] TOTP challenge returned no id.");
+  }
+  await authFetch(`/factors/${factorId}/verify`, {
+    method: "POST",
+    accessToken,
+    body: { challenge_id: challengeId, code: totp(secret) },
+  });
+
+  return { id, email, password, displayName: email.split("@")[0]!, secret, factorId };
+}
+
+
 export default async function globalSetup() {
   // 0. Migration parity (INC-074): staging must carry the newest local migration,
   //    or the suite fails once with the filename instead of N cryptic reds.
