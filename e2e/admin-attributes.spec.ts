@@ -159,7 +159,6 @@ test.describe("C3 attributes console", () => {
           message: await dialogDump(page, "AT-2 rename never landed"),
         })
         .toBe(`${key} renamed`);
-
     } finally {
       await destroyAttribute(key);
     }
@@ -271,20 +270,36 @@ test.describe("C3 attributes console", () => {
         .insert({ category_id: scratch!.id, attribute_id: id, display_order: 0 });
 
       await gotoReady(page, "/admin/attributes");
-      await page.getByTestId("attribute-search").fill(key);
-      await page.getByTestId(`attribute-delete-${key}`).click();
-      await expect(page.getByTestId("attribute-delete-blast")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("attribute-delete-confirm").fill(key);
-      await page.getByTestId("attribute-delete-submit").click();
-      await stepUpIfPrompted(page, secret);
-      // F5 — the refused attempt leaves no trace: the definition survives.
-      await expect(page.getByTestId("attribute-dialog-error")).toBeVisible({ timeout: 20000 });
+      await test.step("AT-5 delete refused while linked", async () => {
+        await page.getByTestId("attribute-search").fill(key);
+        // J5 — the verb resolves inside ITS OWN row's actions region, in either twin.
+        await attributeActions(page, key).getByTestId(`attribute-delete-${key}`).click();
+        await expect(
+          page.getByTestId("attribute-delete-blast"),
+          await dialogDump(page, "AT-5 delete dialog never opened"),
+        ).toBeVisible({ timeout: 20000 });
+        await page.getByTestId("attribute-delete-confirm").fill(key);
+        await page.getByTestId("attribute-delete-submit").click();
+        await stepUpIfPrompted(page, secret);
+        // F5 — the refused attempt leaves no trace: the definition survives.
+        await expect(
+          page.getByTestId("attribute-dialog-error"),
+          await dialogDump(page, "AT-5 refusal was never shown"),
+        ).toBeVisible({ timeout: 20000 });
+      });
       expect(await readAttribute(key)).not.toBeNull();
 
       await adminClient().from("category_attribute_links").delete().eq("attribute_id", id);
-      await page.getByTestId("attribute-delete-submit").click();
-      await stepUpIfPrompted(page, secret);
-      await expect.poll(async () => await readAttribute(key), { timeout: 20000 }).toBeNull();
+      await test.step("AT-5 delete accepted once unlinked", async () => {
+        await page.getByTestId("attribute-delete-submit").click();
+        await stepUpIfPrompted(page, secret);
+        await expect
+          .poll(async () => await readAttribute(key), {
+            timeout: 20000,
+            message: await dialogDump(page, "AT-5 definition never left"),
+          })
+          .toBeNull();
+      });
     } finally {
       if (slug) await destroyCategory(slug);
       await destroyAttribute(key);
