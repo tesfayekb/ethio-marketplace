@@ -323,6 +323,13 @@ test.describe("C3 attributes console", () => {
   });
 
   test("AT-6 merge: links move to the survivor and the sources disappear", async ({ page }) => {
+    /**
+     * C3f — BUDGET TRUTH. Same multi-surface workload as AT-5: super-admin
+     * sign-in, a category minted through the categories console UI, a hop to
+     * the attributes library, and a merge submission that can raise a step-up
+     * (TOTP) challenge. Assertion meanings are unchanged.
+     */
+    test.setTimeout(120_000);
     bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     const keep = `e2e_attr_keep_${rand()}`;
@@ -337,7 +344,13 @@ test.describe("C3 attributes console", () => {
         .from("category_attribute_links")
         .insert({ category_id: scratch!.id, attribute_id: dupeId, display_order: 0 });
 
-      await gotoReady(page, "/admin/attributes");
+      await test.step("AT-6 navigate to the attribute library", async () => {
+        await gotoReady(page, "/admin/attributes");
+        await expect(
+          page.getByTestId("attribute-merge-open"),
+          await dialogDump(page, "AT-6 library never rendered"),
+        ).toBeVisible({ timeout: 20000 });
+      });
       await page.getByTestId("attribute-merge-open").click();
       await expect(page.getByTestId("attribute-merge-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("attribute-merge-target").selectOption({ label: `${keep} (${keep})` });
