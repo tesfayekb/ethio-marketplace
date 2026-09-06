@@ -553,7 +553,10 @@ async function elevateInBrowser(page: Page, pool: E2ESuperAdmin): Promise<void> 
     await page.waitForTimeout(8000);
   }
   if (lastError !== null) {
-    throw new Error(`[e2e:pool] in-browser TOTP elevation failed: ${lastError}`);
+    throw new Error(
+      `[e2e:pool] in-browser TOTP elevation failed: ${lastError} ` +
+        `(session poll last state: ${lastSessionState})`,
+    );
   }
   // READ-BACK: the achieved level, from the client, never inferred.
   await expectAal2(page);
