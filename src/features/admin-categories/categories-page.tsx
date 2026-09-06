@@ -4,6 +4,7 @@ import {
   CalendarClock,
   Globe,
   ImageIcon,
+  ListChecks,
   Pencil,
   RotateCcw,
   Share2,
@@ -28,6 +29,9 @@ import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+
+import { CategoryAttributesDialog } from "@/features/admin-attributes/category-attributes-dialog";
+import { needsCardAttributes } from "@/features/admin-attributes/attributes-service";
 
 import { CategoryImageDialog } from "./category-image-dialog";
 import { CategoryImageError, generateCategoryImage } from "./category-images-service";
@@ -81,7 +85,15 @@ const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
  * Delete) opens ON TOP of `kind: "edit"` and closing it clears only `sub`, so
  * the operator returns to the OPEN editor, never to the bare table.
  */
-type EditorSub = "window" | "exclusions" | "retire" | "pointer" | "delete" | "image";
+type EditorSub =
+  | "window"
+  | "exclusions"
+  | "retire"
+  | "pointer"
+  | "delete"
+  | "image"
+  // C3c — the per-category attribute link manager, same editor axis.
+  | "attributes";
 
 /** C5b PART C — the bulk fill never runs more than this in one pass. */
 const BULK_LIMIT = 25;
@@ -351,12 +363,40 @@ export function AdminCategoriesPage() {
       key: "parent",
       header: t("admin.categories.col.parent"),
       priority: ROSTER_COLUMN_PRIORITIES.parent,
+      /**
+       * C3c PART D — THE PRIMARY/SECONDARY PARENT CELL. Line 1 is the parent
+       * the category is filed under, chipped "Primary"; line 2 names the other
+       * branches it also appears in, so a flipped node (auto-services under
+       * Services AND Vehicles) reads its whole placement from the roster.
+       * Logical properties only — the chip flips with the writing direction.
+       */
       cell: (row) => (
-        <span className="block min-w-0 break-words text-muted-foreground">
-          {row.parentId === null ? "—" : (byId.get(row.parentId)?.nameEn ?? "—")}
+        <span className="block min-w-0 text-muted-foreground">
+          <span className="flex min-w-0 flex-wrap items-center gap-1">
+            <span className="min-w-0 break-words">
+              {row.parentId === null ? "—" : (byId.get(row.parentId)?.nameEn ?? "—")}
+            </span>
+            {row.parentId === null ? null : (
+              <Badge variant="outline" data-testid={`category-parent-primary-${row.slug}`}>
+                {t("admin.categories.parent.primary")}
+              </Badge>
+            )}
+          </span>
+          {row.secondaryParentNames.length > 0 ? (
+            <span
+              className="block break-words text-xs"
+              data-testid={`category-parent-also-${row.slug}`}
+            >
+              {t("admin.categories.parent.also").replace(
+                "{list}",
+                row.secondaryParentNames.join(" · "),
+              )}
+            </span>
+          ) : null}
         </span>
       ),
     },
+
     {
       key: "status",
       header: t("admin.categories.col.status"),
@@ -423,6 +463,21 @@ export function AdminCategoriesPage() {
                 t("admin.categories.tip.missingAssets"),
                 "border-amber-500 text-amber-600 dark:text-amber-400",
                 `category-missing-${row.slug}`,
+              )
+            : null}
+          {/*
+            C3c — THE TWO-MUST-DISPLAY FLAG. An active category that accepts
+            listings but ranks fewer than two card attributes would render bare
+            listing cards, so the roster flags it in the same amber as a
+            missing image.
+          */}
+          {needsCardAttributes(row)
+            ? tipBadge(
+                "outline",
+                t("admin.categories.badge.needsCard"),
+                t("admin.categories.tip.needsCard"),
+                "border-amber-500 text-amber-600 dark:text-amber-400",
+                `category-needs-card-${row.slug}`,
               )
             : null}
         </span>
@@ -575,6 +630,18 @@ export function AdminCategoriesPage() {
                     id: row.id,
                     sub: "exclusions",
                     openedBy: "verb-exclusions",
+                  }),
+              ),
+              verb(
+                `category-attributes-${row.slug}`,
+                t("admin.categories.action.attributes"),
+                <ListChecks aria-hidden="true" className="size-4" />,
+                () =>
+                  setDialog({
+                    kind: "edit",
+                    id: row.id,
+                    sub: "attributes",
+                    openedBy: "verb-attributes",
                   }),
               ),
             ]
@@ -877,6 +944,16 @@ export function AdminCategoriesPage() {
               hasImage={selected?.hasImage ?? false}
               guard={guard}
               openedBy="verb-image"
+              onClose={() =>
+                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
+              }
+            />
+          ) : null}
+          {selected && dialog.kind === "edit" && dialog.sub === "attributes" ? (
+            <CategoryAttributesDialog
+              categoryId={selected.id}
+              categoryName={selected.nameEn}
+              guard={guard}
               onClose={() =>
                 closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
               }

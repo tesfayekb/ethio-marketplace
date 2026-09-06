@@ -36,7 +36,45 @@ import {
  *
  * L1 (DEC-037): one third of the former admin-categories.spec.ts. Titles, tags
  * and fixture identities are byte-identical; only the file changed (INC-159).
- */ test.describe("C2 categories console", () => {
+ */ /**
+ * C3c — DB TRUTH for the Parent cell. The roster picks its PRIMARY parent the
+ * way admin_list_categories does — the first active pointer by
+ * (parent_id IS NOT NULL, display_order, created_at) — and every other active
+ * parent is a secondary one. Replicated here so the assertion reads the
+ * taxonomy, never a hard-coded name.
+ */
+async function secondaryParentNames(slug: string): Promise<string[]> {
+  const category = await readCategory(slug);
+  if (!category) throw new Error(`secondaryParentNames: ${slug} is absent`);
+  const { data } = await adminClient()
+    .from("category_tree_pointers")
+    .select(
+      "parent_id, display_order, created_at, categories!category_tree_pointers_parent_id_fkey(name_en, is_active)",
+    )
+    .eq("child_id", category.id)
+    .order("display_order")
+    .order("created_at");
+  type Pointer = {
+    parent_id: string | null;
+    categories: { name_en: string; is_active: boolean } | null;
+  };
+  const pointers = ((data ?? []) as unknown as Pointer[]).filter(
+    (row) => row.parent_id === null || row.categories?.is_active === true,
+  );
+  const ordered = [
+    ...pointers.filter((row) => row.parent_id === null),
+    ...pointers.filter((row) => row.parent_id !== null),
+  ];
+  const primary = ordered[0];
+  return ordered
+    .slice(1)
+    .filter((row) => row.parent_id !== null && row.parent_id !== primary?.parent_id)
+    .map((row) => row.categories?.name_en ?? "")
+    .filter((name) => name !== "")
+    .sort();
+}
+
+test.describe("C2 categories console", () => {
   test("CT-1 gating: a plain user is refused; the section renders for an admin", async ({
     page,
   }) => {
@@ -420,6 +458,21 @@ import {
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
     await page.getByTestId("category-pagination-next").click();
     await expect(page.getByTestId("category-pagination-range")).toContainText("26–50");
+
+    /**
+     * C3c PART D — THE PRIMARY/SECONDARY PARENT CELL. The flipped trio hang
+     * under Services AND a second branch; the cell chips the primary and names
+     * the rest. DB truth (the pointer rows) supplies the expected names, so the
+     * assertion can never drift from the taxonomy.
+     */
+    for (const slug of ["auto-services", "realtor-services", "fitness-centers"]) {
+      await page.getByTestId("category-search").fill(slug);
+      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId(`category-parent-primary-${slug}`)).toBeVisible();
+      for (const name of await secondaryParentNames(slug)) {
+        await expect(page.getByTestId(`category-parent-also-${slug}`)).toContainText(name);
+      }
+    }
   });
 
   /** CT-9b — the SAME facts inside cards at 360: nothing is hidden there. */
@@ -436,6 +489,14 @@ import {
     // em-dash placeholder inside the card, so the parent field is present.
     await expect(row).toContainText("—");
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
+
+    // C3c PART D — the same parent facts inside the card twin (DB truth).
+    await page.getByTestId("category-search").fill("auto-services");
+    await expect(categoryRow(page, "auto-services")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("category-parent-primary-auto-services")).toBeVisible();
+    for (const name of await secondaryParentNames("auto-services")) {
+      await expect(page.getByTestId("category-parent-also-auto-services")).toContainText(name);
+    }
     await expectNoHorizontalOverflow(page);
   });
 

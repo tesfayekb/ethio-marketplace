@@ -33,6 +33,15 @@ export interface CategoryRow {
   excludedCountryCodes: string[];
   /** C2c — false when the category has no image_url: a missing-assets flag. */
   hasImage: boolean;
+  /** C3c — how many attribute definitions this category links. */
+  attributeCount: number;
+  /** C3c — how many of those are ranked onto the listing card (0..3). */
+  cardAttributeCount: number;
+  /**
+   * C3c — the OTHER parents this category hangs under (browse pointers beyond
+   * the primary one). Empty for a single-parent node.
+   */
+  secondaryParentNames: string[];
 }
 
 export async function listCategories(): Promise<CategoryRow[]> {
@@ -56,6 +65,9 @@ export async function listCategories(): Promise<CategoryRow[]> {
     exclusionCount: Number(row.exclusion_count ?? 0),
     excludedCountryCodes: (row.excluded_country_codes ?? []) as string[],
     hasImage: row.has_image === true,
+    attributeCount: Number(row.attribute_count ?? 0),
+    cardAttributeCount: Number(row.card_attribute_count ?? 0),
+    secondaryParentNames: (row.secondary_parent_names ?? []) as string[],
   }));
 }
 

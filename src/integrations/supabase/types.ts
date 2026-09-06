@@ -1382,6 +1382,8 @@ export type Database = {
         Args: never
         Returns: {
           allow_listings: boolean
+          attribute_count: number
+          card_attribute_count: number
           display_order: number
           excluded_country_codes: string[]
           exclusion_count: number
@@ -1395,9 +1397,25 @@ export type Database = {
           name_en: string
           parent_id: string
           price_enabled: boolean
+          secondary_parent_names: string[]
           slug: string
           visible_from: string
           visible_until: string
+        }[]
+      }
+      admin_list_category_attribute_links: {
+        Args: { p_category_id: string }
+        Returns: {
+          attr_key: string
+          attr_type: string
+          attribute_id: string
+          card_rank: number
+          display_order: number
+          is_filterable: boolean
+          is_required: boolean
+          link_id: string
+          name_en: string
+          options: Json
         }[]
       }
       admin_list_category_pointers: {
@@ -1546,6 +1564,10 @@ export type Database = {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
       }
+      admin_merge_attributes: {
+        Args: { p_sources: string[]; p_target: string }
+        Returns: Json
+      }
       admin_move_category_pointer: {
         Args: { p_new_parent_id: string; p_pointer_id: string }
         Returns: undefined
@@ -1579,6 +1601,10 @@ export type Database = {
       }
       admin_set_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_attribute_link_order: {
+        Args: { p_category_id: string; p_ordered_link_ids: string[] }
         Returns: undefined
       }
       admin_set_card_attributes: {
@@ -1862,6 +1888,10 @@ export type Database = {
       maintenance_prune_audit_orphans: {
         Args: { p_cutoff: string }
         Returns: number
+      }
+      merge_attributes_impl: {
+        Args: { p_sources: string[]; p_target: string }
+        Returns: Json
       }
       next_language_sort: { Args: never; Returns: number }
       promote_to_super_admin: {
