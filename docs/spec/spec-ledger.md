@@ -1186,3 +1186,23 @@ DEC-032 (2026-09-02): AI provider for category features is the direct Google Gem
 DEC-033 (2026-09-02): Era resequencing — Locations work (Ethiopia-deep tree, diaspora seed, ancestry trigger, locations console, country activation) moves to its own era after C5; the S34 U5-draft locations design is carried forward unchanged.
 
 ---
+
+S34–C5 · 2026-09-02→05 · CATEGORY ERA CLOSED (build) — main promoted at 9ddc310; four-lens review recorded in-session 2026-09-05.
+
+Landed: D0 governance import · C1 ratified 113-node tree + AM entity names + offer_type · C2 console/RBAC/visibility (+a–k fix arc) · C2b–C2k contract/console evolutions · C5a–C5m AI image pipeline (routes, storage, accept, unified create) · STAB-1 + DEC-036 maintenance/tripwire · CT/CI suite 511-green on Pro-tier staging.
+
+INC (registered this era; details in session record): 127 D2-keys-with-permission-migrations · 128 permission-string consumer sweep · 129 admin_list_audit rewrite (closed) · 130 C7 record/code divergence re-landed · 131 datetime inputs · 132 scroller clamp · 133 scanner generics false-positive (guard fixed + proven) · 134 shell ancestor overflow · 135 wide/sticky primitive tier · 136 sentinel marks banned (real timestamps law) · 137 C2c REVOKE (allowlist-closed, closer=C2e) · 138 inactive-parent pointer debris (C2f) · 139/140 reserved (hypotheses consolidated into 142/147) · 141 export pagination orphan-flag · 142 editor freshness · 143 expiry UI sentinel · 144 verb refusal surfacing (.catch law) · 145 twin-locator convention · 146 edge-driven roster orphan visibility · 147 numeric-path ordering + P6 strict · 148 client step-up pre-flag removed · 149 edge-order dense renumber (ratified root sequence pinned) · 150 dialog return-path · 151 identity-based selection · 152 ghost-click closed (cause = 150's return-path; opened-by breadcrumbs permanent) · 153 scoped-emptiness law (specs never assume a globally empty table) · 154 caller-context uploads (no service-role in app runtime) · 155 CI-5 quarantined pending local-run capability · 156 feed-gutter stability (open, watched) · 157 CLOSED — measured root: free-tier quota saturation (egress+MAU), fixed by Pro upgrade + spend cap; A/B rerun confirmed · 158 ratified-am degradation: repaired, unaudited-service-write fingerprint, tripwire planted, culprit unproven.
+
+DEC: 031 scratch-category reap · 032 direct Gemini + paid-tier-only user content · 033 era resequencing (Locations after C-era) · 034 fixture-edge invariant · 035 audit-gate retry wrapper (named ci.yml touch) · 036 harness maintenance (3h reaper, staging sweeps, ratified-am tripwire).
+
+LAWS/AMENDMENT PROPOSALS for operator install (v1.9): G23 staging-lag preflight class · G24 direct-forward autonomy · G25 full-run-before-fixes · J9 viewport guards on every spec block · dialog-flow-change ⇒ helper sweep · permission migrations carry their D2 keys + src consumer sweep in-scope · generated SQL carries its self-mark · per-part grep verification on multi-part landings · usage maps regenerate on any src-touching landing.
+
+SUPERVISOR SLIP RECORD (era): seed self-mark omission · C2 scope fence severing D2/consumer couplings · C2c ACL wording · corrective-vs-allowlist mechanism error · icon-strip cell design · unverified Part-B landing — plus six executor-overturned hypotheses (G3-addendum tally), each accepted in the same breath.
+
+ACT (new): categories-spec shard split (pairs ACT-U4-7) · identity-pool harness redesign (MAU economics: minted identities ≈ $0.00325/MAU past 100k) · prod audit-log retention policy decision · nightly Part-B synthesis: 8 nightly failures classified (2 hygiene→fixed, 2 tag-mechanism→fixed, 4 quarantined-known) — zero product regressions.
+
+REQ notes: REQ-019 FULFILLED (three-variant pipeline, accept-gated) · flip (Services-primary trio) + Primary/Secondary parent cell + fit-mode primitive = C3-era openers.
+
+Era stamp pending: first Pro-tier nightly (hygiene + tripwire live).
+
+---

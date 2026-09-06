@@ -70,4 +70,4 @@ Prod = published site (human testers). Staging = ethio-staging (automated suite 
 
 ## Current position
 
-U4 Translations era COMPLETE (a–k, S33). CATEGORY ERA open (spec ratified 2026-09-02): D0 governance import landing → NEXT: C1 taxonomy migration, then C2 console/RBAC/visibility, C3 attributes, C4 tags, C5 AI images; Locations era follows (DEC-033).
+CATEGORY ERA CLOSED (build) at main 9ddc310, 2026-09-05; gate stamped pending first Pro-tier nightly. NEXT: C3 — attributes completion, brand=attribute, Services-primary flip, Primary/Secondary parent cell; then C4 tags · Locations era per DEC-033.
