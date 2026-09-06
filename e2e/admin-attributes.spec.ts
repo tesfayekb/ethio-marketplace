@@ -1,0 +1,282 @@
+import { expect, test } from "./fixtures";
+
+import {
+  expectNoHorizontalOverflow,
+  gotoReady,
+  stepUpIfPrompted,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
+import { adminClient, createUser } from "./helpers/users";
+import {
+  rand,
+  bandOnly,
+  createViaUi,
+  destroyCategory,
+  dialogDump,
+  findRow,
+  grantRole,
+  openEditor,
+  action,
+  readCategory,
+  signInAsSuperAdmin,
+} from "./helpers/categories";
+
+/**
+ * C3-UI — THE ATTRIBUTE LIBRARY and the per-category LINK MANAGER (AT-1..AT-6).
+ *
+ * J-laws: every fixture is scratch and namespaced by `rand()`; every assertion
+ * that matters reads DB TRUTH through the service client; nothing touches the
+ * ratified 205-definition library except by reading it.
+ */
+
+/** A scratch definition, minted straight through the service client (J3). */
+async function seedAttribute(key: string, type = "text") {
+  const { data, error } = await adminClient()
+    .from("attributes")
+    .insert({ attr_key: key, name_en: key, attr_type: type })
+    .select("id")
+    .single();
+  if (error) throw new Error(`seedAttribute failed: ${error.message}`);
+  return data.id as string;
+}
+
+async function readAttribute(key: string) {
+  const { data } = await adminClient()
+    .from("attributes")
+    .select("id, attr_key, name_en, attr_type, options")
+    .eq("attr_key", key)
+    .maybeSingle();
+  return data;
+}
+
+async function readLinks(categoryId: string) {
+  const { data } = await adminClient()
+    .from("category_attribute_links")
+    .select("id, attribute_id, is_required, display_order, card_rank")
+    .eq("category_id", categoryId)
+    .order("display_order");
+  return data ?? [];
+}
+
+async function destroyAttribute(key: string) {
+  const row = await readAttribute(key);
+  if (!row) return;
+  await adminClient().from("category_attribute_links").delete().eq("attribute_id", row.id);
+  await adminClient().from("attributes").delete().eq("id", row.id);
+}
+
+test.describe("C3 attributes console", () => {
+  test("AT-1 gating: a plain user is refused; the library renders for an admin", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const plain = await createUser({ confirmed: true });
+    await switchUser(page, plain.email, plain.password);
+    await page.goto("/admin/attributes");
+    await waitForHydration(page);
+    await expect(page.getByTestId("attribute-search")).toHaveCount(0);
+
+    const admin = await createUser({ confirmed: true });
+    await grantRole(admin.id, "admin");
+    await switchUser(page, admin.email, admin.password);
+    await gotoReady(page, "/admin/attributes");
+    await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
+    // The ratified library is non-empty, so page one carries rows.
+    await expect(page.getByTestId("attribute-pagination-range")).toContainText("1–25");
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("AT-2 definitions: a scratch attribute is created and renamed (DB truth)", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    try {
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-create-open").click();
+      await expect(page.getByTestId("attribute-edit-dialog")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("attribute-key").fill(key);
+      await page.getByTestId("attribute-name").fill(key);
+      await page.getByTestId("attribute-type").selectOption("select");
+      await page.getByTestId("attribute-options").fill("Alpha\nBeta");
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect
+        .poll(async () => (await readAttribute(key))?.attr_type, { timeout: 20000 })
+        .toBe("select");
+      expect((await readAttribute(key))?.options).toEqual(["Alpha", "Beta"]);
+
+      await page.getByTestId("attribute-search").fill(key);
+      await page.getByTestId(`attribute-edit-${key}`).click();
+      await page.getByTestId("attribute-name").fill(`${key} renamed`);
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(async () => (await readAttribute(key))?.name_en, { timeout: 20000 })
+        .toBe(`${key} renamed`);
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
+  test("AT-3 link manager: an attribute is linked to a scratch category and unlinked", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    let slug = "";
+    try {
+      await seedAttribute(key);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+
+      await gotoReady(page, "/admin/attributes");
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
+      await openEditor(page, slug);
+      await action(page, slug, "attributes").click();
+      await expect(page.getByTestId("category-attributes-dialog")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("category-attributes-empty")).toBeVisible();
+
+      await page.getByTestId("category-attribute-search").fill(key);
+      await page.getByTestId("category-attribute-picker").selectOption({ label: `${key} (${key})` });
+      await page.getByTestId("category-attribute-add").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect
+        .poll(async () => (await readLinks(scratch!.id)).length, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-3 link never landed"),
+        })
+        .toBe(1);
+
+      await page.getByTestId(`category-attribute-unlink-${key}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(async () => (await readLinks(scratch!.id)).length, { timeout: 20000 })
+        .toBe(0);
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  test("AT-4 card picker: two ranked attributes clear the amber flag", async ({ page }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const keyA = `e2e_attr_${rand()}`;
+    const keyB = `e2e_attr_${rand()}`;
+    let slug = "";
+    try {
+      const idA = await seedAttribute(keyA);
+      const idB = await seedAttribute(keyB);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      // SEED BEFORE NAVIGATE (J7): both links exist before the picker opens.
+      await adminClient()
+        .from("category_attribute_links")
+        .insert([
+          { category_id: scratch!.id, attribute_id: idA, display_order: 0 },
+          { category_id: scratch!.id, attribute_id: idB, display_order: 1 },
+        ]);
+
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
+      await openEditor(page, slug);
+      await action(page, slug, "attributes").click();
+      await expect(page.getByTestId(`category-attribute-link-${keyA}`)).toBeVisible({
+        timeout: 20000,
+      });
+      await expect(page.getByTestId("category-attributes-needs-card")).toBeVisible();
+
+      await page.getByTestId(`category-attribute-card-${keyA}`).click();
+      await stepUpIfPrompted(page, secret);
+      await page.getByTestId(`category-attribute-card-${keyB}`).click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect
+        .poll(
+          async () => (await readLinks(scratch!.id)).filter((row) => row.card_rank !== null).length,
+          { timeout: 20000, message: await dialogDump(page, "AT-4 card ranks never landed") },
+        )
+        .toBe(2);
+      await expect(page.getByTestId("category-attributes-needs-card")).toHaveCount(0);
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(keyA);
+      await destroyAttribute(keyB);
+    }
+  });
+
+  test("AT-5 delete: refused while linked, accepted once unlinked", async ({ page }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    let slug = "";
+    try {
+      const id = await seedAttribute(key);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      await adminClient()
+        .from("category_attribute_links")
+        .insert({ category_id: scratch!.id, attribute_id: id, display_order: 0 });
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      await page.getByTestId(`attribute-delete-${key}`).click();
+      await expect(page.getByTestId("attribute-delete-blast")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("attribute-delete-confirm").fill(key);
+      await page.getByTestId("attribute-delete-submit").click();
+      await stepUpIfPrompted(page, secret);
+      // F5 — the refused attempt leaves no trace: the definition survives.
+      await expect(page.getByTestId("attribute-dialog-error")).toBeVisible({ timeout: 20000 });
+      expect(await readAttribute(key)).not.toBeNull();
+
+      await adminClient().from("category_attribute_links").delete().eq("attribute_id", id);
+      await page.getByTestId("attribute-delete-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect.poll(async () => await readAttribute(key), { timeout: 20000 }).toBeNull();
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  test("AT-6 merge: links move to the survivor and the sources disappear", async ({ page }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const keep = `e2e_attr_keep_${rand()}`;
+    const dupe = `e2e_attr_dupe_${rand()}`;
+    let slug = "";
+    try {
+      const keepId = await seedAttribute(keep);
+      const dupeId = await seedAttribute(dupe);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      await adminClient()
+        .from("category_attribute_links")
+        .insert({ category_id: scratch!.id, attribute_id: dupeId, display_order: 0 });
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-merge-open").click();
+      await expect(page.getByTestId("attribute-merge-dialog")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("attribute-merge-target").selectOption({ label: `${keep} (${keep})` });
+      await page.getByTestId(`attribute-merge-source-${dupe}`).click();
+      await expect(page.getByTestId("attribute-merge-confirm")).toBeVisible();
+      await page.getByTestId("attribute-merge-submit").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect.poll(async () => await readAttribute(dupe), { timeout: 20000 }).toBeNull();
+      const links = await readLinks(scratch!.id);
+      expect(links.map((row) => row.attribute_id)).toEqual([keepId]);
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(keep);
+      await destroyAttribute(dupe);
+    }
+  });
+});
