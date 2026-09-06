@@ -118,28 +118,47 @@ test.describe("C3 attributes console", () => {
     const key = `e2e_attr_${rand()}`;
     try {
       await gotoReady(page, "/admin/attributes");
-      await page.getByTestId("attribute-create-open").click();
-      await expect(page.getByTestId("attribute-edit-dialog")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("attribute-key").fill(key);
-      await page.getByTestId("attribute-name").fill(key);
-      await page.getByTestId("attribute-type").selectOption("select");
-      await page.getByTestId("attribute-options").fill("Alpha\nBeta");
-      await page.getByTestId("attribute-edit-submit").click();
-      await stepUpIfPrompted(page, secret);
+      /**
+       * C3d — THE LIVE TYPE VOCABULARY. `attributes_attr_type_check` admits
+       * text · number · single_select · multi_select · boolean · date · range.
+       * "select" is not in the set, so the option-carrying single choice is
+       * `single_select`.
+       */
+      await test.step("AT-2 create definition", async () => {
+        await page.getByTestId("attribute-create-open").click();
+        await expect(page.getByTestId("attribute-edit-dialog"), {
+          message: await dialogDump(page, "AT-2 editor never opened"),
+        } as never).toBeVisible({ timeout: 20000 });
+        await page.getByTestId("attribute-key").fill(key);
+        await page.getByTestId("attribute-name").fill(key);
+        await page.getByTestId("attribute-type").selectOption("single_select");
+        await page.getByTestId("attribute-options").fill("Alpha\nBeta");
+        await page.getByTestId("attribute-edit-submit").click();
+        await stepUpIfPrompted(page, secret);
+      });
 
       await expect
-        .poll(async () => (await readAttribute(key))?.attr_type, { timeout: 20000 })
-        .toBe("select");
+        .poll(async () => (await readAttribute(key))?.attr_type, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-2 definition never landed"),
+        })
+        .toBe("single_select");
       expect((await readAttribute(key))?.options).toEqual(["Alpha", "Beta"]);
 
-      await page.getByTestId("attribute-search").fill(key);
-      await page.getByTestId(`attribute-edit-${key}`).click();
-      await page.getByTestId("attribute-name").fill(`${key} renamed`);
-      await page.getByTestId("attribute-edit-submit").click();
-      await stepUpIfPrompted(page, secret);
+      await test.step("AT-2 rename definition", async () => {
+        await page.getByTestId("attribute-search").fill(key);
+        await attributeActions(page, key).getByTestId(`attribute-edit-${key}`).click();
+        await page.getByTestId("attribute-name").fill(`${key} renamed`);
+        await page.getByTestId("attribute-edit-submit").click();
+        await stepUpIfPrompted(page, secret);
+      });
       await expect
-        .poll(async () => (await readAttribute(key))?.name_en, { timeout: 20000 })
+        .poll(async () => (await readAttribute(key))?.name_en, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-2 rename never landed"),
+        })
         .toBe(`${key} renamed`);
+
     } finally {
       await destroyAttribute(key);
     }
