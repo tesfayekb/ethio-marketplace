@@ -107,7 +107,7 @@ while IFS= read -r file; do
     [ "${entry%%:*}" = "$file" ] && skip=1
   done
   if [ "$skip" -eq 1 ]; then
-    echo "[identity-tags] deferred (outside L4b scope): $out"
+    printf '%s\n' "$out" | sed 's/^/[identity-tags] deferred (outside L4b scope): /'
   else
     echo "$out"
     fail=1
