@@ -36,7 +36,29 @@ import {
  *
  * L1 (DEC-037): one third of the former admin-categories.spec.ts. Titles, tags
  * and fixture identities are byte-identical; only the file changed (INC-159).
- */ test.describe("C2 categories console", () => {
+ */ /**
+ * C3c — DB TRUTH for the Parent cell: every parent this category hangs under,
+ * minus the primary one the categories row itself records.
+ */
+async function secondaryParentNames(slug: string): Promise<string[]> {
+  const category = await readCategory(slug);
+  if (!category) throw new Error(`secondaryParentNames: ${slug} is absent`);
+  const { data } = await adminClient()
+    .from("category_tree_pointers")
+    .select("parent_id")
+    .eq("child_id", category.id);
+  const parentIds = (data ?? [])
+    .map((row) => row.parent_id)
+    .filter((id): id is string => id !== null && id !== category.parent_id);
+  if (parentIds.length === 0) return [];
+  const { data: parents } = await adminClient()
+    .from("categories")
+    .select("name_en")
+    .in("id", parentIds);
+  return (parents ?? []).map((row) => row.name_en);
+}
+
+test.describe("C2 categories console", () => {
   test("CT-1 gating: a plain user is refused; the section renders for an admin", async ({
     page,
   }) => {
@@ -420,6 +442,21 @@ import {
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
     await page.getByTestId("category-pagination-next").click();
     await expect(page.getByTestId("category-pagination-range")).toContainText("26–50");
+
+    /**
+     * C3c PART D — THE PRIMARY/SECONDARY PARENT CELL. The flipped trio hang
+     * under Services AND a second branch; the cell chips the primary and names
+     * the rest. DB truth (the pointer rows) supplies the expected names, so the
+     * assertion can never drift from the taxonomy.
+     */
+    for (const slug of ["auto-services", "realtor-services", "fitness-centers"]) {
+      await page.getByTestId("category-search").fill(slug);
+      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId(`category-parent-primary-${slug}`)).toBeVisible();
+      for (const name of await secondaryParentNames(slug)) {
+        await expect(page.getByTestId(`category-parent-also-${slug}`)).toContainText(name);
+      }
+    }
   });
 
   /** CT-9b — the SAME facts inside cards at 360: nothing is hidden there. */
@@ -436,6 +473,14 @@ import {
     // em-dash placeholder inside the card, so the parent field is present.
     await expect(row).toContainText("—");
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
+
+    // C3c PART D — the same parent facts inside the card twin (DB truth).
+    await page.getByTestId("category-search").fill("auto-services");
+    await expect(categoryRow(page, "auto-services")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("category-parent-primary-auto-services")).toBeVisible();
+    for (const name of await secondaryParentNames("auto-services")) {
+      await expect(page.getByTestId("category-parent-also-auto-services")).toContainText(name);
+    }
     await expectNoHorizontalOverflow(page);
   });
 
