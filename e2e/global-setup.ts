@@ -216,6 +216,21 @@ export default async function globalSetup() {
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
 
+  // 5b. STAB-SETUP (DEC-036 amendment) — ONE OWNER FOR MAINTENANCE.
+  //     Every sharded job used to run the full reaper + prune + storage sweep +
+  //     tripwire at t=0, so N jobs hammered the same staging tables at the same
+  //     instant (the thundering herd behind the 57014 statement timeouts).
+  //     Shard 1 owns maintenance; every other job logs the skip and proceeds
+  //     straight to its own minted user. An unsharded (local/solo) run has no
+  //     herd and keeps ownership. The TEARDOWN is untouched.
+  const maintenanceOwner = (process.env["E2E_SHARD"] ?? "1") === "1";
+  if (!maintenanceOwner) {
+    console.log(`[e2e:setup] maintenance skipped (owner: shard 1)`);
+    console.log(`[e2e:setup] state written; setup complete`);
+    return;
+  }
+
+
   // 6. Reap the fixture graveyard (INC-096g): a mid-test death leaves scratch
   //    rows behind.
   //    DEC-036 — the window is THREE HOURS (was 24h, then 1h): same-day
