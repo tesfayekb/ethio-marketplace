@@ -74,6 +74,7 @@ function rand() {
 
 /** L4 (DEC-038): the job-scoped pooled super admin; enrolment happens once in setup. */
 async function signInAsSuperAdmin(page: Page) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
   return useJobSuperAdmin(page);
 }
 

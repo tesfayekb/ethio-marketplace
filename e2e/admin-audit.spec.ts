@@ -72,6 +72,7 @@ async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unkno
 }
 
 async function signInAsSuperAdmin(page: Page) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
   return useJobSuperAdmin(page);
 }
 

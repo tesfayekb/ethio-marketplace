@@ -164,6 +164,7 @@ export async function grantRole(userId: string, roleName: string) {
  * tags and assertions are untouched (J1); the returned shape is unchanged.
  */
 export async function signInAsSuperAdmin(page: Page) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
   return useJobSuperAdmin(page);
 }
 
