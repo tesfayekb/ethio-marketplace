@@ -60,6 +60,23 @@ export function fenceLang(kind: FenceKind, project: string): string {
   return `${FENCE_PREFIXES[kind]}-${fenceProjectSuffix(project)}`;
 }
 
+/**
+ * L4 (DEC-038) — the job's POOLED super admin: one identity, one TOTP factor,
+ * enrolled once in setup and reused by every non-enrolment admin test through
+ * `useJobSuperAdmin` (e2e/helpers/ui.ts). Tests whose SUBJECT is enrolment or
+ * unenrolment keep minting their own identity.
+ */
+export type E2ESuperAdmin = {
+  id: string;
+  email: string;
+  password: string;
+  displayName: string;
+  /** Base32 TOTP secret — step-up prompts are answered with it. */
+  secret: string;
+  /** The verified factor id, so a test can elevate to AAL2 in node. */
+  factorId: string;
+};
+
 export type E2EUser = {
   id: string;
   email: string;
@@ -71,7 +88,10 @@ export type E2EUser = {
    * alone is not an ownership boundary.
    */
   processId: string;
+  /** L4 — the job-scoped super admin (both owner and non-owner paths mint it). */
+  superAdmin?: E2ESuperAdmin;
 };
+
 
 let cachedProcessId: string | null = null;
 
