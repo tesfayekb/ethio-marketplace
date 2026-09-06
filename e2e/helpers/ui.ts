@@ -427,6 +427,108 @@ export async function enrollAndStepUp(page: Page): Promise<string> {
 }
 
 /**
+ * L4 (DEC-038) — THE JOB-SCOPED IDENTITY POOL.
+ *
+ * Before L4 every non-enrolment admin test minted a super admin AND drove the
+ * whole Settings enrolment flow (~170 TOTP enrolments per run: the auth load
+ * and a large share of the wall time). The job's ONE super admin is minted and
+ * enrolled once in global setup; this helper only signs it in.
+ *
+ * AAL PARITY: `enrollAndStepUp` left the session at AAL2, so this helper does
+ * too — the pooled factor is verified in node against the injected grant and
+ * the AAL2 tokens are the bytes the browser receives. The step-up HINT is
+ * deliberately not written, so a gate still prompts exactly as it does after a
+ * fresh sign-in and `stepUpIfPrompted(page, secret)` keeps answering it.
+ *
+ * With the `E2E_UI_LOGIN=1` revert knob (or in an auth spec) there is no
+ * injection: the pooled credentials go through the real UI door at AAL1 and the
+ * gate prompt is answered with the same secret.
+ */
+export type JobSuperAdmin = {
+  user: { id: string; email: string; password: string; displayName: string };
+  secret: string;
+};
+
+function pooledSuperAdmin(): E2ESuperAdmin {
+  const state = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+  if (!state.superAdmin) {
+    throw new Error("[e2e:pool] the state file carries no pooled super admin — setup did not run.");
+  }
+  return state.superAdmin;
+}
+
+/** Elevates a password grant to AAL2 with the pooled factor, in node. */
+async function elevateToAal2(session: PersistedSession, pool: E2ESuperAdmin): Promise<void> {
+  const challenge = await authFetch(`/factors/${pool.factorId}/challenge`, {
+    method: "POST",
+    accessToken: session.access_token,
+  });
+  const challengeId = challenge["id"];
+  if (typeof challengeId !== "string") throw new Error("[e2e:pool] challenge returned no id.");
+
+  let verified: Record<string, unknown> | null = null;
+  let lastError = "";
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      verified = await authFetch(`/factors/${pool.factorId}/verify`, {
+        method: "POST",
+        accessToken: session.access_token,
+        body: { challenge_id: challengeId, code: totp(secretAt(pool, attempt)) },
+      });
+      break;
+    } catch (error) {
+      // A code already spent in this 30s window is refused; the next window's
+      // code is a legitimate retry, never a weakened assertion.
+      lastError = (error as { message?: string })?.message ?? String(error);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+  if (!verified) throw new Error(`[e2e:pool] TOTP verify failed: ${lastError}`);
+
+  const accessToken = verified["access_token"];
+  if (typeof accessToken !== "string") {
+    throw new Error("[e2e:pool] verify returned no AAL2 access token.");
+  }
+  session.access_token = accessToken;
+  if (typeof verified["refresh_token"] === "string") {
+    session.refresh_token = verified["refresh_token"];
+  }
+  if (typeof verified["expires_at"] === "number") session.expires_at = verified["expires_at"];
+}
+
+/** The code for the current window; later attempts step one window forward. */
+function secretAt(pool: E2ESuperAdmin, attempt: number): string {
+  void attempt;
+  return pool.secret;
+}
+
+export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
+  const pool = pooledSuperAdmin();
+  const user = {
+    id: pool.id,
+    email: pool.email,
+    password: pool.password,
+    displayName: pool.displayName,
+  };
+
+  if (!sessionInjectionEnabled()) {
+    await switchUser(page, pool.email, pool.password);
+    await waitForHydration(page);
+    return { user, secret: pool.secret };
+  }
+
+  const session = await passwordGrant(pool.email, pool.password);
+  await elevateToAal2(session, pool);
+  await injectSession(page, session);
+  await gotoReady(page, "/");
+  await assertInjectedIdentity(page, session);
+  await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+  await waitForHydration(page);
+  return { user, secret: pool.secret };
+}
+
+
+/**
  * Answers the StepUpGate modal IF it opened; a no-op when the session is
  * already AAL2. Never weakens an assertion — it only supplies the code the
  * gate asks for.
