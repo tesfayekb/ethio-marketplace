@@ -104,9 +104,10 @@ async function statusChangeCount(userId: string): Promise<number> {
 }
 
 test.describe("U1f step-up authentication", () => {
-  test("MF-1 enroll: QR + secret shown, a generated code activates the factor", async ({
-    page,
-  }) => {
+  test(
+    "MF-1 enroll: QR + secret shown, a generated code activates the factor",
+    { tag: "@private-identity" },
+    async ({ page }) => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
     await switchUser(page, staff.email, staff.password);
@@ -119,7 +120,7 @@ test.describe("U1f step-up authentication", () => {
     await expect(page.getByTestId("mfa-success")).toBeVisible();
   });
 
-  test("MF-2 gate: wrong code refused, correct code lets the action through", async ({ page }) => {
+  test("MF-2 gate: wrong code refused, correct code lets the action through", { tag: "@private-identity" }, async ({ page }) => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
     const target = await createUser({ confirmed: true });
@@ -191,7 +192,7 @@ test.describe("U1f step-up authentication", () => {
     expect(await statusChangeCount(target.id)).toBe(0);
   });
 
-  test("MF-5 unenroll requires a fresh verification", async ({ page }) => {
+  test("MF-5 unenroll requires a fresh verification", { tag: "@private-identity" }, async ({ page }) => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
     await switchUser(page, staff.email, staff.password);
@@ -224,7 +225,7 @@ test.describe("U1f step-up authentication", () => {
  * authoritative refusals are migration proofs P5/P7.
  */
 test.describe("U1f-4 step-up freshness", () => {
-  test("MF-6 unenrolling the only factor drops the stepped-up state", async ({ page }) => {
+  test("MF-6 unenrolling the only factor drops the stepped-up state", { tag: "@private-identity" }, async ({ page }) => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
     const target = await createUser({ confirmed: true });
@@ -248,7 +249,7 @@ test.describe("U1f-4 step-up freshness", () => {
     expect(await statusChangeCount(target.id)).toBe(0);
   });
 
-  test("MF-7 a verification older than the window re-prompts", async ({ page }) => {
+  test("MF-7 a verification older than the window re-prompts", { tag: "@private-identity" }, async ({ page }) => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
     const target = await createUser({ confirmed: true });

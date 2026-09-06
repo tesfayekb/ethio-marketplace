@@ -132,9 +132,10 @@ test.describe("U3 audit & security", () => {
     await expect(page.getByText(en["admin.audit.empty"])).toBeVisible();
   });
 
-  test("IMP-1 impersonation: super admin opens a read-only session and ends it", async ({
-    page,
-  }) => {
+  test(
+    "IMP-1 impersonation: super admin opens a read-only session and ends it",
+    { tag: "@private-identity" },
+    async ({ page }) => {
     const { secret } = await signInAsSuperAdmin(page);
     const target = await createUser({ confirmed: true });
 
@@ -157,7 +158,7 @@ test.describe("U3 audit & security", () => {
     await expect(page.getByTestId("impersonation-banner")).toHaveCount(0, { timeout: 20000 });
   });
 
-  test("IMP-2 dual-actor audit: start and end are both recorded", async ({ page }) => {
+  test("IMP-2 dual-actor audit: start and end are both recorded", { tag: "@private-identity" }, async ({ page }) => {
     const { user, secret } = await signInAsSuperAdmin(page);
     const target = await createUser({ confirmed: true });
 
@@ -182,9 +183,10 @@ test.describe("U3 audit & security", () => {
     expect(JSON.stringify(start?.meta ?? {})).toContain(target.id);
   });
 
-  test("IMP-3 server refusals: self, super-admin target, and a non-super caller", async ({
-    page,
-  }) => {
+  test(
+    "IMP-3 server refusals: self, super-admin target, and a non-super caller",
+    { tag: "@private-identity" },
+    async ({ page }) => {
     const { user, secret } = await signInAsSuperAdmin(page);
     await gotoReady(page, "/admin/audit");
     await stepUpIfPrompted(page, secret);

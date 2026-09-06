@@ -284,7 +284,10 @@ test.describe("U2 roles console", () => {
     await expect(roleRow(page, name)).toHaveCount(0);
   });
 
-  test("RP-6 revocation path: unenrolling the factor refuses the next change", async ({ page }) => {
+  test(
+    "RP-6 revocation path: unenrolling the factor refuses the next change",
+    { tag: "@private-identity" },
+    async ({ page }) => {
     const { secret, user } = await signInAsSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
