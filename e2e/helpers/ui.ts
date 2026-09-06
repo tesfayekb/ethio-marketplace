@@ -438,20 +438,32 @@ export async function enrollAndStepUp(page: Page): Promise<string> {
  * and a large share of the wall time). The job's ONE super admin is minted and
  * enrolled once in global setup; this helper only signs it in.
  *
+ * L4b — DECLARED IDENTITY LAW. A test that MUTATES its own auth state (enrols
+ * or unenrols a factor, deletes factors through the admin API, or starts/ends
+ * an impersonation session) must declare itself with the Playwright tag
+ * `@private-identity`: it may not borrow the pool, because its mutation would
+ * poison every sibling test that shares that identity. `useJobSuperAdmin`
+ * reads `test.info().tags`; a tagged test gets a PRIVATE mint (the pre-L4 path,
+ * kept as `mintPrivateSuperAdmin`: fresh user, super_admin grant, enrol-in-
+ * session), an untagged test gets the pool. `scripts/check-identity-tags.sh`
+ * enforces the law statically, so the tag can never silently go missing.
+ *
  * AAL PARITY: `enrollAndStepUp` left the session at AAL2, so this helper does
- * too — the pooled factor is verified in node against the injected grant and
- * the AAL2 tokens are the bytes the browser receives. The step-up HINT is
- * deliberately not written, so a gate still prompts exactly as it does after a
- * fresh sign-in and `stepUpIfPrompted(page, secret)` keeps answering it.
+ * too — after sign-in it elevates IN THE BROWSER through the app's own client
+ * (`challengeAndVerify` on the pooled factor) and reads the achieved level back
+ * before returning. The step-up HINT is deliberately not written, so a gate
+ * still prompts exactly as it does after a fresh sign-in and
+ * `stepUpIfPrompted(page, secret)` keeps answering freshness re-prompts.
  *
  * With the `E2E_UI_LOGIN=1` revert knob (or in an auth spec) there is no
- * injection: the pooled credentials go through the real UI door at AAL1 and the
- * gate prompt is answered with the same secret.
+ * injection: the pooled credentials go through the real UI door and the same
+ * in-browser elevation follows.
  */
 export type JobSuperAdmin = {
   user: { id: string; email: string; password: string; displayName: string };
   secret: string;
 };
+
 
 function pooledSuperAdmin(): E2ESuperAdmin {
   const state = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
