@@ -249,7 +249,7 @@ export const am: Messages = {
   "admin.section.categories.title": "ምድቦች",
   "admin.section.categories.body": "የምድብ አስተዳደር በU5 ይመጣል።",
   "admin.section.attributes.title": "ባህርያት",
-  "admin.section.attributes.body": "የባህርይ አስተዳደር በU6 ይመጣል።",
+  "admin.section.attributes.body": "የጋራ የባህሪ ቤተ-መዝገብ፦ ትርጓሜዎች፣ ምድቦቻቸው እና በዝርዝር ካርድ ላይ የሚታየው።",
   "admin.section.images.title": "ምስሎች",
   "admin.section.images.body": "የምስል መሣሪያዎች በU8 ይመጣሉ።",
   "common.dismiss": "አሰናብት",
