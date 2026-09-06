@@ -154,7 +154,6 @@ async function handleGet(request: Request, lang: string): Promise<Response> {
   return respond(request, entry);
 }
 
-
 export const Route = createFileRoute("/api/i18n/$lang")({
   server: {
     handlers: {
