@@ -176,7 +176,7 @@ export function authBaseUrl(): string {
   return `${url.replace(/\/+$/, "")}/auth/v1`;
 }
 
-async function authFetch(
+export async function authFetch(
   path: string,
   init: { method: string; body?: unknown; accessToken?: string },
 ): Promise<Record<string, unknown>> {

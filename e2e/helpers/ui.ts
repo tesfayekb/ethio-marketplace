@@ -1,15 +1,24 @@
+import { readFileSync } from "node:fs";
+
 import { expect, type Locator, type Page } from "@playwright/test";
 
 import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
+import {
+  authFetch,
+  STATE_FILE,
+  type E2ESuperAdmin,
+  type E2EUser,
+} from "../global-setup";
 
 import {
   assertInjectedIdentity,
   injectSession,
   passwordGrant,
   sessionInjectionEnabled,
+  type PersistedSession,
 } from "./session";
 import { totp } from "./totp";
 
@@ -473,7 +482,7 @@ async function elevateToAal2(session: PersistedSession, pool: E2ESuperAdmin): Pr
       verified = await authFetch(`/factors/${pool.factorId}/verify`, {
         method: "POST",
         accessToken: session.access_token,
-        body: { challenge_id: challengeId, code: totp(secretAt(pool, attempt)) },
+        body: { challenge_id: challengeId, code: totp(pool.secret) },
       });
       break;
     } catch (error) {
@@ -494,12 +503,6 @@ async function elevateToAal2(session: PersistedSession, pool: E2ESuperAdmin): Pr
     session.refresh_token = verified["refresh_token"];
   }
   if (typeof verified["expires_at"] === "number") session.expires_at = verified["expires_at"];
-}
-
-/** The code for the current window; later attempts step one window forward. */
-function secretAt(pool: E2ESuperAdmin, attempt: number): string {
-  void attempt;
-  return pool.secret;
 }
 
 export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
