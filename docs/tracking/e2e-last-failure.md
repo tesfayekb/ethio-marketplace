@@ -1,12 +1,12 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34014787461
-- Commit: `efa985bfee4dd0e41ef8bfa0eb3f6555f3e1ce8b`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34015466485
+- Commit: `3a2091d0dcd07bd6f6c7c99537cf9fc827f7f0a7`
 - Attempt: 1
-- Written (UTC): 2026-09-06T05:57:24.080Z
-- Passed: 451 · Skipped: 72 · Failed: 4
+- Written (UTC): 2026-09-06T06:13:14.444Z
+- Passed: 446 · Skipped: 76 · Failed: 4
 - Gating failures: 4 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 2
+- Flaky (passed on retry, DEC-030, non-gating): 3
 - Sources without results: none
 
 ## Flake ledger (DEC-030)
@@ -14,8 +14,9 @@
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-categories-console.spec.ts › C2 categories console › CT-7 step-up: the server refuses the write until AAL2 is proven — Error: expect(locator).toBeVisible() failed
-- FLAKY (passed on retry) · `desktop-1280` · source `changed` · admin-categories-console.spec.ts › C2 categories console › CT-4 visibility window: a future window is stored as DB truth — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-categories-console.spec.ts › C2 categories console › CT-8 every verb is reachable from the editor with no horizontal scroll — Error: window target at 1024
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-categories-console.spec.ts › C2 categories console › CT-10 parent picker: retired nodes are absent and options carry paths — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `desktop-1280` · source `changed` · admin-categories-console.spec.ts › C2 categories console › CT-3 create + edit: a scratch category is born and renamed through step-up — Error: expect(locator).toBeVisible() failed
 
 ## admin-attributes.spec.ts › C3 attributes console › AT-5 delete: refused while linked, accepted once unlinked
 
@@ -51,8 +52,8 @@ Context:
       - paragraph [ref=e6]: The definition disappears from the library. Categories that use it must be unlinked first.
       - status [ref=e7]: 1 categories still use this attribute.
       - generic [ref=e8]:
-        - generic [ref=e9]: Type e2e_attr_53ufdr to confirm
-        - textbox "Type e2e_attr_53ufdr to confirm" [ref=e10]: e2e_attr_53ufdr
+        - generic [ref=e9]: Type e2e_attr_zqkxxl to confirm
+        - textbox "Type e2e_attr_zqkxxl to confirm" [ref=e10]: e2e_attr_zqkxxl
       - alert [ref=e11]: The change could not be saved.
       - generic [ref=e12]:
         - button "Cancel" [ref=e13] [cursor=pointer]
@@ -97,8 +98,8 @@ Context:
       - paragraph [ref=e6]: The definition disappears from the library. Categories that use it must be unlinked first.
       - status [ref=e7]: 1 categories still use this attribute.
       - generic [ref=e8]:
-        - generic [ref=e9]: Type e2e_attr_7e6xp0 to confirm
-        - textbox "Type e2e_attr_7e6xp0 to confirm" [ref=e10]: e2e_attr_7e6xp0
+        - generic [ref=e9]: Type e2e_attr_dcwpqz to confirm
+        - textbox "Type e2e_attr_dcwpqz to confirm" [ref=e10]: e2e_attr_dcwpqz
       - alert [ref=e11]: The change could not be saved.
       - generic [ref=e12]:
         - button "Cancel" [ref=e13] [cursor=pointer]
@@ -143,8 +144,8 @@ Context:
       - paragraph [ref=e6]: The definition disappears from the library. Categories that use it must be unlinked first.
       - status [ref=e7]: 1 categories still use this attribute.
       - generic [ref=e8]:
-        - generic [ref=e9]: Type e2e_attr_53ufdr to confirm
-        - textbox "Type e2e_attr_53ufdr to confirm" [ref=e10]: e2e_attr_53ufdr
+        - generic [ref=e9]: Type e2e_attr_zqkxxl to confirm
+        - textbox "Type e2e_attr_zqkxxl to confirm" [ref=e10]: e2e_attr_zqkxxl
       - alert [ref=e11]: The change could not be saved.
       - generic [ref=e12]:
         - button "Cancel" [ref=e13] [cursor=pointer]
@@ -189,8 +190,8 @@ Context:
       - paragraph [ref=e6]: The definition disappears from the library. Categories that use it must be unlinked first.
       - status [ref=e7]: 1 categories still use this attribute.
       - generic [ref=e8]:
-        - generic [ref=e9]: Type e2e_attr_7e6xp0 to confirm
-        - textbox "Type e2e_attr_7e6xp0 to confirm" [ref=e10]: e2e_attr_7e6xp0
+        - generic [ref=e9]: Type e2e_attr_dcwpqz to confirm
+        - textbox "Type e2e_attr_dcwpqz to confirm" [ref=e10]: e2e_attr_dcwpqz
       - alert [ref=e11]: The change could not be saved.
       - generic [ref=e12]:
         - button "Cancel" [ref=e13] [cursor=pointer]
