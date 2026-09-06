@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      attributes: {
+        Row: {
+          attr_key: string
+          attr_type: string
+          created_at: string
+          help_text_en: string | null
+          id: string
+          name_am: string | null
+          name_en: string
+          options: Json | null
+          updated_at: string
+        }
+        Insert: {
+          attr_key: string
+          attr_type: string
+          created_at?: string
+          help_text_en?: string | null
+          id?: string
+          name_am?: string | null
+          name_en: string
+          options?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          attr_key?: string
+          attr_type?: string
+          created_at?: string
+          help_text_en?: string | null
+          id?: string
+          name_am?: string | null
+          name_en?: string
+          options?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -121,6 +157,60 @@ export type Database = {
           visible_until?: string | null
         }
         Relationships: []
+      }
+      category_attribute_links: {
+        Row: {
+          attribute_id: string
+          card_rank: number | null
+          category_id: string
+          created_at: string
+          display_order: number
+          id: string
+          is_filterable: boolean
+          is_required: boolean
+          is_searchable: boolean
+          updated_at: string
+        }
+        Insert: {
+          attribute_id: string
+          card_rank?: number | null
+          category_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_filterable?: boolean
+          is_required?: boolean
+          is_searchable?: boolean
+          updated_at?: string
+        }
+        Update: {
+          attribute_id?: string
+          card_rank?: number | null
+          category_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_filterable?: boolean
+          is_required?: boolean
+          is_searchable?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_attribute_links_attribute_id_fkey"
+            columns: ["attribute_id"]
+            isOneToOne: false
+            referencedRelation: "attributes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_attribute_links_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       category_attributes: {
         Row: {
@@ -1162,6 +1252,10 @@ export type Database = {
         }
         Returns: string
       }
+      admin_delete_attribute: {
+        Args: { p_confirm_key: string; p_id: string }
+        Returns: undefined
+      }
       admin_delete_category: {
         Args: { p_confirm_slug: string; p_id: string }
         Returns: undefined
@@ -1238,6 +1332,30 @@ export type Database = {
         Returns: Json
       }
       admin_language_delete_preview: { Args: { p_code: string }; Returns: Json }
+      admin_link_attribute: {
+        Args: {
+          p_attribute_id: string
+          p_category_id: string
+          p_display_order: number
+          p_is_filterable: boolean
+          p_is_required: boolean
+        }
+        Returns: string
+      }
+      admin_list_attributes: {
+        Args: never
+        Returns: {
+          attr_key: string
+          attr_type: string
+          created_at: string
+          help_text_en: string
+          id: string
+          name_am: string
+          name_en: string
+          options: Json
+          usage_count: number
+        }[]
+      }
       admin_list_audit: {
         Args: {
           p_action?: string
@@ -1463,6 +1581,10 @@ export type Database = {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: undefined
       }
+      admin_set_card_attributes: {
+        Args: { p_category_id: string; p_ordered_attribute_ids: string[] }
+        Returns: undefined
+      }
       admin_set_category_images: {
         Args: {
           p_generation_prompt: string
@@ -1535,6 +1657,10 @@ export type Database = {
         }[]
       }
       admin_undo_import: { Args: { p_batch: string }; Returns: Json }
+      admin_unlink_attribute: {
+        Args: { p_link_id: string }
+        Returns: undefined
+      }
       admin_update_category: {
         Args: {
           p_allow_listings: boolean
@@ -1563,6 +1689,17 @@ export type Database = {
           p_role_id: string
         }
         Returns: undefined
+      }
+      admin_upsert_attribute: {
+        Args: {
+          p_attr_key: string
+          p_attr_type: string
+          p_help_text_en: string
+          p_id: string
+          p_name_en: string
+          p_options: Json
+        }
+        Returns: string
       }
       admin_upsert_language: {
         Args: {
