@@ -284,48 +284,51 @@ test.describe("U2 roles console", () => {
     await expect(roleRow(page, name)).toHaveCount(0);
   });
 
-  test("RP-6 revocation path: unenrolling the factor refuses the next change", async ({ page }) => {
-    const { secret, user } = await signInAsSuperAdmin(page);
-    const name = await createRoleViaUi(page, secret);
-    const id = await roleId(name);
+  test(
+    "RP-6 revocation path: unenrolling the factor refuses the next change",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const { secret, user } = await signInAsSuperAdmin(page);
+      const name = await createRoleViaUi(page, secret);
+      const id = await roleId(name);
 
-    await page.getByTestId("role-permission-toggle-listings:view").click();
-    await stepUpIfPrompted(page, secret);
-    await expect(page.getByTestId("role-permission-listings:view")).toHaveAttribute(
-      "data-granted",
-      "true",
-      { timeout: 20000 },
-    );
+      await page.getByTestId("role-permission-toggle-listings:view").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("role-permission-listings:view")).toHaveAttribute(
+        "data-granted",
+        "true",
+        { timeout: 20000 },
+      );
 
-    // Unenrol every factor server-side (INC-081: a stale aal2 claim is not
-    // authority — the gate re-reads auth.mfa_factors).
-    const { data: factorList, error: factorError } = await adminClient().auth.admin.mfa.listFactors(
-      { userId: user.id },
-    );
-    if (factorError) throw new Error(`[e2e:u2] listing factors failed: ${factorError.message}`);
-    for (const factor of factorList?.factors ?? []) {
-      const { error } = await adminClient().auth.admin.mfa.deleteFactor({
-        id: factor.id,
-        userId: user.id,
-      });
-      if (error) throw new Error(`[e2e:u2] deleting factor failed: ${error.message}`);
-    }
+      // Unenrol every factor server-side (INC-081: a stale aal2 claim is not
+      // authority — the gate re-reads auth.mfa_factors).
+      const { data: factorList, error: factorError } =
+        await adminClient().auth.admin.mfa.listFactors({ userId: user.id });
+      if (factorError) throw new Error(`[e2e:u2] listing factors failed: ${factorError.message}`);
+      for (const factor of factorList?.factors ?? []) {
+        const { error } = await adminClient().auth.admin.mfa.deleteFactor({
+          id: factor.id,
+          userId: user.id,
+        });
+        if (error) throw new Error(`[e2e:u2] deleting factor failed: ${error.message}`);
+      }
 
-    expect(
-      await rpcFromBrowser(page, "admin_set_role_permission", {
-        p_role_id: id,
-        p_permission_id: (
-          await adminClient()
-            .from("permissions")
-            .select("id, action, resources!inner(name)")
-            .eq("action", "view")
-            .eq("resources.name", "listings")
-            .single()
-        ).data?.id,
-        p_granted: false,
-      }),
-    ).toMatch(/no verified factor|step-up required/i);
-  });
+      expect(
+        await rpcFromBrowser(page, "admin_set_role_permission", {
+          p_role_id: id,
+          p_permission_id: (
+            await adminClient()
+              .from("permissions")
+              .select("id, action, resources!inner(name)")
+              .eq("action", "view")
+              .eq("resources.name", "listings")
+              .single()
+          ).data?.id,
+          p_granted: false,
+        }),
+      ).toMatch(/no verified factor|step-up required/i);
+    },
+  );
 
   test("RP-7 registration: DEC-016 permissions appear as grantable rows", async ({ page }) => {
     const { secret } = await signInAsSuperAdmin(page);

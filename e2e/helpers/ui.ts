@@ -1,19 +1,18 @@
 import { readFileSync } from "node:fs";
 
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
-import { authFetch, STATE_FILE, type E2ESuperAdmin, type E2EUser } from "../global-setup";
+import { STATE_FILE, type E2ESuperAdmin, type E2EUser } from "../global-setup";
 
 import {
   assertInjectedIdentity,
   injectSession,
   passwordGrant,
   sessionInjectionEnabled,
-  type PersistedSession,
 } from "./session";
 import { totp } from "./totp";
 
@@ -438,15 +437,26 @@ export async function enrollAndStepUp(page: Page): Promise<string> {
  * and a large share of the wall time). The job's ONE super admin is minted and
  * enrolled once in global setup; this helper only signs it in.
  *
+ * L4b — DECLARED IDENTITY LAW. A test that MUTATES its own auth state (enrols
+ * or unenrols a factor, deletes factors through the admin API, or starts/ends
+ * an impersonation session) must declare itself with the Playwright tag
+ * `@private-identity`: it may not borrow the pool, because its mutation would
+ * poison every sibling test that shares that identity. `useJobSuperAdmin`
+ * reads `test.info().tags`; a tagged test gets a PRIVATE mint (the pre-L4 path,
+ * kept as `mintPrivateSuperAdmin`: fresh user, super_admin grant, enrol-in-
+ * session), an untagged test gets the pool. `scripts/check-identity-tags.sh`
+ * enforces the law statically, so the tag can never silently go missing.
+ *
  * AAL PARITY: `enrollAndStepUp` left the session at AAL2, so this helper does
- * too — the pooled factor is verified in node against the injected grant and
- * the AAL2 tokens are the bytes the browser receives. The step-up HINT is
- * deliberately not written, so a gate still prompts exactly as it does after a
- * fresh sign-in and `stepUpIfPrompted(page, secret)` keeps answering it.
+ * too — after sign-in it elevates IN THE BROWSER through the app's own client
+ * (`challengeAndVerify` on the pooled factor) and reads the achieved level back
+ * before returning. The step-up HINT is deliberately not written, so a gate
+ * still prompts exactly as it does after a fresh sign-in and
+ * `stepUpIfPrompted(page, secret)` keeps answering freshness re-prompts.
  *
  * With the `E2E_UI_LOGIN=1` revert knob (or in an auth spec) there is no
- * injection: the pooled credentials go through the real UI door at AAL1 and the
- * gate prompt is answered with the same secret.
+ * injection: the pooled credentials go through the real UI door and the same
+ * in-browser elevation follows.
  */
 export type JobSuperAdmin = {
   user: { id: string; email: string; password: string; displayName: string };
@@ -461,46 +471,127 @@ function pooledSuperAdmin(): E2ESuperAdmin {
   return state.superAdmin;
 }
 
-/** Elevates a password grant to AAL2 with the pooled factor, in node. */
-async function elevateToAal2(session: PersistedSession, pool: E2ESuperAdmin): Promise<void> {
-  const challenge = await authFetch(`/factors/${pool.factorId}/challenge`, {
-    method: "POST",
-    accessToken: session.access_token,
+/**
+ * L4b PART B — AAL2 PARITY, in the browser, through the app's own client.
+ * `challengeAndVerify` is exactly what the step-up gate calls, so the session
+ * the test inherits is byte-for-byte the state the old enrol-in-session helper
+ * left behind (direct-RPC tests such as RP-4 and TR-6 depend on it).
+ */
+async function elevateInBrowser(page: Page, pool: E2ESuperAdmin): Promise<void> {
+  if ((await readAal(page)) === "aal2") return;
+
+  let lastError: string | null = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    lastError = await page.evaluate(
+      async ([factorId, code]) => {
+        const client = (
+          window as unknown as {
+            __ethioSupabase: {
+              auth: {
+                mfa: {
+                  challengeAndVerify: (args: {
+                    factorId: string;
+                    code: string;
+                  }) => Promise<{ error: { message: string } | null }>;
+                };
+              };
+            };
+          }
+        ).__ethioSupabase;
+        const { error } = await client.auth.mfa.challengeAndVerify({
+          factorId: factorId!,
+          code: code!,
+        });
+        return error?.message ?? null;
+      },
+      [pool.factorId, totp(pool.secret)] as const,
+    );
+    if (lastError === null) break;
+    // A code already spent inside this 30s window is refused; the next
+    // window's code is a legitimate retry, never a weakened assertion.
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (TOTP window semantics), grandfathered
+    await page.waitForTimeout(8000);
+  }
+  if (lastError !== null) {
+    throw new Error(`[e2e:pool] in-browser TOTP elevation failed: ${lastError}`);
+  }
+  // READ-BACK: the achieved level, from the client, never inferred.
+  await expectAal2(page);
+  console.log(`[e2e:pool] AAL2 read-back for ${pool.id}: currentLevel = aal2`);
+}
+
+/**
+ * L4b PART B — a pooled identity may hold at most one ACTIVE impersonation
+ * session (begin_impersonation refuses a second), so a test that crashed
+ * mid-session would poison every later borrower. On acquire we end whatever is
+ * still open, through the same `end_impersonation(p_session)` RPC the banner
+ * calls, and say so.
+ */
+async function endActiveImpersonation(page: Page): Promise<void> {
+  const ended = await page.evaluate(async () => {
+    const client = (
+      window as unknown as {
+        __ethioSupabase: {
+          rpc: (
+            fn: string,
+            args?: Record<string, unknown>,
+          ) => Promise<{ data: unknown; error: { message: string } | null }>;
+        };
+      }
+    ).__ethioSupabase;
+    const active = await client.rpc("get_active_impersonation");
+    const rows = (active.data ?? []) as { id?: string }[];
+    const id = Array.isArray(rows) ? rows[0]?.id : undefined;
+    if (!id) return null;
+    const { error } = await client.rpc("end_impersonation", { p_session: id });
+    return error ? `error:${error.message}` : id;
   });
-  const challengeId = challenge["id"];
-  if (typeof challengeId !== "string") throw new Error("[e2e:pool] challenge returned no id.");
+  if (ended && ended.startsWith("error:")) {
+    throw new Error(`[e2e:pool] ending a stale impersonation session failed: ${ended.slice(6)}`);
+  }
+  if (ended) console.log(`[e2e:pool] ended a stale impersonation session (${ended}) on acquire.`);
+}
 
-  let verified: Record<string, unknown> | null = null;
-  let lastError = "";
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
-    try {
-      verified = await authFetch(`/factors/${pool.factorId}/verify`, {
-        method: "POST",
-        accessToken: session.access_token,
-        body: { challenge_id: challengeId, code: totp(pool.secret) },
-      });
-      break;
-    } catch (error) {
-      // A code already spent in this 30s window is refused; the next window's
-      // code is a legitimate retry, never a weakened assertion.
-      lastError = (error as { message?: string })?.message ?? String(error);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
+/**
+ * L4b PART C — the PRIVATE mint: the pre-L4 path, kept for tests tagged
+ * `@private-identity` (they mutate their own auth state and must own it).
+ */
+export async function mintPrivateSuperAdmin(page: Page): Promise<JobSuperAdmin> {
+  const { createUser, adminClient } = await import("./users");
+  const user = await createUser({ confirmed: true });
+  const supabase = adminClient();
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id")
+    .eq("name", "super_admin")
+    .single();
+  if (roleError || !role) {
+    throw new Error(`[e2e:pool] role super_admin not found: ${roleError?.message ?? "no row"}`);
   }
-  if (!verified) throw new Error(`[e2e:pool] TOTP verify failed: ${lastError}`);
+  const { error } = await supabase
+    .from("user_roles")
+    .insert({ user_id: user.id, role_id: role.id, scope_type: "global" });
+  if (error) throw new Error(`[e2e:pool] granting super_admin failed: ${error.message}`);
 
-  const accessToken = verified["access_token"];
-  if (typeof accessToken !== "string") {
-    throw new Error("[e2e:pool] verify returned no AAL2 access token.");
+  await switchUser(page, user.email, user.password);
+  await waitForHydration(page);
+  const secret = await enrollAndStepUp(page);
+  return { user, secret };
+}
+
+/** True when the running test declared itself under the identity law. */
+function declaresPrivateIdentity(): boolean {
+  try {
+    return test.info().tags.includes("@private-identity");
+  } catch {
+    // Outside a running test (a setup/helper probe): the pool is the default.
+    return false;
   }
-  session.access_token = accessToken;
-  if (typeof verified["refresh_token"] === "string") {
-    session.refresh_token = verified["refresh_token"];
-  }
-  if (typeof verified["expires_at"] === "number") session.expires_at = verified["expires_at"];
 }
 
 export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
+  if (declaresPrivateIdentity()) return mintPrivateSuperAdmin(page);
+
   const pool = pooledSuperAdmin();
   const user = {
     id: pool.id,
@@ -512,16 +603,17 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   if (!sessionInjectionEnabled()) {
     await switchUser(page, pool.email, pool.password);
     await waitForHydration(page);
-    return { user, secret: pool.secret };
+  } else {
+    const session = await passwordGrant(pool.email, pool.password);
+    await injectSession(page, session);
+    await gotoReady(page, "/");
+    await assertInjectedIdentity(page, session);
+    await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+    await waitForHydration(page);
   }
 
-  const session = await passwordGrant(pool.email, pool.password);
-  await elevateToAal2(session, pool);
-  await injectSession(page, session);
-  await gotoReady(page, "/");
-  await assertInjectedIdentity(page, session);
-  await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
-  await waitForHydration(page);
+  await elevateInBrowser(page, pool);
+  await endActiveImpersonation(page);
   return { user, secret: pool.secret };
 }
 

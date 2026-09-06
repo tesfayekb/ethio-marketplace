@@ -132,86 +132,94 @@ test.describe("U3 audit & security", () => {
     await expect(page.getByText(en["admin.audit.empty"])).toBeVisible();
   });
 
-  test("IMP-1 impersonation: super admin opens a read-only session and ends it", async ({
-    page,
-  }) => {
-    const { secret } = await signInAsSuperAdmin(page);
-    const target = await createUser({ confirmed: true });
+  test(
+    "IMP-1 impersonation: super admin opens a read-only session and ends it",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const { secret } = await signInAsSuperAdmin(page);
+      const target = await createUser({ confirmed: true });
 
-    await gotoReady(page, `/admin/users/${target.id}`);
-    await expect(page.getByTestId("impersonation-starter")).toBeVisible();
-    await page.getByTestId("impersonation-reason").fill("e2e support ticket 1234");
-    await page.getByTestId("impersonation-begin").click();
-    await stepUpIfPrompted(page, secret);
+      await gotoReady(page, `/admin/users/${target.id}`);
+      await expect(page.getByTestId("impersonation-starter")).toBeVisible();
+      await page.getByTestId("impersonation-reason").fill("e2e support ticket 1234");
+      await page.getByTestId("impersonation-begin").click();
+      await stepUpIfPrompted(page, secret);
 
-    await expect(page.getByTestId("impersonation-view")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("impersonation-banner")).toBeVisible();
-    await expect(page.getByTestId("impersonation-readonly-note")).toBeVisible();
-    await expectNoHorizontalOverflow(page);
+      await expect(page.getByTestId("impersonation-view")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("impersonation-banner")).toBeVisible();
+      await expect(page.getByTestId("impersonation-readonly-note")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
 
-    // The banner rides along on an unrelated page (global mount).
-    await gotoReady(page, "/admin/audit");
-    await expect(page.getByTestId("impersonation-banner")).toBeVisible();
+      // The banner rides along on an unrelated page (global mount).
+      await gotoReady(page, "/admin/audit");
+      await expect(page.getByTestId("impersonation-banner")).toBeVisible();
 
-    await page.getByTestId("impersonation-banner-end").click();
-    await expect(page.getByTestId("impersonation-banner")).toHaveCount(0, { timeout: 20000 });
-  });
+      await page.getByTestId("impersonation-banner-end").click();
+      await expect(page.getByTestId("impersonation-banner")).toHaveCount(0, { timeout: 20000 });
+    },
+  );
 
-  test("IMP-2 dual-actor audit: start and end are both recorded", async ({ page }) => {
-    const { user, secret } = await signInAsSuperAdmin(page);
-    const target = await createUser({ confirmed: true });
+  test(
+    "IMP-2 dual-actor audit: start and end are both recorded",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const { user, secret } = await signInAsSuperAdmin(page);
+      const target = await createUser({ confirmed: true });
 
-    await gotoReady(page, `/admin/users/${target.id}`);
-    await page.getByTestId("impersonation-reason").fill("e2e audit evidence");
-    await page.getByTestId("impersonation-begin").click();
-    await stepUpIfPrompted(page, secret);
-    await expect(page.getByTestId("impersonation-view")).toBeVisible({ timeout: 20000 });
-    await page.getByTestId("impersonation-end").click();
-    await expect(page.getByTestId("impersonation-banner")).toHaveCount(0, { timeout: 20000 });
+      await gotoReady(page, `/admin/users/${target.id}`);
+      await page.getByTestId("impersonation-reason").fill("e2e audit evidence");
+      await page.getByTestId("impersonation-begin").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("impersonation-view")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("impersonation-end").click();
+      await expect(page.getByTestId("impersonation-banner")).toHaveCount(0, { timeout: 20000 });
 
-    const { data, error } = await adminClient()
-      .from("audit_log")
-      .select("action, meta")
-      .eq("actor_id", user.id)
-      .in("action", ["impersonation.start", "impersonation.end"]);
-    if (error) throw new Error(`[e2e:u3] audit read failed: ${error.message}`);
-    const actions = (data ?? []).map((row) => row.action as string);
-    expect(actions).toContain("impersonation.start");
-    expect(actions).toContain("impersonation.end");
-    const start = (data ?? []).find((row) => row.action === "impersonation.start");
-    expect(JSON.stringify(start?.meta ?? {})).toContain(target.id);
-  });
+      const { data, error } = await adminClient()
+        .from("audit_log")
+        .select("action, meta")
+        .eq("actor_id", user.id)
+        .in("action", ["impersonation.start", "impersonation.end"]);
+      if (error) throw new Error(`[e2e:u3] audit read failed: ${error.message}`);
+      const actions = (data ?? []).map((row) => row.action as string);
+      expect(actions).toContain("impersonation.start");
+      expect(actions).toContain("impersonation.end");
+      const start = (data ?? []).find((row) => row.action === "impersonation.start");
+      expect(JSON.stringify(start?.meta ?? {})).toContain(target.id);
+    },
+  );
 
-  test("IMP-3 server refusals: self, super-admin target, and a non-super caller", async ({
-    page,
-  }) => {
-    const { user, secret } = await signInAsSuperAdmin(page);
-    await gotoReady(page, "/admin/audit");
-    await stepUpIfPrompted(page, secret);
+  test(
+    "IMP-3 server refusals: self, super-admin target, and a non-super caller",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/audit");
+      await stepUpIfPrompted(page, secret);
 
-    const self = await rpcFromBrowser(page, "begin_impersonation", {
-      p_target: user.id,
-      p_reason: "e2e self target",
-    });
-    expect(self ?? "").toContain("cannot impersonate yourself");
+      const self = await rpcFromBrowser(page, "begin_impersonation", {
+        p_target: user.id,
+        p_reason: "e2e self target",
+      });
+      expect(self ?? "").toContain("cannot impersonate yourself");
 
-    const other = await createUser({ confirmed: true });
-    await grantRole(other.id, "super_admin");
-    const superTarget = await rpcFromBrowser(page, "begin_impersonation", {
-      p_target: other.id,
-      p_reason: "e2e super target",
-    });
-    expect(superTarget ?? "").toContain("cannot impersonate a super admin");
+      const other = await createUser({ confirmed: true });
+      await grantRole(other.id, "super_admin");
+      const superTarget = await rpcFromBrowser(page, "begin_impersonation", {
+        p_target: other.id,
+        p_reason: "e2e super target",
+      });
+      expect(superTarget ?? "").toContain("cannot impersonate a super admin");
 
-    const admin = await createUser({ confirmed: true });
-    await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
-    await waitForHydration(page);
-    const victim = await createUser({ confirmed: true });
-    const refused = await rpcFromBrowser(page, "begin_impersonation", {
-      p_target: victim.id,
-      p_reason: "e2e non-super caller",
-    });
-    expect(refused ?? "").toContain("super-admin only");
-  });
+      const admin = await createUser({ confirmed: true });
+      await grantRole(admin.id, "admin");
+      await switchUser(page, admin.email, admin.password);
+      await waitForHydration(page);
+      const victim = await createUser({ confirmed: true });
+      const refused = await rpcFromBrowser(page, "begin_impersonation", {
+        p_target: victim.id,
+        p_reason: "e2e non-super caller",
+      });
+      expect(refused ?? "").toContain("super-admin only");
+    },
+  );
 });

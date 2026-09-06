@@ -104,49 +104,58 @@ async function statusChangeCount(userId: string): Promise<number> {
 }
 
 test.describe("U1f step-up authentication", () => {
-  test("MF-1 enroll: QR + secret shown, a generated code activates the factor", async ({
-    page,
-  }) => {
-    const staff = await createUser({ confirmed: true });
-    await grantRole(staff.id, "admin");
-    await switchUser(page, staff.email, staff.password);
+  test(
+    "MF-1 enroll: QR + secret shown, a generated code activates the factor",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const staff = await createUser({ confirmed: true });
+      await grantRole(staff.id, "admin");
+      await switchUser(page, staff.email, staff.password);
 
-    await gotoReady(page, "/settings");
-    await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOff"], {
-      timeout: 20000,
-    });
-    await enrollThroughSettings(page);
-    await expect(page.getByTestId("mfa-success")).toBeVisible();
-  });
+      await gotoReady(page, "/settings");
+      await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOff"], {
+        timeout: 20000,
+      });
+      await enrollThroughSettings(page);
+      await expect(page.getByTestId("mfa-success")).toBeVisible();
+    },
+  );
 
-  test("MF-2 gate: wrong code refused, correct code lets the action through", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
-    await grantRole(staff.id, "admin");
-    const target = await createUser({ confirmed: true });
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollThroughSettings(page);
+  test(
+    "MF-2 gate: wrong code refused, correct code lets the action through",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const staff = await createUser({ confirmed: true });
+      await grantRole(staff.id, "admin");
+      const target = await createUser({ confirmed: true });
+      await switchUser(page, staff.email, staff.password);
+      const secret = await enrollThroughSettings(page);
 
-    // A fresh sign-in is aal1 again — the gate must fire.
-    await switchUser(page, staff.email, staff.password);
-    await clearStepUpFreshness(page);
-    await gotoReady(page, `/admin/users/${target.id}`);
-    await page.getByTestId("deactivate-reason").fill("MF-2 proof");
-    await page.getByTestId("deactivate-user").click();
+      // A fresh sign-in is aal1 again — the gate must fire.
+      await switchUser(page, staff.email, staff.password);
+      await clearStepUpFreshness(page);
+      await gotoReady(page, `/admin/users/${target.id}`);
+      await page.getByTestId("deactivate-reason").fill("MF-2 proof");
+      await page.getByTestId("deactivate-user").click();
 
-    const modal = page.getByTestId("step-up-modal");
-    await expect(modal).toBeVisible({ timeout: 15000 });
-    await page.getByTestId("step-up-code").fill(wrongCode(secret));
-    await page.getByTestId("step-up-submit").click();
-    await expect(page.getByTestId("step-up-error")).toBeVisible({ timeout: 15000 });
+      const modal = page.getByTestId("step-up-modal");
+      await expect(modal).toBeVisible({ timeout: 15000 });
+      await page.getByTestId("step-up-code").fill(wrongCode(secret));
+      await page.getByTestId("step-up-submit").click();
+      await expect(page.getByTestId("step-up-error")).toBeVisible({ timeout: 15000 });
 
-    await page.getByTestId("step-up-code").fill(totp(secret));
-    await page.getByTestId("step-up-submit").click();
-    await expect(modal).toBeHidden({ timeout: 20000 });
-    await expect(page.getByTestId("user-status")).toHaveText(en["admin.users.status.deactivated"], {
-      timeout: 20000,
-    });
-    expect(await statusChangeCount(target.id)).toBeGreaterThan(0);
-  });
+      await page.getByTestId("step-up-code").fill(totp(secret));
+      await page.getByTestId("step-up-submit").click();
+      await expect(modal).toBeHidden({ timeout: 20000 });
+      await expect(page.getByTestId("user-status")).toHaveText(
+        en["admin.users.status.deactivated"],
+        {
+          timeout: 20000,
+        },
+      );
+      expect(await statusChangeCount(target.id)).toBeGreaterThan(0);
+    },
+  );
 
   test("MF-3 no factor: the modal explains and the RPC is never called", async ({ page }) => {
     const staff = await createUser({ confirmed: true });
@@ -191,24 +200,28 @@ test.describe("U1f step-up authentication", () => {
     expect(await statusChangeCount(target.id)).toBe(0);
   });
 
-  test("MF-5 unenroll requires a fresh verification", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
-    await grantRole(staff.id, "admin");
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollThroughSettings(page);
+  test(
+    "MF-5 unenroll requires a fresh verification",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const staff = await createUser({ confirmed: true });
+      await grantRole(staff.id, "admin");
+      await switchUser(page, staff.email, staff.password);
+      const secret = await enrollThroughSettings(page);
 
-    await page.getByTestId("mfa-remove").click();
-    await page.getByTestId("mfa-remove-code").fill(wrongCode(secret));
-    await page.getByTestId("mfa-remove-confirm").click();
-    await expect(page.getByTestId("mfa-error")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOn"]);
+      await page.getByTestId("mfa-remove").click();
+      await page.getByTestId("mfa-remove-code").fill(wrongCode(secret));
+      await page.getByTestId("mfa-remove-confirm").click();
+      await expect(page.getByTestId("mfa-error")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOn"]);
 
-    await page.getByTestId("mfa-remove-code").fill(totp(secret));
-    await page.getByTestId("mfa-remove-confirm").click();
-    await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOff"], {
-      timeout: 20000,
-    });
-  });
+      await page.getByTestId("mfa-remove-code").fill(totp(secret));
+      await page.getByTestId("mfa-remove-confirm").click();
+      await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOff"], {
+        timeout: 20000,
+      });
+    },
+  );
 });
 
 /**
@@ -224,57 +237,68 @@ test.describe("U1f step-up authentication", () => {
  * authoritative refusals are migration proofs P5/P7.
  */
 test.describe("U1f-4 step-up freshness", () => {
-  test("MF-6 unenrolling the only factor drops the stepped-up state", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
-    await grantRole(staff.id, "admin");
-    const target = await createUser({ confirmed: true });
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollThroughSettings(page);
+  test(
+    "MF-6 unenrolling the only factor drops the stepped-up state",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const staff = await createUser({ confirmed: true });
+      await grantRole(staff.id, "admin");
+      const target = await createUser({ confirmed: true });
+      await switchUser(page, staff.email, staff.password);
+      const secret = await enrollThroughSettings(page);
 
-    // Remove the only factor — the session may still claim aal2.
-    await page.getByTestId("mfa-remove").click();
-    await page.getByTestId("mfa-remove-code").fill(totp(secret));
-    await page.getByTestId("mfa-remove-confirm").click();
-    await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOff"], {
-      timeout: 20000,
-    });
-    await expect(page.getByTestId("mfa-off-warning")).toBeVisible();
+      // Remove the only factor — the session may still claim aal2.
+      await page.getByTestId("mfa-remove").click();
+      await page.getByTestId("mfa-remove-code").fill(totp(secret));
+      await page.getByTestId("mfa-remove-confirm").click();
+      await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOff"], {
+        timeout: 20000,
+      });
+      await expect(page.getByTestId("mfa-off-warning")).toBeVisible();
 
-    await gotoReady(page, `/admin/users/${target.id}`);
-    await page.getByTestId("deactivate-reason").fill("MF-6 proof");
-    await page.getByTestId("deactivate-user").click();
+      await gotoReady(page, `/admin/users/${target.id}`);
+      await page.getByTestId("deactivate-reason").fill("MF-6 proof");
+      await page.getByTestId("deactivate-user").click();
 
-    await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-    expect(await statusChangeCount(target.id)).toBe(0);
-  });
+      await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
+      expect(await statusChangeCount(target.id)).toBe(0);
+    },
+  );
 
-  test("MF-7 a verification older than the window re-prompts", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
-    await grantRole(staff.id, "admin");
-    const target = await createUser({ confirmed: true });
-    await page.addInitScript(() => {
-      (window as unknown as { __ethioStepUp: { windowMs: number } }).__ethioStepUp = {
-        windowMs: 3000,
-      };
-    });
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollThroughSettings(page);
+  test(
+    "MF-7 a verification older than the window re-prompts",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const staff = await createUser({ confirmed: true });
+      await grantRole(staff.id, "admin");
+      const target = await createUser({ confirmed: true });
+      await page.addInitScript(() => {
+        (window as unknown as { __ethioStepUp: { windowMs: number } }).__ethioStepUp = {
+          windowMs: 3000,
+        };
+      });
+      await switchUser(page, staff.email, staff.password);
+      const secret = await enrollThroughSettings(page);
 
-    // Enrollment elevated the session; wait past the (shortened) window.
-    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
-    await page.waitForTimeout(4000);
+      // Enrollment elevated the session; wait past the (shortened) window.
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
+      await page.waitForTimeout(4000);
 
-    await gotoReady(page, `/admin/users/${target.id}`);
-    await page.getByTestId("deactivate-reason").fill("MF-7 proof");
-    await page.getByTestId("deactivate-user").click();
+      await gotoReady(page, `/admin/users/${target.id}`);
+      await page.getByTestId("deactivate-reason").fill("MF-7 proof");
+      await page.getByTestId("deactivate-user").click();
 
-    const modal = page.getByTestId("step-up-modal");
-    await expect(modal).toBeVisible({ timeout: 15000 });
-    await page.getByTestId("step-up-code").fill(totp(secret));
-    await page.getByTestId("step-up-submit").click();
-    await expect(modal).toBeHidden({ timeout: 20000 });
-    await expect(page.getByTestId("user-status")).toHaveText(en["admin.users.status.deactivated"], {
-      timeout: 20000,
-    });
-  });
+      const modal = page.getByTestId("step-up-modal");
+      await expect(modal).toBeVisible({ timeout: 15000 });
+      await page.getByTestId("step-up-code").fill(totp(secret));
+      await page.getByTestId("step-up-submit").click();
+      await expect(modal).toBeHidden({ timeout: 20000 });
+      await expect(page.getByTestId("user-status")).toHaveText(
+        en["admin.users.status.deactivated"],
+        {
+          timeout: 20000,
+        },
+      );
+    },
+  );
 });
