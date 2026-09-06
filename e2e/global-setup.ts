@@ -268,7 +268,34 @@ async function mintPooledSuperAdmin(
     body: { challenge_id: challengeId, code: totp(secret) },
   });
 
+  // L4b PART A — VERIFIED, OR FAIL LOUDLY. A pool whose factor is still
+  // `unverified` looks fine here and detonates much later as an inexplicable
+  // step-up failure inside an unrelated test, so the contract is asserted
+  // through the admin API and an unverified pool is NEVER written to state.
+  const { data: factors, error: factorError } = await supabase.auth.admin.mfa.listFactors({
+    userId: id,
+  });
+  if (factorError) {
+    throw new Error(`[e2e:setup] pooled factor read failed: ${factorError.message}`);
+  }
+  const totpFactors = (factors?.factors ?? []).filter((f) => f.factor_type === "totp");
+  const verified = totpFactors.filter((f) => f.status === "verified");
+  if (totpFactors.length !== 1 || verified.length !== 1 || verified[0]!.id !== factorId) {
+    throw new Error(
+      `[e2e:setup] pooled super admin ${id} does not carry exactly one VERIFIED totp factor. ` +
+        `Expected ${factorId}; got ${JSON.stringify(
+          (factors?.factors ?? []).map((f) => ({
+            id: f.id,
+            type: f.factor_type,
+            status: f.status,
+          })),
+        )}`,
+    );
+  }
+  console.log(`[e2e:setup] pooled factor ${factorId} status = verified (1 totp factor)`);
+
   return { id, email, password, displayName: email.split("@")[0]!, secret, factorId };
+
 }
 
 export default async function globalSetup() {
