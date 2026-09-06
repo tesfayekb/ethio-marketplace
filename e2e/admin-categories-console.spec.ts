@@ -29,6 +29,7 @@ import {
   destroyCategory,
   createViaUi,
   geometryDump,
+  dialogDump,
 } from "./helpers/categories";
 /**
  * C2-UI — THE CATEGORIES CONSOLE, roster and CRUD (CT-1..CT-11).
