@@ -8,6 +8,7 @@ import {
   listAttributes,
   listCategoryLinks,
   mergeAttributes,
+  setAttributeLinkOrder,
   setCardAttributes,
   unlinkAttribute,
   upsertAttribute,
@@ -98,6 +99,15 @@ export function useSetCardAttributes() {
   return useMutation({
     mutationFn: (input: { categoryId: string; orderedAttributeIds: string[] }) =>
       setCardAttributes(input),
+    onSettled: invalidate,
+  });
+}
+
+export function useSetAttributeLinkOrder() {
+  const invalidate = useInvalidateAttributes();
+  return useMutation({
+    mutationFn: (input: { categoryId: string; orderedLinkIds: string[] }) =>
+      setAttributeLinkOrder(input),
     onSettled: invalidate,
   });
 }

@@ -203,3 +203,19 @@ export function needsCardAttributes(row: {
 }): boolean {
   return row.isActive && row.allowListings && row.cardAttributeCount < CARD_ATTRIBUTE_MINIMUM;
 }
+
+/**
+ * C3c PART C — MOVE UP / MOVE DOWN. The whole link list is sent in its new
+ * order; the server refuses anything that is not exactly the category's own
+ * set (totality, E6), so a stale client can never half-write an order.
+ */
+export async function setAttributeLinkOrder(input: {
+  categoryId: string;
+  orderedLinkIds: string[];
+}): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_attribute_link_order", {
+    p_category_id: input.categoryId,
+    p_ordered_link_ids: input.orderedLinkIds,
+  });
+  if (error) throw error;
+}
