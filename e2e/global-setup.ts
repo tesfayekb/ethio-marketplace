@@ -413,28 +413,33 @@ export default async function globalSetup() {
   // DEC-036 PART B.2 — STAGING MAINTENANCE SWEEP (staging only by
   // construction: adminClient() refuses any URL but ethio-staging). Two
   // classes the fixture reapers never covered:
-  //   (a) audit_log rows older than 7 days whose actor is an e2e user — the
-  //       audit table is append-only for the app, so without this sweep it
-  //       grows without bound and slows every gated read.
+  //   (a) audit_log rows whose actor is an e2e user — the audit table is
+  //       append-only for the app, so without this sweep it grows without
+  //       bound and slows every gated read.
   //   (b) category-assets objects belonging to e2e-created categories, older
   //       than the 3h fixture window — destroyCategory never touches storage,
   //       and a mid-test death orphans the folder entirely.
-  const auditCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  //
+  // L2 (DEC-037, fixes INC-159): the direct DELETE was refused by the
+  // append-only trigger for EVERY role, so this sweep pruned nothing. It now
+  // goes through the one maintenance door, `maintenance_prune_audit`
+  // (service_role only, bounded to the actor list AND the cutoff), and the
+  // window is 24 HOURS — a staging audit trail older than a day is residue.
+  const auditCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const e2eUserIds = await listE2EUserIds(supabase);
   let prunedAudit = 0;
   for (let index = 0; index < e2eUserIds.length; index += 200) {
     const batch = e2eUserIds.slice(index, index + 200);
-    const { data: pruned, error: pruneError } = await supabase
-      .from("audit_log")
-      .delete()
-      .in("actor_id", batch)
-      .lt("created_at", auditCutoff)
-      .select("id");
+    const { data: pruned, error: pruneError } = await supabase.rpc("maintenance_prune_audit", {
+      p_cutoff: auditCutoff,
+      p_actor_ids: batch,
+    });
     if (pruneError) {
       throw new Error(`[e2e:setup] audit maintenance failed: ${pruneError.message}`);
     }
-    prunedAudit += pruned?.length ?? 0;
+    prunedAudit += Number(pruned ?? 0);
   }
+
 
   const { data: e2eCategories, error: e2eCategoryError } = await supabase
     .from("categories")
