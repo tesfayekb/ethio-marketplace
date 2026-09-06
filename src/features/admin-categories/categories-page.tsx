@@ -4,6 +4,7 @@ import {
   CalendarClock,
   Globe,
   ImageIcon,
+  ListChecks,
   Pencil,
   RotateCcw,
   Share2,
@@ -28,6 +29,9 @@ import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+
+import { CategoryAttributesDialog } from "@/features/admin-attributes/category-attributes-dialog";
+import { needsCardAttributes } from "@/features/admin-attributes/attributes-service";
 
 import { CategoryImageDialog } from "./category-image-dialog";
 import { CategoryImageError, generateCategoryImage } from "./category-images-service";
@@ -630,6 +634,18 @@ export function AdminCategoriesPage() {
                     openedBy: "verb-exclusions",
                   }),
               ),
+              verb(
+                `category-attributes-${row.slug}`,
+                t("admin.categories.action.attributes"),
+                <ListChecks aria-hidden="true" className="size-4" />,
+                () =>
+                  setDialog({
+                    kind: "edit",
+                    id: row.id,
+                    sub: "attributes",
+                    openedBy: "verb-attributes",
+                  }),
+              ),
             ]
           : null}
         {mayAssets
@@ -930,6 +946,16 @@ export function AdminCategoriesPage() {
               hasImage={selected?.hasImage ?? false}
               guard={guard}
               openedBy="verb-image"
+              onClose={() =>
+                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
+              }
+            />
+          ) : null}
+          {selected && dialog.kind === "edit" && dialog.sub === "attributes" ? (
+            <CategoryAttributesDialog
+              categoryId={selected.id}
+              categoryName={selected.nameEn}
+              guard={guard}
               onClose={() =>
                 closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
               }
