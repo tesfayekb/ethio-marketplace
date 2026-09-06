@@ -257,6 +257,14 @@ test.describe("C3 attributes console", () => {
   });
 
   test("AT-5 delete: refused while linked, accepted once unlinked", async ({ page }) => {
+    /**
+     * C3f — BUDGET TRUTH. This test's workload is multi-surface: a super-admin
+     * sign-in, a category minted through the categories console UI, a hop to
+     * the attributes library, and TWO delete submissions each of which can
+     * raise a step-up (TOTP) challenge. That chain legitimately exceeds the
+     * default budget on a loaded shard; the assertions are unchanged.
+     */
+    test.setTimeout(120_000);
     bandOnly(page, "any");
     const { secret } = await signInAsSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
@@ -269,7 +277,13 @@ test.describe("C3 attributes console", () => {
         .from("category_attribute_links")
         .insert({ category_id: scratch!.id, attribute_id: id, display_order: 0 });
 
-      await gotoReady(page, "/admin/attributes");
+      await test.step("AT-5 navigate to the attribute library", async () => {
+        await gotoReady(page, "/admin/attributes");
+        await expect(
+          page.getByTestId("attribute-search"),
+          await dialogDump(page, "AT-5 library never rendered"),
+        ).toBeVisible({ timeout: 20000 });
+      });
       await test.step("AT-5 delete refused while linked", async () => {
         await page.getByTestId("attribute-search").fill(key);
         // J5 — the verb resolves inside ITS OWN row's actions region, in either twin.
