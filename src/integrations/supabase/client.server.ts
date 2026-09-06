@@ -9,8 +9,33 @@ function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
 }
 
+/**
+ * STAB-H PART C (INC-165) — SLOW-RPC EVIDENCE. A call that takes longer than
+ * five seconds names itself in the server log; nothing else changes.
+ */
+const SLOW_CALL_MS = 5000;
+
+function callLabel(input: RequestInfo | URL): string {
+  const raw =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.toString()
+        : (input as Request).url;
+  try {
+    const path = new URL(raw).pathname;
+    const rpc = path.match(/\/rest\/v1\/rpc\/([^/]+)/);
+    if (rpc) return rpc[1]!;
+    const table = path.match(/\/rest\/v1\/([^/]+)/);
+    if (table) return table[1]!;
+    return path;
+  } catch {
+    return raw;
+  }
+}
+
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
-  return (input, init) => {
+  return async (input, init) => {
     const headers = new Headers(
       typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
     );
