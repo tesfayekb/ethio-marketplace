@@ -255,11 +255,26 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-7 sync imports the compiled catalog and reports its counts", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { user, secret } = await signInAsSuperAdmin(page);
+    await logTranslatorScope(page, user.id);
     await gotoReady(page, "/admin/translations");
+    const syncRoute = watchRoute(page, "admin_sync_ui_keys");
     await page.getByTestId("translations-sync-run").click();
     await stepUpIfPrompted(page, secret);
-    await expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 30000 });
+    const syncResult = await syncRoute;
+    await expectWithEvidence(
+      () => expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 30000 }),
+      async () => {
+        const { data, error } = await adminClient().rpc("admin_translation_stats", {
+          p_lang: "en",
+        });
+        const stats = error ? `stats read failed: ${error.message}` : JSON.stringify(data);
+        return (
+          `sync route (admin_sync_ui_keys) → ${syncResult}\n` +
+          `pooled user ${user.id}\nDB stats row: ${stats}`
+        );
+      },
+    );
   });
 
   test("TR-8 save then approve moves a string through the status machine", async ({ page }) => {
@@ -446,15 +461,23 @@ test.describe("U4b translations console", () => {
     const key = scratchKey("tr11");
     await seedScratchKey(key, "Scratch source");
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
       await surfaceControl(page, `string-expand-${id}`).click();
+      const aiRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+      const aiResult = await aiRoute;
+      await expectWithEvidence(
+        () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${aiResult}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
+      );
 
       // The row itself: fake marker, machine status, machine provenance.
       const { data: row, error } = await adminClient()
@@ -558,15 +581,23 @@ test.describe("U4b translations console", () => {
     // mismatches the en source's placeholder set and MUST land flagged.
     await seedScratchKey(key, "E2EBREAK Hello {name}");
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
       await surfaceControl(page, `string-expand-${id}`).click();
+      const aiRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+      const aiResult = await aiRoute;
+      await expectWithEvidence(
+        () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${aiResult}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
+      );
 
       const { data: row, error } = await adminClient()
         .from("ui_translations")
@@ -607,7 +638,8 @@ test.describe("U4b translations console", () => {
     await seedScratchKey(brokenKey, "E2EBREAK Hello {name}");
     const supabase = adminClient();
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
 
       // ---- A. the token survives the round trip -------------------
@@ -615,9 +647,17 @@ test.describe("U4b translations console", () => {
       await page.getByTestId("strings-search").fill(keptKey);
       await expect(stringRow(page, keptId)).toBeVisible({ timeout: 20000 });
       await surfaceControl(page, `string-expand-${keptId}`).click();
+      const keptRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, keptId, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, keptId, "string-saved")).toBeVisible({ timeout: 30000 });
+      const keptRouteText = await keptRoute;
+      await expectWithEvidence(
+        () =>
+          expect(expansionControl(page, keptId, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${keptRouteText}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(keptKey, "am")}`,
+      );
 
       const { data: kept, error: keptError } = await supabase
         .from("ui_translations")
@@ -640,11 +680,19 @@ test.describe("U4b translations console", () => {
       await page.getByTestId("strings-search").fill(brokenKey);
       await expect(stringRow(page, brokenId)).toBeVisible({ timeout: 20000 });
       await surfaceControl(page, `string-expand-${brokenId}`).click();
+      const brokenRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, brokenId, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, brokenId, "string-saved")).toBeVisible({
-        timeout: 30000,
-      });
+      const brokenRouteText = await brokenRoute;
+      await expectWithEvidence(
+        () =>
+          expect(expansionControl(page, brokenId, "string-saved")).toBeVisible({
+            timeout: 30000,
+          }),
+        async () =>
+          `route /api/translate → ${brokenRouteText}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(brokenKey, "am")}`,
+      );
       await expect(expansionControl(page, brokenId, "string-flagnote")).toBeVisible({
         timeout: 20000,
       });
@@ -828,7 +876,8 @@ test.describe("U4b translations console", () => {
     await seedScratchKey(key, "History source");
     const supabase = adminClient();
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
@@ -836,9 +885,16 @@ test.describe("U4b translations console", () => {
       await surfaceControl(page, `string-expand-${id}`).click();
 
       // 1) machine write, then 2) a human edit — the U4c pair (TR-11's shape).
+      const aiRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+      const aiResult = await aiRoute;
+      await expectWithEvidence(
+        () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${aiResult}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
+      );
       await expansionControl(page, id, "string-input").fill("የሰው እርማት");
       await expansionControl(page, id, "string-save").click();
       await stepUpIfPrompted(page, secret);
