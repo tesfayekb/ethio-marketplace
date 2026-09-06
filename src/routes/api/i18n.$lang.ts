@@ -55,9 +55,61 @@ function fail(error: string, status: number): Response {
   });
 }
 
+/**
+ * STAB-I18N (INC-164) — THE IN-PROCESS BUNDLE CACHE.
+ *
+ * Census: every request used to run BOTH RPCs (version + bundle). The bundle
+ * query is an index scan over `ui_translations_lang_status_idx` (~19ms on prod
+ * for `am`), paid on every cold client. The cache keeps ONE entry per language
+ * keyed by the publication version, so:
+ *   - inside the version TTL a request costs ZERO database round trips;
+ *   - after the TTL a request costs ONE tiny version read, and only a CHANGED
+ *     version rebuilds the bundle.
+ * Invalidation is the data's own version — publishing/unpublishing a language
+ * flips `enabled_public`, which flips `get_ui_bundle_version` between the
+ * `|empty` hash and the real one, so no publish path has to remember to bust.
+ */
+const VERSION_TTL_MS = 15_000;
+
+interface CacheEntry {
+  version: string;
+  etag: string;
+  body: string;
+  checkedAt: number;
+}
+
+const bundleCache = new Map<string, CacheEntry>();
+
+function cacheControlHeader(): string {
+  return `public, max-age=${MAX_AGE}, stale-while-revalidate=3600`;
+}
+
+function respond(request: Request, entry: CacheEntry): Response {
+  const cacheControl = cacheControlHeader();
+  if (request.headers.get("If-None-Match") === entry.etag) {
+    return new Response(null, {
+      status: 304,
+      headers: { ETag: entry.etag, "Cache-Control": cacheControl },
+    });
+  }
+  return new Response(entry.body, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": cacheControl,
+      ETag: entry.etag,
+      Vary: "Accept-Encoding",
+    },
+  });
+}
+
 async function handleGet(request: Request, lang: string): Promise<Response> {
   const code = lang.trim().toLowerCase();
   if (!LANG_RE.test(code)) return fail("invalid language code", 400);
+
+  const now = Date.now();
+  const cached = bundleCache.get(code);
+  if (cached && now - cached.checkedAt < VERSION_TTL_MS) return respond(request, cached);
 
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
@@ -72,29 +124,34 @@ async function handleGet(request: Request, lang: string): Promise<Response> {
   });
   if (versionError) return fail(versionError.message, 502);
 
-  const etag = bundleEtag(code, typeof version === "string" ? version : "");
-  const cacheControl = `public, max-age=${MAX_AGE}, stale-while-revalidate=3600`;
+  const resolved = typeof version === "string" ? version : "";
+  const etag = bundleEtag(code, resolved);
 
-  // A conditional hit never touches the bundle query at all.
+  // Version unchanged → the cached body is still byte-correct; no bundle query.
+  if (cached && cached.version === resolved) {
+    cached.checkedAt = now;
+    return respond(request, cached);
+  }
+
+  // A conditional hit on a fresh version never touches the bundle query either.
   if (request.headers.get("If-None-Match") === etag) {
     return new Response(null, {
       status: 304,
-      headers: { ETag: etag, "Cache-Control": cacheControl },
+      headers: { ETag: etag, "Cache-Control": cacheControlHeader() },
     });
   }
 
   const { data, error } = await supabase.rpc("get_ui_bundle", { p_lang: code });
   if (error) return fail(error.message, 502);
 
-  return new Response(JSON.stringify({ lang: code, bundle: data ?? {} }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": cacheControl,
-      ETag: etag,
-      Vary: "Accept-Encoding",
-    },
-  });
+  const entry: CacheEntry = {
+    version: resolved,
+    etag,
+    body: JSON.stringify({ lang: code, bundle: data ?? {} }),
+    checkedAt: now,
+  };
+  bundleCache.set(code, entry);
+  return respond(request, entry);
 }
 
 export const Route = createFileRoute("/api/i18n/$lang")({
