@@ -143,7 +143,9 @@ test.describe("C3 attributes console", () => {
       await expect(page.getByTestId("category-attributes-empty")).toBeVisible();
 
       await page.getByTestId("category-attribute-search").fill(key);
-      await page.getByTestId("category-attribute-picker").selectOption({ label: `${key} (${key})` });
+      await page
+        .getByTestId("category-attribute-picker")
+        .selectOption({ label: `${key} (${key})` });
       await page.getByTestId("category-attribute-add").click();
       await stepUpIfPrompted(page, secret);
 
