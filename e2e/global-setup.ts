@@ -230,7 +230,6 @@ export default async function globalSetup() {
     return;
   }
 
-
   // 6. Reap the fixture graveyard (INC-096g): a mid-test death leaves scratch
   //    rows behind.
   //    DEC-036 — the window is THREE HOURS (was 24h, then 1h): same-day
