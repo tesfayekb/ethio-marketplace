@@ -467,10 +467,12 @@ test.describe("C2 categories console", () => {
      */
     for (const slug of ["auto-services", "realtor-services", "fitness-centers"]) {
       await page.getByTestId("category-search").fill(slug);
-      await expect(categoryRow(page, slug)).toBeVisible({ timeout: 20000 });
-      await expect(page.getByTestId(`category-parent-primary-${slug}`)).toBeVisible();
+      const row = categoryRow(page, slug);
+      await expect(row).toBeVisible({ timeout: 20000 });
+      // J5 — the parent cell is a PER-ROW element: scope it to its own row.
+      await expect(row.getByTestId(`category-parent-primary-${slug}`)).toBeVisible();
       for (const name of await secondaryParentNames(slug)) {
-        await expect(page.getByTestId(`category-parent-also-${slug}`)).toContainText(name);
+        await expect(row.getByTestId(`category-parent-also-${slug}`)).toContainText(name);
       }
     }
   });
@@ -492,10 +494,12 @@ test.describe("C2 categories console", () => {
 
     // C3c PART D — the same parent facts inside the card twin (DB truth).
     await page.getByTestId("category-search").fill("auto-services");
-    await expect(categoryRow(page, "auto-services")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("category-parent-primary-auto-services")).toBeVisible();
+    const flipped = categoryRow(page, "auto-services");
+    await expect(flipped).toBeVisible({ timeout: 20000 });
+    // J5 — row-scoped in the card twin too.
+    await expect(flipped.getByTestId("category-parent-primary-auto-services")).toBeVisible();
     for (const name of await secondaryParentNames("auto-services")) {
-      await expect(page.getByTestId("category-parent-also-auto-services")).toContainText(name);
+      await expect(flipped.getByTestId("category-parent-also-auto-services")).toContainText(name);
     }
     await expectNoHorizontalOverflow(page);
   });

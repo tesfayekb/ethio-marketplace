@@ -30,7 +30,30 @@ import {
  * ratified 205-definition library except by reading it.
  */
 
+/**
+ * C3d — TWIN-SCOPED LOCATORS (J5). Every per-row element resolves inside its
+ * own row, in whichever twin the viewport renders: the DataTable primitive's
+ * default boundary is 768 (cards below it, a table at and above it).
+ */
+const TWIN_BOUNDARY = 768;
+
+function isCardTwin(page: import("@playwright/test").Page) {
+  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
+}
+
+function librarySurface(page: import("@playwright/test").Page) {
+  return isCardTwin(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
+}
+
+/** The row's ACTIONS region — a card sibling below md, a cell at md and up. */
+function attributeActions(page: import("@playwright/test").Page, key: string) {
+  return librarySurface(page).getByTestId(
+    isCardTwin(page) ? `attribute-row-${key}-actions` : `attribute-row-${key}-actions-cell`,
+  );
+}
+
 /** A scratch definition, minted straight through the service client (J3). */
+
 async function seedAttribute(key: string, type = "text") {
   const { data, error } = await adminClient()
     .from("attributes")
@@ -95,27 +118,46 @@ test.describe("C3 attributes console", () => {
     const key = `e2e_attr_${rand()}`;
     try {
       await gotoReady(page, "/admin/attributes");
-      await page.getByTestId("attribute-create-open").click();
-      await expect(page.getByTestId("attribute-edit-dialog")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("attribute-key").fill(key);
-      await page.getByTestId("attribute-name").fill(key);
-      await page.getByTestId("attribute-type").selectOption("select");
-      await page.getByTestId("attribute-options").fill("Alpha\nBeta");
-      await page.getByTestId("attribute-edit-submit").click();
-      await stepUpIfPrompted(page, secret);
+      /**
+       * C3d — THE LIVE TYPE VOCABULARY. `attributes_attr_type_check` admits
+       * text · number · single_select · multi_select · boolean · date · range.
+       * "select" is not in the set, so the option-carrying single choice is
+       * `single_select`.
+       */
+      await test.step("AT-2 create definition", async () => {
+        await page.getByTestId("attribute-create-open").click();
+        await expect(
+          page.getByTestId("attribute-edit-dialog"),
+          await dialogDump(page, "AT-2 editor never opened"),
+        ).toBeVisible({ timeout: 20000 });
+        await page.getByTestId("attribute-key").fill(key);
+        await page.getByTestId("attribute-name").fill(key);
+        await page.getByTestId("attribute-type").selectOption("single_select");
+        await page.getByTestId("attribute-options").fill("Alpha\nBeta");
+        await page.getByTestId("attribute-edit-submit").click();
+        await stepUpIfPrompted(page, secret);
+      });
 
       await expect
-        .poll(async () => (await readAttribute(key))?.attr_type, { timeout: 20000 })
-        .toBe("select");
+        .poll(async () => (await readAttribute(key))?.attr_type, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-2 definition never landed"),
+        })
+        .toBe("single_select");
       expect((await readAttribute(key))?.options).toEqual(["Alpha", "Beta"]);
 
-      await page.getByTestId("attribute-search").fill(key);
-      await page.getByTestId(`attribute-edit-${key}`).click();
-      await page.getByTestId("attribute-name").fill(`${key} renamed`);
-      await page.getByTestId("attribute-edit-submit").click();
-      await stepUpIfPrompted(page, secret);
+      await test.step("AT-2 rename definition", async () => {
+        await page.getByTestId("attribute-search").fill(key);
+        await attributeActions(page, key).getByTestId(`attribute-edit-${key}`).click();
+        await page.getByTestId("attribute-name").fill(`${key} renamed`);
+        await page.getByTestId("attribute-edit-submit").click();
+        await stepUpIfPrompted(page, secret);
+      });
       await expect
-        .poll(async () => (await readAttribute(key))?.name_en, { timeout: 20000 })
+        .poll(async () => (await readAttribute(key))?.name_en, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-2 rename never landed"),
+        })
         .toBe(`${key} renamed`);
     } finally {
       await destroyAttribute(key);
@@ -228,20 +270,36 @@ test.describe("C3 attributes console", () => {
         .insert({ category_id: scratch!.id, attribute_id: id, display_order: 0 });
 
       await gotoReady(page, "/admin/attributes");
-      await page.getByTestId("attribute-search").fill(key);
-      await page.getByTestId(`attribute-delete-${key}`).click();
-      await expect(page.getByTestId("attribute-delete-blast")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("attribute-delete-confirm").fill(key);
-      await page.getByTestId("attribute-delete-submit").click();
-      await stepUpIfPrompted(page, secret);
-      // F5 — the refused attempt leaves no trace: the definition survives.
-      await expect(page.getByTestId("attribute-dialog-error")).toBeVisible({ timeout: 20000 });
+      await test.step("AT-5 delete refused while linked", async () => {
+        await page.getByTestId("attribute-search").fill(key);
+        // J5 — the verb resolves inside ITS OWN row's actions region, in either twin.
+        await attributeActions(page, key).getByTestId(`attribute-delete-${key}`).click();
+        await expect(
+          page.getByTestId("attribute-delete-blast"),
+          await dialogDump(page, "AT-5 delete dialog never opened"),
+        ).toBeVisible({ timeout: 20000 });
+        await page.getByTestId("attribute-delete-confirm").fill(key);
+        await page.getByTestId("attribute-delete-submit").click();
+        await stepUpIfPrompted(page, secret);
+        // F5 — the refused attempt leaves no trace: the definition survives.
+        await expect(
+          page.getByTestId("attribute-dialog-error"),
+          await dialogDump(page, "AT-5 refusal was never shown"),
+        ).toBeVisible({ timeout: 20000 });
+      });
       expect(await readAttribute(key)).not.toBeNull();
 
       await adminClient().from("category_attribute_links").delete().eq("attribute_id", id);
-      await page.getByTestId("attribute-delete-submit").click();
-      await stepUpIfPrompted(page, secret);
-      await expect.poll(async () => await readAttribute(key), { timeout: 20000 }).toBeNull();
+      await test.step("AT-5 delete accepted once unlinked", async () => {
+        await page.getByTestId("attribute-delete-submit").click();
+        await stepUpIfPrompted(page, secret);
+        await expect
+          .poll(async () => await readAttribute(key), {
+            timeout: 20000,
+            message: await dialogDump(page, "AT-5 definition never left"),
+          })
+          .toBeNull();
+      });
     } finally {
       if (slug) await destroyCategory(slug);
       await destroyAttribute(key);
