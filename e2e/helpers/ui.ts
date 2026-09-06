@@ -1,19 +1,18 @@
 import { readFileSync } from "node:fs";
 
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
-import { authFetch, STATE_FILE, type E2ESuperAdmin, type E2EUser } from "../global-setup";
+import { STATE_FILE, type E2ESuperAdmin, type E2EUser } from "../global-setup";
 
 import {
   assertInjectedIdentity,
   injectSession,
   passwordGrant,
   sessionInjectionEnabled,
-  type PersistedSession,
 } from "./session";
 import { totp } from "./totp";
 
