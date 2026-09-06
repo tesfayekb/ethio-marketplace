@@ -99,12 +99,18 @@ fi
 DIR="${1:-e2e}"
 fail=0
 while IFS= read -r file; do
+  out="$(scan_file "$file" <"$file")"
+  [ -z "$out" ] && continue
   skip=0
   for entry in "${DEFERRED[@]}"; do
     [ "${entry%%:*}" = "$file" ] && skip=1
   done
-  out="$(scan_file "$file" <"$file")" || fail=1
-  [ -n "$out" ] && { [ "$skip" -eq 1 ] && echo "[identity-tags] deferred (outside L4b scope): $out" && fail=0 || echo "$out"; }
+  if [ "$skip" -eq 1 ]; then
+    echo "[identity-tags] deferred (outside L4b scope): $out"
+  else
+    echo "$out"
+    fail=1
+  fi
 done < <(find "$DIR" -name '*.spec.ts' | sort)
 
 if [ "$fail" -ne 0 ]; then
