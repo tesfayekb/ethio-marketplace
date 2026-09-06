@@ -199,9 +199,8 @@ import {
        * CT6-ESCAPE (INC-160) — bounded dismissal after the retire return-path.
        */
       let firstEscapeDump = "";
-      const closedOnFirstPress = await test.step(
-        "CT-6 dismiss editor · Escape press 1",
-        async () => {
+      const closedOnFirstPress =
+        await test.step("CT-6 dismiss editor · Escape press 1", async () => {
           await page.keyboard.press("Escape");
           try {
             await expect
@@ -214,8 +213,7 @@ import {
             firstEscapeDump = await dialogDump(page, "CT-6 retire first Escape failed");
             return false;
           }
-        },
-      );
+        });
       if (!closedOnFirstPress) {
         await test.step("CT-6 dismiss editor · Escape press 2", async () => {
           await page.keyboard.press("Escape");
