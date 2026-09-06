@@ -2,8 +2,8 @@ import { type Locator, type Page } from "@playwright/test";
 
 import { test } from "../fixtures";
 import { fenceLang, processId } from "../global-setup";
-import { enrollAndStepUp, isMobile, switchUser, waitForHydration } from "./ui";
-import { adminClient, createUser } from "./users";
+import { isMobile, switchUser, useJobSuperAdmin, waitForHydration } from "./ui";
+import { adminClient } from "./users";
 
 /**
  * L1 (DEC-037) — SHARED TRANSLATION-CONSOLE HELPERS.
@@ -250,32 +250,13 @@ export async function grantRole(userId: string, roleName: string) {
 }
 
 /**
- * L1c — CLEANUP CO-LOCATION LAW (same law as e2e/helpers/categories.ts). The
- * minting site owns the disposal: registration on the line after the mint,
- * a helper-owned `afterEach` that reaps it wherever the caller lives. This is
- * relocation-proof — a future split moves the tests, never the cleanup. No
- * assertion, title, tag or identity changes (J1): call sites are untouched.
+ * L4 (DEC-038) — THE JOB POOL. This helper used to mint a fresh super admin and
+ * enrol a TOTP factor on every call; it now delegates to the job-scoped pooled
+ * identity (`useJobSuperAdmin`), so nothing is minted here and the L1c
+ * co-located disposer it owned has no mint left to reap. Call sites, titles,
+ * tags and assertions are untouched (J1); the returned shape is unchanged.
  */
-const mintedSuperAdmins: string[] = [];
-
-test.afterEach(async () => {
-  const ids = mintedSuperAdmins.splice(0, mintedSuperAdmins.length);
-  const supabase = adminClient();
-  for (const id of ids) {
-    const { error } = await supabase.auth.admin.deleteUser(id);
-    // Already gone (a sibling reaper won the race) is success, not a failure.
-    if (error && !/not.?found/i.test(error.message)) {
-      throw new Error(`[e2e:u4b] disposing super-admin ${id} failed: ${error.message}`);
-    }
-  }
-});
-
 export async function signInAsSuperAdmin(page: Page) {
-  const user = await createUser({ confirmed: true });
-  mintedSuperAdmins.push(user.id);
-  await grantRole(user.id, "super_admin");
-  await switchUser(page, user.email, user.password);
-  await waitForHydration(page);
-  const secret = await enrollAndStepUp(page);
-  return { user, secret };
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
+  return useJobSuperAdmin(page);
 }

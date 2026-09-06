@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 
 import {
-  enrollAndStepUp,
+  useJobSuperAdmin,
   expectNoHorizontalOverflow,
   gotoReady,
   stepUpIfPrompted,
@@ -72,12 +72,8 @@ async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unkno
 }
 
 async function signInAsSuperAdmin(page: Page) {
-  const user = await createUser({ confirmed: true });
-  await grantRole(user.id, "super_admin");
-  await switchUser(page, user.email, user.password);
-  await waitForHydration(page);
-  const secret = await enrollAndStepUp(page);
-  return { user, secret };
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
+  return useJobSuperAdmin(page);
 }
 
 test.describe("U3 audit & security", () => {

@@ -5,7 +5,7 @@ import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
 import {
-  enrollAndStepUp,
+  useJobSuperAdmin,
   expectNoHorizontalOverflow,
   gotoReady,
   roleRow,
@@ -72,14 +72,10 @@ function rand() {
   return Math.random().toString(36).slice(2, 8);
 }
 
-/** Creates a super admin, signs in, enrols TOTP and returns the shared secret. */
+/** L4 (DEC-038): the job-scoped pooled super admin; enrolment happens once in setup. */
 async function signInAsSuperAdmin(page: Page) {
-  const user = await createUser({ confirmed: true });
-  await grantRole(user.id, "super_admin");
-  await switchUser(page, user.email, user.password);
-  await waitForHydration(page);
-  const secret = await enrollAndStepUp(page);
-  return { user, secret };
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
+  return useJobSuperAdmin(page);
 }
 
 /** Creates a custom role through the UI and returns its key. */
