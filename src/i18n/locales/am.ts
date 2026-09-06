@@ -948,6 +948,7 @@ export const am: Messages = {
   "admin.attributes.error.keyTaken": "ሌላ ባህሪ ይህን ቁልፍ ተጠቅሞበታል።",
   "admin.attributes.error.notFound": "ያ ባህሪ ከእንግዲህ የለም።",
   "admin.attributes.error.confirmMismatch": "የተተየበው ቁልፍ አይዛመድም።",
+  "admin.attributes.error.deleteHasLinks": "{count} ምድቦች አሁንም ይህን ባህሪ ይጠቀማሉ። መጀመሪያ ከሁሉም ያላቅቁት።",
   "admin.attributes.error.inUse": "{count} ምድቦች አሁንም ይህን ባህሪ ይጠቀማሉ። መጀመሪያ ከሁሉም ያላቅቁት።",
   "admin.attributes.error.alreadyLinked": "ይህ ምድብ ያንን ባህሪ አስቀድሞ አገናኝቷል።",
   "admin.attributes.error.linkNotFound": "ያ አገናኝ ከእንግዲህ የለም።",
