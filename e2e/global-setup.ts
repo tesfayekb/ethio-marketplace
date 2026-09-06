@@ -295,7 +295,6 @@ async function mintPooledSuperAdmin(
   console.log(`[e2e:setup] pooled factor ${factorId} status = verified (1 totp factor)`);
 
   return { id, email, password, displayName: email.split("@")[0]!, secret, factorId };
-
 }
 
 export default async function globalSetup() {

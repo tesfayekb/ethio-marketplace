@@ -463,7 +463,6 @@ export type JobSuperAdmin = {
   secret: string;
 };
 
-
 function pooledSuperAdmin(): E2ESuperAdmin {
   const state = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
   if (!state.superAdmin) {
@@ -617,7 +616,6 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   await endActiveImpersonation(page);
   return { user, secret: pool.secret };
 }
-
 
 /**
  * Answers the StepUpGate modal IF it opened; a no-op when the session is
