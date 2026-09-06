@@ -38,7 +38,69 @@ import {
  * L1 (DEC-037): this file is one third of the former admin-translations.spec.ts.
  * Every test title, tag, fence and seeded identity is byte-identical; only the
  * containing file changed (INC-159 shard balance).
- */ test.describe("U4b translations console", () => {
+ */
+
+/**
+ * L4c PART B — ROUTE EVIDENCE. The shared pooled identity (DEC-038) means a
+ * failure in TR-7/11/13/16/23 must say WHO the caller was and WHAT the route
+ * answered, not just that a marker never appeared. One start-of-test line logs
+ * the pooled user's translator scope (the shared-identity hypothesis's key
+ * value); before each action click a response watcher is registered; on a
+ * failed expectation the thrown message carries the route's status + full JSON
+ * body, the pooled user id, and the DB row as read. Assertions are unchanged.
+ */
+async function logTranslatorScope(page: Page, userId: string): Promise<void> {
+  const scope = await page.evaluate(async () => {
+    const client = (
+      window as unknown as {
+        __ethioSupabase: {
+          rpc: (
+            fn: string,
+          ) => Promise<{ data: Array<{ lang_code: string }> | null; error: { message: string } | null }>;
+        };
+      }
+    ).__ethioSupabase;
+    const { data, error } = await client.rpc("get_my_translator_languages");
+    if (error) return `error: ${error.message}`;
+    return JSON.stringify((data ?? []).map((row) => row.lang_code));
+  });
+  console.log(`[e2e:l4c] get_my_translator_languages for pooled ${userId}: ${scope}`);
+}
+
+/** Registered BEFORE the click; resolves to "<status> <full JSON body>". */
+function watchRoute(page: Page, urlPart: string): Promise<string> {
+  return page
+    .waitForResponse((response) => response.url().includes(urlPart), { timeout: 60000 })
+    .then(async (response) => `${response.status()} ${await response.text()}`)
+    .catch((error: unknown) => `no response observed: ${String(error)}`);
+}
+
+/** The row as read — all columns — via the service client (J4 table truth). */
+async function readRowEvidence(key: string, lang: string): Promise<string> {
+  const { data, error } = await adminClient()
+    .from("ui_translations")
+    .select("*")
+    .eq("key", key)
+    .eq("lang_code", lang)
+    .maybeSingle();
+  if (error) return `row read failed: ${error.message}`;
+  return JSON.stringify(data);
+}
+
+async function expectWithEvidence(
+  assertion: () => Promise<unknown>,
+  evidence: () => Promise<string>,
+): Promise<void> {
+  try {
+    await assertion();
+  } catch (error) {
+    throw new Error(
+      `${error instanceof Error ? error.message : String(error)}\n[e2e:l4c] ${await evidence()}`,
+    );
+  }
+}
+
+test.describe("U4b translations console", () => {
   test("TR-1 gating: a permissionless user is refused; a super admin sees the roster", async ({
     page,
   }) => {
