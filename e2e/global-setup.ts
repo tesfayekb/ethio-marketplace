@@ -205,16 +205,27 @@ export default async function globalSetup() {
 
   // 5. Only now hand credentials to the spec.
   // handle_new_user() derives display_name from the local part of the email.
+  // L4 (DEC-038) — THE JOB-SCOPED IDENTITY POOL. Before L4 every admin test
+  // minted its own super admin AND enrolled a TOTP factor through the UI
+  // (~170 enrollments per run). One super admin per JOB, enrolled ONCE here
+  // through the same GoTrue MFA API the app's client calls, collapses that to
+  // one enrollment per job. The identity is minted with `mintEmail` (J1), so
+  // the teardown's `+${PROCESS_ID}-` ownership filter already reaps it.
+  const superAdmin = await mintPooledSuperAdmin(supabase);
+  console.log(`[e2e:setup] pooled super admin ${superAdmin.id} (factor ${superAdmin.factorId})`);
+
   const user: E2EUser = {
     id: userId,
     email,
     password,
     displayName: email.split("@")[0]!,
     processId: currentProcessId,
+    superAdmin,
   };
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
+
 
   // 5b. STAB-SETUP (DEC-036 amendment) — ONE OWNER FOR MAINTENANCE.
   //     Every sharded job used to run the full reaper + prune + storage sweep +
