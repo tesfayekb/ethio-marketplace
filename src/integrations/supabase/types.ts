@@ -1603,6 +1603,10 @@ export type Database = {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: undefined
       }
+      admin_set_attribute_link_order: {
+        Args: { p_category_id: string; p_ordered_link_ids: string[] }
+        Returns: undefined
+      }
       admin_set_card_attributes: {
         Args: { p_category_id: string; p_ordered_attribute_ids: string[] }
         Returns: undefined
