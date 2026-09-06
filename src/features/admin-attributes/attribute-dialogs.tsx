@@ -245,8 +245,10 @@ export function DeleteAttributeDialog({
   const remove = useDeleteAttribute();
   const { message, setMessage, fail } = useAttributeError();
   const [typed, setTyped] = useState("");
-  /** The blast radius as the SERVER last reported it — refreshed by the refusal itself. */
-  const [blastCount, setBlastCount] = useState(attribute.usageCount);
+  /** The blast radius owns the single message slot whenever it is present. */
+  const [blastCount, setBlastCount] = useState<number | null>(
+    attribute.usageCount > 0 ? attribute.usageCount : null,
+  );
 
   /**
    * C3e — the linked-refusal (`admin.attributes.error.deleteHasLinks:<n>`) is
@@ -263,6 +265,7 @@ export function DeleteAttributeDialog({
       setBlastCount(Number(match[1]));
       return;
     }
+    setBlastCount(null);
     fail(error);
   };
 
@@ -286,7 +289,7 @@ export function DeleteAttributeDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.attributes.delete.hint")}</p>
-      {blastCount > 0 ? (
+      {blastCount !== null ? (
         <p
           role="status"
           data-testid="attribute-delete-blast"
@@ -306,7 +309,7 @@ export function DeleteAttributeDialog({
           onChange={(event) => setTyped(event.target.value)}
         />
       </FormField>
-      <AttributeErrorLine message={message} />
+      {blastCount === null ? <AttributeErrorLine message={message} /> : null}
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}

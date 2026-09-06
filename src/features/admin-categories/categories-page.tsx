@@ -589,7 +589,7 @@ export function AdminCategoriesPage() {
         key={testid}
         type="button"
         variant={danger ? "destructive" : "outline"}
-        className="min-h-11"
+        className="min-h-[44px]"
         data-testid={testid}
         title={label}
         disabled={disabled}
