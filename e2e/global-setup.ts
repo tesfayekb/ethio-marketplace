@@ -440,7 +440,6 @@ export default async function globalSetup() {
     prunedAudit += Number(pruned ?? 0);
   }
 
-
   const { data: e2eCategories, error: e2eCategoryError } = await supabase
     .from("categories")
     .select("id")
