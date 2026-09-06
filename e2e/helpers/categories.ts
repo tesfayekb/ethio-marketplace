@@ -156,8 +156,32 @@ export async function grantRole(userId: string, roleName: string) {
   if (error) throw new Error(`[e2e:c2] granting ${roleName} failed: ${error.message}`);
 }
 
+/**
+ * L1c — CLEANUP CO-LOCATION LAW. The minting site owns the disposal. This
+ * helper mints a fresh super-admin per call; before L1c its ONLY reaper was
+ * the process-wide global teardown in a SIBLING file, so a mint whose home
+ * moved (the L1 split) left users behind. Registration happens on the line
+ * after the mint — before anything else can throw — and the helper's own
+ * `afterEach` disposes whatever the test minted, whatever file it lives in.
+ * No assertion, title, tag or identity changes (J1): call sites are untouched.
+ */
+const mintedSuperAdmins: string[] = [];
+
+test.afterEach(async () => {
+  const ids = mintedSuperAdmins.splice(0, mintedSuperAdmins.length);
+  const supabase = adminClient();
+  for (const id of ids) {
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    // Already gone (a sibling reaper won the race) is success, not a failure.
+    if (error && !/not.?found/i.test(error.message)) {
+      throw new Error(`[e2e:c2] disposing super-admin ${id} failed: ${error.message}`);
+    }
+  }
+});
+
 export async function signInAsSuperAdmin(page: Page) {
   const user = await createUser({ confirmed: true });
+  mintedSuperAdmins.push(user.id);
   await grantRole(user.id, "super_admin");
   await switchUser(page, user.email, user.password);
   await waitForHydration(page);
