@@ -480,6 +480,46 @@ function pooledSuperAdmin(): E2ESuperAdmin {
 async function elevateInBrowser(page: Page, pool: E2ESuperAdmin): Promise<void> {
   if ((await readAal(page)) === "aal2") return;
 
+  // L4c PART A — ELEVATION RACE: the pooled sign-in resolves before the
+  // in-browser client has necessarily materialised its session, so a
+  // challengeAndVerify fired immediately races it and flakes with
+  // "Auth session missing!". Poll getSession() (≤10s, 250ms) until the
+  // session is there; a failure names the poll's last state.
+  let lastSessionState = "unread";
+  const sessionDeadline = Date.now() + 10_000;
+  let hasSession = false;
+  while (Date.now() < sessionDeadline) {
+    lastSessionState = await page.evaluate(async () => {
+      const client = (
+        window as unknown as {
+          __ethioSupabase: {
+            auth: {
+              getSession: () => Promise<{
+                data: { session: { user: { id: string } } | null };
+                error: { message: string } | null;
+              }>;
+            };
+          };
+        }
+      ).__ethioSupabase;
+      const { data, error } = await client.auth.getSession();
+      if (error) return `error: ${error.message}`;
+      return data.session ? `session:${data.session.user.id}` : "null";
+    });
+    if (lastSessionState.startsWith("session:")) {
+      hasSession = true;
+      break;
+    }
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock poll interval (session materialisation), grandfathered
+    await page.waitForTimeout(250);
+  }
+  if (!hasSession) {
+    throw new Error(
+      `[e2e:pool] in-browser session never appeared before elevation ` +
+        `(10s poll @250ms, last state: ${lastSessionState})`,
+    );
+  }
+
   let lastError: string | null = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     lastError = await page.evaluate(
@@ -513,7 +553,10 @@ async function elevateInBrowser(page: Page, pool: E2ESuperAdmin): Promise<void> 
     await page.waitForTimeout(8000);
   }
   if (lastError !== null) {
-    throw new Error(`[e2e:pool] in-browser TOTP elevation failed: ${lastError}`);
+    throw new Error(
+      `[e2e:pool] in-browser TOTP elevation failed: ${lastError} ` +
+        `(session poll last state: ${lastSessionState})`,
+    );
   }
   // READ-BACK: the achieved level, from the client, never inferred.
   await expectAal2(page);

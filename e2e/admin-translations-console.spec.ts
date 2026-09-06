@@ -1,3 +1,5 @@
+import type { Page } from "@playwright/test";
+
 import { expect, test } from "./fixtures";
 
 import { am } from "../src/i18n/locales/am";
@@ -36,7 +38,70 @@ import {
  * L1 (DEC-037): this file is one third of the former admin-translations.spec.ts.
  * Every test title, tag, fence and seeded identity is byte-identical; only the
  * containing file changed (INC-159 shard balance).
- */ test.describe("U4b translations console", () => {
+ */
+
+/**
+ * L4c PART B — ROUTE EVIDENCE. The shared pooled identity (DEC-038) means a
+ * failure in TR-7/11/13/16/23 must say WHO the caller was and WHAT the route
+ * answered, not just that a marker never appeared. One start-of-test line logs
+ * the pooled user's translator scope (the shared-identity hypothesis's key
+ * value); before each action click a response watcher is registered; on a
+ * failed expectation the thrown message carries the route's status + full JSON
+ * body, the pooled user id, and the DB row as read. Assertions are unchanged.
+ */
+async function logTranslatorScope(page: Page, userId: string): Promise<void> {
+  const scope = await page.evaluate(async () => {
+    const client = (
+      window as unknown as {
+        __ethioSupabase: {
+          rpc: (fn: string) => Promise<{
+            data: Array<{ lang_code: string }> | null;
+            error: { message: string } | null;
+          }>;
+        };
+      }
+    ).__ethioSupabase;
+    const { data, error } = await client.rpc("get_my_translator_languages");
+    if (error) return `error: ${error.message}`;
+    return JSON.stringify((data ?? []).map((row) => row.lang_code));
+  });
+  console.log(`[e2e:l4c] get_my_translator_languages for pooled ${userId}: ${scope}`);
+}
+
+/** Registered BEFORE the click; resolves to "<status> <full JSON body>". */
+function watchRoute(page: Page, urlPart: string): Promise<string> {
+  return page
+    .waitForResponse((response) => response.url().includes(urlPart), { timeout: 60000 })
+    .then(async (response) => `${response.status()} ${await response.text()}`)
+    .catch((error: unknown) => `no response observed: ${String(error)}`);
+}
+
+/** The row as read — all columns — via the service client (J4 table truth). */
+async function readRowEvidence(key: string, lang: string): Promise<string> {
+  const { data, error } = await adminClient()
+    .from("ui_translations")
+    .select("*")
+    .eq("key", key)
+    .eq("lang_code", lang)
+    .maybeSingle();
+  if (error) return `row read failed: ${error.message}`;
+  return JSON.stringify(data);
+}
+
+async function expectWithEvidence(
+  assertion: () => Promise<unknown>,
+  evidence: () => Promise<string>,
+): Promise<void> {
+  try {
+    await assertion();
+  } catch (error) {
+    throw new Error(
+      `${error instanceof Error ? error.message : String(error)}\n[e2e:l4c] ${await evidence()}`,
+    );
+  }
+}
+
+test.describe("U4b translations console", () => {
   test("TR-1 gating: a permissionless user is refused; a super admin sees the roster", async ({
     page,
   }) => {
@@ -191,11 +256,26 @@ import {
   });
 
   test("TR-7 sync imports the compiled catalog and reports its counts", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { user, secret } = await signInAsSuperAdmin(page);
+    await logTranslatorScope(page, user.id);
     await gotoReady(page, "/admin/translations");
+    const syncRoute = watchRoute(page, "admin_sync_ui_keys");
     await page.getByTestId("translations-sync-run").click();
     await stepUpIfPrompted(page, secret);
-    await expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 30000 });
+    const syncResult = await syncRoute;
+    await expectWithEvidence(
+      () => expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 30000 }),
+      async () => {
+        const { data, error } = await adminClient().rpc("admin_translation_stats", {
+          p_lang: "en",
+        });
+        const stats = error ? `stats read failed: ${error.message}` : JSON.stringify(data);
+        return (
+          `sync route (admin_sync_ui_keys) → ${syncResult}\n` +
+          `pooled user ${user.id}\nDB stats row: ${stats}`
+        );
+      },
+    );
   });
 
   test("TR-8 save then approve moves a string through the status machine", async ({ page }) => {
@@ -382,15 +462,23 @@ import {
     const key = scratchKey("tr11");
     await seedScratchKey(key, "Scratch source");
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
       await surfaceControl(page, `string-expand-${id}`).click();
+      const aiRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+      const aiResult = await aiRoute;
+      await expectWithEvidence(
+        () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${aiResult}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
+      );
 
       // The row itself: fake marker, machine status, machine provenance.
       const { data: row, error } = await adminClient()
@@ -494,15 +582,23 @@ import {
     // mismatches the en source's placeholder set and MUST land flagged.
     await seedScratchKey(key, "E2EBREAK Hello {name}");
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
       await surfaceControl(page, `string-expand-${id}`).click();
+      const aiRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+      const aiResult = await aiRoute;
+      await expectWithEvidence(
+        () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${aiResult}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
+      );
 
       const { data: row, error } = await adminClient()
         .from("ui_translations")
@@ -543,7 +639,8 @@ import {
     await seedScratchKey(brokenKey, "E2EBREAK Hello {name}");
     const supabase = adminClient();
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
 
       // ---- A. the token survives the round trip -------------------
@@ -551,9 +648,17 @@ import {
       await page.getByTestId("strings-search").fill(keptKey);
       await expect(stringRow(page, keptId)).toBeVisible({ timeout: 20000 });
       await surfaceControl(page, `string-expand-${keptId}`).click();
+      const keptRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, keptId, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, keptId, "string-saved")).toBeVisible({ timeout: 30000 });
+      const keptRouteText = await keptRoute;
+      await expectWithEvidence(
+        () =>
+          expect(expansionControl(page, keptId, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${keptRouteText}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(keptKey, "am")}`,
+      );
 
       const { data: kept, error: keptError } = await supabase
         .from("ui_translations")
@@ -576,11 +681,19 @@ import {
       await page.getByTestId("strings-search").fill(brokenKey);
       await expect(stringRow(page, brokenId)).toBeVisible({ timeout: 20000 });
       await surfaceControl(page, `string-expand-${brokenId}`).click();
+      const brokenRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, brokenId, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, brokenId, "string-saved")).toBeVisible({
-        timeout: 30000,
-      });
+      const brokenRouteText = await brokenRoute;
+      await expectWithEvidence(
+        () =>
+          expect(expansionControl(page, brokenId, "string-saved")).toBeVisible({
+            timeout: 30000,
+          }),
+        async () =>
+          `route /api/translate → ${brokenRouteText}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(brokenKey, "am")}`,
+      );
       await expect(expansionControl(page, brokenId, "string-flagnote")).toBeVisible({
         timeout: 20000,
       });
@@ -764,7 +877,8 @@ import {
     await seedScratchKey(key, "History source");
     const supabase = adminClient();
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
@@ -772,9 +886,16 @@ import {
       await surfaceControl(page, `string-expand-${id}`).click();
 
       // 1) machine write, then 2) a human edit — the U4c pair (TR-11's shape).
+      const aiRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
-      await expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 });
+      const aiResult = await aiRoute;
+      await expectWithEvidence(
+        () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${aiResult}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
+      );
       await expansionControl(page, id, "string-input").fill("የሰው እርማት");
       await expansionControl(page, id, "string-save").click();
       await stepUpIfPrompted(page, secret);
