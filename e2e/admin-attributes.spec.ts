@@ -126,9 +126,10 @@ test.describe("C3 attributes console", () => {
        */
       await test.step("AT-2 create definition", async () => {
         await page.getByTestId("attribute-create-open").click();
-        await expect(page.getByTestId("attribute-edit-dialog"), {
-          message: await dialogDump(page, "AT-2 editor never opened"),
-        } as never).toBeVisible({ timeout: 20000 });
+        await expect(
+          page.getByTestId("attribute-edit-dialog"),
+          await dialogDump(page, "AT-2 editor never opened"),
+        ).toBeVisible({ timeout: 20000 });
         await page.getByTestId("attribute-key").fill(key);
         await page.getByTestId("attribute-name").fill(key);
         await page.getByTestId("attribute-type").selectOption("single_select");
