@@ -245,6 +245,24 @@ export function DeleteAttributeDialog({
   const remove = useDeleteAttribute();
   const { message, setMessage, fail } = useAttributeError();
   const [typed, setTyped] = useState("");
+  /** The blast radius as the SERVER last reported it — refreshed by the refusal itself. */
+  const [blastCount, setBlastCount] = useState(attribute.usageCount);
+
+  /**
+   * C3e — the linked-refusal (`admin.attributes.error.deleteHasLinks:<n>`) is
+   * not a generic error line: it re-states the BLAST RADIUS with the server's
+   * own count, in the same amber line the operator read before typing the key.
+   */
+  const failDelete = (error: unknown) => {
+    const raw = error instanceof Error ? error.message : "";
+    const match = /^admin\.attributes\.error\.deleteHasLinks:(\d+)$/.exec(raw);
+    if (match !== null) {
+      setMessage(null);
+      setBlastCount(Number(match[1]));
+      return;
+    }
+    fail(error);
+  };
 
   const submit = () => {
     setMessage(null);
@@ -253,9 +271,9 @@ export function DeleteAttributeDialog({
         await remove.mutateAsync({ id: attribute.id, confirmKey: typed.trim() });
         onClose();
       } catch (error) {
-        fail(error);
+        failDelete(error);
       }
-    }).catch(fail);
+    }).catch(failDelete);
   };
 
   return (
@@ -266,16 +284,13 @@ export function DeleteAttributeDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.attributes.delete.hint")}</p>
-      {attribute.usageCount > 0 ? (
+      {blastCount > 0 ? (
         <p
           role="status"
           data-testid="attribute-delete-blast"
           className="text-sm text-amber-600 dark:text-amber-400"
         >
-          {t("admin.attributes.delete.blastRadius").replace(
-            "{count}",
-            String(attribute.usageCount),
-          )}
+          {t("admin.attributes.delete.blastRadius").replace("{count}", String(blastCount))}
         </p>
       ) : null}
       <FormField

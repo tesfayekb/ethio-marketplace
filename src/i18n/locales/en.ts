@@ -948,8 +948,10 @@ export const en = {
   "admin.attributes.type.text": "Text",
   "admin.attributes.type.number": "Number",
   "admin.attributes.type.boolean": "Yes / No",
-  "admin.attributes.type.select": "Single choice",
+  "admin.attributes.type.single_select": "Single choice",
   "admin.attributes.type.multi_select": "Multiple choice",
+  "admin.attributes.type.date": "Date",
+  "admin.attributes.type.range": "Range",
   "admin.attributes.create.open": "New attribute",
   "admin.attributes.create.title": "New attribute",
   "admin.attributes.edit.title": "Edit attribute",
@@ -993,6 +995,8 @@ export const en = {
   "admin.attributes.error.keyTaken": "Another attribute already uses this key.",
   "admin.attributes.error.notFound": "That attribute no longer exists.",
   "admin.attributes.error.confirmMismatch": "The typed key does not match.",
+  "admin.attributes.error.deleteHasLinks":
+    "{count} categories still use this attribute. Unlink it everywhere first.",
   "admin.attributes.error.inUse":
     "{count} categories still use this attribute. Unlink it everywhere first.",
   "admin.attributes.error.alreadyLinked": "This category already links that attribute.",
