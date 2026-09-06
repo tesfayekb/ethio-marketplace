@@ -44,7 +44,6 @@ export interface CategoryRow {
   secondaryParentNames: string[];
 }
 
-
 export async function listCategories(): Promise<CategoryRow[]> {
   const { data, error } = await supabase.rpc("admin_list_categories");
   if (error) throw error;
@@ -69,7 +68,6 @@ export async function listCategories(): Promise<CategoryRow[]> {
     attributeCount: Number(row.attribute_count ?? 0),
     cardAttributeCount: Number(row.card_attribute_count ?? 0),
     secondaryParentNames: (row.secondary_parent_names ?? []) as string[],
-
   }));
 }
 

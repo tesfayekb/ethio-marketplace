@@ -890,7 +890,8 @@ export const am: Messages = {
   "admin.categories.error.nameRequired": "ስም ያስፈልጋል።",
   "admin.categories.error.reassignRequired": "ዝርዝሮቹ የሚሄዱበትን ይምረጡ።",
   "admin.categories.error.parentRequired": "ወላጅ ይምረጡ።",
-  "admin.audit.total.capped": "10,000+",  "admin.attributes.caption": "የባህሪ ትርጓሜዎች",
+  "admin.audit.total.capped": "10,000+",
+  "admin.attributes.caption": "የባህሪ ትርጓሜዎች",
   "admin.attributes.loading": "ባህሪያት በመጫን ላይ…",
   "admin.attributes.error": "የባህሪ ቤተ-መዝገቡ ሊጫን አልቻለም።",
   "admin.attributes.empty": "በዚህ ፍለጋ የተገኘ ባህሪ የለም።",
@@ -926,7 +927,8 @@ export const am: Messages = {
   "admin.attributes.merge.targetNone": "ቀሪውን ባህሪ ይምረጡ",
   "admin.attributes.merge.sources": "የሚዋሃዱ ድግግሞሾች",
   "admin.attributes.merge.confirm": "{n} አገናኞች ወደ {target} ይዛወራሉ፤ {m} ትርጓሜዎች ይወገዳሉ።",
-  "admin.attributes.merge.result": "{moved} አገናኞች ተዛወሩ · {folded} ወደ ነባር አገናኝ ተጣመሩ · {removed} ትርጓሜዎች ተወገዱ።",
+  "admin.attributes.merge.result":
+    "{moved} አገናኞች ተዛወሩ · {folded} ወደ ነባር አገናኝ ተጣመሩ · {removed} ትርጓሜዎች ተወገዱ።",
   "admin.attributes.links.error": "የተገናኙት ባህሪያት ሊጫኑ አልቻሉም።",
   "admin.attributes.links.empty": "እስካሁን ከዚህ ምድብ ጋር የተገናኘ ባህሪ የለም።",
   "admin.attributes.links.required": "ግዴታ",
@@ -960,7 +962,6 @@ export const am: Messages = {
   "admin.categories.flag.needsCard": "በዝርዝር ካርዶች ላይ የሚታዩ ቢያንስ ሁለት ባህሪያት ይምረጡ።",
   "admin.categories.parent.primary": "ዋና",
   "admin.categories.parent.also": "በተጨማሪ በ፦ {list}",
-
 };
 
 export default am;

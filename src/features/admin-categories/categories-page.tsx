@@ -95,7 +95,6 @@ type EditorSub =
   // C3c — the per-category attribute link manager, same editor axis.
   | "attributes";
 
-
 /** C5b PART C — the bulk fill never runs more than this in one pass. */
 const BULK_LIMIT = 25;
 
@@ -481,7 +480,6 @@ export function AdminCategoriesPage() {
                 `category-needs-card-${row.slug}`,
               )
             : null}
-
         </span>
       ),
     },

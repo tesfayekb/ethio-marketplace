@@ -43,7 +43,10 @@ export function AdminAttributesPage() {
   const [search, setSearch] = useState("");
   const [offset, setOffset] = useState(0);
   const [dialog, setDialog] = useState<
-    { kind: "none" } | { kind: "edit"; id: string | null } | { kind: "delete"; id: string } | { kind: "merge" }
+    | { kind: "none" }
+    | { kind: "edit"; id: string | null }
+    | { kind: "delete"; id: string }
+    | { kind: "merge" }
   >({ kind: "none" });
 
   const mayUpdate = permissions.includes("categories:update");
@@ -110,10 +113,7 @@ export function AdminAttributesPage() {
       priority: "secondary",
       align: "end",
       cell: (row) => (
-        <span
-          className="block tabular-nums"
-          data-testid={`attribute-usage-${row.attrKey}`}
-        >
+        <span className="block tabular-nums" data-testid={`attribute-usage-${row.attrKey}`}>
           {row.usageCount}
         </span>
       ),

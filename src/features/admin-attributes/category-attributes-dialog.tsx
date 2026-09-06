@@ -86,9 +86,7 @@ export function CategoryAttributesDialog({
     const moved = next[index]!;
     next[index] = next[target]!;
     next[target] = moved;
-    run(() =>
-      reorder.mutateAsync({ categoryId, orderedLinkIds: next.map((row) => row.linkId) }),
-    );
+    run(() => reorder.mutateAsync({ categoryId, orderedLinkIds: next.map((row) => row.linkId) }));
   };
 
   const toggleCard = (attributeId: string, on: boolean) => {
