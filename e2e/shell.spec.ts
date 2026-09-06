@@ -307,19 +307,42 @@ test.describe("app shell", () => {
   });
 
   test("the feed body is centred with equal left and right gutters", async ({ page }) => {
-    await gotoReady(page, "/");
-    const main = page.locator("main#main");
-    const container = page.getByTestId("feed-container");
-    const mainBox = (await main.boundingBox())!;
-    const box = (await container.boundingBox())!;
-    const left = box.x - mainBox.x;
-    const right = mainBox.x + mainBox.width - (box.x + box.width);
-    expect(Math.abs(left - right), "feed container gutters are unequal").toBeLessThanOrEqual(1);
+    /**
+     * INC-153 SECOND INSTANCE (STAB-H PART B) — SCOPED EMPTINESS. This test
+     * measures the EMPTY state's centring, so it may never assume bare "/" is
+     * empty. It fences itself exactly like its sibling ("feed renders its
+     * empty state"): a scratch top-level category whose feed is empty BY
+     * CONSTRUCTION, whatever the listings table holds.
+     */
+    const fenceSlug = `e2e-feed-gutter-${Date.now().toString(36)}`;
+    const supabase = adminClient();
+    const { data: fence, error: fenceError } = await supabase
+      .from("categories")
+      .insert({ slug: fenceSlug, name_en: fenceSlug, is_active: true })
+      .select("id")
+      .single();
+    if (fenceError || !fence) {
+      throw new Error(`[e2e:shell] seeding the fence category failed: ${fenceError?.message}`);
+    }
+    try {
+      await gotoReady(page, `/c/${fenceSlug}`);
+      const main = page.locator("main#main");
+      const container = page.getByTestId("feed-container");
+      const emptyState = page.getByTestId("feed-empty");
+      await expect(emptyState).toBeVisible({ timeout: 20000 });
+      const mainBox = (await main.boundingBox())!;
+      const box = (await container.boundingBox())!;
+      const left = box.x - mainBox.x;
+      const right = mainBox.x + mainBox.width - (box.x + box.width);
+      expect(Math.abs(left - right), "feed container gutters are unequal").toBeLessThanOrEqual(1);
 
-    const empty = (await page.getByTestId("feed-empty").boundingBox())!;
-    const emptyLeft = empty.x - mainBox.x;
-    const emptyRight = mainBox.x + mainBox.width - (empty.x + empty.width);
-    expect(Math.abs(emptyLeft - emptyRight), "empty state is off-centre").toBeLessThanOrEqual(1);
+      const empty = (await emptyState.boundingBox())!;
+      const emptyLeft = empty.x - mainBox.x;
+      const emptyRight = mainBox.x + mainBox.width - (empty.x + empty.width);
+      expect(Math.abs(emptyLeft - emptyRight), "empty state is off-centre").toBeLessThanOrEqual(1);
+    } finally {
+      await supabase.from("categories").delete().eq("id", fence.id);
+    }
   });
 
   test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
