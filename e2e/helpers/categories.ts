@@ -228,7 +228,9 @@ export async function seedActiveListing(categoryId: string, sellerId: string): P
       seller_id: sellerId,
       location_id: location.id,
       home_country_code: location.country_code,
-      title: `e2e-cat listing ${RUN}-${rand()}`,
+      // STAB-H PART B (INC-165) — the title carries the SCRATCH PREFIX, so the
+      // owner setup's reaper can find an orphaned listing by title alone.
+      title: `e2e-cat-listing-${RUN}-${rand()}`,
       description: "e2e scratch listing for the retire walk",
       status: "active",
     })
