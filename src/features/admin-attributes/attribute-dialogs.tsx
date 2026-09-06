@@ -284,16 +284,13 @@ export function DeleteAttributeDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.attributes.delete.hint")}</p>
-      {attribute.usageCount > 0 ? (
+      {blastCount > 0 ? (
         <p
           role="status"
           data-testid="attribute-delete-blast"
           className="text-sm text-amber-600 dark:text-amber-400"
         >
-          {t("admin.attributes.delete.blastRadius").replace(
-            "{count}",
-            String(attribute.usageCount),
-          )}
+          {t("admin.attributes.delete.blastRadius").replace("{count}", String(blastCount))}
         </p>
       ) : null}
       <FormField
