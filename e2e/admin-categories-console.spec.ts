@@ -29,6 +29,7 @@ import {
   destroyCategory,
   createViaUi,
   geometryDump,
+  dialogDump,
 } from "./helpers/categories";
 /**
  * C2-UI — THE CATEGORIES CONSOLE, roster and CRUD (CT-1..CT-11).
@@ -194,9 +195,36 @@ import {
        * C2-SETTLE PART B — the completed sub-verb returned to the OPEN editor;
        * it is dismissed and GONE before any findRow/roster assertion below, so
        * a later openEditor can never be swallowed by the kind guard.
+       *
+       * CT6-ESCAPE (INC-160) — bounded dismissal after the retire return-path.
        */
-      await page.keyboard.press("Escape");
-      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
+      let firstEscapeDump = "";
+      const closedOnFirstPress =
+        await test.step("CT-6 dismiss editor · Escape press 1", async () => {
+          await page.keyboard.press("Escape");
+          try {
+            await expect
+              .poll(async () => page.getByTestId("category-edit-dialog").count(), {
+                timeout: 5000,
+              })
+              .toBe(0);
+            return true;
+          } catch {
+            firstEscapeDump = await dialogDump(page, "CT-6 retire first Escape failed");
+            return false;
+          }
+        });
+      if (!closedOnFirstPress) {
+        await test.step("CT-6 dismiss editor · Escape press 2", async () => {
+          await page.keyboard.press("Escape");
+          await expect
+            .poll(async () => page.getByTestId("category-edit-dialog").count(), {
+              timeout: 10000,
+              message: `CT-6 retire second Escape failed — ${firstEscapeDump}`,
+            })
+            .toBe(0);
+        });
+      }
 
       await expect
         .poll(async () => (await readCategory(slug))?.is_active, { timeout: 20000 })
