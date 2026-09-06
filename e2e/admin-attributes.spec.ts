@@ -30,7 +30,30 @@ import {
  * ratified 205-definition library except by reading it.
  */
 
+/**
+ * C3d — TWIN-SCOPED LOCATORS (J5). Every per-row element resolves inside its
+ * own row, in whichever twin the viewport renders: the DataTable primitive's
+ * default boundary is 768 (cards below it, a table at and above it).
+ */
+const TWIN_BOUNDARY = 768;
+
+function isCardTwin(page: import("@playwright/test").Page) {
+  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
+}
+
+function librarySurface(page: import("@playwright/test").Page) {
+  return isCardTwin(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
+}
+
+/** The row's ACTIONS region — a card sibling below md, a cell at md and up. */
+function attributeActions(page: import("@playwright/test").Page, key: string) {
+  return librarySurface(page).getByTestId(
+    isCardTwin(page) ? `attribute-row-${key}-actions` : `attribute-row-${key}-actions-cell`,
+  );
+}
+
 /** A scratch definition, minted straight through the service client (J3). */
+
 async function seedAttribute(key: string, type = "text") {
   const { data, error } = await adminClient()
     .from("attributes")
