@@ -1,13 +1,186 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 191,
-  "dynamicCallSites": 70,
+  "scanned": 196,
+  "dynamicCallSites": 73,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
     ],
     "admin.accessDenied": [
       "/admin"
+    ],
+    "admin.attributes.action.delete": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.action.edit": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.action.merge": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.caption": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.card.caption": [
+      "/admin/categories"
+    ],
+    "admin.attributes.card.none": [
+      "/admin/categories"
+    ],
+    "admin.attributes.card.rank": [
+      "/admin/categories"
+    ],
+    "admin.attributes.card.rankNone": [
+      "/admin/categories"
+    ],
+    "admin.attributes.col.name": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.col.options": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.col.type": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.col.usage": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.create.open": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.create.title": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.delete.blastRadius": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.delete.confirmLabel": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.delete.hint": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.delete.title": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.edit.title": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.empty": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.error": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.error.keyRequired": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.error.mergeNoSources": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.error.mergeNoTarget": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.error.nameRequired": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.error.saveFailed": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.help": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.key": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.name": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.options": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.optionsHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.type": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.links.add": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.empty": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.error": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.filterable": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.pickNone": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.required": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.searchPlaceholder": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.unlink": [
+      "/admin/categories"
+    ],
+    "admin.attributes.loading": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.merge.confirm": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.merge.hint": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.merge.result": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.merge.sources": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.merge.target": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.merge.targetNone": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.merge.title": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.searchPlaceholder": [
+      "/admin/attributes"
     ],
     "admin.audit.caption": [
       "/admin/audit"
@@ -93,6 +266,9 @@
     "admin.audit.total.capped": [
       "/admin/audit"
     ],
+    "admin.categories.action.attributes": [
+      "/admin/categories"
+    ],
     "admin.categories.action.delete": [
       "/admin/categories"
     ],
@@ -136,6 +312,9 @@
       "/admin/categories"
     ],
     "admin.categories.badge.missingAssets": [
+      "/admin/categories"
+    ],
+    "admin.categories.badge.needsCard": [
       "/admin/categories"
     ],
     "admin.categories.badge.price": [
@@ -184,54 +363,70 @@
       "/admin/categories"
     ],
     "admin.categories.create.countries": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.countriesHint": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.open": [
       "/admin/categories"
     ],
     "admin.categories.create.parent": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.parentRoot": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.position": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.positionBefore": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.positionCount": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.positionEnd": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.slugPreview": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.create.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.delete.confirm": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.delete.confirmLabel": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.delete.hint": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.delete.mismatch": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.delete.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.edit.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.empty": [
@@ -241,57 +436,75 @@
       "/admin/categories"
     ],
     "admin.categories.error.imageFailed": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.error.nameRequired": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.error.parentRequired": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.error.reassignRequired": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.error.saveFailed": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.exclusions.current": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.exclusions.hint": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.exclusions.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.allowListings": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.expiryDays": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.expiryNone": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.icon": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.iconChange": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.iconHint": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.name": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.order": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.orderManaged": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.field.priceEnabled": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.filter.allRoots": [
@@ -306,115 +519,160 @@
     "admin.categories.filter.root": [
       "/admin/categories"
     ],
+    "admin.categories.flag.needsCard": [
+      "/admin/categories"
+    ],
     "admin.categories.image.accept": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.acceptToast": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.accepted": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.busy": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.card": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.empty": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.generate": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.loading": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.og": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.regenerate": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.review": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.stageLabel": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.thumb": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.image.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.loading": [
       "/admin/categories"
     ],
+    "admin.categories.parent.also": [
+      "/admin/categories"
+    ],
+    "admin.categories.parent.primary": [
+      "/admin/categories"
+    ],
     "admin.categories.paths.add": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.addSubmit": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.empty": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.error": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.hint": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.loading": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.moveTo": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.primary": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.primaryTip": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.remove": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.root": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.paths.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.pointer.hint": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.pointer.parent": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.pointer.parentPlaceholder": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.pointer.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.retire.confirm": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.retire.hint": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.retire.noListings": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.retire.reassignCount": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.retire.reassignPlaceholder": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.retire.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.searchPlaceholder": [
@@ -432,6 +690,9 @@
     "admin.categories.tip.missingAssets": [
       "/admin/categories"
     ],
+    "admin.categories.tip.needsCard": [
+      "/admin/categories"
+    ],
     "admin.categories.tip.price": [
       "/admin/categories"
     ],
@@ -442,19 +703,22 @@
       "/admin/categories"
     ],
     "admin.categories.window.from": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.window.hint": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.window.title": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.window.until": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.comingSoon": [
-      "/admin/attributes",
       "/admin/images",
       "/admin/locations"
     ],
@@ -1333,6 +1597,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug",
       "/dev/primitives",
@@ -1381,6 +1646,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/auth",
       "/c/$slug"
@@ -1476,6 +1742,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/auth",
       "/c/$slug"
@@ -1487,6 +1754,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1497,6 +1765,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1515,6 +1784,7 @@
       "/settings"
     ],
     "common.cancel": [
+      "/admin/attributes",
       "/admin/categories",
       "/dev/primitives"
     ],
@@ -1522,6 +1792,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1534,6 +1805,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1544,6 +1816,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug",
       "/settings"
@@ -1553,6 +1826,7 @@
       "/c/$slug"
     ],
     "common.save": [
+      "/admin/attributes",
       "/admin/categories",
       "/dev/primitives"
     ],
@@ -1611,6 +1885,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1621,6 +1896,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1628,6 +1904,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/c/$slug"
@@ -1660,6 +1937,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1704,6 +1982,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
       "/c/$slug"
@@ -1715,6 +1994,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1722,6 +2002,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1729,6 +2010,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1736,6 +2018,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1743,6 +2026,7 @@
       "/settings"
     ],
     "mfa.codeLabel": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1752,6 +2036,7 @@
       "/settings"
     ],
     "mfa.codePlaceholder": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1797,6 +2082,7 @@
       "/settings"
     ],
     "mfa.stepUpBody": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1805,6 +2091,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpConfirm": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1813,6 +2100,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpGoToSettings": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1821,6 +2109,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpNoFactorBody": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1830,6 +2119,7 @@
       "/settings"
     ],
     "mfa.stepUpNoFactorTitle": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1838,6 +2128,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpTitle": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -1855,6 +2146,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1862,6 +2154,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1869,6 +2162,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1901,6 +2195,7 @@
       "/dev/primitives"
     ],
     "prim.table.actions": [
+      "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
@@ -1911,6 +2206,7 @@
       "/dev/primitives"
     ],
     "prim.table.next": [
+      "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
@@ -1921,6 +2217,7 @@
       "/dev/primitives"
     ],
     "prim.table.of": [
+      "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
@@ -1931,6 +2228,7 @@
       "/dev/primitives"
     ],
     "prim.table.previous": [
+      "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
@@ -1941,6 +2239,7 @@
       "/dev/primitives"
     ],
     "prim.table.selectAll": [
+      "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
@@ -1951,6 +2250,7 @@
       "/dev/primitives"
     ],
     "prim.table.selectRow": [
+      "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
@@ -1961,6 +2261,7 @@
       "/dev/primitives"
     ],
     "prim.table.selected": [
+      "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
       "/admin/impersonation/$sessionId",
@@ -1974,6 +2275,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -1981,10 +2283,12 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
     "settings.cancel": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2039,6 +2343,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2092,6 +2397,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2099,6 +2405,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2106,6 +2413,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2113,6 +2421,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2120,6 +2429,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2127,6 +2437,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2134,6 +2445,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2141,6 +2453,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2148,6 +2461,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2155,6 +2469,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2162,6 +2477,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2169,6 +2485,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2176,6 +2493,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2183,6 +2501,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2190,6 +2509,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2197,6 +2517,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2204,6 +2525,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2211,6 +2533,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
@@ -2218,6 +2541,7 @@
       "(every page)",
       "/",
       "/admin",
+      "/admin/attributes",
       "/admin/categories",
       "/c/$slug"
     ],
