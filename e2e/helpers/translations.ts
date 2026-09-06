@@ -249,8 +249,30 @@ export async function grantRole(userId: string, roleName: string) {
   if (error) throw new Error(`[e2e:u4b] granting ${roleName} failed: ${error.message}`);
 }
 
+/**
+ * L1c — CLEANUP CO-LOCATION LAW (same law as e2e/helpers/categories.ts). The
+ * minting site owns the disposal: registration on the line after the mint,
+ * a helper-owned `afterEach` that reaps it wherever the caller lives. This is
+ * relocation-proof — a future split moves the tests, never the cleanup. No
+ * assertion, title, tag or identity changes (J1): call sites are untouched.
+ */
+const mintedSuperAdmins: string[] = [];
+
+test.afterEach(async () => {
+  const ids = mintedSuperAdmins.splice(0, mintedSuperAdmins.length);
+  const supabase = adminClient();
+  for (const id of ids) {
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    // Already gone (a sibling reaper won the race) is success, not a failure.
+    if (error && !/not.?found/i.test(error.message)) {
+      throw new Error(`[e2e:u4b] disposing super-admin ${id} failed: ${error.message}`);
+    }
+  }
+});
+
 export async function signInAsSuperAdmin(page: Page) {
   const user = await createUser({ confirmed: true });
+  mintedSuperAdmins.push(user.id);
   await grantRole(user.id, "super_admin");
   await switchUser(page, user.email, user.password);
   await waitForHydration(page);
