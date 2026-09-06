@@ -54,9 +54,7 @@ async function logTranslatorScope(page: Page, userId: string): Promise<void> {
     const client = (
       window as unknown as {
         __ethioSupabase: {
-          rpc: (
-            fn: string,
-          ) => Promise<{
+          rpc: (fn: string) => Promise<{
             data: Array<{ lang_code: string }> | null;
             error: { message: string } | null;
           }>;
