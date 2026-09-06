@@ -918,3 +918,27 @@ menu width is unchanged and the star keeps its own >=44px target.
   per key via service-client reads, and a post-import hand edit yields one
   restored + one conflicted with the later work untouched.
 - `language-switcher-compact.test.tsx` asserts the `py-px` row class.
+
+### Bundle caching (STAB-I18N · INC-164)
+
+`/api/i18n/:lang` (`src/routes/api/i18n.$lang.ts`) keeps an **in-process cache,
+one entry per language, keyed by the publication version** returned by
+`get_ui_bundle_version(lang)`.
+
+- **Per-request cost.** Inside a 15s version TTL a request costs **zero** DB
+  round trips (the entry is served straight from memory). After the TTL a
+  request costs **one** version read; only a CHANGED version re-runs
+  `get_ui_bundle`. Before this landing every request ran both RPCs — the bundle
+  query alone measured ~19ms / 19 shared buffer hits for `am` on prod.
+- **Invalidation is the data's own version.** Approving, editing, syncing,
+  publishing or unpublishing all move `max(updated_at) + count` (or flip the
+  language between the `|empty` hash and the real one), so no publish path has
+  to remember to bust a cache. The ETag IS the version (`"<lang>.<version>"`,
+  strong validator); `If-None-Match` short-circuits to `304` both from the cache
+  and on a freshly read version.
+- **Index.** The bundle query is served by `ui_translations_lang_status_idx`
+  `(lang_code, status)` — present already, so this landing added no migration.
+
+Coverage: `e2e/i18n-bundle.spec.ts` — IB-1 (two identical GETs share a strong
+ETag and byte-equal bodies; `If-None-Match` ⇒ 304) and IB-2 (publishing a
+scratch fence language moves both the version and the bundle within the TTL).
