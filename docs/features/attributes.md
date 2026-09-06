@@ -5,9 +5,9 @@ to the categories that ask for it.
 
 ## The model
 
-| Table                             | Holds                                                                 |
-| --------------------------------- | --------------------------------------------------------------------- |
-| `public.attributes`               | the definition: `attr_key`, `name_en`, `attr_type`, `options`, help text |
+| Table                             | Holds                                                                                           |
+| --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `public.attributes`               | the definition: `attr_key`, `name_en`, `attr_type`, `options`, help text                        |
 | `public.category_attribute_links` | one row per (category, attribute): `is_required`, `is_filterable`, `display_order`, `card_rank` |
 
 `public.category_attributes` (the C3a denormalized import) stays in place as the
@@ -18,17 +18,17 @@ Both tables refuse direct client access; every read and write below is a gated
 
 ## Doors
 
-| RPC                                  | Gate                                        |
-| ------------------------------------ | ------------------------------------------- |
-| `admin_list_attributes`              | `categories:view`                           |
-| `admin_list_category_attribute_links`| `categories:view`                           |
-| `admin_upsert_attribute`             | `categories:update` + step-up               |
-| `admin_link_attribute`               | `categories:update` + step-up               |
-| `admin_unlink_attribute`             | `categories:update` + step-up               |
-| `admin_set_card_attributes`          | `categories:update` + step-up               |
-| `admin_set_attribute_link_order`     | `categories:update` + step-up               |
-| `admin_delete_attribute`             | `categories:restructure` + step-up, typed key |
-| `admin_merge_attributes`             | `categories:restructure` + step-up          |
+| RPC                                   | Gate                                          |
+| ------------------------------------- | --------------------------------------------- |
+| `admin_list_attributes`               | `categories:view`                             |
+| `admin_list_category_attribute_links` | `categories:view`                             |
+| `admin_upsert_attribute`              | `categories:update` + step-up                 |
+| `admin_link_attribute`                | `categories:update` + step-up                 |
+| `admin_unlink_attribute`              | `categories:update` + step-up                 |
+| `admin_set_card_attributes`           | `categories:update` + step-up                 |
+| `admin_set_attribute_link_order`      | `categories:update` + step-up                 |
+| `admin_delete_attribute`              | `categories:restructure` + step-up, typed key |
+| `admin_merge_attributes`              | `categories:restructure` + step-up            |
 
 Every write is audited old → new; a refused attempt writes nothing (F5).
 

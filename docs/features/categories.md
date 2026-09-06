@@ -346,3 +346,22 @@ Beside the missing-assets filter, "Generate missing (max 25)" runs a serial
 client-driven fill over the filtered rows lacking imagery: a live n/N caption,
 per-row failures reported with their pipeline stage without stopping the run,
 and a closing summary that says when another pass is needed.
+
+## C3c — attributes reach the console (2026-09-06)
+
+The category editor gains an **Attributes** verb (`categories:update`) opening
+the per-category link manager described in `docs/features/attributes.md`: linked
+attributes with required/filterable toggles, Move up / Move down, Unlink, a
+searchable picker over the library, and the card picker that ranks up to three
+attributes onto listing cards.
+
+The roster widens with three server-supplied facts (`admin_list_categories`,
+parity-proven — the previous 17 columns and their ordering are byte-identical):
+
+- `attribute_count` and `card_attribute_count`. An active category that accepts
+  listings with fewer than two card attributes carries the amber
+  **Needs card attributes** flag (`category-needs-card-<slug>`), beside the
+  existing missing-assets flag.
+- `secondary_parent_names`. The **Parent** cell now reads the primary parent
+  with a "Primary" chip and, when the node hangs under more branches, a second
+  line naming them ("Also in: …"). Both twins, logical properties only.
