@@ -35,7 +35,10 @@ export function useAttributeError() {
   const { t } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const fail = (error: unknown) => {
-    const raw = error instanceof Error ? error.message : "";
+    const raw =
+      typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message: string }).message
+        : "";
     const [key, detail] = raw.split(":");
     if (
       key !== undefined &&
@@ -256,7 +259,10 @@ export function DeleteAttributeDialog({
    * own count, in the same amber line the operator read before typing the key.
    */
   const failDelete = (error: unknown) => {
-    const raw = error instanceof Error ? error.message : "";
+    const raw =
+      typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message: string }).message
+        : "";
     const match = /^admin\.attributes\.error\.deleteHasLinks:(\d+)$/.exec(raw);
     if (match !== null) {
       // F4 / AT5-ONE-MESSAGE: clear the generic error state so the node is
