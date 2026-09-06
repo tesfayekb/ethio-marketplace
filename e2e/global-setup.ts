@@ -9,7 +9,6 @@ import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { totp } from "./helpers/totp";
 import { mintEmail } from "./helpers/users";
 
-
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const STATE_FILE = join(HERE, ".state", "test-user.json");
 
@@ -93,7 +92,6 @@ export type E2EUser = {
   /** L4 — the job-scoped super admin (both owner and non-owner paths mint it). */
   superAdmin?: E2ESuperAdmin;
 };
-
 
 let cachedProcessId: string | null = null;
 
@@ -273,7 +271,6 @@ async function mintPooledSuperAdmin(
   return { id, email, password, displayName: email.split("@")[0]!, secret, factorId };
 }
 
-
 export default async function globalSetup() {
   // 0. Migration parity (INC-074): staging must carry the newest local migration,
   //    or the suite fails once with the filename instead of N cryptic reds.
@@ -359,7 +356,6 @@ export default async function globalSetup() {
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
-
 
   // 5b. STAB-SETUP (DEC-036 amendment) — ONE OWNER FOR MAINTENANCE.
   //     Every sharded job used to run the full reaper + prune + storage sweep +

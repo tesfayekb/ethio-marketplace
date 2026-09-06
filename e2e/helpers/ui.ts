@@ -6,12 +6,7 @@ import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
-import {
-  authFetch,
-  STATE_FILE,
-  type E2ESuperAdmin,
-  type E2EUser,
-} from "../global-setup";
+import { authFetch, STATE_FILE, type E2ESuperAdmin, type E2EUser } from "../global-setup";
 
 import {
   assertInjectedIdentity,
@@ -529,7 +524,6 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   await waitForHydration(page);
   return { user, secret: pool.secret };
 }
-
 
 /**
  * Answers the StepUpGate modal IF it opened; a no-op when the session is
