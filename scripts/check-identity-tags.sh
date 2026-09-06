@@ -25,9 +25,9 @@ TOKENS=(
   'impersonation-banner-end'
   'mfa-enroll'
   'mfa-remove-confirm'
-  'mfa\.enroll('
-  'mfa\.unenroll('
-  'admin\.mfa\.deleteFactor'
+  'mfa[.]enroll[(]'
+  'mfa[.]unenroll[(]'
+  'admin[.]mfa[.]deleteFactor'
   'enrollAndStepUp'
   'enrollThroughSettings'
 )
