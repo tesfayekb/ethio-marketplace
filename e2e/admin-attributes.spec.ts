@@ -281,11 +281,13 @@ test.describe("C3 attributes console", () => {
         await page.getByTestId("attribute-delete-confirm").fill(key);
         await page.getByTestId("attribute-delete-submit").click();
         await stepUpIfPrompted(page, secret);
-        // F5 — the refused attempt leaves no trace: the definition survives.
+        // C3e — the linked refusal re-states the BLAST RADIUS with the server's
+        // own count (1 link here), never a generic error line. F5: no trace.
         await expect(
-          page.getByTestId("attribute-dialog-error"),
-          await dialogDump(page, "AT-5 refusal was never shown"),
-        ).toBeVisible({ timeout: 20000 });
+          page.getByTestId("attribute-delete-blast"),
+          await dialogDump(page, "AT-5 refusal never restated the blast radius"),
+        ).toContainText("1", { timeout: 20000 });
+        await expect(page.getByTestId("attribute-dialog-error")).toHaveCount(0);
       });
       expect(await readAttribute(key)).not.toBeNull();
 
