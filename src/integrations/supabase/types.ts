@@ -1722,6 +1722,10 @@ export type Database = {
         Args: { p_actor_ids: string[]; p_cutoff: string }
         Returns: number
       }
+      maintenance_prune_audit_orphans: {
+        Args: { p_cutoff: string }
+        Returns: number
+      }
       next_language_sort: { Args: never; Returns: number }
       promote_to_super_admin: {
         Args: { p_target_user: string }
