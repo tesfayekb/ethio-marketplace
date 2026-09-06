@@ -13,8 +13,17 @@ import { supabase } from "@/integrations/supabase/client";
  */
 
 /** The select-family types are the ones that carry an options list. */
-export const OPTION_TYPES = ["select", "multi_select"] as const;
-export const ATTRIBUTE_TYPES = ["text", "number", "boolean", "select", "multi_select"] as const;
+export const OPTION_TYPES = ["single_select", "multi_select"] as const;
+/** The live CHECK set on public.attributes.attr_type (C3b) — the only legal vocabulary. */
+export const ATTRIBUTE_TYPES = [
+  "text",
+  "number",
+  "single_select",
+  "multi_select",
+  "boolean",
+  "date",
+  "range",
+] as const;
 export type AttributeType = (typeof ATTRIBUTE_TYPES)[number];
 
 export function typeHasOptions(attrType: string): boolean {
