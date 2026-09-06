@@ -4,13 +4,29 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { gotoReady, stepUpIfPrompted, waitForHydration } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
-import { scratchSlug, bandOnly, surface, categoryRow, findRow, dialogDump, actionsOf, action, openEditor, signInAsSuperAdmin, readCategory, readPointers, destroyCategory, createViaUi, lifecycleDump } from "./helpers/categories";
+import {
+  scratchSlug,
+  bandOnly,
+  surface,
+  categoryRow,
+  findRow,
+  dialogDump,
+  actionsOf,
+  action,
+  openEditor,
+  signInAsSuperAdmin,
+  readCategory,
+  readPointers,
+  destroyCategory,
+  createViaUi,
+  lifecycleDump,
+} from "./helpers/categories";
 /**
  * C2 — LIFECYCLE, STEP-UP AND DELETE (CT-12..CT-17).
  *
  * L1 (DEC-037): split out of admin-categories.spec.ts with titles, tags and
  * fixture identities unchanged (INC-159 shard balance).
- */test.describe("C2 categories console", () => {
+ */ test.describe("C2 categories console", () => {
   /**
    * CT-12 (C2d, re-armed by UI-FIX-7) — the reactivate walk. A retired scratch
    * node comes back to life through step-up and is active again in DB truth

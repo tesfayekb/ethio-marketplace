@@ -207,7 +207,11 @@ export interface RevisionDumpRow {
   changed_at: string;
 }
 
-export async function dumpRevisions(key: string, lang: string, tag: string): Promise<RevisionDumpRow[]> {
+export async function dumpRevisions(
+  key: string,
+  lang: string,
+  tag: string,
+): Promise<RevisionDumpRow[]> {
   const { data, error } = await adminClient()
     .from("ui_translation_revisions")
     .select("prev_value, prev_status, prev_machine, action, changed_by, changed_at")

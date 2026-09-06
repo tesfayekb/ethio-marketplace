@@ -4,9 +4,31 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { FENCE_PREFIX_LIST } from "./global-setup";
-import { describeStringsPage, describeSwitcher, expectNoHorizontalOverflow, gotoReady, stepUpIfPrompted, waitForHydration } from "./helpers/ui";
+import {
+  describeStringsPage,
+  describeSwitcher,
+  expectNoHorizontalOverflow,
+  gotoReady,
+  stepUpIfPrompted,
+  waitForHydration,
+} from "./helpers/ui";
 import { adminClient } from "./helpers/users";
-import { langRow, actionsOf, stringRow, slug, scratchAxes, scratchKey, bulkFence, approveFence, ensureFenceLanguage, seedScratchKey, reapScratchKey, dumpRevisions, serializeRevisions, signInAsSuperAdmin } from "./helpers/translations";
+import {
+  langRow,
+  actionsOf,
+  stringRow,
+  slug,
+  scratchAxes,
+  scratchKey,
+  bulkFence,
+  approveFence,
+  ensureFenceLanguage,
+  seedScratchKey,
+  reapScratchKey,
+  dumpRevisions,
+  serializeRevisions,
+  signInAsSuperAdmin,
+} from "./helpers/translations";
 import { isPseudo, PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
 /**
  * Phases U4f/U4g/U4i — publication gate, bulk approval, roster order, orphans,
@@ -1243,4 +1265,3 @@ test.describe("U4g bulk approval, order and orphans", () => {
     },
   );
 });
-

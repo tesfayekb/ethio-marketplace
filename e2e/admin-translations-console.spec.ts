@@ -3,16 +3,40 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { processId } from "./global-setup";
-import { enrollAndStepUp, expectNoHorizontalOverflow, gotoReady, isMobile, stepUpIfPrompted, switchLanguage, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  enrollAndStepUp,
+  expectNoHorizontalOverflow,
+  gotoReady,
+  isMobile,
+  stepUpIfPrompted,
+  switchLanguage,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
-import { langRow, stringRow, surfaceControl, expansionOf, expansionControl, slug, scratchKey, bulkFence, ensureFenceLanguage, seedScratchKey, reapScratchKey, dumpRevisions, serializeRevisions, signInAsSuperAdmin } from "./helpers/translations";
+import {
+  langRow,
+  stringRow,
+  surfaceControl,
+  expansionOf,
+  expansionControl,
+  slug,
+  scratchKey,
+  bulkFence,
+  ensureFenceLanguage,
+  seedScratchKey,
+  reapScratchKey,
+  dumpRevisions,
+  serializeRevisions,
+  signInAsSuperAdmin,
+} from "./helpers/translations";
 /**
  * Phase U4b — Translations console (TR-1..TR-13, TR-23, TR-25, TR-16).
  *
  * L1 (DEC-037): this file is one third of the former admin-translations.spec.ts.
  * Every test title, tag, fence and seeded identity is byte-identical; only the
  * containing file changed (INC-159 shard balance).
- */test.describe("U4b translations console", () => {
+ */ test.describe("U4b translations console", () => {
   test("TR-1 gating: a permissionless user is refused; a super admin sees the roster", async ({
     page,
   }) => {

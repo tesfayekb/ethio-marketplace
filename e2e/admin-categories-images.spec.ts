@@ -4,13 +4,23 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { gotoReady, stepUpIfPrompted } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
-import { sharedPrefix, bandOnly, categoryRow, findRow, action, openEditor, signInAsSuperAdmin, destroyCategory, createViaUi } from "./helpers/categories";
+import {
+  sharedPrefix,
+  bandOnly,
+  categoryRow,
+  findRow,
+  action,
+  openEditor,
+  signInAsSuperAdmin,
+  destroyCategory,
+  createViaUi,
+} from "./helpers/categories";
 /**
  * C5 — CATEGORY IMAGERY FROM THE CONSOLE (CI-4, CI-5 bulk).
  *
  * L1 (DEC-037): split out of admin-categories.spec.ts with titles, tags and
  * fixture identities unchanged (INC-159 shard balance).
- */test.describe("C2 categories console", () => {
+ */ test.describe("C2 categories console", () => {
   /** DB truth (J4): the imagery columns the route persists. */
   async function readImages(slug: string) {
     const { data, error } = await adminClient()

@@ -1,13 +1,7 @@
 import { type Locator, type Page } from "@playwright/test";
 
 import { expect, test } from "../fixtures";
-import {
-  enrollAndStepUp,
-  gotoReady,
-  stepUpIfPrompted,
-  switchUser,
-  waitForHydration,
-} from "./ui";
+import { enrollAndStepUp, gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./ui";
 import { adminClient, createUser } from "./users";
 
 /**

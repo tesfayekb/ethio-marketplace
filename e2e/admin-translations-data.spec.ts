@@ -2,16 +2,32 @@ import { expect, test } from "./fixtures";
 
 import { am } from "../src/i18n/locales/am";
 import { processId } from "./global-setup";
-import { describeEntityStats, describeStringsPage, gotoReady, stepUpIfPrompted } from "./helpers/ui";
+import {
+  describeEntityStats,
+  describeStringsPage,
+  gotoReady,
+  stepUpIfPrompted,
+} from "./helpers/ui";
 import { adminClient } from "./helpers/users";
-import { translationsSurface, rowTestId, langRow, surfaceControl, slug, scratchAxes, bulkFence, approveFence, ensureFenceLanguage, signInAsSuperAdmin } from "./helpers/translations";
+import {
+  translationsSurface,
+  rowTestId,
+  langRow,
+  surfaceControl,
+  slug,
+  scratchAxes,
+  bulkFence,
+  approveFence,
+  ensureFenceLanguage,
+  signInAsSuperAdmin,
+} from "./helpers/translations";
 import { translationMapperSelfTest } from "../src/features/admin/translations/translations-service";
 /**
  * Phase U4d — the Data scope (TR-14, TR-24, TR-26).
  *
  * L1 (DEC-037): split out of admin-translations.spec.ts with its titles, tags
  * and fixture identities unchanged (INC-159 shard balance).
- */test.describe("U4b translations console", () => {
+ */ test.describe("U4b translations console", () => {
   /**
    * U4d / INC-097d — THE DATA SCOPE (TR-14/TR-15).
    *

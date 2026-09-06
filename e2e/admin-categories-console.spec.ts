@@ -2,15 +2,40 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
-import { enrollAndStepUp, expectNoHorizontalOverflow, gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  enrollAndStepUp,
+  expectNoHorizontalOverflow,
+  gotoReady,
+  stepUpIfPrompted,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
-import { rand, TWIN_BOUNDARY, bandOnly, surface, categoryRow, findRow, action, openEditor, grantRole, signInAsSuperAdmin, readCategory, seedActiveListing, readListing, readPointers, destroyCategory, createViaUi, geometryDump } from "./helpers/categories";
+import {
+  rand,
+  TWIN_BOUNDARY,
+  bandOnly,
+  surface,
+  categoryRow,
+  findRow,
+  action,
+  openEditor,
+  grantRole,
+  signInAsSuperAdmin,
+  readCategory,
+  seedActiveListing,
+  readListing,
+  readPointers,
+  destroyCategory,
+  createViaUi,
+  geometryDump,
+} from "./helpers/categories";
 /**
  * C2-UI — THE CATEGORIES CONSOLE, roster and CRUD (CT-1..CT-11).
  *
  * L1 (DEC-037): one third of the former admin-categories.spec.ts. Titles, tags
  * and fixture identities are byte-identical; only the file changed (INC-159).
- */test.describe("C2 categories console", () => {
+ */ test.describe("C2 categories console", () => {
   test("CT-1 gating: a plain user is refused; the section renders for an admin", async ({
     page,
   }) => {
