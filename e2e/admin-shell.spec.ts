@@ -8,7 +8,7 @@ import {
 } from "../src/features/admin/sections";
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, openRailScope, signIn, waitForHydration } from "./helpers/ui";
+import { gotoReady, openRailScope, signIn, switchUser, waitForHydration } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -334,7 +334,10 @@ test.describe("Admin shell (U0)", () => {
     // and every grouped deep link is refused to the landing with the notice.
     const mod = await createUser({ confirmed: true });
     await grantRole(mod.id, "moderator");
-    await signIn(page, mod.email, mod.password);
+    // INC-074 CLASS RULE — the second persona goes through the SAME door A-2
+    // uses: sign out through the UI first, never a bare `signIn` over a live
+    // session (which lands on the U0j-guarded /auth and hangs).
+    await switchUser(page, mod.email, mod.password);
     await waitForHydration(page);
     await page.goto("/admin");
     await waitForHydration(page);

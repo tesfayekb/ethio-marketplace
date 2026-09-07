@@ -42,7 +42,14 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    // Sandbox escape hatch ONLY: the Lovable executor image ships a system
+    // chromium but no playwright-managed one (its headless shell cannot load
+    // libglib). CI never sets this, so the CI browser resolution is untouched.
+    ...(process.env["E2E_CHROMIUM_PATH"]
+      ? { launchOptions: { executablePath: process.env["E2E_CHROMIUM_PATH"] } }
+      : {}),
   },
+
   projects: [
     {
       name: "mobile-360",
