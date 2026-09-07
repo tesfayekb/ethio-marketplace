@@ -69,6 +69,7 @@ export const ADMIN_SECTIONS = [
     permission: "categories:view",
     titleKey: "admin.section.categories.title",
     bodyKey: "admin.section.categories.body",
+    group: "categories",
   },
   {
     id: "attributes",
@@ -76,6 +77,7 @@ export const ADMIN_SECTIONS = [
     permission: "categories:view",
     titleKey: "admin.section.attributes.title",
     bodyKey: "admin.section.attributes.body",
+    group: "categories",
   },
   {
     id: "images",
@@ -83,6 +85,7 @@ export const ADMIN_SECTIONS = [
     permission: "categories:view",
     titleKey: "admin.section.images.title",
     bodyKey: "admin.section.images.body",
+    group: "categories",
   },
   {
     id: "translations",
@@ -111,4 +114,9 @@ export function sectionById(id: AdminSectionId): AdminSection {
   // Law F4 — a missing section is a programming error, never a silent blank.
   if (!found) throw new Error(`[admin] unknown section id: ${id}`);
   return found;
+}
+
+/** The group a section hangs under, or null when it sits at the top level. */
+export function groupForSection(section: AdminSection) {
+  return section.group ? ADMIN_GROUPS[section.group] : null;
 }
