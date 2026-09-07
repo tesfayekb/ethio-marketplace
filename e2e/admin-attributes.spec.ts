@@ -923,12 +923,12 @@ test.describe("C3 attributes console", () => {
       // UTF-8 BOM, so Excel reads Ge'ez.
       expect(definitions.charCodeAt(0)).toBe(0xfeff);
       expect(links.charCodeAt(0)).toBe(0xfeff);
-      // THE COLUMN LAW, verbatim.
+      // THE COLUMN LAW, verbatim — IE-3: derived columns declare themselves.
       expect(definitions.slice(1).split("\r\n")[0]).toBe(
-        "attribute_key,label_en,label_am,type,options,is_per_variant,direct_link_count",
+        "attribute_key,label_en,label_am (read-only),type,options,is_per_variant (read-only),direct_link_count (read-only)",
       );
       expect(links.slice(1).split("\r\n")[0]).toBe(
-        "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin",
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)",
       );
 
       // FORMULA SAFETY: the "="-opening label is prefixed with a single quote
@@ -1152,7 +1152,7 @@ test.describe("C3 attributes console", () => {
       const links = texts.get(`${fixture.parentSlug}-links.csv`)!;
       const lines = links.slice(1).split("\r\n").filter(Boolean);
       expect(lines[0]).toBe(
-        "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin",
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)",
       );
       // ONLY the subtree: every data row's category_slug is parent or child.
       const slugs = new Set(lines.slice(1).map((line) => line.split(",")[1]));
@@ -1705,5 +1705,119 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(child);
       await destroyAttribute(base);
     }
+  });
+  /**
+   * AT-27 — COLUMN CLASSES (IE-3). A links row carries an edited read-only
+   * cell (`category_path`) AND a real editable change (`is_required`): the
+   * preview lists the ignored cell, counts exactly one change, the commit
+   * applies the attribute change only, and the categories table is untouched.
+   */
+  test("AT-27 an edited read-only cell is ignored while the row's real change applies", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-imp-${rand()}`;
+    try {
+      const { data: attribute } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "text" })
+        .select("id")
+        .single();
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      await supabase.from("category_attribute_links").insert({
+        category_id: category!.id,
+        attribute_id: attribute!.id,
+        is_required: false,
+        is_filterable: false,
+      });
+
+      const before = await supabase
+        .from("categories")
+        .select("slug,name_en,name_am,is_active,allow_listings,is_catchall")
+        .eq("slug", slug)
+        .single();
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      // `category_path` is derived — the file lies about it on purpose. The
+      // header also carries the export's " (read-only)" suffix.
+      const header =
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)";
+      const links = `${header}\r\nTOTALLY WRONG PATH,${slug},${key},true,false,,${slug}\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect((preview.payload["counts"] as Record<string, number>).changes).toBe(1);
+      const ignored = (preview.payload["ignored"] ?? []) as { row: number; column: string }[];
+      expect(
+        ignored.map((entry) => entry.column),
+        `AT-27 the ignored panel: ${JSON.stringify(ignored)}`,
+      ).toContain("category_path");
+      expect(ignored[0]?.row).toBe(2);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+
+      const after = await readLinks(category!.id);
+      expect(after[0]?.is_required, "AT-27 the editable change did not apply").toBe(true);
+
+      // DB TRUTH (J4): the categories row is byte-identical — an attributes
+      // import can only ever reach attribute doors.
+      const now = await supabase
+        .from("categories")
+        .select("slug,name_en,name_am,is_active,allow_listings,is_catchall")
+        .eq("slug", slug)
+        .single();
+      expect(now.data, "AT-27 the attributes import touched a category").toEqual(before.data);
+    } finally {
+      await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-28 — FILE IDENTITY (IE-3). A categories export dropped into the
+   * attributes import is refused by its headers, before any row is parsed.
+   */
+  test("AT-28 a categories file is refused by identity", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/attributes");
+
+    const token = await bearerOf(page);
+    const categories = await page.request.get("/api/admin/categories/export", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(categories.status()).toBe(200);
+    const categoriesCsv = await categories.text();
+
+    const refused = await importPost(page, token, {
+      mode: "preview",
+      definitions: categoriesCsv,
+    });
+    expect(refused.status, JSON.stringify(refused.payload)).toBe(400);
+    expect(refused.payload["error"]).toBe("wrongFile");
+
+    // The DIALOG refuses it too, and never posts: no counts appear.
+    await page.getByTestId("attribute-import").click();
+    await expect(page.getByTestId("attribute-import-dialog")).toBeVisible();
+    await attachCsv(page, "attribute-import-definitions", "categories.csv", categoriesCsv);
+    await expect(page.getByTestId("attribute-import-error")).toBeVisible();
+    await expect(page.getByTestId("attribute-import-counts")).toHaveCount(0);
+    await page.getByTestId("attribute-import-discard").click();
   });
 });

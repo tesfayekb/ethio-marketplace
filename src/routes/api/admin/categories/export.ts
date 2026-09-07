@@ -39,6 +39,19 @@ export const CATEGORY_COLUMNS = [
   "origin_scope",
 ] as const;
 
+/** IE-3 — derived/foreign columns are labelled read-only in the header. */
+export const READ_ONLY_COLUMNS = new Set<string>([
+  "category_path",
+  "name_am",
+  "is_catchall",
+  "listing_count",
+  "origin_scope",
+]);
+
+export function headerCell(name: string): string {
+  return READ_ONLY_COLUMNS.has(name) ? `${name} (read-only)` : name;
+}
+
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -62,7 +75,7 @@ function csvCell(raw: unknown): string {
 }
 
 function toCsv(rows: Record<string, unknown>[]): string {
-  const lines = [CATEGORY_COLUMNS.join(",")];
+  const lines = [CATEGORY_COLUMNS.map(headerCell).join(",")];
   for (const row of rows) {
     lines.push(CATEGORY_COLUMNS.map((column) => csvCell(row[column])).join(","));
   }

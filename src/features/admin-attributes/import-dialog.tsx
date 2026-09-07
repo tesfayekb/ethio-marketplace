@@ -65,6 +65,7 @@ export function ImportAttributesDialog({
       ]}
       countFields={COUNT_FIELDS}
       reasonKeys={REASON_KEYS}
+      family="attributes"
       scope={scope}
       guard={guard}
       onClose={onClose}

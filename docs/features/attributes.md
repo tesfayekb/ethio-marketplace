@@ -308,3 +308,28 @@ AT-22 bad header, raw formula and unknown slug with nothing written · AT-23 no
 control and 403 for a `categories:view`-only operator (401 with no bearer) ·
 AT-24 edited bytes refused against the preview digest · AT-25 invalid option
 `parent`.
+
+## IE-3 — column classes (attributes)
+
+Every export header states its class. Identity and editable columns are written
+bare; derived or foreign columns carry the ` (read-only)` suffix:
+
+| File          | Read-only columns                                 |
+| ------------- | ------------------------------------------------- |
+| `definitions` | `label_am`, `is_per_variant`, `direct_link_count` |
+| `links`       | `category_path`, `origin`                         |
+
+The importer accepts a header **with or without** the suffix, so the round-trip
+invariant (AT-20) is unchanged in meaning. A read-only cell is **never**
+applied: the preview lists it under "Ignored (read-only)" with its row and
+column, and the row's editable changes still apply (AT-27).
+
+**File identity.** The dialog and the route both read the headers before any
+row is parsed. A categories file offered to the attributes import is refused
+with "This is the categories file — import it from Categories" (AT-28), and the
+migration proves the attributes plan can only reach attribute doors — it never
+writes a category table or calls a lifecycle door.
+
+**Guided refusals.** An inherited row now names the fix: add a direct row for
+this category, or edit it at the origin. A formula cell reads "Cells may not
+start with = + - @". Every refusal keeps its row number.
