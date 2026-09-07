@@ -365,3 +365,52 @@ parity-proven — the previous 17 columns and their ordering are byte-identical)
 - `secondary_parent_names`. The **Parent** cell now reads the primary parent
   with a "Primary" chip and, when the node hangs under more branches, a second
   line naming them ("Also in: …"). Both twins, logical properties only.
+
+## CAT-IE — category export + import (2026-09-07)
+
+The roster carries two controls beside its verbs: **Export categories**
+(`categories:view`) and **Import categories** (`categories:import`, the
+step-up permission IE-2 registered). Both obey the roster's root filter: with
+a root selected, the scope is that subtree (the server resolves descendants
+from the slug) and the download's filename carries the slug.
+
+**The file.** `GET /api/admin/categories/export[?scope=<slug>]` answers a
+UTF-8-BOM, RFC-4180, formula-safe CSV whose columns are exactly:
+`category_path, category_slug, parent_slug, name_en, name_am, display_order,
+is_active, allow_listings, is_catchall, price_enabled, expiry_days, icon,
+visible_from, visible_until, excluded_country_codes (pipe),
+secondary_parents (pipe of slugs), listing_count (informational),
+origin_scope`. An optional trailing `action` column is accepted on import
+only: `upsert` (default) · `create-root` · `retire` · `reactivate` ·
+`delete`. Deletion is never inferred from absence.
+
+**The doors.** `POST /api/admin/categories/import` with
+`mode=preview|commit|undo` parses server-side only (1 MiB / 5 000 rows,
+strict header, every raw `= + - @` cell refused per row) and calls the gated
+RPCs. The plan is keyed by `category_slug` (slugs are identity: a rename of
+the slug itself is refused), parents are planned before children, and every
+mutation travels through an existing lifecycle door — `admin_update_category`,
+the pointer/reorder RPCs, `admin_set_category_window`,
+`admin_set_country_exclusions`, `admin_retire_category`,
+`admin_reactivate_category`, `admin_delete_category` — so the cycle law, the
+catch-all-is-never-a-parent law, the typed-slug delete law and the blast
+radius all keep exactly one authority (F3). `name_am` rides the Data-scope
+entity-translation writer.
+
+Preview writes nothing. Commit requires `categories:import` + step-up + the
+preview's digest (409 `fileChanged` when the bytes moved), takes a per-user
+advisory lock, captures old → new into `category_import_revisions` batch-tagged
+and then mutates; comparison is semantic (INC-177's normalisers for pipes,
+booleans and dates), so a re-imported export changes nothing. **Undo** replays
+the batch through the same doors in reverse order.
+
+**Refusal vocabulary** (per row, rendered as a key): `missingSlug`,
+`duplicateSlug`, `badAction`, `missingName`, `unknownSlug`, `unknownParent`,
+`catchallParent`, `cycle`, `slugRename`, `hasChildren`, `hasListings`,
+`deleteActive`, `unknownCountry`, `badDate`, `outOfScope`, `formula`.
+
+**Coverage.** CT-18 round-trip invariant through the dialog's file picker
+(Discard writes no capture row); CT-19 create + rename → DB truth → undo;
+CT-20 retire/reactivate with both audit rows; CT-21 the refusals; CT-22 a
+`categories:view`-only operator (no control, 403, 401 without a bearer);
+CT-23 a commit without step-up (428 / P0009, nothing written).
