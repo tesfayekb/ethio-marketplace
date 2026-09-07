@@ -110,8 +110,12 @@ export type E2EUser = {
    * alone is not an ownership boundary.
    */
   processId: string;
-  /** L4 — the job-scoped super admin (both owner and non-owner paths mint it). */
-  superAdmin?: E2ESuperAdmin;
+  /**
+   * L5c — ONE POOLED IDENTITY PER WORKER SLOT. Index i belongs to the test
+   * whose `test.info().parallelIndex` is i; no two concurrent tests ever share
+   * an identity (INC-168). No session is stored: each test mints its own.
+   */
+  superAdmins?: E2ESuperAdmin[];
 };
 
 let cachedProcessId: string | null = null;
