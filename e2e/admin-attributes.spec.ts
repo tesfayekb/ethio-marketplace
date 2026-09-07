@@ -521,7 +521,6 @@ test.describe("C3 attributes console", () => {
         `the row menu is unreachable at ${width}`,
       ).toBeVisible();
 
-
       // The `wide` tier: Options is absent below 1280 and present from 1280.
       const optionsCells = page
         .getByRole("table")
