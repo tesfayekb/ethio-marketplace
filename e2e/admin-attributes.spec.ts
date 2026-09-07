@@ -488,8 +488,10 @@ test.describe("C3 attributes console", () => {
     await expect.poll(async () => await libraryRows(page).count(), { timeout: 20000 }).toBe(25);
     await expectNoHorizontalOverflow(page);
 
-    /* C3-UX-1c PART B — WIDTH PARITY. Across the desktop band the table must
-       neither scroll the page sideways nor clip its last column. */
+    /* C3-UX-1d PART D — TIER PARITY. Across the desktop band the table must
+       neither scroll the page sideways nor clip its last column, the ⋯ actions
+       trigger must be reachable at every width, and the Options column earns
+       its place only from 1280 up. */
     if (isCardTwin(page)) return;
     for (const width of [1024, 1194, 1280, 1366]) {
       await page.setViewportSize({ width, height: 900 });
@@ -511,8 +513,26 @@ test.describe("C3 attributes console", () => {
       });
       expect(geometry.overshoot, `last column clipped at ${width}`).toBeLessThanOrEqual(2);
       expect(geometry.overflow, `the library scrolls sideways at ${width}`).toBeLessThanOrEqual(1);
+
+      // The row menu is the ONLY verb surface: it is visible at every width.
+      const firstRow = libraryRows(page).first();
+      await expect(
+        firstRow.locator('[data-testid^="attribute-actions-"]').first(),
+        `the row menu is unreachable at ${width}`,
+      ).toBeVisible();
+
+      // The `wide` tier: Options is absent below 1280 and present from 1280.
+      const optionsCells = page
+        .getByRole("table")
+        .locator('[data-testid^="attribute-options-"]:visible');
+      if (width < 1280) {
+        await expect(optionsCells, `Options should not render at ${width}`).toHaveCount(0);
+      } else {
+        expect(await optionsCells.count(), `Options should render at ${width}`).toBeGreaterThan(0);
+      }
     }
   });
+
 
   test("AT-10 Used by names the category the attribute was assigned to (DB truth)", async ({
     page,
