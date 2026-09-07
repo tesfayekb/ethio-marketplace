@@ -995,4 +995,257 @@ test.describe("C3 attributes console", () => {
     const anonymous = await page.request.get("/api/admin/attributes/export?file=definitions");
     expect(anonymous.status()).toBe(401);
   });
+  /* ------------------- C3-INH (DEC-044): inherited rows ------------------- */
+
+  /**
+   * A scratch subtree used by AT-17..AT-19: an ACTIVE, listing-accepting child
+   * that links NOTHING, under a parent that links two card attributes. Seeded
+   * through the service client (J5), before any navigation (J7).
+   */
+  async function seedInheritanceFixture() {
+    const supabase = adminClient();
+    const stamp = rand();
+    const parentSlug = `e2e-cat-inh-${stamp}`;
+    const childSlug = `e2e-cat-inh-${stamp}-child`;
+    const keyA = `e2e_attr_${rand()}`;
+    const keyB = `e2e_attr_${rand()}`;
+
+    const { data: attrs, error: attrError } = await supabase
+      .from("attributes")
+      .insert([
+        { attr_key: keyA, name_en: keyA, attr_type: "text" },
+        { attr_key: keyB, name_en: keyB, attr_type: "text" },
+      ])
+      .select("id, attr_key");
+    if (attrError || !attrs) throw new Error(`inheritance attrs failed: ${attrError?.message}`);
+    const attrA = attrs.find((row) => row.attr_key === keyA)!;
+    const attrB = attrs.find((row) => row.attr_key === keyB)!;
+
+    const { data: cats, error: catError } = await supabase
+      .from("categories")
+      .insert([
+        { slug: parentSlug, name_en: parentSlug, is_active: true, allow_listings: true },
+        { slug: childSlug, name_en: childSlug, is_active: true, allow_listings: true },
+      ])
+      .select("id, slug");
+    if (catError || !cats) throw new Error(`inheritance categories failed: ${catError?.message}`);
+    const parent = cats.find((row) => row.slug === parentSlug)!;
+    const child = cats.find((row) => row.slug === childSlug)!;
+
+    // The parent is a ROOT (parent_id NULL) so both rows reach the roster walk.
+    const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
+      { parent_id: null, child_id: parent.id, display_order: 900 },
+      { parent_id: parent.id, child_id: child.id, display_order: 1 },
+    ]);
+    if (pointerError) throw new Error(`inheritance pointers failed: ${pointerError.message}`);
+
+    const { data: linkRows, error: linkError } = await supabase
+      .from("category_attribute_links")
+      .insert([
+        { category_id: parent.id, attribute_id: attrA.id, is_required: true, card_rank: 1 },
+        { category_id: parent.id, attribute_id: attrB.id, is_required: false, card_rank: 2 },
+      ])
+      .select("id, attribute_id");
+    if (linkError || !linkRows) throw new Error(`inheritance links failed: ${linkError?.message}`);
+
+    return {
+      parentSlug,
+      childSlug,
+      parentId: parent.id,
+      childId: child.id,
+      keyA,
+      keyB,
+      attrAId: attrA.id,
+      attrBId: attrB.id,
+      linkAId: linkRows.find((row) => row.attribute_id === attrA.id)!.id,
+      async destroy() {
+        await supabase
+          .from("category_attribute_links")
+          .delete()
+          .in("attribute_id", [attrA.id, attrB.id]);
+        await destroyCategory(childSlug);
+        await destroyCategory(parentSlug);
+        await destroyAttribute(keyA);
+        await destroyAttribute(keyB);
+      },
+    };
+  }
+
+  /**
+   * AT-17 — the child links nothing, yet its filtered console shows the
+   * parent's attributes as INHERITED rows naming the parent; and because the
+   * effective card count is 2, the roster's amber two-must-display flag is
+   * clear on the child.
+   */
+  test("AT-17 an inherited row names its origin and clears the child's card flag", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const fixture = await seedInheritanceFixture();
+    try {
+      await gotoReady(page, `/admin/attributes?category=${fixture.childSlug}`);
+      const surface = librarySurface(page);
+      const rowId = isCardTwin(page)
+        ? `attribute-row-${fixture.keyA}-card`
+        : `attribute-row-${fixture.keyA}`;
+      await expect(
+        surface.getByTestId(rowId),
+        await dialogDump(page, "AT-17 the inherited row never rendered"),
+      ).toBeVisible({ timeout: 30000 });
+      const badge = surface.getByTestId(`attribute-inherited-${fixture.keyA}`);
+      await expect(badge).toBeVisible({ timeout: 20000 });
+      await expect(badge).toContainText(fixture.parentSlug);
+
+      // THE ROSTER: two EFFECTIVE card attributes clear the amber flag.
+      await gotoReady(page, "/admin/categories");
+      await expect(page.getByTestId("attribute-empty")).toHaveCount(0);
+      await expect(page.getByTestId(`category-needs-card-${fixture.parentSlug}`)).toHaveCount(0);
+      await expect(page.getByTestId(`category-needs-card-${fixture.childSlug}`)).toHaveCount(0);
+    } finally {
+      await fixture.destroy();
+    }
+  });
+
+  /**
+   * AT-18 — with a filter active the export is SUBTREE-scoped: only the
+   * category and its descendants appear (DB truth read back from the links
+   * file), the inherited row carries the parent slug as origin, and the
+   * filename carries the scope slug.
+   */
+  test("AT-18 the scoped export carries the subtree only, with origin", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const fixture = await seedInheritanceFixture();
+    try {
+      await gotoReady(page, `/admin/attributes?category=${fixture.parentSlug}`);
+      const control = page.getByTestId("attribute-export");
+      await expect(control, await dialogDump(page, "AT-18 no export control")).toBeVisible({
+        timeout: 20000,
+      });
+      // The filter must be SETTLED before the click, or the export is unscoped.
+      await expect(page.getByTestId("attribute-category-clear")).toBeVisible({ timeout: 30000 });
+      const captured: import("@playwright/test").Download[] = [];
+      page.on("download", (download) => captured.push(download));
+      await control.click();
+      await expect
+        .poll(() => captured.length, {
+          timeout: 60000,
+          message: "AT-18 the control did not produce both downloads",
+        })
+        .toBe(2);
+
+      const texts = new Map<string, string>();
+      for (const download of captured) {
+        const path = await download.path();
+        if (!path) throw new Error(`AT-18 download ${download.suggestedFilename()} has no path`);
+        const { readFileSync } = await import("node:fs");
+        texts.set(download.suggestedFilename(), readFileSync(path, "utf8"));
+      }
+      expect([...texts.keys()].sort()).toEqual([
+        `${fixture.parentSlug}-definitions.csv`,
+        `${fixture.parentSlug}-links.csv`,
+      ]);
+
+      const links = texts.get(`${fixture.parentSlug}-links.csv`)!;
+      const lines = links.slice(1).split("\r\n").filter(Boolean);
+      expect(lines[0]).toBe(
+        "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin",
+      );
+      // ONLY the subtree: every data row's category_slug is parent or child.
+      const slugs = new Set(lines.slice(1).map((line) => line.split(",")[1]));
+      expect([...slugs].sort()).toEqual([fixture.childSlug, fixture.parentSlug].sort());
+      const childRow = lines.find((line) =>
+        line.includes(`,${fixture.childSlug},${fixture.keyA},`),
+      );
+      expect(childRow, "AT-18 the inherited row is missing").toBeTruthy();
+      expect(childRow!.endsWith(`,${fixture.parentSlug}`)).toBe(true);
+    } finally {
+      await fixture.destroy();
+    }
+  });
+
+  /**
+   * AT-19 — the inherited row carries NO write verb, and the server refuses a
+   * write addressed to the inherited link from the inheriting category: the UI
+   * is convenience, the RPC is the authority (F3).
+   */
+  test("AT-19 an inherited row has no write verb and the write RPCs refuse it", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const fixture = await seedInheritanceFixture();
+    const supabase = adminClient();
+    try {
+      await gotoReady(page, `/admin/attributes?category=${fixture.childSlug}`);
+      await expect(
+        librarySurface(page).getByTestId(`attribute-inherited-${fixture.keyA}`),
+        await dialogDump(page, "AT-19 the inherited row never rendered"),
+      ).toBeVisible({ timeout: 30000 });
+
+      const menu = await openAttributeMenu(page, fixture.keyA);
+      await expect(menu.getByTestId(`attribute-open-origin-${fixture.keyA}`)).toBeVisible();
+      await expect(menu.getByTestId(`attribute-edit-${fixture.keyA}`)).toHaveCount(0);
+      await expect(menu.getByTestId(`attribute-assign-${fixture.keyA}`)).toHaveCount(0);
+      await expect(menu.getByTestId(`attribute-remove-${fixture.keyA}`)).toHaveCount(0);
+      await expect(menu.getByTestId(`attribute-delete-${fixture.keyA}`)).toHaveCount(0);
+      await page.keyboard.press("Escape");
+
+      // SERVER LAW: the child owns no link, so ordering and card-ranking the
+      // inherited link THROUGH the child are both refused.
+      const denials = await page.evaluate(
+        async ([childId, linkId, attrId]) => {
+          const client = (
+            window as unknown as {
+              __ethioSupabase: {
+                rpc: (
+                  fn: string,
+                  args: Record<string, unknown>,
+                ) => Promise<{ error: { message: string } | null }>;
+              };
+            }
+          ).__ethioSupabase;
+          const order = await client.rpc("admin_set_attribute_link_order", {
+            p_category_id: childId,
+            p_ordered_link_ids: [linkId],
+          });
+          const card = await client.rpc("admin_set_card_attributes", {
+            p_category_id: childId,
+            p_ordered_attribute_ids: [attrId],
+          });
+          return {
+            order: order.error?.message ?? "NO ERROR",
+            card: card.error?.message ?? "NO ERROR",
+          };
+        },
+        [fixture.childId, fixture.linkAId, fixture.attrAId],
+      );
+      expect(denials.order, "AT-19 ordering an inherited link must be refused").not.toBe(
+        "NO ERROR",
+      );
+      expect(denials.card, "AT-19 card-ranking an inherited link must be refused").not.toBe(
+        "NO ERROR",
+      );
+
+      // A refused attempt leaves NO trace (F5): the child still owns no link
+      // and the parent's link is untouched.
+      const { data: childLinks } = await supabase
+        .from("category_attribute_links")
+        .select("id")
+        .eq("category_id", fixture.childId);
+      expect(childLinks ?? []).toHaveLength(0);
+      const { data: parentLink } = await supabase
+        .from("category_attribute_links")
+        .select("card_rank")
+        .eq("id", fixture.linkAId)
+        .single();
+      expect(parentLink?.card_rank).toBe(1);
+    } finally {
+      await fixture.destroy();
+    }
+  });
 });

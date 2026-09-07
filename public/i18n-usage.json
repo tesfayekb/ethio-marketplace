@@ -184,6 +184,13 @@
     "admin.attributes.filter.empty": [
       "/admin/attributes"
     ],
+    "admin.attributes.inherited.badge": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.inherited.openOrigin": [
+      "/admin/attributes"
+    ],
     "admin.attributes.links.add": [
       "/admin/categories"
     ],

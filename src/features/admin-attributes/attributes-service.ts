@@ -263,3 +263,44 @@ export function groupByAttribute(rows: AttributeCategory[]): Map<string, Attribu
   }
   return map;
 }
+
+/* ------------------- C3-INH (DEC-044) — EFFECTIVE LINKS ------------------- */
+
+/**
+ * A category shows its OWN links plus every link inherited from an ancestor
+ * category (nearest link wins). `admin_list_effective_category_links` is the
+ * one reader for that set: `inherited` says which side of the line a row is on
+ * and `origin*` names the category the row actually lives in. Inherited rows
+ * are READ-ONLY in every surface — the write RPCs address the ORIGIN's link,
+ * which is why the console offers only "open origin category" for them (F3:
+ * the server refuses regardless).
+ */
+export interface EffectiveLink extends AttributeLink {
+  inherited: boolean;
+  originId: string;
+  originSlug: string;
+  originNameEn: string;
+}
+
+export async function listEffectiveCategoryLinks(categoryId: string): Promise<EffectiveLink[]> {
+  const { data, error } = await supabase.rpc("admin_list_effective_category_links", {
+    p_category_id: categoryId,
+  });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    linkId: row.link_id,
+    attributeId: row.attribute_id,
+    attrKey: row.attr_key,
+    nameEn: row.name_en,
+    attrType: row.attr_type,
+    options: toOptionList(row.options),
+    isRequired: row.is_required,
+    isFilterable: row.is_filterable,
+    displayOrder: Number(row.display_order ?? 0),
+    cardRank: row.card_rank === null ? null : Number(row.card_rank),
+    inherited: row.inherited === true,
+    originId: row.origin_id,
+    originSlug: row.origin_slug,
+    originNameEn: row.origin_name_en,
+  }));
+}

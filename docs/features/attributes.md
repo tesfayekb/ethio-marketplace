@@ -213,3 +213,37 @@ database agree again.
 E2E: AT-15 (both downloads, verbatim headers, BOM, inherited `origin`, the
 `'=`-prefixed label) · AT-16 (403 for a bearer without `categories:view`, 401
 with no bearer, and no control rendered).
+
+## C3-INH (DEC-044) — inherited rows in the console + subtree-scoped export
+
+A category's **effective** attribute set is its own links plus every link
+reachable through its ancestor pointers; the nearest link wins. The one reader
+is `admin_list_effective_category_links(p_category_id)` (gated on
+`categories:view`, E7): each row carries `inherited` and `origin_id` /
+`origin_slug` / `origin_name_en`.
+
+- **Console** — with `?category=<slug>` active the library renders the
+  effective set. Inherited rows carry an "Inherited from &lt;origin&gt;" badge
+  (`attribute-inherited-<key>`, same badge in the card twin) and are read-only:
+  their ⋯ menu offers only "Open origin category"
+  (`attribute-open-origin-<key>`). The UI hiding is convenience — the write
+  RPCs refuse a write addressed through the inheriting category (totality on
+  `admin_set_attribute_link_order`, link-not-found on
+  `admin_set_card_attributes`), which is what AT-19 proves.
+- **Category editor** — the Attributes tab lists own links as before and the
+  inherited ones below them, read-only, under
+  `category-attributes-inherited`.
+- **Roster flag** — `admin_list_categories.card_attribute_count` is now the
+  EFFECTIVE count, so a child inheriting two card attributes no longer carries
+  the amber two-must-display flag. `attribute_count` stays the direct count.
+- **Export** — `GET /api/admin/attributes/export?file=…&scope=<slug>` narrows
+  both files to that category and all its descendants (inherited rows
+  included, with `origin`); the subtree is resolved server-side by
+  `admin_export_attributes(p_scope_slug)`, and the 0-arg door delegates to it
+  with `NULL`. The column laws are unchanged; a scoped download's filename
+  carries the slug (`ethio-attributes-<slug>-links-<date>.csv`). An unknown
+  slug answers 404 after an `[ssr-error]` line.
+
+Keys: `admin.attributes.inherited.badge`, `admin.attributes.inherited.openOrigin`
+(EN + AM). E2E: AT-17 (inherited row + cleared roster flag), AT-18 (scoped
+export contents and filename), AT-19 (no write verb, server refusal).
