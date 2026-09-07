@@ -64,6 +64,17 @@ function attributeActions(page: import("@playwright/test").Page, key: string) {
   );
 }
 
+/**
+ * C3-UX-1c — the row carries ONE \u22ef trigger and every verb lives in its menu
+ * (a portal, so the menu is addressed at the page, never inside the row).
+ */
+async function openAttributeMenu(page: import("@playwright/test").Page, key: string) {
+  await attributeActions(page, key).getByTestId(`attribute-actions-${key}`).click();
+  const menu = page.getByTestId("attribute-actions-menu");
+  await expect(menu).toBeVisible({ timeout: 20000 });
+  return menu;
+}
+
 /** A scratch definition, minted straight through the service client (J3). */
 
 async function seedAttribute(key: string, type = "text") {
@@ -160,7 +171,7 @@ test.describe("C3 attributes console", () => {
 
       await test.step("AT-2 rename definition", async () => {
         await page.getByTestId("attribute-search").fill(key);
-        await attributeActions(page, key).getByTestId(`attribute-edit-${key}`).click();
+        await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
         await page.getByTestId("attribute-name").fill(`${key} renamed`);
         await page.getByTestId("attribute-edit-submit").click();
         await stepUpIfPrompted(page, secret);
@@ -299,7 +310,7 @@ test.describe("C3 attributes console", () => {
       await test.step("AT-5 delete refused while linked", async () => {
         await page.getByTestId("attribute-search").fill(key);
         // J5 — the verb resolves inside ITS OWN row's actions region, in either twin.
-        await attributeActions(page, key).getByTestId(`attribute-delete-${key}`).click();
+        await (await openAttributeMenu(page, key)).getByTestId(`attribute-delete-${key}`).click();
         await expect(
           page.getByTestId("attribute-delete-blast"),
           await dialogDump(page, "AT-5 delete dialog never opened"),
@@ -405,7 +416,7 @@ test.describe("C3 attributes console", () => {
       // PART B — the filter is the URL, so it is shareable and reloadable.
       await expect(page).toHaveURL(new RegExp(`category=${slug}$`));
       await expect(
-        librarySurface(page).getByTestId(`attribute-usage-${key}`),
+        librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`),
         await dialogDump(page, "AT-7 filtered library never rendered the linked attribute"),
       ).toBeVisible({ timeout: 20000 });
       await expect
@@ -436,7 +447,7 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
-      await attributeActions(page, key).getByTestId(`attribute-assign-${key}`).click();
+      await (await openAttributeMenu(page, key)).getByTestId(`attribute-assign-${key}`).click();
       await expect(
         page.getByTestId("attribute-assign-dialog"),
         await dialogDump(page, "AT-8 assign dialog never opened"),
@@ -451,9 +462,9 @@ test.describe("C3 attributes console", () => {
           message: await dialogDump(page, "AT-8 link never landed"),
         })
         .toBe(1);
-      await expect(librarySurface(page).getByTestId(`attribute-usage-${key}`)).toHaveText("1", {
-        timeout: 20000,
-      });
+      await expect(
+        librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`),
+      ).toBeVisible({ timeout: 20000 });
     } finally {
       if (slug) await destroyCategory(slug);
       await destroyAttribute(key);
