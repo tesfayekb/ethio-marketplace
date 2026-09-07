@@ -80,11 +80,11 @@ A column declares a TIER plus a proportional width; it never declares a
 `minWidth`. Min-widths are floors — four of them add up and the sum pushes the
 last column off the scroller between 1024 and 1279.
 
-| Column    | Tier      | Width      |
-| --------- | --------- | ---------- |
-| Attribute | primary   | `w-[32%]`  |
-| Type      | secondary | `w-[14%]`  |
-| Options   | wide      | `w-16`     |
+| Column    | Tier      | Width       |
+| --------- | --------- | ----------- |
+| Attribute | primary   | `w-[32%]`   |
+| Type      | secondary | `w-[14%]`   |
+| Options   | wide      | `w-16`      |
 | Used by   | secondary | (remainder) |
 
 `wide` renders from `xl` only, so 1024–1279 shows Attribute · Type · Used by ·
@@ -96,7 +96,6 @@ expansion carries the option list at every width.
 justification. `scripts/fixtures/bad-datatable-minwidth-example.tsx.txt` is its
 self-test (the guard must flag it); `data-table.tsx` itself and the
 `dev.primitives` showcase are exempt by name (E5).
-
 
 A **category filter** sits in the toolbar and lives in the URL as
 `?category=<slug>`, so a filtered library is shareable and reloadable; it reads

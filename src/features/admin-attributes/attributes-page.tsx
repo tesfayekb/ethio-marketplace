@@ -209,7 +209,6 @@ export function AdminAttributesPage() {
     },
   ];
 
-
   /** PART A — the OPTIONS column shows a count; the full list lives here. */
   const expandedRow = (row: AttributeRow) =>
     typeHasOptions(row.attrType) && row.options.length > 0 ? (

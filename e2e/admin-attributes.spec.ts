@@ -533,7 +533,6 @@ test.describe("C3 attributes console", () => {
     }
   });
 
-
   test("AT-10 Used by names the category the attribute was assigned to (DB truth)", async ({
     page,
   }) => {

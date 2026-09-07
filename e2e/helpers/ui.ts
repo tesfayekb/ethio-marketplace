@@ -779,7 +779,6 @@ async function resetLanguageBaseline(pool: E2ESuperAdmin): Promise<void> {
   );
 }
 
-
 export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   if (declaresPrivateIdentity()) return mintPrivateSuperAdmin(page);
 
@@ -933,7 +932,6 @@ export async function switchLanguage(page: Page, code: "en" | "am") {
     )
     .toBe(code);
 }
-
 
 /**
  * INC-112 — SELF-DESCRIBING FAILURE DUMP for the translations strings page.
