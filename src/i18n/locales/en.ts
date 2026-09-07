@@ -975,6 +975,18 @@ export const en = {
   "admin.attributes.assign.pickNone": "Choose a category",
   "admin.attributes.assign.searchPlaceholder": "Search categories",
   "admin.attributes.error.assignNoCategory": "Choose a category first.",
+  "admin.attributes.action.menu": "Actions",
+  "admin.attributes.action.remove": "Remove from category",
+  "admin.attributes.remove.title": "Remove from a category",
+  "admin.attributes.remove.hint":
+    "The attribute stays in the library; only this category stops asking for it.",
+  "admin.attributes.remove.category": "Category",
+  "admin.attributes.remove.pickNone": "Choose a category",
+  "admin.attributes.remove.none": "This attribute is not linked to any category yet.",
+  "admin.attributes.remove.confirm": "{attribute} will no longer be asked for in {category}.",
+  "admin.attributes.error.removeNoCategory": "Choose a category first.",
+  "admin.attributes.usage.none": "Not used by any category yet.",
+  "admin.attributes.usage.count": "Used by {count} categories",
   "admin.attributes.action.merge": "Merge",
   "admin.attributes.delete.title": "Delete attribute",
   "admin.attributes.delete.hint":

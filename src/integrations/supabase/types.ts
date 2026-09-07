@@ -1342,6 +1342,17 @@ export type Database = {
         }
         Returns: string
       }
+      admin_list_attribute_categories: {
+        Args: never
+        Returns: {
+          attribute_id: string
+          category_id: string
+          category_name_en: string
+          category_slug: string
+          is_active: boolean
+          link_id: string
+        }[]
+      }
       admin_list_attributes: {
         Args: never
         Returns: {

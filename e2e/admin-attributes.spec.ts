@@ -64,6 +64,17 @@ function attributeActions(page: import("@playwright/test").Page, key: string) {
   );
 }
 
+/**
+ * C3-UX-1c — the row carries ONE \u22ef trigger and every verb lives in its menu
+ * (a portal, so the menu is addressed at the page, never inside the row).
+ */
+async function openAttributeMenu(page: import("@playwright/test").Page, key: string) {
+  await attributeActions(page, key).getByTestId(`attribute-actions-${key}`).click();
+  const menu = page.getByTestId("attribute-actions-menu");
+  await expect(menu).toBeVisible({ timeout: 20000 });
+  return menu;
+}
+
 /** A scratch definition, minted straight through the service client (J3). */
 
 async function seedAttribute(key: string, type = "text") {
@@ -160,7 +171,7 @@ test.describe("C3 attributes console", () => {
 
       await test.step("AT-2 rename definition", async () => {
         await page.getByTestId("attribute-search").fill(key);
-        await attributeActions(page, key).getByTestId(`attribute-edit-${key}`).click();
+        await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
         await page.getByTestId("attribute-name").fill(`${key} renamed`);
         await page.getByTestId("attribute-edit-submit").click();
         await stepUpIfPrompted(page, secret);
@@ -299,7 +310,7 @@ test.describe("C3 attributes console", () => {
       await test.step("AT-5 delete refused while linked", async () => {
         await page.getByTestId("attribute-search").fill(key);
         // J5 — the verb resolves inside ITS OWN row's actions region, in either twin.
-        await attributeActions(page, key).getByTestId(`attribute-delete-${key}`).click();
+        await (await openAttributeMenu(page, key)).getByTestId(`attribute-delete-${key}`).click();
         await expect(
           page.getByTestId("attribute-delete-blast"),
           await dialogDump(page, "AT-5 delete dialog never opened"),
@@ -405,7 +416,7 @@ test.describe("C3 attributes console", () => {
       // PART B — the filter is the URL, so it is shareable and reloadable.
       await expect(page).toHaveURL(new RegExp(`category=${slug}$`));
       await expect(
-        librarySurface(page).getByTestId(`attribute-usage-${key}`),
+        librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`),
         await dialogDump(page, "AT-7 filtered library never rendered the linked attribute"),
       ).toBeVisible({ timeout: 20000 });
       await expect
@@ -436,7 +447,7 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
-      await attributeActions(page, key).getByTestId(`attribute-assign-${key}`).click();
+      await (await openAttributeMenu(page, key)).getByTestId(`attribute-assign-${key}`).click();
       await expect(
         page.getByTestId("attribute-assign-dialog"),
         await dialogDump(page, "AT-8 assign dialog never opened"),
@@ -451,9 +462,9 @@ test.describe("C3 attributes console", () => {
           message: await dialogDump(page, "AT-8 link never landed"),
         })
         .toBe(1);
-      await expect(librarySurface(page).getByTestId(`attribute-usage-${key}`)).toHaveText("1", {
-        timeout: 20000,
-      });
+      await expect(librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`)).toBeVisible(
+        { timeout: 20000 },
+      );
     } finally {
       if (slug) await destroyCategory(slug);
       await destroyAttribute(key);
@@ -476,5 +487,113 @@ test.describe("C3 attributes console", () => {
     }
     await expect.poll(async () => await libraryRows(page).count(), { timeout: 20000 }).toBe(25);
     await expectNoHorizontalOverflow(page);
+
+    /* C3-UX-1c PART B — WIDTH PARITY. Across the desktop band the table must
+       neither scroll the page sideways nor clip its last column. */
+    if (isCardTwin(page)) return;
+    for (const width of [1024, 1194, 1280, 1366]) {
+      await page.setViewportSize({ width, height: 900 });
+      await gotoReady(page, "/admin/attributes");
+      await expect(page.getByRole("table")).toBeVisible({ timeout: 20000 });
+      await expectNoHorizontalOverflow(page);
+      const geometry = await page.getByRole("table").evaluate((table) => {
+        let host: HTMLElement | null = table.parentElement;
+        while (host && host.scrollWidth <= host.clientWidth) host = host.parentElement;
+        const scroller = host ?? document.documentElement;
+        const heads = table.querySelectorAll("thead th");
+        const last = heads[heads.length - 1] as HTMLElement;
+        return {
+          overflow: scroller.scrollWidth - scroller.clientWidth,
+          overshoot: Math.round(
+            last.getBoundingClientRect().right - scroller.getBoundingClientRect().right,
+          ),
+        };
+      });
+      expect(geometry.overshoot, `last column clipped at ${width}`).toBeLessThanOrEqual(2);
+      expect(geometry.overflow, `the library scrolls sideways at ${width}`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test("AT-10 Used by names the category the attribute was assigned to (DB truth)", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    let slug = "";
+    try {
+      const id = await seedAttribute(key);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      // SEED BEFORE NAVIGATE (J7).
+      await adminClient()
+        .from("category_attribute_links")
+        .insert({ category_id: scratch!.id, attribute_id: id, display_order: 0 });
+      expect(await readLinks(scratch!.id)).toHaveLength(1);
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      const chip = librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`);
+      await expect(
+        chip,
+        await dialogDump(page, "AT-10 the used-by chip never rendered"),
+      ).toBeVisible({ timeout: 20000 });
+      await expect(chip).toHaveText(scratch!.name_en);
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  test("AT-11 remove from category unlinks it and the chip disappears (DB truth)", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    let slug = "";
+    try {
+      const id = await seedAttribute(key);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      await adminClient()
+        .from("category_attribute_links")
+        .insert({ category_id: scratch!.id, attribute_id: id, display_order: 0 });
+      expect(await readLinks(scratch!.id)).toHaveLength(1);
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      await expect(librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`)).toBeVisible(
+        {
+          timeout: 20000,
+        },
+      );
+
+      await (await openAttributeMenu(page, key)).getByTestId(`attribute-remove-${key}`).click();
+      await expect(
+        page.getByTestId("attribute-remove-dialog"),
+        await dialogDump(page, "AT-11 remove dialog never opened"),
+      ).toBeVisible({ timeout: 20000 });
+      // THE CONFIRMATION NAMES THE CATEGORY before the write.
+      await expect(page.getByTestId("attribute-remove-confirm")).toContainText(scratch!.name_en);
+      await page.getByTestId("attribute-remove-submit").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect
+        .poll(async () => (await readLinks(scratch!.id)).length, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-11 the link never went away"),
+        })
+        .toBe(0);
+      await expect(librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`)).toHaveCount(
+        0,
+        { timeout: 20000 },
+      );
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
   });
 });

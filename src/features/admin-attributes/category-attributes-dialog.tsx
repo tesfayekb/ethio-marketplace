@@ -200,7 +200,7 @@ export function CategoryAttributesDialog({
                 <Button
                   type="button"
                   variant="outline"
-                  className="min-h-11"
+                  size="touch"
                   data-testid={`category-attribute-up-${row.attrKey}`}
                   disabled={index === 0}
                   onClick={() => move(index, -1)}
@@ -210,7 +210,7 @@ export function CategoryAttributesDialog({
                 <Button
                   type="button"
                   variant="outline"
-                  className="min-h-11"
+                  size="touch"
                   data-testid={`category-attribute-down-${row.attrKey}`}
                   disabled={index === rows.length - 1}
                   onClick={() => move(index, 1)}
@@ -220,7 +220,7 @@ export function CategoryAttributesDialog({
                 <Button
                   type="button"
                   variant="destructive"
-                  className="min-h-11"
+                  size="touch"
                   data-testid={`category-attribute-unlink-${row.attrKey}`}
                   onClick={() => run(() => unlink.mutateAsync(row.linkId))}
                 >
@@ -256,7 +256,8 @@ export function CategoryAttributesDialog({
         </select>
         <Button
           type="button"
-          className="min-h-11 w-full sm:w-auto"
+          size="touch"
+          className="w-full sm:w-auto"
           data-testid="category-attribute-add"
           disabled={picker === "" || link.isPending}
           onClick={() =>
@@ -281,7 +282,7 @@ export function CategoryAttributesDialog({
         <Button
           type="button"
           variant="outline"
-          className="min-h-11"
+          size="touch"
           data-testid="category-attributes-close"
           onClick={onClose}
         >

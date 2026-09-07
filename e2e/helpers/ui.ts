@@ -6,7 +6,15 @@ import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
-import { authFetch, jwtClaim, STATE_FILE, type E2ESuperAdmin, type E2EUser } from "../global-setup";
+import {
+  adminClient,
+  authApiKey,
+  authFetch,
+  jwtClaim,
+  STATE_FILE,
+  type E2ESuperAdmin,
+  type E2EUser,
+} from "../global-setup";
 
 import {
   assertInjectedIdentity,
@@ -734,6 +742,44 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
   };
 }
 
+/**
+ * INC-173 — THE LANGUAGE BASELINE. A pooled identity is borrowed by many tests,
+ * and one of them may leave `profiles.preferred_language` pointing at a fence
+ * or an AM catalog; the next borrower would then read a different UI. Every
+ * acquisition resets the baseline to `en` IN NODE, before injection, through
+ * the SAME door the switcher uses (`user_set_preferred_language`, own-row only)
+ * — never a direct table write, so the audit trail stays honest.
+ */
+async function resetLanguageBaseline(pool: E2ESuperAdmin, accessToken: string): Promise<void> {
+  const { data, error } = await adminClient()
+    .from("profiles")
+    .select("preferred_language")
+    .eq("user_id", pool.id)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:pool] language baseline read failed: ${error.message}`);
+  const current = data?.preferred_language ?? null;
+  if (current === "en") return;
+
+  const base = (process.env["E2E_SUPABASE_URL"] ?? "").replace(/\/+$/, "");
+  const response = await fetch(`${base}/rest/v1/rpc/user_set_preferred_language`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      apikey: authApiKey(),
+      authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ p_code: "en" }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      `[e2e:pool] language baseline reset failed [${response.status}]: ${await response.text()}`,
+    );
+  }
+  console.log(
+    `[e2e:pool] slot ${pool.slot} language baseline reset ${current ?? "null"} \u2192 en (INC-173)`,
+  );
+}
+
 export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   if (declaresPrivateIdentity()) return mintPrivateSuperAdmin(page);
 
@@ -750,6 +796,7 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   // alone, in node, from THIS worker slot's identity. The E2E_UI_LOGIN knob and
   // elevateInBrowser belong to mintPrivateSuperAdmin (the real door) alone.
   const session = await freshAal2Session(pool);
+  await resetLanguageBaseline(pool, session.access_token);
   await injectSession(page, session);
   await gotoReady(page, "/");
   await assertInjectedIdentity(page, session);
