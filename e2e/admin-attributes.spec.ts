@@ -51,8 +51,10 @@ function librarySurface(page: import("@playwright/test").Page) {
 function libraryRows(page: import("@playwright/test").Page) {
   return librarySurface(page).locator(
     isCardTwin(page)
-      ? "[data-testid^='attribute-row-'][data-testid$='-card']"
-      : "tbody tr[data-testid^='attribute-row-']",
+      ? "[data-testid^='attribute-row-'][data-testid$='-card']:not([data-testid$='-expanded'])"
+      : // INC-172 — the options expansion injects a `<tr>` whose testid shares the
+        // row prefix (`…-expanded-row`); the page window is the DATA rows alone.
+        "tbody tr[data-testid^='attribute-row-']:not([data-testid$='-expanded-row'])",
   );
 }
 

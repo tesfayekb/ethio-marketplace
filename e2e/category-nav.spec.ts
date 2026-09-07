@@ -14,9 +14,12 @@ test.describe("category selection navigates", () => {
   /**
    * First real category row in the rail (row 0 is "All categories").
    *
-   * INC-170 — RATIFIED ANCHORS ONLY: scratch rows created by the admin
-   * console carry the `e2e-cat-` slug prefix (INC-153/DEC-031 lineage;
-   * INC-165's listing prefix is the same law), and C2-SETTLE renders them
+   * INC-170 (amended by INC-170b) — RATIFIED ANCHORS ONLY, ONE PREFIX:
+   * every scratch slug this suite creates begins with `e2e-` (the categories
+   * helper's `e2e-cat-`, the listing helper's `e2e-cat-listing-`; INC-153 /
+   * DEC-031 lineage, INC-165's listing prefix is the same law). The anchor
+   * therefore excludes the WHOLE `e2e-` family, not one sub-prefix, so a new
+   * scratch family can never become "the first category". C2-SETTLE renders them
    * invisible on public surfaces — but a mid-test graveyard row can still
    * leak into the rail. The anchor is STRUCTURAL (testid prefix), never
    * text (J5), so a scratch row can never become "the first category".
@@ -24,7 +27,7 @@ test.describe("category selection navigates", () => {
   async function firstCategory(page: import("@playwright/test").Page) {
     const scope = await openRailScope(page);
     const rows = scope.locator(
-      "nav li > a[data-testid^='rail-category-']:not([data-testid^='rail-category-e2e-cat-'])",
+      "nav li > a[data-testid^='rail-category-']:not([data-testid^='rail-category-e2e-'])",
     );
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(rows.first()).toBeVisible();

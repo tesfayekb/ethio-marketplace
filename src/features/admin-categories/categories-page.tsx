@@ -258,8 +258,6 @@ export function AdminCategoriesPage() {
     setOffset(0);
   }, [needle, rootFilter, missingOnly]);
 
-  const rows = filtered.slice(offset, offset + pageSize);
-
   /**
    * INC-142 — the dialog stores ONLY the id; the rendered row is looked up in
    * the live roster on every render, so the verb bar tracks a status change
@@ -749,7 +747,9 @@ export function AdminCategoriesPage() {
 
           <DataTable<CategoryNode>
             columns={columns}
-            rows={rows}
+            rows={filtered}
+            page={Math.floor(offset / pageSize)}
+            pageSize={pageSize}
             rowKey={(row) => row.id}
             rowTestId={(row) => `category-row-${row.slug}`}
             caption={t("admin.categories.caption")}

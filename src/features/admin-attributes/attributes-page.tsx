@@ -89,7 +89,6 @@ export function AdminAttributesPage() {
       ),
     [all, needle, linkedIds],
   );
-  const rows = filtered.slice(offset, offset + PAGE_SIZE);
   const selected =
     dialog.kind === "edit" || dialog.kind === "delete" || dialog.kind === "assign"
       ? (all.find((row) => row.id === dialog.id) ?? null)
@@ -243,7 +242,9 @@ export function AdminAttributesPage() {
 
           <DataTable<AttributeRow>
             columns={columns}
-            rows={rows}
+            rows={filtered}
+            page={Math.floor(offset / PAGE_SIZE)}
+            pageSize={PAGE_SIZE}
             rowKey={(row) => row.id}
             rowTestId={(row) => `attribute-row-${row.attrKey}`}
             caption={t("admin.attributes.caption")}

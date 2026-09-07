@@ -119,6 +119,14 @@ export interface DataTableProps<T> {
   selection?: DataTableSelection<T>;
   /** Pagination controls slot, rendered under the table. */
   pagination?: ReactNode;
+  /**
+   * INC-172 — PAGINATION LIVES IN THE PRIMITIVE. Declare the zero-based `page`
+   * and its `pageSize` alongside the `pagination` element and the primitive
+   * slices `rows` itself; consumers never hand-slice (a per-page slice is the
+   * same class of hack C7 outlawed for widths).
+   */
+  page?: number;
+  pageSize?: number;
   sortKey?: string;
   sortDirection?: "asc" | "desc";
   onSort?: (key: string) => void;
@@ -217,7 +225,7 @@ export function DataTablePagination({
 
 export function DataTable<T>({
   columns,
-  rows,
+  rows: allRows,
   rowKey,
   rowTestId,
   rowHref,
@@ -232,6 +240,8 @@ export function DataTable<T>({
   expandedRow,
   selection,
   pagination,
+  page,
+  pageSize,
   sortKey,
   sortDirection,
   onSort,
@@ -241,6 +251,11 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const { t } = useI18n();
   const navigate = useNavigate();
+  /** INC-172 — the primitive owns the page window. */
+  const rows =
+    pageSize && pageSize > 0
+      ? allRows.slice((page ?? 0) * pageSize, (page ?? 0) * pageSize + pageSize)
+      : allRows;
   const cardsHiddenClass =
     cardUntil === "xl" ? "xl:hidden" : cardUntil === "lg" ? "lg:hidden" : "md:hidden";
   const tableShownClass =
