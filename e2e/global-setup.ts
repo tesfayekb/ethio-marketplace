@@ -371,7 +371,7 @@ async function mintPooledSuperAdmin(
     displayName: email.split("@")[0]!,
     secret,
     factorId,
-    session,
+    slot,
   };
 }
 
