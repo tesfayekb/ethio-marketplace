@@ -97,8 +97,6 @@ export type E2EPooledSession = {
   user: Record<string, unknown>;
 };
 
-
-
 export type E2EUser = {
   id: string;
   email: string;
@@ -265,7 +263,6 @@ async function mintPooledSuperAdmin(
   const email = mintEmail(2 + slot);
   const password = `Pw-${randomBytes(18).toString("base64url")}`;
 
-
   const { data, error } = await supabase.auth.admin.createUser({
     email,
     password,
@@ -336,7 +333,6 @@ async function mintPooledSuperAdmin(
     throw new Error(`[e2e:setup] pooled slot ${slot} is not aal2 after verify (aal = ${level}).`);
   }
   console.log(`[e2e:setup] pooled slot ${slot} verify currentLevel = aal2 (session discarded)`);
-
 
   // L4b PART A — VERIFIED, OR FAIL LOUDLY. A pool whose factor is still
   // `unverified` looks fine here and detonates much later as an inexplicable
@@ -462,7 +458,9 @@ export default async function globalSetup() {
     );
     superAdmins.push(minted);
   }
-  console.log(`[e2e:setup] identity pool size = ${superAdmins.length} (E2E_WORKERS=${workerSlots})`);
+  console.log(
+    `[e2e:setup] identity pool size = ${superAdmins.length} (E2E_WORKERS=${workerSlots})`,
+  );
 
   const user: E2EUser = {
     id: userId,
@@ -472,7 +470,6 @@ export default async function globalSetup() {
     processId: currentProcessId,
     superAdmins,
   };
-
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");

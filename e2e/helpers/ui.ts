@@ -6,14 +6,7 @@ import { am } from "../../src/i18n/locales/am";
 import { en } from "../../src/i18n/locales/en";
 
 import { assertSsrHealthy } from "../fixtures";
-import {
-  authFetch,
-  jwtClaim,
-  STATE_FILE,
-  type E2ESuperAdmin,
-  type E2EUser,
-} from "../global-setup";
-
+import { authFetch, jwtClaim, STATE_FILE, type E2ESuperAdmin, type E2EUser } from "../global-setup";
 
 import {
   assertInjectedIdentity,
@@ -490,11 +483,12 @@ function pooledSuperAdmin(): E2ESuperAdmin {
   }
   const slot = index % pool.length;
   if (slot !== index) {
-    console.log(`[e2e:pool] parallelIndex ${index} exceeds pool size ${pool.length}; using ${slot}`);
+    console.log(
+      `[e2e:pool] parallelIndex ${index} exceeds pool size ${pool.length}; using ${slot}`,
+    );
   }
   return pool[slot]!;
 }
-
 
 /**
  * L4b PART B — AAL2 PARITY, in the browser, through the app's own client.
@@ -721,7 +715,9 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
   }
   const level = jwtClaim(token, "aal");
   if (level !== "aal2") {
-    throw new Error(`[e2e:pool] slot ${pool.slot} session is not aal2 after verify (aal=${level}).`);
+    throw new Error(
+      `[e2e:pool] slot ${pool.slot} session is not aal2 after verify (aal=${level}).`,
+    );
   }
   const expiresIn = typeof verified["expires_in"] === "number" ? verified["expires_in"] : 3600;
   console.log(`[e2e:pool] slot ${pool.slot} minted a fresh aal2 session in node (${pool.email})`);
@@ -737,7 +733,6 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
     user: (verified["user"] as Record<string, unknown> | undefined) ?? {},
   };
 }
-
 
 export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   if (declaresPrivateIdentity()) return mintPrivateSuperAdmin(page);
