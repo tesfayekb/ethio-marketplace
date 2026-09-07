@@ -1,6 +1,15 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Download, Link2, Merge, MoreHorizontal, Pencil, Trash, Unlink } from "lucide-react";
+import {
+  Download,
+  Link2,
+  Merge,
+  MoreHorizontal,
+  Pencil,
+  Trash,
+  Unlink,
+  Upload,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -39,6 +48,7 @@ import {
   type AttributeRow,
   type EffectiveLink,
 } from "./attributes-service";
+import { ImportAttributesDialog } from "./import-dialog";
 import { useAttributeLabel } from "./use-attribute-label";
 import {
   useAdminAttributes,
@@ -84,10 +94,13 @@ export function AdminAttributesPage() {
     | { kind: "assign"; id: string }
     | { kind: "remove"; id: string }
     | { kind: "merge" }
+    | { kind: "import" }
   >({ kind: "none" });
 
   const mayUpdate = permissions.includes("categories:update");
   const mayRestructure = permissions.includes("categories:restructure");
+  /** IE-2 — its own permission; the server re-checks it on every door (F3). */
+  const mayImport = permissions.includes("categories:import");
 
   /** The picker mirrors the roster order/depth (B1: one derivation, `toRoster`). */
   const categories = useMemo(() => toRoster(categoryData ?? []), [categoryData]);
@@ -522,6 +535,20 @@ export function AdminAttributesPage() {
                       : t("admin.attributes.export.open")}
                   </span>
                 </Button>
+                {/* IE-2 — the import door is its own permission; UI hiding is
+                    convenience only, the route and RPCs refuse regardless. */}
+                {mayImport ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="touch"
+                    data-testid="attribute-import"
+                    onClick={() => setDialog({ kind: "import" })}
+                  >
+                    <Upload aria-hidden="true" className="size-4" />
+                    <span>{t("admin.attributes.import.open")}</span>
+                  </Button>
+                ) : null}
                 {exportError ? (
                   <p
                     role="alert"
@@ -582,6 +609,14 @@ export function AdminAttributesPage() {
           {dialog.kind === "merge" ? (
             <MergeAttributesDialog
               attributes={all}
+              guard={guard}
+              onClose={() => setDialog({ kind: "none" })}
+            />
+          ) : null}
+
+          {dialog.kind === "import" ? (
+            <ImportAttributesDialog
+              scope={search.category ?? null}
               guard={guard}
               onClose={() => setDialog({ kind: "none" })}
             />
