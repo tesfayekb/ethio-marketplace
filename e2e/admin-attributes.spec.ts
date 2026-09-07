@@ -515,11 +515,12 @@ test.describe("C3 attributes console", () => {
       expect(geometry.overflow, `the library scrolls sideways at ${width}`).toBeLessThanOrEqual(1);
 
       // The row menu is the ONLY verb surface: it is visible at every width.
-      const firstRow = libraryRows(page).first();
+      const firstRow = libraryRows(page).nth(0);
       await expect(
-        firstRow.locator('[data-testid^="attribute-actions-"]').first(),
+        firstRow.locator('[data-testid^="attribute-actions-"]'),
         `the row menu is unreachable at ${width}`,
       ).toBeVisible();
+
 
       // The `wide` tier: Options is absent below 1280 and present from 1280.
       const optionsCells = page
