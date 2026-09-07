@@ -34,8 +34,6 @@ test.describe("category selection navigates", () => {
      * POLLED to its settled value (the rail hydrates row by row), so all
      * three tests read one verdict.
      */
-    // The rail hydrates row by row: poll the count to its settled value so
-    // every test reads one verdict (never a sleep — DEC-027).
     await expect
       .poll(async () => await rows.count(), { timeout: 10000 })
       .toBeGreaterThan(1)
