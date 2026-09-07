@@ -29,7 +29,9 @@ type AdminSectionShape = {
 
 /** The admin nav's groups. Brands and Tags join `categories` when they land. */
 export const ADMIN_GROUPS = {
-  categories: { id: "categories", titleKey: "admin.group.categories" },
+  // IE-1r PART C — the LABEL is "Catalog"; the id, route and testid carrier
+  // (`admin-group-categories`) are unchanged.
+  categories: { id: "categories", titleKey: "admin.nav.group.catalog" },
 } as const satisfies Record<string, { readonly id: string; readonly titleKey: MessageKey }>;
 
 export type AdminGroupId = keyof typeof ADMIN_GROUPS;

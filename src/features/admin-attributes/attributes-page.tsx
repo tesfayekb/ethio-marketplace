@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Link2, Merge, MoreHorizontal, Pencil, Trash, Unlink } from "lucide-react";
+import { Download, Link2, Merge, MoreHorizontal, Pencil, Trash, Unlink } from "lucide-react";
+
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   DataTable,
@@ -67,6 +69,9 @@ export function AdminAttributesPage() {
   const navigate = useNavigate({ from: "/admin/attributes" });
   const [needleInput, setNeedleInput] = useState("");
   const [offset, setOffset] = useState(0);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
+
   const [dialog, setDialog] = useState<
     | { kind: "none" }
     | { kind: "edit"; id: string | null }
@@ -122,6 +127,42 @@ export function AdminAttributesPage() {
   const chooseCategory = (slug: string) => {
     setOffset(0);
     void navigate({ search: slug === "" ? {} : { category: slug } });
+  };
+
+  /**
+   * IE-1 — EXPORT. Two downloads from ONE control: definitions.csv then
+   * links.csv, so no archive dependency joins the bundle (G2). The button is
+   * disabled ONLY while a download is in flight — never because the current
+   * filter yields no rows: the export is the whole library, not the view.
+   * A failure is a translated caption beside the controls (F4), never silence.
+   */
+  const runExport = async () => {
+    setExporting(true);
+    setExportError(false);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token ?? "";
+      for (const file of ["definitions", "links"] as const) {
+        const response = await fetch(`/api/admin/attributes/export?file=${file}`, {
+          headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error(`export ${file} failed: ${response.status}`);
+        const blob = await response.blob();
+        const href = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = href;
+        anchor.download = `${file}.csv`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(href);
+      }
+    } catch (error) {
+      console.error("[attributes] export failed", error);
+      setExportError(true);
+    } finally {
+      setExporting(false);
+    }
   };
 
   /**
@@ -390,6 +431,32 @@ export function AdminAttributesPage() {
                     {t("admin.attributes.filter.clear")}
                   </Button>
                 )}
+                {/* IE-1 — never disabled on an empty filter: the export is the
+                    whole library, not the current view. */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid="attribute-export"
+                  disabled={exporting}
+                  onClick={() => void runExport()}
+                >
+                  <Download aria-hidden="true" className="size-4" />
+                  <span>
+                    {exporting
+                      ? t("admin.attributes.export.busy")
+                      : t("admin.attributes.export.open")}
+                  </span>
+                </Button>
+                {exportError ? (
+                  <p
+                    role="alert"
+                    className="text-sm text-destructive"
+                    data-testid="attribute-export-error"
+                  >
+                    {t("admin.attributes.export.error")}
+                  </p>
+                ) : null}
               </>
             }
             pagination={

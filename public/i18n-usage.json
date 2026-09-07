@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 197,
+  "scanned": 198,
   "dynamicCallSites": 74,
   "keys": {
     "account.deactivatedBanner": [
@@ -138,6 +138,15 @@
     "admin.attributes.error.saveFailed": [
       "/admin/attributes",
       "/admin/categories"
+    ],
+    "admin.attributes.export.busy": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.export.error": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.export.open": [
+      "/admin/attributes"
     ],
     "admin.attributes.field.help": [
       "/admin/attributes",
