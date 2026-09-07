@@ -463,13 +463,31 @@ export type JobSuperAdmin = {
   secret: string;
 };
 
+/**
+ * L5c — the identity for THIS worker slot. `test.info().parallelIndex` is
+ * Playwright's stable 0-based worker slot, so two concurrent tests can never
+ * select the same identity (INC-168). A pool smaller than the live worker count
+ * wraps by modulo rather than crashing, and says so.
+ */
 function pooledSuperAdmin(): E2ESuperAdmin {
   const state = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
-  if (!state.superAdmin) {
+  const pool = state.superAdmins ?? [];
+  if (pool.length === 0) {
     throw new Error("[e2e:pool] the state file carries no pooled super admin — setup did not run.");
   }
-  return state.superAdmin;
+  let index = 0;
+  try {
+    index = test.info().parallelIndex;
+  } catch {
+    index = 0;
+  }
+  const slot = index % pool.length;
+  if (slot !== index) {
+    console.log(`[e2e:pool] parallelIndex ${index} exceeds pool size ${pool.length}; using ${slot}`);
+  }
+  return pool[slot]!;
 }
+
 
 /**
  * L4b PART B — AAL2 PARITY, in the browser, through the app's own client.
