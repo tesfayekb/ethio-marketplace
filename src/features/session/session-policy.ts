@@ -110,8 +110,8 @@ export function clearSessionClocks() {
   const keys = sessionPolicyKeys();
   window.localStorage.removeItem(keys.lastActivityAt);
   window.localStorage.removeItem(keys.sessionStartedAt);
-  // U1f: the step-up hint dies with the session it belonged to.
-  window.localStorage.removeItem(keys.steppedUpAt);
+  // INC-167: shed the retired U1f step-up hint from pre-L5 browsers.
+  window.localStorage.removeItem(`sb-${projectRef()}-stepped-up-at`);
 }
 
 export function idleLimitFor(tier: SessionTier) {
