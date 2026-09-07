@@ -20,6 +20,7 @@
     "format:check": "prettier --check \"src/**\" \"e2e/**\" \"docs/**\" \"*.{json,js,ts,md}\"",
     "format:write": "prettier --write \"src/**\" \"e2e/**\" \"docs/**\" \"*.{json,js,ts,md}\"",
     "test:e2e": "playwright test",
+    "e2e:local": "VITE_E2E=1 NITRO_PRESET=node-server VITE_SUPABASE_URL=$E2E_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_KEY=$E2E_SUPABASE_PUBLISHABLE_KEY SUPABASE_URL=$E2E_SUPABASE_URL SUPABASE_PUBLISHABLE_KEY=$E2E_SUPABASE_PUBLISHABLE_KEY vite build && VITE_E2E=1 E2E_SERVE_BUILT=1 playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
     "test:unit": "vitest run",
     "i18n:usage": "bun run scripts/i18n-usage-map.ts"
