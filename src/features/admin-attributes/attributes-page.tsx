@@ -36,6 +36,7 @@ import {
   type AttributeCategory,
   type AttributeRow,
 } from "./attributes-service";
+import { useAttributeLabel } from "./use-attribute-label";
 import { useAdminAttributes, useAttributeCategories, useCategoryLinks } from "./use-attributes";
 
 /**
