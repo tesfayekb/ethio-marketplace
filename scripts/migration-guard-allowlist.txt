@@ -4,3 +4,4 @@
 # each citing the migration that closed the window. Nothing is silently skipped.
 20260831064939_4a00896e-bc69-4919-bb1e-8181a7e65034.sql | tool split placed the REVOKE in the next file; window closed by paired apply | f18f1883
 20260903044526_7e14ce39-76a6-4095-845b-e5d6e83d772c.sql | admin_create_category REVOKE restated in C2e corrective | 63df0b68
+20260907050122_84bead12-f50a-4e83-b3e5-e7bc34a0ec21.sql | C3-UX-2 redeclared five entity-translation definers without restating their grants; window closed by the C3-UX-2b corrective (read-back in file) | 2dcafad6
