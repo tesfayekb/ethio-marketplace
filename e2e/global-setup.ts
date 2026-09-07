@@ -251,16 +251,20 @@ function asPooledSession(body: Record<string, unknown>): E2EPooledSession {
 }
 
 /**
- * L4 (DEC-038) — mint the job's ONE super admin and enrol its ONE TOTP factor,
- * through the same GoTrue MFA endpoints the app's client uses (enrol →
- * challenge → verify). Fails loudly: a half-made pool identity would surface
- * later as an inexplicable permission or step-up failure in an unrelated test.
+ * L4 (DEC-038) / L5c — mint ONE pooled super admin for a worker slot and enrol
+ * its ONE TOTP factor, through the same GoTrue MFA endpoints the app's client
+ * uses (enrol → challenge → verify). Fails loudly: a half-made pool identity
+ * would surface later as an inexplicable permission or step-up failure in an
+ * unrelated test. The verify session is asserted AAL2 and then discarded —
+ * every test mints its own session at acquire time (INC-169).
  */
 async function mintPooledSuperAdmin(
   supabase: ReturnType<typeof adminClient>,
+  slot: number,
 ): Promise<E2ESuperAdmin> {
-  const email = mintEmail(2);
+  const email = mintEmail(2 + slot);
   const password = `Pw-${randomBytes(18).toString("base64url")}`;
+
 
   const { data, error } = await supabase.auth.admin.createUser({
     email,
