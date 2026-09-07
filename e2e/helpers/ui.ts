@@ -909,27 +909,18 @@ export async function switchLanguage(page: Page, code: "en" | "am") {
   await page.getByTestId(`language-option-${code}`).click();
   await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
   /**
-   * INC-173b — `html[lang]` flips from the client's optimistic state, BEFORE the
-   * profile write lands. A navigation issued in that gap is server-rendered
-   * from the OLD row and the page comes back in the previous language. Wait for
-   * DB truth (service-client poll, ≤10s) so navigation can never race the write.
-   * Only the pooled identity is addressable here; a @private-identity test owns
-   * its own row and skips the poll.
+   * INC-173b — `html[lang]` flips from React state, and the durable record the
+   * NEXT page load reads (`localStorage["ethio.lang"]`) is written just after.
+   * A navigation issued in that gap boots from the OLD record and the page
+   * comes back in the previous language. Selecting a language is a DEVICE
+   * choice (only STARRING syncs to `profiles.preferred_language`), so device
+   * truth — not the profile row — is what navigation must not race.
    */
-  if (declaresPrivateIdentity()) return;
-  const pool = pooledSuperAdmin();
   await expect
-    .poll(
-      async () => {
-        const { data } = await adminClient()
-          .from("profiles")
-          .select("preferred_language")
-          .eq("user_id", pool.id)
-          .maybeSingle();
-        return data?.preferred_language ?? null;
-      },
-      { timeout: 10000, message: `preferred_language never reached ${code} (INC-173b)` },
-    )
+    .poll(async () => page.evaluate(() => window.localStorage.getItem("ethio.lang")), {
+      timeout: 10000,
+      message: `the device language record never reached ${code} (INC-173b)`,
+    })
     .toBe(code);
 }
 
