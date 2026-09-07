@@ -322,18 +322,21 @@ async function mintPooledSuperAdmin(
   if (typeof challengeId !== "string") {
     throw new Error("[e2e:setup] TOTP challenge returned no id.");
   }
-  // L5 / DEC-041 — the verify response IS the AAL2 session; keep it.
+  // L5c — the verify response proves the factor works; it is NOT persisted.
+  // A session stored here would be shared by concurrent tests (INC-168) and
+  // would age past the challenge window before use (INC-169).
   const verifyBody = await authFetch(`/factors/${factorId}/verify`, {
     method: "POST",
     accessToken,
     body: { challenge_id: challengeId, code: totp(secret) },
   });
-  const session = asPooledSession(verifyBody);
-  const level = jwtClaim(session.access_token, "aal");
+  const proof = asPooledSession(verifyBody);
+  const level = jwtClaim(proof.access_token, "aal");
   if (level !== "aal2") {
-    throw new Error(`[e2e:setup] pooled session is not aal2 after verify (aal = ${level}).`);
+    throw new Error(`[e2e:setup] pooled slot ${slot} is not aal2 after verify (aal = ${level}).`);
   }
-  console.log(`[e2e:setup] pooled session currentLevel = aal2 (expires_at ${session.expires_at})`);
+  console.log(`[e2e:setup] pooled slot ${slot} verify currentLevel = aal2 (session discarded)`);
+
 
   // L4b PART A — VERIFIED, OR FAIL LOUDLY. A pool whose factor is still
   // `unverified` looks fine here and detonates much later as an inexplicable
