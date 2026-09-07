@@ -252,7 +252,9 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // An active descendant keeps its ancestor open.
   const containsActive = (n: RailNode): boolean =>
     Boolean(n.active) || (n.children ?? []).some(containsActive);
-  const [open, setOpen] = useState(() => hasChildren && containsActive(node));
+  const [open, setOpen] = useState(
+    () => hasChildren && (containsActive(node) || Boolean(node.defaultOpen)),
+  );
 
   const Icon = node.icon;
   const inner = (
