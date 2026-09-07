@@ -1298,32 +1298,41 @@ test.describe("C3 attributes console", () => {
     return { status: response.status(), payload };
   }
 
-  /** Quote-aware data-row count: a quoted cell may carry commas and newlines. */
-  function csvDataRows(text: string): number {
+  /**
+   * A concurrent spec may create or destroy its own scratch fixtures between the
+   * export and the preview, which would read as a phantom add. AT-20 asserts the
+   * invariant over the STABLE library only: every record naming an `e2e_attr_`
+   * attribute or an `e2e-cat-` category is dropped from both files.
+   */
+  function withoutScratchRecords(text: string): { text: string; rows: number } {
     const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+    const records: string[] = [];
+    let current = "";
     let quoted = false;
-    let lines = 0;
-    let sawCell = false;
     for (let index = 0; index < body.length; index += 1) {
-      const char = body[index];
+      const char = body[index] as string;
       if (char === '"') {
         quoted = !quoted;
-        sawCell = true;
+        current += char;
         continue;
       }
-      if (quoted) {
-        sawCell = true;
+      if (char === "\n" && !quoted) {
+        records.push(current.replace(/\r$/, ""));
+        current = "";
         continue;
       }
-      if (char === "\n") {
-        if (sawCell) lines += 1;
-        sawCell = false;
-        continue;
-      }
-      if (char !== "\r") sawCell = true;
+      current += char;
     }
-    if (sawCell) lines += 1;
-    return Math.max(lines - 1, 0);
+    if (current.length > 0) records.push(current.replace(/\r$/, ""));
+
+    const header = records.shift() ?? "";
+    const kept = records.filter(
+      (record) => record.trim().length > 0 && !/e2e_attr_/.test(record) && !/e2e-cat-/.test(record),
+    );
+    return {
+      text: `\uFEFF${[header, ...kept].join("\r\n")}\r\n`,
+      rows: kept.length,
+    };
   }
 
   /** RFC 4180 cell for a hand-authored fixture file. */
@@ -1374,9 +1383,11 @@ test.describe("C3 attributes console", () => {
     });
     expect(linksResponse.status()).toBe(200);
 
-    const definitions = await definitionsResponse.text();
-    const links = await linksResponse.text();
-    const expectedUnchanged = csvDataRows(definitions) + csvDataRows(links);
+    const definitionsFile = withoutScratchRecords(await definitionsResponse.text());
+    const linksFile = withoutScratchRecords(await linksResponse.text());
+    const definitions = definitionsFile.text;
+    const links = linksFile.text;
+    const expectedUnchanged = definitionsFile.rows + linksFile.rows;
     expect(expectedUnchanged, "AT-20 the export produced no rows to re-import").toBeGreaterThan(0);
 
     const startedAt = new Date().toISOString();
