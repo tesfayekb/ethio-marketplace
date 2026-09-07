@@ -20,6 +20,7 @@ import {
   openEditor,
   action,
   readCategory,
+  scratchSlug,
   signInAsSuperAdmin,
 } from "./helpers/categories";
 
@@ -835,6 +836,158 @@ test.describe("C3 attributes console", () => {
         await supabase.from("roles").delete().eq("id", roleId);
       }
       await destroyAttribute(key);
+    }
+  });
+  /**
+   * IE-1 AT-15 — THE EXPORT. One control, two files. The scratch child inherits
+   * its parent's link, so `origin` must name the PARENT's slug; a seeded label
+   * that begins with "=" must arrive quoted with a leading apostrophe
+   * (formula-safe). Fixtures are seeded through the service client (J3/J5) and
+   * destroyed in `finally`.
+   */
+  test("AT-15 export: two CSV files carry the headers, inheritance origin and formula safety", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const parentSlug = `${scratchSlug()}-p`;
+    const childSlug = `${scratchSlug()}-c`;
+    try {
+      const attributeId = await seedAttribute(key);
+      await supabase
+        .from("attributes")
+        .update({ name_en: `=${key}` })
+        .eq("id", attributeId);
+      const { data: cats, error: catError } = await supabase
+        .from("categories")
+        .insert([
+          { slug: parentSlug, name_en: parentSlug },
+          { slug: childSlug, name_en: childSlug },
+        ])
+        .select("id, slug");
+      if (catError || !cats) throw new Error(`AT-15 scratch categories: ${catError?.message}`);
+      const parent = cats.find((c) => c.slug === parentSlug)!;
+      const child = cats.find((c) => c.slug === childSlug)!;
+      await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: parent.id, child_id: child.id, display_order: 0 });
+      await supabase
+        .from("category_attribute_links")
+        .insert({ category_id: parent.id, attribute_id: attributeId, display_order: 0 });
+
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/attributes");
+      const control = page.getByTestId("attribute-export");
+      await expect(control).toBeVisible({ timeout: 20000 });
+
+      const first = page.waitForEvent("download");
+      const second = page.waitForEvent("download");
+      await control.click();
+      const files = await Promise.all([first, second]);
+      const texts: Record<string, string> = {};
+      for (const download of files) {
+        const path = await download.path();
+        texts[download.suggestedFilename().includes("definitions") ? "definitions" : "links"] =
+          require("fs").readFileSync(path, "utf8");
+      }
+      expect(Object.keys(texts).sort()).toEqual(["definitions", "links"]);
+
+      const defLines = texts.definitions!.replace(/^\ufeff/, "").split("\r\n");
+      expect(defLines[0]).toBe(
+        "attribute_key,label_en,label_am,type,options,is_per_variant,direct_link_count",
+      );
+      const defRow = defLines.find((line) => line.startsWith(`${key},`));
+      expect(defRow, "AT-15 the scratch definition is exported").toBeTruthy();
+      // FORMULA SAFETY: "=name" arrives as a quoted cell led by an apostrophe.
+      expect(defRow!).toContain(`'=${key}`);
+
+      const linkLines = texts.links!.replace(/^\ufeff/, "").split("\r\n");
+      expect(linkLines[0]).toBe(
+        "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin",
+      );
+      const childRow = linkLines.find(
+        (line) => line.includes(`,${childSlug},`) && line.includes(`,${key},`),
+      );
+      expect(childRow, "AT-15 the child inherits the parent link").toBeTruthy();
+      // ORIGIN names the ANCESTOR the effective link came from.
+      expect(childRow!.split(",").pop()).toBe(parentSlug);
+    } finally {
+      await supabase
+        .from("category_tree_pointers")
+        .delete()
+        .eq(
+          "child_id",
+          (await supabase.from("categories").select("id").eq("slug", childSlug).maybeSingle()).data
+            ?.id ?? "00000000-0000-0000-0000-000000000000",
+        );
+      await destroyAttribute(key);
+      await destroyCategory(childSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
+
+  /** IE-1 AT-16 — no `categories:view`, no control and no route (403). */
+  test("AT-16 export: a user without categories:view sees no control and the route refuses", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const supabase = adminClient();
+    const roleName = `e2e_noview_${rand()}`;
+    let roleId = "";
+    try {
+      const { data: role, error: roleError } = await supabase
+        .from("roles")
+        .insert({ name: roleName, display_name: roleName, priority: 1 })
+        .select("id")
+        .single();
+      if (roleError || !role) throw new Error(`AT-16 scratch role failed: ${roleError?.message}`);
+      roleId = role.id;
+      const { data: perms, error: permError } = await supabase
+        .from("permissions")
+        .select("id, action, resources!inner(name)")
+        .in("resources.name", ["admin_panel"]);
+      if (permError) throw new Error(`AT-16 permission census failed: ${permError.message}`);
+      const access = (perms ?? []).filter((p) => p.action === "access");
+      expect(access, "AT-16 expected exactly admin_panel:access").toHaveLength(1);
+      await supabase
+        .from("role_permissions")
+        .insert(access.map((p) => ({ role_id: roleId, permission_id: p.id })));
+
+      const viewer = await createUser({ confirmed: true });
+      await supabase
+        .from("user_roles")
+        .insert({ user_id: viewer.id, role_id: roleId, scope_type: "global" });
+
+      await switchUser(page, viewer.email, viewer.password);
+      await gotoReady(page, "/admin");
+      await expect(page.getByTestId("attribute-export")).toHaveCount(0);
+
+      const status = await page.evaluate(async () => {
+        const client = (
+          window as unknown as {
+            __ethioSupabase: {
+              auth: {
+                getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
+              };
+            };
+          }
+        ).__ethioSupabase;
+        const { data } = await client.auth.getSession();
+        const response = await fetch("/api/admin/attributes/export?file=definitions", {
+          headers: { Authorization: `Bearer ${data.session?.access_token ?? ""}` },
+        });
+        return response.status;
+      });
+      expect(status).toBe(403);
+    } finally {
+      if (roleId) {
+        await supabase.from("user_roles").delete().eq("role_id", roleId);
+        await supabase.from("role_permissions").delete().eq("role_id", roleId);
+        await supabase.from("roles").delete().eq("id", roleId);
+      }
     }
   });
 });
