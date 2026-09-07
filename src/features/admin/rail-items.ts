@@ -36,10 +36,48 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   translations: Languages,
 };
 
-export const ADMIN_NAV_ITEMS: readonly NavItem[] = ADMIN_SECTIONS.map((section) => ({
-  id: `ad-${section.id}`,
-  labelKey: section.titleKey,
-  icon: SECTION_ICONS[section.id],
-  path: section.path,
-  requiredPermission: section.permission,
-}));
+const GROUP_ICONS: Record<AdminGroupId, LucideIcon> = {
+  categories: FolderTree,
+};
+
+function toItem(section: (typeof ADMIN_SECTIONS)[number]): NavItem {
+  return {
+    id: `ad-${section.id}`,
+    labelKey: section.titleKey,
+    icon: SECTION_ICONS[section.id],
+    path: section.path,
+    requiredPermission: section.permission,
+  };
+}
+
+/**
+ * C3-UX-2 — GROUPED, still derived. A section that declares a group folds into
+ * ONE parent item at the position of the group's first member; the group holds
+ * no permission of its own, so `visibleItems` drops it only when every child
+ * was filtered out (law F3: each sub-item keeps its own gate).
+ */
+export const ADMIN_NAV_ITEMS: readonly NavItem[] = (() => {
+  const items: NavItem[] = [];
+  const groups = new Map<AdminGroupId, NavItem>();
+  for (const section of ADMIN_SECTIONS) {
+    const groupId = section.group as AdminGroupId | undefined;
+    if (!groupId) {
+      items.push(toItem(section));
+      continue;
+    }
+    let group = groups.get(groupId);
+    if (!group) {
+      group = {
+        id: `ad-group-${groupId}`,
+        labelKey: ADMIN_GROUPS[groupId].titleKey,
+        icon: GROUP_ICONS[groupId],
+        defaultOpen: true,
+        children: [],
+      };
+      groups.set(groupId, group);
+      items.push(group);
+    }
+    group.children!.push(toItem(section));
+  }
+  return items;
+})();
