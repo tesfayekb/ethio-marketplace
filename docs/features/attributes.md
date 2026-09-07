@@ -120,9 +120,9 @@ target. The menu renders in a portal and is addressed as
 (`categories:view`, one read for the whole library) names every category a
 definition is linked to; the column renders one chip per category
 (`attribute-usedby-<key>-<slug>`) and the COUNT moves into the card twin's
-caption (`attribute-usage-<key>`, cards only). Column min-widths stay
-primitive-owned and proportional — Attribute widest, Type and Options compact,
-Used by wide enough for chips to wrap — so nothing is clipped between 1024 and 1366.
+caption (`attribute-usage-<key>`, cards only). Widths are tiered (C3-UX-1d
+above), so the chips wrap inside the remainder column and nothing is clipped
+between 1024 and 1366.
 
 **Remove from category** picks one of the categories the attribute is currently
 linked to, names it in the confirmation, and writes through the existing
