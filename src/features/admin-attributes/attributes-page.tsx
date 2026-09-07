@@ -163,7 +163,9 @@ export function AdminAttributesPage() {
       const token = data.session?.access_token ?? "";
       // C3-INH PART B — a filtered console exports THAT SUBTREE (category +
       // descendants, inherited rows included); no filter exports the library.
-      const scope = filterCategory?.slug ?? null;
+      // The URL is the truth (C3-UX-1 PART B): reading the derived roster row
+      // would export the whole library while the roster is still loading.
+      const scope = search.category ?? null;
       for (const file of ["definitions", "links"] as const) {
         const query =
           scope === null ? `file=${file}` : `file=${file}&scope=${encodeURIComponent(scope)}`;

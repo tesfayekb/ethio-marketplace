@@ -1125,6 +1125,8 @@ test.describe("C3 attributes console", () => {
       await expect(control, await dialogDump(page, "AT-18 no export control")).toBeVisible({
         timeout: 20000,
       });
+      // The filter must be SETTLED before the click, or the export is unscoped.
+      await expect(page.getByTestId("attribute-category-clear")).toBeVisible({ timeout: 30000 });
       const captured: import("@playwright/test").Download[] = [];
       page.on("download", (download) => captured.push(download));
       await control.click();
