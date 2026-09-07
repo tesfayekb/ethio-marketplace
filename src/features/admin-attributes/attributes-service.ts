@@ -222,3 +222,44 @@ export async function setAttributeLinkOrder(input: {
   });
   if (error) throw error;
 }
+
+/* ---------------------- C3-UX-1c — used-by, by NAME ----------------------- */
+
+/**
+ * `admin_list_attributes` reports a bare usage COUNT, so the library could
+ * neither NAME the categories a definition is used by nor address the link row
+ * a "remove from category" verb must delete. `admin_list_attribute_categories`
+ * (same `categories:view` gate, E7) supplies both, once, for the whole library.
+ */
+export interface AttributeCategory {
+  linkId: string;
+  attributeId: string;
+  categoryId: string;
+  categorySlug: string;
+  nameEn: string;
+  isActive: boolean;
+}
+
+export async function listAttributeCategories(): Promise<AttributeCategory[]> {
+  const { data, error } = await supabase.rpc("admin_list_attribute_categories");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    linkId: row.link_id,
+    attributeId: row.attribute_id,
+    categoryId: row.category_id,
+    categorySlug: row.category_slug,
+    nameEn: row.category_name_en,
+    isActive: row.is_active,
+  }));
+}
+
+/** attribute id → the categories that link it, in the RPC's name order. */
+export function groupByAttribute(rows: AttributeCategory[]): Map<string, AttributeCategory[]> {
+  const map = new Map<string, AttributeCategory[]>();
+  for (const row of rows) {
+    const list = map.get(row.attributeId);
+    if (list) list.push(row);
+    else map.set(row.attributeId, [row]);
+  }
+  return map;
+}

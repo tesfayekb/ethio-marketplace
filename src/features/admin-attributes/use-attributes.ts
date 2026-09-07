@@ -6,6 +6,7 @@ import {
   deleteAttribute,
   linkAttribute,
   listAttributes,
+  listAttributeCategories,
   listCategoryLinks,
   mergeAttributes,
   setAttributeLinkOrder,
@@ -109,5 +110,17 @@ export function useSetAttributeLinkOrder() {
     mutationFn: (input: { categoryId: string; orderedLinkIds: string[] }) =>
       setAttributeLinkOrder(input),
     onSettled: invalidate,
+  });
+}
+
+/**
+ * C3-UX-1c — the used-by chips. One read for the whole library (not per row),
+ * invalidated by every link/unlink through `useInvalidateAttributes`.
+ */
+export function useAttributeCategories() {
+  return useQuery({
+    queryKey: [...ADMIN_ATTRIBUTES_KEY, "categories"],
+    queryFn: listAttributeCategories,
+    staleTime: 30_000,
   });
 }
