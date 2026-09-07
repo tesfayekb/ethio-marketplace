@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { expect, test } from "./fixtures";
 
 import {
@@ -890,7 +892,7 @@ test.describe("C3 attributes console", () => {
       for (const download of files) {
         const path = await download.path();
         texts[download.suggestedFilename().includes("definitions") ? "definitions" : "links"] =
-          require("fs").readFileSync(path, "utf8");
+          readFileSync(path, "utf8");
       }
       expect(Object.keys(texts).sort()).toEqual(["definitions", "links"]);
 

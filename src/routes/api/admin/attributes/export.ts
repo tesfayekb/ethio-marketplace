@@ -19,6 +19,8 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 
+import type { Database } from "@/integrations/supabase/types";
+
 const PATH = "/api/admin/attributes/export";
 
 type FileKind = "definitions" | "links";
@@ -115,7 +117,7 @@ export const Route = createFileRoute("/api/admin/attributes/export")({
         }
 
         const { createClient } = await import("@supabase/supabase-js");
-        const supabase = createClient(supabaseUrl, publishable, {
+        const supabase = createClient<Database>(supabaseUrl, publishable, {
           global: { headers: { Authorization: authorization } },
           auth: { persistSession: false, autoRefreshToken: false },
         });
