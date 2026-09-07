@@ -247,3 +247,64 @@ is `admin_list_effective_category_links(p_category_id)` (gated on
 Keys: `admin.attributes.inherited.badge`, `admin.attributes.inherited.openOrigin`
 (EN + AM). E2E: AT-17 (inherited row + cleared roster flag), AT-18 (scoped
 export contents and filename), AT-19 (no write verb, server refusal).
+
+## The import (IE-2)
+
+The mirror of IE-1: the two exported files go back in through
+`Import attributes` (beside Export), which is gated on its OWN permission,
+`categories:import` — registered step-up-required and granted to `super_admin`
+only. Export stays on `categories:view`.
+
+`POST /api/admin/attributes/import` with `mode=preview|commit|undo` is the door.
+The browser uploads the files as TEXT and parses nothing: the route reads the
+bearer token, builds a caller-context publishable client (never the service
+role) and does every byte-level check server-side — 1 MB and 5 000 rows per
+file, UTF-8/BOM, RFC-4180, and headers exactly equal to the export's plus an
+optional trailing `action` column. A RAW `=`, `+`, `-` or `@` cell is refused
+per row; the export's `'`-neutralised cell round-trips unchanged. Failures log
+`[ssr-error] /api/admin/attributes/import …` before answering (I4, F4).
+
+| Door                             | Gate                                 |
+| -------------------------------- | ------------------------------------ |
+| `admin_preview_attribute_import` | `categories:import` (writes nothing) |
+| `admin_commit_attribute_import`  | `categories:import` + step-up        |
+| `admin_undo_attribute_import`    | `categories:import` + step-up        |
+| `attr_import_plan`               | internal — no client EXECUTE         |
+
+**Actions, never absence.** `action` is `upsert` (default), `unlink` or
+`delete`; a row missing from the file changes nothing. A delete still obeys the
+blast-radius law.
+
+**Refusals are per row**, each with a reason the console translates:
+`missingKey`, `duplicateKey`, `badAction`, `unknownType`, `malformedOptions`,
+`badParent`, `blastRadius`, `unknownCategory`, `unknownAttribute`,
+`outOfScope`, `inheritedRow` (edit at the origin), `badCardRank`, `formula`.
+
+**Preview → Confirm.** The preview writes nothing and returns the diff, the
+refusals and a SHA-256 digest of both files; the commit carries that digest and
+is refused (`fileChanged`) if the bytes moved. The commit follows the F5 writer
+order — permission → step-up → a per-user advisory lock (one commit in flight)
+→ capture old→new into `attribute_import_revisions`, batch-tagged → mutate — and
+is idempotent: an unchanged row writes nothing, so a round trip of the export is
+a no-op. `Undo last import` restores the batch's still-untouched rows and is
+audited; rows a later edit has moved on from are counted as conflicted, never
+overwritten.
+
+**DEC-045 — option parents.** An option entry may carry `parent`, valid only
+when the option list also declares `depends_on: <attribute_key>`; the parent
+value must exist on that definition's list, otherwise the row is refused
+(`badParent`).
+
+With a category filter active the scope travels with the import and any row
+outside that subtree is refused in the preview.
+
+LIMITATIONS: the import reads `attribute_key`, `label_en`, `type` and `options`
+from `definitions.csv` — `label_am` (an entity translation), `is_per_variant`
+(no such column) and `direct_link_count` (derived) are informational and
+ignored. Undo covers the last batch's captured rows only.
+
+E2E: AT-20 round-trip no-op · AT-21 change → commit → undo against DB truth ·
+AT-22 bad header, raw formula and unknown slug with nothing written · AT-23 no
+control and 403 for a `categories:view`-only operator (401 with no bearer) ·
+AT-24 edited bytes refused against the preview digest · AT-25 invalid option
+`parent`.

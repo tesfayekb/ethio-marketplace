@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      attribute_import_revisions: {
+        Row: {
+          action: string
+          batch_id: string
+          created_at: string
+          created_by: string
+          entity_key: string
+          id: string
+          kind: string
+          post: Json | null
+          prev: Json | null
+          undone_at: string | null
+        }
+        Insert: {
+          action: string
+          batch_id: string
+          created_at?: string
+          created_by: string
+          entity_key: string
+          id?: string
+          kind: string
+          post?: Json | null
+          prev?: Json | null
+          undone_at?: string | null
+        }
+        Update: {
+          action?: string
+          batch_id?: string
+          created_at?: string
+          created_by?: string
+          entity_key?: string
+          id?: string
+          kind?: string
+          post?: Json | null
+          prev?: Json | null
+          undone_at?: string | null
+        }
+        Relationships: []
+      }
       attributes: {
         Row: {
           attr_key: string
@@ -1230,6 +1269,15 @@ export type Database = {
           top_actions: Json
         }[]
       }
+      admin_commit_attribute_import: {
+        Args: {
+          p_definitions: Json
+          p_digest?: string
+          p_links: Json
+          p_scope?: string
+        }
+        Returns: Json
+      }
       admin_create_category: {
         Args: {
           p_allow_listings?: boolean
@@ -1605,6 +1653,10 @@ export type Database = {
         Args: { p_new_parent_id: string; p_pointer_id: string }
         Returns: undefined
       }
+      admin_preview_attribute_import: {
+        Args: { p_definitions: Json; p_links: Json; p_scope?: string }
+        Returns: Json
+      }
       admin_reactivate_category: { Args: { p_id: string }; Returns: undefined }
       admin_remove_category_pointer: {
         Args: { p_pointer_id: string }
@@ -1715,6 +1767,7 @@ export type Database = {
           untranslated: number
         }[]
       }
+      admin_undo_attribute_import: { Args: { p_batch: string }; Returns: Json }
       admin_undo_import: { Args: { p_batch: string }; Returns: Json }
       admin_unlink_attribute: {
         Args: { p_link_id: string }
@@ -1798,6 +1851,10 @@ export type Database = {
           p_target_user: string
         }
         Returns: undefined
+      }
+      attr_import_plan: {
+        Args: { p_definitions: Json; p_links: Json; p_scope: string }
+        Returns: Json
       }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }

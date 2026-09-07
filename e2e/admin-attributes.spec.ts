@@ -1248,4 +1248,347 @@ test.describe("C3 attributes console", () => {
       await fixture.destroy();
     }
   });
+
+  /* --------------------------- IE-2: the import --------------------------- */
+
+  /**
+   * The import doors are asserted through the ROUTE with the page's bearer
+   * (the same door the dialog posts to), and every verdict is confirmed
+   * against DB TRUTH via the service client (J4). The UI half — the control's
+   * visibility — is asserted in AT-23.
+   */
+  const DEF_HEADER =
+    "attribute_key,label_en,label_am,type,options,is_per_variant,direct_link_count";
+  const LINK_HEADER =
+    "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin";
+
+  async function bearerOf(page: import("@playwright/test").Page): Promise<string> {
+    const token = await page.evaluate(async () => {
+      const client = (
+        window as unknown as {
+          __ethioSupabase: {
+            auth: {
+              getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
+            };
+          };
+        }
+      ).__ethioSupabase;
+      const { data } = await client.auth.getSession();
+      return data.session?.access_token ?? "";
+    });
+    expect(token, "IE-2 the page carries no bearer").not.toBe("");
+    return token;
+  }
+
+  async function importPost(
+    page: import("@playwright/test").Page,
+    token: string,
+    body: Record<string, unknown>,
+  ) {
+    const response = await page.request.post("/api/admin/attributes/import", {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      data: body,
+    });
+    let payload: Record<string, unknown> = {};
+    try {
+      payload = (await response.json()) as Record<string, unknown>;
+    } catch {
+      payload = {};
+    }
+    return { status: response.status(), payload };
+  }
+
+  /** AT-20 — a file that states the CURRENT truth changes nothing. */
+  test("AT-20 a round-trip import is a no-op", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-imp-${rand()}`;
+    try {
+      const { data: attribute } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "text" })
+        .select("id")
+        .single();
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      await supabase.from("category_attribute_links").insert({
+        category_id: category!.id,
+        attribute_id: attribute!.id,
+        is_required: true,
+        is_filterable: false,
+      });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,1\r\n`;
+      const links = `${LINK_HEADER}\r\n${slug},${slug},${key},true,false,,${slug}\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions, links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(counts.adds + counts.changes + counts.unlinks + counts.deletes).toBe(0);
+      expect(counts.unchanged).toBeGreaterThanOrEqual(2);
+      expect(counts.refusals).toBe(0);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      expect(commit.payload["applied"]).toBe(0);
+
+      // DB TRUTH: the link is exactly as seeded.
+      const rows = await readLinks(category!.id);
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.is_required).toBe(true);
+    } finally {
+      await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /** AT-21 — a real change previews, commits and then UNDOES to the old row. */
+  test("AT-21 a changed link commits and the batch undoes", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-imp-${rand()}`;
+    try {
+      const { data: attribute } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "text" })
+        .select("id")
+        .single();
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      await supabase.from("category_attribute_links").insert({
+        category_id: category!.id,
+        attribute_id: attribute!.id,
+        is_required: false,
+        is_filterable: false,
+      });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,1\r\n`;
+      // required flips false → true and the attribute takes card position 1.
+      const links = `${LINK_HEADER}\r\n${slug},${slug},${key},true,false,1,${slug}\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions, links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect((preview.payload["counts"] as Record<string, number>).changes).toBe(1);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+
+      const after = await readLinks(category!.id);
+      expect(after[0]?.is_required, "AT-21 the commit did not apply").toBe(true);
+      expect(after[0]?.card_rank).toBe(1);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(undo.payload["restored"]).toBe(1);
+
+      const restored = await readLinks(category!.id);
+      expect(restored[0]?.is_required, "AT-21 the undo did not restore the row").toBe(false);
+      expect(restored[0]?.card_rank).toBeNull();
+    } finally {
+      await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /** AT-22 — the refusal vocabulary: bad header, formula cell, unknown slug. */
+  test("AT-22 malformed files and dangerous cells are refused", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/attributes");
+    const token = await bearerOf(page);
+
+    // (a) a header that is not the export's is refused whole.
+    const badHeader = await importPost(page, token, {
+      mode: "preview",
+      definitions: "key,label\r\nfoo,bar\r\n",
+    });
+    expect(badHeader.status).toBe(400);
+    expect(badHeader.payload["error"]).toBe("badHeader");
+
+    // (b) a RAW formula cell is refused per row.
+    const key = `e2e_attr_${rand()}`;
+    const formula = await importPost(page, token, {
+      mode: "preview",
+      definitions: `${DEF_HEADER}\r\n${key},"=SUM(1)",,text,,,0\r\n`,
+    });
+    expect(formula.status).toBe(200);
+    const formulaRefusals = formula.payload["refusals"] as { reason: string }[];
+    expect(formulaRefusals.map((entry) => entry.reason)).toContain("formula");
+
+    // (c) an unknown category slug is refused per row, and nothing is written.
+    const unknownSlug = `e2e-cat-nope-${rand()}`;
+    const unknown = await importPost(page, token, {
+      mode: "preview",
+      links: `${LINK_HEADER}\r\n${unknownSlug},${unknownSlug},${key},true,false,,${unknownSlug}\r\n`,
+    });
+    expect(unknown.status).toBe(200);
+    const unknownRefusals = unknown.payload["refusals"] as { reason: string }[];
+    expect(unknownRefusals.map((entry) => entry.reason)).toContain("unknownCategory");
+
+    // PREVIEW WRITES NOTHING (F5).
+    expect(await readAttribute(key)).toBeNull();
+  });
+
+  /** AT-23 — no `categories:import`: no control, and the route refuses. */
+  test("AT-23 a categories:view-only operator sees no import control and is refused", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    // A SCRATCH role carrying exactly admin_panel:access + categories:view
+    // (the AT-14 recipe, J3): no ratified role is touched.
+    const supabase = adminClient();
+    const roleName = `e2e_viewonly_${rand()}`;
+    const { data: role, error: roleError } = await supabase
+      .from("roles")
+      .insert({ name: roleName, display_name: roleName, priority: 1 })
+      .select("id")
+      .single();
+    if (roleError || !role) throw new Error(`AT-23 scratch role failed: ${roleError?.message}`);
+    try {
+      const { data: perms } = await supabase
+        .from("permissions")
+        .select("id, action, resources!inner(name)")
+        .in("resources.name", ["admin_panel", "categories"]);
+      const wanted = (perms ?? []).filter((p) => {
+        const resource = (p as unknown as { resources: { name: string } }).resources.name;
+        return (
+          (resource === "admin_panel" && p.action === "access") ||
+          (resource === "categories" && p.action === "view")
+        );
+      });
+      expect(wanted, "AT-23 expected exactly admin_panel:access + categories:view").toHaveLength(2);
+      await supabase
+        .from("role_permissions")
+        .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
+
+      const viewer = await createUser({ confirmed: true });
+      await supabase
+        .from("user_roles")
+        .insert({ user_id: viewer.id, role_id: role.id, scope_type: "global" });
+      await switchUser(page, viewer.email, viewer.password);
+      await gotoReady(page, "/admin/attributes");
+      await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("attribute-import")).toHaveCount(0);
+
+      const token = await bearerOf(page);
+      const denied = await importPost(page, token, {
+        mode: "preview",
+        definitions: `${DEF_HEADER}\r\ne2e_attr_denied,label,,text,,,0\r\n`,
+      });
+      expect(denied.status, JSON.stringify(denied.payload)).toBe(403);
+
+      // NO BEARER, NO DOOR.
+      const anonymous = await page.request.post("/api/admin/attributes/import", {
+        data: { mode: "preview" },
+      });
+      expect(anonymous.status()).toBe(401);
+    } finally {
+      await supabase.from("role_permissions").delete().eq("role_id", role.id);
+      await supabase.from("user_roles").delete().eq("role_id", role.id);
+      await supabase.from("roles").delete().eq("id", role.id);
+    }
+  });
+
+  /** AT-24 — the digest is the contract: an edited file cannot be committed. */
+  test("AT-24 a commit whose bytes changed since the preview is refused", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    try {
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,0\r\n`;
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status).toBe(200);
+
+      const edited = `${DEF_HEADER}\r\n${key},${key}_edited,,text,,,0\r\n`;
+      const stale = await importPost(page, token, {
+        mode: "commit",
+        definitions: edited,
+        digest: preview.payload["digest"],
+      });
+      expect(stale.status).toBe(409);
+      expect(stale.payload["error"]).toBe("fileChanged");
+      // A refused attempt leaves NO trace (F5).
+      expect(await readAttribute(key)).toBeNull();
+    } finally {
+      await supabase.from("attributes").delete().eq("attr_key", key);
+    }
+  });
+
+  /** AT-25 — DEC-045: a `parent` that is not on the depended-on list is refused. */
+  test("AT-25 an invalid option parent is refused", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const base = `e2e_attr_${rand()}`;
+    const child = `e2e_attr_${rand()}`;
+    try {
+      await supabase
+        .from("attributes")
+        .insert({
+          attr_key: base,
+          name_en: base,
+          attr_type: "single_select",
+          options: ["Toyota", "Honda"],
+        })
+        .select("id")
+        .single();
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const options = JSON.stringify([
+        { depends_on: base },
+        { value: "Corolla", parent: "Toyota" },
+        { value: "Civic", parent: "Suzuki" },
+      ]).replaceAll('"', '""');
+      const definitions = `${DEF_HEADER}\r\n${child},${child},,single_select,"${options}",,0\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const refusals = preview.payload["refusals"] as { reason: string }[];
+      expect(refusals.map((entry) => entry.reason)).toContain("badParent");
+      expect(await readAttribute(child)).toBeNull();
+    } finally {
+      await destroyAttribute(child);
+      await destroyAttribute(base);
+    }
+  });
 });

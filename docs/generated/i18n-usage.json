@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 198,
-  "dynamicCallSites": 74,
+  "scanned": 200,
+  "dynamicCallSites": 75,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -182,6 +182,75 @@
       "/admin/attributes"
     ],
     "admin.attributes.filter.empty": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.busy": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.committed": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.confirm": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.counts": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.definitionsFile": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.discard": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.badHeader": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.busy": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.denied": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.emptyFile": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.failed": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.fileChanged": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.stepUp": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.tooLarge": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.error.tooManyRows": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.hint": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.linksFile": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.open": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.preview": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.refusalRow": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.title": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.undo": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.import.undone": [
       "/admin/attributes"
     ],
     "admin.attributes.inherited.badge": [
