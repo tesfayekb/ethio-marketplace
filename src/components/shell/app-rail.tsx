@@ -236,6 +236,8 @@ type RailNode = {
   active?: boolean;
   onSelect?: () => void;
   children?: RailNode[];
+  /** C3-UX-2 — a group that renders expanded on its first frame. */
+  defaultOpen?: boolean;
 };
 
 /**
