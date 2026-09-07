@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { toRoster } from "@/features/admin-categories/categories-service";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -61,7 +62,8 @@ export function AdminAttributesPage() {
   const mayUpdate = permissions.includes("categories:update");
   const mayRestructure = permissions.includes("categories:restructure");
 
-  const categories = useMemo(() => categoryData ?? [], [categoryData]);
+  /** The picker mirrors the roster order/depth (B1: one derivation, `toRoster`). */
+  const categories = useMemo(() => toRoster(categoryData ?? []), [categoryData]);
   /** PART B — the filter is a SLUG in the URL; the id is derived, never stored. */
   const filterCategory = useMemo(
     () => categories.find((row) => row.slug === search.category) ?? null,
