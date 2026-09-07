@@ -13,7 +13,12 @@
  * calls it (law B2: one source of truth per concern).
  */
 
-export type EntityType = "category" | "location";
+/**
+ * C3-UX-2 — `attribute` joins the entity vocabulary: an attribute definition's
+ * LABEL (field `label`) is translated exactly like a category or location name,
+ * under the same overlay law.
+ */
+export type EntityType = "category" | "location" | "attribute";
 
 /** Approved values only: `{ type: { id: { field: value } } }`, per language. */
 export type EntityBundleMap = Record<string, Record<string, Record<string, string>>>;

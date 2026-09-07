@@ -19,7 +19,20 @@ type AdminSectionShape = {
   readonly permission: string;
   readonly titleKey: MessageKey;
   readonly bodyKey: MessageKey;
+  /**
+   * C3-UX-2 — the MENU GROUP this section hangs under, when it has one. The
+   * group is presentation only: it carries NO permission of its own and every
+   * sub-item keeps its own gate (law F3 unchanged).
+   */
+  readonly group?: AdminGroupId;
 };
+
+/** The admin nav's groups. Brands and Tags join `categories` when they land. */
+export const ADMIN_GROUPS = {
+  categories: { id: "categories", titleKey: "admin.group.categories" },
+} as const satisfies Record<string, { readonly id: string; readonly titleKey: MessageKey }>;
+
+export type AdminGroupId = keyof typeof ADMIN_GROUPS;
 
 export const ADMIN_SECTIONS = [
   {
@@ -56,6 +69,7 @@ export const ADMIN_SECTIONS = [
     permission: "categories:view",
     titleKey: "admin.section.categories.title",
     bodyKey: "admin.section.categories.body",
+    group: "categories",
   },
   {
     id: "attributes",
@@ -63,6 +77,7 @@ export const ADMIN_SECTIONS = [
     permission: "categories:view",
     titleKey: "admin.section.attributes.title",
     bodyKey: "admin.section.attributes.body",
+    group: "categories",
   },
   {
     id: "images",
@@ -70,6 +85,7 @@ export const ADMIN_SECTIONS = [
     permission: "categories:view",
     titleKey: "admin.section.images.title",
     bodyKey: "admin.section.images.body",
+    group: "categories",
   },
   {
     id: "translations",
@@ -98,4 +114,15 @@ export function sectionById(id: AdminSectionId): AdminSection {
   // Law F4 — a missing section is a programming error, never a silent blank.
   if (!found) throw new Error(`[admin] unknown section id: ${id}`);
   return found;
+}
+
+/** The group a section hangs under, or null when it sits at the top level. */
+export function groupForSection(section: AdminSection) {
+  const id = sectionGroupId(section);
+  return id ? ADMIN_GROUPS[id] : null;
+}
+
+/** The declared group id of a section (the literal union hides the optional). */
+export function sectionGroupId(section: AdminSection): AdminGroupId | null {
+  return (section as { group?: AdminGroupId }).group ?? null;
 }

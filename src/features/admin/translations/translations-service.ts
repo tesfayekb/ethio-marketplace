@@ -481,7 +481,8 @@ export async function listProviderLanguages(): Promise<ProviderLanguage[]> {
  * `entity` scope writes through `admin_machine_entity_translation`.
  */
 
-export type EntityType = "category" | "location";
+/** C3-UX-2 — attribute LABELS join content translation. */
+export type EntityType = "category" | "location" | "attribute";
 
 export interface EntityTranslationRow {
   /**
@@ -554,7 +555,12 @@ export async function listEntityTranslations({
   const first = rows[0];
   return {
     rows: rows.map((row) => {
-      const entityType: EntityType = row.entity_type === "category" ? "category" : "location";
+      const entityType: EntityType =
+        row.entity_type === "category"
+          ? "category"
+          : row.entity_type === "attribute"
+            ? "attribute"
+            : "location";
       const entityId = String(row.entity_id);
       const field = String(row.field);
       return {

@@ -138,3 +138,34 @@ library · AT-9 twin rendering with no sideways scroll and no clipped last colum
 AT-10 the used-by chip names the assigned category (DB truth) · AT-11
 remove-from-category unlinks and the chip disappears (DB truth). `e2e/admin-categories-console.spec.ts` CT-9a/9b assert the
 parent cell in both twins against pointer truth.
+
+## Amharic labels (C3-UX-2)
+
+Attribute labels are ENTITY copy, not UI copy: they resolve through
+`entity_translations` with `entity_type = 'attribute'`, `field = 'label'`,
+under the same overlay law every entity name follows —
+DB[lang] ▸ compiled ▸ the English definition name. One resolver,
+`useAttributeLabel` (over `entityName`), serves every render site: the library,
+the per-category link manager, the card picker, the category editor's
+Attributes tab and the attribute dialogs.
+
+Attributes are a first-class row in the translations console's **Data** scope
+(`admin_list_entity_translations`, `admin_entity_translation_stats`,
+`admin_save_entity_translation`, `admin_machine_entity_translation` all accept
+the new type), so the existing machine-translate + approve flow covers them
+with no new door.
+
+LIMITATION (C3-UX-3): option VALUES stay English. Only the label is
+translatable today.
+
+## Deny behaviour
+
+A `categories:view`-only operator reads the library and sees no write verbs —
+no ⋯ menu, no Create. The server refuses independently:
+`admin_upsert_attribute` and `admin_link_attribute` need `categories:update`,
+`admin_delete_attribute` needs `categories:restructure`; each raises
+`permission denied` and writes nothing (F5).
+
+E2E: AT-12 (approved `am` label renders, EN fallback returns) · AT-13 (a
+scratch definition is pending in the Data roster) · AT-14 (the three deny
+proofs, live RPC).

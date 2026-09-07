@@ -236,6 +236,8 @@ type RailNode = {
   active?: boolean;
   onSelect?: () => void;
   children?: RailNode[];
+  /** C3-UX-2 — a group that renders expanded on its first frame. */
+  defaultOpen?: boolean;
 };
 
 /**
@@ -250,7 +252,9 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // An active descendant keeps its ancestor open.
   const containsActive = (n: RailNode): boolean =>
     Boolean(n.active) || (n.children ?? []).some(containsActive);
-  const [open, setOpen] = useState(() => hasChildren && containsActive(node));
+  const [open, setOpen] = useState(
+    () => hasChildren && (containsActive(node) || Boolean(node.defaultOpen)),
+  );
 
   const Icon = node.icon;
   const inner = (
@@ -459,6 +463,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     active: item.path ? pathname === item.path || pathname.startsWith(`${item.path}/`) : undefined,
     onSelect: item.path ? onNavigate : undefined,
     children: item.children?.map(toNode),
+    defaultOpen: item.defaultOpen,
   });
 
   const sections: { key: MessageKey | null; items: NavItem[] }[] = [];
