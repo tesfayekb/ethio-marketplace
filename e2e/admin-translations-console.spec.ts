@@ -285,6 +285,10 @@ test.describe("U4b translations console", () => {
     async ({ page }) => {
       test.setTimeout(120_000);
       const { user, secret } = await signInAsSuperAdmin(page);
+      // The private mint ends ELEVATED (it enrols in-session). Signing the same
+      // identity in again yields a fresh aal1 session — the production state
+      // where Sync must ask for a code first.
+      await switchUser(page, user.email, user.password);
       await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations");
 
