@@ -258,7 +258,6 @@ export function AdminCategoriesPage() {
     setOffset(0);
   }, [needle, rootFilter, missingOnly]);
 
-
   /**
    * INC-142 — the dialog stores ONLY the id; the rendered row is looked up in
    * the live roster on every render, so the verb bar tracks a status change

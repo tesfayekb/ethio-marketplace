@@ -15,6 +15,23 @@ Approach frozen by `docs/decisions/e2e-testing-investigation.md`.
 
 Scripts: `bun run test:e2e`, `bun run test:e2e:install`, `bun run serve:e2e`.
 
+## DEC-023 — the local pre-commit command
+
+The pre-commit law runs the suite the way CI does, against staging:
+
+```
+bun run e2e:local -- e2e/<spec>.spec.ts --project=desktop-1280
+```
+
+`e2e:local` mirrors the `e2e-build` job's environment exactly — `VITE_E2E=1`,
+`NITRO_PRESET=node-server`, and the staging `VITE_SUPABASE_URL` /
+`VITE_SUPABASE_PUBLISHABLE_KEY` pair taken from `E2E_SUPABASE_URL` /
+`E2E_SUPABASE_PUBLISHABLE_KEY` — then serves that build
+(`E2E_SERVE_BUILT=1 playwright test`) with the arguments passed through.
+Building with the app's own default Supabase pair is what made authenticated
+specs fail locally while CI passed: the served app talked to a project the
+harness never seeded.
+
 ## Serving the app in CI — dev-server mode (Option B)
 
 CI E2E runs against the **Vite dev server** (`vite dev`), not the Cloudflare-worker
