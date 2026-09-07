@@ -155,3 +155,37 @@ with `window.__ethioStepUp = { windowMs }`; the server window is fixed.
 
 E2E: MF-6 (unenroll → the no-factor modal, no RPC) and MF-7 (expired window →
 re-prompt, then the action proceeds).
+
+## L5 — freshness is read from the TOKEN (DEC-040) and the guard completes (DEC-041)
+
+**INC-166 (production).** "Sync keys" ran, the server did the work, and the
+console reported nothing. Cause: `guard(action)` resolved as soon as the
+step-up MODAL OPENED, so the caller's `.then()` read its result box before the
+action had produced anything.
+
+**The completion contract.** `guard(action)` now returns a promise that settles
+on the ACTION: it resolves with the action's value (inline when the session is
+fresh, or after `submitCode` has run the pending action) and rejects with the
+action's error on both paths (law F4). A cancelled or no-factor gate leaves it
+UNSETTLED — nothing ran, so neither success nor failure may be claimed.
+`SyncKeysCard` reads the counts straight off the resolved value; the result box
+is deleted.
+
+**Client freshness = the token.** `isStepUpFresh()` no longer reads the
+`sb-<ref>-stepped-up-at` hint (no write or read of it remains in the MFA
+feature). It decodes the current access token and requires `aal === "aal2"` plus
+a `totp` entry in `amr` whose timestamp is inside `STEP_UP_WINDOW_MS` (10
+minutes) — mirroring `interval '10 minutes'` in
+`public.require_step_up_if_needed` (migration `20260817100845_…`) — and still
+requires a currently-owned verified factor. The server remains the authority.
+
+**E2E (DEC-041).** Global setup signs the pooled super admin in and verifies its
+TOTP factor in node, asserts the resulting token claims `aal2`, and writes the
+session beside the pool in the state file. `useJobSuperAdmin` injects that
+session before the first navigation, then asserts AAL2 and the signed-in header
+from the client; a session inside 5 minutes of expiry is refreshed once in node
+and the state file rewritten. No UI sign-in and no per-test verification for the
+pool; `E2E_UI_LOGIN=1` keeps the real door plus in-browser elevation, and
+private (`@private-identity`) mints are unchanged. **TR-7b** is the regression:
+a private super admin at aal1 clicks Sync, answers the prompt, and
+`translations-sync-done` renders with its counts.
