@@ -454,9 +454,9 @@ export async function enrollAndStepUp(page: Page): Promise<string> {
  * per-test code. `stepUpIfPrompted(page, secret)` still answers any freshness
  * re-prompt once the 10-minute token window lapses.
  *
- * With the `E2E_UI_LOGIN=1` revert knob (or in an auth spec) there is no
- * injection: the pooled credentials go through the real UI door and the same
- * in-browser elevation follows.
+ * L5b — DEC-041 LIVE IN CI: the pool path injects UNCONDITIONALLY. The
+ * `E2E_UI_LOGIN=1` revert knob and the in-browser elevation remain only on the
+ * `mintPrivateSuperAdmin` path (`@private-identity` tests drive the real door).
  */
 export type JobSuperAdmin = {
   user: { id: string; email: string; password: string; displayName: string };
@@ -689,22 +689,17 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
     displayName: pool.displayName,
   };
 
-  if (!sessionInjectionEnabled()) {
-    // The E2E_UI_LOGIN revert knob (and auth specs) keep the real door plus the
-    // in-browser elevation; DEC-041's node session is the fast path only.
-    await switchUser(page, pool.email, pool.password);
-    await waitForHydration(page);
-    await elevateInBrowser(page, pool);
-  } else {
-    const session = await pooledAal2Session(pool);
-    await injectSession(page, session);
-    await gotoReady(page, "/");
-    await assertInjectedIdentity(page, session);
-    await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
-    await waitForHydration(page);
-    // READ-BACK from the client: the injected session really is AAL2.
-    await expectAal2(page);
-  }
+  // DEC-041 (L5b): the pool path ALWAYS injects the node-side AAL2 session —
+  // no UI sign-in, no in-browser elevation. The E2E_UI_LOGIN knob and
+  // elevateInBrowser belong to mintPrivateSuperAdmin (the real door) alone.
+  const session = await pooledAal2Session(pool);
+  await injectSession(page, session);
+  await gotoReady(page, "/");
+  await assertInjectedIdentity(page, session);
+  await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+  await waitForHydration(page);
+  // READ-BACK from the client: the injected session really is AAL2.
+  await expectAal2(page);
 
   await endActiveImpersonation(page);
   return { user, secret: pool.secret };
