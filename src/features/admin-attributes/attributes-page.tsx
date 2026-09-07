@@ -69,8 +69,10 @@ export function AdminAttributesPage() {
     | { kind: "edit"; id: string | null }
     | { kind: "delete"; id: string }
     | { kind: "assign"; id: string }
+    | { kind: "remove"; id: string }
     | { kind: "merge" }
   >({ kind: "none" });
+
 
   const mayUpdate = permissions.includes("categories:update");
   const mayRestructure = permissions.includes("categories:restructure");
