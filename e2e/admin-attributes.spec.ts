@@ -761,7 +761,7 @@ test.describe("C3 attributes console", () => {
       ).toBeVisible({ timeout: 20000 });
       // NO WRITE VERBS: the row carries no actions trigger at all.
       await expect(page.getByTestId(`attribute-actions-${key}`)).toHaveCount(0);
-      await expect(page.getByTestId("attribute-new")).toHaveCount(0);
+      await expect(page.getByTestId("attribute-create-open")).toHaveCount(0);
 
       // THE SERVER REFUSES — live, from the signed-in browser client.
       const denials = await page.evaluate(
