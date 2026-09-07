@@ -20,7 +20,6 @@ import {
   assertInjectedIdentity,
   injectSession,
   passwordGrant,
-  sessionInjectionEnabled,
   type PersistedSession,
 } from "./session";
 import { totp } from "./totp";
@@ -271,15 +270,14 @@ export async function signIn(
   password: string,
   opts: { uiLogin?: boolean } = {},
 ) {
-  // DEC-029 — non-auth specs get the injected session instead of the form.
-  // The UI path below is kept intact and is what auth specs, the
-  // E2E_UI_LOGIN=1 revert knob and `{ uiLogin: true }` callers still run.
-  // INC-120 LAW: credential-lifecycle tests (password rotation, signed-out
-  // assertions) pass `{ uiLogin: true }` — their subject IS the credential.
-  if (!opts.uiLogin && sessionInjectionEnabled()) {
-    await signInViaSession(page, email, password);
-    return;
-  }
+  // IE-1r PART D — DEC-041 AMENDMENT: THE REAL DOOR, ALWAYS.
+  // `signIn` (and therefore `switchUser` and `mintPrivateSuperAdmin`) drives
+  // the product's own form unconditionally: injection belongs to the POOL path
+  // alone (`useJobSuperAdmin`), which is where DEC-041 put it. The
+  // `E2E_UI_LOGIN` knob is now INERT here and stays in ci.yml /
+  // nightly-e2e.yml only until a harness DEC deletes it. `opts.uiLogin` is
+  // kept in the signature so INC-120 callers read unchanged.
+  void opts;
 
   await page.goto("/auth");
   await waitForHydration(page);
@@ -376,10 +374,9 @@ export async function signInViaSession(page: Page, email: string, password: stri
  * never navigates to /auth while signed in — it signs out first, or uses a
  * fresh browser context.
  *
- * INC-120b — the injection branch is the SAME `signInViaSession` the first
- * persona took: the sentinel is per-user, so switching clears the previous
- * session and its step-up hint, writes the new grant once, and asserts the
- * active identity. The UI-login branch below is untouched.
+ * IE-1r PART D (DEC-041 amendment) — `switchUser` no longer branches on
+ * session injection: it signs out through the UI and signs back in through the
+ * real form, every time. Injection lives on the POOL path alone.
  */
 export async function switchUser(
   page: Page,
@@ -387,11 +384,6 @@ export async function switchUser(
   password: string,
   opts: { uiLogin?: boolean } = {},
 ) {
-  if (!opts.uiLogin && sessionInjectionEnabled()) {
-    await signInViaSession(page, email, password);
-    return;
-  }
-
   await gotoReady(page, "/");
 
   // Auth state must be SETTLED before branching — after a navigation/redirect

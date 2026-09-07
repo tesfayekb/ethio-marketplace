@@ -169,3 +169,47 @@ no ⋯ menu, no Create. The server refuses independently:
 E2E: AT-12 (approved `am` label renders, EN fallback returns) · AT-13 (a
 scratch definition is pending in the Data roster) · AT-14 (the three deny
 proofs, live RPC).
+
+## The export (IE-1)
+
+One toolbar control, `attribute-export`, downloads TWO files — `definitions.csv`
+and `links.csv`. Two downloads rather than one archive keeps the bundle free of
+a new dependency (G2). The control is disabled ONLY while a download is in
+flight: the export is the whole library, never the filtered view, so an empty
+filter never greys it out.
+
+`GET /api/admin/attributes/export?file=definitions|links` is the door. It reads
+the bearer token off the request, builds a caller-context publishable client
+(never the service role) and calls `admin_export_attributes()`, which re-checks
+`categories:view` itself — the route surfaces that refusal as 403, a missing or
+invalid token as 401, and logs `[ssr-error] /api/admin/attributes/export …`
+before every failure answer (I4, F4).
+
+| File              | Columns, in order                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| `definitions.csv` | `attribute_key`, `label_en`, `label_am`, `type`, `options`, `is_per_variant`, `direct_link_count`        |
+| `links.csv`       | `category_path`, `category_slug`, `attribute_key`, `is_required`, `is_filterable`, `card_rank`, `origin` |
+
+Both files carry a UTF-8 BOM (Excel needs it to read Ge'ez), CRLF rows and
+RFC-4180 escaping, and any cell opening with `=`, `+`, `-` or `@` is prefixed
+with a single quote so no spreadsheet executes it. The filename is dated:
+`ethio-attributes-<file>-<YYYY-MM-DD>.csv`.
+
+`links.csv` is the EFFECTIVE set: a category's own links plus every link
+inherited from its ancestors, the nearest link winning, with `origin` naming
+the category the link actually lives on (its own slug for a direct link).
+`options` is the option list joined by `|`; `label_am` is the APPROVED entity
+translation, falling back to `attributes.name_am`.
+
+LIMITATION: the normalized model carries no per-variant flag, so
+`is_per_variant` is emitted as an EMPTY cell rather than asserting a `false`
+the database never stated.
+
+PARITY (INC-176): `admin_export_attributes()` reached the connected project
+before its migration file existed. `20260907173330_5a9c6351` re-declares it
+byte-identically with in-file ACL closers and a read-back, so history and
+database agree again.
+
+E2E: AT-15 (both downloads, verbatim headers, BOM, inherited `origin`, the
+`'=`-prefixed label) · AT-16 (403 for a bearer without `categories:view`, 401
+with no bearer, and no control rendered).

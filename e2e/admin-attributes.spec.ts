@@ -837,4 +837,163 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(key);
     }
   });
+
+  /* --------------------------- IE-1: the export --------------------------- */
+
+  /**
+   * IE-1 — TWO FILES FROM ONE CONTROL. The columns are a contract, so they are
+   * asserted VERBATIM; the inherited row proves the effective set (a child that
+   * links nothing still carries its parent's attribute, `origin` naming the
+   * parent slug); the "="-opening label proves formula neutralisation.
+   */
+  test("AT-15 the export downloads both files with their exact columns, inheritance and formula safety", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const label = `=SUM(1)_${rand()}`;
+    const parentSlug = `e2e-cat-exp-${rand()}`;
+    const childSlug = `e2e-cat-exp-${rand()}`;
+    let attributeId = "";
+    try {
+      // SEED BEFORE NAVIGATE (J7), all through the service client (J5).
+      const { data: attribute, error: attributeError } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: label, attr_type: "text" })
+        .select("id")
+        .single();
+      if (attributeError || !attribute) {
+        throw new Error(`AT-15 attribute seed failed: ${attributeError?.message}`);
+      }
+      attributeId = attribute.id;
+
+      const { data: cats, error: catError } = await supabase
+        .from("categories")
+        .insert([
+          { slug: parentSlug, name_en: parentSlug },
+          { slug: childSlug, name_en: childSlug },
+        ])
+        .select("id, slug");
+      if (catError || !cats) throw new Error(`AT-15 category seed failed: ${catError?.message}`);
+      const parent = cats.find((row) => row.slug === parentSlug)!;
+      const child = cats.find((row) => row.slug === childSlug)!;
+      const { error: pointerError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: parent.id, child_id: child.id, display_order: 1 });
+      if (pointerError) throw new Error(`AT-15 pointer seed failed: ${pointerError.message}`);
+      // The link lives on the PARENT only — the child inherits it.
+      const { error: linkError } = await supabase
+        .from("category_attribute_links")
+        .insert({ category_id: parent.id, attribute_id: attributeId, is_required: true });
+      if (linkError) throw new Error(`AT-15 link seed failed: ${linkError.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      const control = page.getByTestId("attribute-export");
+      await expect(control, await dialogDump(page, "AT-15 no export control")).toBeVisible({
+        timeout: 20000,
+      });
+
+      // ONE control, TWO downloads. Two concurrent `waitForEvent("download")`
+      // promises BOTH settle on the first event, so the pair is collected from
+      // a listener instead and the wait terminates on the achieved state.
+      const captured: import("@playwright/test").Download[] = [];
+      page.on("download", (download) => captured.push(download));
+      await control.click();
+      await expect
+        .poll(() => captured.length, {
+          timeout: 60000,
+          message: "AT-15 the control did not produce both downloads",
+        })
+        .toBe(2);
+      const texts = new Map<string, string>();
+      for (const download of captured) {
+        const path = await download.path();
+        if (!path) throw new Error(`AT-15 download ${download.suggestedFilename()} has no path`);
+        const { readFileSync } = await import("node:fs");
+        texts.set(download.suggestedFilename(), readFileSync(path, "utf8"));
+      }
+      expect([...texts.keys()].sort()).toEqual(["definitions.csv", "links.csv"]);
+
+
+      const definitions = texts.get("definitions.csv")!;
+      const links = texts.get("links.csv")!;
+      // UTF-8 BOM, so Excel reads Ge'ez.
+      expect(definitions.charCodeAt(0)).toBe(0xfeff);
+      expect(links.charCodeAt(0)).toBe(0xfeff);
+      // THE COLUMN LAW, verbatim.
+      expect(definitions.slice(1).split("\r\n")[0]).toBe(
+        "attribute_key,label_en,label_am,type,options,is_per_variant,direct_link_count",
+      );
+      expect(links.slice(1).split("\r\n")[0]).toBe(
+        "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin",
+      );
+
+      // FORMULA SAFETY: the "="-opening label is prefixed with a single quote
+      // (and therefore quoted, because the cell also carries a comma-free
+      // formula string — the assertion reads the neutralising quote itself).
+      const definitionRow = definitions.split("\r\n").find((line) => line.startsWith(`${key},`));
+      expect(
+        definitionRow,
+        "AT-15 the scratch definition is missing from definitions.csv",
+      ).toBeTruthy();
+      expect(definitionRow).toContain(`'${label}`);
+
+      // INHERITANCE: the child links nothing, yet carries the parent's
+      // attribute with `origin` naming the parent slug.
+      const childRow = links.split("\r\n").find((line) => line.includes(`,${childSlug},${key},`));
+      expect(childRow, "AT-15 the inherited link is missing from links.csv").toBeTruthy();
+      expect(childRow!.endsWith(`,${parentSlug}`)).toBe(true);
+      // The parent's own row names ITSELF as the origin.
+      const parentRow = links.split("\r\n").find((line) => line.includes(`,${parentSlug},${key},`));
+      expect(parentRow!.endsWith(`,${parentSlug}`)).toBe(true);
+    } finally {
+      await supabase.from("category_attribute_links").delete().eq("attribute_id", attributeId);
+      await destroyCategory(childSlug);
+      await destroyCategory(parentSlug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /** IE-1 PART C — no `categories:view`, no control and no bytes (F3). */
+  test("AT-16 a user without categories:view gets 403 and sees no export control", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const plain = await createUser({ confirmed: true });
+    await switchUser(page, plain.email, plain.password);
+    await gotoReady(page, "/admin/attributes");
+    await expect(page.getByTestId("attribute-export")).toHaveCount(0);
+
+    const token = await page.evaluate(async () => {
+      const client = (
+        window as unknown as {
+          __ethioSupabase: {
+            auth: {
+              getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
+            };
+          };
+        }
+      ).__ethioSupabase;
+      const { data } = await client.auth.getSession();
+      return data.session?.access_token ?? "";
+    });
+    expect(token).not.toBe("");
+
+    for (const file of ["definitions", "links"]) {
+      const response = await page.request.get(`/api/admin/attributes/export?file=${file}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(response.status(), `AT-16 ${file} must be refused`).toBe(403);
+      expect(await response.text()).not.toContain("attribute_key");
+    }
+
+    // NO BEARER, NO BYTES.
+    const anonymous = await page.request.get("/api/admin/attributes/export?file=definitions");
+    expect(anonymous.status()).toBe(401);
+  });
 });
