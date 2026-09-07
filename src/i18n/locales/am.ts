@@ -246,6 +246,7 @@ export const am: Messages = {
   "admin.section.audit.body": "የኦዲት እና ደህንነት መሣሪያዎች በU3 ይመጣሉ።",
   "admin.section.locations.title": "አካባቢዎች",
   "admin.section.locations.body": "የአካባቢ አስተዳደር በU4 ይመጣል።",
+  "admin.group.categories": "ምድቦች",
   "admin.section.categories.title": "ምድቦች",
   "admin.section.categories.body": "የምድብ አስተዳደር በU5 ይመጣል።",
   "admin.section.attributes.title": "ባህርያት",
