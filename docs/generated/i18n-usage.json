@@ -9,6 +9,10 @@
     "admin.accessDenied": [
       "/admin"
     ],
+    "admin.attributes.action.assign": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.action.delete": [
       "/admin/attributes",
       "/admin/categories"
@@ -17,6 +21,26 @@
       "/admin/attributes"
     ],
     "admin.attributes.action.merge": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.assign.category": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.assign.hint": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.assign.pickNone": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.assign.searchPlaceholder": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.assign.title": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -80,6 +104,10 @@
     "admin.attributes.error": [
       "/admin/attributes"
     ],
+    "admin.attributes.error.assignNoCategory": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.error.keyRequired": [
       "/admin/attributes",
       "/admin/categories"
@@ -123,6 +151,18 @@
     "admin.attributes.field.type": [
       "/admin/attributes",
       "/admin/categories"
+    ],
+    "admin.attributes.filter.allCategories": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.filter.category": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.filter.clear": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.filter.empty": [
+      "/admin/attributes"
     ],
     "admin.attributes.links.add": [
       "/admin/categories"
