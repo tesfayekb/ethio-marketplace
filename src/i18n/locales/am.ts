@@ -720,6 +720,7 @@ export const am: Messages = {
   "admin.translations.col.entityType": "ዓይነት",
   "admin.translations.entity.category": "ምድብ",
   "admin.translations.entity.location": "ቦታ",
+  "admin.translations.entity.attribute": "ባህሪ",
   "admin.translations.history.open": "ታሪክ",
   "admin.translations.history.title": "የለውጥ ታሪክ",
   "admin.translations.history.loading": "ታሪክ በመጫን ላይ…",
