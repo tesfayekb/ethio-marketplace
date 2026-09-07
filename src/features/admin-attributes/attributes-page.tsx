@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Link2, Merge, MoreHorizontal, Pencil, Trash, Unlink } from "lucide-react";
+import { Download, Link2, Merge, MoreHorizontal, Pencil, Trash, Unlink } from "lucide-react";
 
 import {
   DataTable,
@@ -22,6 +22,7 @@ import { toRoster } from "@/features/admin-categories/categories-service";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   AssignAttributeDialog,
@@ -67,6 +68,8 @@ export function AdminAttributesPage() {
   const navigate = useNavigate({ from: "/admin/attributes" });
   const [needleInput, setNeedleInput] = useState("");
   const [offset, setOffset] = useState(0);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<
     | { kind: "none" }
     | { kind: "edit"; id: string | null }
@@ -122,6 +125,49 @@ export function AdminAttributesPage() {
   const chooseCategory = (slug: string) => {
     setOffset(0);
     void navigate({ search: slug === "" ? {} : { category: slug } });
+  };
+
+  /**
+   * IE-1 PART A/B — EXPORT. Two downloads from one control (a zip would be a
+   * new dependency, G2), and the export ALWAYS covers the whole library: it is
+   * never disabled by the category filter or by an empty result — the only
+   * disabled state is a download already in flight (the export-enable bug is
+   * the anti-pattern). The fetch carries the bearer because the route decides
+   * the gate itself (F3); a failure surfaces translated, never silently (F4).
+   */
+  const downloadExport = async (kind: "definitions" | "links"): Promise<void> => {
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token ?? "";
+    const response = await fetch(`/api/admin/attributes/export?file=${kind}`, {
+      headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const disposition = response.headers.get("Content-Disposition") ?? "";
+    const named = /filename="([^"]+)"/.exec(disposition);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = named?.[1] ?? `attributes-${kind}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const runExport = () => {
+    setExportError(null);
+    setExporting(true);
+    void (async () => {
+      try {
+        await downloadExport("definitions");
+        await downloadExport("links");
+      } catch (failure) {
+        setExportError(failure instanceof Error ? failure.message : "unknown error");
+      } finally {
+        setExporting(false);
+      }
+    })();
   };
 
   /**
@@ -291,37 +337,60 @@ export function AdminAttributesPage() {
   return (
     <StepUpGate>
       {(guard) => (
-        <div data-testid="admin-section-attributes" className="min-w-0 space-y-4">
-          {mayUpdate || mayRestructure ? (
-            <PageCard testid="attribute-create-card">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                {mayUpdate ? (
-                  <Button
-                    type="button"
-                    size="touch"
-                    className="w-full sm:w-auto"
-                    data-testid="attribute-create-open"
-                    onClick={() => setDialog({ kind: "edit", id: null })}
-                  >
-                    {t("admin.attributes.create.open")}
-                  </Button>
-                ) : null}
-                {mayRestructure ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    className="w-full sm:w-auto"
-                    data-testid="attribute-merge-open"
-                    onClick={() => setDialog({ kind: "merge" })}
-                  >
-                    <Merge aria-hidden="true" className="size-4" />
-                    <span>{t("admin.attributes.action.merge")}</span>
-                  </Button>
-                ) : null}
-              </div>
-            </PageCard>
-          ) : null}
+        <div className="min-w-0 space-y-4">
+          <PageCard testid="attribute-create-card">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {mayUpdate ? (
+                <Button
+                  type="button"
+                  size="touch"
+                  className="w-full sm:w-auto"
+                  data-testid="attribute-create-open"
+                  onClick={() => setDialog({ kind: "edit", id: null })}
+                >
+                  {t("admin.attributes.create.open")}
+                </Button>
+              ) : null}
+              {mayRestructure ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  className="w-full sm:w-auto"
+                  data-testid="attribute-merge-open"
+                  onClick={() => setDialog({ kind: "merge" })}
+                >
+                  <Merge aria-hidden="true" className="size-4" />
+                  <span>{t("admin.attributes.action.merge")}</span>
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                className="w-full sm:w-auto"
+                data-testid="attribute-export"
+                disabled={exporting}
+                onClick={runExport}
+              >
+                <Download aria-hidden="true" className="size-4" />
+                <span>
+                  {exporting
+                    ? t("admin.attributes.export.busy")
+                    : t("admin.attributes.export.open")}
+                </span>
+              </Button>
+            </div>
+            {exportError === null ? null : (
+              <p
+                role="alert"
+                data-testid="attribute-export-error"
+                className="mt-2 text-sm text-destructive"
+              >
+                {t("admin.attributes.export.error")} {exportError}
+              </p>
+            )}
+          </PageCard>
 
           <DataTable<AttributeRow>
             columns={columns}

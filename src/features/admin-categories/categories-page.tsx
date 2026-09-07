@@ -730,7 +730,7 @@ export function AdminCategoriesPage() {
   return (
     <StepUpGate>
       {(guard) => (
-        <div data-testid="admin-section-categories" className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-4">
           {mayCreate ? (
             <PageCard testid="category-create-card">
               <Button

@@ -1273,6 +1273,7 @@ export type Database = {
           untranslated: number
         }[]
       }
+      admin_export_attributes: { Args: never; Returns: Json }
       admin_get_category_images: {
         Args: { p_id: string }
         Returns: {
