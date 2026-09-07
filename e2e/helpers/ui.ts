@@ -750,10 +750,11 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
     displayName: pool.displayName,
   };
 
-  // DEC-041 (L5b): the pool path ALWAYS injects the node-side AAL2 session —
-  // no UI sign-in, no in-browser elevation. The E2E_UI_LOGIN knob and
+  // DEC-041 (L5b/L5c): the pool path ALWAYS injects — no UI sign-in, no
+  // in-browser elevation — and the session it injects is minted for THIS test
+  // alone, in node, from THIS worker slot's identity. The E2E_UI_LOGIN knob and
   // elevateInBrowser belong to mintPrivateSuperAdmin (the real door) alone.
-  const session = await pooledAal2Session(pool);
+  const session = await freshAal2Session(pool);
   await injectSession(page, session);
   await gotoReady(page, "/");
   await assertInjectedIdentity(page, session);
