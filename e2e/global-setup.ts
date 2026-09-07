@@ -62,26 +62,29 @@ export function fenceLang(kind: FenceKind, project: string): string {
 }
 
 /**
- * L4 (DEC-038) — the job's POOLED super admin: one identity, one TOTP factor,
- * enrolled once in setup and reused by every non-enrolment admin test through
- * `useJobSuperAdmin` (e2e/helpers/ui.ts). Tests whose SUBJECT is enrolment or
- * unenrolment keep minting their own identity.
+ * L4 (DEC-038) — a POOLED super admin: an identity with one enrolled+verified
+ * TOTP factor, minted once in setup and borrowed by non-enrolment admin tests
+ * through `useJobSuperAdmin` (e2e/helpers/ui.ts). Tests whose SUBJECT is
+ * enrolment or unenrolment keep minting their own identity.
+ *
+ * L5c (DEC-041 amended) — IDENTITY PER WORKER, SESSION PER TEST. One pooled
+ * identity per Playwright worker slot (INC-168: a session shared across
+ * concurrent tests is revoked out from under its siblings), and NO session is
+ * persisted here at all (INC-169: a stored challenge/session goes stale and
+ * surfaces as "verification expired"). Each test signs its own identity in and
+ * verifies its own code, in node, at acquire time.
  */
 export type E2ESuperAdmin = {
   id: string;
   email: string;
   password: string;
   displayName: string;
-  /** Base32 TOTP secret — step-up prompts are answered with it. */
+  /** Base32 TOTP secret — sign-in verify and step-up prompts use it. */
   secret: string;
   /** The verified factor id, so a test can elevate to AAL2 in node. */
   factorId: string;
-  /**
-   * L5 / DEC-041 — SESSION REUSE. The AAL2 session GoTrue returned from the
-   * node-side `verify`, persisted verbatim so every test injects it instead of
-   * signing in and verifying a code of its own.
-   */
-  session: E2EPooledSession;
+  /** The worker slot this identity belongs to (test.info().parallelIndex). */
+  slot: number;
 };
 
 /** The persisted-session shape @supabase/supabase-js writes to localStorage. */
@@ -93,6 +96,8 @@ export type E2EPooledSession = {
   expires_at: number;
   user: Record<string, unknown>;
 };
+
+
 
 export type E2EUser = {
   id: string;
