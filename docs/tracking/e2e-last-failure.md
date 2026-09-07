@@ -1,21 +1,14 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34087376860
-- Commit: `7cef11455ef4f352eba9d59cf5dce90fdd43c582`
-- Attempt: 2
-- Written (UTC): 2026-09-07T05:46:23.993Z
-- Passed: 480 · Skipped: 67 · Failed: 4
-- Gating failures: 4 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 2
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34090812857
+- Commit: `9fc2db7ccbe95c64c435768743aa3510bf80e23d`
+- PLATFORM-ORIGIN? the head commit's subject is `Work in progress` — a Lovable auto-push, so suspect platform-injected code before ours.
+- Attempt: 1
+- Written (UTC): 2026-09-07T06:34:04.839Z
+- Passed: 481 · Skipped: 67 · Failed: 5
+- Gating failures: 5 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
 - Sources without results: none
-
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `desktop-1280` · source `smoke` · shell.spec.ts › U4h device language star › TR-28 hreflang alternates equal the anon publication gate — Error: [INC-113] url: http://127.0.0.1:4173/
-- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-attributes.spec.ts › C3 attributes console › AT-4 card picker: two ranked attributes clear the amber flag — Error: expect(locator).toBeVisible() failed
 
 ## admin-shell.spec.ts › Admin shell (U0) › A-5 the Categories group carries its sub-items, expands on a sub-route and gates each one
 
@@ -61,6 +54,45 @@ Context:
 ```
 ```
 
+## admin-categories-console.spec.ts › C2 categories console › CT-8 every verb is reachable from the editor with no horizontal scroll
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: window target at 1240
+
+expect(received).toBeGreaterThanOrEqual(expected)
+
+Expected: >= 43
+Received:    42.701141357421875
+```
+
+Context:
+
+```text
+        - generic [ref=e40]: Listing expiry (days)
+        - textbox "Listing expiry (days)" [ref=e41]:
+          - /placeholder: No expiry
+      - generic [ref=e42]:
+        - checkbox "Accepts listings" [checked] [ref=e43] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Accepts listings
+      - generic [ref=e44]:
+        - checkbox "Price field enabled" [checked] [ref=e45] [cursor=pointer]:
+          - generic:
+            - img
+        - text: Price field enabled
+      - generic [ref=e46]:
+        - button "Cancel" [ref=e47] [cursor=pointer]
+        - button "Save" [ref=e48] [cursor=pointer]
+    - button "Close" [ref=e49] [cursor=pointer]:
+      - img [ref=e50]
+      - generic [ref=e53]: Close
+```
+```
+
 ## admin-shell.spec.ts › Admin shell (U0) › A-5 the Categories group carries its sub-items, expands on a sub-route and gates each one
 
 - Source: `shard 4`
@@ -83,25 +115,25 @@ Call log:
 Context:
 
 ```text
-          - listitem [ref=e1162]:
-            - generic [ref=e1163]: About
-          - listitem [ref=e1164]:
-            - generic [ref=e1165]: How it works
-      - navigation "Help" [ref=e1166]:
-        - heading "Help" [level=2] [ref=e1167]
-        - list [ref=e1168]:
-          - listitem [ref=e1169]:
-            - generic [ref=e1170]: Safety
-          - listitem [ref=e1171]:
-            - generic [ref=e1172]: Contact
-      - navigation "Legal" [ref=e1173]:
-        - heading "Legal" [level=2] [ref=e1174]
-        - list [ref=e1175]:
-          - listitem [ref=e1176]:
-            - generic [ref=e1177]: Terms
-          - listitem [ref=e1178]:
-            - generic [ref=e1179]: Privacy
-    - paragraph [ref=e1181]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e1159]:
+            - generic [ref=e1160]: About
+          - listitem [ref=e1161]:
+            - generic [ref=e1162]: How it works
+      - navigation "Help" [ref=e1163]:
+        - heading "Help" [level=2] [ref=e1164]
+        - list [ref=e1165]:
+          - listitem [ref=e1166]:
+            - generic [ref=e1167]: Safety
+          - listitem [ref=e1168]:
+            - generic [ref=e1169]: Contact
+      - navigation "Legal" [ref=e1170]:
+        - heading "Legal" [level=2] [ref=e1171]
+        - list [ref=e1172]:
+          - listitem [ref=e1173]:
+            - generic [ref=e1174]: Terms
+          - listitem [ref=e1175]:
+            - generic [ref=e1176]: Privacy
+    - paragraph [ref=e1178]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -171,25 +203,25 @@ Call log:
 Context:
 
 ```text
-          - listitem [ref=e1162]:
-            - generic [ref=e1163]: About
-          - listitem [ref=e1164]:
-            - generic [ref=e1165]: How it works
-      - navigation "Help" [ref=e1166]:
-        - heading "Help" [level=2] [ref=e1167]
-        - list [ref=e1168]:
-          - listitem [ref=e1169]:
-            - generic [ref=e1170]: Safety
-          - listitem [ref=e1171]:
-            - generic [ref=e1172]: Contact
-      - navigation "Legal" [ref=e1173]:
-        - heading "Legal" [level=2] [ref=e1174]
-        - list [ref=e1175]:
-          - listitem [ref=e1176]:
-            - generic [ref=e1177]: Terms
-          - listitem [ref=e1178]:
-            - generic [ref=e1179]: Privacy
-    - paragraph [ref=e1181]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e1159]:
+            - generic [ref=e1160]: About
+          - listitem [ref=e1161]:
+            - generic [ref=e1162]: How it works
+      - navigation "Help" [ref=e1163]:
+        - heading "Help" [level=2] [ref=e1164]
+        - list [ref=e1165]:
+          - listitem [ref=e1166]:
+            - generic [ref=e1167]: Safety
+          - listitem [ref=e1168]:
+            - generic [ref=e1169]: Contact
+      - navigation "Legal" [ref=e1170]:
+        - heading "Legal" [level=2] [ref=e1171]
+        - list [ref=e1172]:
+          - listitem [ref=e1173]:
+            - generic [ref=e1174]: Terms
+          - listitem [ref=e1175]:
+            - generic [ref=e1176]: Privacy
+    - paragraph [ref=e1178]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
