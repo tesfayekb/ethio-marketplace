@@ -904,6 +904,8 @@ export const am: Messages = {
   "admin.attributes.export.open": "ባህርያትን ላክ",
   "admin.attributes.export.busy": "ኤክስፖርቱ በመዘጋጀት ላይ…",
   "admin.attributes.export.error": "ኤክስፖርቱ ማዘጋጀት አልተቻለም።",
+  "admin.attributes.inherited.badge": "ከ{origin} የተወረሰ",
+  "admin.attributes.inherited.openOrigin": "የመነሻ ምድብ ክፈት",
   "admin.attributes.col.usage": "የሚጠቀሙት",
   "admin.attributes.type.text": "ጽሑፍ",
   "admin.attributes.type.number": "ቁጥር",

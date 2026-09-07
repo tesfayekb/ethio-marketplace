@@ -37,9 +37,14 @@ import {
   typeHasOptions,
   type AttributeCategory,
   type AttributeRow,
+  type EffectiveLink,
 } from "./attributes-service";
 import { useAttributeLabel } from "./use-attribute-label";
-import { useAdminAttributes, useAttributeCategories, useCategoryLinks } from "./use-attributes";
+import {
+  useAdminAttributes,
+  useAttributeCategories,
+  useEffectiveCategoryLinks,
+} from "./use-attributes";
 
 /**
  * C3c PART B / C3-UX-1 — THE ATTRIBUTE LIBRARY.
@@ -91,12 +96,26 @@ export function AdminAttributesPage() {
     () => categories.find((row) => row.slug === search.category) ?? null,
     [categories, search.category],
   );
-  const links = useCategoryLinks(filterCategory?.id ?? null);
+  /**
+   * C3-INH (DEC-044) — with a category filter active the library renders the
+   * EFFECTIVE set: the category's own links plus every inherited one, each
+   * carrying the category it came from. Inherited rows are read-only here;
+   * their write verbs belong to the origin category (and the server refuses
+   * them regardless — F3).
+   */
+  const links = useEffectiveCategoryLinks(filterCategory?.id ?? null);
+  const effective = useMemo(() => links.data ?? [], [links.data]);
   const linkedIds = useMemo(
-    () =>
-      filterCategory === null ? null : new Set((links.data ?? []).map((row) => row.attributeId)),
-    [filterCategory, links.data],
+    () => (filterCategory === null ? null : new Set(effective.map((row) => row.attributeId))),
+    [filterCategory, effective],
   );
+  /** attribute id → its effective row, so the cell can name the origin. */
+  const inheritedBy = useMemo(() => {
+    const map = new Map<string, EffectiveLink>();
+    for (const row of effective) if (row.inherited) map.set(row.attributeId, row);
+    return map;
+  }, [effective]);
+  const inheritedRow = (row: AttributeRow): EffectiveLink | null => inheritedBy.get(row.id) ?? null;
 
   const all = useMemo(() => data ?? [], [data]);
   const needle = needleInput.trim().toLowerCase();
@@ -142,8 +161,13 @@ export function AdminAttributesPage() {
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token ?? "";
+      // C3-INH PART B — a filtered console exports THAT SUBTREE (category +
+      // descendants, inherited rows included); no filter exports the library.
+      const scope = filterCategory?.slug ?? null;
       for (const file of ["definitions", "links"] as const) {
-        const response = await fetch(`/api/admin/attributes/export?file=${file}`, {
+        const query =
+          scope === null ? `file=${file}` : `file=${file}&scope=${encodeURIComponent(scope)}`;
+        const response = await fetch(`/api/admin/attributes/export?${query}`, {
           headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) throw new Error(`export ${file} failed: ${response.status}`);
@@ -151,7 +175,7 @@ export function AdminAttributesPage() {
         const href = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = href;
-        anchor.download = `${file}.csv`;
+        anchor.download = scope === null ? `${file}.csv` : `${scope}-${file}.csv`;
         document.body.appendChild(anchor);
         anchor.click();
         anchor.remove();
@@ -190,6 +214,19 @@ export function AdminAttributesPage() {
           <span className="block truncate text-xs text-muted-foreground" title={row.attrKey}>
             {row.attrKey}
           </span>
+          {inheritedRow(row) === null ? null : (
+            <span
+              data-testid={`attribute-inherited-${row.attrKey}`}
+              className="mt-1 inline-flex max-w-full items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+            >
+              <span className="truncate">
+                {t("admin.attributes.inherited.badge").replace(
+                  "{origin}",
+                  inheritedRow(row)?.originNameEn ?? "",
+                )}
+              </span>
+            </span>
+          )}
         </span>
       ),
     },
@@ -269,8 +306,42 @@ export function AdminAttributesPage() {
    * PART B — ONE row ⋯ MENU, never a stack of verbs: the actions column stays
    * narrow at every width and the card twin keeps a single 44px target.
    */
-  const rowActions = (row: AttributeRow) =>
-    mayUpdate || mayRestructure ? (
+  const rowActions = (row: AttributeRow) => {
+    /**
+     * C3-INH PART A — an INHERITED row owns no write verb: it is not this
+     * category's link. The menu offers exactly one way out — open the origin
+     * category — so the operator edits it where it lives.
+     */
+    const origin = inheritedRow(row);
+    if (origin !== null) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="touch"
+              data-testid={`attribute-actions-${row.attrKey}`}
+              aria-label={`${t("admin.attributes.action.menu")} — ${attributeLabel(row.id, row.nameEn)}`}
+              title={t("admin.attributes.action.menu")}
+            >
+              <MoreHorizontal aria-hidden="true" className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" data-testid="attribute-actions-menu">
+            <DropdownMenuItem
+              className="min-h-11"
+              data-testid={`attribute-open-origin-${row.attrKey}`}
+              onSelect={() => chooseCategory(origin.originSlug)}
+            >
+              <Link2 aria-hidden="true" className="size-4" />
+              <span>{t("admin.attributes.inherited.openOrigin")}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+    return mayUpdate || mayRestructure ? (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -328,6 +399,7 @@ export function AdminAttributesPage() {
         </DropdownMenuContent>
       </DropdownMenu>
     ) : null;
+  };
 
   return (
     <StepUpGate>

@@ -8,6 +8,7 @@ import {
   listAttributes,
   listAttributeCategories,
   listCategoryLinks,
+  listEffectiveCategoryLinks,
   mergeAttributes,
   setAttributeLinkOrder,
   setCardAttributes,
@@ -122,5 +123,19 @@ export function useAttributeCategories() {
     queryKey: [...ADMIN_ATTRIBUTES_KEY, "categories"],
     queryFn: listAttributeCategories,
     staleTime: 30_000,
+  });
+}
+
+/**
+ * C3-INH (DEC-044) — the EFFECTIVE set for one category: own links plus the
+ * inherited ones, each carrying its origin. Every link/unlink invalidation
+ * above reaches it because the key sits under ADMIN_ATTRIBUTES_KEY.
+ */
+export function useEffectiveCategoryLinks(categoryId: string | null) {
+  return useQuery({
+    queryKey: [...ADMIN_ATTRIBUTES_KEY, "effective", categoryId ?? "none"],
+    queryFn: () => listEffectiveCategoryLinks(categoryId as string),
+    enabled: categoryId !== null,
+    staleTime: 10_000,
   });
 }

@@ -81,9 +81,14 @@ function toCsv(columns: readonly string[], rows: Record<string, unknown>[]): str
   return `\ufeff${lines.join("\r\n")}\r\n`;
 }
 
-function datedFilename(kind: FileKind): string {
+/**
+ * C3-INH PART B — the SCOPED filename carries the slug, so two downloads taken
+ * minutes apart are never confused for one another on disk.
+ */
+function datedFilename(kind: FileKind, scope: string | null): string {
   const day = new Date().toISOString().slice(0, 10);
-  return `ethio-attributes-${kind}-${day}.csv`;
+  const middle = scope === null ? kind : `${scope}-${kind}`;
+  return `ethio-attributes-${middle}-${day}.csv`;
 }
 
 export const Route = createFileRoute("/api/admin/attributes/export")({
@@ -118,12 +123,28 @@ export const Route = createFileRoute("/api/admin/attributes/export")({
           return json({ error: "not signed in" }, 401);
         }
 
-        const { data, error } = await supabase.rpc("admin_export_attributes");
+        /**
+         * C3-INH PART B — `?scope=<slug>` narrows the export to that category
+         * and every descendant (inherited rows included, with their origin);
+         * no scope exports the whole library exactly as before. The subtree is
+         * resolved SERVER-side by the RPC — the client never sends a category
+         * set it could tamper with.
+         */
+        const scopeParam = url.searchParams.get("scope");
+        const scope = scopeParam === null || scopeParam.trim() === "" ? null : scopeParam.trim();
+
+        const { data, error } =
+          scope === null
+            ? await supabase.rpc("admin_export_attributes")
+            : await supabase.rpc("admin_export_attributes", { p_scope_slug: scope });
         if (error) {
           // The RPC is the authority: `categories:view` is refused inside it.
           console.error(`[ssr-error] ${PATH} export_failed ${error.message}`);
           if (error.message.includes("permission denied")) {
             return json({ error: "permission denied" }, 403);
+          }
+          if (error.message.includes("unknown category scope")) {
+            return json({ error: "unknown category scope" }, 404);
           }
           return json({ error: "server error" }, 500);
         }
@@ -139,7 +160,7 @@ export const Route = createFileRoute("/api/admin/attributes/export")({
           status: 200,
           headers: {
             "Content-Type": "text/csv; charset=utf-8",
-            "Content-Disposition": `attachment; filename="${datedFilename(kind)}"`,
+            "Content-Disposition": `attachment; filename="${datedFilename(kind, scope)}"`,
             "Cache-Control": "no-store",
           },
         });

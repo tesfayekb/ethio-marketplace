@@ -17,6 +17,7 @@ import {
 import {
   useAdminAttributes,
   useCategoryLinks,
+  useEffectiveCategoryLinks,
   useLinkAttribute,
   useSetAttributeLinkOrder,
   useSetCardAttributes,
@@ -46,6 +47,14 @@ export function CategoryAttributesDialog({
   // translated label, with the EN definition name as fallback.
   const attributeLabel = useAttributeLabel();
   const links = useCategoryLinks(categoryId);
+  /**
+   * C3-INH (DEC-044) — the tab lists the category's OWN links (editable) and,
+   * below them, the ones inherited from an ancestor: read-only, named by their
+   * origin. The two-must-display flag counts the EFFECTIVE card set, because a
+   * child that inherits two card attributes already has scannable cards.
+   */
+  const effective = useEffectiveCategoryLinks(categoryId);
+  const inherited = (effective.data ?? []).filter((row) => row.inherited);
   const library = useAdminAttributes();
   const link = useLinkAttribute();
   const unlink = useUnlinkAttribute();
@@ -75,6 +84,8 @@ export function CategoryAttributesDialog({
   const carded = rows
     .filter((row) => row.cardRank !== null)
     .sort((a, b) => (a.cardRank ?? 0) - (b.cardRank ?? 0));
+  const effectiveCardCount =
+    carded.length + inherited.filter((row) => row.cardRank !== null).length;
 
   const run = (action: () => Promise<void>) => {
     setMessage(null);
@@ -121,7 +132,7 @@ export function CategoryAttributesDialog({
               carded.map((row) => attributeLabel(row.attributeId, row.nameEn)).join(" · "),
             )}
       </p>
-      {carded.length < CARD_ATTRIBUTE_MINIMUM ? (
+      {effectiveCardCount < CARD_ATTRIBUTE_MINIMUM ? (
         <p
           role="status"
           data-testid="category-attributes-needs-card"
@@ -237,6 +248,29 @@ export function CategoryAttributesDialog({
                   {t("admin.attributes.links.unlink")}
                 </Button>
               </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* C3-INH — INHERITED: read-only, no verb, origin named. */}
+      {inherited.length === 0 ? null : (
+        <ul className="space-y-2" data-testid="category-attributes-inherited">
+          {inherited.map((row) => (
+            <li
+              key={row.linkId}
+              data-testid={`category-attribute-inherited-${row.attrKey}`}
+              className="space-y-1 rounded-md border border-dashed border-border p-3"
+            >
+              <div className="flex min-w-0 items-baseline gap-2">
+                <span className="min-w-0 truncate text-sm font-medium">
+                  {attributeLabel(row.attributeId, row.nameEn)}
+                </span>
+                <span className="text-xs text-muted-foreground">{row.attrKey}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("admin.attributes.inherited.badge").replace("{origin}", row.originNameEn)}
+              </p>
             </li>
           ))}
         </ul>

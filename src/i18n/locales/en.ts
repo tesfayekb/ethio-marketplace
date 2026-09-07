@@ -949,6 +949,8 @@ export const en = {
   "admin.attributes.export.open": "Export attributes",
   "admin.attributes.export.busy": "Preparing the export…",
   "admin.attributes.export.error": "The export could not be prepared.",
+  "admin.attributes.inherited.badge": "Inherited from {origin}",
+  "admin.attributes.inherited.openOrigin": "Open origin category",
   "admin.attributes.col.usage": "Used by",
   "admin.attributes.type.text": "Text",
   "admin.attributes.type.number": "Number",

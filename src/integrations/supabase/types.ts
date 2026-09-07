@@ -1273,7 +1273,9 @@ export type Database = {
           untranslated: number
         }[]
       }
-      admin_export_attributes: { Args: never; Returns: Json }
+      admin_export_attributes:
+        | { Args: never; Returns: Json }
+        | { Args: { p_scope_slug: string }; Returns: Json }
       admin_get_category_images: {
         Args: { p_id: string }
         Returns: {
@@ -1438,6 +1440,25 @@ export type Database = {
           parent_name_en: string
           parent_slug: string
           pointer_id: string
+        }[]
+      }
+      admin_list_effective_category_links: {
+        Args: { p_category_id: string }
+        Returns: {
+          attr_key: string
+          attr_type: string
+          attribute_id: string
+          card_rank: number
+          display_order: number
+          inherited: boolean
+          is_filterable: boolean
+          is_required: boolean
+          link_id: string
+          name_en: string
+          options: Json
+          origin_id: string
+          origin_name_en: string
+          origin_slug: string
         }[]
       }
       admin_list_entity_translations: {
