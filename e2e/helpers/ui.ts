@@ -796,7 +796,7 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   // alone, in node, from THIS worker slot's identity. The E2E_UI_LOGIN knob and
   // elevateInBrowser belong to mintPrivateSuperAdmin (the real door) alone.
   const session = await freshAal2Session(pool);
-  await resetLanguageBaseline(pool, session.access_token);
+  await resetLanguageBaseline(pool);
   await injectSession(page, session);
   await gotoReady(page, "/");
   await assertInjectedIdentity(page, session);
