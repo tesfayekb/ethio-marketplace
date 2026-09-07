@@ -1298,63 +1298,168 @@ test.describe("C3 attributes console", () => {
     return { status: response.status(), payload };
   }
 
-  /** AT-20 — a file that states the CURRENT truth changes nothing. */
-  test("AT-20 a round-trip import is a no-op", async ({ page }) => {
+  /** Quote-aware data-row count: a quoted cell may carry commas and newlines. */
+  function csvDataRows(text: string): number {
+    const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+    let quoted = false;
+    let lines = 0;
+    let sawCell = false;
+    for (let index = 0; index < body.length; index += 1) {
+      const char = body[index];
+      if (char === '"') {
+        quoted = !quoted;
+        sawCell = true;
+        continue;
+      }
+      if (quoted) {
+        sawCell = true;
+        continue;
+      }
+      if (char === "\n") {
+        if (sawCell) lines += 1;
+        sawCell = false;
+        continue;
+      }
+      if (char !== "\r") sawCell = true;
+    }
+    if (sawCell) lines += 1;
+    return Math.max(lines - 1, 0);
+  }
+
+  /** RFC 4180 cell for a hand-authored fixture file. */
+  function cell(value: string): string {
+    return /["\n\r,]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  }
+
+  async function attachCsv(
+    page: import("@playwright/test").Page,
+    testid: string,
+    name: string,
+    text: string,
+  ) {
+    await page.getByTestId(testid).setInputFiles({
+      name,
+      mimeType: "text/csv",
+      buffer: Buffer.from(text, "utf8"),
+    });
+  }
+
+  /** The six numbers the counts line renders, in template order. */
+  function countsOf(text: string): number[] {
+    return (text.match(/\d+/g) ?? []).map((digits) => Number(digits));
+  }
+
+  /**
+   * AT-20 — THE INVARIANT (IE-2b). The WHOLE library is exported through the
+   * real route and re-imported through the DIALOG's file picker: the preview
+   * must read 0 added · 0 changed · 0 unlinked · 0 deleted · 0 refused, with
+   * `unchanged` equal to every data row in both files. Discard then writes
+   * nothing — DB truth: no capture row exists.
+   */
+  test("AT-20 a real-export round trip is a no-op", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/attributes");
+
+    const token = await bearerOf(page);
+    const headers = { Authorization: `Bearer ${token}` };
+    const definitionsResponse = await page.request.get(
+      "/api/admin/attributes/export?file=definitions",
+      { headers },
+    );
+    expect(definitionsResponse.status()).toBe(200);
+    const linksResponse = await page.request.get("/api/admin/attributes/export?file=links", {
+      headers,
+    });
+    expect(linksResponse.status()).toBe(200);
+
+    const definitions = await definitionsResponse.text();
+    const links = await linksResponse.text();
+    const expectedUnchanged = csvDataRows(definitions) + csvDataRows(links);
+    expect(expectedUnchanged, "AT-20 the export produced no rows to re-import").toBeGreaterThan(0);
+
+    const startedAt = new Date().toISOString();
+
+    await page.getByTestId("attribute-import").click();
+    await expect(page.getByTestId("attribute-import-dialog")).toBeVisible();
+    await attachCsv(page, "attribute-import-definitions", "definitions.csv", definitions);
+    await attachCsv(page, "attribute-import-links", "links.csv", links);
+
+    await page.getByTestId("attribute-import-preview").click();
+    const counts = page.getByTestId("attribute-import-counts");
+    await expect(counts).toBeVisible({ timeout: 120_000 });
+
+    const numbers = countsOf((await counts.textContent()) ?? "");
+    expect(numbers, `AT-20 counts line: ${await counts.textContent()}`).toHaveLength(6);
+    const [adds, changes, unlinks, deletes, unchanged, refused] = numbers;
+    expect(
+      { adds, changes, unlinks, deletes, refused },
+      `AT-20 the round trip was not a no-op: ${await counts.textContent()}`,
+    ).toEqual({ adds: 0, changes: 0, unlinks: 0, deletes: 0, refused: 0 });
+    expect(unchanged).toBe(expectedUnchanged);
+    await expect(page.getByTestId("attribute-import-refusals")).toHaveCount(0);
+
+    await page.getByTestId("attribute-import-discard").click();
+    await expect(page.getByTestId("attribute-import-dialog")).toHaveCount(0);
+
+    // DB TRUTH (J4): Discard wrote nothing — no capture row at all.
+    const { data: batches } = await adminClient()
+      .from("attribute_import_revisions")
+      .select("id")
+      .gte("created_at", startedAt);
+    expect(batches ?? [], "AT-20 Discard wrote a batch").toHaveLength(0);
+  });
+
+  /**
+   * AT-26 — SEMANTIC OPTION COMPARISON (INC-177). Option key order and an
+   * explicit `"label_am": null` against an absent field are the SAME row.
+   */
+  test("AT-26 option key order and an explicit null preview unchanged", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
     await signInAsSuperAdmin(page);
 
-    const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
-    const slug = `e2e-cat-imp-${rand()}`;
     try {
-      const { data: attribute } = await supabase
+      await adminClient()
         .from("attributes")
-        .insert({ attr_key: key, name_en: key, attr_type: "text" })
-        .select("id")
-        .single();
-      const { data: category } = await supabase
-        .from("categories")
-        .insert({ slug, name_en: slug })
-        .select("id")
-        .single();
-      await supabase.from("category_attribute_links").insert({
-        category_id: category!.id,
-        attribute_id: attribute!.id,
-        is_required: true,
-        is_filterable: false,
-      });
+        .insert({
+          attr_key: key,
+          name_en: key,
+          attr_type: "single_select",
+          options: [
+            { value: "alpha", label_en: "Alpha" },
+            { value: "beta", label_en: "Beta", label_am: null },
+          ],
+        });
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,1\r\n`;
-      const links = `${LINK_HEADER}\r\n${slug},${slug},${key},true,false,,${slug}\r\n`;
 
-      const preview = await importPost(page, token, { mode: "preview", definitions, links });
+      // Same meaning, different spelling: keys reordered, `label_am` explicit
+      // on one entry and absent on the other, and spaces around the labels.
+      const options = [
+        '{"label_en": " Alpha ", "value": "alpha", "label_am": null}',
+        '{"label_am": "", "label_en": "Beta", "value": "beta"}',
+      ].join("|");
+      const definitions =
+        `${DEF_HEADER}\r\n` +
+        [key, key, "", "single_select", cell(options), "", "0"].join(",") +
+        "\r\n";
+
+      const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
       const counts = preview.payload["counts"] as Record<string, number>;
-      expect(counts.adds + counts.changes + counts.unlinks + counts.deletes).toBe(0);
-      expect(counts.unchanged).toBeGreaterThanOrEqual(2);
-      expect(counts.refusals).toBe(0);
-
-      const commit = await importPost(page, token, {
-        mode: "commit",
-        definitions,
-        links,
-        digest: preview.payload["digest"],
-      });
-      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
-      expect(commit.payload["applied"]).toBe(0);
-
-      // DB TRUTH: the link is exactly as seeded.
-      const rows = await readLinks(category!.id);
-      expect(rows).toHaveLength(1);
-      expect(rows[0]?.is_required).toBe(true);
+      expect(
+        counts,
+        `AT-26 a re-spelled option list must be unchanged: ${JSON.stringify(preview.payload["refusals"])}`,
+      ).toMatchObject({ adds: 0, changes: 0, refusals: 0, unchanged: 1 });
     } finally {
-      await destroyCategory(slug);
       await destroyAttribute(key);
     }
   });
+
 
   /** AT-21 — a real change previews, commits and then UNDOES to the old row. */
   test("AT-21 a changed link commits and the batch undoes", async ({ page }) => {
