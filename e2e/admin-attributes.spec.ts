@@ -53,8 +53,8 @@ function libraryRows(page: import("@playwright/test").Page) {
     isCardTwin(page)
       ? "[data-testid^='attribute-row-'][data-testid$='-card']:not([data-testid$='-expanded'])"
       : // INC-172 — the options expansion injects a `<tr>` whose testid shares the
-        // row prefix (`…-expanded`); the page window is the DATA rows alone.
-        "tbody tr[data-testid^='attribute-row-']:not([data-testid$='-expanded'])",
+        // row prefix (`…-expanded-row`); the page window is the DATA rows alone.
+        "tbody tr[data-testid^='attribute-row-']:not([data-testid$='-expanded-row'])",
   );
 }
 
