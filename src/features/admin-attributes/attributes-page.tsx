@@ -57,6 +57,9 @@ const PAGE_SIZE = 25;
 
 export function AdminAttributesPage() {
   const { t } = useI18n();
+  // C3-UX-2 — every attribute label on this page resolves through the one
+  // entity-translation resolver; `nameEn` is the fallback, never the read.
+  const attributeLabel = useAttributeLabel();
   const { permissions } = useAdminShell();
   const { data, isLoading, error } = useAdminAttributes();
   const { data: categoryData } = useAdminCategories();
@@ -97,11 +100,11 @@ export function AdminAttributesPage() {
       all.filter(
         (row) =>
           (needle === "" ||
-            row.nameEn.toLowerCase().includes(needle) ||
+            attributeLabel(row.id, row.nameEn).toLowerCase().includes(needle) ||
             row.attrKey.toLowerCase().includes(needle)) &&
           (linkedIds === null || linkedIds.has(row.id)),
       ),
-    [all, needle, linkedIds],
+    [all, needle, linkedIds, attributeLabel],
   );
   const selected =
     dialog.kind === "edit" ||
@@ -137,8 +140,11 @@ export function AdminAttributesPage() {
       width: "w-[32%]",
       cell: (row) => (
         <span className="block min-w-0">
-          <span className="block truncate font-medium text-foreground" title={row.nameEn}>
-            {row.nameEn}
+          <span
+            className="block truncate font-medium text-foreground"
+            title={attributeLabel(row.id, row.nameEn)}
+          >
+            {attributeLabel(row.id, row.nameEn)}
           </span>
           <span className="block truncate text-xs text-muted-foreground" title={row.attrKey}>
             {row.attrKey}
@@ -231,7 +237,7 @@ export function AdminAttributesPage() {
             variant="outline"
             size="touch"
             data-testid={`attribute-actions-${row.attrKey}`}
-            aria-label={`${t("admin.attributes.action.menu")} — ${row.nameEn}`}
+            aria-label={`${t("admin.attributes.action.menu")} — ${attributeLabel(row.id, row.nameEn)}`}
             title={t("admin.attributes.action.menu")}
           >
             <MoreHorizontal aria-hidden="true" className="size-4" />
