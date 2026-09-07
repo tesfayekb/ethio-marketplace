@@ -13,6 +13,7 @@ import { useI18n, type MessageKey } from "@/i18n";
 import {
   ATTRIBUTE_TYPES,
   typeHasOptions,
+  type AttributeCategory,
   type AttributeRow,
   type MergeCounts,
 } from "./attributes-service";
@@ -20,6 +21,7 @@ import {
   useDeleteAttribute,
   useLinkAttribute,
   useMergeAttributes,
+  useUnlinkAttribute,
   useUpsertAttribute,
 } from "./use-attributes";
 
@@ -564,6 +566,104 @@ export function AssignAttributeDialog({
         submitTestId="attribute-assign-submit"
         submitLabel={t("admin.attributes.action.assign")}
       />
+    </CategoryModal>
+  );
+}
+
+/* --------------------- C3-UX-1c — remove from category -------------------- */
+
+/**
+ * PART C — REMOVE FROM CATEGORY. The inverse of "Assign to category": the
+ * operator picks one of the categories the definition is CURRENTLY linked to
+ * and the confirmation names it before the write. The door is the existing
+ * `admin_unlink_attribute` (`categories:restructure` + step-up, re-checked
+ * server-side), so the chips and the blast radius both re-read from the
+ * mutation's invalidation.
+ */
+export function RemoveAttributeCategoryDialog({
+  attribute,
+  links,
+  guard,
+  onClose,
+}: {
+  attribute: AttributeRow;
+  links: AttributeCategory[];
+  guard: GuardFn;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const unlink = useUnlinkAttribute();
+  const { message, setMessage, fail } = useAttributeError();
+  const [linkId, setLinkId] = useState(links.length === 1 ? (links[0]?.linkId ?? "") : "");
+
+  const chosen = links.find((row) => row.linkId === linkId) ?? null;
+
+  const submit = () => {
+    setMessage(null);
+    if (chosen === null) {
+      setMessage(t("admin.attributes.error.removeNoCategory"));
+      return;
+    }
+    void guard(async () => {
+      try {
+        await unlink.mutateAsync(chosen.linkId);
+        onClose();
+      } catch (error) {
+        fail(error);
+      }
+    }).catch(fail);
+  };
+
+  return (
+    <CategoryModal
+      testid="attribute-remove-dialog"
+      openedBy="row-remove"
+      title={`${t("admin.attributes.remove.title")} — ${attribute.nameEn}`}
+      onClose={onClose}
+    >
+      {links.length === 0 ? (
+        <p data-testid="attribute-remove-none" className="text-sm text-muted-foreground">
+          {t("admin.attributes.remove.none")}
+        </p>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">{t("admin.attributes.remove.hint")}</p>
+          <FormField label={t("admin.attributes.remove.category")} htmlFor="attribute-remove-picker">
+            <select
+              id="attribute-remove-picker"
+              data-testid="attribute-remove-picker"
+              className={SELECT_CLASS}
+              value={linkId}
+              onChange={(event) => setLinkId(event.target.value)}
+            >
+              <option value="">{t("admin.attributes.remove.pickNone")}</option>
+              {links.map((row) => (
+                <option key={row.linkId} value={row.linkId}>
+                  {`${row.nameEn} (${row.categorySlug})`}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          {chosen === null ? null : (
+            <p data-testid="attribute-remove-confirm" className="text-sm text-foreground">
+              {t("admin.attributes.remove.confirm")
+                .replace("{attribute}", attribute.nameEn)
+                .replace("{category}", chosen.nameEn)}
+            </p>
+          )}
+        </>
+      )}
+      <AttributeErrorLine message={message} />
+      {links.length === 0 ? null : (
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={unlink.isPending}
+          danger
+          submitTestId="attribute-remove-submit"
+          submitLabel={t("admin.attributes.action.remove")}
+        />
+      )}
     </CategoryModal>
   );
 }
