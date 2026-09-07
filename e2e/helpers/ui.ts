@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
@@ -13,6 +13,7 @@ import {
   injectSession,
   passwordGrant,
   sessionInjectionEnabled,
+  type PersistedSession,
 } from "./session";
 import { totp } from "./totp";
 
@@ -632,6 +633,50 @@ function declaresPrivateIdentity(): boolean {
   }
 }
 
+/**
+ * L5 / DEC-041 — SESSION REUSE. Setup already signed the pooled identity in and
+ * verified its TOTP factor IN NODE, so the AAL2 session exists before any
+ * browser opens. A test injects those exact bytes; it never signs in through
+ * the form and never spends a code of its own. Only a session about to expire
+ * is refreshed here — once, in node — and the state file is rewritten so the
+ * next test in this job inherits the fresh one.
+ */
+async function pooledAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> {
+  const session = pool.session;
+  if (session.expires_at * 1000 - Date.now() > 5 * 60_000) {
+    return session as PersistedSession;
+  }
+  const url = process.env["E2E_SUPABASE_URL"]!.replace(/\/+$/, "");
+  const response = await fetch(`${url}/auth/v1/token?grant_type=refresh_token`, {
+    method: "POST",
+    headers: {
+      apikey: process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ refresh_token: session.refresh_token }),
+  });
+  const body = (await response.json()) as Record<string, unknown>;
+  if (!response.ok || typeof body["access_token"] !== "string") {
+    throw new Error(
+      `[e2e:pool] refreshing the pooled session failed (HTTP ${response.status}): ` +
+        `${JSON.stringify(body).slice(0, 300)}`,
+    );
+  }
+  const refreshed = {
+    ...session,
+    access_token: body["access_token"],
+    refresh_token: (body["refresh_token"] as string | undefined) ?? session.refresh_token,
+    expires_at:
+      (body["expires_at"] as number | undefined) ??
+      Math.floor(Date.now() / 1000) + ((body["expires_in"] as number | undefined) ?? 3600),
+  };
+  const state = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+  if (state.superAdmin) state.superAdmin.session = refreshed;
+  writeFileSync(STATE_FILE, JSON.stringify(state), "utf8");
+  console.log("[e2e:pool] pooled session refreshed in node (was inside the 5-minute window).");
+  return refreshed as PersistedSession;
+}
+
 export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   if (declaresPrivateIdentity()) return mintPrivateSuperAdmin(page);
 
@@ -644,18 +689,22 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   };
 
   if (!sessionInjectionEnabled()) {
+    // The E2E_UI_LOGIN revert knob (and auth specs) keep the real door plus the
+    // in-browser elevation; DEC-041's node session is the fast path only.
     await switchUser(page, pool.email, pool.password);
     await waitForHydration(page);
+    await elevateInBrowser(page, pool);
   } else {
-    const session = await passwordGrant(pool.email, pool.password);
+    const session = await pooledAal2Session(pool);
     await injectSession(page, session);
     await gotoReady(page, "/");
     await assertInjectedIdentity(page, session);
     await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
     await waitForHydration(page);
+    // READ-BACK from the client: the injected session really is AAL2.
+    await expectAal2(page);
   }
 
-  await elevateInBrowser(page, pool);
   await endActiveImpersonation(page);
   return { user, secret: pool.secret };
 }
