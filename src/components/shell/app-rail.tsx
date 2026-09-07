@@ -463,6 +463,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     active: item.path ? pathname === item.path || pathname.startsWith(`${item.path}/`) : undefined,
     onSelect: item.path ? onNavigate : undefined,
     children: item.children?.map(toNode),
+    defaultOpen: item.defaultOpen,
   });
 
   const sections: { key: MessageKey | null; items: NavItem[] }[] = [];
