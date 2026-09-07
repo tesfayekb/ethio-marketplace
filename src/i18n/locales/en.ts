@@ -251,6 +251,7 @@ export const en = {
   "admin.section.audit.body": "Audit and security tools arrive in U3.",
   "admin.section.locations.title": "Locations",
   "admin.section.locations.body": "Location management arrives in U4.",
+  "admin.group.categories": "Categories",
   "admin.section.categories.title": "Categories",
   "admin.section.categories.body": "Category management arrives in U5.",
   "admin.section.attributes.title": "Attributes",
