@@ -19,7 +19,20 @@ type AdminSectionShape = {
   readonly permission: string;
   readonly titleKey: MessageKey;
   readonly bodyKey: MessageKey;
+  /**
+   * C3-UX-2 — the MENU GROUP this section hangs under, when it has one. The
+   * group is presentation only: it carries NO permission of its own and every
+   * sub-item keeps its own gate (law F3 unchanged).
+   */
+  readonly group?: AdminGroupId;
 };
+
+/** The admin nav's groups. Brands and Tags join `categories` when they land. */
+export const ADMIN_GROUPS = {
+  categories: { id: "categories", titleKey: "admin.group.categories" },
+} as const satisfies Record<string, { readonly id: string; readonly titleKey: MessageKey }>;
+
+export type AdminGroupId = keyof typeof ADMIN_GROUPS;
 
 export const ADMIN_SECTIONS = [
   {
