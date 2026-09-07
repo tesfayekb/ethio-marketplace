@@ -105,9 +105,18 @@ export function AdminAttributesPage() {
     [all, needle, linkedIds],
   );
   const selected =
-    dialog.kind === "edit" || dialog.kind === "delete" || dialog.kind === "assign"
+    dialog.kind === "edit" ||
+    dialog.kind === "delete" ||
+    dialog.kind === "assign" ||
+    dialog.kind === "remove"
       ? (all.find((row) => row.id === dialog.id) ?? null)
       : null;
+
+  /** PART B — used-by, by NAME: one library-wide read, grouped per definition. */
+  const usedBy = useAttributeCategories();
+  const usedByAttribute = useMemo(() => groupByAttribute(usedBy.data ?? []), [usedBy.data]);
+  const chipsFor = (row: AttributeRow): AttributeCategory[] => usedByAttribute.get(row.id) ?? [];
+
 
   const chooseCategory = (slug: string) => {
     setOffset(0);
