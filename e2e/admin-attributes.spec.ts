@@ -1410,6 +1410,9 @@ test.describe("C3 attributes console", () => {
     ).toEqual({ adds: 0, changes: 0, unlinks: 0, deletes: 0, refused: 0 });
     expect(unchanged).toBe(expectedUnchanged);
     await expect(page.getByTestId("attribute-import-refusals")).toHaveCount(0);
+    // IE-3b — the silence invariant: an unedited export ignores NOTHING, so the
+    // panel is absent, not merely empty (INC-178 reported whole columns).
+    await expect(page.getByTestId("attribute-import-ignored")).toHaveCount(0);
 
     await page.getByTestId("attribute-import-discard").click();
     await expect(page.getByTestId("attribute-import-dialog")).toHaveCount(0);
