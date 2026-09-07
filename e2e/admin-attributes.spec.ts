@@ -1460,7 +1460,6 @@ test.describe("C3 attributes console", () => {
     }
   });
 
-
   /** AT-21 — a real change previews, commits and then UNDOES to the old row. */
   test("AT-21 a changed link commits and the batch undoes", async ({ page }) => {
     test.setTimeout(180_000);
