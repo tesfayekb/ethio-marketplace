@@ -1,0 +1,14 @@
+// GUARD SELF-TEST FIXTURE — intentionally illegal, never imported.
+// A DataTable column declaring `minWidth` with no `// C7-dense:` justification
+// on the same line. `check-datatable-minwidth.sh` MUST flag this file.
+const columns = [
+  {
+    key: "name",
+    header: "Name",
+    priority: "primary",
+    minWidth: "min-w-[14rem]",
+    cell: (row: { name: string }) => row.name,
+  },
+];
+
+export default columns;
