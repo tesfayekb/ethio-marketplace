@@ -1,6 +1,11 @@
 import { expect, test } from "./fixtures";
 
-import { ADMIN_SECTIONS, sectionForPath } from "../src/features/admin/sections";
+import {
+  ADMIN_GROUPS,
+  ADMIN_SECTIONS,
+  sectionForPath,
+  sectionGroupId,
+} from "../src/features/admin/sections";
 import { en } from "../src/i18n/locales/en";
 
 import { gotoReady, openRailScope, signIn, waitForHydration } from "./helpers/ui";
@@ -263,5 +268,72 @@ test.describe("Admin shell (U0)", () => {
     // Sanity: the logged-out landing is unaffected.
     await gotoReady(page, "/");
     await expect(page.getByTestId("panel-tab-admin")).toHaveCount(0);
+  });
+  /**
+   * C3-UX-2 — THE CATEGORIES MENU GROUP. Categories · Attributes · Images sit
+   * under one group item in the shell rail/drawer. The group holds NO
+   * permission of its own: each sub-item keeps its own gate (law F3), so a
+   * moderator sees neither the group nor any of its members.
+   */
+  test("A-5 the Categories group carries its sub-items, expands on a sub-route and gates each one", async ({
+    page,
+  }) => {
+    const grouped = ADMIN_SECTIONS.filter((s) => sectionGroupId(s) === "categories");
+    expect(grouped.length, "the categories group census drifted").toBeGreaterThan(1);
+
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const perms = await permissionsOfRole("admin");
+    const visible = grouped.filter((s) => perms.includes(s.permission));
+    expect(visible.length, "admin holds no grouped section").toBeGreaterThan(0);
+
+    await signIn(page, staff.email, staff.password);
+    await waitForHydration(page);
+    await page.goto(visible[0]!.path);
+    await waitForHydration(page);
+    await expect(page.getByTestId(`admin-section-${visible[0]!.id}`)).toBeVisible({
+      timeout: 15000,
+    });
+
+    const scope = isMobile(page) ? await openRailScope(page) : page.getByTestId("app-rail");
+    const group = scope.getByTestId("rail-item-ad-group-categories");
+    await expect(group, "the group item never rendered").toBeVisible({ timeout: 15000 });
+    await expect(group).toContainText(en[ADMIN_GROUPS.categories.titleKey]);
+    // EXPANDED on a sub-route: every permitted sub-item is reachable.
+    await expect(group).toHaveAttribute("aria-expanded", "true");
+    for (const section of visible) {
+      await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toBeVisible({ timeout: 15000 });
+    }
+    if (isMobile(page)) await page.keyboard.press("Escape");
+
+    // The breadcrumb reads Group › Section.
+    const crumb = page.getByTestId("breadcrumbs");
+    await expect(crumb.getByTestId("breadcrumb-admin-group")).toHaveText(
+      en[ADMIN_GROUPS.categories.titleKey],
+    );
+    await expect(crumb.getByTestId("breadcrumb-admin-section")).toHaveText(
+      en[visible[0]!.titleKey],
+    );
+
+    // GATED PER SUB-ITEM: a moderator sees neither the group nor its members,
+    // and every grouped deep link is refused to the landing with the notice.
+    const mod = await createUser({ confirmed: true });
+    await grantRole(mod.id, "moderator");
+    await signIn(page, mod.email, mod.password);
+    await waitForHydration(page);
+    await page.goto("/admin");
+    await waitForHydration(page);
+    const modScope = isMobile(page) ? await openRailScope(page) : page.getByTestId("app-rail");
+    await expect(modScope.getByTestId("rail-item-ad-group-categories")).toHaveCount(0);
+    for (const section of grouped) {
+      await expect(modScope.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
+    }
+    if (isMobile(page)) await page.keyboard.press("Escape");
+    for (const section of grouped) {
+      await page.goto(section.path);
+      await waitForHydration(page);
+      await expect(page).toHaveURL(/\/admin$/);
+      await expect(page.getByTestId("admin-access-notice")).toBeVisible({ timeout: 15000 });
+    }
   });
 });
