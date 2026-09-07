@@ -21,6 +21,7 @@ Both tables refuse direct client access; every read and write below is a gated
 | RPC                                   | Gate                                          |
 | ------------------------------------- | --------------------------------------------- |
 | `admin_list_attributes`               | `categories:view`                             |
+| `admin_list_attribute_categories`     | `categories:view`                             |
 | `admin_list_category_attribute_links` | `categories:view`                             |
 | `admin_upsert_attribute`              | `categories:update` + step-up                 |
 | `admin_link_attribute`                | `categories:update` + step-up                 |
@@ -84,10 +85,33 @@ attribute. It writes through the same gated `admin_link_attribute` door (a
 duplicate link is refused server-side with its own translated line), and the
 row's Used by count re-reads from the mutation's invalidation.
 
+## The row menu and the used-by chips (C3-UX-1c)
+
+The actions column carries ONE `⋯` trigger (`attribute-actions-<key>`); every
+verb lives in its menu — Edit · Assign to category · Remove from category ·
+Delete — so the column stays narrow and the card twin keeps a single 44px
+target. The menu renders in a portal and is addressed as
+`attribute-actions-menu`.
+
+**Used by** is no longer a bare number. `admin_list_attribute_categories`
+(`categories:view`, one read for the whole library) names every category a
+definition is linked to; the column renders one chip per category
+(`attribute-usedby-<key>-<slug>`) and the COUNT moves into the card twin's
+caption (`attribute-usage-<key>`, cards only). Column min-widths stay
+primitive-owned and proportional — Attribute widest, Type and Options compact,
+Used by wide enough for chips to wrap — so nothing is clipped between 1024 and 1366.
+
+**Remove from category** picks one of the categories the attribute is currently
+linked to, names it in the confirmation, and writes through the existing
+`admin_unlink_attribute` door (`categories:restructure` + step-up). The chips
+and the delete blast radius both re-read from the mutation's invalidation.
+
 ## Tests
 
 `e2e/admin-attributes.spec.ts` — AT-1 gating · AT-2 definitions · AT-3
 link/unlink · AT-4 card picker clears the amber flag · AT-5 delete refused then
 accepted · AT-6 merge · AT-7 category filter (DB truth) · AT-8 assign from the
-library · AT-9 twin rendering with no sideways scroll. `e2e/admin-categories-console.spec.ts` CT-9a/9b assert the
+library · AT-9 twin rendering with no sideways scroll and no clipped last column at 1024/1194/1280/1366 ·
+AT-10 the used-by chip names the assigned category (DB truth) · AT-11
+remove-from-category unlinks and the chip disappears (DB truth). `e2e/admin-categories-console.spec.ts` CT-9a/9b assert the
 parent cell in both twins against pointer truth.
