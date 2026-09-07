@@ -39,9 +39,8 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
-const guard: GuardFn = async (action) => {
-  await action();
-};
+// L5 (DEC-041): guard resolves with the action's own result.
+const guard: GuardFn = async (action) => action();
 
 describe("ApproveAllBar", () => {
   it("renders the control AND the zero caption together when nothing is reviewable", () => {
