@@ -8,6 +8,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
 import { AttributeErrorLine, useAttributeError } from "./attribute-dialogs";
+import { useAttributeLabel } from "./use-attribute-label";
 import {
   CARD_ATTRIBUTE_MAXIMUM,
   CARD_ATTRIBUTE_MINIMUM,
@@ -41,6 +42,9 @@ export function CategoryAttributesDialog({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+  // C3-UX-2 — linked names, the card caption and the picker all read the
+  // translated label, with the EN definition name as fallback.
+  const attributeLabel = useAttributeLabel();
   const links = useCategoryLinks(categoryId);
   const library = useAdminAttributes();
   const link = useLinkAttribute();
@@ -52,7 +56,9 @@ export function CategoryAttributesDialog({
   const [search, setSearch] = useState("");
 
   const rows: AttributeLink[] = [...(links.data ?? [])].sort(
-    (a, b) => a.displayOrder - b.displayOrder || a.nameEn.localeCompare(b.nameEn),
+    (a, b) =>
+      a.displayOrder - b.displayOrder ||
+      attributeLabel(a.attributeId, a.nameEn).localeCompare(attributeLabel(b.attributeId, b.nameEn)),
   );
   const linkedIds = new Set(rows.map((row) => row.attributeId));
   const term = search.trim().toLowerCase();
@@ -60,7 +66,7 @@ export function CategoryAttributesDialog({
     (row) =>
       !linkedIds.has(row.id) &&
       (term === "" ||
-        row.nameEn.toLowerCase().includes(term) ||
+        attributeLabel(row.id, row.nameEn).toLowerCase().includes(term) ||
         row.attrKey.toLowerCase().includes(term)),
   );
 
@@ -110,7 +116,7 @@ export function CategoryAttributesDialog({
           ? t("admin.attributes.card.none")
           : t("admin.attributes.card.caption").replace(
               "{list}",
-              carded.map((row) => row.nameEn).join(" · "),
+              carded.map((row) => attributeLabel(row.attributeId, row.nameEn)).join(" · "),
             )}
       </p>
       {carded.length < CARD_ATTRIBUTE_MINIMUM ? (
@@ -142,7 +148,9 @@ export function CategoryAttributesDialog({
               className="space-y-2 rounded-md border border-border p-3"
             >
               <div className="flex min-w-0 items-baseline gap-2">
-                <span className="min-w-0 truncate text-sm font-medium">{row.nameEn}</span>
+                <span className="min-w-0 truncate text-sm font-medium">
+                  {attributeLabel(row.attributeId, row.nameEn)}
+                </span>
                 <span className="text-xs text-muted-foreground">{row.attrKey}</span>
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -250,7 +258,7 @@ export function CategoryAttributesDialog({
           <option value="">{t("admin.attributes.links.pickNone")}</option>
           {candidates.map((row) => (
             <option key={row.id} value={row.id}>
-              {`${row.nameEn} (${row.attrKey})`}
+              {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
             </option>
           ))}
         </select>
