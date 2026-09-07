@@ -76,6 +76,7 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = (() => {
     if (!group) {
       group = {
         id: `ad-group-${groupId}`,
+        testid: `admin-group-${groupId}`,
         labelKey: ADMIN_GROUPS[groupId].titleKey,
         icon: GROUP_ICONS[groupId],
         defaultOpen: true,

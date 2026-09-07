@@ -456,7 +456,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
 
   const toNode = (item: NavItem): RailNode => ({
     key: item.id,
-    testid: `rail-item-${item.id}`,
+    testid: item.testid ?? `rail-item-${item.id}`,
     label: t(item.labelKey),
     icon: item.icon,
     path: item.path,

@@ -296,7 +296,7 @@ test.describe("Admin shell (U0)", () => {
     });
 
     const scope = isMobile(page) ? await openRailScope(page) : page.getByTestId("app-rail");
-    const group = scope.getByTestId("rail-item-ad-group-categories");
+    const group = scope.getByTestId("admin-group-categories");
     await expect(group, "the group item never rendered").toBeVisible({ timeout: 15000 });
     await expect(group).toContainText(en[ADMIN_GROUPS.categories.titleKey]);
     // EXPANDED on a sub-route: every permitted sub-item is reachable.
@@ -305,6 +305,18 @@ test.describe("Admin shell (U0)", () => {
       await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toBeVisible({ timeout: 15000 });
     }
     if (isMobile(page)) await page.keyboard.press("Escape");
+
+    // C3-UX-2b PART E — the SHELL LAW holds for every grouped sub-item: its
+    // page carries data-testid `admin-section-<id>`; the group carrier is
+    // `admin-group-<id>` and is never a section testid.
+    for (const section of visible) {
+      await page.goto(section.path);
+      await waitForHydration(page);
+      await expect(page.getByTestId(`admin-section-${section.id}`)).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId(`admin-section-admin-group-categories`)).toHaveCount(0);
+    }
+    await page.goto(visible[0]!.path);
+    await waitForHydration(page);
 
     // The breadcrumb reads Group › Section.
     const crumb = page.getByTestId("breadcrumbs");
@@ -324,7 +336,7 @@ test.describe("Admin shell (U0)", () => {
     await page.goto("/admin");
     await waitForHydration(page);
     const modScope = isMobile(page) ? await openRailScope(page) : page.getByTestId("app-rail");
-    await expect(modScope.getByTestId("rail-item-ad-group-categories")).toHaveCount(0);
+    await expect(modScope.getByTestId("admin-group-categories")).toHaveCount(0);
     for (const section of grouped) {
       await expect(modScope.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
     }

@@ -687,7 +687,21 @@ test.describe("C3 attributes console", () => {
       await gotoReady(page, "/admin/translations/am?scope=data");
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(key);
-      const status = page.getByTestId(`entity-status-attribute-${id}-label`);
+      // C3-UX-2b PART C (J5) — never a bare prefix: the Data roster renders the
+      // SAME row as a card twin (<lg) or a table row, so the status badge is
+      // read through the twin's surface and its own row.
+      const dataSurface = isCardTwin(page)
+        ? page.getByTestId("data-table-cards")
+        : page.getByRole("table");
+      const slug = `attribute-${id}-label`;
+      const dataRow = dataSurface.getByTestId(
+        isCardTwin(page) ? `entity-row-${slug}-card` : `entity-row-${slug}`,
+      );
+      await expect(
+        dataRow,
+        await dialogDump(page, "AT-13 the attribute row never rendered in the Data roster"),
+      ).toBeVisible({ timeout: 20000 });
+      const status = dataSurface.getByTestId(`entity-status-${slug}`);
       await expect(
         status,
         await dialogDump(page, "AT-13 the attribute never reached the Data roster"),
