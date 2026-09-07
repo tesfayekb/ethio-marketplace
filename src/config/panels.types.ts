@@ -23,6 +23,12 @@ export interface NavItem {
   /** When set, the item renders only if the user holds this permission. */
   requiredPermission?: Permission;
   children?: NavItem[];
+  /**
+   * C3-UX-2 — a GROUP that starts expanded. An active descendant always opens
+   * an ancestor; this only decides the FIRST frame, so a group's sub-items are
+   * reachable without a disclosure hunt.
+   */
+  defaultOpen?: boolean;
 }
 
 export interface Panel {
