@@ -41,11 +41,21 @@ export interface NamedEntity {
 }
 
 /**
- * The single name resolver. `field` is always `name` today; entity fields
- * beyond names arrive with the REQ-004 era.
+ * The translated FIELD each entity type carries (C3-UX-2b PART D). A category
+ * and a location translate their `name`; an attribute definition translates its
+ * `label` — the field the console writes and `get_entity_bundle` shapes the map
+ * by. Reading the wrong field is an invisible miss (the base name still
+ * answers), so the mapping lives here, once, beside the resolver.
  */
+const NAME_FIELD: Record<EntityType, string> = {
+  category: "name",
+  location: "name",
+  attribute: "label",
+};
+
+/** The single name resolver, over each type's translated field. */
 export function entityName(type: EntityType, row: NamedEntity, bundle: EntityBundle): string {
-  const fromDb = bundle.map[type]?.[row.id]?.["name"];
+  const fromDb = bundle.map[type]?.[row.id]?.[NAME_FIELD[type]];
   if (typeof fromDb === "string" && fromDb !== "") return fromDb;
   if (bundle.lang === "am" && row.nameAm) return row.nameAm;
   return row.nameEn;
