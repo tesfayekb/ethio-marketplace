@@ -20,7 +20,14 @@
     "admin.attributes.action.edit": [
       "/admin/attributes"
     ],
+    "admin.attributes.action.menu": [
+      "/admin/attributes"
+    ],
     "admin.attributes.action.merge": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.action.remove": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -124,6 +131,10 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.error.removeNoCategory": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.error.saveFailed": [
       "/admin/attributes",
       "/admin/categories"
@@ -219,7 +230,37 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.remove.category": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.remove.confirm": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.remove.hint": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.remove.none": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.remove.pickNone": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.remove.title": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.searchPlaceholder": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.usage.count": [
+      "/admin/attributes"
+    ],
+    "admin.attributes.usage.none": [
       "/admin/attributes"
     ],
     "admin.audit.caption": [
