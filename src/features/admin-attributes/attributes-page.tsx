@@ -120,12 +120,20 @@ export function AdminAttributesPage() {
     void navigate({ search: slug === "" ? {} : { category: slug } });
   };
 
+  /**
+   * C3-UX-1d PART A — TIERS, NOT MIN-WIDTHS. A min-width is a floor: four of
+   * them add up and the last column is pushed off the scroller between 1024
+   * and 1279. Proportional widths plus the `wide` tier let the browser do the
+   * arithmetic — Attribute · Type · Used by · ⋯ at 1024, Options joining at
+   * 1280. No column declares `minWidth` (see the C7 amendment guard,
+   * `scripts/check-datatable-minwidth.sh`).
+   */
   const columns: DataTableColumn<AttributeRow>[] = [
     {
       key: "name",
       header: t("admin.attributes.col.name"),
       priority: "primary",
-      minWidth: "min-w-[14rem]",
+      width: "w-[32%]",
       cell: (row) => (
         <span className="block min-w-0">
           <span className="block truncate font-medium text-foreground" title={row.nameEn}>
@@ -141,7 +149,7 @@ export function AdminAttributesPage() {
       key: "type",
       header: t("admin.attributes.col.type"),
       priority: "secondary",
-      minWidth: "min-w-[8rem]",
+      width: "w-[14%]",
       cell: (row) => (
         <span className="block break-words text-muted-foreground">
           {t(`admin.attributes.type.${row.attrType}` as MessageKey)}
@@ -151,9 +159,12 @@ export function AdminAttributesPage() {
     {
       key: "options",
       header: t("admin.attributes.col.options"),
-      priority: "secondary",
+      /* The COUNT is the least load-bearing cell: it earns its column only on
+         a genuinely wide desktop (≥xl). The card twin's caption and the row
+         expansion still carry the option list at every width. */
+      priority: "wide",
       align: "end",
-      minWidth: "min-w-[6rem]",
+      width: "w-16",
       cell: (row) => (
         <span className="block tabular-nums" data-testid={`attribute-options-${row.attrKey}`}>
           {typeHasOptions(row.attrType) ? row.options.length : "—"}
@@ -164,9 +175,7 @@ export function AdminAttributesPage() {
       key: "usage",
       header: t("admin.attributes.col.usage"),
       priority: "secondary",
-      /* PART B — chips WRAP inside their own width; the primitive owns the
-         only horizontal behaviour, so nothing is clipped at 1024…1366. */
-      minWidth: "min-w-[16rem]",
+      /* No width: Used by takes the remainder and the chips wrap inside it. */
       cell: (row) => {
         const chips = chipsFor(row);
         return (

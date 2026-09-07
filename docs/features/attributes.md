@@ -70,9 +70,32 @@ under Services first and keep their second home visible.
 ## The library surface (C3-UX-1)
 
 The library renders ONLY through the C7 DataTable primitive at `cardUntil="lg"`
-(cards through the tablet band, table from 1024) with primitive-owned column
-min-widths — no per-page width hacks. Columns: Name · Type · Options (count;
-the full list expands under the row) · Used by (link count) · Actions.
+(cards through the tablet band, table from 1024) — no per-page width hacks.
+Columns: Name · Type · Options (count; the full list expands under the row) ·
+Used by (category chips) · Actions.
+
+### Tiers, not min-widths (C3-UX-1d, C7 amendment)
+
+A column declares a TIER plus a proportional width; it never declares a
+`minWidth`. Min-widths are floors — four of them add up and the sum pushes the
+last column off the scroller between 1024 and 1279.
+
+| Column    | Tier      | Width       |
+| --------- | --------- | ----------- |
+| Attribute | primary   | `w-[32%]`   |
+| Type      | secondary | `w-[14%]`   |
+| Options   | wide      | `w-16`      |
+| Used by   | secondary | (remainder) |
+
+`wide` renders from `xl` only, so 1024–1279 shows Attribute · Type · Used by ·
+⋯ with nothing clipped and no sideways scroll, and 1280+ adds Options; the row
+expansion carries the option list at every width.
+
+`scripts/check-datatable-minwidth.sh` enforces this for every consumer: a
+`minWidth` fails the run unless the SAME line carries a `// C7-dense: <reason>`
+justification. `scripts/fixtures/bad-datatable-minwidth-example.tsx.txt` is its
+self-test (the guard must flag it); `data-table.tsx` itself and the
+`dev.primitives` showcase are exempt by name (E5).
 
 A **category filter** sits in the toolbar and lives in the URL as
 `?category=<slug>`, so a filtered library is shareable and reloadable; it reads
@@ -97,9 +120,9 @@ target. The menu renders in a portal and is addressed as
 (`categories:view`, one read for the whole library) names every category a
 definition is linked to; the column renders one chip per category
 (`attribute-usedby-<key>-<slug>`) and the COUNT moves into the card twin's
-caption (`attribute-usage-<key>`, cards only). Column min-widths stay
-primitive-owned and proportional — Attribute widest, Type and Options compact,
-Used by wide enough for chips to wrap — so nothing is clipped between 1024 and 1366.
+caption (`attribute-usage-<key>`, cards only). Widths are tiered (C3-UX-1d
+above), so the chips wrap inside the remainder column and nothing is clipped
+between 1024 and 1366.
 
 **Remove from category** picks one of the categories the attribute is currently
 linked to, names it in the confirmation, and writes through the existing
