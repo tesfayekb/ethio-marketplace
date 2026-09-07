@@ -345,3 +345,21 @@ Testids: container `data-table`, card list `data-table-cards`, header cell
 
 CLASS RULE: every admin list uses DataTable. A hand-rolled table plus a
 parallel card list is the INC-075 defect.
+
+## The Categories menu group (C3-UX-2)
+
+`ADMIN_GROUPS` in `src/features/admin/sections.ts` collects Categories ·
+Attributes · Images under ONE rail/drawer item (`rail-item-ad-group-categories`);
+Brands and Tags join it when they land. The group is DERIVED from the same
+section register — there is no second list.
+
+The group itself holds NO permission. Each sub-item keeps its own gate, so a
+user who may see none of them sees no group either, and every deep link is
+still refused per section (law F3 — the server remains the only authority).
+The group renders `defaultOpen`, and the rail also expands it whenever a
+descendant is active.
+
+Breadcrumbs read Group › Section: `breadcrumb-admin-group` sits before
+`breadcrumb-admin-section` for any grouped page.
+
+E2E: `e2e/admin-shell.spec.ts` A-5.
