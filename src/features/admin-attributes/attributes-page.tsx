@@ -291,7 +291,7 @@ export function AdminAttributesPage() {
   return (
     <StepUpGate>
       {(guard) => (
-        <div className="min-w-0 space-y-4">
+        <div data-testid="admin-section-attributes" className="min-w-0 space-y-4">
           {mayUpdate || mayRestructure ? (
             <PageCard testid="attribute-create-card">
               <div className="flex flex-col gap-2 sm:flex-row">

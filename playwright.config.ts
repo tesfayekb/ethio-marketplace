@@ -103,7 +103,10 @@ export default defineConfig({
               ? `bun run serve:e2e:built --port ${PORT}`
               : `bun run serve:e2e --port ${PORT}`,
         url: BASE_URL,
-        reuseExistingServer: !process.env["CI"],
+        // TR-24/TR-26: the local lane never adopts a foreign server — a stale
+        // process answers with a stale env (no E2E_FAKE_TRANSLATE). The port
+        // guard in `e2e:local` has already proven 4173 is free.
+        reuseExistingServer: !process.env["CI"] && !process.env["E2E_LOCAL"],
         timeout: 180_000,
         stdout: "pipe",
         stderr: "pipe",
