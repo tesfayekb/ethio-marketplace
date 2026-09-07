@@ -35,7 +35,9 @@ import {
  * own row, in whichever twin the viewport renders: the DataTable primitive's
  * default boundary is 768 (cards below it, a table at and above it).
  */
-const TWIN_BOUNDARY = 768;
+// C3-UX-1 PART A — the library is a DENSE table, so it keeps cards through the
+// tablet band (`cardUntil="lg"`): the twin boundary here is 1024, not 768.
+const TWIN_BOUNDARY = 1024;
 
 function isCardTwin(page: import("@playwright/test").Page) {
   return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
@@ -46,6 +48,14 @@ function librarySurface(page: import("@playwright/test").Page) {
 }
 
 /** The row's ACTIONS region — a card sibling below md, a cell at md and up. */
+function libraryRows(page: import("@playwright/test").Page) {
+  return librarySurface(page).locator(
+    isCardTwin(page)
+      ? "[data-testid^='attribute-row-'][data-testid$='-card']"
+      : "tbody tr[data-testid^='attribute-row-']",
+  );
+}
+
 function attributeActions(page: import("@playwright/test").Page, key: string) {
   return librarySurface(page).getByTestId(
     isCardTwin(page) ? `attribute-row-${key}-actions` : `attribute-row-${key}-actions-cell`,
@@ -367,5 +377,102 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(keep);
       await destroyAttribute(dupe);
     }
+  });
+
+  test("AT-7 filter: a category narrows the library to its linked attributes (DB truth)", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    let slug = "";
+    try {
+      const id = await seedAttribute(key);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      // SEED BEFORE NAVIGATE (J7): the only link exists before the filter runs.
+      await adminClient()
+        .from("category_attribute_links")
+        .insert({ category_id: scratch!.id, attribute_id: id, display_order: 0 });
+      const linked = await readLinks(scratch!.id);
+      expect(linked).toHaveLength(1);
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-category-filter").selectOption(slug);
+      // PART B — the filter is the URL, so it is shareable and reloadable.
+      await expect(page).toHaveURL(new RegExp(`category=${slug}$`));
+      await expect(
+        librarySurface(page).getByTestId(`attribute-usage-${key}`),
+        await dialogDump(page, "AT-7 filtered library never rendered the linked attribute"),
+      ).toBeVisible({ timeout: 20000 });
+      await expect
+        .poll(async () => await libraryRows(page).count(), { timeout: 20000 })
+        .toBe(linked.length);
+
+      await page.getByTestId("attribute-category-clear").click();
+      await expect(page).not.toHaveURL(/category=/);
+      await expect
+        .poll(async () => await libraryRows(page).count(), { timeout: 20000 })
+        .toBeGreaterThan(1);
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  test("AT-8 assign from the library: the link lands and Used by updates", async ({ page }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    let slug = "";
+    try {
+      await seedAttribute(key);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      await attributeActions(page, key).getByTestId(`attribute-assign-${key}`).click();
+      await expect(
+        page.getByTestId("attribute-assign-dialog"),
+        await dialogDump(page, "AT-8 assign dialog never opened"),
+      ).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("attribute-assign-picker").selectOption(scratch!.id);
+      await page.getByTestId("attribute-assign-submit").click();
+      await stepUpIfPrompted(page, secret);
+
+      await expect
+        .poll(async () => (await readLinks(scratch!.id)).length, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-8 link never landed"),
+        })
+        .toBe(1);
+      await expect(librarySurface(page).getByTestId(`attribute-usage-${key}`)).toHaveText("1", {
+        timeout: 20000,
+      });
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  test("AT-9 twins: the library renders one twin only, with no sideways scroll", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/attributes");
+    await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
+    if (isCardTwin(page)) {
+      await expect(page.getByTestId("data-table-cards")).toBeVisible();
+      await expect(page.getByRole("table")).toHaveCount(0);
+    } else {
+      await expect(page.getByRole("table")).toBeVisible();
+      await expect(page.getByTestId("data-table-cards")).toBeHidden();
+    }
+    await expect.poll(async () => await libraryRows(page).count(), { timeout: 20000 }).toBe(25);
+    await expectNoHorizontalOverflow(page);
   });
 });
