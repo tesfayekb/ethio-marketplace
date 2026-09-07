@@ -963,6 +963,18 @@ export const en = {
   "admin.attributes.field.help": "Help text",
   "admin.attributes.action.edit": "Edit",
   "admin.attributes.action.delete": "Delete",
+  "admin.attributes.action.assign": "Assign to category",
+  "admin.attributes.filter.category": "Filter by category",
+  "admin.attributes.filter.allCategories": "All categories",
+  "admin.attributes.filter.clear": "Clear filter",
+  "admin.attributes.filter.empty": "No attribute is linked to this category yet.",
+  "admin.attributes.assign.title": "Assign to a category",
+  "admin.attributes.assign.hint":
+    "The attribute is linked to the chosen category and starts optional and filterable.",
+  "admin.attributes.assign.category": "Category",
+  "admin.attributes.assign.pickNone": "Choose a category",
+  "admin.attributes.assign.searchPlaceholder": "Search categories",
+  "admin.attributes.error.assignNoCategory": "Choose a category first.",
   "admin.attributes.action.merge": "Merge",
   "admin.attributes.delete.title": "Delete attribute",
   "admin.attributes.delete.hint":

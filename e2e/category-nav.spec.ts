@@ -28,6 +28,16 @@ test.describe("category selection navigates", () => {
     );
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(rows.first()).toBeVisible();
+    /**
+     * INC-171 — the guard must be the SAME for C-1..C-3, or one test runs
+     * while its siblings self-skip on a half-rendered rail. The count is
+     * POLLED to its settled value (the rail hydrates row by row), so all
+     * three tests read one verdict.
+     */
+    await expect
+      .poll(async () => await rows.count(), { timeout: 10000 })
+      .toBeGreaterThan(1)
+      .catch(() => undefined);
     const count = await rows.count();
     if (count < 2) return null;
     const row = rows.nth(1);

@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+import type { CategoryNode } from "@/features/admin-categories/categories-service";
 import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -15,7 +16,12 @@ import {
   type AttributeRow,
   type MergeCounts,
 } from "./attributes-service";
-import { useDeleteAttribute, useMergeAttributes, useUpsertAttribute } from "./use-attributes";
+import {
+  useDeleteAttribute,
+  useLinkAttribute,
+  useMergeAttributes,
+  useUpsertAttribute,
+} from "./use-attributes";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY's write surfaces.
@@ -457,6 +463,106 @@ export function MergeAttributesDialog({
         busy={merge.isPending}
         submitTestId="attribute-merge-submit"
         submitLabel={t("admin.attributes.action.merge")}
+      />
+    </CategoryModal>
+  );
+}
+
+/* ------------------------- assign from the library ------------------------ */
+
+/**
+ * C3-UX-1 PART C — ASSIGN FROM THE LIBRARY.
+ *
+ * The per-category link manager, pre-scoped to ONE attribute: the operator
+ * picks the category instead of the attribute. The same gated door does the
+ * write (`admin_link_attribute`, `categories:update` + step-up), so a duplicate
+ * link is refused by the server with its own translated line (F3/F4), and the
+ * row's "Used by" count re-reads from the mutation's invalidation.
+ */
+export function AssignAttributeDialog({
+  attribute,
+  categories,
+  guard,
+  onClose,
+}: {
+  attribute: AttributeRow;
+  categories: CategoryNode[];
+  guard: GuardFn;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const link = useLinkAttribute();
+  const { message, setMessage, fail } = useAttributeError();
+  const [needle, setNeedle] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+
+  const query = needle.trim().toLowerCase();
+  const options = categories.filter(
+    (row) =>
+      query === "" ||
+      row.nameEn.toLowerCase().includes(query) ||
+      row.slug.toLowerCase().includes(query),
+  );
+
+  const submit = () => {
+    setMessage(null);
+    if (categoryId === "") {
+      setMessage(t("admin.attributes.error.assignNoCategory"));
+      return;
+    }
+    void guard(async () => {
+      try {
+        await link.mutateAsync({
+          categoryId,
+          attributeId: attribute.id,
+          isRequired: false,
+          isFilterable: true,
+          displayOrder: null,
+        });
+        onClose();
+      } catch (error) {
+        fail(error);
+      }
+    }).catch(fail);
+  };
+
+  return (
+    <CategoryModal
+      testid="attribute-assign-dialog"
+      openedBy="row-assign"
+      title={`${t("admin.attributes.assign.title")} — ${attribute.nameEn}`}
+      onClose={onClose}
+    >
+      <p className="text-sm text-muted-foreground">{t("admin.attributes.assign.hint")}</p>
+      <Input
+        data-testid="attribute-assign-search"
+        placeholder={t("admin.attributes.assign.searchPlaceholder")}
+        value={needle}
+        onChange={(event) => setNeedle(event.target.value)}
+      />
+      <FormField label={t("admin.attributes.assign.category")} htmlFor="attribute-assign-picker">
+        <select
+          id="attribute-assign-picker"
+          data-testid="attribute-assign-picker"
+          className={SELECT_CLASS}
+          value={categoryId}
+          onChange={(event) => setCategoryId(event.target.value)}
+        >
+          <option value="">{t("admin.attributes.assign.pickNone")}</option>
+          {options.map((row) => (
+            <option key={row.id} value={row.id}>
+              {`${"\u00b7 ".repeat(row.depth)}${row.nameEn} (${row.slug})`}
+            </option>
+          ))}
+        </select>
+      </FormField>
+      <AttributeErrorLine message={message} />
+      <DialogActions
+        onCancel={onClose}
+        onSubmit={submit}
+        busy={link.isPending}
+        submitTestId="attribute-assign-submit"
+        submitLabel={t("admin.attributes.action.assign")}
       />
     </CategoryModal>
   );
