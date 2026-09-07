@@ -653,48 +653,84 @@ function declaresPrivateIdentity(): boolean {
 }
 
 /**
- * L5 / DEC-041 — SESSION REUSE. Setup already signed the pooled identity in and
- * verified its TOTP factor IN NODE, so the AAL2 session exists before any
- * browser opens. A test injects those exact bytes; it never signs in through
- * the form and never spends a code of its own. Only a session about to expire
- * is refreshed here — once, in node — and the state file is rewritten so the
- * next test in this job inherits the fresh one.
+ * L5c (DEC-041 amended) — SESSION PER TEST, MINTED IN NODE.
+ *
+ * L5 stored ONE AAL2 session in the state file and every test injected it. Two
+ * failure classes followed: concurrent borrowers of the same session revoked
+ * each other's tokens on refresh (INC-168), and the stored session's challenge
+ * aged out, so the app answered a step-up with "verification expired"
+ * (INC-169). Now each test builds its OWN session for its OWN slot identity:
+ * password grant → challenge → verify with that identity's secret → assert
+ * `aal2` on the returned access token. Nothing is persisted, nothing is reused,
+ * and the DB challenge row is refreshed by every test's verify, so direct-RPC
+ * step-up tests (RP-4, TR-6) are fresh by construction.
  */
-async function pooledAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> {
-  const session = pool.session;
-  if (session.expires_at * 1000 - Date.now() > 5 * 60_000) {
-    return session as PersistedSession;
-  }
-  const url = process.env["E2E_SUPABASE_URL"]!.replace(/\/+$/, "");
-  const response = await fetch(`${url}/auth/v1/token?grant_type=refresh_token`, {
+async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> {
+  const grant = await authFetch("/token?grant_type=password", {
     method: "POST",
-    headers: {
-      apikey: process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ refresh_token: session.refresh_token }),
+    body: { email: pool.email, password: pool.password },
   });
-  const body = (await response.json()) as Record<string, unknown>;
-  if (!response.ok || typeof body["access_token"] !== "string") {
-    throw new Error(
-      `[e2e:pool] refreshing the pooled session failed (HTTP ${response.status}): ` +
-        `${JSON.stringify(body).slice(0, 300)}`,
-    );
+  const accessToken = grant["access_token"];
+  if (typeof accessToken !== "string") {
+    throw new Error(`[e2e:pool] password grant for slot ${pool.slot} returned no access token.`);
   }
-  const refreshed = {
-    ...session,
-    access_token: body["access_token"],
-    refresh_token: (body["refresh_token"] as string | undefined) ?? session.refresh_token,
+
+  let verified: Record<string, unknown> | null = null;
+  let lastError = "";
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    // A CHALLENGE PER ATTEMPT: a challenge is single-use and short-lived, so a
+    // retry never re-presents the previous one (INC-169).
+    const challenge = await authFetch(`/factors/${pool.factorId}/challenge`, {
+      method: "POST",
+      accessToken,
+    });
+    const challengeId = challenge["id"];
+    if (typeof challengeId !== "string") {
+      throw new Error(`[e2e:pool] TOTP challenge for slot ${pool.slot} returned no id.`);
+    }
+    try {
+      verified = await authFetch(`/factors/${pool.factorId}/verify`, {
+        method: "POST",
+        accessToken,
+        body: { challenge_id: challengeId, code: totp(pool.secret) },
+      });
+      break;
+    } catch (error) {
+      // A code already spent inside its 30s window is refused; the next
+      // window's code is a legitimate retry, never a weakened assertion.
+      lastError = error instanceof Error ? error.message : String(error);
+      if (attempt === 3) break;
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+    }
+  }
+  if (!verified) {
+    throw new Error(`[e2e:pool] node TOTP verify failed for slot ${pool.slot}: ${lastError}`);
+  }
+
+  const token = verified["access_token"];
+  const refresh = verified["refresh_token"];
+  if (typeof token !== "string" || typeof refresh !== "string") {
+    throw new Error(`[e2e:pool] verify for slot ${pool.slot} returned no session tokens.`);
+  }
+  const level = jwtClaim(token, "aal");
+  if (level !== "aal2") {
+    throw new Error(`[e2e:pool] slot ${pool.slot} session is not aal2 after verify (aal=${level}).`);
+  }
+  const expiresIn = typeof verified["expires_in"] === "number" ? verified["expires_in"] : 3600;
+  console.log(`[e2e:pool] slot ${pool.slot} minted a fresh aal2 session in node (${pool.email})`);
+  return {
+    access_token: token,
+    refresh_token: refresh,
+    token_type: typeof verified["token_type"] === "string" ? verified["token_type"] : "bearer",
+    expires_in: expiresIn,
     expires_at:
-      (body["expires_at"] as number | undefined) ??
-      Math.floor(Date.now() / 1000) + ((body["expires_in"] as number | undefined) ?? 3600),
+      typeof verified["expires_at"] === "number"
+        ? verified["expires_at"]
+        : Math.floor(Date.now() / 1000) + expiresIn,
+    user: (verified["user"] as Record<string, unknown> | undefined) ?? {},
   };
-  const state = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
-  if (state.superAdmin) state.superAdmin.session = refreshed;
-  writeFileSync(STATE_FILE, JSON.stringify(state), "utf8");
-  console.log("[e2e:pool] pooled session refreshed in node (was inside the 5-minute window).");
-  return refreshed as PersistedSession;
 }
+
 
 export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   if (declaresPrivateIdentity()) return mintPrivateSuperAdmin(page);
