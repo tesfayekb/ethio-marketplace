@@ -553,18 +553,17 @@ function SyncKeysCard({ guard }: { guard: GuardFn }) {
             onClick={() => {
               setDone(null);
               setErrorKey(null);
-              // `guard` resolves void, so the RPC's counts are carried out
-              // through this box rather than the promise value.
-              const box: { result: SyncResult | null } = { result: null };
-              void guard(async () => {
-                box.result = await sync.mutateAsync({
+              // L5 (DEC-041): `guard` resolves with the ACTION's own result,
+              // after step-up too — the result box that used to carry the
+              // counts out of the closure is gone (INC-166: it was still empty
+              // when the old guard resolved on the modal opening).
+              void guard(() =>
+                sync.mutateAsync({
                   en: en as unknown as Record<string, string>,
                   am: am as unknown as Record<string, string>,
-                });
-              })
-                .then(() => {
-                  const result = box.result;
-                  if (!result) return;
+                }),
+              )
+                .then((result: SyncResult) => {
                   setDone(
                     t("admin.translations.sync.done")
                       .replace("{inserted}", String(result.inserted))
