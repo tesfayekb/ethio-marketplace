@@ -391,14 +391,9 @@ test.describe("C2 categories console", () => {
         ).toBeLessThanOrEqual(doc.clientWidth + 1);
         await expectNoHorizontalOverflow(page);
 
-        await page
-          .getByTestId(
-            cardTwin ? `category-row-${slug}-actions` : `category-row-${slug}-actions-cell`,
-          )
-          .getByTestId(`category-edit-${slug}`)
-          .click();
-        await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
-        await expect(page.getByTestId("category-verb-bar")).toBeVisible();
+        // J5 — the measurement reads the VISIBLE twin only, through the shared
+        // twin-aware helper; never a hand-rolled prefix that can match both.
+        await openEditor(page, slug);
 
         for (const verb of ["window", "exclusions", "pointer", "up", "down", "retire"]) {
           const button = action(page, slug, verb);
