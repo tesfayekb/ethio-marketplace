@@ -751,6 +751,7 @@ export const en = {
   "admin.translations.col.entityType": "Type",
   "admin.translations.entity.category": "Category",
   "admin.translations.entity.location": "Location",
+  "admin.translations.entity.attribute": "Attribute",
   "admin.translations.history.open": "History",
   "admin.translations.history.title": "Change history",
   "admin.translations.history.loading": "Loading history…",
