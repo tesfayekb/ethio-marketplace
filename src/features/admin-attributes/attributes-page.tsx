@@ -417,6 +417,15 @@ export function AdminAttributesPage() {
               onClose={() => setDialog({ kind: "none" })}
             />
           ) : null}
+          {dialog.kind === "remove" && selected ? (
+            <RemoveAttributeCategoryDialog
+              attribute={selected}
+              links={chipsFor(selected)}
+              guard={guard}
+              onClose={() => setDialog({ kind: "none" })}
+            />
+          ) : null}
+
           {dialog.kind === "merge" ? (
             <MergeAttributesDialog
               attributes={all}
