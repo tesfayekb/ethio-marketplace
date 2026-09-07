@@ -414,3 +414,23 @@ the batch through the same doors in reverse order.
 CT-20 retire/reactivate with both audit rows; CT-21 the refusals; CT-22 a
 `categories:view`-only operator (no control, 403, 401 without a bearer);
 CT-23 a commit without step-up (428 / P0009, nothing written).
+
+## IE-3 — column classes (categories)
+
+Read-only columns in `categories.csv`: `category_path`, `name_am`,
+`is_catchall`, `listing_count`, `origin_scope`. They are written with the
+` (read-only)` suffix and never applied; an edited one is reported in the
+preview under "Ignored (read-only)" with its row and column. `origin_scope`
+names the download's scope rather than the row, so it is never compared —
+only never applied.
+
+The importer accepts headers with or without the suffix, so CT-18's round-trip
+invariant is unchanged in meaning.
+
+**File identity.** An attributes file offered to the categories import is
+refused by its headers before any row is parsed (CT-25).
+
+**Guided refusals.** A row that keeps a name but changes the address is a
+rename attempt: the message names the address to restore and asks for a name
+edit instead (CT-24). Catch-all parents, cycles, and deletes blocked by
+children or listings each name the rule and the fix.

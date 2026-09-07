@@ -45,6 +45,23 @@ const LINK_COLUMNS = [
   "origin",
 ] as const;
 
+/**
+ * IE-3 — COLUMN CLASSES. Identity and editable columns are written bare;
+ * every DERIVED or FOREIGN column carries the " (read-only)" suffix in the
+ * header, so the file itself states what the importer will never apply.
+ */
+export const READ_ONLY_COLUMNS = new Set<string>([
+  "category_path",
+  "origin",
+  "label_am",
+  "is_per_variant",
+  "direct_link_count",
+]);
+
+export function headerCell(name: string): string {
+  return READ_ONLY_COLUMNS.has(name) ? `${name} (read-only)` : name;
+}
+
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -75,7 +92,7 @@ function csvCell(raw: unknown): string {
 }
 
 function toCsv(columns: readonly string[], rows: Record<string, unknown>[]): string {
-  const lines = [columns.join(",")];
+  const lines = [columns.map(headerCell).join(",")];
   for (const row of rows) lines.push(columns.map((column) => csvCell(row[column])).join(","));
   // BOM: Excel reads UTF-8 (and therefore Ge'ez) correctly only with it.
   return `\ufeff${lines.join("\r\n")}\r\n`;

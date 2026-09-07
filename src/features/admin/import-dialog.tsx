@@ -29,6 +29,13 @@ export interface ImportFileField {
   labelKey: MessageKey;
 }
 
+export interface ImportIgnored {
+  file: string;
+  row: number;
+  column: string;
+  key?: string;
+}
+
 export interface ImportRefusal {
   file: string;
   row: number;
@@ -42,7 +49,30 @@ type Counts = Record<string, number>;
 interface Preview {
   counts: Counts;
   refusals: ImportRefusal[];
+  /** IE-3 — edited read-only cells: reported, never applied. */
+  ignored?: ImportIgnored[];
   digest: string;
+}
+
+/**
+ * IE-3 — FILE IDENTITY. Read from the first line only, before any row is
+ * parsed, so the wrong file is refused with a sentence that names where it
+ * belongs rather than a header mismatch.
+ */
+export type ImportFamily = "attributes" | "categories";
+
+function familyOf(text: string): ImportFamily | null {
+  const first = text.replace(/^\ufeff/, "").split(/\r?\n/)[0] ?? "";
+  const names = first.split(",").map((cell) =>
+    cell
+      .replace(/"/g, "")
+      .trim()
+      .replace(/\s*\(read-only\)$/i, "")
+      .trim(),
+  );
+  if (names.includes("attribute_key")) return "attributes";
+  if (names.includes("parent_slug") || names.includes("allow_listings")) return "categories";
+  return null;
 }
 
 export interface ImportDialogProps {
@@ -57,6 +87,8 @@ export interface ImportDialogProps {
   countFields: readonly string[];
   /** The refusal vocabulary the server speaks; anything else reads "unknown". */
   reasonKeys: ReadonlySet<string>;
+  /** Which import this dialog is; a file of the other family is refused. */
+  family: ImportFamily;
   scope: string | null;
   guard: GuardFn;
   onClose: () => void;
@@ -80,6 +112,7 @@ export function ImportDialog({
   files,
   countFields,
   reasonKeys,
+  family,
   scope,
   guard,
   onClose,
@@ -91,6 +124,7 @@ export function ImportDialog({
   const [preview, setPreview] = useState<Preview | null>(null);
   const [committed, setCommitted] = useState<{ batchId: string; counts: Counts } | null>(null);
   const [undone, setUndone] = useState<number | null>(null);
+  const [ignored, setIgnored] = useState<ImportIgnored[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const key = (suffix: string): MessageKey => `${keyPrefix}.${suffix}` as MessageKey;
@@ -98,13 +132,18 @@ export function ImportDialog({
   const reasonLabel = (refusal: ImportRefusal): string => {
     const name = reasonKeys.has(refusal.reason) ? refusal.reason : "unknown";
     const text = t(key(`reason.${name}`));
-    return refusal.detail === undefined ? text : `${text} (${refusal.detail})`;
+    const detail = refusal.detail ?? "";
+    // IE-3 — a guided message spends its detail INSIDE the sentence ("restore
+    // '<old>'"); anything else keeps the old parenthetical.
+    if (text.includes("{detail}")) return text.replace("{detail}", detail);
+    return detail === "" ? text : `${text} (${detail})`;
   };
 
   const failed = (payload: { error?: string }, status: number) => {
     const named = payload.error ?? "";
     if (status === 403) return setError(t(key("error.denied")));
     if (status === 428) return setError(t(key("error.stepUp")));
+    if (named === "wrongFile") return setError(t(key("error.wrongFile")));
     if (status === 409 && named === "fileChanged") return setError(t(key("error.fileChanged")));
     if (status === 409) return setError(t(key("error.busy")));
     if (status === 413 || named === "fileTooLarge") return setError(t(key("error.tooLarge")));
@@ -132,11 +171,20 @@ export function ImportDialog({
     setPreview(null);
     setCommitted(null);
     setError(null);
+    setIgnored([]);
     if (file === undefined) {
       setTexts((prev) => ({ ...prev, [field]: "" }));
       return;
     }
-    void file.text().then((text) => setTexts((prev) => ({ ...prev, [field]: text })));
+    void file.text().then((text) => {
+      const found = familyOf(text);
+      if (found !== null && found !== family) {
+        setTexts((prev) => ({ ...prev, [field]: "" }));
+        setError(t(key("error.wrongFile")));
+        return;
+      }
+      setTexts((prev) => ({ ...prev, [field]: text }));
+    });
   };
 
   const payload = (): Record<string, unknown> => {
@@ -152,6 +200,7 @@ export function ImportDialog({
     try {
       const result = (await post({ mode: "preview", ...payload() })) as Preview | null;
       setPreview(result);
+      setIgnored(result?.ignored ?? []);
     } finally {
       setBusy(false);
     }
@@ -217,6 +266,9 @@ export function ImportDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t(key("hint"))}</p>
+      <p className="text-sm text-muted-foreground" data-testid={`${idPrefix}-guidance`}>
+        {t(key("guidance"))}
+      </p>
 
       <div className="flex flex-col gap-3">
         {files.map((file) => (
@@ -266,6 +318,25 @@ export function ImportDialog({
           ))}
         </ul>
       ) : null}
+
+      {ignored.length === 0 ? null : (
+        <div className="flex flex-col gap-1" data-testid={`${idPrefix}-ignored`}>
+          <p className="text-sm font-medium">{t(key("ignored"))}</p>
+          <ul className="flex flex-col gap-1">
+            {ignored.map((cell) => (
+              <li
+                key={`${cell.file}-${cell.row}-${cell.column}`}
+                data-testid={`${idPrefix}-ignored-${cell.row}`}
+                className="text-sm text-muted-foreground"
+              >
+                {t(key("ignoredRow"))
+                  .replace("{row}", String(cell.row))
+                  .replace("{column}", cell.column)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {committed !== null ? (
         <div className="flex flex-col gap-2">

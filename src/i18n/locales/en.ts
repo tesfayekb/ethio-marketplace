@@ -907,17 +907,26 @@ export const en = {
   "admin.categories.import.reason.missingName": "A new category needs a name",
   "admin.categories.import.reason.unknownSlug": "Unknown category",
   "admin.categories.import.reason.unknownParent": "Unknown parent category",
-  "admin.categories.import.reason.catchallParent": "An “Other” bucket cannot be a parent",
-  "admin.categories.import.reason.cycle": "That move would put a category inside itself",
-  "admin.categories.import.reason.slugRename": "A category address cannot be renamed",
-  "admin.categories.import.reason.hasChildren": "This category still has categories under it",
-  "admin.categories.import.reason.hasListings": "This category still has listings",
+  "admin.categories.import.reason.catchallParent":
+    "An “Other” bucket cannot be a parent — choose a different parent category",
+  "admin.categories.import.reason.cycle":
+    "That move would put a category inside itself — choose a parent outside this branch",
+  "admin.categories.import.reason.slugRename":
+    "Category addresses are identities and cannot be renamed here — restore “{detail}” and change the name instead",
+  "admin.categories.import.reason.hasChildren":
+    "This category still has categories under it — move or delete those first",
+  "admin.categories.import.reason.hasListings":
+    "This category still has listings — move them to another category first",
   "admin.categories.import.reason.deleteActive": "Retire the category before deleting it",
   "admin.categories.import.reason.unknownCountry": "Unknown country code",
   "admin.categories.import.reason.badDate": "That date could not be read",
   "admin.categories.import.reason.outOfScope": "Outside the category you filtered by",
-  "admin.categories.import.reason.formula": "This cell starts like a spreadsheet formula",
+  "admin.categories.import.reason.formula": "Cells may not start with = + - @",
   "admin.categories.import.reason.unknown": "This row was refused",
+  "admin.categories.import.guidance":
+    "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied.",
+  "admin.categories.import.ignored": "Ignored (read-only)",
+  "admin.categories.import.ignoredRow": "Row {row} — {column} was not applied",
   "admin.categories.import.error.denied": "You do not have permission to import categories.",
   "admin.categories.import.error.stepUp": "Verify a code and try again.",
   "admin.categories.import.error.fileChanged": "The file changed since the preview. Preview again.",
@@ -926,6 +935,8 @@ export const en = {
   "admin.categories.import.error.tooManyRows": "That file has more than 5,000 rows.",
   "admin.categories.import.error.badHeader": "The column headings do not match the export.",
   "admin.categories.import.error.emptyFile": "That file is empty.",
+  "admin.categories.import.error.wrongFile":
+    "This is the attributes file — import it from Attributes.",
   "admin.categories.import.error.failed": "The import could not be completed.",
   "admin.categories.edit.title": "Edit category",
   "admin.categories.field.name": "Name (English)",
@@ -1019,10 +1030,15 @@ export const en = {
   "admin.attributes.import.reason.unknownCategory": "Unknown category",
   "admin.attributes.import.reason.unknownAttribute": "Unknown attribute",
   "admin.attributes.import.reason.outOfScope": "Outside the category you filtered by",
-  "admin.attributes.import.reason.inheritedRow": "Inherited row — edit it at the origin",
+  "admin.attributes.import.reason.inheritedRow":
+    "Inherited row — add a direct row for this category, or edit it at “{detail}”",
   "admin.attributes.import.reason.badCardRank": "Card position must be 1, 2 or 3",
-  "admin.attributes.import.reason.formula": "This cell starts like a spreadsheet formula",
+  "admin.attributes.import.reason.formula": "Cells may not start with = + - @",
   "admin.attributes.import.reason.unknown": "This row was refused",
+  "admin.attributes.import.guidance":
+    "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied.",
+  "admin.attributes.import.ignored": "Ignored (read-only)",
+  "admin.attributes.import.ignoredRow": "Row {row} — {column} was not applied",
   "admin.attributes.import.error.denied": "You do not have permission to import attributes.",
   "admin.attributes.import.error.stepUp": "Verify a code and try again.",
   "admin.attributes.import.error.fileChanged": "The file changed since the preview. Preview again.",
@@ -1031,6 +1047,8 @@ export const en = {
   "admin.attributes.import.error.tooManyRows": "That file has more than 5,000 rows.",
   "admin.attributes.import.error.badHeader": "The column headings do not match the export.",
   "admin.attributes.import.error.emptyFile": "That file is empty.",
+  "admin.attributes.import.error.wrongFile":
+    "This is the categories file — import it from Categories.",
   "admin.attributes.import.error.failed": "The import could not be completed.",
   "admin.roles.perm.action.import": "Import",
   "admin.attributes.inherited.badge": "Inherited from {origin}",

@@ -123,6 +123,33 @@ export function unneutralize(raw: string): string {
   return /^'[=+\-@]/.test(raw) ? raw.slice(1) : raw;
 }
 
+/**
+ * IE-3 — COLUMN CLASSES AT THE DOOR. The export labels derived columns
+ * " (read-only)"; the importer accepts a header with OR without the suffix,
+ * so a round-trip is unchanged in meaning. The read-only cells themselves are
+ * never applied — the server reports them under `ignored`.
+ */
+export function canonicalHeader(name: string): string {
+  return name
+    .trim()
+    .replace(/\s*\(read-only\)$/i, "")
+    .trim();
+}
+
+export type ImportFamily = "attributes" | "categories";
+
+/**
+ * FILE IDENTITY, read from the headers BEFORE any row is parsed: a categories
+ * file dropped into the attributes import (or the reverse) is refused by
+ * identity, never half-planned.
+ */
+export function identifyFamily(header: readonly string[]): ImportFamily | null {
+  const names = header.map(canonicalHeader);
+  if (names.includes("attribute_key")) return "attributes";
+  if (names.includes("parent_slug") || names.includes("allow_listings")) return "categories";
+  return null;
+}
+
 interface ParsedFile {
   rows: Record<string, string>[];
   refusals: Refusal[];
@@ -140,7 +167,8 @@ function parseFile(
   );
   if (grid.length === 0) return { rows: [], refusals, error: "emptyFile" };
 
-  const header = (grid[0] ?? []).map((name) => name.trim());
+  const header = (grid[0] ?? []).map((name) => canonicalHeader(name));
+  if (identifyFamily(header) === "categories") return { rows: [], refusals, error: "wrongFile" };
   const optionalTail = header.length === columns.length + 1 && header[columns.length] === "action";
   if (
     (header.length !== columns.length && !optionalTail) ||

@@ -1181,4 +1181,91 @@ test.describe("CAT-IE categories import/export", () => {
       await dropRole(roleId);
     }
   });
+  /**
+   * CT-24 — GUIDED REFUSALS (IE-3). A row that keeps the name but changes the
+   * address is a rename attempt: refused, and the message NAMES the address to
+   * restore. A name-only edit on the real address is one ordinary change.
+   */
+  test("CT-24 a slug rename is refused by name, and a name edit is one change", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const parentSlug = scratchSlug();
+    const childSlug = `${scratchSlug()}-c`;
+    const renamedSlug = `${childSlug}-renamed`;
+    try {
+      const parentId = await seedCategory(parentSlug, null);
+      await seedCategory(childSlug, parentId);
+
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      // (a) the rename attempt: a NEW address carrying the existing name.
+      const renameFile = file([
+        line({ category_slug: renamedSlug, parent_slug: parentSlug, name_en: childSlug }),
+      ]);
+      const rename = await importPost(page, token, { mode: "preview", categories: renameFile });
+      expect(rename.status, JSON.stringify(rename.payload)).toBe(200);
+      const refusals = rename.payload["refusals"] as { reason: string; detail?: string }[];
+      expect(refusals.map((entry) => entry.reason)).toContain("slugRename");
+      expect(
+        refusals.find((entry) => entry.reason === "slugRename")?.detail,
+        `CT-24 the refusal did not name the old address: ${JSON.stringify(refusals)}`,
+      ).toBe(childSlug);
+      expect(await readCategory(renamedSlug)).toBeNull();
+
+      // (b) a name-only edit at the real address is one ordinary change.
+      const renamed = `${childSlug} renamed`;
+      const editFile = file([
+        line({ category_slug: childSlug, parent_slug: parentSlug, name_en: renamed }),
+      ]);
+      const edit = await importPost(page, token, { mode: "preview", categories: editFile });
+      expect(edit.status, JSON.stringify(edit.payload)).toBe(200);
+      expect((edit.payload["counts"] as Record<string, number>).changes).toBe(1);
+    } finally {
+      await destroyCategory(childSlug);
+      await destroyCategory(renamedSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
+
+  /**
+   * CT-25 — FILE IDENTITY (IE-3). An attributes definitions file dropped into
+   * the categories import is refused by its headers, before any row is parsed.
+   */
+  test("CT-25 an attributes file is refused by identity", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/categories");
+
+    const token = await bearerOf(page);
+    const definitions = await page.request.get("/api/admin/attributes/export?file=definitions", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(definitions.status()).toBe(200);
+    const definitionsCsv = await definitions.text();
+
+    const refused = await importPost(page, token, {
+      mode: "preview",
+      categories: definitionsCsv,
+    });
+    expect(refused.status, JSON.stringify(refused.payload)).toBe(400);
+    expect(refused.payload["error"]).toBe("wrongFile");
+
+    // The DIALOG refuses it too, and never posts.
+    await page.getByTestId("category-import").click();
+    await expect(page.getByTestId("category-import-dialog")).toBeVisible();
+    await page.getByTestId("category-import-file").setInputFiles({
+      name: "definitions.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(definitionsCsv, "utf8"),
+    });
+    await expect(page.getByTestId("category-import-error")).toBeVisible();
+    await expect(page.getByTestId("category-import-counts")).toHaveCount(0);
+    await page.getByTestId("category-import-discard").click();
+  });
 });

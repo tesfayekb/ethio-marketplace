@@ -16,6 +16,8 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import {
+  canonicalHeader,
+  identifyFamily,
   MAX_BYTES,
   MAX_ROWS,
   isFormulaCell,
@@ -50,7 +52,8 @@ function parseCategories(text: string): Parsed {
   const grid = parseCsvGrid(text).filter((line) => line.some((cell) => cell.trim() !== ""));
   if (grid.length === 0) return { rows: [], refusals, error: "emptyFile" };
 
-  const header = (grid[0] ?? []).map((name) => name.trim());
+  const header = (grid[0] ?? []).map((name) => canonicalHeader(name));
+  if (identifyFamily(header) === "attributes") return { rows: [], refusals, error: "wrongFile" };
   const optionalTail =
     header.length === CATEGORY_COLUMNS.length + 1 && header[CATEGORY_COLUMNS.length] === "action";
   if (

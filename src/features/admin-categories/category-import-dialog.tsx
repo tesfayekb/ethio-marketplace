@@ -71,6 +71,7 @@ export function ImportCategoriesDialog({
       ]}
       countFields={COUNT_FIELDS}
       reasonKeys={REASON_KEYS}
+      family="categories"
       scope={scope}
       guard={guard}
       onClose={onClose}

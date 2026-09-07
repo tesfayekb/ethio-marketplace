@@ -1903,6 +1903,11 @@ export type Database = {
         Returns: Json
       }
       attr_json_or_null: { Args: { p_text: string }; Returns: Json }
+      attr_link_origin: {
+        Args: { p_cat: string; p_key: string }
+        Returns: string
+      }
+      attr_link_path: { Args: { p_cat: string }; Returns: string }
       attr_option_norm: { Args: { p_options: Json }; Returns: Json }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
@@ -2037,6 +2042,14 @@ export type Database = {
         }[]
       }
       impersonation_target: { Args: { p_session: string }; Returns: string }
+      import_guide_refusals: {
+        Args: { p_kind: string; p_refusals: Json; p_rows: Json }
+        Returns: Json
+      }
+      import_readonly_ignored: {
+        Args: { p_kind: string; p_rows: Json }
+        Returns: Json
+      }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       log_audit: {
         Args: {
