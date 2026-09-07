@@ -352,7 +352,7 @@ export function CategoryEditorDialog({
           <div className="flex justify-end">
             <Button
               type="button"
-              className="min-h-11"
+              size="touch"
               data-testid="category-editor-close"
               onClick={onClose}
             >
@@ -419,7 +419,7 @@ function DialogActions({
       <Button
         type="button"
         variant="outline"
-        className="min-h-11"
+        size="touch"
         data-testid="category-dialog-cancel"
         onClick={onCancel}
       >
@@ -427,7 +427,7 @@ function DialogActions({
       </Button>
       <Button
         type="button"
-        className="min-h-11"
+        size="touch"
         data-testid={submitTestId}
         disabled={busy}
         onClick={onSubmit}
@@ -896,7 +896,7 @@ export function CategoryPathsDialog({
                 <Button
                   type="button"
                   variant="outline"
-                  className="min-h-11"
+                  size="touch"
                   data-testid={`category-path-remove-${pointer.pointerId}`}
                   disabled={busy}
                   onClick={() => run(() => removePointer.mutateAsync(pointer.pointerId))}

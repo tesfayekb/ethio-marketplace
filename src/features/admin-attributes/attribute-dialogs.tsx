@@ -83,7 +83,7 @@ function DialogActions({
       <Button
         type="button"
         variant="outline"
-        className="min-h-11"
+        size="touch"
         data-testid="attribute-dialog-cancel"
         onClick={onCancel}
       >
@@ -92,7 +92,7 @@ function DialogActions({
       <Button
         type="button"
         variant={danger ? "destructive" : "default"}
-        className="min-h-11"
+        size="touch"
         data-testid={submitTestId}
         disabled={busy}
         onClick={onSubmit}
