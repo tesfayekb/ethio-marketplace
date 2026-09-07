@@ -918,7 +918,6 @@ test.describe("C3 attributes console", () => {
       }
       expect([...texts.keys()].sort()).toEqual(["definitions.csv", "links.csv"]);
 
-
       const definitions = texts.get("definitions.csv")!;
       const links = texts.get("links.csv")!;
       // UTF-8 BOM, so Excel reads Ge'ez.
