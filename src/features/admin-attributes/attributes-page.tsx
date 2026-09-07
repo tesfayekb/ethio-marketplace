@@ -167,13 +167,39 @@ export function AdminAttributesPage() {
       key: "usage",
       header: t("admin.attributes.col.usage"),
       priority: "secondary",
-      align: "end",
-      minWidth: "min-w-[7rem]",
-      cell: (row) => (
-        <span className="block tabular-nums" data-testid={`attribute-usage-${row.attrKey}`}>
-          {row.usageCount}
-        </span>
-      ),
+      /* PART B — chips WRAP inside their own width; the primitive owns the
+         only horizontal behaviour, so nothing is clipped at 1024…1366. */
+      minWidth: "min-w-[16rem]",
+      cell: (row) => {
+        const chips = chipsFor(row);
+        return (
+          <span className="flex min-w-0 flex-wrap items-center gap-1">
+            {/* THE COUNT lives in the CARD twin only (cards run below lg). */}
+            <span
+              className="text-xs text-muted-foreground lg:hidden"
+              data-testid={`attribute-usage-${row.attrKey}`}
+            >
+              {chips.length === 0
+                ? t("admin.attributes.usage.none")
+                : t("admin.attributes.usage.count").replace("{count}", String(chips.length))}
+            </span>
+            {chips.length === 0 ? (
+              <span className="hidden text-muted-foreground lg:inline">—</span>
+            ) : (
+              chips.map((chip) => (
+                <span
+                  key={chip.linkId}
+                  data-testid={`attribute-usedby-${row.attrKey}-${chip.categorySlug}`}
+                  title={chip.categorySlug}
+                  className="inline-flex max-w-full items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary"
+                >
+                  <span className="truncate">{chip.nameEn}</span>
+                </span>
+              ))
+            )}
+          </span>
+        );
+      },
     },
   ];
 
@@ -185,49 +211,70 @@ export function AdminAttributesPage() {
       </p>
     ) : null;
 
-  const rowActions = (row: AttributeRow) => (
-    <span className="flex flex-wrap items-center gap-2 xl:justify-end">
-      {mayUpdate ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="touch"
-          data-testid={`attribute-edit-${row.attrKey}`}
-          title={t("admin.attributes.action.edit")}
-          onClick={() => setDialog({ kind: "edit", id: row.id })}
-        >
-          <Pencil aria-hidden="true" className="size-4" />
-          <span>{t("admin.attributes.action.edit")}</span>
-        </Button>
-      ) : null}
-      {mayUpdate ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="touch"
-          data-testid={`attribute-assign-${row.attrKey}`}
-          title={t("admin.attributes.action.assign")}
-          onClick={() => setDialog({ kind: "assign", id: row.id })}
-        >
-          <Link2 aria-hidden="true" className="size-4" />
-          <span>{t("admin.attributes.action.assign")}</span>
-        </Button>
-      ) : null}
-      {mayRestructure ? (
-        <Button
-          type="button"
-          variant="destructive"
-          size="touch"
-          data-testid={`attribute-delete-${row.attrKey}`}
-          title={t("admin.attributes.action.delete")}
-          onClick={() => setDialog({ kind: "delete", id: row.id })}
-        >
-          <Trash aria-hidden="true" className="size-4" />
-          <span>{t("admin.attributes.action.delete")}</span>
-        </Button>
-      ) : null}
-    </span>
-  );
+  /**
+   * PART B — ONE row ⋯ MENU, never a stack of verbs: the actions column stays
+   * narrow at every width and the card twin keeps a single 44px target.
+   */
+  const rowActions = (row: AttributeRow) =>
+    mayUpdate || mayRestructure ? (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            data-testid={`attribute-actions-${row.attrKey}`}
+            aria-label={`${t("admin.attributes.action.menu")} — ${row.nameEn}`}
+            title={t("admin.attributes.action.menu")}
+          >
+            <MoreHorizontal aria-hidden="true" className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" data-testid="attribute-actions-menu">
+          {mayUpdate ? (
+            <DropdownMenuItem
+              className="min-h-11"
+              data-testid={`attribute-edit-${row.attrKey}`}
+              onSelect={() => setDialog({ kind: "edit", id: row.id })}
+            >
+              <Pencil aria-hidden="true" className="size-4" />
+              <span>{t("admin.attributes.action.edit")}</span>
+            </DropdownMenuItem>
+          ) : null}
+          {mayUpdate ? (
+            <DropdownMenuItem
+              className="min-h-11"
+              data-testid={`attribute-assign-${row.attrKey}`}
+              onSelect={() => setDialog({ kind: "assign", id: row.id })}
+            >
+              <Link2 aria-hidden="true" className="size-4" />
+              <span>{t("admin.attributes.action.assign")}</span>
+            </DropdownMenuItem>
+          ) : null}
+          {mayRestructure ? (
+            <DropdownMenuItem
+              className="min-h-11"
+              data-testid={`attribute-remove-${row.attrKey}`}
+              onSelect={() => setDialog({ kind: "remove", id: row.id })}
+            >
+              <Unlink aria-hidden="true" className="size-4" />
+              <span>{t("admin.attributes.action.remove")}</span>
+            </DropdownMenuItem>
+          ) : null}
+          {mayRestructure ? (
+            <DropdownMenuItem
+              className="min-h-11 text-destructive focus:text-destructive"
+              data-testid={`attribute-delete-${row.attrKey}`}
+              onSelect={() => setDialog({ kind: "delete", id: row.id })}
+            >
+              <Trash aria-hidden="true" className="size-4" />
+              <span>{t("admin.attributes.action.delete")}</span>
+            </DropdownMenuItem>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ) : null;
+
 
   return (
     <StepUpGate>
