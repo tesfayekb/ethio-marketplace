@@ -299,8 +299,11 @@ test.describe("Admin shell (U0)", () => {
     const group = scope.getByTestId("admin-group-categories");
     await expect(group, "the group item never rendered").toBeVisible({ timeout: 15000 });
     await expect(group).toContainText(en[ADMIN_GROUPS.categories.titleKey]);
-    // EXPANDED on a sub-route: every permitted sub-item is reachable.
-    await expect(group).toHaveAttribute("aria-expanded", "true");
+    // VERDICT — a visual cluster, NOT an accordion: no aria-expanded; the
+    // header carries the ACTIVE mark on a sub-route and every permitted
+    // sub-item is always present beneath it.
+    await expect(group).not.toHaveAttribute("aria-expanded", /.*/);
+    await expect(group).toHaveClass(/bg-sidebar-accent/);
     for (const section of visible) {
       await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toBeVisible({ timeout: 15000 });
     }

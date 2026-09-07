@@ -80,6 +80,7 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = (() => {
         labelKey: ADMIN_GROUPS[groupId].titleKey,
         icon: GROUP_ICONS[groupId],
         defaultOpen: true,
+        group: true,
         children: [],
       };
       groups.set(groupId, group);

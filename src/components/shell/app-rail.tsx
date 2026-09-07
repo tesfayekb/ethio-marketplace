@@ -238,6 +238,8 @@ type RailNode = {
   children?: RailNode[];
   /** C3-UX-2 — a group that renders expanded on its first frame. */
   defaultOpen?: boolean;
+  /** Verdict: a visual cluster — static header, always-present sub-items. */
+  group?: boolean;
 };
 
 /**
@@ -264,6 +266,31 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     </>
   );
   const pad = { "--rail-pad": `${0.75 + depth * 0.75}rem` } as React.CSSProperties;
+
+  // VERDICT (C3-UX-2 closeout) — a GROUP is a visual cluster, NOT an
+  // accordion: a non-interactive header with its sub-items indented and
+  // always present. The header carries the active mark whenever a sub-route
+  // is active, so the cluster reads as the selected section family.
+  if (hasChildren && node.group) {
+    return (
+      <li>
+        <div
+          data-testid={node.testid}
+          aria-label={node.label}
+          aria-current={containsActive(node) ? "true" : undefined}
+          style={pad}
+          className={cn(ITEM_BASE, containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE)}
+        >
+          {inner}
+        </div>
+        <ul className="mt-0.5 flex flex-col gap-0.5">
+          {node.children!.map((child) => (
+            <RailRow key={child.key} node={child} depth={depth + 1} />
+          ))}
+        </ul>
+      </li>
+    );
+  }
 
   if (hasChildren) {
     return (
@@ -464,6 +491,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     onSelect: item.path ? onNavigate : undefined,
     children: item.children?.map(toNode),
     defaultOpen: item.defaultOpen,
+    group: item.group,
   });
 
   const sections: { key: MessageKey | null; items: NavItem[] }[] = [];

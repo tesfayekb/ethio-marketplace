@@ -30,6 +30,13 @@ export interface NavItem {
    */
   defaultOpen?: boolean;
   /**
+   * VERDICT (C3-UX-2 closeout) — a group is a VISUAL CLUSTER, not an
+   * accordion: the header is non-interactive, the sub-items are indented and
+   * ALWAYS present, and the header carries the active mark whenever a
+   * sub-route is active. The collapsible branch stays for category trees.
+   */
+  group?: boolean;
+  /**
    * C3-UX-2b PART E — an explicit rail testid. Routed sections keep the derived
    * `rail-item-<id>`; a GROUP carrier declares `admin-group-<id>` so it can
    * never be mistaken for a section item.
