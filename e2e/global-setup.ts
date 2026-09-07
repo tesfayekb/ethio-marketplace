@@ -310,12 +310,12 @@ async function mintPooledSuperAdmin(
     throw new Error("[e2e:setup] TOTP challenge returned no id.");
   }
   // L5 / DEC-041 — the verify response IS the AAL2 session; keep it.
-  const verified = await authFetch(`/factors/${factorId}/verify`, {
+  const verifyBody = await authFetch(`/factors/${factorId}/verify`, {
     method: "POST",
     accessToken,
     body: { challenge_id: challengeId, code: totp(secret) },
   });
-  const session = asPooledSession(verified);
+  const session = asPooledSession(verifyBody);
   const level = jwtClaim(session.access_token, "aal");
   if (level !== "aal2") {
     throw new Error(`[e2e:setup] pooled session is not aal2 after verify (aal = ${level}).`);
