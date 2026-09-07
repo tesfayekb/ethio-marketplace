@@ -909,7 +909,31 @@ export async function switchLanguage(page: Page, code: "en" | "am") {
   await page.getByTestId("language-switcher").click();
   await page.getByTestId(`language-option-${code}`).click();
   await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
+  /**
+   * INC-173b — `html[lang]` flips from the client's optimistic state, BEFORE the
+   * profile write lands. A navigation issued in that gap is server-rendered
+   * from the OLD row and the page comes back in the previous language. Wait for
+   * DB truth (service-client poll, ≤10s) so navigation can never race the write.
+   * Only the pooled identity is addressable here; a @private-identity test owns
+   * its own row and skips the poll.
+   */
+  if (declaresPrivateIdentity()) return;
+  const pool = pooledSuperAdmin();
+  await expect
+    .poll(
+      async () => {
+        const { data } = await adminClient()
+          .from("profiles")
+          .select("preferred_language")
+          .eq("user_id", pool.id)
+          .maybeSingle();
+        return data?.preferred_language ?? null;
+      },
+      { timeout: 10000, message: `preferred_language never reached ${code} (INC-173b)` },
+    )
+    .toBe(code);
 }
+
 
 /**
  * INC-112 — SELF-DESCRIBING FAILURE DUMP for the translations strings page.
