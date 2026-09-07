@@ -83,11 +83,15 @@ function neutralize(value: string): string {
   return /^[=+\-@]/.test(value) ? `'${value}` : value;
 }
 
-/** RFC 4180: quote when the cell carries a quote, a comma or any newline. */
+/**
+ * RFC 4180: quote when the cell carries a quote, a comma or any newline.
+ *
+ * IE-3b — ONE SERIALIZER. `admin_export_attributes` returns every cell as the
+ * exact text the file carries (booleans "true"/"false", nulls "", pipes,
+ * dates ISO). The route formats NOTHING: it neutralises and quotes, no more.
+ */
 function csvCell(raw: unknown): string {
-  const value = neutralize(
-    raw === null || raw === undefined ? "" : typeof raw === "boolean" ? String(raw) : String(raw),
-  );
+  const value = neutralize(raw === null || raw === undefined ? "" : String(raw));
   return /["\n\r,]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 

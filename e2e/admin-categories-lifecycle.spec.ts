@@ -841,6 +841,8 @@ test.describe("CAT-IE categories import/export", () => {
     ).toEqual({ adds: 0, changes: 0, retires: 0, reactivations: 0, deletes: 0, refused: 0 });
     expect(unchanged).toBe(exported.rows);
     await expect(page.getByTestId("category-import-refusals")).toHaveCount(0);
+    // IE-3b — the silence invariant: an unedited roster export ignores NOTHING.
+    await expect(page.getByTestId("category-import-ignored")).toHaveCount(0);
 
     await page.getByTestId("category-import-discard").click();
     await expect(page.getByTestId("category-import-dialog")).toHaveCount(0);
@@ -1195,10 +1197,12 @@ test.describe("CAT-IE categories import/export", () => {
 
     const parentSlug = scratchSlug();
     const childSlug = `${scratchSlug()}-c`;
+    const grandchildSlug = `${scratchSlug()}-g`;
+    const otherSlug = `${scratchSlug()}-o`;
     const renamedSlug = `${childSlug}-renamed`;
     try {
       const parentId = await seedCategory(parentSlug, null);
-      await seedCategory(childSlug, parentId);
+      const childId = await seedCategory(childSlug, parentId);
 
       await gotoReady(page, "/admin/categories");
       const token = await bearerOf(page);
@@ -1225,9 +1229,43 @@ test.describe("CAT-IE categories import/export", () => {
       const edit = await importPost(page, token, { mode: "preview", categories: editFile });
       expect(edit.status, JSON.stringify(edit.payload)).toBe(200);
       expect((edit.payload["counts"] as Record<string, number>).changes).toBe(1);
+
+      // (c) IE-3b — the same edit on a category that HAS children and a browse
+      // pointer: the detector reads the row's read-only address (path +
+      // parent), not a sibling name, so it fires BEFORE the parent check and
+      // still names the slug to restore. Nothing is planned as a create.
+      await seedCategory(grandchildSlug, childId);
+      const otherId = await seedCategory(otherSlug, null);
+      const { error: pointerError } = await adminClient()
+        .from("category_tree_pointers")
+        .insert({ parent_id: otherId, child_id: childId, display_order: 1 });
+      if (pointerError) {
+        throw new Error(`[e2e:cat-ie] browse pointer failed: ${pointerError.message}`);
+      }
+
+      const addressFile = file([
+        line({
+          category_path: `${parentSlug}/${childSlug}`,
+          category_slug: renamedSlug,
+          parent_slug: parentSlug,
+          name_en: childSlug,
+          secondary_parents: otherSlug,
+        }),
+      ]);
+      const address = await importPost(page, token, { mode: "preview", categories: addressFile });
+      expect(address.status, JSON.stringify(address.payload)).toBe(200);
+      const guided = address.payload["refusals"] as { reason: string; detail?: string }[];
+      expect(
+        guided.find((entry) => entry.reason === "slugRename")?.detail,
+        `CT-24 the address rename was not guided: ${JSON.stringify(guided)}`,
+      ).toBe(childSlug);
+      expect((address.payload["counts"] as Record<string, number>).adds).toBe(0);
+      expect(await readCategory(renamedSlug)).toBeNull();
     } finally {
+      await destroyCategory(grandchildSlug);
       await destroyCategory(childSlug);
       await destroyCategory(renamedSlug);
+      await destroyCategory(otherSlug);
       await destroyCategory(parentSlug);
     }
   });

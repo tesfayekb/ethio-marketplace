@@ -250,6 +250,13 @@ export function ImportDialog({
 
   const chosen = files.some((file) => (texts[file.field] ?? "") !== "");
   const counts = preview?.counts ?? committed?.counts ?? null;
+  /** IE-3b — one line per read-only column, in first-seen order. */
+  const ignoredGroups: [string, ImportIgnored[]][] = [];
+  for (const cell of ignored) {
+    const group = ignoredGroups.find(([column]) => column === cell.column);
+    if (group === undefined) ignoredGroups.push([cell.column, [cell]]);
+    else group[1].push(cell);
+  }
   const countsLine = (values: Counts): string => {
     let line = t(key("counts"));
     for (const name of countFields) {
@@ -322,19 +329,33 @@ export function ImportDialog({
       {ignored.length === 0 ? null : (
         <div className="flex flex-col gap-1" data-testid={`${idPrefix}-ignored`}>
           <p className="text-sm font-medium">{t(key("ignored"))}</p>
-          <ul className="flex flex-col gap-1">
-            {ignored.map((cell) => (
-              <li
-                key={`${cell.file}-${cell.row}-${cell.column}`}
-                data-testid={`${idPrefix}-ignored-${cell.row}`}
-                className="text-sm text-muted-foreground"
-              >
-                {t(key("ignoredRow"))
-                  .replace("{row}", String(cell.row))
-                  .replace("{column}", cell.column)}
-              </li>
-            ))}
-          </ul>
+          {/*
+            IE-3b — GROUPED BY COLUMN. A derived column edited across the whole
+            roster is one line ("is_catchall — 154 rows not applied"), not 154;
+            the rows themselves are one disclosure away.
+          */}
+          {ignoredGroups.map(([column, cells]) => (
+            <details key={column} data-testid={`${idPrefix}-ignored-column-${column}`}>
+              <summary className="min-h-11 text-sm text-muted-foreground">
+                {t(key("ignoredColumn"))
+                  .replace("{column}", column)
+                  .replace("{count}", String(cells.length))}
+              </summary>
+              <ul className="flex flex-col gap-1 ps-4">
+                {cells.map((cell) => (
+                  <li
+                    key={`${cell.file}-${cell.row}-${cell.column}`}
+                    data-testid={`${idPrefix}-ignored-${cell.row}`}
+                    className="text-sm text-muted-foreground"
+                  >
+                    {t(key("ignoredRow"))
+                      .replace("{row}", String(cell.row))
+                      .replace("{column}", cell.column)}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ))}
         </div>
       )}
 

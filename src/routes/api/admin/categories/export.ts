@@ -69,6 +69,10 @@ function neutralize(value: string): string {
   return /^[=+\-@]/.test(value) ? `'${value}` : value;
 }
 
+/**
+ * IE-3b — ONE SERIALIZER. `admin_export_categories` returns every cell as the
+ * exact text the file carries; the route only neutralises and quotes.
+ */
 function csvCell(raw: unknown): string {
   const value = neutralize(raw === null || raw === undefined ? "" : String(raw));
   return /["\n\r,]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;

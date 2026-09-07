@@ -1898,6 +1898,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      attr_export_payload: { Args: { p_scope_slug: string }; Returns: Json }
       attr_import_plan: {
         Args: { p_definitions: Json; p_links: Json; p_scope: string }
         Returns: Json
@@ -2045,6 +2046,10 @@ export type Database = {
       import_guide_refusals: {
         Args: { p_kind: string; p_refusals: Json; p_rows: Json }
         Returns: Json
+      }
+      import_norm: {
+        Args: { p_column: string; p_value: string }
+        Returns: string
       }
       import_readonly_ignored: {
         Args: { p_kind: string; p_rows: Json }
