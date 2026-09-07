@@ -12,7 +12,14 @@ import {
 
 import type { NavItem } from "@/config/panels.types";
 
-import { ADMIN_SECTIONS, type AdminSectionId } from "./sections";
+import {
+  ADMIN_GROUPS,
+  ADMIN_SECTIONS,
+  sectionGroupId,
+  type AdminGroupId,
+  type AdminSection,
+  type AdminSectionId,
+} from "./sections";
 
 /**
  * The Admin panel's shell rail/drawer items (U0b, INC-069).
@@ -40,7 +47,7 @@ const GROUP_ICONS: Record<AdminGroupId, LucideIcon> = {
   categories: FolderTree,
 };
 
-function toItem(section: (typeof ADMIN_SECTIONS)[number]): NavItem {
+function toItem(section: AdminSection): NavItem {
   return {
     id: `ad-${section.id}`,
     labelKey: section.titleKey,
@@ -60,7 +67,7 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = (() => {
   const items: NavItem[] = [];
   const groups = new Map<AdminGroupId, NavItem>();
   for (const section of ADMIN_SECTIONS) {
-    const groupId = section.group as AdminGroupId | undefined;
+    const groupId = sectionGroupId(section);
     if (!groupId) {
       items.push(toItem(section));
       continue;

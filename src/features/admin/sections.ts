@@ -118,5 +118,11 @@ export function sectionById(id: AdminSectionId): AdminSection {
 
 /** The group a section hangs under, or null when it sits at the top level. */
 export function groupForSection(section: AdminSection) {
-  return section.group ? ADMIN_GROUPS[section.group] : null;
+  const id = sectionGroupId(section);
+  return id ? ADMIN_GROUPS[id] : null;
+}
+
+/** The declared group id of a section (the literal union hides the optional). */
+export function sectionGroupId(section: AdminSection): AdminGroupId | null {
+  return (section as { group?: AdminGroupId }).group ?? null;
 }
