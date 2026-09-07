@@ -76,6 +76,22 @@ export type E2ESuperAdmin = {
   secret: string;
   /** The verified factor id, so a test can elevate to AAL2 in node. */
   factorId: string;
+  /**
+   * L5 / DEC-041 — SESSION REUSE. The AAL2 session GoTrue returned from the
+   * node-side `verify`, persisted verbatim so every test injects it instead of
+   * signing in and verifying a code of its own.
+   */
+  session: E2EPooledSession;
+};
+
+/** The persisted-session shape @supabase/supabase-js writes to localStorage. */
+export type E2EPooledSession = {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+  expires_at: number;
+  user: Record<string, unknown>;
 };
 
 export type E2EUser = {
@@ -194,6 +210,37 @@ export async function authFetch(
   return text ? (JSON.parse(text) as Record<string, unknown>) : {};
 }
 
+/** Reads one claim out of a JWT payload without verifying it (test-side only). */
+export function jwtClaim(token: string, claim: string): unknown {
+  const payload = token.split(".")[1];
+  if (!payload) return undefined;
+  const normalised = payload.replace(/-/g, "+").replace(/_/g, "/");
+  const json = Buffer.from(normalised, "base64").toString("utf8");
+  return (JSON.parse(json) as Record<string, unknown>)[claim];
+}
+
+/** Narrows a GoTrue token response to the persisted-session shape, or throws. */
+function asPooledSession(body: Record<string, unknown>): E2EPooledSession {
+  const accessToken = body["access_token"];
+  const refreshToken = body["refresh_token"];
+  if (typeof accessToken !== "string" || typeof refreshToken !== "string") {
+    throw new Error("[e2e:setup] GoTrue returned no session tokens for the pool.");
+  }
+  const expiresIn = typeof body["expires_in"] === "number" ? body["expires_in"] : 3600;
+  const expiresAt =
+    typeof body["expires_at"] === "number"
+      ? body["expires_at"]
+      : Math.floor(Date.now() / 1000) + expiresIn;
+  return {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    token_type: typeof body["token_type"] === "string" ? body["token_type"] : "bearer",
+    expires_in: expiresIn,
+    expires_at: expiresAt,
+    user: (body["user"] as Record<string, unknown> | undefined) ?? {},
+  };
+}
+
 /**
  * L4 (DEC-038) — mint the job's ONE super admin and enrol its ONE TOTP factor,
  * through the same GoTrue MFA endpoints the app's client uses (enrol →
@@ -262,11 +309,18 @@ async function mintPooledSuperAdmin(
   if (typeof challengeId !== "string") {
     throw new Error("[e2e:setup] TOTP challenge returned no id.");
   }
-  await authFetch(`/factors/${factorId}/verify`, {
+  // L5 / DEC-041 — the verify response IS the AAL2 session; keep it.
+  const verifyBody = await authFetch(`/factors/${factorId}/verify`, {
     method: "POST",
     accessToken,
     body: { challenge_id: challengeId, code: totp(secret) },
   });
+  const session = asPooledSession(verifyBody);
+  const level = jwtClaim(session.access_token, "aal");
+  if (level !== "aal2") {
+    throw new Error(`[e2e:setup] pooled session is not aal2 after verify (aal = ${level}).`);
+  }
+  console.log(`[e2e:setup] pooled session currentLevel = aal2 (expires_at ${session.expires_at})`);
 
   // L4b PART A — VERIFIED, OR FAIL LOUDLY. A pool whose factor is still
   // `unverified` looks fine here and detonates much later as an inexplicable
@@ -294,7 +348,15 @@ async function mintPooledSuperAdmin(
   }
   console.log(`[e2e:setup] pooled factor ${factorId} status = verified (1 totp factor)`);
 
-  return { id, email, password, displayName: email.split("@")[0]!, secret, factorId };
+  return {
+    id,
+    email,
+    password,
+    displayName: email.split("@")[0]!,
+    secret,
+    factorId,
+    session,
+  };
 }
 
 export default async function globalSetup() {

@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { markSteppedUp, readSteppedUpAt } from "@/features/session/session-policy";
 import type { MessageKey } from "@/i18n";
 
 /**
@@ -11,6 +10,48 @@ import type { MessageKey } from "@/i18n";
  * asked for a code BEFORE the RPC refuses — never instead of it (law F3).
  */
 export const STEP_UP_WINDOW_MS = 10 * 60 * 1000;
+
+/**
+ * L5 / DEC-040 — FRESHNESS IS READ FROM THE TOKEN, NEVER FROM A HINT.
+ *
+ * The old client mirror trusted a localStorage stamp written by this module.
+ * A stamp is not evidence: it survived paths the token did not (INC-166), and
+ * it could disagree with the server in both directions. The only client-side
+ * source of truth now is the access token itself — its `aal` claim and the
+ * `amr` entry GoTrue writes when a totp verification happens on this session,
+ * which is EXACTLY what the server gate reads
+ * (migration 20260817100845_… : `auth.mfa_amr_claims` … `updated_at > now() -
+ * interval '10 minutes'`). The window constant above mirrors that interval.
+ */
+type JwtClaims = {
+  aal?: string;
+  amr?: Array<{ method?: string; timestamp?: number }>;
+};
+
+function decodeJwt(token: string): JwtClaims | null {
+  const payload = token.split(".")[1];
+  if (!payload) return null;
+  try {
+    const normalised = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const json =
+      typeof atob === "function"
+        ? atob(normalised.padEnd(Math.ceil(normalised.length / 4) * 4, "="))
+        : Buffer.from(normalised, "base64").toString("utf8");
+    return JSON.parse(json) as JwtClaims;
+  } catch {
+    return null;
+  }
+}
+
+/** The most recent totp verification recorded on this session, in ms, or null. */
+function lastTotpVerificationAt(claims: JwtClaims): number | null {
+  const stamps = (claims.amr ?? [])
+    .filter((entry) => entry?.method === "totp")
+    .map((entry) => Number(entry?.timestamp))
+    .filter((value) => Number.isFinite(value));
+  if (stamps.length === 0) return null;
+  return Math.max(...stamps) * 1000;
+}
 
 /** DEV/E2E only: a shorter window so expiry is testable without waiting. */
 function stepUpWindowMs(): number {
@@ -78,21 +119,25 @@ export async function isSteppedUp(): Promise<boolean> {
 }
 
 /**
- * U1f-4: the CLIENT-side mirror of the server's two conditions.
- *   (1) a verified TOTP factor still exists on the account — an unenrolled
- *       account can never be "already stepped up", however the JWT reads;
- *   (2) aal2 AND the last verification happened inside the window — so an
- *       enrollment done long before a sensitive action does not stand in for
- *       a fresh code.
+ * U1f-4 + L5 (DEC-040): the CLIENT-side mirror of the server's two conditions,
+ * derived from the SESSION TOKEN alone.
+ *   (1) a verified TOTP factor still exists on the account;
+ *   (2) the token claims aal2 AND its newest totp `amr` timestamp is inside
+ *       the same 10-minute window the server enforces.
  * Authority still lives in public.require_step_up_if_needed (law F3).
  */
 export async function isStepUpFresh(): Promise<boolean> {
-  const factors = await listFactors();
-  if (!factors.ok || factors.factors.length === 0) return false;
-  if (!(await isSteppedUp())) return false;
-  const verifiedAt = readSteppedUpAt();
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return false;
+  const claims = decodeJwt(token);
+  if (!claims || claims.aal !== "aal2") return false;
+  const verifiedAt = lastTotpVerificationAt(claims);
   if (verifiedAt === null) return false;
-  return Date.now() - verifiedAt < stepUpWindowMs();
+  if (Date.now() - verifiedAt >= stepUpWindowMs()) return false;
+  // Condition (1) of the server law: the factor must STILL exist.
+  const factors = await listFactors();
+  return factors.ok && factors.factors.length > 0;
 }
 
 export async function listFactors(): Promise<
@@ -139,8 +184,8 @@ export async function verifyFactor(factorId: string, code: string): Promise<MfaO
     code: code.trim(),
   });
   if (verify.error) return failure(verify.error.message);
-  // The verification instant is what the window is measured from.
-  markSteppedUp();
+  // L5: no hint is written — the refreshed token now carries the totp `amr`
+  // entry that `isStepUpFresh` reads.
   return { ok: true };
 }
 
@@ -156,13 +201,13 @@ export async function stepUpWithCode(code: string): Promise<MfaOutcome> {
 /**
  * Unenroll. MF-5: the caller re-verifies first, so this runs at aal2 only.
  * U1f-4: removing the last factor must not leave a session that still LOOKS
- * stepped up — refresh so GoTrue re-issues the claim, and drop the local hint
- * (stamp 0 = never fresh). The server refuses on factor absence regardless.
+ * stepped up — refresh so GoTrue re-issues the claim. The server refuses on
+ * factor absence regardless.
  */
 export async function unenrollFactor(factorId: string): Promise<MfaOutcome> {
   const { error } = await supabase.auth.mfa.unenroll({ factorId });
   if (error) return failure(error.message);
-  markSteppedUp(0);
+  // L5: refresh so the token itself stops claiming aal2 / carrying the amr.
   await supabase.auth.refreshSession();
   return { ok: true };
 }

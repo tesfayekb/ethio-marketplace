@@ -265,18 +265,50 @@ test.describe("U4b translations console", () => {
     const syncResult = await syncRoute;
     await expectWithEvidence(
       () => expect(page.getByTestId("translations-sync-done")).toBeVisible({ timeout: 30000 }),
-      async () => {
-        const { data, error } = await adminClient().rpc("admin_translation_stats", {
-          p_lang: "en",
-        });
-        const stats = error ? `stats read failed: ${error.message}` : JSON.stringify(data);
-        return (
-          `sync route (admin_sync_ui_keys) → ${syncResult}\n` +
-          `pooled user ${user.id}\nDB stats row: ${stats}`
-        );
-      },
+      // L5: the service-client stats read is gone — admin_translation_stats is
+      // refused for the service role by design, so it only ever produced a
+      // misleading "stats read failed" line. The ROUTE capture is the evidence.
+      async () => `sync route (admin_sync_ui_keys) → ${syncResult}\npooled user ${user.id}`,
     );
   });
+
+  /**
+   * L5 PART C — TR-7b, the regression for the production bug (INC-166).
+   * A super admin at aal1 clicks Sync, answers the step-up prompt, and the
+   * counts must render: this is the exact path where the old guard resolved on
+   * the modal opening and the result was lost. `@private-identity` because the
+   * test owns an un-elevated identity of its own.
+   */
+  test(
+    "TR-7b sync after a step-up prompt still reports its counts",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      test.setTimeout(120_000);
+      const { user, secret } = await signInAsSuperAdmin(page);
+      // The private mint ends ELEVATED (it enrols in-session). Signing the same
+      // identity in again yields a fresh aal1 session — the production state
+      // where Sync must ask for a code first.
+      await switchUser(page, user.email, user.password);
+      await logTranslatorScope(page, user.id);
+      await gotoReady(page, "/admin/translations");
+
+      const syncRoute = watchRoute(page, "admin_sync_ui_keys");
+      await page.getByTestId("translations-sync-run").click();
+      // The gate must actually ask — that is the path under test.
+      await stepUpIfPrompted(page, secret);
+      const syncResult = await syncRoute;
+
+      await expectWithEvidence(
+        async () => {
+          const done = page.getByTestId("translations-sync-done");
+          await expect(done).toBeVisible({ timeout: 30000 });
+          // The counts, not just the line: the lost value is what regressed.
+          await expect(done).toContainText(/\d/);
+        },
+        async () => `sync route (admin_sync_ui_keys) → ${syncResult}\nuser ${user.id}`,
+      );
+    },
+  );
 
   test("TR-8 save then approve moves a string through the status machine", async ({ page }) => {
     // SCRATCH-KEY LAW (INC-095e): the mutation targets this spec's OWN key.

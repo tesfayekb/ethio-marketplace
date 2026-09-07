@@ -37,9 +37,8 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
-const guard: GuardFn = async (action) => {
-  await action();
-};
+// L5 (DEC-041): guard resolves with the action's own result.
+const guard: GuardFn = async (action) => action();
 
 const revision: TranslationRevision = {
   id: "11111111-1111-4111-8111-111111111111",
