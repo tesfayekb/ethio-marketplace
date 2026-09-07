@@ -462,9 +462,9 @@ test.describe("C3 attributes console", () => {
           message: await dialogDump(page, "AT-8 link never landed"),
         })
         .toBe(1);
-      await expect(
-        librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`),
-      ).toBeVisible({ timeout: 20000 });
+      await expect(librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`)).toBeVisible(
+        { timeout: 20000 },
+      );
     } finally {
       if (slug) await destroyCategory(slug);
       await destroyAttribute(key);
@@ -535,9 +535,10 @@ test.describe("C3 attributes console", () => {
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
       const chip = librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`);
-      await expect(chip, await dialogDump(page, "AT-10 the used-by chip never rendered")).toBeVisible(
-        { timeout: 20000 },
-      );
+      await expect(
+        chip,
+        await dialogDump(page, "AT-10 the used-by chip never rendered"),
+      ).toBeVisible({ timeout: 20000 });
       await expect(chip).toHaveText(scratch!.name_en);
     } finally {
       if (slug) await destroyCategory(slug);
@@ -564,9 +565,11 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
-      await expect(librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`)).toBeVisible({
-        timeout: 20000,
-      });
+      await expect(librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`)).toBeVisible(
+        {
+          timeout: 20000,
+        },
+      );
 
       await (await openAttributeMenu(page, key)).getByTestId(`attribute-remove-${key}`).click();
       await expect(
@@ -584,13 +587,13 @@ test.describe("C3 attributes console", () => {
           message: await dialogDump(page, "AT-11 the link never went away"),
         })
         .toBe(0);
-      await expect(
-        librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`),
-      ).toHaveCount(0, { timeout: 20000 });
+      await expect(librarySurface(page).getByTestId(`attribute-usedby-${key}-${slug}`)).toHaveCount(
+        0,
+        { timeout: 20000 },
+      );
     } finally {
       if (slug) await destroyCategory(slug);
       await destroyAttribute(key);
     }
   });
 });
-

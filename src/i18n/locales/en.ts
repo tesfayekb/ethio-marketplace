@@ -978,7 +978,8 @@ export const en = {
   "admin.attributes.action.menu": "Actions",
   "admin.attributes.action.remove": "Remove from category",
   "admin.attributes.remove.title": "Remove from a category",
-  "admin.attributes.remove.hint": "The attribute stays in the library; only this category stops asking for it.",
+  "admin.attributes.remove.hint":
+    "The attribute stays in the library; only this category stops asking for it.",
   "admin.attributes.remove.category": "Category",
   "admin.attributes.remove.pickNone": "Choose a category",
   "admin.attributes.remove.none": "This attribute is not linked to any category yet.",

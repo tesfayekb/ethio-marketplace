@@ -38,7 +38,6 @@ import {
 } from "./attributes-service";
 import { useAdminAttributes, useAttributeCategories, useCategoryLinks } from "./use-attributes";
 
-
 /**
  * C3c PART B / C3-UX-1 — THE ATTRIBUTE LIBRARY.
  *
@@ -72,7 +71,6 @@ export function AdminAttributesPage() {
     | { kind: "remove"; id: string }
     | { kind: "merge" }
   >({ kind: "none" });
-
 
   const mayUpdate = permissions.includes("categories:update");
   const mayRestructure = permissions.includes("categories:restructure");
@@ -116,7 +114,6 @@ export function AdminAttributesPage() {
   const usedBy = useAttributeCategories();
   const usedByAttribute = useMemo(() => groupByAttribute(usedBy.data ?? []), [usedBy.data]);
   const chipsFor = (row: AttributeRow): AttributeCategory[] => usedByAttribute.get(row.id) ?? [];
-
 
   const chooseCategory = (slug: string) => {
     setOffset(0);
@@ -274,7 +271,6 @@ export function AdminAttributesPage() {
         </DropdownMenuContent>
       </DropdownMenu>
     ) : null;
-
 
   return (
     <StepUpGate>

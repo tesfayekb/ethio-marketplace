@@ -628,7 +628,10 @@ export function RemoveAttributeCategoryDialog({
       ) : (
         <>
           <p className="text-sm text-muted-foreground">{t("admin.attributes.remove.hint")}</p>
-          <FormField label={t("admin.attributes.remove.category")} htmlFor="attribute-remove-picker">
+          <FormField
+            label={t("admin.attributes.remove.category")}
+            htmlFor="attribute-remove-picker"
+          >
             <select
               id="attribute-remove-picker"
               data-testid="attribute-remove-picker"
