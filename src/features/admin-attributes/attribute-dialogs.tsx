@@ -24,6 +24,7 @@ import {
   useUnlinkAttribute,
   useUpsertAttribute,
 } from "./use-attributes";
+import { useAttributeLabel } from "./use-attribute-label";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY's write surfaces.
@@ -41,6 +42,7 @@ import {
  */
 export function useAttributeError() {
   const { t } = useI18n();
+  const attributeLabel = useAttributeLabel();
   const [message, setMessage] = useState<string | null>(null);
   const fail = (error: unknown) => {
     const raw =
@@ -86,6 +88,7 @@ function DialogActions({
   danger?: boolean;
 }) {
   const { t } = useI18n();
+  const attributeLabel = useAttributeLabel();
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
       <Button
@@ -124,6 +127,7 @@ export function AttributeEditorDialog({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+  const attributeLabel = useAttributeLabel();
   const upsert = useUpsertAttribute();
   const { message, setMessage, fail } = useAttributeError();
   const [attrKey, setAttrKey] = useState(attribute?.attrKey ?? "");
@@ -253,6 +257,7 @@ export function DeleteAttributeDialog({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+  const attributeLabel = useAttributeLabel();
   const remove = useDeleteAttribute();
   const { message, setMessage, fail } = useAttributeError();
   const [typed, setTyped] = useState("");
@@ -353,6 +358,7 @@ export function MergeAttributesDialog({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+  const attributeLabel = useAttributeLabel();
   const merge = useMergeAttributes();
   const { message, setMessage, fail } = useAttributeError();
   const [sourceIds, setSourceIds] = useState<string[]>([]);
@@ -410,7 +416,7 @@ export function MergeAttributesDialog({
           <option value="">{t("admin.attributes.merge.targetNone")}</option>
           {attributes.map((row) => (
             <option key={row.id} value={row.id}>
-              {`${row.nameEn} (${row.attrKey})`}
+              {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
             </option>
           ))}
         </select>
@@ -430,7 +436,7 @@ export function MergeAttributesDialog({
                   checked={sourceIds.includes(row.id)}
                   onCheckedChange={(next) => toggle(row.id, next === true)}
                 />
-                <span className="min-w-0 truncate">{`${row.nameEn} (${row.attrKey}) · ${row.usageCount}`}</span>
+                <span className="min-w-0 truncate">{`${attributeLabel(row.id, row.nameEn)} (${row.attrKey}) · ${row.usageCount}`}</span>
               </label>
             ))}
         </div>
@@ -444,7 +450,7 @@ export function MergeAttributesDialog({
         >
           {t("admin.attributes.merge.confirm")
             .replace("{n}", String(movingLinks))
-            .replace("{target}", target.nameEn)
+            .replace("{target}", attributeLabel(target.id, target.nameEn))
             .replace("{m}", String(sources.length))}
         </p>
       ) : null}
@@ -493,6 +499,7 @@ export function AssignAttributeDialog({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+  const attributeLabel = useAttributeLabel();
   const link = useLinkAttribute();
   const { message, setMessage, fail } = useAttributeError();
   const [needle, setNeedle] = useState("");
@@ -532,7 +539,7 @@ export function AssignAttributeDialog({
     <CategoryModal
       testid="attribute-assign-dialog"
       openedBy="row-assign"
-      title={`${t("admin.attributes.assign.title")} — ${attribute.nameEn}`}
+      title={`${t("admin.attributes.assign.title")} — ${attributeLabel(attribute.id, attribute.nameEn)}`}
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.attributes.assign.hint")}</p>
@@ -592,6 +599,7 @@ export function RemoveAttributeCategoryDialog({
   onClose: () => void;
 }) {
   const { t } = useI18n();
+  const attributeLabel = useAttributeLabel();
   const unlink = useUnlinkAttribute();
   const { message, setMessage, fail } = useAttributeError();
   const [linkId, setLinkId] = useState(links.length === 1 ? (links[0]?.linkId ?? "") : "");
@@ -618,7 +626,7 @@ export function RemoveAttributeCategoryDialog({
     <CategoryModal
       testid="attribute-remove-dialog"
       openedBy="row-remove"
-      title={`${t("admin.attributes.remove.title")} — ${attribute.nameEn}`}
+      title={`${t("admin.attributes.remove.title")} — ${attributeLabel(attribute.id, attribute.nameEn)}`}
       onClose={onClose}
     >
       {links.length === 0 ? (
@@ -650,7 +658,7 @@ export function RemoveAttributeCategoryDialog({
           {chosen === null ? null : (
             <p data-testid="attribute-remove-confirm" className="text-sm text-foreground">
               {t("admin.attributes.remove.confirm")
-                .replace("{attribute}", attribute.nameEn)
+                .replace("{attribute}", attributeLabel(attribute.id, attribute.nameEn))
                 .replace("{category}", chosen.nameEn)}
             </p>
           )}
