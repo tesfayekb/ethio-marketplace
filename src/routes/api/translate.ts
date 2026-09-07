@@ -66,7 +66,8 @@ const MAX_ITEMS = 600; // hard cap per request (413 beyond).
  */
 type Scope = "ui" | "entity";
 
-const ENTITY_TYPES = new Set(["category", "location"]);
+// C3-UX-2 — attribute labels are translatable content, same writer, same gate.
+const ENTITY_TYPES = new Set(["category", "location", "attribute"]);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface Item {

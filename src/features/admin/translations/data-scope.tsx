@@ -51,6 +51,7 @@ const STATUS_LABELS: Record<string, MessageKey> = {
 const ENTITY_LABELS: Record<string, MessageKey> = {
   category: "admin.translations.entity.category",
   location: "admin.translations.entity.location",
+  attribute: "admin.translations.entity.attribute",
 };
 
 /**
