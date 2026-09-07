@@ -66,9 +66,28 @@ below it, "Also in: …" for every other active branch the category hangs under 
 the flipped service nodes (auto services, realtor services, fitness centres) sit
 under Services first and keep their second home visible.
 
+## The library surface (C3-UX-1)
+
+The library renders ONLY through the C7 DataTable primitive at `cardUntil="lg"`
+(cards through the tablet band, table from 1024) with primitive-owned column
+min-widths — no per-page width hacks. Columns: Name · Type · Options (count;
+the full list expands under the row) · Used by (link count) · Actions.
+
+A **category filter** sits in the toolbar and lives in the URL as
+`?category=<slug>`, so a filtered library is shareable and reloadable; it reads
+`admin_list_category_attribute_links` for that category and narrows the rows to
+the attributes linked to it. One control clears it, and an empty result is a
+caption beside the controls (C4), never a replacement for them.
+
+**Assign to category** is a row action: the link manager pre-scoped to that one
+attribute. It writes through the same gated `admin_link_attribute` door (a
+duplicate link is refused server-side with its own translated line), and the
+row's Used by count re-reads from the mutation's invalidation.
+
 ## Tests
 
 `e2e/admin-attributes.spec.ts` — AT-1 gating · AT-2 definitions · AT-3
 link/unlink · AT-4 card picker clears the amber flag · AT-5 delete refused then
-accepted · AT-6 merge. `e2e/admin-categories-console.spec.ts` CT-9a/9b assert the
+accepted · AT-6 merge · AT-7 category filter (DB truth) · AT-8 assign from the
+library · AT-9 twin rendering with no sideways scroll. `e2e/admin-categories-console.spec.ts` CT-9a/9b assert the
 parent cell in both twins against pointer truth.
