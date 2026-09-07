@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Pencil, Trash, Merge, Link2 } from "lucide-react";
+import { Link2, Merge, MoreHorizontal, Pencil, Trash, Unlink } from "lucide-react";
 
 import {
   DataTable,
@@ -9,6 +9,12 @@ import {
 } from "@/components/shell/data-table";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
@@ -22,9 +28,16 @@ import {
   AttributeEditorDialog,
   DeleteAttributeDialog,
   MergeAttributesDialog,
+  RemoveAttributeCategoryDialog,
 } from "./attribute-dialogs";
-import { typeHasOptions, type AttributeRow } from "./attributes-service";
-import { useAdminAttributes, useCategoryLinks } from "./use-attributes";
+import {
+  groupByAttribute,
+  typeHasOptions,
+  type AttributeCategory,
+  type AttributeRow,
+} from "./attributes-service";
+import { useAdminAttributes, useAttributeCategories, useCategoryLinks } from "./use-attributes";
+
 
 /**
  * C3c PART B / C3-UX-1 — THE ATTRIBUTE LIBRARY.
