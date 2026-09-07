@@ -448,12 +448,11 @@ export async function enrollAndStepUp(page: Page): Promise<string> {
  * session), an untagged test gets the pool. `scripts/check-identity-tags.sh`
  * enforces the law statically, so the tag can never silently go missing.
  *
- * AAL PARITY: `enrollAndStepUp` left the session at AAL2, so this helper does
- * too — after sign-in it elevates IN THE BROWSER through the app's own client
- * (`challengeAndVerify` on the pooled factor) and reads the achieved level back
- * before returning. The step-up HINT is deliberately not written, so a gate
- * still prompts exactly as it does after a fresh sign-in and
- * `stepUpIfPrompted(page, secret)` keeps answering freshness re-prompts.
+ * L5 / DEC-041 — SESSION REUSE. Setup signs the pool in and verifies its factor
+ * IN NODE, so the AAL2 session is already on disk: this helper injects it before
+ * the first navigation and reads AAL2 back from the client. No UI sign-in and no
+ * per-test code. `stepUpIfPrompted(page, secret)` still answers any freshness
+ * re-prompt once the 10-minute token window lapses.
  *
  * With the `E2E_UI_LOGIN=1` revert knob (or in an auth spec) there is no
  * injection: the pooled credentials go through the real UI door and the same
@@ -474,6 +473,8 @@ function pooledSuperAdmin(): E2ESuperAdmin {
 
 /**
  * L4b PART B — AAL2 PARITY, in the browser, through the app's own client.
+ * L5: RETIRED on the injection path (the node session is already AAL2); this
+ * remains only for the `E2E_UI_LOGIN=1` revert knob, which drives the real door.
  * `challengeAndVerify` is exactly what the step-up gate calls, so the session
  * the test inherits is byte-for-byte the state the old enrol-in-session helper
  * left behind (direct-RPC tests such as RP-4 and TR-6 depend on it).

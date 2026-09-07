@@ -71,7 +71,7 @@ export function useStepUp() {
   }, []);
 
   const guard = useCallback(
-    async <T,>(action: () => T | Promise<T>): Promise<T> => {
+    async <T>(action: () => T | Promise<T>): Promise<T> => {
       const park = () =>
         new Promise<T>((resolve, reject) => {
           void open({
