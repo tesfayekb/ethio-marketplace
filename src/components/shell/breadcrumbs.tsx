@@ -11,7 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { PANELS } from "@/config/panels";
-import { sectionForPath } from "@/features/admin/sections";
+import { groupForSection, sectionForPath } from "@/features/admin/sections";
 import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
 import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { useCategories } from "@/features/feed/use-feed";
@@ -131,6 +131,18 @@ export function Breadcrumbs() {
               </BreadcrumbPage>
             )}
           </BreadcrumbItem>
+          {section && groupForSection(section) ? (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                {/* C3-UX-2 — Group › Section. The group owns no page, so the
+                    crumb is a label, never a dead link. */}
+                <BreadcrumbPage data-testid="breadcrumb-admin-group">
+                  {t(groupForSection(section)!.titleKey)}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </>
+          ) : null}
           {section ? (
             <>
               <BreadcrumbSeparator />
