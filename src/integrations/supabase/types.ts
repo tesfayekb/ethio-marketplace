@@ -1856,6 +1856,8 @@ export type Database = {
         Args: { p_definitions: Json; p_links: Json; p_scope: string }
         Returns: Json
       }
+      attr_json_or_null: { Args: { p_text: string }; Returns: Json }
+      attr_option_norm: { Args: { p_options: Json }; Returns: Json }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
         Returns: {
