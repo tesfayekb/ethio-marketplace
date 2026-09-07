@@ -4,6 +4,7 @@ import {
   expectNoHorizontalOverflow,
   gotoReady,
   stepUpIfPrompted,
+  switchLanguage,
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
@@ -612,6 +613,213 @@ test.describe("C3 attributes console", () => {
       );
     } finally {
       if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+  /* --------------------- C3-UX-2: labels, roster, denials ------------------ */
+
+  /**
+   * C3-UX-2 PART B — an APPROVED `am` label for entity_type 'attribute' /
+   * field 'label' renders in the library when the UI language is am, and the
+   * EN definition name answers again the moment the row is gone (the overlay
+   * law: DB[lang] ▸ compiled ▸ EN).
+   */
+  test("AT-12 an approved am attribute label renders in am and falls back to EN", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    const marker = `ኢ2ኢ ${rand()}`;
+    try {
+      // SEED BEFORE NAVIGATE (J7): definition + its approved am label.
+      const id = await seedAttribute(key);
+      const { error } = await adminClient().from("entity_translations").insert({
+        entity_type: "attribute",
+        entity_id: id,
+        field: "label",
+        lang_code: "am",
+        value: marker,
+        status: "approved",
+        machine: false,
+      });
+      if (error) throw new Error(`AT-12 label seed failed: ${error.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      await switchLanguage(page, "am");
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      const row = librarySurface(page).getByTestId(
+        isCardTwin(page) ? `attribute-row-${key}-card` : `attribute-row-${key}`,
+      );
+      await expect(row, await dialogDump(page, "AT-12 the row never rendered in am")).toBeVisible({
+        timeout: 20000,
+      });
+      await expect(row).toContainText(marker);
+
+      // THE FALLBACK: remove the approved row and the EN name answers again.
+      await adminClient()
+        .from("entity_translations")
+        .delete()
+        .eq("entity_type", "attribute")
+        .eq("entity_id", id);
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      await expect(row).toContainText(key, { timeout: 20000 });
+      await expect(row).not.toContainText(marker);
+    } finally {
+      await switchLanguage(page, "en").catch(() => undefined);
+      await destroyAttribute(key);
+    }
+  });
+
+  /** C3-UX-2 — a scratch definition is a translatable row in the Data scope. */
+  test("AT-13 a scratch attribute appears in the Data scope roster as pending", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    try {
+      const id = await seedAttribute(key);
+      await gotoReady(page, "/admin/translations/am?scope=data");
+      await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("data-search").fill(key);
+      const status = page.getByTestId(`entity-status-attribute-${id}-label`);
+      await expect(
+        status,
+        await dialogDump(page, "AT-13 the attribute never reached the Data roster"),
+      ).toBeVisible({ timeout: 20000 });
+      // Pending = no translation row yet (DB truth), rendered as untranslated.
+      const { data } = await adminClient()
+        .from("entity_translations")
+        .select("entity_id")
+        .eq("entity_type", "attribute")
+        .eq("entity_id", id);
+      expect(data ?? []).toHaveLength(0);
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * C3-UX-2 — DENY PROOFS (law F3: the server is the only authority). A
+   * categories:view-only caller reads the library and is refused by every
+   * write door, live, through the browser's own Supabase client.
+   */
+  test("AT-14 a categories:view-only user reads the library and every write door refuses", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const supabase = adminClient();
+    const roleName = `e2e_viewonly_${rand()}`;
+    let roleId = "";
+    const key = `e2e_attr_${rand()}`;
+    try {
+      const attributeId = await seedAttribute(key);
+      const { data: role, error: roleError } = await supabase
+        .from("roles")
+        .insert({ name: roleName, display_name: roleName, priority: 1 })
+        .select("id")
+        .single();
+      if (roleError || !role) throw new Error(`AT-14 scratch role failed: ${roleError?.message}`);
+      roleId = role.id;
+      const { data: perms, error: permError } = await supabase
+        .from("permissions")
+        .select("id, action, resources!inner(name)")
+        .in("resources.name", ["admin_panel", "categories"]);
+      if (permError) throw new Error(`AT-14 permission census failed: ${permError.message}`);
+      const wanted = (perms ?? []).filter((p) => {
+        const resource = (p as unknown as { resources: { name: string } }).resources.name;
+        return (
+          (resource === "admin_panel" && p.action === "access") ||
+          (resource === "categories" && p.action === "view")
+        );
+      });
+      expect(wanted, "AT-14 expected exactly admin_panel:access + categories:view").toHaveLength(2);
+      await supabase
+        .from("role_permissions")
+        .insert(wanted.map((p) => ({ role_id: roleId, permission_id: p.id })));
+
+      const viewer = await createUser({ confirmed: true });
+      await supabase
+        .from("user_roles")
+        .insert({ user_id: viewer.id, role_id: roleId, scope_type: "global" });
+
+      await switchUser(page, viewer.email, viewer.password);
+      await gotoReady(page, "/admin/attributes");
+      // THE READ LANDS.
+      await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("attribute-search").fill(key);
+      await expect(
+        librarySurface(page).getByTestId(
+          isCardTwin(page) ? `attribute-row-${key}-card` : `attribute-row-${key}`,
+        ),
+      ).toBeVisible({ timeout: 20000 });
+      // NO WRITE VERBS: the row carries no actions trigger at all.
+      await expect(page.getByTestId(`attribute-actions-${key}`)).toHaveCount(0);
+      await expect(page.getByTestId("attribute-new")).toHaveCount(0);
+
+      // THE SERVER REFUSES — live, from the signed-in browser client.
+      const denials = await page.evaluate(
+        async ([id, attrKey]) => {
+          const client = (
+            window as unknown as {
+              __ethioSupabase: {
+                rpc: (
+                  fn: string,
+                  args: Record<string, unknown>,
+                ) => Promise<{ error: { message: string } | null }>;
+              };
+            }
+          ).__ethioSupabase;
+          const upsert = await client.rpc("admin_upsert_attribute", {
+            p_id: null,
+            p_attr_key: `${attrKey}_denied`,
+            p_name_en: "denied",
+            p_attr_type: "text",
+            p_options: null,
+            p_help_text_en: null,
+          });
+          const link = await client.rpc("admin_link_attribute", {
+            p_category_id: "00000000-0000-0000-0000-000000000000",
+            p_attribute_id: id,
+            p_is_required: false,
+            p_is_filterable: true,
+            p_display_order: null,
+          });
+          const del = await client.rpc("admin_delete_attribute", {
+            p_id: id,
+            p_confirm_key: attrKey,
+          });
+          return {
+            upsert: upsert.error?.message ?? "NO ERROR",
+            link: link.error?.message ?? "NO ERROR",
+            del: del.error?.message ?? "NO ERROR",
+          };
+        },
+        [attributeId, key],
+      );
+      expect(denials.upsert).toContain("permission denied");
+      expect(denials.link).toContain("permission denied");
+      expect(denials.del).toContain("permission denied");
+
+      // A refused attempt leaves NO trace (F5).
+      const { data: after } = await supabase
+        .from("attributes")
+        .select("id")
+        .eq("attr_key", `${key}_denied`);
+      expect(after ?? []).toHaveLength(0);
+      expect(await readAttribute(key)).not.toBeNull();
+    } finally {
+      if (roleId) {
+        await supabase.from("user_roles").delete().eq("role_id", roleId);
+        await supabase.from("role_permissions").delete().eq("role_id", roleId);
+        await supabase.from("roles").delete().eq("id", roleId);
+      }
       await destroyAttribute(key);
     }
   });
