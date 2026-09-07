@@ -589,7 +589,7 @@ export function AdminCategoriesPage() {
         key={testid}
         type="button"
         variant={danger ? "destructive" : "outline"}
-        className="min-h-[44px]"
+        size="touch"
         data-testid={testid}
         title={label}
         disabled={disabled}
@@ -737,7 +737,8 @@ export function AdminCategoriesPage() {
             <PageCard testid="category-create-card">
               <Button
                 type="button"
-                className="min-h-11 w-full md:w-auto"
+                size="touch"
+                className="w-full md:w-auto"
                 data-testid="category-create-open"
                 onClick={() => setDialog({ kind: "create" })}
               >
@@ -793,7 +794,7 @@ export function AdminCategoriesPage() {
                 <Button
                   type="button"
                   variant={missingOnly ? "default" : "outline"}
-                  className="min-h-11"
+                  size="touch"
                   aria-pressed={missingOnly}
                   data-testid="category-missing-filter"
                   onClick={() => setMissingOnly((prev) => !prev)}
@@ -804,7 +805,7 @@ export function AdminCategoriesPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="min-h-11"
+                    size="touch"
                     data-testid="category-bulk-generate"
                     disabled={bulkBusy}
                     onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
