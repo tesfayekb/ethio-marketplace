@@ -969,7 +969,8 @@ export const en = {
   "admin.attributes.filter.clear": "Clear filter",
   "admin.attributes.filter.empty": "No attribute is linked to this category yet.",
   "admin.attributes.assign.title": "Assign to a category",
-  "admin.attributes.assign.hint": "The attribute is linked to the chosen category and starts optional and filterable.",
+  "admin.attributes.assign.hint":
+    "The attribute is linked to the chosen category and starts optional and filterable.",
   "admin.attributes.assign.category": "Category",
   "admin.attributes.assign.pickNone": "Choose a category",
   "admin.attributes.assign.searchPlaceholder": "Search categories",
