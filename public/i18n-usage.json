@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 200,
-  "dynamicCallSites": 75,
+  "scanned": 204,
+  "dynamicCallSites": 98,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -184,73 +184,7 @@
     "admin.attributes.filter.empty": [
       "/admin/attributes"
     ],
-    "admin.attributes.import.busy": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.committed": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.confirm": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.counts": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.definitionsFile": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.discard": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.badHeader": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.busy": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.denied": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.emptyFile": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.failed": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.fileChanged": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.stepUp": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.tooLarge": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.error.tooManyRows": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.hint": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.linksFile": [
-      "/admin/attributes"
-    ],
     "admin.attributes.import.open": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.preview": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.refusalRow": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.title": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.undo": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.import.undone": [
       "/admin/attributes"
     ],
     "admin.attributes.inherited.badge": [
@@ -633,6 +567,15 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.categories.export.busy": [
+      "/admin/categories"
+    ],
+    "admin.categories.export.error": [
+      "/admin/categories"
+    ],
+    "admin.categories.export.open": [
+      "/admin/categories"
+    ],
     "admin.categories.field.allowListings": [
       "/admin/attributes",
       "/admin/categories"
@@ -742,6 +685,9 @@
     ],
     "admin.categories.image.title": [
       "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.categories.import.open": [
       "/admin/categories"
     ],
     "admin.categories.loading": [
