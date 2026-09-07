@@ -29,6 +29,12 @@ export interface NavItem {
    * reachable without a disclosure hunt.
    */
   defaultOpen?: boolean;
+  /**
+   * C3-UX-2b PART E — an explicit rail testid. Routed sections keep the derived
+   * `rail-item-<id>`; a GROUP carrier declares `admin-group-<id>` so it can
+   * never be mistaken for a section item.
+   */
+  testid?: string;
 }
 
 export interface Panel {
