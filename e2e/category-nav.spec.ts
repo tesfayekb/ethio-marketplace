@@ -34,11 +34,13 @@ test.describe("category selection navigates", () => {
      * POLLED to its settled value (the rail hydrates row by row), so all
      * three tests read one verdict.
      */
-    let count = await rows.count();
-    for (let attempt = 0; attempt < 20 && count < 2; attempt += 1) {
-      await page.waitForTimeout(250);
-      count = await rows.count();
-    }
+    // The rail hydrates row by row: poll the count to its settled value so
+    // every test reads one verdict (never a sleep — DEC-027).
+    await expect
+      .poll(async () => await rows.count(), { timeout: 10000 })
+      .toBeGreaterThan(1)
+      .catch(() => undefined);
+    const count = await rows.count();
     if (count < 2) return null;
     const row = rows.nth(1);
     const label = (await row.textContent())!.trim();
