@@ -440,14 +440,29 @@ export default async function globalSetup() {
 
   // 5. Only now hand credentials to the spec.
   // handle_new_user() derives display_name from the local part of the email.
-  // L4 (DEC-038) — THE JOB-SCOPED IDENTITY POOL. Before L4 every admin test
-  // minted its own super admin AND enrolled a TOTP factor through the UI
-  // (~170 enrollments per run). One super admin per JOB, enrolled ONCE here
-  // through the same GoTrue MFA API the app's client calls, collapses that to
-  // one enrollment per job. The identity is minted with `mintEmail` (J1), so
-  // the teardown's `+${PROCESS_ID}-` ownership filter already reaps it.
-  const superAdmin = await mintPooledSuperAdmin(supabase);
-  console.log(`[e2e:setup] pooled super admin ${superAdmin.id} (factor ${superAdmin.factorId})`);
+  // L4 (DEC-038) — THE IDENTITY POOL. Before L4 every admin test minted its own
+  // super admin AND enrolled a TOTP factor through the UI (~170 enrollments per
+  // run). The pool collapses that to a handful of enrollments per job.
+  //
+  // L5c (DEC-041 amended) — ONE IDENTITY PER WORKER SLOT. A single job-wide
+  // identity was borrowed by every worker at once: GoTrue's refresh/verify on
+  // one worker revoked the token another worker was mid-request with (INC-168),
+  // and the one stored session aged past the challenge window (INC-169). The
+  // pool is now an ARRAY, indexed by `test.info().parallelIndex`, so concurrent
+  // tests never share an identity. Identities are minted with `mintEmail` (J1)
+  // and namespaced job × worker, so teardown's `+${PROCESS_ID}-` ownership
+  // filter already reaps every one of them (same pattern, confirmed).
+  const workerSlots = Math.max(1, Number(process.env["E2E_WORKERS"] ?? 2) || 1);
+  const superAdmins: E2ESuperAdmin[] = [];
+  for (let slot = 0; slot < workerSlots; slot += 1) {
+    const minted = await mintPooledSuperAdmin(supabase, slot);
+    console.log(
+      `[e2e:setup] pooled super admin slot ${slot}: ${minted.id} ` +
+        `(${minted.email}, factor ${minted.factorId})`,
+    );
+    superAdmins.push(minted);
+  }
+  console.log(`[e2e:setup] identity pool size = ${superAdmins.length} (E2E_WORKERS=${workerSlots})`);
 
   const user: E2EUser = {
     id: userId,
@@ -455,8 +470,9 @@ export default async function globalSetup() {
     password,
     displayName: email.split("@")[0]!,
     processId: currentProcessId,
-    superAdmin,
+    superAdmins,
   };
+
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
