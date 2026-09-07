@@ -34,7 +34,9 @@ import { Route as AdminTranslationsLangRouteImport } from './routes/admin.transl
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as ApiAdminCategoriesSuggestIconRouteImport } from './routes/api/admin/categories/suggest-icon'
+import { Route as ApiAdminCategoriesImportRouteImport } from './routes/api/admin/categories/import'
 import { Route as ApiAdminCategoriesGenerateImageRouteImport } from './routes/api/admin/categories/generate-image'
+import { Route as ApiAdminCategoriesExportRouteImport } from './routes/api/admin/categories/export'
 import { Route as ApiAdminAttributesImportRouteImport } from './routes/api/admin/attributes/import'
 import { Route as ApiAdminAttributesExportRouteImport } from './routes/api/admin/attributes/export'
 
@@ -165,10 +167,22 @@ const ApiAdminCategoriesSuggestIconRoute =
     path: '/api/admin/categories/suggest-icon',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminCategoriesImportRoute =
+  ApiAdminCategoriesImportRouteImport.update({
+    id: '/api/admin/categories/import',
+    path: '/api/admin/categories/import',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminCategoriesGenerateImageRoute =
   ApiAdminCategoriesGenerateImageRouteImport.update({
     id: '/api/admin/categories/generate-image',
     path: '/api/admin/categories/generate-image',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminCategoriesExportRoute =
+  ApiAdminCategoriesExportRouteImport.update({
+    id: '/api/admin/categories/export',
+    path: '/api/admin/categories/export',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiAdminAttributesImportRoute =
@@ -211,7 +225,9 @@ export interface FileRoutesByFullPath {
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
+  '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
+  '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
 }
 export interface FileRoutesByTo {
@@ -240,7 +256,9 @@ export interface FileRoutesByTo {
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
+  '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
+  '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
 }
 export interface FileRoutesById {
@@ -271,7 +289,9 @@ export interface FileRoutesById {
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
+  '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
+  '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
 }
 export interface FileRouteTypes {
@@ -303,7 +323,9 @@ export interface FileRouteTypes {
     | '/api/i18n/$lang'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
+    | '/api/admin/categories/export'
     | '/api/admin/categories/generate-image'
+    | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -332,7 +354,9 @@ export interface FileRouteTypes {
     | '/api/i18n/$lang'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
+    | '/api/admin/categories/export'
     | '/api/admin/categories/generate-image'
+    | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
   id:
     | '__root__'
@@ -362,7 +386,9 @@ export interface FileRouteTypes {
     | '/api/i18n/$lang'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
+    | '/api/admin/categories/export'
     | '/api/admin/categories/generate-image'
+    | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
   fileRoutesById: FileRoutesById
 }
@@ -380,7 +406,9 @@ export interface RootRouteChildren {
   ApiI18nLangRoute: typeof ApiI18nLangRoute
   ApiAdminAttributesExportRoute: typeof ApiAdminAttributesExportRoute
   ApiAdminAttributesImportRoute: typeof ApiAdminAttributesImportRoute
+  ApiAdminCategoriesExportRoute: typeof ApiAdminCategoriesExportRoute
   ApiAdminCategoriesGenerateImageRoute: typeof ApiAdminCategoriesGenerateImageRoute
+  ApiAdminCategoriesImportRoute: typeof ApiAdminCategoriesImportRoute
   ApiAdminCategoriesSuggestIconRoute: typeof ApiAdminCategoriesSuggestIconRoute
 }
 
@@ -561,11 +589,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminCategoriesSuggestIconRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/categories/import': {
+      id: '/api/admin/categories/import'
+      path: '/api/admin/categories/import'
+      fullPath: '/api/admin/categories/import'
+      preLoaderRoute: typeof ApiAdminCategoriesImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/categories/generate-image': {
       id: '/api/admin/categories/generate-image'
       path: '/api/admin/categories/generate-image'
       fullPath: '/api/admin/categories/generate-image'
       preLoaderRoute: typeof ApiAdminCategoriesGenerateImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/categories/export': {
+      id: '/api/admin/categories/export'
+      path: '/api/admin/categories/export'
+      fullPath: '/api/admin/categories/export'
+      preLoaderRoute: typeof ApiAdminCategoriesExportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/attributes/import': {
@@ -633,7 +675,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiI18nLangRoute: ApiI18nLangRoute,
   ApiAdminAttributesExportRoute: ApiAdminAttributesExportRoute,
   ApiAdminAttributesImportRoute: ApiAdminAttributesImportRoute,
+  ApiAdminCategoriesExportRoute: ApiAdminCategoriesExportRoute,
   ApiAdminCategoriesGenerateImageRoute: ApiAdminCategoriesGenerateImageRoute,
+  ApiAdminCategoriesImportRoute: ApiAdminCategoriesImportRoute,
   ApiAdminCategoriesSuggestIconRoute: ApiAdminCategoriesSuggestIconRoute,
 }
 export const routeTree = rootRouteImport

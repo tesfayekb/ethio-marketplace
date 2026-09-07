@@ -10,6 +10,8 @@ import {
   Share2,
   Trash,
   Trash2,
+  Download,
+  Upload,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,11 +31,13 @@ import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
 
 import { CategoryAttributesDialog } from "@/features/admin-attributes/category-attributes-dialog";
 import { needsCardAttributes } from "@/features/admin-attributes/attributes-service";
 
 import { CategoryImageDialog } from "./category-image-dialog";
+import { ImportCategoriesDialog } from "./category-import-dialog";
 import { CategoryImageError, generateCategoryImage } from "./category-images-service";
 import {
   CategoryExclusionsDialog,
@@ -107,6 +111,7 @@ type OpenedBy = "row-click" | "keyboard" | "create-button" | `verb-${EditorSub}`
 type DialogState =
   | { kind: "none" }
   | { kind: "create" }
+  | { kind: "import" }
   | { kind: "edit"; id: string; sub: EditorSub | null; openedBy: OpenedBy };
 
 /**
@@ -193,6 +198,16 @@ export function AdminCategoriesPage() {
   const mayUpdate = permissions.includes("categories:update");
   const mayRestructure = permissions.includes("categories:restructure");
   const mayAssets = permissions.includes("categories:assets");
+  /** CAT-IE — the import door is its own permission; the RPCs refuse regardless. */
+  const mayImport = permissions.includes("categories:import");
+
+  /**
+   * CAT-IE PART A — EXPORT. One download; the roster's root filter narrows it
+   * to that subtree (the server resolves the descendants). A failure is a
+   * translated caption beside the controls (F4), never silence.
+   */
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
 
   /**
    * C5b PART C — BULK FILL. A client-driven SERIAL loop over the rows the
@@ -209,6 +224,36 @@ export function AdminCategoriesPage() {
   const roster = useMemo(() => toRoster(data ?? []), [data]);
   const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
   const roots = useMemo(() => roster.filter((row) => row.parentId === null), [roster]);
+  /** The scope the export and the import obey: the filtered root's slug. */
+  const scopeSlug = rootFilter === "" ? null : (byId.get(rootFilter)?.slug ?? null);
+
+  const runExport = async () => {
+    setExporting(true);
+    setExportError(false);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token ?? "";
+      const query = scopeSlug === null ? "" : `?scope=${encodeURIComponent(scopeSlug)}`;
+      const response = await fetch(`/api/admin/categories/export${query}`, {
+        headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error(`export failed: ${response.status}`);
+      const blob = await response.blob();
+      const href = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = href;
+      anchor.download = scopeSlug === null ? "categories.csv" : `${scopeSlug}-categories.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(href);
+    } catch (error) {
+      console.error("[categories] export failed", error);
+      setExportError(true);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   /** The root a node hangs under — the filter is a whole-subtree filter. */
   const rootOf = (row: CategoryNode): string => {
@@ -801,6 +846,43 @@ export function AdminCategoriesPage() {
                 >
                   {t("admin.categories.filter.missingAssets")}
                 </Button>
+                {/* CAT-IE — export honours the root filter; import is gated. */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid="category-export"
+                  disabled={exporting}
+                  onClick={() => void runExport()}
+                >
+                  <Download aria-hidden="true" className="size-4" />
+                  <span>
+                    {exporting
+                      ? t("admin.categories.export.busy")
+                      : t("admin.categories.export.open")}
+                  </span>
+                </Button>
+                {mayImport ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="touch"
+                    data-testid="category-import"
+                    onClick={() => setDialog({ kind: "import" })}
+                  >
+                    <Upload aria-hidden="true" className="size-4" />
+                    <span>{t("admin.categories.import.open")}</span>
+                  </Button>
+                ) : null}
+                {exportError ? (
+                  <p
+                    role="alert"
+                    className="text-sm text-destructive"
+                    data-testid="category-export-error"
+                  >
+                    {t("admin.categories.export.error")}
+                  </p>
+                ) : null}
                 {mayAssets ? (
                   <Button
                     type="button"
@@ -869,6 +951,14 @@ export function AdminCategoriesPage() {
             }
             rowActions={(row) => rowActions(row)}
           />
+
+          {dialog.kind === "import" ? (
+            <ImportCategoriesDialog
+              scope={scopeSlug}
+              guard={guard}
+              onClose={() => closeDialog({ kind: "none" })}
+            />
+          ) : null}
 
           {dialog.kind === "create" ||
           (selected && dialog.kind === "edit" && dialog.sub === null) ? (

@@ -2,8 +2,8 @@ import type { Locator } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
-import { gotoReady, stepUpIfPrompted, waitForHydration } from "./helpers/ui";
-import { adminClient } from "./helpers/users";
+import { gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./helpers/ui";
+import { adminClient, createUser } from "./helpers/users";
 import {
   scratchSlug,
   bandOnly,
@@ -20,6 +20,7 @@ import {
   destroyCategory,
   createViaUi,
   lifecycleDump,
+  rand,
 } from "./helpers/categories";
 /**
  * C2 — LIFECYCLE, STEP-UP AND DELETE (CT-12..CT-17).
@@ -657,6 +658,527 @@ import {
       await destroyCategory(aSlug);
       await destroyCategory(bSlug);
       await destroyCategory(parentSlug);
+    }
+  });
+});
+
+/**
+ * CAT-IE — CATEGORY EXPORT + IMPORT (CT-18..CT-23).
+ *
+ * The import never writes anything the console could not write by hand: every
+ * mutation travels through the lifecycle doors, and every verdict (unknown
+ * parent, cycle, catch-all parent, blast radius, scope, step-up) belongs to
+ * the gated RPCs (E7/F3). These blocks assert DB truth through the service
+ * client (J4), never the rendered badge.
+ */
+test.describe("CAT-IE categories import/export", () => {
+  const COLUMNS = [
+    "category_path",
+    "category_slug",
+    "parent_slug",
+    "name_en",
+    "name_am",
+    "display_order",
+    "is_active",
+    "allow_listings",
+    "is_catchall",
+    "price_enabled",
+    "expiry_days",
+    "icon",
+    "visible_from",
+    "visible_until",
+    "excluded_country_codes",
+    "secondary_parents",
+    "listing_count",
+    "origin_scope",
+  ] as const;
+  const HEADER = COLUMNS.join(",");
+
+  /** RFC 4180 cell for a hand-authored fixture file. */
+  function cell(value: string): string {
+    return /["\n\r,]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  }
+
+  function line(
+    values: Partial<Record<(typeof COLUMNS)[number], string>>,
+    action?: string,
+  ): string {
+    const cells = COLUMNS.map((column) => cell(values[column] ?? ""));
+    return action === undefined ? cells.join(",") : [...cells, cell(action)].join(",");
+  }
+
+  function file(rows: string[], withAction = false): string {
+    const header = withAction ? `${HEADER},action` : HEADER;
+    return `\uFEFF${[header, ...rows].join("\r\n")}\r\n`;
+  }
+
+  async function bearerOf(page: import("@playwright/test").Page): Promise<string> {
+    return page.evaluate(async () => {
+      const client = (
+        window as unknown as {
+          __ethioSupabase: {
+            auth: {
+              getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
+            };
+          };
+        }
+      ).__ethioSupabase;
+      const { data } = await client.auth.getSession();
+      return data.session?.access_token ?? "";
+    });
+  }
+
+  async function importPost(
+    page: import("@playwright/test").Page,
+    token: string,
+    body: Record<string, unknown>,
+  ) {
+    const response = await page.request.post("/api/admin/categories/import", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: body,
+    });
+    let payload: Record<string, unknown> = {};
+    try {
+      payload = (await response.json()) as Record<string, unknown>;
+    } catch {
+      payload = {};
+    }
+    return { status: response.status(), payload };
+  }
+
+  /**
+   * A concurrent spec may create or destroy its own scratch categories between
+   * the export and the preview, which would read as a phantom add. CT-18
+   * asserts the invariant over the RATIFIED roster only.
+   */
+  function withoutScratchRows(text: string): { text: string; rows: number } {
+    const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+    const records: string[] = [];
+    let current = "";
+    let quoted = false;
+    for (let index = 0; index < body.length; index += 1) {
+      const char = body[index] as string;
+      if (char === '"') {
+        quoted = !quoted;
+        current += char;
+        continue;
+      }
+      if (char === "\n" && !quoted) {
+        records.push(current.replace(/\r$/, ""));
+        current = "";
+        continue;
+      }
+      current += char;
+    }
+    if (current.length > 0) records.push(current.replace(/\r$/, ""));
+    const header = records.shift() ?? "";
+    const kept = records.filter((record) => record.trim().length > 0 && !/e2e-cat-/.test(record));
+    return { text: `\uFEFF${[header, ...kept].join("\r\n")}\r\n`, rows: kept.length };
+  }
+
+  function countsOf(text: string): number[] {
+    return (text.match(/\d+/g) ?? []).map((digits) => Number(digits));
+  }
+
+  /** A scratch node written through the service client (J3), never a real row. */
+  async function seedCategory(slug: string, parentId: string | null): Promise<string> {
+    const supabase = adminClient();
+    const { data, error } = await supabase
+      .from("categories")
+      .insert({ slug, name_en: slug })
+      .select("id")
+      .single();
+    if (error || !data) throw new Error(`[e2e:cat-ie] seeding ${slug} failed: ${error?.message}`);
+    const { error: pointerError } = await supabase
+      .from("category_tree_pointers")
+      .insert({ parent_id: parentId, child_id: data.id, display_order: 0 });
+    if (pointerError) {
+      throw new Error(`[e2e:cat-ie] pointer for ${slug} failed: ${pointerError.message}`);
+    }
+    return data.id;
+  }
+
+  /**
+   * CT-18 — THE ROUND-TRIP INVARIANT. The whole roster is exported through the
+   * real route and re-imported through the DIALOG's file picker: nothing is
+   * added, changed, retired, reactivated, deleted or refused. Discard then
+   * writes nothing — DB truth: no capture row at all.
+   */
+  test("CT-18 a real-export round trip is a no-op", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/categories");
+
+    const token = await bearerOf(page);
+    const response = await page.request.get("/api/admin/categories/export", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(response.status()).toBe(200);
+    const exported = withoutScratchRows(await response.text());
+    expect(exported.rows, "CT-18 the export produced no rows to re-import").toBeGreaterThan(0);
+
+    const startedAt = new Date().toISOString();
+
+    await page.getByTestId("category-import").click();
+    await expect(page.getByTestId("category-import-dialog")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("category-import-file").setInputFiles({
+      name: "categories.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(exported.text, "utf8"),
+    });
+
+    await page.getByTestId("category-import-preview").click();
+    const counts = page.getByTestId("category-import-counts");
+    await expect(counts).toBeVisible({ timeout: 120_000 });
+
+    const numbers = countsOf((await counts.textContent()) ?? "");
+    expect(numbers, `CT-18 counts line: ${await counts.textContent()}`).toHaveLength(7);
+    const [adds, changes, retires, reactivations, deletes, unchanged, refused] = numbers;
+    expect(
+      { adds, changes, retires, reactivations, deletes, refused },
+      `CT-18 the round trip was not a no-op: ${await counts.textContent()}`,
+    ).toEqual({ adds: 0, changes: 0, retires: 0, reactivations: 0, deletes: 0, refused: 0 });
+    expect(unchanged).toBe(exported.rows);
+    await expect(page.getByTestId("category-import-refusals")).toHaveCount(0);
+
+    await page.getByTestId("category-import-discard").click();
+    await expect(page.getByTestId("category-import-dialog")).toHaveCount(0);
+
+    const { data: batches } = await adminClient()
+      .from("category_import_revisions")
+      .select("id")
+      .gte("created_at", startedAt);
+    expect(batches ?? [], "CT-18 Discard wrote a batch").toHaveLength(0);
+  });
+
+  /** CT-19 — one file creates a child, renames a sibling, and UNDOES cleanly. */
+  test("CT-19 a create and a rename commit through the doors and undo", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const parentSlug = scratchSlug();
+    const childSlug = scratchSlug();
+    const newSlug = scratchSlug();
+    try {
+      const parentId = await seedCategory(parentSlug, null);
+      await seedCategory(childSlug, parentId);
+
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      const renamed = `${childSlug}-renamed`;
+      const categories = file([
+        line({ category_slug: parentSlug, name_en: parentSlug, display_order: "0" }),
+        line({
+          category_slug: childSlug,
+          parent_slug: parentSlug,
+          name_en: renamed,
+          display_order: "0",
+        }),
+        line({
+          category_slug: newSlug,
+          parent_slug: parentSlug,
+          name_en: newSlug,
+          display_order: "1",
+        }),
+      ]);
+
+      const preview = await importPost(page, token, { mode: "preview", categories });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const previewCounts = preview.payload["counts"] as Record<string, number>;
+      expect(previewCounts, JSON.stringify(preview.payload["refusals"])).toMatchObject({
+        adds: 1,
+        changes: 1,
+        refusals: 0,
+      });
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        categories,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+
+      // DB TRUTH (J4), through the same reads the console uses.
+      const created = await readCategory(newSlug);
+      expect(created, "CT-19 the new child was not created").not.toBeNull();
+      const pointers = await readPointers(created!.id);
+      expect(pointers.map((pointer) => pointer.parent_id)).toEqual([parentId]);
+      expect((await readCategory(childSlug))?.name_en).toBe(renamed);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await readCategory(newSlug), "CT-19 undo left the created child").toBeNull();
+      expect((await readCategory(childSlug))?.name_en).toBe(childSlug);
+    } finally {
+      await destroyCategory(newSlug);
+      await destroyCategory(childSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
+
+  /** CT-20 — retire and reactivate travel through the state machine, audited. */
+  test("CT-20 action=retire and action=reactivate walk the state machine", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const slug = scratchSlug();
+    try {
+      const id = await seedCategory(slug, null);
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      const rowValues = { category_slug: slug, name_en: slug, display_order: "0" };
+      const retireFile = file([line(rowValues, "retire")], true);
+      const retirePreview = await importPost(page, token, {
+        mode: "preview",
+        categories: retireFile,
+      });
+      expect(retirePreview.status, JSON.stringify(retirePreview.payload)).toBe(200);
+      expect((retirePreview.payload["counts"] as Record<string, number>).retires).toBe(1);
+      const retire = await importPost(page, token, {
+        mode: "commit",
+        categories: retireFile,
+        digest: retirePreview.payload["digest"],
+      });
+      expect(retire.status, JSON.stringify(retire.payload)).toBe(200);
+      expect((await readCategory(slug))?.is_active).toBe(false);
+
+      const reactivateFile = file([line(rowValues, "reactivate")], true);
+      const reactivatePreview = await importPost(page, token, {
+        mode: "preview",
+        categories: reactivateFile,
+      });
+      expect(reactivatePreview.status).toBe(200);
+      const reactivate = await importPost(page, token, {
+        mode: "commit",
+        categories: reactivateFile,
+        digest: reactivatePreview.payload["digest"],
+      });
+      expect(reactivate.status, JSON.stringify(reactivate.payload)).toBe(200);
+      expect((await readCategory(slug))?.is_active).toBe(true);
+
+      // The doors audited both walks (F5 capture).
+      const { data: audits } = await adminClient()
+        .from("audit_log")
+        .select("action")
+        .eq("entity_id", id)
+        .in("action", ["category.retire", "category.reactivate"]);
+      expect((audits ?? []).map((entry) => entry.action).sort()).toEqual([
+        "category.reactivate",
+        "category.retire",
+      ]);
+    } finally {
+      await destroyCategory(slug);
+    }
+  });
+
+  /** CT-21 — the refusal vocabulary; a preview writes nothing (F5). */
+  test("CT-21 unknown parents, cycles, catch-alls and formulas are refused", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const parentSlug = scratchSlug();
+    const childSlug = scratchSlug();
+    const orphanSlug = scratchSlug();
+    try {
+      const parentId = await seedCategory(parentSlug, null);
+      await seedCategory(childSlug, parentId);
+
+      const { data: catchall } = await adminClient()
+        .from("categories")
+        .select("slug")
+        .eq("is_catchall", true)
+        .limit(1)
+        .maybeSingle();
+
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      // (a) a header that is not the export's is refused whole.
+      const badHeader = await importPost(page, token, {
+        mode: "preview",
+        categories: "slug,name\r\nfoo,bar\r\n",
+      });
+      expect(badHeader.status).toBe(400);
+      expect(badHeader.payload["error"]).toBe("badHeader");
+
+      const rows = [
+        // unknown parent
+        line({
+          category_slug: `${orphanSlug}-a`,
+          parent_slug: `e2e-cat-nope-${rand()}`,
+          name_en: `${orphanSlug}-a`,
+        }),
+        // a cycle: the parent asks to hang under its own child
+        line({ category_slug: parentSlug, parent_slug: childSlug, name_en: parentSlug }),
+        // a formula cell
+        line({ category_slug: `${orphanSlug}-b`, parent_slug: parentSlug, name_en: "=SUM(1)" }),
+        // deleting a category that still has children
+        line({ category_slug: parentSlug, name_en: parentSlug }, "delete"),
+      ];
+      if (catchall?.slug) {
+        rows.splice(
+          1,
+          0,
+          line({
+            category_slug: `${orphanSlug}-c`,
+            parent_slug: catchall.slug,
+            name_en: `${orphanSlug}-c`,
+          }),
+        );
+      }
+      // The duplicate parent row (cycle + delete) also proves duplicateSlug.
+      const preview = await importPost(page, token, {
+        mode: "preview",
+        categories: file(rows, true),
+      });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const reasons = (preview.payload["refusals"] as { reason: string }[]).map(
+        (entry) => entry.reason,
+      );
+      expect(reasons, JSON.stringify(preview.payload["refusals"])).toEqual(
+        expect.arrayContaining(["unknownParent", "cycle", "formula", "duplicateSlug"]),
+      );
+      if (catchall?.slug) expect(reasons).toContain("catchallParent");
+
+      // PREVIEW WRITES NOTHING (F5).
+      expect(await readCategory(`${orphanSlug}-a`)).toBeNull();
+      expect(await readCategory(`${orphanSlug}-b`)).toBeNull();
+      expect((await readCategory(parentSlug))?.is_active).toBe(true);
+    } finally {
+      await destroyCategory(`${orphanSlug}-a`);
+      await destroyCategory(`${orphanSlug}-b`);
+      await destroyCategory(`${orphanSlug}-c`);
+      await destroyCategory(childSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
+
+  /**
+   * A scratch role carrying exactly the named permissions (J3): no ratified
+   * role is ever touched, and the role is dropped in the caller's `finally`.
+   */
+  async function scratchRole(wanted: [string, string][]) {
+    const supabase = adminClient();
+    const roleName = `e2e_catie_${rand()}`;
+    const { data: role, error } = await supabase
+      .from("roles")
+      .insert({ name: roleName, display_name: roleName, priority: 1 })
+      .select("id")
+      .single();
+    if (error || !role) throw new Error(`[e2e:cat-ie] scratch role failed: ${error?.message}`);
+    const { data: perms } = await supabase
+      .from("permissions")
+      .select("id, action, resources!inner(name)")
+      .in(
+        "resources.name",
+        wanted.map(([resource]) => resource),
+      );
+    const chosen = (perms ?? []).filter((perm) => {
+      const resource = (perm as unknown as { resources: { name: string } }).resources.name;
+      return wanted.some(([name, act]) => name === resource && act === perm.action);
+    });
+    expect(chosen.length, "[e2e:cat-ie] the scratch role is missing a permission").toBe(
+      wanted.length,
+    );
+    await supabase
+      .from("role_permissions")
+      .insert(chosen.map((perm) => ({ role_id: role.id, permission_id: perm.id })));
+    return role.id;
+  }
+
+  async function dropRole(roleId: string) {
+    const supabase = adminClient();
+    await supabase.from("role_permissions").delete().eq("role_id", roleId);
+    await supabase.from("user_roles").delete().eq("role_id", roleId);
+    await supabase.from("roles").delete().eq("id", roleId);
+  }
+
+  /** CT-22 — no `categories:import`: no control, and the route refuses. */
+  test("CT-22 a categories:view-only operator sees no import control and is refused", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const roleId = await scratchRole([
+      ["admin_panel", "access"],
+      ["categories", "view"],
+    ]);
+    try {
+      const viewer = await createUser({ confirmed: true });
+      await adminClient()
+        .from("user_roles")
+        .insert({ user_id: viewer.id, role_id: roleId, scope_type: "global" });
+      await switchUser(page, viewer.email, viewer.password);
+      await gotoReady(page, "/admin/categories");
+      await expect(page.getByTestId("category-search")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("category-import")).toHaveCount(0);
+
+      const token = await bearerOf(page);
+      const slug = scratchSlug();
+      const categories = file([line({ category_slug: slug, name_en: slug })]);
+      const denied = await importPost(page, token, { mode: "preview", categories });
+      expect(denied.status, JSON.stringify(denied.payload)).toBe(403);
+      const deniedCommit = await importPost(page, token, {
+        mode: "commit",
+        categories,
+        digest: "whatever",
+      });
+      expect(deniedCommit.status).toBe(409);
+
+      // NO BEARER, NO DOOR.
+      const anonymous = await page.request.post("/api/admin/categories/import", {
+        data: { mode: "preview" },
+      });
+      expect(anonymous.status()).toBe(401);
+    } finally {
+      await dropRole(roleId);
+    }
+  });
+
+  /** CT-23 — an un-stepped-up importer is refused (P0009) and nothing is written. */
+  test("CT-23 a commit without step-up is refused and writes nothing", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const roleId = await scratchRole([
+      ["admin_panel", "access"],
+      ["categories", "view"],
+      ["categories", "import"],
+    ]);
+    const slug = scratchSlug();
+    try {
+      const importer = await createUser({ confirmed: true });
+      await adminClient()
+        .from("user_roles")
+        .insert({ user_id: importer.id, role_id: roleId, scope_type: "global" });
+      await switchUser(page, importer.email, importer.password);
+      await gotoReady(page, "/admin/categories");
+
+      const token = await bearerOf(page);
+      const categories = file([line({ category_slug: slug, name_en: slug })]);
+      const preview = await importPost(page, token, { mode: "preview", categories });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        categories,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(428);
+      expect(commit.payload["code"]).toBe("P0009");
+
+      // A refused attempt leaves NO trace (F5).
+      expect(await readCategory(slug)).toBeNull();
+    } finally {
+      await destroyCategory(slug);
+      await dropRole(roleId);
     }
   });
 });

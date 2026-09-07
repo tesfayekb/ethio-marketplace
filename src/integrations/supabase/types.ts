@@ -358,6 +358,42 @@ export type Database = {
           },
         ]
       }
+      category_import_revisions: {
+        Row: {
+          action: string
+          batch_id: string
+          created_at: string
+          created_by: string
+          entity_key: string
+          id: string
+          post: Json | null
+          prev: Json | null
+          undone_at: string | null
+        }
+        Insert: {
+          action: string
+          batch_id: string
+          created_at?: string
+          created_by: string
+          entity_key: string
+          id?: string
+          post?: Json | null
+          prev?: Json | null
+          undone_at?: string | null
+        }
+        Update: {
+          action?: string
+          batch_id?: string
+          created_at?: string
+          created_by?: string
+          entity_key?: string
+          id?: string
+          post?: Json | null
+          prev?: Json | null
+          undone_at?: string | null
+        }
+        Relationships: []
+      }
       category_tree_pointers: {
         Row: {
           child_id: string
@@ -1278,6 +1314,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_commit_category_import: {
+        Args: { p_digest: string; p_rows: Json; p_scope: string }
+        Returns: Json
+      }
       admin_create_category: {
         Args: {
           p_allow_listings?: boolean
@@ -1324,6 +1364,7 @@ export type Database = {
       admin_export_attributes:
         | { Args: never; Returns: Json }
         | { Args: { p_scope_slug: string }; Returns: Json }
+      admin_export_categories: { Args: { p_scope?: string }; Returns: Json }
       admin_get_category_images: {
         Args: { p_id: string }
         Returns: {
@@ -1657,6 +1698,10 @@ export type Database = {
         Args: { p_definitions: Json; p_links: Json; p_scope?: string }
         Returns: Json
       }
+      admin_preview_category_import: {
+        Args: { p_rows: Json; p_scope: string }
+        Returns: Json
+      }
       admin_reactivate_category: { Args: { p_id: string }; Returns: undefined }
       admin_remove_category_pointer: {
         Args: { p_pointer_id: string }
@@ -1768,6 +1813,7 @@ export type Database = {
         }[]
       }
       admin_undo_attribute_import: { Args: { p_batch: string }; Returns: Json }
+      admin_undo_category_import: { Args: { p_batch: string }; Returns: Json }
       admin_undo_import: { Args: { p_batch: string }; Returns: Json }
       admin_unlink_attribute: {
         Args: { p_link_id: string }
@@ -1865,6 +1911,34 @@ export type Database = {
           session_id: string
         }[]
       }
+      cat_bool: {
+        Args: { p_default: boolean; p_text: string }
+        Returns: boolean
+      }
+      cat_descendants: {
+        Args: { p_root: string }
+        Returns: {
+          id: string
+        }[]
+      }
+      cat_export_row: { Args: { p_id: string }; Returns: Json }
+      cat_export_rows: { Args: { p_scope: string }; Returns: Json }
+      cat_import_plan: {
+        Args: { p_rows: Json; p_scope: string }
+        Returns: Json
+      }
+      cat_int: { Args: { p_text: string }; Returns: number }
+      cat_pipe: { Args: { p_text: string }; Returns: string[] }
+      cat_primary_pointer: {
+        Args: { p_id: string }
+        Returns: {
+          display_order: number
+          parent_id: string
+          pointer_id: string
+        }[]
+      }
+      cat_text: { Args: { p_text: string }; Returns: string }
+      cat_ts: { Args: { p_text: string }; Returns: string }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       e2e_migration_ledger: { Args: never; Returns: string[] }
