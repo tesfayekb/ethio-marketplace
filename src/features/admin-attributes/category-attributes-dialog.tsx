@@ -58,7 +58,9 @@ export function CategoryAttributesDialog({
   const rows: AttributeLink[] = [...(links.data ?? [])].sort(
     (a, b) =>
       a.displayOrder - b.displayOrder ||
-      attributeLabel(a.attributeId, a.nameEn).localeCompare(attributeLabel(b.attributeId, b.nameEn)),
+      attributeLabel(a.attributeId, a.nameEn).localeCompare(
+        attributeLabel(b.attributeId, b.nameEn),
+      ),
   );
   const linkedIds = new Set(rows.map((row) => row.attributeId));
   const term = search.trim().toLowerCase();
