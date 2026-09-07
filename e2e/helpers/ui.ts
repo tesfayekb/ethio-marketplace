@@ -743,14 +743,21 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
 }
 
 /**
- * INC-173 — THE LANGUAGE BASELINE. A pooled identity is borrowed by many tests,
- * and one of them may leave `profiles.preferred_language` pointing at a fence
- * or an AM catalog; the next borrower would then read a different UI. Every
- * acquisition resets the baseline to `en` IN NODE, before injection, through
- * the SAME door the switcher uses (`user_set_preferred_language`, own-row only)
- * — never a direct table write, so the audit trail stays honest.
+ * INC-173 / INC-173b — THE LANGUAGE BASELINE IS THE FRESH-USER STATE.
+ *
+ * A pooled identity is borrowed by many tests, and one of them may leave
+ * `profiles.preferred_language` pointing at a fence or an AM catalog; the next
+ * borrower would then read a different UI. INC-173 reset it to `'en'`, which is
+ * NOT what a fresh user carries: a brand-new profile's column is NULL, and the
+ * runtime resolves the language from the request instead. A row pinned to `en`
+ * therefore hid a class of bug the real first-run path can hit.
+ *
+ * The baseline is now NULL, written with the SERVICE CLIENT as a fixture write
+ * (J5 — fixtures are table operations, not product doors; the product door
+ * `user_set_preferred_language` cannot express "unset"). What was cleared is
+ * logged so a surprising inheritance is visible in the run log.
  */
-async function resetLanguageBaseline(pool: E2ESuperAdmin, accessToken: string): Promise<void> {
+async function resetLanguageBaseline(pool: E2ESuperAdmin): Promise<void> {
   const { data, error } = await adminClient()
     .from("profiles")
     .select("preferred_language")
@@ -758,27 +765,20 @@ async function resetLanguageBaseline(pool: E2ESuperAdmin, accessToken: string): 
     .maybeSingle();
   if (error) throw new Error(`[e2e:pool] language baseline read failed: ${error.message}`);
   const current = data?.preferred_language ?? null;
-  if (current === "en") return;
+  if (current === null) return;
 
-  const base = (process.env["E2E_SUPABASE_URL"] ?? "").replace(/\/+$/, "");
-  const response = await fetch(`${base}/rest/v1/rpc/user_set_preferred_language`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      apikey: authApiKey(),
-      authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({ p_code: "en" }),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `[e2e:pool] language baseline reset failed [${response.status}]: ${await response.text()}`,
-    );
+  const cleared = await adminClient()
+    .from("profiles")
+    .update({ preferred_language: null })
+    .eq("user_id", pool.id);
+  if (cleared.error) {
+    throw new Error(`[e2e:pool] language baseline clear failed: ${cleared.error.message}`);
   }
   console.log(
-    `[e2e:pool] slot ${pool.slot} language baseline reset ${current ?? "null"} \u2192 en (INC-173)`,
+    `[e2e:pool] slot ${pool.slot} language baseline cleared ${current} \u2192 null (INC-173b)`,
   );
 }
+
 
 export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   if (declaresPrivateIdentity()) return mintPrivateSuperAdmin(page);
