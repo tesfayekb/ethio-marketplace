@@ -39,10 +39,13 @@ export const CATEGORY_COLUMNS = [
   "origin_scope",
 ] as const;
 
-/** IE-3 — derived/foreign columns are labelled read-only in the header. */
+/**
+ * IE-3 — derived/foreign columns are labelled read-only in the header.
+ * IE-4a — name_am LEFT this list: an Amharic name is written through the
+ * translation door as a pending-review row, and an empty cell is silence.
+ */
 export const READ_ONLY_COLUMNS = new Set<string>([
   "category_path",
-  "name_am",
   "is_catchall",
   "listing_count",
   "origin_scope",
