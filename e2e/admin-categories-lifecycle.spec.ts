@@ -1384,21 +1384,30 @@ test.describe("CAT-IE categories import/export", () => {
     const grandchildSlug = scratchSlug();
     try {
       const token = await bearerOf(page);
-      const categories = file([
-        line({ category_slug: rootSlug, name_en: rootSlug, name_am: "ሥር" }),
-        line({
-          category_slug: childSlug,
-          parent_slug: rootSlug,
-          name_en: childSlug,
-          name_am: "ልጅ",
-        }),
-        line({
-          category_slug: grandchildSlug,
-          parent_slug: childSlug,
-          name_en: grandchildSlug,
-          name_am: "",
-        }),
-      ]);
+      const categories = file(
+        [
+          line({ category_slug: rootSlug, name_en: rootSlug, name_am: "ሥር" }, "create-root"),
+          line(
+            {
+              category_slug: childSlug,
+              parent_slug: rootSlug,
+              name_en: childSlug,
+              name_am: "ልጅ",
+            },
+            "upsert",
+          ),
+          line(
+            {
+              category_slug: grandchildSlug,
+              parent_slug: childSlug,
+              name_en: grandchildSlug,
+              name_am: "",
+            },
+            "upsert",
+          ),
+        ],
+        true,
+      );
 
       const preview = await importPost(page, token, { mode: "preview", categories });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
