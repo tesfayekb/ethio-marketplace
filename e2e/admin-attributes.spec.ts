@@ -2069,7 +2069,7 @@ test.describe("C3 attributes console", () => {
       });
 
       await gotoReady(page, "/admin/attributes");
-      await page.getByTestId("attribute-create").click();
+      await page.getByTestId("attribute-create-open").click();
       await expect(page.getByTestId("attribute-edit-dialog")).toBeVisible();
       await page.getByTestId("attribute-key").fill(modelKey);
       await page.getByTestId("attribute-name").fill(modelKey);
