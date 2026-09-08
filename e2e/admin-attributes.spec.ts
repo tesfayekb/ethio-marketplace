@@ -110,6 +110,13 @@ async function destroyAttribute(key: string) {
   const row = await readAttribute(key);
   if (!row) return;
   await adminClient().from("category_attribute_links").delete().eq("attribute_id", row.id);
+  // IE-4b — a scratch definition can now own an am translation row; it leaves
+  // with the fixture (J3), because entity_translations carries no FK cascade.
+  await adminClient()
+    .from("entity_translations")
+    .delete()
+    .eq("entity_type", "attribute")
+    .eq("entity_id", row.id);
   await adminClient().from("attributes").delete().eq("id", row.id);
 }
 
