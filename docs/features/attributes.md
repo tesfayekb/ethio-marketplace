@@ -298,10 +298,10 @@ value must exist on that definition's list, otherwise the row is refused
 With a category filter active the scope travels with the import and any row
 outside that subtree is refused in the preview.
 
-LIMITATIONS: the import reads `attribute_key`, `label_en`, `type` and `options`
-from `definitions.csv` — `label_am` (an entity translation), `is_per_variant`
-(no such column) and `direct_link_count` (derived) are informational and
-ignored. Undo covers the last batch's captured rows only.
+LIMITATIONS: the import reads `attribute_key`, `label_en`, `label_am`, `type`
+and `options` from `definitions.csv` — `is_per_variant` (no such column) and
+`direct_link_count` (derived) are informational and ignored. Undo covers the
+last batch's captured rows only.
 
 E2E: AT-20 round-trip no-op · AT-21 change → commit → undo against DB truth ·
 AT-22 bad header, raw formula and unknown slug with nothing written · AT-23 no
