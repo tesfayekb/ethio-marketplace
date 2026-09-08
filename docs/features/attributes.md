@@ -415,3 +415,39 @@ an Amharic console speaks Amharic.
 **Proofs.** AT-32 (parent + dependent created by one file, the dependent row
 written first; round-trip invariant zero; Undo removes both) and AT-35 (the
 Options expansion for a plain and for a dependent definition).
+
+## INH-1 — inheritance follows the PRIMARY lineage only (DEC-044 amendment)
+
+A link applies to its own category and to every descendant along the **primary**
+lineage. A category that carries another only as a **secondary (browse) pointer**
+confers nothing on it: no inherited console row, no export row, no effective
+card attribute.
+
+The primary edge is the one the roster's Parent cell already names: the child's
+first pointer under `(parent_id IS NOT NULL, display_order, created_at)` whose
+parent is active. `public.cat_primary_parent(uuid)` is now the ONE reader for it,
+and every effective-set walk goes through it:
+
+- `admin_list_effective_category_links` — the console's inherited rows and the
+  read-only inherited block in the per-category link manager;
+- `attr_export_payload` — the export, including the `?scope=<slug>` subtree
+  (the subtree itself now descends primary edges only) and the `origin` cell;
+- `attr_import_plan` — the scope subtree behind `outOfScope`, so the importer
+  judges the same set the export wrote, and the `inheritedRow` refusal names an
+  origin that is a real primary ancestor;
+- `admin_list_categories` — the EFFECTIVE `card_attribute_count`, i.e. the amber
+  two-must-display flag.
+
+A child that used to clear its amber flag through a browse pointer alone now
+carries it again — correctly: its listing cards never showed those attributes.
+
+Migration `20260908...` (mark `20260908140000`) re-declares the four readers,
+restates each definer's `REVOKE`/`GRANT` closers with an in-file ACL read-back,
+and carries a behavioural proof: a scratch child under a secondary-only pointer
+exports zero inherited rows, and the same child under a primary edge exports
+exactly one.
+
+**Proof.** AT-36 — scratch A links two card attributes; scratch B is a root that
+carries A only as a secondary parent: B shows no inherited row, is absent from
+A's scoped export, and keeps the amber flag. Dropping B's own root pointer makes
+A primary and flips all three. AT-20's round-trip invariant is unchanged.

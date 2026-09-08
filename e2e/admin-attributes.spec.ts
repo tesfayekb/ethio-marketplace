@@ -1261,6 +1261,150 @@ test.describe("C3 attributes console", () => {
     }
   });
 
+  /* ------------- INH-1: inheritance follows PRIMARY lineage only ------------ */
+
+  /**
+   * AT-36 (INH-1, DEC-044 amendment) — a SECONDARY (browse) parent confers
+   * NOTHING. Scratch A links two card attributes; scratch B is a ROOT that
+   * carries A only as a secondary pointer, so B must show no inherited row,
+   * must be absent from A's scoped export, and must KEEP the amber
+   * two-must-display flag. Making A B's PRIMARY parent (dropping B's own root
+   * pointer) flips all three the other way — the same primary-only set is read
+   * by the console, the export and the roster.
+   */
+  test("AT-36 a secondary parent confers nothing, a primary parent confers", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const stamp = rand();
+    const slugA = `e2e-cat-inh2-${stamp}-a`;
+    const slugB = `e2e-cat-inh2-${stamp}-b`;
+    const keyA = `e2e_attr_${rand()}`;
+    const keyB = `e2e_attr_${rand()}`;
+
+    // SEED BEFORE NAVIGATE (J7), through the service client (J5).
+    const { data: attrs, error: attrError } = await supabase
+      .from("attributes")
+      .insert([
+        { attr_key: keyA, name_en: keyA, attr_type: "text" },
+        { attr_key: keyB, name_en: keyB, attr_type: "text" },
+      ])
+      .select("id, attr_key");
+    if (attrError || !attrs) throw new Error(`AT-36 attributes failed: ${attrError?.message}`);
+    const attrOne = attrs.find((row) => row.attr_key === keyA)!;
+    const attrTwo = attrs.find((row) => row.attr_key === keyB)!;
+
+    const { data: cats, error: catError } = await supabase
+      .from("categories")
+      .insert([
+        { slug: slugA, name_en: slugA, is_active: true, allow_listings: true },
+        { slug: slugB, name_en: slugB, is_active: true, allow_listings: true },
+      ])
+      .select("id, slug");
+    if (catError || !cats) throw new Error(`AT-36 categories failed: ${catError?.message}`);
+    const catA = cats.find((row) => row.slug === slugA)!;
+    const catB = cats.find((row) => row.slug === slugB)!;
+
+    // Both are ROOTS; A is B's SECONDARY (browse) parent only. The root pointer
+    // sorts first, so B's PRIMARY edge is the root one.
+    const { data: rootB, error: pointerError } = await supabase
+      .from("category_tree_pointers")
+      .insert([
+        { parent_id: null, child_id: catA.id, display_order: 902 },
+        { parent_id: null, child_id: catB.id, display_order: 903 },
+        { parent_id: catA.id, child_id: catB.id, display_order: 1 },
+      ])
+      .select("id, parent_id, child_id");
+    if (pointerError || !rootB) throw new Error(`AT-36 pointers failed: ${pointerError?.message}`);
+    const rootPointerB = rootB.find((row) => row.parent_id === null && row.child_id === catB.id)!;
+
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      { category_id: catA.id, attribute_id: attrOne.id, is_required: true, card_rank: 1 },
+      { category_id: catA.id, attribute_id: attrTwo.id, is_required: false, card_rank: 2 },
+    ]);
+    if (linkError) throw new Error(`AT-36 links failed: ${linkError.message}`);
+
+    const rowIdFor = (key: string) =>
+      isCardTwin(page) ? `attribute-row-${key}-card` : `attribute-row-${key}`;
+
+    async function scopedLinkSlugs(scope: string): Promise<string[]> {
+      const token = await bearerOf(page);
+      const response = await page.request.get(
+        `/api/admin/attributes/export?file=links&scope=${scope}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      expect(response.status(), `AT-36 the scoped export failed for ${scope}`).toBe(200);
+      const text = await response.text();
+      const lines = text.slice(1).split("\r\n").filter(Boolean).slice(1);
+      return [...new Set(lines.map((line) => line.split(",")[1] ?? ""))];
+    }
+
+    try {
+      /* ---- SECONDARY: nothing crosses ---- */
+      await gotoReady(page, `/admin/attributes?category=${slugB}`);
+      const surface = librarySurface(page);
+      // The filter is settled once its clear control is present.
+      await expect(page.getByTestId("attribute-category-clear")).toBeVisible({ timeout: 30000 });
+      await expect(
+        surface.getByTestId(rowIdFor(keyA)),
+        await dialogDump(page, "AT-36 a secondary parent conferred an inherited row"),
+      ).toHaveCount(0);
+      await expect(surface.getByTestId(`attribute-inherited-${keyA}`)).toHaveCount(0);
+
+      expect(
+        await scopedLinkSlugs(slugA),
+        "AT-36 the scoped export crossed a secondary pointer",
+      ).toEqual([slugA]);
+
+      // C2k — SEARCH IS THE ANCHOR (page position never was) and J5 — the flag
+      // is read inside its OWN twin row, never page-wide: both twins are in the
+      // DOM, so a bare testid resolves twice.
+      await gotoReady(page, "/admin/categories");
+      const rowA = await findRow(page, slugA);
+      await expect(rowA.getByTestId(`category-needs-card-${slugA}`)).toHaveCount(0);
+      const rowBefore = await findRow(page, slugB);
+      await expect(
+        rowBefore.getByTestId(`category-needs-card-${slugB}`),
+        await dialogDump(page, "AT-36 a secondary parent cleared the amber card flag"),
+      ).toBeVisible({ timeout: 30000 });
+
+      /* ---- PRIMARY: everything crosses ---- */
+      const { error: dropError } = await supabase
+        .from("category_tree_pointers")
+        .delete()
+        .eq("id", rootPointerB.id);
+      if (dropError) throw new Error(`AT-36 promoting the pointer failed: ${dropError.message}`);
+
+      await gotoReady(page, `/admin/attributes?category=${slugB}`);
+      const badge = librarySurface(page).getByTestId(`attribute-inherited-${keyA}`);
+      await expect(
+        badge,
+        await dialogDump(page, "AT-36 a primary parent conferred nothing"),
+      ).toBeVisible({ timeout: 30000 });
+      await expect(badge).toContainText(slugA);
+
+      expect(
+        (await scopedLinkSlugs(slugA)).sort(),
+        "AT-36 the scoped export missed the primary descendant",
+      ).toEqual([slugA, slugB].sort());
+
+      await gotoReady(page, "/admin/categories");
+      const rowAfter = await findRow(page, slugB);
+      await expect(rowAfter.getByTestId(`category-needs-card-${slugB}`)).toHaveCount(0);
+    } finally {
+      await supabase
+        .from("category_attribute_links")
+        .delete()
+        .in("attribute_id", [attrOne.id, attrTwo.id]);
+      await destroyCategory(slugB);
+      await destroyCategory(slugA);
+      await destroyAttribute(keyA);
+      await destroyAttribute(keyB);
+    }
+  });
+
   /* --------------------------- IE-2: the import --------------------------- */
 
   /**
