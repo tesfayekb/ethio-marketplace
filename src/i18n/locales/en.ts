@@ -1033,21 +1033,28 @@ export const en = {
   "admin.attributes.import.committed": "The import was applied.",
   "admin.attributes.import.undo": "Undo last import",
   "admin.attributes.import.undone": "{count} rows were restored.",
-  "admin.attributes.import.reason.missingKey": "No attribute key",
+  "admin.attributes.import.reason.missingKey": "No attribute key: the key cell is empty",
   "admin.attributes.import.reason.duplicateKey": "This key appears twice in the file",
-  "admin.attributes.import.reason.badAction": "Unknown action",
-  "admin.attributes.import.reason.unknownType": "Unknown type",
-  "admin.attributes.import.reason.malformedOptions": "The options could not be read",
-  "admin.attributes.import.reason.badParent": "That parent value is not on the list it depends on",
-  "admin.attributes.import.reason.blastRadius": "Still used by a category",
-  "admin.attributes.import.reason.unknownCategory": "Unknown category",
-  "admin.attributes.import.reason.unknownAttribute": "Unknown attribute",
-  "admin.attributes.import.reason.outOfScope": "Outside the category you filtered by",
+  "admin.attributes.import.reason.badAction":
+    "Unknown action “{action}” — use upsert, unlink or delete",
+  "admin.attributes.import.reason.unknownType": "Unknown type “{attr_type}”",
+  "admin.attributes.import.reason.malformedOptions": "The options could not be read: “{options}”",
+  "admin.attributes.import.reason.badParent":
+    "Parent value “{detail}” is not on the list “{depends_on}” it depends on",
+  "admin.attributes.import.reason.blastRadius": "Still used by {detail} categories",
+  "admin.attributes.import.reason.unknownCategory":
+    "Unknown category: category_slug “{category_slug}” is not in the roster (path “{category_path}”)",
+  "admin.attributes.import.reason.unknownAttribute":
+    "Unknown attribute: attribute_key “{attribute_key}” is not in the library",
+  "admin.attributes.import.reason.outOfScope":
+    "“{category_slug}” is outside the category you filtered by",
   "admin.attributes.import.reason.inheritedRow":
-    "Inherited row — add a direct row for this category, or edit it at “{detail}”",
-  "admin.attributes.import.reason.badCardRank": "Card position must be 1, 2 or 3",
+    "Inherited row — add a direct row for “{category_slug}”, or edit it at “{detail}”",
+  "admin.attributes.import.reason.badCardRank":
+    "Card position must be 1, 2 or 3 — this row reads “{card_rank}”",
   "admin.attributes.import.reason.formula": "Cells may not start with = + - @",
   "admin.attributes.import.reason.unknown": "This row was refused",
+
   "admin.attributes.import.guidance":
     "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied.",
   "admin.attributes.import.ignored": "Ignored (read-only)",
