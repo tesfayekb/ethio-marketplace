@@ -417,12 +417,37 @@ CT-23 a commit without step-up (428 / P0009, nothing written).
 
 ## IE-3 — column classes (categories)
 
-Read-only columns in `categories.csv`: `category_path`, `name_am`,
-`is_catchall`, `listing_count`, `origin_scope`. They are written with the
+Read-only columns in `categories.csv`: `category_path`, `is_catchall`,
+`listing_count`, `origin_scope`. They are written with the
 ` (read-only)` suffix and never applied; an edited one is reported in the
 preview under "Ignored (read-only)" with its row and column. `origin_scope`
 names the download's scope rather than the row, so it is never compared —
 only never applied.
+
+## IE-4a — Amharic names through the translation door
+
+`name_am` is an EDITABLE column (it left the read-only list, suffix and all).
+A non-empty cell is written through `admin_save_entity_translation`, so it
+lands as a HUMAN row awaiting review (`status = 'edited'`, `machine = false`):
+the import never approves a name — the translation console still does. An
+identical value writes nothing, and an EMPTY cell is SILENCE: the existing
+translation is left exactly as it stands and is never deleted, which is what
+keeps the round-trip invariant at zero changes for a roster whose Amharic
+names are only partly filled in.
+
+Commit captures the prior am state (none, or value + status + machine) beside
+the exported row, so **Undo** restores that state exactly — including an
+approved row demoted by nobody — or removes the pending row the batch itself
+created. A delete refusal now NAMES the child slugs it judged (`detail` as a
+comma list, `children` as an array) rather than only counting them.
+
+Proofs: the migration previews the live roster against its own export shape
+(zero changes) and again with every am cell blanked (still zero changes);
+CT-26 creates a root, child and grandchild in one file with Amharic names,
+asserts the pending rows and the blank cell's silence, re-previews as a no-op
+and undoes to nothing; CT-27 proves a retired leaf deletes and undoes with its
+approved Amharic name intact, and that deleting its parent is refused naming
+the child.
 
 The importer accepts headers with or without the suffix, so CT-18's round-trip
 invariant is unchanged in meaning.

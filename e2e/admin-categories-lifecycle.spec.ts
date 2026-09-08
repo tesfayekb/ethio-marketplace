@@ -1350,4 +1350,224 @@ test.describe("CAT-IE categories import/export", () => {
     await expect(page.getByTestId("category-import-counts")).toHaveCount(0);
     await page.getByTestId("category-import-discard").click();
   });
+
+  /** The am name row exactly as the DB holds it (J4 — DB truth, never a badge). */
+  async function readAmName(
+    categoryId: string,
+  ): Promise<{ value: string | null; status: string; machine: boolean } | null> {
+    const { data } = await adminClient()
+      .from("entity_translations")
+      .select("value,status,machine")
+      .eq("entity_type", "category")
+      .eq("entity_id", categoryId)
+      .eq("field", "name")
+      .eq("lang_code", "am")
+      .maybeSingle();
+    return data ?? null;
+  }
+
+  /**
+   * CT-26 — IE-4a. Amharic names ride the import through the translation door:
+   * a root, a child and a grandchild are created in ONE file, each carrying a
+   * name_am, and each lands as a HUMAN row awaiting review ('edited',
+   * machine=false) — never auto-approved. A blank am cell is silence. Undo
+   * removes the categories AND the pending rows the batch itself created.
+   */
+  test("CT-26 imported Amharic names land pending, and undo removes them", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/categories");
+
+    const rootSlug = scratchSlug();
+    const childSlug = scratchSlug();
+    const grandchildSlug = scratchSlug();
+    try {
+      const token = await bearerOf(page);
+      const categories = file(
+        [
+          line({ category_slug: rootSlug, name_en: rootSlug, name_am: "ሥር" }, "create-root"),
+          line(
+            {
+              category_slug: childSlug,
+              parent_slug: rootSlug,
+              name_en: childSlug,
+              name_am: "ልጅ",
+            },
+            "upsert",
+          ),
+          line(
+            {
+              category_slug: grandchildSlug,
+              parent_slug: childSlug,
+              name_en: grandchildSlug,
+              name_am: "",
+            },
+            "upsert",
+          ),
+        ],
+        true,
+      );
+
+      const preview = await importPost(page, token, { mode: "preview", categories });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(preview.payload["counts"], JSON.stringify(preview.payload["refusals"])).toMatchObject({
+        adds: 3,
+        refusals: 0,
+      });
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        categories,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+
+      const root = await readCategory(rootSlug);
+      const child = await readCategory(childSlug);
+      const grandchild = await readCategory(grandchildSlug);
+      expect(root, "CT-26 the root was not created").not.toBeNull();
+      expect(child, "CT-26 the child was not created").not.toBeNull();
+      expect(grandchild, "CT-26 the grandchild was not created").not.toBeNull();
+
+      // PENDING REVIEW, NEVER APPROVED — the console still has the last word.
+      expect(await readAmName(root!.id)).toMatchObject({
+        value: "ሥር",
+        status: "edited",
+        machine: false,
+      });
+      expect(await readAmName(child!.id)).toMatchObject({
+        value: "ልጅ",
+        status: "edited",
+        machine: false,
+      });
+      // SILENCE — a blank am cell wrote no row at all.
+      expect(
+        await readAmName(grandchild!.id),
+        "CT-26 an empty am cell wrote a translation row",
+      ).toBeNull();
+
+      // RE-IMPORTING THE SAME FILE IS A NO-OP: an identical am value is unchanged.
+      const again = await importPost(page, token, { mode: "preview", categories });
+      expect(again.status, JSON.stringify(again.payload)).toBe(200);
+      expect(again.payload["counts"], JSON.stringify(again.payload["refusals"])).toMatchObject({
+        adds: 0,
+        changes: 0,
+        refusals: 0,
+      });
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await readCategory(grandchildSlug), "CT-26 undo left the grandchild").toBeNull();
+      expect(await readCategory(childSlug), "CT-26 undo left the child").toBeNull();
+      expect(await readCategory(rootSlug), "CT-26 undo left the root").toBeNull();
+      expect(
+        await readAmName(root!.id),
+        "CT-26 undo left the pending am row it created",
+      ).toBeNull();
+      expect(await readAmName(child!.id)).toBeNull();
+    } finally {
+      await destroyCategory(grandchildSlug);
+      await destroyCategory(childSlug);
+      await destroyCategory(rootSlug);
+    }
+  });
+
+  /**
+   * CT-27 — IE-4a. A retired LEAF deletes through the blast-radius door and
+   * comes back on Undo with its Amharic name exactly as it stood; a parent
+   * that still holds a child is refused, and the refusal NAMES the child.
+   */
+  test("CT-27 a leaf delete undoes with its Amharic name; a parent delete names its child", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const parentSlug = scratchSlug();
+    const childSlug = scratchSlug();
+    try {
+      const parentId = await seedCategory(parentSlug, null);
+      const childId = await seedCategory(childSlug, parentId);
+      const supabase = adminClient();
+      await supabase.from("categories").update({ is_active: false }).in("id", [parentId, childId]);
+      // The leaf carries an APPROVED am name: undo must restore that exact state.
+      const { error: seedAm } = await supabase.from("entity_translations").insert({
+        entity_type: "category",
+        entity_id: childId,
+        field: "name",
+        lang_code: "am",
+        value: "ቅጠል",
+        status: "approved",
+        machine: false,
+      });
+      expect(seedAm, `CT-27 seeding the am name failed: ${seedAm?.message}`).toBeNull();
+
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      // (a) THE PARENT IS REFUSED, AND THE REFUSAL NAMES THE CHILD.
+      const refusedFile = file(
+        [line({ category_slug: parentSlug, name_en: parentSlug }, "delete")],
+        true,
+      );
+      const refused = await importPost(page, token, { mode: "preview", categories: refusedFile });
+      expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
+      const refusals = (refused.payload["refusals"] ?? []) as {
+        key?: string;
+        reason?: string;
+        detail?: string;
+        children?: string[];
+      }[];
+      const judged = refusals.find((refusal) => refusal.key === parentSlug);
+      expect(
+        judged,
+        `CT-27 the parent delete was not refused: ${JSON.stringify(refused.payload)}`,
+      ).toBeDefined();
+      expect(judged?.reason).toBe("hasChildren");
+      expect(
+        judged?.children ?? [],
+        `CT-27 the refusal did not name the child: ${JSON.stringify(judged)}`,
+      ).toContain(childSlug);
+      expect(judged?.detail ?? "").toContain(childSlug);
+      expect((refused.payload["counts"] as Record<string, number>).deletes).toBe(0);
+      expect(await readCategory(parentSlug), "CT-27 a preview deleted a row").not.toBeNull();
+
+      // (b) THE LEAF DELETES, AND UNDO BRINGS IT BACK WITH ITS am STATE.
+      const leafFile = file(
+        [line({ category_slug: childSlug, name_en: childSlug }, "delete")],
+        true,
+      );
+      const preview = await importPost(page, token, { mode: "preview", categories: leafFile });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(preview.payload["counts"], JSON.stringify(preview.payload["refusals"])).toMatchObject({
+        deletes: 1,
+        refusals: 0,
+      });
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        categories: leafFile,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(await readCategory(childSlug), "CT-27 the leaf survived its delete").toBeNull();
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      const restored = await readCategory(childSlug);
+      expect(restored, "CT-27 undo did not restore the leaf").not.toBeNull();
+      expect(
+        await readAmName(restored!.id),
+        "CT-27 undo did not restore the captured am state",
+      ).toMatchObject({ value: "ቅጠል", status: "approved", machine: false });
+    } finally {
+      await destroyCategory(childSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
 });
