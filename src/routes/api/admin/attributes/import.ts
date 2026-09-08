@@ -380,7 +380,11 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
           if (error) return relay(error, "preview_failed");
           const plan = (data ?? {}) as Record<string, unknown>;
           const serverRefusals = (plan["refusals"] as Refusal[] | undefined) ?? [];
-          const all = [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row);
+          const all = withRowValues(
+            [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+            { definitions, links },
+          );
+
           const counts = (plan["counts"] as Record<string, number> | undefined) ?? {};
           return json(
             { ...plan, refusals: all, counts: { ...counts, refusals: all.length }, digest },
@@ -396,7 +400,14 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
         const result = (data ?? {}) as Record<string, unknown>;
         const serverRefusals = (result["refusals"] as Refusal[] | undefined) ?? [];
         return json(
-          { ...result, refusals: [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row) },
+          {
+            ...result,
+            refusals: withRowValues(
+              [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+              { definitions, links },
+            ),
+          },
+
           200,
         );
       },
