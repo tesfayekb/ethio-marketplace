@@ -1041,7 +1041,8 @@ export const en = {
   "admin.attributes.import.reason.malformedOptions": "The options could not be read: “{options}”",
   "admin.attributes.import.reason.badParent":
     "Parent value “{detail}” is not on the list “{depends_on}” it depends on",
-  "admin.attributes.import.reason.blastRadius": "Still used by {detail} categories",
+  "admin.attributes.import.reason.blastRadius":
+    "Still linked to these categories, so it cannot be deleted: {detail}",
   "admin.attributes.import.reason.unknownCategory":
     "Unknown category: category_slug “{category_slug}” is not in the roster (path “{category_path}”)",
   "admin.attributes.import.reason.unknownAttribute":

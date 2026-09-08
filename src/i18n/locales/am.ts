@@ -993,7 +993,8 @@ export const am: Messages = {
   "admin.attributes.import.reason.malformedOptions": "አማራጮቹ ሊነበቡ አልቻሉም፦ “{options}”",
   "admin.attributes.import.reason.badParent":
     "የወላጅ እሴት “{detail}” በሚመሠረትበት ዝርዝር “{depends_on}” ውስጥ የለም",
-  "admin.attributes.import.reason.blastRadius": "አሁንም በ{detail} ምድቦች ጥቅም ላይ ነው",
+  "admin.attributes.import.reason.blastRadius":
+    "አሁንም ከእነዚህ ምድቦች ጋር ተያይዟል፣ ስለዚህ ሊሰረዝ አይችልም፦ {detail}",
   "admin.attributes.import.reason.unknownCategory":
     "ያልታወቀ ምድብ፦ category_slug “{category_slug}” በዝርዝሩ የለም (መንገድ “{category_path}”)",
   "admin.attributes.import.reason.unknownAttribute":

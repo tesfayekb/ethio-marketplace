@@ -298,10 +298,10 @@ value must exist on that definition's list, otherwise the row is refused
 With a category filter active the scope travels with the import and any row
 outside that subtree is refused in the preview.
 
-LIMITATIONS: the import reads `attribute_key`, `label_en`, `type` and `options`
-from `definitions.csv` — `label_am` (an entity translation), `is_per_variant`
-(no such column) and `direct_link_count` (derived) are informational and
-ignored. Undo covers the last batch's captured rows only.
+LIMITATIONS: the import reads `attribute_key`, `label_en`, `label_am`, `type`
+and `options` from `definitions.csv` — `is_per_variant` (no such column) and
+`direct_link_count` (derived) are informational and ignored. Undo covers the
+last batch's captured rows only.
 
 E2E: AT-20 round-trip no-op · AT-21 change → commit → undo against DB truth ·
 AT-22 bad header, raw formula and unknown slug with nothing written · AT-23 no
@@ -314,10 +314,32 @@ AT-24 edited bytes refused against the preview digest · AT-25 invalid option
 Every export header states its class. Identity and editable columns are written
 bare; derived or foreign columns carry the ` (read-only)` suffix:
 
-| File          | Read-only columns                                 |
-| ------------- | ------------------------------------------------- |
-| `definitions` | `label_am`, `is_per_variant`, `direct_link_count` |
-| `links`       | `category_path`, `origin`                         |
+| File          | Read-only columns                     |
+| ------------- | ------------------------------------- |
+| `definitions` | `is_per_variant`, `direct_link_count` |
+| `links`       | `category_path`, `origin`             |
+
+## IE-4b — `label_am` through the translation door
+
+`label_am` LEFT the read-only list. A non-empty cell is written through
+`admin_save_entity_translation('attribute', id, 'label', 'am', …)`, so it lands
+as a HUMAN row awaiting review (`status='edited'`, `machine=false`) — the import
+never auto-approves. An identical value writes nothing. An EMPTY cell is
+SILENCE: a blank spreadsheet cell never deletes a translation.
+
+Commit captures the prior am state (none, or value + status + machine) beside
+the exported row; Undo restores that tuple exactly — an approved row comes back
+approved — or removes the pending row the batch itself created. A delete drops
+the attribute's am rows with it and the capture brings them back.
+
+A blast-radius refusal now NAMES the categories holding the definition down
+(`detail` = comma list, `categories` = array) instead of only counting them.
+
+E2E: AT-29 (definition + link created with an Amharic label → the pending row
+asserted through the service client, a blank cell writes nothing, undo removes
+both the definition and the row it created) · AT-30 (an unlinked delete applies
+and undo restores its APPROVED am row unchanged, while a linked delete is
+refused naming the category).
 
 The importer accepts a header **with or without** the suffix, so the round-trip
 invariant (AT-20) is unchanged in meaning. A read-only cell is **never**
