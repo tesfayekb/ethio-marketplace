@@ -1393,8 +1393,9 @@ test.describe("C3 attributes console", () => {
       ).toEqual([slugA, slugB].sort());
 
       await gotoReady(page, "/admin/categories");
-      await findRow(page, slugB);
-      await expect(page.getByTestId(`category-needs-card-${slugB}`)).toHaveCount(0);
+      const rowAfter = await findRow(page, slugB);
+      await expect(rowAfter.getByTestId(`category-needs-card-${slugB}`)).toHaveCount(0);
+
 
     } finally {
       await supabase
