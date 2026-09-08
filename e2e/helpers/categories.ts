@@ -1,7 +1,8 @@
 import { type Locator, type Page } from "@playwright/test";
 
 import { expect, test } from "../fixtures";
-import { gotoReady, stepUpIfPrompted, useJobSuperAdmin } from "./ui";
+import { assertNoStringifiedLeak, gotoReady, stepUpIfPrompted, useJobSuperAdmin } from "./ui";
+
 import { adminClient } from "./users";
 
 /**
@@ -91,6 +92,8 @@ export async function findRow(page: Page, slug: string): Promise<Locator> {
       `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `findRow(${slug})`)}`,
     );
   }
+  // DEC-045b PART D — the roster is on screen; it may not carry a leak.
+  await assertNoStringifiedLeak(page, `findRow(${slug})`);
   return row;
 }
 

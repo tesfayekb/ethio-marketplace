@@ -1041,6 +1041,15 @@ export const en = {
   "admin.attributes.import.reason.malformedOptions": "The options could not be read: “{options}”",
   "admin.attributes.import.reason.badParent":
     "Parent value “{detail}” is not on the list “{depends_on}” it depends on",
+  /* DEC-045b — the dependency column's own refusals. */
+  "admin.attributes.import.reason.unknownParent":
+    "Depends on “{detail}”, which is neither in the library nor in this file",
+  "admin.attributes.import.reason.dependsNotSelect":
+    "Depends on “{detail}”, which is not a single-select attribute",
+  "admin.attributes.import.reason.dependsSelf": "An attribute cannot depend on itself",
+  "admin.attributes.import.reason.dependsCycle":
+    "Dependency loop with “{detail}” — one of the two must stand alone",
+
   "admin.attributes.import.reason.blastRadius":
     "Still linked to these categories, so it cannot be deleted: {detail}",
   "admin.attributes.import.reason.unknownCategory":
@@ -1102,6 +1111,11 @@ export const en = {
   "admin.attributes.dependsOn.optionsFor": "Options for {parent}",
   "admin.attributes.dependsOn.previewLabel": "Preview the cascade",
   "admin.attributes.dependsOn.previewNone": "Choose a value",
+  /* DEC-045b — the cascade preview speaks in the two attributes' own names. */
+  "admin.attributes.dependsOn.previewPrompt":
+    "{parent}: choose a value to preview {child}'s options",
+  "admin.attributes.dependsOn.previewResults": "{child} options",
+
   "admin.attributes.action.edit": "Edit",
   "admin.attributes.action.delete": "Delete",
   "admin.attributes.action.assign": "Assign to category",

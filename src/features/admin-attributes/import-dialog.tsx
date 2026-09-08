@@ -23,6 +23,12 @@ const REASON_KEYS = new Set([
   "unknownType",
   "malformedOptions",
   "badParent",
+  // DEC-045b — the dependency column's refusals.
+  "unknownParent",
+  "dependsNotSelect",
+  "dependsSelf",
+  "dependsCycle",
+
   "blastRadius",
   "unknownCategory",
   "unknownAttribute",

@@ -993,6 +993,14 @@ export const am: Messages = {
   "admin.attributes.import.reason.malformedOptions": "አማራጮቹ ሊነበቡ አልቻሉም፦ “{options}”",
   "admin.attributes.import.reason.badParent":
     "የወላጅ እሴት “{detail}” በሚመሠረትበት ዝርዝር “{depends_on}” ውስጥ የለም",
+  "admin.attributes.import.reason.unknownParent":
+    "በ“{detail}” ላይ ይመሠረታል፤ ነገር ግን በቤተ-መጻሕፍቱም ሆነ በዚህ ፋይል ውስጥ የለም",
+  "admin.attributes.import.reason.dependsNotSelect":
+    "በ“{detail}” ላይ ይመሠረታል፤ ነገር ግን ነጠላ-ምርጫ ባህርይ አይደለም",
+  "admin.attributes.import.reason.dependsSelf": "አንድ ባህርይ በራሱ ላይ ሊመሠረት አይችልም",
+  "admin.attributes.import.reason.dependsCycle":
+    "ከ“{detail}” ጋር የጥገኝነት ዑደት — ከሁለቱ አንዱ ብቻውን መቆም አለበት",
+
   "admin.attributes.import.reason.blastRadius":
     "አሁንም ከእነዚህ ምድቦች ጋር ተያይዟል፣ ስለዚህ ሊሰረዝ አይችልም፦ {detail}",
   "admin.attributes.import.reason.unknownCategory":
@@ -1051,6 +1059,9 @@ export const am: Messages = {
   "admin.attributes.dependsOn.optionsFor": "የ{parent} አማራጮች",
   "admin.attributes.dependsOn.previewLabel": "ቅደም ተከተሉን ይመልከቱ",
   "admin.attributes.dependsOn.previewNone": "እሴት ይምረጡ",
+  "admin.attributes.dependsOn.previewPrompt": "{parent}፡ የ{child} አማራጮችን ለመመልከት እሴት ይምረጡ",
+  "admin.attributes.dependsOn.previewResults": "የ{child} አማራጮች",
+
   "admin.attributes.action.edit": "አርትዕ",
   "admin.attributes.action.delete": "ሰርዝ",
   "admin.attributes.action.assign": "ወደ ምድብ መድብ",

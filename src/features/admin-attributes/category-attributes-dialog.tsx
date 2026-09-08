@@ -12,8 +12,10 @@ import { useAttributeLabel } from "./use-attribute-label";
 import {
   CARD_ATTRIBUTE_MAXIMUM,
   CARD_ATTRIBUTE_MINIMUM,
+  optionLabel,
   type AttributeLink,
 } from "./attributes-service";
+
 import {
   useAdminAttributes,
   useCategoryLinks,
@@ -97,7 +99,15 @@ export function CategoryAttributesDialog({
     .filter((row) => row.dependsOnKey !== null)
     .map((child) => {
       const parent = effectiveRows.find((row) => row.attrKey === child.dependsOnKey);
-      return { child, parentValues: (parent?.options ?? []).map((option) => option.value) };
+      return {
+        child,
+        // DEC-045b PART C — the preview speaks in NAMES, never in keys.
+        parentLabel:
+          parent === undefined
+            ? (child.dependsOnKey ?? "")
+            : attributeLabel(parent.attributeId, parent.nameEn),
+        parentValues: (parent?.options ?? []).map((option) => option.value),
+      };
     })
     .filter((entry) => entry.parentValues.length > 0);
 
@@ -295,55 +305,67 @@ export function CategoryAttributesDialog({
           empties them. Read-only preview — no write happens here. */}
       {cascades.length === 0 ? null : (
         <div className="space-y-3 border-t border-border pt-3" data-testid="category-cascades">
-          {cascades.map(({ child, parentValues }) => (
-            <div
-              key={child.linkId}
-              className="space-y-2"
-              data-testid={`category-attribute-cascade-${child.attrKey}`}
-            >
-              <p className="text-sm font-medium">
-                {`${attributeLabel(child.attributeId, child.nameEn)} — ${t(
-                  "admin.attributes.dependsOn.previewLabel",
-                )}`}
-              </p>
-              <select
-                aria-label={t("admin.attributes.dependsOn.previewLabel")}
-                data-testid={`category-attribute-cascade-parent-${child.attrKey}`}
-                className={SELECT_CLASS}
-                value={chosen[child.attrKey] ?? ""}
-                onChange={(event) =>
-                  setChosen((prev) => ({ ...prev, [child.attrKey]: event.target.value }))
-                }
+          {cascades.map(({ child, parentLabel, parentValues }) => {
+            const childLabel = attributeLabel(child.attributeId, child.nameEn);
+            return (
+              <div
+                key={child.linkId}
+                className="space-y-2"
+                data-testid={`category-attribute-cascade-${child.attrKey}`}
               >
-                <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
-                {parentValues.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-              <ul
-                className="space-y-1"
-                data-testid={`category-attribute-cascade-options-${child.attrKey}`}
-              >
-                {child.options
-                  .filter(
-                    (option) =>
-                      (chosen[child.attrKey] ?? "") !== "" &&
-                      option.parent === chosen[child.attrKey],
-                  )
-                  .map((option) => (
-                    <li
-                      key={option.value}
-                      data-testid={`category-attribute-cascade-option-${option.value}`}
-                      className="text-sm text-muted-foreground"
-                    >
-                      {option.value}
-                    </li>
+                <p
+                  className="text-sm font-medium"
+                  data-testid={`category-attribute-cascade-prompt-${child.attrKey}`}
+                >
+                  {t("admin.attributes.dependsOn.previewPrompt")
+                    .replace("{parent}", parentLabel)
+                    .replace("{child}", childLabel)}
+                </p>
+                <select
+                  aria-label={parentLabel}
+                  data-testid={`category-attribute-cascade-parent-${child.attrKey}`}
+                  className={SELECT_CLASS}
+                  value={chosen[child.attrKey] ?? ""}
+                  onChange={(event) =>
+                    setChosen((prev) => ({ ...prev, [child.attrKey]: event.target.value }))
+                  }
+                >
+                  <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
+                  {parentValues.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
                   ))}
-              </ul>
-            </div>
-          ))}
+                </select>
+                <p
+                  className="text-xs text-muted-foreground"
+                  data-testid={`category-attribute-cascade-caption-${child.attrKey}`}
+                >
+                  {t("admin.attributes.dependsOn.previewResults").replace("{child}", childLabel)}
+                </p>
+                <ul
+                  className="space-y-1"
+                  data-testid={`category-attribute-cascade-options-${child.attrKey}`}
+                >
+                  {child.options
+                    .filter(
+                      (option) =>
+                        (chosen[child.attrKey] ?? "") !== "" &&
+                        option.parent === chosen[child.attrKey],
+                    )
+                    .map((option) => (
+                      <li
+                        key={option.value}
+                        data-testid={`category-attribute-cascade-option-${option.value}`}
+                        className="text-sm text-muted-foreground"
+                      >
+                        {optionLabel(option)}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            );
+          })}
         </div>
       )}
 

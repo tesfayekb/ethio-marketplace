@@ -42,6 +42,7 @@ import {
   RemoveAttributeCategoryDialog,
 } from "./attribute-dialogs";
 import {
+  describeOptions,
   groupByAttribute,
   typeHasOptions,
   type AttributeCategory,
@@ -309,11 +310,18 @@ export function AdminAttributesPage() {
     },
   ];
 
-  /** PART A — the OPTIONS column shows a count; the full list lives here. */
+  /**
+   * PART A — the OPTIONS column shows a count; the full list lives here.
+   * DEC-045b PART B — each option renders its LABEL (value as fallback) and a
+   * dependent definition is grouped by the parent value it hangs under.
+   */
   const expandedRow = (row: AttributeRow) =>
     typeHasOptions(row.attrType) && row.options.length > 0 ? (
-      <p className="text-sm text-muted-foreground">
-        {`${t("admin.attributes.col.options")}: ${row.options.join(" · ")}`}
+      <p
+        className="text-sm text-muted-foreground"
+        data-testid={`attribute-optionlist-${row.attrKey}`}
+      >
+        {`${t("admin.attributes.col.options")}: ${describeOptions(row.options)}`}
       </p>
     ) : null;
 

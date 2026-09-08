@@ -386,3 +386,32 @@ importable (with parent-before-dependent ordering inside one file) is 045b.
 bearer and asserts the stray-parent, text-parent, cycle and named-dependents
 refusals, with nothing written; AT-34 proves a `categories:view`-only operator
 sees no control and is refused by the door.
+
+## Importable dependencies and option labels (DEC-045b)
+
+**`depends_on` is an editable column.** The definitions file carries
+`depends_on` (an attribute key, or empty) between `options` and the derived
+columns, and its header no longer declares "(read-only)": the importer APPLIES
+it. Within one file the planner resolves a parent declared in the SAME file,
+orders creates parent-before-dependent, and refuses `unknownParent` (neither in
+the library nor in the file), `dependsNotSelect`, `dependsSelf`, `dependsCycle`
+and `badParent` (an option `parent` outside the parent's value list — AT-25's
+law). Commit resolves the key to the parent's id; Undo breaks the dependency
+edges the batch created before deleting, and restores the prior edge on rows it
+only changed.
+
+**Options read as labels.** The library's Options expansion renders each
+option's `label_en` (the stored value as fallback). A dependent definition is
+grouped by the parent value it hangs under —
+`byd: Seagull · Dolphin — toyota: Corolla · Vitz`. The Options COUNT in the row
+and card twins is unchanged.
+
+**Cascade preview.** In the per-category link manager the preview reads
+"<Parent label>: choose a value to preview <Child label>'s options"; the
+dropdown is labelled with the parent's name and the result list is captioned
+with the child's. Both labels come through the entity-translation overlay, so
+an Amharic console speaks Amharic.
+
+**Proofs.** AT-32 (parent + dependent created by one file, the dependent row
+written first; round-trip invariant zero; Undo removes both) and AT-35 (the
+Options expansion for a plain and for a dependent definition).

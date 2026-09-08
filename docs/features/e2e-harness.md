@@ -172,3 +172,13 @@ with code/` from the whole log (capped at 30, oldest first) then the final 10 li
 
 The report prefixes a `PLATFORM-ORIGIN?` line when the run's head commit subject is
 `Lovable update` or `Work in progress` (`E2E_HEAD_COMMIT_MESSAGE`).
+
+## The render invariant (DEC-045b PART D)
+
+`gotoReady` and the categories twin helper `findRow` call
+`assertNoStringifiedLeak`: after the page is hydrated, the rendered body text
+may not contain `[object Object]`, a standalone `undefined` token or `NaN`.
+This is a CLASS rule, not one bug's patch — a stringified object reaching the
+screen (the attributes Options column joined its option objects) is the same
+defect family as an undefined slot or a NaN price. The failure names the token
+and dumps the first 2 000 characters of the page text.

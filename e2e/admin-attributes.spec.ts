@@ -91,7 +91,7 @@ async function seedAttribute(key: string, type = "text") {
 async function readAttribute(key: string) {
   const { data } = await adminClient()
     .from("attributes")
-    .select("id, attr_key, name_en, attr_type, options")
+    .select("id, attr_key, name_en, attr_type, options, depends_on")
     .eq("attr_key", key)
     .maybeSingle();
   return data;
@@ -937,7 +937,7 @@ test.describe("C3 attributes console", () => {
       expect(links.charCodeAt(0)).toBe(0xfeff);
       // THE COLUMN LAW, verbatim — IE-3: derived columns declare themselves.
       expect(definitions.slice(1).split("\r\n")[0]).toBe(
-        "attribute_key,label_en,label_am,type,options,is_per_variant (read-only),direct_link_count (read-only)",
+        "attribute_key,label_en,label_am,type,options,depends_on,is_per_variant (read-only),direct_link_count (read-only)",
       );
       expect(links.slice(1).split("\r\n")[0]).toBe(
         "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)",
@@ -1270,7 +1270,7 @@ test.describe("C3 attributes console", () => {
    * visibility — is asserted in AT-23.
    */
   const DEF_HEADER =
-    "attribute_key,label_en,label_am,type,options,is_per_variant,direct_link_count";
+    "attribute_key,label_en,label_am,type,options,depends_on,is_per_variant,direct_link_count";
   const LINK_HEADER =
     "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin";
 
@@ -1476,7 +1476,7 @@ test.describe("C3 attributes console", () => {
       ].join("|");
       const definitions =
         `${DEF_HEADER}\r\n` +
-        [key, key, "", "single_select", cell(options), "", "0"].join(",") +
+        [key, key, "", "single_select", cell(options), "", "", "0"].join(",") +
         "\r\n";
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
@@ -1520,7 +1520,7 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,1\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,,1\r\n`;
       // required flips false → true and the attribute takes card position 1.
       const links = `${LINK_HEADER}\r\n${slug},${slug},${key},true,false,1,${slug}\r\n`;
 
@@ -1575,7 +1575,7 @@ test.describe("C3 attributes console", () => {
     const key = `e2e_attr_${rand()}`;
     const formula = await importPost(page, token, {
       mode: "preview",
-      definitions: `${DEF_HEADER}\r\n${key},"=SUM(1)",,text,,,0\r\n`,
+      definitions: `${DEF_HEADER}\r\n${key},"=SUM(1)",,text,,,,0\r\n`,
     });
     expect(formula.status).toBe(200);
     const formulaRefusals = formula.payload["refusals"] as { reason: string }[];
@@ -1640,7 +1640,7 @@ test.describe("C3 attributes console", () => {
       const token = await bearerOf(page);
       const denied = await importPost(page, token, {
         mode: "preview",
-        definitions: `${DEF_HEADER}\r\ne2e_attr_denied,label,,text,,,0\r\n`,
+        definitions: `${DEF_HEADER}\r\ne2e_attr_denied,label,,text,,,,0\r\n`,
       });
       expect(denied.status, JSON.stringify(denied.payload)).toBe(403);
 
@@ -1667,11 +1667,11 @@ test.describe("C3 attributes console", () => {
     try {
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,0\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,,0\r\n`;
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status).toBe(200);
 
-      const edited = `${DEF_HEADER}\r\n${key},${key}_edited,,text,,,0\r\n`;
+      const edited = `${DEF_HEADER}\r\n${key},${key}_edited,,text,,,,0\r\n`;
       const stale = await importPost(page, token, {
         mode: "commit",
         definitions: edited,
@@ -1714,7 +1714,7 @@ test.describe("C3 attributes console", () => {
         { value: "Corolla", parent: "Toyota" },
         { value: "Civic", parent: "Suzuki" },
       ]).replaceAll('"', '""');
-      const definitions = `${DEF_HEADER}\r\n${child},${child},,single_select,"${options}",,0\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${child},${child},,single_select,"${options}",,,0\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
@@ -1879,7 +1879,7 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      const definitions = `${DEF_HEADER}\r\n${key},${key},${cell(amharic)},text,,,0\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${key},${key},${cell(amharic)},text,,,,0\r\n`;
       const links = `${LINK_HEADER}\r\n${slug},${slug},${key},false,false,,${slug}\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions, links });
@@ -1912,7 +1912,7 @@ test.describe("C3 attributes console", () => {
 
       // SILENCE — the same definition with an EMPTY am cell is not a change,
       // and it deletes nothing.
-      const blank = `${DEF_HEADER}\r\n${key},${key},,text,,,1\r\n`;
+      const blank = `${DEF_HEADER}\r\n${key},${key},,text,,,,1\r\n`;
       const silent = await importPost(page, token, { mode: "preview", definitions: blank });
       expect(silent.status, JSON.stringify(silent.payload)).toBe(200);
       expect(
@@ -1987,8 +1987,8 @@ test.describe("C3 attributes console", () => {
       const header = `${DEF_HEADER},action`;
       const definitions =
         `${header}\r\n` +
-        `${free},${free},${cell(amharic)},text,,,0,delete\r\n` +
-        `${used},${used},,text,,,1,delete\r\n`;
+        `${free},${free},${cell(amharic)},text,,,,0,delete\r\n` +
+        `${used},${used},,text,,,,1,delete\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
@@ -2293,6 +2293,131 @@ test.describe("C3 attributes console", () => {
       await supabase.from("role_permissions").delete().eq("role_id", role.id);
       await supabase.from("user_roles").delete().eq("role_id", role.id);
       await supabase.from("roles").delete().eq("id", role.id);
+    }
+  });
+
+  /**
+   * AT-32 (DEC-045b) — THE DEPENDENCY TRAVELS IN THE FILE. One definitions
+   * file creates a parent and a dependent child in a single pass — the child
+   * written FIRST, so the plan's parent-before-dependent ordering is what makes
+   * the commit possible. Re-previewing the same file is a no-op (the IE-2b
+   * round-trip invariant), and Undo removes both.
+   */
+  test("AT-32 an import creates a parent and its dependent in one pass", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/attributes");
+    const token = await bearerOf(page);
+
+    const makeKey = `e2e_attr_${rand()}`;
+    const modelKey = `e2e_attr_${rand()}`;
+    try {
+      const definitions =
+        `${DEF_HEADER}\r\n` +
+        // The DEPENDENT row comes first on purpose.
+        `${modelKey},${modelKey},,single_select,${cell('{"value": "corolla", "parent": "toyota"}')},${makeKey},,0\r\n` +
+        `${makeKey},${makeKey},,single_select,toyota|byd,,,0\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(counts.adds, JSON.stringify(counts)).toBe(2);
+      expect(counts.refusals, JSON.stringify(preview.payload["refusals"])).toBe(0);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+
+      // DB TRUTH: the dependency edge resolved to the parent that came AFTER
+      // it in the file, and the option kept the parent value it was authored
+      // under.
+      const parent = await readAttribute(makeKey);
+      const child = await readAttribute(modelKey);
+      expect(parent, "AT-32 the parent was not created").toBeTruthy();
+      expect(child, "AT-32 the dependent was not created").toBeTruthy();
+      expect(child!.depends_on, "AT-32 the dependency edge is wrong").toBe(parent!.id);
+      expect(child!.options).toEqual([{ value: "corolla", parent: "toyota" }]);
+
+      // THE INVARIANT: the very same file now changes nothing.
+      const again = await importPost(page, token, { mode: "preview", definitions });
+      expect(again.status, JSON.stringify(again.payload)).toBe(200);
+      const round = again.payload["counts"] as Record<string, number>;
+      expect(round.adds, JSON.stringify(round)).toBe(0);
+      expect(round.changes, JSON.stringify(round)).toBe(0);
+      expect(round.refusals, JSON.stringify(round)).toBe(0);
+      expect(round.unchanged, JSON.stringify(round)).toBe(2);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await readAttribute(modelKey), "AT-32 undo left the dependent").toBeFalsy();
+      expect(await readAttribute(makeKey), "AT-32 undo left the parent").toBeFalsy();
+    } finally {
+      await destroyAttribute(modelKey);
+      await destroyAttribute(makeKey);
+    }
+  });
+
+  /**
+   * AT-35 (DEC-045b PART B) — OPTIONS READ AS LABELS, NEVER AS OBJECTS. A plain
+   * select lists its labels; a dependent one groups them under the parent value
+   * they hang from. `gotoReady` additionally fails the whole page on a
+   * "[object Object]" leak (PART D), so this test proves both halves.
+   */
+  test("AT-35 the options expansion reads as labels", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const makeKey = `e2e_attr_${rand()}`;
+    const modelKey = `e2e_attr_${rand()}`;
+    try {
+      const { data: make } = await supabase
+        .from("attributes")
+        .insert({
+          attr_key: makeKey,
+          name_en: makeKey,
+          attr_type: "single_select",
+          options: [
+            { value: "toyota", label_en: "Toyota" },
+            { value: "byd", label_en: "BYD" },
+          ],
+        })
+        .select("id")
+        .single();
+      await supabase.from("attributes").insert({
+        attr_key: modelKey,
+        name_en: modelKey,
+        attr_type: "single_select",
+        depends_on: make!.id,
+        options: [
+          { value: "corolla", label_en: "Corolla", parent: "toyota" },
+          { value: "vitz", label_en: "Vitz", parent: "toyota" },
+          { value: "seagull", label_en: "Seagull", parent: "byd" },
+        ],
+      });
+
+      await gotoReady(page, "/admin/attributes");
+
+      await page.getByTestId("attribute-search").fill(makeKey);
+      // J5 — the expansion exists in BOTH twins; assert the VISIBLE one.
+      await expect(
+        librarySurface(page).getByTestId(`attribute-optionlist-${makeKey}`),
+      ).toContainText("Toyota · BYD", { timeout: 20000 });
+
+      await page.getByTestId("attribute-search").fill(modelKey);
+      const dependent = librarySurface(page).getByTestId(`attribute-optionlist-${modelKey}`);
+      await expect(dependent).toContainText("toyota: Corolla · Vitz", { timeout: 20000 });
+      await expect(dependent).toContainText("byd: Seagull");
+      await expect(dependent).not.toContainText("[object Object]");
+    } finally {
+      await destroyAttribute(modelKey);
+      await destroyAttribute(makeKey);
     }
   });
 });

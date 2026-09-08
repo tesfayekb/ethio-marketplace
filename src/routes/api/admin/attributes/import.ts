@@ -32,6 +32,8 @@ const DEFINITION_COLUMNS = [
   "label_am",
   "type",
   "options",
+  // DEC-045b — importable, and read in exactly the export's position.
+  "depends_on",
   "is_per_variant",
   "direct_link_count",
 ] as const;

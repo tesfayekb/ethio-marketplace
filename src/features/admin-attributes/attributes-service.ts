@@ -45,6 +45,34 @@ export function optionValues(options: AttributeOption[]): string[] {
   return options.map((option) => option.value);
 }
 
+/** An option READS as its English label; the stored value is the fallback. */
+export function optionLabel(option: AttributeOption): string {
+  return option.labelEn.trim() === "" ? option.value : option.labelEn;
+}
+
+/**
+ * DEC-045b PART B — the library's Options expansion, as ONE string.
+ *
+ * A flat definition reads "seagull · dolphin". A DEPENDENT one is grouped by
+ * the parent value it hangs under: "byd: seagull · dolphin — toyota: corolla".
+ * Never the raw objects: stringifying them is what produced "[object Object]".
+ */
+export function describeOptions(options: AttributeOption[]): string {
+  const groups: { parent: string; labels: string[] }[] = [];
+  for (const option of options) {
+    const group = groups.find((entry) => entry.parent === option.parent);
+    if (group) group.labels.push(optionLabel(option));
+    else groups.push({ parent: option.parent, labels: [optionLabel(option)] });
+  }
+  return groups
+    .map((group) =>
+      group.parent === ""
+        ? group.labels.join(" · ")
+        : `${group.parent}: ${group.labels.join(" · ")}`,
+    )
+    .join(" — ");
+}
+
 export interface AttributeRow {
   id: string;
   attrKey: string;

@@ -31,6 +31,9 @@ const DEFINITION_COLUMNS = [
   "label_am",
   "type",
   "options",
+  // DEC-045b — the dependency is EDITABLE now: the header drops the read-only
+  // suffix, because the importer applies exactly what this cell says.
+  "depends_on",
   "is_per_variant",
   "direct_link_count",
 ] as const;

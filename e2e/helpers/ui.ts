@@ -122,10 +122,30 @@ export async function waitForHydration(page: Page) {
  * guard's named error at the navigation instead of letting it surface 60 s
  * later as an unrelated element-not-found.
  */
+/**
+ * DEC-045b PART D — THE RENDER INVARIANT (class rule, not one bug's patch).
+ *
+ * A stringified object, an undefined slot or a NaN reaching the SCREEN is a
+ * defect of the same family as "[object Object]" in the options column. Every
+ * navigation and every twin-row assertion checks the rendered body text for
+ * those three tokens and fails with a dump naming what was on the page.
+ */
+export async function assertNoStringifiedLeak(page: Page, where: string) {
+  const body = await page.evaluate(() => document.body.innerText ?? "");
+  const leak = ["[object Object]", "NaN"].find((token) => body.includes(token));
+  const undefinedToken = /(^|[\s>[("'])undefined([\s<\])"'.,:;!?]|$)/.test(body)
+    ? "undefined"
+    : undefined;
+  const found = leak ?? undefinedToken;
+  if (found === undefined) return;
+  throw new Error(`[render-leak] ${where} rendered “${found}”\n${body.slice(0, 2000)}`.trimEnd());
+}
+
 export async function gotoReady(page: Page, path: string) {
   await page.goto(path);
   await assertSsrHealthy(page);
   await waitForHydration(page);
+  await assertNoStringifiedLeak(page, `gotoReady(${path})`);
 }
 
 /**

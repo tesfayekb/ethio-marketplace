@@ -121,6 +121,12 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.dependsOn.previewPrompt": [
+      "/admin/categories"
+    ],
+    "admin.attributes.dependsOn.previewResults": [
+      "/admin/categories"
+    ],
     "admin.attributes.edit.title": [
       "/admin/attributes",
       "/admin/categories"
