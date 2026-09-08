@@ -47,11 +47,44 @@ const LINK_COLUMNS = [
 ] as const;
 
 export interface Refusal {
-  file: "definitions" | "links";
+  file: string;
   row: number;
   key: string;
   reason: string;
   detail?: string;
+  /**
+   * IE-3c PART B — the values the door judged, taken from the operator's own
+   * row (never re-derived), so the rendered sentence can name them.
+   */
+  values?: Record<string, string>;
+}
+
+/**
+ * IE-3c PART B — join every refusal to the row it judged (by the row number
+ * the operator sees) and hand its cells to the message layer. A refusal whose
+ * row is not in the parsed set (a whole-file verdict) keeps what it had.
+ */
+export function withRowValues(
+  refusals: Refusal[],
+  rowsByFile: Record<string, Record<string, string>[]>,
+): Refusal[] {
+  const index = new Map<string, Record<string, string>>();
+  for (const [file, rows] of Object.entries(rowsByFile)) {
+    for (const row of rows) index.set(`${file}:${row["row"] ?? ""}`, row);
+  }
+  return refusals.map((refusal) => {
+    const row =
+      index.get(`${refusal.file}:${refusal.row}`) ??
+      [...index.values()].find((candidate) => candidate["row"] === String(refusal.row));
+    if (row === undefined) return refusal;
+    const values: Record<string, string> = {};
+    for (const [name, cell] of Object.entries(row)) {
+      if (name === "row") continue;
+      values[name] = (cell ?? "").trim();
+    }
+    if (refusal.detail !== undefined) values["detail"] = refusal.detail;
+    return { ...refusal, values };
+  });
 }
 
 function json(body: unknown, status: number): Response {
@@ -346,7 +379,11 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
           if (error) return relay(error, "preview_failed");
           const plan = (data ?? {}) as Record<string, unknown>;
           const serverRefusals = (plan["refusals"] as Refusal[] | undefined) ?? [];
-          const all = [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row);
+          const all = withRowValues(
+            [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+            { definitions, links },
+          );
+
           const counts = (plan["counts"] as Record<string, number> | undefined) ?? {};
           return json(
             { ...plan, refusals: all, counts: { ...counts, refusals: all.length }, digest },
@@ -362,7 +399,14 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
         const result = (data ?? {}) as Record<string, unknown>;
         const serverRefusals = (result["refusals"] as Refusal[] | undefined) ?? [];
         return json(
-          { ...result, refusals: [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row) },
+          {
+            ...result,
+            refusals: withRowValues(
+              [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+              { definitions, links },
+            ),
+          },
+
           200,
         );
       },

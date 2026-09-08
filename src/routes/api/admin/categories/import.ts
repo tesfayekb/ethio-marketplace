@@ -23,6 +23,7 @@ import {
   isFormulaCell,
   parseCsvGrid,
   unneutralize,
+  withRowValues,
   type Refusal,
 } from "../attributes/import";
 import { CATEGORY_COLUMNS } from "./export";
@@ -204,7 +205,11 @@ export const Route = createFileRoute("/api/admin/categories/import")({
           if (error) return relay(error, "preview_failed");
           const plan = (data ?? {}) as Record<string, unknown>;
           const serverRefusals = (plan["refusals"] as Refusal[] | undefined) ?? [];
-          const all = [...parsed.refusals, ...serverRefusals].sort((a, b) => a.row - b.row);
+          const all = withRowValues(
+            [...parsed.refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+            { categories: parsed.rows, definitions: parsed.rows },
+          );
+
           const counts = (plan["counts"] as Record<string, number> | undefined) ?? {};
           return json(
             { ...plan, refusals: all, counts: { ...counts, refusals: all.length }, digest },
@@ -222,7 +227,10 @@ export const Route = createFileRoute("/api/admin/categories/import")({
         return json(
           {
             ...result,
-            refusals: [...parsed.refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+            refusals: withRowValues(
+              [...parsed.refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+              { categories: parsed.rows, definitions: parsed.rows },
+            ),
           },
           200,
         );

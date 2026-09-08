@@ -42,6 +42,8 @@ export interface ImportRefusal {
   key: string;
   reason: string;
   detail?: string;
+  /** IE-3c — the cells the door judged, so the sentence can name them. */
+  values?: Record<string, string>;
 }
 
 type Counts = Record<string, number>;
@@ -131,11 +133,18 @@ export function ImportDialog({
 
   const reasonLabel = (refusal: ImportRefusal): string => {
     const name = reasonKeys.has(refusal.reason) ? refusal.reason : "unknown";
-    const text = t(key(`reason.${name}`));
+    let text = t(key(`reason.${name}`));
     const detail = refusal.detail ?? "";
-    // IE-3 — a guided message spends its detail INSIDE the sentence ("restore
-    // '<old>'"); anything else keeps the old parenthetical.
-    if (text.includes("{detail}")) return text.replace("{detail}", detail);
+    // IE-3c — the message names the values it judged: every cell of the
+    // operator's own row is available by column name, plus `detail` (the
+    // server's own judged value, e.g. the address it wants restored).
+    const values: Record<string, string> = { ...(refusal.values ?? {}), detail };
+    for (const [field, value] of Object.entries(values)) {
+      text = text.split(`{${field}}`).join(value === "" ? "—" : value);
+    }
+    // IE-3 — a guided message spends its detail INSIDE the sentence; a
+    // message with no placeholder keeps the old parenthetical.
+    if (t(key(`reason.${name}`)).includes("{")) return text;
     return detail === "" ? text : `${text} (${detail})`;
   };
 

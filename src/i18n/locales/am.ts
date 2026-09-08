@@ -861,24 +861,40 @@ export const am: Messages = {
   "admin.categories.import.committed": "ማስገባቱ ተፈጽሟል።",
   "admin.categories.import.undo": "የመጨረሻውን ማስገባት መልስ",
   "admin.categories.import.undone": "{count} ምድቦች ተመልሰዋል።",
-  "admin.categories.import.reason.missingSlug": "የምድብ አድራሻ የለም",
-  "admin.categories.import.reason.duplicateSlug": "ይህ ምድብ በፋይሉ ውስጥ ሁለት ጊዜ ተጠቅሷል",
-  "admin.categories.import.reason.badAction": "ያልታወቀ ትዕዛዝ",
-  "admin.categories.import.reason.missingName": "አዲስ ምድብ ስም ያስፈልገዋል",
-  "admin.categories.import.reason.unknownSlug": "ያልታወቀ ምድብ",
-  "admin.categories.import.reason.unknownParent": "ያልታወቀ ወላጅ ምድብ",
-  "admin.categories.import.reason.catchallParent": "“ሌላ” ማቆያ ወላጅ መሆን አይችልም",
-  "admin.categories.import.reason.cycle": "ይህ ዝውውር ምድቡን በራሱ ውስጥ ያደርገዋል",
+  "admin.categories.import.reason.missingSlug":
+    "የምድብ አድራሻ የለም፦ category_slug ባዶ ነው (መንገድ “{category_path}”፣ ስም “{name_en}”)",
+  "admin.categories.import.reason.duplicateSlug":
+    "category_slug “{category_slug}” በዚህ ፋይል ሁለት ጊዜ ተጠቅሷል (መንገድ “{category_path}”)",
+  "admin.categories.import.reason.badAction":
+    "ያልታወቀ ትዕዛዝ “{action}” በ“{category_slug}” ላይ — upsert፣ create-root፣ retire፣ reactivate ወይም delete ይጠቀሙ",
+  "admin.categories.import.reason.missingName":
+    "አዲስ ምድብ ስም ያስፈልገዋል፦ name_en በ“{category_slug}” ላይ ባዶ ነው",
+  "admin.categories.import.reason.unknownSlug":
+    "ያልታወቀ ምድብ፦ category_slug “{category_slug}” በዝርዝሩ የለም (መንገድ “{category_path}”)",
+  "admin.categories.import.reason.unknownParent":
+    "ያልታወቀ ወላጅ ምድብ፦ parent_slug “{parent_slug}” በዝርዝሩም በዚህ ፋይልም የለም (የመስመሩ slug “{category_slug}”፣ መንገድ “{category_path}”)",
+  "admin.categories.import.reason.catchallParent":
+    "“ሌላ” ማቆያ ወላጅ መሆን አይችልም፦ parent_slug “{parent_slug}” ማቆያ ነው — ለ“{category_slug}” ሌላ ወላጅ ይምረጡ",
+  "admin.categories.import.reason.cycle":
+    "ይህ ዝውውር “{category_slug}”ን በራሱ ውስጥ ያደርገዋል — parent_slug “{parent_slug}” ከሱ በታች ነው",
   "admin.categories.import.reason.slugRename":
-    "የምድብ አድራሻ መለያ ነው፤ እዚህ መቀየር አይቻልም — “{detail}”ን መልሰው ስሙን ብቻ ይቀይሩ",
-  "admin.categories.import.reason.hasChildren": "በዚህ ምድብ ስር ሌሎች ምድቦች አሉ",
-  "admin.categories.import.reason.hasListings": "በዚህ ምድብ ውስጥ ማስታወቂያዎች አሉ",
-  "admin.categories.import.reason.deleteActive": "ከመሰረዝ በፊት ምድቡን ያቋርጡ",
-  "admin.categories.import.reason.unknownCountry": "ያልታወቀ የአገር ኮድ",
-  "admin.categories.import.reason.badDate": "ቀኑ ሊነበብ አልቻለም",
-  "admin.categories.import.reason.outOfScope": "ካጣሩት ምድብ ውጭ ነው",
-  "admin.categories.import.reason.formula": "ሕዋሶች በ = + - @ መጀመር አይችሉም",
+    "የምድብ አድራሻ መለያ ነው፤ እዚህ መቀየር አይቻልም፦ “{detail}” → “{category_slug}” (መንገድ “{category_path}”) — “{detail}”ን መልሰው ስሙን ብቻ ይቀይሩ",
+  "admin.categories.import.reason.hasChildren":
+    "በ“{category_slug}” ስር {detail} ምድቦች አሉ — መጀመሪያ ያንቀሳቅሱ ወይም ይሰርዙ",
+  "admin.categories.import.reason.hasListings":
+    "በ“{category_slug}” ውስጥ {detail} ማስታወቂያዎች አሉ — መጀመሪያ ወደ ሌላ ምድብ ያዛውሩ",
+  "admin.categories.import.reason.deleteActive":
+    "ከመሰረዝ በፊት “{category_slug}”ን ያቋርጡ (is_active “{is_active}” ነው)",
+  "admin.categories.import.reason.unknownCountry":
+    "ያልታወቀ የአገር ኮድ በ excluded_country_codes “{excluded_country_codes}” ላይ ({category_slug})",
+  "admin.categories.import.reason.badDate":
+    "ቀኑ ሊነበብ አልቻለም፦ visible_from “{visible_from}”፣ visible_until “{visible_until}” ({category_slug})",
+  "admin.categories.import.reason.outOfScope":
+    "“{category_slug}” (መንገድ “{category_path}”) ካጣሩት ምድብ ውጭ ነው",
+  "admin.categories.import.reason.formula":
+    "ሕዋሶች በ = + - @ መጀመር አይችሉም (የመስመሩ slug “{category_slug}”)",
   "admin.categories.import.reason.unknown": "ይህ ረድፍ ተከልክሏል",
+
   "admin.categories.import.guidance":
     "“(read-only)” የተባሉ አምዶች በራስ-ሰር ይሰላሉ፤ በፋይሉ ውስጥ ቢቀይሯቸውም ተግባራዊ አይሆኑም።",
   "admin.categories.import.ignored": "ችላ የተባሉ (read-only)",
@@ -969,21 +985,27 @@ export const am: Messages = {
   "admin.attributes.import.committed": "ማስገባቱ ተፈጽሟል።",
   "admin.attributes.import.undo": "የመጨረሻውን ማስገባት መልስ",
   "admin.attributes.import.undone": "{count} መስመሮች ተመልሰዋል።",
-  "admin.attributes.import.reason.missingKey": "የባህርይ ቁልፍ የለም",
+  "admin.attributes.import.reason.missingKey": "የባህርይ ቁልፍ የለም፦ የቁልፉ ሕዋስ ባዶ ነው",
   "admin.attributes.import.reason.duplicateKey": "ይህ ቁልፍ በፋይሉ ሁለት ጊዜ ገብቷል",
-  "admin.attributes.import.reason.badAction": "ያልታወቀ እርምጃ",
-  "admin.attributes.import.reason.unknownType": "ያልታወቀ ዓይነት",
-  "admin.attributes.import.reason.malformedOptions": "አማራጮቹ ሊነበቡ አልቻሉም",
-  "admin.attributes.import.reason.badParent": "ያ የወላጅ እሴት በሚመሠረትበት ዝርዝር ውስጥ የለም",
-  "admin.attributes.import.reason.blastRadius": "አሁንም በምድብ ጥቅም ላይ ነው",
-  "admin.attributes.import.reason.unknownCategory": "ያልታወቀ ምድብ",
-  "admin.attributes.import.reason.unknownAttribute": "ያልታወቀ ባህርይ",
-  "admin.attributes.import.reason.outOfScope": "ካጣሩት ምድብ ውጭ",
+  "admin.attributes.import.reason.badAction":
+    "ያልታወቀ እርምጃ “{action}” — upsert፣ unlink ወይም delete ይጠቀሙ",
+  "admin.attributes.import.reason.unknownType": "ያልታወቀ ዓይነት “{attr_type}”",
+  "admin.attributes.import.reason.malformedOptions": "አማራጮቹ ሊነበቡ አልቻሉም፦ “{options}”",
+  "admin.attributes.import.reason.badParent":
+    "የወላጅ እሴት “{detail}” በሚመሠረትበት ዝርዝር “{depends_on}” ውስጥ የለም",
+  "admin.attributes.import.reason.blastRadius": "አሁንም በ{detail} ምድቦች ጥቅም ላይ ነው",
+  "admin.attributes.import.reason.unknownCategory":
+    "ያልታወቀ ምድብ፦ category_slug “{category_slug}” በዝርዝሩ የለም (መንገድ “{category_path}”)",
+  "admin.attributes.import.reason.unknownAttribute":
+    "ያልታወቀ ባህርይ፦ attribute_key “{attribute_key}” በቤተ-መጻሕፍቱ የለም",
+  "admin.attributes.import.reason.outOfScope": "“{category_slug}” ካጣሩት ምድብ ውጭ ነው",
   "admin.attributes.import.reason.inheritedRow":
-    "የተወረሰ መስመር — ለዚህ ምድብ ቀጥተኛ መስመር ይጨምሩ ወይም በ“{detail}” ላይ ያስተካክሉ",
-  "admin.attributes.import.reason.badCardRank": "የካርድ ቦታ 1፣ 2 ወይም 3 መሆን አለበት",
+    "የተወረሰ መስመር — ለ“{category_slug}” ቀጥተኛ መስመር ይጨምሩ ወይም በ“{detail}” ላይ ያስተካክሉ",
+  "admin.attributes.import.reason.badCardRank":
+    "የካርድ ቦታ 1፣ 2 ወይም 3 መሆን አለበት — ይህ መስመር “{card_rank}” ይላል",
   "admin.attributes.import.reason.formula": "ሕዋሶች በ = + - @ መጀመር አይችሉም",
   "admin.attributes.import.reason.unknown": "ይህ መስመር ተከልክሏል",
+
   "admin.attributes.import.guidance":
     "“(read-only)” የተባሉ አምዶች በራስ-ሰር ይሰላሉ፤ በፋይሉ ውስጥ ቢቀይሯቸውም ተግባራዊ አይሆኑም።",
   "admin.attributes.import.ignored": "ችላ የተባሉ (read-only)",
