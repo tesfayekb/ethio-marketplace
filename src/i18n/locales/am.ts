@@ -861,24 +861,40 @@ export const am: Messages = {
   "admin.categories.import.committed": "ማስገባቱ ተፈጽሟል።",
   "admin.categories.import.undo": "የመጨረሻውን ማስገባት መልስ",
   "admin.categories.import.undone": "{count} ምድቦች ተመልሰዋል።",
-  "admin.categories.import.reason.missingSlug": "የምድብ አድራሻ የለም",
-  "admin.categories.import.reason.duplicateSlug": "ይህ ምድብ በፋይሉ ውስጥ ሁለት ጊዜ ተጠቅሷል",
-  "admin.categories.import.reason.badAction": "ያልታወቀ ትዕዛዝ",
-  "admin.categories.import.reason.missingName": "አዲስ ምድብ ስም ያስፈልገዋል",
-  "admin.categories.import.reason.unknownSlug": "ያልታወቀ ምድብ",
-  "admin.categories.import.reason.unknownParent": "ያልታወቀ ወላጅ ምድብ",
-  "admin.categories.import.reason.catchallParent": "“ሌላ” ማቆያ ወላጅ መሆን አይችልም",
-  "admin.categories.import.reason.cycle": "ይህ ዝውውር ምድቡን በራሱ ውስጥ ያደርገዋል",
+  "admin.categories.import.reason.missingSlug":
+    "የምድብ አድራሻ የለም፦ category_slug ባዶ ነው (መንገድ “{category_path}”፣ ስም “{name_en}”)",
+  "admin.categories.import.reason.duplicateSlug":
+    "category_slug “{category_slug}” በዚህ ፋይል ሁለት ጊዜ ተጠቅሷል (መንገድ “{category_path}”)",
+  "admin.categories.import.reason.badAction":
+    "ያልታወቀ ትዕዛዝ “{action}” በ“{category_slug}” ላይ — upsert፣ create-root፣ retire፣ reactivate ወይም delete ይጠቀሙ",
+  "admin.categories.import.reason.missingName":
+    "አዲስ ምድብ ስም ያስፈልገዋል፦ name_en በ“{category_slug}” ላይ ባዶ ነው",
+  "admin.categories.import.reason.unknownSlug":
+    "ያልታወቀ ምድብ፦ category_slug “{category_slug}” በዝርዝሩ የለም (መንገድ “{category_path}”)",
+  "admin.categories.import.reason.unknownParent":
+    "ያልታወቀ ወላጅ ምድብ፦ parent_slug “{parent_slug}” በዝርዝሩም በዚህ ፋይልም የለም (የመስመሩ slug “{category_slug}”፣ መንገድ “{category_path}”)",
+  "admin.categories.import.reason.catchallParent":
+    "“ሌላ” ማቆያ ወላጅ መሆን አይችልም፦ parent_slug “{parent_slug}” ማቆያ ነው — ለ“{category_slug}” ሌላ ወላጅ ይምረጡ",
+  "admin.categories.import.reason.cycle":
+    "ይህ ዝውውር “{category_slug}”ን በራሱ ውስጥ ያደርገዋል — parent_slug “{parent_slug}” ከሱ በታች ነው",
   "admin.categories.import.reason.slugRename":
-    "የምድብ አድራሻ መለያ ነው፤ እዚህ መቀየር አይቻልም — “{detail}”ን መልሰው ስሙን ብቻ ይቀይሩ",
-  "admin.categories.import.reason.hasChildren": "በዚህ ምድብ ስር ሌሎች ምድቦች አሉ",
-  "admin.categories.import.reason.hasListings": "በዚህ ምድብ ውስጥ ማስታወቂያዎች አሉ",
-  "admin.categories.import.reason.deleteActive": "ከመሰረዝ በፊት ምድቡን ያቋርጡ",
-  "admin.categories.import.reason.unknownCountry": "ያልታወቀ የአገር ኮድ",
-  "admin.categories.import.reason.badDate": "ቀኑ ሊነበብ አልቻለም",
-  "admin.categories.import.reason.outOfScope": "ካጣሩት ምድብ ውጭ ነው",
-  "admin.categories.import.reason.formula": "ሕዋሶች በ = + - @ መጀመር አይችሉም",
+    "የምድብ አድራሻ መለያ ነው፤ እዚህ መቀየር አይቻልም፦ “{detail}” → “{category_slug}” (መንገድ “{category_path}”) — “{detail}”ን መልሰው ስሙን ብቻ ይቀይሩ",
+  "admin.categories.import.reason.hasChildren":
+    "በ“{category_slug}” ስር {detail} ምድቦች አሉ — መጀመሪያ ያንቀሳቅሱ ወይም ይሰርዙ",
+  "admin.categories.import.reason.hasListings":
+    "በ“{category_slug}” ውስጥ {detail} ማስታወቂያዎች አሉ — መጀመሪያ ወደ ሌላ ምድብ ያዛውሩ",
+  "admin.categories.import.reason.deleteActive":
+    "ከመሰረዝ በፊት “{category_slug}”ን ያቋርጡ (is_active “{is_active}” ነው)",
+  "admin.categories.import.reason.unknownCountry":
+    "ያልታወቀ የአገር ኮድ በ excluded_country_codes “{excluded_country_codes}” ላይ ({category_slug})",
+  "admin.categories.import.reason.badDate":
+    "ቀኑ ሊነበብ አልቻለም፦ visible_from “{visible_from}”፣ visible_until “{visible_until}” ({category_slug})",
+  "admin.categories.import.reason.outOfScope":
+    "“{category_slug}” (መንገድ “{category_path}”) ካጣሩት ምድብ ውጭ ነው",
+  "admin.categories.import.reason.formula":
+    "ሕዋሶች በ = + - @ መጀመር አይችሉም (የመስመሩ slug “{category_slug}”)",
   "admin.categories.import.reason.unknown": "ይህ ረድፍ ተከልክሏል",
+
   "admin.categories.import.guidance":
     "“(read-only)” የተባሉ አምዶች በራስ-ሰር ይሰላሉ፤ በፋይሉ ውስጥ ቢቀይሯቸውም ተግባራዊ አይሆኑም።",
   "admin.categories.import.ignored": "ችላ የተባሉ (read-only)",
