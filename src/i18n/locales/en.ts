@@ -901,28 +901,40 @@ export const en = {
   "admin.categories.import.committed": "The import was applied.",
   "admin.categories.import.undo": "Undo last import",
   "admin.categories.import.undone": "{count} categories were restored.",
-  "admin.categories.import.reason.missingSlug": "No category address",
-  "admin.categories.import.reason.duplicateSlug": "This category appears twice in the file",
-  "admin.categories.import.reason.badAction": "Unknown action",
-  "admin.categories.import.reason.missingName": "A new category needs a name",
-  "admin.categories.import.reason.unknownSlug": "Unknown category",
-  "admin.categories.import.reason.unknownParent": "Unknown parent category",
+  "admin.categories.import.reason.missingSlug":
+    "No category address: category_slug is empty (path “{category_path}”, name “{name_en}”)",
+  "admin.categories.import.reason.duplicateSlug":
+    "category_slug “{category_slug}” appears twice in this file (path “{category_path}”)",
+  "admin.categories.import.reason.badAction":
+    "Unknown action “{action}” on category_slug “{category_slug}” — use upsert, create-root, retire, reactivate or delete",
+  "admin.categories.import.reason.missingName":
+    "A new category needs a name: name_en is empty on category_slug “{category_slug}”",
+  "admin.categories.import.reason.unknownSlug":
+    "Unknown category: category_slug “{category_slug}” is not in the roster (path “{category_path}”)",
+  "admin.categories.import.reason.unknownParent":
+    "Unknown parent category: parent_slug “{parent_slug}” is not in the roster or in this file (row slug “{category_slug}”, path “{category_path}”)",
   "admin.categories.import.reason.catchallParent":
-    "An “Other” bucket cannot be a parent — choose a different parent category",
+    "An “Other” bucket cannot be a parent: parent_slug “{parent_slug}” is a catch-all — choose a different parent for “{category_slug}”",
   "admin.categories.import.reason.cycle":
-    "That move would put a category inside itself — choose a parent outside this branch",
+    "That move would put “{category_slug}” inside itself — parent_slug “{parent_slug}” sits under it",
   "admin.categories.import.reason.slugRename":
-    "Category addresses are identities and cannot be renamed here — restore “{detail}” and change the name instead",
+    "Category addresses are identities and cannot be renamed here: “{detail}” → “{category_slug}” at path “{category_path}” — restore “{detail}” and change the name instead",
   "admin.categories.import.reason.hasChildren":
-    "This category still has categories under it — move or delete those first",
+    "“{category_slug}” still has {detail} categories under it — move or delete those first",
   "admin.categories.import.reason.hasListings":
-    "This category still has listings — move them to another category first",
-  "admin.categories.import.reason.deleteActive": "Retire the category before deleting it",
-  "admin.categories.import.reason.unknownCountry": "Unknown country code",
-  "admin.categories.import.reason.badDate": "That date could not be read",
-  "admin.categories.import.reason.outOfScope": "Outside the category you filtered by",
-  "admin.categories.import.reason.formula": "Cells may not start with = + - @",
+    "“{category_slug}” still has {detail} listings — move them to another category first",
+  "admin.categories.import.reason.deleteActive":
+    "Retire “{category_slug}” before deleting it (is_active reads “{is_active}”)",
+  "admin.categories.import.reason.unknownCountry":
+    "Unknown country code in excluded_country_codes “{excluded_country_codes}” on “{category_slug}”",
+  "admin.categories.import.reason.badDate":
+    "That date could not be read: visible_from “{visible_from}”, visible_until “{visible_until}” on “{category_slug}”",
+  "admin.categories.import.reason.outOfScope":
+    "“{category_slug}” (path “{category_path}”) is outside the category you filtered by",
+  "admin.categories.import.reason.formula":
+    "Cells may not start with = + - @ (row slug “{category_slug}”)",
   "admin.categories.import.reason.unknown": "This row was refused",
+
   "admin.categories.import.guidance":
     "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied.",
   "admin.categories.import.ignored": "Ignored (read-only)",
