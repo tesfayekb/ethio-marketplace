@@ -53,7 +53,8 @@ const LINK_COLUMNS = [
 export const READ_ONLY_COLUMNS = new Set<string>([
   "category_path",
   "origin",
-  "label_am",
+  // IE-4b — `label_am` has LEFT this list: a filled cell is written through the
+  // translation door as a pending-review row; an empty cell is silence.
   "is_per_variant",
   "direct_link_count",
 ]);
