@@ -1358,16 +1358,18 @@ test.describe("C3 attributes console", () => {
         "AT-36 the scoped export crossed a secondary pointer",
       ).toEqual([slugA]);
 
-      // C2k — SEARCH IS THE ANCHOR: a scratch row lands wherever the tree puts
-      // it, so each flag is asserted inside its own searched-for row.
+      // C2k — SEARCH IS THE ANCHOR (page position never was) and J5 — the flag
+      // is read inside its OWN twin row, never page-wide: both twins are in the
+      // DOM, so a bare testid resolves twice.
       await gotoReady(page, "/admin/categories");
-      await findRow(page, slugA);
-      await expect(page.getByTestId(`category-needs-card-${slugA}`)).toHaveCount(0);
-      await findRow(page, slugB);
+      const rowA = await findRow(page, slugA);
+      await expect(rowA.getByTestId(`category-needs-card-${slugA}`)).toHaveCount(0);
+      const rowBefore = await findRow(page, slugB);
       await expect(
-        page.getByTestId(`category-needs-card-${slugB}`),
+        rowBefore.getByTestId(`category-needs-card-${slugB}`),
         await dialogDump(page, "AT-36 a secondary parent cleared the amber card flag"),
       ).toBeVisible({ timeout: 30000 });
+
 
 
       /* ---- PRIMARY: everything crosses ---- */
