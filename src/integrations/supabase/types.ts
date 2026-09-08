@@ -58,6 +58,7 @@ export type Database = {
           attr_key: string
           attr_type: string
           created_at: string
+          depends_on: string | null
           help_text_en: string | null
           id: string
           name_am: string | null
@@ -69,6 +70,7 @@ export type Database = {
           attr_key: string
           attr_type: string
           created_at?: string
+          depends_on?: string | null
           help_text_en?: string | null
           id?: string
           name_am?: string | null
@@ -80,6 +82,7 @@ export type Database = {
           attr_key?: string
           attr_type?: string
           created_at?: string
+          depends_on?: string | null
           help_text_en?: string | null
           id?: string
           name_am?: string | null
@@ -87,7 +90,15 @@ export type Database = {
           options?: Json | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "attributes_depends_on_fkey"
+            columns: ["depends_on"]
+            isOneToOne: false
+            referencedRelation: "attributes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_log: {
         Row: {
@@ -1451,6 +1462,7 @@ export type Database = {
           attr_key: string
           attr_type: string
           created_at: string
+          depends_on_key: string
           help_text_en: string
           id: string
           name_am: string
@@ -1513,6 +1525,7 @@ export type Database = {
           attr_type: string
           attribute_id: string
           card_rank: number
+          depends_on_key: string
           display_order: number
           is_filterable: boolean
           is_required: boolean
@@ -1538,6 +1551,7 @@ export type Database = {
           attr_type: string
           attribute_id: string
           card_rank: number
+          depends_on_key: string
           display_order: number
           inherited: boolean
           is_filterable: boolean
@@ -1852,6 +1866,7 @@ export type Database = {
         Args: {
           p_attr_key: string
           p_attr_type: string
+          p_depends_on?: string
           p_help_text_en: string
           p_id: string
           p_name_en: string
@@ -1898,6 +1913,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      attr_dep_cycle: {
+        Args: { p_id: string; p_parent: string }
+        Returns: boolean
+      }
       attr_export_payload: { Args: { p_scope_slug: string }; Returns: Json }
       attr_import_plan: {
         Args: { p_definitions: Json; p_links: Json; p_scope: string }
@@ -1910,6 +1929,7 @@ export type Database = {
       }
       attr_link_path: { Args: { p_cat: string }; Returns: string }
       attr_option_norm: { Args: { p_options: Json }; Returns: Json }
+      attr_option_values: { Args: { p_id: string }; Returns: string[] }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
         Returns: {

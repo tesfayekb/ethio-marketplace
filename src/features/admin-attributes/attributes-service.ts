@@ -30,29 +30,60 @@ export function typeHasOptions(attrType: string): boolean {
   return (OPTION_TYPES as readonly string[]).includes(attrType);
 }
 
+/**
+ * DEC-045 — an option is a VALUE plus, for a dependent definition, the PARENT
+ * value it belongs to. A flat list is the same shape with `parent === ""`.
+ */
+export interface AttributeOption {
+  value: string;
+  labelEn: string;
+  labelAm: string;
+  parent: string;
+}
+
+export function optionValues(options: AttributeOption[]): string[] {
+  return options.map((option) => option.value);
+}
+
 export interface AttributeRow {
   id: string;
   attrKey: string;
   nameEn: string;
   attrType: string;
-  options: string[];
+  options: AttributeOption[];
   helpTextEn: string | null;
   /** How many categories link this definition (the blast radius). */
   usageCount: number;
+  /** DEC-045 — the key of the single_select definition this one depends on. */
+  dependsOnKey: string | null;
 }
 
-/** The options JSON is authored as a plain list of strings; anything else reads empty. */
-function toOptionList(raw: unknown): string[] {
+/**
+ * The options JSON is either a plain list of strings (a flat definition) or a
+ * list of `{value,label_en,label_am,parent}` objects (a dependent one). Both
+ * read into the same shape; anything else reads empty.
+ */
+function toOptionList(raw: unknown): AttributeOption[] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .map((entry) => {
-      if (typeof entry === "string") return entry;
-      if (entry !== null && typeof entry === "object" && "value" in entry) {
-        return String((entry as { value: unknown }).value);
+    .map((entry): AttributeOption => {
+      if (typeof entry === "string") {
+        return { value: entry, labelEn: "", labelAm: "", parent: "" };
       }
-      return "";
+      if (entry !== null && typeof entry === "object" && "value" in entry) {
+        const record = entry as Record<string, unknown>;
+        const text = (name: string) =>
+          typeof record[name] === "string" ? (record[name] as string) : "";
+        return {
+          value: String(record["value"] ?? ""),
+          labelEn: text("label_en"),
+          labelAm: text("label_am"),
+          parent: text("parent"),
+        };
+      }
+      return { value: "", labelEn: "", labelAm: "", parent: "" };
     })
-    .filter((entry) => entry !== "");
+    .filter((entry) => entry.value !== "");
 }
 
 export async function listAttributes(): Promise<AttributeRow[]> {
@@ -66,6 +97,7 @@ export async function listAttributes(): Promise<AttributeRow[]> {
     options: toOptionList(row.options),
     helpTextEn: row.help_text_en ?? null,
     usageCount: Number(row.usage_count ?? 0),
+    dependsOnKey: row.depends_on_key ?? null,
   }));
 }
 
@@ -74,8 +106,21 @@ export interface UpsertAttributeInput {
   attrKey: string;
   nameEn: string;
   attrType: string;
-  options: string[];
+  options: AttributeOption[];
   helpTextEn: string;
+  dependsOnKey: string | null;
+}
+
+/**
+ * A FLAT definition keeps writing plain strings — the storage shape the whole
+ * library already carries, so nothing round-trips differently. Only a
+ * dependent definition writes objects, and only the fields it actually uses.
+ */
+function toOptionsJson(options: AttributeOption[]): unknown[] {
+  const dependent = options.some((option) => option.parent !== "");
+  return dependent
+    ? options.map((option) => ({ value: option.value, parent: option.parent }))
+    : options.map((option) => option.value);
 }
 
 export async function upsertAttribute(input: UpsertAttributeInput): Promise<string> {
@@ -84,8 +129,12 @@ export async function upsertAttribute(input: UpsertAttributeInput): Promise<stri
     p_attr_key: input.attrKey,
     p_name_en: input.nameEn,
     p_attr_type: input.attrType,
-    p_options: typeHasOptions(input.attrType) && input.options.length > 0 ? input.options : null,
+    p_options:
+      typeHasOptions(input.attrType) && input.options.length > 0
+        ? (toOptionsJson(input.options) as never)
+        : null,
     p_help_text_en: input.helpTextEn.trim() === "" ? (null as unknown as string) : input.helpTextEn,
+    p_depends_on: input.dependsOnKey as string,
   });
   if (error) throw error;
   return data as string;
@@ -130,12 +179,14 @@ export interface AttributeLink {
   attrKey: string;
   nameEn: string;
   attrType: string;
-  options: string[];
+  options: AttributeOption[];
   isRequired: boolean;
   isFilterable: boolean;
   displayOrder: number;
   /** 1..3 when the attribute shows on the listing card, null otherwise. */
   cardRank: number | null;
+  /** DEC-045 — the parent definition's key, or null for a flat attribute. */
+  dependsOnKey: string | null;
 }
 
 export async function listCategoryLinks(categoryId: string): Promise<AttributeLink[]> {
@@ -154,6 +205,7 @@ export async function listCategoryLinks(categoryId: string): Promise<AttributeLi
     isFilterable: row.is_filterable,
     displayOrder: Number(row.display_order ?? 0),
     cardRank: row.card_rank === null ? null : Number(row.card_rank),
+    dependsOnKey: row.depends_on_key ?? null,
   }));
 }
 
@@ -298,6 +350,7 @@ export async function listEffectiveCategoryLinks(categoryId: string): Promise<Ef
     isFilterable: row.is_filterable,
     displayOrder: Number(row.display_order ?? 0),
     cardRank: row.card_rank === null ? null : Number(row.card_rank),
+    dependsOnKey: row.depends_on_key ?? null,
     inherited: row.inherited === true,
     originId: row.origin_id,
     originSlug: row.origin_slug,

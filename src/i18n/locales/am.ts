@@ -1042,6 +1042,15 @@ export const am: Messages = {
   "admin.attributes.field.options": "አማራጮች",
   "admin.attributes.field.optionsHelp": "በአንድ መስመር አንድ አማራጭ።",
   "admin.attributes.field.help": "የእገዛ ጽሑፍ",
+  /* DEC-045 — ጥገኛ አማራጮች። */
+  "admin.attributes.field.dependsOn": "የሚመሠረተው በ",
+  "admin.attributes.field.dependsOnHelp":
+    "አንድ-ምርጫ ባህርይ ይምረጡ፤ የዚህ ባህርይ አማራጮች ከዚያ ባህርይ እሴቶች በታች ይዘረዘራሉ።",
+  "admin.attributes.dependsOn.none": "ጥገኝነት የለም",
+  "admin.attributes.dependsOn.parentEmpty": "የተመረጠው ባህርይ እስካሁን አማራጮች የሉትም።",
+  "admin.attributes.dependsOn.optionsFor": "የ{parent} አማራጮች",
+  "admin.attributes.dependsOn.previewLabel": "ቅደም ተከተሉን ይመልከቱ",
+  "admin.attributes.dependsOn.previewNone": "እሴት ይምረጡ",
   "admin.attributes.action.edit": "አርትዕ",
   "admin.attributes.action.delete": "ሰርዝ",
   "admin.attributes.action.assign": "ወደ ምድብ መድብ",
@@ -1106,6 +1115,17 @@ export const am: Messages = {
   "admin.attributes.error.mergeNoSources": "ቢያንስ አንድ ድግግሞሽ ይምረጡ።",
   "admin.attributes.error.mergeTargetInSources": "የሚቆየው ባህሪ በተመሳሳይ ጊዜ ድግግሞሽ ሊሆን አይችልም።",
   "admin.attributes.error.saveFailed": "ለውጡ ሊቀመጥ አልቻለም።",
+  /* DEC-045 — የጥገኝነት እምቢታዎች። */
+  "admin.attributes.error.dependsUnknown": "“{detail}” በሚል ቁልፍ ባህርይ የለም።",
+  "admin.attributes.error.dependsNotSelect": "“{detail}” አንድ-ምርጫ ባህርይ ስላልሆነ በእሱ መመሥረት አይቻልም።",
+  "admin.attributes.error.dependsSelf": "ባህርይ በራሱ ላይ መመሥረት አይችልም።",
+  "admin.attributes.error.dependsCycle": "“{detail}” አስቀድሞ በዚህ ባህርይ ላይ ስለሚመሠረት ዙር ይፈጥራል።",
+  "admin.attributes.error.parentWithoutDepends":
+    "“{detail}” የወላጅ እሴት ይጠቅሳል፣ ነገር ግን የሚመሠረትበት ባህርይ አልተመረጠም።",
+  "admin.attributes.error.parentNotInParent": "“{detail}” የሚመሠረትበት ባህርይ እሴቶች አንዱ አይደለም።",
+  "admin.attributes.error.deleteHasDependents": "እነዚህ ባህርያት በእሱ ስለሚመሠረቱ ሊሰረዝ አይችልም፦ {detail}",
+  "admin.attributes.error.unlinkHasDependents": "በዚህ ምድብ ውስጥ እነዚህ ባህርያት በእሱ ይመሠረታሉ፦ {detail}",
+  "admin.attributes.error.mergeAcrossDependency": "ጥገኝነት ስለሚያስተሳስራቸው ሊዋሃዱ አይችሉም፦ {detail}",
   "admin.categories.action.attributes": "ባህሪያት",
   "admin.categories.col.attributes": "ባህሪያት",
   "admin.categories.badge.needsCard": "የካርድ ባህሪያት ያስፈልጋሉ",

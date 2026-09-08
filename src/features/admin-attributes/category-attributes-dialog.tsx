@@ -87,6 +87,20 @@ export function CategoryAttributesDialog({
   const effectiveCardCount =
     carded.length + inherited.filter((row) => row.cardRank !== null).length;
 
+  /**
+   * DEC-045 — a dependent link only cascades when its PARENT definition is in
+   * the effective set of this category; otherwise there is nothing to choose.
+   */
+  const [chosen, setChosen] = useState<Record<string, string>>({});
+  const effectiveRows = [...rows, ...inherited];
+  const cascades = rows
+    .filter((row) => row.dependsOnKey !== null)
+    .map((child) => {
+      const parent = effectiveRows.find((row) => row.attrKey === child.dependsOnKey);
+      return { child, parentValues: (parent?.options ?? []).map((option) => option.value) };
+    })
+    .filter((entry) => entry.parentValues.length > 0);
+
   const run = (action: () => Promise<void>) => {
     setMessage(null);
     void guard(async () => {
@@ -274,6 +288,63 @@ export function CategoryAttributesDialog({
             </li>
           ))}
         </ul>
+      )}
+
+      {/* DEC-045 — THE CASCADE, as the poster will meet it: choosing a value of
+          the parent attribute narrows the dependent one's options; clearing it
+          empties them. Read-only preview — no write happens here. */}
+      {cascades.length === 0 ? null : (
+        <div className="space-y-3 border-t border-border pt-3" data-testid="category-cascades">
+          {cascades.map(({ child, parentValues }) => (
+            <div
+              key={child.linkId}
+              className="space-y-2"
+              data-testid={`category-attribute-cascade-${child.attrKey}`}
+            >
+              <p className="text-sm font-medium">
+                {`${attributeLabel(child.attributeId, child.nameEn)} — ${t(
+                  "admin.attributes.dependsOn.previewLabel",
+                )}`}
+              </p>
+              <select
+                aria-label={t("admin.attributes.dependsOn.previewLabel")}
+                data-testid={`category-attribute-cascade-parent-${child.attrKey}`}
+                className={SELECT_CLASS}
+                value={chosen[child.attrKey] ?? ""}
+                onChange={(event) =>
+                  setChosen((prev) => ({ ...prev, [child.attrKey]: event.target.value }))
+                }
+              >
+                <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
+                {parentValues.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <ul
+                className="space-y-1"
+                data-testid={`category-attribute-cascade-options-${child.attrKey}`}
+              >
+                {child.options
+                  .filter(
+                    (option) =>
+                      (chosen[child.attrKey] ?? "") !== "" &&
+                      option.parent === chosen[child.attrKey],
+                  )
+                  .map((option) => (
+                    <li
+                      key={option.value}
+                      data-testid={`category-attribute-cascade-option-${option.value}`}
+                      className="text-sm text-muted-foreground"
+                    >
+                      {option.value}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* ADD: a searchable picker over the library, linked names excluded. */}

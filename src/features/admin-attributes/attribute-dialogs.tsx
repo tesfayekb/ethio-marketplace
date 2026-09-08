@@ -12,8 +12,10 @@ import { useI18n, type MessageKey } from "@/i18n";
 
 import {
   ATTRIBUTE_TYPES,
+  optionValues,
   typeHasOptions,
   type AttributeCategory,
+  type AttributeOption,
   type AttributeRow,
   type MergeCounts,
 } from "./attributes-service";
@@ -55,7 +57,9 @@ export function useAttributeError() {
       (key.startsWith("admin.attributes.error.") || key.startsWith("admin.categories.error."))
     ) {
       const text = t(key as MessageKey);
-      setMessage(detail === undefined ? text : text.replace("{count}", detail));
+      setMessage(
+        detail === undefined ? text : text.replace("{count}", detail).replace("{detail}", detail),
+      );
       return;
     }
     setMessage(raw === "" ? t("admin.attributes.error.saveFailed") : raw);
@@ -118,11 +122,17 @@ function DialogActions({
 
 export function AttributeEditorDialog({
   attribute,
+  attributes,
+  mayDepend,
   guard,
   onClose,
 }: {
   /** Null in create-mode. */
   attribute: AttributeRow | null;
+  /** DEC-045 — the library, so the "Depends on" picker can offer its parents. */
+  attributes: AttributeRow[];
+  /** F3 convenience only: the RPC refuses a dependency write regardless. */
+  mayDepend: boolean;
   guard: GuardFn;
   onClose: () => void;
 }) {
@@ -133,8 +143,55 @@ export function AttributeEditorDialog({
   const [attrKey, setAttrKey] = useState(attribute?.attrKey ?? "");
   const [nameEn, setNameEn] = useState(attribute?.nameEn ?? "");
   const [attrType, setAttrType] = useState(attribute?.attrType ?? "text");
-  const [options, setOptions] = useState((attribute?.options ?? []).join("\n"));
+  const [options, setOptions] = useState(
+    (attribute?.options ?? [])
+      .filter((option) => option.parent === "")
+      .map((option) => option.value)
+      .join("\n"),
+  );
+  const [dependsOn, setDependsOn] = useState(attribute?.dependsOnKey ?? "");
+  /** parent value → its child option values, one per line. */
+  const [perParent, setPerParent] = useState<Record<string, string>>(() => {
+    const grouped: Record<string, string[]> = {};
+    for (const option of attribute?.options ?? []) {
+      if (option.parent === "") continue;
+      (grouped[option.parent] ??= []).push(option.value);
+    }
+    return Object.fromEntries(
+      Object.entries(grouped).map(([parent, values]) => [parent, values.join("\n")]),
+    );
+  });
+  const [preview, setPreview] = useState("");
   const [helpText, setHelpText] = useState(attribute?.helpTextEn ?? "");
+
+  /**
+   * DEC-045 LAW — a definition may depend on exactly one OTHER definition of
+   * type `single_select`. The picker offers nothing else; the server re-checks
+   * the type, the self-reference and the cycle regardless (F3).
+   */
+  const parents = attributes.filter(
+    (row) => row.attrType === "single_select" && row.id !== attribute?.id,
+  );
+  const parent = parents.find((row) => row.attrKey === dependsOn) ?? null;
+  const parentValues = parent === null ? [] : optionValues(parent.options);
+  const dependent = typeHasOptions(attrType) && parent !== null;
+
+  const lines = (raw: string) =>
+    raw
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line !== "");
+
+  const composed: AttributeOption[] = dependent
+    ? parentValues.flatMap((value) =>
+        lines(perParent[value] ?? "").map((child) => ({
+          value: child,
+          labelEn: "",
+          labelAm: "",
+          parent: value,
+        })),
+      )
+    : lines(options).map((value) => ({ value, labelEn: "", labelAm: "", parent: "" }));
 
   const submit = () => {
     setMessage(null);
@@ -153,11 +210,9 @@ export function AttributeEditorDialog({
           attrKey: attrKey.trim(),
           nameEn: nameEn.trim(),
           attrType,
-          options: options
-            .split("\n")
-            .map((line) => line.trim())
-            .filter((line) => line !== ""),
+          options: composed,
           helpTextEn: helpText,
+          dependsOnKey: dependent ? dependsOn : null,
         });
         onClose();
       } catch (error) {
@@ -206,7 +261,35 @@ export function AttributeEditorDialog({
           ))}
         </select>
       </FormField>
-      {typeHasOptions(attrType) ? (
+
+      {/* DEC-045 — the dependency picker; hidden without the write permission. */}
+      {mayDepend && typeHasOptions(attrType) ? (
+        <FormField
+          label={t("admin.attributes.field.dependsOn")}
+          htmlFor="attribute-depends-on"
+          help={t("admin.attributes.field.dependsOnHelp")}
+        >
+          <select
+            id="attribute-depends-on"
+            data-testid="attribute-depends-on"
+            className={SELECT_CLASS}
+            value={dependsOn}
+            onChange={(event) => {
+              setDependsOn(event.target.value);
+              setPreview("");
+            }}
+          >
+            <option value="">{t("admin.attributes.dependsOn.none")}</option>
+            {parents.map((row) => (
+              <option key={row.id} value={row.attrKey}>
+                {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
+              </option>
+            ))}
+          </select>
+        </FormField>
+      ) : null}
+
+      {typeHasOptions(attrType) && !dependent ? (
         <FormField
           label={t("admin.attributes.field.options")}
           htmlFor="attribute-options"
@@ -221,6 +304,69 @@ export function AttributeEditorDialog({
           />
         </FormField>
       ) : null}
+
+      {/* ONE OPTIONS EDITOR PER PARENT VALUE: the file the operator authors and
+          the picker the buyer will see have exactly the same shape. */}
+      {dependent ? (
+        <div className="space-y-3" data-testid="attribute-options-by-parent">
+          {parentValues.length === 0 ? (
+            <p className="text-sm text-muted-foreground" data-testid="attribute-parent-empty">
+              {t("admin.attributes.dependsOn.parentEmpty")}
+            </p>
+          ) : (
+            parentValues.map((value) => (
+              <FormField
+                key={value}
+                label={t("admin.attributes.dependsOn.optionsFor").replace("{parent}", value)}
+                htmlFor={`attribute-options-for-${value}`}
+              >
+                <Textarea
+                  id={`attribute-options-for-${value}`}
+                  data-testid={`attribute-options-for-${value}`}
+                  rows={3}
+                  value={perParent[value] ?? ""}
+                  onChange={(event) =>
+                    setPerParent((prev) => ({ ...prev, [value]: event.target.value }))
+                  }
+                />
+              </FormField>
+            ))
+          )}
+
+          {/* THE CASCADE, previewed where it is authored. */}
+          <FormField
+            label={t("admin.attributes.dependsOn.previewLabel")}
+            htmlFor="attribute-cascade-parent"
+          >
+            <select
+              id="attribute-cascade-parent"
+              data-testid="attribute-cascade-parent"
+              className={SELECT_CLASS}
+              value={preview}
+              onChange={(event) => setPreview(event.target.value)}
+            >
+              <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
+              {parentValues.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <ul data-testid="attribute-cascade-child" className="space-y-1">
+            {(preview === "" ? [] : lines(perParent[preview] ?? "")).map((child) => (
+              <li
+                key={child}
+                data-testid={`attribute-cascade-option-${child}`}
+                className="text-sm text-muted-foreground"
+              >
+                {child}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <FormField label={t("admin.attributes.field.help")} htmlFor="attribute-help">
         <Input
           id="attribute-help"
