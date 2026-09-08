@@ -1830,4 +1830,194 @@ test.describe("C3 attributes console", () => {
     await expect(page.getByTestId("attribute-import-counts")).toHaveCount(0);
     await page.getByTestId("attribute-import-discard").click();
   });
+
+  /* ---------------------- IE-4b: label_am and refusals --------------------- */
+
+  async function readAmRow(attributeId: string) {
+    const { data } = await adminClient()
+      .from("entity_translations")
+      .select("value, status, machine")
+      .eq("entity_type", "attribute")
+      .eq("entity_id", attributeId)
+      .eq("field", "label")
+      .eq("lang_code", "am");
+    return data ?? [];
+  }
+
+  /**
+   * AT-29 — AMHARIC THROUGH THE DOOR. A definition created with a `label_am`
+   * cell lands as a HUMAN, pending-review row ('edited', machine=false) — never
+   * approved by the import. An EMPTY cell afterwards is SILENCE, and Undo
+   * removes the row the batch itself created.
+   */
+  test("AT-29 an imported label_am is pending, silent when blank, and undone", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-imp-${rand()}`;
+    const amharic = "ቀለም";
+    try {
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      expect(category, "AT-29 the scratch category was not created").toBeTruthy();
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const definitions = `${DEF_HEADER}\r\n${key},${key},${cell(amharic)},text,,,0\r\n`;
+      const links = `${LINK_HEADER}\r\n${slug},${slug},${key},false,false,,${slug}\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions, links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect((preview.payload["counts"] as Record<string, number>).adds).toBe(2);
+      // The am cell is editable now: it is never reported as an ignored column.
+      expect(
+        (preview.payload["ignored"] as unknown[] | undefined) ?? [],
+        `AT-29 label_am was reported ignored: ${JSON.stringify(preview.payload["ignored"])}`,
+      ).toHaveLength(0);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+
+      const created = await readAttribute(key);
+      expect(created, "AT-29 the definition was not created").toBeTruthy();
+
+      const rows = await readAmRow(created!.id);
+      expect(rows, "AT-29 no am row reached entity_translations").toHaveLength(1);
+      expect(rows[0]?.value).toBe(amharic);
+      expect(rows[0]?.status, "AT-29 the import must never approve a translation").toBe("edited");
+      expect(rows[0]?.machine, "AT-29 the row must be human").toBe(false);
+
+      // SILENCE — the same definition with an EMPTY am cell is not a change,
+      // and it deletes nothing.
+      const blank = `${DEF_HEADER}\r\n${key},${key},,text,,,1\r\n`;
+      const silent = await importPost(page, token, { mode: "preview", definitions: blank });
+      expect(silent.status, JSON.stringify(silent.payload)).toBe(200);
+      expect(
+        (silent.payload["counts"] as Record<string, number>).changes,
+        `AT-29 a blank am cell read as a change: ${JSON.stringify(silent.payload["counts"])}`,
+      ).toBe(0);
+      expect(await readAmRow(created!.id), "AT-29 a preview wrote").toHaveLength(1);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await readAttribute(key), "AT-29 undo left the definition behind").toBeFalsy();
+      expect(await readAmRow(created!.id), "AT-29 undo left the am row behind").toHaveLength(0);
+    } finally {
+      await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-30 — DELETE, ACCEPTED AND REFUSED. An unlinked definition deletes and
+   * undoes (its captured am state comes back); a LINKED one is refused with the
+   * category slugs named, not counted.
+   */
+  test("AT-30 an unlinked delete undoes and a linked delete names its categories", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const free = `e2e_attr_${rand()}`;
+    const used = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-imp-${rand()}`;
+    const amharic = "መጠን";
+    try {
+      const { data: freeRow } = await supabase
+        .from("attributes")
+        .insert({ attr_key: free, name_en: free, attr_type: "text" })
+        .select("id")
+        .single();
+      const { data: usedRow } = await supabase
+        .from("attributes")
+        .insert({ attr_key: used, name_en: used, attr_type: "text" })
+        .select("id")
+        .single();
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      await supabase.from("category_attribute_links").insert({
+        category_id: category!.id,
+        attribute_id: usedRow!.id,
+        is_required: false,
+        is_filterable: false,
+      });
+      // An APPROVED am row on the free definition: Undo must bring it back
+      // exactly as it stood, status included.
+      await supabase.from("entity_translations").insert({
+        entity_type: "attribute",
+        entity_id: freeRow!.id,
+        field: "label",
+        lang_code: "am",
+        value: amharic,
+        status: "approved",
+        machine: false,
+      });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const header = `${DEF_HEADER},action`;
+      const definitions =
+        `${header}\r\n` +
+        `${free},${free},${cell(amharic)},text,,,0,delete\r\n` +
+        `${used},${used},,text,,,1,delete\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(counts.deletes, JSON.stringify(counts)).toBe(1);
+      expect(counts.refusals, JSON.stringify(counts)).toBe(1);
+
+      const refusals = preview.payload["refusals"] as Record<string, unknown>[];
+      const blast = refusals.find((row) => row["reason"] === "blastRadius");
+      expect(blast, `AT-30 no blast-radius refusal: ${JSON.stringify(refusals)}`).toBeTruthy();
+      expect(blast?.["key"]).toBe(used);
+      // The refusal NAMES the category it judged (IE-4b), never a bare count.
+      expect(blast?.["detail"], "AT-30 the refusal did not name the category").toContain(slug);
+      expect(blast?.["categories"]).toEqual([slug]);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+
+      expect(await readAttribute(free), "AT-30 the unlinked delete did not apply").toBeFalsy();
+      expect(await readAttribute(used), "AT-30 a refused row was applied").toBeTruthy();
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      const restored = await readAttribute(free);
+      expect(restored, "AT-30 undo did not restore the definition").toBeTruthy();
+
+      const rows = await readAmRow(restored!.id);
+      expect(rows, "AT-30 undo did not restore the am row").toHaveLength(1);
+      expect(rows[0]?.value).toBe(amharic);
+      expect(rows[0]?.status, "AT-30 undo demoted an approved translation").toBe("approved");
+    } finally {
+      await destroyCategory(slug);
+      await destroyAttribute(free);
+      await destroyAttribute(used);
+    }
+  });
 });
