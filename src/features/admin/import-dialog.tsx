@@ -46,7 +46,6 @@ export interface ImportRefusal {
   values?: Record<string, string>;
 }
 
-
 type Counts = Record<string, number>;
 
 interface Preview {
@@ -148,7 +147,6 @@ export function ImportDialog({
     if (t(key(`reason.${name}`)).includes("{")) return text;
     return detail === "" ? text : `${text} (${detail})`;
   };
-
 
   const failed = (payload: { error?: string }, status: number) => {
     const named = payload.error ?? "";

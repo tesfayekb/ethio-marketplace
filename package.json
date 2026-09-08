@@ -25,7 +25,6 @@
     "test:unit": "vitest run",
     "i18n:usage": "bun run scripts/i18n-usage-map.ts",
     "i18n:map-guard": "bun run scripts/i18n-map-guard.ts"
-
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

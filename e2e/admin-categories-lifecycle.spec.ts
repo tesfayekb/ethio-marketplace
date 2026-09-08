@@ -1304,7 +1304,6 @@ test.describe("CAT-IE categories import/export", () => {
       expect(parentRefusal?.values?.["category_slug"]).toBe(operatorSlug);
       expect(parentRefusal?.values?.["category_path"]).toBe(`${typoParent}/${operatorSlug}`);
       expect((operator.payload["counts"] as Record<string, number>).adds).toBe(0);
-
     } finally {
       await destroyCategory(operatorSlug);
       await destroyCategory(grandchildSlug);

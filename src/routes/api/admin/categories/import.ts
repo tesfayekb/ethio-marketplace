@@ -25,7 +25,6 @@ import {
   unneutralize,
   withRowValues,
   type Refusal,
-
 } from "../attributes/import";
 import { CATEGORY_COLUMNS } from "./export";
 
@@ -232,7 +231,6 @@ export const Route = createFileRoute("/api/admin/categories/import")({
               [...parsed.refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
               { categories: parsed.rows, definitions: parsed.rows },
             ),
-
           },
           200,
         );
