@@ -807,7 +807,8 @@ test.describe("CAT-IE categories import/export", () => {
   test("CT-18 a real-export round trip is a no-op", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    // J6 — this test's actor. Every DB-truth assertion below is scoped to it.
+    const actorId = (await signInAsSuperAdmin(page)).user.id;
     await gotoReady(page, "/admin/categories");
 
     const token = await bearerOf(page);
@@ -847,9 +848,12 @@ test.describe("CAT-IE categories import/export", () => {
     await page.getByTestId("category-import-discard").click();
     await expect(page.getByTestId("category-import-dialog")).toHaveCount(0);
 
+    // DB TRUTH (J4) scoped by J6: only rows tagged with THIS test's pooled
+    // actor (`created_by`) since `startedAt` can indict this Discard.
     const { data: batches } = await adminClient()
       .from("category_import_revisions")
       .select("id")
+      .eq("created_by", actorId)
       .gte("created_at", startedAt);
     expect(batches ?? [], "CT-18 Discard wrote a batch").toHaveLength(0);
   });

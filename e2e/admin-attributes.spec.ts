@@ -687,7 +687,8 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    // J6 — this test's actor. The "still pending" claim is scoped to it.
+    const actorId = (await signInAsSuperAdmin(page)).user.id;
     const key = `e2e_attr_${rand()}`;
     try {
       const id = await seedAttribute(key);
@@ -713,12 +714,16 @@ test.describe("C3 attributes console", () => {
         status,
         await dialogDump(page, "AT-13 the attribute never reached the Data roster"),
       ).toBeVisible({ timeout: 20000 });
-      // Pending = no translation row yet (DB truth), rendered as untranslated.
+      // Pending = no translation row THIS TEST's actor wrote (DB truth, J6),
+      // rendered as untranslated. CENSUS: the bulk machine-translate sweep is
+      // scoped by LANGUAGE only (the fence languages zxx-*/zxy-*) — there is no
+      // key-prefix filter it could honour — so the isolation here is by actor.
       const { data } = await adminClient()
         .from("entity_translations")
         .select("entity_id")
         .eq("entity_type", "attribute")
-        .eq("entity_id", id);
+        .eq("entity_id", id)
+        .eq("updated_by", actorId);
       expect(data ?? []).toHaveLength(0);
     } finally {
       await destroyAttribute(key);
@@ -1375,7 +1380,8 @@ test.describe("C3 attributes console", () => {
   test("AT-20 a real-export round trip is a no-op", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    // J6 — this test's actor. Every DB-truth assertion below is scoped to it.
+    const actorId = (await signInAsSuperAdmin(page)).user.id;
     await gotoReady(page, "/admin/attributes");
 
     const token = await bearerOf(page);
@@ -1424,10 +1430,14 @@ test.describe("C3 attributes console", () => {
     await page.getByTestId("attribute-import-discard").click();
     await expect(page.getByTestId("attribute-import-dialog")).toHaveCount(0);
 
-    // DB TRUTH (J4): Discard wrote nothing — no capture row at all.
+    // DB TRUTH (J4) scoped by J6: Discard wrote nothing THIS TEST could have
+    // written — no capture row tagged with this test's pooled actor
+    // (`created_by`) since `startedAt`. A parallel worker committing its own
+    // batch is another test's business and must not fail this invariant.
     const { data: batches } = await adminClient()
       .from("attribute_import_revisions")
       .select("id")
+      .eq("created_by", actorId)
       .gte("created_at", startedAt);
     expect(batches ?? [], "AT-20 Discard wrote a batch").toHaveLength(0);
   });
