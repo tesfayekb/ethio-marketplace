@@ -314,10 +314,10 @@ AT-24 edited bytes refused against the preview digest · AT-25 invalid option
 Every export header states its class. Identity and editable columns are written
 bare; derived or foreign columns carry the ` (read-only)` suffix:
 
-| File          | Read-only columns                   |
-| ------------- | ----------------------------------- |
+| File          | Read-only columns                     |
+| ------------- | ------------------------------------- |
 | `definitions` | `is_per_variant`, `direct_link_count` |
-| `links`       | `category_path`, `origin`           |
+| `links`       | `category_path`, `origin`             |
 
 ## IE-4b — `label_am` through the translation door
 
