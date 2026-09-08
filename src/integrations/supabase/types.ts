@@ -1955,6 +1955,7 @@ export type Database = {
       }
       cat_int: { Args: { p_text: string }; Returns: number }
       cat_pipe: { Args: { p_text: string }; Returns: string[] }
+      cat_primary_parent: { Args: { p_id: string }; Returns: string }
       cat_primary_pointer: {
         Args: { p_id: string }
         Returns: {
