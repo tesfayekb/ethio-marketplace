@@ -449,7 +449,6 @@ and undoes to nothing; CT-27 proves a retired leaf deletes and undoes with its
 approved Amharic name intact, and that deleting its parent is refused naming
 the child.
 
-
 The importer accepts headers with or without the suffix, so CT-18's round-trip
 invariant is unchanged in meaning.
 

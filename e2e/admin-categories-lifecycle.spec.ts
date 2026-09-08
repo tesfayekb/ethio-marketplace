@@ -1411,10 +1411,10 @@ test.describe("CAT-IE categories import/export", () => {
 
       const preview = await importPost(page, token, { mode: "preview", categories });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
-      expect(
-        preview.payload["counts"],
-        JSON.stringify(preview.payload["refusals"]),
-      ).toMatchObject({ adds: 3, refusals: 0 });
+      expect(preview.payload["counts"], JSON.stringify(preview.payload["refusals"])).toMatchObject({
+        adds: 3,
+        refusals: 0,
+      });
 
       const commit = await importPost(page, token, {
         mode: "commit",
@@ -1493,10 +1493,7 @@ test.describe("CAT-IE categories import/export", () => {
       const parentId = await seedCategory(parentSlug, null);
       const childId = await seedCategory(childSlug, parentId);
       const supabase = adminClient();
-      await supabase
-        .from("categories")
-        .update({ is_active: false })
-        .in("id", [parentId, childId]);
+      await supabase.from("categories").update({ is_active: false }).in("id", [parentId, childId]);
       // The leaf carries an APPROVED am name: undo must restore that exact state.
       const { error: seedAm } = await supabase.from("entity_translations").insert({
         entity_type: "category",
