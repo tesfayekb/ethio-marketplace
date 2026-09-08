@@ -1370,8 +1370,6 @@ test.describe("C3 attributes console", () => {
         await dialogDump(page, "AT-36 a secondary parent cleared the amber card flag"),
       ).toBeVisible({ timeout: 30000 });
 
-
-
       /* ---- PRIMARY: everything crosses ---- */
       const { error: dropError } = await supabase
         .from("category_tree_pointers")
@@ -1395,8 +1393,6 @@ test.describe("C3 attributes console", () => {
       await gotoReady(page, "/admin/categories");
       const rowAfter = await findRow(page, slugB);
       await expect(rowAfter.getByTestId(`category-needs-card-${slugB}`)).toHaveCount(0);
-
-
     } finally {
       await supabase
         .from("category_attribute_links")
