@@ -1200,6 +1200,7 @@ test.describe("CAT-IE categories import/export", () => {
     const grandchildSlug = `${scratchSlug()}-g`;
     const otherSlug = `${scratchSlug()}-o`;
     const renamedSlug = `${childSlug}-renamed`;
+    const operatorSlug = `${scratchSlug()}-op`;
     try {
       const parentId = await seedCategory(parentSlug, null);
       const childId = await seedCategory(childSlug, parentId);
@@ -1270,8 +1271,8 @@ test.describe("CAT-IE categories import/export", () => {
       const typoParent = `${parentSlug}-typo`;
       const operatorFile = file([
         line({
-          category_path: `${typoParent}/${grandchildSlug}`,
-          category_slug: grandchildSlug,
+          category_path: `${typoParent}/${operatorSlug}`,
+          category_slug: operatorSlug,
           parent_slug: typoParent,
           name_en: "Grains, Produce & Coffee",
           name_am: "የተሰበሰበ ምርት",
@@ -1300,11 +1301,12 @@ test.describe("CAT-IE categories import/export", () => {
       ).toBeDefined();
       // THE VALUES ARE IN THE PAYLOAD: parent judged, row slug, and the path.
       expect(parentRefusal?.values?.["parent_slug"]).toBe(typoParent);
-      expect(parentRefusal?.values?.["category_slug"]).toBe(grandchildSlug);
-      expect(parentRefusal?.values?.["category_path"]).toBe(`${typoParent}/${grandchildSlug}`);
+      expect(parentRefusal?.values?.["category_slug"]).toBe(operatorSlug);
+      expect(parentRefusal?.values?.["category_path"]).toBe(`${typoParent}/${operatorSlug}`);
       expect((operator.payload["counts"] as Record<string, number>).adds).toBe(0);
 
     } finally {
+      await destroyCategory(operatorSlug);
       await destroyCategory(grandchildSlug);
       await destroyCategory(childSlug);
       await destroyCategory(renamedSlug);
