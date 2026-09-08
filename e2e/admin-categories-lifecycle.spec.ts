@@ -1261,6 +1261,49 @@ test.describe("CAT-IE categories import/export", () => {
       ).toBe(childSlug);
       expect((address.payload["counts"] as Record<string, number>).adds).toBe(0);
       expect(await readCategory(renamedSlug)).toBeNull();
+
+      // (d) IE-3c — THE OPERATOR'S CASE, captured from the uploaded
+      // categories.csv (Excel round-trip: BOM, CRLF, quoted name carrying a
+      // comma, Amharic name_am, read-only address columns filled in). A
+      // parent_slug typo names a category in neither the roster nor the file:
+      // the refusal must NAME the values it judged, not just its reason.
+      const typoParent = `${parentSlug}-typo`;
+      const operatorFile = file([
+        line({
+          category_path: `${typoParent}/${grandchildSlug}`,
+          category_slug: grandchildSlug,
+          parent_slug: typoParent,
+          name_en: "Grains, Produce & Coffee",
+          name_am: "የተሰበሰበ ምርት",
+          display_order: "6",
+          is_active: "true",
+          allow_listings: "true",
+          is_catchall: "false",
+          price_enabled: "true",
+          icon: "Coffee",
+          listing_count: "0",
+        }),
+      ]);
+      const operator = await importPost(page, token, {
+        mode: "preview",
+        categories: operatorFile,
+      });
+      expect(operator.status, JSON.stringify(operator.payload)).toBe(200);
+      const judged = operator.payload["refusals"] as {
+        reason: string;
+        values?: Record<string, string>;
+      }[];
+      const parentRefusal = judged.find((entry) => entry.reason === "unknownParent");
+      expect(
+        parentRefusal,
+        `CT-24(d) the operator's typo was not refused as an unknown parent: ${JSON.stringify(judged)}`,
+      ).toBeDefined();
+      // THE VALUES ARE IN THE PAYLOAD: parent judged, row slug, and the path.
+      expect(parentRefusal?.values?.["parent_slug"]).toBe(typoParent);
+      expect(parentRefusal?.values?.["category_slug"]).toBe(grandchildSlug);
+      expect(parentRefusal?.values?.["category_path"]).toBe(`${typoParent}/${grandchildSlug}`);
+      expect((operator.payload["counts"] as Record<string, number>).adds).toBe(0);
+
     } finally {
       await destroyCategory(grandchildSlug);
       await destroyCategory(childSlug);
