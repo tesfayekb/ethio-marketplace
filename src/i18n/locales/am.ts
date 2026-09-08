@@ -985,21 +985,27 @@ export const am: Messages = {
   "admin.attributes.import.committed": "ማስገባቱ ተፈጽሟል።",
   "admin.attributes.import.undo": "የመጨረሻውን ማስገባት መልስ",
   "admin.attributes.import.undone": "{count} መስመሮች ተመልሰዋል።",
-  "admin.attributes.import.reason.missingKey": "የባህርይ ቁልፍ የለም",
+  "admin.attributes.import.reason.missingKey": "የባህርይ ቁልፍ የለም፦ የቁልፉ ሕዋስ ባዶ ነው",
   "admin.attributes.import.reason.duplicateKey": "ይህ ቁልፍ በፋይሉ ሁለት ጊዜ ገብቷል",
-  "admin.attributes.import.reason.badAction": "ያልታወቀ እርምጃ",
-  "admin.attributes.import.reason.unknownType": "ያልታወቀ ዓይነት",
-  "admin.attributes.import.reason.malformedOptions": "አማራጮቹ ሊነበቡ አልቻሉም",
-  "admin.attributes.import.reason.badParent": "ያ የወላጅ እሴት በሚመሠረትበት ዝርዝር ውስጥ የለም",
-  "admin.attributes.import.reason.blastRadius": "አሁንም በምድብ ጥቅም ላይ ነው",
-  "admin.attributes.import.reason.unknownCategory": "ያልታወቀ ምድብ",
-  "admin.attributes.import.reason.unknownAttribute": "ያልታወቀ ባህርይ",
-  "admin.attributes.import.reason.outOfScope": "ካጣሩት ምድብ ውጭ",
+  "admin.attributes.import.reason.badAction":
+    "ያልታወቀ እርምጃ “{action}” — upsert፣ unlink ወይም delete ይጠቀሙ",
+  "admin.attributes.import.reason.unknownType": "ያልታወቀ ዓይነት “{attr_type}”",
+  "admin.attributes.import.reason.malformedOptions": "አማራጮቹ ሊነበቡ አልቻሉም፦ “{options}”",
+  "admin.attributes.import.reason.badParent":
+    "የወላጅ እሴት “{detail}” በሚመሠረትበት ዝርዝር “{depends_on}” ውስጥ የለም",
+  "admin.attributes.import.reason.blastRadius": "አሁንም በ{detail} ምድቦች ጥቅም ላይ ነው",
+  "admin.attributes.import.reason.unknownCategory":
+    "ያልታወቀ ምድብ፦ category_slug “{category_slug}” በዝርዝሩ የለም (መንገድ “{category_path}”)",
+  "admin.attributes.import.reason.unknownAttribute":
+    "ያልታወቀ ባህርይ፦ attribute_key “{attribute_key}” በቤተ-መጻሕፍቱ የለም",
+  "admin.attributes.import.reason.outOfScope": "“{category_slug}” ካጣሩት ምድብ ውጭ ነው",
   "admin.attributes.import.reason.inheritedRow":
-    "የተወረሰ መስመር — ለዚህ ምድብ ቀጥተኛ መስመር ይጨምሩ ወይም በ“{detail}” ላይ ያስተካክሉ",
-  "admin.attributes.import.reason.badCardRank": "የካርድ ቦታ 1፣ 2 ወይም 3 መሆን አለበት",
+    "የተወረሰ መስመር — ለ“{category_slug}” ቀጥተኛ መስመር ይጨምሩ ወይም በ“{detail}” ላይ ያስተካክሉ",
+  "admin.attributes.import.reason.badCardRank":
+    "የካርድ ቦታ 1፣ 2 ወይም 3 መሆን አለበት — ይህ መስመር “{card_rank}” ይላል",
   "admin.attributes.import.reason.formula": "ሕዋሶች በ = + - @ መጀመር አይችሉም",
   "admin.attributes.import.reason.unknown": "ይህ መስመር ተከልክሏል",
+
   "admin.attributes.import.guidance":
     "“(read-only)” የተባሉ አምዶች በራስ-ሰር ይሰላሉ፤ በፋይሉ ውስጥ ቢቀይሯቸውም ተግባራዊ አይሆኑም።",
   "admin.attributes.import.ignored": "ችላ የተባሉ (read-only)",
