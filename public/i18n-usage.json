@@ -101,6 +101,26 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.dependsOn.none": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.dependsOn.optionsFor": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.dependsOn.parentEmpty": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.dependsOn.previewLabel": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.dependsOn.previewNone": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.edit.title": [
       "/admin/attributes",
       "/admin/categories"
@@ -147,6 +167,14 @@
     ],
     "admin.attributes.export.open": [
       "/admin/attributes"
+    ],
+    "admin.attributes.field.dependsOn": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.dependsOnHelp": [
+      "/admin/attributes",
+      "/admin/categories"
     ],
     "admin.attributes.field.help": [
       "/admin/attributes",

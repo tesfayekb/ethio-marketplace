@@ -1092,6 +1092,16 @@ export const en = {
   "admin.attributes.field.options": "Options",
   "admin.attributes.field.optionsHelp": "One option per line.",
   "admin.attributes.field.help": "Help text",
+  /* DEC-045 — dependent options. */
+  "admin.attributes.field.dependsOn": "Depends on",
+  "admin.attributes.field.dependsOnHelp":
+    "Choose a single-select attribute; this attribute's options are then listed under each of its values.",
+  "admin.attributes.dependsOn.none": "No dependency",
+  "admin.attributes.dependsOn.parentEmpty":
+    "The chosen attribute has no options yet, so there is nothing to depend on.",
+  "admin.attributes.dependsOn.optionsFor": "Options for {parent}",
+  "admin.attributes.dependsOn.previewLabel": "Preview the cascade",
+  "admin.attributes.dependsOn.previewNone": "Choose a value",
   "admin.attributes.action.edit": "Edit",
   "admin.attributes.action.delete": "Delete",
   "admin.attributes.action.assign": "Assign to category",
@@ -1163,6 +1173,23 @@ export const en = {
   "admin.attributes.error.mergeTargetInSources":
     "The surviving attribute cannot also be a duplicate.",
   "admin.attributes.error.saveFailed": "The change could not be saved.",
+  /* DEC-045 — dependency refusals; {detail} carries the values the door judged. */
+  "admin.attributes.error.dependsUnknown": "There is no attribute with the key “{detail}”.",
+  "admin.attributes.error.dependsNotSelect":
+    "“{detail}” is not a single-select attribute, so nothing can depend on it.",
+  "admin.attributes.error.dependsSelf": "An attribute cannot depend on itself.",
+  "admin.attributes.error.dependsCycle":
+    "“{detail}” already depends on this attribute, so this would be a loop.",
+  "admin.attributes.error.parentWithoutDepends":
+    "“{detail}” names a parent value, but no attribute was chosen to depend on.",
+  "admin.attributes.error.parentNotInParent":
+    "“{detail}” is not one of the values of the attribute this one depends on.",
+  "admin.attributes.error.deleteHasDependents":
+    "These attributes depend on it, so it cannot be deleted: {detail}",
+  "admin.attributes.error.unlinkHasDependents":
+    "These attributes in this category depend on it: {detail}",
+  "admin.attributes.error.mergeAcrossDependency":
+    "A dependency ties these attributes together, so they cannot be merged: {detail}",
   "admin.categories.action.attributes": "Attributes",
   "admin.categories.col.attributes": "Attributes",
   "admin.categories.badge.needsCard": "Needs card attributes",

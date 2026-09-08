@@ -578,6 +578,8 @@ export function AdminAttributesPage() {
             <AttributeEditorDialog
               key={dialog.id ?? "create"}
               attribute={selected}
+              attributes={all}
+              mayDepend={mayUpdate}
               guard={guard}
               onClose={() => setDialog({ kind: "none" })}
             />

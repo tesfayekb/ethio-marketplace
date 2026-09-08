@@ -355,3 +355,34 @@ writes a category table or calls a lifecycle door.
 **Guided refusals.** An inherited row now names the fix: add a direct row for
 this category, or edit it at the origin. A formula cell reads "Cells may not
 start with = + - @". Every refusal keeps its row number.
+
+## Dependent options (DEC-045a)
+
+**The law.** A definition may depend on exactly ONE other definition whose type
+is `single_select`. `attributes.depends_on` is a nullable self-reference; each
+option of a dependent definition carries `parent`, one of the parent
+definition's option values. The doors refuse: an unknown key, a parent that is
+not `single_select`, a self-reference, a cycle (`attr_dep_cycle`), a `parent`
+value outside the parent's list, and a `parent` value with no dependency
+declared.
+
+**Blast radius.** Deleting or unlinking a definition that others depend on is
+refused NAMING the dependents, and a merge that would cross a dependency is
+refused the same way. The console renders the refusal as one translated line.
+
+**The console.** The editor carries a "Depends on" picker (visible only with
+the write permission — the RPC refuses regardless, F3), one options editor per
+parent value, and a cascade preview: choosing a parent value lists exactly its
+children, switching switches them, clearing empties them. The per-category link
+manager previews the same cascade for every dependent link whose parent is in
+the category's effective set.
+
+**Export.** `definitions.csv` gains a `depends_on` column, emitted READ-ONLY in
+045a: the file states the dependency, the importer never applies it. Making it
+importable (with parent-before-dependent ordering inside one file) is 045b.
+
+**Proofs.** AT-31 authors the cascade in the editor and asserts the stored
+`parent` on every option; AT-33 addresses the RPCs directly with the operator's
+bearer and asserts the stray-parent, text-parent, cycle and named-dependents
+refusals, with nothing written; AT-34 proves a `categories:view`-only operator
+sees no control and is refused by the door.

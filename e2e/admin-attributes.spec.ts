@@ -2020,4 +2020,269 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(used);
     }
   });
+  /**
+   * DEC-045a — the DIRECT DOOR. The dependency laws are the SERVER's (F3), so
+   * the refusal proofs address the RPC itself with the operator's own bearer,
+   * never through a UI that could be hiding the control for other reasons.
+   */
+  async function rpcAs(token: string, name: string, args: Record<string, unknown>) {
+    const base = (process.env["E2E_SUPABASE_URL"] ?? "").replace(/\/+$/, "");
+    const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"] ?? "";
+    if (base === "" || key === "") throw new Error("[AT-33] E2E supabase env is not set");
+    const response = await fetch(`${base}/rest/v1/rpc/${name}`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(args),
+    });
+    const body = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+    return {
+      error: response.ok ? null : ((body?.["message"] as string | undefined) ?? "unknown"),
+      data: response.ok ? body : null,
+    };
+  }
+
+  /* --------------------- DEC-045a: dependent options ---------------------- */
+
+  /**
+   * AT-31 — THE CASCADE, AUTHORED AND PREVIEWED. A dependent definition's
+   * options live under the parent's values: choosing make A shows only A's
+   * models, switching to B switches the list, clearing the make empties it.
+   */
+  test("AT-31 a dependent definition cascades in the editor", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const makeKey = `e2e_attr_${rand()}`;
+    const modelKey = `e2e_attr_${rand()}`;
+    try {
+      await supabase.from("attributes").insert({
+        attr_key: makeKey,
+        name_en: makeKey,
+        attr_type: "single_select",
+        options: ["alfa", "beta"],
+      });
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-create-open").click();
+      await expect(page.getByTestId("attribute-edit-dialog")).toBeVisible();
+      await page.getByTestId("attribute-key").fill(modelKey);
+      await page.getByTestId("attribute-name").fill(modelKey);
+      await page.getByTestId("attribute-type").selectOption("single_select");
+      await page.getByTestId("attribute-depends-on").selectOption(makeKey);
+
+      // ONE EDITOR PER PARENT VALUE.
+      await page.getByTestId("attribute-options-for-alfa").fill("alfa-1\nalfa-2");
+      await page.getByTestId("attribute-options-for-beta").fill("beta-1");
+
+      // THE CASCADE: empty until a parent value is chosen.
+      await expect(page.getByTestId("attribute-cascade-option-alfa-1")).toHaveCount(0);
+      await page.getByTestId("attribute-cascade-parent").selectOption("alfa");
+      await expect(page.getByTestId("attribute-cascade-option-alfa-1")).toBeVisible();
+      await expect(page.getByTestId("attribute-cascade-option-beta-1")).toHaveCount(0);
+      await page.getByTestId("attribute-cascade-parent").selectOption("beta");
+      await expect(page.getByTestId("attribute-cascade-option-beta-1")).toBeVisible();
+      await expect(page.getByTestId("attribute-cascade-option-alfa-1")).toHaveCount(0);
+      await page.getByTestId("attribute-cascade-parent").selectOption("");
+      await expect(page.getByTestId("attribute-cascade-option-beta-1")).toHaveCount(0);
+
+      await page.getByTestId("attribute-edit-submit").click();
+      await expect(page.getByTestId("attribute-edit-dialog")).toHaveCount(0, { timeout: 30000 });
+
+      // DB TRUTH: every option carries the parent value it was authored under.
+      const { data } = await supabase
+        .from("attributes")
+        .select("options, depends_on")
+        .eq("attr_key", modelKey)
+        .single();
+      expect(data, "AT-31 the dependent definition was not created").toBeTruthy();
+      expect(data!.depends_on, "AT-31 the dependency was not stored").toBeTruthy();
+      const parents = (data!.options as { value: string; parent: string }[]).map(
+        (option) => `${option.parent}/${option.value}`,
+      );
+      expect(parents.sort()).toEqual(["alfa/alfa-1", "alfa/alfa-2", "beta/beta-1"]);
+    } finally {
+      await destroyAttribute(modelKey);
+      await destroyAttribute(makeKey);
+    }
+  });
+
+  /**
+   * AT-33 — THE REFUSALS, SERVER-SIDE. A parent value outside the parent's
+   * list, a cycle, a dependency on a text definition and a delete of a parent
+   * that has dependents are all refused, the last one NAMING its dependents.
+   */
+  test("AT-33 the dependency doors refuse and name what they judged", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const makeKey = `e2e_attr_${rand()}`;
+    const modelKey = `e2e_attr_${rand()}`;
+    const textKey = `e2e_attr_${rand()}`;
+    try {
+      const { data: make } = await supabase
+        .from("attributes")
+        .insert({
+          attr_key: makeKey,
+          name_en: makeKey,
+          attr_type: "single_select",
+          options: ["alfa"],
+        })
+        .select("id")
+        .single();
+      const { data: text } = await supabase
+        .from("attributes")
+        .insert({ attr_key: textKey, name_en: textKey, attr_type: "text" })
+        .select("id")
+        .single();
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const call = (name: string, args: Record<string, unknown>) => rpcAs(token, name, args);
+
+      // A parent value that is not one of the parent's values.
+      const strayParent = await call("admin_upsert_attribute", {
+        p_id: null,
+        p_attr_key: modelKey,
+        p_name_en: modelKey,
+        p_attr_type: "single_select",
+        p_options: [{ value: "ghost", parent: "gamma" }],
+        p_help_text_en: null,
+        p_depends_on: makeKey,
+      });
+      expect(strayParent.error, "AT-33 a stray parent value was accepted").toContain(
+        "parentNotInParent",
+      );
+
+      // A dependency on a TEXT definition.
+      const notSelect = await call("admin_upsert_attribute", {
+        p_id: null,
+        p_attr_key: modelKey,
+        p_name_en: modelKey,
+        p_attr_type: "single_select",
+        p_options: [{ value: "x", parent: "alfa" }],
+        p_help_text_en: null,
+        p_depends_on: textKey,
+      });
+      expect(notSelect.error, "AT-33 a text parent was accepted").toContain("dependsNotSelect");
+
+      // The legal write, then the CYCLE it makes possible.
+      const ok = await call("admin_upsert_attribute", {
+        p_id: null,
+        p_attr_key: modelKey,
+        p_name_en: modelKey,
+        p_attr_type: "single_select",
+        p_options: [{ value: "alfa-1", parent: "alfa" }],
+        p_help_text_en: null,
+        p_depends_on: makeKey,
+      });
+      expect(ok.error, `AT-33 the legal dependent write failed: ${ok.error}`).toBeNull();
+
+      const cycle = await call("admin_upsert_attribute", {
+        p_id: make!.id,
+        p_attr_key: makeKey,
+        p_name_en: makeKey,
+        p_attr_type: "single_select",
+        p_options: [{ value: "alfa", parent: "alfa-1" }],
+        p_help_text_en: null,
+        p_depends_on: modelKey,
+      });
+      expect(cycle.error, "AT-33 a dependency cycle was accepted").toContain("dependsCycle");
+
+      // DELETING THE PARENT is refused, and the refusal NAMES the dependent.
+      const blocked = await call("admin_delete_attribute", {
+        p_id: make!.id,
+        p_confirm_key: makeKey,
+      });
+      expect(blocked.error, "AT-33 a parent with dependents was deleted").toContain(
+        "HasDependents",
+      );
+      expect(blocked.error, "AT-33 the refusal did not name the dependent").toContain(modelKey);
+
+      // Nothing was written by any refused attempt (F5: a refusal leaves no trace).
+      const { data: survivor } = await supabase
+        .from("attributes")
+        .select("id")
+        .eq("attr_key", makeKey)
+        .maybeSingle();
+      expect(survivor, "AT-33 the refused delete still applied").toBeTruthy();
+      expect(text, "AT-33 fixture missing").toBeTruthy();
+    } finally {
+      await destroyAttribute(modelKey);
+      await destroyAttribute(makeKey);
+      await destroyAttribute(textKey);
+    }
+  });
+
+  /** AT-34 — no `categories:update`: no dependency control, and the RPC refuses. */
+  test("AT-34 a categories:view-only operator cannot set a dependency", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const supabase = adminClient();
+    const roleName = `e2e_viewonly_${rand()}`;
+    const makeKey = `e2e_attr_${rand()}`;
+    const { data: role, error: roleError } = await supabase
+      .from("roles")
+      .insert({ name: roleName, display_name: roleName, priority: 1 })
+      .select("id")
+      .single();
+    if (roleError || !role) throw new Error(`AT-34 scratch role failed: ${roleError?.message}`);
+    try {
+      await supabase.from("attributes").insert({
+        attr_key: makeKey,
+        name_en: makeKey,
+        attr_type: "single_select",
+        options: ["alfa"],
+      });
+      const { data: perms } = await supabase
+        .from("permissions")
+        .select("id, action, resources!inner(name)")
+        .in("resources.name", ["admin_panel", "categories"]);
+      const wanted = (perms ?? []).filter((p) => {
+        const resource = (p as unknown as { resources: { name: string } }).resources.name;
+        return (
+          (resource === "admin_panel" && p.action === "access") ||
+          (resource === "categories" && p.action === "view")
+        );
+      });
+      expect(wanted, "AT-34 expected exactly admin_panel:access + categories:view").toHaveLength(2);
+      await supabase
+        .from("role_permissions")
+        .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
+
+      const viewer = await createUser({ confirmed: true });
+      await supabase
+        .from("user_roles")
+        .insert({ user_id: viewer.id, role_id: role.id, scope_type: "global" });
+      await switchUser(page, viewer.email, viewer.password);
+      await gotoReady(page, "/admin/attributes");
+      await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
+      // The editor is unreachable, so the control cannot be on the page.
+      await expect(page.getByTestId("attribute-depends-on")).toHaveCount(0);
+
+      // THE SERVER IS THE AUTHORITY (F3): the RPC refuses regardless.
+      const denied = await rpcAs(await bearerOf(page), "admin_upsert_attribute", {
+        p_id: null,
+        p_attr_key: `e2e_attr_denied_${rand()}`,
+        p_name_en: "denied",
+        p_attr_type: "single_select",
+        p_options: [{ value: "x", parent: "alfa" }],
+        p_help_text_en: null,
+        p_depends_on: makeKey,
+      });
+      expect(denied.error, "AT-34 a view-only operator wrote a dependency").toBeTruthy();
+    } finally {
+      await destroyAttribute(makeKey);
+      await supabase.from("role_permissions").delete().eq("role_id", role.id);
+      await supabase.from("user_roles").delete().eq("role_id", role.id);
+      await supabase.from("roles").delete().eq("id", role.id);
+    }
+  });
 });
