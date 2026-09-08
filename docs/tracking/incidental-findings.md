@@ -1844,3 +1844,83 @@ conflicted:1}`). Density final: `py-px`.
 Fit-content columns crushed the roster at phone width — twins are the law for
 dense tables; scroll, never cramp, at mid-widths. A 360 layout assertion now
 guards the roster.
+
+## INC-160 — (2026-09-08, imported from the S34/S35 backfill)
+
+CT-6 Escape-swallow.
+
+## INC-161 — (2026-09-08, imported from the S34/S35 backfill)
+
+admin_list_categories 57014 (C3d CTEs).
+
+## INC-162 — (2026-09-08, imported from the S34/S35 backfill)
+
+sub-44px verb targets (touch size at the primitive).
+
+## INC-163 — (2026-09-08, imported from the S34/S35 backfill)
+
+redirect latency = the i18n bundle's per-request aggregation (in-process cache
+by publication version).
+
+## INC-164 — (2026-09-08, imported from the S34/S35 backfill)
+
+the same, root: Nano compute + 8s role timeout + nine-job concurrency.
+
+## INC-165 — (2026-09-08, imported from the S34/S35 backfill)
+
+listings never reaped (feed-empty world-assumption; reaper + scoped anchors).
+
+## INC-166 — (2026-09-08, imported from the S34/S35 backfill)
+
+shared-identity session churn (deadlocks on /factors/verify).
+
+## INC-167 — (2026-09-08, imported from the S34/S35 backfill)
+
+stale stepped-up-at hint reader (deleted).
+
+## INC-168 — (2026-09-08, imported from the S34/S35 backfill)
+
+shared refresh token revoked the family (session per test).
+
+## INC-169 — (2026-09-08, imported from the S34/S35 backfill)
+
+challenge-window expiry after 10 minutes (per-test verify).
+
+## INC-170 — (2026-09-08, imported from the S34/S35 backfill)
+
+scratch-prefix anchors (all scratch slugs start with e2e-).
+
+## INC-171 — (2026-09-08, imported from the S34/S35 backfill)
+
+C-2/C-3 inconsistent skip guard.
+
+## INC-172 — (2026-09-08, imported from the S34/S35 backfill)
+
+DataTable pagination slicing owned by the primitive.
+
+## INC-173 — (2026-09-08, imported from the S34/S35 backfill)
+
+language baseline on acquire = NULL (fresh-user state); switchLanguage waits on
+the device record.
+
+## INC-174 — (2026-09-08, imported from the S34/S35 backfill)
+
+local-only RP-1 sign-out reconciliation (open).
+
+## INC-175 — (2026-09-08, imported from the S34/S35 backfill)
+
+EN baseline heal on staging (compiled EN is staging's truth of record).
+
+## INC-176 — (2026-09-08, imported from the S34/S35 backfill)
+
+orphan function on the connected project after a lost working tree (migration
+and commit in the same turn; report divergence first).
+
+## INC-177 — (2026-09-08, imported from the S34/S35 backfill)
+
+non-idempotent import round-trip (semantic option comparison; the real-export
+invariant).
+
+## INC-178 — (2026-09-08, imported from the S34/S35 backfill)
+
+read-only reporter noise (one serializer; compare after normalization).
