@@ -474,13 +474,22 @@ Undo reverses the order: this batch's definition DELETES are restored first (so
 a restored link has an attribute to point at), then the links, then the batch's
 own definition creations are removed last.
 
-Migration marks `20260909041000` / `20260909042000` (applied files
-`20260909035515` / `20260909035656`; the ledger-healed mark `20260909040000`
-belongs to the superseded text-dependent attempt, since removed) declare
-`attr_import_plan` in full with the IE-5 survivor rule, re-declare
-`admin_commit_attribute_import` in four phases and
-`admin_undo_attribute_import` with the reversed ordering, and restate each
-definer's `REVOKE`/`GRANT` closers with an in-file ACL read-back.
+Migration sequence (INC-179): `20260909034642` (mark `20260909040000`) applied
+on prod, was refused on staging (its text anchor did not match staging's
+planner body), and was superseded by `20260909035515` (mark `20260909041000`)
+
+- `20260909035656` (mark `20260909042000`), which heal its mark — staging
+  carries `20260909040000` via the corrective, so parity holds without executing
+  the original. The original file is restored byte-identical and stays in the
+  tree as applied history. The superseding pair declares `attr_import_plan` in
+  full with the IE-5 survivor rule, re-declares `admin_commit_attribute_import`
+  in four phases and `admin_undo_attribute_import` with the reversed ordering,
+  and restates each definer's `REVOKE`/`GRANT` closers with an in-file ACL
+  read-back.
+
+**Migration-file law (E2, amended):** a migration file is never deleted or
+edited after it has been applied anywhere; a migration that failed elsewhere
+is superseded by a corrective that heals its mark.
 
 **Proof.** AT-37 — a scratch definition with one link: the delete alone previews
 0 deleted · 1 refused with the category named; the same delete with the file's
