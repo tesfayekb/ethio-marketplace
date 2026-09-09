@@ -474,10 +474,12 @@ Undo reverses the order: this batch's definition DELETES are restored first (so
 a restored link has an attribute to point at), then the links, then the batch's
 own definition creations are removed last.
 
-Migration mark `20260909040000` (applied file `20260909034642`) rewrites
-`attr_import_plan` surgically under a guarded assertion (the rest of its body is
-byte-identical), re-declares `admin_commit_attribute_import` in four phases and
-`admin_undo_attribute_import` with the reversed ordering, and restates each
+Migration marks `20260909041000` / `20260909042000` (applied files
+`20260909035515` / `20260909035656`; the ledger-healed mark `20260909040000`
+belongs to the superseded text-dependent attempt, since removed) declare
+`attr_import_plan` in full with the IE-5 survivor rule, re-declare
+`admin_commit_attribute_import` in four phases and
+`admin_undo_attribute_import` with the reversed ordering, and restate each
 definer's `REVOKE`/`GRANT` closers with an in-file ACL read-back.
 
 **Proof.** AT-37 — a scratch definition with one link: the delete alone previews
