@@ -447,6 +447,19 @@ export function releaseSlot(userId: string): void {
  */
 export const PREVIEW_BUDGET = 30;
 
+/**
+ * IDENTITY BEFORE SHAPE — the one place a door may ask "is anyone there?"
+ * before it has read a byte of the body, so an anonymous caller learns nothing
+ * about the file's validity. The full gate still re-reads and verifies it.
+ */
+export function requireBearer(request: Request): Response | null {
+  const authorization = request.headers.get("Authorization") ?? "";
+  if (!authorization.toLowerCase().startsWith("bearer ")) {
+    return json({ error: "missing bearer token" }, 401);
+  }
+  return null;
+}
+
 export function takeSlot(
   userId: string,
   mode: string,

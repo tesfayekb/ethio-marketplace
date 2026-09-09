@@ -16,6 +16,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   json,
   openImportGate,
+  requireBearer,
   releaseSlot,
   withRowValues,
   type Refusal,
@@ -38,11 +39,8 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
       POST: async ({ request }) => {
         // INGRESS: the bytes are read here so invalid UTF-8 and an oversized
         // body are refused before anything is parsed as JSON.
-        // IDENTITY BEFORE SHAPE: an anonymous caller learns nothing about the
-        // body's validity — the gate's own bearer law, applied at the door.
-        if (!(request.headers.get("Authorization") ?? "").toLowerCase().startsWith("bearer ")) {
-          return json({ error: "missing bearer token" }, 401);
-        }
+        const anonymous = requireBearer(request);
+        if (anonymous !== null) return anonymous;
         const raw = await request.arrayBuffer();
         if (raw.byteLength > 4 * 1_048_576) {
           console.error(`[ssr-error] ${PATH} body too large`);
