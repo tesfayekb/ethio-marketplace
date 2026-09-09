@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
@@ -113,6 +114,11 @@ export function useSubmitError() {
    * generic save failure.
    */
   const fail = (error: unknown) => {
+    const abort = stepUpAbortKey(error);
+    if (abort !== undefined) {
+      setMessage(abort === null ? null : t(abort));
+      return;
+    }
     const raw = error instanceof Error ? error.message : "";
     if (raw.startsWith("admin.categories.error.")) {
       setMessage(t(raw as Parameters<typeof t>[0]));

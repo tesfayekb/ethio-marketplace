@@ -1,3 +1,4 @@
+import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -337,7 +338,11 @@ export async function fetchUiBundle(lang: string): Promise<Record<string, string
  * own message is the authority; this only chooses how to SAY it. Law F4 — an
  * unmapped failure still surfaces, through the generic key, never silently.
  */
-export function translationErrorKey(error: unknown): MessageKey {
+export function translationErrorKey(error: unknown): MessageKey | null {
+  // FIX-SCAN-1 ISSUE 2 — an aborted step-up is not a failure: `null` renders
+  // nothing (cancelled), the hint key renders "set up an authenticator".
+  const abort = stepUpAbortKey(error);
+  if (abort !== undefined) return abort;
   const message = (error as { message?: string } | null)?.message ?? "";
   if (/step-up required/i.test(message)) return "admin.translations.error.stepUp";
   if (/flagged rows cannot be approved/i.test(message))

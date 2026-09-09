@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import type { CategoryNode } from "@/features/admin-categories/categories-service";
 import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
@@ -47,6 +48,12 @@ export function useAttributeError() {
   const attributeLabel = useAttributeLabel();
   const [message, setMessage] = useState<string | null>(null);
   const fail = (error: unknown) => {
+    // FIX-SCAN-1 ISSUE 2 — the gate settling without running the action.
+    const abort = stepUpAbortKey(error);
+    if (abort !== undefined) {
+      setMessage(abort === null ? null : t(abort));
+      return;
+    }
     const raw =
       typeof (error as { message?: unknown }).message === "string"
         ? (error as { message: string }).message

@@ -100,6 +100,41 @@ function failure(message: string | undefined): { ok: false; errorKey: MessageKey
   };
 }
 
+/**
+ * FIX-SCAN-1 ISSUE 2 (DEC-047, amends the DEC-040 completion contract).
+ *
+ * A gate that never settles freezes the caller's pending state — the operator's
+ * Save button stays disabled forever after cancelling the code prompt. `guard`
+ * now REJECTS on both non-run paths, with a typed error so callers can tell
+ * "nothing happened" from "the action failed" (law F4: no phantom failure
+ * message either).
+ */
+export class StepUpCancelled extends Error {
+  constructor() {
+    super("step-up cancelled");
+    this.name = "StepUpCancelled";
+  }
+}
+
+export class StepUpUnavailable extends Error {
+  constructor() {
+    super("step-up unavailable: no verified factor");
+    this.name = "StepUpUnavailable";
+  }
+}
+
+/**
+ * The shared verdict for an aborted gate:
+ *   • `undefined` — not an abort; the caller maps the real failure as before;
+ *   • `null`      — cancelled: reset the buttons, say NOTHING (nothing ran);
+ *   • a key       — no factor: reset the buttons and render this hint.
+ */
+export function stepUpAbortKey(error: unknown): MessageKey | null | undefined {
+  if (error instanceof StepUpCancelled) return null;
+  if (error instanceof StepUpUnavailable) return "mfa.stepUpUnavailableHint";
+  return undefined;
+}
+
 /** PostgREST surfaces the server gate's RAISE as this message (SQLSTATE P0009). */
 export function isStepUpRequiredError(error: unknown): boolean {
   const candidate = error as { message?: string; code?: string } | null;

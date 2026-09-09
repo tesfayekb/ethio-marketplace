@@ -1,3 +1,4 @@
+import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -228,7 +229,10 @@ export async function updateProfile(input: UpdateProfileInput): Promise<void> {
  * Law F4 — an unmapped failure is still a failure: it falls back to the
  * generic key, never to silence.
  */
-export function profileEditErrorKey(error: unknown): MessageKey {
+export function profileEditErrorKey(error: unknown): MessageKey | null {
+  // FIX-SCAN-1 ISSUE 2 — cancelled gate: no message; no factor: the hint.
+  const abort = stepUpAbortKey(error);
+  if (abort !== undefined) return abort;
   const message = (error as { message?: string } | null)?.message ?? "";
   if (/alias already taken|profiles_seller_alias_unique|duplicate key/i.test(message)) {
     return "admin.users.edit.errorAliasTaken";

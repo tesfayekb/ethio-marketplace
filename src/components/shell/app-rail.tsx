@@ -1,76 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  Baby,
-  Bed,
-  Beef,
-  Bike,
-  Bird,
-  BookOpen,
-  Briefcase,
-  Building2,
-  Bus,
-  Calculator,
-  Camera,
-  Car,
-  Cat,
-  ChevronRight,
-  Dog,
-  Drill,
-  Dumbbell,
-  Factory,
-  Fish,
-  Footprints,
-  Forklift,
-  Gamepad2,
-  Gem,
-  Glasses,
-  GraduationCap,
-  Hammer,
-  HardHat,
-  Headphones,
-  Heart,
-  Home,
-  Lamp,
-  Laptop,
-  LogOut,
-  MapPin,
-  Monitor,
-  Mountain,
-  Music,
-  Package,
-  PaintRoller,
-  Palette,
-  Plane,
-  Refrigerator,
-  Scale,
-  Scissors,
-  Ship,
-  Shirt,
-  Smartphone,
-  Sofa,
-  Sparkles,
-  Sprout,
-  Stethoscope,
-  Store,
-  Tag,
-  Tent,
-  ToyBrick,
-  Tractor,
-  TreePine,
-  Trophy,
-  Truck,
-  Tv,
-  UtensilsCrossed,
-  Wallet,
-  WashingMachine,
-  Watch,
-  Wheat,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react";
+import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/app-shell";
+import { categoryGlyph } from "@/components/shell/category-glyphs";
 import { Logo } from "@/components/brand/logo";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
@@ -86,6 +19,11 @@ import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useRailCollapsed } from "@/providers/rail-state";
+
+/** FIX-SCAN-1 ISSUE 4 — the glyph map now lives in category-glyphs.ts, the one
+ *  allowlist the server suggester validates against; re-exported here so the
+ *  console's existing imports keep working. */
+export { categoryGlyph } from "@/components/shell/category-glyphs";
 
 /**
  * COLLAPSE — an OPTION on md+, never the default and never on mobile.
@@ -119,77 +57,6 @@ const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foregroun
  * `Package` is the last resort for a name that is not in this map — exactly the
  * server-side allowlist's fallback, so console and rail never disagree.
  */
-const GLYPHS: Record<string, LucideIcon> = {
-  Baby,
-  Bed,
-  Beef,
-  Bike,
-  Bird,
-  BookOpen,
-  Briefcase,
-  Building2,
-  Bus,
-  Calculator,
-  Camera,
-  Car,
-  Cat,
-  Dog,
-  Drill,
-  Dumbbell,
-  Factory,
-  Fish,
-  Footprints,
-  Forklift,
-  Gamepad2,
-  Gem,
-  Glasses,
-  GraduationCap,
-  Hammer,
-  HardHat,
-  Headphones,
-  Heart,
-  Home,
-  Lamp,
-  Laptop,
-  MapPin,
-  Monitor,
-  Mountain,
-  Music,
-  Package,
-  PaintRoller,
-  Palette,
-  Plane,
-  Refrigerator,
-  Scale,
-  Scissors,
-  Ship,
-  Shirt,
-  Smartphone,
-  Sofa,
-  Sparkles,
-  Sprout,
-  Stethoscope,
-  Store,
-  Tent,
-  ToyBrick,
-  Tractor,
-  TreePine,
-  Trophy,
-  Truck,
-  Tv,
-  UtensilsCrossed,
-  Wallet,
-  WashingMachine,
-  Watch,
-  Wheat,
-  Wrench,
-};
-
-/** The glyph for a stored icon name; `Package` when the name is unknown. */
-export function categoryGlyph(name: string | null | undefined): LucideIcon {
-  if (!name) return Package;
-  return GLYPHS[name.trim()] ?? Package;
-}
 
 /** True only after hydration on a collapsed desktop rail. */
 

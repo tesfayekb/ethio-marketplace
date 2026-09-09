@@ -24,6 +24,7 @@ import {
   useSetAttributeLinkOrder,
   useSetCardAttributes,
   useUnlinkAttribute,
+  useUpdateAttributeLink,
 } from "./use-attributes";
 
 /**
@@ -60,6 +61,7 @@ export function CategoryAttributesDialog({
   const library = useAdminAttributes();
   const link = useLinkAttribute();
   const unlink = useUnlinkAttribute();
+  const updateLink = useUpdateAttributeLink();
   const reorder = useSetAttributeLinkOrder();
   const setCards = useSetCardAttributes();
   const { message, setMessage, fail } = useAttributeError();
@@ -196,16 +198,14 @@ export function CategoryAttributesDialog({
                     data-testid={`category-attribute-required-${row.attrKey}`}
                     checked={row.isRequired}
                     onCheckedChange={(next) =>
-                      run(async () => {
-                        await unlink.mutateAsync(row.linkId);
-                        await link.mutateAsync({
-                          categoryId,
-                          attributeId: row.attributeId,
+                      // FIX-SCAN-1 ISSUE 1 — one atomic write: card_rank and
+                      // display_order survive, and a failure cannot lose the link.
+                      run(() =>
+                        updateLink.mutateAsync({
+                          linkId: row.linkId,
                           isRequired: next === true,
-                          isFilterable: row.isFilterable,
-                          displayOrder: row.displayOrder,
-                        });
-                      })
+                        }),
+                      )
                     }
                   />
                   {t("admin.attributes.links.required")}
@@ -215,16 +215,12 @@ export function CategoryAttributesDialog({
                     data-testid={`category-attribute-filterable-${row.attrKey}`}
                     checked={row.isFilterable}
                     onCheckedChange={(next) =>
-                      run(async () => {
-                        await unlink.mutateAsync(row.linkId);
-                        await link.mutateAsync({
-                          categoryId,
-                          attributeId: row.attributeId,
-                          isRequired: row.isRequired,
+                      run(() =>
+                        updateLink.mutateAsync({
+                          linkId: row.linkId,
                           isFilterable: next === true,
-                          displayOrder: row.displayOrder,
-                        });
-                      })
+                        }),
+                      )
                     }
                   />
                   {t("admin.attributes.links.filterable")}

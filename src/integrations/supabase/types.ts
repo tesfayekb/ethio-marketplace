@@ -1833,6 +1833,14 @@ export type Database = {
         Args: { p_link_id: string }
         Returns: undefined
       }
+      admin_update_attribute_link: {
+        Args: {
+          p_is_filterable?: boolean
+          p_is_required?: boolean
+          p_link_id: string
+        }
+        Returns: undefined
+      }
       admin_update_category: {
         Args: {
           p_allow_listings: boolean

@@ -13,6 +13,7 @@ import {
   setAttributeLinkOrder,
   setCardAttributes,
   unlinkAttribute,
+  updateAttributeLink,
   upsertAttribute,
   type UpsertAttributeInput,
 } from "./attributes-service";
@@ -84,6 +85,16 @@ export function useLinkAttribute() {
       isFilterable: boolean;
       displayOrder: number | null;
     }) => linkAttribute(input),
+    onSettled: invalidate,
+  });
+}
+
+/** FIX-SCAN-1 ISSUE 1 — the atomic Required/Filterable toggle. */
+export function useUpdateAttributeLink() {
+  const invalidate = useInvalidateAttributes();
+  return useMutation({
+    mutationFn: (input: { linkId: string; isRequired?: boolean; isFilterable?: boolean }) =>
+      updateAttributeLink(input),
     onSettled: invalidate,
   });
 }

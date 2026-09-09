@@ -323,9 +323,7 @@ export function AdminTranslationsStringsPage({
               ) : null}
 
               {/* U4i ⑤⑦ — bulk delivery tools; manage-gated, server is the authority. */}
-              {mayManage ? (
-                <TransferBar lang={lang} baseLang={baseLang} rows={rows} guard={guard} />
-              ) : null}
+              {mayManage ? <TransferBar lang={lang} baseLang={baseLang} guard={guard} /> : null}
 
               {outOfScope ? (
                 <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">

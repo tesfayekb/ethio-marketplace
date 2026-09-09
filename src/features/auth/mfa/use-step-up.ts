@@ -2,7 +2,16 @@ import { useCallback, useRef, useState } from "react";
 
 import type { MessageKey } from "@/i18n";
 
-import { isStepUpFresh, isStepUpRequiredError, listFactors, stepUpWithCode } from "./mfa-service";
+import {
+  isStepUpFresh,
+  isStepUpRequiredError,
+  listFactors,
+  StepUpCancelled,
+  StepUpUnavailable,
+  stepUpWithCode,
+} from "./mfa-service";
+
+export { StepUpCancelled, StepUpUnavailable, stepUpAbortKey } from "./mfa-service";
 
 /**
  * U1f — THE CLIENT SIDE OF STEP-UP (INC-079).
@@ -55,11 +64,15 @@ export function useStepUp() {
   const pendingRef = useRef<Pending | null>(null);
 
   const close = useCallback(() => {
-    // Deliberately leaves the pending promise unsettled: nothing ran.
+    // FIX-SCAN-1 ISSUE 2 / DEC-047 — the gate SETTLES on every path. Cancelling
+    // rejects with StepUpCancelled so the caller's pending state resets; the
+    // typed error tells it nothing ran, so it renders no failure message.
+    const pending = pendingRef.current;
     pendingRef.current = null;
     setMode("closed");
     setErrorKey(null);
     setBusy(false);
+    pending?.reject(new StepUpCancelled());
   }, []);
 
   /** Parks the action behind the modal; the caller's promise waits for it. */
@@ -67,7 +80,14 @@ export function useStepUp() {
     pendingRef.current = pending;
     setErrorKey(null);
     const factors = await listFactors();
-    setMode(factors.ok && factors.factors.length > 0 ? "code" : "no-factor");
+    const hasFactor = factors.ok && factors.factors.length > 0;
+    setMode(hasFactor ? "code" : "no-factor");
+    if (!hasFactor) {
+      // The modal still explains and links to settings (MF-3) and no RPC is
+      // sent — but the caller is released immediately with the typed error.
+      pendingRef.current = null;
+      pending.reject(new StepUpUnavailable());
+    }
   }, []);
 
   const guard = useCallback(
