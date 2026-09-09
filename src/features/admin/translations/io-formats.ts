@@ -28,10 +28,22 @@ export interface ParsedTransfer {
 
 const CSV_HEADER = ["key", "source", "translation", "context"] as const;
 
+/**
+ * IMPORT-GATE PART C — FORMULA LAW, EXPORT SIDE. A cell opening `=`, `+`, `-`
+ * or `@` is a live formula the moment a spreadsheet opens the file, so the
+ * export NEUTRALISES it with a leading apostrophe. The one gate un-neutralises
+ * on the way back in, so `+ Add` — a perfectly ordinary UI string — survives
+ * the round trip and no exported catalog can carry an injection.
+ */
+export function neutralizeCsv(value: string): string {
+  return /^[=+\-@]/.test(value) ? `'${value}` : value;
+}
+
 function csvCell(value: string): string {
+  const neutral = neutralizeCsv(value);
   // RFC 4180: quote when the cell carries a quote, a comma, or any newline.
-  const needsQuotes = /["\n\r,]/.test(value);
-  const escaped = value.replace(/"/g, '""');
+  const needsQuotes = /["\n\r,]/.test(neutral);
+  const escaped = neutral.replace(/"/g, '""');
   return needsQuotes ? `"${escaped}"` : escaped;
 }
 
@@ -182,19 +194,29 @@ const ID_RE = /\bid="([^"]*)"/;
  * (browser + vitest + server), and the emitted dialect is exactly the one above
  * plus the common CAT-tool variations (no CDATA, extra attributes).
  */
-export function fromXliff(text: string): ParsedTransfer {
-  const rows: { key: string; value: string }[] = [];
-  let malformed = 0;
+/**
+ * Every `<trans-unit>` IN FILE ORDER, `null` where the unit yielded no
+ * key/target pair. Order is preserved so the one import gate can name the
+ * unit an operator sees (its position in the file) when it refuses a row.
+ */
+export function xliffUnits(text: string): ({ key: string; value: string } | null)[] {
+  const units: ({ key: string; value: string } | null)[] = [];
   for (const unit of text.matchAll(UNIT_RE)) {
     const attrs = unit[1] ?? "";
     const body = unit[2] ?? "";
     const key = (ID_RE.exec(attrs)?.[1] ?? "").trim();
     const target = TARGET_RE.exec(body)?.[1];
-    if (key === "" || target === undefined) {
-      malformed += 1;
-      continue;
-    }
-    rows.push({ key, value: decodeXmlText(target) });
+    units.push(key === "" || target === undefined ? null : { key, value: decodeXmlText(target) });
+  }
+  return units;
+}
+
+export function fromXliff(text: string): ParsedTransfer {
+  const rows: { key: string; value: string }[] = [];
+  let malformed = 0;
+  for (const unit of xliffUnits(text)) {
+    if (unit === null) malformed += 1;
+    else rows.push(unit);
   }
   return { rows, malformed };
 }

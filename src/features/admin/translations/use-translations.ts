@@ -275,11 +275,11 @@ export function useSetKeyContext() {
   });
 }
 
-/** U4i ⑤ — import parsed rows; the server writes them EDITED and audits each. */
+/** U4i ⑤ — post the FILE; the server parses, writes EDITED and audits each. */
 export function useImportTranslations(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
-    mutationFn: (rows: { key: string; value: string }[]) => importTranslations({ lang, rows }),
+    mutationFn: (text: string) => importTranslations({ lang, text }),
     onSettled: invalidate,
   });
 }
@@ -288,10 +288,10 @@ export function useImportTranslations(lang: string) {
  * U4i-7 — UNDO AN IMPORT (INC-125). The batch id comes from the import's own
  * summary; the server decides what is still restorable.
  */
-export function useUndoImport() {
+export function useUndoImport(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
-    mutationFn: (batchId: string) => undoImport(batchId),
+    mutationFn: (batchId: string) => undoImport({ lang, batchId }),
     onSettled: invalidate,
   });
 }

@@ -62,9 +62,38 @@ a NUL byte.
 
 ## Families today
 
-| Family     | Files              | Permission          | Step-up | Scope         |
-| ---------- | ------------------ | ------------------- | ------- | ------------- |
-| attributes | definitions, links | `categories:import` | commit  | category slug |
-| categories | categories         | `categories:import` | commit  | category slug |
+| Family       | Files              | Permission            | Step-up | Scope         |
+| ------------ | ------------------ | --------------------- | ------- | ------------- |
+| attributes   | definitions, links | `categories:import`   | commit  | category slug |
+| categories   | categories         | `categories:import`   | commit  | category slug |
+| translations | strings            | `translations:manage` | write   | language code |
 
-Translations CSV/XLIFF move onto the same gate in the next turn (Part C).
+## The UI-string door (Part C)
+
+`POST /api/admin/translations/import` is the only way a translation file
+reaches the database. The browser no longer parses anything: the console reads
+the file as text, posts it with the target language, and renders the counts the
+server returns.
+
+- **Two dialects, one law.** CSV (`key,source,translation` with `context`
+  optional) and XLIFF 1.2 arrive at the same route; the reader is chosen by
+  content, and XLIFF units become the family's own columns before a single
+  refusal is spoken. A unit with no id or no target yields an EMPTY row rather
+  than being dropped, so an operator's row numbers stay the file's own.
+- **Keys are identities.** A key must match `[A-Za-z0-9][A-Za-z0-9._:-]*` and
+  200 characters; a value is capped at 4000. Duplicate keys in one file are
+  refused by name.
+- **Formulas.** A `=`/`+`/`-`/`@` cell is a live formula in a spreadsheet, so
+  the EXPORT neutralises it with a leading apostrophe and the gate
+  un-neutralises on the way in — `+ Add` survives a round trip, while a raw
+  formula in a hand-made file is refused in the key column.
+- **One step, so the WRITE is metered.** This family has no preview door and no
+  digest: the commit itself carries the one-in-flight and per-minute budget.
+  `undo` takes the same route, so a taken-back run is audited like the run it
+  undoes.
+- **Meaning still belongs to the writer.** `admin_import_translations` keeps
+  EXECUTE for `authenticated` and remains the sole authority on permission,
+  step-up, unknown keys, placeholder validation and revision capture; the gate
+  only decides what is allowed to reach it. `scripts/check-import-gate.sh`
+  fails the build if a console calls that RPC (or a category/attribute import
+  RPC) directly.

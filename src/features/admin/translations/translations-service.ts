@@ -349,6 +349,13 @@ export function translationErrorKey(error: unknown): MessageKey {
     return "admin.translations.error.deleteBase";
   if (/base language|sync-owned/i.test(message)) return "admin.translations.error.baseLocked";
   if (/permission denied/i.test(message)) return "admin.translations.error.permission";
+  // IMPORT-GATE PART C — the one gate's named file refusals, spoken here.
+  if (/fileTooLarge|invalidEncoding|nulByte/.test(message))
+    return "admin.translations.error.fileRejected";
+  if (/badHeader|wrongFile|unknownColumn|duplicateColumn/.test(message))
+    return "admin.translations.error.fileShape";
+  if (/emptyFile|no file/.test(message)) return "admin.translations.error.fileEmpty";
+  if (/tooManyRows|tooManyRequests/.test(message)) return "admin.translations.error.fileTooMany";
   if (/language code/i.test(message)) return "admin.translations.error.codeInvalid";
   return "admin.translations.error.generic";
 }
@@ -834,19 +841,46 @@ export interface ImportResult {
   batchId: string | null;
 }
 
+/**
+ * IMPORT-GATE PART C — the file goes to the ROUTE, never to the RPC. The
+ * browser does not parse and does not judge: it posts the bytes the operator
+ * chose to `/api/admin/translations/import`, which runs the one gate and then
+ * `admin_import_translations`. The counts rendered are the SERVER's (F4).
+ */
+export const TRANSLATIONS_IMPORT_PATH = "/api/admin/translations/import";
+
+async function importHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token ?? "";
+  return token === ""
+    ? { "Content-Type": "application/json" }
+    : { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+}
+
+/** The route's named refusals, spoken as the messages this console maps (F4). */
+function importFailure(status: number, named: string): Error {
+  if (status === 403 || named === "permission denied") return new Error("permission denied");
+  if (status === 428 || named === "step-up required") return new Error("step-up required");
+  return new Error(named === "" ? `import failed (${status})` : named);
+}
+
+async function postImport(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const response = await fetch(TRANSLATIONS_IMPORT_PATH, {
+    method: "POST",
+    headers: await importHeaders(),
+    body: JSON.stringify(body),
+  });
+  const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!response.ok) throw importFailure(response.status, String(payload["error"] ?? ""));
+  return payload;
+}
+
 export async function importTranslations(input: {
   lang: string;
-  rows: { key: string; value: string }[];
+  /** The file's own bytes, as text: CSV or XLIFF 1.2. The server reads it. */
+  text: string;
 }): Promise<ImportResult> {
-  const { data, error } = await supabase.rpc("admin_import_translations", {
-    p_lang: input.lang,
-    p_items: input.rows,
-  });
-  if (error) throw error;
-  const payload =
-    data !== null && typeof data === "object" && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : {};
+  const payload = await postImport({ mode: "commit", lang: input.lang, strings: input.text });
   return {
     imported: Number(payload["imported"] ?? 0),
     flagged: Number(payload["flagged"] ?? 0),
@@ -868,13 +902,18 @@ export interface UndoImportResult {
   conflicted: number;
 }
 
-export async function undoImport(batchId: string): Promise<UndoImportResult> {
-  const { data, error } = await supabase.rpc("admin_undo_import", { p_batch: batchId });
-  if (error) throw error;
-  const payload =
-    data !== null && typeof data === "object" && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : {};
+export async function undoImport(input: {
+  /**
+   * The batch's own language. Undo carries it so the take-back walks EXACTLY
+   * the door the import walked — same scope check, same meter, same audit line
+   * — rather than a quieter side entrance.
+   */
+  lang: string;
+  batchId: string;
+}): Promise<UndoImportResult> {
+  // The same gated door as the import: metered, audited, gates re-run in the
+  // RPC. `admin_undo_import` keeps its EXECUTE grant — the route is the caller.
+  const payload = await postImport({ mode: "undo", lang: input.lang, batchId: input.batchId });
   return {
     restored: Number(payload["restored"] ?? 0),
     conflicted: Number(payload["conflicted"] ?? 0),

@@ -600,6 +600,13 @@ export const en = {
     "English is the source language and changes only through a key sync.",
   "admin.translations.error.permission": "You don't have permission to do that.",
   "admin.translations.error.codeInvalid": "Enter a valid language code (2–8 letters).",
+  "admin.translations.error.fileRejected":
+    "That file could not be read. Save it as UTF-8 text under 1 MB and try again.",
+  "admin.translations.error.fileShape":
+    "That file is not a strings file. Export the language first and send the same columns back.",
+  "admin.translations.error.fileEmpty": "That file has no rows to import.",
+  "admin.translations.error.fileTooMany":
+    "That was too much at once. Split the file, or wait a minute and try again.",
   "admin.translations.error.generic": "That change could not be saved.",
   "admin.translations.error.flaggedApprove":
     "Flagged strings can't be approved — fix the placeholders first.",

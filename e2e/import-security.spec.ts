@@ -30,6 +30,20 @@ interface Family {
   identity: string;
   /** A header belonging to ANOTHER family — the wrongFile case. */
   foreignHeader: string;
+  /** The door this family exposes: a preview plan, or a one-step import. */
+  mode: "preview" | "commit";
+  /** Extra body fields every request to this family carries (e.g. `lang`). */
+  body?: Record<string, unknown>;
+  /** Only a family with a preview door can have its bytes digest-checked. */
+  digest?: boolean;
+  /** The cell the formula case poisons. */
+  formulaCell: string;
+  /**
+   * The row the rate-limit case repeats. A one-step family meters its WRITE
+   * door, so its metering probe must be a row the gate refuses on its own —
+   * the ceiling is proven without a single write (J6).
+   */
+  meterRow?: () => string;
 }
 
 const ATTRIBUTE_HEADER =
@@ -39,6 +53,8 @@ const CATEGORY_HEADER =
   "allow_listings,is_catchall,price_enabled,expiry_days,icon,visible_from,visible_until," +
   "excluded_country_codes,secondary_parents,listing_count,origin_scope";
 
+const TRANSLATION_HEADER = "key,source,translation,context";
+
 const FAMILIES: Family[] = [
   {
     id: "attributes",
@@ -47,6 +63,9 @@ const FAMILIES: Family[] = [
     header: ATTRIBUTE_HEADER,
     identity: "attribute_key",
     foreignHeader: CATEGORY_HEADER,
+    mode: "preview",
+    digest: true,
+    formulaCell: "label_en",
     row: (cells = {}) => {
       const key = cells["attribute_key"] ?? `e2e_attr_${rand()}`;
       const label = cells["label_en"] ?? "Hostile probe";
@@ -63,12 +82,39 @@ const FAMILIES: Family[] = [
     header: CATEGORY_HEADER,
     identity: "category_slug",
     foreignHeader: ATTRIBUTE_HEADER,
+    mode: "preview",
+    digest: true,
+    formulaCell: "name_en",
     row: (cells = {}) => {
       const slug = cells["category_slug"] ?? `e2e-cat-${rand()}`;
       const name = cells["name_en"] ?? "Hostile probe";
       const visibleFrom = cells["visible_from"] ?? "";
       return `,${slug},,${name},,10,true,true,,true,30,,${visibleFrom},,,,,`;
     },
+  },
+  {
+    /**
+     * IMPORT-GATE PART C — UI STRINGS. One step, so the metered door is the
+     * WRITE and the hostile catalogue is driven against it: every probe below
+     * is refused by the gate itself, so the language catalog is never touched
+     * (J6) and no step-up is ever demanded of a file that never reached the
+     * writer.
+     */
+    id: "translations",
+    path: "/api/admin/translations/import",
+    field: "strings",
+    header: TRANSLATION_HEADER,
+    identity: "key",
+    foreignHeader: CATEGORY_HEADER,
+    mode: "commit",
+    body: { lang: "zxx-mo" },
+    formulaCell: "key",
+    row: (cells = {}) => {
+      const key = cells["key"] ?? `e2e.gate.${rand()}`;
+      const value = cells["translation"] ?? "Hostile probe";
+      return `${key},"src","${value}","note"`;
+    },
+    meterRow: () => `Not A Key!!,"src","x","note"`,
   },
 ];
 
@@ -99,7 +145,7 @@ for (const family of FAMILIES) {
     ) {
       const response = await page.request.post(family.path, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        data: { mode: "preview", ...body },
+        data: { mode: family.mode, ...(family.body ?? {}), ...body },
       });
       let payload: Record<string, unknown> = {};
       try {
@@ -159,14 +205,16 @@ for (const family of FAMILIES) {
 
       // (f) a NUL byte is not text.
       const nul = await post(page, token, {
-        [family.field]: file([family.row({ name_en: "a\u0000b", label_en: "a\u0000b" })]),
+        [family.field]: file([
+          family.row({ name_en: "a\u0000b", label_en: "a\u0000b", translation: "a\u0000b" }),
+        ]),
       });
       expect(nul.status, JSON.stringify(nul.payload)).toBe(400);
       expect(nul.payload["error"]).toBe("nulByte");
 
       // (g) NO BEARER, NO DOOR — the gate answers before it reads anything.
       const anonymous = await page.request.post(family.path, {
-        data: { mode: "preview", [family.field]: file([family.row()]) },
+        data: { mode: family.mode, [family.field]: file([family.row()]) },
       });
       expect(anonymous.status()).toBe(401);
     });
@@ -185,16 +233,18 @@ for (const family of FAMILIES) {
       await gotoReady(page, "/admin/categories");
       const token = await bearerOf(page);
 
-      const formulaCell = family.id === "attributes" ? "label_en" : "name_en";
+      const formulaCell = family.formulaCell;
       const rows = [
         // a RAW spreadsheet formula
         family.row({ [formulaCell]: "=cmd|'/c calc'!A1" }),
         // an identity that is not a slug
         family.row({ [family.identity]: "Not A Slug!!" }),
         // an identity longer than the law allows
-        family.row({ [family.identity]: `e2e-${"x".repeat(80)}` }),
+        family.row({
+          [family.identity]: `e2e-${"x".repeat(family.id === "translations" ? 220 : 80)}`,
+        }),
         // a label past the 120-character cap
-        family.row({ [formulaCell]: "L".repeat(200) }),
+        family.row({ [formulaCell]: "L".repeat(240) }),
       ];
       const probe = await post(page, token, { [family.field]: file(rows) });
       expect(probe.status, JSON.stringify(probe.payload)).toBe(200);
@@ -206,16 +256,22 @@ for (const family of FAMILIES) {
       // Every refusal names the row the operator sees, never row 0.
       for (const refusal of refusals) expect(refusal.row).toBeGreaterThan(1);
 
-      // BIDI OVERRIDES AND ZERO-WIDTH characters are stripped, not stored: a
-      // slug disguised with them is judged on what it really says.
+      // BIDI OVERRIDES AND ZERO-WIDTH characters are stripped, not stored: an
+      // identity disguised with them is judged on what it REALLY says, and the
+      // refusal names the cleaned value, never the disguise.
       const disguised = await post(page, token, {
-        [family.field]: file([family.row({ [family.identity]: "e2e\u200b-cat\u202e-ok" })]),
+        [family.field]: file([family.row({ [family.identity]: "e2e\u200b-cat\u202e-ok!!" })]),
       });
       expect(disguised.status, JSON.stringify(disguised.payload)).toBe(200);
       const disguisedRefusals =
         (disguised.payload["refusals"] as { key: string; reason: string }[]) ?? [];
+      expect(
+        disguisedRefusals.map((entry) => entry.reason),
+        JSON.stringify(disguisedRefusals),
+      ).toContain("badSlug");
       for (const refusal of disguisedRefusals) {
         expect(refusal.key).not.toMatch(/[\u200b\u202e]/);
+        if (refusal.reason === "badSlug") expect(refusal.key).toBe("e2e-cat-ok!!");
       }
     });
 
@@ -237,18 +293,20 @@ for (const family of FAMILIES) {
       await gotoReady(page, "/admin/categories");
       const token = await bearerOf(page);
 
-      const text = file([family.row()]);
-      const preview = await post(page, token, { [family.field]: text });
-      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
-      expect(typeof preview.payload["digest"]).toBe("string");
+      const text = file([(family.meterRow ?? family.row)()]);
+      if (family.digest === true) {
+        const preview = await post(page, token, { [family.field]: text });
+        expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+        expect(typeof preview.payload["digest"]).toBe("string");
 
-      const tampered = await post(page, token, {
-        mode: "commit",
-        [family.field]: file([family.row(), family.row()]),
-        digest: preview.payload["digest"],
-      });
-      expect(tampered.status, JSON.stringify(tampered.payload)).toBe(409);
-      expect(tampered.payload["error"]).toBe("fileChanged");
+        const tampered = await post(page, token, {
+          mode: "commit",
+          [family.field]: file([family.row(), family.row()]),
+          digest: preview.payload["digest"],
+        });
+        expect(tampered.status, JSON.stringify(tampered.payload)).toBe(409);
+        expect(tampered.payload["error"]).toBe("fileChanged");
+      }
 
       // THE LIMIT: a budget of previews a minute per operator; past it the
       // door answers 429, and refusing costs nothing (no plan, no write).
@@ -263,5 +321,59 @@ for (const family of FAMILIES) {
       }
       expect(limited, "IMPORT-GATE the preview rate limit never engaged").toBe(1);
     });
+
+    /**
+     * IG-4 — THE SECOND DIALECT (translations only). XLIFF 1.2 enters through
+     * the SAME door: it is turned into the family's own columns and then walks
+     * the identical key, hygiene and refusal law. A unit with no target is a
+     * malformed row named by its position; a hostile id is refused by name.
+     * Nothing here reaches the writer, so no catalog is touched (J6).
+     */
+    if (family.id === "translations") {
+      test(`IG-4 ${family.id}: XLIFF enters the same door and is judged by the same law`, async ({
+        page,
+      }) => {
+        test.setTimeout(240_000);
+        bandOnly(page, "any");
+        await signInAsSuperAdmin(page);
+        await gotoReady(page, "/admin/categories");
+        const token = await bearerOf(page);
+
+        const xliff = [
+          `<?xml version="1.0" encoding="UTF-8"?>`,
+          `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">`,
+          `  <file original="ethio.com" datatype="plaintext" source-language="en" target-language="zxx-mo">`,
+          `    <body>`,
+          // (a) a unit with no target at all — no row, refused as `required`.
+          `      <trans-unit id="e2e.gate.${rand()}"><source>x</source></trans-unit>`,
+          // (b) an id that is not a key.
+          `      <trans-unit id="Not A Key!!"><source>x</source><target>y</target></trans-unit>`,
+          // (c) an id disguised with a zero-width space and a bidi override.
+          `      <trans-unit id="e2e\u200b.gate\u202e.!!"><source>x</source><target>y</target></trans-unit>`,
+          `    </body>`,
+          `  </file>`,
+          `</xliff>`,
+        ].join("\n");
+
+        const probe = await post(page, token, { [family.field]: xliff });
+        expect(probe.status, JSON.stringify(probe.payload)).toBe(200);
+        const refusals = (probe.payload["refusals"] as { reason: string; key: string }[]) ?? [];
+        expect(
+          refusals.map((entry) => entry.reason),
+          JSON.stringify(refusals),
+        ).toEqual(expect.arrayContaining(["required", "badSlug"]));
+        for (const refusal of refusals) expect(refusal.key).not.toMatch(/[\u200b\u202e]/);
+        // The writer was never reached: the run has no batch to take back.
+        expect(probe.payload["batch_id"] ?? null).toBeNull();
+        expect(probe.payload["imported"] ?? 0).toBe(0);
+
+        // An XLIFF file with no units at all is empty, not an empty import.
+        const hollow = await post(page, token, {
+          [family.field]: `<?xml version="1.0"?>\n<xliff version="1.2"><file><body></body></file></xliff>`,
+        });
+        expect(hollow.status, JSON.stringify(hollow.payload)).toBe(400);
+        expect(hollow.payload["error"]).toBe("emptyFile");
+      });
+    }
   });
 }

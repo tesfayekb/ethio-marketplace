@@ -34,6 +34,15 @@ for file in $routes; do
   check_route "$file" || fail=1
 done
 
+# 4. IMPORT WRITERS ARE REACHED THROUGH THE DOOR. A console that calls an
+#    import RPC directly is a second door with no cap, no hygiene and no meter.
+direct=$(grep -rEn 'rpc\("(admin_import_translations|admin_preview_category_import|admin_commit_category_import|admin_preview_attribute_import|admin_commit_attribute_import)"' src/features src/lib 2>/dev/null || true)
+if [ -n "$direct" ]; then
+  echo "IMPORT-GATE: an import writer is called outside the route:"
+  echo "$direct"
+  fail=1
+fi
+
 # Column classes are total for every registered family.
 missing=$(bun -e '
   import { familiesMissingColumnClasses } from "./src/server/imports/registry";

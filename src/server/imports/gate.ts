@@ -20,11 +20,14 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { xliffUnits } from "@/features/admin/translations/io-formats";
 import type { Database } from "@/integrations/supabase/types";
 import {
   FAMILIES,
   familyOf,
   fileOf,
+  KEY_RE,
+  LANG_RE,
   MAX_BYTES,
   MAX_OPTIONS,
   MAX_OPTION_LABEL,
@@ -238,6 +241,10 @@ export function checkCell(rule: ColumnRule, value: string): string | null {
   switch (rule.type) {
     case "slug":
       return SLUG_RE.test(value) ? null : "badSlug";
+    // A translation key is a dotted path, judged by the same verdict word so
+    // every family speaks one refusal vocabulary to the operator.
+    case "key":
+      return KEY_RE.test(value) ? null : "badSlug";
     case "bool":
       return /^(true|false|t|f|yes|no|y|n|1|0)$/i.test(value) ? null : "badBoolean";
     case "int":
@@ -290,11 +297,43 @@ export function bestMatch(header: readonly string[]): string | null {
   return best?.id ?? null;
 }
 
+/**
+ * XLIFF 1.2 AS A GRID. A translation file may arrive from a CAT tool as XLIFF;
+ * it is turned into the family's OWN columns here and then walks exactly the
+ * same hygiene, length, duplicate and identity law as the CSV — one parser
+ * downstream, one refusal vocabulary, one place to change.
+ *
+ * A unit with no id or no target yields an EMPTY row rather than being dropped:
+ * the operator's row numbers stay the file's own, the key cell is empty, and
+ * the shared law refuses it (`required`). Silently skipping it would blank a
+ * translation or misname every later row.
+ */
+function xliffGrid(text: string): { grid: string[][]; error: string | null } {
+  const units = xliffUnits(text);
+  if (units.length === 0) return { grid: [], error: "emptyFile" };
+  const grid: string[][] = [["key", "source", "translation"]];
+  for (const unit of units) {
+    grid.push(unit === null ? ["", "", ""] : [unit.key, "", unit.value]);
+  }
+  return { grid, error: null };
+}
+
+function looksLikeXliff(text: string): boolean {
+  return /^\s*<(\?xml|xliff)\b/i.test(text) || text.includes("<trans-unit");
+}
+
 export function parseFamilyFile(spec: FileSpec, text: string): ParsedFile {
   const refusals: Refusal[] = [];
   if (hasNul(text)) return { rows: [], refusals, error: "nulByte" };
 
-  const grid = parseCsvGrid(text).filter((line) => line.some((cell) => cell.trim() !== ""));
+  let grid: string[][];
+  if ((spec.readers ?? ["csv"]).includes("xliff") && looksLikeXliff(text)) {
+    const read = xliffGrid(text);
+    if (read.error !== null) return { rows: [], refusals, error: read.error };
+    grid = read.grid;
+  } else {
+    grid = parseCsvGrid(text).filter((line) => line.some((cell) => cell.trim() !== ""));
+  }
   if (grid.length === 0) return { rows: [], refusals, error: "emptyFile" };
 
   const header = (grid[0] ?? []).map((name) => canonicalHeader(name));
@@ -324,13 +363,20 @@ export function parseFamilyFile(spec: FileSpec, text: string): ParsedFile {
   const known = new Set<string>([...declared, ...(actionColumn ? [actionColumn.name] : [])]);
   const unknown = header.find((name) => !known.has(name));
   if (unknown !== undefined) return { rows: [], refusals, error: "unknownColumn", detail: unknown };
-  const missing = declared.find((name, index) => header[index] !== name);
-  if (missing !== undefined) return { rows: [], refusals, error: "badHeader", detail: missing };
   const hasAction =
     actionColumn !== undefined &&
-    header.length === declared.length + 1 &&
-    header[declared.length] === actionColumn.name;
-  if (header.length !== declared.length && !hasAction) {
+    header.length >= 1 &&
+    header[header.length - 1] === actionColumn.name;
+  const carried = hasAction ? header.slice(0, -1) : header;
+  /**
+   * The declared columns must appear IN ORDER. A file may stop early only from
+   * `optionalFrom` on (the trailing note column an editor drops); every other
+   * family still demands the whole header.
+   */
+  const least = spec.optionalFrom ?? declared.length;
+  const missing = declared.slice(0, carried.length).find((name, index) => carried[index] !== name);
+  if (missing !== undefined) return { rows: [], refusals, error: "badHeader", detail: missing };
+  if (carried.length < least || carried.length > declared.length) {
     return { rows: [], refusals, error: "badHeader", detail: String(header.length) };
   }
 
@@ -350,7 +396,7 @@ export function parseFamilyFile(spec: FileSpec, text: string): ParsedFile {
 
     header.forEach((name, column) => {
       const raw = line[column] ?? "";
-      if (refusal === null && isFormulaCell(raw)) {
+      if (refusal === null && rules.get(name)?.formula !== "allow" && isFormulaCell(raw)) {
         refusal = { file: spec.id, row: rowNumber, key: "", reason: "formula" };
       }
       record[name] = cleanCell(unneutralize(raw));
@@ -464,10 +510,11 @@ export function takeSlot(
   userId: string,
   mode: string,
   familyId: string,
+  budgetModes: readonly string[] = ["preview"],
 ): "ok" | "busy" | "tooFast" {
   const bucket = bucketFor(userId);
   if (bucket.inFlight) return "busy";
-  if (mode === "preview") {
+  if (budgetModes.includes(mode)) {
     const now = Date.now();
     const seen = (bucket.previews[familyId] ?? []).filter((at) => now - at < 60_000);
     if (seen.length >= PREVIEW_BUDGET) {
@@ -550,9 +597,12 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
     if (error) console.error(`[ssr-error] ${path} audit_failed ${error.message}`);
   };
 
-  // `scope` must look like a slug; existence is the RPC's verdict (404).
+  // `scope` must LOOK right; existence is the RPC's verdict (404).
   if (scope !== null && family.scope === "category-slug" && !SLUG_RE.test(scope)) {
     return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
+  }
+  if (family.scope === "language" && (scope === null || !LANG_RE.test(scope))) {
+    return refuse(path, `bad language ${scope ?? ""}`, 400, { error: "badScope" });
   }
 
   const rows: Record<string, GateRow[]> = {};
@@ -577,7 +627,7 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
     refusals.push(...parsed.refusals);
   }
 
-  const slot = takeSlot(userId, mode, family.id);
+  const slot = takeSlot(userId, mode, family.id, family.budgetModes ?? ["preview"]);
   if (slot === "busy") {
     return refuse(path, "import already running", 409, { error: "import already running" });
   }

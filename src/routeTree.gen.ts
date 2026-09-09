@@ -33,6 +33,7 @@ import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$use
 import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
+import { Route as ApiAdminTranslationsImportRouteImport } from './routes/api/admin/translations/import'
 import { Route as ApiAdminCategoriesSuggestIconRouteImport } from './routes/api/admin/categories/suggest-icon'
 import { Route as ApiAdminCategoriesImportRouteImport } from './routes/api/admin/categories/import'
 import { Route as ApiAdminCategoriesGenerateImageRouteImport } from './routes/api/admin/categories/generate-image'
@@ -161,6 +162,12 @@ const AdminImpersonationSessionIdRoute =
     path: '/impersonation/$sessionId',
     getParentRoute: () => AdminRoute,
   } as any)
+const ApiAdminTranslationsImportRoute =
+  ApiAdminTranslationsImportRouteImport.update({
+    id: '/api/admin/translations/import',
+    path: '/api/admin/translations/import',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAdminCategoriesSuggestIconRoute =
   ApiAdminCategoriesSuggestIconRouteImport.update({
     id: '/api/admin/categories/suggest-icon',
@@ -229,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
   '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
+  '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -260,6 +268,7 @@ export interface FileRoutesByTo {
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
   '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
+  '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -293,6 +302,7 @@ export interface FileRoutesById {
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
   '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
+  '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/api/admin/categories/generate-image'
     | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
+    | '/api/admin/translations/import'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/api/admin/categories/generate-image'
     | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
+    | '/api/admin/translations/import'
   id:
     | '__root__'
     | '/'
@@ -390,6 +402,7 @@ export interface FileRouteTypes {
     | '/api/admin/categories/generate-image'
     | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
+    | '/api/admin/translations/import'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -410,6 +423,7 @@ export interface RootRouteChildren {
   ApiAdminCategoriesGenerateImageRoute: typeof ApiAdminCategoriesGenerateImageRoute
   ApiAdminCategoriesImportRoute: typeof ApiAdminCategoriesImportRoute
   ApiAdminCategoriesSuggestIconRoute: typeof ApiAdminCategoriesSuggestIconRoute
+  ApiAdminTranslationsImportRoute: typeof ApiAdminTranslationsImportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -582,6 +596,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonationSessionIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/admin/translations/import': {
+      id: '/api/admin/translations/import'
+      path: '/api/admin/translations/import'
+      fullPath: '/api/admin/translations/import'
+      preLoaderRoute: typeof ApiAdminTranslationsImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/categories/suggest-icon': {
       id: '/api/admin/categories/suggest-icon'
       path: '/api/admin/categories/suggest-icon'
@@ -679,6 +700,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminCategoriesGenerateImageRoute: ApiAdminCategoriesGenerateImageRoute,
   ApiAdminCategoriesImportRoute: ApiAdminCategoriesImportRoute,
   ApiAdminCategoriesSuggestIconRoute: ApiAdminCategoriesSuggestIconRoute,
+  ApiAdminTranslationsImportRoute: ApiAdminTranslationsImportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -5,15 +5,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import {
-  detectFormat,
-  parseTransfer,
-  partitionUnchanged,
-  toCsv,
-  toXliff,
-  type TransferFormat,
-  type TransferRow,
-} from "./io-formats";
+import { toCsv, toXliff, type TransferFormat, type TransferRow } from "./io-formats";
 
 import {
   exportFilename,
@@ -32,8 +24,10 @@ import { useImportTranslations, useUndoImport } from "./use-translations";
  * search/status chips are deliberately ignored — an export named after a
  * language must contain that language, not the page that happened to be open.
  *
- * IMPORT NEVER APPROVES. The file is parsed here and handed to
- * `admin_import_translations`, which writes each row through
+ * IMPORT NEVER APPROVES, AND THE BROWSER NEVER PARSES (IMPORT-GATE PART C).
+ * The chosen file is posted verbatim to `/api/admin/translations/import`, where
+ * the ONE gate caps, decodes, reads CSV or XLIFF, cleans every cell and meters
+ * the caller before `admin_import_translations` writes each row through
  * `admin_save_translation`: gates re-run per row, placeholders validated, status
  * `edited`, revision captured, audited. Rows whose placeholders broke come back
  * FLAGGED with an "· import" note; unknown keys are SKIPPED, never invented.
@@ -55,7 +49,7 @@ export function TransferBar({
 }) {
   const { t } = useI18n();
   const importRows = useImportTranslations(lang);
-  const undoRows = useUndoImport();
+  const undoRows = useUndoImport(lang);
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
   // U4i-7 (INC-125) — the last import's batch id: what "Undo" acts on.
@@ -106,36 +100,21 @@ export function TransferBar({
     setErrorKey(null);
     setErrorDetail(null);
     void guard(async () => {
-      const text = await file.text();
-      const parsed = parseTransfer(detectFormat(file.name, text), text);
-      if (parsed.rows.length === 0) {
-        // An empty file is a REFUSAL, never a silent success (F4, E6).
-        throw new Error("no rows in file");
-      }
       /**
-       * U4i-3 (d) / U4i-6 (b) — NO-OP LAW (INC-122, INC-124). Idempotency is
-       * SERVER law: `admin_import_translations` compares each incoming value to
-       * the stored one and writes nothing when they match, so an approved row
-       * cannot be demoted by round-trip noise even if this filter is wrong.
-       * The partition below is an ADVISORY fast path only — it shrinks the
-       * payload; it never decides the outcome. The rendered summary is the
-       * server's own count for everything the server saw (F4), plus the rows
-       * this fast path withheld.
+       * The bytes, unread. Dialect detection, header law, hygiene, the
+       * per-key no-op law (INC-122/INC-124) and every count below are the
+       * SERVER's (F3/F4) — this component estimates nothing.
        */
-      const current = new Map<string, string | null>(rows.map((row) => [row.key, row.value]));
-      const split = partitionUnchanged(parsed.rows, current);
-      const result =
-        split.changed.length === 0
-          ? { imported: 0, flagged: 0, unchanged: 0, skipped: 0, batchId: null }
-          : await importRows.mutateAsync(split.changed);
+      const text = await file.text();
+      const result = await importRows.mutateAsync(text);
       // U4i-7 (INC-125) — a run that wrote nothing has nothing to take back.
       setBatchId(result.imported > 0 ? result.batchId : null);
       setSummary(
         t("admin.translations.transfer.summary")
           .replace("{imported}", String(result.imported))
           .replace("{flagged}", String(result.flagged))
-          .replace("{unchanged}", String(result.unchanged + split.unchanged))
-          .replace("{skipped}", String(result.skipped + parsed.malformed)),
+          .replace("{unchanged}", String(result.unchanged))
+          .replace("{skipped}", String(result.skipped)),
       );
     }).catch((failure: unknown) => {
       setErrorKey(translationErrorKey(failure));

@@ -26,17 +26,34 @@ export const MAX_OPTION_LABEL = 120;
  */
 export const MAX_OPTIONS = 400;
 
+/** A translation key's ceiling; the catalog's longest is far under it. */
+export const MAX_KEY = 200;
+/** A translated string's ceiling — long-form copy, still not a payload. */
+export const MAX_VALUE = 4000;
+
+/** Language scope law: `am`, `en`, `zxx-mo`, `tig-ET`. */
+export const LANG_RE = /^[a-z]{2,3}(-[a-z0-9]{2,8})?$/i;
+
+/** Translation keys are dotted paths, never slugs. */
+export const KEY_RE = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
+
 export type ColumnClass = "identity" | "editable" | "read-only" | "action";
 
 export interface ColumnRule {
   name: string;
   klass: ColumnClass;
   /** `slug` also enforces SLUG_RE; empty is allowed unless `required`. */
-  type?: "text" | "slug" | "bool" | "int" | "date" | "pipe" | "options" | "enum";
+  type?: "text" | "slug" | "key" | "bool" | "int" | "date" | "pipe" | "options" | "enum";
   required?: boolean;
   maxLength?: number;
   /** Allowed values for `enum`/`action` columns (lower-cased comparison). */
   values?: readonly string[];
+  /**
+   * FORMULA LAW, per column. A leading `=`/`+`/`-`/`@` is refused everywhere by
+   * default. `allow` is declared ONLY for free-text columns whose export
+   * neutralises them, where `+ Add` is legitimate content and not an attack.
+   */
+  formula?: "allow";
 }
 
 export interface FileSpec {
@@ -54,6 +71,14 @@ export interface FileSpec {
   duplicateIdentity: "gate" | "planner";
   maxRows?: number;
   maxBytes?: number;
+  /**
+   * The header may stop at any declared column from this index on (an export
+   * carries the trailing note column; a translator's editor often drops it).
+   * Undeclared: the header must carry every declared column, in order.
+   */
+  optionalFrom?: number;
+  /** Dialects this file accepts. Undeclared means CSV only. */
+  readers?: readonly ("csv" | "xliff")[];
 }
 
 export interface FamilySpec {
@@ -64,6 +89,12 @@ export interface FamilySpec {
   stepUp: "commit" | "never";
   /** `scope` is a category slug when the family supports subtree scoping. */
   scope: "category-slug" | "language" | "none";
+  /**
+   * Which modes spend the per-minute budget. A family with a preview door
+   * meters the preview; a family that imports in ONE step meters that step, so
+   * no door is left without a ceiling.
+   */
+  budgetModes?: readonly string[];
   files: readonly FileSpec[];
 }
 
@@ -156,6 +187,58 @@ export const FAMILIES: Record<string, FamilySpec> = {
           { name: "listing_count", klass: "read-only", type: "int" },
           { name: "origin_scope", klass: "read-only", type: "text" },
           { name: "action", klass: "action", values: ACTION_CATEGORIES },
+        ],
+      },
+    ],
+  },
+  /**
+   * IMPORT-GATE PART C — UI STRINGS (CSV or XLIFF 1.2, one door).
+   *
+   * The file names KEYS, never invents them: an unknown key is skipped by
+   * `admin_import_translations`, which stays the only authority on meaning —
+   * placeholder validation, `edited` status, revision capture, audit, and the
+   * no-op law that keeps an approved row approved through a round trip.
+   */
+  translations: {
+    id: "translations",
+    permission: "translations:manage",
+    stepUp: "commit",
+    scope: "language",
+    // There is no preview door here: the import IS the write, so it is metered
+    // — and so is the take-back, which is a write of its own.
+    budgetModes: ["commit", "undo"],
+    files: [
+      {
+        id: "strings",
+        identityHeader: "key",
+        identityColumns: ["key"],
+        duplicateIdentity: "gate",
+        // `context` is the export's trailing column; a 3-column file is valid.
+        optionalFrom: 3,
+        readers: ["csv", "xliff"],
+        columns: [
+          { name: "key", klass: "identity", type: "key", required: true, maxLength: MAX_KEY },
+          {
+            name: "source",
+            klass: "read-only",
+            type: "text",
+            maxLength: MAX_VALUE,
+            formula: "allow",
+          },
+          {
+            name: "translation",
+            klass: "editable",
+            type: "text",
+            maxLength: MAX_VALUE,
+            formula: "allow",
+          },
+          {
+            name: "context",
+            klass: "read-only",
+            type: "text",
+            maxLength: MAX_VALUE,
+            formula: "allow",
+          },
         ],
       },
     ],
