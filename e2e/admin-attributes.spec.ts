@@ -2293,8 +2293,8 @@ test.describe("C3 attributes console", () => {
       const { data: cats, error: catError } = await supabase
         .from("categories")
         .insert([
-          { slug: parentSlug, name_en: parentSlug },
-          { slug: childSlug, name_en: childSlug },
+          { slug: parentSlug, name_en: parentSlug, is_active: true, allow_listings: true },
+          { slug: childSlug, name_en: childSlug, is_active: true, allow_listings: true },
         ])
         .select("id, slug");
       if (catError || !cats) throw new Error(`AT-38 categories failed: ${catError?.message}`);
@@ -2304,7 +2304,10 @@ test.describe("C3 attributes console", () => {
       // The child's ONLY pointer is the parent, so the parent is primary (INH-1).
       const { error: pointerError } = await supabase
         .from("category_tree_pointers")
-        .insert({ parent_id: parent.id, child_id: child.id, display_order: 1 });
+        .insert([
+          { parent_id: null, child_id: parent.id, display_order: 904 },
+          { parent_id: parent.id, child_id: child.id, display_order: 1 },
+        ]);
       if (pointerError) throw new Error(`AT-38 pointer failed: ${pointerError.message}`);
       const { error: linkError } = await supabase.from("category_attribute_links").insert({
         category_id: parent.id,
