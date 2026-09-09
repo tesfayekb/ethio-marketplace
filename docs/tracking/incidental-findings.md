@@ -1924,3 +1924,16 @@ invariant).
 ## INC-178 — (2026-09-08, imported from the S34/S35 backfill)
 
 read-only reporter noise (one serializer; compare after normalization).
+
+## INC-182 — (2026-09-09, IMPORT-GATE T2)
+
+TR-19 and TR-30 (`@global-state`, DEC-028 quarantine) fail on a LOCAL subset
+run of `admin-translations-governance.spec.ts` because the fence language
+carries the whole interface catalog untranslated (1063 keys, 1059 of them
+untranslated at the time of the run) and the seeded rows therefore sit past the
+first page the test reads. Neither test touches the import door — TR-29 (CSV
+round trip) and TR-32 (undo), which do, pass through the new route — so this is
+a fixture/ordering debt in the specs (they must anchor on the seeded rows
+through the filter or the search, not on page one), not a regression of the
+gate. Owner: translations E2E; to be fixed with the shard-1 heal that a subset
+run skips (J3).
