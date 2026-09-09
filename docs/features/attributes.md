@@ -525,3 +525,23 @@ child holds a direct link with the file's values, and the console shows no
 inherited badge. AT-39 — definitions and links rows that leave every derived
 column blank, against rows that exist live, produce an empty Ignored panel and
 zero refusals. The AT-20 round-trip invariant is unchanged.
+
+## IE-7 — the import dialog's three states
+
+The shared shell (`src/features/admin/import-dialog.tsx`) shows ONE state at a
+time.
+
+- **Ready** — every declared file has its own picker: a real touch-sized
+  secondary button ("Choose … file…") over a visually hidden native input, with
+  the chosen filename beside it. Preview stays disabled until EVERY required
+  file is chosen, so a half-chosen pair never reaches the door.
+- **Previewed** — the counts, the refusals and the Ignored panel, with exactly
+  Discard (tooltip: close without writing anything) and Confirm (step-up).
+- **Applied** — a success banner, "Import applied — N changes written", where N
+  counts the writes alone (never `unchanged`, never `refusals`); the counts stay
+  on screen and the footer holds exactly Undo last import + Close. Confirm and
+  Discard are not rendered. After Undo, the take-back line replaces the banner's
+  door and Close remains.
+
+Spec: AT-40 (attributes) and CT-28 (categories) drive a scratch file all the way
+to Applied and assert DB truth after Undo.

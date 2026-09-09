@@ -2416,6 +2416,82 @@ test.describe("C3 attributes console", () => {
       await destroyCategory(slug);
     }
   });
+
+  /**
+   * AT-40 (IE-7) — THE THREE DIALOG STATES, DRIVEN TO APPLIED. A scratch pair
+   * of files is chosen through the real pickers, previewed, confirmed through
+   * step-up and then taken back: the applied banner is present, Confirm and
+   * Discard are gone, Undo restores DB TRUTH (J4) and Close closes.
+   */
+  test("AT-40 the import dialog reaches Applied and undoes", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-ie7-${rand()}`;
+    try {
+      await supabase.from("categories").insert({ slug, name_en: slug });
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-import").click();
+      await expect(page.getByTestId("attribute-import-dialog")).toBeVisible({ timeout: 20000 });
+
+      // READY — Preview waits for BOTH files; Confirm is not rendered at all.
+      await expect(page.getByTestId("attribute-import-confirm")).toHaveCount(0);
+      await expect(page.getByTestId("attribute-import-definitions-choose")).toBeVisible();
+      await expect(page.getByTestId("attribute-import-preview")).toBeDisabled();
+      await attachCsv(
+        page,
+        "attribute-import-definitions",
+        "definitions.csv",
+        `${DEF_HEADER}\r\n${key},${key},,text,,,,\r\n`,
+      );
+      await expect(page.getByTestId("attribute-import-definitions-chosen")).toHaveText(
+        "definitions.csv",
+      );
+      await expect(page.getByTestId("attribute-import-preview")).toBeDisabled();
+      await attachCsv(
+        page,
+        "attribute-import-links",
+        "links.csv",
+        `${LINK_HEADER}\r\n,${slug},${key},false,false,,\r\n`,
+      );
+      await expect(page.getByTestId("attribute-import-preview")).toBeEnabled();
+
+      // PREVIEWED — the verdict, with both doors.
+      await page.getByTestId("attribute-import-preview").click();
+      await expect(page.getByTestId("attribute-import-counts")).toBeVisible({ timeout: 120_000 });
+      await expect(page.getByTestId("attribute-import-confirm")).toBeVisible();
+      await expect(page.getByTestId("attribute-import-discard")).toBeVisible();
+
+      // APPLIED — the banner, the counts, and exactly Undo + Close.
+      await page.getByTestId("attribute-import-confirm").click();
+      await stepUpIfPrompted(page, secret);
+      const banner = page.getByTestId("attribute-import-applied");
+      await expect(banner).toBeVisible({ timeout: 120_000 });
+      await expect(banner).toContainText("2");
+      await expect(page.getByTestId("attribute-import-counts")).toBeVisible();
+      await expect(page.getByTestId("attribute-import-confirm")).toHaveCount(0);
+      await expect(page.getByTestId("attribute-import-discard")).toHaveCount(0);
+      await expect(page.getByTestId("attribute-import-close")).toBeVisible();
+      expect(await readAttribute(key), "AT-40 the commit wrote no definition").not.toBeNull();
+
+      // UNDO — DB truth, not a banner.
+      await page.getByTestId("attribute-import-undo").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("attribute-import-undone")).toBeVisible({ timeout: 120_000 });
+      await expect.poll(async () => await readAttribute(key), { timeout: 30000 }).toBeNull();
+
+      await page.getByTestId("attribute-import-close").click();
+      await expect(page.getByTestId("attribute-import-dialog")).toHaveCount(0);
+    } finally {
+      await destroyAttribute(key);
+      await destroyCategory(slug);
+    }
+  });
+
   /**
    * DEC-045a — the DIRECT DOOR. The dependency laws are the SERVER's (F3), so
    * the refusal proofs address the RPC itself with the operator's own bearer,
