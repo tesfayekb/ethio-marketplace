@@ -1,13 +1,13 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34312805983
-- Commit: `77ffcec86c1d7d7102024e7d3cea2558fb781b21`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34315022943
+- Commit: `6c3ae3b2ae2307030faa7936b64fd8b83b8a9084`
 - Attempt: 1
-- Written (UTC): 2026-09-09T04:55:10.449Z
-- Passed: 0 · Skipped: 0 · Failed: 0
+- Written (UTC): 2026-09-09T05:30:29.082Z
+- Passed: 1 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Sources without results: smoke, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 ## Server errors: smoke
 
@@ -16,14 +16,6 @@ No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 ## Client errors: smoke
 
 No `[client-error]` lines in the `smoke` log (or no log was uploaded).
-
-## Server errors: email
-
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
-
-## Client errors: email
-
-No `[client-error]` lines in the `email` log (or no log was uploaded).
 
 ## Server errors: shard 1
 
@@ -76,14 +68,6 @@ No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
 ## smoke: no results file
 
 smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
 (no log tail was uploaded for this source)
