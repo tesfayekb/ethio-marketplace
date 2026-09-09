@@ -2174,6 +2174,98 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(used);
     }
   });
+
+  /**
+   * IE-5 — ONE FILE, ONE PASS. A definition delete is judged against the links
+   * that SURVIVE the same import: unlinking its only link in the links file and
+   * deleting the definition in the definitions file previews as
+   * 1 unlinked · 1 deleted · 0 refused, commits, and Undo restores BOTH. Leave
+   * the link in place and the same delete is refused, naming the category.
+   */
+  test("AT-37 a delete after the file's own unlink is accepted and undone", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-imp-${rand()}`;
+    try {
+      const { data: attribute } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "text" })
+        .select("id")
+        .single();
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      await supabase.from("category_attribute_links").insert({
+        category_id: category!.id,
+        attribute_id: attribute!.id,
+        is_required: false,
+        is_filterable: false,
+      });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      const defHeader = `${DEF_HEADER},action`;
+      const linkHeader = `${LINK_HEADER},action`;
+      const definitions = `${defHeader}\r\n${key},${key},,text,,,,1,delete\r\n`;
+
+      // (a) THE SURVIVING LINK REFUSES THE DELETE — no unlink in the file.
+      const refusedPreview = await importPost(page, token, { mode: "preview", definitions });
+      expect(refusedPreview.status, JSON.stringify(refusedPreview.payload)).toBe(200);
+      const refusedCounts = refusedPreview.payload["counts"] as Record<string, number>;
+      expect(refusedCounts.deletes, JSON.stringify(refusedCounts)).toBe(0);
+      expect(refusedCounts.refusals, JSON.stringify(refusedCounts)).toBe(1);
+      const refusals = refusedPreview.payload["refusals"] as Record<string, unknown>[];
+      const blast = refusals.find((row) => row["reason"] === "blastRadius");
+      expect(blast, `AT-37 no blast-radius refusal: ${JSON.stringify(refusals)}`).toBeTruthy();
+      expect(blast?.["detail"], "AT-37 the refusal did not name the category").toContain(slug);
+
+      // (b) THE SAME DELETE, with the file removing the link in the same pass.
+      const links = `${linkHeader}\r\n${slug},${slug},${key},false,false,,${slug},unlink\r\n`;
+      const preview = await importPost(page, token, { mode: "preview", definitions, links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(
+        {
+          unlinks: counts.unlinks,
+          deletes: counts.deletes,
+          refusals: counts.refusals,
+        },
+        `AT-37 the plan did not order the unlink before the delete: ${JSON.stringify(counts)}`,
+      ).toEqual({ unlinks: 1, deletes: 1, refusals: 0 });
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+
+      expect(await readAttribute(key), "AT-37 the definition survived the delete").toBeFalsy();
+      expect(await readLinks(category!.id), "AT-37 the link survived the unlink").toHaveLength(0);
+
+      // UNDO REVERSES THE ORDER: the definition comes back first, so the link
+      // it carried has an attribute to point at.
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(undo.payload["conflicted"], JSON.stringify(undo.payload)).toBe(0);
+
+      expect(await readAttribute(key), "AT-37 undo did not restore the definition").toBeTruthy();
+      expect(await readLinks(category!.id), "AT-37 undo did not restore the link").toHaveLength(1);
+    } finally {
+      await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
   /**
    * DEC-045a — the DIRECT DOOR. The dependency laws are the SERVER's (F3), so
    * the refusal proofs address the RPC itself with the operator's own bearer,
