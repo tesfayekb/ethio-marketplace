@@ -2266,6 +2266,155 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(key);
     }
   });
+
+  /**
+   * IE-6 (INC-180) — DIRECT ROWS OVER INHERITED ECHOES. A links file taken from
+   * a child's export carries the parent's link as a READ-ONLY echo. Adding a
+   * DIRECT row for the same key at that child is not a duplicate: the echo is
+   * ignored and the direct row becomes the NEAREST link.
+   */
+  test("AT-38 an inherited echo does not collide with a direct row", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const stamp = rand();
+    const parentSlug = `e2e-cat-ie6-${stamp}-p`;
+    const childSlug = `e2e-cat-ie6-${stamp}-c`;
+    let childId: string | null = null;
+    try {
+      const { data: attribute } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "text" })
+        .select("id")
+        .single();
+      const { data: cats, error: catError } = await supabase
+        .from("categories")
+        .insert([
+          { slug: parentSlug, name_en: parentSlug },
+          { slug: childSlug, name_en: childSlug },
+        ])
+        .select("id, slug");
+      if (catError || !cats) throw new Error(`AT-38 categories failed: ${catError?.message}`);
+      const parent = cats.find((row) => row.slug === parentSlug)!;
+      const child = cats.find((row) => row.slug === childSlug)!;
+      childId = child.id;
+      // The child's ONLY pointer is the parent, so the parent is primary (INH-1).
+      const { error: pointerError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: parent.id, child_id: child.id, display_order: 1 });
+      if (pointerError) throw new Error(`AT-38 pointer failed: ${pointerError.message}`);
+      const { error: linkError } = await supabase.from("category_attribute_links").insert({
+        category_id: parent.id,
+        attribute_id: attribute!.id,
+        is_required: false,
+        is_filterable: false,
+      });
+      if (linkError) throw new Error(`AT-38 link failed: ${linkError.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      // Row 2 is the inherited ECHO the export writes; row 3 is the new DIRECT row.
+      const links =
+        `${LINK_HEADER}\r\n` +
+        `${parentSlug} / ${childSlug},${childSlug},${key},false,false,,${parentSlug}\r\n` +
+        `${parentSlug} / ${childSlug},${childSlug},${key},true,false,,\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(
+        { adds: counts.adds, refusals: counts.refusals },
+        `AT-38 the echo collided with the direct row: ${JSON.stringify(preview.payload["refusals"])}`,
+      ).toEqual({ adds: 1, refusals: 0 });
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+
+      // NEAREST WINS: the child now holds a DIRECT link of its own.
+      const childLinks = await readLinks(child.id);
+      expect(childLinks, "AT-38 the direct row was not written at the child").toHaveLength(1);
+      expect(childLinks[0]?.is_required, "AT-38 the direct row's values were not applied").toBe(
+        true,
+      );
+
+      // The console reads the same set: a direct row, never an inherited badge.
+      await gotoReady(page, `/admin/attributes?category=${childSlug}`);
+      await expect(page.getByTestId("attribute-category-clear")).toBeVisible({ timeout: 30000 });
+      await expect(
+        librarySurface(page).getByTestId(`attribute-inherited-${key}`),
+        await dialogDump(page, "AT-38 the direct link still rendered as inherited"),
+      ).toHaveCount(0);
+    } finally {
+      if (childId !== null) {
+        await supabase.from("category_tree_pointers").delete().eq("child_id", childId);
+      }
+      await destroyAttribute(key);
+      await destroyCategory(childSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
+
+  /**
+   * IE-6 (INC-181) — AN EMPTY READ-ONLY CELL IS SILENCE. A file that leaves the
+   * derived columns blank says "not provided"; only a filled-in read-only cell
+   * that differs is reported. The Ignored panel stays empty.
+   */
+  test("AT-39 empty read-only cells are never reported as edits", async ({ page }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-ie6-${rand()}`;
+    try {
+      const { data: attribute } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "text" })
+        .select("id")
+        .single();
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      await supabase.from("category_attribute_links").insert({
+        category_id: category!.id,
+        attribute_id: attribute!.id,
+        is_required: false,
+        is_filterable: false,
+      });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      // Both files leave every derived column blank: the live rows exist, so
+      // truth is present and a naive comparison WOULD have reported them.
+      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,,\r\n`;
+      const links = `${LINK_HEADER}\r\n,${slug},${key},false,false,,\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions, links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const ignored = (preview.payload["ignored"] ?? []) as unknown[];
+      expect(
+        ignored,
+        `AT-39 an empty read-only cell was reported as an edit: ${JSON.stringify(ignored)}`,
+      ).toHaveLength(0);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(counts.refusals, JSON.stringify(counts)).toBe(0);
+    } finally {
+      await destroyAttribute(key);
+      await destroyCategory(slug);
+    }
+  });
   /**
    * DEC-045a — the DIRECT DOOR. The dependency laws are the SERVER's (F3), so
    * the refusal proofs address the RPC itself with the operator's own bearer,
