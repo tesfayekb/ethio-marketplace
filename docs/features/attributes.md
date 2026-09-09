@@ -545,3 +545,17 @@ time.
 
 Spec: AT-40 (attributes) and CT-28 (categories) drive a scratch file all the way
 to Applied and assert DB truth after Undo.
+
+## FIX-SCAN-1 — the link flags are ONE write
+
+`admin_update_attribute_link(p_link_id, p_is_required, p_is_filterable)`
+(migration mark `20260909150000`, applied file `20260909142634`; the earlier
+`20260909140408` carries the same declaration and is healed in the mark
+allowlist) updates the flags in place. The manager used to toggle them as
+unlink + relink: two writes, so a failure between them LOST the link and the
+relink inserted a fresh row, wiping `card_rank`. The RPC gates on
+`categories:update` + `require_step_up_if_needed('categories','update')` — the
+same authority the pair it replaces carried, deliberately NOT `categories:manage`,
+which would change who may edit a link — then captures the old row, updates, and
+audits `attribute.link_update`. `card_rank` and `display_order` are untouched.
+Unlink and the picker's link path are unchanged. Proof: AT-42.
