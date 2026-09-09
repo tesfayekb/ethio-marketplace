@@ -563,4 +563,45 @@ test.describe("C2 categories console", () => {
       await expect(surface(page).locator('[data-testid^="category-missing-"]')).not.toHaveCount(0);
     }
   });
+
+  /**
+   * FIX-SCAN-1 ISSUE 4 — EVERY RATIFIED ROOT'S ICON RESOLVES.
+   *
+   * The rail, the roster, the editor preview and the suggester now share ONE
+   * allowlist (`src/lib/category-icon-names.ts`) and ONE glyph map
+   * (`src/components/shell/category-glyphs.ts`). A stored name outside the map
+   * renders the generic box; the roster's `data-icon` names what actually
+   * rendered, so a drifted list fails here instead of shipping. DB truth (the
+   * stored names) supplies the expectation — J5: read the glyph inside its own
+   * row twin, never a bare prefix.
+   */
+  test("CT-29 every ratified root renders its own glyph, not the fallback", async ({ page }) => {
+    const admin = await createUser({ confirmed: true });
+    await grantRole(admin.id, "admin");
+    await switchUser(page, admin.email, admin.password);
+    await gotoReady(page, "/admin/categories");
+
+    const { data, error } = await adminClient()
+      .from("categories")
+      .select("slug, icon")
+      .eq("is_active", true)
+      .not("icon", "is", null)
+      .not("slug", "like", "e2e-%")
+      .order("display_order")
+      .limit(12);
+    if (error) throw new Error(`[e2e:ct-29] reading icons failed: ${error.message}`);
+    const roots = data ?? [];
+    // E6 — the empty set is named: a taxonomy with no icons proves nothing.
+    expect(roots.length, "CT-29 the ratified taxonomy carries stored icons").toBeGreaterThan(0);
+
+    for (const row of roots) {
+      await page.getByTestId("category-search").fill(row.slug);
+      const line = categoryRow(page, row.slug);
+      await expect(line).toBeVisible({ timeout: 20000 });
+      await expect(
+        line.getByTestId(`category-icon-${row.slug}`),
+        `CT-29 ${row.slug} stores "${row.icon}" — it must resolve to a real glyph`,
+      ).toHaveAttribute("data-icon", row.icon!.trim());
+    }
+  });
 });

@@ -255,6 +255,27 @@ export async function linkAttribute(input: {
   return data as string;
 }
 
+/**
+ * FIX-SCAN-1 ISSUE 1 — ONE ATOMIC WRITE FOR THE LINK FLAGS.
+ *
+ * Toggling Required/Filterable used to unlink then relink: a failure between
+ * the two LOST the link, and the fresh row dropped `card_rank`. The definer
+ * RPC updates the two flags in place; ordering and the card setting are never
+ * touched.
+ */
+export async function updateAttributeLink(input: {
+  linkId: string;
+  isRequired?: boolean;
+  isFilterable?: boolean;
+}): Promise<void> {
+  const { error } = await supabase.rpc("admin_update_attribute_link", {
+    p_link_id: input.linkId,
+    p_is_required: input.isRequired ?? (null as unknown as boolean),
+    p_is_filterable: input.isFilterable ?? (null as unknown as boolean),
+  });
+  if (error) throw error;
+}
+
 export async function unlinkAttribute(linkId: string): Promise<void> {
   const { error } = await supabase.rpc("admin_unlink_attribute", { p_link_id: linkId });
   if (error) throw error;

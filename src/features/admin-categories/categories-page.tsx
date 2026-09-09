@@ -21,7 +21,7 @@ import {
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
-import { categoryGlyph } from "@/components/shell/app-rail";
+import { categoryGlyph, isKnownCategoryIcon } from "@/components/shell/category-glyphs";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -384,7 +384,15 @@ export function AdminCategoriesPage() {
         const Glyph = categoryGlyph(row.icon);
         return (
           <span className="flex min-w-0 items-start gap-2">
-            <Glyph aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            {/* FIX-SCAN-1 ISSUE 4 — `data-icon` names what actually rendered:
+                the stored name when it resolves, "Package" when it fell back.
+                CT-29 reads it, so a drifted allowlist fails loudly. */}
+            <Glyph
+              aria-hidden="true"
+              data-testid={`category-icon-${row.slug}`}
+              data-icon={isKnownCategoryIcon(row.icon) ? row.icon?.trim() : "Package"}
+              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+            />
             <span className="block min-w-0">
               <span className="block truncate font-medium text-foreground" title={row.nameEn}>
                 {row.depth > 0 ? (

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
+import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -243,7 +244,13 @@ export function ImportDialog({
       } finally {
         setBusy(false);
       }
-    }).catch(() => setError(t(key("error.failed"))));
+    }).catch((failure: unknown) => {
+      // FIX-SCAN-1 ISSUE 2 — a gate that did not run the action leaves the
+      // dialog usable: busy cleared, cancelled stays silent, no-factor hints.
+      setBusy(false);
+      const abort = stepUpAbortKey(failure);
+      setError(abort === undefined ? t(key("error.failed")) : abort === null ? null : t(abort));
+    });
   };
 
   const runUndo = () => {
@@ -263,7 +270,13 @@ export function ImportDialog({
       } finally {
         setBusy(false);
       }
-    }).catch(() => setError(t(key("error.failed"))));
+    }).catch((failure: unknown) => {
+      // FIX-SCAN-1 ISSUE 2 — a gate that did not run the action leaves the
+      // dialog usable: busy cleared, cancelled stays silent, no-factor hints.
+      setBusy(false);
+      const abort = stepUpAbortKey(failure);
+      setError(abort === undefined ? t(key("error.failed")) : abort === null ? null : t(abort));
+    });
   };
 
   /**

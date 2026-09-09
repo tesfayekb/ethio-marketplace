@@ -2418,6 +2418,80 @@ test.describe("C3 attributes console", () => {
   });
 
   /**
+   * FIX-SCAN-1 ISSUE 1 — THE TOGGLE IS ONE ATOMIC WRITE.
+   *
+   * Required/Filterable used to be unlink + relink: the relink inserted a FRESH
+   * row, so the card membership (card_rank) was wiped, and a failure between
+   * the two writes LOST the link. `admin_update_attribute_link` is one UPDATE:
+   * the row id and card_rank survive the toggle, and a refused call leaves the
+   * link exactly as it was (DB truth, J4).
+   */
+  test("AT-42 toggling Required keeps the card rank and never loses the link", async ({ page }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    let slug = "";
+    try {
+      await seedAttribute(key);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
+      await openEditor(page, slug);
+      await action(page, slug, "attributes").click();
+      await expect(page.getByTestId("category-attributes-dialog")).toBeVisible({ timeout: 20000 });
+
+      await page.getByTestId("category-attribute-search").fill(key);
+      await page
+        .getByTestId("category-attribute-picker")
+        .selectOption({ label: `${key} (${key})` });
+      await page.getByTestId("category-attribute-add").click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(async () => (await readLinks(scratch!.id)).length, { timeout: 20000 })
+        .toBe(1);
+
+      // Put the attribute on the card, then read the row that must survive.
+      await page.getByTestId(`category-attribute-card-${key}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(async () => (await readLinks(scratch!.id))[0]?.card_rank ?? null, { timeout: 20000 })
+        .not.toBeNull();
+      const before = (await readLinks(scratch!.id))[0]!;
+
+      // THE TOGGLE.
+      await page.getByTestId(`category-attribute-required-${key}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(async () => (await readLinks(scratch!.id))[0]?.is_required ?? null, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-42 the toggle never landed"),
+        })
+        .toBe(!before.is_required);
+
+      const after = (await readLinks(scratch!.id))[0]!;
+      expect(after.id, "AT-42 the same link row was updated").toBe(before.id);
+      expect(after.card_rank, "AT-42 the card rank survived the toggle").toBe(before.card_rank);
+      expect(after.display_order).toBe(before.display_order);
+
+      // A FORCED FAILURE leaves the link intact — one write, so nothing to lose.
+      await page.route("**/rest/v1/rpc/admin_update_attribute_link", (route) => route.abort());
+      await page.getByTestId(`category-attribute-required-${key}`).click();
+      await page.waitForTimeout(1500); // eslint-disable-line no-restricted-syntax -- DEC-027: proving a NON-event (no write) needs a settle window
+      await page.unroute("**/rest/v1/rpc/admin_update_attribute_link");
+      const failed = await readLinks(scratch!.id);
+      expect(failed.length, "AT-42 the link survived the failure").toBe(1);
+      expect(failed[0]!.id).toBe(before.id);
+      expect(failed[0]!.card_rank).toBe(before.card_rank);
+      expect(failed[0]!.is_required).toBe(after.is_required);
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
    * AT-40 (IE-7) — THE THREE DIALOG STATES, DRIVEN TO APPLIED. A scratch pair
    * of files is chosen through the real pickers, previewed, confirmed through
    * step-up and then taken back: the applied banner is present, Confirm and

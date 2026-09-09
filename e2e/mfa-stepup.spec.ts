@@ -88,6 +88,17 @@ async function clearStepUpFreshness(page: Page) {
   });
 }
 
+/** DB truth for the profile the edit form writes. */
+async function displayName(userId: string): Promise<string | null> {
+  const { data, error } = await adminClient()
+    .from("profiles")
+    .select("display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:fix-scan] reading display_name failed: ${error.message}`);
+  return data?.display_name ?? null;
+}
+
 function userRow(page: Page, userId: string) {
   return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
 }
@@ -299,6 +310,70 @@ test.describe("U1f-4 step-up freshness", () => {
           timeout: 20000,
         },
       );
+    },
+  );
+});
+
+/**
+ * FIX-SCAN-1 ISSUE 2 / DEC-047 — THE GATE SETTLES ON EVERY PATH.
+ *
+ * `guard(action)` used to leave its promise unsettled when the operator
+ * cancelled the prompt or held no factor, so the caller's pending state never
+ * reset ("the buttons stay stuck"). It now rejects with StepUpCancelled /
+ * StepUpUnavailable: the caller resets, claims NOTHING happened (F4), and the
+ * no-factor case renders the translated "set up an authenticator" hint.
+ */
+test.describe("FIX-SCAN-1 step-up abort", () => {
+  test(
+    "MF-7b cancelling the prompt releases the caller and writes nothing",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const staff = await createUser({ confirmed: true });
+      await grantRole(staff.id, "admin");
+      const target = await createUser({ confirmed: true });
+      const before = await displayName(target.id);
+
+      await switchUser(page, staff.email, staff.password);
+      await enrollThroughSettings(page);
+      // A fresh sign-in is aal1 again — the gate must fire on the next action.
+      await switchUser(page, staff.email, staff.password);
+      await clearStepUpFreshness(page);
+
+      await gotoReady(page, `/admin/users/${target.id}`);
+      await page.getByTestId("edit-display-name").fill("MF-7b never written");
+      await page.getByTestId("edit-save").click();
+
+      const modal = page.getByTestId("step-up-modal");
+      await expect(modal).toBeVisible({ timeout: 15000 });
+      await page.getByTestId("step-up-cancel").click();
+      await expect(modal).toBeHidden({ timeout: 15000 });
+
+      // Released: the button is usable again and neither outcome is claimed.
+      await expect(page.getByTestId("edit-save")).toBeEnabled();
+      await expect(page.getByTestId("edit-saved")).toBeHidden();
+      await expect(page.getByTestId("edit-error")).toBeHidden();
+      expect(await displayName(target.id), "MF-7b nothing was written").toBe(before);
+    },
+  );
+
+  test(
+    "MF-7c a no-factor identity is released with the hint",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const staff = await createUser({ confirmed: true });
+      await grantRole(staff.id, "admin");
+      const target = await createUser({ confirmed: true });
+      const before = await displayName(target.id);
+
+      await switchUser(page, staff.email, staff.password);
+      await gotoReady(page, `/admin/users/${target.id}`);
+      await page.getByTestId("edit-display-name").fill("MF-7c never written");
+      await page.getByTestId("edit-save").click();
+
+      await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("edit-save")).toBeEnabled();
+      await expect(page.getByTestId("edit-error")).toHaveText(en["mfa.stepUpUnavailableHint"]);
+      expect(await displayName(target.id), "MF-7c nothing was written").toBe(before);
     },
   );
 });

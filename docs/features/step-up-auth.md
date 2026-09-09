@@ -189,3 +189,24 @@ pool; `E2E_UI_LOGIN=1` keeps the real door plus in-browser elevation, and
 private (`@private-identity`) mints are unchanged. **TR-7b** is the regression:
 a private super admin at aal1 clicks Sync, answers the prompt, and
 `translations-sync-done` renders with its counts.
+
+## DEC-047 — the gate SETTLES on every path (FIX-SCAN-1 ISSUE 2)
+
+DEC-040 made `guard(action)` settle on the ACTION, but deliberately left the
+promise UNSETTLED when the operator cancelled the prompt or held no factor. The
+consequence the scanner found: the caller's pending state never reset — buttons
+stayed stuck and no explanation appeared.
+
+`guard()` now rejects on those paths with typed errors from `mfa-service.ts`:
+
+- `StepUpCancelled` — the operator closed or cancelled the prompt;
+- `StepUpUnavailable` — no verified TOTP factor exists (the modal still explains
+  and links to Settings, and no RPC is sent).
+
+`stepUpAbortKey(error)` maps them for callers: `null` for a cancellation
+(nothing ran, so nothing is claimed — law F4) and `mfa.stepUpUnavailableHint`
+("set up an authenticator") for the no-factor case. Every `guard(` consumer —
+users, roles, translations, categories, attributes, the shared import dialog and
+impersonation — resets its pending state through that helper. Proofs: MF-7b
+(cancel → Save re-enabled, no banner, DB unchanged) and MF-7c (no factor → Save
+re-enabled with the hint, DB unchanged).

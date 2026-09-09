@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 
 /**
  * C5b — the client seam for the two FROZEN C5a routes.
@@ -160,73 +161,8 @@ export async function loadCategoryImages(categoryId: string): Promise<StoredAsse
 /**
  * C5b PART B — the manual fallback picker's options.
  *
- * B1 note: `src/server/category-images/icons.ts` remains the ONLY authority —
- * it validates whatever the model or the operator proposes. That module lives
- * under `src/server/**`, which the import guards keep out of every client
- * bundle, so the picker carries this display mirror instead of importing it.
+ * FIX-SCAN-1 ISSUE 4 — the picker no longer carries a hand-kept mirror: it
+ * reads the ONE allowlist in `src/lib/category-icon-names.ts`, which the
+ * server validator and the glyph map both read too.
  */
-export const ICON_CHOICES = [
-  "Car",
-  "Bike",
-  "Truck",
-  "Bus",
-  "Plane",
-  "Ship",
-  "Smartphone",
-  "Laptop",
-  "Monitor",
-  "Headphones",
-  "Camera",
-  "Tv",
-  "Gamepad2",
-  "Watch",
-  "Shirt",
-  "Footprints",
-  "Gem",
-  "Glasses",
-  "Sparkles",
-  "Scissors",
-  "Home",
-  "Building2",
-  "Sofa",
-  "Bed",
-  "Lamp",
-  "UtensilsCrossed",
-  "Refrigerator",
-  "WashingMachine",
-  "Hammer",
-  "Wrench",
-  "PaintRoller",
-  "Drill",
-  "HardHat",
-  "Briefcase",
-  "GraduationCap",
-  "Stethoscope",
-  "Scale",
-  "Calculator",
-  "Music",
-  "Dumbbell",
-  "Trophy",
-  "Tent",
-  "Mountain",
-  "TreePine",
-  "Sprout",
-  "Tractor",
-  "Wheat",
-  "Beef",
-  "Dog",
-  "Cat",
-  "Bird",
-  "Fish",
-  "Baby",
-  "ToyBrick",
-  "BookOpen",
-  "Store",
-  "Package",
-  "Forklift",
-  "Factory",
-  "Wallet",
-  "MapPin",
-  "Heart",
-  "Palette",
-] as const;
+export const ICON_CHOICES = CATEGORY_ICON_NAMES;

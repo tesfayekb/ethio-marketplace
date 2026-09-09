@@ -464,6 +464,9 @@ export const en = {
   "mfa.stepUpNoFactorBody":
     "This action requires two-factor verification, and this account has no authenticator app yet.",
   "mfa.stepUpGoToSettings": "Go to settings",
+  // FIX-SCAN-1 ISSUE 2 — the hint a caller renders when the gate could not run.
+  "mfa.stepUpUnavailableHint":
+    "Set up an authenticator app in Settings → Two-factor authentication to complete this action.",
   "mfa.stepUpFreshSignIn":
     "A new sign-in always starts unverified, so sensitive actions ask for a code again.",
   "common.save": "Save",

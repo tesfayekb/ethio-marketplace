@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 
-import { categoryGlyph } from "@/components/shell/app-rail";
+import { categoryGlyph, isKnownCategoryIcon } from "@/components/shell/category-glyphs";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -72,7 +72,7 @@ export function IconPreview({ name, testid }: { name: string; testid: string }) 
   return (
     <span
       data-testid={testid}
-      data-icon={categoryGlyph(name) === categoryGlyph("") ? "Package" : name.trim()}
+      data-icon={isKnownCategoryIcon(name) ? name.trim() : "Package"}
       className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground"
     >
       <Glyph aria-hidden="true" className="size-5" />

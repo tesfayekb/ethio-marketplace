@@ -453,6 +453,7 @@ export const am: Messages = {
   "mfa.stepUpNoFactorTitle": "መጀመሪያ ባለ ሁለት ደረጃ ማረጋገጫን ያዋቅሩ",
   "mfa.stepUpNoFactorBody": "ይህ እርምጃ ባለ ሁለት ደረጃ ማረጋገጫ ይፈልጋል፤ ይህ መለያ ግን እስካሁን የማረጋገጫ መተግበሪያ የለውም።",
   "mfa.stepUpGoToSettings": "ወደ ቅንብሮች ይሂዱ",
+  "mfa.stepUpUnavailableHint": "ይህን እርምጃ ለመፈጸም በቅንብሮች → ባለሁለት ደረጃ ማረጋገጫ ውስጥ የማረጋገጫ መተግበሪያ ያዘጋጁ።",
   "mfa.stepUpFreshSignIn": "አዲስ መግቢያ ሁልጊዜ ያልተረጋገጠ ሆኖ ይጀምራል፤ ስለዚህ ሚስጥራዊ እርምጃዎች ኮድ እንደገና ይጠይቃሉ።",
   "common.save": "አስቀምጥ",
   // U3 — ኦዲት እና ደህንነት።

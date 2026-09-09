@@ -469,3 +469,25 @@ beside it; Preview disabled until every required file is chosen), **Previewed**
 **Applied** (the success banner "Import applied — N changes written", the counts
 kept, and exactly Undo last import + Close — Confirm and Discard gone). Spec:
 CT-28. The full description lives in `docs/features/attributes.md`.
+
+## FIX-SCAN-1 — one icon allowlist, one glyph map
+
+Category icons resolved against THREE separate lists (the rail's 63 glyphs, the
+server suggester's allowlist, the editor's picker), so a ratified name stored
+outside a given list rendered the generic box. `src/lib/category-icon-names.ts`
+is now the single allowlist (115 names: the old server list unioned with every
+name the live taxonomy stores), and `src/components/shell/category-glyphs.ts`
+holds the one TOTAL `Record<CategoryIconName, LucideIcon>` map — total, so a name
+without a glyph is a type error, not a silent fallback. The rail, the roster, the
+editor preview and the server suggester all read them. The roster's glyph carries
+`data-icon` naming what actually rendered (the stored name, or `Package` when it
+fell back), which CT-29 reads for every ratified root.
+
+## FIX-SCAN-1 — the PNG claim, tested
+
+The scanner reported that image generation always fails on PNG processing. The
+census found the opposite: `src/server/category-images/raster.ts` sniffs magic
+bytes and decodes PNG through `pngjs`. `raster.test.ts` is the standing proof —
+the pipeline's own PNG, a foreign-encoder PNG with no alpha channel
+(`scripts/fixtures/category-image-provider.png`), and the full card/thumb/og
+pipeline over PNG bytes. Verified working; no code change.

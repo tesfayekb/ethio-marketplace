@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
@@ -999,5 +1001,31 @@ test.describe("U4b translations console", () => {
       await supabase.from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);
     }
+  });
+
+  /**
+   * FIX-SCAN-1 ISSUE 3 — EXPORT IS CATALOG-SCOPED, SO THE FILTER CANNOT
+   * DISABLE IT. The controls used to switch off when the VISIBLE page held no
+   * rows, even though the export reads the whole language. A search with no
+   * matches must still download the full catalog. Read-only: no fixtures.
+   */
+  test("TR-33 an empty filter leaves export enabled and downloads the language", async ({
+    page,
+  }) => {
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/translations/am");
+    await expect(page.getByTestId("admin-translations-strings")).toBeVisible();
+
+    await page.getByTestId("strings-search").fill(`no-such-key-${processId()}-zzz`);
+    await expect(page.getByTestId("strings-export-csv")).toBeEnabled({ timeout: 20000 });
+    await expect(page.getByTestId("strings-export-xliff")).toBeEnabled();
+
+    const download = await Promise.all([
+      page.waitForEvent("download", { timeout: 60000 }),
+      page.getByTestId("strings-export-csv").click(),
+    ]).then(([d]) => d);
+    const body = await download.path().then((file) => (file ? readFileSync(file, "utf8") : ""));
+    // The whole language, not the (empty) filtered view: a header plus rows.
+    expect(body.split(/\r?\n/).filter((line) => line.trim() !== "").length).toBeGreaterThan(10);
   });
 });

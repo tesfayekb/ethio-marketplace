@@ -1,3 +1,4 @@
+import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -139,7 +140,10 @@ export async function setRolePermission(input: {
  * a translation key. Law F4 — an unmapped failure still surfaces, through the
  * generic key, never through silence.
  */
-export function roleErrorKey(error: unknown, fallback: MessageKey): MessageKey {
+export function roleErrorKey(error: unknown, fallback: MessageKey): MessageKey | null {
+  // FIX-SCAN-1 ISSUE 2 — cancelled gate: no message; no factor: the hint.
+  const abort = stepUpAbortKey(error);
+  if (abort !== undefined) return abort;
   const message = (error as { message?: string } | null)?.message ?? "";
   if (/step-up required/i.test(message)) return "admin.roles.error.stepUp";
   if (/permission denied/i.test(message)) return "admin.roles.error.permission";

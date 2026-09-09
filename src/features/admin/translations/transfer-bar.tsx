@@ -19,6 +19,10 @@ import { useImportTranslations, useUndoImport } from "./use-translations";
 /**
  * U4i ⑤ — EXPORT / IMPORT BAR (`translations:manage`).
  *
+ * FIX-SCAN-1 ISSUE 3 — the export buttons follow the CATALOG, never the view.
+ * They used to disable on `rows.length === 0`, so a search with no matches
+ * switched off an action that would have downloaded the whole language.
+ *
  * EXPORT is CATALOG-SCOPED (U4i-4 (a), INC-123): the bar pages the list RPC
  * until the whole language+scope is in hand, and the console's current
  * search/status chips are deliberately ignored — an export named after a
@@ -37,14 +41,12 @@ export function TransferBar({
   lang,
   baseLang,
   scope = "interface",
-  rows,
   guard,
 }: {
   lang: string;
   baseLang: string;
   /** Names the exported file; the console renders one scope at a time. */
   scope?: string;
-  rows: TranslationRow[];
   guard: GuardFn;
 }) {
   const { t } = useI18n();
@@ -161,7 +163,7 @@ export function TransferBar({
           className="min-h-11"
           data-testid="strings-export-csv"
           title={t("admin.translations.transfer.exportAllHint")}
-          disabled={exporting || rows.length === 0}
+          disabled={exporting}
           onClick={() => download("csv")}
         >
           {exporting
@@ -174,7 +176,7 @@ export function TransferBar({
           className="min-h-11"
           data-testid="strings-export-xliff"
           title={t("admin.translations.transfer.exportAllHint")}
-          disabled={exporting || rows.length === 0}
+          disabled={exporting}
           onClick={() => download("xliff")}
         >
           {exporting
