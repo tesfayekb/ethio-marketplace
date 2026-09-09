@@ -2304,7 +2304,10 @@ test.describe("C3 attributes console", () => {
       // The child's ONLY pointer is the parent, so the parent is primary (INH-1).
       const { error: pointerError } = await supabase
         .from("category_tree_pointers")
-        .insert({ parent_id: parent.id, child_id: child.id, display_order: 1 });
+        .insert([
+          { parent_id: null, child_id: parent.id, display_order: 904 },
+          { parent_id: parent.id, child_id: child.id, display_order: 1 },
+        ]);
       if (pointerError) throw new Error(`AT-38 pointer failed: ${pointerError.message}`);
       const { error: linkError } = await supabase.from("category_attribute_links").insert({
         category_id: parent.id,
