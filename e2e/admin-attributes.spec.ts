@@ -2293,8 +2293,8 @@ test.describe("C3 attributes console", () => {
       const { data: cats, error: catError } = await supabase
         .from("categories")
         .insert([
-          { slug: parentSlug, name_en: parentSlug },
-          { slug: childSlug, name_en: childSlug },
+          { slug: parentSlug, name_en: parentSlug, is_active: true, allow_listings: true },
+          { slug: childSlug, name_en: childSlug, is_active: true, allow_listings: true },
         ])
         .select("id, slug");
       if (catError || !cats) throw new Error(`AT-38 categories failed: ${catError?.message}`);
