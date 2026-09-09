@@ -496,3 +496,32 @@ is superseded by a corrective that heals its mark.
 own `unlink` row previews 1 unlinked · 1 deleted · 0 refused, commits (both gone
 from the database), and Undo restores the definition and the link with zero
 conflicts.
+
+## IE-6 — direct rows over inherited echoes; empty read-only cells are silence
+
+Migration mark `20260909050000` (applied file `20260909045217`) declares
+`attr_import_plan` and `import_readonly_ignored` IN FULL (text-independent, so
+it applies on every copy), each restating `REVOKE`/`GRANT` closers with an
+in-file ACL read-back and a behavioural proof built and removed inside the file.
+
+**(a) INC-180 — nearest wins.** The links file's duplicate-key check considers
+only DIRECT rows (`origin` empty or equal to the row's own category slug).
+Directness is read BEFORE the duplicate set: an inherited ECHO row (a
+descendant's export line whose `origin` names an ancestor) is read-only — it
+never enters the seen set and never collides — so a DIRECT row for the same
+category and key in the same file is accepted and becomes the NEAREST link.
+Unlinking THROUGH an echo is still refused (`inheritedRow`): a category cannot
+unlink what it does not hold.
+
+**(b) INC-181 — silence.** An EMPTY read-only cell means "not provided" and is
+never reported as an edit. Only a NON-EMPTY read-only cell that differs from
+live truth appears in the Ignored panel. Read-only columns are unchanged:
+definitions `is_per_variant`, `direct_link_count`; links `category_path`,
+`origin`; categories `category_path`, `is_catchall`, `listing_count`.
+
+**Proof.** AT-38 — a links file carrying the inherited echo plus a new direct
+row for the same key at the child previews 1 added · 0 refused, commits, the
+child holds a direct link with the file's values, and the console shows no
+inherited badge. AT-39 — definitions and links rows that leave every derived
+column blank, against rows that exist live, produce an empty Ignored panel and
+zero refusals. The AT-20 round-trip invariant is unchanged.
