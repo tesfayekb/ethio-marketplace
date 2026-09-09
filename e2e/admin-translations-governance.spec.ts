@@ -178,16 +178,21 @@ test.describe("U4g bulk approval, order and orphans", () => {
       });
 
       await step("TR-19 open fence page", async () => {
-        await gotoReady(page, `/admin/translations/${fence}`);
+        // INC-182 (J7) — ANCHOR ON THE SEEDED ROWS, NOT ON PAGE ONE. The fence
+        // catalog is a thousand keys deep, so four freshly seeded rows are on
+        // no first page by construction. The list's search lives in the URL
+        // (`?q=`), so the page is OPENED already narrowed to this test's own
+        // scratch prefix: no debounce race, and a reload keeps the anchor.
+        await gotoReady(page, `/admin/translations/${fence}?q=${encodeURIComponent(base)}`);
         await expect(page.getByTestId("approve-all-bar")).toBeVisible({ timeout: 20000 });
       });
 
       await step("TR-19 seed check", async () => {
-        // U4g-30 (INC-117) — EVERY seeded row is written BEFORE the page is
-        // opened (above, outside this try), and the page's own rows query must
-        // have SEEN all four before the sweep runs — otherwise "approved
-        // nothing" is indistinguishable from "never loaded". The poll reloads
-        // once per turn so a query cached before the seed cannot stick.
+        // Every seeded row is written BEFORE the page is opened (above), and
+        // the page's own rows query must have SEEN all four before the sweep
+        // runs — otherwise "approved nothing" is indistinguishable from "never
+        // loaded". The poll reloads once per turn (keeping `?q=`) so a query
+        // cached before the seed cannot stick.
         await expect
           .poll(
             async () => {
@@ -204,6 +209,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
             },
           )
           .toBe(keys.length);
+        // The sweep is server-side over the whole language, so it is started
+        // from the narrowed view the seeded rows are provably in.
         await expect(page.getByTestId("approve-all-start")).toBeEnabled({ timeout: 20000 });
       });
 
@@ -1243,7 +1250,9 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // B. THE REFUSAL. The roster's publish control is the operator's only
       //    path, and the server rule stands behind it.
       await gotoReady(page, "/admin/translations");
-      const publish = page.getByTestId(`lang-public-${PSEUDO_LANG}`);
+      // INC-182 (J5) — the roster renders BOTH twins, so the publish switch
+      // exists twice: it is read through the viewport's own row, never bare.
+      const publish = langRow(page, PSEUDO_LANG).getByTestId(`lang-public-${PSEUDO_LANG}`);
       await expect(publish).toBeVisible({ timeout: 20000 });
       if (await publish.isEnabled()) {
         await publish.click();
@@ -1251,7 +1260,9 @@ test.describe("U4g bulk approval, order and orphans", () => {
         await expect(page.getByTestId("lang-flags-error")).toBeVisible({ timeout: 20000 });
       } else {
         // Disabled is a legal refusal too, but only WITH its stated reason.
-        await expect(page.getByTestId(`lang-public-gate-${PSEUDO_LANG}`)).toBeVisible();
+        await expect(
+          langRow(page, PSEUDO_LANG).getByTestId(`lang-public-gate-${PSEUDO_LANG}`),
+        ).toBeVisible();
       }
 
       const { data: lang, error: langError } = await adminClient()

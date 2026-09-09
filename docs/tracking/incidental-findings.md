@@ -1937,3 +1937,13 @@ a fixture/ordering debt in the specs (they must anchor on the seeded rows
 through the filter or the search, not on page one), not a regression of the
 gate. Owner: translations E2E; to be fixed with the shard-1 heal that a subset
 run skips (J3).
+
+**Resolved (2026-09-09, IMPORT-GATE T3).** Both tests were repaired at the
+anchor, not at the environment. TR-19 now OPENS the fence page already narrowed
+to its own scratch prefix through the list's URL search (`?q=`), so the four
+seeded rows are read where they provably are instead of on page one, and no
+debounce race can hide them (J7). TR-30's failure was a different fault the
+subset run had masked: `lang-public-zxa` exists in BOTH DataTable twins, so a
+bare testid was a strict-mode violation; the switch and its gate caption are now
+read through `langRow(...)` per twin (J5). Proof: the mandatory closure run
+across all three families on both projects — 211 passed, 7 skipped, 0 failed.
