@@ -300,12 +300,31 @@ fi
 
 echo "Definer guard OK."
 
+# MARK ALLOWLIST (same discipline as the definer allowlist): a file that landed
+# without its self-mark cannot be edited afterwards (append-only law), so the
+# mark is healed by a LATER migration and the file is listed here citing that
+# healer. Allowlisted files are SKIPPED and PRINTED — nothing is silently
+# skipped.
+MARK_ALLOWLIST_FILE="${MARK_ALLOWLIST_FILE:-$SCRIPT_DIR/migration-mark-allowlist.txt}"
+mark_allowlist_entry() {
+  [ -f "$MARK_ALLOWLIST_FILE" ] || return 1
+  local line
+  line="$(grep -F "$1 |" "$MARK_ALLOWLIST_FILE" 2>/dev/null | head -n1 || true)"
+  [ -n "$line" ] || return 1
+  printf '%s' "${line#*| }"
+}
+
 mark_violations=0
 mark_offenders=""
+mark_allowlisted=""
 while IFS= read -r -d '' file; do
   base="$(basename "$file")"
   stamp="${base%%_*}"
   if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$MARK_GUARD_FLOOR" ]]; then
+    continue
+  fi
+  if entry="$(mark_allowlist_entry "$base")"; then
+    mark_allowlisted+="  - $base ($entry)"$'\n'
     continue
   fi
   if ! out=$(check_mark_file "$file" "$stamp"); then
@@ -318,6 +337,11 @@ if [ "$mark_violations" -gt 0 ]; then
   echo "Self-marking guard FAILED: $mark_violations file(s) do not self-mark into public.migration_marks:"
   printf '%s' "$mark_offenders"
   exit 1
+fi
+
+if [ -n "$mark_allowlisted" ]; then
+  echo "Self-marking guard: allowlisted files (each cites its healer)"
+  printf '%s' "$mark_allowlisted"
 fi
 
 echo "Self-marking guard OK (floor $MARK_GUARD_FLOOR)."

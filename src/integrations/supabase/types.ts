@@ -2064,18 +2064,33 @@ export type Database = {
         }[]
       }
       impersonation_target: { Args: { p_session: string }; Returns: string }
+      import_gate_audit: {
+        Args: {
+          p_batch: string
+          p_counts: Json
+          p_event: string
+          p_family: string
+        }
+        Returns: undefined
+      }
       import_guide_refusals: {
         Args: { p_kind: string; p_refusals: Json; p_rows: Json }
         Returns: Json
       }
+      import_is_slug: { Args: { p_value: string }; Returns: boolean }
       import_norm: {
         Args: { p_column: string; p_value: string }
         Returns: string
       }
+      import_norm_bool: { Args: { p_value: string }; Returns: boolean }
+      import_norm_date: { Args: { p_value: string }; Returns: string }
+      import_norm_pipe: { Args: { p_value: string }; Returns: string[] }
+      import_norm_text: { Args: { p_value: string }; Returns: string }
       import_readonly_ignored: {
         Args: { p_kind: string; p_rows: Json }
         Returns: Json
       }
+      import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       log_audit: {
         Args: {

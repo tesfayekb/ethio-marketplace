@@ -1,0 +1,6 @@
+# Self-marking allowlist (DEC-022). One entry per line:
+#   <filename> | <reason> | <healing migration filename stamp>
+# A migration file cannot be edited after it is written, so a missing self-mark
+# is healed by a LATER migration that records it. Every entry is printed on each
+# run and cites its healer.
+20260909054432_c9699f59-7f36-4fbc-a49c-2511eb4bc369.sql | IMPORT-GATE part B landed without its self-mark; the marks 20260909054432 and 20260909060000 are recorded by the corrective | 20260909054514
