@@ -122,6 +122,8 @@ export function ImportDialog({
 }: ImportDialogProps) {
   const { t } = useI18n();
   const [texts, setTexts] = useState<Record<string, string>>({});
+  /** IE-7 — the chosen filename, spoken beside its picker. */
+  const [names, setNames] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [committed, setCommitted] = useState<{ batchId: string; counts: Counts } | null>(null);
@@ -183,8 +185,10 @@ export function ImportDialog({
     setIgnored([]);
     if (file === undefined) {
       setTexts((prev) => ({ ...prev, [field]: "" }));
+      setNames((prev) => ({ ...prev, [field]: "" }));
       return;
     }
+    setNames((prev) => ({ ...prev, [field]: file.name }));
     void file.text().then((text) => {
       const found = familyOf(text);
       if (found !== null && found !== family) {
@@ -227,7 +231,12 @@ export function ImportDialog({
           digest: preview.digest,
         })) as { batch_id: string; counts: Counts } | null;
         if (result !== null) {
-          setCommitted({ batchId: result.batch_id, counts: result.counts });
+          // IE-7 — a family whose commit answers with the batch alone keeps the
+          // verdict the operator confirmed: the counts are never invented.
+          setCommitted({
+            batchId: result.batch_id,
+            counts: { ...preview.counts, ...(result.counts ?? {}) },
+          });
           setPreview(null);
           await onWritten?.();
         }
@@ -257,8 +266,26 @@ export function ImportDialog({
     }).catch(() => setError(t(key("error.failed"))));
   };
 
-  const chosen = files.some((file) => (texts[file.field] ?? "") !== "");
+  /**
+   * IE-7 PART A — every declared file is REQUIRED: Preview stays disabled
+   * until each picker holds a file, so a half-chosen pair never reaches the
+   * door and comes back as a refusal.
+   */
+  const chosen = files.every((file) => (texts[file.field] ?? "") !== "");
   const counts = preview?.counts ?? committed?.counts ?? null;
+  /**
+   * IE-7 PART B — ONE STATE AT A TIME. Ready (pick + preview) · Previewed
+   * (the verdict, Discard + Confirm) · Applied (the banner, Undo + Close).
+   */
+  const state: "ready" | "previewed" | "applied" =
+    committed !== null || undone !== null ? "applied" : preview !== null ? "previewed" : "ready";
+  /** The banner counts WRITES: everything the run changed, not what it left alone. */
+  const written = (values: Counts): number =>
+    countFields.reduce(
+      (total, name) =>
+        name === "unchanged" || name === "refusals" ? total : total + (values[name] ?? 0),
+      0,
+    );
   /** IE-3b — one line per read-only column, in first-seen order. */
   const ignoredGroups: [string, ImportIgnored[]][] = [];
   for (const cell of ignored) {
@@ -286,32 +313,57 @@ export function ImportDialog({
         {t(key("guidance"))}
       </p>
 
-      <div className="flex flex-col gap-3">
-        {files.map((file) => (
-          <label className="flex flex-col gap-1 text-sm" htmlFor={file.id} key={file.id}>
-            <span>{t(file.labelKey)}</span>
-            <input
-              id={file.id}
-              data-testid={file.id}
-              type="file"
-              accept=".csv,text/csv"
-              className="min-h-11 w-full text-sm"
-              onChange={(event) => readFile(file.field, event.target.files?.[0])}
-            />
-          </label>
-        ))}
-      </div>
+      {state !== "ready" ? null : (
+        <>
+          {/*
+            IE-7 PART A — A REAL BUTTON, NOT A BROWSER WIDGET. The native input
+            keeps its id and testid (it is still the file's only owner) but is
+            visually hidden behind a touch-sized secondary button, with the
+            chosen filename spoken beside it.
+          */}
+          <div className="flex flex-col gap-3">
+            {files.map((file) => (
+              <div className="flex flex-col gap-1 text-sm" key={file.id}>
+                <span id={`${file.id}-label`}>{t(file.labelKey)}</span>
+                <input
+                  id={file.id}
+                  data-testid={file.id}
+                  type="file"
+                  accept=".csv,text/csv"
+                  className="sr-only"
+                  aria-labelledby={`${file.id}-label`}
+                  onChange={(event) => readFile(file.field, event.target.files?.[0])}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="touch"
+                    data-testid={`${file.id}-choose`}
+                    onClick={() => document.getElementById(file.id)?.click()}
+                  >
+                    {t(key("choose")).replace("{file}", t(file.labelKey))}
+                  </Button>
+                  <span className="text-sm text-muted-foreground" data-testid={`${file.id}-chosen`}>
+                    {(names[file.field] ?? "") === "" ? t(key("noFile")) : names[file.field]}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        size="touch"
-        data-testid={`${idPrefix}-preview`}
-        disabled={!chosen || busy}
-        onClick={() => void runPreview()}
-      >
-        {busy ? t(key("busy")) : t(key("preview"))}
-      </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            data-testid={`${idPrefix}-preview`}
+            disabled={!chosen || busy}
+            onClick={() => void runPreview()}
+          >
+            {busy ? t(key("busy")) : t(key("preview"))}
+          </Button>
+        </>
+      )}
 
       {counts === null ? null : (
         <p className="text-sm" role="status" data-testid={`${idPrefix}-counts`}>
@@ -368,23 +420,20 @@ export function ImportDialog({
         </div>
       )}
 
-      {committed !== null ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm" role="status" data-testid={`${idPrefix}-committed`}>
-            {t(key("committed"))}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid={`${idPrefix}-undo`}
-            disabled={busy}
-            onClick={runUndo}
-          >
-            {t(key("undo"))}
-          </Button>
-        </div>
-      ) : null}
+      {/*
+        IE-7 PART B — THE APPLIED STATE. The banner speaks in the design
+        system's own affirmative token (primary), keeps the counts above it,
+        and offers exactly two doors: take it back, or close.
+      */}
+      {committed === null ? null : (
+        <p
+          role="status"
+          data-testid={`${idPrefix}-applied`}
+          className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-primary"
+        >
+          {t(key("applied")).replace("{count}", String(written(committed.counts)))}
+        </p>
+      )}
 
       {undone === null ? null : (
         <p className="text-sm" role="status" data-testid={`${idPrefix}-undone`}>
@@ -399,24 +448,49 @@ export function ImportDialog({
       )}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="touch"
-          data-testid={`${idPrefix}-discard`}
-          onClick={onClose}
-        >
-          {t(key("discard"))}
-        </Button>
-        <Button
-          type="button"
-          size="touch"
-          data-testid={`${idPrefix}-confirm`}
-          disabled={preview === null || busy}
-          onClick={runCommit}
-        >
-          {t(key("confirm"))}
-        </Button>
+        {state === "applied" ? (
+          <>
+            {committed === null ? null : (
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                data-testid={`${idPrefix}-undo`}
+                disabled={busy}
+                onClick={runUndo}
+              >
+                {t(key("undo"))}
+              </Button>
+            )}
+            <Button type="button" size="touch" data-testid={`${idPrefix}-close`} onClick={onClose}>
+              {t(key("close"))}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="touch"
+              data-testid={`${idPrefix}-discard`}
+              title={t(key("discardHint"))}
+              onClick={onClose}
+            >
+              {t(key("discard"))}
+            </Button>
+            {state !== "previewed" ? null : (
+              <Button
+                type="button"
+                size="touch"
+                data-testid={`${idPrefix}-confirm`}
+                disabled={busy}
+                onClick={runCommit}
+              >
+                {t(key("confirm"))}
+              </Button>
+            )}
+          </>
+        )}
       </div>
     </CategoryModal>
   );

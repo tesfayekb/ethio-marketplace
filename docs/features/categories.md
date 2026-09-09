@@ -459,3 +459,13 @@ refused by its headers before any row is parsed (CT-25).
 rename attempt: the message names the address to restore and asks for a name
 edit instead (CT-24). Catch-all parents, cycles, and deletes blocked by
 children or listings each name the rule and the fix.
+
+## IE-7 — the import dialog's three states
+
+The categories console uses the shared import shell, so it speaks the same three
+states: **Ready** (a real "Choose …" button per file with the chosen filename
+beside it; Preview disabled until every required file is chosen), **Previewed**
+(counts, refusals, Ignored panel, Discard + Confirm through step-up) and
+**Applied** (the success banner "Import applied — N changes written", the counts
+kept, and exactly Undo last import + Close — Confirm and Discard gone). Spec:
+CT-28. The full description lives in `docs/features/attributes.md`.

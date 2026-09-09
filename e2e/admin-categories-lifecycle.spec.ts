@@ -1574,4 +1574,81 @@ test.describe("CAT-IE categories import/export", () => {
       await destroyCategory(parentSlug);
     }
   });
+
+  /**
+   * CT-28 (IE-7) — THE THREE DIALOG STATES. One scratch file chosen through
+   * the real picker walks Ready → Previewed → Applied: the banner is present,
+   * Confirm and Discard are gone, Undo restores DB TRUTH (J4), Close closes.
+   */
+  test("CT-28 the import dialog reaches Applied and undoes", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+
+    const parentSlug = scratchSlug();
+    const slug = scratchSlug();
+    try {
+      await seedCategory(parentSlug, null);
+      await gotoReady(page, "/admin/categories");
+      await page.getByTestId("category-import").click();
+      await expect(page.getByTestId("category-import-dialog")).toBeVisible({ timeout: 20000 });
+
+      // READY — the picker is a real button and Preview waits for a file.
+      await expect(page.getByTestId("category-import-file-choose")).toBeVisible();
+      await expect(page.getByTestId("category-import-confirm")).toHaveCount(0);
+      await expect(page.getByTestId("category-import-preview")).toBeDisabled();
+      await page.getByTestId("category-import-file").setInputFiles({
+        name: "categories.csv",
+        mimeType: "text/csv",
+        buffer: Buffer.from(
+          file([
+            line({
+              category_slug: slug,
+              parent_slug: parentSlug,
+              name_en: slug,
+              display_order: "0",
+            }),
+          ]),
+          "utf8",
+        ),
+      });
+      await expect(page.getByTestId("category-import-file-chosen")).toHaveText("categories.csv");
+      await expect(page.getByTestId("category-import-preview")).toBeEnabled();
+
+      // PREVIEWED — the verdict, with both doors.
+      await page.getByTestId("category-import-preview").click();
+      const countsLine = page.getByTestId("category-import-counts");
+      await expect(countsLine).toBeVisible({ timeout: 120_000 });
+      expect(
+        countsOf((await countsLine.textContent()) ?? ""),
+        `CT-28 the scratch add was not a clean single add: ${await countsLine.textContent()}`,
+      ).toEqual([1, 0, 0, 0, 0, 0, 0]);
+      await expect(page.getByTestId("category-import-confirm")).toBeVisible();
+      await expect(page.getByTestId("category-import-discard")).toBeVisible();
+
+      // APPLIED — the banner, the counts, and exactly Undo + Close.
+      await page.getByTestId("category-import-confirm").click();
+      await stepUpIfPrompted(page, secret);
+      const banner = page.getByTestId("category-import-applied");
+      await expect(banner).toBeVisible({ timeout: 120_000 });
+      await expect(banner).toContainText("1");
+      await expect(page.getByTestId("category-import-counts")).toBeVisible();
+      await expect(page.getByTestId("category-import-confirm")).toHaveCount(0);
+      await expect(page.getByTestId("category-import-discard")).toHaveCount(0);
+      await expect(page.getByTestId("category-import-close")).toBeVisible();
+      expect(await readCategory(slug), "CT-28 the commit wrote no category").not.toBeNull();
+
+      // UNDO — DB truth, not a banner.
+      await page.getByTestId("category-import-undo").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("category-import-undone")).toBeVisible({ timeout: 120_000 });
+      await expect.poll(async () => await readCategory(slug), { timeout: 30000 }).toBeNull();
+
+      await page.getByTestId("category-import-close").click();
+      await expect(page.getByTestId("category-import-dialog")).toHaveCount(0);
+    } finally {
+      await destroyCategory(slug);
+      await destroyCategory(parentSlug);
+    }
+  });
 });
