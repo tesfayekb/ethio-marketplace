@@ -451,3 +451,37 @@ exactly one.
 carries A only as a secondary parent: B shows no inherited row, is absent from
 A's scoped export, and keeps the amber flag. Dropping B's own root pointer makes
 A primary and flips all three. AT-20's round-trip invariant is unchanged.
+
+## IE-5 — a delete is judged against the links that survive the same file
+
+An import used to refuse `action=delete` for any definition that still carried a
+link, even when the SAME file removed that link. One file is one pass, so the
+plan now orders the work:
+
+1. definition upserts (parent before dependent, DEC-045b),
+2. link upserts,
+3. link unlinks,
+4. definition deletes.
+
+The `blastRadius` refusal reads the links that SURVIVE step 3: the planner takes
+a pre-pass over the links file, collects every in-scope `unlink` row as
+`<category slug>|<attribute key>`, and excludes those pairs from the verdict.
+The refusal still NAMES the categories it judged (IE-4b); a link the file leaves
+in place still holds the definition down. Preview and commit read the same plan,
+so the preview verdict is the commit verdict.
+
+Undo reverses the order: this batch's definition DELETES are restored first (so
+a restored link has an attribute to point at), then the links, then the batch's
+own definition creations are removed last.
+
+Migration mark `20260909040000` (applied file `20260909034642`) rewrites
+`attr_import_plan` surgically under a guarded assertion (the rest of its body is
+byte-identical), re-declares `admin_commit_attribute_import` in four phases and
+`admin_undo_attribute_import` with the reversed ordering, and restates each
+definer's `REVOKE`/`GRANT` closers with an in-file ACL read-back.
+
+**Proof.** AT-37 — a scratch definition with one link: the delete alone previews
+0 deleted · 1 refused with the category named; the same delete with the file's
+own `unlink` row previews 1 unlinked · 1 deleted · 0 refused, commits (both gone
+from the database), and Undo restores the definition and the link with zero
+conflicts.
