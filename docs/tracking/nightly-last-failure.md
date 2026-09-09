@@ -1,10 +1,10 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34195105948
-- Commit: `03f04e098d7d3af0bab534e1085371b12838bf5f`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34319598201
+- Commit: `fa023bcab7fccdc34d80a4414caec390bf0b8813`
 - Attempt: 1
-- Written (UTC): 2026-09-08T07:25:49.996Z
-- Passed: 427 · Skipped: 40 · Failed: 4
+- Written (UTC): 2026-09-09T07:28:17.839Z
+- Passed: 439 · Skipped: 40 · Failed: 4
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 4
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Sources without results: none
@@ -68,11 +68,7 @@ Call Log:
 [INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=0 approve-all-start=0 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
-  ["auth-derived","admin","translations","languages"] status=success error=none dataUpdatedAt=1788850332810 dataLength=15
-  ["auth-derived","admin","translations","stats","zxy-mo"] status=success error=none dataUpdatedAt=1788850332840 dataLength=1
-  ["auth-derived","admin","translations","entity-stats","zxy-mo"] status=success error=none dataUpdatedAt=1788850332834 dataLength=1
-  ["auth-derived","admin","translations","my-scope"] status=pending error=none dataUpdatedAt=0 dataLength=null
-  ["auth-derived","admin","translations","rows",{"lang":"zxy-mo","status":"all","search":"","limit":25,"offset":0,"orphaned":false}] status=success error=none dataUpdatedAt=1788850332818 dataLength=keys:2
+(no __ethioQueryClient — not an E2E build?)
 ```
 
 Context:
@@ -123,7 +119,7 @@ Call Log:
 [INC-112] testids: strings-coverage=0 strings-search=0 strings-unavailable=0 approve-all-bar=0 approve-all-start=0 approve-all-summary=0 approve-all-error=0
 [INC-112] dialogs: step-up-modal=closed approve-all-confirm=closed role=dialog count=0
 [INC-112] queries:
-(no __ethioQueryClient — not an E2E build?)
+(query cache read threw: page.evaluate: Execution context was destroyed, most likely because of a navigation)
 ```
 
 Context:
