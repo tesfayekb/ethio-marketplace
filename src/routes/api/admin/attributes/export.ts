@@ -17,9 +17,8 @@
  * silently (F4).
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
 
-import type { Database } from "@/integrations/supabase/types";
+import { openExportGate } from "@/server/imports/gate";
 
 const PATH = "/api/admin/attributes/export";
 
@@ -73,11 +72,6 @@ function json(body: unknown, status: number): Response {
   });
 }
 
-function fail5xx(message: string, status = 500): Response {
-  console.error(`[ssr-error] ${PATH} ${message}`);
-  return json({ error: "server error" }, status);
-}
-
 /**
  * FORMULA SAFETY. A cell that opens with `=`, `+`, `-` or `@` is executed by
  * Excel/Sheets on open; a single leading quote neutralises it and is stripped
@@ -126,37 +120,19 @@ export const Route = createFileRoute("/api/admin/attributes/export")({
           return json({ error: "file must be definitions or links" }, 400);
         }
 
-        const authorization = request.headers.get("Authorization") ?? "";
-        if (!authorization.toLowerCase().startsWith("bearer ")) {
-          return json({ error: "missing bearer token" }, 401);
-        }
-
-        const supabaseUrl = process.env["SUPABASE_URL"] ?? "";
-        const publishable = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
-        if (supabaseUrl === "" || publishable === "") {
-          return fail5xx("supabase server env missing");
-        }
-
-        const supabase = createClient<Database>(supabaseUrl, publishable, {
-          global: { headers: { Authorization: authorization } },
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
-
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError || !userData?.user?.id) {
-          console.error(`[ssr-error] ${PATH} not signed in ${userError?.message ?? ""}`.trim());
-          return json({ error: "not signed in" }, 401);
-        }
-
         /**
-         * C3-INH PART B — `?scope=<slug>` narrows the export to that category
-         * and every descendant (inherited rows included, with their origin);
-         * no scope exports the whole library exactly as before. The subtree is
-         * resolved SERVER-side by the RPC — the client never sends a category
-         * set it could tamper with.
+         * IMPORT-GATE — the ONE door: bearer → caller-context client →
+         * `auth.getUser()` → `scope` format law. The RPC re-checks
+         * `categories:view` (F3) and owns the subtree resolution.
          */
-        const scopeParam = url.searchParams.get("scope");
-        const scope = scopeParam === null || scopeParam.trim() === "" ? null : scopeParam.trim();
+        const gate = await openExportGate(
+          request,
+          PATH,
+          "attributes",
+          url.searchParams.get("scope"),
+        );
+        if (!gate.ok) return gate.response;
+        const { supabase, scope } = gate;
 
         const { data, error } =
           scope === null

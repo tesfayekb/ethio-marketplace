@@ -12,9 +12,8 @@
  * `[ssr-error] <path> <message>` before answering (I4, F4).
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
 
-import type { Database } from "@/integrations/supabase/types";
+import { openExportGate } from "@/server/imports/gate";
 
 const PATH = "/api/admin/categories/export";
 
@@ -62,11 +61,6 @@ function json(body: unknown, status: number): Response {
   });
 }
 
-function fail5xx(message: string, status = 500): Response {
-  console.error(`[ssr-error] ${PATH} ${message}`);
-  return json({ error: "server error" }, status);
-}
-
 /** A cell opening with `=`, `+`, `-` or `@` is neutralised before quoting. */
 function neutralize(value: string): string {
   return /^[=+\-@]/.test(value) ? `'${value}` : value;
@@ -101,28 +95,15 @@ export const Route = createFileRoute("/api/admin/categories/export")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const authorization = request.headers.get("Authorization") ?? "";
-        if (!authorization.toLowerCase().startsWith("bearer ")) {
-          return json({ error: "missing bearer token" }, 401);
-        }
-
-        const supabaseUrl = process.env["SUPABASE_URL"] ?? "";
-        const publishable = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
-        if (supabaseUrl === "" || publishable === "") return fail5xx("supabase server env missing");
-
-        const supabase = createClient<Database>(supabaseUrl, publishable, {
-          global: { headers: { Authorization: authorization } },
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
-
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError || !userData?.user?.id) {
-          console.error(`[ssr-error] ${PATH} not signed in ${userError?.message ?? ""}`.trim());
-          return json({ error: "not signed in" }, 401);
-        }
-
-        const scopeParam = url.searchParams.get("scope");
-        const scope = scopeParam === null || scopeParam.trim() === "" ? null : scopeParam.trim();
+        // IMPORT-GATE — the ONE door, same as the importer's.
+        const gate = await openExportGate(
+          request,
+          PATH,
+          "categories",
+          url.searchParams.get("scope"),
+        );
+        if (!gate.ok) return gate.response;
+        const { supabase, scope } = gate;
 
         const { data, error } = await supabase.rpc("admin_export_categories", {
           p_scope: scope as unknown as string,

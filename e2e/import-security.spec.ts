@@ -1,0 +1,267 @@
+import { expect, test } from "./fixtures";
+
+import { gotoReady, switchUser } from "./helpers/ui";
+import { createUser } from "./helpers/users";
+import { rand, bandOnly, grantRole, signInAsSuperAdmin } from "./helpers/categories";
+
+/**
+ * IMPORT-GATE PART D — HOSTILE FILES, ONE SPEC, EVERY FAMILY.
+ *
+ * The gate is a single door (`src/server/imports/gate.ts`), so its proof is a
+ * single PARAMETERISED spec: each registered family is driven through the same
+ * hostile catalogue and must answer the same way. A family added to the
+ * registry is added HERE, never given a private test.
+ *
+ * J-laws: nothing is seeded and nothing is committed — every case is a
+ * `preview`, the door that writes nothing (F5), so the spec mutates no global
+ * list (J6) and needs no scratch reaping beyond its own namespaced keys.
+ */
+
+interface Family {
+  id: string;
+  path: string;
+  /** The body field carrying the file text. */
+  field: string;
+  /** The exact export header, unlabelled. */
+  header: string;
+  /** A well-formed row; `mutate` replaces one cell. */
+  row: (cells?: Partial<Record<string, string>>) => string;
+  /** The identity cell's column name, for the too-long / bad-slug cases. */
+  identity: string;
+  /** A header belonging to ANOTHER family — the wrongFile case. */
+  foreignHeader: string;
+}
+
+const ATTRIBUTE_HEADER =
+  "attribute_key,label_en,label_am,type,options,depends_on,is_per_variant,direct_link_count";
+const CATEGORY_HEADER =
+  "category_path,category_slug,parent_slug,name_en,name_am,display_order,is_active," +
+  "allow_listings,is_catchall,price_enabled,expiry_days,icon,visible_from,visible_until," +
+  "excluded_country_codes,secondary_parents,listing_count,origin_scope";
+
+const FAMILIES: Family[] = [
+  {
+    id: "attributes",
+    path: "/api/admin/attributes/import",
+    field: "definitions",
+    header: ATTRIBUTE_HEADER,
+    identity: "attribute_key",
+    foreignHeader: CATEGORY_HEADER,
+    row: (cells = {}) => {
+      const key = cells["attribute_key"] ?? `e2e_attr_${rand()}`;
+      const label = cells["label_en"] ?? "Hostile probe";
+      const type = cells["type"] ?? "text";
+      const options = cells["options"] ?? "";
+      const dependsOn = cells["depends_on"] ?? "";
+      return `${key},${label},,${type},"${options}",${dependsOn},,0`;
+    },
+  },
+  {
+    id: "categories",
+    path: "/api/admin/categories/import",
+    field: "categories",
+    header: CATEGORY_HEADER,
+    identity: "category_slug",
+    foreignHeader: ATTRIBUTE_HEADER,
+    row: (cells = {}) => {
+      const slug = cells["category_slug"] ?? `e2e-cat-${rand()}`;
+      const name = cells["name_en"] ?? "Hostile probe";
+      const visibleFrom = cells["visible_from"] ?? "";
+      return `,${slug},,${name},,10,true,true,,true,30,,${visibleFrom},,,,,`;
+    },
+  },
+];
+
+async function bearerOf(page: import("@playwright/test").Page): Promise<string> {
+  const token = await page.evaluate(async () => {
+    const client = (
+      window as unknown as {
+        __ethioSupabase: {
+          auth: {
+            getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
+          };
+        };
+      }
+    ).__ethioSupabase;
+    const { data } = await client.auth.getSession();
+    return data.session?.access_token ?? "";
+  });
+  expect(token, "IMPORT-GATE the page carries no bearer").not.toBe("");
+  return token;
+}
+
+for (const family of FAMILIES) {
+  test.describe(`IMPORT-GATE ${family.id}`, () => {
+    async function post(
+      page: import("@playwright/test").Page,
+      token: string,
+      body: Record<string, unknown>,
+    ) {
+      const response = await page.request.post(family.path, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        data: { mode: "preview", ...body },
+      });
+      let payload: Record<string, unknown> = {};
+      try {
+        payload = (await response.json()) as Record<string, unknown>;
+      } catch {
+        payload = {};
+      }
+      return { status: response.status(), payload };
+    }
+
+    const file = (rows: string[]) => `${family.header}\r\n${rows.join("\r\n")}\r\n`;
+
+    /**
+     * IG-1 — THE WHOLE-FILE REFUSALS. Each of these is a verdict on the FILE:
+     * nothing is parsed past it, and every one is answered with a named reason,
+     * never a 500 and never a silent partial plan (F4).
+     */
+    test(`IG-1 ${family.id}: malformed, foreign, oversized and unreadable files are refused whole`, async ({
+      page,
+    }) => {
+      test.setTimeout(240_000);
+      bandOnly(page, "any");
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      // (a) a header that belongs to NOBODY.
+      const nonsense = await post(page, token, { [family.field]: "a,b,c\r\n1,2,3\r\n" });
+      expect(nonsense.status, JSON.stringify(nonsense.payload)).toBe(400);
+      expect(nonsense.payload["error"]).toBe("badHeader");
+
+      // (b) a header that belongs to ANOTHER family — file identity, not shape.
+      const foreign = await post(page, token, {
+        [family.field]: `${family.foreignHeader}\r\n`,
+      });
+      expect(foreign.status, JSON.stringify(foreign.payload)).toBe(400);
+      expect(foreign.payload["error"]).toBe("wrongFile");
+
+      // (c) an EMPTY file is empty, not an empty plan.
+      const empty = await post(page, token, { [family.field]: "" });
+      expect(empty.status, JSON.stringify(empty.payload)).toBe(400);
+      expect(empty.payload["error"]).toBe("no file");
+
+      // (d) a header carrying a column the family does not declare.
+      const unknown = await post(page, token, {
+        [family.field]: `${family.header},evil\r\n`,
+      });
+      expect(unknown.status, JSON.stringify(unknown.payload)).toBe(400);
+      expect(["unknownColumn", "badHeader"]).toContain(unknown.payload["error"]);
+
+      // (e) OVER THE BYTE CAP — 1 MB of well-formed rows is still refused.
+      const filler = family.row({ [family.identity]: "e2e-cat-filler" });
+      const big = `${family.header}\r\n${`${filler}\r\n`.repeat(20000)}`;
+      const oversize = await post(page, token, { [family.field]: big });
+      expect([413, 400]).toContain(oversize.status);
+      expect(["fileTooLarge", "tooManyRows"]).toContain(oversize.payload["error"]);
+
+      // (f) a NUL byte is not text.
+      const nul = await post(page, token, {
+        [family.field]: file([family.row({ name_en: "a\u0000b", label_en: "a\u0000b" })]),
+      });
+      expect(nul.status, JSON.stringify(nul.payload)).toBe(400);
+      expect(nul.payload["error"]).toBe("nulByte");
+
+      // (g) NO BEARER, NO DOOR — the gate answers before it reads anything.
+      const anonymous = await page.request.post(family.path, {
+        data: { mode: "preview", [family.field]: file([family.row()]) },
+      });
+      expect(anonymous.status()).toBe(401);
+    });
+
+    /**
+     * IG-2 — PER-ROW HOSTILITY. A dangerous or malformed CELL refuses its own
+     * row with a named reason and leaves the rest of the plan standing; the
+     * preview still writes nothing.
+     */
+    test(`IG-2 ${family.id}: dangerous cells refuse their own row and name the reason`, async ({
+      page,
+    }) => {
+      test.setTimeout(240_000);
+      bandOnly(page, "any");
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      const formulaCell = family.id === "attributes" ? "label_en" : "name_en";
+      const rows = [
+        // a RAW spreadsheet formula
+        family.row({ [formulaCell]: "=cmd|'/c calc'!A1" }),
+        // an identity that is not a slug
+        family.row({ [family.identity]: "Not A Slug!!" }),
+        // an identity longer than the law allows
+        family.row({ [family.identity]: `e2e-${"x".repeat(80)}` }),
+        // a label past the 120-character cap
+        family.row({ [formulaCell]: "L".repeat(200) }),
+      ];
+      const probe = await post(page, token, { [family.field]: file(rows) });
+      expect(probe.status, JSON.stringify(probe.payload)).toBe(200);
+      const refusals = (probe.payload["refusals"] as { reason: string; row: number }[]) ?? [];
+      const reasons = refusals.map((entry) => entry.reason);
+      expect(reasons, JSON.stringify(refusals)).toEqual(
+        expect.arrayContaining(["formula", "badSlug", "tooLong"]),
+      );
+      // Every refusal names the row the operator sees, never row 0.
+      for (const refusal of refusals) expect(refusal.row).toBeGreaterThan(1);
+
+      // BIDI OVERRIDES AND ZERO-WIDTH characters are stripped, not stored: a
+      // slug disguised with them is judged on what it really says.
+      const disguised = await post(page, token, {
+        [family.field]: file([family.row({ [family.identity]: "e2e\u200b-cat\u202e-ok" })]),
+      });
+      expect(disguised.status, JSON.stringify(disguised.payload)).toBe(200);
+      const disguisedRefusals =
+        (disguised.payload["refusals"] as { key: string; reason: string }[]) ?? [];
+      for (const refusal of disguisedRefusals) {
+        expect(refusal.key).not.toMatch(/[\u200b\u202e]/);
+      }
+    });
+
+    /**
+     * IG-3 — THE DIGEST AND THE RATE LIMIT. A commit may only carry the bytes a
+     * preview judged, and one operator cannot hammer the door.
+     */
+    test(`@private-identity IG-3 ${family.id}: a changed file cannot be committed and previews are rate limited`, async ({
+      page,
+    }) => {
+      test.setTimeout(240_000);
+      bandOnly(page, "any");
+      // J9 — this test EXHAUSTS an operator's preview budget, so it spends its
+      // own identity, never the pooled super admin every other test shares.
+      await signInAsSuperAdmin(page);
+      const operator = await createUser({ confirmed: true });
+      await grantRole(operator.id, "super_admin");
+      await switchUser(page, operator.email, operator.password);
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      const text = file([family.row()]);
+      const preview = await post(page, token, { [family.field]: text });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(typeof preview.payload["digest"]).toBe("string");
+
+      const tampered = await post(page, token, {
+        mode: "commit",
+        [family.field]: file([family.row(), family.row()]),
+        digest: preview.payload["digest"],
+      });
+      expect(tampered.status, JSON.stringify(tampered.payload)).toBe(409);
+      expect(tampered.payload["error"]).toBe("fileChanged");
+
+      // THE LIMIT: a budget of previews a minute per operator; past it the
+      // door answers 429, and refusing costs nothing (no plan, no write).
+      let limited = 0;
+      for (let attempt = 0; attempt < 45; attempt += 1) {
+        const answer = await post(page, token, { [family.field]: text });
+        if (answer.status === 429) {
+          expect(answer.payload["error"]).toBe("tooManyRequests");
+          limited += 1;
+          break;
+        }
+      }
+      expect(limited, "IMPORT-GATE the preview rate limit never engaged").toBe(1);
+    });
+  });
+}

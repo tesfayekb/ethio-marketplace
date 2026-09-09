@@ -125,6 +125,17 @@ jobs:
       - name: Run string scan
         run: bash scripts/check-hardcoded-strings.sh
 
+  import-gate:
+    name: Import gate guard (with self-test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+      # The guard passes on real routes AND rejects its own bad fixture (a
+      # hand-rolled second door); both directions run in the same step.
+      - name: One door for every import/export
+        run: bash scripts/check-import-gate.sh
+
   listing-write-seam:
     name: Listing-write seam guard (with self-test)
     runs-on: ubuntu-latest

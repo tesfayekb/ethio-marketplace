@@ -1,0 +1,21 @@
+// IMPORT-GATE self-test fixture — a SECOND DOOR. `check-import-gate.sh` must
+// reject this file: it authenticates by hand and builds its own client instead
+// of entering through `openImportGate`.
+import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
+
+export const Route = createFileRoute("/api/admin/example/import")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        const authorization = request.headers.get("Authorization") ?? "";
+        const supabase = createClient<never>("", "", {
+          global: { headers: { Authorization: authorization } },
+        });
+        const body = (await request.json()) as { rows?: unknown };
+        await supabase.rpc("example_import" as never, { p_rows: body.rows } as never);
+        return new Response("ok");
+      },
+    },
+  },
+});
