@@ -477,14 +477,15 @@ own definition creations are removed last.
 Migration sequence (INC-179): `20260909034642` (mark `20260909040000`) applied
 on prod, was refused on staging (its text anchor did not match staging's
 planner body), and was superseded by `20260909035515` (mark `20260909041000`)
-+ `20260909035656` (mark `20260909042000`), which heal its mark — staging
-carries `20260909040000` via the corrective, so parity holds without executing
-the original. The original file is restored byte-identical and stays in the
-tree as applied history. The superseding pair declares `attr_import_plan` in
-full with the IE-5 survivor rule, re-declares `admin_commit_attribute_import`
-in four phases and `admin_undo_attribute_import` with the reversed ordering,
-and restates each definer's `REVOKE`/`GRANT` closers with an in-file ACL
-read-back.
+
+- `20260909035656` (mark `20260909042000`), which heal its mark — staging
+  carries `20260909040000` via the corrective, so parity holds without executing
+  the original. The original file is restored byte-identical and stays in the
+  tree as applied history. The superseding pair declares `attr_import_plan` in
+  full with the IE-5 survivor rule, re-declares `admin_commit_attribute_import`
+  in four phases and `admin_undo_attribute_import` with the reversed ordering,
+  and restates each definer's `REVOKE`/`GRANT` closers with an in-file ACL
+  read-back.
 
 **Migration-file law (E2, amended):** a migration file is never deleted or
 edited after it has been applied anywhere; a migration that failed elsewhere
