@@ -11,7 +11,8 @@
  * LAW (non-negotiable): e2e/auth-*.spec.ts — sign-in, sign-up, sign-out,
  * callback, reset, google, step-up enrolment — keep the REAL UI flows. They
  * are the tests OF the door; a door proved by injection is not proved at all.
- * `isAuthSpec()` enforces that by file path, not by opt-in.
+ * Those specs call the real door directly (DEC-041); no injection helper is
+ * offered to them.
  *
  * DEC-048 — the pre-committed `E2E_UI_LOGIN` revert knob is DELETED. DEC-041
  * made it inert (the pool always injects; private mints and auth specs always
