@@ -163,7 +163,7 @@ test.describe("C2 categories console", () => {
       await page.getByTestId("category-search").fill(slug);
       const line = categoryRow(page, slug);
       await expect(line).toBeVisible({ timeout: 20000 });
-      await expect(line.getByText(en["admin.categories.badge.scheduled"]).first()).toBeVisible();
+      await expect(line.getByText(en["admin.categories.badge.scheduled"])).toBeVisible();
       await expect(line.getByText(en["admin.categories.badge.active"])).toHaveCount(0);
     } finally {
       if (slug) await destroyCategory(slug);
