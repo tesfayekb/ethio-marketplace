@@ -823,6 +823,8 @@ export const en = {
   "admin.categories.badge.listings": "Accepts listings",
   "admin.categories.badge.price": "Price",
   "admin.categories.badge.window": "Scheduled",
+  /* UX-2 PART 3 — a category whose window has not opened yet reads Scheduled. */
+  "admin.categories.badge.scheduled": "Scheduled",
   "admin.categories.badge.missingAssets": "Missing assets",
   "admin.categories.tip.active": "Live in browse: buyers can reach it and sellers can post to it.",
   "admin.categories.tip.retired":
@@ -833,6 +835,8 @@ export const en = {
   "admin.categories.tip.price": "Listings in this category carry a price.",
   "admin.categories.tip.window":
     "Visibility is scheduled: the category appears only inside its date window.",
+  "admin.categories.tip.scheduled":
+    "Scheduled: this category is not visible yet — it appears on its start date.",
   "admin.categories.tip.missingAssets":
     "Missing assets: this category has no icon or no image, so it renders bare in browse.",
   "admin.categories.filter.missingAssets": "Missing assets",
@@ -889,6 +893,8 @@ export const en = {
   "admin.categories.image.stageLabel": "stage:",
   "admin.categories.error.imageFailed": "Image generation failed",
   "admin.categories.bulk.generateMissing": "Generate missing (max 25)",
+  "admin.categories.bulk.generateHint":
+    "Generates card, thumbnail and OG images for up to 25 categories without assets per run (DEC-032 spend cap)",
   "admin.categories.bulk.progress": "Generating",
   "admin.categories.bulk.generated": "generated",
   "admin.categories.bulk.failed": "failed",
@@ -1081,6 +1087,8 @@ export const en = {
   "admin.attributes.import.reason.badCardRank":
     "Card position must be 1, 2 or 3 — this row reads “{card_rank}”",
   "admin.attributes.import.reason.formula": "Cells may not start with = + - @",
+  "admin.attributes.import.reason.keyRename":
+    "Keys are identities: restore \u201c{detail}\u201d and change label_en instead of adding a new key",
   "admin.attributes.import.reason.unknown": "This row was refused",
 
   "admin.attributes.import.guidance":
@@ -1114,7 +1122,10 @@ export const en = {
   "admin.attributes.create.title": "New attribute",
   "admin.attributes.edit.title": "Edit attribute",
   "admin.attributes.field.key": "Key",
+  "admin.attributes.field.keyHelp":
+    "Machine identity: snake_case, never changes, used by exports and code",
   "admin.attributes.field.name": "Name",
+  "admin.attributes.field.nameHelp": "What people see; translatable",
   "admin.attributes.field.type": "Type",
   "admin.attributes.field.options": "Options",
   "admin.attributes.field.optionsHelp": "One option per line.",
@@ -1179,6 +1190,10 @@ export const en = {
   "admin.attributes.links.empty": "No attribute is linked to this category yet.",
   "admin.attributes.links.required": "Required",
   "admin.attributes.links.filterable": "Filterable",
+  /* UX-2 PART 5 — the link manager saves as you go and says so. */
+  "admin.attributes.links.saved": "Saved",
+  "admin.attributes.links.done": "Done",
+  "admin.attributes.links.autosave": "Changes save as you go",
   "admin.attributes.links.unlink": "Unlink",
   "admin.attributes.links.add": "Add attribute",
   "admin.attributes.links.pickNone": "Choose an attribute",
