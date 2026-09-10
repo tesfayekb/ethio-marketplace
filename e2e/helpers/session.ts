@@ -13,9 +13,9 @@
  * are the tests OF the door; a door proved by injection is not proved at all.
  * `isAuthSpec()` enforces that by file path, not by opt-in.
  *
- * REVERT KNOB (pre-committed): `E2E_UI_LOGIN=1` short-circuits every caller
- * back to the UI path, which is kept intact. Any auth-derived flake class
- * after this landing FLIPS THE KNOB FIRST and diagnoses second.
+ * DEC-048 — the pre-committed `E2E_UI_LOGIN` revert knob is DELETED. DEC-041
+ * made it inert (the pool always injects; private mints and auth specs always
+ * drive the real door), so it could no longer revert anything.
  *
  * ── PERSISTED-SESSION CENSUS (@supabase/supabase-js 2.110.9) ───────────────
  * Key   — `dist/index.mjs`: `sb-${baseUrl.hostname.split(".")[0]}-auth-token`,
@@ -32,7 +32,6 @@
  *           user: {...} }.
  */
 import type { Page } from "@playwright/test";
-import { test } from "@playwright/test";
 
 export type PersistedSession = {
   access_token: string;
@@ -59,30 +58,6 @@ function publishableKey(): string {
 export function storageKey(): string {
   const host = new URL(supabaseUrl()).hostname;
   return `sb-${host.split(".")[0]}-auth-token`;
-}
-
-/** The pre-committed revert knob: UI sign-in everywhere. */
-export function uiLoginForced(): boolean {
-  return process.env["E2E_UI_LOGIN"] === "1";
-}
-
-/** Auth specs prove the door itself and therefore never inject. */
-export function isAuthSpec(): boolean {
-  const file = test.info().file.replace(/\\/g, "/");
-  return /\/e2e\/auth-[^/]*\.spec\.ts$/.test(file);
-}
-
-/** Injection is allowed only outside auth specs, with the knob unset. */
-export function sessionInjectionEnabled(): boolean {
-  if (uiLoginForced()) return false;
-  if (!process.env["E2E_SUPABASE_URL"] || !process.env["E2E_SUPABASE_PUBLISHABLE_KEY"])
-    return false;
-  try {
-    return !isAuthSpec();
-  } catch {
-    // Outside a running test (no test.info()) injection is not offered.
-    return false;
-  }
 }
 
 /**
