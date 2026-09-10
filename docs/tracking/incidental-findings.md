@@ -1975,3 +1975,51 @@ patches a function body by anchor, flexible or not — it re-declares the
 function whole with `CREATE OR REPLACE`, restates its closers and reads back
 its definition and ACL in-file. Closed by `20260910053535_40e4ab7d`, the whole
 re-declaration; no anchored patch remains in the lineage.
+
+## INC-184 — TR-29's catalog-count invariant reads sibling workers' transient fence rows
+
+TR-29 exports the fence language's catalog as CSV, then reads `count(*)` of
+`ui_translations` for that fence with the service client and asserts the
+file's data-line count equals it. The count is taken AFTER the download, over
+the whole fence language, which every test in the same project shares (J2);
+a sibling worker's scratch key landing in that window fails the assertion by
+exactly one — nine retry-passes in seven days (2026-09-06→10; shard 2
+mobile-360 and shard 5 desktop-1280), every body "N rows for an N+1-row
+catalog". The export is not page-scoped (INC-123 holds); the invariant is the
+leak (J6: invariants exclude other tests' rows). Fix at the anchor: compare
+the non-scratch key sets on both sides — the file's rows minus `e2e-` keys
+against the DB count with the scratch prefix excluded — and keep the test's
+own round-trip assertion (imported value per key) as the proof of its own
+rows. Class: J6 invariant leak (INC-182's sibling in the anchor family).
+
+## INC-185 — TR-12's waits carry no step names, so twenty retry-passes name nothing
+
+TR-12 passed on retry twenty times in seven days (2026-09-04→09; shards 1/2
+mobile-360, 4/5 desktop-1280 — the DEC-030 trigger met six times over), and
+every flake-ledger line ends at `expect(locator).toBeVisible() failed`: the
+ledger quotes the first line of the error and Playwright puts the locator on
+the second, so the evidence cannot say which of the test's four waits stalls
+(ai-bulk-start 20 s, ai-bulk-confirm, ai-bulk-summary 90 s, the string row
+20 s). INC-115c closed the earlier cause (a one-letter fence region) on
+2026-09-02; these are later. First fix, inside the spec (J7 — failures assert
+with values): give each wait a `message:` naming its step, then read the next
+seven days' ledger before touching the console. Class: evidence fidelity
+(G20).
+
+## INC-186 — a green run never judges the artifact contract
+
+`E2E_GREEN` is derived from the shard/smoke/email jobs' own results, and on
+`E2E_GREEN=1` the merged reporter writes the green form and returns before
+opening any results directory; the merged job's three `pattern` downloads are
+`continue-on-error`. A change in `actions/download-artifact`'s on-disk layout
+under `pattern` would therefore pass every green run unseen and surface only
+on the next red — as a spurious all-sources runner-death, the wrong brief
+(G21). Found while landing DEC-049 (download-artifact v4 → v7, read at
+a511b3c); mitigated for that landing by the operator's glance at the merged
+job's "Verify the downloaded artifacts belong to this attempt" step (eight
+results.json). Permanent fix is a reporter change under the harness ritual
+(DEC candidate): the green branch reads the expected sources too — the
+DEC-030 flake-only pass already does — and the green form carries
+`Sources read: n/N`; an unreadable expected source on a green run is
+`silent`, which the red branch already counts as gating. Class: evidence
+fidelity — INC-100's sibling: blind on green as INC-100 was blind on re-run.

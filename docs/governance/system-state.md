@@ -62,7 +62,7 @@
 
 ## Standing reads
 
-Governing instructions: Claude supervisor v1.8 · Lovable Project Knowledge v3.6. Canonical truth: this file + /docs/spec/spec-ledger.md. Evidence channels: docs/tracking/ci-status.md (two-step SHA check), docs/tracking/e2e-last-failure.md, nightly-last-failure.md, flake-ledger.
+Governing instructions: Claude supervisor v1.9 · Lovable Project Knowledge v3.8. Canonical truth: this file + /docs/spec/spec-ledger.md. Evidence channels: docs/tracking/ci-status.md (two-step SHA check), docs/tracking/e2e-last-failure.md, nightly-last-failure.md, flake-ledger.
 
 ## Environment
 
@@ -71,4 +71,4 @@ Prod = published site (human testers). Staging = ethio-staging (automated suite 
 ## Current position
 
 
-Current position: C3 era CLOSED 2026-09-09 (four-lens review: reviews/c3-era-gate.md); catalog surfaces complete incl. the import gate; Vehicles curated; curation thread active (Real Estate next); open: DEC-048, INC-174, C3-UX-3/4. Handoff imported 2026-09-10. NEXT: DEC-049 → INC-174 → U6 spec session.
+Current position: C3 era CLOSED 2026-09-09 (four-lens review: reviews/c3-era-gate.md); catalog surfaces complete incl. the import gate; Vehicles curated; curation thread active (Real Estate next). 2026-09-10 (S36): DEC-048 RATIFIED; DEC-049 LANDED at c6e5fe5 (push green, promoted; nightly judge 2026-09-11 pending); Knowledge v3.8 installed and mirrored. Open: INC-174, C3-UX-3/4, DEC-049b, INC-184/185/186, ACT-C3-1. NEXT: INC-174 → Real Estate curation import → U6 spec session.
