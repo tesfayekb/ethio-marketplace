@@ -463,10 +463,7 @@ export function CategoryAttributesDialog({
       {/* UX-2 PART 5 — there is nothing left to submit, so the footer says
           Done and states the law it obeys: every change is already written. */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p
-          className="text-xs text-muted-foreground"
-          data-testid="category-attributes-autosave"
-        >
+        <p className="text-xs text-muted-foreground" data-testid="category-attributes-autosave">
           {t("admin.attributes.links.autosave")}
         </p>
         <Button

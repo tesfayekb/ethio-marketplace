@@ -790,8 +790,7 @@ export const am: Messages = {
   "admin.categories.tip.listings": "ሻጮች በቀጥታ በዚህ ምድብ ውስጥ ማስታወቂያ መለጠፍ ይችላሉ።",
   "admin.categories.tip.price": "በዚህ ምድብ ውስጥ ያሉ ማስታወቂያዎች ዋጋ ይይዛሉ።",
   "admin.categories.tip.window": "ታይነቱ ተይዞለታል፦ ምድቡ በቀን ገደቡ ውስጥ ብቻ ይታያል።",
-  "admin.categories.tip.scheduled":
-    "መርሐ ተያዝሏል፦ ይህ ምድብ አሁን አይታይም — በሚጀምርበት ቀን ይታያል።",
+  "admin.categories.tip.scheduled": "መርሐ ተያዝሏል፦ ይህ ምድብ አሁን አይታይም — በሚጀምርበት ቀን ይታያል።",
   "admin.categories.tip.missingAssets":
     "ንብረቶች ይጎድላሉ፦ ይህ ምድብ አዶ ወይም ምስል የለውም፣ ስለዚህ በአሰሳ ላይ ባዶ ሆኖ ይታያል።",
   "admin.categories.filter.missingAssets": "ንብረቶች የሚጎድላቸው",
@@ -1065,8 +1064,7 @@ export const am: Messages = {
   "admin.attributes.create.title": "አዲስ ባህሪ",
   "admin.attributes.edit.title": "ባህሪን አርትዕ",
   "admin.attributes.field.key": "ቁልፍ",
-  "admin.attributes.field.keyHelp":
-    "የማሽን ማንነት፦ snake_case፣ አይለወጥም፣ በወጪና በኮድ ያገለግላል",
+  "admin.attributes.field.keyHelp": "የማሽን ማንነት፦ snake_case፣ አይለወጥም፣ በወጪና በኮድ ያገለግላል",
   "admin.attributes.field.name": "ስም",
   "admin.attributes.field.nameHelp": "ሰዎች የሚያዩት፤ ሊተረገም ይችላል",
   "admin.attributes.field.type": "ዓይነት",

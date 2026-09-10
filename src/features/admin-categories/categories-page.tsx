@@ -962,7 +962,10 @@ export function AdminCategoriesPage() {
                   ) : null}
                 </div>
                 {bulkFailures.length === 0 ? null : (
-                  <ul data-testid="category-bulk-failures" className="w-full text-sm text-destructive">
+                  <ul
+                    data-testid="category-bulk-failures"
+                    className="w-full text-sm text-destructive"
+                  >
                     {bulkFailures.map((line) => (
                       <li key={line}>{line}</li>
                     ))}
