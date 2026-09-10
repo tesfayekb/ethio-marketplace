@@ -822,7 +822,8 @@ export const en = {
   "admin.categories.badge.active": "Active",
   "admin.categories.badge.listings": "Accepts listings",
   "admin.categories.badge.price": "Price",
-  "admin.categories.badge.window": "Scheduled",
+  /* UX-2 PART 3 — the FLAG names the date window; Scheduled is the STATUS. */
+  "admin.categories.badge.window": "Date window",
   /* UX-2 PART 3 — a category whose window has not opened yet reads Scheduled. */
   "admin.categories.badge.scheduled": "Scheduled",
   "admin.categories.badge.missingAssets": "Missing assets",

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -131,13 +131,11 @@ export function CategoryAttributesDialog({
    * inline error line the dialog already carries (F4 — never a silent success).
    */
   const [savedTag, setSavedTag] = useState<string | null>(null);
-  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (savedTimer.current !== null) clearTimeout(savedTimer.current);
-    },
-    [],
-  );
+  /**
+   * The Saved mark belongs to the LAST write and stays until the next one
+   * starts (or the dialog closes). A timed disappearance is feedback that can
+   * be missed — by a person reading slowly and by a test alike (AT-42).
+   */
   const runToggle = (tag: string, action: () => Promise<void>) => {
     setMessage(null);
     setSavedTag(null);
@@ -145,8 +143,6 @@ export function CategoryAttributesDialog({
       try {
         await action();
         setSavedTag(tag);
-        if (savedTimer.current !== null) clearTimeout(savedTimer.current);
-        savedTimer.current = setTimeout(() => setSavedTag(null), 4000);
       } catch (error) {
         fail(error);
       }
