@@ -645,10 +645,9 @@ test.describe("C2 categories console", () => {
       const shown = rendered.get(row.slug);
       if (shown === undefined) continue; // filtered out of the roster's own view
       const expected = row.is_catchall ? CATCHALL_ICON_NAME : (row.icon?.trim() ?? "Package");
-      expect(
-        shown,
-        `CT-29 ${row.slug} stores "${row.icon}" — it must render ${expected}`,
-      ).toBe(expected);
+      expect(shown, `CT-29 ${row.slug} stores "${row.icon}" — it must render ${expected}`).toBe(
+        expected,
+      );
       expect(
         row.is_catchall || shown !== "Package" || row.icon?.trim() === "Package",
         `CT-29 ${row.slug} fell back to the generic box`,

@@ -146,7 +146,7 @@ export function CategoryAttributesDialog({
         await action();
         setSavedTag(tag);
         if (savedTimer.current !== null) clearTimeout(savedTimer.current);
-        savedTimer.current = setTimeout(() => setSavedTag(null), 2500);
+        savedTimer.current = setTimeout(() => setSavedTag(null), 4000);
       } catch (error) {
         fail(error);
       }
