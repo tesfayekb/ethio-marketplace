@@ -229,7 +229,7 @@ export function CategoryAttributesDialog({
                     onCheckedChange={(next) =>
                       // FIX-SCAN-1 ISSUE 1 — one atomic write: card_rank and
                       // display_order survive, and a failure cannot lose the link.
-                      run(() =>
+                      runToggle(`required:${row.attrKey}`, () =>
                         updateLink.mutateAsync({
                           linkId: row.linkId,
                           isRequired: next === true,
@@ -238,13 +238,23 @@ export function CategoryAttributesDialog({
                     }
                   />
                   {t("admin.attributes.links.required")}
+                  {savedTag === `required:${row.attrKey}` ? (
+                    <span
+                      role="status"
+                      aria-live="polite"
+                      data-testid={`category-attribute-required-saved-${row.attrKey}`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      {t("admin.attributes.links.saved")}
+                    </span>
+                  ) : null}
                 </label>
                 <label className="flex min-h-11 items-center gap-2 text-sm">
                   <Checkbox
                     data-testid={`category-attribute-filterable-${row.attrKey}`}
                     checked={row.isFilterable}
                     onCheckedChange={(next) =>
-                      run(() =>
+                      runToggle(`filterable:${row.attrKey}`, () =>
                         updateLink.mutateAsync({
                           linkId: row.linkId,
                           isFilterable: next === true,
@@ -253,6 +263,16 @@ export function CategoryAttributesDialog({
                     }
                   />
                   {t("admin.attributes.links.filterable")}
+                  {savedTag === `filterable:${row.attrKey}` ? (
+                    <span
+                      role="status"
+                      aria-live="polite"
+                      data-testid={`category-attribute-filterable-saved-${row.attrKey}`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      {t("admin.attributes.links.saved")}
+                    </span>
+                  ) : null}
                 </label>
                 <label className="flex min-h-11 items-center gap-2 text-sm">
                   <Checkbox
