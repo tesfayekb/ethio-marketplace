@@ -254,6 +254,29 @@ export function categoryGlyph(name: string | null | undefined): LucideIcon {
   return CATEGORY_GLYPHS[name.trim() as CategoryIconName] ?? Package;
 }
 
+/**
+ * UX-2 PART 1 — THE CATCH-ALL GLYPH IS FIXED.
+ *
+ * Every "Other …" node means the same thing wherever it appears, so it renders
+ * one glyph — the overflow ellipsis — whatever its stored name says. The census
+ * of the live catalog (155 categories, 101 distinct icon names, zero misses
+ * against the allowlist) found all fourteen catch-alls already storing
+ * `MoreHorizontal`; this makes that agreement a rule rather than a coincidence.
+ */
+export const CATCHALL_ICON_NAME = "MoreHorizontal";
+
+/** The glyph a roster row renders: the catch-all glyph wins over the stored name. */
+export function categoryRowGlyph(
+  name: string | null | undefined,
+  isCatchall: boolean,
+): { Glyph: LucideIcon; iconName: string } {
+  if (isCatchall) {
+    return { Glyph: CATEGORY_GLYPHS[CATCHALL_ICON_NAME], iconName: CATCHALL_ICON_NAME };
+  }
+  const resolved = isKnownCategoryIcon(name) ? name!.trim() : FALLBACK_ICON_NAME;
+  return { Glyph: categoryGlyph(name), iconName: resolved };
+}
+
 /** True when the stored name resolves to a real glyph rather than the fallback. */
 export function isKnownCategoryIcon(name: string | null | undefined): boolean {
   if (!name) return false;
