@@ -942,3 +942,37 @@ one entry per language, keyed by the publication version** returned by
 Coverage: `e2e/i18n-bundle.spec.ts` — IB-1 (two identical GETs share a strong
 ETag and byte-equal bodies; `If-None-Match` ⇒ 304) and IB-2 (publishing a
 scratch fence language moves both the version and the bundle within the TTL).
+
+### UX-2 item 7 — the Data roster names each row's identity
+
+Six attribute definitions may all be labelled **Make**; six categories may all
+be called **Other**. The Data scope rendered the LABEL alone, so those rows were
+one indistinguishable block. Each row now carries its stable machine identity as
+secondary text under the name — the attribute library's own pattern:
+
+| Entity type | Identifier              |
+| ----------- | ----------------------- |
+| category    | `categories.slug`       |
+| attribute   | `attributes.attr_key`   |
+| location    | none — nothing rendered |
+
+An absent identifier is SILENCE, never a placeholder (the IE-6 empty-cell law).
+
+Migration `20260910064921_d0a7a0af` re-declares
+`admin_list_entity_translations` WHOLE (INC-183: never an anchored patch; the
+return shape changes, so the old signature is dropped and the whole declaration
+lands in-file) with one added projected column, `identifier`. The gate
+(`translations:view`), the universe, the status/search filters, the ordering,
+the paging and the `total_count` window are unchanged; `REVOKE … FROM PUBLIC,
+anon` + `GRANT EXECUTE TO authenticated` + `GRANT ALL TO service_role` are
+restated and both the definition and the ACL are read back in-file. Apply
+pairing: apply `d0a7a0af` → expect mark `20260910080000`.
+
+Coverage: TR-34 (`e2e/admin-translations-data.spec.ts`) seeds two attributes
+sharing ONE label plus a scratch category, asserts each row renders its own key
+and the category renders its slug, and holds the ROUND-TRIP INVARIANT in the
+same session — `get_entity_bundle` and both attribute export files are captured
+before the roster read and are byte-identical afterwards (transient `e2e_attr_`
+/ `e2e-cat-` records excluded, J6, as AT-20's invariant excludes them). Entity
+rows resolve through the shared `entityRow(page, stem)` twin helper; TR-14,
+TR-24 and TR-26 keep their exact structural anchors.

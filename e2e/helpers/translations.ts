@@ -67,6 +67,17 @@ export function actionsOf(page: Page, base: string): Locator {
   return surfaceControl(page, isMobile(page) ? `${base}-actions` : `${base}-actions-cell`);
 }
 
+/**
+ * UX-2 item 7 — THE DATA-SCOPE ROW, RESOLVED STRUCTURALLY (J5). Entity rows
+ * carry the composite `entity-row-<type>-<id>-<field>` stem in both twins; the
+ * `-card` suffix belongs to the mobile twin alone. The secondary identifier
+ * this landing adds is TEXT inside that row, never a new anchor — TR-24 and
+ * TR-26 keep the exact locators they had, now through this one helper.
+ */
+export function entityRow(page: Page, entitySlug: string): Locator {
+  return translationsSurface(page).getByTestId(rowTestId(page, `entity-row-${entitySlug}`));
+}
+
 export function stringRow(page: Page, keySlug: string): Locator {
   return translationsSurface(page).getByTestId(rowTestId(page, `string-row-${keySlug}`));
 }

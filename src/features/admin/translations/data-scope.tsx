@@ -268,8 +268,26 @@ function dataColumns(
       priority: "primary",
       width: "w-[30%]",
       cell: (row) => (
-        <span className="block truncate text-foreground" title={row.label}>
-          {row.label}
+        <span className="block min-w-0">
+          <span className="block truncate text-foreground" title={row.label}>
+            {row.label}
+          </span>
+          {/*
+            UX-2 item 7 — THE IDENTITY UNDER THE NAME (the attribute library's
+            own pattern). Six definitions labelled "Make" differ only by their
+            key; six categories only by their slug. A location carries no
+            machine identity, so nothing is rendered for it — an absent
+            identifier is silence, never a placeholder.
+          */}
+          {row.identifier ? (
+            <span
+              data-testid={`entity-identifier-${entityRowSlug(row)}`}
+              className="block truncate font-mono text-xs text-muted-foreground"
+              title={row.identifier}
+            >
+              {row.identifier}
+            </span>
+          ) : null}
         </span>
       ),
     },

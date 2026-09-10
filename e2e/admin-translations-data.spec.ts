@@ -10,8 +10,7 @@ import {
 } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import {
-  translationsSurface,
-  rowTestId,
+  entityRow,
   langRow,
   surfaceControl,
   slug,
@@ -100,9 +99,7 @@ import { translationMapperSelfTest } from "../src/features/admin/translations/tr
       await gotoReady(page, "/admin/translations/am?scope=data");
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(name);
-      const row = translationsSurface(page).getByTestId(
-        rowTestId(page, `entity-row-location-${id}-name`),
-      );
+      const row = entityRow(page, `location-${id}-name`);
       await expect(row).toBeVisible({ timeout: 20000 });
 
       await surfaceControl(page, `entity-expand-location-${id}-name`).click();
@@ -219,9 +216,7 @@ import { translationMapperSelfTest } from "../src/features/admin/translations/tr
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(one.name);
-      const row = translationsSurface(page).getByTestId(
-        rowTestId(page, `entity-row-location-${one.id}-name`),
-      );
+      const row = entityRow(page, `location-${one.id}-name`);
       await expect(row).toBeVisible({ timeout: 20000 });
       await expect(row.getByTestId(`entity-status-location-${one.id}-name`)).toHaveText(
         /untranslated/i,
@@ -251,9 +246,7 @@ import { translationMapperSelfTest } from "../src/features/admin/translations/tr
       // a prior sweep. The second scratch location is untranslated by
       // construction, so it proves the universe rendered AND that N ≥ 1.
       await page.getByTestId("data-search").fill(two.name);
-      const readyRow = translationsSurface(page).getByTestId(
-        rowTestId(page, `entity-row-location-${two.id}-name`),
-      );
+      const readyRow = entityRow(page, `location-${two.id}-name`);
       await expect(readyRow).toBeVisible({ timeout: 20000 });
       await expect(readyRow.getByTestId(`entity-status-location-${two.id}-name`)).toHaveText(
         /untranslated/i,
@@ -455,6 +448,142 @@ import { translationMapperSelfTest } from "../src/features/admin/translations/tr
     } finally {
       await reapScratchLocation(one.id);
       await reapScratchLocation(two.id);
+    }
+  });
+  /**
+   * ───────────── UX-2 item 7 — SIX ROWS NAMED "Make" ARE DISTINGUISHABLE ─────
+   *
+   * TR-34. The Data roster showed the LABEL alone, so duplicate names were one
+   * indistinguishable block. Every row now carries its stable machine identity
+   * under the name — `attributes.attr_key` for an attribute, `categories.slug`
+   * for a category — exactly as the attribute library renders it.
+   *
+   * ROUND-TRIP INVARIANT (same test, same session): the roster RPC's shape
+   * change must not reach any other surface. `get_entity_bundle` and BOTH
+   * attribute export files are captured before the roster is read and compared
+   * BYTE-IDENTICAL afterwards — the fixtures are seeded first, so the two
+   * captures span nothing but the roster read itself.
+   *
+   * J1/J3 — two attributes sharing ONE label plus one category, all axes-
+   * namespaced and reaped in `finally`; nothing real is touched (J6).
+   */
+  test("TR-34 the Data roster names each row's identity and changes nothing else", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    const supabase = adminClient();
+    const axes = scratchAxes("tr34");
+    const label = `E2E Make ${axes}`;
+    const keyOne = `e2e_attr_ux27_${axes.replace(/[^a-zA-Z0-9]+/g, "_")}_a`;
+    const keyTwo = `e2e_attr_ux27_${axes.replace(/[^a-zA-Z0-9]+/g, "_")}_b`;
+    const catSlug = `e2e-cat-ux27-${axes.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+    const { data: attrs, error: attrError } = await supabase
+      .from("attributes")
+      .insert([
+        { attr_key: keyOne, name_en: label, attr_type: "text" },
+        { attr_key: keyTwo, name_en: label, attr_type: "text" },
+      ])
+      .select("id, attr_key");
+    if (attrError || !attrs) throw new Error(`TR-34 attribute seed failed: ${attrError?.message}`);
+    const { data: category, error: catError } = await supabase
+      .from("categories")
+      .insert({ slug: catSlug, name_en: `E2E Cat ${axes}`, is_active: true })
+      .select("id")
+      .single();
+    if (catError || !category) throw new Error(`TR-34 category seed failed: ${catError?.message}`);
+
+    const idOf = (key: string) => attrs.find((row) => row.attr_key === key)!.id as string;
+
+    try {
+      const { secret } = await signInAsSuperAdmin(page);
+      void secret;
+
+      const bearer = async () =>
+        page.evaluate(async () => {
+          const client = (
+            window as unknown as {
+              __ethioSupabase: {
+                auth: {
+                  getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
+                };
+              };
+            }
+          ).__ethioSupabase;
+          const { data } = await client.auth.getSession();
+          return data.session?.access_token ?? "";
+        });
+
+      const readBundle = async () =>
+        page.evaluate(async () => {
+          const client = (
+            window as unknown as {
+              __ethioSupabase: {
+                rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
+              };
+            }
+          ).__ethioSupabase;
+          const bundle = await client.rpc("get_entity_bundle", { p_lang: "am" });
+          return JSON.stringify(bundle.data);
+        });
+
+      const readExports = async (token: string) => {
+        const out: string[] = [];
+        for (const file of ["definitions", "links"]) {
+          const response = await page.request.get(`/api/admin/attributes/export?file=${file}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          expect(response.status(), `TR-34 export ${file} refused`).toBe(200);
+          // J6 — the STABLE library only. A sibling spec (and the other
+          // viewport project) mints and destroys its own `e2e_attr_` / `e2e-cat-`
+          // fixtures between the two captures, which reads as a phantom diff;
+          // the invariant is about THIS landing's shape change, so transient
+          // rows are excluded exactly as AT-20's invariant excludes them.
+          const text = await response.text();
+          out.push(
+            text
+              .split("\r\n")
+              .filter((line) => !line.includes("e2e_attr_") && !line.includes("e2e-cat-"))
+              .join("\r\n"),
+          );
+        }
+        return out;
+      };
+
+      await gotoReady(page, "/admin/translations/am?scope=data");
+      const token = await bearer();
+      expect(token).not.toBe("");
+      const bundleBefore = await readBundle();
+      const exportsBefore = await readExports(token);
+
+      // 1. TWO ROWS, ONE LABEL, TWO IDENTITIES.
+      await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("data-search").fill(label);
+      for (const key of [keyOne, keyTwo]) {
+        const stem = `attribute-${idOf(key)}-label`;
+        const row = entityRow(page, stem);
+        await expect(row).toBeVisible({ timeout: 20000 });
+        await expect(row).toContainText(label);
+        await expect(row.getByTestId(`entity-identifier-${stem}`)).toHaveText(key);
+      }
+
+      // 2. A CATEGORY NAMES ITS SLUG.
+      await page.getByTestId("data-search").fill(`E2E Cat ${axes}`);
+      const catStem = `category-${category.id}-name`;
+      const catRow = entityRow(page, catStem);
+      await expect(catRow).toBeVisible({ timeout: 20000 });
+      await expect(catRow.getByTestId(`entity-identifier-${catStem}`)).toHaveText(catSlug);
+
+      // 3. ROUND-TRIP INVARIANT — nothing else moved.
+      expect(await readBundle()).toBe(bundleBefore);
+      expect(await readExports(token)).toEqual(exportsBefore);
+    } finally {
+      await supabase.from("entity_translations").delete().eq("entity_id", category.id);
+      await supabase.from("categories").delete().eq("id", category.id);
+      for (const key of [keyOne, keyTwo]) {
+        await supabase.from("entity_translations").delete().eq("entity_id", idOf(key));
+        await supabase.from("attributes").delete().eq("attr_key", key);
+      }
     }
   });
 });

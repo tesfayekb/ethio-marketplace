@@ -509,6 +509,13 @@ export interface EntityTranslationRow {
   entityId: string;
   field: string;
   label: string;
+  /**
+   * UX-2 item 7 — THE ROW'S STABLE MACHINE IDENTITY, rendered as secondary
+   * text under the name: `categories.slug` for a category, `attributes.attr_key`
+   * for an attribute. A location has none and answers `null` — six definitions
+   * all labelled "Make" are then still told apart at a glance.
+   */
+  identifier: string | null;
   sourceValue: string | null;
   value: string | null;
   status: TranslationStatus;
@@ -585,6 +592,8 @@ export async function listEntityTranslations({
         entityId,
         field,
         label: row.label,
+        // UX-2/7 — null (a location, or an older deployment) renders nothing.
+        identifier: row.identifier ?? null,
         sourceValue: row.source_value ?? null,
         value: row.value ?? null,
         status: asStatus(row.status),

@@ -1580,6 +1580,7 @@ export type Database = {
           field: string
           flag_note: string
           flagged: boolean
+          identifier: string
           label: string
           machine: boolean
           source_value: string
