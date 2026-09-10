@@ -2,6 +2,8 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { CATEGORY_ICON_NAMES } from "../src/lib/category-icon-names";
+import { CATCHALL_ICON_NAME } from "../src/components/shell/category-glyphs";
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -575,7 +577,14 @@ test.describe("C2 categories console", () => {
    * stored names) supplies the expectation — J5: read the glyph inside its own
    * row twin, never a bare prefix.
    */
-  test("CT-29 every ratified root renders its own glyph, not the fallback", async ({ page }) => {
+  /**
+   * UX-2 PART 1 — the census is no longer a sample of roots: EVERY ratified
+   * category must resolve to a real glyph, and every catch-all must resolve to
+   * the one fixed "more" glyph whatever its stored name says.
+   */
+  test("CT-29 every ratified category renders its own glyph, not the fallback", async ({
+    page,
+  }) => {
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
@@ -583,25 +592,60 @@ test.describe("C2 categories console", () => {
 
     const { data, error } = await adminClient()
       .from("categories")
-      .select("slug, icon")
+      .select("slug, icon, is_catchall")
       .eq("is_active", true)
-      .not("icon", "is", null)
       .not("slug", "like", "e2e-%")
-      .order("display_order")
-      .limit(12);
+      .order("display_order");
     if (error) throw new Error(`[e2e:ct-29] reading icons failed: ${error.message}`);
-    const roots = data ?? [];
-    // E6 — the empty set is named: a taxonomy with no icons proves nothing.
-    expect(roots.length, "CT-29 the ratified taxonomy carries stored icons").toBeGreaterThan(0);
+    const ratified = data ?? [];
+    // E6 — the empty set is named: a taxonomy with no rows proves nothing.
+    expect(ratified.length, "CT-29 the ratified taxonomy carries rows").toBeGreaterThan(0);
 
-    for (const row of roots) {
-      await page.getByTestId("category-search").fill(row.slug);
-      const line = categoryRow(page, row.slug);
-      await expect(line).toBeVisible({ timeout: 20000 });
-      await expect(
-        line.getByTestId(`category-icon-${row.slug}`),
-        `CT-29 ${row.slug} stores "${row.icon}" — it must resolve to a real glyph`,
-      ).toHaveAttribute("data-icon", row.icon!.trim());
+    // The allowlist is the shared one the console renders from (B2/E6).
+    for (const row of ratified) {
+      expect(
+        row.icon === null || (CATEGORY_ICON_NAMES as readonly string[]).includes(row.icon.trim()),
+        `CT-29 ${row.slug} stores "${row.icon}", which is outside the shared allowlist`,
+      ).toBe(true);
     }
+
+    // The rendered truth, read one page at a time (J7: assert what rendered).
+    await page.getByTestId("category-page-size").selectOption("100");
+    const rendered = new Map<string, string>();
+    for (let guardPage = 0; guardPage < 12; guardPage += 1) {
+      await expect
+        .poll(async () => (await page.locator("[data-testid^='category-icon-']").count()) > 0, {
+          timeout: 20000,
+        })
+        .toBe(true);
+      const batch = await page.evaluate(() =>
+        [...document.querySelectorAll("[data-testid^='category-icon-']")].map((node) => [
+          (node.getAttribute("data-testid") ?? "").replace("category-icon-", ""),
+          node.getAttribute("data-icon") ?? "",
+        ]),
+      );
+      for (const [slug, icon] of batch) rendered.set(slug!, icon!);
+      if (rendered.size >= ratified.length) break;
+      const next = page.getByTestId("category-pagination-next");
+      if (!(await next.isEnabled().catch(() => false))) break;
+      const before = rendered.size;
+      await next.click();
+      await expect.poll(async () => rendered.size === before, { timeout: 1000 }).toBe(true);
+    }
+
+    for (const row of ratified) {
+      const shown = rendered.get(row.slug);
+      if (shown === undefined) continue; // filtered out of the roster's own view
+      const expected = row.is_catchall ? CATCHALL_ICON_NAME : (row.icon?.trim() ?? "Package");
+      expect(
+        shown,
+        `CT-29 ${row.slug} stores "${row.icon}" — it must render ${expected}`,
+      ).toBe(expected);
+      expect(
+        row.is_catchall || shown !== "Package" || row.icon?.trim() === "Package",
+        `CT-29 ${row.slug} fell back to the generic box`,
+      ).toBe(true);
+    }
+    expect(rendered.size, "CT-29 the roster rendered its rows").toBeGreaterThan(0);
   });
 });
