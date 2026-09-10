@@ -36,6 +36,8 @@ const REASON_KEYS = new Set([
   "inheritedRow",
   "badCardRank",
   "formula",
+  // UX-2 PART 6 / IE-8 — a new key that is really a renamed identity.
+  "keyRename",
 ]);
 
 const COUNT_FIELDS = ["adds", "changes", "unlinks", "deletes", "unchanged", "refusals"] as const;

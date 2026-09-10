@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -118,6 +118,35 @@ export function CategoryAttributesDialog({
     void guard(async () => {
       try {
         await action();
+      } catch (error) {
+        fail(error);
+      }
+    }).catch(fail);
+  };
+
+  /**
+   * UX-2 PART 5 — THE ATOMIC WRITE SAYS SO. A checkbox that silently persists
+   * teaches nobody that the change is already saved, so each Required/Filterable
+   * toggle reports "Saved" for a moment after its own write; a failure is the
+   * inline error line the dialog already carries (F4 — never a silent success).
+   */
+  const [savedTag, setSavedTag] = useState<string | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (savedTimer.current !== null) clearTimeout(savedTimer.current);
+    },
+    [],
+  );
+  const runToggle = (tag: string, action: () => Promise<void>) => {
+    setMessage(null);
+    setSavedTag(null);
+    void guard(async () => {
+      try {
+        await action();
+        setSavedTag(tag);
+        if (savedTimer.current !== null) clearTimeout(savedTimer.current);
+        savedTimer.current = setTimeout(() => setSavedTag(null), 2500);
       } catch (error) {
         fail(error);
       }
