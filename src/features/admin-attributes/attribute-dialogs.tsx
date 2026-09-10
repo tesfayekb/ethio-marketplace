@@ -237,7 +237,13 @@ export function AttributeEditorDialog({
       }
       onClose={onClose}
     >
-      <FormField label={t("admin.attributes.field.key")} htmlFor="attribute-key">
+      {/* UX-2 PART 4 — key and name are different KINDS of thing, and the form
+          now says which is which before an operator guesses. */}
+      <FormField
+        label={t("admin.attributes.field.key")}
+        htmlFor="attribute-key"
+        help={t("admin.attributes.field.keyHelp")}
+      >
         <Input
           id="attribute-key"
           data-testid="attribute-key"
@@ -245,7 +251,11 @@ export function AttributeEditorDialog({
           onChange={(event) => setAttrKey(event.target.value)}
         />
       </FormField>
-      <FormField label={t("admin.attributes.field.name")} htmlFor="attribute-name">
+      <FormField
+        label={t("admin.attributes.field.name")}
+        htmlFor="attribute-name"
+        help={t("admin.attributes.field.nameHelp")}
+      >
         <Input
           id="attribute-name"
           data-testid="attribute-name"

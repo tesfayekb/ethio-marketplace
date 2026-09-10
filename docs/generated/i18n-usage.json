@@ -190,7 +190,15 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.field.keyHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.field.name": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.nameHelp": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -231,6 +239,12 @@
     "admin.attributes.links.add": [
       "/admin/categories"
     ],
+    "admin.attributes.links.autosave": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.done": [
+      "/admin/categories"
+    ],
     "admin.attributes.links.empty": [
       "/admin/categories"
     ],
@@ -244,6 +258,9 @@
       "/admin/categories"
     ],
     "admin.attributes.links.required": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.saved": [
       "/admin/categories"
     ],
     "admin.attributes.links.searchPlaceholder": [
@@ -454,10 +471,16 @@
     "admin.categories.badge.price": [
       "/admin/categories"
     ],
+    "admin.categories.badge.scheduled": [
+      "/admin/categories"
+    ],
     "admin.categories.badge.window": [
       "/admin/categories"
     ],
     "admin.categories.bulk.failed": [
+      "/admin/categories"
+    ],
+    "admin.categories.bulk.generateHint": [
       "/admin/categories"
     ],
     "admin.categories.bulk.generateMissing": [
@@ -843,6 +866,9 @@
       "/admin/categories"
     ],
     "admin.categories.tip.retired": [
+      "/admin/categories"
+    ],
+    "admin.categories.tip.scheduled": [
       "/admin/categories"
     ],
     "admin.categories.tip.window": [

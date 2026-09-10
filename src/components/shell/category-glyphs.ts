@@ -118,6 +118,7 @@ import {
 } from "lucide-react";
 
 import {
+  CATCHALL_ICON_NAME,
   CATEGORY_ICON_NAMES,
   FALLBACK_ICON_NAME,
   type CategoryIconName,
@@ -254,10 +255,26 @@ export function categoryGlyph(name: string | null | undefined): LucideIcon {
   return CATEGORY_GLYPHS[name.trim() as CategoryIconName] ?? Package;
 }
 
+/**
+ * UX-2 PART 1 — THE CATCH-ALL GLYPH IS FIXED (the name lives in the allowlist
+ * module so tests and the server can read it without importing lucide).
+ */
+/** The glyph a roster row renders: the catch-all glyph wins over the stored name. */
+export function categoryRowGlyph(
+  name: string | null | undefined,
+  isCatchall: boolean,
+): { Glyph: LucideIcon; iconName: string } {
+  if (isCatchall) {
+    return { Glyph: CATEGORY_GLYPHS[CATCHALL_ICON_NAME], iconName: CATCHALL_ICON_NAME };
+  }
+  const resolved = isKnownCategoryIcon(name) ? name!.trim() : FALLBACK_ICON_NAME;
+  return { Glyph: categoryGlyph(name), iconName: resolved };
+}
+
 /** True when the stored name resolves to a real glyph rather than the fallback. */
 export function isKnownCategoryIcon(name: string | null | undefined): boolean {
   if (!name) return false;
   return (CATEGORY_ICON_NAMES as readonly string[]).includes(name.trim());
 }
 
-export { FALLBACK_ICON_NAME };
+export { CATCHALL_ICON_NAME, FALLBACK_ICON_NAME };

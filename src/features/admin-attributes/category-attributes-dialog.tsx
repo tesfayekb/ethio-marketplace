@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -124,6 +124,35 @@ export function CategoryAttributesDialog({
     }).catch(fail);
   };
 
+  /**
+   * UX-2 PART 5 — THE ATOMIC WRITE SAYS SO. A checkbox that silently persists
+   * teaches nobody that the change is already saved, so each Required/Filterable
+   * toggle reports "Saved" for a moment after its own write; a failure is the
+   * inline error line the dialog already carries (F4 — never a silent success).
+   */
+  const [savedTag, setSavedTag] = useState<string | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (savedTimer.current !== null) clearTimeout(savedTimer.current);
+    },
+    [],
+  );
+  const runToggle = (tag: string, action: () => Promise<void>) => {
+    setMessage(null);
+    setSavedTag(null);
+    void guard(async () => {
+      try {
+        await action();
+        setSavedTag(tag);
+        if (savedTimer.current !== null) clearTimeout(savedTimer.current);
+        savedTimer.current = setTimeout(() => setSavedTag(null), 4000);
+      } catch (error) {
+        fail(error);
+      }
+    }).catch(fail);
+  };
+
   const move = (index: number, delta: number) => {
     const next = [...rows];
     const target = index + delta;
@@ -200,7 +229,7 @@ export function CategoryAttributesDialog({
                     onCheckedChange={(next) =>
                       // FIX-SCAN-1 ISSUE 1 — one atomic write: card_rank and
                       // display_order survive, and a failure cannot lose the link.
-                      run(() =>
+                      runToggle(`required:${row.attrKey}`, () =>
                         updateLink.mutateAsync({
                           linkId: row.linkId,
                           isRequired: next === true,
@@ -209,13 +238,23 @@ export function CategoryAttributesDialog({
                     }
                   />
                   {t("admin.attributes.links.required")}
+                  {savedTag === `required:${row.attrKey}` ? (
+                    <span
+                      role="status"
+                      aria-live="polite"
+                      data-testid={`category-attribute-required-saved-${row.attrKey}`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      {t("admin.attributes.links.saved")}
+                    </span>
+                  ) : null}
                 </label>
                 <label className="flex min-h-11 items-center gap-2 text-sm">
                   <Checkbox
                     data-testid={`category-attribute-filterable-${row.attrKey}`}
                     checked={row.isFilterable}
                     onCheckedChange={(next) =>
-                      run(() =>
+                      runToggle(`filterable:${row.attrKey}`, () =>
                         updateLink.mutateAsync({
                           linkId: row.linkId,
                           isFilterable: next === true,
@@ -224,6 +263,16 @@ export function CategoryAttributesDialog({
                     }
                   />
                   {t("admin.attributes.links.filterable")}
+                  {savedTag === `filterable:${row.attrKey}` ? (
+                    <span
+                      role="status"
+                      aria-live="polite"
+                      data-testid={`category-attribute-filterable-saved-${row.attrKey}`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      {t("admin.attributes.links.saved")}
+                    </span>
+                  ) : null}
                 </label>
                 <label className="flex min-h-11 items-center gap-2 text-sm">
                   <Checkbox
@@ -411,7 +460,12 @@ export function CategoryAttributesDialog({
       </div>
 
       <AttributeErrorLine message={message} />
-      <div className="flex justify-end">
+      {/* UX-2 PART 5 — there is nothing left to submit, so the footer says
+          Done and states the law it obeys: every change is already written. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground" data-testid="category-attributes-autosave">
+          {t("admin.attributes.links.autosave")}
+        </p>
         <Button
           type="button"
           variant="outline"
@@ -419,7 +473,7 @@ export function CategoryAttributesDialog({
           data-testid="category-attributes-close"
           onClick={onClose}
         >
-          {t("common.close")}
+          {t("admin.attributes.links.done")}
         </Button>
       </div>
     </CategoryModal>

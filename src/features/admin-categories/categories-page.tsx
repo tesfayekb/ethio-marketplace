@@ -21,7 +21,7 @@ import {
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
-import { categoryGlyph, isKnownCategoryIcon } from "@/components/shell/category-glyphs";
+import { categoryRowGlyph } from "@/components/shell/category-glyphs";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -381,7 +381,9 @@ export function AdminCategoriesPage() {
       cell: (row) => {
         // C5i PART B.1 — the row's chosen glyph, rendered before the name in
         // BOTH twins. An unknown/missing icon resolves to Package.
-        const Glyph = categoryGlyph(row.icon);
+        // UX-2 PART 1 — catch-alls carry the fixed "more" glyph; every other
+        // row resolves its stored name against the ONE allowlist.
+        const { Glyph, iconName } = categoryRowGlyph(row.icon, row.isCatchall);
         return (
           <span className="flex min-w-0 items-start gap-2">
             {/* FIX-SCAN-1 ISSUE 4 — `data-icon` names what actually rendered:
@@ -390,7 +392,7 @@ export function AdminCategoriesPage() {
             <Glyph
               aria-hidden="true"
               data-testid={`category-icon-${row.slug}`}
-              data-icon={isKnownCategoryIcon(row.icon) ? row.icon?.trim() : "Package"}
+              data-icon={iconName}
               className="mt-0.5 size-4 shrink-0 text-muted-foreground"
             />
             <span className="block min-w-0">
@@ -452,20 +454,34 @@ export function AdminCategoriesPage() {
       key: "status",
       header: t("admin.categories.col.status"),
       priority: ROSTER_COLUMN_PRIORITIES.status,
-      cell: (row) =>
-        row.isActive
-          ? tipBadge(
-              "secondary",
-              t("admin.categories.badge.active"),
-              t("admin.categories.tip.active"),
-            )
-          : tipBadge(
-              "destructive",
-              t("admin.categories.badge.inactive"),
-              // The exact Retired description: a retired node keeps its history
-              // and its browse pointers, but no new listing can be posted to it.
-              t("admin.categories.tip.retired"),
-            ),
+      cell: (row) => {
+        if (!row.isActive) {
+          return tipBadge(
+            "destructive",
+            t("admin.categories.badge.inactive"),
+            // The exact Retired description: a retired node keeps its history
+            // and its browse pointers, but no new listing can be posted to it.
+            t("admin.categories.tip.retired"),
+          );
+        }
+        /**
+         * UX-2 PART 3 — A FUTURE WINDOW IS ITS OWN STATUS. An active row whose
+         * `visible_from` has not arrived is NOT live in browse, so calling it
+         * "Active" was a lie the era walk caught. Both twins read Scheduled.
+         */
+        if (row.visibleFrom !== null && Date.parse(row.visibleFrom) > Date.now()) {
+          return tipBadge(
+            "outline",
+            t("admin.categories.badge.scheduled"),
+            t("admin.categories.tip.scheduled"),
+          );
+        }
+        return tipBadge(
+          "secondary",
+          t("admin.categories.badge.active"),
+          t("admin.categories.tip.active"),
+        );
+      },
     },
     {
       key: "flags",
@@ -822,106 +838,129 @@ export function AdminCategoriesPage() {
               <p className="text-sm text-muted-foreground">{t("admin.categories.empty")}</p>
             }
             toolbar={
+              /**
+               * UX-2 PART 2 — THE TOOLBAR READS IN GROUPS, not as a row of
+               * unrelated buttons: [find] · [assets] · [transfer]. Each group is
+               * its own wrapping flex row so the 360px twin stacks by meaning
+               * rather than by accident; logical spacing only (C5).
+               */
               <>
-                <Input
-                  data-testid="category-search"
-                  className="md:w-72"
-                  placeholder={t("admin.categories.searchPlaceholder")}
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-                <select
-                  data-testid="category-root-filter"
-                  aria-label={t("admin.categories.filter.root")}
-                  className={`${SELECT_CLASS} md:w-64`}
-                  value={rootFilter}
-                  onChange={(event) => setRootFilter(event.target.value)}
+                <div
+                  data-testid="category-toolbar-find"
+                  className="flex flex-wrap items-center gap-2"
                 >
-                  <option value="">{t("admin.categories.filter.allRoots")}</option>
-                  {roots.map((row) => (
-                    <option key={row.id} value={row.id}>
-                      {`${row.nameEn} (${rootCounts.get(row.id) ?? 0})`}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  type="button"
-                  variant={missingOnly ? "default" : "outline"}
-                  size="touch"
-                  aria-pressed={missingOnly}
-                  data-testid="category-missing-filter"
-                  onClick={() => setMissingOnly((prev) => !prev)}
+                  <Input
+                    data-testid="category-search"
+                    className="md:w-72"
+                    placeholder={t("admin.categories.searchPlaceholder")}
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                  <select
+                    data-testid="category-root-filter"
+                    aria-label={t("admin.categories.filter.root")}
+                    className={`${SELECT_CLASS} md:w-64`}
+                    value={rootFilter}
+                    onChange={(event) => setRootFilter(event.target.value)}
+                  >
+                    <option value="">{t("admin.categories.filter.allRoots")}</option>
+                    {roots.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {`${row.nameEn} (${rootCounts.get(row.id) ?? 0})`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div
+                  data-testid="category-toolbar-assets"
+                  className="flex flex-wrap items-center gap-2"
                 >
-                  {t("admin.categories.filter.missingAssets")}
-                </Button>
-                {/* CAT-IE — export honours the root filter; import is gated. */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
-                  data-testid="category-export"
-                  disabled={exporting}
-                  onClick={() => void runExport()}
+                  <Button
+                    type="button"
+                    variant={missingOnly ? "default" : "outline"}
+                    size="touch"
+                    aria-pressed={missingOnly}
+                    data-testid="category-missing-filter"
+                    onClick={() => setMissingOnly((prev) => !prev)}
+                  >
+                    {t("admin.categories.filter.missingAssets")}
+                  </Button>
+                  {mayAssets ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="touch"
+                      data-testid="category-bulk-generate"
+                      /* DEC-032 — the spend cap is stated where it is spent. */
+                      title={t("admin.categories.bulk.generateHint")}
+                      disabled={bulkBusy}
+                      onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
+                    >
+                      {t("admin.categories.bulk.generateMissing")}
+                    </Button>
+                  ) : null}
+                  {bulkProgress === null ? null : (
+                    <p
+                      role="status"
+                      aria-live="polite"
+                      data-testid="category-bulk-progress"
+                      className="self-center text-sm text-muted-foreground"
+                    >
+                      {`${t("admin.categories.bulk.progress")} ${bulkProgress.done}/${bulkProgress.total}`}
+                    </p>
+                  )}
+                  {bulkSummary === null ? null : (
+                    <p
+                      role="status"
+                      data-testid="category-bulk-summary"
+                      className="self-center text-sm text-muted-foreground"
+                    >
+                      {bulkSummary}
+                    </p>
+                  )}
+                </div>
+                <div
+                  data-testid="category-toolbar-transfer"
+                  className="flex flex-wrap items-center gap-2"
                 >
-                  <Download aria-hidden="true" className="size-4" />
-                  <span>
-                    {exporting
-                      ? t("admin.categories.export.busy")
-                      : t("admin.categories.export.open")}
-                  </span>
-                </Button>
-                {mayImport ? (
+                  {/* CAT-IE — export honours the root filter; import is gated. */}
                   <Button
                     type="button"
                     variant="outline"
                     size="touch"
-                    data-testid="category-import"
-                    onClick={() => setDialog({ kind: "import" })}
+                    data-testid="category-export"
+                    disabled={exporting}
+                    onClick={() => void runExport()}
                   >
-                    <Upload aria-hidden="true" className="size-4" />
-                    <span>{t("admin.categories.import.open")}</span>
+                    <Download aria-hidden="true" className="size-4" />
+                    <span>
+                      {exporting
+                        ? t("admin.categories.export.busy")
+                        : t("admin.categories.export.open")}
+                    </span>
                   </Button>
-                ) : null}
-                {exportError ? (
-                  <p
-                    role="alert"
-                    className="text-sm text-destructive"
-                    data-testid="category-export-error"
-                  >
-                    {t("admin.categories.export.error")}
-                  </p>
-                ) : null}
-                {mayAssets ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    data-testid="category-bulk-generate"
-                    disabled={bulkBusy}
-                    onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
-                  >
-                    {t("admin.categories.bulk.generateMissing")}
-                  </Button>
-                ) : null}
-                {bulkProgress === null ? null : (
-                  <p
-                    role="status"
-                    aria-live="polite"
-                    data-testid="category-bulk-progress"
-                    className="self-center text-sm text-muted-foreground"
-                  >
-                    {`${t("admin.categories.bulk.progress")} ${bulkProgress.done}/${bulkProgress.total}`}
-                  </p>
-                )}
-                {bulkSummary === null ? null : (
-                  <p
-                    role="status"
-                    data-testid="category-bulk-summary"
-                    className="self-center text-sm text-muted-foreground"
-                  >
-                    {bulkSummary}
-                  </p>
-                )}
+                  {mayImport ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="touch"
+                      data-testid="category-import"
+                      onClick={() => setDialog({ kind: "import" })}
+                    >
+                      <Upload aria-hidden="true" className="size-4" />
+                      <span>{t("admin.categories.import.open")}</span>
+                    </Button>
+                  ) : null}
+                  {exportError ? (
+                    <p
+                      role="alert"
+                      className="text-sm text-destructive"
+                      data-testid="category-export-error"
+                    >
+                      {t("admin.categories.export.error")}
+                    </p>
+                  ) : null}
+                </div>
                 {bulkFailures.length === 0 ? null : (
                   <ul
                     data-testid="category-bulk-failures"
