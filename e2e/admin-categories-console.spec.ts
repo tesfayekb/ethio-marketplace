@@ -154,6 +154,17 @@ test.describe("C2 categories console", () => {
       await expect
         .poll(async () => Boolean((await readCategory(slug))?.visible_from), { timeout: 20000 })
         .toBe(true);
+
+      /**
+       * UX-2 PART 3 — the roster tells the truth about a future window: the
+       * row is not live in browse, so it reads Scheduled, not Active.
+       */
+      await gotoReady(page, "/admin/categories");
+      await page.getByTestId("category-search").fill(slug);
+      const line = categoryRow(page, slug);
+      await expect(line).toBeVisible({ timeout: 20000 });
+      await expect(line.getByText(en["admin.categories.badge.scheduled"]).first()).toBeVisible();
+      await expect(line.getByText(en["admin.categories.badge.active"])).toHaveCount(0);
     } finally {
       if (slug) await destroyCategory(slug);
     }
