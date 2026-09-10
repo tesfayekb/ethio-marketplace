@@ -781,6 +781,7 @@ export const am: Messages = {
   "admin.categories.badge.listings": "ዝርዝሮችን ይቀበላል",
   "admin.categories.badge.price": "ዋጋ",
   "admin.categories.badge.window": "የተያዘለት",
+  "admin.categories.badge.scheduled": "መርሐ የተያዘለት",
   "admin.categories.badge.missingAssets": "ንብረቶች ይጎድላሉ",
   "admin.categories.tip.active": "በአሰሳ ውስጥ ንቁ ነው፦ ገዢዎች ሊደርሱበት እና ሻጮች ሊለጥፉበት ይችላሉ።",
   "admin.categories.tip.retired":
@@ -789,6 +790,8 @@ export const am: Messages = {
   "admin.categories.tip.listings": "ሻጮች በቀጥታ በዚህ ምድብ ውስጥ ማስታወቂያ መለጠፍ ይችላሉ።",
   "admin.categories.tip.price": "በዚህ ምድብ ውስጥ ያሉ ማስታወቂያዎች ዋጋ ይይዛሉ።",
   "admin.categories.tip.window": "ታይነቱ ተይዞለታል፦ ምድቡ በቀን ገደቡ ውስጥ ብቻ ይታያል።",
+  "admin.categories.tip.scheduled":
+    "መርሐ ተያዝሏል፦ ይህ ምድብ አሁን አይታይም — በሚጀምርበት ቀን ይታያል።",
   "admin.categories.tip.missingAssets":
     "ንብረቶች ይጎድላሉ፦ ይህ ምድብ አዶ ወይም ምስል የለውም፣ ስለዚህ በአሰሳ ላይ ባዶ ሆኖ ይታያል።",
   "admin.categories.filter.missingAssets": "ንብረቶች የሚጎድላቸው",
@@ -845,6 +848,8 @@ export const am: Messages = {
   "admin.categories.image.stageLabel": "ደረጃ:",
   "admin.categories.error.imageFailed": "ምስል ማመንጨት አልተሳካም",
   "admin.categories.bulk.generateMissing": "የጎደሉትን አመንጭ (ቢበዛ 25)",
+  "admin.categories.bulk.generateHint":
+    "በአንድ አሂድ ንብረት ለሌላቸው እስከ 25 ምድቦች የካርድ፣ የትንሽ ምስል እና የOG ምስሎችን ያመነጫል (DEC-032 የወጪ ወሰን)",
   "admin.categories.bulk.progress": "በማመንጨት ላይ",
   "admin.categories.bulk.generated": "ተመንጭተዋል",
   "admin.categories.bulk.failed": "አልተሳኩም",
@@ -1026,6 +1031,8 @@ export const am: Messages = {
   "admin.attributes.import.reason.badCardRank":
     "የካርድ ቦታ 1፣ 2 ወይም 3 መሆን አለበት — ይህ መስመር “{card_rank}” ይላል",
   "admin.attributes.import.reason.formula": "ሕዋሶች በ = + - @ መጀመር አይችሉም",
+  "admin.attributes.import.reason.keyRename":
+    "ቁልፎች ማንነት ናቸው፦ “{detail}”ን መልሰው አዲስ ቁልፍ ከማከል ይልቅ label_enን ይቀይሩ",
   "admin.attributes.import.reason.unknown": "ይህ መስመር ተከልክሏል",
 
   "admin.attributes.import.guidance":
@@ -1058,7 +1065,10 @@ export const am: Messages = {
   "admin.attributes.create.title": "አዲስ ባህሪ",
   "admin.attributes.edit.title": "ባህሪን አርትዕ",
   "admin.attributes.field.key": "ቁልፍ",
+  "admin.attributes.field.keyHelp":
+    "የማሽን ማንነት፦ snake_case፣ አይለወጥም፣ በወጪና በኮድ ያገለግላል",
   "admin.attributes.field.name": "ስም",
+  "admin.attributes.field.nameHelp": "ሰዎች የሚያዩት፤ ሊተረገም ይችላል",
   "admin.attributes.field.type": "ዓይነት",
   "admin.attributes.field.options": "አማራጮች",
   "admin.attributes.field.optionsHelp": "በአንድ መስመር አንድ አማራጭ።",
@@ -1116,6 +1126,9 @@ export const am: Messages = {
   "admin.attributes.links.empty": "እስካሁን ከዚህ ምድብ ጋር የተገናኘ ባህሪ የለም።",
   "admin.attributes.links.required": "ግዴታ",
   "admin.attributes.links.filterable": "የሚጣራ",
+  "admin.attributes.links.saved": "ተቀምጧል",
+  "admin.attributes.links.done": "ተጨርሷል",
+  "admin.attributes.links.autosave": "ለውጦች ወዲያውኑ ይቀመጣሉ",
   "admin.attributes.links.unlink": "አላቅቅ",
   "admin.attributes.links.add": "ባህሪ ጨምር",
   "admin.attributes.links.pickNone": "ባህሪ ይምረጡ",
