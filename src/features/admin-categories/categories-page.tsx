@@ -21,7 +21,7 @@ import {
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
-import { categoryGlyph, isKnownCategoryIcon } from "@/components/shell/category-glyphs";
+import { categoryRowGlyph } from "@/components/shell/category-glyphs";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -381,7 +381,9 @@ export function AdminCategoriesPage() {
       cell: (row) => {
         // C5i PART B.1 — the row's chosen glyph, rendered before the name in
         // BOTH twins. An unknown/missing icon resolves to Package.
-        const Glyph = categoryGlyph(row.icon);
+        // UX-2 PART 1 — catch-alls carry the fixed "more" glyph; every other
+        // row resolves its stored name against the ONE allowlist.
+        const { Glyph, iconName } = categoryRowGlyph(row.icon, row.isCatchall);
         return (
           <span className="flex min-w-0 items-start gap-2">
             {/* FIX-SCAN-1 ISSUE 4 — `data-icon` names what actually rendered:
@@ -390,7 +392,7 @@ export function AdminCategoriesPage() {
             <Glyph
               aria-hidden="true"
               data-testid={`category-icon-${row.slug}`}
-              data-icon={isKnownCategoryIcon(row.icon) ? row.icon?.trim() : "Package"}
+              data-icon={iconName}
               className="mt-0.5 size-4 shrink-0 text-muted-foreground"
             />
             <span className="block min-w-0">
@@ -452,20 +454,34 @@ export function AdminCategoriesPage() {
       key: "status",
       header: t("admin.categories.col.status"),
       priority: ROSTER_COLUMN_PRIORITIES.status,
-      cell: (row) =>
-        row.isActive
-          ? tipBadge(
-              "secondary",
-              t("admin.categories.badge.active"),
-              t("admin.categories.tip.active"),
-            )
-          : tipBadge(
-              "destructive",
-              t("admin.categories.badge.inactive"),
-              // The exact Retired description: a retired node keeps its history
-              // and its browse pointers, but no new listing can be posted to it.
-              t("admin.categories.tip.retired"),
-            ),
+      cell: (row) => {
+        if (!row.isActive) {
+          return tipBadge(
+            "destructive",
+            t("admin.categories.badge.inactive"),
+            // The exact Retired description: a retired node keeps its history
+            // and its browse pointers, but no new listing can be posted to it.
+            t("admin.categories.tip.retired"),
+          );
+        }
+        /**
+         * UX-2 PART 3 — A FUTURE WINDOW IS ITS OWN STATUS. An active row whose
+         * `visible_from` has not arrived is NOT live in browse, so calling it
+         * "Active" was a lie the era walk caught. Both twins read Scheduled.
+         */
+        if (row.visibleFrom !== null && Date.parse(row.visibleFrom) > Date.now()) {
+          return tipBadge(
+            "outline",
+            t("admin.categories.badge.scheduled"),
+            t("admin.categories.tip.scheduled"),
+          );
+        }
+        return tipBadge(
+          "secondary",
+          t("admin.categories.badge.active"),
+          t("admin.categories.tip.active"),
+        );
+      },
     },
     {
       key: "flags",
