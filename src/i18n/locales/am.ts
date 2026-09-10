@@ -780,7 +780,7 @@ export const am: Messages = {
   "admin.categories.badge.active": "ንቁ",
   "admin.categories.badge.listings": "ዝርዝሮችን ይቀበላል",
   "admin.categories.badge.price": "ዋጋ",
-  "admin.categories.badge.window": "የተያዘለት",
+  "admin.categories.badge.window": "የቀን ክልል",
   "admin.categories.badge.scheduled": "መርሐ የተያዘለት",
   "admin.categories.badge.missingAssets": "ንብረቶች ይጎድላሉ",
   "admin.categories.tip.active": "በአሰሳ ውስጥ ንቁ ነው፦ ገዢዎች ሊደርሱበት እና ሻጮች ሊለጥፉበት ይችላሉ።",

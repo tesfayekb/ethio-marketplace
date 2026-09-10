@@ -127,6 +127,14 @@ type DialogState =
  * serves the pointer, `aria-label` serves the screen reader; the visible text
  * stays the short chip so a 360px row still reads.
  */
+/**
+ * UX-2 PART 3 — SCHEDULED IS A STATUS, computed in one place so the status
+ * column and the flags column can never disagree (or repeat the same word).
+ */
+function isScheduled(row: { visibleFrom: string | null }): boolean {
+  return row.visibleFrom !== null && Date.parse(row.visibleFrom) > Date.now();
+}
+
 function tipBadge(
   variant: "secondary" | "destructive" | "outline",
   label: string,
@@ -469,7 +477,7 @@ export function AdminCategoriesPage() {
          * `visible_from` has not arrived is NOT live in browse, so calling it
          * "Active" was a lie the era walk caught. Both twins read Scheduled.
          */
-        if (row.visibleFrom !== null && Date.parse(row.visibleFrom) > Date.now()) {
+        if (isScheduled(row)) {
           return tipBadge(
             "outline",
             t("admin.categories.badge.scheduled"),
@@ -516,7 +524,12 @@ export function AdminCategoriesPage() {
                 t("admin.categories.tip.price"),
               )
             : null}
-          {row.isActive && (row.visibleFrom || row.visibleUntil)
+          {/*
+            UX-2 PART 3 — the STATUS owns "Scheduled". A row whose window has
+            not opened already says so in its status, so the flag would be the
+            same word twice; it is rendered only for the other window shapes.
+          */}
+          {row.isActive && (row.visibleFrom || row.visibleUntil) && !isScheduled(row)
             ? tipBadge(
                 "outline",
                 t("admin.categories.badge.window"),

@@ -491,3 +491,13 @@ bytes and decodes PNG through `pngjs`. `raster.test.ts` is the standing proof �
 the pipeline's own PNG, a foreign-encoder PNG with no alpha channel
 (`scripts/fixtures/category-image-provider.png`), and the full card/thumb/og
 pipeline over PNG bytes. Verified working; no code change.
+
+## UX-2 — the roster's status and flags never repeat a word
+
+`Scheduled` is a STATUS: an active row whose `visible_from` has not arrived is
+not live in browse, so both twins read Scheduled instead of Active
+(`isScheduled()` is the single predicate; CT-4 asserts the badge). The FLAG that
+marks a date window is rendered only for the other window shapes — a scheduled
+row would otherwise carry the same word twice, and the runtime catalog (D3: the
+DB is truth for UI strings) can give the two keys the same value, so the roster
+suppresses the duplicate at the source rather than depending on the wording.

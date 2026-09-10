@@ -1964,3 +1964,14 @@ Fix: the duplicate-key check tracks direct rows only (IE-6).
 
 Empty read-only cells were reported as edits. Fix: an empty read-only cell
 means "not provided" and is silent (IE-6).
+
+## INC-183 — a migration patched a function body by text anchor (second occurrence)
+
+The IE-8 rename detector was inserted into `attr_import_plan` by exact-text
+(`20260910042749_afcb289a`) and then by regex (`20260910045047_1dce2042`)
+against the live definition; the first failed on staging because prod and
+staging differed by whitespace. LAW (frozen 2026-09-10): a migration NEVER
+patches a function body by anchor, flexible or not — it re-declares the
+function whole with `CREATE OR REPLACE`, restates its closers and reads back
+its definition and ACL in-file. Closed by `20260910053535_40e4ab7d`, the whole
+re-declaration; no anchored patch remains in the lineage.
