@@ -9,7 +9,7 @@ pull request targeting `main`. All jobs run in parallel.
 | --------------- | ----------------------------------------------------------------------- | -------- |
 | build-and-check | `bun install` → `bun run typecheck` → `bun run lint` → `bun run build`. | **FAIL** |
 | bundle-report   | Prints total client JS output size after build (informational).         | log-only |
-| secrets-scan    | `gitleaks/gitleaks-action@v2` — scans repo history for leaked secrets.  | **FAIL** |
+| secrets-scan    | `gitleaks/gitleaks-action@v3` — scans repo history for leaked secrets.  | **FAIL** |
 | migration-lint  | Runs `scripts/check-migrations.sh` (see below).                         | **FAIL** |
 | string-scan     | Runs `scripts/check-hardcoded-strings.sh`.                              | **WARN** |
 
