@@ -182,3 +182,32 @@ This is a CLASS rule, not one bug's patch — a stringified object reaching the
 screen (the attributes Options column joined its option objects) is the same
 defect family as an undefined slot or a NaN price. The failure names the token
 and dumps the first 2 000 characters of the page text.
+
+## DEC-048 — the `E2E_UI_LOGIN` knob is deleted
+
+DEC-029 landed session injection behind a pre-committed revert knob:
+`E2E_UI_LOGIN=1` sent every caller back to the real UI door. DEC-041 (amended)
+then made the routing unconditional — the job-scoped identity pool ALWAYS
+injects in node, while private mints (`mintPrivateSuperAdmin`, `switchUser`,
+`signIn`) and the auth specs ALWAYS drive the real form. From that landing the
+knob could no longer revert anything: nothing read it except
+`sessionInjectionEnabled()`, which itself had no caller outside
+`e2e/helpers/session.ts`.
+
+Deleted in this landing:
+
+- `E2E_UI_LOGIN: "1"` from all four E2E jobs in `.github/workflows/ci.yml`
+  (`nightly-e2e.yml` never set it);
+- `E2E_UI_LOGIN=1` from the mirrored runtime env of `e2e:local` in
+  `package.json`, so the local run and CI stay byte-comparable;
+- `sessionInjectionEnabled()`, plus the now-dead `uiLoginForced()` and
+  `isAuthSpec()` it alone consumed, from `e2e/helpers/session.ts`.
+
+Nothing else in the workflows changed. The LAW that auth specs prove the door
+with real flows is unchanged — it is now carried by the call sites (DEC-041),
+not by a path-sniffing predicate.
+
+FROZEN RULE (pre-committed with this DEC): the next push run and the next
+nightly must be green with the knob gone. Any behaviour change in a
+`@private-identity` test reverts this DEC in full — restore the four workflow
+lines, the `e2e:local` env entry and the three helpers as one revert.
