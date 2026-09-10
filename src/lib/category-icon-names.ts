@@ -136,3 +136,9 @@ export type CategoryIconName = (typeof CATEGORY_ICON_NAMES)[number];
 
 /** The refusal-proof fallback: always a valid lucide name. */
 export const FALLBACK_ICON_NAME = "Package";
+
+/**
+ * UX-2 PART 1 — every catch-all renders ONE glyph, whatever its stored name is:
+ * "Other …" means the same thing everywhere in the taxonomy.
+ */
+export const CATCHALL_ICON_NAME = "MoreHorizontal";

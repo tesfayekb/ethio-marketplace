@@ -118,6 +118,7 @@ import {
 } from "lucide-react";
 
 import {
+  CATCHALL_ICON_NAME,
   CATEGORY_ICON_NAMES,
   FALLBACK_ICON_NAME,
   type CategoryIconName,
@@ -255,16 +256,9 @@ export function categoryGlyph(name: string | null | undefined): LucideIcon {
 }
 
 /**
- * UX-2 PART 1 — THE CATCH-ALL GLYPH IS FIXED.
- *
- * Every "Other …" node means the same thing wherever it appears, so it renders
- * one glyph — the overflow ellipsis — whatever its stored name says. The census
- * of the live catalog (155 categories, 101 distinct icon names, zero misses
- * against the allowlist) found all fourteen catch-alls already storing
- * `MoreHorizontal`; this makes that agreement a rule rather than a coincidence.
+ * UX-2 PART 1 — THE CATCH-ALL GLYPH IS FIXED (the name lives in the allowlist
+ * module so tests and the server can read it without importing lucide).
  */
-export const CATCHALL_ICON_NAME = "MoreHorizontal";
-
 /** The glyph a roster row renders: the catch-all glyph wins over the stored name. */
 export function categoryRowGlyph(
   name: string | null | undefined,
@@ -283,4 +277,4 @@ export function isKnownCategoryIcon(name: string | null | undefined): boolean {
   return (CATEGORY_ICON_NAMES as readonly string[]).includes(name.trim());
 }
 
-export { FALLBACK_ICON_NAME };
+export { CATCHALL_ICON_NAME, FALLBACK_ICON_NAME };

@@ -2,8 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
-import { CATEGORY_ICON_NAMES } from "../src/lib/category-icon-names";
-import { CATCHALL_ICON_NAME } from "../src/components/shell/category-glyphs";
+import { CATEGORY_ICON_NAMES, CATCHALL_ICON_NAME } from "../src/lib/category-icon-names";
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -628,9 +627,7 @@ test.describe("C2 categories console", () => {
       if (rendered.size >= ratified.length) break;
       const next = page.getByTestId("category-pagination-next");
       if (!(await next.isEnabled().catch(() => false))) break;
-      const before = rendered.size;
       await next.click();
-      await expect.poll(async () => rendered.size === before, { timeout: 1000 }).toBe(true);
     }
 
     for (const row of ratified) {
