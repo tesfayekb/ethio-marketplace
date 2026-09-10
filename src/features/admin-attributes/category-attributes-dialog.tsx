@@ -460,7 +460,15 @@ export function CategoryAttributesDialog({
       </div>
 
       <AttributeErrorLine message={message} />
-      <div className="flex justify-end">
+      {/* UX-2 PART 5 — there is nothing left to submit, so the footer says
+          Done and states the law it obeys: every change is already written. */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p
+          className="text-xs text-muted-foreground"
+          data-testid="category-attributes-autosave"
+        >
+          {t("admin.attributes.links.autosave")}
+        </p>
         <Button
           type="button"
           variant="outline"
@@ -468,7 +476,7 @@ export function CategoryAttributesDialog({
           data-testid="category-attributes-close"
           onClick={onClose}
         >
-          {t("common.close")}
+          {t("admin.attributes.links.done")}
         </Button>
       </div>
     </CategoryModal>
