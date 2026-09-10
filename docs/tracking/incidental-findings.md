@@ -1947,3 +1947,20 @@ subset run had masked: `lang-public-zxa` exists in BOTH DataTable twins, so a
 bare testid was a strict-mode violation; the switch and its gate caption are now
 read through `langRow(...)` per twin (J5). Proof: the mandatory closure run
 across all three families on both projects — 211 passed, 7 skipped, 0 failed.
+
+## INC-179 — (2026-09-09, IE-5b)
+
+A migration file was deleted after it had applied on the connected project;
+restored byte-identical. Law: migration files are never deleted or edited once
+applied anywhere — a failed-elsewhere migration is superseded by a corrective
+that heals its mark.
+
+## INC-180 — (2026-09-09, IE-6)
+
+Inherited echo rows collided with new direct rows in the duplicate-key check.
+Fix: the duplicate-key check tracks direct rows only (IE-6).
+
+## INC-181 — (2026-09-09, IE-6)
+
+Empty read-only cells were reported as edits. Fix: an empty read-only cell
+means "not provided" and is silent (IE-6).
