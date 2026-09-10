@@ -70,5 +70,5 @@ Prod = published site (human testers). Staging = ethio-staging (automated suite 
 
 ## Current position
 
-Phase: S35 closed 2026-09-08. Board: green on push and nightly; shards 4–7 min; judges 57014 = 0, auth errors = 0 across consecutive runs. Staging: Pro plan, Small compute; migration mark 20260908130000. Catalog surfaces complete: categories console (C2/C5), attributes console (C3), inherited rows (DEC-044), dependent options (DEC-045), export/import for both with preview → confirm → undo (IE-1…IE-4b), column classes and guided refusals (IE-3/3b/3c). Open: INC-174 (local-only), DEC-042 (candidate), the knob deletion from workflows (harness DEC), C3-UX-3 (option-value translations), C3-UX-4 (other-text capture). NEXT: the catalog curation thread (see the 2026-09-08 handoff), then the C3 era gate four-lens review, then U6 Posting per roadmap.
-Current position: C3 era CLOSED 2026-09-09 (four-lens review: reviews/c3-era-gate.md); catalog surfaces complete incl. the import gate; Vehicles curated; curation thread active (Real Estate next); open: DEC-048, INC-174, C3-UX-3/4.
+
+Current position: C3 era CLOSED 2026-09-09 (four-lens review: reviews/c3-era-gate.md); catalog surfaces complete incl. the import gate; Vehicles curated; curation thread active (Real Estate next); open: DEC-048, INC-174, C3-UX-3/4. Handoff imported 2026-09-10. NEXT: DEC-049 → INC-174 → U6 spec session.

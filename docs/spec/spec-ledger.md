@@ -1230,3 +1230,7 @@ INC-181 — Empty read-only cells reported as edits (IE-6: empty means "not prov
 INC-182 — TR-19/TR-30 anchored on page-one ordering and a bare twin testid; fixed at the anchor (J5/J7).
 Scanner findings 1–5 (2026-09-09): resolved at their roots — atomic admin_update_attribute_link (AT-42), guard cancel contract (MF-7b/c), export follows the catalog (TR-33), one icon allowlist (CT-29), image generation verified working by a captured-fixture unit test.
 Vehicles curation (2026-09-08/09): imported through preview → confirm; D1 overruled the handoff (Cars flat + body_style); the Vehicles root carries zero direct links; every listing category except Auto Services (deferred) has its card attributes; inheritance follows primary lineage only (INH-1).
+
+DEC-049 (candidate, 2026-09-10) — Bump GitHub Actions `actions/cache`, `actions/upload-artifact`, `actions/download-artifact` and `gitleaks-action` to their Node-24-native major versions; pre-committed rule: next push + nightly green, else revert.
+
+INC-183 (2026-09-10) — A migration patched a function body by text anchor (second occurrence). LAW: a migration NEVER patches a function body by anchor, flexible or not — it re-declares the function whole with `CREATE OR REPLACE`, restates its closers and reads back its definition and ACL in-file. Closed by `20260910053535_40e4ab7d`; no anchored patch remains in the lineage.
