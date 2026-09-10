@@ -838,111 +838,131 @@ export function AdminCategoriesPage() {
               <p className="text-sm text-muted-foreground">{t("admin.categories.empty")}</p>
             }
             toolbar={
+              /**
+               * UX-2 PART 2 — THE TOOLBAR READS IN GROUPS, not as a row of
+               * unrelated buttons: [find] · [assets] · [transfer]. Each group is
+               * its own wrapping flex row so the 360px twin stacks by meaning
+               * rather than by accident; logical spacing only (C5).
+               */
               <>
-                <Input
-                  data-testid="category-search"
-                  className="md:w-72"
-                  placeholder={t("admin.categories.searchPlaceholder")}
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-                <select
-                  data-testid="category-root-filter"
-                  aria-label={t("admin.categories.filter.root")}
-                  className={`${SELECT_CLASS} md:w-64`}
-                  value={rootFilter}
-                  onChange={(event) => setRootFilter(event.target.value)}
+                <div
+                  data-testid="category-toolbar-find"
+                  className="flex flex-wrap items-center gap-2"
                 >
-                  <option value="">{t("admin.categories.filter.allRoots")}</option>
-                  {roots.map((row) => (
-                    <option key={row.id} value={row.id}>
-                      {`${row.nameEn} (${rootCounts.get(row.id) ?? 0})`}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  type="button"
-                  variant={missingOnly ? "default" : "outline"}
-                  size="touch"
-                  aria-pressed={missingOnly}
-                  data-testid="category-missing-filter"
-                  onClick={() => setMissingOnly((prev) => !prev)}
+                  <Input
+                    data-testid="category-search"
+                    className="md:w-72"
+                    placeholder={t("admin.categories.searchPlaceholder")}
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                  <select
+                    data-testid="category-root-filter"
+                    aria-label={t("admin.categories.filter.root")}
+                    className={`${SELECT_CLASS} md:w-64`}
+                    value={rootFilter}
+                    onChange={(event) => setRootFilter(event.target.value)}
+                  >
+                    <option value="">{t("admin.categories.filter.allRoots")}</option>
+                    {roots.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {`${row.nameEn} (${rootCounts.get(row.id) ?? 0})`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div
+                  data-testid="category-toolbar-assets"
+                  className="flex flex-wrap items-center gap-2"
                 >
-                  {t("admin.categories.filter.missingAssets")}
-                </Button>
-                {/* CAT-IE — export honours the root filter; import is gated. */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
-                  data-testid="category-export"
-                  disabled={exporting}
-                  onClick={() => void runExport()}
+                  <Button
+                    type="button"
+                    variant={missingOnly ? "default" : "outline"}
+                    size="touch"
+                    aria-pressed={missingOnly}
+                    data-testid="category-missing-filter"
+                    onClick={() => setMissingOnly((prev) => !prev)}
+                  >
+                    {t("admin.categories.filter.missingAssets")}
+                  </Button>
+                  {mayAssets ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="touch"
+                      data-testid="category-bulk-generate"
+                      /* DEC-032 — the spend cap is stated where it is spent. */
+                      title={t("admin.categories.bulk.generateHint")}
+                      disabled={bulkBusy}
+                      onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
+                    >
+                      {t("admin.categories.bulk.generateMissing")}
+                    </Button>
+                  ) : null}
+                  {bulkProgress === null ? null : (
+                    <p
+                      role="status"
+                      aria-live="polite"
+                      data-testid="category-bulk-progress"
+                      className="self-center text-sm text-muted-foreground"
+                    >
+                      {`${t("admin.categories.bulk.progress")} ${bulkProgress.done}/${bulkProgress.total}`}
+                    </p>
+                  )}
+                  {bulkSummary === null ? null : (
+                    <p
+                      role="status"
+                      data-testid="category-bulk-summary"
+                      className="self-center text-sm text-muted-foreground"
+                    >
+                      {bulkSummary}
+                    </p>
+                  )}
+                </div>
+                <div
+                  data-testid="category-toolbar-transfer"
+                  className="flex flex-wrap items-center gap-2"
                 >
-                  <Download aria-hidden="true" className="size-4" />
-                  <span>
-                    {exporting
-                      ? t("admin.categories.export.busy")
-                      : t("admin.categories.export.open")}
-                  </span>
-                </Button>
-                {mayImport ? (
+                  {/* CAT-IE — export honours the root filter; import is gated. */}
                   <Button
                     type="button"
                     variant="outline"
                     size="touch"
-                    data-testid="category-import"
-                    onClick={() => setDialog({ kind: "import" })}
+                    data-testid="category-export"
+                    disabled={exporting}
+                    onClick={() => void runExport()}
                   >
-                    <Upload aria-hidden="true" className="size-4" />
-                    <span>{t("admin.categories.import.open")}</span>
+                    <Download aria-hidden="true" className="size-4" />
+                    <span>
+                      {exporting
+                        ? t("admin.categories.export.busy")
+                        : t("admin.categories.export.open")}
+                    </span>
                   </Button>
-                ) : null}
-                {exportError ? (
-                  <p
-                    role="alert"
-                    className="text-sm text-destructive"
-                    data-testid="category-export-error"
-                  >
-                    {t("admin.categories.export.error")}
-                  </p>
-                ) : null}
-                {mayAssets ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    data-testid="category-bulk-generate"
-                    disabled={bulkBusy}
-                    onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
-                  >
-                    {t("admin.categories.bulk.generateMissing")}
-                  </Button>
-                ) : null}
-                {bulkProgress === null ? null : (
-                  <p
-                    role="status"
-                    aria-live="polite"
-                    data-testid="category-bulk-progress"
-                    className="self-center text-sm text-muted-foreground"
-                  >
-                    {`${t("admin.categories.bulk.progress")} ${bulkProgress.done}/${bulkProgress.total}`}
-                  </p>
-                )}
-                {bulkSummary === null ? null : (
-                  <p
-                    role="status"
-                    data-testid="category-bulk-summary"
-                    className="self-center text-sm text-muted-foreground"
-                  >
-                    {bulkSummary}
-                  </p>
-                )}
+                  {mayImport ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="touch"
+                      data-testid="category-import"
+                      onClick={() => setDialog({ kind: "import" })}
+                    >
+                      <Upload aria-hidden="true" className="size-4" />
+                      <span>{t("admin.categories.import.open")}</span>
+                    </Button>
+                  ) : null}
+                  {exportError ? (
+                    <p
+                      role="alert"
+                      className="text-sm text-destructive"
+                      data-testid="category-export-error"
+                    >
+                      {t("admin.categories.export.error")}
+                    </p>
+                  ) : null}
+                </div>
                 {bulkFailures.length === 0 ? null : (
-                  <ul
-                    data-testid="category-bulk-failures"
-                    className="w-full text-sm text-destructive"
-                  >
+                  <ul data-testid="category-bulk-failures" className="w-full text-sm text-destructive">
                     {bulkFailures.map((line) => (
                       <li key={line}>{line}</li>
                     ))}

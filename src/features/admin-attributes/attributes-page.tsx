@@ -490,82 +490,93 @@ export function AdminAttributesPage() {
               </p>
             }
             toolbar={
+              /* UX-2 PART 2 — grouped: [find] · [transfer]. */
               <>
-                <Input
-                  data-testid="attribute-search"
-                  className="md:w-72"
-                  placeholder={t("admin.attributes.searchPlaceholder")}
-                  value={needleInput}
-                  onChange={(event) => {
-                    setNeedleInput(event.target.value);
-                    setOffset(0);
-                  }}
-                />
-                <select
-                  data-testid="attribute-category-filter"
-                  aria-label={t("admin.attributes.filter.category")}
-                  className={`${SELECT_CLASS} md:w-72`}
-                  value={filterCategory?.slug ?? ""}
-                  onChange={(event) => chooseCategory(event.target.value)}
+                <div
+                  data-testid="attribute-toolbar-find"
+                  className="flex flex-wrap items-center gap-2"
                 >
-                  <option value="">{t("admin.attributes.filter.allCategories")}</option>
-                  {categories.map((row) => (
-                    <option key={row.id} value={row.slug}>
-                      {`${"· ".repeat(row.depth)}${row.nameEn}`}
-                    </option>
-                  ))}
-                </select>
-                {filterCategory === null ? null : (
+                  <Input
+                    data-testid="attribute-search"
+                    className="md:w-72"
+                    placeholder={t("admin.attributes.searchPlaceholder")}
+                    value={needleInput}
+                    onChange={(event) => {
+                      setNeedleInput(event.target.value);
+                      setOffset(0);
+                    }}
+                  />
+                  <select
+                    data-testid="attribute-category-filter"
+                    aria-label={t("admin.attributes.filter.category")}
+                    className={`${SELECT_CLASS} md:w-72`}
+                    value={filterCategory?.slug ?? ""}
+                    onChange={(event) => chooseCategory(event.target.value)}
+                  >
+                    <option value="">{t("admin.attributes.filter.allCategories")}</option>
+                    {categories.map((row) => (
+                      <option key={row.id} value={row.slug}>
+                        {`${"· ".repeat(row.depth)}${row.nameEn}`}
+                      </option>
+                    ))}
+                  </select>
+                  {filterCategory === null ? null : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="touch"
+                      data-testid="attribute-category-clear"
+                      onClick={() => chooseCategory("")}
+                    >
+                      {t("admin.attributes.filter.clear")}
+                    </Button>
+                  )}
+                </div>
+                <div
+                  data-testid="attribute-toolbar-transfer"
+                  className="flex flex-wrap items-center gap-2"
+                >
+                  {/* IE-1 — never disabled on an empty filter: the export is the
+                      whole library, not the current view. */}
                   <Button
                     type="button"
                     variant="outline"
                     size="touch"
-                    data-testid="attribute-category-clear"
-                    onClick={() => chooseCategory("")}
+                    data-testid="attribute-export"
+                    disabled={exporting}
+                    onClick={() => void runExport()}
                   >
-                    {t("admin.attributes.filter.clear")}
+                    <Download aria-hidden="true" className="size-4" />
+                    <span>
+                      {exporting
+                        ? t("admin.attributes.export.busy")
+                        : t("admin.attributes.export.open")}
+                    </span>
                   </Button>
-                )}
-                {/* IE-1 — never disabled on an empty filter: the export is the
-                    whole library, not the current view. */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
-                  data-testid="attribute-export"
-                  disabled={exporting}
-                  onClick={() => void runExport()}
-                >
-                  <Download aria-hidden="true" className="size-4" />
-                  <span>
-                    {exporting
-                      ? t("admin.attributes.export.busy")
-                      : t("admin.attributes.export.open")}
-                  </span>
-                </Button>
-                {/* IE-2 — the import door is its own permission; UI hiding is
-                    convenience only, the route and RPCs refuse regardless. */}
-                {mayImport ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    data-testid="attribute-import"
-                    onClick={() => setDialog({ kind: "import" })}
-                  >
-                    <Upload aria-hidden="true" className="size-4" />
-                    <span>{t("admin.attributes.import.open")}</span>
-                  </Button>
-                ) : null}
-                {exportError ? (
-                  <p
-                    role="alert"
-                    className="text-sm text-destructive"
-                    data-testid="attribute-export-error"
-                  >
-                    {t("admin.attributes.export.error")}
-                  </p>
-                ) : null}
+                  {/* IE-2 — the import door is its own permission; UI hiding is
+                      convenience only, the route and RPCs refuse regardless. */}
+                  {mayImport ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="touch"
+                      data-testid="attribute-import"
+                      onClick={() => setDialog({ kind: "import" })}
+                    >
+                      <Upload aria-hidden="true" className="size-4" />
+                      <span>{t("admin.attributes.import.open")}</span>
+                    </Button>
+                  ) : null}
+                  {exportError ? (
+                    <p
+                      role="alert"
+                      className="text-sm text-destructive"
+                      data-testid="attribute-export-error"
+                    >
+                      {t("admin.attributes.export.error")}
+                    </p>
+                  ) : null}
+                </div>
               </>
             }
             pagination={
