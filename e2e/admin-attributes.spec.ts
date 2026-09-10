@@ -1635,6 +1635,44 @@ test.describe("C3 attributes console", () => {
     }
   });
 
+  /**
+   * AT-43 (UX-2 PART 6 / IE-8) — THE RENAME DETECTOR. A file that introduces a
+   * new key carrying an existing definition's label, type and options while
+   * dropping that definition is renaming an IDENTITY, not adding an attribute:
+   * it is refused, the old key is named in the guidance, and nothing is planned.
+   */
+  test("AT-43 a renamed key is refused and names the key to restore", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const oldKey = `e2e_attr_${rand()}`;
+    const newKey = `e2e_attr_${rand()}`;
+    try {
+      await seedAttribute(oldKey);
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      // Same label_en, same type, same (empty) options — and `oldKey` absent.
+      const definitions =
+        `${DEF_HEADER}\r\n` + [newKey, oldKey, "", "text", "", "", "", "0"].join(",") + "\r\n";
+
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const refusals = preview.payload["refusals"] as Record<string, unknown>[];
+      const rename = refusals.find((row) => row["reason"] === "keyRename");
+      expect(rename, `AT-43 no rename refusal: ${JSON.stringify(refusals)}`).toBeTruthy();
+      expect(rename!["detail"], "AT-43 the refusal names the key to restore").toBe(oldKey);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(counts.adds, JSON.stringify(counts)).toBe(0);
+      expect(await readAttribute(newKey), "AT-43 the preview wrote nothing").toBeNull();
+    } finally {
+      await destroyAttribute(newKey);
+      await destroyAttribute(oldKey);
+    }
+  });
+
   /** AT-21 — a real change previews, commits and then UNDOES to the old row. */
   test("AT-21 a changed link commits and the batch undoes", async ({ page }) => {
     test.setTimeout(180_000);
@@ -2463,6 +2501,11 @@ test.describe("C3 attributes console", () => {
       // THE TOGGLE.
       await page.getByTestId(`category-attribute-required-${key}`).click();
       await stepUpIfPrompted(page, secret);
+      // UX-2 PART 5 — the atomic write announces itself beside the toggle.
+      await expect(
+        page.getByTestId(`category-attribute-required-saved-${key}`),
+        "AT-42 the toggle never reported Saved",
+      ).toBeVisible({ timeout: 20000 });
       await expect
         .poll(async () => (await readLinks(scratch!.id))[0]?.is_required ?? null, {
           timeout: 20000,
