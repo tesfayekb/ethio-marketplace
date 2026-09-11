@@ -71,4 +71,4 @@ Prod = published site (human testers). Staging = ethio-staging (automated suite 
 ## Current position
 
 
-Current position: C3 era CLOSED 2026-09-09 (four-lens review: reviews/c3-era-gate.md); catalog surfaces complete incl. the import gate; Vehicles curated; curation thread active (Real Estate next). 2026-09-10 (S36): DEC-048 RATIFIED; DEC-049 LANDED at c6e5fe5 (push green, promoted; nightly judge 2026-09-11 pending); Knowledge v3.8 installed and mirrored. Open: INC-174, C3-UX-3/4, DEC-049b, INC-184/185/186, ACT-C3-1. NEXT: INC-174 → Real Estate curation import → U6 spec session.
+Current position: C3 era CLOSED 2026-09-09 (four-lens review: reviews/c3-era-gate.md); catalog surfaces complete incl. the import gate; Vehicles curated; curation thread active (Real Estate next). 2026-09-10/11 (S36): DEC-048 and DEC-049 RATIFIED (judges met); INC-174 CLOSED (cause identified, no code change); Knowledge v3.8 installed and mirrored. Open: C3-UX-3/4, DEC-049b, INC-184/185/186, ACT-C3-1/2, C4 tags disposition. NEXT: Real Estate curation import → remaining curation passes → Locations era spec session (DEC-033) + posting-prerequisites census → U6 Posting.
