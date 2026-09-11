@@ -283,7 +283,7 @@ export function AdminCategoriesPage() {
   const filtered = useMemo(
     () =>
       roster.filter((row) => {
-        if (rootFilter !== "" && rootOf(row) !== rootFilter) return false;
+        if (rootFilter !== "" && !inSubtree(row, rootFilter)) return false;
         if (missingOnly && !missingAssets(row)) return false;
         if (needle === "") return true;
         const parentName =
