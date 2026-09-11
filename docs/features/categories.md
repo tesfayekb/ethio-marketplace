@@ -425,7 +425,7 @@ CT-20 retire/reactivate with both audit rows; CT-21 the refusals; CT-22 a
 `categories:view`-only operator (no control, 403, 401 without a bearer);
 CT-23 a commit without step-up (428 / P0009, nothing written) · CT-30 order
 lands as the file's sequence, a created row takes its place, a catch-all stays
-pinned, undo restores it.
+pinned, undo restores it. · CT-31 the filter groups children under their parent, marks retired rows and scopes the roster to a subtree
 
 ## IE-3 — column classes (categories)
 
