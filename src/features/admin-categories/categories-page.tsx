@@ -874,10 +874,19 @@ export function AdminCategoriesPage() {
                     value={rootFilter}
                     onChange={(event) => setRootFilter(event.target.value)}
                   >
-                    <option value="">{t("admin.categories.filter.allRoots")}</option>
-                    {roots.map((row) => (
-                      <option key={row.id} value={row.id}>
-                        {`${row.nameEn} (${rootCounts.get(row.id) ?? 0})`}
+                    <option value="">{t("admin.categories.filter.allCategories")}</option>
+                    {filterOptions.map((row) => (
+                      <option
+                        key={row.id}
+                        value={row.id}
+                        data-depth={row.depth}
+                        data-parent-id={row.parentId ?? ""}
+                        {...(row.isActive ? {} : { "data-retired": "true" })}
+                        className={row.isActive ? undefined : "text-muted-foreground"}
+                      >
+                        {`${row.label} (${rootCounts.get(row.id) ?? 0})${
+                          row.isActive ? "" : ` — ${t("admin.categories.filter.retired")}`
+                        }`}
                       </option>
                     ))}
                   </select>
