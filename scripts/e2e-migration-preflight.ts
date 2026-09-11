@@ -60,8 +60,45 @@ function versionOf(filename: string): string {
 export function declaredMark(filename: string): string {
   const sql = readFileSync(join(MIGRATIONS_DIR, filename), "utf8");
   const marks = [...sql.matchAll(/migration_marks[^;]*?'(\d{14})'/gi)].map((m) => m[1]!);
-  if (marks.length === 0) return versionOf(filename);
-  return marks.sort()[marks.length - 1]!;
+  const own = marks.length === 0 ? versionOf(filename) : marks.sort()[marks.length - 1]!;
+  return healedMark(own);
+}
+
+/**
+ * DEC-022 HEALER LAW. A file cannot be edited after it is written, so a mark
+ * that violates monotonicity is corrected by a LATER migration that REWRITES
+ * the ledger row (`UPDATE public.migration_marks SET version = '<new>' WHERE
+ * version = '<old>'`). Parity must therefore compare against the healed value,
+ * not the literal the older file declares — otherwise a healed environment
+ * reads as "behind" forever. The remap is read from the migrations themselves,
+ * so it needs no allowlist upkeep, and is applied transitively.
+ */
+let healMap: Map<string, string> | null = null;
+
+function healRemaps(): Map<string, string> {
+  if (healMap) return healMap;
+  const map = new Map<string, string>();
+  const re =
+    /update\s+(?:public\.)?migration_marks\s+set\s+version\s*=\s*'(\d{14})'\s+where\s+version\s*=\s*'(\d{14})'/gi;
+  for (const file of localMigrations()) {
+    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+    for (const m of sql.matchAll(re)) map.set(m[2]!, m[1]!);
+  }
+  healMap = map;
+  return map;
+}
+
+function healedMark(mark: string): string {
+  const map = healRemaps();
+  let current = mark;
+  const seen = new Set<string>([current]);
+  while (map.has(current)) {
+    const next = map.get(current)!;
+    if (seen.has(next)) break;
+    seen.add(next);
+    current = next;
+  }
+  return current;
 }
 
 function serviceClient(): { client: SupabaseClient; url: string } {
