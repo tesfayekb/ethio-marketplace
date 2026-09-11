@@ -58,36 +58,60 @@ export type Database = {
           attr_key: string
           attr_type: string
           created_at: string
+          decimals: number | null
           depends_on: string | null
+          format: string | null
+          help_text_am: string | null
           help_text_en: string | null
           id: string
+          max_bound: string | null
+          max_length: number | null
+          min_bound: string | null
           name_am: string | null
           name_en: string
           options: Json | null
+          preset: string | null
+          unit: string | null
           updated_at: string
         }
         Insert: {
           attr_key: string
           attr_type: string
           created_at?: string
+          decimals?: number | null
           depends_on?: string | null
+          format?: string | null
+          help_text_am?: string | null
           help_text_en?: string | null
           id?: string
+          max_bound?: string | null
+          max_length?: number | null
+          min_bound?: string | null
           name_am?: string | null
           name_en: string
           options?: Json | null
+          preset?: string | null
+          unit?: string | null
           updated_at?: string
         }
         Update: {
           attr_key?: string
           attr_type?: string
           created_at?: string
+          decimals?: number | null
           depends_on?: string | null
+          format?: string | null
+          help_text_am?: string | null
           help_text_en?: string | null
           id?: string
+          max_bound?: string | null
+          max_length?: number | null
+          min_bound?: string | null
           name_am?: string | null
           name_en?: string
           options?: Json | null
+          preset?: string | null
+          unit?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1299,6 +1323,15 @@ export type Database = {
         Args: { p_lang: string }
         Returns: Json
       }
+      admin_attribute_option_coverage: {
+        Args: never
+        Returns: {
+          attr_key: string
+          attribute_id: string
+          options_total: number
+          options_with_am: number
+        }[]
+      }
       admin_audit_facets: {
         Args: never
         Returns: {
@@ -1875,11 +1908,19 @@ export type Database = {
         Args: {
           p_attr_key: string
           p_attr_type: string
+          p_decimals?: number
           p_depends_on?: string
+          p_format?: string
+          p_help_text_am?: string
           p_help_text_en: string
           p_id: string
+          p_max_bound?: string
+          p_max_length?: number
+          p_min_bound?: string
           p_name_en: string
           p_options: Json
+          p_preset?: string
+          p_unit?: string
         }
         Returns: string
       }
@@ -1922,6 +1963,25 @@ export type Database = {
         }
         Returns: undefined
       }
+      attr_bound_ok: { Args: { p_bound: string }; Returns: boolean }
+      attr_bound_value: { Args: { p_bound: string }; Returns: number }
+      attr_bounds_targets: { Args: { p_options: Json }; Returns: string[] }
+      attr_cats_expand: { Args: { p_cats: string[] }; Returns: string[] }
+      attr_cell_check: {
+        Args: {
+          p_decimals: number
+          p_format: string
+          p_help_am: string
+          p_help_en: string
+          p_max: string
+          p_max_length: number
+          p_min: string
+          p_preset: string
+          p_type: string
+          p_unit: string
+        }
+        Returns: string
+      }
       attr_dep_cycle: {
         Args: { p_id: string; p_parent: string }
         Returns: boolean
@@ -1938,7 +1998,17 @@ export type Database = {
       }
       attr_link_path: { Args: { p_cat: string }; Returns: string }
       attr_option_norm: { Args: { p_options: Json }; Returns: Json }
+      attr_option_norm_v2: { Args: { p_options: Json }; Returns: Json }
+      attr_option_shape: {
+        Args: { p_key: string; p_options: Json }
+        Returns: string
+      }
       attr_option_values: { Args: { p_id: string }; Returns: string[] }
+      attr_postplan_cats: {
+        Args: { p_key: string; p_links: Json }
+        Returns: string[]
+      }
+      attr_preset_ok: { Args: { p_preset: string }; Returns: boolean }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
         Returns: {
