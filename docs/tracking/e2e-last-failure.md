@@ -1,8 +1,106 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 34655856987 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34655856987
-- Commit: `66769420f510d55766c0522fa3b0373ed6488a1e`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34657130357
+- Commit: `a016153d4d0c0a0a148d13038028716e06b27273`
 - Attempt: 1
-- Written (UTC): 2026-09-11T23:01:27.725Z
+- Written (UTC): 2026-09-11T23:15:03.148Z
+- Passed: 66 · Skipped: 10 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Sources without results: smoke, shard 1, shard 2, shard 3, shard 4, shard 5
+
+## Server errors: smoke
+
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+
+## Client errors: smoke
+
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+
+## Server errors: shard 1
+
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
