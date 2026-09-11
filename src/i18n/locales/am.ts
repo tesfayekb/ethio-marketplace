@@ -805,6 +805,8 @@ export const am: Messages = {
   "admin.categories.col.parent": "ወላጅ",
   "admin.categories.filter.root": "በዋና ምድብ አጣራ",
   "admin.categories.filter.allRoots": "ሁሉም ዋና ምድቦች",
+  "admin.categories.filter.allCategories": "ሁሉም ምድቦች",
+  "admin.categories.filter.retired": "ተቋርጧል",
   "admin.categories.paths.title": "የአሰሳ መንገዶች",
   "admin.categories.paths.hint":
     "ይህ ምድብ በአሰሳ ዛፉ ውስጥ የሚታይባቸው ሁሉም ቦታዎች። መንገድን ማንቀሳቀስ ወይም ማስወገድ ምድቡን አያባዛም።",
