@@ -517,9 +517,18 @@ export function AdminAttributesPage() {
                     onChange={(event) => chooseCategory(event.target.value)}
                   >
                     <option value="">{t("admin.attributes.filter.allCategories")}</option>
-                    {categories.map((row) => (
-                      <option key={row.id} value={row.slug}>
-                        {`${"· ".repeat(row.depth)}${row.nameEn}`}
+                    {filterOptions.map((row) => (
+                      <option
+                        key={row.id}
+                        value={row.slug}
+                        data-depth={row.depth}
+                        data-parent-id={row.parentId ?? ""}
+                        {...(row.isActive ? {} : { "data-retired": "true" })}
+                        className={row.isActive ? undefined : "text-muted-foreground"}
+                      >
+                        {`${row.label}${
+                          row.isActive ? "" : ` — ${t("admin.categories.filter.retired")}`
+                        }`}
                       </option>
                     ))}
                   </select>
