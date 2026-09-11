@@ -276,8 +276,135 @@ export default async function migrationPreflight(dry = false): Promise<void> {
   }
 }
 
-// Direct CLI invocation: `bun scripts/e2e-migration-preflight.ts [--dry]`
+/* ------------------------------------------------------------------------- *
+ * DEC-054 — SELF-TEST. A guard that has never been shown to fail on bad input
+ * is not trusted. This mode points the real reader and the real healer logic at
+ * authored fixture migrations under scripts/fixtures/migration-healer/ and
+ * asserts the missing-count both ways round: the healed value is the truth, the
+ * literal is not. No network, no real ledger.
+ * ------------------------------------------------------------------------- */
+
+const FIXTURES_DIR = join(HERE, "fixtures", "migration-healer");
+
+type SelfTestCase = {
+  name: string;
+  dir: string;
+  ledger: string[];
+  expectMissing: string[];
+};
+
+/** Marks a fixture set declares BEFORE any healer remap is applied. */
+function literalMarks(dir: string): Set<string> {
+  const out = new Set<string>();
+  for (const file of readdirSync(dir).filter((f) => f.endsWith(".sql"))) {
+    const sql = readFileSync(join(dir, file), "utf8");
+    for (const m of sql.matchAll(/insert\s+into\s+(?:public\.)?migration_marks[^;]*?'(\d{14})'/gi)) {
+      out.add(m[1]!);
+    }
+  }
+  return out;
+}
+
+function useFixtureDir(dir: string): void {
+  MIGRATIONS_DIR = dir;
+  healMap = null; // recompute the remap from the fixture set
+}
+
+export function selfTest(): number {
+  const cases: SelfTestCase[] = [
+    {
+      name: "a. healed — ledger holds the healed value → 0 missing",
+      dir: "healed",
+      ledger: ["20260101000000", "20260102000000"],
+      expectMissing: [],
+    },
+    {
+      name: "a. healed — ledger holds the stale literal → 1 missing (bad input)",
+      dir: "healed",
+      ledger: ["20250101000000", "20260102000000"],
+      expectMissing: ["20260101000000_a-declares-below-stamp.sql"],
+    },
+    {
+      name: "b. unhealed — ledger holds neither → 1 missing (bad input)",
+      dir: "unhealed",
+      ledger: [],
+      expectMissing: ["20260101000000_a-declares-below-stamp.sql"],
+    },
+    {
+      name: "b. unhealed — ledger holds the literal, no healer → 0 missing",
+      dir: "unhealed",
+      ledger: ["20250101000000"],
+      expectMissing: [],
+    },
+    {
+      name: "c. transitive — ledger holds Y → 0 missing",
+      dir: "transitive",
+      ledger: ["20260103000000", "20260102000000", "20260104000000"],
+      expectMissing: [],
+    },
+    {
+      name: "c. transitive — ledger holds the intermediate X → 1 missing (bad input)",
+      dir: "transitive",
+      ledger: ["20260101000000", "20260102000000", "20260104000000"],
+      expectMissing: ["20260101000000_a-declares-below-stamp.sql"],
+    },
+    {
+      name: "d. unknown old mark — healer ignored, literal stands → 0 missing",
+      dir: "unknown-old-mark",
+      ledger: ["20250101000000", "20260102000000"],
+      expectMissing: [],
+    },
+  ];
+
+  let failures = 0;
+  for (const c of cases) {
+    const dir = join(FIXTURES_DIR, c.dir);
+    useFixtureDir(dir);
+    const missing = missingAgainstLedger(localMigrations(), c.ledger);
+    const ok =
+      missing.length === c.expectMissing.length && c.expectMissing.every((f) => missing.includes(f));
+    if (!ok) failures += 1;
+    console.log(
+      `${ok ? "OK  " : "FAIL"} ${c.name} — expected [${c.expectMissing.join(", ") || "none"}], got [${
+        missing.join(", ") || "none"
+      }]`,
+    );
+  }
+
+  // Case d also demands a WARNING: a remap whose old mark no fixture declares
+  // is announced, never silently applied.
+  const unknownDir = join(FIXTURES_DIR, "unknown-old-mark");
+  useFixtureDir(unknownDir);
+  const declared = literalMarks(unknownDir);
+  const orphans = [...healRemaps().keys()].filter((old) => !declared.has(old));
+  if (orphans.length === 0) {
+    failures += 1;
+    console.log("FAIL d. unknown old mark — expected an orphan remap to warn about, found none");
+  } else {
+    for (const old of orphans) {
+      console.log(
+        `WARN d. healer names an old mark no migration declares: '${old}' → '${healRemaps().get(old)}' (ignored)`,
+      );
+    }
+    console.log("OK   d. unknown old mark — orphan remap warned and not applied");
+  }
+
+  MIGRATIONS_DIR = REAL_MIGRATIONS_DIR;
+  healMap = null;
+
+  if (failures > 0) {
+    console.error(`[e2e:preflight] --self-test FAILED: ${failures} case(s).`);
+    return 1;
+  }
+  console.log(`[e2e:preflight] --self-test OK: ${cases.length + 1} case(s) passed.`);
+  return 0;
+}
+
+// Direct CLI invocation: `bun scripts/e2e-migration-preflight.ts [--dry|--self-test]`
 if (process.argv[1] && process.argv[1].includes("e2e-migration-preflight")) {
+  if (process.argv.includes("--self-test")) {
+    process.exit(selfTest());
+  }
   migrationPreflight(process.argv.includes("--dry")).catch((err: unknown) => {
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
