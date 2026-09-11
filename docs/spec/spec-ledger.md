@@ -1318,3 +1318,5 @@ Sequencing (operator directive 2026-09-11, supersedes the morning order): Electr
 Not built, by decision (so nobody re-derives them): a rule language for cross-attribute predicates; unit pickers; posting-form groups until a form walk asks; variants (`is_per_variant` stays, nothing built); `range`.
 
 NEXT: Electronics curation import (counts line before Confirm) → DEC-050 Pass-2 spec session → P1 landings → backfills → the eleven remaining passes → Locations era → U6.
+
+DEC-050 L1 LANDED (migration `20260911193208_d42d6246`, mark `20260911200000`): nine nullable definition cells, three optional option keys, `range` retired, one shared cell judge and one strict option shape serving both the upsert door and the import planner, bounds co-linkage judged LIVE at the door and POST-PLAN at the planner, cells diffed/committed/undone, and a gated Amharic option-coverage read. Additive: the door's new parameters default to NULL (15 args / 9 defaults; 7-argument callers resolve unchanged), no file format and no screen changes. L2 (gate/registry/export) and L3 (console) follow.

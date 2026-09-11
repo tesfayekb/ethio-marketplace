@@ -559,3 +559,53 @@ same authority the pair it replaces carried, deliberately NOT `categories:manage
 which would change who may edit a link — then captures the old row, updates, and
 audits `attribute.link_update`. `card_rank` and `display_order` are untouched.
 Unlink and the picker's link path are unchanged. Proof: AT-42.
+
+## DEC-050 L1 — definition v2 (schema and doors)
+
+Migration `20260911193208_d42d6246` adds nine nullable definition cells to
+`public.attributes` — `unit`, `min_bound`, `max_bound`, `decimals`, `format`,
+`preset`, `max_length`, `help_text_am` (with the existing `help_text_en`) —
+three optional option keys (`active`, `bounds`, `aliases`), and retires the dead
+`range` type (censused: zero rows carried it). Everything is additive: the
+door's eight new parameters default to NULL, so every 7-argument caller resolves
+unchanged, and no file format or screen changes until L2/L3.
+
+One judge, two callers. `attr_cell_check` decides every cell and returns
+`cell|reason|value`, so the door raises
+`admin.attributes.error.badCell:<cell>|<reason>|<value>` and the planner refuses
+with `reason=badCell` naming `cell`, `detail` and `value`. `attr_option_shape`
+is the strict option shape: the allowed keys are exactly `value`, `label_en`,
+`label_am`, `parent`, `active`, `bounds`, `aliases`; an unknown key, a
+non-boolean `active`, a non-string / over-32-character / control-charactered /
+case-insensitively duplicated alias, more than five aliases, or a malformed
+`bounds` record is a REFUSAL that names the definition, the option and the
+reason — never a silent drop. `attr_preset_ok` is an allowlist (`vin`,
+`plate-et`, `digits:N` 1–64, `alnum:A-B` with A ≤ B ≤ 64, `free:N` ≤ 1000) and
+never a free regex or a contact-data preset. `attr_bound_value` is the single
+resolver for a bound: a numeric literal is itself, `year`, `year+N` and `year-N`
+resolve against the UTC calendar year. CHECK constraints hold the same law at
+the table, so nothing can be written around the doors.
+
+Bounds co-linkage: an option's `bounds` may only name a `number` definition that
+is linked — directly or through the primary lineage (INH-1) — in EVERY category
+where the owner is linked. The door judges that against the LIVE links; the
+planner judges it against the POST-PLAN link set (`attr_postplan_cats` +
+`attr_cats_expand`), so a file that links owner and target together is accepted
+and a file that links only the owner is refused with `boundsTargetNotColinked`.
+
+Import: an ABSENT cell means no change, a PRESENT and EMPTY cell clears it to
+NULL (`min`/`max` are accepted as aliases of `min_bound`/`max_bound`). Every
+present cell is judged, diffed (`attr_option_norm_v2` sees the new option keys;
+`attr_option_norm` is untouched so the export and the entity bundle keep their
+exact shape), applied by the commit and restored by the undo from the captured
+`prev`. DEVIATION, stated plainly: the commit still writes the row directly
+rather than calling `admin_upsert_attribute` — the door's gate is
+`categories:update` while the import gate is `categories:import`, and routing
+the commit through the door would silently demand a second permission of every
+importer. The cells the commit writes are exactly the cells the door writes.
+
+`admin_attribute_option_coverage()` reports, per select definition, how many
+options carry a non-empty `label_am`; it is gated with the same line the upsert
+door uses (`categories:update`). Closers for every function in the file: REVOKE
+ALL FROM PUBLIC, anon · GRANT EXECUTE TO authenticated · GRANT ALL TO
+service_role, read back in-file by PROOF 8.
