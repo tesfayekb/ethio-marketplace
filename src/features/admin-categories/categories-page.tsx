@@ -268,12 +268,13 @@ export function AdminCategoriesPage() {
     }
   };
 
-  /** The root a node hangs under — the filter is a whole-subtree filter. */
-  const rootOf = (row: CategoryNode): string => {
-    let current: CategoryNode | undefined = row;
-    while (current && current.parentId !== null) current = byId.get(current.parentId);
-    return current?.id ?? row.id;
-  };
+  /**
+   * C3-UX-5 — the filter scopes to the SELECTED category's subtree, so the
+   * predicate asks whether the selection is anywhere on the row's ancestry
+   * chain (the shared derivation; the counts below use the same one).
+   */
+  const inSubtree = (row: CategoryNode, ancestorId: string): boolean =>
+    ancestorIds(row, byId).includes(ancestorId);
 
   /** C2c — a category with no icon AND/OR no image is not launch-ready. */
   const missingAssets = (row: CategoryNode) => row.icon === null || !row.hasImage;
