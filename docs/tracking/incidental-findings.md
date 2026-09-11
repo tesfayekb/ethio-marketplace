@@ -1905,7 +1905,29 @@ the device record.
 
 ## INC-174 — (2026-09-08, imported from the S34/S35 backfill)
 
-local-only RP-1 sign-out reconciliation (open).
+local-only RP-1 sign-out reconciliation — CLOSED 2026-09-11.
+
+Cause: until c40b7109 (2026-09-07, IE-1r Part D — the real door, always)
+
+`signIn` injected sessions in every local run (`sessionInjectionEnabled()`
+
+is false only under the parked CI knob); the injection's INC-120 write-once
+
+sentinel lives in localStorage, which RP-1's signed-out phase clears, so the
+
+next `page.goto` re-wrote the last injected grant before the document booted.
+
+Local-only by construction; never in-memory. Written on 2026-09-08 from an
+
+earlier observation, after the fix had already landed. Verified at HEAD
+
+b0a4bd20 on 2026-09-11: 2 runs × 2 projects, `--retries=0`, all green. No code
+
+change. Lesson (J9 gloss, v3.9 candidate): a pool-injected page must never
+
+test signed-out behaviour by clearing storage — the sentinel re-arms the pool
+
+session on the next document; signed-out assertions take the real door.
 
 ## INC-175 — (2026-09-08, imported from the S34/S35 backfill)
 
