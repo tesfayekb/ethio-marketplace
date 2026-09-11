@@ -99,7 +99,9 @@ jobs:
       - name: Guard self-tests (RLS fixture + SECURITY DEFINER sample)
         run: SELF_TEST=1 bash scripts/check-migrations.sh
       - name: Run migration guard
-        run: bash scripts/check-migrations.sh
+        run: |
+          bash scripts/check-migrations.sh
+          bun run scripts/e2e-migration-preflight.ts --self-test
 
   i18n-usage-map:
     name: i18n used-on map is fresh (U4i ②)
