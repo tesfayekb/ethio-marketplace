@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 209,
+  "scanned": 210,
   "dynamicCallSites": 114,
   "keys": {
     "account.deactivatedBanner": [
@@ -673,13 +673,17 @@
       "/admin/attributes",
       "/admin/categories"
     ],
-    "admin.categories.filter.allRoots": [
+    "admin.categories.filter.allCategories": [
       "/admin/categories"
     ],
     "admin.categories.filter.missingAssets": [
       "/admin/categories"
     ],
     "admin.categories.filter.pageSize": [
+      "/admin/categories"
+    ],
+    "admin.categories.filter.retired": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.categories.filter.root": [

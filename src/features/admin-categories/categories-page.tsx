@@ -31,6 +31,7 @@ import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { categoryFilterOptions, ancestorIds, subtreeCounts } from "@/lib/category-filter-options";
 import { supabase } from "@/integrations/supabase/client";
 
 import { CategoryAttributesDialog } from "@/features/admin-attributes/category-attributes-dialog";
@@ -231,8 +232,12 @@ export function AdminCategoriesPage() {
 
   const roster = useMemo(() => toRoster(data ?? []), [data]);
   const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
-  const roots = useMemo(() => roster.filter((row) => row.parentId === null), [roster]);
-  /** The scope the export and the import obey: the filtered root's slug. */
+  /**
+   * C3-UX-5 — the filter is a SUBTREE PICKER: every category in roster order,
+   * built by the shared option builder both catalog consoles use (B3).
+   */
+  const filterOptions = useMemo(() => categoryFilterOptions(roster), [roster]);
+  /** The scope the export and the import obey: the selected category's slug. */
   const scopeSlug = rootFilter === "" ? null : (byId.get(rootFilter)?.slug ?? null);
 
   const runExport = async () => {
@@ -263,12 +268,13 @@ export function AdminCategoriesPage() {
     }
   };
 
-  /** The root a node hangs under — the filter is a whole-subtree filter. */
-  const rootOf = (row: CategoryNode): string => {
-    let current: CategoryNode | undefined = row;
-    while (current && current.parentId !== null) current = byId.get(current.parentId);
-    return current?.id ?? row.id;
-  };
+  /**
+   * C3-UX-5 — the filter scopes to the SELECTED category's subtree, so the
+   * predicate asks whether the selection is anywhere on the row's ancestry
+   * chain (the shared derivation; the counts below use the same one).
+   */
+  const inSubtree = (row: CategoryNode, ancestorId: string): boolean =>
+    ancestorIds(row, byId).includes(ancestorId);
 
   /** C2c — a category with no icon AND/OR no image is not launch-ready. */
   const missingAssets = (row: CategoryNode) => row.icon === null || !row.hasImage;
@@ -277,7 +283,7 @@ export function AdminCategoriesPage() {
   const filtered = useMemo(
     () =>
       roster.filter((row) => {
-        if (rootFilter !== "" && rootOf(row) !== rootFilter) return false;
+        if (rootFilter !== "" && !inSubtree(row, rootFilter)) return false;
         if (missingOnly && !missingAssets(row)) return false;
         if (needle === "") return true;
         const parentName =
@@ -293,19 +299,11 @@ export function AdminCategoriesPage() {
   );
 
   /**
-   * Per-root counts, so the filter says how much each subtree holds.
+   * Per-subtree counts, so every option says how much that subtree holds.
    * C5l PART C — ACTIVE-ONLY: a count inflated by retired rows lies about
    * what browsing operators actually work with.
    */
-  const rootCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const row of roster) {
-      if (!row.isActive) continue;
-      counts.set(rootOf(row), (counts.get(rootOf(row)) ?? 0) + 1);
-    }
-    return counts;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roster, byId]);
+  const rootCounts = useMemo(() => subtreeCounts(roster), [roster]);
 
   useEffect(() => {
     setOffset(0);
@@ -876,10 +874,19 @@ export function AdminCategoriesPage() {
                     value={rootFilter}
                     onChange={(event) => setRootFilter(event.target.value)}
                   >
-                    <option value="">{t("admin.categories.filter.allRoots")}</option>
-                    {roots.map((row) => (
-                      <option key={row.id} value={row.id}>
-                        {`${row.nameEn} (${rootCounts.get(row.id) ?? 0})`}
+                    <option value="">{t("admin.categories.filter.allCategories")}</option>
+                    {filterOptions.map((row) => (
+                      <option
+                        key={row.id}
+                        value={row.id}
+                        data-depth={row.depth}
+                        data-parent-id={row.parentId ?? ""}
+                        {...(row.isActive ? {} : { "data-retired": "true" })}
+                        className={row.isActive ? undefined : "text-muted-foreground"}
+                      >
+                        {`${row.label} (${rootCounts.get(row.id) ?? 0})${
+                          row.isActive ? "" : ` — ${t("admin.categories.filter.retired")}`
+                        }`}
                       </option>
                     ))}
                   </select>

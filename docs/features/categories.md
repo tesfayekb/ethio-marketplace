@@ -57,12 +57,14 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
 - **Parent pickers offer ACTIVE nodes only**, each rendered with its full path
   (`Vehicles › Cars`). A retired node is not a destination; hanging a live child
   under one would hide it from browse at birth. CT-10 asserts the absence.
-- **Roster controls.** Search matches name, slug AND parent name; the root filter
-  prints per-root counts; page size is a DEVICE setting (10/25/50/100, default 25)
+- **Roster controls.** Search matches name, slug AND parent name; each filter
+  option prints its subtree count; page size is a DEVICE setting (10/25/50/100, default 25)
   persisted in localStorage and read after mount, so SSR and the first client
   frame agree. CT-11 asserts it survives a reload.
 - **Column tiers.** Order / Listings / Excluded moved to the `wide` tier and the
   Name column is pinned, so the 1024–1240 band shows identity plus actions.
+
+The category filter is a subtree picker: every category in depth-first roster order, each child indented under its parent as in the attributes console, retired rows marked with a translated suffix; selecting any category scopes the roster — and Export subtree — to that category and its descendants (C3-UX-5; CT-31). One shared option builder serves both consoles.
 
 ## C2d — lifecycle (2026-09-04)
 
@@ -423,7 +425,7 @@ CT-20 retire/reactivate with both audit rows; CT-21 the refusals; CT-22 a
 `categories:view`-only operator (no control, 403, 401 without a bearer);
 CT-23 a commit without step-up (428 / P0009, nothing written) · CT-30 order
 lands as the file's sequence, a created row takes its place, a catch-all stays
-pinned, undo restores it.
+pinned, undo restores it. · CT-31 the filter groups children under their parent, marks retired rows and scopes the roster to a subtree
 
 ## IE-3 — column classes (categories)
 

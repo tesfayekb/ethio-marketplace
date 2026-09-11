@@ -852,6 +852,8 @@ export const en = {
   "admin.categories.col.parent": "Parent",
   "admin.categories.filter.root": "Filter by root category",
   "admin.categories.filter.allRoots": "All root categories",
+  "admin.categories.filter.allCategories": "All categories",
+  "admin.categories.filter.retired": "retired",
   "admin.categories.paths.title": "Browse paths",
   "admin.categories.paths.hint":
     "Every place this category appears in the browse tree. Moving or removing a path never duplicates the category itself.",

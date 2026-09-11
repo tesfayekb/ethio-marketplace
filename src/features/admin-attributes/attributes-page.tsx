@@ -33,6 +33,7 @@ import { toRoster } from "@/features/admin-categories/categories-service";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
+import { categoryFilterOptions } from "@/lib/category-filter-options";
 
 import {
   AssignAttributeDialog,
@@ -105,6 +106,8 @@ export function AdminAttributesPage() {
 
   /** The picker mirrors the roster order/depth (B1: one derivation, `toRoster`). */
   const categories = useMemo(() => toRoster(categoryData ?? []), [categoryData]);
+  /** C3-UX-5 — the same option builder the categories roster's filter uses (B3). */
+  const filterOptions = useMemo(() => categoryFilterOptions(categories), [categories]);
   /** PART B — the filter is a SLUG in the URL; the id is derived, never stored. */
   const filterCategory = useMemo(
     () => categories.find((row) => row.slug === search.category) ?? null,
@@ -514,9 +517,18 @@ export function AdminAttributesPage() {
                     onChange={(event) => chooseCategory(event.target.value)}
                   >
                     <option value="">{t("admin.attributes.filter.allCategories")}</option>
-                    {categories.map((row) => (
-                      <option key={row.id} value={row.slug}>
-                        {`${"· ".repeat(row.depth)}${row.nameEn}`}
+                    {filterOptions.map((row) => (
+                      <option
+                        key={row.id}
+                        value={row.slug}
+                        data-depth={row.depth}
+                        data-parent-id={row.parentId ?? ""}
+                        {...(row.isActive ? {} : { "data-retired": "true" })}
+                        className={row.isActive ? undefined : "text-muted-foreground"}
+                      >
+                        {`${row.label}${
+                          row.isActive ? "" : ` — ${t("admin.categories.filter.retired")}`
+                        }`}
                       </option>
                     ))}
                   </select>
