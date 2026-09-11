@@ -1991,6 +1991,14 @@ export type Database = {
         Args: { p_definitions: Json; p_links: Json; p_scope: string }
         Returns: Json
       }
+      attr_inherited_ranks: {
+        Args: { p_cat: string; p_links: Json }
+        Returns: {
+          attr_key: string
+          card_rank: number
+          origin_slug: string
+        }[]
+      }
       attr_json_or_null: { Args: { p_text: string }; Returns: Json }
       attr_link_origin: {
         Args: { p_cat: string; p_key: string }
@@ -2009,6 +2017,15 @@ export type Database = {
         Returns: string[]
       }
       attr_preset_ok: { Args: { p_preset: string }; Returns: boolean }
+      attr_rank_conflict: {
+        Args: {
+          p_attr_key: string
+          p_cat: string
+          p_links: Json
+          p_rank: number
+        }
+        Returns: string
+      }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
         Returns: {
