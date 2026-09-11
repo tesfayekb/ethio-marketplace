@@ -57,8 +57,8 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
 - **Parent pickers offer ACTIVE nodes only**, each rendered with its full path
   (`Vehicles › Cars`). A retired node is not a destination; hanging a live child
   under one would hide it from browse at birth. CT-10 asserts the absence.
-- **Roster controls.** Search matches name, slug AND parent name; the root filter
-  prints per-root counts; page size is a DEVICE setting (10/25/50/100, default 25)
+- **Roster controls.** Search matches name, slug AND parent name; each filter
+  option prints its subtree count; page size is a DEVICE setting (10/25/50/100, default 25)
   persisted in localStorage and read after mount, so SSR and the first client
   frame agree. CT-11 asserts it survives a reload.
 - **Column tiers.** Order / Listings / Excluded moved to the `wide` tier and the
