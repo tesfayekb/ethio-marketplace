@@ -35,6 +35,8 @@ Building with the app's own default Supabase pair is what made authenticated
 specs fail locally while CI passed: the served app talked to a project the
 harness never seeded.
 
+Before building, `e2e:local` runs `scripts/e2e-browser-guard.ts`: it resolves the browser exactly as `playwright.config.ts` does — `E2E_CHROMIUM_PATH` when set, otherwise the Playwright-managed Chromium — and exits non-zero with the remedy (`bunx playwright install chromium`, or `E2E_CHROMIUM_PATH=<binary>`) when the binary is missing, so a sandbox without a browser fails in the first second, not after the build (ACT-C3-2; three occurrences).
+
 ## Serving the app in CI — dev-server mode (Option B)
 
 CI E2E runs against the **Vite dev server** (`vite dev`), not the Cloudflare-worker
