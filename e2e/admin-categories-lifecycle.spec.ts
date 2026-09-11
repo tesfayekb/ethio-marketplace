@@ -1554,7 +1554,9 @@ test.describe("CAT-IE categories import/export", () => {
         .update({ is_catchall: true })
         .eq("id", ids[slugF]!);
       if (catchallError) {
-        throw new Error(`[e2e:cat-ie] CT-30 seeding the catch-all failed: ${catchallError.message}`);
+        throw new Error(
+          `[e2e:cat-ie] CT-30 seeding the catch-all failed: ${catchallError.message}`,
+        );
       }
 
       const names: Record<string, string> = {
@@ -1646,8 +1648,6 @@ test.describe("CAT-IE categories import/export", () => {
       await destroyCategory(rootSlug);
     }
   });
-
-
 
   /**
    * CT-27 — IE-4a. A retired LEAF deletes through the blast-radius door and
