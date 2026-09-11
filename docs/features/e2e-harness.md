@@ -115,7 +115,6 @@ unchanged.
 
 DEC-022 healers: a mark that violates monotonicity is corrected by a later migration that rewrites the ledger row, and the parity preflight compares against the healed value, transitively, reading the remaps from the migrations themselves (DEC-054). `--self-test` proves the remap on fixtures — healed, unhealed, transitive and unknown-old-mark cases — and runs in the migration-linter job on every push; a guard that has not been shown to fail on bad input is not trusted (§8).
 
-
 ## Sign-in timing gate
 
 After submitting the sign-in form the spec waits for the **Sign out** button to become
