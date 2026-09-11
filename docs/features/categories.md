@@ -421,7 +421,9 @@ the batch through the same doors in reverse order.
 (Discard writes no capture row); CT-19 create + rename → DB truth → undo;
 CT-20 retire/reactivate with both audit rows; CT-21 the refusals; CT-22 a
 `categories:view`-only operator (no control, 403, 401 without a bearer);
-CT-23 a commit without step-up (428 / P0009, nothing written).
+CT-23 a commit without step-up (428 / P0009, nothing written) · CT-30 order
+lands as the file's sequence, a created row takes its place, a catch-all stays
+pinned, undo restores it.
 
 ## IE-3 — column classes (categories)
 
