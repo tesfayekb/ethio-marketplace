@@ -609,3 +609,7 @@ options carry a non-empty `label_am`; it is gated with the same line the upsert
 door uses (`categories:update`). Closers for every function in the file: REVOKE
 ALL FROM PUBLIC, anon · GRANT EXECUTE TO authenticated · GRANT ALL TO
 service_role, read back in-file by PROOF 8.
+
+## DEC-050 L2a — effective card-rank uniqueness
+
+`UNIQUE (category_id, card_rank)` guards direct links only. Since an inherited card (by primary lineage) occupies its rank in every descendant, the import planner and `admin_set_card_attributes` refuse a direct rank equal to an inherited rank in the same category, naming both origins (reason `rankInherited`). Children of a root that supplies rank 2 use ranks 1 and 3.
