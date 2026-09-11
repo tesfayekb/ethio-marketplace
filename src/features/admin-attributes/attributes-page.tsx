@@ -105,6 +105,8 @@ export function AdminAttributesPage() {
 
   /** The picker mirrors the roster order/depth (B1: one derivation, `toRoster`). */
   const categories = useMemo(() => toRoster(categoryData ?? []), [categoryData]);
+  /** C3-UX-5 — the same option builder the categories roster's filter uses (B3). */
+  const filterOptions = useMemo(() => categoryFilterOptions(categories), [categories]);
   /** PART B — the filter is a SLUG in the URL; the id is derived, never stored. */
   const filterCategory = useMemo(
     () => categories.find((row) => row.slug === search.category) ?? null,
