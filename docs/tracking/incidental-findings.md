@@ -2035,3 +2035,23 @@ DEC-030 flake-only pass already does — and the green form carries
 `Sources read: n/N`; an unreadable expected source on a green run is
 `silent`, which the red branch already counts as gating. Class: evidence
 fidelity — INC-100's sibling: blind on green as INC-100 was blind on re-run.
+
+## INC-187 — the categories import plans `display_order` but never commits it
+
+Walk finding after the Real Estate import (2026-09-11). `cat_import_plan`
+diffs `display_order` into every changed row's delta and carries it in every
+create payload, so the preview counted the file's five reorders and two placed
+creates as changes. `admin_commit_category_import` then calls
+`admin_update_category` with NULL in `p_display_order` — the door applies
+`COALESCE(p_display_order, c.display_order)`, so NULL keeps the old value — and
+`admin_create_category` has no order parameter, so created rows are appended.
+The console showed Condominiums at 9 and New Developments at 10 instead of 3
+and 4, and Commercial, Land and Short-term unmoved, after "131 changes
+written". The export marks the column editable; stale `category_path` cells
+are at least reported under "Ignored (read-only)" — `display_order` is dropped
+without a word. Class: phantom success (F4; §7). Fix: the commit applies the
+delta's order through `p_display_order` and follows every create with the same
+update carrying the payload's order; catch-all rows are skipped (the reorder
+door pins them at 1000000+); the categories-import round-trip E2E asserts
+`display_order` on changed and created rows against DB truth (J4; G26). Proof:
+the Real Estate categories file re-imported unchanged lands the intended order.
