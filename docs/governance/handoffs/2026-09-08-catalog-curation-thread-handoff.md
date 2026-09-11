@@ -49,3 +49,11 @@ Write code · propose prompts to Lovable · touch the database · rename slugs o
 ## 6. Where truth lives
 
 docs/features/attributes.md and docs/features/categories.md (the column laws, refusal catalogue, inheritance and dependency laws, import security spine); docs/spec/spec-ledger.md (DEC-043 posting law, DEC-044 inheritance, DEC-045 dependent options); the review workbook (attached by the operator); the exports (always fresh — never work from an old file).
+
+## 7. Addendum 2026-09-11 — standing file rules R1/R2 and the DEC-050 cells
+
+R1 — global before vertical: search the library first; reuse `condition`, `color`, `brand`, `warranty`, `swap_exchange`, `rate_period` where the option set matches; add a `-<vertical>` suffix only when the option set is genuinely vertical-specific; never two definitions for one meaning.
+
+R2 — fixed unit per definition; bounded sets (storage, RAM, screen sizes, bathrooms with halves) as single_select; open numerics as `number` with the unit in the label until DEC-050 lands, then backfilled by one definitions import per finished vertical.
+
+DEC-050 cells (available after P1 lands; files produced before then simply omit them): number `unit`/`min`/`max`/`decimals`/`format` with relative year tokens (`year`, `year+1`…); option `bounds` naming a sibling number attribute with `{min,max}` (make → first production year, model → last year); option `active` (discontinued values) and `aliases` (search only); text `preset` from the code allowlist and `max_length`; `help_text_en`/`help_text_am`. Review notes may propose these now; the files carry them once the cells exist.
