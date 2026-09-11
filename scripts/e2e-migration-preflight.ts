@@ -34,7 +34,13 @@ import { fileURLToPath } from "node:url";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const MIGRATIONS_DIR = join(HERE, "..", "supabase", "migrations");
+const REAL_MIGRATIONS_DIR = join(HERE, "..", "supabase", "migrations");
+/**
+ * DEC-054: the only knob the --self-test mode turns. It points the SAME reader
+ * and the SAME healer logic at fixture directories; nothing about healedMark
+ * changes.
+ */
+let MIGRATIONS_DIR = REAL_MIGRATIONS_DIR;
 const PROD_REF = "zwmvxvzzvjvtdcfcwiuf";
 
 type Probe = { kind: "function" | "table"; name: string };
