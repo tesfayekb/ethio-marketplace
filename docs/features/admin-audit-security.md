@@ -70,3 +70,26 @@ surface reads the target's profile and listings through the definer RPCs above.
 **v2 (planned, DEC-021, Ops phase): full act-as with server-side write lock.** Gold standard (GitHub staff tooling, Stripe support, Intercom): a service-role edge function mints a ≤15-minute JWT for the target carrying an impersonator_id claim; the app runs as the target in an isolated /impersonate tab (token in memory only, never persisted); RLS write policies and every sensitive RPC refuse when impersonator_id is present — "see everything, change nothing" enforced by the database; auth-service operations (password/email/2FA) are unreachable from the impersonation context; both identities are audited on every read surface that logs; the session is revocable and the banner is permanent. Open considerations recorded for the DEC: user-visible transparency (the target's own security log lists staff views), and the write-guard census across every user-writable table before enabling.
 
 **Why v1 first:** support needs (assist a user having an issue) are mostly read needs; the viewer delivers them with no minted credentials. DEC-021 upgrades to full perspective when the write-lock census can be done properly.
+
+## 2026-09-11 — linter closers: six SECURITY DEFINER functions closed to anon/PUBLIC
+
+Migration `20260911223744_9d74f733` (mark `20260911230000`) changes ACLs only, no
+bodies. `has_permission(uuid,text,text)` and `get_my_permissions()` were callable
+by PUBLIC (hence anon); they are now REVOKEd from PUBLIC and anon and GRANTed to
+`authenticated` + `service_role` (no anon-role RLS policy calls either function —
+verified against `pg_policies` before the change). The four guard bodies
+`rls_auto_enable()`, `role_permissions_core_lock()`, `roles_system_lock()` and
+`user_roles_protect()` are now callable by nobody directly; trigger firing does
+not consult EXECUTE, and in-file proofs read back both the ACLs and the presence
+of the three row triggers plus the event trigger.
+
+Standing rulings for the remainder of linter 0028/0029: the five anon-callable
+functions that remain (`get_browse_tree`, `get_category_attributes`,
+`get_entity_bundle`, `get_ui_bundle`, `get_ui_bundle_version`) are the intentional
+public catalog and gate-list reads (G1/I6) — they take no caller identity and
+expose published rows only. The 108 authenticated-callable ones are the gated
+admin doors of E7/F3, each carrying its own `has_permission` (and where required
+step-up) gate. Two findings need operator action outside SQL: `pg_trgm` lives in
+`public` (moving it would break the `gin_trgm_ops` indexes whose functions pin
+`search_path = public`; accepted, no move), and leaked-password protection is an
+Auth dashboard toggle on the external `ethio-prod` project.
