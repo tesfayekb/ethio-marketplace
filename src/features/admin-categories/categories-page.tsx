@@ -31,6 +31,7 @@ import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { categoryFilterOptions, ancestorIds, subtreeCounts } from "@/lib/category-filter-options";
 import { supabase } from "@/integrations/supabase/client";
 
 import { CategoryAttributesDialog } from "@/features/admin-attributes/category-attributes-dialog";
