@@ -231,8 +231,12 @@ export function AdminCategoriesPage() {
 
   const roster = useMemo(() => toRoster(data ?? []), [data]);
   const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
-  const roots = useMemo(() => roster.filter((row) => row.parentId === null), [roster]);
-  /** The scope the export and the import obey: the filtered root's slug. */
+  /**
+   * C3-UX-5 — the filter is a SUBTREE PICKER: every category in roster order,
+   * built by the shared option builder both catalog consoles use (B3).
+   */
+  const filterOptions = useMemo(() => categoryFilterOptions(roster), [roster]);
+  /** The scope the export and the import obey: the selected category's slug. */
   const scopeSlug = rootFilter === "" ? null : (byId.get(rootFilter)?.slug ?? null);
 
   const runExport = async () => {
