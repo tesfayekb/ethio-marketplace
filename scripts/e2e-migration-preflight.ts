@@ -117,7 +117,6 @@ export function missingAgainstLedger(local: string[], applied: string[]): string
   return local.filter((f) => !appliedSet.has(declaredMark(f)));
 }
 
-
 function serviceClient(): { client: SupabaseClient; url: string } {
   const url = process.env["E2E_SUPABASE_URL"] ?? "";
   const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "";
@@ -298,14 +297,16 @@ function literalMarks(dir: string): Set<string> {
   const out = new Set<string>();
   for (const file of readdirSync(dir).filter((f) => f.endsWith(".sql"))) {
     const sql = readFileSync(join(dir, file), "utf8");
-    for (const m of sql.matchAll(/insert\s+into\s+(?:public\.)?migration_marks[^;]*?'(\d{14})'/gi)) {
+    for (const m of sql.matchAll(
+      /insert\s+into\s+(?:public\.)?migration_marks[^;]*?'(\d{14})'/gi,
+    )) {
       out.add(m[1]!);
     }
   }
   return out;
 }
 
-function useFixtureDir(dir: string): void {
+function pointAtFixtureDir(dir: string): void {
   MIGRATIONS_DIR = dir;
   healMap = null; // recompute the remap from the fixture set
 }
@@ -359,10 +360,11 @@ export function selfTest(): number {
   let failures = 0;
   for (const c of cases) {
     const dir = join(FIXTURES_DIR, c.dir);
-    useFixtureDir(dir);
+    pointAtFixtureDir(dir);
     const missing = missingAgainstLedger(localMigrations(), c.ledger);
     const ok =
-      missing.length === c.expectMissing.length && c.expectMissing.every((f) => missing.includes(f));
+      missing.length === c.expectMissing.length &&
+      c.expectMissing.every((f) => missing.includes(f));
     if (!ok) failures += 1;
     console.log(
       `${ok ? "OK  " : "FAIL"} ${c.name} — expected [${c.expectMissing.join(", ") || "none"}], got [${
@@ -374,7 +376,7 @@ export function selfTest(): number {
   // Case d also demands a WARNING: a remap whose old mark no fixture declares
   // is announced, never silently applied.
   const unknownDir = join(FIXTURES_DIR, "unknown-old-mark");
-  useFixtureDir(unknownDir);
+  pointAtFixtureDir(unknownDir);
   const declared = literalMarks(unknownDir);
   const orphans = [...healRemaps().keys()].filter((old) => !declared.has(old));
   if (orphans.length === 0) {
