@@ -405,8 +405,6 @@ place. Undo restores each row's previous order the same way. A catch-all is
 pinned last by the reorder door, and its `display_order` cell never counts as a
 change (INC-187).
 
-
-
 Preview writes nothing. Commit requires `categories:import` + step-up + the
 preview's digest (409 `fileChanged` when the bytes moved), takes a per-user
 advisory lock, captures old → new into `category_import_revisions` batch-tagged
