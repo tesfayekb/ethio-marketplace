@@ -299,19 +299,11 @@ export function AdminCategoriesPage() {
   );
 
   /**
-   * Per-root counts, so the filter says how much each subtree holds.
+   * Per-subtree counts, so every option says how much that subtree holds.
    * C5l PART C — ACTIVE-ONLY: a count inflated by retired rows lies about
    * what browsing operators actually work with.
    */
-  const rootCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const row of roster) {
-      if (!row.isActive) continue;
-      counts.set(rootOf(row), (counts.get(rootOf(row)) ?? 0) + 1);
-    }
-    return counts;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roster, byId]);
+  const rootCounts = useMemo(() => subtreeCounts(roster), [roster]);
 
   useEffect(() => {
     setOffset(0);
