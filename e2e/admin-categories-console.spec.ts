@@ -116,6 +116,129 @@ test.describe("C2 categories console", () => {
     await expect(page.getByTestId("data-table-empty")).toBeVisible();
   });
 
+  /**
+   * C3-UX-5 — THE FILTER IS A SUBTREE PICKER. Structure only: every assertion
+   * reads `data-depth` / `data-parent-id` / `data-retired` and the twin row
+   * locators, never option text (J5). Fixtures are J1-namespaced scratch rows
+   * written through the service client (J3) and removed in `finally`.
+   */
+  test("CT-31 the roster filter groups children under their parent, marks retired rows, and scopes the roster to a subtree", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const supabase = adminClient();
+
+    /** A scratch node written through the service client (J3), never a real row. */
+    async function seed(slug: string, parentId: string | null): Promise<string> {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      if (error || !data) throw new Error(`[e2e:ct-31] seeding ${slug} failed: ${error?.message}`);
+      const { error: pointerError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: parentId, child_id: data.id, display_order: 0 });
+      if (pointerError) {
+        throw new Error(`[e2e:ct-31] pointer for ${slug} failed: ${pointerError.message}`);
+      }
+      return data.id;
+    }
+
+    const filter = page.getByTestId("category-root-filter");
+
+    /** J4 — every failure names the whole option list it judged. */
+    async function optionDump(label: string): Promise<string> {
+      const options = await filter.locator("option").evaluateAll((nodes) =>
+        nodes.map((node) => ({
+          value: node.getAttribute("value"),
+          depth: node.getAttribute("data-depth"),
+          parent: node.getAttribute("data-parent-id"),
+          retired: node.getAttribute("data-retired"),
+          text: node.textContent,
+        })),
+      );
+      return `[CT-31 ${label}] options=${JSON.stringify(options, null, 2)}`;
+    }
+
+    const stamp = `${RUN}-${process.env["TEST_WORKER_INDEX"] ?? "0"}-${rand()}`;
+    const parentSlug = `e2e-cat-${stamp}-p`;
+    const childSlug = `e2e-cat-${stamp}-c1`;
+    const retiredSlug = `e2e-cat-${stamp}-c2`;
+    let parentId = "";
+    let childId = "";
+    let retiredId = "";
+    try {
+      // J7 — seed BEFORE navigating; the console must render the fixture.
+      parentId = await seed(parentSlug, null);
+      childId = await seed(childSlug, parentId);
+      retiredId = await seed(retiredSlug, parentId);
+      const { error: retireError } = await supabase
+        .from("categories")
+        .update({ is_active: false })
+        .eq("id", retiredId);
+      if (retireError) throw new Error(`[e2e:ct-31] retiring failed: ${retireError.message}`);
+
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, parentSlug);
+      await page.getByTestId("category-search").fill("");
+      await expect(categoryRow(page, parentSlug)).toBeVisible({ timeout: 20000 });
+
+      // (a) the child is listed AFTER its parent, one level deeper, and says
+      //     which parent it hangs under — the grouping, by structure.
+      const values = await filter
+        .locator("option")
+        .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("value")));
+      const parentIndex = values.indexOf(parentId);
+      const childIndex = values.indexOf(childId);
+      expect(parentIndex, await optionDump("the parent option is absent")).toBeGreaterThan(-1);
+      expect(childIndex, await optionDump("the child option is absent")).toBeGreaterThan(
+        parentIndex,
+      );
+      const childOption = filter.locator(`option[value="${childId}"]`);
+      expect(
+        await childOption.getAttribute("data-depth"),
+        await optionDump("the child's depth"),
+      ).toBe("1");
+      expect(
+        await childOption.getAttribute("data-parent-id"),
+        await optionDump("the child's parent"),
+      ).toBe(parentId);
+
+      // (b) the retired child is marked.
+      expect(
+        await filter.locator(`option[value="${retiredId}"]`).getAttribute("data-retired"),
+        await optionDump("the retired marker"),
+      ).toBe("true");
+
+      // (c) scoping: a subcategory shows itself alone.
+      await filter.selectOption(childId);
+      await expect(categoryRow(page, childSlug)).toBeVisible({ timeout: 20000 });
+      expect(await categoryRow(page, parentSlug).count(), await optionDump("scoped to C1")).toBe(0);
+      expect(await categoryRow(page, retiredSlug).count(), await optionDump("scoped to C1")).toBe(
+        0,
+      );
+
+      // (d) the parent shows the whole subtree.
+      await filter.selectOption(parentId);
+      await expect(categoryRow(page, parentSlug)).toBeVisible({ timeout: 20000 });
+      await expect(categoryRow(page, childSlug)).toBeVisible();
+      await expect(categoryRow(page, retiredSlug)).toBeVisible();
+
+      // (e) the default option restores the full roster.
+      await filter.selectOption("");
+      await expect(categoryRow(page, parentSlug)).toBeVisible({ timeout: 20000 });
+      await expect(categoryRow(page, childSlug)).toBeVisible();
+      await expect(categoryRow(page, retiredSlug)).toBeVisible();
+    } finally {
+      await destroyCategory(retiredSlug);
+      await destroyCategory(childSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
+
+
   test("CT-3 create + edit: a scratch category is born and renamed through step-up", async ({
     page,
   }) => {
