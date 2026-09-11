@@ -107,6 +107,17 @@ function healedMark(mark: string): string {
   return current;
 }
 
+/**
+ * INC-094: compare on the DECLARED mark (healed per DEC-022), never the
+ * filename stamp. Extracted so --self-test exercises the very same comparison
+ * the staging run uses.
+ */
+export function missingAgainstLedger(local: string[], applied: string[]): string[] {
+  const appliedSet = new Set(applied);
+  return local.filter((f) => !appliedSet.has(declaredMark(f)));
+}
+
+
 function serviceClient(): { client: SupabaseClient; url: string } {
   const url = process.env["E2E_SUPABASE_URL"] ?? "";
   const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "";
