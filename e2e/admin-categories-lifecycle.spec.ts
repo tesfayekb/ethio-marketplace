@@ -1480,6 +1480,176 @@ test.describe("CAT-IE categories import/export", () => {
   });
 
   /**
+   * CT-30 — INC-187 PART 2. The order pass is applied ONCE per primary parent
+   * after every row of the batch has landed: a reversed sibling order plus a
+   * created row placed mid-sequence must reproduce the FILE's sequence, a
+   * catch-all's edited order cell must count as no change and stay pinned by
+   * the reorder door, and Undo must restore the original numbering. Every
+   * assertion reads DB truth through the service client (J4).
+   */
+  test("CT-30 an order edit lands as the file's sequence, a created row takes its place, a catch-all stays pinned, and undo restores it", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const rootSlug = scratchSlug();
+    const slugA = scratchSlug();
+    const slugB = scratchSlug();
+    const slugC = scratchSlug();
+    const slugD = scratchSlug();
+    const slugF = scratchSlug();
+    const slugE = scratchSlug();
+
+    /** DB truth: R's primary children, slug + order, sorted by order. */
+    async function childrenOf(rootId: string): Promise<{ slug: string; order: number }[]> {
+      const supabase = adminClient();
+      const { data: pointers, error } = await supabase
+        .from("category_tree_pointers")
+        .select("child_id, display_order")
+        .eq("parent_id", rootId)
+        .order("display_order");
+      if (error) throw new Error(`[e2e:cat-ie] reading CT-30 pointers failed: ${error.message}`);
+      const rows: { slug: string; order: number }[] = [];
+      for (const pointer of pointers ?? []) {
+        const { data: category } = await supabase
+          .from("categories")
+          .select("slug")
+          .eq("id", pointer.child_id)
+          .maybeSingle();
+        rows.push({ slug: category?.slug ?? pointer.child_id, order: pointer.display_order });
+      }
+      return rows;
+    }
+
+    /** Names the sequence in a failure message, never English page text. */
+    function label(rows: { slug: string; order: number }[], names: Record<string, string>): string {
+      return JSON.stringify(rows.map((row) => ({ n: names[row.slug] ?? row.slug, o: row.order })));
+    }
+
+    try {
+      // SEED BEFORE NAVIGATE (J7), fixtures through the service client (J5).
+      const rootId = await seedCategory(rootSlug, null);
+      const ids: Record<string, string> = {};
+      const seeded: [string, number][] = [
+        [slugA, 0],
+        [slugB, 1],
+        [slugC, 2],
+        [slugD, 3],
+        [slugF, 4],
+      ];
+      for (const [slug, order] of seeded) {
+        ids[slug] = await seedCategory(slug, rootId);
+        const { error } = await adminClient()
+          .from("category_tree_pointers")
+          .update({ display_order: order })
+          .eq("child_id", ids[slug]!);
+        if (error) throw new Error(`[e2e:cat-ie] CT-30 seeding order failed: ${error.message}`);
+      }
+      // `seedCategory` cannot seed a catch-all; the flag is set by a
+      // service-client TABLE update, exactly like the order above (J5).
+      const { error: catchallError } = await adminClient()
+        .from("categories")
+        .update({ is_catchall: true })
+        .eq("id", ids[slugF]!);
+      if (catchallError) {
+        throw new Error(`[e2e:cat-ie] CT-30 seeding the catch-all failed: ${catchallError.message}`);
+      }
+
+      const names: Record<string, string> = {
+        [rootSlug]: "R",
+        [slugA]: "A",
+        [slugB]: "B",
+        [slugC]: "C",
+        [slugD]: "D",
+        [slugE]: "E",
+        [slugF]: "F",
+      };
+
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      const categories = file([
+        line({ category_slug: rootSlug, name_en: rootSlug }),
+        line({ category_slug: slugD, parent_slug: rootSlug, name_en: slugD, display_order: "0" }),
+        line({ category_slug: slugC, parent_slug: rootSlug, name_en: slugC, display_order: "1" }),
+        line({ category_slug: slugE, parent_slug: rootSlug, name_en: slugE, display_order: "2" }),
+        line({ category_slug: slugB, parent_slug: rootSlug, name_en: slugB, display_order: "3" }),
+        line({ category_slug: slugA, parent_slug: rootSlug, name_en: slugA, display_order: "4" }),
+        line({ category_slug: slugF, parent_slug: rootSlug, name_en: slugF, display_order: "0" }),
+      ]);
+
+      const preview = await importPost(page, token, { mode: "preview", categories });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const previewCounts = preview.payload["counts"] as Record<string, number>;
+      expect(previewCounts, JSON.stringify(preview.payload)).toMatchObject({
+        adds: 1,
+        changes: 4,
+        unchanged: 2,
+        refusals: 0,
+      });
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        categories,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+
+      // DB TRUTH (J4): the file's sequence, numbered 0..4, catch-all pinned.
+      const after = await childrenOf(rootId);
+      const ordered = after.filter((row) => row.slug !== slugF);
+      expect(
+        ordered.map((row) => row.slug),
+        `CT-30 the file's sequence did not land: ${label(after, names)}`,
+      ).toEqual([slugD, slugC, slugE, slugB, slugA]);
+      expect(
+        ordered.map((row) => row.order),
+        `CT-30 the numbering is not 0..4: ${label(after, names)}`,
+      ).toEqual([0, 1, 2, 3, 4]);
+      const pinned = after.find((row) => row.slug === slugF);
+      expect(pinned, `CT-30 the catch-all vanished: ${label(after, names)}`).toBeTruthy();
+      expect(
+        pinned!.order,
+        `CT-30 the catch-all was not pinned: ${label(after, names)}`,
+      ).toBeGreaterThanOrEqual(1000000);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await readCategory(slugE), "CT-30 undo left the created row").toBeNull();
+
+      const restored = await childrenOf(rootId);
+      const restoredOrder = restored.filter((row) => row.slug !== slugF);
+      expect(
+        restoredOrder.map((row) => row.slug),
+        `CT-30 undo did not restore the order: ${label(restored, names)}`,
+      ).toEqual([slugA, slugB, slugC, slugD]);
+      expect(
+        restoredOrder.map((row) => row.order),
+        `CT-30 undo did not restore the numbering: ${label(restored, names)}`,
+      ).toEqual([0, 1, 2, 3]);
+      const stillPinned = restored.find((row) => row.slug === slugF);
+      expect(
+        stillPinned?.order ?? -1,
+        `CT-30 undo unpinned the catch-all: ${label(restored, names)}`,
+      ).toBeGreaterThanOrEqual(1000000);
+    } finally {
+      await destroyCategory(slugE);
+      await destroyCategory(slugF);
+      await destroyCategory(slugD);
+      await destroyCategory(slugC);
+      await destroyCategory(slugB);
+      await destroyCategory(slugA);
+      await destroyCategory(rootSlug);
+    }
+  });
+
+
+
+  /**
    * CT-27 — IE-4a. A retired LEAF deletes through the blast-radius door and
    * comes back on Undo with its Amharic name exactly as it stood; a parent
    * that still holds a child is refused, and the refusal NAMES the child.
