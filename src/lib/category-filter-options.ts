@@ -64,9 +64,7 @@ export function ancestorIds(
 }
 
 /** Active rows counted into every subtree they belong to (self included). */
-export function subtreeCounts(
-  roster: CategoryFilterSource[],
-): Map<string, number> {
+export function subtreeCounts(roster: CategoryFilterSource[]): Map<string, number> {
   const byId = new Map(roster.map((row) => [row.id, row]));
   const counts = new Map<string, number>();
   for (const row of roster) {

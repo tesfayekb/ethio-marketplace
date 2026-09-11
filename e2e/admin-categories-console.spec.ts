@@ -239,7 +239,6 @@ test.describe("C2 categories console", () => {
     }
   });
 
-
   test("CT-3 create + edit: a scratch category is born and renamed through step-up", async ({
     page,
   }) => {
