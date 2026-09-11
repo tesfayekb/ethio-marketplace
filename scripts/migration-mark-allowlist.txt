@@ -5,3 +5,4 @@
 # run and cites its healer.
 20260909054432_c9699f59-7f36-4fbc-a49c-2511eb4bc369.sql | IMPORT-GATE part B landed without its self-mark; the marks 20260909054432 and 20260909060000 are recorded by the corrective | 20260909054514
 20260909140408_c8656a8a-8a87-4218-9141-f8518195f117.sql | FIX-SCAN-1 ISSUE 1 landed without its self-mark; the marks 20260909140408 and 20260909150000 are recorded by the corrective | 20260909142634
+20260911223202_ee224de0-47c7-47de-9a97-bdec0b70f360.sql | DEC-050 L2a declared mark 20260911223000 precedes its filename stamp; ledger row healed to 20260911223202 by the corrective | 20260911224612
