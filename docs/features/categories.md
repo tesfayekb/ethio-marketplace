@@ -397,6 +397,14 @@ catch-all-is-never-a-parent law, the typed-slug delete law and the blast
 radius all keep exactly one authority (F3). `name_am` rides the Data-scope
 entity-translation writer.
 
+`display_order` is applied once per primary parent after every row of the batch
+has landed: siblings are sorted by the file's value for rows in the batch and by
+their current position otherwise, then `admin_reorder_categories` renumbers
+them, so a file's sequence lands as written and a created row takes its stated
+place. Undo restores each row's previous order the same way. A catch-all is
+pinned last by the reorder door, and its `display_order` cell never counts as a
+change (INC-187).
+
 Preview writes nothing. Commit requires `categories:import` + step-up + the
 preview's digest (409 `fileChanged` when the bytes moved), takes a per-user
 advisory lock, captures old → new into `category_import_revisions` batch-tagged

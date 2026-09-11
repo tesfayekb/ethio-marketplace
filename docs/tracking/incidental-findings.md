@@ -2055,3 +2055,22 @@ update carrying the payload's order; catch-all rows are skipped (the reorder
 door pins them at 1000000+); the categories-import round-trip E2E asserts
 `display_order` on changed and created rows against DB truth (J4; G26). Proof:
 the Real Estate categories file re-imported unchanged lands the intended order.
+
+INC-187 addendum (2026-09-11) — mechanism corrected after the commit function
+was read in full; the registered sentence "the commit never commits it" was
+wrong — it came from a grep window that cut before the decisive block
+(supervisor slip, G3-addendum class, logged in S36). What the code did:
+creates ignore the payload's `display_order` (`admin_create_category` has no
+order parameter; rows are appended); updates DO commit order, but one row at a
+time — each row with an order delta is ranked against its siblings' CURRENT
+numbers and `admin_reorder_categories` renumbers all siblings 0..N−1, so after
+the first row every later file value is compared on a different scale and a
+file with several order edits does not reproduce its own sequence; the
+catch-all is excluded from the reorder door yet the planner counts its order
+cell as a change. Fix, part 1 (`5c1e174e`): the planner emits no
+`display_order` delta for a catch-all; the commit and the undo each apply
+order ONCE per primary parent after all rows — siblings sorted by the file's
+value for rows in the batch (the prev value on undo) and their current
+position otherwise, then one reorder call — so the batch's rows land in
+exactly the file's sequence among their siblings. Proof, part 2: CT-30, then
+the Real Estate categories file re-imported unchanged.
