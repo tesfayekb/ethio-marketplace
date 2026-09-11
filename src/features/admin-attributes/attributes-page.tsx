@@ -33,6 +33,7 @@ import { toRoster } from "@/features/admin-categories/categories-service";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
+import { categoryFilterOptions } from "@/lib/category-filter-options";
 
 import {
   AssignAttributeDialog,
