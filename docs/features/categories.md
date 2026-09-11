@@ -64,6 +64,8 @@ E2E: `e2e/admin-categories.spec.ts` (CT-1..CT-9) covers gating, roster + search,
 - **Column tiers.** Order / Listings / Excluded moved to the `wide` tier and the
   Name column is pinned, so the 1024–1240 band shows identity plus actions.
 
+The category filter is a subtree picker: every category in depth-first roster order, each child indented under its parent as in the attributes console, retired rows marked with a translated suffix; selecting any category scopes the roster — and Export subtree — to that category and its descendants (C3-UX-5; CT-31). One shared option builder serves both consoles.
+
 ## C2d — lifecycle (2026-09-04)
 
 - **Expiry is optional.** `categories.expiry_days` is now nullable with default
