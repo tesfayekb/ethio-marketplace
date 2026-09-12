@@ -191,7 +191,10 @@ export function AttributeEditorDialog({
     unit: attribute?.unit ?? "",
     min: attribute?.minBound ?? "",
     max: attribute?.maxBound ?? "",
-    decimals: attribute?.decimals === null || attribute?.decimals === undefined ? "" : String(attribute.decimals),
+    decimals:
+      attribute?.decimals === null || attribute?.decimals === undefined
+        ? ""
+        : String(attribute.decimals),
     format: attribute?.format ?? "",
   }));
   const [textFields, setTextFields] = useState<TextFieldsValue>(() => ({
@@ -441,9 +444,7 @@ export function AttributeEditorDialog({
       ) : null}
 
       {/* DEC-050 L3a — one group per type, mounted only for that type. */}
-      {isNumber ? (
-        <AttributeNumberFields value={numberFields} onChange={setNumberFields} />
-      ) : null}
+      {isNumber ? <AttributeNumberFields value={numberFields} onChange={setNumberFields} /> : null}
       {isText ? <AttributeTextFields value={textFields} onChange={setTextFields} /> : null}
 
       <FormField
