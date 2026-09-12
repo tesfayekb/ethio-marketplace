@@ -3490,7 +3490,9 @@ test.describe("C3 attributes console", () => {
    * table twin alone (the card twin drops detail columns by contract): this
    * block asserts the desktop band.
    */
-  test("AT-48 the library's coverage column reads n/N for a select definition", async ({ page }) => {
+  test("AT-48 the library's coverage column reads n/N for a select definition", async ({
+    page,
+  }) => {
     bandOnly(page, "desktop");
     await signInAsSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
@@ -3511,9 +3513,12 @@ test.describe("C3 attributes console", () => {
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
       const cell = librarySurface(page).getByTestId(`attribute-coverage-${key}`);
-      await expect(cell, await dialogDump(page, "AT-48 coverage never rendered")).toHaveText("1/2", {
-        timeout: 20000,
-      });
+      await expect(cell, await dialogDump(page, "AT-48 coverage never rendered")).toHaveText(
+        "1/2",
+        {
+          timeout: 20000,
+        },
+      );
       await expect(cell).toHaveAttribute("data-incomplete", "true");
       await expect(cell).toHaveClass(/amber/);
 
@@ -3531,9 +3536,12 @@ test.describe("C3 attributes console", () => {
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
       const healed = librarySurface(page).getByTestId(`attribute-coverage-${key}`);
-      await expect(healed, await dialogDump(page, "AT-48 coverage never healed")).toHaveText("2/2", {
-        timeout: 20000,
-      });
+      await expect(healed, await dialogDump(page, "AT-48 coverage never healed")).toHaveText(
+        "2/2",
+        {
+          timeout: 20000,
+        },
+      );
       await expect(healed).not.toHaveAttribute("data-incomplete", "true");
     } finally {
       await destroyAttribute(key);
