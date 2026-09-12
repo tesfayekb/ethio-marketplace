@@ -191,7 +191,8 @@ test.describe("C3 attributes console", () => {
         await page.getByTestId("attribute-key").fill(key);
         await page.getByTestId("attribute-name").fill(key);
         await page.getByTestId("attribute-type").selectOption("single_select");
-        await page.getByTestId("attribute-options").fill("Alpha\nBeta");
+        await addOptionRow(page, "", "Alpha");
+        await addOptionRow(page, "", "Beta");
         await page.getByTestId("attribute-edit-submit").click();
         await stepUpIfPrompted(page, secret);
       });
@@ -202,7 +203,12 @@ test.describe("C3 attributes console", () => {
           message: await dialogDump(page, "AT-2 definition never landed"),
         })
         .toBe("single_select");
-      expect((await readAttribute(key))?.options).toEqual(["Alpha", "Beta"]);
+      /* DEC-050 L3b — every option is a full record, never a bare string. */
+      expect((await readAttribute(key))?.options).toEqual([
+        { value: "Alpha", label_en: "", label_am: "", parent: "" },
+        { value: "Beta", label_en: "", label_am: "", parent: "" },
+      ]);
+
 
       await test.step("AT-2 rename definition", async () => {
         await page.getByTestId("attribute-search").fill(key);
