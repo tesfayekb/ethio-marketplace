@@ -163,25 +163,15 @@ export function AttributeEditorDialog({
   const [attrKey, setAttrKey] = useState(attribute?.attrKey ?? "");
   const [nameEn, setNameEn] = useState(attribute?.nameEn ?? "");
   const [attrType, setAttrType] = useState(attribute?.attrType ?? "text");
-  const [options, setOptions] = useState(
-    (attribute?.options ?? [])
-      .filter((option) => option.parent === "")
-      .map((option) => option.value)
-      .join("\n"),
-  );
+  /**
+   * DEC-050 L3b (INC-188) — the options are ROWS carrying every stored field,
+   * so a save with no edits sends the stored records back untouched.
+   */
+  const [optionRows, setOptionRows] = useState<AttributeOption[]>(attribute?.options ?? []);
+  const storedValues = (attribute?.options ?? []).map((option) => option.value);
   const [dependsOn, setDependsOn] = useState(attribute?.dependsOnKey ?? "");
-  /** parent value → its child option values, one per line. */
-  const [perParent, setPerParent] = useState<Record<string, string>>(() => {
-    const grouped: Record<string, string[]> = {};
-    for (const option of attribute?.options ?? []) {
-      if (option.parent === "") continue;
-      (grouped[option.parent] ??= []).push(option.value);
-    }
-    return Object.fromEntries(
-      Object.entries(grouped).map(([parent, values]) => [parent, values.join("\n")]),
-    );
-  });
   const [preview, setPreview] = useState("");
+
   const [helpText, setHelpText] = useState(attribute?.helpTextEn ?? "");
   /**
    * DEC-050 L3a — the v2 cells. A group is UNMOUNTED for the wrong type and its
