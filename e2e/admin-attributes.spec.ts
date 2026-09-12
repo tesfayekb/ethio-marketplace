@@ -3083,9 +3083,11 @@ test.describe("C3 attributes console", () => {
       await page.getByTestId("attribute-type").selectOption("single_select");
       await page.getByTestId("attribute-depends-on").selectOption(makeKey);
 
-      // ONE EDITOR PER PARENT VALUE.
-      await page.getByTestId("attribute-options-for-alfa").fill("alfa-1\nalfa-2");
-      await page.getByTestId("attribute-options-for-beta").fill("beta-1");
+      // ONE GROUP OF ROWS PER PARENT VALUE.
+      await addOptionRow(page, "alfa", "alfa-1");
+      await addOptionRow(page, "alfa", "alfa-2");
+      await addOptionRow(page, "beta", "beta-1");
+
 
       // THE CASCADE: empty until a parent value is chosen.
       await expect(page.getByTestId("attribute-cascade-option-alfa-1")).toHaveCount(0);
