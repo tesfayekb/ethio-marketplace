@@ -1302,6 +1302,9 @@ export const en = {
   "admin.attributes.error.alreadyLinked": "This category already links that attribute.",
   "admin.attributes.error.linkNotFound": "That link no longer exists.",
   "admin.attributes.error.cardLimit": "A listing card shows at most three attributes.",
+  /* DEC-050 L2a/L2b — the door refuses a rank an inherited card already holds. */
+  "admin.attributes.error.rankInherited":
+    "That card position is already taken by an attribute inherited from a parent category. Choose another position.",
   "admin.attributes.error.orderMismatch": "The attribute order was stale; reopen and try again.",
   "admin.attributes.error.mergeNoTarget": "Choose the attribute to keep.",
   "admin.attributes.error.mergeNoSources": "Choose at least one duplicate to merge.",

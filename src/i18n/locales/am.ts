@@ -1233,6 +1233,9 @@ export const am: Messages = {
   "admin.attributes.error.alreadyLinked": "ይህ ምድብ ያንን ባህሪ አስቀድሞ አገናኝቷል።",
   "admin.attributes.error.linkNotFound": "ያ አገናኝ ከእንግዲህ የለም።",
   "admin.attributes.error.cardLimit": "የዝርዝር ካርድ ቢበዛ ሦስት ባህሪያትን ያሳያል።",
+  /* DEC-050 L2a/L2b — በሩ በተወረሰ ካርድ የተያዘውን ቦታ አይቀበልም። */
+  "admin.attributes.error.rankInherited":
+    "ይህ የካርድ ቦታ ከወላጅ ምድብ በተወረሰ ባህሪ ተይዟል። ሌላ ቦታ ይምረጡ።",
   "admin.attributes.error.orderMismatch": "የባህሪው ቅደም ተከተል ጊዜው አልፎበታል፤ እንደገና ከፍተው ይሞክሩ።",
   "admin.attributes.error.mergeNoTarget": "የሚቆየውን ባህሪ ይምረጡ።",
   "admin.attributes.error.mergeNoSources": "ቢያንስ አንድ ድግግሞሽ ይምረጡ።",
