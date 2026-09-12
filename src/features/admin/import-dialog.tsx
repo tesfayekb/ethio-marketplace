@@ -140,7 +140,14 @@ export function ImportDialog({
     // IE-3c — the message names the values it judged: every cell of the
     // operator's own row is available by column name, plus `detail` (the
     // server's own judged value, e.g. the address it wants restored).
-    const values: Record<string, string> = { ...(refusal.values ?? {}), detail };
+    // The door's own structured fields (badCell's `cell`/`value`, rankInherited's
+    // origins) travel beside `values`; they are named the same way.
+    const structured: Record<string, string> = {};
+    for (const [field, value] of Object.entries(refusal as unknown as Record<string, unknown>)) {
+      if (field === "values" || field === "detail" || field === "reason") continue;
+      if (typeof value === "string" || typeof value === "number") structured[field] = String(value);
+    }
+    const values: Record<string, string> = { ...structured, ...(refusal.values ?? {}), detail };
     /**
      * DEC-050 L2b — A DETAILED REFUSAL SPEAKS ITS OWN SENTENCE. The last
      * pipe-separated segment of `detail` is the token (`badBound`,
