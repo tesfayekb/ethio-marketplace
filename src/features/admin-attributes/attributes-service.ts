@@ -214,6 +214,15 @@ export async function upsertAttribute(input: UpsertAttributeInput): Promise<stri
         : null,
     p_help_text_en: input.helpTextEn.trim() === "" ? (null as unknown as string) : input.helpTextEn,
     p_depends_on: input.dependsOnKey as string,
+    p_help_text_am:
+      input.helpTextAm.trim() === "" ? (null as unknown as string) : input.helpTextAm.trim(),
+    p_unit: input.unit as string,
+    p_min_bound: input.minBound as string,
+    p_max_bound: input.maxBound as string,
+    p_decimals: input.decimals as number,
+    p_format: input.format as string,
+    p_preset: input.preset as string,
+    p_max_length: input.maxLength as number,
   });
   if (error) throw error;
   return data as string;
