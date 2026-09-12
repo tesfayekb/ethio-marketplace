@@ -28,6 +28,7 @@ import {
   useUpsertAttribute,
 } from "./use-attributes";
 import { useAttributeLabel } from "./use-attribute-label";
+import { AttributeOptionRows } from "./components/attribute-option-rows";
 import {
   AttributeNumberFields,
   AttributeTextFields,
@@ -35,6 +36,7 @@ import {
   type NumberFieldsValue,
   type TextFieldsValue,
 } from "./components/attribute-v2-fields";
+
 import {
   EMPTY_NUMBER_FIELDS,
   EMPTY_TEXT_FIELDS,
