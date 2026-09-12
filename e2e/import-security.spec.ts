@@ -46,8 +46,26 @@ interface Family {
   meterRow?: () => string;
 }
 
+/**
+ * DEC-050 L2b — the nine v2 cells sit between `depends_on` and the two
+ * read-only cells; `V2_EMPTY` splices them into the hostile rows below so the
+ * probes read exactly as before.
+ */
+const V2_COLUMNS = [
+  "unit",
+  "min",
+  "max",
+  "decimals",
+  "format",
+  "preset",
+  "max_length",
+  "help_text_en",
+  "help_text_am",
+] as const;
+const V2_EMPTY = V2_COLUMNS.map(() => "").join(",");
 const ATTRIBUTE_HEADER =
-  "attribute_key,label_en,label_am,type,options,depends_on,is_per_variant,direct_link_count";
+  `attribute_key,label_en,label_am,type,options,depends_on,${V2_COLUMNS.join(",")},` +
+  "is_per_variant,direct_link_count";
 const CATEGORY_HEADER =
   "category_path,category_slug,parent_slug,name_en,name_am,display_order,is_active," +
   "allow_listings,is_catchall,price_enabled,expiry_days,icon,visible_from,visible_until," +
@@ -72,7 +90,7 @@ const FAMILIES: Family[] = [
       const type = cells["type"] ?? "text";
       const options = cells["options"] ?? "";
       const dependsOn = cells["depends_on"] ?? "";
-      return `${key},${label},,${type},"${options}",${dependsOn},,0`;
+      return `${key},${label},,${type},"${options}",${dependsOn},${V2_EMPTY},,0`;
     },
   },
   {
