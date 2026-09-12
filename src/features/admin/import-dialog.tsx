@@ -136,19 +136,42 @@ export function ImportDialog({
 
   const reasonLabel = (refusal: ImportRefusal): string => {
     const name = reasonKeys.has(refusal.reason) ? refusal.reason : "unknown";
-    let text = t(key(`reason.${name}`));
     const detail = refusal.detail ?? "";
     // IE-3c — the message names the values it judged: every cell of the
     // operator's own row is available by column name, plus `detail` (the
     // server's own judged value, e.g. the address it wants restored).
     const values: Record<string, string> = { ...(refusal.values ?? {}), detail };
+    /**
+     * DEC-050 L2b — A DETAILED REFUSAL SPEAKS ITS OWN SENTENCE. The last
+     * pipe-separated segment of `detail` is the token (`badBound`,
+     * `activeNotBoolean`, `aliasLength:<alias>`); a `:` suffix becomes
+     * `{arg}`; the leading segments are the door's structured fields
+     * (badCell: cell, value · badOption: key, value). A token with no key of
+     * its own falls back to the top-level message, which names the row — no
+     * raw token is ever printed inside a sentence.
+     */
+    const segments = detail === "" ? [] : detail.split("|");
+    const last = segments.length > 0 ? (segments[segments.length - 1] ?? "") : "";
+    const colon = last.indexOf(":");
+    const token = colon === -1 ? last : last.slice(0, colon);
+    if (colon !== -1) values["arg"] = last.slice(colon + 1);
+    const leading = segments.slice(0, -1);
+    const fields = refusal.reason === "badOption" ? ["key", "value"] : ["cell", "value"];
+    leading.forEach((segment, index) => {
+      const field = fields[index];
+      if (field !== undefined && segment !== "") values[field] = segment;
+    });
+
+    const detailed = token !== "" && reasonKeys.has(`${name}.${token}`);
+    const messageKey = detailed ? key(`reason.${name}.${token}`) : key(`reason.${name}`);
+    let text = t(messageKey);
     for (const [field, value] of Object.entries(values)) {
       text = text.split(`{${field}}`).join(value === "" ? "—" : value);
     }
     // IE-3 — a guided message spends its detail INSIDE the sentence; a
     // message with no placeholder keeps the old parenthetical.
-    if (t(key(`reason.${name}`)).includes("{")) return text;
-    return detail === "" ? text : `${text} (${detail})`;
+    if (t(messageKey).includes("{")) return text;
+    return detail === "" || detailed ? text : `${text} (${detail})`;
   };
 
   const failed = (payload: { error?: string }, status: number) => {
