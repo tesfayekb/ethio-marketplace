@@ -1112,15 +1112,18 @@ export const en = {
   "admin.attributes.import.reason.badBoolean": "The “{detail}” cell must read true or false",
   "admin.attributes.import.reason.badNumber": "The “{detail}” cell must be a whole number",
   "admin.attributes.import.reason.badDate": "The “{detail}” cell must be a date (YYYY-MM-DD)",
-  "admin.attributes.import.reason.badValue": "The “{detail}” cell carries a value that is not allowed",
+  "admin.attributes.import.reason.badValue":
+    "The “{detail}” cell carries a value that is not allowed",
   "admin.attributes.import.reason.tooManyOptions": "This row lists too many options",
   "admin.attributes.import.reason.optionValueTooLong": "An option value on this row is too long",
   "admin.attributes.import.reason.optionLabelTooLong": "An option label on this row is too long",
-  "admin.attributes.import.reason.duplicateIdentity": "This row names an identity the file already used",
+  "admin.attributes.import.reason.duplicateIdentity":
+    "This row names an identity the file already used",
   "admin.attributes.import.reason.badHeader":
     "The file’s columns do not match this import — export a fresh file and edit that",
   "admin.attributes.import.reason.wrongFile": "This file belongs to another import",
-  "admin.attributes.import.reason.unknownColumn": "The file carries a column this import does not know",
+  "admin.attributes.import.reason.unknownColumn":
+    "The file carries a column this import does not know",
   "admin.attributes.import.reason.duplicateColumn": "The file names the same column twice",
   "admin.attributes.import.reason.nulByte": "The file is not plain text",
   "admin.attributes.import.reason.emptyFile": "The file is empty",
@@ -1129,7 +1132,8 @@ export const en = {
     "The “{detail}” cell must be a number or a year (year, year+5, year-10)",
   "admin.attributes.import.reason.badPreset":
     "The “{detail}” cell is not one of the allowed formats (vin, plate-et, digits:8, alnum:3-12, free:200)",
-  "admin.attributes.import.reason.optionKey": "Option “{cell}” carries a field this import does not know",
+  "admin.attributes.import.reason.optionKey":
+    "Option “{cell}” carries a field this import does not know",
   "admin.attributes.import.reason.optionShape": "Option “{cell}” is not shaped as expected",
   "admin.attributes.import.reason.optionShape.activeNotBoolean":
     "Option “{cell}”: the on/off field must read true or false",
@@ -1145,12 +1149,15 @@ export const en = {
   "admin.attributes.import.reason.badCell.badLength": "“{cell}” is too long: “{value}”",
   "admin.attributes.import.reason.badCell.badBound":
     "“{cell}” must be a number or a year (year, year+5, year-10) — this row reads “{value}”",
-  "admin.attributes.import.reason.badCell.minAboveMax": "The smallest value is above the largest: {value}",
-  "admin.attributes.import.reason.badCell.outOfRange": "“{cell}” is outside the allowed range: “{value}”",
+  "admin.attributes.import.reason.badCell.minAboveMax":
+    "The smallest value is above the largest: {value}",
+  "admin.attributes.import.reason.badCell.outOfRange":
+    "“{cell}” is outside the allowed range: “{value}”",
   "admin.attributes.import.reason.badCell.yearForcesZero":
     "A year is a whole number, so decimals must be 0 — this row reads “{value}”",
   "admin.attributes.import.reason.badCell.unknown": "“{cell}” does not accept “{value}”",
-  "admin.attributes.import.reason.badCell.notAllowed": "“{cell}” is not one of the allowed formats: “{value}”",
+  "admin.attributes.import.reason.badCell.notAllowed":
+    "“{cell}” is not one of the allowed formats: “{value}”",
   "admin.attributes.import.reason.badCell.notANumber": "“{cell}” must be a whole number: “{value}”",
   "admin.attributes.import.reason.badCell.tooLong": "“{cell}” is too long ({value} characters)",
   /* badOption details — `attr_option_shape` names the option and the reason. */

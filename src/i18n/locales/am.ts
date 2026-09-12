@@ -1049,8 +1049,7 @@ export const am: Messages = {
     "በ“{category}” የካርድ ቦታ {rank} ከ“{origin_category}” በተወረሰው “{origin_key}” ተይዟል",
   "admin.attributes.import.reason.required": "የ“{detail}” ሕዋስ ያስፈልጋል",
   "admin.attributes.import.reason.tooLong": "የ“{detail}” ሕዋስ በጣም ረጅም ነው",
-  "admin.attributes.import.reason.badSlug":
-    "የ“{detail}” ሕዋስ ተገቢ ቁልፍ አይደለም፦ a-z፣ 0-9፣ - እና _ ይጠቀሙ",
+  "admin.attributes.import.reason.badSlug": "የ“{detail}” ሕዋስ ተገቢ ቁልፍ አይደለም፦ a-z፣ 0-9፣ - እና _ ይጠቀሙ",
   "admin.attributes.import.reason.badBoolean": "የ“{detail}” ሕዋስ true ወይም false መሆን አለበት",
   "admin.attributes.import.reason.badNumber": "የ“{detail}” ሕዋስ ሙሉ ቁጥር መሆን አለበት",
   "admin.attributes.import.reason.badDate": "የ“{detail}” ሕዋስ ቀን (YYYY-MM-DD) መሆን አለበት",
@@ -1092,8 +1091,7 @@ export const am: Messages = {
   "admin.attributes.import.reason.badCell.yearForcesZero":
     "ዓመት ሙሉ ቁጥር ነው፤ ስለዚህ decimals 0 መሆን አለበት — ይህ መስመር “{value}” ይላል",
   "admin.attributes.import.reason.badCell.unknown": "“{cell}” “{value}”ን አይቀበልም",
-  "admin.attributes.import.reason.badCell.notAllowed":
-    "“{cell}” ከተፈቀዱት ቅርጸቶች አንዱ አይደለም፦ “{value}”",
+  "admin.attributes.import.reason.badCell.notAllowed": "“{cell}” ከተፈቀዱት ቅርጸቶች አንዱ አይደለም፦ “{value}”",
   "admin.attributes.import.reason.badCell.notANumber": "“{cell}” ሙሉ ቁጥር መሆን አለበት፦ “{value}”",
   "admin.attributes.import.reason.badCell.tooLong": "“{cell}” በጣም ረጅም ነው ({value} ቁምፊዎች)",
   /* badOption ዝርዝሮች */
@@ -1234,8 +1232,7 @@ export const am: Messages = {
   "admin.attributes.error.linkNotFound": "ያ አገናኝ ከእንግዲህ የለም።",
   "admin.attributes.error.cardLimit": "የዝርዝር ካርድ ቢበዛ ሦስት ባህሪያትን ያሳያል።",
   /* DEC-050 L2a/L2b — በሩ በተወረሰ ካርድ የተያዘውን ቦታ አይቀበልም። */
-  "admin.attributes.error.rankInherited":
-    "ይህ የካርድ ቦታ ከወላጅ ምድብ በተወረሰ ባህሪ ተይዟል። ሌላ ቦታ ይምረጡ።",
+  "admin.attributes.error.rankInherited": "ይህ የካርድ ቦታ ከወላጅ ምድብ በተወረሰ ባህሪ ተይዟል። ሌላ ቦታ ይምረጡ።",
   "admin.attributes.error.orderMismatch": "የባህሪው ቅደም ተከተል ጊዜው አልፎበታል፤ እንደገና ከፍተው ይሞክሩ።",
   "admin.attributes.error.mergeNoTarget": "የሚቆየውን ባህሪ ይምረጡ።",
   "admin.attributes.error.mergeNoSources": "ቢያንስ አንድ ድግግሞሽ ይምረጡ።",

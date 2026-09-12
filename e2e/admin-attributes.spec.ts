@@ -1788,7 +1788,9 @@ test.describe("C3 attributes console", () => {
    * cell, the export echoes them, re-importing the export is a no-op, and the
    * undo restores the row to silence.
    */
-  test("AT-44 the v2 definition cells commit, export and round-trip unchanged", async ({ page }) => {
+  test("AT-44 the v2 definition cells commit, export and round-trip unchanged", async ({
+    page,
+  }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
     await signInAsSuperAdmin(page);
@@ -1796,7 +1798,9 @@ test.describe("C3 attributes console", () => {
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
     try {
-      await supabase.from("attributes").insert({ attr_key: key, name_en: key, attr_type: "number" });
+      await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "number" });
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
