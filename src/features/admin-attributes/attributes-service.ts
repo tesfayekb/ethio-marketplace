@@ -122,17 +122,38 @@ function toOptionList(raw: unknown): AttributeOption[] {
         const record = entry as Record<string, unknown>;
         const text = (name: string) =>
           typeof record[name] === "string" ? (record[name] as string) : "";
-        return {
+        const option: AttributeOption = {
           value: String(record["value"] ?? ""),
           labelEn: text("label_en"),
           labelAm: text("label_am"),
           parent: text("parent"),
         };
+        /* DEC-050 L3b — the v2 cells round-trip verbatim (INC-188). */
+        if (typeof record["active"] === "boolean") option.active = record["active"] as boolean;
+        const aliases = record["aliases"];
+        if (Array.isArray(aliases)) {
+          option.aliases = aliases.filter((alias): alias is string => typeof alias === "string");
+        }
+        const bounds = record["bounds"];
+        if (bounds !== null && typeof bounds === "object" && !Array.isArray(bounds)) {
+          const read: Record<string, { min?: string; max?: string }> = {};
+          for (const [target, raw] of Object.entries(bounds as Record<string, unknown>)) {
+            if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue;
+            const cell = raw as Record<string, unknown>;
+            const bound: { min?: string; max?: string } = {};
+            if (cell["min"] !== undefined && cell["min"] !== null) bound.min = String(cell["min"]);
+            if (cell["max"] !== undefined && cell["max"] !== null) bound.max = String(cell["max"]);
+            read[target] = bound;
+          }
+          option.bounds = read;
+        }
+        return option;
       }
       return { value: "", labelEn: "", labelAm: "", parent: "" };
     })
     .filter((entry) => entry.value !== "");
 }
+
 
 export async function listAttributes(): Promise<AttributeRow[]> {
   const { data, error } = await supabase.rpc("admin_list_attributes");
