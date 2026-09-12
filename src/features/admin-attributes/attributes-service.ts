@@ -51,7 +51,6 @@ export interface AttributeOption {
   aliases?: string[];
 }
 
-
 export function optionValues(options: AttributeOption[]): string[] {
   return options.map((option) => option.value);
 }
@@ -154,7 +153,6 @@ function toOptionList(raw: unknown): AttributeOption[] {
     .filter((entry) => entry.value !== "");
 }
 
-
 export async function listAttributes(): Promise<AttributeRow[]> {
   const { data, error } = await supabase.rpc("admin_list_attributes");
   if (error) throw error;
@@ -249,7 +247,6 @@ export function toOptionsJson(options: AttributeOption[]): unknown[] {
     return record;
   });
 }
-
 
 export async function upsertAttribute(input: UpsertAttributeInput): Promise<string> {
   const { data, error } = await supabase.rpc("admin_upsert_attribute", {

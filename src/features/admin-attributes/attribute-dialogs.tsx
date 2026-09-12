@@ -97,7 +97,6 @@ export function useAttributeError() {
           .replace("{detail}", detail),
       );
       return;
-
     }
     setMessage(raw === "" ? t("admin.attributes.error.saveFailed") : raw);
   };
@@ -239,7 +238,6 @@ export function AttributeEditorDialog({
    * flat one keeps "". Nothing is recomposed, so nothing is lost (INC-188).
    */
   const composed: AttributeOption[] = optionRows.filter((option) => option.value.trim() !== "");
-
 
   /** Empty is null; a non-number for an integer cell is left to the door. */
   const text = (raw: string): string | null => (raw.trim() === "" ? null : raw.trim());
@@ -429,7 +427,6 @@ export function AttributeEditorDialog({
           ) : null}
         </div>
       ) : null}
-
 
       {/* DEC-050 L3a — one group per type, mounted only for that type. */}
       {isNumber ? <AttributeNumberFields value={numberFields} onChange={setNumberFields} /> : null}
