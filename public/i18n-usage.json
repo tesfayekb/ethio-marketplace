@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 211,
+  "scanned": 212,
   "dynamicCallSites": 116,
   "keys": {
     "account.deactivatedBanner": [
@@ -260,14 +260,6 @@
       "/admin/attributes",
       "/admin/categories"
     ],
-    "admin.attributes.field.options": [
-      "/admin/attributes",
-      "/admin/categories"
-    ],
-    "admin.attributes.field.optionsHelp": [
-      "/admin/attributes",
-      "/admin/categories"
-    ],
     "admin.attributes.field.preset": [
       "/admin/attributes",
       "/admin/categories"
@@ -391,6 +383,78 @@
       "/admin/categories"
     ],
     "admin.attributes.merge.title": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.active": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.addRow": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.aliasPlaceholder": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.aliasesHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.boundsAdd": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.boundsHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.boundsMax": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.boundsMin": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.boundsRemove": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.empty": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.inactiveTag": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.labelAm": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.labelEn": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.removeRow": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.rowsHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.rowsLabel": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.value": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.valuePlaceholder": [
       "/admin/attributes",
       "/admin/categories"
     ],

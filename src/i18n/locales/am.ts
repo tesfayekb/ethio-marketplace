@@ -1156,6 +1156,28 @@ export const am: Messages = {
   "admin.attributes.field.type": "ዓይነት",
   "admin.attributes.field.options": "አማራጮች",
   "admin.attributes.field.optionsHelp": "በአንድ መስመር አንድ አማራጭ።",
+  /* DEC-050 L3b — የአማራጭ መስመር አርታኢ (INC-188)። */
+  "admin.attributes.options.rowsLabel": "አማራጮች",
+  "admin.attributes.options.rowsHelp":
+    "እያንዳንዱ አማራጭ የራሱን ስሞች፣ ተለዋጭ ስሞችና ገደቦች ይይዛል። የተቀመጠ አማራጭ ይጠፋል ሳይሆን ይዘጋል።",
+  "admin.attributes.options.value": "እሴት",
+  "admin.attributes.options.valuePlaceholder": "የማሽን እሴት",
+  "admin.attributes.options.labelEn": "ስም (እንግሊዝኛ)",
+  "admin.attributes.options.labelAm": "ስም (አማርኛ)",
+  "admin.attributes.options.active": "በማስታወቂያ ጊዜ ይቀርባል",
+  "admin.attributes.options.inactiveTag": "ዝግ",
+  "admin.attributes.options.addRow": "አማራጭ ጨምር",
+  "admin.attributes.options.removeRow": "አስወግድ",
+  "admin.attributes.options.empty": "እስካሁን አማራጮች የሉም።",
+  "admin.attributes.options.aliasesHelp": "እስከ አምስት የፍለጋ ተለዋጭ ስሞች፣ እያንዳንዱ 32 ቁምፊ።",
+  "admin.attributes.options.aliasPlaceholder": "ተለዋጭ ስም",
+  "admin.attributes.options.boundsHelp":
+    "ለዚህ አማራጭ የቁጥር ባህርይ ገደብ ያድርጉ፤ የቁጥር ባህርዩ ይህ ባህርይ በሚሠራበት በየምድቡ መኖር አለበት።",
+  "admin.attributes.options.boundsAdd": "ገደብ ጨምር",
+  "admin.attributes.options.boundsMin": "አነስተኛ",
+  "admin.attributes.options.boundsMax": "ከፍተኛ",
+  "admin.attributes.options.boundsRemove": "ገደብ አስወግድ",
+
   "admin.attributes.field.help": "የእገዛ ጽሑፍ",
   /* DEC-050 L3a — የv2 መስኮች፤ የበሩ ፍተሻዎች ወሳኝ ናቸው። */
   "admin.attributes.field.helpAm": "የእገዛ ጽሑፍ (አማርኛ)",
@@ -1279,6 +1301,13 @@ export const am: Messages = {
   "admin.attributes.error.parentWithoutDepends":
     "“{detail}” የወላጅ እሴት ይጠቅሳል፣ ነገር ግን የሚመሠረትበት ባህርይ አልተመረጠም።",
   "admin.attributes.error.parentNotInParent": "“{detail}” የሚመሠረትበት ባህርይ እሴቶች አንዱ አይደለም።",
+  /* DEC-050 L3b — በበሩ የሚነሱ የአማራጭና የቅንብር እምቢታዎች። */
+  "admin.attributes.error.badOption": "አንድ አማራጭ ተቀባይነት አላገኘም፦ {detail}",
+  "admin.attributes.error.badCell": "አንድ ቅንብር ተቀባይነት አላገኘም፦ {detail}",
+  "admin.attributes.error.boundsTargetNotNumber": "“{target}” የቁጥር ባህርይ አይደለም፤ ገደብ ማድረግ አይቻልም።",
+  "admin.attributes.error.boundsTargetNotColinked":
+    "“{target}” ይህ ባህርይ በሚሠራበት በየምድቡ ስለማይሠራ፣ በዚህ ቦታ ገደብ ማድረግ አይቻልም።",
+
   "admin.attributes.error.deleteHasDependents": "እነዚህ ባህርያት በእሱ ስለሚመሠረቱ ሊሰረዝ አይችልም፦ {detail}",
   "admin.attributes.error.unlinkHasDependents": "በዚህ ምድብ ውስጥ እነዚህ ባህርያት በእሱ ይመሠረታሉ፦ {detail}",
   "admin.attributes.error.mergeAcrossDependency": "ጥገኝነት ስለሚያስተሳስራቸው ሊዋሃዱ አይችሉም፦ {detail}",

@@ -41,6 +41,14 @@ export interface AttributeOption {
   labelEn: string;
   labelAm: string;
   parent: string;
+  /**
+   * DEC-050 L3b — the v2 option cells. Every one is OPTIONAL and preserved
+   * verbatim by the reader and the writer: INC-188 was the console dropping
+   * them on every save.
+   */
+  active?: boolean;
+  bounds?: Record<string, { min?: string; max?: string }>;
+  aliases?: string[];
 }
 
 export function optionValues(options: AttributeOption[]): string[] {
@@ -113,12 +121,32 @@ function toOptionList(raw: unknown): AttributeOption[] {
         const record = entry as Record<string, unknown>;
         const text = (name: string) =>
           typeof record[name] === "string" ? (record[name] as string) : "";
-        return {
+        const option: AttributeOption = {
           value: String(record["value"] ?? ""),
           labelEn: text("label_en"),
           labelAm: text("label_am"),
           parent: text("parent"),
         };
+        /* DEC-050 L3b — the v2 cells round-trip verbatim (INC-188). */
+        if (typeof record["active"] === "boolean") option.active = record["active"] as boolean;
+        const aliases = record["aliases"];
+        if (Array.isArray(aliases)) {
+          option.aliases = aliases.filter((alias): alias is string => typeof alias === "string");
+        }
+        const bounds = record["bounds"];
+        if (bounds !== null && typeof bounds === "object" && !Array.isArray(bounds)) {
+          const read: Record<string, { min?: string; max?: string }> = {};
+          for (const [target, raw] of Object.entries(bounds as Record<string, unknown>)) {
+            if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue;
+            const cell = raw as Record<string, unknown>;
+            const bound: { min?: string; max?: string } = {};
+            if (cell["min"] !== undefined && cell["min"] !== null) bound.min = String(cell["min"]);
+            if (cell["max"] !== undefined && cell["max"] !== null) bound.max = String(cell["max"]);
+            read[target] = bound;
+          }
+          option.bounds = read;
+        }
+        return option;
       }
       return { value: "", labelEn: "", labelAm: "", parent: "" };
     })
@@ -193,15 +221,31 @@ export interface UpsertAttributeInput {
 }
 
 /**
- * A FLAT definition keeps writing plain strings — the storage shape the whole
- * library already carries, so nothing round-trips differently. Only a
- * dependent definition writes objects, and only the fields it actually uses.
+ * DEC-050 L3b — THE STRICT OPTION RECORD (fixes INC-188).
+ *
+ * Every option writes the four identity/label cells plus `active` only when
+ * false, and `bounds`/`aliases` only when non-empty — exactly the shape
+ * `attr_option_norm_v2` normalises to, so a save with no edits is a no-op on
+ * the row. The old writer emitted bare strings (or `{value,parent}`), which is
+ * what erased labels, aliases and bounds on every console save.
  */
-function toOptionsJson(options: AttributeOption[]): unknown[] {
-  const dependent = options.some((option) => option.parent !== "");
-  return dependent
-    ? options.map((option) => ({ value: option.value, parent: option.parent }))
-    : options.map((option) => option.value);
+export function toOptionsJson(options: AttributeOption[]): unknown[] {
+  return options.map((option) => {
+    const record: Record<string, unknown> = {
+      value: option.value.trim(),
+      label_en: option.labelEn.trim(),
+      label_am: option.labelAm.trim(),
+      parent: option.parent.trim(),
+    };
+    if (option.active === false) record["active"] = false;
+    const bounds = Object.entries(option.bounds ?? {}).filter(
+      ([, bound]) => bound.min !== undefined || bound.max !== undefined,
+    );
+    if (bounds.length > 0) record["bounds"] = Object.fromEntries(bounds);
+    const aliases = (option.aliases ?? []).map((alias) => alias.trim()).filter((a) => a !== "");
+    if (aliases.length > 0) record["aliases"] = aliases;
+    return record;
+  });
 }
 
 export async function upsertAttribute(input: UpsertAttributeInput): Promise<string> {

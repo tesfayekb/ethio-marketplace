@@ -28,6 +28,7 @@ import {
   useUpsertAttribute,
 } from "./use-attributes";
 import { useAttributeLabel } from "./use-attribute-label";
+import { AttributeOptionRows } from "./components/attribute-option-rows";
 import {
   AttributeNumberFields,
   AttributeTextFields,
@@ -35,6 +36,7 @@ import {
   type NumberFieldsValue,
   type TextFieldsValue,
 } from "./components/attribute-v2-fields";
+
 import {
   EMPTY_NUMBER_FIELDS,
   EMPTY_TEXT_FIELDS,
@@ -77,8 +79,22 @@ export function useAttributeError() {
       (key.startsWith("admin.attributes.error.") || key.startsWith("admin.categories.error."))
     ) {
       const text = t(key as MessageKey);
+      if (detail === undefined) {
+        setMessage(text);
+        return;
+      }
+      /**
+       * DEC-050 L3b — an option refusal names its parts with pipes
+       * (`<attribute>|<target>`): the sentence names the TARGET, never a raw
+       * token pasted mid-line.
+       */
+      const parts = detail.split("|");
       setMessage(
-        detail === undefined ? text : text.replace("{count}", detail).replace("{detail}", detail),
+        text
+          .replace("{count}", detail)
+          .replace("{attr}", parts[0] ?? detail)
+          .replace("{target}", parts[parts.length - 1] ?? detail)
+          .replace("{detail}", detail),
       );
       return;
     }
@@ -163,25 +179,15 @@ export function AttributeEditorDialog({
   const [attrKey, setAttrKey] = useState(attribute?.attrKey ?? "");
   const [nameEn, setNameEn] = useState(attribute?.nameEn ?? "");
   const [attrType, setAttrType] = useState(attribute?.attrType ?? "text");
-  const [options, setOptions] = useState(
-    (attribute?.options ?? [])
-      .filter((option) => option.parent === "")
-      .map((option) => option.value)
-      .join("\n"),
-  );
+  /**
+   * DEC-050 L3b (INC-188) — the options are ROWS carrying every stored field,
+   * so a save with no edits sends the stored records back untouched.
+   */
+  const [optionRows, setOptionRows] = useState<AttributeOption[]>(attribute?.options ?? []);
+  const storedValues = (attribute?.options ?? []).map((option) => option.value);
   const [dependsOn, setDependsOn] = useState(attribute?.dependsOnKey ?? "");
-  /** parent value → its child option values, one per line. */
-  const [perParent, setPerParent] = useState<Record<string, string>>(() => {
-    const grouped: Record<string, string[]> = {};
-    for (const option of attribute?.options ?? []) {
-      if (option.parent === "") continue;
-      (grouped[option.parent] ??= []).push(option.value);
-    }
-    return Object.fromEntries(
-      Object.entries(grouped).map(([parent, values]) => [parent, values.join("\n")]),
-    );
-  });
   const [preview, setPreview] = useState("");
+
   const [helpText, setHelpText] = useState(attribute?.helpTextEn ?? "");
   /**
    * DEC-050 L3a — the v2 cells. A group is UNMOUNTED for the wrong type and its
@@ -219,22 +225,19 @@ export function AttributeEditorDialog({
   const parentValues = parent === null ? [] : optionValues(parent.options);
   const dependent = typeHasOptions(attrType) && parent !== null;
 
-  const lines = (raw: string) =>
-    raw
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line !== "");
+  /** The number definitions a per-option bound may target (F3: the door judges). */
+  const boundsTargets = attributes
+    .filter((row) => row.attrType === "number")
+    .map((row) => ({
+      attrKey: row.attrKey,
+      label: `${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`,
+    }));
 
-  const composed: AttributeOption[] = dependent
-    ? parentValues.flatMap((value) =>
-        lines(perParent[value] ?? "").map((child) => ({
-          value: child,
-          labelEn: "",
-          labelAm: "",
-          parent: value,
-        })),
-      )
-    : lines(options).map((value) => ({ value, labelEn: "", labelAm: "", parent: "" }));
+  /**
+   * The rows exactly as edited: a dependent definition keeps its `parent`, a
+   * flat one keeps "". Nothing is recomposed, so nothing is lost (INC-188).
+   */
+  const composed: AttributeOption[] = optionRows.filter((option) => option.value.trim() !== "");
 
   /** Empty is null; a non-number for an integer cell is left to the door. */
   const text = (raw: string): string | null => (raw.trim() === "" ? null : raw.trim());
@@ -367,81 +370,61 @@ export function AttributeEditorDialog({
         </FormField>
       ) : null}
 
-      {typeHasOptions(attrType) && !dependent ? (
-        <FormField
-          label={t("admin.attributes.field.options")}
-          htmlFor="attribute-options"
-          help={t("admin.attributes.field.optionsHelp")}
-        >
-          <Textarea
-            id="attribute-options"
-            data-testid="attribute-options"
-            rows={6}
-            value={options}
-            onChange={(event) => setOptions(event.target.value)}
-          />
-        </FormField>
-      ) : null}
-
-      {/* ONE OPTIONS EDITOR PER PARENT VALUE: the file the operator authors and
-          the picker the buyer will see have exactly the same shape. */}
-      {dependent ? (
-        <div className="space-y-3" data-testid="attribute-options-by-parent">
-          {parentValues.length === 0 ? (
+      {/* DEC-050 L3b — ONE ROW PER OPTION, flat or grouped by parent value. */}
+      {typeHasOptions(attrType) ? (
+        <div className="min-w-0 space-y-3" data-testid="attribute-options">
+          {dependent && parentValues.length === 0 ? (
             <p className="text-sm text-muted-foreground" data-testid="attribute-parent-empty">
               {t("admin.attributes.dependsOn.parentEmpty")}
             </p>
           ) : (
-            parentValues.map((value) => (
-              <FormField
-                key={value}
-                label={t("admin.attributes.dependsOn.optionsFor").replace("{parent}", value)}
-                htmlFor={`attribute-options-for-${value}`}
-              >
-                <Textarea
-                  id={`attribute-options-for-${value}`}
-                  data-testid={`attribute-options-for-${value}`}
-                  rows={3}
-                  value={perParent[value] ?? ""}
-                  onChange={(event) =>
-                    setPerParent((prev) => ({ ...prev, [value]: event.target.value }))
-                  }
-                />
-              </FormField>
-            ))
+            <AttributeOptionRows
+              rows={optionRows}
+              storedValues={storedValues}
+              targets={boundsTargets}
+              parentValues={parentValues}
+              dependent={dependent}
+              onChange={setOptionRows}
+            />
           )}
 
           {/* THE CASCADE, previewed where it is authored. */}
-          <FormField
-            label={t("admin.attributes.dependsOn.previewLabel")}
-            htmlFor="attribute-cascade-parent"
-          >
-            <select
-              id="attribute-cascade-parent"
-              data-testid="attribute-cascade-parent"
-              className={SELECT_CLASS}
-              value={preview}
-              onChange={(event) => setPreview(event.target.value)}
-            >
-              <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
-              {parentValues.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <ul data-testid="attribute-cascade-child" className="space-y-1">
-            {(preview === "" ? [] : lines(perParent[preview] ?? "")).map((child) => (
-              <li
-                key={child}
-                data-testid={`attribute-cascade-option-${child}`}
-                className="text-sm text-muted-foreground"
+          {dependent ? (
+            <>
+              <FormField
+                label={t("admin.attributes.dependsOn.previewLabel")}
+                htmlFor="attribute-cascade-parent"
               >
-                {child}
-              </li>
-            ))}
-          </ul>
+                <select
+                  id="attribute-cascade-parent"
+                  data-testid="attribute-cascade-parent"
+                  className={SELECT_CLASS}
+                  value={preview}
+                  onChange={(event) => setPreview(event.target.value)}
+                >
+                  <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
+                  {parentValues.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <ul data-testid="attribute-cascade-child" className="space-y-1">
+                {optionRows
+                  .filter((option) => preview !== "" && option.parent === preview)
+                  .map((option) => (
+                    <li
+                      key={option.value}
+                      data-testid={`attribute-cascade-option-${option.value}`}
+                      className="text-sm text-muted-foreground"
+                    >
+                      {option.value}
+                    </li>
+                  ))}
+              </ul>
+            </>
+          ) : null}
         </div>
       ) : null}
 
