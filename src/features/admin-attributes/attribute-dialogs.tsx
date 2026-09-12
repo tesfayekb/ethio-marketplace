@@ -79,10 +79,25 @@ export function useAttributeError() {
       (key.startsWith("admin.attributes.error.") || key.startsWith("admin.categories.error."))
     ) {
       const text = t(key as MessageKey);
+      if (detail === undefined) {
+        setMessage(text);
+        return;
+      }
+      /**
+       * DEC-050 L3b — an option refusal names its parts with pipes
+       * (`<attribute>|<target>`): the sentence names the TARGET, never a raw
+       * token pasted mid-line.
+       */
+      const parts = detail.split("|");
       setMessage(
-        detail === undefined ? text : text.replace("{count}", detail).replace("{detail}", detail),
+        text
+          .replace("{count}", detail)
+          .replace("{attr}", parts[0] ?? detail)
+          .replace("{target}", parts[parts.length - 1] ?? detail)
+          .replace("{detail}", detail),
       );
       return;
+
     }
     setMessage(raw === "" ? t("admin.attributes.error.saveFailed") : raw);
   };
