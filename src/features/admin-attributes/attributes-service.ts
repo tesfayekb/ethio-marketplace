@@ -466,3 +466,62 @@ export async function listEffectiveCategoryLinks(categoryId: string): Promise<Ef
     originNameEn: row.origin_name_en,
   }));
 }
+
+/* ----------------------- DEC-050 L3a — v2 cell shapes ---------------------- */
+
+/**
+ * The editor's v2 field values and their serialization to the door's cells.
+ * They live beside the mapping (not in the component file) because the token
+ * shape is a wire concern: the door stores `digits:N` · `vin` · `plate-et` ·
+ * `alnum:A-B` · `free:N` and nothing else.
+ */
+export const EMPTY_NUMBER_FIELDS: NumberFieldsValue = {
+  unit: "",
+  min: "",
+  max: "",
+  decimals: "",
+  format: "",
+};
+
+export const EMPTY_TEXT_FIELDS: TextFieldsValue = {
+  preset: "",
+  presetN: "",
+  presetA: "",
+  presetB: "",
+  maxLength: "",
+};
+
+/** An incomplete builder serializes to null — the cell stays empty, never half. */
+export function presetToken(value: TextFieldsValue): string | null {
+  const arg = (raw: string) => raw.trim();
+  switch (value.preset) {
+    case "digits":
+      return arg(value.presetN) === "" ? null : `digits:${arg(value.presetN)}`;
+    case "free":
+      return arg(value.presetN) === "" ? null : `free:${arg(value.presetN)}`;
+    case "alnum":
+      return arg(value.presetA) === "" || arg(value.presetB) === ""
+        ? null
+        : `alnum:${arg(value.presetA)}-${arg(value.presetB)}`;
+    case "vin":
+    case "plate-et":
+      return value.preset;
+    default:
+      return null;
+  }
+}
+
+/** The inverse: a stored token pre-fills the builder when a row is reopened. */
+export function parsePreset(raw: string | null): Omit<TextFieldsValue, "maxLength"> {
+  const empty = { preset: "", presetN: "", presetA: "", presetB: "" };
+  if (raw === null || raw.trim() === "") return empty;
+  const token = raw.trim();
+  if (token === "vin" || token === "plate-et") return { ...empty, preset: token };
+  const [kind, arg = ""] = token.split(":");
+  if (kind === "digits" || kind === "free") return { ...empty, preset: kind, presetN: arg };
+  if (kind === "alnum") {
+    const [a = "", b = ""] = arg.split("-");
+    return { ...empty, preset: "alnum", presetA: a, presetB: b };
+  }
+  return empty;
+}
