@@ -55,6 +55,7 @@ import { useAttributeLabel } from "./use-attribute-label";
 import {
   useAdminAttributes,
   useAttributeCategories,
+  useAttributeCoverage,
   useEffectiveCategoryLinks,
 } from "./use-attributes";
 
@@ -159,6 +160,19 @@ export function AdminAttributesPage() {
   const usedBy = useAttributeCategories();
   const usedByAttribute = useMemo(() => groupByAttribute(usedBy.data ?? []), [usedBy.data]);
   const chipsFor = (row: AttributeRow): AttributeCategory[] => usedByAttribute.get(row.id) ?? [];
+
+  /**
+   * DEC-050 L3a — AMHARIC OPTION COVERAGE. One read for the whole library
+   * (`admin_attribute_option_coverage`), report-only: an incomplete row is
+   * amber, never blocked.
+   */
+  const coverage = useAttributeCoverage();
+  const coverageById = useMemo(() => {
+    const map = new Map<string, { total: number; withAm: number }>();
+    for (const row of coverage.data ?? [])
+      map.set(row.attributeId, { total: row.total, withAm: row.withAm });
+    return map;
+  }, [coverage.data]);
 
   const chooseCategory = (slug: string) => {
     setOffset(0);
