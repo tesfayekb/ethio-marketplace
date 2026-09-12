@@ -26,13 +26,6 @@ export interface NumberFieldsValue {
   format: string;
 }
 
-export const EMPTY_NUMBER_FIELDS: NumberFieldsValue = {
-  unit: "",
-  min: "",
-  max: "",
-  decimals: "",
-  format: "",
-};
 
 const DECIMALS_CHOICES = ["0", "1", "2", "3"] as const;
 const FORMAT_CHOICES = ["plain", "year"] as const;
@@ -150,13 +143,6 @@ export interface TextFieldsValue {
   maxLength: string;
 }
 
-export const EMPTY_TEXT_FIELDS: TextFieldsValue = {
-  preset: "",
-  presetN: "",
-  presetA: "",
-  presetB: "",
-  maxLength: "",
-};
 
 /** L1's allowlist, in the order the operator reads it. */
 const PRESET_CHOICES = ["digits", "vin", "plate-et", "alnum", "free"] as const;
@@ -169,40 +155,6 @@ const PRESET_LABEL_KEY: Record<string, string> = {
   free: "free",
 };
 
-/** The token the door stores: `digits:N` · `vin` · `plate-et` · `alnum:A-B` · `free:N`. */
-export function presetToken(value: TextFieldsValue): string | null {
-  const arg = (raw: string) => raw.trim();
-  switch (value.preset) {
-    case "digits":
-      return arg(value.presetN) === "" ? null : `digits:${arg(value.presetN)}`;
-    case "free":
-      return arg(value.presetN) === "" ? null : `free:${arg(value.presetN)}`;
-    case "alnum":
-      return arg(value.presetA) === "" || arg(value.presetB) === ""
-        ? null
-        : `alnum:${arg(value.presetA)}-${arg(value.presetB)}`;
-    case "vin":
-    case "plate-et":
-      return value.preset;
-    default:
-      return null;
-  }
-}
-
-/** The inverse: a stored token pre-fills the builder when a row is reopened. */
-export function parsePreset(raw: string | null): Omit<TextFieldsValue, "maxLength"> {
-  const empty = { preset: "", presetN: "", presetA: "", presetB: "" };
-  if (raw === null || raw.trim() === "") return empty;
-  const token = raw.trim();
-  if (token === "vin" || token === "plate-et") return { ...empty, preset: token };
-  const [kind, arg = ""] = token.split(":");
-  if (kind === "digits" || kind === "free") return { ...empty, preset: kind, presetN: arg };
-  if (kind === "alnum") {
-    const [a = "", b = ""] = arg.split("-");
-    return { ...empty, preset: "alnum", presetA: a, presetB: b };
-  }
-  return empty;
-}
 
 export function AttributeTextFields({
   value,
