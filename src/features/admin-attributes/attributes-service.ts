@@ -1,9 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-import type {
-  NumberFieldsValue,
-  TextFieldsValue,
-} from "./components/attribute-v2-fields";
+import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-v2-fields";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY client seam.

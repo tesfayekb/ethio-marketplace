@@ -26,7 +26,6 @@ export interface NumberFieldsValue {
   format: string;
 }
 
-
 const DECIMALS_CHOICES = ["0", "1", "2", "3"] as const;
 const FORMAT_CHOICES = ["plain", "year"] as const;
 
@@ -143,7 +142,6 @@ export interface TextFieldsValue {
   maxLength: string;
 }
 
-
 /** L1's allowlist, in the order the operator reads it. */
 const PRESET_CHOICES = ["digits", "vin", "plate-et", "alnum", "free"] as const;
 /** plate-et is not a legal key segment; the label key spells it out. */
@@ -154,7 +152,6 @@ const PRESET_LABEL_KEY: Record<string, string> = {
   alnum: "alnum",
   free: "free",
 };
-
 
 export function AttributeTextFields({
   value,
