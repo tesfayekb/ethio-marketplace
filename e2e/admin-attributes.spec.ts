@@ -2122,8 +2122,6 @@ test.describe("C3 attributes console", () => {
     }
   });
 
-
-
   /** AT-22 — the refusal vocabulary: bad header, formula cell, unknown slug. */
   test("AT-22 malformed files and dangerous cells are refused", async ({ page }) => {
     test.setTimeout(180_000);
