@@ -179,6 +179,15 @@ export interface UpsertAttributeInput {
   options: AttributeOption[];
   helpTextEn: string;
   dependsOnKey: string | null;
+  /* DEC-050 L3a — every v2 cell reaches the door; empty is null. */
+  helpTextAm: string;
+  unit: string | null;
+  minBound: string | null;
+  maxBound: string | null;
+  decimals: number | null;
+  format: string | null;
+  preset: string | null;
+  maxLength: number | null;
 }
 
 /**
