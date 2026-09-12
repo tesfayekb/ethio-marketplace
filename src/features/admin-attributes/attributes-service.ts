@@ -41,7 +41,16 @@ export interface AttributeOption {
   labelEn: string;
   labelAm: string;
   parent: string;
+  /**
+   * DEC-050 L3b — the v2 option cells. Every one is OPTIONAL and preserved
+   * verbatim by the reader and the writer: INC-188 was the console dropping
+   * them on every save.
+   */
+  active?: boolean;
+  bounds?: Record<string, { min?: string; max?: string }>;
+  aliases?: string[];
 }
+
 
 export function optionValues(options: AttributeOption[]): string[] {
   return options.map((option) => option.value);
