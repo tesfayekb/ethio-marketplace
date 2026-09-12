@@ -1301,6 +1301,13 @@ export const am: Messages = {
   "admin.attributes.error.parentWithoutDepends":
     "“{detail}” የወላጅ እሴት ይጠቅሳል፣ ነገር ግን የሚመሠረትበት ባህርይ አልተመረጠም።",
   "admin.attributes.error.parentNotInParent": "“{detail}” የሚመሠረትበት ባህርይ እሴቶች አንዱ አይደለም።",
+  /* DEC-050 L3b — በበሩ የሚነሱ የአማራጭና የቅንብር እምቢታዎች። */
+  "admin.attributes.error.badOption": "አንድ አማራጭ ተቀባይነት አላገኘም፦ {detail}",
+  "admin.attributes.error.badCell": "አንድ ቅንብር ተቀባይነት አላገኘም፦ {detail}",
+  "admin.attributes.error.boundsTargetNotNumber": "“{target}” የቁጥር ባህርይ አይደለም፤ ገደብ ማድረግ አይቻልም።",
+  "admin.attributes.error.boundsTargetNotColinked":
+    "“{target}” ይህ ባህርይ በሚሠራበት በየምድቡ ስለማይሠራ፣ በዚህ ቦታ ገደብ ማድረግ አይቻልም።",
+
   "admin.attributes.error.deleteHasDependents": "እነዚህ ባህርያት በእሱ ስለሚመሠረቱ ሊሰረዝ አይችልም፦ {detail}",
   "admin.attributes.error.unlinkHasDependents": "በዚህ ምድብ ውስጥ እነዚህ ባህርያት በእሱ ይመሠረታሉ፦ {detail}",
   "admin.attributes.error.mergeAcrossDependency": "ጥገኝነት ስለሚያስተሳስራቸው ሊዋሃዱ አይችሉም፦ {detail}",

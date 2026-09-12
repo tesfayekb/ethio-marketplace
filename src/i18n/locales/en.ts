@@ -1384,6 +1384,14 @@ export const en = {
     "“{detail}” names a parent value, but no attribute was chosen to depend on.",
   "admin.attributes.error.parentNotInParent":
     "“{detail}” is not one of the values of the attribute this one depends on.",
+  /* DEC-050 L3b — the option and cell refusals raised by the save door. */
+  "admin.attributes.error.badOption": "An option could not be accepted: {detail}",
+  "admin.attributes.error.badCell": "A setting could not be accepted: {detail}",
+  "admin.attributes.error.boundsTargetNotNumber":
+    "“{target}” is not a number attribute, so it cannot be limited.",
+  "admin.attributes.error.boundsTargetNotColinked":
+    "“{target}” is not used in every category this attribute is used in, so it cannot be limited here.",
+
   "admin.attributes.error.deleteHasDependents":
     "These attributes depend on it, so it cannot be deleted: {detail}",
   "admin.attributes.error.unlinkHasDependents":
