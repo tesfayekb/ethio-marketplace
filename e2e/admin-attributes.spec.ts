@@ -937,7 +937,7 @@ test.describe("C3 attributes console", () => {
       expect(links.charCodeAt(0)).toBe(0xfeff);
       // THE COLUMN LAW, verbatim — IE-3: derived columns declare themselves.
       expect(definitions.slice(1).split("\r\n")[0]).toBe(
-        "attribute_key,label_en,label_am,type,options,depends_on,is_per_variant (read-only),direct_link_count (read-only)",
+        "attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant (read-only),direct_link_count (read-only)",
       );
       expect(links.slice(1).split("\r\n")[0]).toBe(
         "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)",
