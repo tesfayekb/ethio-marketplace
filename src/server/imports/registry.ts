@@ -37,13 +37,61 @@ export const LANG_RE = /^[a-z]{2,3}(-[a-z0-9]{2,8})?$/i;
 /** Translation keys are dotted paths, never slugs. */
 export const KEY_RE = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
 
+/** DEC-050 L2b — a unit cell's ceiling, mirroring `attr_cell_check`. */
+export const MAX_UNIT = 16;
+/** A help sentence's ceiling, mirroring `attr_cell_check`. */
+export const MAX_HELP = 240;
+
+/**
+ * DEC-050 L2b — a bound cell is a numeric literal or a year token (`year`,
+ * `year+N`, `year-N`, N 1–99). The SHAPE of `attr_bound_ok`; resolution and
+ * every semantic rule remain the SQL's.
+ */
+export const BOUND_RE = /^(-?\d+(\.\d+)?|year([+-][1-9][0-9]?)?)$/;
+
+/**
+ * DEC-050 L2b — the preset ALLOWLIST's shape (never a free regex): `vin`,
+ * `plate-et`, `digits:N` (1–64), `free:N` (1–1000), `alnum:A-B` (1–64, A ≤ B).
+ */
+export function presetShapeOk(value: string): boolean {
+  if (value === "vin" || value === "plate-et") return true;
+  const digits = /^digits:(\d{1,2})$/.exec(value);
+  if (digits !== null) {
+    const n = Number(digits[1]);
+    return n >= 1 && n <= 64;
+  }
+  const free = /^free:(\d{1,4})$/.exec(value);
+  if (free !== null) {
+    const n = Number(free[1]);
+    return n >= 1 && n <= 1000;
+  }
+  const alnum = /^alnum:(\d{1,2})-(\d{1,2})$/.exec(value);
+  if (alnum !== null) {
+    const low = Number(alnum[1]);
+    const high = Number(alnum[2]);
+    return low >= 1 && low <= 64 && high >= 1 && high <= 64 && low <= high;
+  }
+  return false;
+}
+
 export type ColumnClass = "identity" | "editable" | "read-only" | "action";
 
 export interface ColumnRule {
   name: string;
   klass: ColumnClass;
   /** `slug` also enforces SLUG_RE; empty is allowed unless `required`. */
-  type?: "text" | "slug" | "key" | "bool" | "int" | "date" | "pipe" | "options" | "enum";
+  type?:
+    | "text"
+    | "slug"
+    | "key"
+    | "bool"
+    | "int"
+    | "date"
+    | "pipe"
+    | "options"
+    | "enum"
+    | "bound"
+    | "preset";
   required?: boolean;
   maxLength?: number;
   /** Allowed values for `enum`/`action` columns (lower-cased comparison). */
@@ -130,6 +178,20 @@ export const FAMILIES: Record<string, FamilySpec> = {
           { name: "type", klass: "editable", type: "enum", values: ATTRIBUTE_TYPES },
           { name: "options", klass: "editable", type: "options" },
           { name: "depends_on", klass: "editable", type: "slug" },
+          /**
+           * DEC-050 L2b — THE NINE v2 CELLS. Shape only: the planner
+           * (`attr_cell_check`) stays the authority on every semantic rule —
+           * which type may carry which cell, ranges, and `year` arithmetic.
+           */
+          { name: "unit", klass: "editable", type: "text", maxLength: MAX_UNIT },
+          { name: "min", klass: "editable", type: "bound" },
+          { name: "max", klass: "editable", type: "bound" },
+          { name: "decimals", klass: "editable", type: "int" },
+          { name: "format", klass: "editable", type: "enum", values: NUMBER_FORMATS },
+          { name: "preset", klass: "editable", type: "preset" },
+          { name: "max_length", klass: "editable", type: "int" },
+          { name: "help_text_en", klass: "editable", type: "text", maxLength: MAX_HELP },
+          { name: "help_text_am", klass: "editable", type: "text", maxLength: MAX_HELP },
           { name: "is_per_variant", klass: "read-only", type: "bool" },
           { name: "direct_link_count", klass: "read-only", type: "int" },
           { name: "action", klass: "action", values: ACTION_ATTRIBUTE_DEFS },
