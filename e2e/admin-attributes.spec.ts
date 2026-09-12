@@ -104,7 +104,6 @@ async function addOptionRow(
 
 /** A scratch definition, minted straight through the service client (J3). */
 
-
 async function seedAttribute(key: string, type = "text") {
   const { data, error } = await adminClient()
     .from("attributes")
@@ -208,7 +207,6 @@ test.describe("C3 attributes console", () => {
         { value: "Alpha", label_en: "", label_am: "", parent: "" },
         { value: "Beta", label_en: "", label_am: "", parent: "" },
       ]);
-
 
       await test.step("AT-2 rename definition", async () => {
         await page.getByTestId("attribute-search").fill(key);
@@ -3088,7 +3086,6 @@ test.describe("C3 attributes console", () => {
       await addOptionRow(page, "alfa", "alfa-2");
       await addOptionRow(page, "beta", "beta-1");
 
-
       // THE CASCADE: empty until a parent value is chosen.
       await expect(page.getByTestId("attribute-cascade-option-alfa-1")).toHaveCount(0);
       await page.getByTestId("attribute-cascade-parent").selectOption("alfa");
@@ -3627,7 +3624,9 @@ test.describe("C3 attributes console", () => {
       if (error) throw new Error(`AT-49 seed failed: ${error.message}`);
 
       await openDefinitionEditor(page, key, "AT-49");
-      await expect(optionRow(page, "", "alpha").getByTestId("option-label-en")).toHaveValue("Alpha");
+      await expect(optionRow(page, "", "alpha").getByTestId("option-label-en")).toHaveValue(
+        "Alpha",
+      );
       await expect(optionRow(page, "", "beta").getByTestId("option-inactive-tag")).toBeVisible();
 
       await page.getByTestId("attribute-edit-submit").click();
@@ -3637,15 +3636,19 @@ test.describe("C3 attributes console", () => {
         await dialogDump(page, "AT-49 the save never landed"),
       ).toHaveCount(0, { timeout: 30000 });
 
-      expect((await readAttribute(key))?.options, "AT-49 a no-edit save changed the options").toEqual(
-        SEEDED_OPTIONS,
-      );
+      expect(
+        (await readAttribute(key))?.options,
+        "AT-49 a no-edit save changed the options",
+      ).toEqual(SEEDED_OPTIONS);
       /* The Amharic coverage meter is unchanged: both labels survived. */
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
-      await expect(librarySurface(page).getByTestId(`attribute-coverage-${key}`)).toHaveText("2/2", {
-        timeout: 20000,
-      });
+      await expect(librarySurface(page).getByTestId(`attribute-coverage-${key}`)).toHaveText(
+        "2/2",
+        {
+          timeout: 20000,
+        },
+      );
     } finally {
       await destroyAttribute(key);
     }
@@ -3778,4 +3781,3 @@ test.describe("C3 attributes console", () => {
     }
   });
 });
-
