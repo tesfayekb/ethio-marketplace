@@ -355,83 +355,64 @@ export function AttributeEditorDialog({
         </FormField>
       ) : null}
 
-      {typeHasOptions(attrType) && !dependent ? (
-        <FormField
-          label={t("admin.attributes.field.options")}
-          htmlFor="attribute-options"
-          help={t("admin.attributes.field.optionsHelp")}
-        >
-          <Textarea
-            id="attribute-options"
-            data-testid="attribute-options"
-            rows={6}
-            value={options}
-            onChange={(event) => setOptions(event.target.value)}
-          />
-        </FormField>
-      ) : null}
-
-      {/* ONE OPTIONS EDITOR PER PARENT VALUE: the file the operator authors and
-          the picker the buyer will see have exactly the same shape. */}
-      {dependent ? (
-        <div className="space-y-3" data-testid="attribute-options-by-parent">
-          {parentValues.length === 0 ? (
+      {/* DEC-050 L3b — ONE ROW PER OPTION, flat or grouped by parent value. */}
+      {typeHasOptions(attrType) ? (
+        <div className="min-w-0 space-y-3" data-testid="attribute-options">
+          {dependent && parentValues.length === 0 ? (
             <p className="text-sm text-muted-foreground" data-testid="attribute-parent-empty">
               {t("admin.attributes.dependsOn.parentEmpty")}
             </p>
           ) : (
-            parentValues.map((value) => (
-              <FormField
-                key={value}
-                label={t("admin.attributes.dependsOn.optionsFor").replace("{parent}", value)}
-                htmlFor={`attribute-options-for-${value}`}
-              >
-                <Textarea
-                  id={`attribute-options-for-${value}`}
-                  data-testid={`attribute-options-for-${value}`}
-                  rows={3}
-                  value={perParent[value] ?? ""}
-                  onChange={(event) =>
-                    setPerParent((prev) => ({ ...prev, [value]: event.target.value }))
-                  }
-                />
-              </FormField>
-            ))
+            <AttributeOptionRows
+              rows={optionRows}
+              storedValues={storedValues}
+              targets={boundsTargets}
+              parentValues={parentValues}
+              dependent={dependent}
+              onChange={setOptionRows}
+            />
           )}
 
           {/* THE CASCADE, previewed where it is authored. */}
-          <FormField
-            label={t("admin.attributes.dependsOn.previewLabel")}
-            htmlFor="attribute-cascade-parent"
-          >
-            <select
-              id="attribute-cascade-parent"
-              data-testid="attribute-cascade-parent"
-              className={SELECT_CLASS}
-              value={preview}
-              onChange={(event) => setPreview(event.target.value)}
-            >
-              <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
-              {parentValues.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <ul data-testid="attribute-cascade-child" className="space-y-1">
-            {(preview === "" ? [] : lines(perParent[preview] ?? "")).map((child) => (
-              <li
-                key={child}
-                data-testid={`attribute-cascade-option-${child}`}
-                className="text-sm text-muted-foreground"
+          {dependent ? (
+            <>
+              <FormField
+                label={t("admin.attributes.dependsOn.previewLabel")}
+                htmlFor="attribute-cascade-parent"
               >
-                {child}
-              </li>
-            ))}
-          </ul>
+                <select
+                  id="attribute-cascade-parent"
+                  data-testid="attribute-cascade-parent"
+                  className={SELECT_CLASS}
+                  value={preview}
+                  onChange={(event) => setPreview(event.target.value)}
+                >
+                  <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
+                  {parentValues.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <ul data-testid="attribute-cascade-child" className="space-y-1">
+                {optionRows
+                  .filter((option) => preview !== "" && option.parent === preview)
+                  .map((option) => (
+                    <li
+                      key={option.value}
+                      data-testid={`attribute-cascade-option-${option.value}`}
+                      className="text-sm text-muted-foreground"
+                    >
+                      {option.value}
+                    </li>
+                  ))}
+              </ul>
+            </>
+          ) : null}
         </div>
       ) : null}
+
 
       {/* DEC-050 L3a — one group per type, mounted only for that type. */}
       {isNumber ? <AttributeNumberFields value={numberFields} onChange={setNumberFields} /> : null}
