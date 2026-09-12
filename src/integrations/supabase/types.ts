@@ -1495,12 +1495,20 @@ export type Database = {
           attr_key: string
           attr_type: string
           created_at: string
+          decimals: number
           depends_on_key: string
+          format: string
+          help_text_am: string
           help_text_en: string
           id: string
+          max_bound: string
+          max_length: number
+          min_bound: string
           name_am: string
           name_en: string
           options: Json
+          preset: string
+          unit: string
           usage_count: number
         }[]
       }
