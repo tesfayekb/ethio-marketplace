@@ -231,6 +231,13 @@ export function AttributeEditorDialog({
       )
     : lines(options).map((value) => ({ value, labelEn: "", labelAm: "", parent: "" }));
 
+  /** Empty is null; a non-number for an integer cell is left to the door. */
+  const text = (raw: string): string | null => (raw.trim() === "" ? null : raw.trim());
+  const whole = (raw: string): number | null =>
+    raw.trim() === "" || !/^\d+$/.test(raw.trim()) ? null : Number(raw.trim());
+  const isNumber = attrType === "number";
+  const isText = attrType === "text";
+
   const submit = () => {
     setMessage(null);
     if (attrKey.trim() === "") {
@@ -251,6 +258,18 @@ export function AttributeEditorDialog({
           options: composed,
           helpTextEn: helpText,
           dependsOnKey: dependent ? dependsOn : null,
+          helpTextAm,
+          unit: isNumber ? text(numberFields.unit) : null,
+          minBound: isNumber ? text(numberFields.min) : null,
+          maxBound: isNumber ? text(numberFields.max) : null,
+          decimals: isNumber
+            ? numberFields.format === "year"
+              ? 0
+              : whole(numberFields.decimals)
+            : null,
+          format: isNumber ? text(numberFields.format) : null,
+          preset: isText ? presetToken(textFields) : null,
+          maxLength: isText ? whole(textFields.maxLength) : null,
         });
         onClose();
       } catch (error) {
