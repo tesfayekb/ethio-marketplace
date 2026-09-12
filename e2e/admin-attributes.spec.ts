@@ -97,9 +97,11 @@ async function addOptionRow(
   const group = optionGroup(page, parent);
   await group.getByTestId(`option-add-${parent === "" ? "flat" : parent}`).click();
   const row = group.locator('[data-testid^="option-row-new-"]').last();
-  await row.getByTestId("option-value").fill(value);
+  /* The labels first: typing the value re-keys the row's own testid. */
   if (labels?.en !== undefined) await row.getByTestId("option-label-en").fill(labels.en);
   if (labels?.am !== undefined) await row.getByTestId("option-label-am").fill(labels.am);
+  await row.getByTestId("option-value").fill(value);
+
 }
 
 /** A scratch definition, minted straight through the service client (J3). */
