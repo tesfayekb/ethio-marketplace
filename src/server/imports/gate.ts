@@ -23,12 +23,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { xliffUnits } from "@/features/admin/translations/io-formats";
 import type { Database } from "@/integrations/supabase/types";
 import {
+  BOUND_RE,
   FAMILIES,
   familyOf,
   fileOf,
   KEY_RE,
   LANG_RE,
   MAX_BYTES,
+  presetShapeOk,
   MAX_OPTIONS,
   MAX_OPTION_LABEL,
   MAX_OPTION_VALUE,
