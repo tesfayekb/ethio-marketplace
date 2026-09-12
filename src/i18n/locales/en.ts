@@ -1224,6 +1224,28 @@ export const en = {
   "admin.attributes.field.type": "Type",
   "admin.attributes.field.options": "Options",
   "admin.attributes.field.optionsHelp": "One option per line.",
+  /* DEC-050 L3b — the option ROW editor (INC-188). */
+  "admin.attributes.options.rowsLabel": "Options",
+  "admin.attributes.options.rowsHelp":
+    "Each option keeps its own labels, aliases and bounds. A stored option is switched off rather than deleted.",
+  "admin.attributes.options.value": "Value",
+  "admin.attributes.options.valuePlaceholder": "machine value",
+  "admin.attributes.options.labelEn": "Label (English)",
+  "admin.attributes.options.labelAm": "Label (Amharic)",
+  "admin.attributes.options.active": "Offered when posting",
+  "admin.attributes.options.inactiveTag": "inactive",
+  "admin.attributes.options.addRow": "Add option",
+  "admin.attributes.options.removeRow": "Remove",
+  "admin.attributes.options.empty": "No options yet.",
+  "admin.attributes.options.aliasesHelp": "Up to five search aliases, 32 characters each.",
+  "admin.attributes.options.aliasPlaceholder": "alias",
+  "admin.attributes.options.boundsHelp":
+    "Limit a number attribute for this option; the number attribute must be used in every category this attribute is used in.",
+  "admin.attributes.options.boundsAdd": "Add a bound",
+  "admin.attributes.options.boundsMin": "Minimum",
+  "admin.attributes.options.boundsMax": "Maximum",
+  "admin.attributes.options.boundsRemove": "Remove bound",
+
   "admin.attributes.field.help": "Help text",
   /* DEC-050 L3a — the v2 definition fields; the door's CHECKs stay authoritative. */
   "admin.attributes.field.helpAm": "Help text (Amharic)",
