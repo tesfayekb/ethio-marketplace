@@ -2074,3 +2074,12 @@ value for rows in the batch (the prev value on undo) and their current
 position otherwise, then one reorder call — so the batch's rows land in
 exactly the file's sequence among their siblings. Proof, part 2: CT-30, then
 the Real Estate categories file re-imported unchanged.
+
+INC-188 (fixed by DEC-050 L3b, 2026-09-12) — THE CONSOLE ERASED CURATED OPTION
+FIELDS. The definition editor composed options from a values textarea as
+`{ value, labelEn: "", labelAm: "", parent }` and `admin_upsert_attribute`
+stores `options = p_options` as passed, so saving a curated select definition
+in the console erased every option's `label_en` and `label_am` and, since
+DEC-050 L1, its `active`, `bounds` and `aliases`. Fix: options are edited as
+rows carrying every field, and the writer emits the door's strict normalised
+record, so a save without edits sends the stored records back unchanged.

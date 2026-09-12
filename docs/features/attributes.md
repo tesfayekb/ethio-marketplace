@@ -685,3 +685,30 @@ truth for every cell, reopens it pre-filled, switches it to text and proves the
 preset token and max length land while the number cells go to null; AT-48 reads
 the coverage cell as `1/2`, then `2/2` after the Amharic label lands (desktop
 band — a `detail` column lives in the table twin alone).
+
+## DEC-050 L3b — the option row editor (INC-188)
+
+Options are edited as ROWS, one per option, and every field of every option is
+edited in place: `value` (identity — locked once the option is stored),
+`label_en`, `label_am`, `active` (off renders a muted row and a translated
+`inactive` tag), up to five `aliases` of 32 characters, and per-target `bounds`
+over the number definitions the library holds. A dependent definition keeps its
+rows grouped by the parent value they hang under; a stored option is switched
+off, never deleted.
+
+The writer composes the door's strict record — the four identity/label cells,
+`active` only when false, `bounds` and `aliases` only when non-empty — which is
+exactly what `attr_option_norm_v2` normalises to, so a save with no edits is a
+no-op on the row. That is the INC-188 fix: the old values textarea recomposed
+options from their values alone and erased labels, aliases and the active flag
+on every console save.
+
+Co-linkage is NOT judged in the browser (F3): the picker only offers number
+definitions and `admin_upsert_attribute` refuses a bound whose target is not a
+number, or is not used in every category this definition is used in. The
+refusal renders through `attribute-dialog-error`, naming the target.
+
+Proofs: AT-49 (a no-edit save preserves every stored field; the Amharic
+coverage meter is unchanged), AT-50 (a label, an alias and a deactivation land
+as records and read back, a new option is added), AT-51 (the co-linkage refusal
+names the target and leaves no trace).
