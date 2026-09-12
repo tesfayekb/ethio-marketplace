@@ -84,6 +84,15 @@ export interface AttributeRow {
   usageCount: number;
   /** DEC-045 — the key of the single_select definition this one depends on. */
   dependsOnKey: string | null;
+  /* DEC-050 — the v2 cells; every one nullable, the door's CHECKs authoritative. */
+  helpTextAm: string | null;
+  unit: string | null;
+  minBound: string | null;
+  maxBound: string | null;
+  decimals: number | null;
+  format: string | null;
+  preset: string | null;
+  maxLength: number | null;
 }
 
 /**
