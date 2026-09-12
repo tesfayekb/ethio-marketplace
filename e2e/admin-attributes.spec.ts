@@ -3582,4 +3582,200 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(key);
     }
   });
+
+  /* ------------------ DEC-050 L3b — the option row editor ------------------ */
+
+  /** The stored records a scratch select definition is seeded with. */
+  const SEEDED_OPTIONS = [
+    { value: "alpha", label_en: "Alpha", label_am: "አልፋ", parent: "", aliases: ["a-one"] },
+    { value: "beta", label_en: "Beta", label_am: "ቤታ", parent: "", active: false },
+  ];
+
+  async function openDefinitionEditor(
+    page: import("@playwright/test").Page,
+    key: string,
+    label: string,
+  ) {
+    await gotoReady(page, "/admin/attributes");
+    await page.getByTestId("attribute-search").fill(key);
+    await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
+    await expect(
+      page.getByTestId("attribute-edit-dialog"),
+      await dialogDump(page, `${label} editor never opened`),
+    ).toBeVisible({ timeout: 20000 });
+  }
+
+  /**
+   * AT-49 (INC-188) — A SAVE WITHOUT EDITS CHANGES NOTHING. The old textarea
+   * recomposed options from values alone, so every console save erased labels,
+   * aliases and the `active` flag. The row editor sends the stored records back.
+   */
+  test("AT-49 saving a select definition without edits preserves every stored option field", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    try {
+      const { error } = await adminClient().from("attributes").insert({
+        attr_key: key,
+        name_en: key,
+        attr_type: "single_select",
+        options: SEEDED_OPTIONS,
+      });
+      if (error) throw new Error(`AT-49 seed failed: ${error.message}`);
+
+      await openDefinitionEditor(page, key, "AT-49");
+      await expect(optionRow(page, "", "alpha").getByTestId("option-label-en")).toHaveValue("Alpha");
+      await expect(optionRow(page, "", "beta").getByTestId("option-inactive-tag")).toBeVisible();
+
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(
+        page.getByTestId("attribute-edit-dialog"),
+        await dialogDump(page, "AT-49 the save never landed"),
+      ).toHaveCount(0, { timeout: 30000 });
+
+      expect((await readAttribute(key))?.options, "AT-49 a no-edit save changed the options").toEqual(
+        SEEDED_OPTIONS,
+      );
+      /* The Amharic coverage meter is unchanged: both labels survived. */
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      await expect(librarySurface(page).getByTestId(`attribute-coverage-${key}`)).toHaveText("2/2", {
+        timeout: 20000,
+      });
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-50 — EDITS LAND AS RECORDS. A label, an alias and a deactivation are
+   * stored per option, and a stored option is switched off, never removed.
+   */
+  test("AT-50 per-option labels, aliases and the inactive switch land and read back", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    try {
+      const { error } = await adminClient().from("attributes").insert({
+        attr_key: key,
+        name_en: key,
+        attr_type: "single_select",
+        options: SEEDED_OPTIONS,
+      });
+      if (error) throw new Error(`AT-50 seed failed: ${error.message}`);
+
+      await openDefinitionEditor(page, key, "AT-50");
+      const alpha = optionRow(page, "", "alpha");
+      await alpha.getByTestId("option-label-am").fill("አልፋ ሁለት");
+      await alpha.getByTestId("option-alias-1").fill("a-two");
+      await alpha.getByTestId("option-active").click();
+      await addOptionRow(page, "", "gamma", { en: "Gamma", am: "ጋማ" });
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(
+        page.getByTestId("attribute-edit-dialog"),
+        await dialogDump(page, "AT-50 the save never landed"),
+      ).toHaveCount(0, { timeout: 30000 });
+
+      await expect
+        .poll(async () => (await readAttribute(key))?.options, { timeout: 20000 })
+        .toEqual([
+          {
+            value: "alpha",
+            label_en: "Alpha",
+            label_am: "አልፋ ሁለት",
+            parent: "",
+            active: false,
+            aliases: ["a-one", "a-two"],
+          },
+          { value: "beta", label_en: "Beta", label_am: "ቤታ", parent: "", active: false },
+          { value: "gamma", label_en: "Gamma", label_am: "ጋማ", parent: "" },
+        ]);
+
+      /* The deactivation READS as a tag when the definition is reopened. */
+      await openDefinitionEditor(page, key, "AT-50 reopen");
+      await expect(optionRow(page, "", "alpha").getByTestId("option-inactive-tag")).toBeVisible();
+      await expect(optionRow(page, "", "gamma").getByTestId("option-inactive-tag")).toHaveCount(0);
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-51 — THE CO-LINKAGE REFUSAL IS THE DOOR'S (F3). A bound may only target
+   * a number definition used in every category this definition is used in; the
+   * console offers the picker and RENDERS the refusal, naming the target.
+   */
+  test("AT-51 a bound on a number definition that is not co-linked is refused, naming the target", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const supabase = adminClient();
+    const selectKey = `e2e_attr_${rand()}`;
+    const numberKey = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-${rand()}`;
+    let categoryId = "";
+    try {
+      const { data: seeded, error } = await supabase
+        .from("attributes")
+        .insert([
+          {
+            attr_key: selectKey,
+            name_en: selectKey,
+            attr_type: "single_select",
+            options: [{ value: "alpha", label_en: "Alpha", label_am: "", parent: "" }],
+          },
+          { attr_key: numberKey, name_en: numberKey, attr_type: "number" },
+        ])
+        .select("id, attr_key");
+      if (error || !seeded) throw new Error(`AT-51 seed failed: ${error?.message}`);
+      const select = seeded.find((row) => row.attr_key === selectKey)!;
+
+      const { data: category, error: catError } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+        .select("id")
+        .single();
+      if (catError || !category) throw new Error(`AT-51 category failed: ${catError?.message}`);
+      categoryId = category.id;
+      const { error: linkError } = await supabase
+        .from("category_attribute_links")
+        .insert({ category_id: categoryId, attribute_id: select.id, display_order: 0 });
+      if (linkError) throw new Error(`AT-51 link failed: ${linkError.message}`);
+
+      await openDefinitionEditor(page, selectKey, "AT-51");
+      const alpha = optionRow(page, "", "alpha");
+      await alpha.getByTestId("option-bounds-add").selectOption(numberKey);
+      await alpha.getByTestId(`option-bounds-min-${numberKey}`).fill("2010");
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+
+      const error_line = page.getByTestId("attribute-dialog-error");
+      await expect(error_line, await dialogDump(page, "AT-51 no refusal rendered")).toBeVisible({
+        timeout: 30000,
+      });
+      await expect(error_line, "AT-51 the refusal never names the target").toContainText(numberKey);
+      /* A refused attempt leaves no trace (F5). */
+      expect((await readAttribute(selectKey))?.options).toEqual([
+        { value: "alpha", label_en: "Alpha", label_am: "", parent: "" },
+      ]);
+    } finally {
+      if (categoryId !== "") {
+        await supabase.from("category_attribute_links").delete().eq("category_id", categoryId);
+        await destroyCategory(slug);
+      }
+      await destroyAttribute(selectKey);
+      await destroyAttribute(numberKey);
+    }
+  });
 });
+
