@@ -530,7 +530,7 @@ export function parseFamilyFile(spec: FileSpec, text: string): ParsedFile {
       if (rule.type === "options") {
         const fault = optionShapeFault(record[name] ?? "");
         if (fault !== null) {
-          cellRefusal = { file: spec.id, row: rowNumber, key, reason: fault.reason, ...fault };
+          cellRefusal = { file: spec.id, row: rowNumber, key, ...fault };
           break;
         }
         record[name] = normalizeOptionsCell(record[name] ?? "");
