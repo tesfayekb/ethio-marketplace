@@ -1782,6 +1782,177 @@ test.describe("C3 attributes console", () => {
     }
   });
 
+  /**
+   * AT-44 (DEC-050 L2b) — THE NINE v2 CELLS TRAVEL BOTH WAYS. A file carrying
+   * unit, bounds, decimals, format and help text commits, DB truth shows every
+   * cell, the export echoes them, re-importing the export is a no-op, and the
+   * undo restores the row to silence.
+   */
+  test("AT-44 the v2 definition cells commit, export and round-trip unchanged", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    try {
+      await supabase.from("attributes").insert({ attr_key: key, name_en: key, attr_type: "number" });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      // attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,
+      // decimals,format,preset,max_length,help_text_en,help_text_am,
+      // is_per_variant,direct_link_count
+      const row = `${key},${key},,number,,,km,0,100,1,plain,,,${cell("How far it travels")},,,0`;
+      const definitions = `${DEF_HEADER}\r\n${row}\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(counts.changes, JSON.stringify(preview.payload)).toBe(1);
+      expect(counts.refusals, JSON.stringify(preview.payload["refusals"])).toBe(0);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+
+      // DB TRUTH (J4) — every cell landed where the schema keeps it.
+      const { data: applied } = await supabase
+        .from("attributes")
+        .select("unit, min_bound, max_bound, decimals, format, help_text_en")
+        .eq("attr_key", key)
+        .single();
+      expect(applied, "AT-44 the commit applied no v2 cells").toMatchObject({
+        unit: "km",
+        min_bound: "0",
+        max_bound: "100",
+        decimals: 1,
+        format: "plain",
+        help_text_en: "How far it travels",
+      });
+
+      // THE EXPORT ECHOES THEM, and re-importing what it wrote changes nothing.
+      const exported = await page.request.get("/api/admin/attributes/export?file=definitions", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(exported.status()).toBe(200);
+      const text = await exported.text();
+      const records = (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text).split("\r\n");
+      const header = records[0] ?? "";
+      const mine = records.find((record) => record.startsWith(`${key},`));
+      expect(mine, "AT-44 the export carries no row for this attribute").toBeTruthy();
+      expect(mine!, "AT-44 the export lost the v2 cells").toContain("km,0,100,1,plain");
+
+      const echo = await importPost(page, token, {
+        mode: "preview",
+        definitions: `\uFEFF${header}\r\n${mine}\r\n`,
+      });
+      expect(echo.status, JSON.stringify(echo.payload)).toBe(200);
+      const echoCounts = echo.payload["counts"] as Record<string, number>;
+      expect(
+        { changes: echoCounts.changes, adds: echoCounts.adds, refusals: echoCounts.refusals },
+        `AT-44 the export did not round-trip: ${JSON.stringify(echo.payload)}`,
+      ).toEqual({ changes: 0, adds: 0, refusals: 0 });
+      expect(echoCounts.unchanged).toBe(1);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      const { data: restored } = await supabase
+        .from("attributes")
+        .select("unit, min_bound, max_bound, decimals, format, help_text_en")
+        .eq("attr_key", key)
+        .single();
+      expect(restored, "AT-44 the undo did not restore silence").toMatchObject({
+        unit: null,
+        min_bound: null,
+        max_bound: null,
+        decimals: null,
+        format: null,
+        help_text_en: null,
+      });
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-45 (DEC-050 L2b) — AN OPTION'S DEFAULTS ARE SILENCE, AND A BAD OPTION
+   * NAMES ITSELF. A file spelling out `active: true`, empty bounds and empty
+   * aliases means exactly what the export writes without them, so the round
+   * trip is a no-op; an option carrying a duplicate spelling is refused with
+   * `badOption`, the row it sits on, and the option it is about.
+   */
+  test("AT-45 spelled-out option defaults are a no-op and a bad option is named", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    try {
+      await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "single_select" });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      const spelled = cell(
+        '{"value": "alpha", "label_en": "Alpha", "active": true, "bounds": {}, "aliases": []}',
+      );
+      const definitions = `${DEF_HEADER}\r\n${v2(`${key},${key},,single_select,${spelled},,,0`)}\r\n`;
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(
+        (preview.payload["counts"] as Record<string, number>).refusals,
+        JSON.stringify(preview.payload["refusals"]),
+      ).toBe(0);
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+
+      // The same meaning, spelled out again: the defaults are silence, so the
+      // second preview reads as unchanged, never as a change.
+      const again = await importPost(page, token, { mode: "preview", definitions });
+      expect(again.status, JSON.stringify(again.payload)).toBe(200);
+      const againCounts = again.payload["counts"] as Record<string, number>;
+      expect(
+        { changes: againCounts.changes, refusals: againCounts.refusals },
+        `AT-45 spelled-out defaults read as a change: ${JSON.stringify(again.payload)}`,
+      ).toEqual({ changes: 0, refusals: 0 });
+
+      // A BAD OPTION: the same spelling twice. The refusal names its row and
+      // the option, so the operator can find the cell (F4).
+      const hostile = cell('{"value": "alpha", "aliases": ["ALFA", "ALFA"]}');
+      const bad = await importPost(page, token, {
+        mode: "preview",
+        definitions: `${DEF_HEADER}\r\n${v2(`${key},${key},,single_select,${hostile},,,0`)}\r\n`,
+      });
+      expect(bad.status, JSON.stringify(bad.payload)).toBe(200);
+      const refusals = (bad.payload["refusals"] as Record<string, unknown>[]) ?? [];
+      const option = refusals.find((entry) => entry["reason"] === "badOption");
+      expect(option, `AT-45 no badOption refusal: ${JSON.stringify(refusals)}`).toBeTruthy();
+      expect(Number(option!["row"]), "AT-45 the refusal names no row").toBeGreaterThan(1);
+      expect(String(option!["detail"]), "AT-45 the refusal names no option").toContain("alpha");
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
   /** AT-22 — the refusal vocabulary: bad header, formula cell, unknown slug. */
   test("AT-22 malformed files and dangerous cells are refused", async ({ page }) => {
     test.setTimeout(180_000);
