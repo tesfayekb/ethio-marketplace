@@ -9,6 +9,7 @@ import {
   listAttributeCategories,
   listCategoryLinks,
   listEffectiveCategoryLinks,
+  listOptionCoverage,
   mergeAttributes,
   setAttributeLinkOrder,
   setCardAttributes,
@@ -30,6 +31,18 @@ export function useAdminAttributes() {
   return useQuery({
     queryKey: [...ADMIN_ATTRIBUTES_KEY, "list"],
     queryFn: listAttributes,
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * DEC-050 L3a — Amharic option coverage for the whole library, read once per
+ * page load. Report-only: nothing gates on it.
+ */
+export function useAttributeCoverage() {
+  return useQuery({
+    queryKey: [...ADMIN_ATTRIBUTES_KEY, "coverage"],
+    queryFn: listOptionCoverage,
     staleTime: 30_000,
   });
 }
