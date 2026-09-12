@@ -234,6 +234,106 @@ function optionsOf(raw: string): OptionCell[] | null {
   return cells;
 }
 
+/**
+ * DEC-050 L2b — THE OPTION RECORD'S SHAPE, at the gate. Keys are exactly the
+ * seven the platform writes; `active` is a boolean, `bounds` an object and
+ * `aliases` an array. Nothing SEMANTIC is judged here (co-linkage, parents and
+ * every range belong to `attr_option_shape`/the planner).
+ */
+const OPTION_KEYS = new Set([
+  "value",
+  "label_en",
+  "label_am",
+  "parent",
+  "active",
+  "bounds",
+  "aliases",
+]);
+
+interface OptionShapeFault {
+  reason: "optionKey" | "optionShape";
+  detail: string;
+}
+
+/** Records, in file order, when the cell is a JSON array of objects. */
+function optionRecords(raw: string): Record<string, unknown>[] | null {
+  const text = raw.trim();
+  if (!text.startsWith("[")) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parsed)) return null;
+  const records: Record<string, unknown>[] = [];
+  for (const piece of parsed) {
+    if (piece === null || typeof piece !== "object" || Array.isArray(piece)) return null;
+    records.push(piece as Record<string, unknown>);
+  }
+  return records;
+}
+
+export function optionShapeFault(raw: string): OptionShapeFault | null {
+  const records = optionRecords(raw);
+  if (records === null) return null;
+  for (const record of records) {
+    const value = String(record["value"] ?? "");
+    for (const name of Object.keys(record)) {
+      if (!OPTION_KEYS.has(name)) {
+        return { reason: "optionKey", detail: `${value}|${name}` };
+      }
+    }
+    if ("active" in record && typeof record["active"] !== "boolean") {
+      return { reason: "optionShape", detail: `${value}|activeNotBoolean` };
+    }
+    const bounds = record["bounds"];
+    if (
+      "bounds" in record &&
+      (bounds === null || typeof bounds !== "object" || Array.isArray(bounds))
+    ) {
+      return { reason: "optionShape", detail: `${value}|boundsNotObject` };
+    }
+    if ("aliases" in record && !Array.isArray(record["aliases"])) {
+      return { reason: "optionShape", detail: `${value}|aliasesNotArray` };
+    }
+  }
+  return null;
+}
+
+/**
+ * NORMALISATION, not re-serialisation. A record is rewritten ONLY when it
+ * carries a default the platform omits (`active: true`, empty `bounds`, empty
+ * `aliases`); the remaining keys keep the file's own order, and a cell with
+ * nothing to drop is returned BYTE-IDENTICAL — which is what keeps a pre-P1
+ * export previewing as unchanged.
+ */
+export function normalizeOptionsCell(raw: string): string {
+  const records = optionRecords(raw);
+  if (records === null) return raw;
+  let dropped = false;
+  const kept = records.map((record) => {
+    const out: Record<string, unknown> = {};
+    for (const [name, value] of Object.entries(record)) {
+      const isDefault =
+        (name === "active" && value === true) ||
+        (name === "bounds" &&
+          value !== null &&
+          typeof value === "object" &&
+          !Array.isArray(value) &&
+          Object.keys(value as object).length === 0) ||
+        (name === "aliases" && Array.isArray(value) && value.length === 0);
+      if (isDefault) {
+        dropped = true;
+        continue;
+      }
+      out[name] = value;
+    }
+    return out;
+  });
+  return dropped ? JSON.stringify(kept) : raw;
+}
+
 /** Per-column type/format/length law. Returns a refusal reason, or null. */
 export function checkCell(rule: ColumnRule, value: string): string | null {
   if (value === "") return rule.required === true ? "required" : null;
