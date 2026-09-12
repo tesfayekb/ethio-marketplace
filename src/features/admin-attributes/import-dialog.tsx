@@ -38,6 +38,71 @@ const REASON_KEYS = new Set([
   "formula",
   // UX-2 PART 6 / IE-8 — a new key that is really a renamed identity.
   "keyRename",
+
+  /**
+   * DEC-050 L2b — the v2 vocabulary. Top-level ids first, then the DETAILED
+   * ones (`<id>.<detail>`), which the shared shell resolves when the door
+   * names a detail it knows. Anything unlisted falls back to the id's own
+   * sentence, which still names the row.
+   */
+  "hasDependents",
+  "badOption",
+  "badCell",
+  "boundsTargetNotNumber",
+  "boundsTargetNotColinked",
+  "rankInherited",
+  // The gate's own shape verdicts.
+  "required",
+  "tooLong",
+  "badSlug",
+  "badBoolean",
+  "badNumber",
+  "badDate",
+  "badValue",
+  "tooManyOptions",
+  "optionValueTooLong",
+  "optionLabelTooLong",
+  "duplicateIdentity",
+  "badHeader",
+  "wrongFile",
+  "unknownColumn",
+  "duplicateColumn",
+  "nulByte",
+  "emptyFile",
+  "tooManyRows",
+  "badBound",
+  "badPreset",
+  "optionKey",
+  "optionShape",
+  // badCell details (`attr_cell_check`).
+  "badCell.onlyNumber",
+  "badCell.onlyText",
+  "badCell.badLength",
+  "badCell.badBound",
+  "badCell.minAboveMax",
+  "badCell.outOfRange",
+  "badCell.yearForcesZero",
+  "badCell.unknown",
+  "badCell.notAllowed",
+  "badCell.notANumber",
+  "badCell.tooLong",
+  // badOption details (`attr_option_shape`).
+  "badOption.unknownOptionKey",
+  "badOption.activeNotBoolean",
+  "badOption.aliasesNotArray",
+  "badOption.aliasesCount",
+  "badOption.aliasNotString",
+  "badOption.aliasLength",
+  "badOption.aliasControlChar",
+  "badOption.aliasDuplicate",
+  "badOption.boundsNotObject",
+  "badOption.boundsUnknownKey",
+  "badOption.boundsBadValue",
+  "badOption.boundsMinAboveMax",
+  // The gate's option-record verdicts.
+  "optionShape.activeNotBoolean",
+  "optionShape.boundsNotObject",
+  "optionShape.aliasesNotArray",
 ]);
 
 const COUNT_FIELDS = ["adds", "changes", "unlinks", "deletes", "unchanged", "refusals"] as const;
