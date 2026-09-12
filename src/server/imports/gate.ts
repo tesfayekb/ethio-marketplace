@@ -356,6 +356,12 @@ export function checkCell(rule: ColumnRule, value: string): string | null {
         : "badDate";
     case "enum":
       return (rule.values ?? []).includes(value.toLowerCase()) ? null : "badValue";
+    // DEC-050 L2b — SHAPE ONLY: which type may carry the cell, and what the
+    // token resolves to, is the planner's verdict.
+    case "bound":
+      return BOUND_RE.test(value) ? null : "badBound";
+    case "preset":
+      return presetShapeOk(value) ? null : "badPreset";
     case "options": {
       const cells = optionsOf(value);
       // Unreadable here is not refused here: the planner names it (badOptions).
