@@ -135,6 +135,39 @@ export async function listAttributes(): Promise<AttributeRow[]> {
     helpTextEn: row.help_text_en ?? null,
     usageCount: Number(row.usage_count ?? 0),
     dependsOnKey: row.depends_on_key ?? null,
+    // DEC-050 L3a-mig — the reader returns the v2 cells, so the editor can
+    // pre-fill them; without the prefill an UPDATE would erase them.
+    helpTextAm: row.help_text_am ?? null,
+    unit: row.unit ?? null,
+    minBound: row.min_bound ?? null,
+    maxBound: row.max_bound ?? null,
+    decimals: row.decimals === null || row.decimals === undefined ? null : Number(row.decimals),
+    format: row.format ?? null,
+    preset: row.preset ?? null,
+    maxLength:
+      row.max_length === null || row.max_length === undefined ? null : Number(row.max_length),
+  }));
+}
+
+/**
+ * DEC-050 L3a — Amharic option coverage, once for the whole library. The RPC
+ * carries the same `categories:view` gate as every other console read (E7).
+ */
+export interface OptionCoverage {
+  attributeId: string;
+  attrKey: string;
+  total: number;
+  withAm: number;
+}
+
+export async function listOptionCoverage(): Promise<OptionCoverage[]> {
+  const { data, error } = await supabase.rpc("admin_attribute_option_coverage");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    attributeId: row.attribute_id,
+    attrKey: row.attr_key,
+    total: Number(row.options_total ?? 0),
+    withAm: Number(row.options_with_am ?? 0),
   }));
 }
 
