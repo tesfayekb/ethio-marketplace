@@ -3640,15 +3640,19 @@ test.describe("C3 attributes console", () => {
         (await readAttribute(key))?.options,
         "AT-49 a no-edit save changed the options",
       ).toEqual(SEEDED_OPTIONS);
-      /* The Amharic coverage meter is unchanged: both labels survived. */
-      await gotoReady(page, "/admin/attributes");
-      await page.getByTestId("attribute-search").fill(key);
-      await expect(librarySurface(page).getByTestId(`attribute-coverage-${key}`)).toHaveText(
-        "2/2",
-        {
-          timeout: 20000,
-        },
-      );
+      /**
+       * The Amharic coverage meter is unchanged: both labels survived. It is a
+       * `detail` column, so it lives in the table twin alone.
+       */
+      if (!isCardTwin(page)) {
+        await gotoReady(page, "/admin/attributes");
+        await page.getByTestId("attribute-search").fill(key);
+        await expect(librarySurface(page).getByTestId(`attribute-coverage-${key}`)).toHaveText(
+          "2/2",
+          { timeout: 20000 },
+        );
+      }
+
     } finally {
       await destroyAttribute(key);
     }
