@@ -257,29 +257,75 @@ interface OptionShapeFault {
   detail: string;
 }
 
-/** Records, in file order, when the cell is a JSON array of objects. */
-function optionRecords(raw: string): Record<string, unknown>[] | null {
+/**
+ * The cell's own dialect, segment by segment: the export writes either ONE JSON
+ * array or pipe segments, each a JSON object or a plain `value=label`. A segment
+ * the gate cannot read as an object is carried through untouched — meaning is
+ * the planner's (E7/F3).
+ */
+interface OptionSegment {
+  record: Record<string, unknown> | null;
+  text: string;
+}
+
+interface OptionCellShape {
+  dialect: "array" | "pipe";
+  segments: OptionSegment[];
+}
+
+function optionCellShape(raw: string): OptionCellShape | null {
   const text = raw.trim();
-  if (!text.startsWith("[")) return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    return null;
+  if (text === "") return null;
+  const objectOf = (piece: unknown): Record<string, unknown> | null =>
+    piece !== null && typeof piece === "object" && !Array.isArray(piece)
+      ? (piece as Record<string, unknown>)
+      : null;
+
+  if (text.startsWith("[")) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(parsed)) return null;
+    const segments: OptionSegment[] = [];
+    for (const piece of parsed) {
+      const record = objectOf(piece);
+      if (record === null) return null;
+      segments.push({ record, text: JSON.stringify(piece) });
+    }
+    return { dialect: "array", segments };
   }
-  if (!Array.isArray(parsed)) return null;
-  const records: Record<string, unknown>[] = [];
-  for (const piece of parsed) {
-    if (piece === null || typeof piece !== "object" || Array.isArray(piece)) return null;
-    records.push(piece as Record<string, unknown>);
+
+  const segments: OptionSegment[] = [];
+  for (const part of text.split("|")) {
+    const segment = part.trim();
+    if (segment === "") continue;
+    if (!segment.startsWith("{")) {
+      segments.push({ record: null, text: part });
+      continue;
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(segment);
+    } catch {
+      return null;
+    }
+    const record = objectOf(parsed);
+    if (record === null) return null;
+    segments.push({ record, text: part });
   }
-  return records;
+  return { dialect: "pipe", segments };
 }
 
 export function optionShapeFault(raw: string): OptionShapeFault | null {
-  const records = optionRecords(raw);
-  if (records === null) return null;
-  for (const record of records) {
+  const shape = optionCellShape(raw);
+  if (shape === null) return null;
+  for (const segment of shape.segments) {
+    const record = segment.record;
+    // A `{ depends_on: … }` marker declares lineage, not an option.
+    if (record === null || record["value"] === undefined) continue;
     const value = String(record["value"] ?? "");
     for (const name of Object.keys(record)) {
       if (!OPTION_KEYS.has(name)) {
@@ -306,16 +352,19 @@ export function optionShapeFault(raw: string): OptionShapeFault | null {
 /**
  * NORMALISATION, not re-serialisation. A record is rewritten ONLY when it
  * carries a default the platform omits (`active: true`, empty `bounds`, empty
- * `aliases`); the remaining keys keep the file's own order, and a cell with
- * nothing to drop is returned BYTE-IDENTICAL — which is what keeps a pre-P1
- * export previewing as unchanged.
+ * `aliases`); the remaining keys keep the file's own order, the cell keeps its
+ * own dialect, and a cell with nothing to drop is returned BYTE-IDENTICAL —
+ * which is what keeps a pre-P1 export previewing as unchanged.
  */
 export function normalizeOptionsCell(raw: string): string {
-  const records = optionRecords(raw);
-  if (records === null) return raw;
+  const shape = optionCellShape(raw);
+  if (shape === null) return raw;
   let dropped = false;
-  const kept = records.map((record) => {
+  const rendered = shape.segments.map((segment) => {
+    const record = segment.record;
+    if (record === null) return segment.text;
     const out: Record<string, unknown> = {};
+    let cut = false;
     for (const [name, value] of Object.entries(record)) {
       const isDefault =
         (name === "active" && value === true) ||
@@ -326,14 +375,17 @@ export function normalizeOptionsCell(raw: string): string {
           Object.keys(value as object).length === 0) ||
         (name === "aliases" && Array.isArray(value) && value.length === 0);
       if (isDefault) {
-        dropped = true;
+        cut = true;
         continue;
       }
       out[name] = value;
     }
-    return out;
+    if (!cut) return segment.text;
+    dropped = true;
+    return JSON.stringify(out);
   });
-  return dropped ? JSON.stringify(kept) : raw;
+  if (!dropped) return raw;
+  return shape.dialect === "array" ? `[${rendered.join(",")}]` : rendered.join("|");
 }
 
 /** Per-column type/format/length law. Returns a refusal reason, or null. */
