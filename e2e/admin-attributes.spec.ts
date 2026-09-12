@@ -937,7 +937,7 @@ test.describe("C3 attributes console", () => {
       expect(links.charCodeAt(0)).toBe(0xfeff);
       // THE COLUMN LAW, verbatim — IE-3: derived columns declare themselves.
       expect(definitions.slice(1).split("\r\n")[0]).toBe(
-        "attribute_key,label_en,label_am,type,options,depends_on,is_per_variant (read-only),direct_link_count (read-only)",
+        "attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant (read-only),direct_link_count (read-only)",
       );
       expect(links.slice(1).split("\r\n")[0]).toBe(
         "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)",
@@ -1954,6 +1954,171 @@ test.describe("C3 attributes console", () => {
       expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
     } finally {
       await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-46 (DEC-050 L2a/L2b) — EFFECTIVE CARD-RANK UNIQUENESS, BOTH WRITERS. A
+   * scratch root holds a card attribute at rank 2, so its child INHERITS rank 2
+   * (primary lineage, INH-1). The import refuses a direct link taking that rank
+   * and names BOTH origins; a free rank is planned. The link-manager door
+   * carries the same rule and raises its own key.
+   *
+   * LIMITATION (honest): `admin_set_card_attributes` derives each rank from the
+   * ORDERED position, so a rank cannot be requested in isolation — rank 3 is
+   * requested by a three-long order whose rank-2 slot is the child's own direct
+   * link to the INHERITED attribute (the one override the rule allows).
+   */
+  test("AT-46 a direct card rank equal to an inherited rank is refused by the import and by the door, naming both origins", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const stamp = rand();
+    const rootSlug = `e2e-cat-rank-${stamp}`;
+    const childSlug = `e2e-cat-rank-${stamp}-child`;
+    const keyInherited = `e2e_attr_${rand()}`;
+    const keyDirect = `e2e_attr_${rand()}`;
+    const keyFiller = `e2e_attr_${rand()}`;
+    try {
+      // SEED BEFORE NAVIGATE (J7), service client (J5), scratch namespace (J1).
+      const { data: attrs, error: attrError } = await supabase
+        .from("attributes")
+        .insert([
+          { attr_key: keyInherited, name_en: keyInherited, attr_type: "number" },
+          { attr_key: keyDirect, name_en: keyDirect, attr_type: "number" },
+          { attr_key: keyFiller, name_en: keyFiller, attr_type: "number" },
+        ])
+        .select("id, attr_key");
+      if (attrError || !attrs) throw new Error(`AT-46 attributes failed: ${attrError?.message}`);
+      const attrInherited = attrs.find((row) => row.attr_key === keyInherited)!;
+      const attrDirect = attrs.find((row) => row.attr_key === keyDirect)!;
+      const attrFiller = attrs.find((row) => row.attr_key === keyFiller)!;
+
+      const { data: cats, error: catError } = await supabase
+        .from("categories")
+        .insert([
+          { slug: rootSlug, name_en: rootSlug, is_active: true, allow_listings: true },
+          { slug: childSlug, name_en: childSlug, is_active: true, allow_listings: true },
+        ])
+        .select("id, slug");
+      if (catError || !cats) throw new Error(`AT-46 categories failed: ${catError?.message}`);
+      const root = cats.find((row) => row.slug === rootSlug)!;
+      const child = cats.find((row) => row.slug === childSlug)!;
+
+      const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
+        { parent_id: null, child_id: root.id, display_order: 901 },
+        { parent_id: root.id, child_id: child.id, display_order: 1 },
+      ]);
+      if (pointerError) throw new Error(`AT-46 pointers failed: ${pointerError.message}`);
+
+      // The root's card attribute at rank 2 — the child inherits that rank.
+      const { error: rootLinkError } = await supabase
+        .from("category_attribute_links")
+        .insert({ category_id: root.id, attribute_id: attrInherited.id, card_rank: 2 });
+      if (rootLinkError) throw new Error(`AT-46 root link failed: ${rootLinkError.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const definitions =
+        `${DEF_HEADER}\r\n` +
+        `${v2(`${keyInherited},${keyInherited},,number,,,,1`)}\r\n` +
+        `${v2(`${keyDirect},${keyDirect},,number,,,,0`)}\r\n`;
+
+      // (a) THE IMPORT REFUSES rank 2 and names both origins.
+      const clash = `${LINK_HEADER}\r\n${childSlug},${childSlug},${keyDirect},false,false,2,${childSlug}\r\n`;
+      const refused = await importPost(page, token, { mode: "preview", definitions, links: clash });
+      expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
+      const refusals = (refused.payload["refusals"] as Record<string, unknown>[]) ?? [];
+      const clashRefusal = refusals.find((entry) => entry["reason"] === "rankInherited");
+      expect(
+        clashRefusal,
+        `AT-46 no rankInherited refusal: ${JSON.stringify(refused.payload)}`,
+      ).toBeTruthy();
+      expect(
+        clashRefusal!["origin_category"],
+        `AT-46 the refusal names no origin category: ${JSON.stringify(clashRefusal)}`,
+      ).toBe(rootSlug);
+      expect(
+        clashRefusal!["origin_key"],
+        `AT-46 the refusal names no inherited key: ${JSON.stringify(clashRefusal)}`,
+      ).toBe(keyInherited);
+      expect(Number(clashRefusal!["row"]), "AT-46 the refusal names no row").toBeGreaterThan(1);
+      // The preview wrote nothing (F5): the child still owns no link.
+      expect(await readLinks(child.id), "AT-46 the preview wrote a link").toHaveLength(0);
+
+      // (b) A FREE RANK IS PLANNED — one add, still nothing written.
+      const free = `${LINK_HEADER}\r\n${childSlug},${childSlug},${keyDirect},false,false,3,${childSlug}\r\n`;
+      const planned = await importPost(page, token, { mode: "preview", definitions, links: free });
+      expect(planned.status, JSON.stringify(planned.payload)).toBe(200);
+      expect(
+        (planned.payload["refusals"] as unknown[]) ?? [],
+        `AT-46 rank 3 was refused: ${JSON.stringify(planned.payload)}`,
+      ).toHaveLength(0);
+      expect(
+        (planned.payload["counts"] as Record<string, number>).adds,
+        `AT-46 rank 3 planned no add: ${JSON.stringify(planned.payload)}`,
+      ).toBe(1);
+
+      // (c) THE DOOR carries the same rule. The child takes its own direct
+      // links first, then the ordered card request is judged.
+      const { error: childLinkError } = await supabase.from("category_attribute_links").insert([
+        { category_id: child.id, attribute_id: attrFiller.id },
+        { category_id: child.id, attribute_id: attrDirect.id },
+        { category_id: child.id, attribute_id: attrInherited.id },
+      ]);
+      if (childLinkError) throw new Error(`AT-46 child links failed: ${childLinkError.message}`);
+
+      const verdicts = await page.evaluate(
+        async ([childId, fillerId, directId, inheritedId]) => {
+          const client = (
+            window as unknown as {
+              __ethioSupabase: {
+                rpc: (
+                  fn: string,
+                  args: Record<string, unknown>,
+                ) => Promise<{ error: { message: string } | null }>;
+              };
+            }
+          ).__ethioSupabase;
+          // rank 2 for the direct definition — refused.
+          const clashing = await client.rpc("admin_set_card_attributes", {
+            p_category_id: childId,
+            p_ordered_attribute_ids: [fillerId, directId, inheritedId],
+          });
+          // rank 3 for the direct definition — accepted.
+          const accepted = await client.rpc("admin_set_card_attributes", {
+            p_category_id: childId,
+            p_ordered_attribute_ids: [fillerId, inheritedId, directId],
+          });
+          return {
+            clashing: clashing.error?.message ?? "NO ERROR",
+            accepted: accepted.error?.message ?? "NO ERROR",
+          };
+        },
+        [child.id, attrFiller.id, attrDirect.id, attrInherited.id],
+      );
+      expect(verdicts.clashing, "AT-46 the door tolerated an inherited rank").toContain(
+        "admin.attributes.error.rankInherited",
+      );
+      expect(verdicts.accepted, "AT-46 the door refused a free rank").toBe("NO ERROR");
+
+      const landed = await readLinks(child.id);
+      expect(
+        landed.find((row) => row.attribute_id === attrDirect.id)?.card_rank,
+        `AT-46 the accepted order did not land: ${JSON.stringify(landed)}`,
+      ).toBe(3);
+    } finally {
+      // `destroyAttribute` drops every link the definition owns first, so the
+      // scratch categories leave clean (J3).
+      await destroyCategory(childSlug);
+      await destroyCategory(rootSlug);
+      await destroyAttribute(keyInherited);
+      await destroyAttribute(keyDirect);
+      await destroyAttribute(keyFiller);
     }
   });
 
