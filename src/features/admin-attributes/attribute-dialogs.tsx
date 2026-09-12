@@ -209,22 +209,20 @@ export function AttributeEditorDialog({
   const parentValues = parent === null ? [] : optionValues(parent.options);
   const dependent = typeHasOptions(attrType) && parent !== null;
 
-  const lines = (raw: string) =>
-    raw
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line !== "");
+  /** The number definitions a per-option bound may target (F3: the door judges). */
+  const boundsTargets = attributes
+    .filter((row) => row.attrType === "number")
+    .map((row) => ({
+      attrKey: row.attrKey,
+      label: `${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`,
+    }));
 
-  const composed: AttributeOption[] = dependent
-    ? parentValues.flatMap((value) =>
-        lines(perParent[value] ?? "").map((child) => ({
-          value: child,
-          labelEn: "",
-          labelAm: "",
-          parent: value,
-        })),
-      )
-    : lines(options).map((value) => ({ value, labelEn: "", labelAm: "", parent: "" }));
+  /**
+   * The rows exactly as edited: a dependent definition keeps its `parent`, a
+   * flat one keeps "". Nothing is recomposed, so nothing is lost (INC-188).
+   */
+  const composed: AttributeOption[] = optionRows.filter((option) => option.value.trim() !== "");
+
 
   /** Empty is null; a non-number for an integer cell is left to the door. */
   const text = (raw: string): string | null => (raw.trim() === "" ? null : raw.trim());
