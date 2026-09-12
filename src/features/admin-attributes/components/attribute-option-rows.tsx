@@ -85,38 +85,57 @@ function OptionRow({
         inactive ? "text-muted-foreground" : ""
       }`}
     >
-      <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-3">
-        <FormField label={t("admin.attributes.options.value")} htmlFor={`option-value-${index}`}>
-          {locked ? (
-            <p data-testid="option-value" className="min-h-11 py-2 text-sm font-medium">
-              {option.value}
-            </p>
-          ) : (
-            <Input
-              id={`option-value-${index}`}
-              data-testid="option-value"
-              value={option.value}
-              placeholder={t("admin.attributes.options.valuePlaceholder")}
-              onChange={(event) => patch({ value: event.target.value })}
-            />
-          )}
-        </FormField>
-        <FormField label={t("admin.attributes.options.labelEn")} htmlFor={`option-en-${index}`}>
-          <Input
-            id={`option-en-${index}`}
-            data-testid="option-label-en"
-            value={option.labelEn}
-            onChange={(event) => patch({ labelEn: event.target.value })}
-          />
-        </FormField>
-        <FormField label={t("admin.attributes.options.labelAm")} htmlFor={`option-am-${index}`}>
-          <Input
-            id={`option-am-${index}`}
-            data-testid="option-label-am"
-            value={option.labelAm}
-            onChange={(event) => patch({ labelAm: event.target.value })}
-          />
-        </FormField>
+      {/* C3-UX-6 — the row grid contains its cells: every cell is min-w-0
+          overflow-hidden so a long locked value can never run under the label
+          inputs; value is fractionally wider than each label. */}
+      <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="min-w-0 overflow-hidden">
+          <FormField label={t("admin.attributes.options.value")} htmlFor={`option-value-${index}`}>
+            {locked ? (
+              <p
+                data-testid="option-value"
+                title={option.value}
+                className="min-h-11 w-full min-w-0 break-all py-2 text-sm font-medium"
+              >
+                {option.value}
+              </p>
+            ) : (
+              <div className="w-full min-w-0">
+                <Input
+                  id={`option-value-${index}`}
+                  data-testid="option-value"
+                  value={option.value}
+                  placeholder={t("admin.attributes.options.valuePlaceholder")}
+                  onChange={(event) => patch({ value: event.target.value })}
+                />
+              </div>
+            )}
+          </FormField>
+        </div>
+        <div className="min-w-0 overflow-hidden">
+          <FormField label={t("admin.attributes.options.labelEn")} htmlFor={`option-en-${index}`}>
+            <div className="w-full min-w-0">
+              <Input
+                id={`option-en-${index}`}
+                data-testid="option-label-en"
+                value={option.labelEn}
+                onChange={(event) => patch({ labelEn: event.target.value })}
+              />
+            </div>
+          </FormField>
+        </div>
+        <div className="min-w-0 overflow-hidden">
+          <FormField label={t("admin.attributes.options.labelAm")} htmlFor={`option-am-${index}`}>
+            <div className="w-full min-w-0">
+              <Input
+                id={`option-am-${index}`}
+                data-testid="option-label-am"
+                value={option.labelAm}
+                onChange={(event) => patch({ labelAm: event.target.value })}
+              />
+            </div>
+          </FormField>
+        </div>
       </div>
 
       <div className="flex min-h-11 flex-wrap items-center gap-2">
