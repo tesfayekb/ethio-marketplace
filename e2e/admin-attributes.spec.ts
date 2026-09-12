@@ -76,7 +76,34 @@ async function openAttributeMenu(page: import("@playwright/test").Page, key: str
   return menu;
 }
 
+/**
+ * DEC-050 L3b — THE OPTION ROW EDITOR. Rows are addressed structurally: the
+ * group is the parent value (or `flat`), the row is its stored value.
+ */
+function optionGroup(page: import("@playwright/test").Page, parent: string) {
+  return page.getByTestId(`option-group-${parent === "" ? "flat" : parent}`);
+}
+
+function optionRow(page: import("@playwright/test").Page, parent: string, value: string) {
+  return optionGroup(page, parent).getByTestId(`option-row-${value}`);
+}
+
+async function addOptionRow(
+  page: import("@playwright/test").Page,
+  parent: string,
+  value: string,
+  labels?: { en?: string; am?: string },
+) {
+  const group = optionGroup(page, parent);
+  await group.getByTestId(`option-add-${parent === "" ? "flat" : parent}`).click();
+  const row = group.locator('[data-testid^="option-row-new-"]').last();
+  await row.getByTestId("option-value").fill(value);
+  if (labels?.en !== undefined) await row.getByTestId("option-label-en").fill(labels.en);
+  if (labels?.am !== undefined) await row.getByTestId("option-label-am").fill(labels.am);
+}
+
 /** A scratch definition, minted straight through the service client (J3). */
+
 
 async function seedAttribute(key: string, type = "text") {
   const { data, error } = await adminClient()
