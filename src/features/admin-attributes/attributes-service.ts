@@ -223,16 +223,33 @@ export interface UpsertAttributeInput {
 }
 
 /**
- * A FLAT definition keeps writing plain strings — the storage shape the whole
- * library already carries, so nothing round-trips differently. Only a
- * dependent definition writes objects, and only the fields it actually uses.
+ * DEC-050 L3b — THE STRICT OPTION RECORD (fixes INC-188).
+ *
+ * Every option writes the four identity/label cells plus `active` only when
+ * false, and `bounds`/`aliases` only when non-empty — exactly the shape
+ * `attr_option_norm_v2` normalises to, so a save with no edits is a no-op on
+ * the row. The old writer emitted bare strings (or `{value,parent}`), which is
+ * what erased labels, aliases and bounds on every console save.
  */
-function toOptionsJson(options: AttributeOption[]): unknown[] {
-  const dependent = options.some((option) => option.parent !== "");
-  return dependent
-    ? options.map((option) => ({ value: option.value, parent: option.parent }))
-    : options.map((option) => option.value);
+export function toOptionsJson(options: AttributeOption[]): unknown[] {
+  return options.map((option) => {
+    const record: Record<string, unknown> = {
+      value: option.value.trim(),
+      label_en: option.labelEn.trim(),
+      label_am: option.labelAm.trim(),
+      parent: option.parent.trim(),
+    };
+    if (option.active === false) record["active"] = false;
+    const bounds = Object.entries(option.bounds ?? {}).filter(
+      ([, bound]) => bound.min !== undefined || bound.max !== undefined,
+    );
+    if (bounds.length > 0) record["bounds"] = Object.fromEntries(bounds);
+    const aliases = (option.aliases ?? []).map((alias) => alias.trim()).filter((a) => a !== "");
+    if (aliases.length > 0) record["aliases"] = aliases;
+    return record;
+  });
 }
+
 
 export async function upsertAttribute(input: UpsertAttributeInput): Promise<string> {
   const { data, error } = await supabase.rpc("admin_upsert_attribute", {
