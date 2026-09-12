@@ -181,6 +181,26 @@ export function AttributeEditorDialog({
   });
   const [preview, setPreview] = useState("");
   const [helpText, setHelpText] = useState(attribute?.helpTextEn ?? "");
+  /**
+   * DEC-050 L3a — the v2 cells. A group is UNMOUNTED for the wrong type and its
+   * values are cleared when the type changes, so a number's unit can never ride
+   * along on a text definition (the door's CHECKs refuse it regardless — F3).
+   */
+  const [helpTextAm, setHelpTextAm] = useState(attribute?.helpTextAm ?? "");
+  const [numberFields, setNumberFields] = useState<NumberFieldsValue>(() => ({
+    unit: attribute?.unit ?? "",
+    min: attribute?.minBound ?? "",
+    max: attribute?.maxBound ?? "",
+    decimals: attribute?.decimals === null || attribute?.decimals === undefined ? "" : String(attribute.decimals),
+    format: attribute?.format ?? "",
+  }));
+  const [textFields, setTextFields] = useState<TextFieldsValue>(() => ({
+    ...parsePreset(attribute?.preset ?? null),
+    maxLength:
+      attribute?.maxLength === null || attribute?.maxLength === undefined
+        ? ""
+        : String(attribute.maxLength),
+  }));
 
   /**
    * DEC-045 LAW — a definition may depend on exactly one OTHER definition of
