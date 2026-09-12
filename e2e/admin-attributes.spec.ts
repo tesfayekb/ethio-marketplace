@@ -2112,10 +2112,8 @@ test.describe("C3 attributes console", () => {
         `AT-46 the accepted order did not land: ${JSON.stringify(landed)}`,
       ).toBe(3);
     } finally {
-      await supabase
-        .from("category_attribute_links")
-        .delete()
-        .in("attribute_id", [attrsIdsOf(keyInherited), keyDirect, keyFiller].slice(1) as string[]);
+      // `destroyAttribute` drops every link the definition owns first, so the
+      // scratch categories leave clean (J3).
       await destroyCategory(childSlug);
       await destroyCategory(rootSlug);
       await destroyAttribute(keyInherited);
