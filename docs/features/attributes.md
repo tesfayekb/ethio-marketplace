@@ -613,3 +613,43 @@ service_role, read back in-file by PROOF 8.
 ## DEC-050 L2a — effective card-rank uniqueness
 
 `UNIQUE (category_id, card_rank)` guards direct links only. Since an inherited card (by primary lineage) occupies its rank in every descendant, the import planner and `admin_set_card_attributes` refuse a direct rank equal to an inherited rank in the same category, naming both origins (reason `rankInherited`). Children of a root that supplies rank 2 use ranks 1 and 3.
+
+## DEC-050 L2b — the file format, the gate and the refusal vocabulary
+
+The definitions file carries the nine v2 cells between `depends_on` and the two
+read-only cells, in exactly this order:
+
+```text
+attribute_key, label_en, label_am, type, options, depends_on,
+unit, min, max, decimals, format, preset, max_length, help_text_en, help_text_am,
+is_per_variant (read-only), direct_link_count (read-only), action
+```
+
+The gate (`src/server/imports/registry.ts` + `src/server/imports/gate.ts`) judges
+SHAPE only, never meaning: `unit` at most 16 characters, `min`/`max` a number or a
+year token (`year`, `year+5`, `year-10`), `decimals` and `max_length` whole
+numbers, `format` one of the declared number formats, `preset` one of the allowed
+text formats (`vin`, `plate-et`, `digits:N`, `alnum:A-B`, `free:N`), and the help
+sentences at most 240 characters. An option record may carry only `value`,
+`label_en`, `label_am`, `parent`, `active`, `bounds` and `aliases`; an unknown
+field is `optionKey` and a mis-shaped one is `optionShape`. Which type may carry
+which cell, every range, `year` arithmetic, alias law and option bounds remain the
+planner's verdict (`attr_cell_check`, `attr_option_shape`) — the SQL is the only
+authority on meaning (F3, E7).
+
+An option's DEFAULTS are silence: `active: true`, empty `bounds` and empty
+`aliases` are dropped on the way in, so a file that spells them out means exactly
+what the export writes without them and the round trip stays a no-op. Nothing
+else about the cell is rewritten, so an untouched export is byte-identical.
+
+Every refusal renders as its own sentence: the door's detail token resolves
+`reason.<id>.<token>` when that key exists (`badCell.minAboveMax`,
+`badOption.aliasLength`), the cell, value, option and argument are spent INSIDE
+the sentence, and a token with no key of its own falls back to the message that
+names the row — no raw token is ever printed at an operator (D1, F4).
+
+Proofs: IG-2 drives the shape-hostility catalogue through the gate for the
+attributes family; AT-44 commits the nine cells, reads DB truth, echoes them
+through the export, re-imports the export as a no-op and undoes to silence;
+AT-45 proves the spelled-out defaults are a no-op and that a bad option names its
+row and itself. AT-20/AT-21 hold unchanged.
