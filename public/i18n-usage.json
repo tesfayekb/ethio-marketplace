@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 210,
-  "dynamicCallSites": 114,
+  "scanned": 211,
+  "dynamicCallSites": 116,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -66,6 +66,9 @@
     "admin.attributes.card.rankNone": [
       "/admin/categories"
     ],
+    "admin.attributes.col.coverage": [
+      "/admin/attributes"
+    ],
     "admin.attributes.col.name": [
       "/admin/attributes"
     ],
@@ -78,10 +81,17 @@
     "admin.attributes.col.usage": [
       "/admin/attributes"
     ],
+    "admin.attributes.coverage.tooltip": [
+      "/admin/attributes"
+    ],
     "admin.attributes.create.open": [
       "/admin/attributes"
     ],
     "admin.attributes.create.title": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.decimals.none": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -174,6 +184,18 @@
     "admin.attributes.export.open": [
       "/admin/attributes"
     ],
+    "admin.attributes.field.boundHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.decimals": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.decimalsYear": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.field.dependsOn": [
       "/admin/attributes",
       "/admin/categories"
@@ -182,7 +204,23 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.field.format": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.formatHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.field.help": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.helpAm": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.helpCounter": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -194,11 +232,31 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.field.max": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.maxLength": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.maxLengthHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.min": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.field.name": [
       "/admin/attributes",
       "/admin/categories"
     ],
     "admin.attributes.field.nameHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.numberGroup": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -210,7 +268,39 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.field.preset": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.presetA": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.presetB": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.presetHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.presetN": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.textGroup": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.field.type": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.unit": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.unitHelp": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -225,6 +315,10 @@
     ],
     "admin.attributes.filter.empty": [
       "/admin/attributes"
+    ],
+    "admin.attributes.format.none": [
+      "/admin/attributes",
+      "/admin/categories"
     ],
     "admin.attributes.import.open": [
       "/admin/attributes"
@@ -297,6 +391,10 @@
       "/admin/categories"
     ],
     "admin.attributes.merge.title": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.preset.none": [
       "/admin/attributes",
       "/admin/categories"
     ],
