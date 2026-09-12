@@ -159,6 +159,9 @@ const ATTRIBUTE_TYPES = [
   "date",
 ] as const;
 
+/** DEC-050 L2b — the number `format` allowlist, mirroring the SQL constraint. */
+const NUMBER_FORMATS = ["plain", "year"] as const;
+
 export const FAMILIES: Record<string, FamilySpec> = {
   attributes: {
     id: "attributes",
