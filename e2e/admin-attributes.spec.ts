@@ -1665,7 +1665,7 @@ test.describe("C3 attributes console", () => {
       ].join("|");
       const definitions =
         `${DEF_HEADER}\r\n` +
-        [key, key, "", "single_select", cell(options), "", "", "0"].join(",") +
+        v2([key, key, "", "single_select", cell(options), "", "", "0"].join(",")) +
         "\r\n";
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
@@ -1701,7 +1701,7 @@ test.describe("C3 attributes console", () => {
 
       // Same label_en, same type, same (empty) options — and `oldKey` absent.
       const definitions =
-        `${DEF_HEADER}\r\n` + [newKey, oldKey, "", "text", "", "", "", "0"].join(",") + "\r\n";
+        `${DEF_HEADER}\r\n` + v2([newKey, oldKey, "", "text", "", "", "", "0"].join(",")) + "\r\n";
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
@@ -1747,7 +1747,7 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,,1\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${v2(`${key},${key},,text,,,,1`)}\r\n`;
       // required flips false → true and the attribute takes card position 1.
       const links = `${LINK_HEADER}\r\n${slug},${slug},${key},true,false,1,${slug}\r\n`;
 
@@ -1802,7 +1802,7 @@ test.describe("C3 attributes console", () => {
     const key = `e2e_attr_${rand()}`;
     const formula = await importPost(page, token, {
       mode: "preview",
-      definitions: `${DEF_HEADER}\r\n${key},"=SUM(1)",,text,,,,0\r\n`,
+      definitions: `${DEF_HEADER}\r\n${v2(`${key},"=SUM(1)",,text,,,,0`)}\r\n`,
     });
     expect(formula.status).toBe(200);
     const formulaRefusals = formula.payload["refusals"] as { reason: string }[];
@@ -1867,7 +1867,7 @@ test.describe("C3 attributes console", () => {
       const token = await bearerOf(page);
       const denied = await importPost(page, token, {
         mode: "preview",
-        definitions: `${DEF_HEADER}\r\ne2e_attr_denied,label,,text,,,,0\r\n`,
+        definitions: `${DEF_HEADER}\r\n${v2("e2e_attr_denied,label,,text,,,,0")}\r\n`,
       });
       expect(denied.status, JSON.stringify(denied.payload)).toBe(403);
 
@@ -1894,11 +1894,11 @@ test.describe("C3 attributes console", () => {
     try {
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,,0\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${v2(`${key},${key},,text,,,,0`)}\r\n`;
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status).toBe(200);
 
-      const edited = `${DEF_HEADER}\r\n${key},${key}_edited,,text,,,,0\r\n`;
+      const edited = `${DEF_HEADER}\r\n${v2(`${key},${key}_edited,,text,,,,0`)}\r\n`;
       const stale = await importPost(page, token, {
         mode: "commit",
         definitions: edited,
@@ -1941,7 +1941,7 @@ test.describe("C3 attributes console", () => {
         { value: "Corolla", parent: "Toyota" },
         { value: "Civic", parent: "Suzuki" },
       ]).replaceAll('"', '""');
-      const definitions = `${DEF_HEADER}\r\n${child},${child},,single_select,"${options}",,,0\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${v2(`${child},${child},,single_select,"${options}",,,0`)}\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
@@ -2106,7 +2106,7 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      const definitions = `${DEF_HEADER}\r\n${key},${key},${cell(amharic)},text,,,,0\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${v2(`${key},${key},${cell(amharic)},text,,,,0`)}\r\n`;
       const links = `${LINK_HEADER}\r\n${slug},${slug},${key},false,false,,${slug}\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions, links });
@@ -2139,7 +2139,7 @@ test.describe("C3 attributes console", () => {
 
       // SILENCE — the same definition with an EMPTY am cell is not a change,
       // and it deletes nothing.
-      const blank = `${DEF_HEADER}\r\n${key},${key},,text,,,,1\r\n`;
+      const blank = `${DEF_HEADER}\r\n${v2(`${key},${key},,text,,,,1`)}\r\n`;
       const silent = await importPost(page, token, { mode: "preview", definitions: blank });
       expect(silent.status, JSON.stringify(silent.payload)).toBe(200);
       expect(
@@ -2214,8 +2214,8 @@ test.describe("C3 attributes console", () => {
       const header = `${DEF_HEADER},action`;
       const definitions =
         `${header}\r\n` +
-        `${free},${free},${cell(amharic)},text,,,,0,delete\r\n` +
-        `${used},${used},,text,,,,1,delete\r\n`;
+        `${v2(`${free},${free},${cell(amharic)},text,,,,0,delete`)}\r\n` +
+        `${v2(`${used},${used},,text,,,,1,delete`)}\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
@@ -2296,7 +2296,7 @@ test.describe("C3 attributes console", () => {
 
       const defHeader = `${DEF_HEADER},action`;
       const linkHeader = `${LINK_HEADER},action`;
-      const definitions = `${defHeader}\r\n${key},${key},,text,,,,1,delete\r\n`;
+      const definitions = `${defHeader}\r\n${v2(`${key},${key},,text,,,,1,delete`)}\r\n`;
 
       // (a) THE SURVIVING LINK REFUSES THE DELETE — no unlink in the file.
       const refusedPreview = await importPost(page, token, { mode: "preview", definitions });
@@ -2482,7 +2482,7 @@ test.describe("C3 attributes console", () => {
 
       // Both files leave every derived column blank: the live rows exist, so
       // truth is present and a naive comparison WOULD have reported them.
-      const definitions = `${DEF_HEADER}\r\n${key},${key},,text,,,,\r\n`;
+      const definitions = `${DEF_HEADER}\r\n${v2(`${key},${key},,text,,,,`)}\r\n`;
       const links = `${LINK_HEADER}\r\n,${slug},${key},false,false,,\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions, links });
@@ -2608,7 +2608,7 @@ test.describe("C3 attributes console", () => {
         page,
         "attribute-import-definitions",
         "definitions.csv",
-        `${DEF_HEADER}\r\n${key},${key},,text,,,,\r\n`,
+        `${DEF_HEADER}\r\n${v2(`${key},${key},,text,,,,`)}\r\n`,
       );
       await expect(page.getByTestId("attribute-import-definitions-chosen")).toHaveText(
         "definitions.csv",
@@ -2940,8 +2940,8 @@ test.describe("C3 attributes console", () => {
       const definitions =
         `${DEF_HEADER}\r\n` +
         // The DEPENDENT row comes first on purpose.
-        `${modelKey},${modelKey},,single_select,${cell('{"value": "corolla", "parent": "toyota"}')},${makeKey},,0\r\n` +
-        `${makeKey},${makeKey},,single_select,toyota|byd,,,0\r\n`;
+        `${v2(`${modelKey},${modelKey},,single_select,${cell('{"value": "corolla", "parent": "toyota"}')},${makeKey},,0`)}\r\n` +
+        `${v2(`${makeKey},${makeKey},,single_select,toyota|byd,,,0`)}\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
