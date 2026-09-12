@@ -525,6 +525,16 @@ export function parseFamilyFile(spec: FileSpec, text: string): ParsedFile {
         cellRefusal = { file: spec.id, row: rowNumber, key, reason, detail: name };
         break;
       }
+      // DEC-050 L2b — the option record's SHAPE, then normalisation: a cell
+      // with nothing to drop is left byte-identical.
+      if (rule.type === "options") {
+        const fault = optionShapeFault(record[name] ?? "");
+        if (fault !== null) {
+          cellRefusal = { file: spec.id, row: rowNumber, key, reason: fault.reason, ...fault };
+          break;
+        }
+        record[name] = normalizeOptionsCell(record[name] ?? "");
+      }
     }
     if (cellRefusal !== null) {
       refusals.push(cellRefusal);
