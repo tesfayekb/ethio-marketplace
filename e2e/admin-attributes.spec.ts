@@ -3384,4 +3384,159 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(makeKey);
     }
   });
+
+  /**
+   * AT-47 (DEC-050 L3a) — THE EDITOR SETS THE v2 CELLS. The group belongs to the
+   * type: a number definition carries unit/min/max/decimals/format, a text one
+   * a preset token and a max length. DB truth through the service client (J4).
+   */
+  async function readV2(key: string) {
+    const { data } = await adminClient()
+      .from("attributes")
+      .select(
+        "attr_type, unit, min_bound, max_bound, decimals, format, preset, max_length, help_text_am",
+      )
+      .eq("attr_key", key)
+      .maybeSingle();
+    return data;
+  }
+
+  test("AT-47 the editor shows the Number group for a number definition and the Text group for a text one, and saves the v2 cells", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    const helpAm = "የእገዛ ጽሑፍ";
+    try {
+      await gotoReady(page, "/admin/attributes");
+
+      await test.step("AT-47 create a number definition", async () => {
+        await page.getByTestId("attribute-create-open").click();
+        await expect(
+          page.getByTestId("attribute-edit-dialog"),
+          await dialogDump(page, "AT-47 editor never opened"),
+        ).toBeVisible({ timeout: 20000 });
+        await page.getByTestId("attribute-key").fill(key);
+        await page.getByTestId("attribute-name").fill(key);
+        await page.getByTestId("attribute-type").selectOption("number");
+        await expect(page.getByTestId("attribute-number-group")).toBeVisible();
+        await expect(page.getByTestId("attribute-text-group")).toHaveCount(0);
+        await page.getByTestId("attribute-unit").fill("GB");
+        await page.getByTestId("attribute-min").fill("1");
+        await page.getByTestId("attribute-max").fill("year+1");
+        await page.getByTestId("attribute-format").selectOption("year");
+        // A year format pins the decimals control at 0 and disables it (L1).
+        await expect(page.getByTestId("attribute-decimals")).toBeDisabled();
+        await expect(page.getByTestId("attribute-decimals")).toHaveValue("0");
+        await page.getByTestId("attribute-help-am").fill(helpAm);
+        await page.getByTestId("attribute-edit-submit").click();
+        await stepUpIfPrompted(page, secret);
+      });
+
+      await expect
+        .poll(async () => (await readV2(key))?.unit, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-47 the number cells never landed"),
+        })
+        .toBe("GB");
+      const number = await readV2(key);
+      expect(number, `AT-47 row missing: ${JSON.stringify(number)}`).toBeTruthy();
+      expect(number!.min_bound).toBe("1");
+      expect(number!.max_bound).toBe("year+1");
+      expect(Number(number!.decimals)).toBe(0);
+      expect(number!.format).toBe("year");
+      expect(number!.help_text_am).toBe(helpAm);
+
+      await test.step("AT-47 reopen pre-filled, then switch to text", async () => {
+        await page.getByTestId("attribute-search").fill(key);
+        await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
+        await expect(page.getByTestId("attribute-unit")).toHaveValue("GB", { timeout: 20000 });
+        await expect(page.getByTestId("attribute-min")).toHaveValue("1");
+        await expect(page.getByTestId("attribute-max")).toHaveValue("year+1");
+        await expect(page.getByTestId("attribute-format")).toHaveValue("year");
+        await expect(page.getByTestId("attribute-help-am")).toHaveValue(helpAm);
+
+        await page.getByTestId("attribute-type").selectOption("text");
+        await expect(page.getByTestId("attribute-number-group")).toHaveCount(0);
+        await expect(page.getByTestId("attribute-text-group")).toBeVisible();
+        await page.getByTestId("attribute-preset").selectOption("digits");
+        await page.getByTestId("attribute-preset-n").fill("15");
+        await page.getByTestId("attribute-max-length").fill("15");
+        await page.getByTestId("attribute-edit-submit").click();
+        await stepUpIfPrompted(page, secret);
+      });
+
+      await expect
+        .poll(async () => (await readV2(key))?.preset, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-47 the preset never landed"),
+        })
+        .toBe("digits:15");
+      const asText = await readV2(key);
+      expect(Number(asText!.max_length)).toBe(15);
+      expect(asText!.attr_type).toBe("text");
+      // The number group's values left with the type (they are the door's to refuse).
+      expect(asText!.unit).toBeNull();
+      expect(asText!.format).toBeNull();
+      expect(asText!.help_text_am).toBe(helpAm);
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-48 (DEC-050 L3a) — THE COVERAGE COLUMN. `detail` tier, so it lives in the
+   * table twin alone (the card twin drops detail columns by contract): this
+   * block asserts the desktop band.
+   */
+  test("AT-48 the library's coverage column reads n/N for a select definition", async ({ page }) => {
+    bandOnly(page, "desktop");
+    await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    try {
+      const { error } = await adminClient()
+        .from("attributes")
+        .insert({
+          attr_key: key,
+          name_en: key,
+          attr_type: "single_select",
+          options: [
+            { value: "alpha", label_en: "Alpha", label_am: "አልፋ" },
+            { value: "beta", label_en: "Beta" },
+          ],
+        });
+      if (error) throw new Error(`AT-48 seed failed: ${error.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      const cell = librarySurface(page).getByTestId(`attribute-coverage-${key}`);
+      await expect(cell, await dialogDump(page, "AT-48 coverage never rendered")).toHaveText("1/2", {
+        timeout: 20000,
+      });
+      await expect(cell).toHaveAttribute("data-incomplete", "true");
+      await expect(cell).toHaveClass(/amber/);
+
+      const { error: patchError } = await adminClient()
+        .from("attributes")
+        .update({
+          options: [
+            { value: "alpha", label_en: "Alpha", label_am: "አልፋ" },
+            { value: "beta", label_en: "Beta", label_am: "ቤታ" },
+          ],
+        })
+        .eq("attr_key", key);
+      if (patchError) throw new Error(`AT-48 patch failed: ${patchError.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      const healed = librarySurface(page).getByTestId(`attribute-coverage-${key}`);
+      await expect(healed, await dialogDump(page, "AT-48 coverage never healed")).toHaveText("2/2", {
+        timeout: 20000,
+      });
+      await expect(healed).not.toHaveAttribute("data-incomplete", "true");
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
 });
