@@ -653,3 +653,35 @@ attributes family; AT-44 commits the nine cells, reads DB truth, echoes them
 through the export, re-imports the export as a no-op and undoes to silence;
 AT-45 proves the spelled-out defaults are a no-op and that a bad option names its
 row and itself. AT-20/AT-21 hold unchanged.
+
+## DEC-050 L3a — the definition editor and the coverage column
+
+The editor mounts ONE group per type and nothing else: a **Number** group
+(unit, min, max, format, decimals) for `attr_type = 'number'`, a **Text** group
+(preset builder, max length) for `text`. A type change unmounts the wrong group
+AND clears its values, so a unit can never ride along on a text definition —
+`admin_upsert_attribute` refuses it regardless (F3; the console is convenience).
+
+`format = 'year'` pins the decimals control at 0 and disables it, mirroring L1's
+CHECK. The preset builder emits the door's token and never a free string:
+`digits:N` · `vin` · `plate-et` · `alnum:A-B` · `free:N`. An incomplete builder
+serializes to null — a cell is empty or whole, never half. Serialization and its
+inverse (`presetToken` / `parsePreset`, used to pre-fill a reopened row) live in
+`attributes-service.ts` beside the mapping, because the token shape is a wire
+concern.
+
+Help text carries EN AND AM, each capped at 240 with a live counter. The prefill
+matters: the door assigns every v2 column directly on UPDATE, so a field the
+editor does not send would erase a curated value — L3a-mig's reader exists for
+exactly this.
+
+The library gains an Amharic option-coverage column at the `detail` tier
+(`admin_attribute_option_coverage`, one read for the whole library): `n/N`,
+amber with `data-incomplete="true"` while incomplete. Report-only — nothing
+gates on it.
+
+Proofs: AT-47 creates a number definition through the real editor, reads DB
+truth for every cell, reopens it pre-filled, switches it to text and proves the
+preset token and max length land while the number cells go to null; AT-48 reads
+the coverage cell as `1/2`, then `2/2` after the Amharic label lands (desktop
+band — a `detail` column lives in the table twin alone).
