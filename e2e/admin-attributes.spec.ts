@@ -101,7 +101,6 @@ async function addOptionRow(
   if (labels?.en !== undefined) await row.getByTestId("option-label-en").fill(labels.en);
   if (labels?.am !== undefined) await row.getByTestId("option-label-am").fill(labels.am);
   await row.getByTestId("option-value").fill(value);
-
 }
 
 /** A scratch definition, minted straight through the service client (J3). */
@@ -3654,7 +3653,6 @@ test.describe("C3 attributes console", () => {
           { timeout: 20000 },
         );
       }
-
     } finally {
       await destroyAttribute(key);
     }
