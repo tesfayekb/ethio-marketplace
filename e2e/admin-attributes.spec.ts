@@ -1413,8 +1413,53 @@ test.describe("C3 attributes console", () => {
    * against DB TRUTH via the service client (J4). The UI half — the control's
    * visibility — is asserted in AT-23.
    */
+  /**
+   * DEC-050 L2b — the nine v2 cells sit between `depends_on` and the two
+   * read-only cells. The header carries them, and `v2()` splices nine empty
+   * cells into a hand-authored row at the same index, so every row below reads
+   * exactly as it did before and no assertion is weakened.
+   */
+  const V2_CELLS = [
+    "unit",
+    "min",
+    "max",
+    "decimals",
+    "format",
+    "preset",
+    "max_length",
+    "help_text_en",
+    "help_text_am",
+  ] as const;
   const DEF_HEADER =
-    "attribute_key,label_en,label_am,type,options,depends_on,is_per_variant,direct_link_count";
+    `attribute_key,label_en,label_am,type,options,depends_on,${V2_CELLS.join(",")},` +
+    "is_per_variant,direct_link_count";
+  /** Splices the nine empty v2 cells after `depends_on`, quotes respected. */
+  function v2(row: string): string {
+    const cells: string[] = [];
+    let current = "";
+    let quoted = false;
+    for (const ch of row) {
+      if (quoted) {
+        current += ch;
+        if (ch === '"') quoted = false;
+        continue;
+      }
+      if (ch === '"') {
+        quoted = true;
+        current += ch;
+        continue;
+      }
+      if (ch === ",") {
+        cells.push(current);
+        current = "";
+        continue;
+      }
+      current += ch;
+    }
+    cells.push(current);
+    cells.splice(6, 0, ...V2_CELLS.map(() => ""));
+    return cells.join(",");
+  }
   const LINK_HEADER =
     "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin";
 
