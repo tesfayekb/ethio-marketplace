@@ -14,3 +14,7 @@
 ## Project constitution (applies to ANY agent working in this repo)
 
 Full rules live in Lovable Project Knowledge and are summarized here: modify only files the task names; no unspecified work; honesty before action; search-before-create (no duplication); mobile-first at 360px, RTL-safe logical CSS only; no user-visible literal strings (translation keys, EN+AM); every table ships with RLS + policies + GRANTs in the same APPEND-ONLY migration; personal-data tables carry home_country_code; UTC timestamps; no floats for money; no secrets in code or commits; server/RLS is the only authorization authority; never catch-and-continue silently; public pages server-rendered with absolute canonical/og URLs; update /docs/features/<name>.md + \_changelog.md in the same change as structural edits. See /docs/conventions.md.
+
+- Text attributes are validated by preset allowlist (`attr_preset_ok`), never by free regex; option records use the strict shape `value, label_en, label_am, parent, active, bounds, aliases` — unknown keys are refusals, defaults are omitted (DEC-050).
+
+- A console save must never drop a field it does not show: editors round-trip every stored field of a record (INC-188).
