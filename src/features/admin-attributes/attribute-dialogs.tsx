@@ -31,14 +31,16 @@ import { useAttributeLabel } from "./use-attribute-label";
 import {
   AttributeNumberFields,
   AttributeTextFields,
-  EMPTY_NUMBER_FIELDS,
-  EMPTY_TEXT_FIELDS,
   HELP_TEXT_MAX,
-  parsePreset,
-  presetToken,
   type NumberFieldsValue,
   type TextFieldsValue,
 } from "./components/attribute-v2-fields";
+import {
+  EMPTY_NUMBER_FIELDS,
+  EMPTY_TEXT_FIELDS,
+  parsePreset,
+  presetToken,
+} from "./attributes-service";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY's write surfaces.
