@@ -290,6 +290,38 @@ export function AdminAttributesPage() {
       ),
     },
     {
+      key: "coverage",
+      header: t("admin.attributes.col.coverage"),
+      /* C7 — the least load-bearing read folds away first (detail tier). */
+      priority: "detail",
+      align: "end",
+      width: "w-20",
+      cell: (row) => {
+        if (!typeHasOptions(row.attrType)) {
+          return <span className="block text-muted-foreground">—</span>;
+        }
+        const counts = coverageById.get(row.id) ?? {
+          total: row.options.length,
+          withAm: 0,
+        };
+        const incomplete = counts.withAm < counts.total;
+        return (
+          <span
+            className={`block tabular-nums ${
+              incomplete ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
+            }`}
+            data-testid={`attribute-coverage-${row.attrKey}`}
+            {...(incomplete ? { "data-incomplete": "true" } : {})}
+            title={t("admin.attributes.coverage.tooltip")
+              .replace("{count}", String(counts.withAm))
+              .replace("{total}", String(counts.total))}
+          >
+            {`${counts.withAm}/${counts.total}`}
+          </span>
+        );
+      },
+    },
+    {
       key: "usage",
       header: t("admin.attributes.col.usage"),
       priority: "secondary",
