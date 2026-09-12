@@ -3762,11 +3762,11 @@ test.describe("C3 attributes console", () => {
       await page.getByTestId("attribute-edit-submit").click();
       await stepUpIfPrompted(page, secret);
 
-      const error_line = page.getByTestId("attribute-dialog-error");
-      await expect(error_line, await dialogDump(page, "AT-51 no refusal rendered")).toBeVisible({
+      const refusal = page.getByTestId("attribute-dialog-error");
+      await expect(refusal, await dialogDump(page, "AT-51 no refusal rendered")).toBeVisible({
         timeout: 30000,
       });
-      await expect(error_line, "AT-51 the refusal never names the target").toContainText(numberKey);
+      await expect(refusal, "AT-51 the refusal never names the target").toContainText(numberKey);
       /* A refused attempt leaves no trace (F5). */
       expect((await readAttribute(selectKey))?.options).toEqual([
         { value: "alpha", label_en: "Alpha", label_am: "", parent: "" },
