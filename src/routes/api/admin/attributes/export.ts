@@ -33,6 +33,17 @@ const DEFINITION_COLUMNS = [
   // DEC-045b — the dependency is EDITABLE now: the header drops the read-only
   // suffix, because the importer applies exactly what this cell says.
   "depends_on",
+  // DEC-050 L2b — the nine v2 cells; the payload already emits them and this
+  // route formats nothing (IE-3b).
+  "unit",
+  "min",
+  "max",
+  "decimals",
+  "format",
+  "preset",
+  "max_length",
+  "help_text_en",
+  "help_text_am",
   "is_per_variant",
   "direct_link_count",
 ] as const;
