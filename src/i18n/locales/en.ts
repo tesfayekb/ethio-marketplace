@@ -1094,6 +1094,98 @@ export const en = {
     "Keys are identities: restore \u201c{detail}\u201d and change label_en instead of adding a new key",
   "admin.attributes.import.reason.unknown": "This row was refused",
 
+  /* DEC-050 L2b — the v2 vocabulary: every id and detail the door can speak. */
+  "admin.attributes.import.reason.hasDependents":
+    "Other attributes depend on this one, so it cannot be deleted: {detail}",
+  "admin.attributes.import.reason.badOption": "An option on this row could not be accepted",
+  "admin.attributes.import.reason.badCell": "The “{cell}” cell could not be accepted",
+  "admin.attributes.import.reason.boundsTargetNotNumber":
+    "Option limits point at “{detail}”, which is not a number attribute",
+  "admin.attributes.import.reason.boundsTargetNotColinked":
+    "Option limits point at “{detail}”, which is not linked to the same categories",
+  "admin.attributes.import.reason.rankInherited":
+    "Card position {rank} at “{category}” is already taken by “{origin_key}”, inherited from “{origin_category}”",
+  "admin.attributes.import.reason.required": "The “{detail}” cell is required",
+  "admin.attributes.import.reason.tooLong": "The “{detail}” cell is too long",
+  "admin.attributes.import.reason.badSlug":
+    "The “{detail}” cell is not a valid key: use a-z, 0-9, - and _",
+  "admin.attributes.import.reason.badBoolean": "The “{detail}” cell must read true or false",
+  "admin.attributes.import.reason.badNumber": "The “{detail}” cell must be a whole number",
+  "admin.attributes.import.reason.badDate": "The “{detail}” cell must be a date (YYYY-MM-DD)",
+  "admin.attributes.import.reason.badValue":
+    "The “{detail}” cell carries a value that is not allowed",
+  "admin.attributes.import.reason.tooManyOptions": "This row lists too many options",
+  "admin.attributes.import.reason.optionValueTooLong": "An option value on this row is too long",
+  "admin.attributes.import.reason.optionLabelTooLong": "An option label on this row is too long",
+  "admin.attributes.import.reason.duplicateIdentity":
+    "This row names an identity the file already used",
+  "admin.attributes.import.reason.badHeader":
+    "The file’s columns do not match this import — export a fresh file and edit that",
+  "admin.attributes.import.reason.wrongFile": "This file belongs to another import",
+  "admin.attributes.import.reason.unknownColumn":
+    "The file carries a column this import does not know",
+  "admin.attributes.import.reason.duplicateColumn": "The file names the same column twice",
+  "admin.attributes.import.reason.nulByte": "The file is not plain text",
+  "admin.attributes.import.reason.emptyFile": "The file is empty",
+  "admin.attributes.import.reason.tooManyRows": "The file has too many rows",
+  "admin.attributes.import.reason.badBound":
+    "The “{detail}” cell must be a number or a year (year, year+5, year-10)",
+  "admin.attributes.import.reason.badPreset":
+    "The “{detail}” cell is not one of the allowed formats (vin, plate-et, digits:8, alnum:3-12, free:200)",
+  "admin.attributes.import.reason.optionKey":
+    "Option “{cell}” carries a field this import does not know",
+  "admin.attributes.import.reason.optionShape": "Option “{cell}” is not shaped as expected",
+  "admin.attributes.import.reason.optionShape.activeNotBoolean":
+    "Option “{cell}”: the on/off field must read true or false",
+  "admin.attributes.import.reason.optionShape.boundsNotObject":
+    "Option “{cell}”: the limits must be given as a set of fields",
+  "admin.attributes.import.reason.optionShape.aliasesNotArray":
+    "Option “{cell}”: the other spellings must be given as a list",
+  /* badCell details — `attr_cell_check` names the cell and the value. */
+  "admin.attributes.import.reason.badCell.onlyNumber":
+    "“{cell}” only applies to number attributes (this row reads “{value}”)",
+  "admin.attributes.import.reason.badCell.onlyText":
+    "“{cell}” only applies to text attributes (this row reads “{value}”)",
+  "admin.attributes.import.reason.badCell.badLength": "“{cell}” is too long: “{value}”",
+  "admin.attributes.import.reason.badCell.badBound":
+    "“{cell}” must be a number or a year (year, year+5, year-10) — this row reads “{value}”",
+  "admin.attributes.import.reason.badCell.minAboveMax":
+    "The smallest value is above the largest: {value}",
+  "admin.attributes.import.reason.badCell.outOfRange":
+    "“{cell}” is outside the allowed range: “{value}”",
+  "admin.attributes.import.reason.badCell.yearForcesZero":
+    "A year is a whole number, so decimals must be 0 — this row reads “{value}”",
+  "admin.attributes.import.reason.badCell.unknown": "“{cell}” does not accept “{value}”",
+  "admin.attributes.import.reason.badCell.notAllowed":
+    "“{cell}” is not one of the allowed formats: “{value}”",
+  "admin.attributes.import.reason.badCell.notANumber": "“{cell}” must be a whole number: “{value}”",
+  "admin.attributes.import.reason.badCell.tooLong": "“{cell}” is too long ({value} characters)",
+  /* badOption details — `attr_option_shape` names the option and the reason. */
+  "admin.attributes.import.reason.badOption.unknownOptionKey":
+    "Option “{value}” carries a field this import does not know: “{arg}”",
+  "admin.attributes.import.reason.badOption.activeNotBoolean":
+    "Option “{value}”: the on/off field must read true or false",
+  "admin.attributes.import.reason.badOption.aliasesNotArray":
+    "Option “{value}”: the other spellings must be given as a list",
+  "admin.attributes.import.reason.badOption.aliasesCount":
+    "Option “{value}”: between one and five other spellings are allowed, not {arg}",
+  "admin.attributes.import.reason.badOption.aliasNotString":
+    "Option “{value}”: every other spelling must be text",
+  "admin.attributes.import.reason.badOption.aliasLength":
+    "Option “{value}”: the spelling “{arg}” is too long (32 characters at most)",
+  "admin.attributes.import.reason.badOption.aliasControlChar":
+    "Option “{value}”: a spelling carries characters that are not allowed",
+  "admin.attributes.import.reason.badOption.aliasDuplicate":
+    "Option “{value}”: the spelling “{arg}” is listed twice",
+  "admin.attributes.import.reason.badOption.boundsNotObject":
+    "Option “{value}”: the limits must be given as a set of fields",
+  "admin.attributes.import.reason.badOption.boundsUnknownKey":
+    "Option “{value}”: the limits for “{arg}” carry a field other than min or max",
+  "admin.attributes.import.reason.badOption.boundsBadValue":
+    "Option “{value}”: the limit “{arg}” must be a number or a year",
+  "admin.attributes.import.reason.badOption.boundsMinAboveMax":
+    "Option “{value}”: the smallest limit for “{arg}” is above the largest",
+
   "admin.attributes.import.guidance":
     "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied.",
   "admin.attributes.import.ignored": "Ignored (read-only)",
@@ -1217,6 +1309,9 @@ export const en = {
   "admin.attributes.error.alreadyLinked": "This category already links that attribute.",
   "admin.attributes.error.linkNotFound": "That link no longer exists.",
   "admin.attributes.error.cardLimit": "A listing card shows at most three attributes.",
+  /* DEC-050 L2a/L2b — the door refuses a rank an inherited card already holds. */
+  "admin.attributes.error.rankInherited":
+    "That card position is already taken by an attribute inherited from a parent category. Choose another position.",
   "admin.attributes.error.orderMismatch": "The attribute order was stale; reopen and try again.",
   "admin.attributes.error.mergeNoTarget": "Choose the attribute to keep.",
   "admin.attributes.error.mergeNoSources": "Choose at least one duplicate to merge.",

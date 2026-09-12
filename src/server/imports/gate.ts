@@ -23,12 +23,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { xliffUnits } from "@/features/admin/translations/io-formats";
 import type { Database } from "@/integrations/supabase/types";
 import {
+  BOUND_RE,
   FAMILIES,
   familyOf,
   fileOf,
   KEY_RE,
   LANG_RE,
   MAX_BYTES,
+  presetShapeOk,
   MAX_OPTIONS,
   MAX_OPTION_LABEL,
   MAX_OPTION_VALUE,
@@ -234,6 +236,158 @@ function optionsOf(raw: string): OptionCell[] | null {
   return cells;
 }
 
+/**
+ * DEC-050 L2b — THE OPTION RECORD'S SHAPE, at the gate. Keys are exactly the
+ * seven the platform writes; `active` is a boolean, `bounds` an object and
+ * `aliases` an array. Nothing SEMANTIC is judged here (co-linkage, parents and
+ * every range belong to `attr_option_shape`/the planner).
+ */
+const OPTION_KEYS = new Set([
+  "value",
+  "label_en",
+  "label_am",
+  "parent",
+  "active",
+  "bounds",
+  "aliases",
+]);
+
+interface OptionShapeFault {
+  reason: "optionKey" | "optionShape";
+  detail: string;
+}
+
+/**
+ * The cell's own dialect, segment by segment: the export writes either ONE JSON
+ * array or pipe segments, each a JSON object or a plain `value=label`. A segment
+ * the gate cannot read as an object is carried through untouched — meaning is
+ * the planner's (E7/F3).
+ */
+interface OptionSegment {
+  record: Record<string, unknown> | null;
+  text: string;
+}
+
+interface OptionCellShape {
+  dialect: "array" | "pipe";
+  segments: OptionSegment[];
+}
+
+function optionCellShape(raw: string): OptionCellShape | null {
+  const text = raw.trim();
+  if (text === "") return null;
+  const objectOf = (piece: unknown): Record<string, unknown> | null =>
+    piece !== null && typeof piece === "object" && !Array.isArray(piece)
+      ? (piece as Record<string, unknown>)
+      : null;
+
+  if (text.startsWith("[")) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(parsed)) return null;
+    const segments: OptionSegment[] = [];
+    for (const piece of parsed) {
+      const record = objectOf(piece);
+      if (record === null) return null;
+      segments.push({ record, text: JSON.stringify(piece) });
+    }
+    return { dialect: "array", segments };
+  }
+
+  const segments: OptionSegment[] = [];
+  for (const part of text.split("|")) {
+    const segment = part.trim();
+    if (segment === "") continue;
+    if (!segment.startsWith("{")) {
+      segments.push({ record: null, text: part });
+      continue;
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(segment);
+    } catch {
+      return null;
+    }
+    const record = objectOf(parsed);
+    if (record === null) return null;
+    segments.push({ record, text: part });
+  }
+  return { dialect: "pipe", segments };
+}
+
+export function optionShapeFault(raw: string): OptionShapeFault | null {
+  const shape = optionCellShape(raw);
+  if (shape === null) return null;
+  for (const segment of shape.segments) {
+    const record = segment.record;
+    // A `{ depends_on: … }` marker declares lineage, not an option.
+    if (record === null || record["value"] === undefined) continue;
+    const value = String(record["value"] ?? "");
+    for (const name of Object.keys(record)) {
+      if (!OPTION_KEYS.has(name)) {
+        return { reason: "optionKey", detail: `${value}|${name}` };
+      }
+    }
+    if ("active" in record && typeof record["active"] !== "boolean") {
+      return { reason: "optionShape", detail: `${value}|activeNotBoolean` };
+    }
+    const bounds = record["bounds"];
+    if (
+      "bounds" in record &&
+      (bounds === null || typeof bounds !== "object" || Array.isArray(bounds))
+    ) {
+      return { reason: "optionShape", detail: `${value}|boundsNotObject` };
+    }
+    if ("aliases" in record && !Array.isArray(record["aliases"])) {
+      return { reason: "optionShape", detail: `${value}|aliasesNotArray` };
+    }
+  }
+  return null;
+}
+
+/**
+ * NORMALISATION, not re-serialisation. A record is rewritten ONLY when it
+ * carries a default the platform omits (`active: true`, empty `bounds`, empty
+ * `aliases`); the remaining keys keep the file's own order, the cell keeps its
+ * own dialect, and a cell with nothing to drop is returned BYTE-IDENTICAL —
+ * which is what keeps a pre-P1 export previewing as unchanged.
+ */
+export function normalizeOptionsCell(raw: string): string {
+  const shape = optionCellShape(raw);
+  if (shape === null) return raw;
+  let dropped = false;
+  const rendered = shape.segments.map((segment) => {
+    const record = segment.record;
+    if (record === null) return segment.text;
+    const out: Record<string, unknown> = {};
+    let cut = false;
+    for (const [name, value] of Object.entries(record)) {
+      const isDefault =
+        (name === "active" && value === true) ||
+        (name === "bounds" &&
+          value !== null &&
+          typeof value === "object" &&
+          !Array.isArray(value) &&
+          Object.keys(value as object).length === 0) ||
+        (name === "aliases" && Array.isArray(value) && value.length === 0);
+      if (isDefault) {
+        cut = true;
+        continue;
+      }
+      out[name] = value;
+    }
+    if (!cut) return segment.text;
+    dropped = true;
+    return JSON.stringify(out);
+  });
+  if (!dropped) return raw;
+  return shape.dialect === "array" ? `[${rendered.join(",")}]` : rendered.join("|");
+}
+
 /** Per-column type/format/length law. Returns a refusal reason, or null. */
 export function checkCell(rule: ColumnRule, value: string): string | null {
   if (value === "") return rule.required === true ? "required" : null;
@@ -256,6 +410,12 @@ export function checkCell(rule: ColumnRule, value: string): string | null {
         : "badDate";
     case "enum":
       return (rule.values ?? []).includes(value.toLowerCase()) ? null : "badValue";
+    // DEC-050 L2b — SHAPE ONLY: which type may carry the cell, and what the
+    // token resolves to, is the planner's verdict.
+    case "bound":
+      return BOUND_RE.test(value) ? null : "badBound";
+    case "preset":
+      return presetShapeOk(value) ? null : "badPreset";
     case "options": {
       const cells = optionsOf(value);
       // Unreadable here is not refused here: the planner names it (badOptions).
@@ -416,6 +576,16 @@ export function parseFamilyFile(spec: FileSpec, text: string): ParsedFile {
       if (reason !== null) {
         cellRefusal = { file: spec.id, row: rowNumber, key, reason, detail: name };
         break;
+      }
+      // DEC-050 L2b — the option record's SHAPE, then normalisation: a cell
+      // with nothing to drop is left byte-identical.
+      if (rule.type === "options") {
+        const fault = optionShapeFault(record[name] ?? "");
+        if (fault !== null) {
+          cellRefusal = { file: spec.id, row: rowNumber, key, ...fault };
+          break;
+        }
+        record[name] = normalizeOptionsCell(record[name] ?? "");
       }
     }
     if (cellRefusal !== null) {

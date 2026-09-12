@@ -44,10 +44,41 @@ interface Family {
    * the ceiling is proven without a single write (J6).
    */
   meterRow?: () => string;
+  /**
+   * DEC-050 L2b — the family's own SHAPE hostility: rows whose cells are the
+   * wrong shape for a declared column (a bound that is not a number or a year,
+   * a format that is not on the allowlist, an option carrying an unknown field
+   * or a non-boolean flag). The gate refuses each on its own row and names the
+   * reason; the semantics stay the planner's.
+   */
+  shapeProbe?: () => { rows: string[]; reasons: string[] };
 }
 
+/** A CSV cell that may carry commas or quotes. */
+function csv(value: string): string {
+  return `"${value.split('"').join('""')}"`;
+}
+
+/**
+ * DEC-050 L2b — the nine v2 cells sit between `depends_on` and the two
+ * read-only cells; `V2_EMPTY` splices them into the hostile rows below so the
+ * probes read exactly as before.
+ */
+const V2_COLUMNS = [
+  "unit",
+  "min",
+  "max",
+  "decimals",
+  "format",
+  "preset",
+  "max_length",
+  "help_text_en",
+  "help_text_am",
+] as const;
+const V2_EMPTY = V2_COLUMNS.map(() => "").join(",");
 const ATTRIBUTE_HEADER =
-  "attribute_key,label_en,label_am,type,options,depends_on,is_per_variant,direct_link_count";
+  `attribute_key,label_en,label_am,type,options,depends_on,${V2_COLUMNS.join(",")},` +
+  "is_per_variant,direct_link_count";
 const CATEGORY_HEADER =
   "category_path,category_slug,parent_slug,name_en,name_am,display_order,is_active," +
   "allow_listings,is_catchall,price_enabled,expiry_days,icon,visible_from,visible_until," +
@@ -72,7 +103,48 @@ const FAMILIES: Family[] = [
       const type = cells["type"] ?? "text";
       const options = cells["options"] ?? "";
       const dependsOn = cells["depends_on"] ?? "";
-      return `${key},${label},,${type},"${options}",${dependsOn},,0`;
+      return `${key},${label},,${type},"${options}",${dependsOn},${V2_EMPTY},,0`;
+    },
+    shapeProbe: () => {
+      const cells = (over: Partial<Record<string, string>> = {}): string =>
+        [
+          over["attribute_key"] ?? `e2e_attr_${rand()}`,
+          "Shape probe",
+          "",
+          over["type"] ?? "number",
+          over["options"] ?? "",
+          "",
+          "",
+          over["min"] ?? "",
+          "",
+          "",
+          "",
+          over["preset"] ?? "",
+          "",
+          "",
+          "",
+          "",
+          "0",
+        ].join(",");
+      return {
+        rows: [
+          // a bound that is neither a number nor a year token
+          cells({ min: "twenty" }),
+          // a text format that is not on the allowlist
+          cells({ type: "text", preset: "regex:.*" }),
+          // an option carrying a field the import does not know
+          cells({
+            type: "single_select",
+            options: csv('{"value": "alpha", "colour": "red"}'),
+          }),
+          // an option whose on/off flag is not a boolean
+          cells({
+            type: "single_select",
+            options: csv('{"value": "beta", "active": "yes"}'),
+          }),
+        ],
+        reasons: ["badBound", "badPreset", "optionKey", "optionShape"],
+      };
     },
   },
   {
@@ -272,6 +344,24 @@ for (const family of FAMILIES) {
       for (const refusal of disguisedRefusals) {
         expect(refusal.key).not.toMatch(/[\u200b\u202e]/);
         if (refusal.reason === "badSlug") expect(refusal.key).toBe("e2e-cat-ok!!");
+      }
+
+      /**
+       * DEC-050 L2b — SHAPE HOSTILITY. A cell of the wrong SHAPE for its
+       * declared column is refused by the gate itself: named reason, own row,
+       * nothing written, and the rest of the plan still stands.
+       */
+      const shape = family.shapeProbe?.();
+      if (shape !== undefined) {
+        const answer = await post(page, token, { [family.field]: file(shape.rows) });
+        expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+        const shapeRefusals =
+          (answer.payload["refusals"] as { reason: string; row: number }[]) ?? [];
+        expect(
+          shapeRefusals.map((entry) => entry.reason),
+          JSON.stringify(shapeRefusals),
+        ).toEqual(expect.arrayContaining(shape.reasons));
+        for (const refusal of shapeRefusals) expect(refusal.row).toBeGreaterThan(1);
       }
     });
 

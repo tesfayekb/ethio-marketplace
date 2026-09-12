@@ -1036,6 +1036,90 @@ export const am: Messages = {
     "ቁልፎች ማንነት ናቸው፦ “{detail}”ን መልሰው አዲስ ቁልፍ ከማከል ይልቅ label_enን ይቀይሩ",
   "admin.attributes.import.reason.unknown": "ይህ መስመር ተከልክሏል",
 
+  /* DEC-050 L2b — የv2 ቃላት፦ በሩ የሚናገረው እያንዳንዱ መታወቂያና ዝርዝር። */
+  "admin.attributes.import.reason.hasDependents":
+    "ሌሎች ባህሪያት በዚህ ላይ ጥገኛ ናቸው፤ ስለዚህ መሰረዝ አይቻልም፦ {detail}",
+  "admin.attributes.import.reason.badOption": "በዚህ መስመር ላይ ያለ አንድ አማራጭ ተቀባይነት አላገኘም",
+  "admin.attributes.import.reason.badCell": "የ“{cell}” ሕዋስ ተቀባይነት አላገኘም",
+  "admin.attributes.import.reason.boundsTargetNotNumber":
+    "የአማራጭ ገደቦች “{detail}”ን ያመለክታሉ፤ እሱ ግን የቁጥር ባህሪ አይደለም",
+  "admin.attributes.import.reason.boundsTargetNotColinked":
+    "የአማራጭ ገደቦች “{detail}”ን ያመለክታሉ፤ እሱ ግን ከተመሳሳይ ምድቦች ጋር አልተገናኘም",
+  "admin.attributes.import.reason.rankInherited":
+    "በ“{category}” የካርድ ቦታ {rank} ከ“{origin_category}” በተወረሰው “{origin_key}” ተይዟል",
+  "admin.attributes.import.reason.required": "የ“{detail}” ሕዋስ ያስፈልጋል",
+  "admin.attributes.import.reason.tooLong": "የ“{detail}” ሕዋስ በጣም ረጅም ነው",
+  "admin.attributes.import.reason.badSlug": "የ“{detail}” ሕዋስ ተገቢ ቁልፍ አይደለም፦ a-z፣ 0-9፣ - እና _ ይጠቀሙ",
+  "admin.attributes.import.reason.badBoolean": "የ“{detail}” ሕዋስ true ወይም false መሆን አለበት",
+  "admin.attributes.import.reason.badNumber": "የ“{detail}” ሕዋስ ሙሉ ቁጥር መሆን አለበት",
+  "admin.attributes.import.reason.badDate": "የ“{detail}” ሕዋስ ቀን (YYYY-MM-DD) መሆን አለበት",
+  "admin.attributes.import.reason.badValue": "የ“{detail}” ሕዋስ የማይፈቀድ ዋጋ ይዟል",
+  "admin.attributes.import.reason.tooManyOptions": "ይህ መስመር በጣም ብዙ አማራጮችን ይዘረዝራል",
+  "admin.attributes.import.reason.optionValueTooLong": "በዚህ መስመር ያለ የአማራጭ ዋጋ በጣም ረጅም ነው",
+  "admin.attributes.import.reason.optionLabelTooLong": "በዚህ መስመር ያለ የአማራጭ ስም በጣም ረጅም ነው",
+  "admin.attributes.import.reason.duplicateIdentity": "ይህ መስመር ፋይሉ ቀድሞ የተጠቀመውን ማንነት ይጠራል",
+  "admin.attributes.import.reason.badHeader":
+    "የፋይሉ አምዶች ከዚህ ማስገባት ጋር አይመሳሰሉም — አዲስ ፋይል አውርደው እሱን ያስተካክሉ",
+  "admin.attributes.import.reason.wrongFile": "ይህ ፋይል የሌላ ማስገባት ነው",
+  "admin.attributes.import.reason.unknownColumn": "ፋይሉ ይህ ማስገባት የማያውቀውን አምድ ይዟል",
+  "admin.attributes.import.reason.duplicateColumn": "ፋይሉ አንድ አምድ ሁለት ጊዜ ይጠራል",
+  "admin.attributes.import.reason.nulByte": "ፋይሉ ተራ ጽሑፍ አይደለም",
+  "admin.attributes.import.reason.emptyFile": "ፋይሉ ባዶ ነው",
+  "admin.attributes.import.reason.tooManyRows": "ፋይሉ በጣም ብዙ መስመሮች አሉት",
+  "admin.attributes.import.reason.badBound":
+    "የ“{detail}” ሕዋስ ቁጥር ወይም ዓመት (year፣ year+5፣ year-10) መሆን አለበት",
+  "admin.attributes.import.reason.badPreset":
+    "የ“{detail}” ሕዋስ ከተፈቀዱት ቅርጸቶች አንዱ አይደለም (vin፣ plate-et፣ digits:8፣ alnum:3-12፣ free:200)",
+  "admin.attributes.import.reason.optionKey": "አማራጭ “{cell}” ይህ ማስገባት የማያውቀውን መስክ ይዟል",
+  "admin.attributes.import.reason.optionShape": "አማራጭ “{cell}” በሚጠበቀው ቅርጽ አልተዘጋጀም",
+  "admin.attributes.import.reason.optionShape.activeNotBoolean":
+    "አማራጭ “{cell}”፦ የበራ/የጠፋ መስክ true ወይም false መሆን አለበት",
+  "admin.attributes.import.reason.optionShape.boundsNotObject":
+    "አማራጭ “{cell}”፦ ገደቦቹ በመስኮች ስብስብ መልክ መሰጠት አለባቸው",
+  "admin.attributes.import.reason.optionShape.aliasesNotArray":
+    "አማራጭ “{cell}”፦ ሌሎቹ አጻጻፎች በዝርዝር መልክ መሰጠት አለባቸው",
+  /* badCell ዝርዝሮች */
+  "admin.attributes.import.reason.badCell.onlyNumber":
+    "“{cell}” ለቁጥር ባህሪያት ብቻ ይሠራል (ይህ መስመር “{value}” ይላል)",
+  "admin.attributes.import.reason.badCell.onlyText":
+    "“{cell}” ለጽሑፍ ባህሪያት ብቻ ይሠራል (ይህ መስመር “{value}” ይላል)",
+  "admin.attributes.import.reason.badCell.badLength": "“{cell}” በጣም ረጅም ነው፦ “{value}”",
+  "admin.attributes.import.reason.badCell.badBound":
+    "“{cell}” ቁጥር ወይም ዓመት (year፣ year+5፣ year-10) መሆን አለበት — ይህ መስመር “{value}” ይላል",
+  "admin.attributes.import.reason.badCell.minAboveMax": "አነስተኛው ዋጋ ከከፍተኛው በላይ ነው፦ {value}",
+  "admin.attributes.import.reason.badCell.outOfRange": "“{cell}” ከተፈቀደው ክልል ውጭ ነው፦ “{value}”",
+  "admin.attributes.import.reason.badCell.yearForcesZero":
+    "ዓመት ሙሉ ቁጥር ነው፤ ስለዚህ decimals 0 መሆን አለበት — ይህ መስመር “{value}” ይላል",
+  "admin.attributes.import.reason.badCell.unknown": "“{cell}” “{value}”ን አይቀበልም",
+  "admin.attributes.import.reason.badCell.notAllowed": "“{cell}” ከተፈቀዱት ቅርጸቶች አንዱ አይደለም፦ “{value}”",
+  "admin.attributes.import.reason.badCell.notANumber": "“{cell}” ሙሉ ቁጥር መሆን አለበት፦ “{value}”",
+  "admin.attributes.import.reason.badCell.tooLong": "“{cell}” በጣም ረጅም ነው ({value} ቁምፊዎች)",
+  /* badOption ዝርዝሮች */
+  "admin.attributes.import.reason.badOption.unknownOptionKey":
+    "አማራጭ “{value}” ይህ ማስገባት የማያውቀውን መስክ ይዟል፦ “{arg}”",
+  "admin.attributes.import.reason.badOption.activeNotBoolean":
+    "አማራጭ “{value}”፦ የበራ/የጠፋ መስክ true ወይም false መሆን አለበት",
+  "admin.attributes.import.reason.badOption.aliasesNotArray":
+    "አማራጭ “{value}”፦ ሌሎቹ አጻጻፎች በዝርዝር መልክ መሰጠት አለባቸው",
+  "admin.attributes.import.reason.badOption.aliasesCount":
+    "አማራጭ “{value}”፦ ከአንድ እስከ አምስት ሌሎች አጻጻፎች ይፈቀዳሉ፤ {arg} አይደለም",
+  "admin.attributes.import.reason.badOption.aliasNotString":
+    "አማራጭ “{value}”፦ እያንዳንዱ ሌላ አጻጻፍ ጽሑፍ መሆን አለበት",
+  "admin.attributes.import.reason.badOption.aliasLength":
+    "አማራጭ “{value}”፦ አጻጻፉ “{arg}” በጣም ረጅም ነው (ቢበዛ 32 ቁምፊዎች)",
+  "admin.attributes.import.reason.badOption.aliasControlChar":
+    "አማራጭ “{value}”፦ አንድ አጻጻፍ የማይፈቀዱ ቁምፊዎችን ይዟል",
+  "admin.attributes.import.reason.badOption.aliasDuplicate":
+    "አማራጭ “{value}”፦ አጻጻፉ “{arg}” ሁለት ጊዜ ተዘርዝሯል",
+  "admin.attributes.import.reason.badOption.boundsNotObject":
+    "አማራጭ “{value}”፦ ገደቦቹ በመስኮች ስብስብ መልክ መሰጠት አለባቸው",
+  "admin.attributes.import.reason.badOption.boundsUnknownKey":
+    "አማራጭ “{value}”፦ የ“{arg}” ገደቦች ከmin ወይም max ውጭ መስክ ይዘዋል",
+  "admin.attributes.import.reason.badOption.boundsBadValue":
+    "አማራጭ “{value}”፦ ገደቡ “{arg}” ቁጥር ወይም ዓመት መሆን አለበት",
+  "admin.attributes.import.reason.badOption.boundsMinAboveMax":
+    "አማራጭ “{value}”፦ ለ“{arg}” አነስተኛው ገደብ ከከፍተኛው በላይ ነው",
+
   "admin.attributes.import.guidance":
     "“(read-only)” የተባሉ አምዶች በራስ-ሰር ይሰላሉ፤ በፋይሉ ውስጥ ቢቀይሯቸውም ተግባራዊ አይሆኑም።",
   "admin.attributes.import.ignored": "ችላ የተባሉ (read-only)",
@@ -1147,6 +1231,8 @@ export const am: Messages = {
   "admin.attributes.error.alreadyLinked": "ይህ ምድብ ያንን ባህሪ አስቀድሞ አገናኝቷል።",
   "admin.attributes.error.linkNotFound": "ያ አገናኝ ከእንግዲህ የለም።",
   "admin.attributes.error.cardLimit": "የዝርዝር ካርድ ቢበዛ ሦስት ባህሪያትን ያሳያል።",
+  /* DEC-050 L2a/L2b — በሩ በተወረሰ ካርድ የተያዘውን ቦታ አይቀበልም። */
+  "admin.attributes.error.rankInherited": "ይህ የካርድ ቦታ ከወላጅ ምድብ በተወረሰ ባህሪ ተይዟል። ሌላ ቦታ ይምረጡ።",
   "admin.attributes.error.orderMismatch": "የባህሪው ቅደም ተከተል ጊዜው አልፎበታል፤ እንደገና ከፍተው ይሞክሩ።",
   "admin.attributes.error.mergeNoTarget": "የሚቆየውን ባህሪ ይምረጡ።",
   "admin.attributes.error.mergeNoSources": "ቢያንስ አንድ ድግግሞሽ ይምረጡ።",
