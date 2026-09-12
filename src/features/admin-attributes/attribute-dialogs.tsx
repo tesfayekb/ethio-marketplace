@@ -319,7 +319,13 @@ export function AttributeEditorDialog({
           data-testid="attribute-type"
           className={SELECT_CLASS}
           value={attrType}
-          onChange={(event) => setAttrType(event.target.value)}
+          onChange={(event) => {
+            const next = event.target.value;
+            setAttrType(next);
+            // DEC-050 L3a — a group that no longer applies leaves no residue.
+            if (next !== "number") setNumberFields(EMPTY_NUMBER_FIELDS);
+            if (next !== "text") setTextFields(EMPTY_TEXT_FIELDS);
+          }}
         >
           {ATTRIBUTE_TYPES.map((option) => (
             <option key={option} value={option}>
