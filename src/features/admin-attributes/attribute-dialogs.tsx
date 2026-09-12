@@ -440,12 +440,36 @@ export function AttributeEditorDialog({
         </div>
       ) : null}
 
-      <FormField label={t("admin.attributes.field.help")} htmlFor="attribute-help">
+      {/* DEC-050 L3a — one group per type, mounted only for that type. */}
+      {isNumber ? (
+        <AttributeNumberFields value={numberFields} onChange={setNumberFields} />
+      ) : null}
+      {isText ? <AttributeTextFields value={textFields} onChange={setTextFields} /> : null}
+
+      <FormField
+        label={t("admin.attributes.field.help")}
+        htmlFor="attribute-help"
+        help={t("admin.attributes.field.helpCounter").replace("{count}", String(helpText.length))}
+      >
         <Input
           id="attribute-help"
           data-testid="attribute-help"
+          maxLength={HELP_TEXT_MAX}
           value={helpText}
           onChange={(event) => setHelpText(event.target.value)}
+        />
+      </FormField>
+      <FormField
+        label={t("admin.attributes.field.helpAm")}
+        htmlFor="attribute-help-am"
+        help={t("admin.attributes.field.helpCounter").replace("{count}", String(helpTextAm.length))}
+      >
+        <Input
+          id="attribute-help-am"
+          data-testid="attribute-help-am"
+          maxLength={HELP_TEXT_MAX}
+          value={helpTextAm}
+          onChange={(event) => setHelpTextAm(event.target.value)}
         />
       </FormField>
       <AttributeErrorLine message={message} />
