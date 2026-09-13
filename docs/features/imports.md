@@ -97,3 +97,16 @@ server returns.
   only decides what is allowed to reach it. `scripts/check-import-gate.sh`
   fails the build if a console calls that RPC (or a category/attribute import
   RPC) directly.
+
+## C3-UX-8 — an optional file slot
+
+A file field may be declared `optional: true` (`ImportFileField`). Its picker
+carries a caption saying so, and Preview no longer waits for it: the button
+enables once at least one file is held, and every REQUIRED slot is filled. The
+attributes import declares its links file optional, because
+`/api/admin/attributes/import` has always accepted a definitions-only run and
+refuses only when both files are absent — so the dialog now reaches the same
+verdicts the route does. Nothing else changes: the body still carries only the
+fields that hold text, and the route remains the authority (F3). Proofs: AT-40
+(the optional caption renders, one file opens Preview), AT-54 (a
+definitions-only run previews and discards, writing nothing).
