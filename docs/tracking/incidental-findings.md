@@ -2130,3 +2130,15 @@ INC-184, INC-189, INC-190 — CLOSED 2026-09-13 by DEC-059: TR-29 counts and com
 ## INC-191 — the reporter's self-test wrote the tracked evidence file
 
 During the DEC-059 landing the reporter's `--self-test` rendered into `docs/tracking/e2e-last-failure.md`; the platform's mid-turn auto-commit shipped a local run's output ("Run: local") before the executor's restore, so HEAD briefly carried a fake evidence file until the next CI run rewrote it. Fix: the self-test renders into a temp directory and never writes the tracked file. Class: a tool writing evidence it did not earn (G20). Rule for prompts: every landing's VERBATIM record blocks are copied to a scratch file before editing (they were lost from the executor's context twice in code-heavy turns).
+
+## INC-192 — the deletion guard had no door the executor could open
+
+`scripts/check-deletions.sh` (INC-076) accepted only a `[intentional-delete]` commit-message marker, and the platform writes every commit message — no commit in the repository ever carried the marker, so every executor-side deletion was unpassable (the root `roadmap.md` cleanup went red twice). Fix: a second door — a path line added by the same push to `docs/tracking/intentional-deletions.txt`; self-test covers both directions. Class: an unsatisfiable guard.
+
+## INC-193 — TR-24 asserted a global untranslated count (J6)
+
+TR-24 waited for the fence language's untranslated-entity count to drop after translating its own row; sibling shards add scratch entities to the same fence, so the count can stay put (run 34753266967, both attempts, shard 2 mobile-360). Fix: assert the test's own rows (bundle state and row status), the stats bar for visibility only. Class: J6 invariant leak (INC-184/190 family; TR-24 was on the INC-119 watch).
+
+## INC-194 — the post-test window swept a failing test's own error
+
+DEC-059's post-test extraction started at the last test-result line; Playwright prints a failing test's error block in the summary after that line, so TR-24's failure appeared under "Post-test errors: shard 2" as well as in its own section. Fix: the window starts at the final summary block; teardown lines after it are captured, result lines and failure blocks are not. Class: evidence fidelity (G20).
