@@ -1185,6 +1185,32 @@ export const en = {
     "Option “{value}”: the limit “{arg}” must be a number or a year",
   "admin.attributes.import.reason.badOption.boundsMinAboveMax":
     "Option “{value}”: the smallest limit for “{arg}” is above the largest",
+  /* DEC-057 L2 — the gate's own shape verdicts on `allowed`. */
+  "admin.attributes.import.reason.optionShape.allowedNotObject":
+    "Option “{cell}”: the allowed values must be given as a set of attributes",
+  "admin.attributes.import.reason.optionShape.allowedValuesNotArray":
+    "Option “{cell}”: the allowed values for “{arg}” must be given as a list of text values",
+  /* DEC-057 L2 — the door's shape verdicts on `allowed` (attr_option_shape). */
+  "admin.attributes.import.reason.badOption.allowedNotObject":
+    "Option “{value}”: the allowed values must be given as a set of attributes",
+  "admin.attributes.import.reason.badOption.allowedValuesNotArray":
+    "Option “{value}”: the allowed values for “{arg}” must be given as a list",
+  "admin.attributes.import.reason.badOption.allowedTooMany":
+    "Option “{value}”: too many allowed values — five attributes at most, fifty values each",
+  "admin.attributes.import.reason.badOption.allowedEmpty":
+    "Option “{value}”: the allowed values for “{arg}” are empty — remove the attribute instead",
+  "admin.attributes.import.reason.badOption.allowedDuplicate":
+    "Option “{value}”: the allowed values for “{arg}” list the same value twice",
+  /* DEC-057 L2 — the planner's verdicts on the target (attr_allowed_check). */
+  "admin.attributes.import.reason.allowedTargetNotSelect":
+    "Option “{value}” points at “{target}”, which is not a select attribute",
+  "admin.attributes.import.reason.allowedTargetNotColinked":
+    "Option “{value}” points at “{target}”, which is not used in every category this attribute is used in",
+  "admin.attributes.import.reason.allowedTargetCircular":
+    "Option “{value}” points at “{target}”, which is this attribute itself or depends on it",
+  "admin.attributes.import.reason.allowedUnknownValue":
+    "Option “{value}” lists a value that “{target}” does not offer",
+
 
   "admin.attributes.import.guidance":
     "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied.",
@@ -1391,6 +1417,16 @@ export const en = {
     "“{target}” is not a number attribute, so it cannot be limited.",
   "admin.attributes.error.boundsTargetNotColinked":
     "“{target}” is not used in every category this attribute is used in, so it cannot be limited here.",
+  /* DEC-057 L2 — the door's own refusals for option-conditioned allowed values. */
+  "admin.attributes.error.allowedTargetNotSelect":
+    "“{target}” is not a select attribute, so its values cannot be restricted.",
+  "admin.attributes.error.allowedTargetNotColinked":
+    "“{target}” is not used in every category this attribute is used in, so its values cannot be restricted here.",
+  "admin.attributes.error.allowedTargetCircular":
+    "“{target}” is this attribute itself or depends on it, so its values cannot be restricted here.",
+  "admin.attributes.error.allowedUnknownValue":
+    "One of the allowed values (“{target}”) is not offered by the attribute it points at.",
+
 
   "admin.attributes.error.deleteHasDependents":
     "These attributes depend on it, so it cannot be deleted: {detail}",
