@@ -1972,7 +1972,12 @@ export type Database = {
         Returns: undefined
       }
       attr_allowed_check: {
-        Args: { p_links: Json; p_options: Json; p_owner_key: string }
+        Args: {
+          p_defs?: Json
+          p_links: Json
+          p_options: Json
+          p_owner_key: string
+        }
         Returns: Json
       }
       attr_bound_ok: { Args: { p_bound: string }; Returns: boolean }
