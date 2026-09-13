@@ -237,10 +237,11 @@ function optionsOf(raw: string): OptionCell[] | null {
 }
 
 /**
- * DEC-050 L2b — THE OPTION RECORD'S SHAPE, at the gate. Keys are exactly the
- * seven the platform writes; `active` is a boolean, `bounds` an object and
- * `aliases` an array. Nothing SEMANTIC is judged here (co-linkage, parents and
- * every range belong to `attr_option_shape`/the planner).
+ * DEC-050 L2b / DEC-057 L2 — THE OPTION RECORD'S SHAPE, at the gate. Keys are
+ * exactly the eight the platform writes; `active` is a boolean, `bounds` and
+ * `allowed` objects and `aliases` an array. Nothing SEMANTIC is judged here
+ * (co-linkage, parents, every range and every `allowed` target belong to
+ * `attr_option_shape`/the planner).
  */
 const OPTION_KEYS = new Set([
   "value",
@@ -250,6 +251,7 @@ const OPTION_KEYS = new Set([
   "active",
   "bounds",
   "aliases",
+  "allowed",
 ]);
 
 interface OptionShapeFault {
@@ -345,6 +347,22 @@ export function optionShapeFault(raw: string): OptionShapeFault | null {
     if ("aliases" in record && !Array.isArray(record["aliases"])) {
       return { reason: "optionShape", detail: `${value}|aliasesNotArray` };
     }
+    /**
+     * DEC-057 L2 — `allowed` is a set of select-attribute keys, each carrying a
+     * list of that attribute's own values. SHAPE ONLY: which target is legal,
+     * how many, and whether a value exists is `attr_allowed_check`'s verdict.
+     */
+    if ("allowed" in record) {
+      const allowed = record["allowed"];
+      if (allowed === null || typeof allowed !== "object" || Array.isArray(allowed)) {
+        return { reason: "optionShape", detail: `${value}|allowedNotObject` };
+      }
+      for (const [target, list] of Object.entries(allowed as Record<string, unknown>)) {
+        if (!Array.isArray(list) || list.some((entry) => typeof entry !== "string")) {
+          return { reason: "optionShape", detail: `${value}|allowedValuesNotArray:${target}` };
+        }
+      }
+    }
   }
   return null;
 }
@@ -366,13 +384,16 @@ export function normalizeOptionsCell(raw: string): string {
     const out: Record<string, unknown> = {};
     let cut = false;
     for (const [name, value] of Object.entries(record)) {
+      const emptyObject =
+        value !== null &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        Object.keys(value as object).length === 0;
       const isDefault =
         (name === "active" && value === true) ||
-        (name === "bounds" &&
-          value !== null &&
-          typeof value === "object" &&
-          !Array.isArray(value) &&
-          Object.keys(value as object).length === 0) ||
+        (name === "bounds" && emptyObject) ||
+        // DEC-057 L2 — a spelled-out empty `allowed` is silence, as `bounds` is.
+        (name === "allowed" && emptyObject) ||
         (name === "aliases" && Array.isArray(value) && value.length === 0);
       if (isDefault) {
         cut = true;
