@@ -40,7 +40,9 @@ import { join } from "node:path";
 const SELF_TEST = process.env["SELF_TEST"] === "1" || process.argv.includes("--self-test");
 const OUT =
   process.env["E2E_OUT_PATH"] ??
-  (SELF_TEST ? join(tmpdir(), "ethio-e2e-failure-report-self-test.md") : "docs/tracking/e2e-last-failure.md");
+  (SELF_TEST
+    ? join(tmpdir(), "ethio-e2e-failure-report-self-test.md")
+    : "docs/tracking/e2e-last-failure.md");
 const SINGLE_SOURCE_LABEL = process.env["E2E_SOURCE_LABEL"] ?? "all";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";

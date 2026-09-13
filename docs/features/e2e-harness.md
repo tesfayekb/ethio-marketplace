@@ -216,5 +216,4 @@ nightly must be green with the knob gone. Any behaviour change in a
 `@private-identity` test reverts this DEC in full — restore the four workflow
 lines, the `e2e:local` env entry and the three helpers as one revert.
 
-
 DEC-059: the teardown retries each pooled-user delete three times with backoff and, when only those users survive, warns and exits normally — the residue reaper owns them (J3); a survivor it did not fail to delete is still an error, and the out-of-namespace guard is untouched. The failure reporter extracts post-test lines (`[e2e:teardown]`, trailing `Error:` blocks) from every source's log tail: a red form gets a "Post-test errors" section, a green form a "Post-test warnings: n" line. A green shard is never failed by cleanup, and cleanup never goes unseen. The reporter's `--self-test` renders into a temp directory and never touches the tracked evidence file (INC-191).

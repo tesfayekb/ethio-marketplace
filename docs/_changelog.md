@@ -430,4 +430,3 @@
 - 2026-09-13 — DEC-057 L3 records (docs only): attributes.md gains the picker paragraph; curation handoff §9 (authoring `allowed`, canonical unit spellings, the follow-up files); INC-190 registered (TR-34 whole-map snapshot, J6; DEC-030 trigger met); ledger records DEC-057 landed in full (L3 code at 0c3c5063), DEC-055/056/058 ratified with build points, the L3 drift; system-state NEXT rewritten. No src, no e2e, no migrations.
 
 - 2026-09-13 — DEC-059 completion: records landed (e2e-harness.md, INC-184/189/190 closed, INC-191 registered and fixed — the reporter's self-test now renders to a temp dir and never touches the tracked evidence file); the stray root roadmap.md removed (scratch checklist auto-committed mid-turn). Judge: push green, nightly pending. No e2e, no migrations.
-

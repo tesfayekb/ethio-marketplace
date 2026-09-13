@@ -2125,7 +2125,6 @@ namespace, or to the test's own subject, so other tests' rows fall out of the
 
 invariant. Class: J6 invariant leak.
 
-
 INC-184, INC-189, INC-190 — CLOSED 2026-09-13 by DEC-059: TR-29 counts and compares stable rows plus its own key; TR-34's bundle snapshot excludes the reserved `e2e-`/`e2e_` prefix; the teardown retries and warns instead of failing a green shard; the reporter captures post-test lines into the evidence file (fixture: the real shard-6 log tail of run 34741970648, attempt 1).
 
 ## INC-191 — the reporter's self-test wrote the tracked evidence file
