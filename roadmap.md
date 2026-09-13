@@ -8,3 +8,12 @@
 - [x] Round-trip invariants: `get_entity_bundle` and the attributes export byte-identical before/after.
 - [x] Docs: `docs/features/translations.md` + one `docs/_changelog.md` line.
 - [x] Required run: `e2e/admin-translations-data.spec.ts` on both projects; report only on green.
+
+## DEC-059 — harness cleanup resilience and reporter capture
+
+- [x] Census teardown, setup residue reaper, reporter log extraction, TR-29/TR-34, self-test layout.
+- [ ] Obtain verbatim shard-6 log tail from run 34741970648 — **blocked:** rerun turned green; exact red capture is unavailable locally.
+- [ ] Teardown retries/backoff and warning-only pooled-user leftovers.
+- [ ] Reporter post-test extraction, green warning line, self-test and captured fixture.
+- [ ] Scope TR-29/TR-34 invariants outside `e2e-` only.
+- [ ] Four documentation updates and required local proofs.
