@@ -265,6 +265,20 @@ export function pruneScratch(value: unknown): unknown {
         })
         .toBe("machine|true|true");
 
+      // INC-193 — OWN ROW, NOT A GLOBAL COUNT. The proof that the translation
+      // landed is this test's own row: DB truth above (J4, service client) and
+      // the row's own status chip here, which no longer reads `untranslated`.
+      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+      await page.getByTestId("data-search").fill(one.name);
+      const oneRowAfter = entityRow(page, `location-${one.id}-name`);
+      await expect(oneRowAfter).toBeVisible({ timeout: 20000 });
+      await expect(
+        oneRowAfter.getByTestId(`entity-status-location-${one.id}-name`),
+      ).not.toHaveText(/untranslated/i);
+      await page.getByTestId("data-search").fill("");
+
+
+
       // BULK — the sweep covers the second scratch location too.
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       const startButton = page.getByTestId("ai-bulk-start");
