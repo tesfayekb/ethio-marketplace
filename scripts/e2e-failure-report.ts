@@ -541,7 +541,6 @@ export function grepPostTestErrors(text: string | null, limit = POST_TEST_CAP): 
   return out.slice(0, limit);
 }
 
-
 /**
  * INC-088 — WHAT A ZERO-TEST SOURCE'S LOG MUST SHOW.
  *
