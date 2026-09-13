@@ -3856,10 +3856,9 @@ test.describe("C3 attributes console", () => {
       expect(batchId).toBeTruthy();
 
       // DB TRUTH (J4) — the owner's option carries `allowed` exactly.
-      const stored = await expect
+      await expect
         .poll(async () => (await readAttribute(ownerKey))?.options, { timeout: 20000 })
         .toEqual([{ value: "a", allowed: { [targetKey]: ["x", "y"] } }, { value: "b" }]);
-      expect(stored).toBeUndefined();
 
       // THE EXPORT ECHOES IT, and re-importing what it wrote changes nothing.
       const exported = await page.request.get("/api/admin/attributes/export?file=definitions", {
