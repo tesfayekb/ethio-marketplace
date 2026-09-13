@@ -37,7 +37,7 @@ import { join } from "node:path";
  * the single-source label (E2E_SOURCE_LABEL, e.g. `nightly`) are read from the
  * environment. Defaults are the per-push contract, unchanged.
  */
-const SELF_TEST = process.env["SELF_TEST"] === "1";
+const SELF_TEST = process.env["SELF_TEST"] === "1" || process.argv.includes("--self-test");
 const OUT =
   process.env["E2E_OUT_PATH"] ??
   (SELF_TEST ? join(tmpdir(), "ethio-e2e-failure-report-self-test.md") : "docs/tracking/e2e-last-failure.md");
