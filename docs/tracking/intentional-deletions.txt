@@ -1,0 +1,11 @@
+# INTENTIONAL DELETIONS MANIFEST (INC-192)
+#
+# One repo-relative path per line; `#` starts a comment.
+# A deletion in a pushed range is declared EITHER by the `[intentional-delete]`
+# marker in a commit message of that range, OR by a line naming the deleted path
+# that the SAME range ADDS to this file. A line that already existed before the
+# range declares nothing — the declaration must travel with the deletion.
+#
+# scripts/check-deletions.sh (INC-076) is the guard; SELF_TEST=1 proves both doors.
+
+roadmap.md
