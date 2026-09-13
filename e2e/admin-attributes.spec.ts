@@ -3789,7 +3789,7 @@ test.describe("C3 attributes console", () => {
             label_en: "Alpha",
             label_am: "",
             parent: "",
-            bounds: { [sharedNumberKey]: { min: 2010 } },
+            bounds: { [sharedNumberKey]: { min: "2010" } },
           },
         ]);
 
@@ -3814,7 +3814,7 @@ test.describe("C3 attributes console", () => {
           label_en: "Alpha",
           label_am: "",
           parent: "",
-          bounds: { [sharedNumberKey]: { min: 2010 } },
+          bounds: { [sharedNumberKey]: { min: "2010" } },
         },
       ]);
     } finally {
