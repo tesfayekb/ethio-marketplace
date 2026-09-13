@@ -21,6 +21,35 @@ import {
   signInAsSuperAdmin,
 } from "./helpers/translations";
 import { translationMapperSelfTest } from "../src/features/admin/translations/translations-service";
+
+/**
+ * DEC-059 (INC-190) — J6 SCOPE FOR A WHOLE-CATALOG SNAPSHOT.
+ *
+ * Every transient E2E fixture is named with the reserved `e2e-` / `e2e_` prefix
+ * (J1), so a snapshot of a global map can exclude other tests' rows by that
+ * prefix alone: object keys and array elements whose serialization mentions the
+ * prefix are pruned from both captures. Stable catalog rows can never match it.
+ */
+const SCRATCH_MARKER = /e2e[_-]/i;
+
+export function pruneScratch(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value
+      .filter((entry) => !SCRATCH_MARKER.test(JSON.stringify(entry) ?? ""))
+      .map((entry) => pruneScratch(entry));
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+      if (SCRATCH_MARKER.test(key)) continue;
+      if (SCRATCH_MARKER.test(JSON.stringify(entry) ?? "")) continue;
+      out[key] = pruneScratch(entry);
+    }
+    return out;
+  }
+  return value;
+}
+
 /**
  * Phase U4d — the Data scope (TR-14, TR-24, TR-26).
  *
@@ -514,8 +543,15 @@ import { translationMapperSelfTest } from "../src/features/admin/translations/tr
           return data.session?.access_token ?? "";
         });
 
-      const readBundle = async () =>
-        page.evaluate(async () => {
+      // DEC-059 (INC-190) — the bundle snapshot is J6-scoped, exactly as the
+      // export snapshot below already is. `get_entity_bundle` returns the WHOLE
+      // catalog, so a sibling spec (or the other viewport project) minting and
+      // destroying its own scratch entity between the two captures read as a
+      // phantom diff and reddened a green test. The invariant this test owns is
+      // "this landing changed no STABLE entity string", so every transient
+      // scratch row is pruned from both captures by the same rule.
+      const readBundle = async () => {
+        const raw = await page.evaluate(async () => {
           const client = (
             window as unknown as {
               __ethioSupabase: {
@@ -526,6 +562,8 @@ import { translationMapperSelfTest } from "../src/features/admin/translations/tr
           const bundle = await client.rpc("get_entity_bundle", { p_lang: "am" });
           return JSON.stringify(bundle.data);
         });
+        return JSON.stringify(pruneScratch(JSON.parse(raw) as unknown));
+      };
 
       const readExports = async (token: string) => {
         const out: string[] = [];

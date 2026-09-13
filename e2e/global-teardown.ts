@@ -32,6 +32,15 @@ function ownedBy(email: string | undefined, id: string): email is string {
  * INC-080: parallel shards share GITHUB_RUN_ID, so a namespace-wide sweep here
  * deleted sibling shards' fixtures mid-run. Teardown now deletes ONLY the users
  * minted by THIS process; stale orphans are reaped by the nightly sweep below.
+ *
+ * DEC-059 (INC-189): teardown NEVER reds a green shard. Run 34741970648 shard 6
+ * passed 75 tests, skipped 10, failed 0 — and exited 1 because one
+ * `admin.deleteUser` answered `fetch failed`. A transient network fault in
+ * cleanup is not a verdict on the suite, so every reap fault is reported as a
+ * `[e2e:teardown]` WARNING line (the reporter's post-test band quotes them) and
+ * the leftover rows are reaped by the nightly sweep. The ONE hard refusal that
+ * remains is the safety rule: an out-of-namespace user is never deleted, and
+ * that attempt still throws.
  */
 export default async function globalTeardown() {
   const persisted = existsSync(STATE_FILE)
@@ -40,28 +49,46 @@ export default async function globalTeardown() {
   const currentProcessId = persisted || processId();
   const supabase = adminClient();
 
-  const users = await listAll(supabase);
+  let users: ListedUser[] = [];
+  try {
+    users = await listAll(supabase);
+  } catch (error) {
+    console.warn(
+      `[e2e:teardown] WARNING could not list users for process ${currentProcessId}: ${
+        error instanceof Error ? error.message : String(error)
+      } — the nightly sweep will reap them.`,
+    );
+    rmSync(STATE_FILE, { force: true });
+    return;
+  }
   const targets = users.filter((u) => ownedBy(u.email, currentProcessId));
 
   let deleted = 0;
+  const faults: string[] = [];
   for (const user of targets) {
     // Hard rule: never delete anything outside the reserved namespace.
     if (!inNamespace(user.email)) {
       throw new Error(`[e2e:teardown] refusing to delete out-of-namespace user ${user.id}`);
     }
-    const { error } = await supabase.auth.admin.deleteUser(user.id);
-    if (error) throw new Error(`[e2e:teardown] failed to delete ${user.id}: ${error.message}`);
-    deleted += 1;
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      if (error) throw new Error(error.message);
+      deleted += 1;
+    } catch (error) {
+      faults.push(`${user.id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
-  const remaining = (await listAll(supabase)).filter((u) => ownedBy(u.email, currentProcessId));
-  if (remaining.length > 0) {
-    throw new Error(
-      `[e2e:teardown] ${remaining.length} user(s) from process ${currentProcessId} survived teardown.`,
+  for (const fault of faults) {
+    console.warn(
+      `[e2e:teardown] WARNING failed to delete ${fault} — deferred to the nightly sweep`,
     );
   }
 
-  console.log(`[e2e:teardown] deleted ${deleted} user(s) owned by process ${currentProcessId}`);
+  console.log(
+    `[e2e:teardown] deleted ${deleted} user(s) owned by process ${currentProcessId}` +
+      (faults.length > 0 ? `, ${faults.length} deferred to the nightly sweep` : ""),
+  );
   rmSync(STATE_FILE, { force: true });
 }
 
