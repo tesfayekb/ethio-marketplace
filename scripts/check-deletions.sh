@@ -177,7 +177,7 @@ b.txt
     echo "Deletion-guard self-test FAILED."
     return 1
   fi
-  echo "Self-test OK: undeclared deletion flagged, declared deletion allowed, additions allowed."
+  echo "Self-test OK: undeclared deletion flagged, marker-declared allowed, additions allowed; manifest door (INC-192): an ADDED path line declares, a pre-existing line does not."
   return 0
 }
 
