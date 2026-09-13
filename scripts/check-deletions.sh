@@ -4,12 +4,38 @@
 # INC-076: a push from a stale checkout silently DELETED a whole phase's
 # committed work. Nothing in CI noticed, because every remaining check was
 # green on the (smaller) tree. This guard makes a deletion a deliberate,
-# labelled act: any commit range that removes files must say so with the
-# marker "[intentional-delete]" in one of its commit messages.
+# labelled act.
+#
+# INC-192 — TWO DOORS. The marker lives in a COMMIT MESSAGE, and the executor
+# cannot author commit messages (the platform writes them), so the marker door
+# was unpassable from inside the repository and every executor-side deletion
+# went red. A deletion is therefore declared by EITHER:
+#   1. the "[intentional-delete]" marker in a commit message of the range, or
+#   2. a line naming the deleted path that the SAME range ADDS to
+#      docs/tracking/intentional-deletions.txt (one repo-relative path per
+#      line; "#" comments allowed). A pre-existing line declares NOTHING —
+#      the declaration must travel with the deletion.
 #
 # Note on docs/tracking/*.md: the reporters REGENERATE those files (modify,
 # never delete), so they need no exemption here — a deletion of one is a real
 # finding, not noise.
+#
+# Usage:  bash scripts/check-deletions.sh [<before-sha>] [<head-sha>]
+#         SELF_TEST=1 bash scripts/check-deletions.sh   # synthetic repo proof
+set -uo pipefail
+
+MARKER="[intentional-delete]"
+MANIFEST="docs/tracking/intentional-deletions.txt"
+
+# Paths the range ADDS to the manifest (added lines only, comments stripped).
+manifest_added_paths() {
+  local before="$1" head="$2"
+  git diff --unified=0 -- "$MANIFEST" "$before" "$head" 2>/dev/null |
+    grep '^+' | grep -v '^+++' | sed 's/^+//' |
+    sed 's/#.*//' | sed 's/[[:space:]]*$//' | sed 's/^[[:space:]]*//' |
+    grep -v '^$' || true
+}
+
 #
 # Usage:  bash scripts/check-deletions.sh [<before-sha>] [<head-sha>]
 #         SELF_TEST=1 bash scripts/check-deletions.sh   # synthetic repo proof
