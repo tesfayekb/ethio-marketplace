@@ -1211,7 +1211,6 @@ export const en = {
   "admin.attributes.import.reason.allowedUnknownValue":
     "Option “{value}” lists a value that “{target}” does not offer",
 
-
   "admin.attributes.import.guidance":
     "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied.",
   "admin.attributes.import.ignored": "Ignored (read-only)",
@@ -1426,7 +1425,6 @@ export const en = {
     "“{target}” is this attribute itself or depends on it, so its values cannot be restricted here.",
   "admin.attributes.error.allowedUnknownValue":
     "One of the allowed values (“{target}”) is not offered by the attribute it points at.",
-
 
   "admin.attributes.error.deleteHasDependents":
     "These attributes depend on it, so it cannot be deleted: {detail}",

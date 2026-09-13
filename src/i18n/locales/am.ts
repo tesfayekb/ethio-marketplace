@@ -1145,7 +1145,6 @@ export const am: Messages = {
   "admin.attributes.import.reason.allowedUnknownValue":
     "አማራጭ “{value}” “{target}” የማያቀርበውን እሴት ይዘረዝራል",
 
-
   "admin.attributes.import.guidance":
     "“(read-only)” የተባሉ አምዶች በራስ-ሰር ይሰላሉ፤ በፋይሉ ውስጥ ቢቀይሯቸውም ተግባራዊ አይሆኑም።",
   "admin.attributes.import.ignored": "ችላ የተባሉ (read-only)",
@@ -1334,15 +1333,13 @@ export const am: Messages = {
   "admin.attributes.error.boundsTargetNotColinked":
     "“{target}” ይህ ባህርይ በሚሠራበት በየምድቡ ስለማይሠራ፣ በዚህ ቦታ ገደብ ማድረግ አይቻልም።",
   /* DEC-057 L2 — በአማራጭ የተመሠረቱ የተፈቀዱ እሴቶች የበሩ ፍርዶች */
-  "admin.attributes.error.allowedTargetNotSelect":
-    "“{target}” የምረጥ ባህርይ ስላልሆነ እሴቶቹን መገደብ አይቻልም።",
+  "admin.attributes.error.allowedTargetNotSelect": "“{target}” የምረጥ ባህርይ ስላልሆነ እሴቶቹን መገደብ አይቻልም።",
   "admin.attributes.error.allowedTargetNotColinked":
     "“{target}” ይህ ባህርይ በሚሠራበት በየምድቡ ስለማይሠራ፣ በዚህ ቦታ እሴቶቹን መገደብ አይቻልም።",
   "admin.attributes.error.allowedTargetCircular":
     "“{target}” ይህ ባህርይ ራሱ ነው ወይም በእሱ ስለሚመሠረት፣ እሴቶቹን መገደብ አይቻልም።",
   "admin.attributes.error.allowedUnknownValue":
     "ከተፈቀዱት እሴቶች አንዱ (“{target}”) በሚያመለክተው ባህርይ አይቀርብም።",
-
 
   "admin.attributes.error.deleteHasDependents": "እነዚህ ባህርያት በእሱ ስለሚመሠረቱ ሊሰረዝ አይችልም፦ {detail}",
   "admin.attributes.error.unlinkHasDependents": "በዚህ ምድብ ውስጥ እነዚህ ባህርያት በእሱ ይመሠረታሉ፦ {detail}",

@@ -463,7 +463,8 @@ for (const family of FAMILIES) {
           const answer = await post(page, token, { [family.field]: file(rows), links });
           expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
           const refusals =
-            (answer.payload["refusals"] as { reason: string; detail?: string; row: number }[]) ?? [];
+            (answer.payload["refusals"] as { reason: string; detail?: string; row: number }[]) ??
+            [];
           const dump = JSON.stringify(refusals);
           const named = (reason: string, detail: string) =>
             refusals.some(
@@ -474,7 +475,9 @@ for (const family of FAMILIES) {
           expect(named("optionShape", "allowedValuesNotArray"), `IG-2 (b) ${dump}`).toBe(true);
           expect(named("badOption", "allowedTooMany"), `IG-2 (c) ${dump}`).toBe(true);
           expect(named("badOption", `allowedEmpty:${targetKey}`), `IG-2 (d) ${dump}`).toBe(true);
-          expect(named("badOption", `allowedDuplicate:${targetKey}`), `IG-2 (e) ${dump}`).toBe(true);
+          expect(named("badOption", `allowedDuplicate:${targetKey}`), `IG-2 (e) ${dump}`).toBe(
+            true,
+          );
           expect(named("allowedTargetNotSelect", numberKey), `IG-2 (f) ${dump}`).toBe(true);
           expect(named("allowedTargetCircular", selfKey), `IG-2 (g) ${dump}`).toBe(true);
           expect(named("allowedTargetCircular", depKey), `IG-2 (h) ${dump}`).toBe(true);

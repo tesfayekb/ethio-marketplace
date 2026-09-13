@@ -2084,3 +2084,25 @@ in the console erased every option's `label_en` and `label_am` and, since
 DEC-050 L1, its `active`, `bounds` and `aliases`. Fix: options are edited as
 rows carrying every field, and the writer emits the door's strict normalised
 record, so a save without edits sends the stored records back unchanged.
+
+## INC-189 — a teardown failure fails a green shard and leaves no body in the evidence
+
+Run 34741970648, shard 6: 75 tests passed, then `global-teardown.ts` threw on a
+
+transient `fetch failed` deleting one pooled user, the job exited 1, the merged
+
+verdict went red and promote was skipped. The evidence file reported
+
+"Gating failures: 0" with no body for the teardown error — an error channel
+
+without a capture path (G20). Hour-old residue is reaped by the next setup
+
+(J3), so a failed delete after green tests is never worth a red board. Fix
+
+(DEC-059, harness ritual): the teardown retries each delete with backoff and
+
+reports leftovers as warnings, never as an error after green tests; the
+
+reporter captures post-test errors into the evidence file. Class: harness
+
+flake with a blind reporter (INC-100/INC-186 family).

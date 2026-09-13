@@ -712,3 +712,7 @@ Proofs: AT-49 (a no-edit save preserves every stored field; the Amharic
 coverage meter is unchanged), AT-50 (a label, an alias and a deactivation land
 as records and read back, a new option is added), AT-51 (the co-linkage refusal
 names the target and leaves no trace).
+
+## DEC-057 — option-conditioned allowed values
+
+An option record may carry `allowed: { "<select attribute_key>": ["value", …] }` (≤5 targets, ≤50 values each): the option constrains which values of a sibling select attribute a poster may choose (a phone model's storage tiers). The target must be a single- or multi-select definition linked wherever the owner is linked, never the owner, its `depends_on` parent or a definition that depends on it; every value must exist in the target's list. The rule is `attr_allowed_check`, applied by the door against live definitions and by the planner against the plan (so a file may create the owner and the target together). At posting, selected options' `allowed` sets fold by intersection per target and an empty intersection is refused by name (DEC-051). Written only when non-empty, in jsonb order; the gate checks shape only. Proofs: IG-2 rows per rule, AT-52.
