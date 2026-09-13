@@ -1,8 +1,12 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 34740972862 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34740972862
-- Commit: `94190ed19146d8249dc5ef78e4b6153ee20e4727`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34741970648
+- Commit: `19c07b5ac97a337692ca281185666d25294ca951`
 - Attempt: 1
-- Written (UTC): 2026-09-13T05:51:59.491Z
+- Written (UTC): 2026-09-13T06:15:32.944Z
+- Passed: 575 · Skipped: 68 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Sources without results: none
+
+No failed tests were recorded in the JSON reporter output.
