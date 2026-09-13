@@ -3923,4 +3923,140 @@ test.describe("C3 attributes console", () => {
       await destroyCategory(slug);
     }
   });
+
+  /**
+   * AT-53 (DEC-057 L3) — THE PICKER LANDS THE MAP, THE DOOR NAMES THE REFUSAL.
+   * An option's allowed values are ticked per target: the save stores the exact
+   * map, reopening pre-fills the ticks, unticking narrows it, and a target that
+   * is not co-linked is refused BY NAME with the stored options untouched (F5).
+   */
+  test("AT-53 the allowed-values picker stores the map, reads it back, and renders the co-linkage refusal", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const supabase = adminClient();
+    const ownerKey = `e2e_attr_${rand()}`;
+    const targetKey = `e2e_attr_${rand()}`;
+    const loneKey = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-${rand()}`;
+    let categoryId = "";
+    try {
+      const { data: seeded, error } = await supabase
+        .from("attributes")
+        .insert([
+          {
+            attr_key: ownerKey,
+            name_en: ownerKey,
+            attr_type: "single_select",
+            options: [{ value: "a", label_en: "A", label_am: "", parent: "" }],
+          },
+          {
+            attr_key: targetKey,
+            name_en: targetKey,
+            attr_type: "single_select",
+            options: [
+              { value: "x", label_en: "X", label_am: "ኤክስ", parent: "" },
+              { value: "y", label_en: "Y", label_am: "", parent: "" },
+              { value: "z", label_en: "Z", label_am: "", parent: "" },
+            ],
+          },
+          {
+            attr_key: loneKey,
+            name_en: loneKey,
+            attr_type: "single_select",
+            options: [{ value: "p", label_en: "P", label_am: "", parent: "" }],
+          },
+        ])
+        .select("id, attr_key");
+      if (error || !seeded) throw new Error(`AT-53 seed failed: ${error?.message}`);
+
+      const { data: category, error: catError } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+        .select("id")
+        .single();
+      if (catError || !category) throw new Error(`AT-53 category failed: ${catError?.message}`);
+      categoryId = category.id;
+      /* The owner and its target share a category; the lone select does not. */
+      const colinked = seeded.filter((row) => row.attr_key !== loneKey);
+      const { error: linkError } = await supabase.from("category_attribute_links").insert(
+        colinked.map((row, index) => ({
+          category_id: categoryId,
+          attribute_id: row.id,
+          display_order: index,
+        })),
+      );
+      if (linkError) throw new Error(`AT-53 link failed: ${linkError.message}`);
+
+      // THE PICKER TICKS TWO VALUES and the save stores the exact map.
+      await openDefinitionEditor(page, ownerKey, "AT-53");
+      const owner = optionRow(page, "", "a");
+      await owner.getByTestId("option-allowed-add").selectOption(targetKey);
+      await owner.getByTestId(`option-allowed-value-${targetKey}-x`).click();
+      await owner.getByTestId(`option-allowed-value-${targetKey}-y`).click();
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(
+        page.getByTestId("attribute-edit-dialog"),
+        await dialogDump(page, "AT-53 the save never landed"),
+      ).toHaveCount(0, { timeout: 30000 });
+      await expect
+        .poll(async () => (await readAttribute(ownerKey))?.options, { timeout: 20000 })
+        .toEqual([
+          {
+            value: "a",
+            label_en: "A",
+            label_am: "",
+            parent: "",
+            allowed: { [targetKey]: ["x", "y"] },
+          },
+        ]);
+
+      // REOPENING PRE-FILLS THE TICKS; unticking one narrows the stored list.
+      await openDefinitionEditor(page, ownerKey, "AT-53 reopen");
+      const reopened = optionRow(page, "", "a");
+      await expect(
+        reopened.getByTestId(`option-allowed-value-${targetKey}-x`),
+        await dialogDump(page, "AT-53 the tick never read back"),
+      ).toBeChecked();
+      await expect(reopened.getByTestId(`option-allowed-value-${targetKey}-y`)).toBeChecked();
+      await expect(reopened.getByTestId(`option-allowed-value-${targetKey}-z`)).not.toBeChecked();
+      await reopened.getByTestId(`option-allowed-value-${targetKey}-y`).click();
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("attribute-edit-dialog")).toHaveCount(0, { timeout: 30000 });
+      await expect
+        .poll(async () => (await readAttribute(ownerKey))?.options, { timeout: 20000 })
+        .toEqual([
+          { value: "a", label_en: "A", label_am: "", parent: "", allowed: { [targetKey]: ["x"] } },
+        ]);
+
+      // A TARGET LINKED NOWHERE is the door's refusal, named in the dialog.
+      await openDefinitionEditor(page, ownerKey, "AT-53 refusal");
+      const refusing = optionRow(page, "", "a");
+      await refusing.getByTestId("option-allowed-add").selectOption(loneKey);
+      await refusing.getByTestId(`option-allowed-value-${loneKey}-p`).click();
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+      const refusal = page.getByTestId("attribute-dialog-error");
+      await expect(refusal, await dialogDump(page, "AT-53 no refusal rendered")).toBeVisible({
+        timeout: 30000,
+      });
+      await expect(refusal, "AT-53 the refusal never names the target").toContainText(loneKey);
+      /* A refused attempt leaves no trace (F5). */
+      expect((await readAttribute(ownerKey))?.options).toEqual([
+        { value: "a", label_en: "A", label_am: "", parent: "", allowed: { [targetKey]: ["x"] } },
+      ]);
+    } finally {
+      if (categoryId !== "") {
+        await supabase.from("category_attribute_links").delete().eq("category_id", categoryId);
+        await destroyCategory(slug);
+      }
+      await destroyAttribute(ownerKey);
+      await destroyAttribute(targetKey);
+      await destroyAttribute(loneKey);
+    }
+  });
 });

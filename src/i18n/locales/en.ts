@@ -1270,6 +1270,12 @@ export const en = {
   "admin.attributes.options.boundsMin": "Minimum",
   "admin.attributes.options.boundsMax": "Maximum",
   "admin.attributes.options.boundsRemove": "Remove bound",
+  /* DEC-057 L3 — the allowed-values picker. */
+  "admin.attributes.options.allowedHelp":
+    "Limit which values of another select attribute this option allows; that attribute must be used in every category this attribute is used in.",
+  "admin.attributes.options.allowedAdd": "Add an allowed-values attribute",
+  "admin.attributes.options.allowedRemove": "Remove allowed values",
+  "admin.attributes.options.allowedNoValues": "This attribute has no values yet.",
 
   "admin.attributes.field.help": "Help text",
   /* DEC-050 L3a — the v2 definition fields; the door's CHECKs stay authoritative. */

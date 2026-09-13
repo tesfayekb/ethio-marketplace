@@ -7,6 +7,8 @@ import { useI18n } from "@/i18n";
 
 import type { AttributeOption } from "../attributes-service";
 
+import { AttributeAllowedValues, type AllowedTarget } from "./attribute-allowed-values";
+
 /**
  * DEC-050 L3b — THE OPTION ROW EDITOR (fixes INC-188).
  *
@@ -38,6 +40,7 @@ function OptionRow({
   index,
   locked,
   targets,
+  allowedTargets,
   onChange,
   onRemove,
 }: {
@@ -46,6 +49,8 @@ function OptionRow({
   /** A STORED value is the option's identity; it is never retyped or removed. */
   locked: boolean;
   targets: BoundsTarget[];
+  /** DEC-057 — the select definitions this option's `allowed` may target. */
+  allowedTargets: AllowedTarget[];
   onChange: (next: AttributeOption) => void;
   onRemove: () => void;
 }) {
@@ -229,6 +234,13 @@ function OptionRow({
           </select>
         )}
       </div>
+
+      {/* DEC-057 L3 — the allowed-values block, beside the bounds block. */}
+      <AttributeAllowedValues
+        option={option}
+        targets={allowedTargets}
+        onChange={(part) => patch(part)}
+      />
     </li>
   );
 }
@@ -242,6 +254,7 @@ export function AttributeOptionRows({
   rows,
   storedValues,
   targets,
+  allowedTargets,
   parentValues,
   dependent,
   onChange,
@@ -249,6 +262,7 @@ export function AttributeOptionRows({
   rows: AttributeOption[];
   storedValues: string[];
   targets: BoundsTarget[];
+  allowedTargets: AllowedTarget[];
   parentValues: string[];
   dependent: boolean;
   onChange: (next: AttributeOption[]) => void;
@@ -294,6 +308,7 @@ export function AttributeOptionRows({
                     index={entry.index}
                     locked={storedValues.includes(entry.row.value)}
                     targets={targets}
+                    allowedTargets={allowedTargets}
                     onChange={(next) => replace(entry.index, next)}
                     onRemove={() => remove(entry.index)}
                   />
