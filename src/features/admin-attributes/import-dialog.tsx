@@ -103,6 +103,23 @@ const REASON_KEYS = new Set([
   "optionShape.activeNotBoolean",
   "optionShape.boundsNotObject",
   "optionShape.aliasesNotArray",
+
+  /**
+   * DEC-057 L2 — option-conditioned allowed values. The gate judges the shape
+   * (`optionShape.allowed*`), `attr_option_shape` the record (`badOption
+   * .allowed*`) and `attr_allowed_check` the target (the four ids below).
+   */
+  "optionShape.allowedNotObject",
+  "optionShape.allowedValuesNotArray",
+  "badOption.allowedNotObject",
+  "badOption.allowedValuesNotArray",
+  "badOption.allowedTooMany",
+  "badOption.allowedEmpty",
+  "badOption.allowedDuplicate",
+  "allowedTargetNotSelect",
+  "allowedTargetNotColinked",
+  "allowedTargetCircular",
+  "allowedUnknownValue",
 ]);
 
 const COUNT_FIELDS = ["adds", "changes", "unlinks", "deletes", "unchanged", "refusals"] as const;

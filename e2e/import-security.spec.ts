@@ -1,8 +1,14 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser } from "./helpers/ui";
-import { createUser } from "./helpers/users";
-import { rand, bandOnly, grantRole, signInAsSuperAdmin } from "./helpers/categories";
+import { adminClient, createUser } from "./helpers/users";
+import {
+  rand,
+  bandOnly,
+  destroyCategory,
+  grantRole,
+  signInAsSuperAdmin,
+} from "./helpers/categories";
 
 /**
  * IMPORT-GATE PART D — HOSTILE FILES, ONE SPEC, EVERY FAMILY.
@@ -362,6 +368,154 @@ for (const family of FAMILIES) {
           JSON.stringify(shapeRefusals),
         ).toEqual(expect.arrayContaining(shape.reasons));
         for (const refusal of shapeRefusals) expect(refusal.row).toBeGreaterThan(1);
+      }
+
+      /**
+       * DEC-057 L2 — `allowed` HOSTILITY, ONE ROW PER RULE. The gate admits the
+       * key and judges its SHAPE; `attr_option_shape` judges the record and
+       * `attr_allowed_check` judges the TARGET. Every rule refuses its own row
+       * and names its id and detail; a preview writes nothing, so the scratch
+       * fixtures below are read-only to the plan (F5/J6).
+       */
+      if (family.id === "attributes") {
+        const supabase = adminClient();
+        const targetKey = `e2e_attr_${rand()}`;
+        const numberKey = `e2e_attr_${rand()}`;
+        const selfKey = `e2e_attr_${rand()}`;
+        const depKey = `e2e_attr_${rand()}`;
+        const coKey = `e2e_attr_${rand()}`;
+        const slugA = `e2e-cat-${rand()}`;
+        const slugB = `e2e-cat-${rand()}`;
+        /** The options cell is quoted by `row()`, so inner quotes are doubled. */
+        const opts = (payload: unknown) => JSON.stringify(payload).split('"').join('""');
+        const allowedRow = (key: string, allowed: unknown, dependsOn = "") =>
+          family.row({
+            attribute_key: key,
+            type: "single_select",
+            options: opts([{ value: "a", allowed }, { value: "b" }]),
+            depends_on: dependsOn,
+          });
+        try {
+          const { data: seeded, error: seedError } = await supabase
+            .from("attributes")
+            .insert([
+              {
+                attr_key: targetKey,
+                name_en: targetKey,
+                attr_type: "single_select",
+                options: [{ value: "x" }, { value: "y" }, { value: "z" }],
+              },
+              { attr_key: numberKey, name_en: numberKey, attr_type: "number" },
+            ])
+            .select("id, attr_key");
+          if (seedError || !seeded) throw new Error(`IG-2 seed failed: ${seedError?.message}`);
+          const target = seeded.find((row) => row.attr_key === targetKey)!;
+
+          const { data: cats, error: catError } = await supabase
+            .from("categories")
+            .insert([
+              { slug: slugA, name_en: slugA, is_active: true, allow_listings: true },
+              { slug: slugB, name_en: slugB, is_active: true, allow_listings: true },
+            ])
+            .select("id, slug");
+          if (catError || !cats) throw new Error(`IG-2 categories failed: ${catError?.message}`);
+          const catA = cats.find((row) => row.slug === slugA)!;
+          // The target is used at ONE of the owner's two categories only.
+          const { error: linkError } = await supabase
+            .from("category_attribute_links")
+            .insert({ category_id: catA.id, attribute_id: target.id, display_order: 0 });
+          if (linkError) throw new Error(`IG-2 link failed: ${linkError.message}`);
+          // (h) needs a LIVE dependent: the parent walk anchors on live rows
+          // (DEC-057 L2-mig), so the dependent is seeded, not created in-file.
+          const { error: depError } = await supabase.from("attributes").insert({
+            attr_key: depKey,
+            name_en: depKey,
+            attr_type: "single_select",
+            options: [{ value: "a" }, { value: "b" }],
+            depends_on: target.id,
+          });
+          if (depError) throw new Error(`IG-2 dependent failed: ${depError.message}`);
+
+          const rows = [
+            // (a) `allowed` is not a set of attributes at all — the gate's own.
+            allowedRow(`e2e_attr_${rand()}`, []),
+            // (b) a value list that is not a list — the gate's own.
+            allowedRow(`e2e_attr_${rand()}`, { [targetKey]: "x" }),
+            // (c) six targets.
+            allowedRow(`e2e_attr_${rand()}`, {
+              [targetKey]: ["x"],
+              t2: ["x"],
+              t3: ["x"],
+              t4: ["x"],
+              t5: ["x"],
+              t6: ["x"],
+            }),
+            // (d) an empty list.
+            allowedRow(`e2e_attr_${rand()}`, { [targetKey]: [] }),
+            // (e) the same value twice.
+            allowedRow(`e2e_attr_${rand()}`, { [targetKey]: ["x", "x"] }),
+            // (f) a target that is a number definition.
+            allowedRow(`e2e_attr_${rand()}`, { [numberKey]: ["1"] }),
+            // (g) the owner targeting ITSELF.
+            allowedRow(selfKey, { [selfKey]: ["b"] }),
+            // (h) a dependent targeting its own `depends_on` parent.
+            allowedRow(depKey, { [targetKey]: ["x"] }, targetKey),
+            // (i) a value the target does not offer.
+            allowedRow(`e2e_attr_${rand()}`, { [targetKey]: ["q"] }),
+            // (j) an owner used in two categories, the target in only one.
+            allowedRow(coKey, { [targetKey]: ["x"] }),
+          ];
+          const links =
+            "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin\r\n" +
+            `${slugA},${slugA},${coKey},false,false,,${slugA}\r\n` +
+            `${slugB},${slugB},${coKey},false,false,,${slugB}\r\n`;
+
+          const answer = await post(page, token, { [family.field]: file(rows), links });
+          expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+          const refusals =
+            (answer.payload["refusals"] as { reason: string; detail?: string; row: number }[]) ??
+            [];
+          const dump = JSON.stringify(refusals);
+          const named = (reason: string, detail: string) =>
+            refusals.some(
+              (entry) => entry.reason === reason && (entry.detail ?? "").includes(detail),
+            );
+
+          expect(named("optionShape", "allowedNotObject"), `IG-2 (a) ${dump}`).toBe(true);
+          expect(named("optionShape", "allowedValuesNotArray"), `IG-2 (b) ${dump}`).toBe(true);
+          expect(named("badOption", "allowedTooMany"), `IG-2 (c) ${dump}`).toBe(true);
+          expect(named("badOption", `allowedEmpty:${targetKey}`), `IG-2 (d) ${dump}`).toBe(true);
+          expect(named("badOption", `allowedDuplicate:${targetKey}`), `IG-2 (e) ${dump}`).toBe(
+            true,
+          );
+          expect(named("allowedTargetNotSelect", numberKey), `IG-2 (f) ${dump}`).toBe(true);
+          expect(named("allowedTargetCircular", selfKey), `IG-2 (g) ${dump}`).toBe(true);
+          expect(named("allowedTargetCircular", depKey), `IG-2 (h) ${dump}`).toBe(true);
+          expect(named("allowedUnknownValue", "q"), `IG-2 (i) ${dump}`).toBe(true);
+          expect(named("allowedTargetNotColinked", coKey), `IG-2 (j) ${dump}`).toBe(true);
+          for (const refusal of refusals) expect(refusal.row, dump).toBeGreaterThan(1);
+
+          // The preview wrote nothing: not one of these owners exists (F5).
+          const { data: written } = await supabase
+            .from("attributes")
+            .select("attr_key")
+            .in("attr_key", [selfKey, coKey]);
+          expect(written ?? [], `IG-2 the preview wrote a definition: ${dump}`).toHaveLength(0);
+        } finally {
+          for (const key of [targetKey, numberKey, selfKey, depKey, coKey]) {
+            const { data: row } = await supabase
+              .from("attributes")
+              .select("id")
+              .eq("attr_key", key)
+              .maybeSingle();
+            if (row) {
+              await supabase.from("category_attribute_links").delete().eq("attribute_id", row.id);
+              await supabase.from("attributes").delete().eq("id", row.id);
+            }
+          }
+          await destroyCategory(slugA);
+          await destroyCategory(slugB);
+        }
       }
     });
 

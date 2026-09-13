@@ -3784,4 +3784,143 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(numberKey);
     }
   });
+
+  /* ------------- DEC-057 — option-conditioned allowed values ------------- */
+
+  /**
+   * AT-52 (DEC-057 L2) — ONE FILE CREATES THE OWNER AND ITS TARGET. The planner
+   * resolves an `allowed` target through the PLAN (L2-mig), so a file may add a
+   * select target and an owner whose option points at it in the same import:
+   * the preview plans two adds with no refusal, the commit stores `allowed`
+   * exactly, the export echoes it, re-importing the export is a no-op, the undo
+   * removes both, and a value the target does not offer is refused BY NAME.
+   */
+  test("AT-52 allowed values round-trip: a file creates an owner and its target together, the import accepts, the export echoes, undo removes", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const targetKey = `e2e_attr_${rand()}`;
+    const ownerKey = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-${rand()}`;
+    /** Doubles the quotes so the JSON survives the CSV cell (RFC 4180). */
+    const optionsCell = (json: string) => `"${json.split('"').join('""')}"`;
+    try {
+      const { data: category, error: catError } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+        .select("id")
+        .single();
+      if (catError || !category) throw new Error(`AT-52 category failed: ${catError?.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      const targetOptions = optionsCell(
+        JSON.stringify([{ value: "x" }, { value: "y" }, { value: "z" }]),
+      );
+      const ownerOptions = optionsCell(
+        JSON.stringify([{ value: "a", allowed: { [targetKey]: ["x", "y"] } }, { value: "b" }]),
+      );
+      const definitions =
+        `${DEF_HEADER}\r\n` +
+        `${v2(`${targetKey},${targetKey},,single_select,${targetOptions},,,0`)}\r\n` +
+        `${v2(`${ownerKey},${ownerKey},,single_select,${ownerOptions},,,0`)}\r\n`;
+      const links =
+        `${LINK_HEADER}\r\n` +
+        `${slug},${slug},${targetKey},false,false,,${slug}\r\n` +
+        `${slug},${slug},${ownerKey},false,false,,${slug}\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions, links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(
+        (preview.payload["refusals"] as unknown[]) ?? [],
+        `AT-52 the same-file owner and target were refused: ${JSON.stringify(preview.payload)}`,
+      ).toHaveLength(0);
+      expect(
+        (preview.payload["counts"] as Record<string, number>).adds,
+        `AT-52 the plan carries no adds: ${JSON.stringify(preview.payload)}`,
+      ).toBeGreaterThanOrEqual(2);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+
+      // DB TRUTH (J4) — the owner's option carries `allowed` exactly.
+      await expect
+        .poll(async () => (await readAttribute(ownerKey))?.options, { timeout: 20000 })
+        .toEqual([{ value: "a", allowed: { [targetKey]: ["x", "y"] } }, { value: "b" }]);
+
+      // THE EXPORT ECHOES IT, and re-importing what it wrote changes nothing.
+      const exported = await page.request.get("/api/admin/attributes/export?file=definitions", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(exported.status()).toBe(200);
+      const text = await exported.text();
+      const records = (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text).split("\r\n");
+      const header = records[0] ?? "";
+      const mine = records.find((record) => record.startsWith(`${ownerKey},`));
+      const theirs = records.find((record) => record.startsWith(`${targetKey},`));
+      expect(mine, "AT-52 the export carries no row for the owner").toBeTruthy();
+      expect(mine!, "AT-52 the export lost the allowed map").toContain(targetKey);
+      expect(mine!, "AT-52 the export lost the allowed values").toContain("allowed");
+
+      const echo = await importPost(page, token, {
+        mode: "preview",
+        definitions: `\uFEFF${header}\r\n${mine}\r\n${theirs}\r\n`,
+      });
+      expect(echo.status, JSON.stringify(echo.payload)).toBe(200);
+      const echoCounts = echo.payload["counts"] as Record<string, number>;
+      expect(
+        { changes: echoCounts.changes, adds: echoCounts.adds, refusals: echoCounts.refusals },
+        `AT-52 the export did not round-trip: ${JSON.stringify(echo.payload)}`,
+      ).toEqual({ changes: 0, adds: 0, refusals: 0 });
+      expect(echoCounts.unchanged).toBe(2);
+
+      // A VALUE THE TARGET DOES NOT OFFER is refused, naming target and value.
+      const hostile =
+        `${DEF_HEADER}\r\n` +
+        `${v2(
+          `${ownerKey},${ownerKey},,single_select,${optionsCell(
+            JSON.stringify([{ value: "a", allowed: { [targetKey]: ["q"] } }, { value: "b" }]),
+          )},,,1`,
+        )}\r\n`;
+      const refused = await importPost(page, token, { mode: "preview", definitions: hostile });
+      expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
+      const refusals = (refused.payload["refusals"] as Record<string, unknown>[]) ?? [];
+      const named = refusals.find((entry) => entry["reason"] === "allowedUnknownValue");
+      expect(
+        named,
+        `AT-52 no allowedUnknownValue refusal: ${JSON.stringify(refused.payload)}`,
+      ).toBeTruthy();
+      expect(String(named!["detail"]), "AT-52 the refusal names no target").toContain(targetKey);
+      expect(String(named!["detail"]), "AT-52 the refusal names no value").toContain("q");
+      expect(Number(named!["row"]), "AT-52 the refusal names no row").toBeGreaterThan(1);
+      // A refused preview leaves the stored map standing (F5).
+      expect((await readAttribute(ownerKey))?.options).toEqual([
+        { value: "a", allowed: { [targetKey]: ["x", "y"] } },
+        { value: "b" },
+      ]);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      await expect
+        .poll(async () => (await readAttribute(ownerKey)) === null, { timeout: 20000 })
+        .toBe(true);
+      expect(await readAttribute(targetKey), "AT-52 the undo left the target behind").toBeNull();
+    } finally {
+      await destroyAttribute(ownerKey);
+      await destroyAttribute(targetKey);
+      await destroyCategory(slug);
+    }
+  });
 });
