@@ -1,0 +1,132 @@
+Running 85 tests using 2 workers, shard 6 of 6
+
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+34741970648-6-2837-2-1oa7hk@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+[WebServer] [ssr-error] /api/admin/attributes/import definitions unknownColumn
+[WebServer] [ssr-error] /api/admin/attributes/import definitions tooManyRows
+[WebServer] [ssr-error] /api/admin/attributes/import definitions nulByte
+  ✓   2 [desktop-1280] › e2e/import-security.spec.ts:238:5 › IMPORT-GATE attributes › IG-1 attributes: malformed, foreign, oversized and unreadable files are refused whole (3.4s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+34741970648-6-2837-2-1oa7hk@ethio-e2e.invalid)
+  ✓   1 [desktop-1280] › e2e/mfa-stepup.spec.ts:118:3 › U1f step-up authentication › MF-1 enroll: QR + secret shown, a generated code activates the factor @private-identity (5.4s)
+  ✓   3 [desktop-1280] › e2e/import-security.spec.ts:299:5 › IMPORT-GATE attributes › IG-2 attributes: dangerous cells refuse their own row and name the reason (3.2s)
+  ✓   4 [desktop-1280] › e2e/mfa-stepup.spec.ts:135:3 › U1f step-up authentication › MF-2 gate: wrong code refused, correct code lets the action through @private-identity (9.7s)
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+  ✓   6 [desktop-1280] › e2e/mfa-stepup.spec.ts:171:3 › U1f step-up authentication › MF-3 no factor: the modal explains and the RPC is never called (5.2s)
+  ✓   7 [desktop-1280] › e2e/mfa-stepup.spec.ts:186:3 › U1f step-up authentication › MF-4 server: permission first, then step-up — the RPC refuses regardless of UI (6.9s)
+  ✓   8 [desktop-1280] › e2e/mfa-stepup.spec.ts:214:3 › U1f step-up authentication › MF-5 unenroll requires a fresh verification @private-identity (5.0s)
+[WebServer] [ssr-error] /api/admin/attributes/import too many previews
+  ✓   5 [desktop-1280] › e2e/import-security.spec.ts:372:5 › IMPORT-GATE attributes › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited (29.2s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+34741970648-6-2837-2-1oa7hk@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
+[WebServer] [ssr-error] /api/admin/categories/import categories unknownColumn
+[WebServer] [ssr-error] /api/admin/categories/import categories file too large
+[WebServer] [ssr-error] /api/admin/categories/import categories nulByte
+  ✓  10 [desktop-1280] › e2e/import-security.spec.ts:238:5 › IMPORT-GATE categories › IG-1 categories: malformed, foreign, oversized and unreadable files are refused whole (2.6s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+34741970648-6-2837-2-1oa7hk@ethio-e2e.invalid)
+  ✓   9 [desktop-1280] › e2e/mfa-stepup.spec.ts:251:3 › U1f-4 step-up freshness › MF-6 unenrolling the only factor drops the stepped-up state @private-identity (6.9s)
+  ✓  11 [desktop-1280] › e2e/import-security.spec.ts:299:5 › IMPORT-GATE categories › IG-2 categories: dangerous cells refuse their own row and name the reason (2.3s)
+[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
+  ✓  12 [desktop-1280] › e2e/mfa-stepup.spec.ts:279:3 › U1f-4 step-up freshness › MF-7 a verification older than the window re-prompts @private-identity (10.2s)
+  ✓  14 [desktop-1280] › e2e/mfa-stepup.spec.ts:327:3 › FIX-SCAN-1 step-up abort › MF-7b cancelling the prompt releases the caller and writes nothing @private-identity (8.3s)
+[WebServer] [ssr-error] /api/admin/categories/import too many previews
+  ✓  13 [desktop-1280] › e2e/import-security.spec.ts:372:5 › IMPORT-GATE categories › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited (22.6s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+34741970648-6-2837-2-1oa7hk@ethio-e2e.invalid)
+  ✓  15 [desktop-1280] › e2e/mfa-stepup.spec.ts:359:3 › FIX-SCAN-1 step-up abort › MF-7c a no-factor identity is released with the hint @private-identity (6.4s)
+  ✓  17 [desktop-1280] › e2e/primitives-law.spec.ts:43:5 › display primitives law (test-once responsiveness) › primitives fit and adapt at 360 (799ms)
+[WebServer] [ssr-error] /api/admin/translations/import strings badHeader
+[WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
+  ✓  18 [desktop-1280] › e2e/primitives-law.spec.ts:43:5 › display primitives law (test-once responsiveness) › primitives fit and adapt at 768 (878ms)
+[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
+[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
+[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
+  ✓  16 [desktop-1280] › e2e/import-security.spec.ts:238:5 › IMPORT-GATE translations › IG-1 translations: malformed, foreign, oversized and unreadable files are refused whole (2.8s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+34741970648-6-2837-2-1oa7hk@ethio-e2e.invalid)
+  ✓  19 [desktop-1280] › e2e/primitives-law.spec.ts:43:5 › display primitives law (test-once responsiveness) › primitives fit and adapt at 1280 (815ms)
+  ✓  21 [desktop-1280] › e2e/primitives-law.spec.ts:110:3 › display primitives law (test-once responsiveness) › L8 rowHref navigates from the table row, the card and the keyboard (2.1s)
+  ✓  22 [desktop-1280] › e2e/primitives-law.spec.ts:134:5 › display primitives law (test-once responsiveness) › primitives render their empty state (568ms)
+  ✓  20 [desktop-1280] › e2e/import-security.spec.ts:299:5 › IMPORT-GATE translations › IG-2 translations: dangerous cells refuse their own row and name the reason (3.5s)
+  ✓  23 [desktop-1280] › e2e/primitives-law.spec.ts:134:5 › display primitives law (test-once responsiveness) › primitives render their loading state (633ms)
+  ✓  25 [desktop-1280] › e2e/primitives-law.spec.ts:134:5 › display primitives law (test-once responsiveness) › primitives render their error state (582ms)
+  ✓  26 [desktop-1280] › e2e/primitives-law.spec.ts:164:5 › display primitives law (test-once responsiveness) › L9 cardUntil=lg keeps cards at 360 until lg (747ms)
+  ✓  27 [desktop-1280] › e2e/primitives-law.spec.ts:164:5 › display primitives law (test-once responsiveness) › L9 cardUntil=lg keeps cards at 768 until lg (645ms)
+  ✓  28 [desktop-1280] › e2e/primitives-law.spec.ts:164:5 › display primitives law (test-once responsiveness) › L9 cardUntil=lg keeps cards at 1280 until lg (986ms)
+  ✓  29 [desktop-1280] › e2e/primitives-law.spec.ts:193:3 › display primitives law (test-once responsiveness) › L10 the primitive scroller engages and reaches the last cell (830ms)
+  ✓  30 [desktop-1280] › e2e/primitives-law.spec.ts:256:3 › display primitives law (test-once responsiveness) › L11 wide columns hide below xl and the first column stays pinned (1.3s)
+  ✓  31 [desktop-1280] › e2e/rbac.spec.ts:34:3 › RBAC client seam › R-1 logged out: no Admin tab and no RBAC request at all (569ms)
+  ✓  32 [desktop-1280] › e2e/rbac.spec.ts:47:3 › RBAC client seam › R-2 regular user: no Admin tab, and /admin redirects home (3.2s)
+[WebServer] [ssr-error] /api/admin/translations/import too many previews
+  ✓  24 [desktop-1280] › e2e/import-security.spec.ts:372:5 › IMPORT-GATE translations › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited (12.7s)
+  ✓  33 [desktop-1280] › e2e/rbac.spec.ts:61:3 › RBAC client seam › R-3 staff user: Admin tab appears and /admin renders (3.5s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+34741970648-6-2837-2-1oa7hk@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
+  ✓  34 [desktop-1280] › e2e/import-security.spec.ts:423:7 › IMPORT-GATE translations › IG-4 translations: XLIFF enters the same door and is judged by the same law (2.3s)
+  ✓  36 [desktop-1280] › e2e/shell.spec.ts:115:3 › app shell › mounts with header, rail slot and footer, logged out (638ms)
+  ✓  35 [desktop-1280] › e2e/shell-table-law.spec.ts:34:3 › shell table law › admin tables never overflow horizontally (3.6s)
+  ✓  37 [desktop-1280] › e2e/shell.spec.ts:141:3 › app shell › feed renders its empty state (1.1s)
+  ✓  39 [desktop-1280] › e2e/shell.spec.ts:170:3 › app shell › language toggle renders Amharic (Ge'ez path) (1.3s)
+  ✓  40 [desktop-1280] › e2e/shell.spec.ts:198:3 › app shell › the vertical stack is ordered: top bar, location row, breadcrumbs, body (549ms)
+  ✓  38 [desktop-1280] › e2e/smoke-auth-i18n.spec.ts:18:1 › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out (2.8s)
+  ✓  41 [desktop-1280] › e2e/shell.spec.ts:217:3 › app shell › the location row cascades Country -> Region -> City, city selectable (2.0s)
+  ✓  42 [desktop-1280] › e2e/shell.spec.ts:273:3 › app shell › breadcrumb segments navigate the category path (557ms)
+  ✓  43 [desktop-1280] › e2e/shell.spec.ts:298:3 › app shell › the marketplace breadcrumb is Home alone — no redundant panel segment (561ms)
+  ✓  44 [desktop-1280] › e2e/shell.spec.ts:309:3 › app shell › the feed body is centred with equal left and right gutters (1.3s)
+  ✓  45 [desktop-1280] › e2e/shell.spec.ts:348:3 › app shell › the self-drawing spinner renders while the feed loads (572ms)
+  ✓  46 [desktop-1280] › e2e/shell.spec.ts:366:3 › app shell › footer columns are centred as a group and each is centred (593ms)
+  ✓  47 [desktop-1280] › e2e/shell.spec.ts:394:3 › app shell › feed grid reflows without clipping and never overflows (724ms)
+  ✓  48 [desktop-1280] › e2e/shell.spec.ts:432:3 › corner-block grid › logo cell sits exactly above the rail and beside the top bar (608ms)
+  ✓  49 [desktop-1280] › e2e/shell.spec.ts:456:3 › corner-block grid › the lockup's second line spans the wordmark exactly (673ms)
+  ✓  50 [desktop-1280] › e2e/shell.spec.ts:468:3 › corner-block grid › rail submenus expand and collapse (558ms)
+  ✓  51 [desktop-1280] › e2e/shell.spec.ts:483:3 › corner-block grid › every rail row carries a leading icon on one gutter (742ms)
+  ✓  52 [desktop-1280] › e2e/shell.spec.ts:503:3 › corner-block grid › category rows carry DISTINCT icons, not one repeated glyph (539ms)
+  ✓  53 [desktop-1280] › e2e/shell.spec.ts:521:3 › corner-block grid › the rail collapses to icons, shows a tooltip, and remembers the choice (1.4s)
+  ✓  54 [desktop-1280] › e2e/shell.spec.ts:575:3 › corner-block grid › exactly one collapse toggle, and the wordmark moves into the bar when collapsed (660ms)
+  ✓  55 [desktop-1280] › e2e/shell.spec.ts:613:3 › corner-block grid › the rail sign-out is absent for a logged-out visitor (522ms)
+  ✓  56 [desktop-1280] › e2e/shell.spec.ts:624:3 › tablet chrome (md = 768px) › tablets get the persistent rail and the FULL controls (574ms)
+  ✓  57 [desktop-1280] › e2e/shell.spec.ts:654:3 › tablet chrome (md = 768px) › the top bar is ONE band: logo-cell height AND background, location row separate (573ms)
+  ✓  58 [desktop-1280] › e2e/shell.spec.ts:687:3 › dark mode › the toggle flips the mode and the surfaces actually change (881ms)
+  -  59 [desktop-1280] › e2e/shell.spec.ts:710:3 › mobile chrome › rail is a drawer behind the hamburger
+  -  60 [desktop-1280] › e2e/shell.spec.ts:726:3 › mobile chrome › the drawer switcher NAVIGATES to the panel's home (U0e)
+  -  61 [desktop-1280] › e2e/shell.spec.ts:753:3 › mobile chrome › the drawer logo block matches the top bar's divider and height
+  -  62 [desktop-1280] › e2e/shell.spec.ts:771:3 › mobile chrome › the rail-collapse toggle does not exist on mobile
+  -  63 [desktop-1280] › e2e/shell.spec.ts:780:3 › mobile chrome › no Settings item leaks into the mobile category drawer
+  -  64 [desktop-1280] › e2e/shell.spec.ts:789:3 › mobile chrome › search opens a full-width row BELOW the bar
+  -  65 [desktop-1280] › e2e/shell.spec.ts:803:3 › mobile chrome › no horizontal overflow and text stays legible at 360
+  -  66 [desktop-1280] › e2e/shell.spec.ts:821:3 › mobile chrome › primary touch targets are at least 44px
+  ✓  67 [desktop-1280] › e2e/shell.spec.ts:861:3 › panel-scoped chrome › location row is present on Marketplace and absent on Account (2.5s)
+  ✓  68 [desktop-1280] › e2e/shell.spec.ts:906:3 › marketplace rail is categories only › no Settings item leaks into the category rail (586ms)
+  ✓  69 [desktop-1280] › e2e/shell.spec.ts:922:3 › panel follows the route › /settings shows the Account context, and returning shows categories (3.2s)
+  ✓  70 [desktop-1280] › e2e/shell.spec.ts:950:3 › panel follows the route › top-bar controls are right-aligned at desktop width (573ms)
+  ✓  71 [desktop-1280] › e2e/shell.spec.ts:962:3 › panel follows the route › admin panel is absent for a normal signed-in user (3.3s)
+  ✓  72 [desktop-1280] › e2e/shell.spec.ts:980:3 › panel header band (U0d) › the band sits in the rail directly below the logo cell (572ms)
+  ✓  73 [desktop-1280] › e2e/shell.spec.ts:991:3 › panel header band (U0d) › the desktop rail switcher NAVIGATES to the panel's home (U0e) (2.3s)
+  -  74 [desktop-1280] › e2e/shell.spec.ts:1021:3 › rail scroll regions (U0f) › drawer: items scroll, header fixed, sign out pinned
+  ✓  75 [desktop-1280] › e2e/shell.spec.ts:1056:3 › rail scroll regions (U0f) › md+ rail: items scroll, header fixed (2.2s)
+  ✓  76 [desktop-1280] › e2e/shell.spec.ts:1102:3 › rail scroll regions (U0f) › footer never covers the rail's Sign out (2.4s)
+  ✓  77 [desktop-1280] › e2e/shell.spec.ts:1202:3 › desktop layout laws (U0g) › L1/L2: the top band and the rail stay put while content scrolls (823ms)
+  ✓  78 [desktop-1280] › e2e/shell.spec.ts:1272:3 › desktop layout laws (U0g) › L3: the footer spans the full width beneath the fixed rail (723ms)
+  ✓  79 [desktop-1280] › e2e/shell.spec.ts:1336:3 › desktop layout laws (U0g) › U0i: the rail ends at the footer top and its last item stays reachable (978ms)
+  -  80 [desktop-1280] › e2e/shell.spec.ts:1363:3 › desktop layout laws (U0g) › the tall fixture does not overflow horizontally at 360
+  ✓  81 [desktop-1280] › e2e/shell.spec.ts:1395:3 › i18n gate is non-blocking (U4f-2) › TR-18 the header renders while the languages read is still in flight (537ms)
+  ✓  82 [desktop-1280] › e2e/shell.spec.ts:1407:3 › i18n gate is non-blocking (U4f-2) › TR-18 a regular user is still redirected off /admin before the list resolves (2.1s)
+  ✓  83 [desktop-1280] › e2e/shell.spec.ts:1463:3 › U4h device language star › TR-27 a star set signed-out survives reload, sign-in and sign-out (2.8s)
+  ✓  84 [desktop-1280] › e2e/shell.spec.ts:1478:3 › U4h device language star › TR-28 the account carries onto a starless device, and never over a star (3.3s)
+  ✓  85 [desktop-1280] › e2e/shell.spec.ts:1524:3 › U4h device language star › TR-28 hreflang alternates equal the anon publication gate (623ms)
+Error: [e2e:teardown] failed to delete 540dd800-23a9-4507-a248-f4fbf8834988: fetch failed
+
+   at global-teardown.ts:53
+
+  51 |     }
+  52 |     const { error } = await supabase.auth.admin.deleteUser(user.id);
+> 53 |     if (error) throw new Error(`[e2e:teardown] failed to delete ${user.id}: ${error.message}`);
+     |                      ^
+  54 |     deleted += 1;
+  55 |   }
+  56 |
+    at globalTeardown (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-teardown.ts:53:22)
+
+  10 skipped
+  75 passed (2.4m)
+  1 error was not a part of any test, see above for details
+Error: Process completed with exit code 1.

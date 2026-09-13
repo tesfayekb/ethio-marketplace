@@ -753,17 +753,35 @@ test.describe("U4g bulk approval, order and orphans", () => {
        * is asserted against the fence language's OWN row count read with the
        * service client (J4): per-key/DB truth, never the console's summary.
        */
-      const { count: catalogCount, error: catalogError } = await adminClient()
+      /**
+       * DEC-059 (INC-184) — THE COUNT EXCLUDES OTHER TESTS' SCRATCH ROWS (J6).
+       * The fence language is shared: a sibling test seeding or reaping its own
+       * `e2e-` key between the export bytes and this count made the two sides
+       * differ by one and reddened a green walk. Both sides are therefore
+       * counted over the STABLE catalog plus THIS test's own key: `e2e-` rows
+       * are excluded from the DB count and from the exported lines, and the own
+       * key is added back on both sides.
+       */
+      const { count: stableCount, error: catalogError } = await adminClient()
         .from("ui_translations")
         .select("key", { count: "exact", head: true })
-        .eq("lang_code", fence);
+        .eq("lang_code", fence)
+        .not("key", "like", "e2e-%");
       if (catalogError)
         throw new Error(`[e2e:u4i] TR-29 catalog count failed: ${catalogError.message}`);
-      const exportedRows = exported.split(/\r?\n/).filter((line) => line.trim() !== "").length - 1;
+      const dataLines = exported
+        .split(/\r?\n/)
+        .filter((line) => line.trim() !== "")
+        .slice(1);
+      const ownLines = dataLines.filter((line) => line.startsWith(key));
+      const stableLines = dataLines.filter((line) => !line.startsWith("e2e-"));
+      const expectedRows = (stableCount ?? 0) + 1;
+      const exportedRows = stableLines.length + ownLines.length;
       expect(
         exportedRows,
-        `the CSV export was page-scoped: ${exportedRows} rows for a ${catalogCount ?? 0}-row catalog`,
-      ).toBe(catalogCount ?? 0);
+        `the CSV export was page-scoped: ${exportedRows} stable+own rows against a ${expectedRows}-row expectation`,
+      ).toBe(expectedRows);
+      expect(ownLines.length, `TR-29 exported ${ownLines.length} lines for ${key}`).toBe(1);
 
       // The operator's edit, expressed as the file they would send back.
       const csv = ["key,source,translation", `${key},"${source}","${imported}"`, `${ghost},"x","y"`]

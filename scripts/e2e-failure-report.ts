@@ -50,6 +50,14 @@ const MALFORMED_FIXTURE = "scripts/fixtures/e2e-results-malformed.json";
  * leaves behind when its webServer or global setup dies before any test runs.
  */
 const EMPTY_FIXTURE = "scripts/fixtures/e2e-results-empty.json";
+/**
+ * DEC-059 — the REAL job log tail of shard 6, run 34741970648, captured
+ * verbatim from "Running 85 tests" to "Error: Process completed with exit code
+ * 1.": every test green or skipped, and a red job whose only cause was a
+ * `fetch failed` inside the teardown's `admin.deleteUser` (INC-189).
+ */
+const POST_TEST_FIXTURE =
+  "scripts/fixtures/e2e-post-test-error/shard-6-log-tail-run-34741970648.txt";
 
 /** DEC-030 — the ledger's header, written once when the file does not exist. */
 export const FLAKE_LEDGER_HEADER = [
@@ -417,6 +425,14 @@ export type Source = {
    * only channel that names it.
    */
   clientErrors?: string[];
+  /**
+   * DEC-059 — every POST-TEST error line the job's log carried, redacted: the
+   * `[e2e:teardown]` / `[e2e:sweep]` voices plus the trailing `Error:` block
+   * printed after the last test result. These are reported and NEVER counted as
+   * test failures — a shard whose every test passed is green even when its
+   * fixture cleanup could not reach Supabase (INC-189).
+   */
+  postTestErrors?: string[];
 };
 
 /**
@@ -460,6 +476,48 @@ export function grepSsrErrors(text: string | null, limit = 20): string[] {
 /** Every `[client-error]` line in a job log (INC-085f). */
 export function grepClientErrors(text: string | null, limit = 20): string[] {
   return grepTag(text, "[client-error]", limit);
+}
+
+/**
+ * DEC-059 — THE POST-TEST BAND (INC-189).
+ *
+ * Playwright prints teardown failures AFTER the last test line and exits 1 —
+ * "1 error was not a part of any test". Shard 6 of run 34741970648 was exactly
+ * that: 75 passed, 10 skipped, 0 failed, and a red job whose only cause was a
+ * `fetch failed` inside `admin.deleteUser`. The harness must never turn a green
+ * shard red, and the reporter must never leave that error unheard, so the band
+ * is extracted and rendered on its own:
+ *
+ *  - every `[e2e:teardown]` / `[e2e:sweep]` line, wherever it appears;
+ *  - the trailing `Error:` block — from the first `Error:` line after the LAST
+ *    numbered test result to the end of the log, blank lines dropped.
+ */
+const POST_TEST_TAG = /\[e2e:teardown\]|\[e2e:sweep\]/;
+const TEST_RESULT_LINE = /^\s*[✓✘±✕\-»]\s+\d+\s+\[/;
+const POST_TEST_CAP = 40;
+
+export function grepPostTestErrors(text: string | null, limit = POST_TEST_CAP): string[] {
+  if (!text) return [];
+  const lines = text.split("\n");
+  let lastTest = -1;
+  lines.forEach((line, index) => {
+    if (TEST_RESULT_LINE.test(line)) lastTest = index;
+  });
+
+  const out: string[] = [];
+  const push = (line: string) => {
+    const value = redact(line.trimEnd());
+    if (value.trim().length === 0) return;
+    if (!out.includes(value)) out.push(value);
+  };
+
+  for (const line of lines) if (POST_TEST_TAG.test(line)) push(line);
+
+  const trailing = lines.slice(lastTest + 1);
+  const start = trailing.findIndex((line) => /^Error:/.test(line.trim()));
+  if (start >= 0) for (const line of trailing.slice(start)) push(line);
+
+  return out.slice(0, limit);
 }
 
 /**
@@ -613,6 +671,9 @@ export function renderSources(
           "",
         ];
 
+  // DEC-059 — sources whose log carried a post-test band, in source order.
+  const postTestSources = sources.filter((s) => (s.postTestErrors ?? []).length > 0);
+
   const lines = [
     "# Last E2E failure (auto-generated — do not edit by hand)",
     "",
@@ -630,15 +691,37 @@ export function renderSources(
     `- Gating failures: ${classifyFailures(failures).gating.length} · Quarantined (@global-state, INC-117, non-gating): ${classifyFailures(failures).quarantined.length}`,
     // DEC-030 — flaky tests are non-gating but never invisible.
     `- Flaky (passed on retry, DEC-030, non-gating): ${flaky.length}`,
+    // DEC-059 — post-test errors are reported, never counted as failures.
+    `- Post-test errors (DEC-059, non-gating): ${postTestSources.length === 0 ? "none" : postTestSources.map((s) => s.label).join(", ")}`,
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
     ...flakeSection,
   ];
 
+  // DEC-059 — THE POST-TEST SECTION. Rendered for every source that carried one,
+  // whether or not any test failed: shard 6 of run 34741970648 had zero failures
+  // and a red exit code, and the cause lived only in this band.
+  const postTestSection = postTestSources.flatMap((source) => [
+    `## Post-test errors: ${source.label}`,
+    "",
+    `${source.label}: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.`,
+    "",
+    "```text",
+    ...collapseConsecutive(source.postTestErrors ?? []),
+    "```",
+    "",
+  ]);
+
   if (failures.length === 0 && silent.length === 0) {
-    lines.push("No failed tests were recorded in the JSON reporter output.", "");
+    lines.push(
+      ...postTestSection,
+      "No failed tests were recorded in the JSON reporter output.",
+      "",
+    );
     return lines.join("\n");
   }
+
+  lines.push(...postTestSection);
 
   const candidates = [...contexts.keys()];
 
@@ -744,7 +827,12 @@ export function render(json: PwJson, meta: ReportMeta): string {
   );
 }
 
-export function renderGreen(meta: ReportMeta): string {
+/**
+ * DEC-059 — the green form names its post-test warnings. A run may be green in
+ * every test and still have failed to reap a fixture; the count keeps that
+ * visible without gating on it.
+ */
+export function renderGreen(meta: ReportMeta, postTestWarnings = 0): string {
   return [
     "# Last E2E failure (auto-generated — do not edit by hand)",
     "",
@@ -754,6 +842,7 @@ export function renderGreen(meta: ReportMeta): string {
     `- Commit: \`${meta.sha}\``,
     attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
+    `- Post-test warnings: ${postTestWarnings}`,
     "",
   ].join("\n");
 }
@@ -1231,9 +1320,67 @@ async function main() {
       process.exit(1);
     }
 
-    console.log(
-      "Self-test OK: DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+    // DEC-059 — THE POST-TEST BAND, proved on the REAL captured shard-6 log tail
+    // of run 34741970648: 75 passed, 10 skipped, 0 failed, and exit code 1 whose
+    // only cause was `fetch failed` inside the teardown's `admin.deleteUser`.
+    const postTestLog = await Bun.file(POST_TEST_FIXTURE).text();
+    const postTest = grepPostTestErrors(postTestLog);
+    const hasTeardownLine = postTest.some(
+      (line) => line.includes("[e2e:teardown] failed to delete") && line.includes("fetch failed"),
     );
+    const hasTrailingBlock =
+      postTest.some((line) => line.includes("1 error was not a part of any test")) &&
+      postTest.some((line) => line.trim() === "Error: Process completed with exit code 1.");
+    // The band is POST-test: not one numbered test result may leak into it.
+    const leakedTestLine = postTest.some((line) => TEST_RESULT_LINE.test(line));
+    if (!hasTeardownLine || !hasTrailingBlock || leakedTestLine) {
+      console.error(
+        `SELF-TEST FAILED — DEC-059 post-test extraction: teardown line=${hasTeardownLine}, trailing Error: block=${hasTrailingBlock}, leaked test line=${leakedTestLine} (${postTest.length} line(s) from ${POST_TEST_FIXTURE}).`,
+      );
+      process.exit(1);
+    }
+    const withoutBand = renderSources(
+      [{ label: "shard 6", json: fixture, logTail: null, serverErrors: [], clientErrors: [] }],
+      meta,
+      contexts,
+    );
+    const withBand = renderSources(
+      [
+        {
+          label: "shard 6",
+          json: fixture,
+          logTail: null,
+          serverErrors: [],
+          clientErrors: [],
+          postTestErrors: postTest,
+        },
+      ],
+      meta,
+      contexts,
+    );
+    const failedLine = (report: string) =>
+      report.split("\n").find((line) => line.startsWith("- Passed: ")) ?? "";
+    if (
+      !withBand.includes("## Post-test errors: shard 6") ||
+      !withBand.includes("- Post-test errors (DEC-059, non-gating): shard 6") ||
+      !withBand.includes("[e2e:teardown] failed to delete") ||
+      !withBand.includes("Error: Process completed with exit code 1.") ||
+      // Non-gating: the band changes no count, and its absence renders "none".
+      failedLine(withBand) !== failedLine(withoutBand) ||
+      !withoutBand.includes("- Post-test errors (DEC-059, non-gating): none") ||
+      withoutBand.includes("## Post-test errors:") ||
+      // The green form carries the warning count, in both directions.
+      !renderGreen(meta, 3).includes("- Post-test warnings: 3") ||
+      !renderGreen(meta).includes("- Post-test warnings: 0")
+    ) {
+      console.error("SELF-TEST FAILED — DEC-059 post-test band was not rendered as scoped.");
+      process.exit(1);
+    }
+
+    console.log(
+      "Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+    );
+
     return;
   }
 
@@ -1244,12 +1391,26 @@ async function main() {
   const flakeOnly = process.env["E2E_FLAKE_ONLY"] === "1";
 
   if (process.env["E2E_GREEN"] === "1" && !flakeOnly) {
-    await Bun.write(OUT, renderGreen(meta));
+    // DEC-059 — a green run counts its post-test warnings from the same logs the
+    // red path greps, so a cleanup that could not reach Supabase is still named.
+    let postTestWarnings = 0;
+    const greenLogsDir = process.env["E2E_LOGS_DIR"];
+    if (greenLogsDir) {
+      for (const raw of (process.env["E2E_EXPECTED_SOURCES"] ?? "smoke,1,2,3,4,5,6").split(",")) {
+        const id = raw.trim().replace(/\?$/, "");
+        if (!id) continue;
+        const log = await readLog(`${greenLogsDir}/e2e-log-${id}/${id}.log`);
+        postTestWarnings += grepPostTestErrors(log).length;
+      }
+    }
+    await Bun.write(OUT, renderGreen(meta, postTestWarnings));
     // DEC-028 — a green run still publishes its verdict, so a consumer never
     // has to treat a missing verdict file as "probably green".
     const greenVerdict = process.env["E2E_VERDICT_PATH"];
     if (greenVerdict) await Bun.write(greenVerdict, "gating=0\nquarantined=0\nsilent=0\nflaky=0\n");
-    console.log(`Wrote ${OUT} (green run ${meta.runId}).`);
+    console.log(
+      `Wrote ${OUT} (green run ${meta.runId}, ${postTestWarnings} post-test warning line(s)).`,
+    );
     return;
   }
 
@@ -1298,6 +1459,8 @@ async function main() {
         logTail: parsed.error ?? tail,
         serverErrors: grepSsrErrors(log),
         clientErrors: grepClientErrors(log),
+        // DEC-059: teardown/exit errors live outside every test; extracted here.
+        postTestErrors: grepPostTestErrors(log),
       });
     }
   } else {
