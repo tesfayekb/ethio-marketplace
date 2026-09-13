@@ -142,7 +142,7 @@ export function AttributeAllowedValues({
             if (event.target.value !== "") addTarget(event.target.value);
           }}
         >
-          <option value="">{t("admin.attributes.options.allowedAdd")}</option>
+          <option value="">{t("admin.attributes.options.allowedAddExample")}</option>
           {unused.map((target) => (
             <option key={target.attrKey} value={target.attrKey}>
               {target.label}

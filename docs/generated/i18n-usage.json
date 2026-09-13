@@ -402,7 +402,7 @@
       "/admin/attributes",
       "/admin/categories"
     ],
-    "admin.attributes.options.allowedAdd": [
+    "admin.attributes.options.allowedAddExample": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -418,7 +418,7 @@
       "/admin/attributes",
       "/admin/categories"
     ],
-    "admin.attributes.options.boundsAdd": [
+    "admin.attributes.options.boundsAddExample": [
       "/admin/attributes",
       "/admin/categories"
     ],

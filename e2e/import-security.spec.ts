@@ -383,7 +383,11 @@ for (const family of FAMILIES) {
         const numberKey = `e2e_attr_${rand()}`;
         const selfKey = `e2e_attr_${rand()}`;
         const depKey = `e2e_attr_${rand()}`;
-        const coKey = `e2e_attr_${rand()}`;
+        const allowedSharedKey = `e2e_attr_${rand()}`;
+        const allowedNowhereKey = `e2e_attr_${rand()}`;
+        const boundsSharedKey = `e2e_attr_${rand()}`;
+        const boundsNowhereKey = `e2e_attr_${rand()}`;
+        const sharedNumberKey = `e2e_attr_${rand()}`;
         const slugA = `e2e-cat-${rand()}`;
         const slugB = `e2e-cat-${rand()}`;
         /** The options cell is quoted by `row()`, so inner quotes are doubled. */
@@ -394,6 +398,12 @@ for (const family of FAMILIES) {
             type: "single_select",
             options: opts([{ value: "a", allowed }, { value: "b" }]),
             depends_on: dependsOn,
+          });
+        const boundsRow = (key: string, target: string) =>
+          family.row({
+            attribute_key: key,
+            type: "single_select",
+            options: opts([{ value: "a", bounds: { [target]: { min: 1 } } }]),
           });
         try {
           const { data: seeded, error: seedError } = await supabase
@@ -406,10 +416,13 @@ for (const family of FAMILIES) {
                 options: [{ value: "x" }, { value: "y" }, { value: "z" }],
               },
               { attr_key: numberKey, name_en: numberKey, attr_type: "number" },
+              { attr_key: sharedNumberKey, name_en: sharedNumberKey, attr_type: "number" },
             ])
             .select("id, attr_key");
           if (seedError || !seeded) throw new Error(`IG-2 seed failed: ${seedError?.message}`);
-          const target = seeded.find((row) => row.attr_key === targetKey)!;
+          const target = seeded.find((row) => row.attr_key === targetKey);
+          const sharedNumber = seeded.find((row) => row.attr_key === sharedNumberKey);
+          if (!target || !sharedNumber) throw new Error("IG-2 seeded targets missing");
 
           const { data: cats, error: catError } = await supabase
             .from("categories")
@@ -420,10 +433,11 @@ for (const family of FAMILIES) {
             .select("id, slug");
           if (catError || !cats) throw new Error(`IG-2 categories failed: ${catError?.message}`);
           const catA = cats.find((row) => row.slug === slugA)!;
-          // The target is used at ONE of the owner's two categories only.
-          const { error: linkError } = await supabase
-            .from("category_attribute_links")
-            .insert({ category_id: catA.id, attribute_id: target.id, display_order: 0 });
+          // Each positive target is used at ONE of its owner's two categories only.
+          const { error: linkError } = await supabase.from("category_attribute_links").insert([
+            { category_id: catA.id, attribute_id: target.id, display_order: 0 },
+            { category_id: catA.id, attribute_id: sharedNumber.id, display_order: 1 },
+          ]);
           if (linkError) throw new Error(`IG-2 link failed: ${linkError.message}`);
           // (h) needs a LIVE dependent: the parent walk anchors on live rows
           // (DEC-057 L2-mig), so the dependent is seeded, not created in-file.
@@ -462,13 +476,23 @@ for (const family of FAMILIES) {
             allowedRow(depKey, { [targetKey]: ["x"] }, targetKey),
             // (i) a value the target does not offer.
             allowedRow(`e2e_attr_${rand()}`, { [targetKey]: ["q"] }),
-            // (j) an owner used in two categories, the target in only one.
-            allowedRow(coKey, { [targetKey]: ["x"] }),
+            // (j) target linked in NONE of the owner's categories: refused.
+            allowedRow(allowedNowhereKey, { [targetKey]: ["x"] }),
+            // (k) target linked in ONE of the owner's two categories: accepted.
+            allowedRow(allowedSharedKey, { [targetKey]: ["x"] }),
+            // (l) number target linked in NONE of the owner's categories: refused.
+            boundsRow(boundsNowhereKey, sharedNumberKey),
+            // (m) number target linked in ONE of the owner's two categories: accepted.
+            boundsRow(boundsSharedKey, sharedNumberKey),
           ];
           const links =
             "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin\r\n" +
-            `${slugA},${slugA},${coKey},false,false,,${slugA}\r\n` +
-            `${slugB},${slugB},${coKey},false,false,,${slugB}\r\n`;
+            `${slugB},${slugB},${allowedNowhereKey},false,false,,${slugB}\r\n` +
+            `${slugA},${slugA},${allowedSharedKey},false,false,,${slugA}\r\n` +
+            `${slugB},${slugB},${allowedSharedKey},false,false,,${slugB}\r\n` +
+            `${slugB},${slugB},${boundsNowhereKey},false,false,,${slugB}\r\n` +
+            `${slugA},${slugA},${boundsSharedKey},false,false,,${slugA}\r\n` +
+            `${slugB},${slugB},${boundsSharedKey},false,false,,${slugB}\r\n`;
 
           const answer = await post(page, token, { [family.field]: file(rows), links });
           expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
@@ -492,17 +516,42 @@ for (const family of FAMILIES) {
           expect(named("allowedTargetCircular", selfKey), `IG-2 (g) ${dump}`).toBe(true);
           expect(named("allowedTargetCircular", depKey), `IG-2 (h) ${dump}`).toBe(true);
           expect(named("allowedUnknownValue", "q"), `IG-2 (i) ${dump}`).toBe(true);
-          expect(named("allowedTargetNotColinked", coKey), `IG-2 (j) ${dump}`).toBe(true);
+          expect(named("allowedTargetNotColinked", targetKey), `IG-2 (j) ${dump}`).toBe(true);
+          expect(
+            refusals.some((entry) => entry.row === 12),
+            `IG-2 (k) ${dump}`,
+          ).toBe(false);
+          expect(named("boundsTargetNotColinked", sharedNumberKey), `IG-2 (l) ${dump}`).toBe(true);
+          expect(
+            refusals.some((entry) => entry.row === 14),
+            `IG-2 (m) ${dump}`,
+          ).toBe(false);
           for (const refusal of refusals) expect(refusal.row, dump).toBeGreaterThan(1);
 
           // The preview wrote nothing: not one of these owners exists (F5).
           const { data: written } = await supabase
             .from("attributes")
             .select("attr_key")
-            .in("attr_key", [selfKey, coKey]);
+            .in("attr_key", [
+              selfKey,
+              allowedSharedKey,
+              allowedNowhereKey,
+              boundsSharedKey,
+              boundsNowhereKey,
+            ]);
           expect(written ?? [], `IG-2 the preview wrote a definition: ${dump}`).toHaveLength(0);
         } finally {
-          for (const key of [targetKey, numberKey, selfKey, depKey, coKey]) {
+          for (const key of [
+            targetKey,
+            numberKey,
+            sharedNumberKey,
+            selfKey,
+            depKey,
+            allowedSharedKey,
+            allowedNowhereKey,
+            boundsSharedKey,
+            boundsNowhereKey,
+          ]) {
             const { data: row } = await supabase
               .from("attributes")
               .select("id")

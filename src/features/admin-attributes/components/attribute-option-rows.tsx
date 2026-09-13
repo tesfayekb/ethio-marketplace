@@ -225,7 +225,7 @@ function OptionRow({
               if (event.target.value !== "") setBound(event.target.value, {});
             }}
           >
-            <option value="">{t("admin.attributes.options.boundsAdd")}</option>
+            <option value="">{t("admin.attributes.options.boundsAddExample")}</option>
             {unusedTargets.map((target) => (
               <option key={target.attrKey} value={target.attrKey}>
                 {target.label}

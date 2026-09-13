@@ -3716,9 +3716,9 @@ test.describe("C3 attributes console", () => {
   });
 
   /**
-   * AT-51 — THE CO-LINKAGE REFUSAL IS THE DOOR'S (F3). A bound may only target
-   * a number definition used in every category this definition is used in; the
-   * console offers the picker and RENDERS the refusal, naming the target.
+   * AT-51 — THE CO-LINKAGE VERDICT IS THE DOOR'S (F3). A bound may target a
+   * number linked in one of the owner's categories; a target linked in none is
+   * refused by name and leaves no trace.
    */
   test("AT-51 a bound on a number definition that is not co-linked is refused, naming the target", async ({
     page,
@@ -3728,9 +3728,11 @@ test.describe("C3 attributes console", () => {
     const { secret } = await signInAsSuperAdmin(page);
     const supabase = adminClient();
     const selectKey = `e2e_attr_${rand()}`;
-    const numberKey = `e2e_attr_${rand()}`;
-    const slug = `e2e-cat-${rand()}`;
-    let categoryId = "";
+    const sharedNumberKey = `e2e_attr_${rand()}`;
+    const loneNumberKey = `e2e_attr_${rand()}`;
+    const slugA = `e2e-cat-${rand()}`;
+    const slugB = `e2e-cat-${rand()}`;
+    const categoryIds: string[] = [];
     try {
       const { data: seeded, error } = await supabase
         .from("attributes")
@@ -3741,47 +3743,89 @@ test.describe("C3 attributes console", () => {
             attr_type: "single_select",
             options: [{ value: "alpha", label_en: "Alpha", label_am: "", parent: "" }],
           },
-          { attr_key: numberKey, name_en: numberKey, attr_type: "number" },
+          { attr_key: sharedNumberKey, name_en: sharedNumberKey, attr_type: "number" },
+          { attr_key: loneNumberKey, name_en: loneNumberKey, attr_type: "number" },
         ])
         .select("id, attr_key");
       if (error || !seeded) throw new Error(`AT-51 seed failed: ${error?.message}`);
-      const select = seeded.find((row) => row.attr_key === selectKey)!;
+      const select = seeded.find((row) => row.attr_key === selectKey);
+      const sharedNumber = seeded.find((row) => row.attr_key === sharedNumberKey);
+      if (!select || !sharedNumber) throw new Error("AT-51 seeded attributes missing");
 
-      const { data: category, error: catError } = await supabase
+      const { data: categories, error: catError } = await supabase
         .from("categories")
-        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
-        .select("id")
-        .single();
-      if (catError || !category) throw new Error(`AT-51 category failed: ${catError?.message}`);
-      categoryId = category.id;
-      const { error: linkError } = await supabase
-        .from("category_attribute_links")
-        .insert({ category_id: categoryId, attribute_id: select.id, display_order: 0 });
+        .insert([
+          { slug: slugA, name_en: slugA, is_active: true, allow_listings: true },
+          { slug: slugB, name_en: slugB, is_active: true, allow_listings: true },
+        ])
+        .select("id, slug");
+      if (catError || !categories) throw new Error(`AT-51 category failed: ${catError?.message}`);
+      categoryIds.push(...categories.map((row) => row.id));
+      const categoryA = categories.find((row) => row.slug === slugA);
+      if (!categoryA) throw new Error("AT-51 category A missing");
+      const { error: linkError } = await supabase.from("category_attribute_links").insert([
+        ...categories.map((category) => ({
+          category_id: category.id,
+          attribute_id: select.id,
+          display_order: 0,
+        })),
+        { category_id: categoryA.id, attribute_id: sharedNumber.id, display_order: 1 },
+      ]);
       if (linkError) throw new Error(`AT-51 link failed: ${linkError.message}`);
 
+      // Linked in one of the owner's two categories: accepted.
       await openDefinitionEditor(page, selectKey, "AT-51");
       const alpha = optionRow(page, "", "alpha");
-      await alpha.getByTestId("option-bounds-add").selectOption(numberKey);
-      await alpha.getByTestId(`option-bounds-min-${numberKey}`).fill("2010");
+      await alpha.getByTestId("option-bounds-add").selectOption(sharedNumberKey);
+      await alpha.getByTestId(`option-bounds-min-${sharedNumberKey}`).fill("2010");
       await page.getByTestId("attribute-edit-submit").click();
       await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("attribute-edit-dialog")).toHaveCount(0, { timeout: 30000 });
+      await expect
+        .poll(async () => (await readAttribute(selectKey))?.options, { timeout: 20000 })
+        .toEqual([
+          {
+            value: "alpha",
+            label_en: "Alpha",
+            label_am: "",
+            parent: "",
+            bounds: { [sharedNumberKey]: { min: 2010 } },
+          },
+        ]);
 
+      // Linked in none of the owner's categories: refused.
+      await openDefinitionEditor(page, selectKey, "AT-51 refusal");
+      const refusing = optionRow(page, "", "alpha");
+      await refusing.getByTestId("option-bounds-add").selectOption(loneNumberKey);
+      await refusing.getByTestId(`option-bounds-min-${loneNumberKey}`).fill("1");
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
       const refusal = page.getByTestId("attribute-dialog-error");
       await expect(refusal, await dialogDump(page, "AT-51 no refusal rendered")).toBeVisible({
         timeout: 30000,
       });
-      await expect(refusal, "AT-51 the refusal never names the target").toContainText(numberKey);
+      await expect(refusal, "AT-51 the refusal never names the target").toContainText(
+        loneNumberKey,
+      );
       /* A refused attempt leaves no trace (F5). */
       expect((await readAttribute(selectKey))?.options).toEqual([
-        { value: "alpha", label_en: "Alpha", label_am: "", parent: "" },
+        {
+          value: "alpha",
+          label_en: "Alpha",
+          label_am: "",
+          parent: "",
+          bounds: { [sharedNumberKey]: { min: 2010 } },
+        },
       ]);
     } finally {
-      if (categoryId !== "") {
-        await supabase.from("category_attribute_links").delete().eq("category_id", categoryId);
-        await destroyCategory(slug);
+      if (categoryIds.length > 0) {
+        await supabase.from("category_attribute_links").delete().in("category_id", categoryIds);
+        await destroyCategory(slugA);
+        await destroyCategory(slugB);
       }
       await destroyAttribute(selectKey);
-      await destroyAttribute(numberKey);
+      await destroyAttribute(sharedNumberKey);
+      await destroyAttribute(loneNumberKey);
     }
   });
 
@@ -3940,8 +3984,9 @@ test.describe("C3 attributes console", () => {
     const ownerKey = `e2e_attr_${rand()}`;
     const targetKey = `e2e_attr_${rand()}`;
     const loneKey = `e2e_attr_${rand()}`;
-    const slug = `e2e-cat-${rand()}`;
-    let categoryId = "";
+    const slugA = `e2e-cat-${rand()}`;
+    const slugB = `e2e-cat-${rand()}`;
+    const categoryIds: string[] = [];
     try {
       const { data: seeded, error } = await supabase
         .from("attributes")
@@ -3972,30 +4017,36 @@ test.describe("C3 attributes console", () => {
         .select("id, attr_key");
       if (error || !seeded) throw new Error(`AT-53 seed failed: ${error?.message}`);
 
-      const { data: category, error: catError } = await supabase
+      const { data: categories, error: catError } = await supabase
         .from("categories")
-        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
-        .select("id")
-        .single();
-      if (catError || !category) throw new Error(`AT-53 category failed: ${catError?.message}`);
-      categoryId = category.id;
-      /* The owner and its target share a category; the lone select does not. */
-      const colinked = seeded.filter((row) => row.attr_key !== loneKey);
-      const { error: linkError } = await supabase.from("category_attribute_links").insert(
-        colinked.map((row, index) => ({
-          category_id: categoryId,
-          attribute_id: row.id,
-          display_order: index,
+        .insert([
+          { slug: slugA, name_en: slugA, is_active: true, allow_listings: true },
+          { slug: slugB, name_en: slugB, is_active: true, allow_listings: true },
+        ])
+        .select("id, slug");
+      if (catError || !categories) throw new Error(`AT-53 category failed: ${catError?.message}`);
+      categoryIds.push(...categories.map((row) => row.id));
+      const categoryA = categories.find((row) => row.slug === slugA);
+      const owner = seeded.find((row) => row.attr_key === ownerKey);
+      const target = seeded.find((row) => row.attr_key === targetKey);
+      if (!categoryA || !owner || !target) throw new Error("AT-53 seeded fixtures missing");
+      /* Owner is in two categories; target shares only one; lone shares none. */
+      const { error: linkError } = await supabase.from("category_attribute_links").insert([
+        ...categories.map((category) => ({
+          category_id: category.id,
+          attribute_id: owner.id,
+          display_order: 0,
         })),
-      );
+        { category_id: categoryA.id, attribute_id: target.id, display_order: 1 },
+      ]);
       if (linkError) throw new Error(`AT-53 link failed: ${linkError.message}`);
 
       // THE PICKER TICKS TWO VALUES and the save stores the exact map.
       await openDefinitionEditor(page, ownerKey, "AT-53");
-      const owner = optionRow(page, "", "a");
-      await owner.getByTestId("option-allowed-add").selectOption(targetKey);
-      await owner.getByTestId(`option-allowed-value-${targetKey}-x`).click();
-      await owner.getByTestId(`option-allowed-value-${targetKey}-y`).click();
+      const ownerRow = optionRow(page, "", "a");
+      await ownerRow.getByTestId("option-allowed-add").selectOption(targetKey);
+      await ownerRow.getByTestId(`option-allowed-value-${targetKey}-x`).click();
+      await ownerRow.getByTestId(`option-allowed-value-${targetKey}-y`).click();
       await page.getByTestId("attribute-edit-submit").click();
       await stepUpIfPrompted(page, secret);
       await expect(
@@ -4050,9 +4101,10 @@ test.describe("C3 attributes console", () => {
         { value: "a", label_en: "A", label_am: "", parent: "", allowed: { [targetKey]: ["x"] } },
       ]);
     } finally {
-      if (categoryId !== "") {
-        await supabase.from("category_attribute_links").delete().eq("category_id", categoryId);
-        await destroyCategory(slug);
+      if (categoryIds.length > 0) {
+        await supabase.from("category_attribute_links").delete().in("category_id", categoryIds);
+        await destroyCategory(slugA);
+        await destroyCategory(slugB);
       }
       await destroyAttribute(ownerKey);
       await destroyAttribute(targetKey);

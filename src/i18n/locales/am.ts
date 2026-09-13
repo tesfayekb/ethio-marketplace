@@ -1139,7 +1139,7 @@ export const am: Messages = {
   "admin.attributes.import.reason.allowedTargetNotSelect":
     "አማራጭ “{value}” “{target}”ን ያመለክታል፤ ይህ ግን የምረጥ ባህርይ አይደለም",
   "admin.attributes.import.reason.allowedTargetNotColinked":
-    "አማራጭ “{value}” “{target}”ን ያመለክታል፤ ይህ ግን ይህ ባህርይ በሚሠራበት በየምድቡ አይሠራም",
+    "አማራጭ “{value}” “{target}”ን ያመለክታል፤ ይህ ግን ይህ ባህርይ በሚሠራበት በማንኛውም ምድብ ውስጥ አይሠራም",
   "admin.attributes.import.reason.allowedTargetCircular":
     "አማራጭ “{value}” “{target}”ን ያመለክታል፤ ይህ ግን ይህ ባህርይ ራሱ ነው ወይም በእሱ ይመሠረታል",
   "admin.attributes.import.reason.allowedUnknownValue":
@@ -1196,16 +1196,16 @@ export const am: Messages = {
   "admin.attributes.options.empty": "እስካሁን አማራጮች የሉም።",
   "admin.attributes.options.aliasesHelp": "እስከ አምስት የፍለጋ ተለዋጭ ስሞች፣ እያንዳንዱ 32 ቁምፊ።",
   "admin.attributes.options.aliasPlaceholder": "ተለዋጭ ስም",
-  "admin.attributes.options.boundsHelp":
-    "ለዚህ አማራጭ የቁጥር ባህርይ ገደብ ያድርጉ፤ የቁጥር ባህርዩ ይህ ባህርይ በሚሠራበት በየምድቡ መኖር አለበት።",
+  "admin.attributes.options.boundsHelp": "ገደቡ ይህ ባህርይና የቁጥር ባህርዩ አብረው በሚሠሩበት ቦታ ሁሉ ተግባራዊ ይሆናል።",
   "admin.attributes.options.boundsAdd": "ገደብ ጨምር",
+  "admin.attributes.options.boundsAddExample": "ቁጥርን ገድብ (ለምሳሌ፣ የሞዴል ዓመታት 2008–2026)",
   "admin.attributes.options.boundsMin": "አነስተኛ",
   "admin.attributes.options.boundsMax": "ከፍተኛ",
   "admin.attributes.options.boundsRemove": "ገደብ አስወግድ",
   /* DEC-057 L3 — the allowed-values picker. */
-  "admin.attributes.options.allowedHelp":
-    "ይህ አማራጭ ከሌላ የምረጥ መለያ የሚፈቅዳቸውን ዋጋዎች ይገድቡ፤ ያ መለያ ይህ መለያ በሚያገለግልበት ሁሉም ምድብ ውስጥ መኖር አለበት።",
+  "admin.attributes.options.allowedHelp": "ገደቡ ይህ ባህርይና የዝርዝር ባህርዩ አብረው በሚሠሩበት ቦታ ሁሉ ተግባራዊ ይሆናል።",
   "admin.attributes.options.allowedAdd": "የተፈቀዱ ዋጋዎች መለያ ጨምር",
+  "admin.attributes.options.allowedAddExample": "ዝርዝርን ገድብ (ለምሳሌ፣ ማከማቻ፦ 64 / 128 / 256 GB)",
   "admin.attributes.options.allowedRemove": "የተፈቀዱ ዋጋዎችን አስወግድ",
   "admin.attributes.options.allowedNoValues": "ይህ መለያ እስካሁን ዋጋዎች የለውም።",
 
@@ -1337,11 +1337,11 @@ export const am: Messages = {
   "admin.attributes.error.badCell": "አንድ ቅንብር ተቀባይነት አላገኘም፦ {detail}",
   "admin.attributes.error.boundsTargetNotNumber": "“{target}” የቁጥር ባህርይ አይደለም፤ ገደብ ማድረግ አይቻልም።",
   "admin.attributes.error.boundsTargetNotColinked":
-    "“{target}” ይህ ባህርይ በሚሠራበት በየምድቡ ስለማይሠራ፣ በዚህ ቦታ ገደብ ማድረግ አይቻልም።",
+    "“{target}” ይህ ባህርይ በሚሠራበት በማንኛውም ምድብ ውስጥ ስለማይሠራ፣ በዚህ ቦታ ገደብ ማድረግ አይቻልም።",
   /* DEC-057 L2 — በአማራጭ የተመሠረቱ የተፈቀዱ እሴቶች የበሩ ፍርዶች */
   "admin.attributes.error.allowedTargetNotSelect": "“{target}” የምረጥ ባህርይ ስላልሆነ እሴቶቹን መገደብ አይቻልም።",
   "admin.attributes.error.allowedTargetNotColinked":
-    "“{target}” ይህ ባህርይ በሚሠራበት በየምድቡ ስለማይሠራ፣ በዚህ ቦታ እሴቶቹን መገደብ አይቻልም።",
+    "“{target}” ይህ ባህርይ በሚሠራበት በማንኛውም ምድብ ውስጥ ስለማይሠራ፣ በዚህ ቦታ እሴቶቹን መገደብ አይቻልም።",
   "admin.attributes.error.allowedTargetCircular":
     "“{target}” ይህ ባህርይ ራሱ ነው ወይም በእሱ ስለሚመሠረት፣ እሴቶቹን መገደብ አይቻልም።",
   "admin.attributes.error.allowedUnknownValue":

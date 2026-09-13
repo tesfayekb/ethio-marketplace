@@ -1205,7 +1205,7 @@ export const en = {
   "admin.attributes.import.reason.allowedTargetNotSelect":
     "Option “{value}” points at “{target}”, which is not a select attribute",
   "admin.attributes.import.reason.allowedTargetNotColinked":
-    "Option “{value}” points at “{target}”, which is not used in every category this attribute is used in",
+    "Option “{value}” points at “{target}”, which is not used in any category this attribute is used in",
   "admin.attributes.import.reason.allowedTargetCircular":
     "Option “{value}” points at “{target}”, which is this attribute itself or depends on it",
   "admin.attributes.import.reason.allowedUnknownValue":
@@ -1265,15 +1265,18 @@ export const en = {
   "admin.attributes.options.aliasesHelp": "Up to five search aliases, 32 characters each.",
   "admin.attributes.options.aliasPlaceholder": "alias",
   "admin.attributes.options.boundsHelp":
-    "Limit a number attribute for this option; the number attribute must be used in every category this attribute is used in.",
+    "The limit applies wherever this attribute and the number attribute are used together.",
   "admin.attributes.options.boundsAdd": "Add a bound",
+  "admin.attributes.options.boundsAddExample": "Limit a number (e.g., model years 2008–2026)",
   "admin.attributes.options.boundsMin": "Minimum",
   "admin.attributes.options.boundsMax": "Maximum",
   "admin.attributes.options.boundsRemove": "Remove bound",
   /* DEC-057 L3 — the allowed-values picker. */
   "admin.attributes.options.allowedHelp":
-    "Limit which values of another select attribute this option allows; that attribute must be used in every category this attribute is used in.",
+    "The restriction applies wherever this attribute and the list attribute are used together.",
   "admin.attributes.options.allowedAdd": "Add an allowed-values attribute",
+  "admin.attributes.options.allowedAddExample":
+    "Restrict a list (e.g., storage: 64 / 128 / 256 GB)",
   "admin.attributes.options.allowedRemove": "Remove allowed values",
   "admin.attributes.options.allowedNoValues": "This attribute has no values yet.",
 
@@ -1421,12 +1424,12 @@ export const en = {
   "admin.attributes.error.boundsTargetNotNumber":
     "“{target}” is not a number attribute, so it cannot be limited.",
   "admin.attributes.error.boundsTargetNotColinked":
-    "“{target}” is not used in every category this attribute is used in, so it cannot be limited here.",
+    "“{target}” is not used in any category this attribute is used in, so it cannot be limited here.",
   /* DEC-057 L2 — the door's own refusals for option-conditioned allowed values. */
   "admin.attributes.error.allowedTargetNotSelect":
     "“{target}” is not a select attribute, so its values cannot be restricted.",
   "admin.attributes.error.allowedTargetNotColinked":
-    "“{target}” is not used in every category this attribute is used in, so its values cannot be restricted here.",
+    "“{target}” is not used in any category this attribute is used in, so its values cannot be restricted here.",
   "admin.attributes.error.allowedTargetCircular":
     "“{target}” is this attribute itself or depends on it, so its values cannot be restricted here.",
   "admin.attributes.error.allowedUnknownValue":

@@ -705,8 +705,10 @@ on every console save.
 
 Co-linkage is NOT judged in the browser (F3): the picker only offers number
 definitions and `admin_upsert_attribute` refuses a bound whose target is not a
-number, or is not used in every category this definition is used in. The
-refusal renders through `attribute-dialog-error`, naming the target.
+number, or is not linked, directly or by inheritance, in at least one category
+where the owning definition is linked (the constraint applies wherever both are
+present — DEC-057b). The refusal renders through `attribute-dialog-error`,
+naming the target.
 
 Proofs: AT-49 (a no-edit save preserves every stored field; the Amharic
 coverage meter is unchanged), AT-50 (a label, an alias and a deactivation land
@@ -715,6 +717,6 @@ names the target and leaves no trace).
 
 ## DEC-057 — option-conditioned allowed values
 
-An option record may carry `allowed: { "<select attribute_key>": ["value", …] }` (≤5 targets, ≤50 values each): the option constrains which values of a sibling select attribute a poster may choose (a phone model's storage tiers). The target must be a single- or multi-select definition linked wherever the owner is linked, never the owner, its `depends_on` parent or a definition that depends on it; every value must exist in the target's list. The rule is `attr_allowed_check`, applied by the door against live definitions and by the planner against the plan (so a file may create the owner and the target together). At posting, selected options' `allowed` sets fold by intersection per target and an empty intersection is refused by name (DEC-051). Written only when non-empty, in jsonb order; the gate checks shape only. Proofs: IG-2 rows per rule, AT-52.
+An option record may carry `allowed: { "<select attribute_key>": ["value", …] }` (≤5 targets, ≤50 values each): the option constrains which values of a sibling select attribute a poster may choose (a phone model's storage tiers). The target must be a single- or multi-select definition linked in at least one category where the owner is linked (the restriction applies wherever both are present — DEC-057b); never the owner, its `depends_on` parent or a definition that depends on it; every value must exist in the target's list. The rule is `attr_allowed_check`, applied by the door against live definitions and by the planner against the plan (so a file may create the owner and the target together). At posting, selected options' `allowed` sets fold by intersection per target and an empty intersection is refused by name (DEC-051). Written only when non-empty, in jsonb order; the gate checks shape only. Proofs: IG-2 rows per rule, AT-52.
 
 The row editor's "Allowed values" block sets `allowed` per option: a select target from the library (never the definition itself, its parent or its dependents), then the ticked values from that target's list; the door refuses a target that is not co-linked, naming it (AT-53).
