@@ -1361,6 +1361,35 @@ async function main() {
       );
       process.exit(1);
     }
+    // INC-194 — the window opens at the FINAL summary line: a FAILING test's own
+    // error block (printed in the failure summary, before it) is not swept in,
+    // while a teardown line after the summary still is.
+    const windowLog = [
+      "  ✓  1 [mobile-360] › e2e/x.spec.ts:1:1 › a passing test (1.0s)",
+      "  1) [mobile-360] › e2e/admin-translations-data.spec.ts:211:3 › TR-24 ─────",
+      "    Error: entity stats never moved below 5",
+      "      expect(received).toBeLessThan(expected)",
+      "  1 failed",
+      "    [mobile-360] › e2e/admin-translations-data.spec.ts:211:3 › TR-24",
+      "  87 passed (6.0m)",
+      "[e2e:teardown] deleted 58 user(s) owned by process 34753266967-2",
+      "Error: Process completed with exit code 1.",
+    ].join("\n");
+    const windowBand = grepPostTestErrors(windowLog);
+    const sweptOwnFailure = windowBand.some((line) =>
+      line.includes("entity stats never moved below 5"),
+    );
+    const keptTeardown = windowBand.some((line) => line.includes("[e2e:teardown] deleted 58"));
+    const keptExit = windowBand.some(
+      (line) => line.trim() === "Error: Process completed with exit code 1.",
+    );
+    if (sweptOwnFailure || !keptTeardown || !keptExit) {
+      console.error(
+        `SELF-TEST FAILED — INC-194 post-test window: swept own failure=${sweptOwnFailure}, kept teardown=${keptTeardown}, kept exit=${keptExit} (${windowBand.length} line(s)).`,
+      );
+      process.exit(1);
+    }
+
     const withoutBand = renderSources(
       [{ label: "shard 6", json: fixture, logTail: null, serverErrors: [], clientErrors: [] }],
       meta,
