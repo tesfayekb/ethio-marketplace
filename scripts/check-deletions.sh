@@ -135,6 +135,41 @@ self_test() {
       echo "SELF-TEST FAILED: an addition-only range was rejected." >&2
       exit 1
     fi
+
+    # ── INC-192 — THE MANIFEST DOOR, both directions ──────────────────────────
+    mkmanifest() { # <body> -> top-level tree entry for docs/tracking/...
+      local blob tracking docs
+      blob="$(printf '%s' "$1" | git hash-object -w --stdin)"
+      tracking="$(printf '100644 blob %s\tintentional-deletions.txt\n' "$blob" | git mktree)"
+      docs="$(printf '040000 tree %s\ttracking\n' "$tracking" | git mktree)"
+      printf '040000 tree %s\tdocs\n' "$docs"
+    }
+    mEmpty="$(mkmanifest '# manifest
+')"
+    mNamed="$(mkmanifest '# manifest
+b.txt
+')"
+
+    # 4a: the range ADDS the deleted path to the manifest → PASS.
+    m1="$(printf '100644 blob %s\ta.txt\n100644 blob %s\tb.txt\n%s' "$a" "$b" "$mEmpty" | git mktree)"
+    m2="$(printf '100644 blob %s\ta.txt\n%s' "$a" "$mNamed" | git mktree)"
+    mBase="$(git commit-tree "$m1" -m 'base with manifest')"
+    mDeclared="$(git commit-tree "$m2" -p "$mBase" -m 'drop b, declare in manifest')"
+    if ! bash "$guard" "$mBase" "$mDeclared" >/dev/null 2>&1; then
+      echo "SELF-TEST FAILED: a deletion declared by an added manifest line was rejected." >&2
+      exit 1
+    fi
+
+    # 4b: the path is only PRE-EXISTING in the manifest → FAIL.
+    m3="$(printf '100644 blob %s\ta.txt\n100644 blob %s\tb.txt\n%s' "$a" "$b" "$mNamed" | git mktree)"
+    m4="$(printf '100644 blob %s\ta.txt\n%s' "$a" "$mNamed" | git mktree)"
+    mStale="$(git commit-tree "$m3" -m 'base whose manifest already names b.txt')"
+    mUndeclared="$(git commit-tree "$m4" -p "$mStale" -m 'drop b, manifest untouched')"
+    if bash "$guard" "$mStale" "$mUndeclared" >/dev/null 2>&1; then
+      echo "SELF-TEST FAILED: a pre-existing manifest line declared a new deletion." >&2
+      exit 1
+    fi
+
   )
   status=$?
   rm -rf "$tmp"
