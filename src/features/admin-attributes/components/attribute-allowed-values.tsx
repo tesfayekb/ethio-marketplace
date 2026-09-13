@@ -44,11 +44,12 @@ export function AttributeAllowedValues({
   const unused = targets.filter((target) => option.allowed?.[target.attrKey] === undefined);
   const atCeiling = entries.length >= ALLOWED_TARGET_MAX;
 
-  /** `allowed` is written only when non-empty: an empty map is silence. */
-  const commit = (next: Record<string, string[]>) => {
-    const kept = Object.entries(next).filter(([, values]) => values.length > 0);
-    onChange(kept.length === 0 ? { allowed: undefined } : { allowed: Object.fromEntries(kept) });
-  };
+  /**
+   * A target picked but not yet ticked STANDS while the row is edited; the
+   * writer prunes empty lists, so an empty map reaches the door as silence.
+   */
+  const commit = (next: Record<string, string[]>) =>
+    onChange({ allowed: Object.keys(next).length === 0 ? undefined : next });
 
   const addTarget = (target: string) => commit({ ...(option.allowed ?? {}), [target]: [] });
 
