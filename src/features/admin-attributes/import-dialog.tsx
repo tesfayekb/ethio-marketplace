@@ -151,6 +151,11 @@ export function ImportAttributesDialog({
           field: "links",
           id: "attribute-import-links",
           labelKey: "admin.attributes.import.linksFile",
+          /**
+           * C3-UX-8 — the route refuses only when BOTH files are empty, so a
+           * definitions-only run has always been legal; Preview now matches it.
+           */
+          optional: true,
         },
       ]}
       countFields={COUNT_FIELDS}

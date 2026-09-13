@@ -990,6 +990,8 @@ export const am: Messages = {
   "admin.attributes.import.hint": "ያወጡትን ሁለቱን ፋይሎች ይምረጡ። ቅድመ-እይታውን እስኪያረጋግጡ ድረስ ምንም አይመዘገብም።",
   "admin.attributes.import.definitionsFile": "የትርጓሜዎች ፋይል",
   "admin.attributes.import.linksFile": "የአገናኞች ፋይል",
+  /* C3-UX-8 — የአገናኞች ፋይል አማራጭ ነው፤ መንገዱ ከጅምሩ እንደፈቀደው። */
+  "admin.attributes.import.optionalFile": "አማራጭ — የምድብ አገናኞች ሲቀየሩ ብቻ ይምረጡት።",
   "admin.attributes.import.preview": "ለውጦችን ቀድመው ይመልከቱ",
   "admin.attributes.import.busy": "ፋይሎቹ በመፈተሽ ላይ…",
   "admin.attributes.import.counts":
@@ -1208,6 +1210,17 @@ export const am: Messages = {
   "admin.attributes.options.allowedAddExample": "ዝርዝርን ገድብ (ለምሳሌ፣ ማከማቻ፦ 64 / 128 / 256 GB)",
   "admin.attributes.options.allowedRemove": "የተፈቀዱ ዋጋዎችን አስወግድ",
   "admin.attributes.options.allowedNoValues": "ይህ መለያ እስካሁን ዋጋዎች የለውም።",
+  /* C3-UX-7 — ረጅም የአማራጭ ዝርዝርን መዘዋወር። */
+  "admin.attributes.options.search": "አማራጭ ፈልግ",
+  "admin.attributes.options.searchPlaceholder": "ዋጋ ወይም መለያ ስም",
+  "admin.attributes.options.parentFilter": "የትኞቹን አማራጮች አሳይ",
+  "admin.attributes.options.parentFilterAll": "ሁሉም የወላጅ ዋጋዎች",
+  "admin.attributes.options.countLine": "ከ{total} ውስጥ {shown}",
+  /* C3-UX-9 — ገደብ ወይም ክልከላ መያዝ የሚችሉት አብረው የሚሠሩ ባህርያት ብቻ ናቸው። */
+  "admin.attributes.options.boundsNoTargets":
+    "ከዚህ ጋር አብሮ የሚሠራ የቁጥር ባህርይ የለም፤ ስለዚህ የሚገደብ ምንም አይኖርም።",
+  "admin.attributes.options.allowedNoTargets":
+    "ከዚህ ጋር አብሮ የሚሠራ የዝርዝር ባህርይ የለም፤ ስለዚህ የሚከለከል ምንም አይኖርም።",
 
   "admin.attributes.field.help": "የእገዛ ጽሑፍ",
   /* DEC-050 L3a — የv2 መስኮች፤ የበሩ ፍተሻዎች ወሳኝ ናቸው። */

@@ -586,9 +586,10 @@ resolver for a bound: a numeric literal is itself, `year`, `year+N` and `year-N`
 resolve against the UTC calendar year. CHECK constraints hold the same law at
 the table, so nothing can be written around the doors.
 
-Bounds co-linkage: an option's `bounds` may only name a `number` definition that
-is linked — directly or through the primary lineage (INH-1) — in EVERY category
-where the owner is linked. The door judges that against the LIVE links; the
+Bounds co-linkage (DEC-057b): an option's `bounds` may only name a `number`
+definition that is linked — directly or through the primary lineage (INH-1) — in
+AT LEAST ONE category where the owner is linked; a target linked in none of them
+is refused. The door judges that against the LIVE links; the
 planner judges it against the POST-PLAN link set (`attr_postplan_cats` +
 `attr_cats_expand`), so a file that links owner and target together is accepted
 and a file that links only the owner is refused with `boundsTargetNotColinked`.
@@ -712,11 +713,24 @@ naming the target.
 
 Proofs: AT-49 (a no-edit save preserves every stored field; the Amharic
 coverage meter is unchanged), AT-50 (a label, an alias and a deactivation land
-as records and read back, a new option is added), AT-51 (the co-linkage refusal
-names the target and leaves no trace).
+as records and read back, a new option is added), AT-51 (the bounds picker
+offers a co-linked number and withholds one linked nowhere).
 
 ## DEC-057 — option-conditioned allowed values
 
 An option record may carry `allowed: { "<select attribute_key>": ["value", …] }` (≤5 targets, ≤50 values each): the option constrains which values of a sibling select attribute a poster may choose (a phone model's storage tiers). The target must be a single- or multi-select definition linked in at least one category where the owner is linked (the restriction applies wherever both are present — DEC-057b); never the owner, its `depends_on` parent or a definition that depends on it; every value must exist in the target's list. The rule is `attr_allowed_check`, applied by the door against live definitions and by the planner against the plan (so a file may create the owner and the target together). At posting, selected options' `allowed` sets fold by intersection per target and an empty intersection is refused by name (DEC-051). Written only when non-empty, in jsonb order; the gate checks shape only. Proofs: IG-2 rows per rule, AT-52.
 
-The row editor's "Allowed values" block sets `allowed` per option: a select target from the library (never the definition itself, its parent or its dependents), then the ticked values from that target's list; the door refuses a target that is not co-linked, naming it (AT-53).
+The row editor's "Allowed values" block sets `allowed` per option: a select target from the library (never the definition itself, its parent or its dependents), then the ticked values from that target's list.
+
+C3-UX-9 — the constraint pickers offer CO-LINKED candidates only. Both the
+bounds picker and the allowed-values picker filter their candidates through
+`coLinkedFilter` (`attributes-service.ts`), which reads the library's link rows
+and the category tree and keeps a candidate only when it shares at least one
+effective category with the definition being edited — a link at an ancestor
+counts for every descendant (DEC-044 inheritance), matching the door's own
+`attr_cats_expand`. A definition linked NOWHERE constrains nothing, so every
+candidate stays on offer for it (the door is equally permissive), and create
+mode has no owner yet and behaves the same way. This is convenience only: the
+server judges every save (F3) and its refusals still render through
+`attribute-dialog-error`. Proofs: AT-51, AT-53 (a target linked in none of the
+owner's categories appears in no picker and nothing changes).

@@ -1046,6 +1046,9 @@ export const en = {
     "Choose the two files you exported. Nothing is written until you confirm the preview.",
   "admin.attributes.import.definitionsFile": "Definitions file",
   "admin.attributes.import.linksFile": "Links file",
+  /* C3-UX-8 — the links file is optional, exactly as the route always allowed. */
+  "admin.attributes.import.optionalFile":
+    "Optional — choose it only when the category links change.",
   "admin.attributes.import.preview": "Preview changes",
   "admin.attributes.import.busy": "Checking the files…",
   "admin.attributes.import.counts":
@@ -1279,6 +1282,17 @@ export const en = {
     "Restrict a list (e.g., storage: 64 / 128 / 256 GB)",
   "admin.attributes.options.allowedRemove": "Remove allowed values",
   "admin.attributes.options.allowedNoValues": "This attribute has no values yet.",
+  /* C3-UX-7 — the operator's walk through a long option list. */
+  "admin.attributes.options.search": "Find an option",
+  "admin.attributes.options.searchPlaceholder": "value or label",
+  "admin.attributes.options.parentFilter": "Show options for",
+  "admin.attributes.options.parentFilterAll": "All parent values",
+  "admin.attributes.options.countLine": "{shown} of {total}",
+  /* C3-UX-9 — only co-linked definitions can carry a bound or a restriction. */
+  "admin.attributes.options.boundsNoTargets":
+    "No number attribute is used alongside this one, so there is nothing to limit.",
+  "admin.attributes.options.allowedNoTargets":
+    "No list attribute is used alongside this one, so there is nothing to restrict.",
 
   "admin.attributes.field.help": "Help text",
   /* DEC-050 L3a — the v2 definition fields; the door's CHECKs stay authoritative. */
