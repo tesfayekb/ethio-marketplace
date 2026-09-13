@@ -2124,3 +2124,10 @@ INC-184, the same class): scope the snapshot to rows outside the scratch
 namespace, or to the test's own subject, so other tests' rows fall out of the
 
 invariant. Class: J6 invariant leak.
+
+
+INC-184, INC-189, INC-190 — CLOSED 2026-09-13 by DEC-059: TR-29 counts and compares stable rows plus its own key; TR-34's bundle snapshot excludes the reserved `e2e-`/`e2e_` prefix; the teardown retries and warns instead of failing a green shard; the reporter captures post-test lines into the evidence file (fixture: the real shard-6 log tail of run 34741970648, attempt 1).
+
+## INC-191 — the reporter's self-test wrote the tracked evidence file
+
+During the DEC-059 landing the reporter's `--self-test` rendered into `docs/tracking/e2e-last-failure.md`; the platform's mid-turn auto-commit shipped a local run's output ("Run: local") before the executor's restore, so HEAD briefly carried a fake evidence file until the next CI run rewrote it. Fix: the self-test renders into a temp directory and never writes the tracked file. Class: a tool writing evidence it did not earn (G20). Rule for prompts: every landing's VERBATIM record blocks are copied to a scratch file before editing (they were lost from the executor's context twice in code-heavy turns).
