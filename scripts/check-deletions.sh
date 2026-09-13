@@ -30,18 +30,11 @@ MANIFEST="docs/tracking/intentional-deletions.txt"
 # Paths the range ADDS to the manifest (added lines only, comments stripped).
 manifest_added_paths() {
   local before="$1" head="$2"
-  git diff --unified=0 -- "$MANIFEST" "$before" "$head" 2>/dev/null |
+  git diff --unified=0 "$before" "$head" -- "$MANIFEST" 2>/dev/null |
     grep '^+' | grep -v '^+++' | sed 's/^+//' |
     sed 's/#.*//' | sed 's/[[:space:]]*$//' | sed 's/^[[:space:]]*//' |
     grep -v '^$' || true
 }
-
-#
-# Usage:  bash scripts/check-deletions.sh [<before-sha>] [<head-sha>]
-#         SELF_TEST=1 bash scripts/check-deletions.sh   # synthetic repo proof
-set -uo pipefail
-
-MARKER="[intentional-delete]"
 
 run_guard() {
   local before="${1:-}" head="${2:-HEAD}"
@@ -65,19 +58,41 @@ run_guard() {
     return 0
   fi
 
+  # DOOR 1 — the commit-message marker.
   if git log --format=%B "${before}..${head}" | grep -qF "$MARKER"; then
     echo "Deletions declared with ${MARKER}:"
     echo "$deleted"
     return 0
   fi
 
+  # DOOR 2 (INC-192) — every deleted path named by a line the range ADDS to the
+  # manifest. A pre-existing manifest line declares nothing.
+  local added undeclared=""
+  added="$(manifest_added_paths "$before" "$head")"
+  local path
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    if ! printf '%s\n' "$added" | grep -qxF "$path"; then
+      undeclared="${undeclared}${path}"$'\n'
+    fi
+  done <<< "$deleted"
+
+  if [ -z "$undeclared" ]; then
+    echo "Deletions declared in ${MANIFEST} by this range:"
+    echo "$deleted"
+    return 0
+  fi
+
   echo "::error::Unexplained deletions in ${before}..${head} (INC-076)."
-  echo "The following files were deleted with no ${MARKER} marker in any commit message:"
-  echo "$deleted"
-  echo "If the removal is intended, say so in the commit message; otherwise you are"
-  echo "pushing from a stale checkout and are about to erase someone's work."
+  echo "The following files were deleted with no ${MARKER} marker in any commit"
+  echo "message and no path line added to ${MANIFEST} by this range:"
+  printf '%s' "$undeclared"
+  echo "If the removal is intended, say so in the commit message or add the path to"
+  echo "${MANIFEST} in the same push; otherwise you are pushing from a stale"
+  echo "checkout and are about to erase someone's work."
   return 1
 }
+
 
 self_test() {
   local guard tmp status
