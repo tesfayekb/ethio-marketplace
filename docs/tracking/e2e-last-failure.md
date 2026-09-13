@@ -1,27 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: local
-- Commit: `local`
+last E2E run 34752429130 passed
+
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34752429130
+- Commit: `eaf443eebc530af6f531291b808c9b3355d83b1c`
 - Attempt: 1
-- Written (UTC): 2026-09-13T10:46:28.196Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): none
-- Sources without results: all
-
-## Server errors: all
-
-No `[ssr-error]` lines in the `all` log (or no log was uploaded).
-
-## Client errors: all
-
-No `[client-error]` lines in the `all` log (or no log was uploaded).
-
-## all: no results file
-
-all: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
+- Written (UTC): 2026-09-13T10:48:08.400Z
+- Post-test warnings: 0
