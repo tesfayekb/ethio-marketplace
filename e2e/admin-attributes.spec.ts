@@ -2972,9 +2972,15 @@ test.describe("C3 attributes console", () => {
       await page.getByTestId("attribute-import").click();
       await expect(page.getByTestId("attribute-import-dialog")).toBeVisible({ timeout: 20000 });
 
-      // READY — Preview waits for BOTH files; Confirm is not rendered at all.
+      /**
+       * READY — Preview waits for a file; Confirm is not rendered at all.
+       * C3-UX-8 — the links slot says in words that it is optional, so ONE file
+       * opens Preview (the route has always accepted a definitions-only run).
+       */
       await expect(page.getByTestId("attribute-import-confirm")).toHaveCount(0);
       await expect(page.getByTestId("attribute-import-definitions-choose")).toBeVisible();
+      await expect(page.getByTestId("attribute-import-links-optional")).toBeVisible();
+      await expect(page.getByTestId("attribute-import-definitions-optional")).toHaveCount(0);
       await expect(page.getByTestId("attribute-import-preview")).toBeDisabled();
       await attachCsv(
         page,
@@ -2985,7 +2991,7 @@ test.describe("C3 attributes console", () => {
       await expect(page.getByTestId("attribute-import-definitions-chosen")).toHaveText(
         "definitions.csv",
       );
-      await expect(page.getByTestId("attribute-import-preview")).toBeDisabled();
+      await expect(page.getByTestId("attribute-import-preview")).toBeEnabled();
       await attachCsv(
         page,
         "attribute-import-links",
@@ -3716,11 +3722,13 @@ test.describe("C3 attributes console", () => {
   });
 
   /**
-   * AT-51 — THE CO-LINKAGE VERDICT IS THE DOOR'S (F3). A bound may target a
-   * number linked in one of the owner's categories; a target linked in none is
-   * refused by name and leaves no trace.
+   * AT-51 — THE PICKER OFFERS CO-LINKED TARGETS ONLY (C3-UX-9). A bound may
+   * target a number linked in ONE of the owner's categories (DEC-057b), so that
+   * one is on offer and saves; a number linked in none of them is withheld, so
+   * the refusal can no longer be reached by hand. The DOOR still judges every
+   * save (F3) — IG-2 proves `boundsTargetNotColinked` through the import route.
    */
-  test("AT-51 a bound on a number definition that is not co-linked is refused, naming the target", async ({
+  test("AT-51 the bounds picker offers a co-linked number and withholds one linked nowhere", async ({
     page,
   }) => {
     test.setTimeout(180_000);
@@ -3793,21 +3801,22 @@ test.describe("C3 attributes console", () => {
           },
         ]);
 
-      // Linked in none of the owner's categories: refused.
-      await openDefinitionEditor(page, selectKey, "AT-51 refusal");
+      // Linked in NONE of the owner's categories: never on offer.
+      await openDefinitionEditor(page, selectKey, "AT-51 withheld");
       const refusing = optionRow(page, "", "alpha");
-      await refusing.getByTestId("option-bounds-add").selectOption(loneNumberKey);
-      await refusing.getByTestId(`option-bounds-min-${loneNumberKey}`).fill("1");
-      await page.getByTestId("attribute-edit-submit").click();
-      await stepUpIfPrompted(page, secret);
-      const refusal = page.getByTestId("attribute-dialog-error");
-      await expect(refusal, await dialogDump(page, "AT-51 no refusal rendered")).toBeVisible({
+      await expect(refusing, await dialogDump(page, "AT-51 the row never rendered")).toBeVisible({
         timeout: 30000,
       });
-      await expect(refusal, "AT-51 the refusal never names the target").toContainText(
-        loneNumberKey,
-      );
-      /* A refused attempt leaves no trace (F5). */
+      /* Withheld means UNREACHABLE: no picker offers it, so no option names it. */
+      await expect(
+        refusing.locator(`option[value="${loneNumberKey}"]`),
+        "AT-51 a target linked nowhere is still on offer",
+      ).toHaveCount(0);
+      await expect(
+        refusing.getByTestId(`option-bounds-target-${sharedNumberKey}`),
+        "AT-51 the co-linked bound never read back",
+      ).toBeVisible();
+      /* Nothing was chosen, so nothing changed. */
       expect((await readAttribute(selectKey))?.options).toEqual([
         {
           value: "alpha",
@@ -3974,7 +3983,7 @@ test.describe("C3 attributes console", () => {
    * map, reopening pre-fills the ticks, unticking narrows it, and a target that
    * is not co-linked is refused BY NAME with the stored options untouched (F5).
    */
-  test("AT-53 the allowed-values picker stores the map, reads it back, and renders the co-linkage refusal", async ({
+  test("AT-53 the allowed-values picker stores the map, reads it back, and withholds a target linked nowhere", async ({
     page,
   }) => {
     test.setTimeout(180_000);
@@ -4084,19 +4093,26 @@ test.describe("C3 attributes console", () => {
           { value: "a", label_en: "A", label_am: "", parent: "", allowed: { [targetKey]: ["x"] } },
         ]);
 
-      // A TARGET LINKED NOWHERE is the door's refusal, named in the dialog.
-      await openDefinitionEditor(page, ownerKey, "AT-53 refusal");
+      /**
+       * C3-UX-9 — A TARGET LINKED NOWHERE is never offered, so the refusal
+       * cannot be reached by hand. The door still judges it: AT-52 proves the
+       * `allowed*` vocabulary through the import route.
+       */
+      await openDefinitionEditor(page, ownerKey, "AT-53 withheld");
       const refusing = optionRow(page, "", "a");
-      await refusing.getByTestId("option-allowed-add").selectOption(loneKey);
-      await refusing.getByTestId(`option-allowed-value-${loneKey}-p`).click();
-      await page.getByTestId("attribute-edit-submit").click();
-      await stepUpIfPrompted(page, secret);
-      const refusal = page.getByTestId("attribute-dialog-error");
-      await expect(refusal, await dialogDump(page, "AT-53 no refusal rendered")).toBeVisible({
+      await expect(refusing, await dialogDump(page, "AT-53 the row never rendered")).toBeVisible({
         timeout: 30000,
       });
-      await expect(refusal, "AT-53 the refusal never names the target").toContainText(loneKey);
-      /* A refused attempt leaves no trace (F5). */
+      /* Withheld means UNREACHABLE: no picker offers it, so no option names it. */
+      await expect(
+        refusing.locator(`option[value="${loneKey}"]`),
+        "AT-53 a target linked nowhere is still on offer",
+      ).toHaveCount(0);
+      await expect(
+        refusing.getByTestId(`option-allowed-target-${targetKey}`),
+        "AT-53 the co-linked target never read back",
+      ).toBeVisible();
+      /* Nothing was chosen, so nothing changed. */
       expect((await readAttribute(ownerKey))?.options).toEqual([
         { value: "a", label_en: "A", label_am: "", parent: "", allowed: { [targetKey]: ["x"] } },
       ]);
@@ -4109,6 +4125,49 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(ownerKey);
       await destroyAttribute(targetKey);
       await destroyAttribute(loneKey);
+    }
+  });
+
+  /**
+   * AT-54 (C3-UX-8) — A DEFINITIONS-ONLY RUN REACHES A VERDICT. The links
+   * picker is optional, so one file previews: the counts render and Discard
+   * writes nothing (DB truth, J4).
+   */
+  test("AT-54 the import dialog previews a definitions-only run and discards it", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const key = `e2e_attr_${rand()}`;
+    try {
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-import").click();
+      await expect(page.getByTestId("attribute-import-dialog")).toBeVisible({ timeout: 20000 });
+
+      await attachCsv(
+        page,
+        "attribute-import-definitions",
+        "definitions.csv",
+        `${DEF_HEADER}\r\n${v2(`${key},${key},,text,,,,`)}\r\n`,
+      );
+      await expect(page.getByTestId("attribute-import-links-chosen")).toBeVisible();
+      await expect(page.getByTestId("attribute-import-preview")).toBeEnabled();
+
+      await page.getByTestId("attribute-import-preview").click();
+      const counts = page.getByTestId("attribute-import-counts");
+      await expect(counts).toBeVisible({ timeout: 120_000 });
+      // One definition added, and nothing refused.
+      const numbers = countsOf((await counts.textContent()) ?? "");
+      expect(numbers[0], `AT-54 the plan carries no add: ${numbers.join(",")}`).toBe(1);
+      expect(numbers[5], `AT-54 the plan refused a row: ${numbers.join(",")}`).toBe(0);
+
+      await page.getByTestId("attribute-import-discard").click();
+      await expect(page.getByTestId("attribute-import-dialog")).toHaveCount(0);
+      expect(await readAttribute(key), "AT-54 the preview wrote a definition").toBeNull();
+    } finally {
+      await destroyAttribute(key);
     }
   });
 });

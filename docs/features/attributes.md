@@ -586,9 +586,10 @@ resolver for a bound: a numeric literal is itself, `year`, `year+N` and `year-N`
 resolve against the UTC calendar year. CHECK constraints hold the same law at
 the table, so nothing can be written around the doors.
 
-Bounds co-linkage: an option's `bounds` may only name a `number` definition that
-is linked — directly or through the primary lineage (INH-1) — in EVERY category
-where the owner is linked. The door judges that against the LIVE links; the
+Bounds co-linkage (DEC-057b): an option's `bounds` may only name a `number`
+definition that is linked — directly or through the primary lineage (INH-1) — in
+AT LEAST ONE category where the owner is linked; a target linked in none of them
+is refused. The door judges that against the LIVE links; the
 planner judges it against the POST-PLAN link set (`attr_postplan_cats` +
 `attr_cats_expand`), so a file that links owner and target together is accepted
 and a file that links only the owner is refused with `boundsTargetNotColinked`.

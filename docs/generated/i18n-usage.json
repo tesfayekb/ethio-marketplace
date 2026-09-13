@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 213,
-  "dynamicCallSites": 116,
+  "scanned": 214,
+  "dynamicCallSites": 117,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -410,6 +410,10 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.options.allowedNoTargets": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.options.allowedNoValues": [
       "/admin/attributes",
       "/admin/categories"
@@ -434,7 +438,15 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.options.boundsNoTargets": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.options.boundsRemove": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.countLine": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -454,6 +466,14 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.options.parentFilter": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.parentFilterAll": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.options.removeRow": [
       "/admin/attributes",
       "/admin/categories"
@@ -463,6 +483,14 @@
       "/admin/categories"
     ],
     "admin.attributes.options.rowsLabel": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.search": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.options.searchPlaceholder": [
       "/admin/attributes",
       "/admin/categories"
     ],

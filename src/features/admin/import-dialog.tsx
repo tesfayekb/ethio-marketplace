@@ -28,6 +28,11 @@ export interface ImportFileField {
   /** The input's id and data-testid. */
   id: string;
   labelKey: MessageKey;
+  /**
+   * C3-UX-8 — a slot the ROUTE does not require. Preview enables without it
+   * (as long as some file is chosen) and its picker says so in words.
+   */
+  optional?: boolean;
 }
 
 export interface ImportIgnored {
@@ -310,11 +315,14 @@ export function ImportDialog({
   };
 
   /**
-   * IE-7 PART A — every declared file is REQUIRED: Preview stays disabled
-   * until each picker holds a file, so a half-chosen pair never reaches the
-   * door and comes back as a refusal.
+   * IE-7 PART A — every REQUIRED file must be held before Preview opens, so a
+   * half-chosen pair never reaches the door and comes back as a refusal.
+   * C3-UX-8 — a slot the route treats as optional does not hold Preview shut;
+   * at least one file is still needed (the route refuses an empty pair).
    */
-  const chosen = files.every((file) => (texts[file.field] ?? "") !== "");
+  const chosen =
+    files.every((file) => file.optional === true || (texts[file.field] ?? "") !== "") &&
+    files.some((file) => (texts[file.field] ?? "") !== "");
   const counts = preview?.counts ?? committed?.counts ?? null;
   /**
    * IE-7 PART B — ONE STATE AT A TIME. Ready (pick + preview) · Previewed
@@ -368,6 +376,12 @@ export function ImportDialog({
             {files.map((file) => (
               <div className="flex flex-col gap-1 text-sm" key={file.id}>
                 <span id={`${file.id}-label`}>{t(file.labelKey)}</span>
+                {/* C3-UX-8 — an optional slot says so where it is chosen. */}
+                {file.optional === true ? (
+                  <span className="text-muted-foreground" data-testid={`${file.id}-optional`}>
+                    {t(key("optionalFile"))}
+                  </span>
+                ) : null}
                 <input
                   id={file.id}
                   data-testid={file.id}

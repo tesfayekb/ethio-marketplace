@@ -9,10 +9,12 @@ import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import type { CategoryNode } from "@/features/admin-categories/categories-service";
 import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import {
   ATTRIBUTE_TYPES,
+  coLinkedFilter,
   optionValues,
   typeHasOptions,
   type AttributeCategory,
@@ -21,6 +23,7 @@ import {
   type MergeCounts,
 } from "./attributes-service";
 import {
+  useAttributeCategories,
   useDeleteAttribute,
   useLinkAttribute,
   useMergeAttributes,
@@ -225,9 +228,19 @@ export function AttributeEditorDialog({
   const parentValues = parent === null ? [] : optionValues(parent.options);
   const dependent = typeHasOptions(attrType) && parent !== null;
 
+  /**
+   * C3-UX-9 (DEC-057b) — CO-LINKED CANDIDATES ONLY. The door refuses a target
+   * that shares no category with this definition, so the picker never offers
+   * one: both reads below are the library-wide ones the page already loaded
+   * (cache hits, no extra request), and the rule stays the server's (F3).
+   */
+  const usedBy = useAttributeCategories();
+  const { data: categoryRows } = useAdminCategories();
+  const coLinked = coLinkedFilter(attribute?.id ?? null, usedBy.data ?? [], categoryRows ?? []);
+
   /** The number definitions a per-option bound may target (F3: the door judges). */
   const boundsTargets = attributes
-    .filter((row) => row.attrType === "number")
+    .filter((row) => row.attrType === "number" && coLinked(row.id))
     .map((row) => ({
       attrKey: row.attrKey,
       label: `${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`,
@@ -243,6 +256,7 @@ export function AttributeEditorDialog({
     .filter(
       (row) =>
         (row.attrType === "single_select" || row.attrType === "multi_select") &&
+        coLinked(row.id) &&
         row.id !== attribute?.id &&
         row.attrKey !== dependsOn &&
         (attribute === null || row.dependsOnKey !== attribute.attrKey),

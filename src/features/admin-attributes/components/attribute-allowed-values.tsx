@@ -133,7 +133,15 @@ export function AttributeAllowedValues({
           </div>
         );
       })}
-      {unused.length === 0 || atCeiling ? null : (
+      {/*
+        C3-UX-9 — only definitions sharing a category with this one can be
+        restricted, so an empty candidate set is a caption, not a picker.
+      */}
+      {targets.length === 0 ? (
+        <p className="text-sm text-muted-foreground" data-testid="option-allowed-none">
+          {t("admin.attributes.options.allowedNoTargets")}
+        </p>
+      ) : unused.length === 0 || atCeiling ? null : (
         <select
           data-testid="option-allowed-add"
           className={SELECT_CLASS}

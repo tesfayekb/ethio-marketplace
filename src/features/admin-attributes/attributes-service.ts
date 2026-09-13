@@ -589,3 +589,83 @@ export function parsePreset(raw: string | null): Omit<TextFieldsValue, "maxLengt
   }
   return empty;
 }
+
+/* ------------- C3-UX-9 — CO-LINKED CONSTRAINT TARGETS (DEC-057b) ---------- */
+
+/**
+ * The door's rule since DEC-057b-mig: a `bounds` or `allowed` target must be
+ * linked in AT LEAST ONE category where the owner is linked (inheritance
+ * counts — a link at an ancestor reaches every descendant). The console
+ * pre-applies exactly that rule to what it OFFERS; the server still judges
+ * every save (F3), so this is convenience, never authority.
+ */
+export interface CategoryAncestry {
+  id: string;
+  parentId: string | null;
+}
+
+/**
+ * attribute id → every category the definition is effectively present in: its
+ * own links plus every descendant of those categories (DEC-044 inheritance).
+ */
+export function effectiveCategoryIds(
+  links: AttributeCategory[],
+  categories: CategoryAncestry[],
+): Map<string, Set<string>> {
+  const parentOf = new Map<string, string | null>();
+  for (const category of categories) parentOf.set(category.id, category.parentId);
+
+  /** Each category's own id followed by its ancestors, cycle-safe. */
+  const chains = new Map<string, string[]>();
+  for (const category of categories) {
+    const chain: string[] = [];
+    const seen = new Set<string>();
+    let current: string | null = category.id;
+    while (current !== null && !seen.has(current)) {
+      seen.add(current);
+      chain.push(current);
+      current = parentOf.get(current) ?? null;
+    }
+    chains.set(category.id, chain);
+  }
+
+  const direct = new Map<string, Set<string>>();
+  for (const link of links) {
+    const own = direct.get(link.attributeId) ?? new Set<string>();
+    own.add(link.categoryId);
+    direct.set(link.attributeId, own);
+  }
+
+  const effective = new Map<string, Set<string>>();
+  for (const [attributeId, own] of direct) {
+    const set = new Set<string>(own);
+    for (const [categoryId, chain] of chains) {
+      if (chain.some((ancestor) => own.has(ancestor))) set.add(categoryId);
+    }
+    effective.set(attributeId, set);
+  }
+  return effective;
+}
+
+/**
+ * The predicate the constraint pickers filter their candidates with. A
+ * definition linked NOWHERE constrains nothing (the door leaves it
+ * unconstrained too), so every candidate stays on offer; create-mode has no
+ * owner yet and behaves the same way.
+ */
+export function coLinkedFilter(
+  ownerId: string | null,
+  links: AttributeCategory[],
+  categories: CategoryAncestry[],
+): (attributeId: string) => boolean {
+  if (ownerId === null) return () => true;
+  const effective = effectiveCategoryIds(links, categories);
+  const owner = effective.get(ownerId);
+  if (owner === undefined || owner.size === 0) return () => true;
+  return (attributeId: string) => {
+    const theirs = effective.get(attributeId);
+    if (theirs === undefined) return false;
+    for (const categoryId of theirs) if (owner.has(categoryId)) return true;
+    return false;
+  };
+}
