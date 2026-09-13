@@ -27,6 +27,8 @@
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 /**
  * INC-108 — THE OUTPUT PATH AND THE SOURCE LABEL ARE INPUTS, NOT CONSTANTS.
@@ -35,7 +37,10 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
  * the single-source label (E2E_SOURCE_LABEL, e.g. `nightly`) are read from the
  * environment. Defaults are the per-push contract, unchanged.
  */
-const OUT = process.env["E2E_OUT_PATH"] ?? "docs/tracking/e2e-last-failure.md";
+const SELF_TEST = process.env["SELF_TEST"] === "1";
+const OUT =
+  process.env["E2E_OUT_PATH"] ??
+  (SELF_TEST ? join(tmpdir(), "ethio-e2e-failure-report-self-test.md") : "docs/tracking/e2e-last-failure.md");
 const SINGLE_SOURCE_LABEL = process.env["E2E_SOURCE_LABEL"] ?? "all";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
@@ -940,7 +945,7 @@ async function main() {
     attempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "1",
   };
 
-  if (process.env["SELF_TEST"] === "1") {
+  if (SELF_TEST) {
     // BOTH fixtures are REAL captured output (a two-failure Playwright run:
     // one locator failure with a page snapshot, one test-level timeout whose
     // context directory is deliberately NOT bundled).
