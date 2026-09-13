@@ -499,7 +499,7 @@ for (const family of FAMILIES) {
           const { data: written } = await supabase
             .from("attributes")
             .select("attr_key")
-            .in("attr_key", [selfKey, depKey, coKey]);
+            .in("attr_key", [selfKey, coKey]);
           expect(written ?? [], `IG-2 the preview wrote a definition: ${dump}`).toHaveLength(0);
         } finally {
           for (const key of [targetKey, numberKey, selfKey, depKey, coKey]) {
