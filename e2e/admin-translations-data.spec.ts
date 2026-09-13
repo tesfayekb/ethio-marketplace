@@ -265,6 +265,18 @@ export function pruneScratch(value: unknown): unknown {
         })
         .toBe("machine|true|true");
 
+      // INC-193 — OWN ROW, NOT A GLOBAL COUNT. The proof that the translation
+      // landed is this test's own row: DB truth above (J4, service client) and
+      // the row's own status chip here, which no longer reads `untranslated`.
+      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+      await page.getByTestId("data-search").fill(one.name);
+      const oneRowAfter = entityRow(page, `location-${one.id}-name`);
+      await expect(oneRowAfter).toBeVisible({ timeout: 20000 });
+      await expect(oneRowAfter.getByTestId(`entity-status-location-${one.id}-name`)).not.toHaveText(
+        /untranslated/i,
+      );
+      await page.getByTestId("data-search").fill("");
+
       // BULK — the sweep covers the second scratch location too.
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       const startButton = page.getByTestId("ai-bulk-start");
@@ -322,21 +334,24 @@ export function pruneScratch(value: unknown): unknown {
         })
         .toBe("machine|true|true");
 
-      // STATS MOVE — the same count, re-read from the server, has dropped.
+      // INC-193 — BOTH OWN ROWS ARE TRANSLATED, and the stats bar is asserted
+      // for VISIBILITY ONLY (J4: summaries are never asserted for a value).
+      // The old check waited for the fence's global untranslated count to drop;
+      // sibling shards add scratch entities to the same fence, so that count is
+      // not this test's to own (run 34753266967, shard 2, both attempts).
+      expect(await machineStatus(one.id)).toBe("machine|true|true");
+      expect(await machineStatus(two.id)).toBe("machine|true|true");
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
-      await expect
-        .poll(
-          async () => {
-            const bar = page.getByTestId("ai-bulk-start");
-            if ((await bar.count()) === 0) return untranslatedBefore;
-            return Number((await bar.innerText()).replace(/[^0-9]/g, "") || "0");
-          },
-          {
-            timeout: 30000,
-            message: `entity stats never moved below ${untranslatedBefore}`,
-          },
-        )
-        .toBeLessThan(untranslatedBefore);
+      const barAfter = page.getByTestId("ai-bulk-start");
+      if ((await barAfter.count()) > 0) {
+        await expect(barAfter).toBeVisible();
+        await expect
+          .poll(async () => (await barAfter.innerText()).match(/[0-9]/) !== null, {
+            timeout: 20000,
+            message: "the Data bulk bar never rendered a numeric count after the sweep",
+          })
+          .toBe(true);
+      }
 
       // THE DATA METER exists for this language and counts a real universe.
       // The meter is a CELL inside the language row (J5: cells are row-scoped).

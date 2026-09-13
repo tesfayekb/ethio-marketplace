@@ -496,32 +496,46 @@ export function grepClientErrors(text: string | null, limit = 20): string[] {
  * is extracted and rendered on its own:
  *
  *  - every `[e2e:teardown]` / `[e2e:sweep]` line, wherever it appears;
- *  - the trailing `Error:` block — from the first `Error:` line after the LAST
- *    numbered test result to the end of the log, blank lines dropped.
+ *  - the trailing block — from the first `Error:` / "was not a part of any
+ *    test" line after the FINAL Playwright SUMMARY line to the end of the log,
+ *    blank lines dropped.
+ *
+ * INC-194 — WHY THE SUMMARY, NOT THE LAST TEST LINE. Playwright prints a
+ * FAILING test's own error block in the failure summary, i.e. after the last
+ * numbered result line. Anchoring the window there swept TR-24's failure into
+ * "Post-test errors" as well as its own section (run 34753266967, shard 2). The
+ * final summary block (`N passed (…)`, `N failed`, `N skipped`) is the true
+ * end of the test phase: anything after it belongs to teardown / process exit.
  */
 const POST_TEST_TAG = /\[e2e:teardown\]|\[e2e:sweep\]/;
 const TEST_RESULT_LINE = /^\s*[✓✘±✕\-»]\s+\d+\s+\[/;
+const SUMMARY_LINE =
+  /^\s*\d+\s+(passed|failed|skipped|flaky|interrupted|did not run)\b|^\s*\d+\s+(passed|failed)\s*\(/;
+const POST_TEST_BLOCK_START = /^Error:|was not a part of any test/;
 const POST_TEST_CAP = 40;
 
 export function grepPostTestErrors(text: string | null, limit = POST_TEST_CAP): string[] {
   if (!text) return [];
   const lines = text.split("\n");
-  let lastTest = -1;
+  // INC-194 — the window opens at the FINAL summary line, never at the last
+  // numbered result line (a failing test's error block sits between the two).
+  let windowStart = -1;
   lines.forEach((line, index) => {
-    if (TEST_RESULT_LINE.test(line)) lastTest = index;
+    if (SUMMARY_LINE.test(line)) windowStart = index;
   });
 
   const out: string[] = [];
   const push = (line: string) => {
     const value = redact(line.trimEnd());
     if (value.trim().length === 0) return;
+    if (TEST_RESULT_LINE.test(value)) return;
     if (!out.includes(value)) out.push(value);
   };
 
   for (const line of lines) if (POST_TEST_TAG.test(line)) push(line);
 
-  const trailing = lines.slice(lastTest + 1);
-  const start = trailing.findIndex((line) => /^Error:/.test(line.trim()));
+  const trailing = lines.slice(windowStart + 1);
+  const start = trailing.findIndex((line) => POST_TEST_BLOCK_START.test(line.trim()));
   if (start >= 0) for (const line of trailing.slice(start)) push(line);
 
   return out.slice(0, limit);
@@ -1346,6 +1360,35 @@ async function main() {
       );
       process.exit(1);
     }
+    // INC-194 — the window opens at the FINAL summary line: a FAILING test's own
+    // error block (printed in the failure summary, before it) is not swept in,
+    // while a teardown line after the summary still is.
+    const windowLog = [
+      "  ✓  1 [mobile-360] › e2e/x.spec.ts:1:1 › a passing test (1.0s)",
+      "  1) [mobile-360] › e2e/admin-translations-data.spec.ts:211:3 › TR-24 ─────",
+      "    Error: entity stats never moved below 5",
+      "      expect(received).toBeLessThan(expected)",
+      "  1 failed",
+      "    [mobile-360] › e2e/admin-translations-data.spec.ts:211:3 › TR-24",
+      "  87 passed (6.0m)",
+      "[e2e:teardown] deleted 58 user(s) owned by process 34753266967-2",
+      "Error: Process completed with exit code 1.",
+    ].join("\n");
+    const windowBand = grepPostTestErrors(windowLog);
+    const sweptOwnFailure = windowBand.some((line) =>
+      line.includes("entity stats never moved below 5"),
+    );
+    const keptTeardown = windowBand.some((line) => line.includes("[e2e:teardown] deleted 58"));
+    const keptExit = windowBand.some(
+      (line) => line.trim() === "Error: Process completed with exit code 1.",
+    );
+    if (sweptOwnFailure || !keptTeardown || !keptExit) {
+      console.error(
+        `SELF-TEST FAILED — INC-194 post-test window: swept own failure=${sweptOwnFailure}, kept teardown=${keptTeardown}, kept exit=${keptExit} (${windowBand.length} line(s)).`,
+      );
+      process.exit(1);
+    }
+
     const withoutBand = renderSources(
       [{ label: "shard 6", json: fixture, logTail: null, serverErrors: [], clientErrors: [] }],
       meta,

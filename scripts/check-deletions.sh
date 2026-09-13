@@ -4,8 +4,17 @@
 # INC-076: a push from a stale checkout silently DELETED a whole phase's
 # committed work. Nothing in CI noticed, because every remaining check was
 # green on the (smaller) tree. This guard makes a deletion a deliberate,
-# labelled act: any commit range that removes files must say so with the
-# marker "[intentional-delete]" in one of its commit messages.
+# labelled act.
+#
+# INC-192 — TWO DOORS. The marker lives in a COMMIT MESSAGE, and the executor
+# cannot author commit messages (the platform writes them), so the marker door
+# was unpassable from inside the repository and every executor-side deletion
+# went red. A deletion is therefore declared by EITHER:
+#   1. the "[intentional-delete]" marker in a commit message of the range, or
+#   2. a line naming the deleted path that the SAME range ADDS to
+#      docs/tracking/intentional-deletions.txt (one repo-relative path per
+#      line; "#" comments allowed). A pre-existing line declares NOTHING —
+#      the declaration must travel with the deletion.
 #
 # Note on docs/tracking/*.md: the reporters REGENERATE those files (modify,
 # never delete), so they need no exemption here — a deletion of one is a real
@@ -16,6 +25,16 @@
 set -uo pipefail
 
 MARKER="[intentional-delete]"
+MANIFEST="docs/tracking/intentional-deletions.txt"
+
+# Paths the range ADDS to the manifest (added lines only, comments stripped).
+manifest_added_paths() {
+  local before="$1" head="$2"
+  git diff --unified=0 "$before" "$head" -- "$MANIFEST" 2>/dev/null |
+    grep '^+' | grep -v '^+++' | sed 's/^+//' |
+    sed 's/#.*//' | sed 's/[[:space:]]*$//' | sed 's/^[[:space:]]*//' |
+    grep -v '^$' || true
+}
 
 run_guard() {
   local before="${1:-}" head="${2:-HEAD}"
@@ -39,19 +58,41 @@ run_guard() {
     return 0
   fi
 
+  # DOOR 1 — the commit-message marker.
   if git log --format=%B "${before}..${head}" | grep -qF "$MARKER"; then
     echo "Deletions declared with ${MARKER}:"
     echo "$deleted"
     return 0
   fi
 
+  # DOOR 2 (INC-192) — every deleted path named by a line the range ADDS to the
+  # manifest. A pre-existing manifest line declares nothing.
+  local added undeclared=""
+  added="$(manifest_added_paths "$before" "$head")"
+  local path
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    if ! printf '%s\n' "$added" | grep -qxF "$path"; then
+      undeclared="${undeclared}${path}"$'\n'
+    fi
+  done <<< "$deleted"
+
+  if [ -z "$undeclared" ]; then
+    echo "Deletions declared in ${MANIFEST} by this range:"
+    echo "$deleted"
+    return 0
+  fi
+
   echo "::error::Unexplained deletions in ${before}..${head} (INC-076)."
-  echo "The following files were deleted with no ${MARKER} marker in any commit message:"
-  echo "$deleted"
-  echo "If the removal is intended, say so in the commit message; otherwise you are"
-  echo "pushing from a stale checkout and are about to erase someone's work."
+  echo "The following files were deleted with no ${MARKER} marker in any commit"
+  echo "message and no path line added to ${MANIFEST} by this range:"
+  printf '%s' "$undeclared"
+  echo "If the removal is intended, say so in the commit message or add the path to"
+  echo "${MANIFEST} in the same push; otherwise you are pushing from a stale"
+  echo "checkout and are about to erase someone's work."
   return 1
 }
+
 
 self_test() {
   local guard tmp status
@@ -94,6 +135,41 @@ self_test() {
       echo "SELF-TEST FAILED: an addition-only range was rejected." >&2
       exit 1
     fi
+
+    # ── INC-192 — THE MANIFEST DOOR, both directions ──────────────────────────
+    mkmanifest() { # <body> -> top-level tree entry for docs/tracking/...
+      local blob tracking docs
+      blob="$(printf '%s' "$1" | git hash-object -w --stdin)"
+      tracking="$(printf '100644 blob %s\tintentional-deletions.txt\n' "$blob" | git mktree)"
+      docs="$(printf '040000 tree %s\ttracking\n' "$tracking" | git mktree)"
+      printf '040000 tree %s\tdocs\n' "$docs"
+    }
+    mEmpty="$(mkmanifest '# manifest
+')"
+    mNamed="$(mkmanifest '# manifest
+b.txt
+')"
+
+    # 4a: the range ADDS the deleted path to the manifest → PASS.
+    m1="$(printf '100644 blob %s\ta.txt\n100644 blob %s\tb.txt\n%s' "$a" "$b" "$mEmpty" | git mktree)"
+    m2="$(printf '100644 blob %s\ta.txt\n%s' "$a" "$mNamed" | git mktree)"
+    mBase="$(git commit-tree "$m1" -m 'base with manifest')"
+    mDeclared="$(git commit-tree "$m2" -p "$mBase" -m 'drop b, declare in manifest')"
+    if ! bash "$guard" "$mBase" "$mDeclared" >/dev/null 2>&1; then
+      echo "SELF-TEST FAILED: a deletion declared by an added manifest line was rejected." >&2
+      exit 1
+    fi
+
+    # 4b: the path is only PRE-EXISTING in the manifest → FAIL.
+    m3="$(printf '100644 blob %s\ta.txt\n100644 blob %s\tb.txt\n%s' "$a" "$b" "$mNamed" | git mktree)"
+    m4="$(printf '100644 blob %s\ta.txt\n%s' "$a" "$mNamed" | git mktree)"
+    mStale="$(git commit-tree "$m3" -m 'base whose manifest already names b.txt')"
+    mUndeclared="$(git commit-tree "$m4" -p "$mStale" -m 'drop b, manifest untouched')"
+    if bash "$guard" "$mStale" "$mUndeclared" >/dev/null 2>&1; then
+      echo "SELF-TEST FAILED: a pre-existing manifest line declared a new deletion." >&2
+      exit 1
+    fi
+
   )
   status=$?
   rm -rf "$tmp"
@@ -101,7 +177,7 @@ self_test() {
     echo "Deletion-guard self-test FAILED."
     return 1
   fi
-  echo "Self-test OK: undeclared deletion flagged, declared deletion allowed, additions allowed."
+  echo "Self-test OK: undeclared deletion flagged, marker-declared allowed, additions allowed; manifest door (INC-192): an ADDED path line declares, a pre-existing line does not."
   return 0
 }
 

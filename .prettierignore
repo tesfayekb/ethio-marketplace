@@ -57,3 +57,6 @@ docs/tracking/nightly-last-failure.md
 # served copy under public/ must stay byte-identical to the docs copy.
 docs/generated/i18n-usage.json
 public/i18n-usage.json
+
+# INC-192: the intentional-deletions manifest is a plain path list (no parser).
+docs/tracking/intentional-deletions.txt

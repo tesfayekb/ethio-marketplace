@@ -431,3 +431,5 @@
 
 - 2026-09-13 — DEC-059 completion: records landed (e2e-harness.md, INC-184/189/190 closed, INC-191 registered and fixed — the reporter's self-test now renders to a temp dir and never touches the tracked evidence file); the stray root roadmap.md removed (scratch checklist auto-committed mid-turn). Judge: push green, nightly pending. No e2e, no migrations.
 - 2026-09-13 — [intentional-delete] declared for the root roadmap.md removed in the DEC-059 completion (a scratch checklist auto-committed mid-turn; the governance roadmap is untouched). Docs only.
+
+- 2026-09-13 — BOARD GREEN: INC-192 (deletion guard gains a manifest door — `docs/tracking/intentional-deletions.txt`, declaring the root roadmap.md; self-test both directions), INC-193 (TR-24 asserts its own rows, stats bar for visibility only), INC-194 (the reporter's post-test window starts at the final Playwright summary). Local: translations-data spec both projects, deletion-guard and reporter self-tests green. No migrations, no workflows.
