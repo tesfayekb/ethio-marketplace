@@ -234,6 +234,26 @@ export function AttributeEditorDialog({
     }));
 
   /**
+   * DEC-057 L3 — the select definitions an option's `allowed` map may target.
+   * Cheap exclusions only: itself, its own `depends_on` parent, and any
+   * definition that depends on it. Co-linkage, the value list and the ceilings
+   * remain the door's judgement (F3), rendered as a named refusal.
+   */
+  const allowedTargets = attributes
+    .filter(
+      (row) =>
+        (row.attrType === "single_select" || row.attrType === "multi_select") &&
+        row.id !== attribute?.id &&
+        row.attrKey !== dependsOn &&
+        (attribute === null || row.dependsOnKey !== attribute.attrKey),
+    )
+    .map((row) => ({
+      attrKey: row.attrKey,
+      label: `${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`,
+      options: row.options,
+    }));
+
+  /**
    * The rows exactly as edited: a dependent definition keeps its `parent`, a
    * flat one keeps "". Nothing is recomposed, so nothing is lost (INC-188).
    */
@@ -382,6 +402,7 @@ export function AttributeEditorDialog({
               rows={optionRows}
               storedValues={storedValues}
               targets={boundsTargets}
+              allowedTargets={allowedTargets}
               parentValues={parentValues}
               dependent={dependent}
               onChange={setOptionRows}

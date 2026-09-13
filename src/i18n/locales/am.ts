@@ -1202,6 +1202,12 @@ export const am: Messages = {
   "admin.attributes.options.boundsMin": "አነስተኛ",
   "admin.attributes.options.boundsMax": "ከፍተኛ",
   "admin.attributes.options.boundsRemove": "ገደብ አስወግድ",
+  /* DEC-057 L3 — the allowed-values picker. */
+  "admin.attributes.options.allowedHelp":
+    "ይህ አማራጭ ከሌላ የምረጥ መለያ የሚፈቅዳቸውን ዋጋዎች ይገድቡ፤ ያ መለያ ይህ መለያ በሚያገለግልበት ሁሉም ምድብ ውስጥ መኖር አለበት።",
+  "admin.attributes.options.allowedAdd": "የተፈቀዱ ዋጋዎች መለያ ጨምር",
+  "admin.attributes.options.allowedRemove": "የተፈቀዱ ዋጋዎችን አስወግድ",
+  "admin.attributes.options.allowedNoValues": "ይህ መለያ እስካሁን ዋጋዎች የለውም።",
 
   "admin.attributes.field.help": "የእገዛ ጽሑፍ",
   /* DEC-050 L3a — የv2 መስኮች፤ የበሩ ፍተሻዎች ወሳኝ ናቸው። */

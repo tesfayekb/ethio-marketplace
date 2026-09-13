@@ -49,6 +49,11 @@ export interface AttributeOption {
   active?: boolean;
   bounds?: Record<string, { min?: string; max?: string }>;
   aliases?: string[];
+  /**
+   * DEC-057 — option-conditioned allowed values: `{ "<select key>": ["value"] }`.
+   * Written only when non-empty; the door judges target, co-linkage and values.
+   */
+  allowed?: Record<string, string[]>;
 }
 
 export function optionValues(options: AttributeOption[]): string[] {
@@ -145,6 +150,16 @@ function toOptionList(raw: unknown): AttributeOption[] {
             read[target] = bound;
           }
           option.bounds = read;
+        }
+        /* DEC-057 — `allowed` round-trips verbatim, read only when it is a map. */
+        const allowed = record["allowed"];
+        if (allowed !== null && typeof allowed === "object" && !Array.isArray(allowed)) {
+          const read: Record<string, string[]> = {};
+          for (const [target, raw] of Object.entries(allowed as Record<string, unknown>)) {
+            if (!Array.isArray(raw)) continue;
+            read[target] = raw.filter((value): value is string => typeof value === "string");
+          }
+          option.allowed = read;
         }
         return option;
       }
@@ -244,6 +259,9 @@ export function toOptionsJson(options: AttributeOption[]): unknown[] {
     if (bounds.length > 0) record["bounds"] = Object.fromEntries(bounds);
     const aliases = (option.aliases ?? []).map((alias) => alias.trim()).filter((a) => a !== "");
     if (aliases.length > 0) record["aliases"] = aliases;
+    /* DEC-057 — `allowed` is written only when it constrains something. */
+    const allowed = Object.entries(option.allowed ?? {}).filter(([, values]) => values.length > 0);
+    if (allowed.length > 0) record["allowed"] = Object.fromEntries(allowed);
     return record;
   });
 }
