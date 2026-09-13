@@ -425,6 +425,16 @@ for (const family of FAMILIES) {
             .from("category_attribute_links")
             .insert({ category_id: catA.id, attribute_id: target.id, display_order: 0 });
           if (linkError) throw new Error(`IG-2 link failed: ${linkError.message}`);
+          // (h) needs a LIVE dependent: the parent walk anchors on live rows
+          // (DEC-057 L2-mig), so the dependent is seeded, not created in-file.
+          const { error: depError } = await supabase.from("attributes").insert({
+            attr_key: depKey,
+            name_en: depKey,
+            attr_type: "single_select",
+            options: [{ value: "a" }, { value: "b" }],
+            depends_on: target.id,
+          });
+          if (depError) throw new Error(`IG-2 dependent failed: ${depError.message}`);
 
           const rows = [
             // (a) `allowed` is not a set of attributes at all — the gate's own.
