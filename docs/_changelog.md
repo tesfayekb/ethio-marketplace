@@ -433,3 +433,4 @@
 - 2026-09-13 — [intentional-delete] declared for the root roadmap.md removed in the DEC-059 completion (a scratch checklist auto-committed mid-turn; the governance roadmap is untouched). Docs only.
 
 - 2026-09-13 — BOARD GREEN: INC-192 (deletion guard gains a manifest door — `docs/tracking/intentional-deletions.txt`, declaring the root roadmap.md; self-test both directions), INC-193 (TR-24 asserts its own rows, stats bar for visibility only), INC-194 (the reporter's post-test window starts at the final Playwright summary). Local: translations-data spec both projects, deletion-guard and reporter self-tests green. No migrations, no workflows.
+- 2026-09-13 — DEC-057b-mig: co-linkage means at least one shared category — the helpers judging `bounds` and `allowed` targets accept a target linked in any category the owner is linked in and refuse only a target linked in none; callers unchanged. (apply `ceabcf99` → expect mark `20260913120000`.) No src, no e2e.
