@@ -2106,3 +2106,21 @@ reports leftovers as warnings, never as an error after green tests; the
 reporter captures post-test errors into the evidence file. Class: harness
 
 flake with a blind reporter (INC-100/INC-186 family).
+
+## INC-190 — TR-34 snapshots the whole entity-translation map (J6)
+
+TR-34 reads the entire entity-translation map before and after its own
+
+action and asserts nothing else changed, so any sibling test that renames or
+
+creates a category in the same run breaks it: two retry-passes on 2026-09-10
+
+and a gating failure on run 34749709166 (both attempts, shard 2 mobile-360),
+
+unrelated to the landing under test. The DEC-030 trigger is met. Fix (with
+
+INC-184, the same class): scope the snapshot to rows outside the scratch
+
+namespace, or to the test's own subject, so other tests' rows fall out of the
+
+invariant. Class: J6 invariant leak.
