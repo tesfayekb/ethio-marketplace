@@ -31,6 +31,9 @@ interface Body {
   batchId?: string | null;
 }
 
+const detailOf = (error: { details?: string | null; hint?: string | null }): string =>
+  (error.details ?? error.hint ?? "").trim();
+
 export const Route = createFileRoute("/api/admin/categories/import")({
   server: {
     handlers: {
@@ -81,7 +84,10 @@ export const Route = createFileRoute("/api/admin/categories/import")({
         const { supabase, userId, rows, refusals, digest, audit } = gate;
         const categories = rows["categories"] ?? [];
 
-        const relay = (error: { message: string }, what: string): Response => {
+        const relay = (
+          error: { message: string; details?: string | null; hint?: string | null },
+          what: string,
+        ): Response => {
           console.error(`[ssr-error] ${PATH} ${what} ${error.message}`);
           if (error.message.includes("permission denied")) {
             return json({ error: "permission denied" }, 403);
@@ -98,7 +104,19 @@ export const Route = createFileRoute("/api/admin/categories/import")({
           if (error.message.includes("unknown import batch")) {
             return json({ error: "unknown import batch" }, 404);
           }
-          return json({ error: "server error" }, 500);
+          /**
+           * INC-196 L2 — PASS-THROUGH, NOT INTERPRETATION. The RPC's own message
+           * and Postgres detail travel to the dialog so a failed commit can be
+           * read and pasted; the logging above is unchanged ([ssr-error], I4).
+           */
+          return json(
+            {
+              error: "server error",
+              message: error.message,
+              ...(detailOf(error) === "" ? {} : { detail: detailOf(error) }),
+            },
+            500,
+          );
         };
 
         try {

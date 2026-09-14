@@ -136,6 +136,13 @@ export function ImportDialog({
   const [undone, setUndone] = useState<number | null>(null);
   const [ignored, setIgnored] = useState<ImportIgnored[]>([]);
   const [error, setError] = useState<string | null>(null);
+  /**
+   * INC-196 L2 — THE REASON BENEATH THE SENTENCE. A failed commit used to read
+   * "The import could not be completed" and nothing else: the RPC's message and
+   * the Postgres detail were dropped, so an operator had nothing to paste. The
+   * generic line stays; this is the second line, rendered as DATA (never HTML).
+   */
+  const [reason, setReason] = useState<string | null>(null);
 
   const key = (suffix: string): MessageKey => `${keyPrefix}.${suffix}` as MessageKey;
 
@@ -186,8 +193,29 @@ export function ImportDialog({
     return detail === "" || detailed ? text : `${text} (${detail})`;
   };
 
-  const failed = (payload: { error?: string }, status: number) => {
+  /**
+   * INC-196 L2 — the server's own words, resolved. A message that IS a known
+   * translation key (`admin.<family>.error.*`) renders translated; anything else
+   * renders verbatim with the Postgres detail appended, so the exact reason can
+   * be pasted into an incident. Nothing here is interpreted as markup (F2).
+   */
+  const reasonOf = (payload: { message?: string; detail?: string }): string | null => {
+    const message = (payload.message ?? "").trim();
+    if (message === "") return null;
+    if (/^admin\.[a-z_-]+\.error\.[A-Za-z0-9_.-]+$/.test(message)) {
+      const translated = t(message as MessageKey) as string | undefined;
+      if (translated !== undefined && translated !== "") return translated;
+    }
+    const detail = (payload.detail ?? "").trim();
+    return detail === "" ? message : `${message} — ${detail}`;
+  };
+
+  const failed = (
+    payload: { error?: string; message?: string; detail?: string },
+    status: number,
+  ) => {
     const named = payload.error ?? "";
+    setReason(reasonOf(payload));
     if (status === 403) return setError(t(key("error.denied")));
     if (status === 428) return setError(t(key("error.stepUp")));
     if (named === "wrongFile") return setError(t(key("error.wrongFile")));
@@ -206,7 +234,11 @@ export function ImportDialog({
       headers: await bearer(),
       body: JSON.stringify(body),
     });
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    const payload = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      message?: string;
+      detail?: string;
+    };
     if (!response.ok) {
       failed(payload, response.status);
       return null;
@@ -218,6 +250,7 @@ export function ImportDialog({
     setPreview(null);
     setCommitted(null);
     setError(null);
+    setReason(null);
     setIgnored([]);
     if (file === undefined) {
       setTexts((prev) => ({ ...prev, [field]: "" }));
@@ -245,6 +278,7 @@ export function ImportDialog({
   const runPreview = async () => {
     setBusy(true);
     setError(null);
+    setReason(null);
     setCommitted(null);
     try {
       const result = (await post({ mode: "preview", ...payload() })) as Preview | null;
@@ -258,6 +292,7 @@ export function ImportDialog({
   const runCommit = () => {
     if (preview === null) return;
     setError(null);
+    setReason(null);
     void guard(async () => {
       setBusy(true);
       try {
@@ -291,6 +326,7 @@ export function ImportDialog({
   const runUndo = () => {
     if (committed === null) return;
     setError(null);
+    setReason(null);
     void guard(async () => {
       setBusy(true);
       try {
@@ -501,6 +537,16 @@ export function ImportDialog({
       {error === null ? null : (
         <p role="alert" className="text-sm text-destructive" data-testid={`${idPrefix}-error`}>
           {error}
+        </p>
+      )}
+
+      {/* INC-196 L2 — the reason, beneath the sentence, as data (F2, F4). */}
+      {error === null || reason === null ? null : (
+        <p
+          className="text-sm break-words text-muted-foreground"
+          data-testid={`${idPrefix}-error-reason`}
+        >
+          {t(key("error.reason")).replace("{reason}", reason)}
         </p>
       )}
 

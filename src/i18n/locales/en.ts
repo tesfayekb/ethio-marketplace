@@ -974,6 +974,7 @@ export const en = {
   "admin.categories.import.error.wrongFile":
     "This is the attributes file — import it from Attributes.",
   "admin.categories.import.error.failed": "The import could not be completed.",
+  "admin.categories.import.error.reason": "Reason: {reason}",
   "admin.categories.edit.title": "Edit category",
   "admin.categories.field.name": "Name (English)",
   "admin.categories.field.icon": "Icon",
@@ -1230,6 +1231,7 @@ export const en = {
   "admin.attributes.import.error.wrongFile":
     "This is the categories file — import it from Categories.",
   "admin.attributes.import.error.failed": "The import could not be completed.",
+  "admin.attributes.import.error.reason": "Reason: {reason}",
   "admin.roles.perm.action.import": "Import",
   "admin.attributes.inherited.badge": "Inherited from {origin}",
   "admin.attributes.inherited.openOrigin": "Open origin category",

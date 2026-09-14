@@ -4508,4 +4508,167 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(parentKey);
     }
   });
+
+  /**
+   * AT-58 (INC-196 L1/L2) — A RANK SHIFT AND A RANK SWAP THROUGH THE ROUTE.
+   *
+   * Travel's import previewed clean and the commit failed: the links loop moved
+   * one attribute onto a rank the next row had not yet vacated, and the
+   * non-deferrable UNIQUE (category_id, card_rank) refused mid-transaction. L1
+   * clears every changing rank first, applies unlinks, then writes the final
+   * states. This proves both shapes end-to-end — plan, commit, DB truth, undo.
+   */
+  test("AT-58 a rank swap within one category imports through the route", async ({ page }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const slug = `e2e-cat-rank58-${rand()}`;
+    const keyA = `e2e_attr_${rand()}`;
+    const keyB = `e2e_attr_${rand()}`;
+    const keyC = `e2e_attr_${rand()}`;
+    try {
+      // SEED BEFORE NAVIGATE (J7), service client (J5), scratch namespace (J1).
+      const { data: attrs, error: attrError } = await supabase
+        .from("attributes")
+        .insert([
+          { attr_key: keyA, name_en: keyA, attr_type: "number" },
+          { attr_key: keyB, name_en: keyB, attr_type: "number" },
+          { attr_key: keyC, name_en: keyC, attr_type: "number" },
+        ])
+        .select("id, attr_key");
+      if (attrError || !attrs) throw new Error(`AT-58 attributes failed: ${attrError?.message}`);
+      const attrA = attrs.find((row) => row.attr_key === keyA)!;
+      const attrB = attrs.find((row) => row.attr_key === keyB)!;
+      const attrC = attrs.find((row) => row.attr_key === keyC)!;
+
+      const { data: cat, error: catError } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+        .select("id, slug")
+        .single();
+      if (catError || !cat) throw new Error(`AT-58 category failed: ${catError?.message}`);
+      const { error: pointerError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: null, child_id: cat.id, display_order: 958 });
+      if (pointerError) throw new Error(`AT-58 pointer failed: ${pointerError.message}`);
+
+      const { error: linkError } = await supabase.from("category_attribute_links").insert([
+        { category_id: cat.id, attribute_id: attrA.id, display_order: 1, card_rank: 1 },
+        { category_id: cat.id, attribute_id: attrB.id, display_order: 2, card_rank: 2 },
+        { category_id: cat.id, attribute_id: attrC.id, display_order: 3, card_rank: 3 },
+      ]);
+      if (linkError) throw new Error(`AT-58 links failed: ${linkError.message}`);
+
+      const ranksOf = async (): Promise<Record<string, number | null>> => {
+        const rows = await readLinks(cat.id);
+        const named: Record<string, number | null> = {};
+        for (const row of rows) {
+          const which =
+            row.attribute_id === attrA.id ? keyA : row.attribute_id === attrB.id ? keyB : keyC;
+          named[which] = row.card_rank === null ? null : Number(row.card_rank);
+        }
+        return named;
+      };
+      const linkRow = (key: string, rank: string) =>
+        `${slug},${slug},${key},false,false,${rank},${slug}`;
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      // (a) A SHIFT: rank 2 → 3 while rank 3 vacates. One pass would collide.
+      const shift = `${LINK_HEADER}\r\n` + `${linkRow(keyB, "3")}\r\n` + `${linkRow(keyC, "")}\r\n`;
+      const shiftPreview = await importPost(page, token, { mode: "preview", links: shift });
+      expect(shiftPreview.status, JSON.stringify(shiftPreview.payload)).toBe(200);
+      const shiftCounts = shiftPreview.payload["counts"] as Record<string, number>;
+      expect(
+        { changes: shiftCounts.changes, refusals: shiftCounts.refusals },
+        `AT-58 the shift previewed wrong: ${JSON.stringify(shiftPreview.payload)}`,
+      ).toEqual({ changes: 2, refusals: 0 });
+
+      const shiftCommit = await importPost(page, token, {
+        mode: "commit",
+        links: shift,
+        digest: shiftPreview.payload["digest"],
+      });
+      expect(
+        shiftCommit.status,
+        `AT-58 the shift commit failed: ${JSON.stringify(shiftCommit.payload)}`,
+      ).toBe(200);
+      const shiftBatch = shiftCommit.payload["batch_id"] as string;
+      expect(shiftBatch, "AT-58 the shift commit named no batch").toBeTruthy();
+
+      // DB TRUTH (J4): 1, 3, none.
+      expect(await ranksOf(), "AT-58 the shift did not land").toEqual({
+        [keyA]: 1,
+        [keyB]: 3,
+        [keyC]: null,
+      });
+
+      const shiftUndo = await importPost(page, token, { mode: "undo", batchId: shiftBatch });
+      expect(shiftUndo.status, JSON.stringify(shiftUndo.payload)).toBe(200);
+      expect(await ranksOf(), "AT-58 the shift undo did not restore 1, 2, 3").toEqual({
+        [keyA]: 1,
+        [keyB]: 2,
+        [keyC]: 3,
+      });
+
+      // (b) A SWAP: 1 ↔ 3. Both directions collide under a one-pass write.
+      const swap = `${LINK_HEADER}\r\n` + `${linkRow(keyA, "3")}\r\n` + `${linkRow(keyC, "1")}\r\n`;
+      const swapPreview = await importPost(page, token, { mode: "preview", links: swap });
+      expect(swapPreview.status, JSON.stringify(swapPreview.payload)).toBe(200);
+      const swapCounts = swapPreview.payload["counts"] as Record<string, number>;
+      expect(
+        { changes: swapCounts.changes, refusals: swapCounts.refusals },
+        `AT-58 the swap previewed wrong: ${JSON.stringify(swapPreview.payload)}`,
+      ).toEqual({ changes: 2, refusals: 0 });
+
+      const swapCommit = await importPost(page, token, {
+        mode: "commit",
+        links: swap,
+        digest: swapPreview.payload["digest"],
+      });
+      expect(
+        swapCommit.status,
+        `AT-58 the swap commit failed: ${JSON.stringify(swapCommit.payload)}`,
+      ).toBe(200);
+      const swapBatch = swapCommit.payload["batch_id"] as string;
+
+      expect(await ranksOf(), "AT-58 the swap did not land").toEqual({
+        [keyA]: 3,
+        [keyB]: 2,
+        [keyC]: 1,
+      });
+
+      /**
+       * INC-197 — THE UNDO STILL WRITES IN ONE PASS. This run proved it: the
+       * swap's undo answers `duplicate key value violates unique constraint
+       * "category_attribute_links_card_rank_unique"`, because
+       * `admin_undo_attribute_import` restores each link's prior rank in plan
+       * order, exactly the collision L1 removed from the commit. Fixing it is a
+       * migration, which INC-196 L2 may not carry, so this asserts what is true
+       * today and names the finding; the shift's undo above is proven green.
+       */
+      const swapUndo = await importPost(page, token, { mode: "undo", batchId: swapBatch });
+      expect(
+        swapUndo.status,
+        `AT-58 the swap undo behaved unexpectedly (INC-197 expects the one-pass collision until the undo is re-declared): ${JSON.stringify(swapUndo.payload)}`,
+      ).toBe(500);
+      expect(
+        String(swapUndo.payload["message"] ?? ""),
+        "AT-58 the route forwarded no message for the failed undo (INC-196 L2)",
+      ).toContain("category_attribute_links_card_rank_unique");
+      // The scratch category leaves in its seeded shape whatever the undo did.
+      await supabase
+        .from("category_attribute_links")
+        .update({ card_rank: null })
+        .eq("category_id", cat.id);
+    } finally {
+      await destroyCategory(slug);
+      await destroyAttribute(keyA);
+      await destroyAttribute(keyB);
+      await destroyAttribute(keyC);
+    }
+  });
 });
