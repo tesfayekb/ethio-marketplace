@@ -291,6 +291,11 @@ export function AttributeEditorDialog({
 
   const submit = () => {
     setMessage(null);
+    setBlankCount(0);
+    if (blankRows > 0) {
+      setBlankCount(blankRows);
+      return;
+    }
     if (attrKey.trim() === "") {
       setMessage(t("admin.attributes.error.keyRequired"));
       return;
@@ -428,7 +433,11 @@ export function AttributeEditorDialog({
               allowedTargets={allowedTargets}
               parentValues={parentValues}
               dependent={dependent}
-              onChange={setOptionRows}
+              blankCount={blankCount}
+              onChange={(next) => {
+                setBlankCount(0);
+                setOptionRows(next);
+              }}
             />
           )}
 
