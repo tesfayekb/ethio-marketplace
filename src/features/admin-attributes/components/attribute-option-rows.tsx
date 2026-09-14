@@ -191,6 +191,14 @@ export function AttributeOptionRows({
           </div>
         );
       })}
+
+      {/* INC-195 — the refusal is named where the rows are, and the door was
+          never called (F4: no phantom success, no silent refusal). */}
+      {blankCount > 0 ? (
+        <p role="alert" className="text-sm text-destructive" data-testid="option-blank-message">
+          {t("admin.attributes.options.blankRows").replace("{count}", String(blankCount))}
+        </p>
+      ) : null}
     </div>
   );
 }
