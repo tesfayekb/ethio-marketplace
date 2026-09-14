@@ -1,13 +1,30 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34743044359
-- Commit: `168b728f4f78c45f9eababe34d5efb29c9d621a8`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/34814629664
+- Commit: `fdbfa9d00104e5014c856cc69b63c5e6e969d287`
 - Attempt: 1
-- Written (UTC): 2026-09-13T07:29:35.837Z
-- Passed: 499 · Skipped: 41 · Failed: 1
+- Written (UTC): 2026-09-14T07:33:38.143Z
+- Passed: 511 · Skipped: 41 · Failed: 1
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 1
 - Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): nightly, full
 - Sources without results: none
+
+## Post-test errors: nightly
+
+nightly: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 4 user(s) owned by process 34814629664-nightly
+```
+
+## Post-test errors: full
+
+full: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 235 user(s) owned by process 34814629664-nightly
+```
 
 ## admin-categories-images.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state
 
