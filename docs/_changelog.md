@@ -449,3 +449,5 @@
 - 2026-09-14 — INC-197: the attribute import undo restores links in two passes (changing ranks cleared, added links deleted, unlinked reinserted and changed states restored) so undoing a rank shift or swap never collides mid-transaction; proofs in-file. (apply `23e2010b` → expect mark `20260914160000`.) No src, no e2e.
 
 - 2026-09-14 — INC-197 L2: AT-58 asserts the swap's undo restores ranks 1, 2, 3 (the one-pass collision is gone); the forwarded-reason check moves to a real refusal path. Local run over the attributes and import-security specs, both projects. No src, no migrations.
+
+- 2026-09-14 — D-GATE-14: TRAVEL, CONSTRUCTION, BEAUTY RECORDED; INC-196/197 CLOSED (docs only, verbatim). Three curation passes imported and walked with Amharic approved; the commit and undo write ranks in two passes; system-state NEXT: Sports onward. No src, no e2e, no migrations.
