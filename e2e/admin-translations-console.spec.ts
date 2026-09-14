@@ -573,15 +573,23 @@ test.describe("U4b translations console", () => {
       await page.reload();
       await gotoReady(page, `/admin/translations/${fence}`);
 
+      // INC-185 — every wait names its step and the value it waited on, so a
+      // timeout in the ledger reads as a sentence instead of a bare locator.
       const startButton = page.getByTestId("ai-bulk-start");
-      await expect(startButton).toBeVisible({ timeout: 20000 });
+      await expect(startButton, {
+        message: `TR-12 step 1: the bulk-AI start button never became visible for scope ${fence}`,
+      }).toBeVisible({ timeout: 20000 });
 
       await startButton.click();
-      await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
+      await expect(page.getByTestId("ai-bulk-confirm"), {
+        message: `TR-12 step 2: the confirm dialog never opened for scope ${fence}`,
+      }).toBeVisible();
       await page.getByTestId("ai-bulk-confirm-run").click();
       await stepUpIfPrompted(page, secret);
       // VISIBILITY only — a localized summary string is never a count (INC-096g).
-      await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 90000 });
+      await expect(page.getByTestId("ai-bulk-summary"), {
+        message: `TR-12 step 3: the bulk summary never rendered within 90 s (${keys.length} keys queued for scope ${fence})`,
+      }).toBeVisible({ timeout: 90000 });
 
       // Database truth, per key: the only law for bulk assertions (TR-11's pattern).
       for (const key of keys) {
@@ -598,7 +606,10 @@ test.describe("U4b translations console", () => {
               if (!data) return "missing";
               return `${data.status}|${String(data.machine)}|${(data.value ?? "").includes(`⟪${fence}⟫`)}`;
             },
-            { timeout: 20000, message: `bulk AI never landed for ${key}` },
+            {
+              timeout: 20000,
+              message: `TR-12 step 4: bulk AI never landed the machine row for ${key} in scope ${fence} (expected machine|true|true)`,
+            },
           )
           .toBe("machine|true|true");
       }
