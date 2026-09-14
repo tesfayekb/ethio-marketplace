@@ -447,3 +447,5 @@
 - 2026-09-14 — INC-196 L2: a failed import commit shows its reason (translated key, or message and detail as data) beneath the generic line; the route forwards message and detail; AT-58 imports a rank shift and a rank swap through the route and undoes them. INC-196 closed. Local run over the attributes and import-security specs, both projects. No migrations.
 
 - 2026-09-14 — INC-197: the attribute import undo restores links in two passes (changing ranks cleared, added links deleted, unlinked reinserted and changed states restored) so undoing a rank shift or swap never collides mid-transaction; proofs in-file. (apply `23e2010b` → expect mark `20260914160000`.) No src, no e2e.
+
+- 2026-09-14 — INC-197 L2: AT-58 asserts the swap's undo restores ranks 1, 2, 3 (the one-pass collision is gone); the forwarded-reason check moves to a real refusal path. Local run over the attributes and import-security specs, both projects. No src, no migrations.

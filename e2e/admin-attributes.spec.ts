@@ -4641,29 +4641,44 @@ test.describe("C3 attributes console", () => {
         [keyC]: 1,
       });
 
-      /**
-       * INC-197 — THE UNDO STILL WRITES IN ONE PASS. This run proved it: the
-       * swap's undo answers `duplicate key value violates unique constraint
-       * "category_attribute_links_card_rank_unique"`, because
-       * `admin_undo_attribute_import` restores each link's prior rank in plan
-       * order, exactly the collision L1 removed from the commit. Fixing it is a
-       * migration, which INC-196 L2 may not carry, so this asserts what is true
-       * today and names the finding; the shift's undo above is proven green.
-       */
+      // INC-197 L2 — the undo now writes in two passes, like the commit.
       const swapUndo = await importPost(page, token, { mode: "undo", batchId: swapBatch });
       expect(
         swapUndo.status,
-        `AT-58 the swap undo behaved unexpectedly (INC-197 expects the one-pass collision until the undo is re-declared): ${JSON.stringify(swapUndo.payload)}`,
+        `AT-58 the swap undo failed: ${JSON.stringify(swapUndo.payload)}`,
+      ).toBe(200);
+      expect(await ranksOf(), "AT-58 the swap undo did not restore 1, 2, 3").toEqual({
+        [keyA]: 1,
+        [keyB]: 2,
+        [keyC]: 3,
+      });
+
+      /**
+       * INC-196 L2's forwarded reason, proven on a REAL REFUSAL: a links file
+       * whose end state gives two direct links rank 3. The planner refuses it
+       * inside the commit RPC; the route forwards the message as data.
+       */
+      const clash = `${LINK_HEADER}\r\n` + `${linkRow(keyB, "3")}\r\n`;
+      const clashPreview = await importPost(page, token, { mode: "preview", links: clash });
+      expect(clashPreview.status, JSON.stringify(clashPreview.payload)).toBe(200);
+      const clashCommit = await importPost(page, token, {
+        mode: "commit",
+        links: clash,
+        digest: clashPreview.payload["digest"],
+      });
+      expect(
+        clashCommit.status,
+        `AT-58 the clashing commit did not fail: ${JSON.stringify(clashCommit.payload)}`,
       ).toBe(500);
       expect(
-        String(swapUndo.payload["message"] ?? ""),
-        "AT-58 the route forwarded no message for the failed undo (INC-196 L2)",
-      ).toContain("category_attribute_links_card_rank_unique");
-      // The scratch category leaves in its seeded shape whatever the undo did.
-      await supabase
-        .from("category_attribute_links")
-        .update({ card_rank: null })
-        .eq("category_id", cat.id);
+        String(clashCommit.payload["message"] ?? ""),
+        "AT-58 the route forwarded no message for the refused commit (INC-196 L2)",
+      ).not.toBe("");
+      expect(await ranksOf(), "AT-58 the refused commit changed ranks").toEqual({
+        [keyA]: 1,
+        [keyB]: 2,
+        [keyC]: 3,
+      });
     } finally {
       await destroyCategory(slug);
       await destroyAttribute(keyA);
