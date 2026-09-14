@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export function AttributeOptionRows({
   allowedTargets,
   parentValues,
   dependent,
+  blankCount,
   onChange,
 }: {
   rows: AttributeOption[];
@@ -40,12 +41,33 @@ export function AttributeOptionRows({
   allowedTargets: AllowedTarget[];
   parentValues: string[];
   dependent: boolean;
+  /**
+   * INC-195 — how many rows the dialog refused for a blank value on the last
+   * Save attempt (0 = nothing refused). The refusal is named here, under the
+   * rows it is about, and the door was never called.
+   */
+  blankCount: number;
   onChange: (next: AttributeOption[]) => void;
 }) {
   const { t } = useI18n();
   const [needleInput, setNeedleInput] = useState("");
   const [parentFilter, setParentFilter] = useState("");
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const needle = needleInput.trim().toLowerCase();
+
+  /**
+   * INC-195 — A NEW ROW IS NEVER BORN OUT OF VIEW. A blank row matches no
+   * non-empty needle, so `add` cleared the walk's filters; this effect then
+   * brings the row on screen and puts the cursor in its value cell.
+   */
+  useEffect(() => {
+    if (focusIndex === null) return;
+    const input = document.getElementById(`option-value-${focusIndex}`);
+    setFocusIndex(null);
+    if (input === null) return;
+    input.scrollIntoView({ block: "center" });
+    (input as HTMLInputElement).focus();
+  }, [focusIndex]);
 
   /** View-only: a row is HIDDEN, never dropped from the edited set. */
   const matches = (option: AttributeOption): boolean =>
