@@ -4397,4 +4397,115 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(selBKey);
     }
   });
+
+  /**
+   * AT-57 (INC-195) — A NEW ROW IS NEVER HIDDEN, A BLANK ROW NEVER REACHES THE
+   * DOOR. With a needle narrowing the walk to one row, Add option clears the
+   * needle and brings the new blank row on screen with the cursor in its value
+   * cell ("4 of 4"). Saving with the row still blank is refused IN THE DIALOG,
+   * naming the count, and the stored records are untouched (DB truth, J4).
+   * Filling the value and saving writes all four.
+   */
+  test("AT-57 adding an option under an active search shows the new row, and blank rows block the save with a named count", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const supabase = adminClient();
+    const parentKey = `e2e_attr_${rand()}`;
+    const dependentKey = `e2e_attr_${rand()}`;
+    try {
+      const { data: parent, error: parentError } = await supabase
+        .from("attributes")
+        .insert({
+          attr_key: parentKey,
+          name_en: parentKey,
+          attr_type: "single_select",
+          options: [
+            { value: "p1", label_en: "P1", label_am: "", parent: "" },
+            { value: "p2", label_en: "P2", label_am: "", parent: "" },
+          ],
+        })
+        .select("id")
+        .single();
+      if (parentError || !parent)
+        throw new Error(`AT-57 parent seed failed: ${parentError?.message}`);
+      const { error: dependentError } = await supabase.from("attributes").insert({
+        attr_key: dependentKey,
+        name_en: dependentKey,
+        attr_type: "single_select",
+        depends_on: parent.id,
+        options: [
+          { value: "alpha", label_en: "Alpha", label_am: "አልፋ", parent: "p1" },
+          { value: "beta", label_en: "Beta", label_am: "ቤታ", parent: "p1" },
+          { value: "gamma", label_en: "Gamma", label_am: "ጋማ", parent: "p2" },
+        ],
+      });
+      if (dependentError) throw new Error(`AT-57 dependent seed failed: ${dependentError.message}`);
+      const stored = (await readAttribute(dependentKey))?.options;
+      expect(stored, "AT-57 the stored options never read back").toBeTruthy();
+
+      await openDefinitionEditor(page, dependentKey, "AT-57");
+      await expect(
+        page.getByTestId("option-count"),
+        await dialogDump(page, "AT-57 the rows never rendered"),
+      ).toHaveText("3 of 3", { timeout: 30000 });
+
+      /* A needle that matches exactly one row. */
+      await page.getByTestId("option-search").fill("gamma");
+      await expect(
+        page.getByTestId("option-count"),
+        await dialogDump(page, "AT-57 the search never narrowed"),
+      ).toHaveText("1 of 3");
+
+      /* ADD under the active needle: the needle is cleared, the row is shown. */
+      await optionGroup(page, "p1").getByTestId("option-add-p1").click();
+      await expect(
+        page.getByTestId("option-search"),
+        await dialogDump(page, "AT-57 the needle was not cleared"),
+      ).toHaveValue("");
+      const fresh = optionGroup(page, "p1").locator('[data-testid^="option-row-new-"]').last();
+      await expect(fresh, await dialogDump(page, "AT-57 the new row is hidden")).toBeVisible();
+      await expect(
+        fresh.getByTestId("option-value"),
+        await dialogDump(page, "AT-57 the new row is not focused"),
+      ).toBeFocused();
+      await expect(
+        page.getByTestId("option-count"),
+        await dialogDump(page, "AT-57 the count never counted the new row"),
+      ).toHaveText("4 of 4");
+
+      /* SAVE WITH THE BLANK ROW: refused here, the door is never called. */
+      await page.getByTestId("attribute-edit-submit").click();
+      await expect(
+        page.getByTestId("option-blank-message"),
+        await dialogDump(page, "AT-57 the blank refusal was never named"),
+      ).toContainText("1");
+      await expect(
+        page.getByTestId("attribute-edit-dialog"),
+        await dialogDump(page, "AT-57 the dialog closed on a blank row"),
+      ).toHaveCount(1);
+      expect(
+        (await readAttribute(dependentKey))?.options,
+        "AT-57 a blank row reached the door",
+      ).toEqual(stored);
+
+      /* FILLED: the save lands with four records. */
+      await fresh.getByTestId("option-value").fill("epsilon");
+      await optionRow(page, "p1", "epsilon").getByTestId("option-label-en").fill("Epsilon");
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(
+        page.getByTestId("attribute-edit-dialog"),
+        await dialogDump(page, "AT-57 the filled save never landed"),
+      ).toHaveCount(0, { timeout: 30000 });
+      await expect
+        .poll(async () => (await readAttribute(dependentKey))?.options?.length, { timeout: 20000 })
+        .toBe(4);
+    } finally {
+      await destroyAttribute(dependentKey);
+      await destroyAttribute(parentKey);
+    }
+  });
 });
