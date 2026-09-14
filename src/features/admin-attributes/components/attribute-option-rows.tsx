@@ -93,8 +93,17 @@ export function AttributeOptionRows({
   const replace = (index: number, next: AttributeOption) =>
     onChange(rows.map((row, position) => (position === index ? next : row)));
   const remove = (index: number) => onChange(rows.filter((_, position) => position !== index));
-  const add = (parent: string) =>
+  /**
+   * INC-195 — the walk's filters are VIEW-ONLY, so they must not hide a write:
+   * the needle is cleared and, when a parent filter is narrowing the view, it
+   * is moved to the new row's own parent before the row is focused.
+   */
+  const add = (parent: string) => {
+    setNeedleInput("");
+    if (parentFilter !== "" && parentFilter !== parent) setParentFilter(parent);
+    setFocusIndex(rows.length);
     onChange([...rows, { value: "", labelEn: "", labelAm: "", parent, active: true }]);
+  };
 
   return (
     <div className="min-w-0 space-y-4" data-testid="attribute-option-rows">
