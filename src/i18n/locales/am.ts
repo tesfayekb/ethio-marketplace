@@ -1216,6 +1216,8 @@ export const am: Messages = {
   "admin.attributes.options.parentFilter": "የትኞቹን አማራጮች አሳይ",
   "admin.attributes.options.parentFilterAll": "ሁሉም የወላጅ ዋጋዎች",
   "admin.attributes.options.countLine": "ከ{total} ውስጥ {shown}",
+  /* INC-195 — ዋጋ የሌላቸው የአማራጭ መስመሮች ከበሩ በፊት እዚህ ይከለከላሉ። */
+  "admin.attributes.options.blankRows": "{count} አማራጮች ዋጋ የላቸውም — ይሙሉ ወይም ያስወግዱ",
   /* C3-UX-9 — ገደብ ወይም ክልከላ መያዝ የሚችሉት አብረው የሚሠሩ ባህርያት ብቻ ናቸው። */
   "admin.attributes.options.boundsNoTargets":
     "ከዚህ ጋር አብሮ የሚሠራ የቁጥር ባህርይ የለም፤ ስለዚህ የሚገደብ ምንም አይኖርም።",

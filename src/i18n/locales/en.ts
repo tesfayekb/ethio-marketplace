@@ -1288,6 +1288,8 @@ export const en = {
   "admin.attributes.options.parentFilter": "Show options for",
   "admin.attributes.options.parentFilterAll": "All parent values",
   "admin.attributes.options.countLine": "{shown} of {total}",
+  /* INC-195 — blank option rows are refused here, before the door. */
+  "admin.attributes.options.blankRows": "{count} options have no value — fill or remove them",
   /* C3-UX-9 — only co-linked definitions can carry a bound or a restriction. */
   "admin.attributes.options.boundsNoTargets":
     "No number attribute is used alongside this one, so there is nothing to limit.",
