@@ -453,3 +453,5 @@
 - 2026-09-14 — D-GATE-14: TRAVEL, CONSTRUCTION, BEAUTY RECORDED; INC-196/197 CLOSED (docs only, verbatim). Three curation passes imported and walked with Amharic approved; the commit and undo write ranks in two passes; system-state NEXT: Sports onward. No src, no e2e, no migrations.
 
 - 2026-09-14 — DEC-049b: workflow actions bumped actions/checkout@v4 → v7 ×3 (ci-status-report ×2, guard-proof ×1), actions/github-script@v7 → v9; judge: push + nightly green, else revert. Workflows only.
+
+- 2026-09-14 — D-GATE-15: SPORTS, AGRICULTURE, FOOD & BEVERAGES ROOT RECORDED; DEC-060 ratified (no alcohol/tobacco in v1); INC-198 registered (empty-root delete previews unchanged); curation handoff gains the attestation-boolean rule; system-state NEXT: Babies & Kids onward. Docs only.
