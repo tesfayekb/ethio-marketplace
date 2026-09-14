@@ -422,6 +422,10 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.options.blankRows": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.options.boundsAddExample": [
       "/admin/attributes",
       "/admin/categories"

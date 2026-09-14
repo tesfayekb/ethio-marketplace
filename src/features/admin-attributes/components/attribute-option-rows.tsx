@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export function AttributeOptionRows({
   allowedTargets,
   parentValues,
   dependent,
+  blankCount,
   onChange,
 }: {
   rows: AttributeOption[];
@@ -40,12 +41,33 @@ export function AttributeOptionRows({
   allowedTargets: AllowedTarget[];
   parentValues: string[];
   dependent: boolean;
+  /**
+   * INC-195 — how many rows the dialog refused for a blank value on the last
+   * Save attempt (0 = nothing refused). The refusal is named here, under the
+   * rows it is about, and the door was never called.
+   */
+  blankCount: number;
   onChange: (next: AttributeOption[]) => void;
 }) {
   const { t } = useI18n();
   const [needleInput, setNeedleInput] = useState("");
   const [parentFilter, setParentFilter] = useState("");
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const needle = needleInput.trim().toLowerCase();
+
+  /**
+   * INC-195 — A NEW ROW IS NEVER BORN OUT OF VIEW. A blank row matches no
+   * non-empty needle, so `add` cleared the walk's filters; this effect then
+   * brings the row on screen and puts the cursor in its value cell.
+   */
+  useEffect(() => {
+    if (focusIndex === null) return;
+    const input = document.getElementById(`option-value-${focusIndex}`);
+    setFocusIndex(null);
+    if (input === null) return;
+    input.scrollIntoView({ block: "center" });
+    (input as HTMLInputElement).focus();
+  }, [focusIndex]);
 
   /** View-only: a row is HIDDEN, never dropped from the edited set. */
   const matches = (option: AttributeOption): boolean =>
@@ -71,8 +93,17 @@ export function AttributeOptionRows({
   const replace = (index: number, next: AttributeOption) =>
     onChange(rows.map((row, position) => (position === index ? next : row)));
   const remove = (index: number) => onChange(rows.filter((_, position) => position !== index));
-  const add = (parent: string) =>
+  /**
+   * INC-195 — the walk's filters are VIEW-ONLY, so they must not hide a write:
+   * the needle is cleared and, when a parent filter is narrowing the view, it
+   * is moved to the new row's own parent before the row is focused.
+   */
+  const add = (parent: string) => {
+    setNeedleInput("");
+    if (parentFilter !== "" && parentFilter !== parent) setParentFilter(parent);
+    setFocusIndex(rows.length);
     onChange([...rows, { value: "", labelEn: "", labelAm: "", parent, active: true }]);
+  };
 
   return (
     <div className="min-w-0 space-y-4" data-testid="attribute-option-rows">
@@ -160,6 +191,14 @@ export function AttributeOptionRows({
           </div>
         );
       })}
+
+      {/* INC-195 — the refusal is named where the rows are, and the door was
+          never called (F4: no phantom success, no silent refusal). */}
+      {blankCount > 0 ? (
+        <p role="alert" className="text-sm text-destructive" data-testid="option-blank-message">
+          {t("admin.attributes.options.blankRows").replace("{count}", String(blankCount))}
+        </p>
+      ) : null}
     </div>
   );
 }

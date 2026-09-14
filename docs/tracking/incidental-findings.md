@@ -2142,3 +2142,7 @@ TR-24 waited for the fence language's untranslated-entity count to drop after tr
 ## INC-194 — the post-test window swept a failing test's own error
 
 DEC-059's post-test extraction started at the last test-result line; Playwright prints a failing test's error block in the summary after that line, so TR-24's failure appeared under "Post-test errors: shard 2" as well as in its own section. Fix: the window starts at the final summary block; teardown lines after it are captured, result lines and failure blocks are not. Class: evidence fidelity (G20).
+
+## INC-195 — a new option row was hidden by the active search, and blank rows reached the door
+
+C3-UX-7's option search filtered rows by value or label; `add(parent)` appended a blank row that could never match a non-empty needle, so the row was created out of view, repeated clicks piled up blank rows, and a save sent them to the door, which refused them with no visible cause. Found by the platform's scanner on 2026-09-13; the same scan re-reported two findings already fixed (the one-write link flags, the settled step-up promise) — verified stale against the tree. Fix: adding an option clears the needle, scopes the parent filter to the row's parent and scrolls it into view; a save with any blank value is refused in the dialog with a named count before the door is called (AT-57). Class: a view-only filter that hid a write.

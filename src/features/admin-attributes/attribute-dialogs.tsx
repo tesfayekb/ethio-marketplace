@@ -272,6 +272,15 @@ export function AttributeEditorDialog({
    * flat one keeps "". Nothing is recomposed, so nothing is lost (INC-188).
    */
   const composed: AttributeOption[] = optionRows.filter((option) => option.value.trim() !== "");
+  /**
+   * INC-195 — blank rows never silently vanish into a refused save: the count
+   * is named under the rows and the door is not called. The byte-equality law
+   * is untouched — a save with no edits has no blank rows to refuse.
+   */
+  const blankRows = typeHasOptions(attrType)
+    ? optionRows.filter((option) => option.value.trim() === "").length
+    : 0;
+  const [blankCount, setBlankCount] = useState(0);
 
   /** Empty is null; a non-number for an integer cell is left to the door. */
   const text = (raw: string): string | null => (raw.trim() === "" ? null : raw.trim());
@@ -282,6 +291,11 @@ export function AttributeEditorDialog({
 
   const submit = () => {
     setMessage(null);
+    setBlankCount(0);
+    if (blankRows > 0) {
+      setBlankCount(blankRows);
+      return;
+    }
     if (attrKey.trim() === "") {
       setMessage(t("admin.attributes.error.keyRequired"));
       return;
@@ -419,7 +433,11 @@ export function AttributeEditorDialog({
               allowedTargets={allowedTargets}
               parentValues={parentValues}
               dependent={dependent}
-              onChange={setOptionRows}
+              blankCount={blankCount}
+              onChange={(next) => {
+                setBlankCount(0);
+                setOptionRows(next);
+              }}
             />
           )}
 
