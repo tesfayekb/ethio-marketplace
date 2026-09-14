@@ -76,4 +76,6 @@ Backfill files (Vehicles, Real Estate, Electronics — one definitions file each
 
 Units — one canonical metric spelling per family, exactly: area `m²`; length `m`, `cm`, `mm`; distance `km`; mass `kg`, `g`, `quintal`; volume `L`, `mL`; power `kW`; energy `kWh`; displacement `cc`; speed `km/h`; data `GB`, `TB`; screens `in`. Imperial display (ft², mi, lb) is a viewer-side conversion (DEC-055), never authored.
 
+Charge family (2026-09-14): `mAh` is canonical for battery capacity — the market's unit, not `kWh`. Alias uniqueness is enforced per definition, case-insensitively, not per option: a Latin alias shared by several brands' series is brand-qualified ("Honor X Series", "Nokia X Series"); the bare name still matches through label_en.
+
 Follow-ups now due: Vehicles — one definitions file adding `allowed` where confident (fuel, transmission and body sets per model) and any unit respelling; Real Estate and Electronics backfills as briefed in §8, Electronics carrying `allowed` storage/RAM sets per phone and computer series plus the Ge'ez series labels under the script ruling; then Fashion.
