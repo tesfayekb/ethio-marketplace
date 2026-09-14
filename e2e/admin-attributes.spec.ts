@@ -4203,7 +4203,8 @@ test.describe("C3 attributes console", () => {
         })
         .select("id")
         .single();
-      if (parentError || !parent) throw new Error(`AT-55 parent seed failed: ${parentError?.message}`);
+      if (parentError || !parent)
+        throw new Error(`AT-55 parent seed failed: ${parentError?.message}`);
       const { error: numberError } = await supabase
         .from("attributes")
         .insert({ attr_key: numberKey, name_en: numberKey, attr_type: "number" });
