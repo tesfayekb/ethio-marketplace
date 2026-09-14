@@ -734,3 +734,5 @@ mode has no owner yet and behaves the same way. This is convenience only: the
 server judges every save (F3) and its refusals still render through
 `attribute-dialog-error`. Proofs: AT-51, AT-53 (a target linked in none of the
 owner's categories appears in no picker and nothing changes).
+
+Console (C3-UX-7/8/9): the option rows carry a search box and, for dependents, a parent filter — view-only, every stored record still round-trips on save (AT-55); the bounds and allowed pickers offer only targets that share a linked category with the definition being edited (the server's rule, pre-applied; a definition linked nowhere yet sees every candidate — AT-56); the attributes import dialog previews a definitions file alone, the links file being optional as the route always allowed (AT-54).

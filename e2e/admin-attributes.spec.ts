@@ -4170,4 +4170,231 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(key);
     }
   });
+
+  /**
+   * AT-55 (C3-UX-7/8) — THE FILTERS ARE VIEW-ONLY, THE SAVE IS TOTAL. A
+   * dependent definition with four records: the search narrows the rows to
+   * ONE and the count reads "1 of 4"; the parent filter narrows to its two;
+   * and a SAVE WITH THE FILTER STILL APPLIED writes back every stored record
+   * exactly — the INC-188 law under filtering, proven by service-client
+   * read-back (J4), not by the page's summary.
+   */
+  test("AT-55 the option search and parent filter narrow the rows, and a save after filtering keeps every stored record", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const supabase = adminClient();
+    const parentKey = `e2e_attr_${rand()}`;
+    const dependentKey = `e2e_attr_${rand()}`;
+    const numberKey = `e2e_attr_${rand()}`;
+    try {
+      const { data: parent, error: parentError } = await supabase
+        .from("attributes")
+        .insert({
+          attr_key: parentKey,
+          name_en: parentKey,
+          attr_type: "single_select",
+          options: [
+            { value: "p1", label_en: "P1", label_am: "", parent: "" },
+            { value: "p2", label_en: "P2", label_am: "", parent: "" },
+          ],
+        })
+        .select("id")
+        .single();
+      if (parentError || !parent)
+        throw new Error(`AT-55 parent seed failed: ${parentError?.message}`);
+      const { error: numberError } = await supabase
+        .from("attributes")
+        .insert({ attr_key: numberKey, name_en: numberKey, attr_type: "number" });
+      if (numberError) throw new Error(`AT-55 number seed failed: ${numberError.message}`);
+      const { error: dependentError } = await supabase.from("attributes").insert({
+        attr_key: dependentKey,
+        name_en: dependentKey,
+        attr_type: "single_select",
+        depends_on: parent.id,
+        options: [
+          {
+            value: "alpha",
+            label_en: "Alpha",
+            label_am: "አልፋ",
+            parent: "p1",
+            aliases: ["a-one"],
+            bounds: { [numberKey]: { min: "1" } },
+          },
+          { value: "beta", label_en: "Beta", label_am: "ቤታ", parent: "p1" },
+          { value: "gamma", label_en: "Gamma", label_am: "ጋማ", parent: "p2" },
+          { value: "delta", label_en: "Delta", label_am: "ዴልታ", parent: "p2" },
+        ],
+      });
+      if (dependentError) throw new Error(`AT-55 dependent seed failed: ${dependentError.message}`);
+      const stored = (await readAttribute(dependentKey))?.options;
+      expect(stored, "AT-55 the stored options never read back").toBeTruthy();
+
+      await openDefinitionEditor(page, dependentKey, "AT-55");
+      await expect(
+        page.getByTestId("option-count"),
+        await dialogDump(page, "AT-55 the rows never rendered"),
+      ).toHaveText("4 of 4", { timeout: 30000 });
+
+      /* THE SEARCH: one row visible, the count reads "1 of 4". */
+      await page.getByTestId("option-search").fill("gamma");
+      await expect(optionRow(page, "p2", "gamma")).toBeVisible();
+      await expect(optionRow(page, "p1", "alpha")).toHaveCount(0);
+      await expect(optionRow(page, "p1", "beta")).toHaveCount(0);
+      await expect(optionRow(page, "p2", "delta")).toHaveCount(0);
+      await expect(
+        page.getByTestId("option-count"),
+        await dialogDump(page, "AT-55 the count never narrowed"),
+      ).toHaveText("1 of 4");
+
+      /* THE PARENT FILTER: the chosen parent's two rows, nothing else. */
+      await page.getByTestId("option-search").fill("");
+      await page.getByTestId("option-parent-filter").selectOption("p2");
+      await expect(optionRow(page, "p2", "gamma")).toBeVisible();
+      await expect(optionRow(page, "p2", "delta")).toBeVisible();
+      await expect(optionRow(page, "p1", "alpha")).toHaveCount(0);
+      await expect(optionRow(page, "p1", "beta")).toHaveCount(0);
+      await expect(
+        page.getByTestId("option-count"),
+        await dialogDump(page, "AT-55 the parent filter never narrowed"),
+      ).toHaveText("2 of 4");
+
+      /* FILTER STILL APPLIED, NO EDITS: the save keeps every stored record. */
+      await page.getByTestId("attribute-edit-submit").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(
+        page.getByTestId("attribute-edit-dialog"),
+        await dialogDump(page, "AT-55 the save never landed"),
+      ).toHaveCount(0, { timeout: 30000 });
+      await expect
+        .poll(async () => (await readAttribute(dependentKey))?.options, { timeout: 20000 })
+        .toEqual(stored);
+    } finally {
+      await destroyAttribute(dependentKey);
+      await destroyAttribute(parentKey);
+      await destroyAttribute(numberKey);
+    }
+  });
+
+  /**
+   * AT-56 (C3-UX-9) — BOTH PICKERS OFFER ONLY CO-LINKED TARGETS. The owner is
+   * linked at category A: the number and the select linked at A are on offer
+   * in the bounds and allowed pickers; the number and the select linked only
+   * at B are withheld — unreachable by hand, with the server still the judge
+   * of every save (F3). Dumps on mismatch (J4).
+   */
+  test("AT-56 the constraint pickers offer only co-linked targets", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const supabase = adminClient();
+    const ownerKey = `e2e_attr_${rand()}`;
+    const numAKey = `e2e_attr_${rand()}`;
+    const selAKey = `e2e_attr_${rand()}`;
+    const numBKey = `e2e_attr_${rand()}`;
+    const selBKey = `e2e_attr_${rand()}`;
+    const slugA = `e2e-cat-${rand()}`;
+    const slugB = `e2e-cat-${rand()}`;
+    const categoryIds: string[] = [];
+    try {
+      const { data: seeded, error } = await supabase
+        .from("attributes")
+        .insert([
+          {
+            attr_key: ownerKey,
+            name_en: ownerKey,
+            attr_type: "single_select",
+            options: [{ value: "a", label_en: "A", label_am: "", parent: "" }],
+          },
+          { attr_key: numAKey, name_en: numAKey, attr_type: "number" },
+          {
+            attr_key: selAKey,
+            name_en: selAKey,
+            attr_type: "single_select",
+            options: [{ value: "x", label_en: "X", label_am: "", parent: "" }],
+          },
+          { attr_key: numBKey, name_en: numBKey, attr_type: "number" },
+          {
+            attr_key: selBKey,
+            name_en: selBKey,
+            attr_type: "single_select",
+            options: [{ value: "y", label_en: "Y", label_am: "", parent: "" }],
+          },
+        ])
+        .select("id, attr_key");
+      if (error || !seeded) throw new Error(`AT-56 seed failed: ${error?.message}`);
+      const byKey = (key: string) => {
+        const row = seeded.find((candidate) => candidate.attr_key === key);
+        if (!row) throw new Error(`AT-56 seeded attribute missing: ${key}`);
+        return row;
+      };
+
+      const { data: categories, error: catError } = await supabase
+        .from("categories")
+        .insert([
+          { slug: slugA, name_en: slugA, is_active: true, allow_listings: true },
+          { slug: slugB, name_en: slugB, is_active: true, allow_listings: true },
+        ])
+        .select("id, slug");
+      if (catError || !categories) throw new Error(`AT-56 category failed: ${catError?.message}`);
+      categoryIds.push(...categories.map((row) => row.id));
+      const categoryA = categories.find((row) => row.slug === slugA);
+      const categoryB = categories.find((row) => row.slug === slugB);
+      if (!categoryA || !categoryB) throw new Error("AT-56 seeded categories missing");
+      const { error: linkError } = await supabase.from("category_attribute_links").insert([
+        { category_id: categoryA.id, attribute_id: byKey(ownerKey).id, display_order: 0 },
+        { category_id: categoryA.id, attribute_id: byKey(numAKey).id, display_order: 1 },
+        { category_id: categoryA.id, attribute_id: byKey(selAKey).id, display_order: 2 },
+        { category_id: categoryB.id, attribute_id: byKey(numBKey).id, display_order: 0 },
+        { category_id: categoryB.id, attribute_id: byKey(selBKey).id, display_order: 1 },
+      ]);
+      if (linkError) throw new Error(`AT-56 link failed: ${linkError.message}`);
+
+      await openDefinitionEditor(page, ownerKey, "AT-56");
+      const row = optionRow(page, "", "a");
+      await expect(row, await dialogDump(page, "AT-56 the row never rendered")).toBeVisible({
+        timeout: 30000,
+      });
+
+      /* BOUNDS: the number at A is on offer; the number at B is withheld. */
+      const bounds = row.getByTestId("option-bounds-add");
+      await expect(
+        bounds.locator(`option[value="${numAKey}"]`),
+        await dialogDump(page, "AT-56 the co-linked number is not on offer"),
+      ).toHaveCount(1);
+      await expect(
+        bounds.locator(`option[value="${numBKey}"]`),
+        await dialogDump(page, "AT-56 a number linked only at B is still on offer"),
+      ).toHaveCount(0);
+
+      /* ALLOWED: the select at A is on offer; the select at B is withheld. */
+      const allowed = row.getByTestId("option-allowed-add");
+      await expect(
+        allowed.locator(`option[value="${selAKey}"]`),
+        await dialogDump(page, "AT-56 the co-linked select is not on offer"),
+      ).toHaveCount(1);
+      await expect(
+        allowed.locator(`option[value="${selBKey}"]`),
+        await dialogDump(page, "AT-56 a select linked only at B is still on offer"),
+      ).toHaveCount(0);
+
+      /* Nothing was chosen, so nothing changed (DB truth, J4). */
+      expect((await readAttribute(ownerKey))?.options).toEqual([
+        { value: "a", label_en: "A", label_am: "", parent: "" },
+      ]);
+    } finally {
+      if (categoryIds.length > 0) {
+        await supabase.from("category_attribute_links").delete().in("category_id", categoryIds);
+        await destroyCategory(slugA);
+        await destroyCategory(slugB);
+      }
+      await destroyAttribute(ownerKey);
+      await destroyAttribute(numAKey);
+      await destroyAttribute(selAKey);
+      await destroyAttribute(numBKey);
+      await destroyAttribute(selBKey);
+    }
+  });
 });
