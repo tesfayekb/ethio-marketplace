@@ -29,6 +29,14 @@ const REASON_KEYS = new Set([
   "hasChildren",
   "hasListings",
   "deleteActive",
+  // INC-198/199 L2 — the vocabulary L1 added. `statusNeedsAction` is a refusal
+  // the operator reads today; `alreadyRetired` / `alreadyDeleted` are the
+  // planner's NO-OP details, carried here as reason ids so they are already
+  // translated for the day the preview renders an unchanged row's own detail
+  // (it renders per-row text for refusals only, so nothing shows them yet).
+  "statusNeedsAction",
+  "alreadyRetired",
+  "alreadyDeleted",
   "unknownCountry",
   "badDate",
   "outOfScope",

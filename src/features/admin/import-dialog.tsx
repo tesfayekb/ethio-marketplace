@@ -181,6 +181,17 @@ export function ImportDialog({
       if (field !== undefined && segment !== "") values[field] = segment;
     });
 
+    /**
+     * INC-198/199 L2 — A DETAIL OF NAMED VALUES NAMES ITS OWN PLACEHOLDERS.
+     * A door whose detail is `name=value` pairs (`stored=false requested=true`)
+     * spends them INSIDE the sentence — `{stored}` / `{requested}` — instead of
+     * making the operator read a raw token. A detail with no `=` is untouched.
+     */
+    for (const pair of last.split(/\s+/)) {
+      const equals = pair.indexOf("=");
+      if (equals > 0) values[pair.slice(0, equals)] = pair.slice(equals + 1);
+    }
+
     const detailed = token !== "" && reasonKeys.has(`${name}.${token}`);
     const messageKey = detailed ? key(`reason.${name}.${token}`) : key(`reason.${name}`);
     let text = t(messageKey);

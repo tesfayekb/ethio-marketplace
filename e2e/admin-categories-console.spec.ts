@@ -778,4 +778,246 @@ test.describe("C2 categories console", () => {
     }
     expect(rendered.size, "CT-29 the roster rendered its rows").toBeGreaterThan(0);
   });
+
+  /**
+   * INC-198/199 L2 — CT-32. Two silences the planner used to keep, proven
+   * THROUGH THE ROUTE and read back as DB truth (J4): an action row that also
+   * carries cell changes must apply BOTH in one revision and take both back on
+   * undo (INC-199 part 2), and an EMPTY ROOT must be deletable and restorable
+   * (INC-198). Fixtures are J1-namespaced scratch rows written through the
+   * service client (J5), seeded before navigating (J7), destroyed in `finally`.
+   *
+   * The file/line/importPost helpers are local: their twins live inside the
+   * lifecycle spec's own describe block, which this task's scope may not touch.
+   */
+  test("CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    const supabase = adminClient();
+
+    const COLUMNS = [
+      "category_path",
+      "category_slug",
+      "parent_slug",
+      "name_en",
+      "name_am",
+      "display_order",
+      "is_active",
+      "allow_listings",
+      "is_catchall",
+      "price_enabled",
+      "expiry_days",
+      "icon",
+      "visible_from",
+      "visible_until",
+      "excluded_country_codes",
+      "secondary_parents",
+      "listing_count",
+      "origin_scope",
+    ] as const;
+
+    /** RFC 4180 cell for a hand-authored fixture file. */
+    const cell = (value: string): string =>
+      /["\n\r,]/.test(value) ? `"${value.split('"').join('""')}"` : value;
+    const line = (
+      values: Partial<Record<(typeof COLUMNS)[number], string>>,
+      action: string,
+    ): string => [...COLUMNS.map((column) => cell(values[column] ?? "")), cell(action)].join(",");
+    const file = (rows: string[]): string =>
+      `\uFEFF${[`${COLUMNS.join(",")},action`, ...rows].join("\r\n")}\r\n`;
+
+    async function importPost(token: string, body: Record<string, unknown>) {
+      const response = await page.request.post("/api/admin/categories/import", {
+        headers: { Authorization: `Bearer ${token}` },
+        data: body,
+      });
+      let payload: Record<string, unknown> = {};
+      try {
+        payload = (await response.json()) as Record<string, unknown>;
+      } catch {
+        payload = {};
+      }
+      return { status: response.status(), payload };
+    }
+
+    /** A scratch node written through the service client (J3), never a real row. */
+    async function seed(slug: string, parentId: string | null): Promise<string> {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      if (error || !data) throw new Error(`[e2e:ct-32] seeding ${slug} failed: ${error?.message}`);
+      const { error: pointerError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: parentId, child_id: data.id, display_order: 0 });
+      if (pointerError) {
+        throw new Error(`[e2e:ct-32] pointer for ${slug} failed: ${pointerError.message}`);
+      }
+      return data.id;
+    }
+
+    const stamp = `${RUN}-${process.env["TEST_WORKER_INDEX"] ?? "0"}-${rand()}`;
+    const rootSlug = `e2e-cat-${stamp}-r`;
+    const slugA = `e2e-cat-${stamp}-a`;
+    const slugB = `e2e-cat-${stamp}-b`;
+    const secondSlug = `e2e-cat-${stamp}-r2`;
+    const emptySlug = `e2e-cat-${stamp}-r3`;
+    const newAmharic = `ሙከራ ${stamp}`;
+
+    /**
+     * IE-4a — an Amharic name is NOT a column: the importer writes it through
+     * the translation door, so the read-back reads that row, not `categories`.
+     */
+    async function amharicNameOf(categoryId: string): Promise<string | null> {
+      const { data, error } = await supabase
+        .from("entity_translations")
+        .select("value")
+        .eq("entity_type", "category")
+        .eq("entity_id", categoryId)
+        .eq("field", "name")
+        .eq("lang_code", "am")
+        .maybeSingle();
+      if (error) throw new Error(`[e2e:ct-32] reading the am name failed: ${error.message}`);
+      return data?.value ?? null;
+    }
+
+    /** J4 — a mismatch names the row it judged, never page text. */
+    async function truthOf(slug: string): Promise<string> {
+      const row = await readCategory(slug);
+      const parents = row === null ? [] : (await readPointers(row.id)).map((p) => p.parent_id);
+      const nameAm = row === null ? null : await amharicNameOf(row.id);
+      return `[CT-32 ${slug}] ${JSON.stringify({ row, nameAm, parents })}`;
+    }
+
+    try {
+      const rootId = await seed(rootSlug, null);
+      const idA = await seed(slugA, rootId);
+      await seed(slugB, rootId);
+      const secondId = await seed(secondSlug, null);
+      const emptyId = await seed(emptySlug, null);
+      const { error: retireEmpty } = await supabase
+        .from("categories")
+        .update({ is_active: false })
+        .eq("id", emptyId);
+      if (retireEmpty)
+        throw new Error(`[e2e:ct-32] retiring the root failed: ${retireEmpty.message}`);
+
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, rootSlug);
+      const token = await page.evaluate(async () => {
+        const client = (
+          window as unknown as {
+            __ethioSupabase: {
+              auth: {
+                getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
+              };
+            };
+          }
+        ).__ethioSupabase;
+        const { data } = await client.auth.getSession();
+        return data.session?.access_token ?? "";
+      });
+      expect(token, "CT-32 the page carries no bearer").not.toBe("");
+
+      // (a) A is retired THROUGH THE ROUTE — the same door the operator uses.
+      const retireFile = file([line({ category_slug: slugA, name_en: slugA }, "retire")]);
+      const retirePreview = await importPost(token, { mode: "preview", categories: retireFile });
+      expect(retirePreview.status, JSON.stringify(retirePreview.payload)).toBe(200);
+      expect(
+        (retirePreview.payload["counts"] as Record<string, number>)["retires"],
+        JSON.stringify(retirePreview.payload),
+      ).toBe(1);
+      const retired = await importPost(token, {
+        mode: "commit",
+        categories: retireFile,
+        digest: retirePreview.payload["digest"],
+      });
+      expect(retired.status, JSON.stringify(retired.payload)).toBe(200);
+      expect((await readCategory(slugA))?.is_active, await truthOf(slugA)).toBe(false);
+
+      // (b) One row: reactivate A, rename it in Amharic, hang it under R2 too.
+      const actionFile = file([
+        line(
+          {
+            category_slug: slugA,
+            name_en: slugA,
+            name_am: newAmharic,
+            secondary_parents: secondSlug,
+          },
+          "reactivate",
+        ),
+      ]);
+      const preview = await importPost(token, { mode: "preview", categories: actionFile });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      const previewDump = JSON.stringify(preview.payload);
+      // COUNTED ONCE: a reactivation carrying cells is not also a change.
+      expect(counts["reactivations"], previewDump).toBe(1);
+      expect(counts["changes"], previewDump).toBe(0);
+      expect(counts["refusals"], previewDump).toBe(0);
+      const items = (preview.payload["items"] as { slug?: string; detail?: string }[]) ?? [];
+      const detail = items.find((item) => item.slug === slugA)?.detail ?? "";
+      expect(detail, previewDump).toContain("name_am");
+      expect(detail, previewDump).toContain("secondary_parents");
+
+      const commit = await importPost(token, {
+        mode: "commit",
+        categories: actionFile,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId, JSON.stringify(commit.payload)).toBeTruthy();
+
+      // (c) ALL THREE landed together (J4 — DB truth).
+      expect((await readCategory(slugA))?.is_active, await truthOf(slugA)).toBe(true);
+      expect(await amharicNameOf(idA), await truthOf(slugA)).toBe(newAmharic);
+      expect(
+        (await readPointers(idA)).map((row) => row.parent_id),
+        await truthOf(slugA),
+      ).toContain(secondId);
+
+      // (d) UNDO takes all three back.
+      const undo = await importPost(token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect((await readCategory(slugA))?.is_active, await truthOf(slugA)).toBe(false);
+      expect(await amharicNameOf(idA), await truthOf(slugA)).toBeNull();
+      expect(
+        (await readPointers(idA)).map((row) => row.parent_id),
+        await truthOf(slugA),
+      ).not.toContain(secondId);
+
+      // (e) INC-198 — an EMPTY, retired ROOT is deleted, and undo brings it back.
+      const deleteFile = file([line({ category_slug: emptySlug, name_en: emptySlug }, "delete")]);
+      const deletePreview = await importPost(token, { mode: "preview", categories: deleteFile });
+      expect(deletePreview.status, JSON.stringify(deletePreview.payload)).toBe(200);
+      const deleteCounts = deletePreview.payload["counts"] as Record<string, number>;
+      expect(deleteCounts["deletes"], JSON.stringify(deletePreview.payload)).toBe(1);
+      expect(deleteCounts["refusals"], JSON.stringify(deletePreview.payload)).toBe(0);
+      const deleted = await importPost(token, {
+        mode: "commit",
+        categories: deleteFile,
+        digest: deletePreview.payload["digest"],
+      });
+      expect(deleted.status, JSON.stringify(deleted.payload)).toBe(200);
+      expect(await readCategory(emptySlug), await truthOf(emptySlug)).toBeNull();
+
+      const deleteUndo = await importPost(token, {
+        mode: "undo",
+        batchId: deleted.payload["batch_id"],
+      });
+      expect(deleteUndo.status, JSON.stringify(deleteUndo.payload)).toBe(200);
+      expect(await readCategory(emptySlug), await truthOf(emptySlug)).not.toBeNull();
+    } finally {
+      await destroyCategory(emptySlug);
+      await destroyCategory(secondSlug);
+      await destroyCategory(slugB);
+      await destroyCategory(slugA);
+      await destroyCategory(rootSlug);
+    }
+  });
 });
