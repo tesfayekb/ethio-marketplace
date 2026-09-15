@@ -2164,3 +2164,5 @@ INC-197 — CLOSED 2026-09-14 by its migration: admin_undo_attribute_import rest
 ## INC-198 — the categories import will not delete an empty root
 
 A delete row for food-beverages-2 (an auto-suffixed root with no children and no listings) previewed as unchanged at All categories; the root was retired in the console instead. Either the planner should delete an empty root or the preview should say why it will not — silence is the defect. Class: a no-op that should have been a refusal with a reason. Fix at the library sweep.
+
+
