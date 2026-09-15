@@ -108,7 +108,7 @@ export function LocationDialogActions({
   );
 }
 
-function numberOrNull(raw: string): number | null {
+export function numberOrNull(raw: string): number | null {
   const value = raw.trim();
   if (value === "") return null;
   const parsed = Number(value);
