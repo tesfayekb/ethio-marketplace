@@ -168,6 +168,13 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
   }
 
   let response = await attemptOnce();
+  if (!response) {
+    // INC-202 — a THROWN attempt (offline blip, aborted socket) used to fall
+    // straight through to the base-language fallback while an error RESPONSE
+    // got a retry. Both failure shapes now get exactly one retry.
+    console.error("[client-error] gate fetch threw");
+    response = await attemptOnce();
+  }
   if (response && !response.ok) {
     const preview = await response
       .clone()
@@ -298,10 +305,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       if (!rows || rows.length === 0) {
         console.warn("[i18n] public language list unavailable — base language only");
+        // INC-202 — the fallback is NAMED in the mirror, so a dump can tell
+        // "the gate says base only" from "the gate never answered" (F4).
+        setGateDegraded(true);
         setGateReady(true);
         return;
       }
       setPublicLanguages(rows);
+      setGateDegraded(false);
       setGateReady(true);
     });
     return () => {
