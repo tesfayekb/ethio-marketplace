@@ -1567,13 +1567,11 @@ test.describe("U4h device language star", () => {
       return value?.degraded === true;
     });
     if (degraded && gate.length > 1) {
-      test
-        .info()
-        .annotations.push({
-          type: "note",
-          description:
-            "[INC-202] client gate degraded (network) — SSR alternates still judged against DB truth",
-        });
+      test.info().annotations.push({
+        type: "note",
+        description:
+          "[INC-202] client gate degraded (network) — SSR alternates still judged against DB truth",
+      });
     }
 
     // Both sides normalised the same way: lower-cased, de-duplicated, sorted.

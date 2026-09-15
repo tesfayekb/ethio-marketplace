@@ -73,7 +73,9 @@ test.describe("L1c · public per-country location tree", () => {
 
     const body = (await first.json()) as TreePayload;
     expect(body.country, "the upper-cased code is echoed").toBe("ET");
-    expect(body.nodes.length, `nodes returned (payload=${JSON.stringify(body).slice(0, 400)})`,
+    expect(
+      body.nodes.length,
+      `nodes returned (payload=${JSON.stringify(body).slice(0, 400)})`,
     ).toBeGreaterThan(0);
     expect(body.nodes[0]?.["slug"], "the anchor is the first row").toBe("ethiopia");
     expect(body.nodes[0]?.["level"], "the first row is the country anchor").toBe("country");
@@ -220,7 +222,9 @@ test.describe("L1c · public per-country location tree", () => {
     const body = (await response.json()) as TreePayload;
     expect(Object.keys(body).sort(), "the envelope").toEqual(["country", "nodes", "version"]);
     for (const node of body.nodes) {
-      expect(node["name_am"], `no translated name is served (slug=${String(node["slug"])})`,
+      expect(
+        node["name_am"],
+        `no translated name is served (slug=${String(node["slug"])})`,
       ).toBeUndefined();
       expect(Object.keys(node).sort(), `node fields (slug=${String(node["slug"])})`).toEqual(
         [...NODE_FIELDS].sort(),
