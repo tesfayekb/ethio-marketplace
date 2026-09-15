@@ -76,7 +76,8 @@ Reading order on a red run:
 ## Known limitations
 
 - The reporter does not report its own health. If its job fails, ci-status.md keeps
-  showing the last successful reading, which is why the SHA cross-check above is
+- Both tracking files are machine-owned and prettier-exempt (INC-011, DEC-066). Never
+  hand-edit them.
   mandatory rather than optional.
 - It checks out main and pushes to main with no rebase or retry; a commit landing in
   between causes a non-fast-forward push failure and a stale file.
