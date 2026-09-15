@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { AdminSectionPage } from "@/features/admin/section-page";
+import { AdminLocationsPage } from "@/features/admin-locations/locations-page";
 
+/**
+ * LOCATIONS ERA L2a — the Locations section. The /admin layout owns the
+ * `locations:view` gate; every write re-checks its own granular permission and
+ * step-up inside the door (F3).
+ */
 export const Route = createFileRoute("/admin/locations")({
-  component: AdminLocationsPage,
+  component: AdminLocationsRoute,
 });
 
-function AdminLocationsPage() {
-  return <AdminSectionPage id="locations" />;
+function AdminLocationsRoute() {
+  return <AdminLocationsPage />;
 }

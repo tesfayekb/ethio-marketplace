@@ -283,6 +283,10 @@ meaning: `badKey`, `unknownParent`, `missingCoordinates`, `isoOnRegionsOnly`,
 re-inserts the shallowest deleted place first, so a parent exists before its
 children come back; every other group is still undone deepest-first.
 
+The admin surface over all of this — the Tree and Transfer tabs, every verb and
+its door, and how each refusal renders — is
+[`locations-console.md`](./locations-console.md) (L2a).
+
 ## Public read
 
 The tree a visitor sees is read through three anon-executable functions

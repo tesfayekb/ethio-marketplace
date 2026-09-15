@@ -560,15 +560,41 @@ export default async function globalSetup() {
     reaped += staleFenceEntities?.length ?? 0;
   }
 
+  /**
+   * DEC-062 REAPER DELTA (LOCATIONS ERA L2a) — three corrections, delete-only,
+   * nothing outside the `e2e-` prefix touched:
+   *
+   *  1. THE PREDICATE IS THE SLUG. `name_en LIKE 'E2E-Scratch-%'` was a SUBSET
+   *     of the fixture law: J1 namespaces the SLUG, and a row created through
+   *     the console carries the scratch token as its name only by convention.
+   *     `slug LIKE 'e2e-%'` is the law itself.
+   *  2. DEEPEST FIRST. The ancestry guard refuses to delete a parent while a
+   *     child stands, so a nested scratch chain (region → city → sub-city) used
+   *     to fail on its own children. Rows are ordered by level rank, sub-city
+   *     to country, before they are deleted.
+   *  3. THE REVISION LEDGER. L1b writes `location_import_revisions` rows keyed
+   *     by the slash path; a scratch path leaves ledger rows behind. Any batch
+   *     whose `entity_key` carries an `e2e-` segment, older than the cutoff, is
+   *     deleted AFTER the rows it described.
+   */
+  const LEVEL_RANK: Record<string, number> = {
+    sub_city: 0,
+    city: 1,
+    region: 2,
+    country: 3,
+  };
   const { data: staleLocations, error: locationError } = await supabase
     .from("locations")
-    .select("id")
-    .like("name_en", "E2E-Scratch-%")
+    .select("id, level, slug")
+    .like("slug", "e2e-%")
     .lt("created_at", cutoff);
   if (locationError) {
     throw new Error(`[e2e:setup] listing stale scratch locations failed: ${locationError.message}`);
   }
-  for (const row of staleLocations ?? []) {
+  const deepestFirst = [...(staleLocations ?? [])].sort(
+    (a, b) => (LEVEL_RANK[a.level] ?? 9) - (LEVEL_RANK[b.level] ?? 9),
+  );
+  for (const row of deepestFirst) {
     const { error: translationError } = await supabase
       .from("entity_translations")
       .delete()
@@ -587,6 +613,19 @@ export default async function globalSetup() {
     }
     reaped += 1;
   }
+
+  const { data: staleImportRevisions, error: importRevisionError } = await supabase
+    .from("location_import_revisions")
+    .delete()
+    .like("entity_key", "%e2e-%")
+    .lt("created_at", cutoff)
+    .select("id");
+  if (importRevisionError) {
+    throw new Error(
+      `[e2e:setup] reaping scratch location import revisions failed: ${importRevisionError.message}`,
+    );
+  }
+  reaped += staleImportRevisions?.length ?? 0;
 
   // INC-114 — SCRATCH ROLES were never reaped. PostgREST caps a read at 1000
   // rows, so an accumulated graveyard of `e2e-%` roles hid newly created ones

@@ -67,7 +67,7 @@ interface Preview {
  * parsed, so the wrong file is refused with a sentence that names where it
  * belongs rather than a header mismatch.
  */
-export type ImportFamily = "attributes" | "categories";
+export type ImportFamily = "attributes" | "categories" | "locations";
 
 function familyOf(text: string): ImportFamily | null {
   const first = text.replace(/^\ufeff/, "").split(/\r?\n/)[0] ?? "";
@@ -79,6 +79,10 @@ function familyOf(text: string): ImportFamily | null {
       .trim(),
   );
   if (names.includes("attribute_key")) return "attributes";
+  // LOCATIONS ERA L2a — the locations family is sniffed BEFORE the categories
+  // test: the places file also carries a parent column, so `location_key`
+  // (places) and `unit_system` (markets) must win first.
+  if (names.includes("location_key") || names.includes("unit_system")) return "locations";
   if (names.includes("parent_slug") || names.includes("allow_listings")) return "categories";
   return null;
 }
