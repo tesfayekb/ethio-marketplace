@@ -23,6 +23,7 @@ import {
 } from "@/components/shell/data-table";
 import { categoryRowGlyph } from "@/components/shell/category-glyphs";
 import { PageCard } from "@/components/shell/page-card";
+import { TipBadge } from "@/components/shell/tip-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
