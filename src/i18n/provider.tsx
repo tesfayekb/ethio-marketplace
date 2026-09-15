@@ -278,6 +278,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   // waits on the network: nothing here gates the tree.
   const [publicLanguages, setPublicLanguages] = useState<PublicLanguage[]>(SEED_PUBLIC_LANGUAGES);
   const [gateReady, setGateReady] = useState(false);
+  /** INC-202 — true only when the gate never answered and the base-only fallback ran. */
+  const [gateDegraded, setGateDegraded] = useState(false);
   /** U4h — the device ★ (null until the boot read runs; SSR never reads storage). */
   const [star, setStarState] = useState<string | null>(null);
   /** U4h — the boot read has run, so "no star" now MEANS no star. */
