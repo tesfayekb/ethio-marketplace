@@ -61,7 +61,7 @@ export const ADMIN_SECTIONS = [
   {
     id: "locations",
     path: "/admin/locations",
-    permission: "locations:manage",
+    permission: "locations:view",
     titleKey: "admin.section.locations.title",
     bodyKey: "admin.section.locations.body",
   },

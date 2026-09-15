@@ -472,20 +472,101 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          currency_code: string | null
+          display_order: number
           is_active: boolean
           name_en: string
+          unit_system: string
+          updated_at: string
         }
         Insert: {
           code: string
           created_at?: string
+          currency_code?: string | null
+          display_order?: number
           is_active?: boolean
           name_en: string
+          unit_system?: string
+          updated_at?: string
         }
         Update: {
           code?: string
           created_at?: string
+          currency_code?: string | null
+          display_order?: number
           is_active?: boolean
           name_en?: string
+          unit_system?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      country_root_order: {
+        Row: {
+          category_id: string
+          country_code: string
+          created_at: string
+          created_by: string | null
+          position: number
+        }
+        Insert: {
+          category_id: string
+          country_code: string
+          created_at?: string
+          created_by?: string | null
+          position: number
+        }
+        Update: {
+          category_id?: string
+          country_code?: string
+          created_at?: string
+          created_by?: string | null
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "country_root_order_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "country_root_order_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      coverage_plans: {
+        Row: {
+          allow_everywhere: boolean
+          max_cities: number
+          max_countries: number
+          max_regions: number
+          plan: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          allow_everywhere?: boolean
+          max_cities: number
+          max_countries: number
+          max_regions: number
+          plan: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          allow_everywhere?: boolean
+          max_cities?: number
+          max_countries?: number
+          max_regions?: number
+          plan?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -787,48 +868,73 @@ export type Database = {
       }
       locations: {
         Row: {
+          aliases: string[]
           center_lat: number | null
           center_lng: number | null
+          city_id: string | null
           country_code: string
           created_at: string
+          display_order: number
           id: string
           is_active: boolean
+          iso_3166_2: string | null
           level: string
           name_am: string | null
           name_en: string
           parent_id: string | null
+          region_id: string | null
           slug: string
+          source: string
           updated_at: string
         }
         Insert: {
+          aliases?: string[]
           center_lat?: number | null
           center_lng?: number | null
+          city_id?: string | null
           country_code: string
           created_at?: string
+          display_order?: number
           id?: string
           is_active?: boolean
+          iso_3166_2?: string | null
           level: string
           name_am?: string | null
           name_en: string
           parent_id?: string | null
+          region_id?: string | null
           slug: string
+          source?: string
           updated_at?: string
         }
         Update: {
+          aliases?: string[]
           center_lat?: number | null
           center_lng?: number | null
+          city_id?: string | null
           country_code?: string
           created_at?: string
+          display_order?: number
           id?: string
           is_active?: boolean
+          iso_3166_2?: string | null
           level?: string
           name_am?: string | null
           name_en?: string
           parent_id?: string | null
+          region_id?: string | null
           slug?: string
+          source?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "locations_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "locations_country_code_fkey"
             columns: ["country_code"]
@@ -839,6 +945,13 @@ export type Database = {
           {
             foreignKeyName: "locations_parent_id_fkey"
             columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_region_id_fkey"
+            columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "locations"
             referencedColumns: ["id"]
@@ -1393,6 +1506,10 @@ export type Database = {
         Returns: undefined
       }
       admin_delete_language: { Args: { p_code: string }; Returns: Json }
+      admin_delete_location: {
+        Args: { p_id: string; p_slug: string }
+        Returns: undefined
+      }
       admin_delete_role: { Args: { p_role_id: string }; Returns: undefined }
       admin_entity_translation_stats: {
         Args: { p_lang?: string }
@@ -1647,6 +1764,36 @@ export type Database = {
           updated_at: string
         }[]
       }
+      admin_list_locations: {
+        Args: {
+          p_active?: boolean
+          p_country_code: string
+          p_level?: string
+          p_search?: string
+        }
+        Returns: {
+          aliases: string[]
+          center_lat: number
+          center_lng: number
+          child_count: number
+          city_id: string
+          country_code: string
+          coverage_count: number
+          display_order: number
+          id: string
+          is_active: boolean
+          iso_3166_2: string
+          level: string
+          listing_count: number
+          name_en: string
+          parent_id: string
+          path: string
+          profile_default_count: number
+          region_id: string
+          slug: string
+          source: string
+        }[]
+      }
       admin_list_roles: {
         Args: never
         Returns: {
@@ -1750,6 +1897,10 @@ export type Database = {
         Args: { p_new_parent_id: string; p_pointer_id: string }
         Returns: undefined
       }
+      admin_move_location: {
+        Args: { p_id: string; p_new_parent_id: string }
+        Returns: undefined
+      }
       admin_preview_attribute_import: {
         Args: { p_definitions: Json; p_links: Json; p_scope?: string }
         Returns: Json
@@ -1765,6 +1916,10 @@ export type Database = {
       }
       admin_reorder_categories: {
         Args: { p_ordered_child_ids: string[]; p_parent_id: string }
+        Returns: undefined
+      }
+      admin_reorder_locations: {
+        Args: { p_ids: string[]; p_parent_id: string }
         Returns: undefined
       }
       admin_retire_category: {
@@ -1811,8 +1966,26 @@ export type Database = {
         Args: { p_id: string; p_visible_from: string; p_visible_until: string }
         Returns: undefined
       }
+      admin_set_country_active: {
+        Args: { p_active: boolean; p_code: string; p_force_hide?: boolean }
+        Returns: undefined
+      }
       admin_set_country_exclusions: {
         Args: { p_country_codes: string[]; p_id: string }
+        Returns: undefined
+      }
+      admin_set_country_root_order: {
+        Args: { p_category_ids: string[]; p_code: string }
+        Returns: undefined
+      }
+      admin_set_coverage_plan: {
+        Args: {
+          p_allow_everywhere: boolean
+          p_max_cities: number
+          p_max_countries: number
+          p_max_regions: number
+          p_plan: string
+        }
         Returns: undefined
       }
       admin_set_entity_translation_status: {
@@ -1839,6 +2012,10 @@ export type Database = {
       }
       admin_set_language_order: {
         Args: { p_codes: string[] }
+        Returns: undefined
+      }
+      admin_set_location_active: {
+        Args: { p_active: boolean; p_id: string }
         Returns: undefined
       }
       admin_set_role_permission: {
@@ -1932,6 +2109,16 @@ export type Database = {
         }
         Returns: string
       }
+      admin_upsert_country: {
+        Args: {
+          p_code: string
+          p_currency_code: string
+          p_display_order: number
+          p_name_en: string
+          p_unit_system: string
+        }
+        Returns: undefined
+      }
       admin_upsert_language: {
         Args: {
           p_code: string
@@ -1941,6 +2128,21 @@ export type Database = {
           p_rtl?: boolean
         }
         Returns: undefined
+      }
+      admin_upsert_location: {
+        Args: {
+          p_aliases: string[]
+          p_center_lat: number
+          p_center_lng: number
+          p_display_order: number
+          p_id: string
+          p_iso_3166_2: string
+          p_level: string
+          p_name_en: string
+          p_parent_id: string
+          p_slug: string
+        }
+        Returns: string
       }
       admin_user_activity: {
         Args: { p_limit?: number; p_user_id: string }
@@ -2088,6 +2290,10 @@ export type Database = {
         Returns: string
       }
       expire_stale_listings: { Args: never; Returns: number }
+      geo_distance_km: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       get_active_impersonation: {
         Args: never
         Returns: {
@@ -2205,6 +2411,10 @@ export type Database = {
       }
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
+      location_slug_candidate: {
+        Args: { p_name: string; p_parent_id: string }
+        Returns: string
+      }
       log_audit: {
         Args: {
           p_action: string
