@@ -221,6 +221,8 @@ const FAMILIES: Family[] = [
     body: { locations: "" },
     header: COUNTRY_HEADER,
     identity: "country_code",
+    // A two-letter cap settles a malformed code before any shape law is needed.
+    identityReason: "tooLong",
     foreignHeader: CATEGORY_HEADER,
     mode: "preview",
     digest: true,
@@ -235,6 +237,8 @@ const FAMILIES: Family[] = [
     body: { countries: "" },
     header: LOCATION_HEADER,
     identity: "location_key",
+    // The slash key's shape is `loc_import_plan`'s verdict, by name.
+    identityReason: "badKey",
     foreignHeader: CATEGORY_HEADER,
     mode: "preview",
     digest: true,
@@ -409,7 +413,7 @@ for (const family of FAMILIES) {
       const refusals = (probe.payload["refusals"] as { reason: string; row: number }[]) ?? [];
       const reasons = refusals.map((entry) => entry.reason);
       expect(reasons, JSON.stringify(refusals)).toEqual(
-        expect.arrayContaining(["formula", "badSlug", "tooLong"]),
+        expect.arrayContaining(["formula", family.identityReason ?? "badSlug", "tooLong"]),
       );
       // Every refusal names the row the operator sees, never row 0.
       for (const refusal of refusals) expect(refusal.row).toBeGreaterThan(1);
@@ -426,7 +430,7 @@ for (const family of FAMILIES) {
       expect(
         disguisedRefusals.map((entry) => entry.reason),
         JSON.stringify(disguisedRefusals),
-      ).toContain("badSlug");
+      ).toContain(family.identityReason ?? "badSlug");
       for (const refusal of disguisedRefusals) {
         expect(refusal.key).not.toMatch(/[\u200b\u202e]/);
         if (refusal.reason === "badSlug") expect(refusal.key).toBe("e2e-cat-ok!!");
