@@ -280,8 +280,13 @@ test.describe("L2a locations console", () => {
       if (cityError) throw new Error(`[e2e:l2a] seeding LT-4 city failed: ${cityError.message}`);
 
       await gotoReady(page, "/admin/locations");
+      // The public route caches a country for its version TTL, so a freshly
+      // seeded branch appears on the far side of it: poll for the branch FIRST,
+      // then read the version the retire has to move (J7).
+      await expect
+        .poll(() => treeSlugs(page, "ET"), { timeout: 30000, intervals: [500, 1000, 2000, 3000] })
+        .toContain(citySlug);
       const before = await treeVersion(page, "ET");
-      expect(await treeSlugs(page, "ET")).toContain(citySlug);
 
       const regionKey = `${ANCHOR}/${regionSlug}`;
       await findRow(page, regionKey, regionSlug);
