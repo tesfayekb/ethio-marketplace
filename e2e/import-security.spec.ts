@@ -377,6 +377,107 @@ for (const family of FAMILIES) {
        * and names its id and detail; a preview writes nothing, so the scratch
        * fixtures below are read-only to the plan (F5/J6).
        */
+      /**
+       * INC-198/199 L2 — SILENCE IS THE DEFECT. Three rows the categories
+       * planner used to answer with nothing: a status cell that contradicts the
+       * stored status, a root delete held down by a retired child, and a delete
+       * for a slug that is not there. Each must answer — two by name, one as an
+       * unchanged row that SAYS why. Every fixture is J1-namespaced, written
+       * through the service client (J5) and destroyed in `finally`; the preview
+       * writes nothing (F5).
+       */
+      if (family.id === "categories") {
+        const supabase = adminClient();
+        const retiredSlug = `e2e-cat-${rand()}`;
+        const rootSlug = `e2e-cat-${rand()}`;
+        const childSlug = `e2e-cat-${rand()}`;
+        const goneSlug = `e2e-cat-${rand()}`;
+        /** The header carries `action`; the row is the family's own, plus it. */
+        const actionFile = (rows: string[]) =>
+          `${family.header},action\r\n${rows.join("\r\n")}\r\n`;
+        try {
+          const { data: seeded, error: seedError } = await supabase
+            .from("categories")
+            .insert([
+              { slug: retiredSlug, name_en: retiredSlug, is_active: false },
+              { slug: rootSlug, name_en: rootSlug, is_active: false },
+              { slug: childSlug, name_en: childSlug, is_active: false },
+            ])
+            .select("id, slug");
+          if (seedError || !seeded) {
+            throw new Error(`IG-2 categories seed failed: ${seedError?.message}`);
+          }
+          const idOf = (slug: string) => seeded.find((row) => row.slug === slug)!.id;
+          const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
+            { parent_id: null, child_id: idOf(rootSlug), display_order: 0 },
+            { parent_id: idOf(rootSlug), child_id: idOf(childSlug), display_order: 0 },
+          ]);
+          if (pointerError) {
+            throw new Error(`IG-2 categories pointers failed: ${pointerError.message}`);
+          }
+
+          // (k) is_active = true on a RETIRED category, with no action.
+          const mismatch = await post(page, token, {
+            [family.field]: file([family.row({ category_slug: retiredSlug, name_en: retiredSlug })]),
+          });
+          expect(mismatch.status, JSON.stringify(mismatch.payload)).toBe(200);
+          const mismatchRefusals =
+            (mismatch.payload["refusals"] as { reason: string; detail?: string }[]) ?? [];
+          const mismatchDump = JSON.stringify(mismatch.payload);
+          const named = mismatchRefusals.find((entry) => entry.reason === "statusNeedsAction");
+          expect(named, `IG-2 (k) ${mismatchDump}`).toBeTruthy();
+          expect(named?.detail ?? "", `IG-2 (k) ${mismatchDump}`).toContain("stored=false");
+          expect(named?.detail ?? "", `IG-2 (k) ${mismatchDump}`).toContain("requested=true");
+
+          // (l) a delete for a root a RETIRED child still hangs under.
+          const blocked = await post(page, token, {
+            [family.field]: actionFile([
+              `${family.row({ category_slug: rootSlug, name_en: rootSlug })},delete`,
+            ]),
+          });
+          expect(blocked.status, JSON.stringify(blocked.payload)).toBe(200);
+          const blockedRefusals =
+            (blocked.payload["refusals"] as { reason: string; detail?: string }[]) ?? [];
+          const blockedDump = JSON.stringify(blocked.payload);
+          const held = blockedRefusals.find((entry) => entry.reason === "hasChildren");
+          expect(held, `IG-2 (l) ${blockedDump}`).toBeTruthy();
+          expect(held?.detail ?? "", `IG-2 (l) ${blockedDump}`).toContain(childSlug);
+
+          // (m) a delete for a slug that is not there: UNCHANGED, and it says so.
+          const absent = await post(page, token, {
+            [family.field]: actionFile([
+              `${family.row({ category_slug: goneSlug, name_en: goneSlug })},delete`,
+            ]),
+          });
+          expect(absent.status, JSON.stringify(absent.payload)).toBe(200);
+          const absentDump = JSON.stringify(absent.payload);
+          expect(absent.payload["refusals"], `IG-2 (m) ${absentDump}`).toEqual([]);
+          const absentCounts = (absent.payload["counts"] as Record<string, number>) ?? {};
+          expect(absentCounts["unchanged"], `IG-2 (m) ${absentDump}`).toBe(1);
+          expect(absentCounts["deletes"] ?? 0, `IG-2 (m) ${absentDump}`).toBe(0);
+          const absentItems =
+            (absent.payload["items"] as { slug?: string; op?: string; detail?: string }[]) ?? [];
+          expect(
+            absentItems.some(
+              (item) =>
+                item.slug === goneSlug && item.op === "noop" && item.detail === "alreadyDeleted",
+            ),
+            `IG-2 (m) ${absentDump}`,
+          ).toBe(true);
+
+          // The previews wrote nothing: the absent slug is still absent (F5).
+          const { data: written } = await supabase
+            .from("categories")
+            .select("slug")
+            .eq("slug", goneSlug);
+          expect(written ?? [], `IG-2 a preview wrote a category: ${absentDump}`).toHaveLength(0);
+        } finally {
+          await destroyCategory(childSlug);
+          await destroyCategory(rootSlug);
+          await destroyCategory(retiredSlug);
+        }
+      }
+
       if (family.id === "attributes") {
         const supabase = adminClient();
         const targetKey = `e2e_attr_${rand()}`;
