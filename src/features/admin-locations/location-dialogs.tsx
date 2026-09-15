@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
