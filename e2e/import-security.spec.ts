@@ -34,6 +34,14 @@ interface Family {
   row: (cells?: Partial<Record<string, string>>) => string;
   /** The identity cell's column name, for the too-long / bad-slug cases. */
   identity: string;
+  /**
+   * The reason a MALFORMED identity is refused by. `badSlug` for a family whose
+   * identity carries the gate's slug/key law; a family whose identity shape is
+   * the planner's verdict (a slash path) or whose cap alone settles it (a
+   * two-letter country code) names its own word — one refusal per row either
+   * way, and never a silent pass.
+   */
+  identityReason?: string;
   /** A header belonging to ANOTHER family — the wrongFile case. */
   foreignHeader: string;
   /** The door this family exposes: a preview plan, or a one-step import. */
