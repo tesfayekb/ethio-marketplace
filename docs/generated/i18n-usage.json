@@ -1337,7 +1337,7 @@
     "admin.locations.filter.allStatuses": [
       "/admin/locations"
     ],
-    "admin.locations.filter.closedMarket": [
+    "admin.locations.filter.closedSuffix": [
       "/admin/locations"
     ],
     "admin.locations.filter.country": [
@@ -1356,6 +1356,9 @@
       "/admin/locations"
     ],
     "admin.locations.import.open": [
+      "/admin/locations"
+    ],
+    "admin.locations.import.titleScoped": [
       "/admin/locations"
     ],
     "admin.locations.loading": [
@@ -1394,13 +1397,7 @@
     "admin.locations.searchPlaceholder": [
       "/admin/locations"
     ],
-    "admin.locations.tab.transfer": [
-      "/admin/locations"
-    ],
-    "admin.locations.tab.tree": [
-      "/admin/locations"
-    ],
-    "admin.locations.transfer.wholeFile": [
+    "admin.locations.transfer.scope": [
       "/admin/locations"
     ],
     "admin.nav.label": [

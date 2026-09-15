@@ -55,7 +55,7 @@ export function LocationsToolbar({
               <option key={market.code} value={market.code}>
                 {market.isActive
                   ? market.nameEn
-                  : `${market.nameEn} (${t("admin.locations.filter.closedMarket")})`}
+                  : `${market.nameEn} · ${t("admin.locations.filter.closedSuffix")}`}
               </option>
             ))}
           </select>

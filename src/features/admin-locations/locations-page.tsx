@@ -6,10 +6,8 @@ import {
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
-import { PageCard } from "@/components/shell/page-card";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -97,13 +95,13 @@ export function AdminLocationsPage() {
     }
   }, []);
 
-  /** The markets, open first; the default is the first OPEN one. */
+  /** Every market: open first A–Z, then closed A–Z. */
   const markets = useMemo(() => {
     const rows = countries.data ?? [];
     return [...rows].sort(
       (a, b) =>
         Number(b.isActive) - Number(a.isActive) ||
-        a.displayOrder - b.displayOrder ||
+        a.nameEn.localeCompare(b.nameEn) ||
         a.code.localeCompare(b.code),
     );
   }, [countries.data]);
@@ -114,6 +112,7 @@ export function AdminLocationsPage() {
   }, [country, markets]);
 
   const query = useAdminLocations(country);
+  const countryName = markets.find((market) => market.code === country)?.nameEn ?? country;
   /** The country's whole tree: every key and every nesting comes from it. */
   const roster = useMemo(() => toRoster(query.data ?? []), [query.data]);
   const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
@@ -146,7 +145,8 @@ export function AdminLocationsPage() {
     try {
       const { data: session } = await supabase.auth.getSession();
       const token = session.session?.access_token ?? "";
-      const scope = country === "" ? "" : `&scope=${encodeURIComponent(country)}`;
+      if (country === "") throw new Error("no country selected");
+      const scope = `&scope=${encodeURIComponent(country)}`;
       const response = await fetch(`/api/admin/locations/export?file=${file}${scope}`, {
         headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
       });
@@ -155,8 +155,7 @@ export function AdminLocationsPage() {
       const href = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = href;
-      anchor.download =
-        file === "countries" || country === "" ? `${file}.csv` : `${country}-${file}.csv`;
+      anchor.download = `${country}-${file}.csv`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -278,166 +277,151 @@ export function AdminLocationsPage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-locations" className="min-w-0 space-y-4">
-          <Tabs defaultValue="tree" className="min-w-0">
-            <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-              <TabsList>
-                <TabsTrigger value="tree" data-testid="location-tab-tree">
-                  {t("admin.locations.tab.tree")}
-                </TabsTrigger>
-                <TabsTrigger value="transfer" data-testid="location-tab-transfer">
-                  {t("admin.locations.tab.transfer")}
-                </TabsTrigger>
-              </TabsList>
-              {mayCreate ? (
-                <Button
-                  type="button"
-                  size="touch"
-                  data-testid="location-create-open"
-                  disabled={anchorId === ""}
-                  onClick={() => open({ kind: "create", parentId: anchorId, fixed: false })}
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-3">
+            {mayCreate ? (
+              <Button
+                type="button"
+                size="touch"
+                data-testid="location-create-open"
+                disabled={anchorId === ""}
+                onClick={() => open({ kind: "create", parentId: anchorId, fixed: false })}
+              >
+                <Plus aria-hidden="true" className="size-4" />
+                <span>{t("admin.locations.create.open")}</span>
+              </Button>
+            ) : null}
+          </div>
+
+          <DataTable<LocationNode>
+            columns={columns}
+            rows={rows}
+            rowKey={(row) => row.id}
+            rowTestId={(row) => `location-${keyTestId(row.key)}`}
+            caption={t("admin.locations.caption")}
+            cardUntil="lg"
+            loading={query.isLoading || countries.isLoading}
+            loadingState={<p className="text-sm">{t("admin.locations.loading")}</p>}
+            error={query.error ?? countries.error}
+            errorState={
+              <p role="alert" className="text-sm text-destructive">
+                {t("admin.locations.error")}
+              </p>
+            }
+            emptyState={
+              <p className="text-sm text-muted-foreground">{t("admin.locations.empty")}</p>
+            }
+            toolbar={
+              <div className="flex min-w-0 flex-wrap items-end gap-3">
+                <LocationsToolbar
+                  markets={markets}
+                  country={country}
+                  onCountry={(code) => {
+                    setCountry(code);
+                    setPage(0);
+                  }}
+                  search={search}
+                  onSearch={(value) => {
+                    setSearch(value);
+                    setPage(0);
+                  }}
+                  level={level}
+                  onLevel={(value) => {
+                    setLevel(value);
+                    setPage(0);
+                  }}
+                  status={status}
+                  onStatus={(value) => {
+                    setStatus(value);
+                    setPage(0);
+                  }}
+                  pageSize={pageSize}
+                  onPageSize={(next) => {
+                    setPageSize(next);
+                    setPage(0);
+                    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+                  }}
+                />
+                <div
+                  data-testid="location-toolbar-transfer"
+                  className="flex min-w-0 flex-wrap items-center gap-2"
                 >
-                  <Plus aria-hidden="true" className="size-4" />
-                  <span>{t("admin.locations.create.open")}</span>
-                </Button>
-              ) : null}
-            </div>
-
-            <TabsContent value="tree" className="min-w-0 space-y-4">
-              <DataTable<LocationNode>
-                columns={columns}
-                rows={rows}
-                rowKey={(row) => row.id}
-                rowTestId={(row) => `location-${keyTestId(row.key)}`}
-                caption={t("admin.locations.caption")}
-                cardUntil="lg"
-                loading={query.isLoading || countries.isLoading}
-                loadingState={<p className="text-sm">{t("admin.locations.loading")}</p>}
-                error={query.error ?? countries.error}
-                errorState={
-                  <p role="alert" className="text-sm text-destructive">
-                    {t("admin.locations.error")}
-                  </p>
-                }
-                emptyState={
-                  <p className="text-sm text-muted-foreground">{t("admin.locations.empty")}</p>
-                }
-                toolbar={
-                  <LocationsToolbar
-                    markets={markets}
-                    country={country}
-                    onCountry={(code) => {
-                      setCountry(code);
-                      setPage(0);
-                    }}
-                    search={search}
-                    onSearch={(value) => {
-                      setSearch(value);
-                      setPage(0);
-                    }}
-                    level={level}
-                    onLevel={(value) => {
-                      setLevel(value);
-                      setPage(0);
-                    }}
-                    status={status}
-                    onStatus={(value) => {
-                      setStatus(value);
-                      setPage(0);
-                    }}
-                    pageSize={pageSize}
-                    onPageSize={(next) => {
-                      setPageSize(next);
-                      setPage(0);
-                      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-                    }}
-                  />
-                }
-                rowActions={rowActions}
-                page={page}
-                pageSize={pageSize}
-                pagination={
-                  <DataTablePagination
-                    testid="location-pagination"
-                    offset={page * pageSize}
-                    pageSize={pageSize}
-                    total={rows.length}
-                    onPrevious={() => setPage((current) => Math.max(0, current - 1))}
-                    onNext={() => setPage((current) => current + 1)}
-                  />
-                }
-              />
-            </TabsContent>
-
-            <TabsContent value="transfer" className="min-w-0 space-y-4">
-              <PageCard testid="location-toolbar-transfer">
-                <p className="text-sm text-muted-foreground">
-                  {t("admin.locations.transfer.wholeFile")}
-                </p>
-                <div className="mt-3 flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap">
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="touch"
-                      data-testid="location-export-countries"
-                      disabled={exporting}
-                      onClick={() => void runExport("countries")}
-                    >
-                      <Download aria-hidden="true" className="size-4" />
-                      <span>
-                        {exporting
-                          ? t("admin.locations.export.busy")
-                          : t("admin.locations.export.countries")}
-                      </span>
-                    </Button>
-                    <p className="max-w-xs text-sm text-muted-foreground">
-                      {t("admin.locations.export.countriesHint")}
-                    </p>
-                  </div>
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="touch"
-                      data-testid="location-export-locations"
-                      disabled={exporting}
-                      onClick={() => void runExport("locations")}
-                    >
-                      <Download aria-hidden="true" className="size-4" />
-                      <span>
-                        {exporting
-                          ? t("admin.locations.export.busy")
-                          : t("admin.locations.export.locations")}
-                      </span>
-                    </Button>
-                    <p className="max-w-xs text-sm text-muted-foreground">
-                      {t("admin.locations.export.locationsHint")}
-                    </p>
-                  </div>
+                  <span
+                    className="w-full text-sm text-muted-foreground"
+                    data-testid="location-transfer-scope"
+                  >
+                    {t("admin.locations.transfer.scope").replace("{country}", countryName)}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="touch"
+                    title={t("admin.locations.export.countriesHint")}
+                    data-testid="location-export-countries"
+                    disabled={exporting || country === ""}
+                    onClick={() => void runExport("countries")}
+                  >
+                    <Download aria-hidden="true" className="size-4" />
+                    <span>
+                      {exporting
+                        ? t("admin.locations.export.busy")
+                        : t("admin.locations.export.countries")}
+                    </span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="touch"
+                    title={t("admin.locations.export.locationsHint")}
+                    data-testid="location-export-locations"
+                    disabled={exporting || country === ""}
+                    onClick={() => void runExport("locations")}
+                  >
+                    <Download aria-hidden="true" className="size-4" />
+                    <span>
+                      {exporting
+                        ? t("admin.locations.export.busy")
+                        : t("admin.locations.export.locations")}
+                    </span>
+                  </Button>
                   {mayImport ? (
                     <Button
                       type="button"
+                      variant="outline"
                       size="touch"
                       data-testid="location-import"
+                      disabled={country === ""}
                       onClick={() => open({ kind: "import" })}
                     >
                       <Upload aria-hidden="true" className="size-4" />
                       <span>{t("admin.locations.import.open")}</span>
                     </Button>
                   ) : null}
+                  {exportError ? (
+                    <p
+                      role="alert"
+                      className="w-full text-sm text-destructive"
+                      data-testid="location-export-error"
+                    >
+                      {t("admin.locations.export.error")}
+                    </p>
+                  ) : null}
                 </div>
-                {exportError ? (
-                  <p
-                    role="alert"
-                    className="mt-2 text-sm text-destructive"
-                    data-testid="location-export-error"
-                  >
-                    {t("admin.locations.export.error")}
-                  </p>
-                ) : null}
-              </PageCard>
-            </TabsContent>
-          </Tabs>
+              </div>
+            }
+            rowActions={rowActions}
+            page={page}
+            pageSize={pageSize}
+            pagination={
+              <DataTablePagination
+                testid="location-pagination"
+                offset={page * pageSize}
+                pageSize={pageSize}
+                total={rows.length}
+                onPrevious={() => setPage((current) => Math.max(0, current - 1))}
+                onNext={() => setPage((current) => current + 1)}
+              />
+            }
+          />
 
           {dialog.kind === "create" ? (
             <LocationCreateDialog
@@ -502,7 +486,8 @@ export function AdminLocationsPage() {
           ) : null}
           {dialog.kind === "import" ? (
             <ImportLocationsDialog
-              scope={country === "" ? null : country}
+              scope={country}
+              country={countryName}
               guard={guard}
               onClose={close}
             />

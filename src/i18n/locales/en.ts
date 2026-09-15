@@ -1475,15 +1475,13 @@ export const en = {
   "admin.categories.flag.needsCard": "Pick at least two attributes to show on listing cards.",
   "admin.categories.parent.primary": "Primary",
   "admin.categories.parent.also": "Also in: {list}",
-  "admin.locations.tab.tree": "Tree",
-  "admin.locations.tab.transfer": "Import & export",
   "admin.locations.caption": "Locations in the selected market",
   "admin.locations.loading": "Loading locations…",
   "admin.locations.error": "The locations could not be loaded.",
   "admin.locations.empty": "No location matches these filters.",
   "admin.locations.searchPlaceholder": "Search name, slug or alias",
   "admin.locations.filter.country": "Country",
-  "admin.locations.filter.closedMarket": "closed",
+  "admin.locations.filter.closedSuffix": "closed",
   "admin.locations.filter.level": "Level",
   "admin.locations.filter.allLevels": "All levels",
   "admin.locations.filter.status": "Status",
@@ -1569,8 +1567,7 @@ export const en = {
   "admin.locations.field.aliasRemove": "Remove this name",
   "admin.locations.field.order": "Order",
   "admin.locations.field.readOnlyLevel": "Level",
-  "admin.locations.transfer.wholeFile":
-    "A file is written whole or not at all: one refused row stops the entire import.",
+  "admin.locations.transfer.scope": "For {country}",
   "admin.locations.export.countries": "Download countries",
   "admin.locations.export.countriesHint":
     "One row per country: open or closed, unit system, currency, rail order.",
@@ -1609,8 +1606,9 @@ export const en = {
   "admin.locations.error.detail.hasProfileDefaults": "people post here by default",
   "admin.locations.import.open": "Import countries or places",
   "admin.locations.import.title": "Import markets and places",
+  "admin.locations.import.titleScoped": "Import into {country}",
   "admin.locations.import.hint":
-    "Choose either file, or both. Nothing is written until you confirm.",
+    "A file is written whole or not at all: one refused row stops the entire import.",
   "admin.locations.import.guidance":
     "Start from a download so the columns match. Read-only columns are never applied.",
   "admin.locations.import.countriesFile": "Markets file",

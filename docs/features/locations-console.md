@@ -4,15 +4,12 @@ Landed at LOCATIONS ERA **L2a**. The admin surface over the geography tree:
 `/admin/locations`, gated on `locations:view`, rendered inside `<StepUpGate>`
 with the root test id `admin-section-locations`.
 
-Two tabs today. **Countries** and **Coverage** arrive at L2b and are deliberately
-absent rather than stubbed — C4 forbids a placeholder that replaces content.
+There are no tabs. One roster holds the location tree and its toolbar holds both
+the find and transfer controls. **Countries** and **Coverage** arrive at L2b and
+are deliberately absent rather than stubbed — C4 forbids a placeholder that
+replaces content.
 
-| Tab      | Test id                 | What it is                                       |
-| -------- | ----------------------- | ------------------------------------------------ |
-| Tree     | `location-tab-tree`     | The per-country roster and every structural verb |
-| Transfer | `location-tab-transfer` | Export the two files, import them back           |
-
-## The Tree tab
+## The roster toolbar
 
 The toolbar (`location-toolbar-find`) carries four filters and the page-size
 control. **One read per country** (L2a-R): `admin_list_locations` is called with
@@ -28,9 +25,14 @@ costs no request on an expensive-data device.
 | Active / retired             | `location-active-filter`  | client sieve                                   |
 | Rows per page                | `location-page-size`      | client only (`ethio.admin.locations.pageSize`) |
 
-Open markets are listed first; a closed market is still listed — an operator has
-to be able to curate a country before it opens — and carries the translated
-`closed` badge. The default selection is the first open market.
+Every country is listed: open markets first A–Z, then closed markets A–Z. A
+closed option carries the translated suffix (`Canada · closed`) because a native
+select cannot render a badge. The default selection is the first open market.
+
+The same DataTable toolbar then carries `location-toolbar-transfer`, after the
+find group, with Download countries, Download places and Import. Its visible
+`location-transfer-scope` caption says `For <country>` so the target is never
+ambiguous. The groups wrap; there is no horizontal width override.
 
 The roster is one `DataTable<LocationRow>` with `cardUntil="lg"`, keyed by row
 id, with the row test id `location-<key>` where the key is the **slash path** of
@@ -103,7 +105,7 @@ and never mistaken for "no permission" (F4).
 No dialog closes on a failure. Every write runs inside `guard(async () => …)`,
 so a server step-up demand surfaces as the same modal everywhere.
 
-## The Transfer tab
+## Scoped transfer controls
 
 `location-toolbar-transfer` holds three verbs and one error line:
 
@@ -112,8 +114,8 @@ so a server step-up demand surfaces as the same modal everywhere.
 - `location-import` → the two-file import dialog
 - `location-export-error` — the failure, in words (F4)
 
-Both exports carry the selected country as `scope=`, or no scope for "all", and
-a bearer read from the session. Column order is the export contract of
+Both exports always carry the toolbar's selected country as `scope=` and a
+bearer read from the session. This page has no all-country transfer mode. Column order is the export contract of
 `country_export_row` / `loc_export_row` (L1b), copied by name (E7).
 
 The import dialog is the shared `ImportDialog` shell with the `locations`
@@ -121,10 +123,12 @@ family: two **optional** file slots (`countries`, `locations`) — one file alon
 is a legal run, both empty is refused by the route — the counts
 adds · changes · retires · reactivations · deletes · unchanged · refusals, and
 the planner's whole refusal vocabulary under `admin.locations.import.reason.*`.
-The scope posted is the country filter's value, `null` for "all".
+The scope posted is the country filter's value. The title names that scope —
+`Import into <country>` — and the whole-or-nothing sentence sits directly under
+the title. The two download hints are button titles rather than toolbar prose.
 
 A run is **whole or nothing**: a plan with any refusal is not committable
-(`planHasRefusals`); the Transfer tab says so in one line. The preview's digest
+(`planHasRefusals`); the import dialog says so in one line. The preview's digest
 travels with the commit, so a file edited between the two clicks is refused
 rather than half-applied. After a commit the dialog offers **Undo last import**
 for that batch; a second undo of the same batch is refused
@@ -155,7 +159,7 @@ sentence that names where it belongs.
 
 | Test  | What it proves                                                                                                                         |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| LT-1  | Gating — a plain user gets no console; an admin gets both tabs and the ET roster                                                       |
+| LT-1  | Gating — a plain user gets no console; an admin gets the roster and transfer group inside the DataTable toolbar                        |
 | LT-2  | Roster — the seeded tree renders, an alias narrows the search, the level filter scopes, nothing overflows                              |
 | LT-3  | Create chain — region → city → sub-city, born retired, ancestry filled by the trigger; bottom-up activation refused, top-down succeeds |
 | LT-4  | Path rule — retiring a region hides its still-active descendants from the public tree, and re-activating returns them                  |
@@ -168,6 +172,7 @@ sentence that names where it belongs.
 | LT-9b | The card twin: the pencil in the card's own actions region beside the badges                                                           |
 | LT-10 | Tones — retired = `destructive`, active = `secondary`, level = `outline`, asserted by `data-tone`                                      |
 | LT-11 | One read: typing and the level/status filters cost zero requests; switching the country costs exactly one                              |
+| LT-12 | Transfer scope — export URLs carry the selected country, closed options carry the locale suffix, and the import title names its scope  |
 
 Scratch rows carry the `e2e-` slug prefix (J1) and are destroyed child-first in
 `finally` (J3). `e2e/global-setup.ts` reaps stale scratch geography by **slug**

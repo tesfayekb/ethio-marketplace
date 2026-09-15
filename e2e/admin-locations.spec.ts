@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 
+import { en } from "../src/i18n/locales/en";
 import {
   enrollAndStepUp,
   expectNoHorizontalOverflow,
@@ -31,7 +32,7 @@ import {
 } from "./helpers/locations";
 
 /**
- * LOCATIONS ERA L2a / L2a-R — THE LOCATIONS CONSOLE (LT-1..LT-11).
+ * LOCATIONS ERA L2a / L2a-R2 — THE LOCATIONS CONSOLE (LT-1..LT-12).
  *
  * Identity: the pooled job super admin for consumers (J9). Fixtures: scratch
  * rows whose slugs start `e2e-` (J1), seeded or created before the surface is
@@ -91,7 +92,7 @@ async function actionBoxes(page: import("@playwright/test").Page) {
 }
 
 test.describe("L2a locations console", () => {
-  test("LT-1 gating: a plain user is refused; the two tabs and the ET roster render for an admin", async ({
+  test("LT-1 gating: a plain user is refused; the roster and transfer toolbar render for an admin", async ({
     page,
   }) => {
     const plain = await createUser({ confirmed: true });
@@ -106,9 +107,10 @@ test.describe("L2a locations console", () => {
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/locations");
 
-    await expect(page.getByTestId("location-tab-tree")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("location-tab-transfer")).toBeVisible();
     await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+    const toolbar = page.getByTestId("data-table-toolbar");
+    await expect(toolbar).toBeVisible();
+    await expect(toolbar.getByTestId("location-toolbar-transfer")).toBeVisible();
   });
 
   test("LT-2 roster: the seeded ET tree renders, an alias narrows the search, the level filter scopes, nothing overflows", async ({
@@ -531,7 +533,6 @@ test.describe("L2a locations console", () => {
     try {
       await gotoReady(page, "/admin/locations");
       await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("location-tab-transfer").click();
       await page.getByTestId("location-import").click();
       await expect(page.getByTestId("location-import-dialog")).toBeVisible({ timeout: 20000 });
 
@@ -642,7 +643,7 @@ test.describe("L2a locations console", () => {
 
       // A second undo of the same batch is refused by name.
       await page.getByTestId("location-import-close").click();
-      await expect(actionsOf(page, ANCHOR).or(page.getByTestId("location-tab-tree"))).toBeVisible();
+      await expect(actionsOf(page, ANCHOR)).toBeVisible();
     } finally {
       await destroyLocation(regionSlug);
     }
@@ -862,5 +863,41 @@ test.describe("L2a locations console", () => {
         .poll(() => reads, { timeout: 20000, intervals: [500, 500, 1000] })
         .toBe(afterLoad + 1);
     }
+  });
+
+  test("LT-12 transfer scope: exports and the import title follow the selected country", async ({
+    page,
+  }) => {
+    await useJobSuperAdmin(page);
+    const exportScopes: string[] = [];
+    await page.route("**/api/admin/locations/export?*", async (route) => {
+      const url = new URL(route.request().url());
+      exportScopes.push(url.searchParams.get("scope") ?? "");
+      await route.fulfill({ status: 200, contentType: "text/csv", body: "scope\n" });
+    });
+
+    await gotoReady(page, "/admin/locations");
+    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("location-export-countries").click();
+    await expect.poll(() => exportScopes.at(-1), { timeout: 10000 }).toBe("ET");
+
+    await page.getByTestId("location-import").click();
+    const scopedTitle = en["admin.locations.import.titleScoped"].replace("{country}", "Ethiopia");
+    await expect(
+      page.getByTestId("location-import-dialog").getByRole("heading", { name: scopedTitle }),
+    ).toBeVisible();
+    await page.getByTestId("location-import-discard").click();
+
+    const picker = page.getByTestId("location-country-filter");
+    const closedCode = await picker.locator("option").evaluateAll((options, suffix) => {
+      const option = options.find((candidate) => candidate.textContent?.includes(suffix));
+      return option?.getAttribute("value") ?? null;
+    }, en["admin.locations.filter.closedSuffix"]);
+    expect(closedCode, "no closed country option rendered").not.toBeNull();
+    const closed = picker.locator(`option[value="${closedCode ?? ""}"]`);
+    await expect(closed).toContainText(en["admin.locations.filter.closedSuffix"]);
+    await picker.selectOption(closedCode ?? "");
+    await page.getByTestId("location-export-locations").click();
+    await expect.poll(() => exportScopes.at(-1), { timeout: 10000 }).toBe(closedCode);
   });
 });
