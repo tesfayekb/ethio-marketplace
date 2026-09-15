@@ -183,7 +183,8 @@ jobs:
             git reset --hard origin/dev
             mkdir -p docs/tracking
             cp /tmp/ci-status.md docs/tracking/ci-status.md
-            git add docs/tracking/ci-status.md
+            cp /tmp/guards-last-failure.md docs/tracking/guards-last-failure.md
+            git add docs/tracking/ci-status.md docs/tracking/guards-last-failure.md
             if git diff --cached --quiet; then
               echo "No status change; nothing to commit."
               pushed=1
