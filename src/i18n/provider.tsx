@@ -558,11 +558,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] = {
       gateReady,
+      degraded: gateDegraded,
       active: language,
       star,
       codes: publicLanguages.map((row) => row.code),
     };
-  }, [gateReady, language, publicLanguages, star]);
+  }, [gateReady, gateDegraded, language, publicLanguages, star]);
 
   const value = useMemo<I18nValue>(
     () => ({
