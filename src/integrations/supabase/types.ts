@@ -1751,6 +1751,24 @@ export type Database = {
           pointer_id: string
         }[]
       }
+      admin_list_countries: {
+        Args: never
+        Returns: {
+          active_place_count: number
+          anchor_active: boolean
+          anchor_id: string
+          code: string
+          currency_code: string
+          display_order: number
+          is_active: boolean
+          name_en: string
+          place_count: number
+          root_order: string[]
+          scoped_role_count: number
+          unit_system: string
+          updated_at: string
+        }[]
+      }
       admin_list_effective_category_links: {
         Args: { p_category_id: string }
         Returns: {
