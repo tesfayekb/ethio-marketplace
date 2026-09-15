@@ -418,7 +418,9 @@ for (const family of FAMILIES) {
 
           // (k) is_active = true on a RETIRED category, with no action.
           const mismatch = await post(page, token, {
-            [family.field]: file([family.row({ category_slug: retiredSlug, name_en: retiredSlug })]),
+            [family.field]: file([
+              family.row({ category_slug: retiredSlug, name_en: retiredSlug }),
+            ]),
           });
           expect(mismatch.status, JSON.stringify(mismatch.payload)).toBe(200);
           const mismatchRefusals =

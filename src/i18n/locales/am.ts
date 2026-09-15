@@ -910,8 +910,7 @@ export const am: Messages = {
     "ሕዋሶች በ = + - @ መጀመር አይችሉም (የመስመሩ slug “{category_slug}”)",
   "admin.categories.import.reason.statusNeedsAction":
     "የ“{category_slug}” የገቢርነት ምልክት ከተመዘገበው ሁኔታ ይለያል — የተመዘገበው {stored}፣ ይህ ፋይል የሚጠይቀው {requested} ነው፤ action = reactivate ወይም retire ይጠቀሙ",
-  "admin.categories.import.reason.alreadyRetired":
-    "“{category_slug}” አስቀድሞ ተቋርጧል — የሚቀየር ነገር የለም",
+  "admin.categories.import.reason.alreadyRetired": "“{category_slug}” አስቀድሞ ተቋርጧል — የሚቀየር ነገር የለም",
   "admin.categories.import.reason.alreadyDeleted":
     "“{category_slug}” ከዝርዝሩ ውስጥ የለም — የሚሰረዝ ነገር የለም",
   "admin.categories.import.reason.unknown": "ይህ ረድፍ ተከልክሏል",

@@ -889,7 +889,8 @@ test.describe("C2 categories console", () => {
         .from("categories")
         .update({ is_active: false })
         .eq("id", emptyId);
-      if (retireEmpty) throw new Error(`[e2e:ct-32] retiring the root failed: ${retireEmpty.message}`);
+      if (retireEmpty)
+        throw new Error(`[e2e:ct-32] retiring the root failed: ${retireEmpty.message}`);
 
       await signInAsSuperAdmin(page);
       await gotoReady(page, "/admin/categories");
