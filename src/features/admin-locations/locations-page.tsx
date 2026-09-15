@@ -141,6 +141,14 @@ export function AdminLocationsPage() {
     [query.data, ancestry.data],
   );
   const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
+  /**
+   * The market's whole tree, unfiltered — the move and reorder pickers judge
+   * candidates against the COUNTRY, never against the operator's search.
+   */
+  const countryRoster = useMemo(
+    () => toRoster(ancestry.data ?? [], ancestry.data ?? []),
+    [ancestry.data],
+  );
   const parent = parentId === null ? null : (byId.get(parentId) ?? null);
 
   const open = (next: Dialog) => setDialog(next);
@@ -620,7 +628,7 @@ export function AdminLocationsPage() {
           {dialog.kind === "move" && byId.get(dialog.id) !== undefined ? (
             <LocationMoveDialog
               row={byId.get(dialog.id) as LocationNode}
-              roster={roster}
+              roster={countryRoster}
               guard={guard}
               onClose={close}
             />
@@ -628,7 +636,7 @@ export function AdminLocationsPage() {
           {dialog.kind === "reorder" && byId.get(dialog.id) !== undefined ? (
             <LocationReorderDialog
               row={byId.get(dialog.id) as LocationNode}
-              roster={roster}
+              roster={countryRoster}
               guard={guard}
               onClose={close}
             />

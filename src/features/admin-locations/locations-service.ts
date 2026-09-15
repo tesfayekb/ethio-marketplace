@@ -190,13 +190,14 @@ export async function listAllCountries(): Promise<CountryOption[]> {
 }
 
 /**
- * The country's whole (id, parent_id, slug) skeleton — the same door with no
- * search, level or status narrowing, so every row's slash key stays absolute
- * while the roster itself is filtered (E7: the door is still the only read).
+ * The country's WHOLE roster — the same door with no search, level or status
+ * narrowing (E7: the door is still the only read). Two callers need it: every
+ * row's slash key stays absolute while the roster itself is filtered, and the
+ * move and reorder pickers offer the market's real candidates rather than
+ * whatever the operator's search happened to leave on screen.
  */
-export async function listLocationAncestry(countryCode: string): Promise<LocationAncestor[]> {
-  const rows = await listLocations({ countryCode });
-  return rows.map((row) => ({ id: row.id, parentId: row.parentId, slug: row.slug }));
+export async function listLocationAncestry(countryCode: string): Promise<LocationRow[]> {
+  return listLocations({ countryCode });
 }
 
 /* ------------------------------- roster ---------------------------------- */
