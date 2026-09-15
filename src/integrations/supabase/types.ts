@@ -866,6 +866,45 @@ export type Database = {
           },
         ]
       }
+      location_import_revisions: {
+        Row: {
+          action: string
+          batch_id: string
+          created_at: string
+          created_by: string
+          entity_key: string
+          entity_type: string
+          id: string
+          post: Json | null
+          prev: Json | null
+          undone_at: string | null
+        }
+        Insert: {
+          action: string
+          batch_id: string
+          created_at?: string
+          created_by: string
+          entity_key: string
+          entity_type: string
+          id?: string
+          post?: Json | null
+          prev?: Json | null
+          undone_at?: string | null
+        }
+        Update: {
+          action?: string
+          batch_id?: string
+          created_at?: string
+          created_by?: string
+          entity_key?: string
+          entity_type?: string
+          id?: string
+          post?: Json | null
+          prev?: Json | null
+          undone_at?: string | null
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           aliases: string[]
@@ -1475,6 +1514,15 @@ export type Database = {
         Args: { p_digest: string; p_rows: Json; p_scope: string }
         Returns: Json
       }
+      admin_commit_location_import: {
+        Args: {
+          p_countries: Json
+          p_digest: string
+          p_locations: Json
+          p_scope: string
+        }
+        Returns: Json
+      }
       admin_create_category: {
         Args: {
           p_allow_listings?: boolean
@@ -1526,6 +1574,7 @@ export type Database = {
         | { Args: never; Returns: Json }
         | { Args: { p_scope_slug: string }; Returns: Json }
       admin_export_categories: { Args: { p_scope?: string }; Returns: Json }
+      admin_export_locations: { Args: { p_scope?: string }; Returns: Json }
       admin_get_category_images: {
         Args: { p_id: string }
         Returns: {
@@ -1909,6 +1958,10 @@ export type Database = {
         Args: { p_rows: Json; p_scope: string }
         Returns: Json
       }
+      admin_preview_location_import: {
+        Args: { p_countries: Json; p_locations: Json; p_scope: string }
+        Returns: Json
+      }
       admin_reactivate_category: { Args: { p_id: string }; Returns: undefined }
       admin_remove_category_pointer: {
         Args: { p_pointer_id: string }
@@ -2048,6 +2101,7 @@ export type Database = {
       admin_undo_attribute_import: { Args: { p_batch: string }; Returns: Json }
       admin_undo_category_import: { Args: { p_batch: string }; Returns: Json }
       admin_undo_import: { Args: { p_batch: string }; Returns: Json }
+      admin_undo_location_import: { Args: { p_batch: string }; Returns: Json }
       admin_unlink_attribute: {
         Args: { p_link_id: string }
         Returns: undefined
@@ -2283,6 +2337,7 @@ export type Database = {
       cat_ts: { Args: { p_text: string }; Returns: string }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
+      country_export_row: { Args: { p_code: string }; Returns: Json }
       e2e_migration_ledger: { Args: never; Returns: string[] }
       end_impersonation: { Args: { p_session: string }; Returns: undefined }
       entity_source_value: {
@@ -2411,6 +2466,15 @@ export type Database = {
       }
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
+      loc_export_row: { Args: { p_id: string }; Returns: Json }
+      loc_id_of_key: { Args: { p_key: string }; Returns: string }
+      loc_import_plan: {
+        Args: { p_countries: Json; p_locations: Json; p_scope: string }
+        Returns: Json
+      }
+      loc_key_of: { Args: { p_id: string }; Returns: string }
+      loc_num: { Args: { p_text: string }; Returns: number }
+      loc_path_of: { Args: { p_id: string }; Returns: string }
       location_slug_candidate: {
         Args: { p_name: string; p_parent_id: string }
         Returns: string
