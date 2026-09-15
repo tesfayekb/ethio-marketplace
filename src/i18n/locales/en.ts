@@ -956,6 +956,12 @@ export const en = {
     "“{category_slug}” (path “{category_path}”) is outside the category you filtered by",
   "admin.categories.import.reason.formula":
     "Cells may not start with = + - @ (row slug “{category_slug}”)",
+  "admin.categories.import.reason.statusNeedsAction":
+    "The active flag differs from the stored status on “{category_slug}” — stored {stored}, this file asks for {requested}: use action = reactivate or retire",
+  "admin.categories.import.reason.alreadyRetired":
+    "“{category_slug}” is already retired — nothing to change",
+  "admin.categories.import.reason.alreadyDeleted":
+    "“{category_slug}” is no longer in the roster — nothing to delete",
   "admin.categories.import.reason.unknown": "This row was refused",
 
   "admin.categories.import.guidance":
