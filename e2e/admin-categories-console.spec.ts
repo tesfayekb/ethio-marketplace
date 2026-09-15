@@ -874,12 +874,8 @@ test.describe("C2 categories console", () => {
         .select("slug, name_am, is_active")
         .eq("slug", slug)
         .maybeSingle();
-      const parents =
-        data === null
-          ? []
-          : await readPointers((await readCategory(slug))?.id ?? "").then((rows) =>
-              rows.map((row) => row.parent_id),
-            );
+      const row = await readCategory(slug);
+      const parents = row === null ? [] : (await readPointers(row.id)).map((p) => p.parent_id);
       return `[CT-32 ${slug}] ${JSON.stringify({ row: data, parents })}`;
     }
 
