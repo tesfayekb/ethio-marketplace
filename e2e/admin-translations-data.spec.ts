@@ -66,26 +66,36 @@ export function pruneScratch(value: unknown): unknown {
    * it (with its entity_translations) at the end. Crash leftovers are reaped by
    * global-setup after 60 minutes.
    *
-   * locations insert census (public.locations): id uuid default gen_random_uuid()
-   * · parent_id uuid NULL (FK locations.id) · level text NOT NULL CHECK IN
-   * ('country','region','city') · country_code char NOT NULL (FK countries.code)
-   * · name_en text NOT NULL · name_am text NULL · slug text NOT NULL, UNIQUE
-   * (parent_id, slug) · center_lat/lng double NULL · is_active bool NOT NULL
-   * default false (the Data console lists ACTIVE rows only) · created_at /
-   * updated_at timestamptz default now(). CHECK locations_root_is_country:
-   * (level='country') = (parent_id IS NULL) — so a scratch city MUST hang off
-   * an existing parent.
+   * locations insert census (public.locations, after L1a-1): id uuid default
+   * gen_random_uuid() · parent_id uuid NULL (FK locations.id) · level text NOT
+   * NULL CHECK IN ('country','region','city','sub_city') — a FOUR-level tree ·
+   * country_code char NOT NULL (FK countries.code) · name_en text NOT NULL ·
+   * name_am text NULL · slug text NOT NULL, UNIQUE (parent_id, slug) ·
+   * center_lat/lng double · region_id / city_id uuid NULL — ANCESTOR columns
+   * written by the locations_ancestry_guard trigger, never by a caller ·
+   * display_order · iso_3166_2 · aliases text[] · source text · is_active bool
+   * NOT NULL default false (the Data console lists ACTIVE rows only) ·
+   * created_at / updated_at timestamptz default now().
+   *
+   * The ancestry guard governs this insert: a row's level must be exactly one
+   * step below its parent's (so a city hangs off a REGION, not a country), its
+   * country_code must equal the parent's, its slug must match
+   * ^[a-z0-9]+(-[a-z0-9]+)*$, and the COORDINATES LAW requires a centre on
+   * every city and sub_city (CHECK locations_city_needs_center) — hence the
+   * scratch centre below. An active row also needs an active parent
+   * ('parentInactive'), so the parent is picked active.
    */
   async function createScratchLocation(tag = "tr14"): Promise<{ id: string; name: string }> {
     const supabase = adminClient();
     const { data: parent, error: parentError } = await supabase
       .from("locations")
       .select("id, country_code")
-      .eq("level", "country")
+      .eq("level", "region")
+      .eq("is_active", true)
       .limit(1)
       .single();
     if (parentError || !parent) {
-      throw new Error(`[e2e:u4d] no country location to parent onto: ${parentError?.message}`);
+      throw new Error(`[e2e:u4d] no active region to parent onto: ${parentError?.message}`);
     }
     const axes = scratchAxes(tag);
     const name = `E2E-Scratch-${axes}`;
@@ -96,7 +106,12 @@ export function pruneScratch(value: unknown): unknown {
         level: "city",
         country_code: parent.country_code,
         name_en: name,
-        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        slug: name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, ""),
+        center_lat: 9.0,
+        center_lng: 38.7,
         is_active: true,
       })
       .select("id")

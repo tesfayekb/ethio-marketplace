@@ -379,6 +379,7 @@ export const en = {
   // U2a — MATRIX VOCABULARY (finite chrome, not data): every distinct
   // permissions.action and resources.name the matrix RPC can return.
   "admin.roles.perm.action.access": "Access",
+  "admin.roles.perm.action.activate": "Activate",
   "admin.roles.perm.action.approve": "Approve",
   "admin.roles.perm.action.assets": "Assets",
   "admin.roles.perm.action.assign": "Assign",
@@ -396,6 +397,7 @@ export const en = {
   "admin.roles.perm.resource.audit_logs": "Audit logs",
   "admin.roles.perm.resource.categories": "Categories",
   "admin.roles.perm.resource.countries": "Countries",
+  "admin.roles.perm.resource.coverage": "Advertising coverage",
   "admin.roles.perm.resource.impersonation": "Impersonation",
   "admin.roles.perm.resource.listings": "Listings",
   "admin.roles.perm.resource.locations": "Locations",

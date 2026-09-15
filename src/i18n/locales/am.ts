@@ -371,6 +371,7 @@ export const am: Messages = {
   "admin.roles.perm.failed": "የፈቃዱ ለውጥ አልተሳካም።",
   // U2a — የማትሪክሱ የቃላት ስብስብ (የገጽ ቃላት እንጂ መረጃ አይደለም)።
   "admin.roles.perm.action.access": "መድረስ",
+  "admin.roles.perm.action.activate": "ማንቃት",
   "admin.roles.perm.action.approve": "አጽድቅ",
   "admin.roles.perm.action.assets": "ምስሎችና ንብረቶች",
   "admin.roles.perm.action.assign": "መመደብ",
@@ -388,6 +389,7 @@ export const am: Messages = {
   "admin.roles.perm.resource.audit_logs": "የኦዲት መዝገቦች",
   "admin.roles.perm.resource.categories": "ምድቦች",
   "admin.roles.perm.resource.countries": "አገሮች",
+  "admin.roles.perm.resource.coverage": "የማስታወቂያ ሽፋን",
   "admin.roles.perm.resource.impersonation": "በሌላ ተጠቃሚ ስም መግባት",
   "admin.roles.perm.resource.listings": "ማስታወቂያዎች",
   "admin.roles.perm.resource.locations": "አካባቢዎች",
