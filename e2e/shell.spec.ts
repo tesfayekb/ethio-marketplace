@@ -1542,13 +1542,39 @@ test.describe("U4h device language star", () => {
       undefined,
       { timeout: 15000 },
     );
-    const gate = await page.evaluate(() => {
-      const value = (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] as
-        | { codes: string[] }
-        | undefined;
-      return value?.codes ?? [];
-    });
+    /**
+     * L1c-C (J4) — THE GATE IS DB TRUTH, NOT THE CLIENT MIRROR. The emission is
+     * the product of the SSR gate read, so it is judged against the same source
+     * the server read: the `languages` rows that are published or the base.
+     * The mirror is still awaited above (the page must have settled) and is now
+     * only consulted for the INC-202 degradation NOTE below.
+     */
+    const { data: gateRows, error: gateError } = await adminClient()
+      .from("languages")
+      .select("code,enabled_public,is_base");
+    if (gateError) throw new Error(`[e2e:shell] reading the gate failed: ${gateError.message}`);
+    const gate = (gateRows ?? [])
+      .filter((row) => row.enabled_public === true || row.is_base === true)
+      .map((row) => row.code);
     expect(gate.length, await describeSwitcher(page)).toBeGreaterThan(0);
+
+    // INC-202 — a client-side network blip must never fail the SSR assertion,
+    // but it must never be invisible either: it is annotated by name.
+    const degraded = await page.evaluate(() => {
+      const value = (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] as
+        | { degraded?: boolean }
+        | undefined;
+      return value?.degraded === true;
+    });
+    if (degraded && gate.length > 1) {
+      test
+        .info()
+        .annotations.push({
+          type: "note",
+          description:
+            "[INC-202] client gate degraded (network) — SSR alternates still judged against DB truth",
+        });
+    }
 
     // Both sides normalised the same way: lower-cased, de-duplicated, sorted.
     const normalise = (codes: string[]) =>
