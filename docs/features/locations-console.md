@@ -162,7 +162,12 @@ sentence that names where it belongs.
 | LT-5  | Delete guard — a parent with children is refused, then the chain deletes leaf-first with the typed address                             |
 | LT-6  | Step-up — an unproven factor cannot move a row; once proven the move carries the descendants                                           |
 | LT-7  | Import round trip — preview, commit, export echo, delete file, undo with the original ids (INC-201 through the route)                  |
-| LT-7b | The edit dialog round-trips every stored field it does not show (INC-188)                                                              |
+| LT-7b | The editor round-trips every stored field it does not show (INC-188)                                                                   |
+| LT-8  | Every verb and the save button sit inside the viewport at 360 and 1280, with no horizontal scroll (CT-8 mirror)                         |
+| LT-9a | The table twin: the pencil in the end column, 25-row pagination, no overflow                                                            |
+| LT-9b | The card twin: the pencil in the card's own actions region beside the badges                                                            |
+| LT-10 | Tones — retired = `destructive`, active = `secondary`, level = `outline`, asserted by `data-tone`                                        |
+| LT-11 | One read: typing and the level/status filters cost zero requests; switching the country costs exactly one                               |
 
 Scratch rows carry the `e2e-` slug prefix (J1) and are destroyed child-first in
 `finally` (J3). `e2e/global-setup.ts` reaps stale scratch geography by **slug**
