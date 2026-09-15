@@ -867,16 +867,29 @@ test.describe("C2 categories console", () => {
     const emptySlug = `e2e-cat-${stamp}-r3`;
     const newAmharic = `ሙከራ ${stamp}`;
 
+    /**
+     * IE-4a — an Amharic name is NOT a column: the importer writes it through
+     * the translation door, so the read-back reads that row, not `categories`.
+     */
+    async function amharicNameOf(categoryId: string): Promise<string | null> {
+      const { data, error } = await supabase
+        .from("entity_translations")
+        .select("value")
+        .eq("entity_type", "category")
+        .eq("entity_id", categoryId)
+        .eq("field", "name")
+        .eq("lang_code", "am")
+        .maybeSingle();
+      if (error) throw new Error(`[e2e:ct-32] reading the am name failed: ${error.message}`);
+      return data?.value ?? null;
+    }
+
     /** J4 — a mismatch names the row it judged, never page text. */
     async function truthOf(slug: string): Promise<string> {
-      const { data } = await supabase
-        .from("categories")
-        .select("slug, name_am, is_active")
-        .eq("slug", slug)
-        .maybeSingle();
       const row = await readCategory(slug);
       const parents = row === null ? [] : (await readPointers(row.id)).map((p) => p.parent_id);
-      return `[CT-32 ${slug}] ${JSON.stringify({ row: data, parents })}`;
+      const nameAm = row === null ? null : await amharicNameOf(row.id);
+      return `[CT-32 ${slug}] ${JSON.stringify({ row, nameAm, parents })}`;
     }
 
     try {
@@ -961,13 +974,8 @@ test.describe("C2 categories console", () => {
       expect(batchId, JSON.stringify(commit.payload)).toBeTruthy();
 
       // (c) ALL THREE landed together (J4 — DB truth).
-      const applied = await supabase
-        .from("categories")
-        .select("name_am, is_active")
-        .eq("slug", slugA)
-        .maybeSingle();
-      expect(applied.data?.is_active, await truthOf(slugA)).toBe(true);
-      expect(applied.data?.name_am, await truthOf(slugA)).toBe(newAmharic);
+      expect((await readCategory(slugA))?.is_active, await truthOf(slugA)).toBe(true);
+      expect(await amharicNameOf(idA), await truthOf(slugA)).toBe(newAmharic);
       expect(
         (await readPointers(idA)).map((row) => row.parent_id),
         await truthOf(slugA),
@@ -976,13 +984,8 @@ test.describe("C2 categories console", () => {
       // (d) UNDO takes all three back.
       const undo = await importPost(token, { mode: "undo", batchId });
       expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
-      const restored = await supabase
-        .from("categories")
-        .select("name_am, is_active")
-        .eq("slug", slugA)
-        .maybeSingle();
-      expect(restored.data?.is_active, await truthOf(slugA)).toBe(false);
-      expect(restored.data?.name_am ?? null, await truthOf(slugA)).toBeNull();
+      expect((await readCategory(slugA))?.is_active, await truthOf(slugA)).toBe(false);
+      expect(await amharicNameOf(idA), await truthOf(slugA)).toBeNull();
       expect(
         (await readPointers(idA)).map((row) => row.parent_id),
         await truthOf(slugA),
