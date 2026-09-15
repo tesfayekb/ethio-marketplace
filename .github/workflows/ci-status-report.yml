@@ -60,6 +60,112 @@ jobs:
             // the file after every fetch/reset (see below).
             fs.writeFileSync('/tmp/ci-status.md', lines.join('\n'));
 
+            // ---------------------------------------------------------------
+            // DEC-066 — GUARDS & BUILD FAILURE EVIDENCE.
+            //
+            // Extract-only: this block reads finished job logs and writes one
+            // file. It changes no gate, no verdict and never the promote. It
+            // writes on EVERY completed run, and when its own extraction
+            // fails it says so in the file (self-report law) instead of
+            // leaving a silent gap. When the evidence regex misses a
+            // failure's true lines the TAIL still carries them; the regex is
+            // widened by INC, never silently.
+            //
+            // The four Playwright job families below are the E2E failure
+            // reporter's own sources — duplicating them here would give the
+            // supervisor two disagreeing copies of one failure.
+            // ---------------------------------------------------------------
+            const PLAYWRIGHT_SOURCES = /^E2E (smoke tier|shard \d+\/\d+|email|changed specs)/;
+            const EVIDENCE =
+              /error TS\d+|\[warn\]|✖|##\[error\]|\bERROR\b|Error:|FAIL\b|failed\b|exit code [1-9]/;
+            const MAX_EVIDENCE = 80;
+            const MAX_TAIL = 60;
+            const MAX_FILE_LINES = 400;
+
+            // GitHub prefixes every log line with an ISO timestamp.
+            const strip = (line) =>
+              line.replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z\s?/, '');
+
+            const headMessage = (run.head_commit && run.head_commit.message) || '';
+            const platformOrigin = ['Lovable update', 'Work in progress'].includes(
+              headMessage.split('\n')[0].trim(),
+            );
+
+            const failedJobs = jobs.filter(
+              (j) => j.conclusion === 'failure' && !PLAYWRIGHT_SOURCES.test(j.name),
+            );
+
+            const guardLines = [
+              '# Guards & build — last failure (auto-generated — do not edit by hand)',
+              '',
+              `- Run: ${run.html_url}${platformOrigin ? '  **PLATFORM-ORIGIN?**' : ''}`,
+              `- Commit: \`${sha}\``,
+              `- Attempt: ${run.run_attempt}`,
+              `- Written (UTC): ${new Date().toISOString()}`,
+              '',
+            ];
+
+            if (failedJobs.length === 0) {
+              guardLines.push('No failed build/guard jobs in this run.', '');
+            } else {
+              const sections = [];
+              for (const job of failedJobs) {
+                let text = null;
+                let unavailable = null;
+                try {
+                  const res = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    job_id: job.id,
+                  });
+                  text = typeof res.data === 'string' ? res.data : String(res.data ?? '');
+                } catch (error) {
+                  unavailable = `log unavailable: ${error.message}`;
+                }
+
+                if (unavailable) {
+                  sections.push({ job, unavailable, evidence: [], tail: [] });
+                  continue;
+                }
+
+                const all = text.split('\n').map(strip);
+                const evidence = all.filter((l) => EVIDENCE.test(l)).slice(0, MAX_EVIDENCE);
+                const tail = all.slice(-MAX_TAIL);
+                sections.push({ job, unavailable: null, evidence, tail });
+              }
+
+              // Budget: evidence lines are never truncated; tails shrink first.
+              const fixed =
+                guardLines.length +
+                sections.reduce(
+                  (n, s) =>
+                    n + 6 + (s.unavailable ? 1 : s.evidence.length || 1),
+                  0,
+                );
+              let tailBudget = Math.max(0, MAX_FILE_LINES - fixed);
+              const withTails = sections.filter((s) => !s.unavailable).length;
+              const perTail = withTails === 0 ? 0 : Math.floor(tailBudget / withTails);
+
+              for (const s of sections) {
+                guardLines.push(`## ${s.job.name} — failure`, '');
+                if (s.unavailable) {
+                  guardLines.push(s.unavailable, '');
+                  continue;
+                }
+                guardLines.push('### Evidence lines', '', '```text');
+                guardLines.push(...(s.evidence.length ? s.evidence : ['(no matching lines)']));
+                guardLines.push('```', '');
+                const tail = perTail > 0 ? s.tail.slice(-perTail) : [];
+                guardLines.push(`### Tail (last ${MAX_TAIL} lines)`, '', '```text');
+                guardLines.push(...(tail.length ? tail : ['(tail truncated for file budget)']));
+                guardLines.push('```', '');
+              }
+            }
+
+            const guards = guardLines.join('\n');
+            fs.writeFileSync('docs/tracking/guards-last-failure.md', guards);
+            fs.writeFileSync('/tmp/guards-last-failure.md', guards);
+
       # Regenerate-after-fetch + retry, mirroring nightly-e2e.yml (INC-027).
       # The status file is derived state owned entirely by this run, so
       # rewriting it on top of whatever dev now holds is always correct and
