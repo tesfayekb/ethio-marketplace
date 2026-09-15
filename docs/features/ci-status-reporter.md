@@ -84,7 +84,10 @@ Reading order on a red run:
 - `permissions: contents: write` is repo-wide for the job's token. The write is
   confined to one file by the workflow staging only that path, i.e. by convention
   rather than by permission.
-- The file is machine-owned and prettier-exempt (INC-011). Never hand-edit it.
+- Both tracking files are machine-owned and prettier-exempt (INC-011, DEC-066). Never
+  hand-edit them.
+- guards-last-failure.md carries an extract, not the whole log: the 400-line budget
+  truncates tails. The run URL in the header is the full record.
 
 ## Scope note
 
