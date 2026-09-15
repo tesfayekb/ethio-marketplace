@@ -245,6 +245,8 @@ test.describe("L2a locations console", () => {
   test("LT-4 path rule: retiring a scratch region hides its active descendants from the public tree", async ({
     page,
   }) => {
+    // Three cache windows of the public route (15s each) fit inside the budget.
+    test.setTimeout(150_000);
     const { secret } = await useJobSuperAdmin(page);
     const regionSlug = scratchSlug("lt4r");
     const citySlug = scratchSlug("lt4c");
@@ -296,7 +298,7 @@ test.describe("L2a locations console", () => {
       await stepUpIfPrompted(page, secret);
 
       await expect
-        .poll(() => treeVersion(page, "ET"), { timeout: 20000, intervals: [500, 1000, 1000, 2000] })
+        .poll(() => treeVersion(page, "ET"), { timeout: 30000, intervals: [500, 1000, 2000, 3000] })
         .not.toBe(before);
       expect(await treeSlugs(page, "ET")).not.toContain(citySlug);
       // The city's OWN row never changed: the path rule hid it, not its state.
@@ -308,7 +310,7 @@ test.describe("L2a locations console", () => {
       await page.getByTestId("location-active-submit").click();
       await stepUpIfPrompted(page, secret);
       await expect
-        .poll(() => treeSlugs(page, "ET"), { timeout: 20000, intervals: [500, 1000, 1000, 2000] })
+        .poll(() => treeSlugs(page, "ET"), { timeout: 30000, intervals: [500, 1000, 2000, 3000] })
         .toContain(citySlug);
     } finally {
       await destroyLocation(regionSlug);
