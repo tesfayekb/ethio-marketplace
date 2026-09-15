@@ -1,14 +1,5 @@
-import {
-  ArrowDownUp,
-  Download,
-  MoveRight,
-  Pencil,
-  Plus,
-  RotateCcw,
-  Trash2,
-  Upload,
-} from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Download, Pencil, Plus, Upload } from "lucide-react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import {
   DataTable,
@@ -16,59 +7,62 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { PageCard } from "@/components/shell/page-card";
-import { Badge } from "@/components/ui/badge";
+import { TipBadge } from "@/components/shell/tip-badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminShell } from "@/features/admin/admin-context";
-import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
-import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
-import { LocationCreateDialog, LocationEditDialog } from "./location-dialogs";
+import { LocationCreateDialog } from "./location-dialogs";
+import { LocationEditorDialog } from "./location-editor";
 import { ImportLocationsDialog } from "./location-import-dialog";
+import { LocationVerbBar } from "./location-verb-bar";
 import {
   LocationActiveDialog,
   LocationDeleteDialog,
   LocationMoveDialog,
   LocationReorderDialog,
 } from "./location-verb-dialogs";
+import { LocationsToolbar, PAGE_SIZE_OPTIONS } from "./locations-toolbar";
 import {
+  childLevelOf,
+  filterLocations,
   keyTestId,
   LOCATION_COLUMN_PRIORITIES,
-  LOCATION_LEVELS,
-  childLevelOf,
   toRoster,
   type LocationNode,
 } from "./locations-service";
-import { useAdminLocations, useAllCountries, useLocationAncestry } from "./use-locations";
+import { useAdminLocations, useAllCountries } from "./use-locations";
 
 /**
- * LOCATIONS ERA L2a — THE LOCATIONS CONSOLE, PART 1.
+ * LOCATIONS ERA L2a-R — THE LOCATIONS CONSOLE, PART 1, RECONCILED.
  *
  * Gate tier: `locations:view` opens the section (the /admin layout owns it);
  * every write re-checks its own granular permission AND step-up inside the door
  * (F3), so the disabled states below are convenience, never authority.
  *
- * TWO tabs today — Tree and Import & export. Countries and Coverage arrive at
- * L2b and are deliberately NOT scaffolded: C4 forbids a placeholder standing in
- * for a screen that does not exist yet.
+ * The roster follows the CATEGORIES CONVENTION: one 44px pencil per row, the
+ * row itself opens the same editor, and every verb lives in the editor's verb
+ * bar (CT-8). Six buttons in a table cell were what clipped the end column and
+ * pushed the page sideways at 1280.
  *
- * The roster is ONE DataTable with `cardUntil="lg"` (the tablet band would
- * crush a seven-column geography table) and priorities only — no `minWidth`
- * anywhere, no per-page width hack (C7).
+ * ONE READ PER COUNTRY: the door is called with the country alone and the
+ * search / level / status controls sieve that roster in the browser, so nothing
+ * fetches on a keystroke (G2).
+ *
+ * Countries and Coverage arrive at L2b and are deliberately NOT scaffolded: C4
+ * forbids a placeholder standing in for a screen that does not exist yet.
  */
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.locations.pageSize";
 
 type Dialog =
   | { kind: "none" }
-  | { kind: "create"; parentId: string }
-  | { kind: "edit"; id: string }
+  | { kind: "create"; parentId: string; fixed: boolean }
+  | { kind: "editor"; id: string; openedBy: string }
   | { kind: "active"; id: string }
   | { kind: "move"; id: string }
   | { kind: "reorder"; id: string }
@@ -92,12 +86,6 @@ export function AdminLocationsPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
-  /**
-   * Creation in this tab is ALWAYS "a child of a row": a country anchor is born
-   * by opening a market (L2b). The toolbar verb therefore needs a chosen parent,
-   * and says so in words until one exists.
-   */
-  const [parentId, setParentId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
 
@@ -125,35 +113,26 @@ export function AdminLocationsPage() {
     setCountry((markets.find((market) => market.isActive) ?? markets[0])?.code ?? "");
   }, [country, markets]);
 
-  const query = useAdminLocations(
-    country === ""
-      ? null
-      : {
-          countryCode: country,
-          search,
-          level: level === "" ? null : level,
-          active: status === "" ? null : status === "active",
-        },
-  );
-  const ancestry = useLocationAncestry(country);
-  const roster = useMemo(
-    () => toRoster(query.data ?? [], ancestry.data ?? []),
-    [query.data, ancestry.data],
-  );
+  const query = useAdminLocations(country);
+  /** The country's whole tree: every key and every nesting comes from it. */
+  const roster = useMemo(() => toRoster(query.data ?? []), [query.data]);
   const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
-  /**
-   * The market's whole tree, unfiltered — the move and reorder pickers judge
-   * candidates against the COUNTRY, never against the operator's search.
-   */
-  const countryRoster = useMemo(
-    () => toRoster(ancestry.data ?? [], ancestry.data ?? []),
-    [ancestry.data],
+  /** A keystroke sieves, never fetches; deferring keeps typing smooth. */
+  const deferredSearch = useDeferredValue(search);
+  const rows = useMemo(
+    () => filterLocations(roster, { search: deferredSearch, level, status }),
+    [roster, deferredSearch, level, status],
   );
-  const parent = parentId === null ? null : (byId.get(parentId) ?? null);
+  /** Every row that can still hold a child — the create dialog's picker. */
+  const parents = useMemo(() => roster.filter((row) => childLevelOf(row.level) !== null), [roster]);
+  const anchorId = useMemo(
+    () => roster.find((row) => row.level === "country")?.id ?? parents[0]?.id ?? "",
+    [roster, parents],
+  );
 
   const open = (next: Dialog) => setDialog(next);
   const close = () => setDialog({ kind: "none" });
-  const select = (row: LocationNode) => setParentId(row.id);
+  const selected = dialog.kind === "editor" ? (byId.get(dialog.id) ?? null) : null;
 
   /**
    * The export button posts nothing: it GETs the L1b route with the file name
@@ -203,9 +182,12 @@ export function AdminLocationsPage() {
           >
             {row.nameEn}
           </span>
-          <Badge variant="secondary" data-testid={`location-${keyTestId(row.key)}-level`}>
-            {t(`admin.locations.level.${row.level}` as MessageKey)}
-          </Badge>
+          <TipBadge
+            variant="outline"
+            label={t(`admin.locations.level.${row.level}` as MessageKey)}
+            tip={t("admin.locations.field.readOnlyLevel")}
+            testid={`location-${keyTestId(row.key)}-level`}
+          />
         </div>
       ),
     },
@@ -220,13 +202,12 @@ export function AdminLocationsPage() {
       header: t("admin.locations.col.status"),
       priority: LOCATION_COLUMN_PRIORITIES.status,
       cell: (row) => (
-        <Badge
-          variant={row.isActive ? "default" : "outline"}
-          data-testid={`location-${keyTestId(row.key)}-status`}
-          title={t(row.isActive ? "admin.locations.tip.active" : "admin.locations.tip.retired")}
-        >
-          {t(row.isActive ? "admin.locations.badge.active" : "admin.locations.badge.retired")}
-        </Badge>
+        <TipBadge
+          variant={row.isActive ? "secondary" : "destructive"}
+          label={t(row.isActive ? "admin.locations.badge.active" : "admin.locations.badge.retired")}
+          tip={t(row.isActive ? "admin.locations.tip.active" : "admin.locations.tip.retired")}
+          testid={`location-${keyTestId(row.key)}-status`}
+        />
       ),
     },
     {
@@ -266,251 +247,65 @@ export function AdminLocationsPage() {
     },
   ];
 
-  const rowActions = (row: LocationNode, guard: GuardFn) => {
-    const id = keyTestId(row.key);
-    const verb = (
-      suffix: string,
-      labelKey: MessageKey,
-      icon: React.ReactNode,
-      onClick: () => void,
-      disabled = false,
-      hint?: MessageKey,
-    ) => (
-      <Button
-        key={suffix}
-        type="button"
-        variant="outline"
-        size="touch"
-        data-testid={`location-${suffix}-${id}`}
-        title={disabled && hint !== undefined ? t(hint) : t(labelKey)}
-        disabled={disabled}
-        onClick={onClick}
-      >
-        {icon}
-        <span>{t(labelKey)}</span>
-      </Button>
-    );
-    const blocked =
-      row.childCount > 0 ||
-      row.listingCount > 0 ||
-      row.coverageCount > 0 ||
-      row.profileDefaultCount > 0;
-
-    return (
-      <div className="flex min-w-0 flex-wrap gap-2" data-testid={`location-${id}-verbs`}>
-        {mayCreate
-          ? verb(
-              "create-child",
-              "admin.locations.action.createChild",
-              <Plus aria-hidden="true" className="size-4" />,
-              () => {
-                select(row);
-                open({ kind: "create", parentId: row.id });
-              },
-              childLevelOf(row.level) === null,
-              "admin.locations.action.floor",
-            )
-          : null}
-        {mayUpdate
-          ? verb(
-              "edit",
-              "admin.locations.action.edit",
-              <Pencil aria-hidden="true" className="size-4" />,
-              () => {
-                select(row);
-                open({ kind: "edit", id: row.id });
-              },
-            )
-          : null}
-        {mayUpdate
-          ? verb(
-              row.isActive ? "retire" : "activate",
-              row.isActive ? "admin.locations.action.retire" : "admin.locations.action.activate",
-              <RotateCcw aria-hidden="true" className="size-4" />,
-              () => open({ kind: "active", id: row.id }),
-            )
-          : null}
-        {mayRestructure
-          ? verb(
-              "move",
-              "admin.locations.action.move",
-              <MoveRight aria-hidden="true" className="size-4" />,
-              () => open({ kind: "move", id: row.id }),
-              row.level === "country",
-              "admin.locations.action.anchorFixed",
-            )
-          : null}
-        {mayUpdate
-          ? verb(
-              "reorder",
-              "admin.locations.action.reorder",
-              <ArrowDownUp aria-hidden="true" className="size-4" />,
-              () => open({ kind: "reorder", id: row.id }),
-              row.level === "country",
-              "admin.locations.error.orderCountriesInProfile",
-            )
-          : null}
-        {mayRestructure
-          ? verb(
-              "delete",
-              "admin.locations.action.delete",
-              <Trash2 aria-hidden="true" className="size-4" />,
-              () => open({ kind: "delete", id: row.id }),
-              blocked,
-              "admin.locations.action.deleteBlocked",
-            )
-          : null}
-        {/* The guard is threaded through the dialogs, not the row buttons. */}
-        <span
-          className="hidden"
-          aria-hidden="true"
-          data-guard={guard === undefined ? "" : "ready"}
-        />
-      </div>
-    );
-  };
-
-  const toolbar = (
-    <div className="flex min-w-0 flex-col gap-3" data-testid="location-toolbar-find">
-      <div className="flex min-w-0 flex-wrap gap-3">
-        <label className="flex min-w-0 flex-col gap-1 text-sm">
-          <span>{t("admin.locations.filter.country")}</span>
-          <select
-            className={`${SELECT_CLASS} md:w-56`}
-            data-testid="location-country-filter"
-            value={country}
-            onChange={(event) => {
-              setCountry(event.target.value);
-              setParentId(null);
-              setPage(0);
-            }}
-          >
-            {markets.map((market) => (
-              <option key={market.code} value={market.code}>
-                {market.isActive
-                  ? market.nameEn
-                  : `${market.nameEn} (${t("admin.locations.filter.closedMarket")})`}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex min-w-0 flex-col gap-1 text-sm">
-          <span>{t("admin.locations.filter.level")}</span>
-          <select
-            className={`${SELECT_CLASS} md:w-40`}
-            data-testid="location-level-filter"
-            value={level}
-            onChange={(event) => {
-              setLevel(event.target.value);
-              setPage(0);
-            }}
-          >
-            <option value="">{t("admin.locations.filter.allLevels")}</option>
-            {LOCATION_LEVELS.map((name) => (
-              <option key={name} value={name}>
-                {t(`admin.locations.level.${name}` as MessageKey)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex min-w-0 flex-col gap-1 text-sm">
-          <span>{t("admin.locations.filter.status")}</span>
-          <select
-            className={`${SELECT_CLASS} md:w-40`}
-            data-testid="location-active-filter"
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value);
-              setPage(0);
-            }}
-          >
-            <option value="">{t("admin.locations.filter.allStatuses")}</option>
-            <option value="active">{t("admin.locations.filter.activeOnly")}</option>
-            <option value="retired">{t("admin.locations.filter.retiredOnly")}</option>
-          </select>
-        </label>
-
-        <label className="flex min-w-0 flex-col gap-1 text-sm">
-          <span>{t("admin.locations.filter.pageSize")}</span>
-          <select
-            className={`${SELECT_CLASS} md:w-32`}
-            data-testid="location-page-size"
-            value={pageSize}
-            onChange={(event) => {
-              const next = Number(event.target.value);
-              setPageSize(next);
-              setPage(0);
-              window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-            }}
-          >
-            {PAGE_SIZE_OPTIONS.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <Input
-        data-testid="location-search"
-        className="md:w-72"
-        placeholder={t("admin.locations.searchPlaceholder")}
-        value={search}
-        onChange={(event) => {
-          setSearch(event.target.value);
-          setPage(0);
-        }}
-      />
-    </div>
-  );
+  /**
+   * ONE VERB IN THE ROW (the categories rowActions, verbatim in spirit): a 44px
+   * pencil that opens the editor, and the row itself does the same on click or
+   * on Enter/Space. The end column keeps the primitive's own width.
+   */
+  const rowActions = (row: LocationNode) =>
+    mayUpdate ? (
+      <span className="flex items-center xl:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          className="size-11 shrink-0 p-0"
+          data-testid={`location-edit-${keyTestId(row.key)}`}
+          aria-label={t("admin.locations.action.edit")}
+          title={t("admin.locations.action.edit")}
+          onClick={() => open({ kind: "editor", id: row.id, openedBy: "row-click" })}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            open({ kind: "editor", id: row.id, openedBy: "keyboard" });
+          }}
+        >
+          <Pencil aria-hidden="true" className="size-4" />
+        </Button>
+      </span>
+    ) : null;
 
   return (
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-locations" className="min-w-0 space-y-4">
           <Tabs defaultValue="tree" className="min-w-0">
-            <TabsList>
-              <TabsTrigger value="tree" data-testid="location-tab-tree">
-                {t("admin.locations.tab.tree")}
-              </TabsTrigger>
-              <TabsTrigger value="transfer" data-testid="location-tab-transfer">
-                {t("admin.locations.tab.transfer")}
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+              <TabsList>
+                <TabsTrigger value="tree" data-testid="location-tab-tree">
+                  {t("admin.locations.tab.tree")}
+                </TabsTrigger>
+                <TabsTrigger value="transfer" data-testid="location-tab-transfer">
+                  {t("admin.locations.tab.transfer")}
+                </TabsTrigger>
+              </TabsList>
+              {mayCreate ? (
+                <Button
+                  type="button"
+                  size="touch"
+                  data-testid="location-create-open"
+                  disabled={anchorId === ""}
+                  onClick={() => open({ kind: "create", parentId: anchorId, fixed: false })}
+                >
+                  <Plus aria-hidden="true" className="size-4" />
+                  <span>{t("admin.locations.create.open")}</span>
+                </Button>
+              ) : null}
+            </div>
 
             <TabsContent value="tree" className="min-w-0 space-y-4">
-              {mayCreate ? (
-                <PageCard testid="location-create-card">
-                  <Button
-                    type="button"
-                    size="touch"
-                    className="w-full md:w-auto"
-                    data-testid="location-create-open"
-                    disabled={parent === null || childLevelOf(parent.level) === null}
-                    title={parent === null ? t("admin.locations.create.rootHint") : parent.path}
-                    onClick={() =>
-                      parent === null ? undefined : open({ kind: "create", parentId: parent.id })
-                    }
-                  >
-                    {t("admin.locations.create.open")}
-                  </Button>
-                  {parent === null ? (
-                    <p
-                      className="mt-2 text-sm text-muted-foreground"
-                      data-testid="location-create-hint"
-                    >
-                      {t("admin.locations.create.rootHint")}
-                    </p>
-                  ) : null}
-                </PageCard>
-              ) : null}
-
               <DataTable<LocationNode>
                 columns={columns}
-                rows={roster}
+                rows={rows}
                 rowKey={(row) => row.id}
                 rowTestId={(row) => `location-${keyTestId(row.key)}`}
                 caption={t("admin.locations.caption")}
@@ -526,8 +321,38 @@ export function AdminLocationsPage() {
                 emptyState={
                   <p className="text-sm text-muted-foreground">{t("admin.locations.empty")}</p>
                 }
-                toolbar={toolbar}
-                rowActions={(row) => rowActions(row, guard)}
+                toolbar={
+                  <LocationsToolbar
+                    markets={markets}
+                    country={country}
+                    onCountry={(code) => {
+                      setCountry(code);
+                      setPage(0);
+                    }}
+                    search={search}
+                    onSearch={(value) => {
+                      setSearch(value);
+                      setPage(0);
+                    }}
+                    level={level}
+                    onLevel={(value) => {
+                      setLevel(value);
+                      setPage(0);
+                    }}
+                    status={status}
+                    onStatus={(value) => {
+                      setStatus(value);
+                      setPage(0);
+                    }}
+                    pageSize={pageSize}
+                    onPageSize={(next) => {
+                      setPageSize(next);
+                      setPage(0);
+                      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+                    }}
+                  />
+                }
+                rowActions={rowActions}
                 page={page}
                 pageSize={pageSize}
                 pagination={
@@ -535,7 +360,7 @@ export function AdminLocationsPage() {
                     testid="location-pagination"
                     offset={page * pageSize}
                     pageSize={pageSize}
-                    total={roster.length}
+                    total={rows.length}
                     onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                     onNext={() => setPage((current) => current + 1)}
                   />
@@ -548,37 +373,47 @@ export function AdminLocationsPage() {
                 <p className="text-sm text-muted-foreground">
                   {t("admin.locations.transfer.wholeFile")}
                 </p>
-                <div className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    data-testid="location-export-countries"
-                    disabled={exporting}
-                    onClick={() => void runExport("countries")}
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    <span>
-                      {exporting
-                        ? t("admin.locations.export.busy")
-                        : t("admin.locations.export.countries")}
-                    </span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    data-testid="location-export-locations"
-                    disabled={exporting}
-                    onClick={() => void runExport("locations")}
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    <span>
-                      {exporting
-                        ? t("admin.locations.export.busy")
-                        : t("admin.locations.export.locations")}
-                    </span>
-                  </Button>
+                <div className="mt-3 flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap">
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="touch"
+                      data-testid="location-export-countries"
+                      disabled={exporting}
+                      onClick={() => void runExport("countries")}
+                    >
+                      <Download aria-hidden="true" className="size-4" />
+                      <span>
+                        {exporting
+                          ? t("admin.locations.export.busy")
+                          : t("admin.locations.export.countries")}
+                      </span>
+                    </Button>
+                    <p className="max-w-xs text-sm text-muted-foreground">
+                      {t("admin.locations.export.countriesHint")}
+                    </p>
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="touch"
+                      data-testid="location-export-locations"
+                      disabled={exporting}
+                      onClick={() => void runExport("locations")}
+                    >
+                      <Download aria-hidden="true" className="size-4" />
+                      <span>
+                        {exporting
+                          ? t("admin.locations.export.busy")
+                          : t("admin.locations.export.locations")}
+                      </span>
+                    </Button>
+                    <p className="max-w-xs text-sm text-muted-foreground">
+                      {t("admin.locations.export.locationsHint")}
+                    </p>
+                  </div>
                   {mayImport ? (
                     <Button
                       type="button"
@@ -604,18 +439,37 @@ export function AdminLocationsPage() {
             </TabsContent>
           </Tabs>
 
-          {dialog.kind === "create" && byId.get(dialog.parentId) !== undefined ? (
+          {dialog.kind === "create" ? (
             <LocationCreateDialog
-              parent={byId.get(dialog.parentId) as LocationNode}
+              parents={parents}
+              parentId={dialog.parentId}
+              fixed={dialog.fixed}
               guard={guard}
               onClose={close}
             />
           ) : null}
-          {dialog.kind === "edit" && byId.get(dialog.id) !== undefined ? (
-            <LocationEditDialog
-              row={byId.get(dialog.id) as LocationNode}
+          {selected !== null ? (
+            <LocationEditorDialog
+              key="location-editor"
+              row={selected}
               guard={guard}
+              openedBy={dialog.kind === "editor" ? dialog.openedBy : "row-click"}
               onClose={close}
+              verbBar={
+                <LocationVerbBar
+                  row={selected}
+                  mayCreate={mayCreate}
+                  mayUpdate={mayUpdate}
+                  mayRestructure={mayRestructure}
+                  onCreateChild={() =>
+                    open({ kind: "create", parentId: selected.id, fixed: true })
+                  }
+                  onActive={() => open({ kind: "active", id: selected.id })}
+                  onMove={() => open({ kind: "move", id: selected.id })}
+                  onReorder={() => open({ kind: "reorder", id: selected.id })}
+                  onDelete={() => open({ kind: "delete", id: selected.id })}
+                />
+              }
             />
           ) : null}
           {dialog.kind === "active" && byId.get(dialog.id) !== undefined ? (
@@ -628,7 +482,7 @@ export function AdminLocationsPage() {
           {dialog.kind === "move" && byId.get(dialog.id) !== undefined ? (
             <LocationMoveDialog
               row={byId.get(dialog.id) as LocationNode}
-              roster={countryRoster}
+              roster={roster}
               guard={guard}
               onClose={close}
             />
@@ -636,7 +490,7 @@ export function AdminLocationsPage() {
           {dialog.kind === "reorder" && byId.get(dialog.id) !== undefined ? (
             <LocationReorderDialog
               row={byId.get(dialog.id) as LocationNode}
-              roster={countryRoster}
+              roster={roster}
               guard={guard}
               onClose={close}
             />
