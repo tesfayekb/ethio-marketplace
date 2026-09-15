@@ -82,8 +82,8 @@ Reading order on a red run:
 - It checks out main and pushes to main with no rebase or retry; a commit landing in
   between causes a non-fast-forward push failure and a stale file.
 - `permissions: contents: write` is repo-wide for the job's token. The write is
-  confined to one file by the workflow staging only that path, i.e. by convention
-  rather than by permission.
+  confined to the two tracking files by the workflow staging only those paths, i.e. by
+  convention rather than by permission.
 - Both tracking files are machine-owned and prettier-exempt (INC-011, DEC-066). Never
   hand-edit them.
 - guards-last-failure.md carries an extract, not the whole log: the 400-line budget
