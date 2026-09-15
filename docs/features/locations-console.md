@@ -55,13 +55,13 @@ The editor (`location-editor`) shows the path with the level and status badges,
 the fields, `location-editor-save`, and then the **verb bar**
 (`location-verb-bar`):
 
-| Verb              | Test id                                        | Notes                                                       |
-| ----------------- | ---------------------------------------------- | ----------------------------------------------------------- |
-| Create child      | `location-verb-create-child`                   | Absent on sub-city rows — depth 4 is the floor              |
-| Activate / retire | `location-verb-activate` / `location-verb-retire` | One state-dependent verb                                 |
-| Move              | `location-verb-move`                           | Absent on the country anchor                                |
-| Reorder           | `location-verb-reorder`                        | Disabled for country rows (`orderCountriesInProfile`)       |
-| Delete            | `location-verb-delete`                         | Destructive; disabled with the reason in `location-verb-error` |
+| Verb              | Test id                                           | Notes                                                          |
+| ----------------- | ------------------------------------------------- | -------------------------------------------------------------- |
+| Create child      | `location-verb-create-child`                      | Absent on sub-city rows — depth 4 is the floor                 |
+| Activate / retire | `location-verb-activate` / `location-verb-retire` | One state-dependent verb                                       |
+| Move              | `location-verb-move`                              | Absent on the country anchor                                   |
+| Reorder           | `location-verb-reorder`                           | Disabled for country rows (`orderCountriesInProfile`)          |
+| Delete            | `location-verb-delete`                            | Destructive; disabled with the reason in `location-verb-error` |
 
 A blocked verb says why beside the bar in words (`location-verb-error`, F4) —
 never only in a tooltip and never in a toast alone.
@@ -77,9 +77,9 @@ fixed as a read-only path.
 | Verb              | Door                                  | Notes                                                                                                                                                                                                                  |
 | ----------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Create child      | `admin_upsert_location` (`p_id` NULL) | The row is **born retired**; the dialog says so (`location-create-retired`).                                                                                                                                           |
-| Edit              | `admin_upsert_location`               | Never touches parent or activation — those are their own verbs; the door answers `useMoveDoor` otherwise. Round-trips every stored field (INC-188).                                                                     |
-| Activate / retire | `admin_set_location_active`           | `parentInactive` renders as "activate `<parent path>` first".                                                                                                                                                           |
-| Move              | `admin_move_location`                 | Step-up on the server. The picker lists only same-country rows at level − 1. The ancestry trigger carries the descendants.                                                                                              |
+| Edit              | `admin_upsert_location`               | Never touches parent or activation — those are their own verbs; the door answers `useMoveDoor` otherwise. Round-trips every stored field (INC-188).                                                                    |
+| Activate / retire | `admin_set_location_active`           | `parentInactive` renders as "activate `<parent path>` first".                                                                                                                                                          |
+| Move              | `admin_move_location`                 | Step-up on the server. The picker lists only same-country rows at level − 1. The ancestry trigger carries the descendants.                                                                                             |
 | Reorder           | `admin_reorder_locations`             | The siblings of the row's parent, up/down.                                                                                                                                                                             |
 | Delete            | `admin_delete_location`               | Step-up on the server. The operator types the row's slug (`location-delete-confirm`). Disabled when children, listings, coverage or profile defaults exist — and the door still refuses by name when a count is stale. |
 
@@ -163,11 +163,11 @@ sentence that names where it belongs.
 | LT-6  | Step-up — an unproven factor cannot move a row; once proven the move carries the descendants                                           |
 | LT-7  | Import round trip — preview, commit, export echo, delete file, undo with the original ids (INC-201 through the route)                  |
 | LT-7b | The editor round-trips every stored field it does not show (INC-188)                                                                   |
-| LT-8  | Every verb and the save button sit inside the viewport at 360 and 1280, with no horizontal scroll (CT-8 mirror)                         |
-| LT-9a | The table twin: the pencil in the end column, 25-row pagination, no overflow                                                            |
-| LT-9b | The card twin: the pencil in the card's own actions region beside the badges                                                            |
-| LT-10 | Tones — retired = `destructive`, active = `secondary`, level = `outline`, asserted by `data-tone`                                        |
-| LT-11 | One read: typing and the level/status filters cost zero requests; switching the country costs exactly one                               |
+| LT-8  | Every verb and the save button sit inside the viewport at 360 and 1280, with no horizontal scroll (CT-8 mirror)                        |
+| LT-9a | The table twin: the pencil in the end column, 25-row pagination, no overflow                                                           |
+| LT-9b | The card twin: the pencil in the card's own actions region beside the badges                                                           |
+| LT-10 | Tones — retired = `destructive`, active = `secondary`, level = `outline`, asserted by `data-tone`                                      |
+| LT-11 | One read: typing and the level/status filters cost zero requests; switching the country costs exactly one                              |
 
 Scratch rows carry the `e2e-` slug prefix (J1) and are destroyed child-first in
 `finally` (J3). `e2e/global-setup.ts` reaps stale scratch geography by **slug**
