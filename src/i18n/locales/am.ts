@@ -1469,9 +1469,11 @@ export const am: Messages = {
   "admin.locations.field.readOnlyLevel": "ደረጃ",
   "admin.locations.transfer.wholeFile": "ፋይል ሙሉ ለሙሉ ወይም በጭራሽ ይጻፋል፦ አንድ የተከለከለ ረድፍ ሙሉውን ማስገባት ያቆማል።",
   "admin.locations.export.countries": "አገሮችን አውርድ",
-  "admin.locations.export.countriesHint": "በአንድ አገር አንድ ረድፍ፦ ክፍት ወይም ዝግ፣ የመለኪያ ሥርዓት፣ ገንዘብ፣ የሐዲድ ቅደም ተከተል።",
+  "admin.locations.export.countriesHint":
+    "በአንድ አገር አንድ ረድፍ፦ ክፍት ወይም ዝግ፣ የመለኪያ ሥርዓት፣ ገንዘብ፣ የሐዲድ ቅደም ተከተል።",
   "admin.locations.export.locations": "ቦታዎችን አውርድ",
-  "admin.locations.export.locationsHint": "የተመረጠው አገር የቦታ ዛፍ፦ ክልሎች፣ ከተሞች፣ ክፍለ ከተሞች፣ ተለዋጭ ስሞች፣ መጋጠሚያዎች።",
+  "admin.locations.export.locationsHint":
+    "የተመረጠው አገር የቦታ ዛፍ፦ ክልሎች፣ ከተሞች፣ ክፍለ ከተሞች፣ ተለዋጭ ስሞች፣ መጋጠሚያዎች።",
   "admin.locations.export.busy": "ፋይሉ እየተዘጋጀ ነው…",
   "admin.locations.export.error": "ያ ፋይል መዘጋጀት አልቻለም።",
   "admin.locations.error.reason": "ምክንያት፦ {reason}",

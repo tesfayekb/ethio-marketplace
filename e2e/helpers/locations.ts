@@ -126,7 +126,7 @@ export async function openEditor(page: Page, key: string) {
 }
 
 /** Opens the editor of `key` and clicks one of its verbs. */
-export async function useVerb(page: Page, key: string, name: string, needle?: string) {
+export async function openVerb(page: Page, key: string, name: string, needle?: string) {
   await findRow(page, key, needle);
   await openEditor(page, key);
   await verb(page, name).click();

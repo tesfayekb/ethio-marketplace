@@ -461,9 +461,7 @@ export function AdminLocationsPage() {
                   mayCreate={mayCreate}
                   mayUpdate={mayUpdate}
                   mayRestructure={mayRestructure}
-                  onCreateChild={() =>
-                    open({ kind: "create", parentId: selected.id, fixed: true })
-                  }
+                  onCreateChild={() => open({ kind: "create", parentId: selected.id, fixed: true })}
                   onActive={() => open({ kind: "active", id: selected.id })}
                   onMove={() => open({ kind: "move", id: selected.id })}
                   onReorder={() => open({ kind: "reorder", id: selected.id })}

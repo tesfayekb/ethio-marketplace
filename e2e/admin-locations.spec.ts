@@ -26,7 +26,7 @@ import {
   scratchSlug,
   treeSlugs,
   treeVersion,
-  useVerb,
+  openVerb,
   verb,
 } from "./helpers/locations";
 
@@ -159,10 +159,14 @@ test.describe("L2a locations console", () => {
       const { width, boxes } = await actionBoxes(page);
       expect(boxes.length, "no edit button rendered").toBeGreaterThan(0);
       for (const box of boxes) {
-        expect(box.left, `edit button starts off-screen\n${await geometryDump(page, "LT-2 box")}`)
-          .toBeGreaterThanOrEqual(0);
-        expect(box.right, `edit button ends off-screen\n${await geometryDump(page, "LT-2 box")}`)
-          .toBeLessThanOrEqual(width);
+        expect(
+          box.left,
+          `edit button starts off-screen\n${await geometryDump(page, "LT-2 box")}`,
+        ).toBeGreaterThanOrEqual(0);
+        expect(
+          box.right,
+          `edit button ends off-screen\n${await geometryDump(page, "LT-2 box")}`,
+        ).toBeLessThanOrEqual(width);
       }
       // (iii) … and the page itself never scrolls sideways.
       await expectNoHorizontalOverflow(page);
@@ -198,7 +202,7 @@ test.describe("L2a locations console", () => {
       await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
 
       // A region under the ET anchor, through the editor's create-child verb.
-      await useVerb(page, ANCHOR, "create-child");
+      await openVerb(page, ANCHOR, "create-child");
       await expect(page.getByTestId("location-create-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-name").fill(regionSlug);
       await page.getByTestId("location-create-submit").click();
@@ -212,7 +216,7 @@ test.describe("L2a locations console", () => {
 
       // A city under it — the dialog refuses without coordinates first.
       const regionKey = `${ANCHOR}/${regionSlug}`;
-      await useVerb(page, regionKey, "create-child", regionSlug);
+      await openVerb(page, regionKey, "create-child", regionSlug);
       await expect(page.getByTestId("location-create-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-name").fill(citySlug);
       await page.getByTestId("location-create-submit").click();
@@ -234,7 +238,7 @@ test.describe("L2a locations console", () => {
 
       // A sub-city under the city.
       const cityKey = `${regionKey}/${citySlug}`;
-      await useVerb(page, cityKey, "create-child", citySlug);
+      await openVerb(page, cityKey, "create-child", citySlug);
       await expect(page.getByTestId("location-create-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-name").fill(subSlug);
       await page.getByTestId("location-create-lat").fill("9.04");
@@ -255,7 +259,7 @@ test.describe("L2a locations console", () => {
       await page.getByTestId("location-dialog-cancel").click();
 
       // BOTTOM-UP IS REFUSED: the city cannot activate while its region is retired.
-      await useVerb(page, cityKey, "activate", citySlug);
+      await openVerb(page, cityKey, "activate", citySlug);
       await expect(page.getByTestId("location-active-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-active-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -268,7 +272,7 @@ test.describe("L2a locations console", () => {
         [regionKey, regionSlug],
         [cityKey, citySlug],
       ] as const) {
-        await useVerb(page, key, "activate", slug);
+        await openVerb(page, key, "activate", slug);
         await expect(page.getByTestId("location-active-dialog")).toBeVisible({ timeout: 20000 });
         await page.getByTestId("location-active-submit").click();
         await stepUpIfPrompted(page, secret);
@@ -333,7 +337,7 @@ test.describe("L2a locations console", () => {
       const before = await treeVersion(page, "ET");
 
       const regionKey = `${ANCHOR}/${regionSlug}`;
-      await useVerb(page, regionKey, "retire", regionSlug);
+      await openVerb(page, regionKey, "retire", regionSlug);
       await expect(page.getByTestId("location-active-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-active-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -346,7 +350,7 @@ test.describe("L2a locations console", () => {
       expect((await readLocation(citySlug))?.is_active).toBe(true);
 
       // Re-activating the region brings the branch back.
-      await useVerb(page, regionKey, "activate", regionSlug);
+      await openVerb(page, regionKey, "activate", regionSlug);
       await page.getByTestId("location-active-submit").click();
       await stepUpIfPrompted(page, secret);
       await expect
@@ -403,7 +407,7 @@ test.describe("L2a locations console", () => {
       await page.getByTestId("location-dialog-cancel").click();
 
       // The leaf deletes with its typed address.
-      await useVerb(page, cityKey, "delete", citySlug);
+      await openVerb(page, cityKey, "delete", citySlug);
       await expect(page.getByTestId("location-delete-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-delete-confirm").fill(citySlug);
       await page.getByTestId("location-delete-submit").click();
@@ -413,7 +417,7 @@ test.describe("L2a locations console", () => {
         .toBeNull();
 
       // Now the region is a leaf too.
-      await useVerb(page, regionKey, "delete", regionSlug);
+      await openVerb(page, regionKey, "delete", regionSlug);
       await page.getByTestId("location-delete-confirm").fill(regionSlug);
       await page.getByTestId("location-delete-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -475,7 +479,7 @@ test.describe("L2a locations console", () => {
       await gotoReady(page, "/admin/locations");
 
       const cityKey = `${ANCHOR}/${regionA}/${citySlug}`;
-      await useVerb(page, cityKey, "move", citySlug);
+      await openVerb(page, cityKey, "move", citySlug);
       await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-move-parent").selectOption(second!.id);
       await page.getByTestId("location-move-submit").click();
@@ -490,7 +494,7 @@ test.describe("L2a locations console", () => {
       // Prove the factor; the same move now succeeds and the ancestry follows.
       const secret = await enrollAndStepUp(page);
       await gotoReady(page, "/admin/locations");
-      await useVerb(page, cityKey, "move", citySlug);
+      await openVerb(page, cityKey, "move", citySlug);
       await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-move-parent").selectOption(second!.id);
       await page.getByTestId("location-move-submit").click();
@@ -697,18 +701,16 @@ test.describe("L2a locations console", () => {
     const slug = scratchSlug("lt8");
 
     try {
-      const { error } = await adminClient()
-        .from("locations")
-        .insert({
-          parent_id: region.id,
-          level: "city",
-          country_code: "ET",
-          name_en: slug,
-          slug,
-          center_lat: 9.03,
-          center_lng: 38.74,
-          is_active: false,
-        });
+      const { error } = await adminClient().from("locations").insert({
+        parent_id: region.id,
+        level: "city",
+        country_code: "ET",
+        name_en: slug,
+        slug,
+        center_lat: 9.03,
+        center_lng: 38.74,
+        is_active: false,
+      });
       if (error) throw new Error(`[e2e:l2a] seeding LT-8 failed: ${error.message}`);
 
       await gotoReady(page, "/admin/locations");
@@ -772,7 +774,11 @@ test.describe("L2a locations console", () => {
 
     await expect(page.getByTestId("data-table-cards")).toBeVisible();
     await expect(editButton(page, ANCHOR)).toBeVisible();
-    await expect(locationRow(page, ANCHOR)).toContainText(ANCHOR);
+    // Structure, not words (J5): the card carries the row's badges and the
+    // icon sits in the card's own actions region beside them.
+    await expect(locationRow(page, ANCHOR).getByTestId(`location-${ANCHOR}-status`)).toBeVisible();
+    await expect(locationRow(page, ANCHOR).getByTestId(`location-${ANCHOR}-level`)).toBeVisible();
+    await expect(actionsOf(page, ANCHOR)).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -784,18 +790,16 @@ test.describe("L2a locations console", () => {
     const slug = scratchSlug("lt10");
 
     try {
-      const { error } = await adminClient()
-        .from("locations")
-        .insert({
-          parent_id: region.id,
-          level: "city",
-          country_code: "ET",
-          name_en: slug,
-          slug,
-          center_lat: 9.03,
-          center_lng: 38.74,
-          is_active: false,
-        });
+      const { error } = await adminClient().from("locations").insert({
+        parent_id: region.id,
+        level: "city",
+        country_code: "ET",
+        name_en: slug,
+        slug,
+        center_lat: 9.03,
+        center_lng: 38.74,
+        is_active: false,
+      });
       if (error) throw new Error(`[e2e:l2a] seeding LT-10 failed: ${error.message}`);
 
       await gotoReady(page, "/admin/locations");

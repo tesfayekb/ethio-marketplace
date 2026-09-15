@@ -121,7 +121,11 @@ export function LocationEditorDialog({
 
       <LocationFormFields mode="edit" level={row.level} values={form} onChange={patch} />
       <p className="text-sm text-muted-foreground">
-        <a className="underline" data-testid="location-edit-translations" href="/admin/translations">
+        <a
+          className="underline"
+          data-testid="location-edit-translations"
+          href="/admin/translations"
+        >
           {t("admin.locations.edit.translationsLink")}
         </a>
       </p>

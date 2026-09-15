@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 224,
-  "dynamicCallSites": 133,
+  "scanned": 228,
+  "dynamicCallSites": 135,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1190,6 +1190,12 @@
     "admin.loading": [
       "/admin"
     ],
+    "admin.locations.action.deleteBlocked": [
+      "/admin/locations"
+    ],
+    "admin.locations.action.edit": [
+      "/admin/locations"
+    ],
     "admin.locations.caption": [
       "/admin/locations"
     ],
@@ -1227,9 +1233,6 @@
       "/admin/locations"
     ],
     "admin.locations.create.parent": [
-      "/admin/locations"
-    ],
-    "admin.locations.create.rootHint": [
       "/admin/locations"
     ],
     "admin.locations.create.slugPreview": [
@@ -1271,10 +1274,16 @@
     "admin.locations.export.countries": [
       "/admin/locations"
     ],
+    "admin.locations.export.countriesHint": [
+      "/admin/locations"
+    ],
     "admin.locations.export.error": [
       "/admin/locations"
     ],
     "admin.locations.export.locations": [
+      "/admin/locations"
+    ],
+    "admin.locations.export.locationsHint": [
       "/admin/locations"
     ],
     "admin.locations.field.aliasAdd": [
