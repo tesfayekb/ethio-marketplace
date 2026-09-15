@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { ImportDialog } from "@/features/admin/import-dialog";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+import { useI18n } from "@/i18n";
 
 import { ADMIN_LOCATIONS_KEY } from "./use-locations";
 
@@ -72,20 +73,24 @@ const COUNT_FIELDS = [
 
 export function ImportLocationsDialog({
   scope,
+  country,
   guard,
   onClose,
 }: {
-  /** The country filter's code, or null for every market. */
-  scope: string | null;
+  /** The toolbar's selected country: every locations import is scoped. */
+  scope: string;
+  country: string;
   guard: GuardFn;
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
+  const { t } = useI18n();
 
   return (
     <ImportDialog
       testid="location-import-dialog"
       idPrefix="location-import"
+      title={t("admin.locations.import.titleScoped").replace("{country}", country)}
       path={PATH}
       keyPrefix="admin.locations.import"
       files={[

@@ -90,6 +90,7 @@ function familyOf(text: string): ImportFamily | null {
 export interface ImportDialogProps {
   testid: string;
   idPrefix: string;
+  title?: string;
   /** The server route: preview / commit / undo all POST here. */
   path: string;
   /** The i18n namespace, e.g. `admin.categories.import`. */
@@ -119,6 +120,7 @@ async function bearer(): Promise<Record<string, string>> {
 export function ImportDialog({
   testid,
   idPrefix,
+  title,
   path,
   keyPrefix,
   files,
@@ -407,7 +409,7 @@ export function ImportDialog({
     <CategoryModal
       testid={testid}
       openedBy="toolbar-import"
-      title={t(key("title"))}
+      title={title ?? t(key("title"))}
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t(key("hint"))}</p>
