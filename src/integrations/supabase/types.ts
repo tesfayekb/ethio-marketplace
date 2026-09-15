@@ -2394,6 +2394,26 @@ export type Database = {
         }[]
       }
       get_entity_bundle: { Args: { p_lang: string }; Returns: Json }
+      get_location_tree: {
+        Args: { p_country_code: string }
+        Returns: {
+          center_lat: number
+          center_lng: number
+          city_id: string
+          display_order: number
+          id: string
+          iso_3166_2: string
+          level: string
+          name_en: string
+          parent_id: string
+          region_id: string
+          slug: string
+        }[]
+      }
+      get_location_tree_version: {
+        Args: { p_country_code: string }
+        Returns: string
+      }
       get_my_permissions: {
         Args: never
         Returns: {
@@ -2404,6 +2424,17 @@ export type Database = {
         Args: never
         Returns: {
           lang_code: string
+        }[]
+      }
+      get_open_countries: {
+        Args: never
+        Returns: {
+          anchor_slug: string
+          code: string
+          currency_code: string
+          display_order: number
+          name_en: string
+          unit_system: string
         }[]
       }
       get_role_hierarchy: { Args: { p_role_id: string }; Returns: string[] }
