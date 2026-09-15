@@ -67,17 +67,28 @@ export function actionsOf(page: Page, key: string): Locator {
   return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : `${id}-actions-cell`);
 }
 
-/** Exactly one match per verb, scoped to the row's own actions region (J5). */
-export function action(page: Page, key: string, verb: string): Locator {
-  return actionsOf(page, key).getByTestId(`location-${verb}-${keyTestId(key)}`);
+/**
+ * L2a-R — THE ROW CARRIES ONE VERB: the 44px pencil that opens the editor (the
+ * categories convention). Everything else is reached through the editor's verb
+ * bar, so `verb()` below replaces the old per-row `action()` helper.
+ */
+export function editButton(page: Page, key: string): Locator {
+  return actionsOf(page, key).getByTestId(`location-edit-${keyTestId(key)}`);
+}
+
+/** A verb of the OPEN editor's bar — exactly one match per name (J5). */
+export function verb(page: Page, name: string): Locator {
+  return page.getByTestId("location-verb-bar").getByTestId(`location-verb-${name}`);
 }
 
 export async function dialogDump(page: Page, label: string): Promise<string> {
   const open = await page.evaluate(() =>
-    [...document.querySelectorAll('[data-testid$="-dialog"]')].map((node) => ({
-      testid: node.getAttribute("data-testid"),
-      openedBy: node.getAttribute("data-opened-by"),
-    })),
+    [...document.querySelectorAll('[data-testid$="-dialog"],[data-testid="location-editor"]')].map(
+      (node) => ({
+        testid: node.getAttribute("data-testid"),
+        openedBy: node.getAttribute("data-opened-by"),
+      }),
+    ),
   );
   const rendered =
     open.length === 0
@@ -102,10 +113,23 @@ export async function findRow(page: Page, key: string, needle?: string): Promise
   return row;
 }
 
-/** Opens a row's edit dialog. */
+/** Opens a row's EDITOR — the one surface every verb hangs off (CT-8 mirror). */
 export async function openEditor(page: Page, key: string) {
-  await action(page, key, "edit").click();
-  await expect(page.getByTestId("location-edit-dialog")).toBeVisible({ timeout: 20000 });
+  await editButton(page, key).click();
+  try {
+    await expect(page.getByTestId("location-editor")).toBeVisible({ timeout: 20000 });
+  } catch (error) {
+    throw new Error(
+      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `openEditor(${key})`)}`,
+    );
+  }
+}
+
+/** Opens the editor of `key` and clicks one of its verbs. */
+export async function useVerb(page: Page, key: string, name: string, needle?: string) {
+  await findRow(page, key, needle);
+  await openEditor(page, key);
+  await verb(page, name).click();
 }
 
 /** DB truth (J4): the scratch location row read through the service client. */
