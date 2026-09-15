@@ -6,12 +6,10 @@ import {
   deleteLocation,
   listAllCountries,
   listLocations,
-  listLocationAncestry,
   moveLocation,
   reorderLocations,
   setLocationActive,
   upsertLocation,
-  type ListLocationsInput,
   type UpsertLocationInput,
 } from "./locations-service";
 
@@ -22,28 +20,16 @@ import {
  */
 export const ADMIN_LOCATIONS_KEY = [AUTH_DERIVED_ROOT, "admin", "locations"] as const;
 
-/** The country skeleton behind every absolute row key (see `toRoster`). */
-export function useLocationAncestry(countryCode: string) {
+/**
+ * L2a-R — ONE READ PER COUNTRY. The key carries the country and NOTHING else:
+ * search, level and status are client-side sieves over this one roster, so a
+ * keystroke costs no request and switching the market is the only fetch.
+ */
+export function useAdminLocations(countryCode: string) {
   return useQuery({
-    queryKey: [...ADMIN_LOCATIONS_KEY, "ancestry", countryCode === "" ? "none" : countryCode],
-    queryFn: () => listLocationAncestry(countryCode),
+    queryKey: [...ADMIN_LOCATIONS_KEY, "list", countryCode === "" ? "none" : countryCode],
+    queryFn: () => listLocations(countryCode),
     enabled: countryCode !== "",
-    staleTime: 15_000,
-  });
-}
-
-export function useAdminLocations(input: ListLocationsInput | null) {
-  return useQuery({
-    queryKey: [
-      ...ADMIN_LOCATIONS_KEY,
-      "list",
-      input?.countryCode ?? "none",
-      input?.search ?? "",
-      input?.level ?? "all",
-      input?.active === null || input?.active === undefined ? "all" : String(input.active),
-    ],
-    queryFn: () => listLocations(input as ListLocationsInput),
-    enabled: input !== null && input.countryCode !== "",
     staleTime: 15_000,
   });
 }
