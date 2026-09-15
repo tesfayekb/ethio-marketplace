@@ -1,0 +1,24 @@
+# HANDOFF — engineering thread, written 2026-09-15 (curation era CLOSED; next: Locations era spec + posting-prerequisites census)
+
+Supersedes the 2026-09-14 handoff. Run the §2 ritual FIRST: clone dev, read system-state → this file → the ledger tail (from "THE CURATION PROGRAMME IS COMPLETE" onward) → git log. Chat memory is advisory; the repo is the record. Instructions v1.10 and Knowledge v3.8 govern; the curation handoff §7–§9 plus its 2026-09-14/15 addenda govern the curation Project, which stays a permanent tool.
+
+## State at handoff
+- Board green on push and nightly; DEC-049b ratified on the 2026-09-15 nightly. Newest migration 20260915134912_42ea3ded (INC-200), applied on prod and staging.
+- THE CATALOG: 15 roots in a popularity-weighted rail (Vehicles · Real Estate · Electronics · Home & Garden · Fashion · Beauty & Personal Care · Babies & Kids · Food & Beverages · Agriculture & Farming · Services · Travel & Accommodation · Construction Material · Commercial Equipment · Sports & Leisure · Pets & Animals), 142 active listing categories, zero retired rows, 327 definitions with zero unlinked, every listing category with two or three cards, Amharic on every active category and definition, DEC-050/057 cells everywhere (units, bounds, help text, aliases, allowed sets where a manufacturer fact exists). Conditions consolidated to four: `condition` (global product union), `condition-fashion`, `condition-vehicles`, `condition-beauty-personal-care`. Secondary parents surface Vehicle Hire, Heavy Machinery, Kids' Clothing, Nursery Furniture, Seeds, Livestock, Event Venues, Pet Services, Fitness, Bicycles, Packaged & Imported (baby food), Printers & Office Electronics across roots.
+- Policies ratified in this era: DEC-060 (no alcohol or tobacco listings in v1; brewing ingredients allowed), DEC-061 (domestic companion animals only; no wildlife; nothing under eight weeks; care facts as seller's statements; no health guarantees). Attestation booleans are "(seller's statement)" with "unticked makes no claim" help and never on a card.
+- Engineering landed this era: DEC-057/057b (allowed values; co-linkage = at least one shared category), DEC-059 (harness never reds a green shard), C3-UX-5..9, INC-185/187–200 closed — notably INC-196/197 (commit and undo write ranks in two passes), INC-198/199 (statusNeedsAction; action rows carry their cells; undo restores secondary parents), INC-200 (a type change clears inapplicable cells; the commit writes type and cells in one statement). Every landing has proofs in-file and E2E through the route (AT-44..58, CT-30..32, IG-2 rows per rule).
+- Ratified, not built: DEC-055 (canonical metric storage, unit catalog with families and factors, per-country unit_system, viewer-side conversion — with Locations/posting), DEC-056 (display-only FX at U7), DEC-058 (catalog inbox after U7: other-text captures, zero-result searches, unknown brands).
+
+## Open (none blocking)
+- INC-186 (a green run never judges the artifact contract — reporter DEC), ACT-C3-1 (guard-proof.yml currency), C3-UX-3/4/10 (option-label translation store; other-text capture — solved in DEC-051's shape; Amharic name in the admin roster), C4 tags disposition, the U7 rail flyout (children on hover/tap), per-country root order and per-country visibility (excluded_country_codes exists), the assets badge (icons/images), the attestation-boolean control class at posting, storefront-level attestations and fulfilment rules at Locations.
+
+## Laws forged this era (do not re-derive)
+- Units decide a boundary (quintal/head/bag are Agriculture; oz/lb/jar/pack are Food); a category's home is its primary parent and it is surfaced elsewhere, never duplicated.
+- Any loop that writes card_rank inside one transaction clears before it sets; a type change clears the cells that no longer apply; an action row is a change row plus the action; a no-op that should have been a refusal is a defect.
+- Records land verbatim in a docs paste after code verification; every prompt opens with step 0 (record blocks to a scratch file).
+- The executor's evidence overturns the supervisor's diagnosis in the same breath (INC-198's root-delete assumption; INC-200's two-statement commit).
+
+## First moves (this thread or its successor)
+1. Ritual; confirm HEAD/phase/last/next.
+2. Locations era spec session (DEC-033): country profiles (unit_system, root order, visibility), the Ethiopia-first tree with diaspora seed, city→region→country→world widening, listing scoping; forward-scan every later REQ; then the posting-prerequisites census — DEC-051 validator + attrs shape, DEC-052 capability column (bookables), DEC-053, DEC-055 unit catalog, C4 tags, the attestation control class, the U7 rail flyout — sequenced into U6.
+3. Curation stays continuous: a new brand or category is a curator file through the same loop; the inbox (DEC-058) feeds it after U7.
