@@ -23,6 +23,7 @@ import {
 } from "@/components/shell/data-table";
 import { categoryRowGlyph } from "@/components/shell/category-glyphs";
 import { PageCard } from "@/components/shell/page-card";
+import { TipBadge } from "@/components/shell/tip-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,6 +137,11 @@ function isScheduled(row: { visibleFrom: string | null }): boolean {
   return row.visibleFrom !== null && Date.parse(row.visibleFrom) > Date.now();
 }
 
+/**
+ * L2a-R — the markup now lives in the shared `TipBadge` primitive (B3), which
+ * the locations console uses too. This is the call-shape adapter only: every
+ * call site, test id and rendered attribute is unchanged, plus `data-tone`.
+ */
 function tipBadge(
   variant: "secondary" | "destructive" | "outline",
   label: string,
@@ -144,15 +150,13 @@ function tipBadge(
   testid?: string,
 ) {
   return (
-    <Badge
+    <TipBadge
       variant={variant}
+      label={label}
+      tip={description}
       className={className}
-      title={description}
-      aria-label={`${label}: ${description}`}
-      data-testid={testid}
-    >
-      {label}
-    </Badge>
+      testid={testid}
+    />
   );
 }
 

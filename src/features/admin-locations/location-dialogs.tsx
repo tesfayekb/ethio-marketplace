@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -108,7 +108,7 @@ export function LocationDialogActions({
   );
 }
 
-function numberOrNull(raw: string): number | null {
+export function numberOrNull(raw: string): number | null {
   const value = raw.trim();
   if (value === "") return null;
   const parsed = Number(value);
@@ -118,31 +118,43 @@ function numberOrNull(raw: string): number | null {
 /* ------------------------------- create ---------------------------------- */
 
 /**
- * 4.1 — CREATE A CHILD OF A ROW. The parent is read-only (its path) and the
- * level is DERIVED from it, because a country anchor is born by opening a
- * market (L2b), never here. A new row is born RETIRED by the door's own
- * INSERT, so the dialog says so and the roster refreshes behind it.
+ * 4.1 / L2a-R — CREATE A PLACE INSIDE A PLACE. A country anchor is born by
+ * opening a market (L2b), never here, so the dialog always has a parent — and
+ * the level is DERIVED from it.
+ *
+ * Two entrances, one surface (B3): the section header's button offers a PARENT
+ * PICKER (the market's rows that can still hold a child, the anchor
+ * preselected), and the editor's create-child verb hands the parent in fixed.
+ * A new row is born RETIRED by the door's own INSERT, so the dialog says so.
  */
 export function LocationCreateDialog({
-  parent,
+  parents,
+  parentId,
+  fixed,
   guard,
   onClose,
 }: {
-  parent: LocationNode;
+  /** The market's rows that can hold a child, in roster order. */
+  parents: LocationNode[];
+  parentId: string;
+  /** True when the editor named the parent: the picker becomes a read-only path. */
+  fixed: boolean;
   guard: GuardFn;
   onClose: () => void;
 }) {
   const { t } = useI18n();
   const upsert = useUpsertLocation();
   const { refusal, clear, fail, render } = useLocationError();
+  const [chosen, setChosen] = useState(parentId);
   const [form, setForm] = useState<LocationFormValues>(emptyLocationForm);
   const [created, setCreated] = useState(false);
-  const level = childLevelOf(parent.level);
+  const parent = parents.find((row) => row.id === chosen) ?? null;
+  const level = parent === null ? null : childLevelOf(parent.level);
   const patch = (next: Partial<LocationFormValues>) => setForm((prev) => ({ ...prev, ...next }));
 
   const submit = () => {
     clear();
-    if (level === null) {
+    if (parent === null || level === null) {
       render("admin.locations.error.badLevel");
       return;
     }
@@ -181,14 +193,30 @@ export function LocationCreateDialog({
   return (
     <CategoryModal
       testid="location-create-dialog"
-      openedBy="row-create-child"
+      openedBy={fixed ? "verb-create-child" : "create-button"}
       title={t("admin.locations.create.title")}
       onClose={onClose}
     >
       <FormField label={t("admin.locations.create.parent")} htmlFor="location-create-parent">
-        <p id="location-create-parent" data-testid="location-create-parent" className="text-sm">
-          {parent.path}
-        </p>
+        {fixed ? (
+          <p id="location-create-parent" data-testid="location-create-parent" className="text-sm">
+            {parent?.path ?? "—"}
+          </p>
+        ) : (
+          <select
+            id="location-create-parent"
+            data-testid="location-create-parent"
+            className={SELECT_CLASS}
+            value={chosen}
+            onChange={(event) => setChosen(event.target.value)}
+          >
+            {parents.map((row) => (
+              <option key={row.id} value={row.id}>
+                {row.path}
+              </option>
+            ))}
+          </select>
+        )}
       </FormField>
       <p className="text-sm text-muted-foreground" data-testid="location-create-level">
         {t("admin.locations.create.level").replace(
@@ -221,7 +249,7 @@ export function LocationCreateDialog({
         <>
           <LocationFormFields
             mode="create"
-            level={level ?? parent.level}
+            level={level ?? parent?.level ?? "region"}
             values={form}
             onChange={patch}
           />
@@ -234,107 +262,6 @@ export function LocationCreateDialog({
           />
         </>
       )}
-    </CategoryModal>
-  );
-}
-
-/* -------------------------------- edit ----------------------------------- */
-
-/**
- * 4.2 — EDIT. The same fields minus parent and level: activation belongs to the
- * Activate/Retire verb and the parent to Move, so the door refuses
- * `useMoveDoor` if either ever arrives here. 4.7 — other-language names are
- * written in Translations → Data, the single writer (D3); this dialog links
- * there instead of carrying a `name_am` field.
- */
-export function LocationEditDialog({
-  row,
-  guard,
-  onClose,
-}: {
-  row: LocationNode;
-  guard: GuardFn;
-  onClose: () => void;
-}) {
-  const { t } = useI18n();
-  const upsert = useUpsertLocation();
-  const { refusal, clear, fail, render } = useLocationError();
-  const [form, setForm] = useState<LocationFormValues>(() => ({
-    nameEn: row.nameEn,
-    slug: row.slug,
-    iso: row.iso ?? "",
-    aliases: row.aliases,
-    displayOrder: String(row.displayOrder),
-    centerLat: row.centerLat === null ? "" : String(row.centerLat),
-    centerLng: row.centerLng === null ? "" : String(row.centerLng),
-  }));
-  const patch = (next: Partial<LocationFormValues>) => setForm((prev) => ({ ...prev, ...next }));
-
-  const submit = () => {
-    clear();
-    if (form.nameEn.trim() === "") {
-      render("admin.locations.error.nameRequired");
-      return;
-    }
-    const lat = numberOrNull(form.centerLat);
-    const lng = numberOrNull(form.centerLng);
-    if (coordinatesRequired(row.level) && (lat === null || lng === null)) {
-      render("admin.locations.error.missingCoordinates");
-      return;
-    }
-    void guard(async () => {
-      try {
-        await upsert.mutateAsync({
-          id: row.id,
-          parentId: row.parentId,
-          level: null,
-          nameEn: form.nameEn.trim(),
-          slug: form.slug.trim() === "" ? null : form.slug.trim(),
-          iso: row.level === "region" && form.iso.trim() !== "" ? form.iso.trim() : null,
-          aliases: form.aliases,
-          displayOrder: numberOrNull(form.displayOrder) ?? row.displayOrder,
-          centerLat: lat,
-          centerLng: lng,
-        });
-        onClose();
-      } catch (error) {
-        fail(error);
-      }
-    }).catch(fail);
-  };
-
-  return (
-    <CategoryModal
-      testid="location-edit-dialog"
-      openedBy="row-edit"
-      title={t("admin.locations.edit.title")}
-      onClose={onClose}
-    >
-      <p className="text-sm text-muted-foreground" data-testid="location-edit-path">
-        {row.path}
-      </p>
-      <LocationFormFields mode="edit" level={row.level} values={form} onChange={patch} />
-      <p className="text-sm text-muted-foreground">
-        <a
-          className="underline"
-          data-testid="location-edit-translations"
-          href="/admin/translations"
-        >
-          {t("admin.locations.edit.translationsLink")}
-        </a>
-      </p>
-      <LocationErrorLine refusal={refusal} />
-      <LocationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={upsert.isPending}
-        submitTestId="location-edit-submit"
-      />
-      <FormField label={t("admin.locations.field.readOnlyLevel")} htmlFor="location-edit-level">
-        <p id="location-edit-level" data-testid="location-edit-level" className="text-sm">
-          {t(`admin.locations.level.${row.level}` as MessageKey)}
-        </p>
-      </FormField>
     </CategoryModal>
   );
 }

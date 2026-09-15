@@ -59,19 +59,19 @@ export interface LocationRow {
   profileDefaultCount: number;
 }
 
-export interface ListLocationsInput {
-  countryCode: string;
-  search?: string;
-  level?: string | null;
-  active?: boolean | null;
-}
-
-export async function listLocations(input: ListLocationsInput): Promise<LocationRow[]> {
+/**
+ * L2a-R — ONE READ PER COUNTRY. The door still narrows by country, but search,
+ * level and status are NOT arguments any more: they narrowed a read on every
+ * keystroke, which is a request per character on an expensive-data device (G2).
+ * The country's whole roster is read once and sieved in the browser
+ * (`filterLocations`), so only switching the market fetches.
+ */
+export async function listLocations(countryCode: string): Promise<LocationRow[]> {
   const { data, error } = await supabase.rpc("admin_list_locations", {
-    p_country_code: input.countryCode,
-    p_search: (input.search ?? "") as string,
-    p_level: (input.level ?? null) as string,
-    p_active: (input.active ?? null) as boolean,
+    p_country_code: countryCode,
+    p_search: "",
+    p_level: null as unknown as string,
+    p_active: null as unknown as boolean,
   });
   if (error) throw error;
   return (data ?? []).map((row) => ({
@@ -189,17 +189,6 @@ export async function listAllCountries(): Promise<CountryOption[]> {
   }));
 }
 
-/**
- * The country's WHOLE roster — the same door with no search, level or status
- * narrowing (E7: the door is still the only read). Two callers need it: every
- * row's slash key stays absolute while the roster itself is filtered, and the
- * move and reorder pickers offer the market's real candidates rather than
- * whatever the operator's search happened to leave on screen.
- */
-export async function listLocationAncestry(countryCode: string): Promise<LocationRow[]> {
-  return listLocations({ countryCode });
-}
-
 /* ------------------------------- roster ---------------------------------- */
 
 export interface LocationNode extends LocationRow {
@@ -211,34 +200,17 @@ export interface LocationNode extends LocationRow {
 
 /**
  * Depth-first roster order: the country anchor first, then each child block
- * directly under its parent. A row whose parent is filtered out of the current
- * read still renders (at the depth the chain it has proves), so a level or
- * status filter never hides the rows it was asked to show.
+ * directly under its parent.
+ *
+ * L2a-R — the read is now the country's WHOLE tree, so every row's parent is
+ * present and both the slash key and the nesting come from these rows alone in
+ * one pass. The separate "ancestry" read that used to supply the key is gone.
  */
-export interface LocationAncestor {
-  id: string;
-  parentId: string | null;
-  slug: string;
-}
-
-export function toRoster(rows: LocationRow[], ancestry: LocationAncestor[] = []): LocationNode[] {
-  /**
-   * THE KEY IS ABSOLUTE. A filtered read returns matches WITHOUT their
-   * ancestors, so the chain cannot be walked from the visible rows alone —
-   * the address of a row would change every time a filter did. `ancestry`
-   * is the country's whole (id, parent_id, slug) skeleton, read once, so a
-   * row's slash key is the same under every filter.
-   */
-  const byId = new Map<string, LocationAncestor>();
-  for (const row of rows) byId.set(row.id, { id: row.id, parentId: row.parentId, slug: row.slug });
-  for (const node of ancestry) if (!byId.has(node.id)) byId.set(node.id, node);
+export function toRoster(rows: LocationRow[]): LocationNode[] {
+  const byId = new Map(rows.map((row) => [row.id, row]));
   const keyOf = (row: LocationRow): string => {
     const parts: string[] = [];
-    let current: LocationAncestor | undefined = byId.get(row.id) ?? {
-      id: row.id,
-      parentId: row.parentId,
-      slug: row.slug,
-    };
+    let current: LocationRow | undefined = row;
     const seen = new Set<string>();
     while (current !== undefined && !seen.has(current.id)) {
       seen.add(current.id);
@@ -247,19 +219,11 @@ export function toRoster(rows: LocationRow[], ancestry: LocationAncestor[] = [])
     }
     return parts.join("/");
   };
-  const depthOf = (row: LocationRow): number => keyOf(row).split("/").length - 1;
 
   const byParent = new Map<string, LocationRow[]>();
   const roots: LocationRow[] = [];
-  /**
-   * NESTING IS READ FROM THE VISIBLE ROWS ALONE. `ancestry` names a row's
-   * ADDRESS, never its place in this roster: a filtered read whose parent is
-   * absent must render at the top of the list, not hang off a parent that was
-   * never returned (it would vanish).
-   */
-  const visible = new Set(rows.map((row) => row.id));
   for (const row of rows) {
-    if (row.parentId === null || !visible.has(row.parentId)) {
+    if (row.parentId === null || !byId.has(row.parentId)) {
       roots.push(row);
       continue;
     }
@@ -277,11 +241,41 @@ export function toRoster(rows: LocationRow[], ancestry: LocationAncestor[] = [])
 
   const out: LocationNode[] = [];
   const walk = (row: LocationRow) => {
-    out.push({ ...row, depth: depthOf(row), key: keyOf(row) });
+    const key = keyOf(row);
+    out.push({ ...row, depth: key.split("/").length - 1, key });
     for (const child of order(byParent.get(row.id) ?? [])) walk(child);
   };
   for (const root of order(roots)) walk(root);
   return out;
+}
+
+export interface LocationFilter {
+  /** Matched against the name, the slug and every alias — the door's own rule. */
+  search: string;
+  /** "" = every level. */
+  level: string;
+  /** "" = both, "active" | "retired" otherwise. */
+  status: string;
+}
+
+/**
+ * L2a-R — THE CLIENT SIEVE. It keeps the roster's depth-first order and every
+ * row's absolute key (both were computed over the whole tree), so a filter can
+ * never change a row's address or make it vanish under an absent parent.
+ */
+export function filterLocations(roster: LocationNode[], filter: LocationFilter): LocationNode[] {
+  const needle = filter.search.trim().toLowerCase();
+  return roster.filter((row) => {
+    if (filter.level !== "" && row.level !== filter.level) return false;
+    if (filter.status === "active" && !row.isActive) return false;
+    if (filter.status === "retired" && row.isActive) return false;
+    if (needle === "") return true;
+    return (
+      row.nameEn.toLowerCase().includes(needle) ||
+      row.slug.toLowerCase().includes(needle) ||
+      row.aliases.some((alias) => alias.toLowerCase().includes(needle))
+    );
+  });
 }
 
 /** The console's slash key rendered as a testid segment. */

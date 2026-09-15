@@ -10,13 +10,14 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
-import { grantRole } from "./helpers/categories";
+import { geometryDump, grantRole } from "./helpers/categories";
 import {
-  action,
   actionsOf,
   anchorOf,
   destroyLocation,
+  editButton,
   findRow,
+  isCardTwin,
   locationRow,
   openEditor,
   readLocation,
@@ -25,16 +26,23 @@ import {
   scratchSlug,
   treeSlugs,
   treeVersion,
+  useVerb,
+  verb,
 } from "./helpers/locations";
 
 /**
- * LOCATIONS ERA L2a — THE LOCATIONS CONSOLE (LT-1..LT-7).
+ * LOCATIONS ERA L2a / L2a-R — THE LOCATIONS CONSOLE (LT-1..LT-11).
  *
  * Identity: the pooled job super admin for consumers (J9). Fixtures: scratch
  * rows whose slugs start `e2e-` (J1), seeded or created before the surface is
  * acted on (J7), destroyed child-first in `finally` (J3). Truth: the service
  * client, never a rendered summary (J4). Anchors: structure and testids, never
- * English text (J5).
+ * English text, and tones by `data-tone`, never a colour class (J5).
+ *
+ * L2a-R (G26 — the test must see what the walk saw): LT-2 now measures the
+ * DataTable scroller and every action box, and LT-8..11 pin the reconciliation
+ * itself — verb reachability at 360 and 1280, the two roster twins, the tone
+ * vocabulary, and the one-read-per-country rule.
  */
 
 const ANCHOR = "ethiopia";
@@ -67,6 +75,18 @@ async function uploadLocations(page: import("@playwright/test").Page, body: stri
     name: "locations.csv",
     mimeType: "text/csv",
     buffer: Buffer.from(body, "utf-8"),
+  });
+}
+
+/** Every rendered edit button's box, and the viewport it must fit inside. */
+async function actionBoxes(page: import("@playwright/test").Page) {
+  return page.evaluate(() => {
+    const width = document.documentElement.clientWidth;
+    const boxes = [...document.querySelectorAll('[data-testid^="location-edit-"]')].map((node) => {
+      const box = node.getBoundingClientRect();
+      return { left: Math.round(box.left), right: Math.round(box.right) };
+    });
+    return { width, boxes };
   });
 }
 
@@ -121,9 +141,33 @@ test.describe("L2a locations console", () => {
       await expect(
         locationRow(page, ANCHOR).getByTestId(`location-${ANCHOR}-status`),
       ).toBeVisible();
+
+      // (i) the primitive's own scroller does not scroll sideways …
+      const scroller = await page.evaluate(() => {
+        const node = document.querySelector('[data-testid="data-table-scroller"]');
+        return node === null
+          ? null
+          : { scrollWidth: node.scrollWidth, clientWidth: node.clientWidth };
+      });
+      if (scroller !== null) {
+        expect(
+          scroller.scrollWidth,
+          `roster scroller overflows\n${await geometryDump(page, "LT-2 scroller")}`,
+        ).toBeLessThanOrEqual(scroller.clientWidth);
+      }
+      // (ii) … every action button lies inside the viewport …
+      const { width, boxes } = await actionBoxes(page);
+      expect(boxes.length, "no edit button rendered").toBeGreaterThan(0);
+      for (const box of boxes) {
+        expect(box.left, `edit button starts off-screen\n${await geometryDump(page, "LT-2 box")}`)
+          .toBeGreaterThanOrEqual(0);
+        expect(box.right, `edit button ends off-screen\n${await geometryDump(page, "LT-2 box")}`)
+          .toBeLessThanOrEqual(width);
+      }
+      // (iii) … and the page itself never scrolls sideways.
       await expectNoHorizontalOverflow(page);
 
-      // The door matches name, slug AND alias.
+      // Search matches name, slug AND alias — now a client sieve over one read.
       await page.getByTestId("location-search").fill(alias);
       await expect(locationRow(page, `${ANCHOR}/${region.slug}/${slug}`)).toBeVisible({
         timeout: 20000,
@@ -141,7 +185,7 @@ test.describe("L2a locations console", () => {
     }
   });
 
-  test("LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate bottom-up", async ({
+  test("LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate top-down", async ({
     page,
   }) => {
     const { secret } = await useJobSuperAdmin(page);
@@ -153,8 +197,8 @@ test.describe("L2a locations console", () => {
       await gotoReady(page, "/admin/locations");
       await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
 
-      // A region under the ET anchor, through the dialog.
-      await action(page, ANCHOR, "create-child").click();
+      // A region under the ET anchor, through the editor's create-child verb.
+      await useVerb(page, ANCHOR, "create-child");
       await expect(page.getByTestId("location-create-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-name").fill(regionSlug);
       await page.getByTestId("location-create-submit").click();
@@ -168,8 +212,7 @@ test.describe("L2a locations console", () => {
 
       // A city under it — the dialog refuses without coordinates first.
       const regionKey = `${ANCHOR}/${regionSlug}`;
-      await findRow(page, regionKey, regionSlug);
-      await action(page, regionKey, "create-child").click();
+      await useVerb(page, regionKey, "create-child", regionSlug);
       await expect(page.getByTestId("location-create-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-name").fill(citySlug);
       await page.getByTestId("location-create-submit").click();
@@ -191,8 +234,7 @@ test.describe("L2a locations console", () => {
 
       // A sub-city under the city.
       const cityKey = `${regionKey}/${citySlug}`;
-      await findRow(page, cityKey, citySlug);
-      await action(page, cityKey, "create-child").click();
+      await useVerb(page, cityKey, "create-child", citySlug);
       await expect(page.getByTestId("location-create-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-name").fill(subSlug);
       await page.getByTestId("location-create-lat").fill("9.04");
@@ -206,13 +248,14 @@ test.describe("L2a locations console", () => {
       expect(sub?.level).toBe("sub_city");
       expect(sub?.region_id).toBe(region?.id);
       expect(sub?.city_id).toBe(city?.id);
-      // The sub-city is the floor: it cannot hold a child.
+      // The sub-city is the floor: its editor offers no create-child verb.
       await findRow(page, `${cityKey}/${subSlug}`, subSlug);
-      await expect(action(page, `${cityKey}/${subSlug}`, "create-child")).toBeDisabled();
+      await openEditor(page, `${cityKey}/${subSlug}`);
+      await expect(verb(page, "create-child")).toHaveCount(0);
+      await page.getByTestId("location-dialog-cancel").click();
 
       // BOTTOM-UP IS REFUSED: the city cannot activate while its region is retired.
-      await findRow(page, cityKey, citySlug);
-      await action(page, cityKey, "activate").click();
+      await useVerb(page, cityKey, "activate", citySlug);
       await expect(page.getByTestId("location-active-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-active-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -221,12 +264,11 @@ test.describe("L2a locations console", () => {
       await page.getByTestId("location-dialog-cancel").click();
 
       // TOP-DOWN SUCCEEDS.
-      for (const [key, slug, needle] of [
-        [regionKey, regionSlug, regionSlug],
-        [cityKey, citySlug, citySlug],
+      for (const [key, slug] of [
+        [regionKey, regionSlug],
+        [cityKey, citySlug],
       ] as const) {
-        await findRow(page, key, needle);
-        await action(page, key, "activate").click();
+        await useVerb(page, key, "activate", slug);
         await expect(page.getByTestId("location-active-dialog")).toBeVisible({ timeout: 20000 });
         await page.getByTestId("location-active-submit").click();
         await stepUpIfPrompted(page, secret);
@@ -291,8 +333,7 @@ test.describe("L2a locations console", () => {
       const before = await treeVersion(page, "ET");
 
       const regionKey = `${ANCHOR}/${regionSlug}`;
-      await findRow(page, regionKey, regionSlug);
-      await action(page, regionKey, "retire").click();
+      await useVerb(page, regionKey, "retire", regionSlug);
       await expect(page.getByTestId("location-active-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-active-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -305,8 +346,7 @@ test.describe("L2a locations console", () => {
       expect((await readLocation(citySlug))?.is_active).toBe(true);
 
       // Re-activating the region brings the branch back.
-      await findRow(page, regionKey, regionSlug);
-      await action(page, regionKey, "activate").click();
+      await useVerb(page, regionKey, "activate", regionSlug);
       await page.getByTestId("location-active-submit").click();
       await stepUpIfPrompted(page, secret);
       await expect
@@ -354,14 +394,16 @@ test.describe("L2a locations console", () => {
       const regionKey = `${ANCHOR}/${regionSlug}`;
       const cityKey = `${regionKey}/${citySlug}`;
 
-      // The parent's delete verb is disabled while a child stands, and the
-      // door refuses `retireInstead:hasChildren` even if the counts were stale.
+      // The parent's delete verb is disabled while a child stands, and the bar
+      // says WHY in words (F4) rather than only in a tooltip.
       await findRow(page, regionKey, regionSlug);
-      await expect(action(page, regionKey, "delete")).toBeDisabled();
+      await openEditor(page, regionKey);
+      await expect(verb(page, "delete")).toBeDisabled();
+      await expect(page.getByTestId("location-verb-error")).toBeVisible();
+      await page.getByTestId("location-dialog-cancel").click();
 
       // The leaf deletes with its typed address.
-      await findRow(page, cityKey, citySlug);
-      await action(page, cityKey, "delete").click();
+      await useVerb(page, cityKey, "delete", citySlug);
       await expect(page.getByTestId("location-delete-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-delete-confirm").fill(citySlug);
       await page.getByTestId("location-delete-submit").click();
@@ -371,8 +413,7 @@ test.describe("L2a locations console", () => {
         .toBeNull();
 
       // Now the region is a leaf too.
-      await findRow(page, regionKey, regionSlug);
-      await action(page, regionKey, "delete").click();
+      await useVerb(page, regionKey, "delete", regionSlug);
       await page.getByTestId("location-delete-confirm").fill(regionSlug);
       await page.getByTestId("location-delete-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -434,8 +475,7 @@ test.describe("L2a locations console", () => {
       await gotoReady(page, "/admin/locations");
 
       const cityKey = `${ANCHOR}/${regionA}/${citySlug}`;
-      await findRow(page, cityKey, citySlug);
-      await action(page, cityKey, "move").click();
+      await useVerb(page, cityKey, "move", citySlug);
       await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-move-parent").selectOption(second!.id);
       await page.getByTestId("location-move-submit").click();
@@ -450,8 +490,7 @@ test.describe("L2a locations console", () => {
       // Prove the factor; the same move now succeeds and the ancestry follows.
       const secret = await enrollAndStepUp(page);
       await gotoReady(page, "/admin/locations");
-      await findRow(page, cityKey, citySlug);
-      await action(page, cityKey, "move").click();
+      await useVerb(page, cityKey, "move", citySlug);
       await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-move-parent").selectOption(second!.id);
       await page.getByTestId("location-move-submit").click();
@@ -605,9 +644,7 @@ test.describe("L2a locations console", () => {
     }
   });
 
-  test("LT-7b the edit dialog round-trips a row without dropping a stored field", async ({
-    page,
-  }) => {
+  test("LT-7b the editor round-trips a row without dropping a stored field", async ({ page }) => {
     const { secret } = await useJobSuperAdmin(page);
     const region = await regionUnder("ET");
     const slug = scratchSlug("lt7b");
@@ -633,7 +670,7 @@ test.describe("L2a locations console", () => {
       const key = `${ANCHOR}/${region.slug}/${slug}`;
       await findRow(page, key, slug);
       await openEditor(page, key);
-      await page.getByTestId("location-edit-submit").click();
+      await page.getByTestId("location-editor-save").click();
       await stepUpIfPrompted(page, secret);
 
       // INC-188 — a save must not drop a field the editor did not change.
@@ -649,6 +686,177 @@ test.describe("L2a locations console", () => {
       expect(Number(row?.center_lng)).toBeCloseTo(38.74, 2);
     } finally {
       await destroyLocation(slug);
+    }
+  });
+
+  test("LT-8 verb reachability: every verb and the save button are inside the viewport (CT-8 mirror)", async ({
+    page,
+  }) => {
+    const { secret } = await useJobSuperAdmin(page);
+    const region = await regionUnder("ET");
+    const slug = scratchSlug("lt8");
+
+    try {
+      const { error } = await adminClient()
+        .from("locations")
+        .insert({
+          parent_id: region.id,
+          level: "city",
+          country_code: "ET",
+          name_en: slug,
+          slug,
+          center_lat: 9.03,
+          center_lng: 38.74,
+          is_active: false,
+        });
+      if (error) throw new Error(`[e2e:l2a] seeding LT-8 failed: ${error.message}`);
+
+      await gotoReady(page, "/admin/locations");
+      const cityKey = `${ANCHOR}/${region.slug}/${slug}`;
+
+      for (const key of [ANCHOR, cityKey]) {
+        await findRow(page, key, key === ANCHOR ? ANCHOR : slug);
+        await openEditor(page, key);
+        const bar = page.getByTestId("location-verb-bar");
+        await expect(bar).toBeVisible();
+        const count = await bar.getByRole("button").count();
+        expect(count, `no verb rendered for ${key}`).toBeGreaterThan(0);
+
+        const width = await page.evaluate(() => document.documentElement.clientWidth);
+        for (let index = 0; index < count; index += 1) {
+          const box = await bar.getByRole("button").nth(index).boundingBox();
+          expect(box, `verb ${index} of ${key} has no box`).not.toBeNull();
+          expect(
+            Math.round(box!.x),
+            `verb ${index} of ${key} starts off-screen\n${await geometryDump(page, "LT-8")}`,
+          ).toBeGreaterThanOrEqual(0);
+          expect(
+            Math.round(box!.x + box!.width),
+            `verb ${index} of ${key} ends off-screen\n${await geometryDump(page, "LT-8")}`,
+          ).toBeLessThanOrEqual(width);
+        }
+        await expect(page.getByTestId("location-editor-save")).toBeVisible();
+        await expectNoHorizontalOverflow(page);
+        await page.getByTestId("location-dialog-cancel").click();
+      }
+
+      expect(secret).not.toBe("");
+    } finally {
+      await destroyLocation(slug);
+    }
+  });
+
+  test("LT-9a roster shape, table twin: the edit icon sits in the end column with pagination", async ({
+    page,
+  }) => {
+    test.skip(isCardTwin(page), "the table twin only exists above the card boundary");
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/locations");
+    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+
+    await expect(page.getByRole("table")).toBeVisible();
+    await expect(actionsOf(page, ANCHOR)).toBeVisible();
+    await expect(editButton(page, ANCHOR)).toBeVisible();
+    await expect(page.getByTestId("location-pagination-range")).toBeVisible();
+    await expect(page.getByTestId("location-page-size")).toHaveValue("25");
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("LT-9b roster shape, card twin: the edit icon sits inline beside the path line", async ({
+    page,
+  }) => {
+    test.skip(!isCardTwin(page), "the card twin only exists below the card boundary");
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/locations");
+    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+
+    await expect(page.getByTestId("data-table-cards")).toBeVisible();
+    await expect(editButton(page, ANCHOR)).toBeVisible();
+    await expect(locationRow(page, ANCHOR)).toContainText(ANCHOR);
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("LT-10 tones: retired is destructive, active is secondary, a level badge is outline", async ({
+    page,
+  }) => {
+    await useJobSuperAdmin(page);
+    const region = await regionUnder("ET");
+    const slug = scratchSlug("lt10");
+
+    try {
+      const { error } = await adminClient()
+        .from("locations")
+        .insert({
+          parent_id: region.id,
+          level: "city",
+          country_code: "ET",
+          name_en: slug,
+          slug,
+          center_lat: 9.03,
+          center_lng: 38.74,
+          is_active: false,
+        });
+      if (error) throw new Error(`[e2e:l2a] seeding LT-10 failed: ${error.message}`);
+
+      await gotoReady(page, "/admin/locations");
+      const key = `${ANCHOR}/${region.slug}/${slug}`;
+      const row = await findRow(page, key, slug);
+      // Tone is STRUCTURE: never a colour class and never an English word (J5).
+      await expect(row.getByTestId(`location-${key.replace(/\//g, "__")}-status`)).toHaveAttribute(
+        "data-tone",
+        "destructive",
+      );
+      await expect(row.getByTestId(`location-${key.replace(/\//g, "__")}-level`)).toHaveAttribute(
+        "data-tone",
+        "outline",
+      );
+
+      const anchorRow = await findRow(page, ANCHOR, ANCHOR);
+      await expect(anchorRow.getByTestId(`location-${ANCHOR}-status`)).toHaveAttribute(
+        "data-tone",
+        "secondary",
+      );
+    } finally {
+      await destroyLocation(slug);
+    }
+  });
+
+  test("LT-11 one read per country: filtering costs no request, switching the market costs exactly one", async ({
+    page,
+  }) => {
+    await useJobSuperAdmin(page);
+    let reads = 0;
+    await page.route("**/rpc/admin_list_locations*", async (route) => {
+      reads += 1;
+      await route.continue();
+    });
+
+    await gotoReady(page, "/admin/locations");
+    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+    const afterLoad = reads;
+    expect(afterLoad, "the roster was never read").toBeGreaterThan(0);
+
+    // Typing, level and status are client sieves over the roster already read.
+    await page.getByTestId("location-search").fill("adam");
+    await page.getByTestId("location-level-filter").selectOption("region");
+    await page.getByTestId("location-active-filter").selectOption("active");
+    await page.getByTestId("location-search").fill("");
+    await expect
+      .poll(() => reads, { timeout: 3000, intervals: [500, 500, 500, 500] })
+      .toBe(afterLoad);
+
+    // Switching the market is the ONLY thing that fetches.
+    const options = await page.getByTestId("location-country-filter").locator("option").count();
+    if (options > 1) {
+      const other = await page
+        .getByTestId("location-country-filter")
+        .locator("option")
+        .nth(1)
+        .getAttribute("value");
+      await page.getByTestId("location-country-filter").selectOption(other!);
+      await expect
+        .poll(() => reads, { timeout: 20000, intervals: [500, 500, 1000] })
+        .toBe(afterLoad + 1);
     }
   });
 });

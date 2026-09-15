@@ -1482,7 +1482,7 @@ export const en = {
   "admin.locations.error": "The locations could not be loaded.",
   "admin.locations.empty": "No location matches these filters.",
   "admin.locations.searchPlaceholder": "Search name, slug or alias",
-  "admin.locations.filter.country": "Market",
+  "admin.locations.filter.country": "Country",
   "admin.locations.filter.closedMarket": "closed",
   "admin.locations.filter.level": "Level",
   "admin.locations.filter.allLevels": "All levels",
@@ -1526,7 +1526,7 @@ export const en = {
   "admin.locations.create.title": "Add a place inside",
   "admin.locations.create.parent": "Inside",
   "admin.locations.create.level": "Level: {level}",
-  "admin.locations.create.slugPreview": "Address:",
+  "admin.locations.create.slugPreview": "Slug (derived by the server):",
   "admin.locations.create.bornRetired": "Created retired — activate it when it is ready.",
   "admin.locations.edit.title": "Edit place",
   "admin.locations.edit.translationsLink":
@@ -1556,8 +1556,8 @@ export const en = {
   "admin.locations.delete.confirm": "Delete",
   "admin.locations.delete.mismatch": "That is not this place's address.",
   "admin.locations.field.name": "Name (English)",
-  "admin.locations.field.slug": "Address",
-  "admin.locations.field.slugHint": "Leave this empty and one is made from the name.",
+  "admin.locations.field.slug": "Slug",
+  "admin.locations.field.slugHint": "Leave empty — the server derives it from the name.",
   "admin.locations.field.iso": "ISO 3166-2 code",
   "admin.locations.field.centerLat": "Centre latitude",
   "admin.locations.field.centerLng": "Centre longitude",
@@ -1571,8 +1571,12 @@ export const en = {
   "admin.locations.field.readOnlyLevel": "Level",
   "admin.locations.transfer.wholeFile":
     "A file is written whole or not at all: one refused row stops the entire import.",
-  "admin.locations.export.countries": "Download markets",
+  "admin.locations.export.countries": "Download countries",
+  "admin.locations.export.countriesHint":
+    "One row per country: open or closed, unit system, currency, rail order.",
   "admin.locations.export.locations": "Download places",
+  "admin.locations.export.locationsHint":
+    "The place tree of the selected country: regions, cities, sub-cities, aliases, coordinates.",
   "admin.locations.export.busy": "Preparing the file…",
   "admin.locations.export.error": "That file could not be prepared.",
   "admin.locations.error.reason": "Reason: {reason}",
@@ -1603,7 +1607,7 @@ export const en = {
   "admin.locations.error.detail.hasListings": "listings are posted here",
   "admin.locations.error.detail.hasCoverage": "sellers cover it",
   "admin.locations.error.detail.hasProfileDefaults": "people post here by default",
-  "admin.locations.import.open": "Import places",
+  "admin.locations.import.open": "Import countries or places",
   "admin.locations.import.title": "Import markets and places",
   "admin.locations.import.hint":
     "Choose either file, or both. Nothing is written until you confirm.",
