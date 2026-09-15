@@ -62,11 +62,26 @@ a NUL byte.
 
 ## Families today
 
-| Family       | Files              | Permission            | Step-up | Scope         |
-| ------------ | ------------------ | --------------------- | ------- | ------------- |
-| attributes   | definitions, links | `categories:import`   | commit  | category slug |
-| categories   | categories         | `categories:import`   | commit  | category slug |
-| translations | strings            | `translations:manage` | write   | language code |
+| Family       | Files                | Permission            | Step-up | Scope         |
+| ------------ | -------------------- | --------------------- | ------- | ------------- |
+| attributes   | definitions, links   | `categories:import`   | commit  | category slug |
+| categories   | categories           | `categories:import`   | commit  | category slug |
+| translations | strings              | `translations:manage` | write   | language code |
+| locations    | countries, locations | `locations:import`    | commit  | country code  |
+
+## The declared vocabulary
+
+A column's `type` names the SHAPE the gate enforces, never the meaning:
+`text`, `slug`, `key`, `bool`, `int`, `decimal`, `date`, `pipe`, `options`,
+`enum`, `bound`, `preset`. `decimal` is a signed decimal degree — up to three
+whole digits and eight decimal places — and refuses with `badNumber`, the same
+word `int` speaks, so an operator meets one vocabulary.
+
+A family's `scope` names the KIND of subset a run may be confined to:
+`category-slug` (a subtree), `language` (required — a string file always names
+its language), `country-code` (two letters, upper-cased by the RPC, and `null`
+meaning every country) or `none`. A malformed scope is refused with `badScope`
+at both gates; existence remains the RPC's verdict (404).
 
 ## The UI-string door (Part C)
 

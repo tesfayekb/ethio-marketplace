@@ -34,6 +34,8 @@ import { Route as AdminTranslationsLangRouteImport } from './routes/admin.transl
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as ApiAdminTranslationsImportRouteImport } from './routes/api/admin/translations/import'
+import { Route as ApiAdminLocationsImportRouteImport } from './routes/api/admin/locations/import'
+import { Route as ApiAdminLocationsExportRouteImport } from './routes/api/admin/locations/export'
 import { Route as ApiAdminCategoriesSuggestIconRouteImport } from './routes/api/admin/categories/suggest-icon'
 import { Route as ApiAdminCategoriesImportRouteImport } from './routes/api/admin/categories/import'
 import { Route as ApiAdminCategoriesGenerateImageRouteImport } from './routes/api/admin/categories/generate-image'
@@ -168,6 +170,16 @@ const ApiAdminTranslationsImportRoute =
     path: '/api/admin/translations/import',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminLocationsImportRoute = ApiAdminLocationsImportRouteImport.update({
+  id: '/api/admin/locations/import',
+  path: '/api/admin/locations/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLocationsExportRoute = ApiAdminLocationsExportRouteImport.update({
+  id: '/api/admin/locations/export',
+  path: '/api/admin/locations/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminCategoriesSuggestIconRoute =
   ApiAdminCategoriesSuggestIconRouteImport.update({
     id: '/api/admin/categories/suggest-icon',
@@ -236,6 +248,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
   '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
+  '/api/admin/locations/export': typeof ApiAdminLocationsExportRoute
+  '/api/admin/locations/import': typeof ApiAdminLocationsImportRoute
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
 }
 export interface FileRoutesByTo {
@@ -268,6 +282,8 @@ export interface FileRoutesByTo {
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
   '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
+  '/api/admin/locations/export': typeof ApiAdminLocationsExportRoute
+  '/api/admin/locations/import': typeof ApiAdminLocationsImportRoute
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
 }
 export interface FileRoutesById {
@@ -302,6 +318,8 @@ export interface FileRoutesById {
   '/api/admin/categories/generate-image': typeof ApiAdminCategoriesGenerateImageRoute
   '/api/admin/categories/import': typeof ApiAdminCategoriesImportRoute
   '/api/admin/categories/suggest-icon': typeof ApiAdminCategoriesSuggestIconRoute
+  '/api/admin/locations/export': typeof ApiAdminLocationsExportRoute
+  '/api/admin/locations/import': typeof ApiAdminLocationsImportRoute
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
 }
 export interface FileRouteTypes {
@@ -337,6 +355,8 @@ export interface FileRouteTypes {
     | '/api/admin/categories/generate-image'
     | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
+    | '/api/admin/locations/export'
+    | '/api/admin/locations/import'
     | '/api/admin/translations/import'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -369,6 +389,8 @@ export interface FileRouteTypes {
     | '/api/admin/categories/generate-image'
     | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
+    | '/api/admin/locations/export'
+    | '/api/admin/locations/import'
     | '/api/admin/translations/import'
   id:
     | '__root__'
@@ -402,6 +424,8 @@ export interface FileRouteTypes {
     | '/api/admin/categories/generate-image'
     | '/api/admin/categories/import'
     | '/api/admin/categories/suggest-icon'
+    | '/api/admin/locations/export'
+    | '/api/admin/locations/import'
     | '/api/admin/translations/import'
   fileRoutesById: FileRoutesById
 }
@@ -423,6 +447,8 @@ export interface RootRouteChildren {
   ApiAdminCategoriesGenerateImageRoute: typeof ApiAdminCategoriesGenerateImageRoute
   ApiAdminCategoriesImportRoute: typeof ApiAdminCategoriesImportRoute
   ApiAdminCategoriesSuggestIconRoute: typeof ApiAdminCategoriesSuggestIconRoute
+  ApiAdminLocationsExportRoute: typeof ApiAdminLocationsExportRoute
+  ApiAdminLocationsImportRoute: typeof ApiAdminLocationsImportRoute
   ApiAdminTranslationsImportRoute: typeof ApiAdminTranslationsImportRoute
 }
 
@@ -603,6 +629,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminTranslationsImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/locations/import': {
+      id: '/api/admin/locations/import'
+      path: '/api/admin/locations/import'
+      fullPath: '/api/admin/locations/import'
+      preLoaderRoute: typeof ApiAdminLocationsImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/locations/export': {
+      id: '/api/admin/locations/export'
+      path: '/api/admin/locations/export'
+      fullPath: '/api/admin/locations/export'
+      preLoaderRoute: typeof ApiAdminLocationsExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/categories/suggest-icon': {
       id: '/api/admin/categories/suggest-icon'
       path: '/api/admin/categories/suggest-icon'
@@ -700,6 +740,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminCategoriesGenerateImageRoute: ApiAdminCategoriesGenerateImageRoute,
   ApiAdminCategoriesImportRoute: ApiAdminCategoriesImportRoute,
   ApiAdminCategoriesSuggestIconRoute: ApiAdminCategoriesSuggestIconRoute,
+  ApiAdminLocationsExportRoute: ApiAdminLocationsExportRoute,
+  ApiAdminLocationsImportRoute: ApiAdminLocationsImportRoute,
   ApiAdminTranslationsImportRoute: ApiAdminTranslationsImportRoute,
 }
 export const routeTree = rootRouteImport

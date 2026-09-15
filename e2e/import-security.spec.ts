@@ -92,6 +92,12 @@ const CATEGORY_HEADER =
 
 const TRANSLATION_HEADER = "key,source,translation,context";
 
+const COUNTRY_HEADER =
+  "country_code,name_en,is_active,unit_system,currency_code,display_order,root_order";
+const LOCATION_HEADER =
+  "location_path,location_key,name_en,name_am,iso_3166_2,aliases,display_order," +
+  "center_lat,center_lng,is_active,level,country_code,source,listing_count";
+
 const FAMILIES: Family[] = [
   {
     id: "attributes",
@@ -193,6 +199,72 @@ const FAMILIES: Family[] = [
       return `${key},"src","${value}","note"`;
     },
     meterRow: () => `Not A Key!!,"src","x","note"`,
+  },
+  /**
+   * LOCATIONS ERA L1b-C — GEOGRAPHY, TWO FILES. Both entries drive the SAME
+   * door with the other file empty, so each file's identity, shape and format
+   * law is proven on its own; every probe is a `preview`, which writes nothing,
+   * and every scratch key carries an `e2e-` segment (J1).
+   */
+  {
+    id: "locations-countries",
+    path: "/api/admin/locations/import",
+    field: "countries",
+    body: { locations: "" },
+    header: COUNTRY_HEADER,
+    identity: "country_code",
+    foreignHeader: CATEGORY_HEADER,
+    mode: "preview",
+    digest: true,
+    formulaCell: "name_en",
+    row: (cells = {}) =>
+      `${cells["country_code"] ?? "ZQ"},${cells["name_en"] ?? "Hostile probe"},false,metric,,0,`,
+  },
+  {
+    id: "locations-locations",
+    path: "/api/admin/locations/import",
+    field: "locations",
+    body: { countries: "" },
+    header: LOCATION_HEADER,
+    identity: "location_key",
+    foreignHeader: CATEGORY_HEADER,
+    mode: "preview",
+    digest: true,
+    formulaCell: "name_en",
+    row: (cells = {}) =>
+      `,${cells["location_key"] ?? `ethiopia/e2e-l1b-${rand()}`},${
+        cells["name_en"] ?? "Hostile probe"
+      },,,,0,9.0,38.7,false,,,,`,
+    shapeProbe: () => {
+      const cells = (over: Partial<Record<string, string>> = {}): string =>
+        [
+          "",
+          over["location_key"] ?? `ethiopia/e2e-l1b-${rand()}`,
+          "Shape probe",
+          "",
+          "",
+          "",
+          "0",
+          over["center_lat"] ?? "9.0",
+          over["center_lng"] ?? "38.7",
+          over["is_active"] ?? "false",
+          "",
+          "",
+          "",
+          "",
+        ].join(",");
+      return {
+        rows: [
+          // a latitude that is not a number at all
+          cells({ center_lat: "north" }),
+          // a longitude carrying more precision than the column declares
+          cells({ center_lng: "38.123456789" }),
+          // an on/off cell that is neither true nor false
+          cells({ is_active: "maybe" }),
+        ],
+        reasons: ["badNumber", "badNumber", "badBoolean"],
+      };
+    },
   },
 ];
 
