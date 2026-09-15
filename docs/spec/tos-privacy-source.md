@@ -30,6 +30,8 @@ Rule: every new REQ with user-facing consequences adds its clause here in the sa
 
 **A13. Eligibility (operator decided 2026-07-29):** users must be **18 or older**; accounts of users found under 18 are closed. STILL OPEN: governing law & dispute venue; liability limitations & warranty disclaimers (lawyer-polish stage); notice-and-takedown process for IP complaints.
 
+**A14. Third-party data attribution (REQ-005, S37):** the curated place list is compiled by hand from GeoNames (geonames.org, CC BY 4.0); the attribution appears on the about page and here; no other third-party geographic data is used.
+
 ## B. Privacy Policy — clauses captured so far
 
 **B1. What we collect (REQs 5/14/17/23):** account identifiers (email/Google/Telegram references, incl. Telegram-verified phone); profile data the user provides; listings and content; in-app messages; approximate location (IP-derived first guess, user-correctable — never precise GPS in v1); aggregate usage counters (category/listing views per region); device/session records; enforcement and consent records.
@@ -53,6 +55,8 @@ Rule: every new REQ with user-facing consequences adds its clause here in the sa
 **B10. Security (REQ-021/029/030/032):** centralized input screening; encryption in transit and at rest; encrypted backups; access controls with audit logging; security contact: security@ethio.com.
 
 **B11. OPEN — needs decision:** cookie/local-storage notice text; analytics disclosure specifics; data-sharing statement (v1: no sale of data, no third-party ad sharing — CONFIRM as policy); contact address for privacy requests.
+
+**B12. Preference cookies (REQ-005/002, S37):** two first-party preference cookies hold a user's explicit choices only — the default language (`ethio_lang_star`) and the chosen browsing area (`ethio_area`, a place identifier, not a person's location); neither is set from IP detection, neither identifies a person, and both can be cleared by choosing again or by clearing cookies. IP-derived location is a per-visit guess shown on screen and never stored (B2).
 
 ## C. Consent capture points (build checklist)
 1. Signup: ToS + Privacy acceptance (versioned, timestamped).

@@ -62,7 +62,7 @@
 
 ## Standing reads
 
-Governing instructions: Claude supervisor v1.9 · Lovable Project Knowledge v3.8. Canonical truth: this file + /docs/spec/spec-ledger.md. Evidence channels: docs/tracking/ci-status.md (two-step SHA check), docs/tracking/e2e-last-failure.md, nightly-last-failure.md, flake-ledger.
+Governing instructions: Claude supervisor v1.10 · Lovable Project Knowledge v3.8. Canonical truth: this file + /docs/spec/spec-ledger.md. Evidence channels: docs/tracking/ci-status.md (two-step SHA check), docs/tracking/e2e-last-failure.md, nightly-last-failure.md, flake-ledger.
 
 ## Environment
 
@@ -71,4 +71,4 @@ Prod = published site (human testers). Staging = ethio-staging (automated suite 
 ## Current position
 
 
-Current position: C3 era CLOSED 2026-09-09; CURATION ERA CLOSED 2026-09-15 — fifteen roots in a popularity-weighted rail, 142 listing categories, 327 definitions, zero retired rows, the library sweep imported, four-lens review recorded (docs/governance/reviews/curation-era-closeout-2026-09-15.md); DEC-050, DEC-057/057b LANDED IN FULL; DEC-054/059 proven; DEC-049b, DEC-060, DEC-061 RATIFIED; DEC-055/056/058 RATIFIED (build with Locations, posting, U7); INC-174/185/187–200 CLOSED; Knowledge v3.8 and instructions v1.10 installed; checkpoint handoff 2026-09-15 imported. Open: INC-186, ACT-C3-1, C3-UX-3/4/10, C4 tags disposition, the U7 rail flyout and per-country root order, the assets badge. NEXT: Locations era spec session (DEC-033) → posting-prerequisites census (DEC-051/052/053/055, C4 tags, attestation control class) → U6 Posting.
+Current position: CURATION ERA CLOSED 2026-09-15 — fifteen roots in a popularity-weighted rail, 142 listing categories, 327 definitions, zero retired rows, the library sweep imported, four-lens review recorded (docs/governance/reviews/curation-era-closeout-2026-09-15.md); DEC-050, DEC-057/057b LANDED IN FULL; DEC-054/059 proven; DEC-049b, DEC-060, DEC-061 RATIFIED; DEC-056/058 RATIFIED (build at/after U7); INC-174/185/187–200 CLOSED; Knowledge v3.8 and instructions v1.10 installed. LOCATIONS ERA OPEN 2026-09-15 — spec ratified at S37 (docs/governance/locations-era-spec.md; DEC-033 executing; DEC-062/063/064/065 ratified; DEC-055 first landing at L1a); landing map G0 → L1a → L1b → L1c → L2 → L3 (curator files) → L4a → L4b → gate. Open: INC-186, ACT-C3-1, C3-UX-3/4/10, C4 tags disposition, the U7 rail flyout, the assets badge; per-country root order now lands at L1a/L3. NEXT: L1a (schema + ancestry trigger + ancestor columns + country profile + coverage_plans + permissions + admin RPCs) → L1b → L1c → L2 → L3 → L4a → L4b → era gate → posting-prerequisites census → U6 Posting.
