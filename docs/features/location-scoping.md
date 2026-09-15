@@ -5,6 +5,7 @@
 | Layer                                              | State                        |
 | -------------------------------------------------- | ---------------------------- |
 | `public.locations` tree (country / region / city)  | LIVE (P2-a)                  |
+| Per-country tree route (ETag, cached)              | LIVE (L1c)                   |
 | Shell location row + cascading picker              | LIVE (built-visible)         |
 | Chosen area written into shell state / `useFeed`   | LIVE (accepted, not applied) |
 | IP resolution of the visitor's starting area       | NOT BUILT — this feature     |

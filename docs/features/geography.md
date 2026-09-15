@@ -283,6 +283,43 @@ meaning: `badKey`, `unknownParent`, `missingCoordinates`, `isoOnRegionsOnly`,
 re-inserts the shallowest deleted place first, so a parent exists before its
 children come back; every other group is still undone deepest-first.
 
+## Public read
+
+The tree a visitor sees is read through three anon-executable functions
+(migration `efbee3c4`), and no permission check exists anywhere on this path —
+authority lives entirely in the read's own visibility rule:
+
+- `get_location_tree(country_code)` — the rows of ONE open market. A row is
+  returned only when the market is open, the country anchor is active, and the
+  row AND every ancestor are active; ancestry is read from the `region_id` /
+  `city_id` columns, never a recursive walk. The anchor row comes first, then
+  region, city, sub-city, each level ordered by `display_order` then name.
+- `get_location_tree_version(country_code)` — one md5 over the country's rows
+  (newest change plus row count) and its market row. Any edit, activation, move
+  or market switch changes it; nothing else does.
+- `get_open_countries()` — the open markets and each one's anchor slug.
+
+**The route.** `GET /api/locations/:country` serves that tree behind exactly the
+pattern the translation bundle uses: read the version, keep one in-process entry
+per country for 15 seconds, derive a strong `ETag` from the version, and answer
+a matching `If-None-Match` with `304`. Inside the freshness window a request
+costs zero database round trips; after it, one small version read, and only a
+CHANGED version rebuilds the body. Responses carry
+`public, max-age=300, stale-while-revalidate=3600`.
+
+A code that is not two letters is `400 badCountry`. A closed or unknown market
+is `404 closedOrUnknownMarket` with `no-store` — **never an empty `200`**, and
+never cached, so opening a market is visible on the next request.
+
+The payload carries exactly the eleven read fields (`id`, `parent_id`, `level`,
+`slug`, `iso_3166_2`, `region_id`, `city_id`, `display_order`, `center_lat`,
+`center_lng`, `name_en`). Translated names are NOT served here — they come from
+the entity overlay, keyed by id.
+
+`e2e/locations-tree.spec.ts` (LR-1..4) proves the anchor-first order, the
+conditional request, both refusals, the ancestor rule against a retired scratch
+region, and that no field outside the eleven ever appears.
+
 ## Related
 
 - `docs/governance/locations-era-spec.md` — the ratified era spec (§3–§4 land here).
