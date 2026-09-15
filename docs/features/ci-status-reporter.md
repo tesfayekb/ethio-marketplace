@@ -8,7 +8,40 @@ carries CI state without an authenticated GitHub API call.
 .github/workflows/ci-status-report.yml triggers on `workflow_run: completed` of the
 "CI" workflow. It reads that finished run's conclusion and per-job results and writes
 docs/tracking/ci-status.md: commit SHA, overall conclusion, per-job table, UTC
-completion timestamp, and the run URL. It then commits that one file to main.
+completion timestamp, and the run URL. In the same step it also writes
+docs/tracking/guards-last-failure.md (below). Both files land in one `[skip ci]`
+commit on dev (DEC-020), regenerated after every `git reset --hard origin/dev` inside
+the push retry loop.
+
+## guards-last-failure.md (DEC-066)
+
+So a red build or guard never needs a log paste, the reporter downloads the log of
+**every failed job whose name is not one of the four Playwright families** — `E2E smoke
+tier`, `E2E shard N/M`, `E2E email`, `E2E changed specs` — because those are the E2E
+failure reporter's own sources and two copies of one failure would disagree.
+
+Per failed job it writes two blocks:
+
+- **Evidence lines** — every line matching
+  `error TS\d+ | [warn] | ✖ | ##[error] | ERROR | Error: | FAIL | failed | exit code [1-9]`,
+  capped at 80 lines, ISO log timestamps stripped.
+- **Tail** — the last 60 lines of the log.
+
+The file is written on **every** completed run: with no failures it says
+`No failed build/guard jobs in this run.`, so a stale file is always visible as a stale
+run URL rather than as silence. The header carries the run URL, commit SHA, run attempt
+and the UTC write time, and is labelled `PLATFORM-ORIGIN?` when the head commit message
+is "Lovable update" or "Work in progress" — the same rule the E2E reporter uses.
+
+**Self-report law.** A log download that fails is recorded as
+`log unavailable: <message>` for that job. The reporter reports its own gaps; it never
+drops a failed job silently.
+
+**Extract-only (pre-committed rule, DEC-066).** The reporter changes no guard, no
+verdict, no gate and never the promote job. When the evidence regex misses a failure's
+true lines the tail still carries them, and the regex is widened by INC — never
+silently. The whole file stays under 400 lines; tails are truncated first, evidence
+lines never.
 
 ## Loop safety (three independent guards)
 
