@@ -2174,3 +2174,19 @@ INC-198, INC-199 — CLOSED 2026-09-15 by their migration: an empty root deletes
 ## INC-200 — a type change kept the old type's cells and the CHECK refused the row
 
 The library sweep converted compatible_make from text to multi_select; the door's change path keeps a NULL parameter as "leave as is", so preset free:40 and max_length 40 survived onto the select and attributes_max_length_check refused the commit — the whole 381-row batch rolled back (correctly) with no reason line until the dialog was published. Fix: a type change clears every cell that does not apply to the new type, in the door and in the planner's diff, with the preview naming the clears. Class: a partial write on a type transition. Found 2026-09-15; the sweep landed without that row and the conversion follows this fix.
+
+## INC-201 — the locations undo re-inserted deleted rows deepest-first
+
+Defect: admin_undo_location_import (55cdd205) ordered every revision group by key depth DESC; for location:delete revisions that is inverted — a batch that deleted a city and its sub-cities (legal: children deleted earlier in the same file) was re-inserted sub-city first, and the L1a ancestry guard refused parentMissing. Evidence: the ORDER BY read verbatim at supervisor verification (L1b-M's proof list covered the commit's write sequence and no undo sequence — supervisor gap, G10). Class: undo ordering (INC-197's family).
+
+INC-201 — CLOSED 2026-09-15 by ae6b3804: the door re-declared whole, deleted rows return parents-first; P6 proves the ordering expression over a VALUES set, P7 the ten untouched functions; the round trip through the route is proven at L2 (LT).
+
+## INC-202 — a thrown public-language gate fetch skipped the F4 retry and reported the gate ready
+
+Defect: fetchPublicLanguages (src/i18n/provider.tsx) retried once only on an HTTP error response; a THROWN fetch (ERR_QUIC_PROTOCOL_ERROR, ERR_HTTP2_SERVER_REFUSED_STREAM, ERR_CONNECTION_CLOSED) returned null, skipped the retry, and the provider set gateReady = true with the compiled seed ["en"]; TR-28 then compared that degraded mirror with SSR's healthy gate (am, en) and failed. Evidence: run 35011187482 (smoke, both attempts, client-error attachments); the decisive lines read at verification; DEC-030 threshold met (three ledgered flakes on 2026-09-07 plus this failure). Class: I6 — a failed gate fetch is logged and retried, never silently defaulted; J4 — a test judges truth from the database, not a client mirror.
+
+INC-202 — CLOSED 2026-09-15 by L1c-C (aa75fd56): a thrown attempt is retried once and logged; the mirror carries degraded; TR-28 reads the gate from languages through the service client and annotates a client degradation by name instead of failing on it.
+
+## INC-203 — import commits carry Amharic through the translation door, which is gated on translations:update
+
+Finding: admin_commit_category_import and admin_commit_location_import write a non-empty name_am cell through admin_save_entity_translation, whose own gate is has_permission(auth.uid(), 'translations', 'update'); an importer holding categories:import or locations:import but not translations:update fails on an Amharic cell. Invisible to a super-admin operator. Class: permission coupling across doors. OPEN — ruled at the L2 review (either the import doors write the am row with the same capture themselves, or the import permissions carry the translation grant by definition).
