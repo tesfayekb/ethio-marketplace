@@ -34,6 +34,14 @@ interface Family {
   row: (cells?: Partial<Record<string, string>>) => string;
   /** The identity cell's column name, for the too-long / bad-slug cases. */
   identity: string;
+  /**
+   * The reason a MALFORMED identity is refused by. `badSlug` for a family whose
+   * identity carries the gate's slug/key law; a family whose identity shape is
+   * the planner's verdict (a slash path) or whose cap alone settles it (a
+   * two-letter country code) names its own word — one refusal per row either
+   * way, and never a silent pass.
+   */
+  identityReason?: string;
   /** A header belonging to ANOTHER family — the wrongFile case. */
   foreignHeader: string;
   /** The door this family exposes: a preview plan, or a one-step import. */
@@ -91,6 +99,12 @@ const CATEGORY_HEADER =
   "excluded_country_codes,secondary_parents,listing_count,origin_scope";
 
 const TRANSLATION_HEADER = "key,source,translation,context";
+
+const COUNTRY_HEADER =
+  "country_code,name_en,is_active,unit_system,currency_code,display_order,root_order";
+const LOCATION_HEADER =
+  "location_path,location_key,name_en,name_am,iso_3166_2,aliases,display_order," +
+  "center_lat,center_lng,is_active,level,country_code,source,listing_count";
 
 const FAMILIES: Family[] = [
   {
@@ -193,6 +207,76 @@ const FAMILIES: Family[] = [
       return `${key},"src","${value}","note"`;
     },
     meterRow: () => `Not A Key!!,"src","x","note"`,
+  },
+  /**
+   * LOCATIONS ERA L1b-C — GEOGRAPHY, TWO FILES. Both entries drive the SAME
+   * door with the other file empty, so each file's identity, shape and format
+   * law is proven on its own; every probe is a `preview`, which writes nothing,
+   * and every scratch key carries an `e2e-` segment (J1).
+   */
+  {
+    id: "locations-countries",
+    path: "/api/admin/locations/import",
+    field: "countries",
+    body: { locations: "" },
+    header: COUNTRY_HEADER,
+    identity: "country_code",
+    // A two-letter cap settles a malformed code before any shape law is needed.
+    identityReason: "tooLong",
+    foreignHeader: CATEGORY_HEADER,
+    mode: "preview",
+    digest: true,
+    formulaCell: "name_en",
+    row: (cells = {}) =>
+      `${cells["country_code"] ?? "ZQ"},${cells["name_en"] ?? "Hostile probe"},false,metric,,0,`,
+  },
+  {
+    id: "locations-locations",
+    path: "/api/admin/locations/import",
+    field: "locations",
+    body: { countries: "" },
+    header: LOCATION_HEADER,
+    identity: "location_key",
+    // The slash key's shape is `loc_import_plan`'s verdict, by name.
+    identityReason: "badKey",
+    foreignHeader: CATEGORY_HEADER,
+    mode: "preview",
+    digest: true,
+    formulaCell: "name_en",
+    row: (cells = {}) =>
+      `,${cells["location_key"] ?? `ethiopia/e2e-l1b-${rand()}`},${
+        cells["name_en"] ?? "Hostile probe"
+      },,,,0,9.0,38.7,false,,,,`,
+    shapeProbe: () => {
+      const cells = (over: Partial<Record<string, string>> = {}): string =>
+        [
+          "",
+          over["location_key"] ?? `ethiopia/e2e-l1b-${rand()}`,
+          "Shape probe",
+          "",
+          "",
+          "",
+          "0",
+          over["center_lat"] ?? "9.0",
+          over["center_lng"] ?? "38.7",
+          over["is_active"] ?? "false",
+          "",
+          "",
+          "",
+          "",
+        ].join(",");
+      return {
+        rows: [
+          // a latitude that is not a number at all
+          cells({ center_lat: "north" }),
+          // a longitude carrying more precision than the column declares
+          cells({ center_lng: "38.123456789" }),
+          // an on/off cell that is neither true nor false
+          cells({ is_active: "maybe" }),
+        ],
+        reasons: ["badNumber", "badNumber", "badBoolean"],
+      };
+    },
   },
 ];
 
@@ -329,7 +413,7 @@ for (const family of FAMILIES) {
       const refusals = (probe.payload["refusals"] as { reason: string; row: number }[]) ?? [];
       const reasons = refusals.map((entry) => entry.reason);
       expect(reasons, JSON.stringify(refusals)).toEqual(
-        expect.arrayContaining(["formula", "badSlug", "tooLong"]),
+        expect.arrayContaining(["formula", family.identityReason ?? "badSlug", "tooLong"]),
       );
       // Every refusal names the row the operator sees, never row 0.
       for (const refusal of refusals) expect(refusal.row).toBeGreaterThan(1);
@@ -346,7 +430,7 @@ for (const family of FAMILIES) {
       expect(
         disguisedRefusals.map((entry) => entry.reason),
         JSON.stringify(disguisedRefusals),
-      ).toContain("badSlug");
+      ).toContain(family.identityReason ?? "badSlug");
       for (const refusal of disguisedRefusals) {
         expect(refusal.key).not.toMatch(/[\u200b\u202e]/);
         if (refusal.reason === "badSlug") expect(refusal.key).toBe("e2e-cat-ok!!");

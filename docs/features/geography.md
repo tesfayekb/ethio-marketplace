@@ -243,6 +243,46 @@ Seeded at P2-a and marked `source = 'seed'` by L1a: 2 countries, 12 regions,
 - **Screening gateway** (REQ-021) lands at P2-d; geography writes are admin-side and
   outside it.
 
+## Import family
+
+Geography is curated as two files behind the one import gate
+(`docs/features/imports.md`): `POST /api/admin/locations/import`
+(preview · commit · undo) and `GET /api/admin/locations/export`. Either file may
+be sent alone; both empty is the only refusal the route makes on its own. A run
+may be confined to one country with a two-letter `scope`, or left open to all.
+
+**countries** — `country_code` (identity) · `name_en` · `is_active` ·
+`unit_system` · `currency_code` · `display_order` · `root_order` (the pipe list
+of root category slugs, in order) · `action`.
+
+**locations** — `location_path` (read-only) · `location_key` (identity) ·
+`name_en` · `name_am` · `iso_3166_2` · `aliases` (pipe list) · `display_order` ·
+`center_lat` · `center_lng` · `is_active` · `level` (read-only) ·
+`country_code` (read-only) · `source` (read-only) · `listing_count`
+(read-only) · `action`.
+
+The identity is the SLASH KEY of slugs — `ethiopia/oromia/adama` — and the
+level is derived from its depth, which is why `level` and `country_code` are
+reported and never applied. Every read-only column carries a
+`" (read-only)"` suffix in the exported header, so the file states what the
+importer will ignore. Column order in both files is the export contract of
+`country_export_row` / `loc_export_row`.
+
+**Actions.** A location row takes `upsert`, `activate`, `retire` or `delete`; a
+country row takes `upsert`, `open` or `close`. An action row still applies its
+other cells.
+
+**Refusals** are named by `loc_import_plan`, which stays the only authority on
+meaning: `badKey`, `unknownParent`, `missingCoordinates`, `isoOnRegionsOnly`,
+`statusNeedsAction` (naming both the stored and the requested state),
+`deleteBlocked` (naming the child that blocks it), `parentInactive`,
+`badCountryCode`, `badCurrency`, `notARoot`, `countryRowByActivation` and
+`outOfScope`.
+
+**Undo returns deleted rows parents-first (INC-201)** — a taken-back run
+re-inserts the shallowest deleted place first, so a parent exists before its
+children come back; every other group is still undone deepest-first.
+
 ## Related
 
 - `docs/governance/locations-era-spec.md` — the ratified era spec (§3–§4 land here).

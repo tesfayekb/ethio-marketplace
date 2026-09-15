@@ -1,0 +1,201 @@
+/**
+ * LOCATIONS ERA L1b-C / IMPORT-GATE — POST /api/admin/locations/import
+ *
+ * THREE DOORS, ONE ROUTE (`mode`): `preview` (writes nothing), `commit`
+ * (step-up, batch-tagged capture then mutate) and `undo` (restores a batch,
+ * deleted places returning parents-first since INC-201).
+ *
+ * The client's parse is never trusted and this route owns no judgement about a
+ * file: every byte goes through the ONE gate (`src/server/imports/gate.ts`) —
+ * caps, UTF-8, RFC-4180, exact headers, file identity, cell hygiene, per-column
+ * format law, rate limit and audit — and only a typed payload reaches the gated
+ * RPCs, which remain the authority on meaning and on permission (E7, F3).
+ * Every failure answer is preceded by `[ssr-error] <path> <message>` (I4, F4).
+ *
+ * ONE FILE ALONE IS A LEGAL RUN — countries only, or locations only; both empty
+ * is the only refusal here, mirroring the two-file attributes precedent.
+ */
+import { createFileRoute } from "@tanstack/react-router";
+
+import {
+  json,
+  openImportGate,
+  requireBearer,
+  releaseSlot,
+  withRowValues,
+  type Refusal,
+} from "@/server/imports/gate";
+
+const PATH = "/api/admin/locations/import";
+
+interface Body {
+  mode?: string;
+  countries?: string;
+  locations?: string;
+  scope?: string | null;
+  digest?: string | null;
+  batchId?: string | null;
+}
+
+const detailOf = (error: { details?: string | null; hint?: string | null }): string =>
+  (error.details ?? error.hint ?? "").trim();
+
+export const Route = createFileRoute("/api/admin/locations/import")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        // INGRESS: the bytes are read here so invalid UTF-8 and an oversized
+        // body are refused before anything is parsed as JSON.
+        const anonymous = requireBearer(request);
+        if (anonymous !== null) return anonymous;
+        const raw = await request.arrayBuffer();
+        if (raw.byteLength > 4 * 1_048_576) {
+          console.error(`[ssr-error] ${PATH} body too large`);
+          return json({ error: "fileTooLarge" }, 413);
+        }
+        let text: string;
+        try {
+          text = new TextDecoder("utf-8", { fatal: true }).decode(raw);
+        } catch {
+          console.error(`[ssr-error] ${PATH} invalid utf-8`);
+          return json({ error: "invalidEncoding" }, 400);
+        }
+        let body: Body;
+        try {
+          body = JSON.parse(text) as Body;
+        } catch {
+          console.error(`[ssr-error] ${PATH} malformed body`);
+          return json({ error: "malformed body" }, 400);
+        }
+
+        const mode = body.mode ?? "preview";
+        const scopeRaw = body.scope ?? null;
+        const scope = scopeRaw === null || scopeRaw.trim() === "" ? null : scopeRaw.trim();
+        const countriesText = body.countries ?? "";
+        const locationsText = body.locations ?? "";
+
+        if (mode !== "undo" && mode !== "preview" && mode !== "commit") {
+          return json({ error: "mode must be preview, commit or undo" }, 400);
+        }
+        if (mode !== "undo" && countriesText === "" && locationsText === "") {
+          return json({ error: "no file" }, 400);
+        }
+
+        const gate = await openImportGate({
+          request,
+          path: PATH,
+          familyId: "locations",
+          body: body as unknown as Record<string, unknown>,
+          texts: mode === "undo" ? {} : { countries: countriesText, locations: locationsText },
+          mode,
+          scope,
+        });
+        if (!gate.ok) return gate.response;
+
+        const { supabase, userId, rows, refusals, digest, audit } = gate;
+        const countries = rows["countries"] ?? [];
+        const locations = rows["locations"] ?? [];
+
+        const relay = (
+          error: { message: string; details?: string | null; hint?: string | null },
+          what: string,
+        ): Response => {
+          console.error(`[ssr-error] ${PATH} ${what} ${error.message}`);
+          if (error.message.includes("permission denied")) {
+            return json({ error: "permission denied" }, 403);
+          }
+          if (error.message.includes("step-up required")) {
+            return json({ error: "step-up required", code: "P0009" }, 428);
+          }
+          if (error.message.includes("import already running")) {
+            return json({ error: "import already running" }, 409);
+          }
+          if (error.message.includes("unknown country scope")) {
+            return json({ error: "unknown country scope" }, 404);
+          }
+          if (error.message.includes("unknown import batch")) {
+            return json({ error: "unknown import batch" }, 404);
+          }
+          if (error.message.includes("batchAlreadyUndone")) {
+            return json({ error: "batchAlreadyUndone" }, 409);
+          }
+          if (error.message.includes("planHasRefusals")) {
+            return json({ error: "planHasRefusals" }, 409);
+          }
+          // PASS-THROUGH, NOT INTERPRETATION: the RPC's own message and the
+          // Postgres detail travel to the dialog so a failed commit can be read
+          // and pasted; the logging above is unchanged ([ssr-error], I4).
+          return json(
+            {
+              error: "server error",
+              message: error.message,
+              ...(detailOf(error) === "" ? {} : { detail: detailOf(error) }),
+            },
+            500,
+          );
+        };
+
+        try {
+          if (mode === "undo") {
+            const batchId = body.batchId ?? "";
+            if (batchId === "") return json({ error: "batch id required" }, 400);
+            const { data, error } = await supabase.rpc("admin_undo_location_import", {
+              p_batch: batchId,
+            });
+            if (error) return relay(error, "undo_failed");
+            await audit("undo", batchId, data ?? {});
+            return json(data, 200);
+          }
+
+          // COMMIT takes the same bytes the preview verdict was computed from.
+          if (mode === "commit" && (body.digest ?? "") !== digest) {
+            console.error(`[ssr-error] ${PATH} digest mismatch`);
+            return json({ error: "fileChanged" }, 409);
+          }
+
+          const args = {
+            p_countries: countries as unknown as never,
+            p_locations: locations as unknown as never,
+            p_scope: scope as unknown as string,
+          };
+
+          if (mode === "preview") {
+            const { data, error } = await supabase.rpc("admin_preview_location_import", args);
+            if (error) return relay(error, "preview_failed");
+            const plan = (data ?? {}) as Record<string, unknown>;
+            const serverRefusals = (plan["refusals"] as Refusal[] | undefined) ?? [];
+            const all = withRowValues(
+              [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+              { countries, locations },
+            );
+            const counts = (plan["counts"] as Record<string, number> | undefined) ?? {};
+            await audit("preview", null, { ...counts, refusals: all.length });
+            return json(
+              { ...plan, refusals: all, counts: { ...counts, refusals: all.length }, digest },
+              200,
+            );
+          }
+
+          const { data, error } = await supabase.rpc("admin_commit_location_import", {
+            ...args,
+            p_digest: digest,
+          });
+          if (error) return relay(error, "commit_failed");
+          const result = (data ?? {}) as Record<string, unknown>;
+          const serverRefusals = (result["refusals"] as Refusal[] | undefined) ?? [];
+          const all = withRowValues(
+            [...refusals, ...serverRefusals].sort((a, b) => a.row - b.row),
+            { countries, locations },
+          );
+          await audit("commit", (result["batch_id"] as string | undefined) ?? null, {
+            ...((result["counts"] as Record<string, number> | undefined) ?? {}),
+            refusals: all.length,
+          });
+          return json({ ...result, refusals: all }, 200);
+        } finally {
+          releaseSlot(userId);
+        }
+      },
+    },
+  },
+});

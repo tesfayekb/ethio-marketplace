@@ -435,6 +435,10 @@ export function checkCell(rule: ColumnRule, value: string): string | null {
     // token resolves to, is the planner's verdict.
     case "bound":
       return BOUND_RE.test(value) ? null : "badBound";
+    // A decimal degree — SHAPE ONLY (one refusal vocabulary with `int`); the
+    // planner owns range, hemisphere and the level that may carry a centre.
+    case "decimal":
+      return /^-?\d{1,3}(\.\d{1,8})?$/.test(value) ? null : "badNumber";
     case "preset":
       return presetShapeOk(value) ? null : "badPreset";
     case "options": {
@@ -795,6 +799,10 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
   if (family.scope === "language" && (scope === null || !LANG_RE.test(scope))) {
     return refuse(path, `bad language ${scope ?? ""}`, 400, { error: "badScope" });
   }
+  // A null country scope is LEGAL — it means every country.
+  if (scope !== null && family.scope === "country-code" && !/^[A-Za-z]{2}$/.test(scope)) {
+    return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
+  }
 
   const rows: Record<string, GateRow[]> = {};
   const refusals: Refusal[] = [];
@@ -888,6 +896,10 @@ export async function openExportGate(
 
   const scope = scopeParam === null || scopeParam.trim() === "" ? null : scopeParam.trim();
   if (scope !== null && family.scope === "category-slug" && !SLUG_RE.test(scope)) {
+    return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
+  }
+  // A null country scope is LEGAL — it means every country.
+  if (scope !== null && family.scope === "country-code" && !/^[A-Za-z]{2}$/.test(scope)) {
     return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
   }
 

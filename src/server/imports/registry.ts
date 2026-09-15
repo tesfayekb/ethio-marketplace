@@ -91,7 +91,9 @@ export interface ColumnRule {
     | "options"
     | "enum"
     | "bound"
-    | "preset";
+    | "preset"
+    /** A signed decimal degree — shape only; range is the planner's verdict. */
+    | "decimal";
   required?: boolean;
   maxLength?: number;
   /** Allowed values for `enum`/`action` columns (lower-cased comparison). */
@@ -135,8 +137,12 @@ export interface FamilySpec {
   permission: string;
   /** Commit and undo demand a fresh step-up; preview does not. */
   stepUp: "commit" | "never";
-  /** `scope` is a category slug when the family supports subtree scoping. */
-  scope: "category-slug" | "language" | "none";
+  /**
+   * `scope` is a category slug when the family supports subtree scoping; a
+   * `country-code` scope is a two-letter country code, upper-cased by the RPC,
+   * and `null` means every country.
+   */
+  scope: "category-slug" | "language" | "country-code" | "none";
   /**
    * Which modes spend the per-minute budget. A family with a preview door
    * meters the preview; a family that imports in ONE step meters that step, so
@@ -149,6 +155,14 @@ export interface FamilySpec {
 const ACTION_ATTRIBUTE_DEFS = ["", "upsert", "delete"] as const;
 const ACTION_ATTRIBUTE_LINKS = ["", "upsert", "unlink"] as const;
 const ACTION_CATEGORIES = ["", "upsert", "create-root", "retire", "reactivate", "delete"] as const;
+const ACTION_LOCATIONS = ["", "upsert", "activate", "retire", "delete"] as const;
+const ACTION_COUNTRIES = ["", "upsert", "open", "close"] as const;
+
+/** A country's measurement profile, mirroring the `countries` constraint. */
+const UNIT_SYSTEMS = ["metric", "imperial"] as const;
+
+/** `ethiopia/oromia/adama/kebele-04` — four slugs and their separators. */
+export const MAX_LOCATION_KEY = 260;
 
 const ATTRIBUTE_TYPES = [
   "text",
@@ -304,6 +318,69 @@ export const FAMILIES: Record<string, FamilySpec> = {
             maxLength: MAX_VALUE,
             formula: "allow",
           },
+        ],
+      },
+    ],
+  },
+  /**
+   * LOCATIONS ERA L1b — GEOGRAPHY (two files, one door).
+   *
+   * The column ORDER of each file is the export contract of
+   * `country_export_row` / `loc_export_row` (migration 20260915170752), copied
+   * by name (E7). A row is named by its SLASH KEY of slugs
+   * (`ethiopia/oromia/adama`); the key's shape, the level derived from its
+   * depth, and every other meaning stay `loc_import_plan`'s verdict — the
+   * registry declares classes and formats only.
+   */
+  locations: {
+    id: "locations",
+    permission: "locations:import",
+    stepUp: "commit",
+    scope: "country-code",
+    files: [
+      {
+        id: "countries",
+        identityHeader: "country_code",
+        identityColumns: ["country_code"],
+        duplicateIdentity: "gate",
+        columns: [
+          { name: "country_code", klass: "identity", type: "text", required: true, maxLength: 2 },
+          { name: "name_en", klass: "editable", type: "text", maxLength: MAX_LABEL },
+          { name: "is_active", klass: "editable", type: "bool" },
+          { name: "unit_system", klass: "editable", type: "enum", values: UNIT_SYSTEMS },
+          { name: "currency_code", klass: "editable", type: "text", maxLength: 3 },
+          { name: "display_order", klass: "editable", type: "int" },
+          { name: "root_order", klass: "editable", type: "pipe" },
+          { name: "action", klass: "action", values: ACTION_COUNTRIES },
+        ],
+      },
+      {
+        id: "locations",
+        identityHeader: "location_path",
+        identityColumns: ["location_key"],
+        duplicateIdentity: "gate",
+        columns: [
+          { name: "location_path", klass: "read-only", type: "text" },
+          {
+            name: "location_key",
+            klass: "identity",
+            type: "text",
+            required: true,
+            maxLength: MAX_LOCATION_KEY,
+          },
+          { name: "name_en", klass: "editable", type: "text", maxLength: MAX_LABEL },
+          { name: "name_am", klass: "editable", type: "text", maxLength: MAX_LABEL },
+          { name: "iso_3166_2", klass: "editable", type: "text", maxLength: 8 },
+          { name: "aliases", klass: "editable", type: "pipe" },
+          { name: "display_order", klass: "editable", type: "int" },
+          { name: "center_lat", klass: "editable", type: "decimal" },
+          { name: "center_lng", klass: "editable", type: "decimal" },
+          { name: "is_active", klass: "editable", type: "bool" },
+          { name: "level", klass: "read-only", type: "text" },
+          { name: "country_code", klass: "read-only", type: "text" },
+          { name: "source", klass: "read-only", type: "text" },
+          { name: "listing_count", klass: "read-only", type: "int" },
+          { name: "action", klass: "action", values: ACTION_LOCATIONS },
         ],
       },
     ],
