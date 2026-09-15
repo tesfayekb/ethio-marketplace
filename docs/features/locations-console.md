@@ -15,14 +15,17 @@ absent rather than stubbed — C4 forbids a placeholder that replaces content.
 ## The Tree tab
 
 The toolbar (`location-toolbar-find`) carries four filters and the page-size
-control. Every one of them is a door argument, never a client-side sieve:
+control. **One read per country** (L2a-R): `admin_list_locations` is called with
+`p_country_code` alone, and search, level and status sieve that roster in the
+browser. Switching the country is the only control that fetches — a keystroke
+costs no request on an expensive-data device.
 
-| Control                      | Test id                   | Door argument                                  |
+| Control                      | Test id                   | Effect                                         |
 | ---------------------------- | ------------------------- | ---------------------------------------------- |
-| Country                      | `location-country-filter` | `p_country_code`                               |
-| Search (name · slug · alias) | `location-search`         | `p_search`                                     |
-| Level                        | `location-level-filter`   | `p_level`                                      |
-| Active / retired             | `location-active-filter`  | `p_active`                                     |
+| Country                      | `location-country-filter` | `p_country_code` — the one door argument       |
+| Search (name · slug · alias) | `location-search`         | client sieve, deferred while typing            |
+| Level                        | `location-level-filter`   | client sieve                                   |
+| Active / retired             | `location-active-filter`  | client sieve                                   |
 | Rows per page                | `location-page-size`      | client only (`ethio.admin.locations.pageSize`) |
 
 Open markets are listed first; a closed market is still listed — an operator has
@@ -37,22 +40,50 @@ name + level badge (primary), path (secondary), status (primary), the
 listings · coverage · profile-default counts (detail), display order (detail),
 alias count and ISO code (wide). No `minWidth` anywhere (C7).
 
-Creation in this tab is always **create a child of a row**: a country anchor is
-born by opening a market (L2b), so `location-create-open` is disabled with the
-`admin.locations.create.rootHint` line until a row is selected as parent.
+Tones come from the shared `TipBadge` primitive: active = `secondary`,
+retired = `destructive`, level = `outline`, each carrying `data-tone` so a test
+asserts the meaning and never a colour (J5).
+
+## The editor is the row's one surface
+
+L2a-R returned the roster to the categories convention (CT-8). A row carries a
+**single 44px pencil**, `location-edit-<key>`, and the row itself opens the same
+editor on click or on Enter/Space. Six buttons in a table cell were what clipped
+the end column and pushed the page sideways at 1280.
+
+The editor (`location-editor`) shows the path with the level and status badges,
+the fields, `location-editor-save`, and then the **verb bar**
+(`location-verb-bar`):
+
+| Verb              | Test id                                        | Notes                                                       |
+| ----------------- | ---------------------------------------------- | ----------------------------------------------------------- |
+| Create child      | `location-verb-create-child`                   | Absent on sub-city rows — depth 4 is the floor              |
+| Activate / retire | `location-verb-activate` / `location-verb-retire` | One state-dependent verb                                 |
+| Move              | `location-verb-move`                           | Absent on the country anchor                                |
+| Reorder           | `location-verb-reorder`                        | Disabled for country rows (`orderCountriesInProfile`)       |
+| Delete            | `location-verb-delete`                         | Destructive; disabled with the reason in `location-verb-error` |
+
+A blocked verb says why beside the bar in words (`location-verb-error`, F4) —
+never only in a tooltip and never in a toast alone.
+
+Adding a place has two entrances, one surface: the section header's
+`location-create-open` opens the create dialog with a **parent picker**
+(`location-create-parent`, every row that can still hold a child, the country
+anchor preselected), and the editor's create-child verb hands the parent in
+fixed as a read-only path.
 
 ## The verbs and their doors
 
-| Verb              | Row action            | Door                                  | Notes                                                                                                                                                                                                                  |
-| ----------------- | --------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Create child      | `create-child`        | `admin_upsert_location` (`p_id` NULL) | Disabled on sub-city rows — depth 4 is the floor. The row is **born retired**; the dialog says so (`location-create-retired`).                                                                                         |
-| Edit              | `edit`                | `admin_upsert_location`               | Never touches parent or activation — those are their own verbs; the door answers `useMoveDoor` otherwise. Round-trips every stored field (INC-188).                                                                    |
-| Activate / retire | `activate` / `retire` | `admin_set_location_active`           | One state-dependent verb. `parentInactive` renders as "activate `<parent path>` first".                                                                                                                                |
-| Move              | `move`                | `admin_move_location`                 | Step-up on the server. The picker lists only same-country rows at level − 1. The ancestry trigger carries the descendants.                                                                                             |
-| Reorder           | `reorder`             | `admin_reorder_locations`             | The siblings of the row's parent, up/down. Disabled for country rows (`orderCountriesInProfile`).                                                                                                                      |
-| Delete            | `delete`              | `admin_delete_location`               | Step-up on the server. The operator types the row's slug (`location-delete-confirm`). Disabled when children, listings, coverage or profile defaults exist — and the door still refuses by name when a count is stale. |
+| Verb              | Door                                  | Notes                                                                                                                                                                                                                  |
+| ----------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create child      | `admin_upsert_location` (`p_id` NULL) | The row is **born retired**; the dialog says so (`location-create-retired`).                                                                                                                                           |
+| Edit              | `admin_upsert_location`               | Never touches parent or activation — those are their own verbs; the door answers `useMoveDoor` otherwise. Round-trips every stored field (INC-188).                                                                     |
+| Activate / retire | `admin_set_location_active`           | `parentInactive` renders as "activate `<parent path>` first".                                                                                                                                                           |
+| Move              | `admin_move_location`                 | Step-up on the server. The picker lists only same-country rows at level − 1. The ancestry trigger carries the descendants.                                                                                              |
+| Reorder           | `admin_reorder_locations`             | The siblings of the row's parent, up/down.                                                                                                                                                                             |
+| Delete            | `admin_delete_location`               | Step-up on the server. The operator types the row's slug (`location-delete-confirm`). Disabled when children, listings, coverage or profile defaults exist — and the door still refuses by name when a count is stale. |
 
-Other-language names are **not** edited here. The edit dialog links to
+Other-language names are **not** edited here. The editor links to
 Translations → Data (`location-edit-translations`): one writer per string (D3).
 
 ## How a refusal reads
