@@ -28,6 +28,7 @@ import { Route as AdminImagesRouteImport } from './routes/admin.images'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
+import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.$country'
 import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
 import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
@@ -138,6 +139,11 @@ const AdminAttributesRoute = AdminAttributesRouteImport.update({
   path: '/attributes',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiLocationsCountryRoute = ApiLocationsCountryRouteImport.update({
+  id: '/api/locations/$country',
+  path: '/api/locations/$country',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiI18nLangRoute = ApiI18nLangRouteImport.update({
   id: '/api/i18n/$lang',
   path: '/api/i18n/$lang',
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
   '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
   '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
@@ -312,6 +320,7 @@ export interface FileRoutesById {
   '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
   '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
@@ -349,6 +358,7 @@ export interface FileRouteTypes {
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
     | '/api/i18n/$lang'
+    | '/api/locations/$country'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
     | '/api/admin/categories/export'
@@ -383,6 +393,7 @@ export interface FileRouteTypes {
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
     | '/api/i18n/$lang'
+    | '/api/locations/$country'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
     | '/api/admin/categories/export'
@@ -418,6 +429,7 @@ export interface FileRouteTypes {
     | '/admin/translations_/$lang'
     | '/admin/users_/$userId'
     | '/api/i18n/$lang'
+    | '/api/locations/$country'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
     | '/api/admin/categories/export'
@@ -441,6 +453,7 @@ export interface RootRouteChildren {
   DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevTallRoute: typeof DevTallRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
+  ApiLocationsCountryRoute: typeof ApiLocationsCountryRoute
   ApiAdminAttributesExportRoute: typeof ApiAdminAttributesExportRoute
   ApiAdminAttributesImportRoute: typeof ApiAdminAttributesImportRoute
   ApiAdminCategoriesExportRoute: typeof ApiAdminCategoriesExportRoute
@@ -586,6 +599,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/attributes'
       preLoaderRoute: typeof AdminAttributesRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/api/locations/$country': {
+      id: '/api/locations/$country'
+      path: '/api/locations/$country'
+      fullPath: '/api/locations/$country'
+      preLoaderRoute: typeof ApiLocationsCountryRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/i18n/$lang': {
       id: '/api/i18n/$lang'
@@ -734,6 +754,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevPrimitivesRoute: DevPrimitivesRoute,
   DevTallRoute: DevTallRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,
+  ApiLocationsCountryRoute: ApiLocationsCountryRoute,
   ApiAdminAttributesExportRoute: ApiAdminAttributesExportRoute,
   ApiAdminAttributesImportRoute: ApiAdminAttributesImportRoute,
   ApiAdminCategoriesExportRoute: ApiAdminCategoriesExportRoute,
