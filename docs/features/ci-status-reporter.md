@@ -47,8 +47,8 @@ lines never.
 
 1. The reporter triggers only on `workflow_run`, never on push — its own commit
    cannot re-trigger it.
-2. ci.yml's push trigger carries `paths-ignore: ['docs/tracking/ci-status.md']`, so
-   the status commit does not start a CI run.
+2. ci.yml's push trigger `paths-ignore` lists both docs/tracking/ci-status.md and
+   docs/tracking/guards-last-failure.md, so the status commit does not start a CI run.
 3. The status commit message carries `[skip ci]`.
 
 Any one of these would break the cycle; all three are present.
@@ -65,6 +65,13 @@ commit. The check is therefore two steps:
 A SHA mismatch means the file is stale (see limitations) and the GitHub Actions API
 or an operator glance is the fallback. A FAILURE conclusion is a DRIFT-class event
 that jumps the queue.
+
+Reading order on a red run:
+
+1. docs/tracking/ci-status.md — the conclusion, plus the two-step SHA check above.
+2. docs/tracking/e2e-last-failure.md — for a failed Playwright job.
+3. docs/tracking/guards-last-failure.md — for every other failed job (build,
+   typecheck, lint, format, guards, migration checks).
 
 ## Known limitations
 
