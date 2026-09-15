@@ -455,3 +455,5 @@
 - 2026-09-14 — DEC-049b: workflow actions bumped actions/checkout@v4 → v7 ×3 (ci-status-report ×2, guard-proof ×1), actions/github-script@v7 → v9; judge: push + nightly green, else revert. Workflows only.
 
 - 2026-09-14 — D-GATE-15: SPORTS, AGRICULTURE, FOOD & BEVERAGES ROOT RECORDED; DEC-060 ratified (no alcohol/tobacco in v1); INC-198 registered (empty-root delete previews unchanged); curation handoff gains the attestation-boolean rule; system-state NEXT: Babies & Kids onward. Docs only.
+
+- 2026-09-15 — D-GATE-16: ALL FIFTEEN ROOTS CURATED (docs only, verbatim). Babies & Kids, Pets & Animals and Commercial Equipment recorded; DEC-061 (companion animals only) and DEC-049b ratified; INC-199 registered (planner ignores is_active and drops an action row's cells); curation handoff gains the second pass-mechanics set; system-state NEXT: the library sweep. No src, no e2e, no migrations.

@@ -2164,3 +2164,7 @@ INC-197 — CLOSED 2026-09-14 by its migration: admin_undo_attribute_import rest
 ## INC-198 — the categories import will not delete an empty root
 
 A delete row for food-beverages-2 (an auto-suffixed root with no children and no listings) previewed as unchanged at All categories; the root was retired in the console instead. Either the planner should delete an empty root or the preview should say why it will not — silence is the defect. Class: a no-op that should have been a refusal with a reason. Fix at the library sweep.
+
+## INC-199 — the categories planner ignores is_active and drops an action row's other cells, silently
+
+Two silent no-ops found across the Agriculture, Babies & Kids and Pets passes: (1) a row whose is_active cell differs from the stored status, without a retire/reactivate action, previews as changed for its other cells and leaves the status untouched — three intended reactivations stayed retired until fixed by hand; (2) a row carrying action = reactivate applies the action and drops the row's other cell changes (Pet Services' secondary parent). Fix: (1) refuse the row by name ("is_active differs from the stored status — use action = reactivate or retire"); (2) an action row is a change row plus the action — its cells apply. Class: silent no-op where a refusal or an apply was due (with INC-198).
