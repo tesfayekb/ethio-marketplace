@@ -29,6 +29,13 @@ rows per page) and the TRANSFER group inside the same toolbar
 `country-import` opens the shared import dialog with the markets file alone. A
 markets file names its own countries, so it is never scoped.
 
+The UNDO of a markets file removes what that file made: a market the batch
+created goes away together with the anchor place it was born with (INC-206,
+L2b-C2) — the anchor is taken back first, and only when it carries nothing of
+its own (no child place, no listing, no profile defaulting there). If anything
+else hangs off the market, or a role is scoped to it, the undo still refuses with
+`undoBlocked:hasRows`, rendered in words.
+
 ## Verbs
 
 `country-create-open` adds a market (code, name, unit system, currency, order)

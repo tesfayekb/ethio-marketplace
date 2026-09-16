@@ -316,13 +316,13 @@ test.describe("L2b countries console", () => {
       await expect(page.getByTestId("country-import-applied")).toBeVisible({ timeout: 20000 });
       expect((await readCountry(code))?.is_active).toBe(false);
 
-      // THE UNDO IS THE DOOR'S TO REFUSE: a market created by this batch already
-      // carries rows (its anchor place), so `undoBlocked:hasRows` comes back and
-      // is rendered in words instead of a phantom success (F4).
+      // THE UNDO PUTS IT BACK (INC-206): the market created by this batch was
+      // born with its anchor place, and the undo now takes BOTH away, so the
+      // roster is exactly as it was before the file was applied.
       await page.getByTestId("country-import-undo").click();
       await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("country-import-error")).toBeVisible({ timeout: 20000 });
-      expect((await readCountry(code))?.code).toBe(code);
+      await expect.poll(async () => await readCountry(code), { timeout: 30000 }).toBeNull();
+      expect(await readAnchor(code)).toBeNull();
     } finally {
       await destroyCountry(code);
     }

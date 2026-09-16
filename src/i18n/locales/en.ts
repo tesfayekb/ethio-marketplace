@@ -1781,6 +1781,43 @@ export const en = {
   "admin.countries.error.scopedRolesExist": "Role grants still point at this market.",
   "admin.countries.error.duplicateCategory": "A category appears twice in that order.",
   "admin.countries.error.notARoot": "Only a root category can be ordered on the rail.",
+
+  // L2b-C2 — the Coverage section: how far a seller may reach on each plan.
+  "admin.coverage.caption": "Every plan and how far it reaches",
+  "admin.coverage.loading": "Loading plans\u2026",
+  "admin.coverage.error": "The plans could not be loaded.",
+  "admin.coverage.empty": "There is no plan on record yet.",
+  "admin.coverage.note": "Posting enforces these limits from U6.",
+  "admin.coverage.col.plan": "Plan",
+  "admin.coverage.col.cities": "Cities",
+  "admin.coverage.col.regions": "Regions",
+  "admin.coverage.col.countries": "Countries",
+  "admin.coverage.col.everywhere": "Everywhere",
+  "admin.coverage.col.updated": "Updated",
+  "admin.coverage.everywhere.yes": "Yes",
+  "admin.coverage.everywhere.no": "No",
+  "admin.coverage.everywhere.tipYes": "A seller on this plan may reach every open market at once.",
+  "admin.coverage.everywhere.tipNo":
+    "A seller on this plan chooses places within the limits beside it.",
+  "admin.coverage.create.open": "Add a plan",
+  "admin.coverage.create.title": "Add a plan",
+  "admin.coverage.action.edit": "Edit",
+  "admin.coverage.edit.title": "Edit plan",
+  "admin.coverage.field.plan": "Plan name",
+  "admin.coverage.field.planHint":
+    "Lower-case letters and underscores, 2 to 32 characters, e.g. free.",
+  "admin.coverage.field.cities": "Cities at most",
+  "admin.coverage.field.regions": "Regions at most",
+  "admin.coverage.field.countries": "Countries at most",
+  "admin.coverage.field.everywhere": "Allow everywhere",
+  "admin.coverage.field.limitHint": "At least 1.",
+  "admin.coverage.noDelete": "A plan can be edited, never removed.",
+  "admin.coverage.error.reason": "Reason: {reason}",
+  "admin.coverage.error.denied": "You do not have permission to do that.",
+  "admin.coverage.error.stepUp": "Verify a code and try again.",
+  "admin.coverage.error.unknown": "That could not be saved.",
+  "admin.coverage.error.badPlan": "A plan name is 2 to 32 lower-case letters or underscores.",
+  "admin.coverage.error.belowMinimum": "Every limit is at least 1.",
 } as const;
 
 export default en;
