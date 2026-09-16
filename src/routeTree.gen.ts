@@ -23,6 +23,7 @@ import { Route as ApiTranslateRouteImport } from './routes/api/translate'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AdminPlacesRouteImport } from './routes/admin.places'
 import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
 import { Route as AdminImagesRouteImport } from './routes/admin.images'
 import { Route as AdminCoverageRouteImport } from './routes/admin.coverage'
@@ -114,6 +115,11 @@ const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
 const AdminRolesRoute = AdminRolesRouteImport.update({
   id: '/roles',
   path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPlacesRoute = AdminPlacesRouteImport.update({
+  id: '/places',
+  path: '/places',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminLocationsRoute = AdminLocationsRouteImport.update({
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
+  '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -284,6 +291,7 @@ export interface FileRoutesByTo {
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
+  '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -323,6 +331,7 @@ export interface FileRoutesById {
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
+  '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/admin/coverage'
     | '/admin/images'
     | '/admin/locations'
+    | '/admin/places'
     | '/admin/roles'
     | '/admin/translations'
     | '/admin/users'
@@ -400,6 +410,7 @@ export interface FileRouteTypes {
     | '/admin/coverage'
     | '/admin/images'
     | '/admin/locations'
+    | '/admin/places'
     | '/admin/roles'
     | '/admin/translations'
     | '/admin/users'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/admin/coverage'
     | '/admin/images'
     | '/admin/locations'
+    | '/admin/places'
     | '/admin/roles'
     | '/admin/translations'
     | '/admin/users'
@@ -587,6 +599,13 @@ declare module '@tanstack/react-router' {
       path: '/roles'
       fullPath: '/admin/roles'
       preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/places': {
+      id: '/admin/places'
+      path: '/places'
+      fullPath: '/admin/places'
+      preLoaderRoute: typeof AdminPlacesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/locations': {
@@ -754,6 +773,7 @@ interface AdminRouteChildren {
   AdminCoverageRoute: typeof AdminCoverageRoute
   AdminImagesRoute: typeof AdminImagesRoute
   AdminLocationsRoute: typeof AdminLocationsRoute
+  AdminPlacesRoute: typeof AdminPlacesRoute
   AdminRolesRoute: typeof AdminRolesRoute
   AdminTranslationsRoute: typeof AdminTranslationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -772,6 +792,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCoverageRoute: AdminCoverageRoute,
   AdminImagesRoute: AdminImagesRoute,
   AdminLocationsRoute: AdminLocationsRoute,
+  AdminPlacesRoute: AdminPlacesRoute,
   AdminRolesRoute: AdminRolesRoute,
   AdminTranslationsRoute: AdminTranslationsRoute,
   AdminUsersRoute: AdminUsersRoute,
