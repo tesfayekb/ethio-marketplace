@@ -23,6 +23,7 @@ import {
   openEditor,
   readLocation,
   readLocationTranslations,
+  regionKeyUnder,
   regionUnder,
   scratchSlug,
   treeSlugs,
@@ -98,7 +99,7 @@ test.describe("L2a locations console", () => {
   }) => {
     const plain = await createUser({ confirmed: true });
     await switchUser(page, plain.email, plain.password);
-    await page.goto("/admin/locations");
+    await page.goto("/admin/places");
     await waitForHydration(page);
     await expect(page.getByTestId("location-search")).toHaveCount(0);
     await expect(page.getByTestId("location-create-open")).toHaveCount(0);
@@ -106,10 +107,11 @@ test.describe("L2a locations console", () => {
     const admin = await createUser({ confirmed: true });
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
-    await gotoReady(page, "/admin/locations");
+    await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
 
-    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, await regionKeyUnder("ET"))).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, ANCHOR)).toHaveCount(0);
     const toolbar = page.getByTestId("data-table-toolbar");
     await expect(toolbar).toBeVisible();
     await expect(toolbar.getByTestId("location-toolbar-transfer")).toBeVisible();
@@ -140,12 +142,10 @@ test.describe("L2a locations console", () => {
         });
       if (error) throw new Error(`[e2e:l2a] seeding LT-2 failed: ${error.message}`);
 
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
-      await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
-      await expect(
-        locationRow(page, ANCHOR).getByTestId(`location-${ANCHOR}-status`),
-      ).toBeVisible();
+      await expect(locationRow(page, `${ANCHOR}/${region.slug}`)).toBeVisible({ timeout: 20000 });
+      await expect(locationRow(page, ANCHOR)).toHaveCount(0);
 
       // (i) the primitive's own scroller does not scroll sideways …
       const scroller = await page.evaluate(() => {
@@ -203,13 +203,16 @@ test.describe("L2a locations console", () => {
     const subSlug = scratchSlug("lt3s");
 
     try {
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
-      await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+      await expect(locationRow(page, ANCHOR)).toHaveCount(0);
 
-      // A region under the ET anchor, through the editor's create-child verb.
-      await openVerb(page, ANCHOR, "create-child");
+      // A region under the hidden ET anchor, through the header's parent picker.
+      await page.getByTestId("location-create-open").click();
       await expect(page.getByTestId("location-create-dialog")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("location-create-parent")).toHaveValue(
+        (await anchorOf("ET")).id,
+      );
       await page.getByTestId("location-create-name").fill(regionSlug);
       await page.getByTestId("location-create-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -333,7 +336,7 @@ test.describe("L2a locations console", () => {
       });
       if (cityError) throw new Error(`[e2e:l2a] seeding LT-4 city failed: ${cityError.message}`);
 
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
       // The public route caches a country for its version TTL, so a freshly
       // seeded branch appears on the far side of it: poll for the branch FIRST,
@@ -401,7 +404,7 @@ test.describe("L2a locations console", () => {
         is_active: false,
       });
 
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
       const regionKey = `${ANCHOR}/${regionSlug}`;
       const cityKey = `${regionKey}/${citySlug}`;
@@ -484,7 +487,7 @@ test.describe("L2a locations console", () => {
       const weak = await createUser({ confirmed: true });
       await grantRole(weak.id, "super_admin");
       await switchUser(page, weak.email, weak.password);
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
 
       const cityKey = `${ANCHOR}/${regionA}/${citySlug}`;
@@ -502,7 +505,7 @@ test.describe("L2a locations console", () => {
 
       // Prove the factor; the same move now succeeds and the ancestry follows.
       const secret = await enrollAndStepUp(page);
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
       await openVerb(page, cityKey, "move", citySlug);
       await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
@@ -539,9 +542,9 @@ test.describe("L2a locations console", () => {
     ];
 
     try {
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
-      await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+      await expect(locationRow(page, ANCHOR)).toHaveCount(0);
       await page.getByTestId("location-import").click();
       await expect(page.getByTestId("location-import-dialog")).toBeVisible({ timeout: 20000 });
 
@@ -652,7 +655,7 @@ test.describe("L2a locations console", () => {
 
       // A second undo of the same batch is refused by name.
       await page.getByTestId("location-import-close").click();
-      await expect(actionsOf(page, ANCHOR)).toBeVisible();
+      await expect(locationRow(page, `${ANCHOR}/${regionSlug}`)).toBeVisible();
     } finally {
       await destroyLocation(regionSlug);
     }
@@ -680,7 +683,7 @@ test.describe("L2a locations console", () => {
         });
       if (error) throw new Error(`[e2e:l2a] seeding LT-7b failed: ${error.message}`);
 
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
       const key = `${ANCHOR}/${region.slug}/${slug}`;
       await findRow(page, key, slug);
@@ -724,12 +727,12 @@ test.describe("L2a locations console", () => {
       });
       if (error) throw new Error(`[e2e:l2a] seeding LT-8 failed: ${error.message}`);
 
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
       const cityKey = `${ANCHOR}/${region.slug}/${slug}`;
 
-      for (const key of [ANCHOR, cityKey]) {
-        await findRow(page, key, key === ANCHOR ? ANCHOR : slug);
+      for (const key of [`${ANCHOR}/${region.slug}`, cityKey]) {
+        await findRow(page, key, key === cityKey ? slug : region.slug);
         await openEditor(page, key);
         const bar = page.getByTestId("location-verb-bar");
         await expect(bar).toBeVisible();
@@ -765,13 +768,15 @@ test.describe("L2a locations console", () => {
   }) => {
     test.skip(isCardTwin(page), "the table twin only exists above the card boundary");
     await useJobSuperAdmin(page);
-    await gotoReady(page, "/admin/locations");
+    await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
-    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+    const regionKey = await regionKeyUnder("ET");
+    await expect(locationRow(page, regionKey)).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, ANCHOR)).toHaveCount(0);
 
     await expect(page.getByRole("table")).toBeVisible();
-    await expect(actionsOf(page, ANCHOR)).toBeVisible();
-    await expect(editButton(page, ANCHOR)).toBeVisible();
+    await expect(actionsOf(page, regionKey)).toBeVisible();
+    await expect(editButton(page, regionKey)).toBeVisible();
     await expect(page.getByTestId("location-pagination-range")).toBeVisible();
     await expect(page.getByTestId("location-page-size")).toHaveValue("25");
     await expectNoHorizontalOverflow(page);
@@ -782,17 +787,24 @@ test.describe("L2a locations console", () => {
   }) => {
     test.skip(!isCardTwin(page), "the card twin only exists below the card boundary");
     await useJobSuperAdmin(page);
-    await gotoReady(page, "/admin/locations");
+    await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
-    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+    const regionKey = await regionKeyUnder("ET");
+    await expect(locationRow(page, regionKey)).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, ANCHOR)).toHaveCount(0);
 
     await expect(page.getByTestId("data-table-cards")).toBeVisible();
-    await expect(editButton(page, ANCHOR)).toBeVisible();
+    await expect(editButton(page, regionKey)).toBeVisible();
     // Structure, not words (J5): the card carries the row's badges and the
     // icon sits in the card's own actions region beside them.
-    await expect(locationRow(page, ANCHOR).getByTestId(`location-${ANCHOR}-status`)).toBeVisible();
-    await expect(locationRow(page, ANCHOR).getByTestId(`location-${ANCHOR}-level`)).toBeVisible();
-    await expect(actionsOf(page, ANCHOR)).toBeVisible();
+    const testid = regionKey.replace(/\//g, "__");
+    await expect(
+      locationRow(page, regionKey).getByTestId(`location-${testid}-status`),
+    ).toBeVisible();
+    await expect(
+      locationRow(page, regionKey).getByTestId(`location-${testid}-level`),
+    ).toBeVisible();
+    await expect(actionsOf(page, regionKey)).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
@@ -816,7 +828,7 @@ test.describe("L2a locations console", () => {
       });
       if (error) throw new Error(`[e2e:l2a] seeding LT-10 failed: ${error.message}`);
 
-      await gotoReady(page, "/admin/locations");
+      await gotoReady(page, "/admin/places");
       await selectMarket(page, "ET");
       const key = `${ANCHOR}/${region.slug}/${slug}`;
       const row = await findRow(page, key, slug);
@@ -830,11 +842,11 @@ test.describe("L2a locations console", () => {
         "outline",
       );
 
-      const anchorRow = await findRow(page, ANCHOR, ANCHOR);
-      await expect(anchorRow.getByTestId(`location-${ANCHOR}-status`)).toHaveAttribute(
-        "data-tone",
-        "secondary",
-      );
+      const regionKey = `${ANCHOR}/${region.slug}`;
+      const activeRow = await findRow(page, regionKey, region.slug);
+      await expect(
+        activeRow.getByTestId(`location-${regionKey.replace(/\//g, "__")}-status`),
+      ).toHaveAttribute("data-tone", "secondary");
     } finally {
       await destroyLocation(slug);
     }
@@ -850,9 +862,10 @@ test.describe("L2a locations console", () => {
       await route.continue();
     });
 
-    await gotoReady(page, "/admin/locations");
+    await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
-    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, await regionKeyUnder("ET"))).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, ANCHOR)).toHaveCount(0);
     const afterLoad = reads;
     expect(afterLoad, "the roster was never read").toBeGreaterThan(0);
 
@@ -892,9 +905,10 @@ test.describe("L2a locations console", () => {
       await route.fulfill({ status: 200, contentType: "text/csv", body: "scope\n" });
     });
 
-    await gotoReady(page, "/admin/locations");
+    await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
-    await expect(locationRow(page, ANCHOR)).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, await regionKeyUnder("ET"))).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, ANCHOR)).toHaveCount(0);
     await page.getByTestId("location-export-locations").click();
     await expect.poll(() => exportScopes.at(-1), { timeout: 10000 }).toBe("ET");
 
@@ -931,7 +945,7 @@ test.describe("L2a locations console", () => {
       await route.fulfill({ status: 200, contentType: "text/csv", body: "scope\n" });
     });
 
-    await gotoReady(page, "/admin/locations");
+    await gotoReady(page, "/admin/places");
     const picker = page.getByTestId("location-country-filter");
     await expect(picker).toHaveValue("");
     const first = await picker.locator("option").evaluateAll((options) => {
@@ -943,13 +957,14 @@ test.describe("L2a locations console", () => {
     expect(first?.value, "the picker's first option is not the all-countries scope").toBe("");
     expect(first?.text).toBe(en["admin.locations.filter.all"]);
 
-    // Rows from BOTH open markets stand in the one roster (DB truth for the
-    // two anchors, never a hard-coded slug).
+    // Regions from BOTH open markets stand in the one roster; anchors do not.
     await page.getByTestId("location-active-filter").selectOption("active");
     const et = await anchorOf("ET");
     const us = await anchorOf("US");
-    await expect(locationRow(page, et.slug)).toBeVisible({ timeout: 20000 });
-    await expect(locationRow(page, us.slug)).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, await regionKeyUnder("ET"))).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, await regionKeyUnder("US"))).toBeVisible({ timeout: 20000 });
+    await expect(locationRow(page, et.slug)).toHaveCount(0);
+    await expect(locationRow(page, us.slug)).toHaveCount(0);
 
     // The transfer group is unscoped, and the import dialog says so.
     await expect(page.getByTestId("location-transfer-scope")).toHaveText(
@@ -965,5 +980,58 @@ test.describe("L2a locations console", () => {
         .getByRole("heading", { name: en["admin.locations.import.titleAll"] }),
     ).toBeVisible();
     await page.getByTestId("location-import-discard").click();
+  });
+
+  test("LT-14 market state and whole-country parent follow the selected market", async ({
+    page,
+  }) => {
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/places");
+
+    await selectMarket(page, "ET");
+    await expect(page.getByTestId("location-market-state")).toHaveText(
+      en["admin.locations.market.open"].replace("{country}", "Ethiopia"),
+    );
+    await page.getByTestId("location-create-open").click();
+    const etAnchor = await anchorOf("ET");
+    const firstParent = await page.getByTestId("location-create-parent").evaluate((select) => {
+      if (!(select instanceof HTMLSelectElement)) throw new Error("parent control is not a select");
+      const option = select.options.item(0);
+      return option === null
+        ? null
+        : { value: option.value, text: option.textContent?.trim() ?? "" };
+    });
+    expect(firstParent).toEqual({
+      value: etAnchor.id,
+      text: en["admin.locations.create.parentCountry"].replace("{country}", "Ethiopia"),
+    });
+    await page.getByTestId("location-dialog-cancel").click();
+
+    await selectMarket(page, "CA");
+    await expect(page.getByTestId("location-market-state")).toHaveText(
+      en["admin.locations.market.closed"].replace("{country}", "Canada"),
+    );
+  });
+
+  test("OV-1 overview totals, links and group breadcrumbs", async ({ page }) => {
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/locations");
+    await expect(page.getByTestId("admin-overview-locations")).toBeVisible({ timeout: 20000 });
+    for (const id of ["markets", "places", "plans"]) {
+      await expect(page.getByTestId(`overview-stat-${id}`)).toContainText(/\d/);
+      await expect(
+        page.getByTestId(
+          `overview-link-${id === "markets" ? "countries" : id === "plans" ? "coverage" : "locations"}`,
+        ),
+      ).toBeVisible();
+    }
+    await expect(page.getByTestId("breadcrumb-admin-group")).not.toHaveAttribute("href");
+
+    await page.getByTestId("overview-link-locations").click();
+    await expect(page).toHaveURL(/\/admin\/places$/);
+    await expect(page.getByTestId("breadcrumb-admin-group")).toHaveAttribute(
+      "href",
+      "/admin/locations",
+    );
   });
 });

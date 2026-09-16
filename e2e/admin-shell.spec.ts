@@ -331,8 +331,12 @@ test.describe("Admin shell (U0)", () => {
       en[visible[0]!.titleKey],
     );
 
-    const locations = scope.getByTestId("admin-group-locations");
+    const locationsScope = isMobile(page)
+      ? await openRailScope(page)
+      : page.getByTestId("app-rail");
+    const locations = locationsScope.getByTestId("admin-group-locations");
     await expect(locations).toHaveAttribute("href", "/admin/locations");
+    if (isMobile(page)) await page.keyboard.press("Escape");
 
     // GATED PER SUB-ITEM: a moderator sees neither the group nor its members,
     // and every grouped deep link is refused to the landing with the notice.

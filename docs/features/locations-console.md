@@ -1,18 +1,19 @@
 # Locations console
 
-Landed at LOCATIONS ERA **L2a**. The admin surface over the geography tree:
-`/admin/locations`, gated on `locations:view`, rendered inside `<StepUpGate>`
+Landed at LOCATIONS ERA **L2a**, corrected at **L2c**. The admin surface over the geography tree:
+`/admin/places`, gated on `locations:view`, rendered inside `<StepUpGate>`
 with the root test id `admin-section-locations`.
 
 There are no tabs. One roster holds the location tree and its toolbar holds both
 the find and transfer controls.
 
-**L2b-C1** — the section is now called **Places** and sits inside the
-**Locations** rail group together with **Countries**
+**L2c** — the section is called **Places** and sits inside the clickable
+**Locations** rail group at `/admin/locations`, together with **Countries**
 (`docs/features/countries-console.md`) and **Coverage**, whose roster and editor
 arrive at L2b-C2; its route renders the section register's own body line until
-then. The markets file and its picker LEFT this toolbar for the Countries
-section: places transfer alone here.
+then. The group page is an overview of market, place and plan totals, with links
+filtered by the operator's permissions. The markets file and its picker LEFT
+this toolbar for the Countries section: places transfer alone here.
 
 ## The roster toolbar
 
@@ -37,6 +38,13 @@ carrying its country name. Then come the open markets A–Z, then the closed one
 A–Z. A closed option carries the translated suffix (`Canada · closed`) because a
 native select cannot render a badge.
 
+Country anchors are ancestry and creation-parent records, not places an operator
+edits. They never appear in this roster and no Places verb can open, move,
+retire or delete one. With one market selected, `location-market-state` says
+whether it is open or closed; opening and closing a market belongs only to
+Countries. The create dialog keeps that hidden anchor as its first parent,
+labelled `<Country> — whole country`, so regions can still be created.
+
 With **All countries** selected, the transfer group carries NO scope: the export
 URL omits `scope`, the caption reads "For all countries" and the import dialog is
 titled "Import into all countries". The create dialog's parent picker then offers
@@ -58,7 +66,10 @@ alias count and ISO code (wide). No `minWidth` anywhere (C7).
 
 Tones come from the shared `TipBadge` primitive: active = `secondary`,
 retired = `destructive`, level = `outline`, each carrying `data-tone` so a test
-asserts the meaning and never a colour (J5).
+asserts the meaning and never a colour (J5). Their title text and the
+`location-legend` explain the vocabulary: active places are offered in pickers
+and feeds; retired places are hidden but retained because listings may still
+point at them.
 
 ## The editor is the row's one surface
 
@@ -75,8 +86,8 @@ the fields, `location-editor-save`, and then the **verb bar**
 | ----------------- | ------------------------------------------------- | -------------------------------------------------------------- |
 | Create child      | `location-verb-create-child`                      | Absent on sub-city rows — depth 4 is the floor                 |
 | Activate / retire | `location-verb-activate` / `location-verb-retire` | One state-dependent verb                                       |
-| Move              | `location-verb-move`                              | Absent on the country anchor                                   |
-| Reorder           | `location-verb-reorder`                           | Disabled for country rows (`orderCountriesInProfile`)          |
+| Move              | `location-verb-move`                              | A country anchor never enters this editor                      |
+| Reorder           | `location-verb-reorder`                           | Country anchors are absent from the roster                     |
 | Delete            | `location-verb-delete`                            | Destructive; disabled with the reason in `location-verb-error` |
 
 A blocked verb says why beside the bar in words (`location-verb-error`, F4) —
@@ -187,7 +198,9 @@ sentence that names where it belongs.
 | LT-10 | Tones — retired = `destructive`, active = `secondary`, level = `outline`, asserted by `data-tone`                                      |
 | LT-11 | One read: typing and the level/status filters cost zero requests; switching the country costs exactly one                              |
 | LT-12 | Transfer scope — export URLs carry the selected country, closed options carry the locale suffix, and the import title names its scope  |
-| LT-13 | All countries — the picker opens on it, the roster spans both open markets, and the transfer group carries no scope                    |
+| LT-13 | All countries — the picker opens on it, regions span both open markets, anchors are absent, and transfer carries no scope              |
+| LT-14 | Market state — Ethiopia reads open, Canada reads closed, and the first create parent is the whole-country anchor                       |
+| OV-1  | Overview — three numeric summaries, permission-filtered links, and group/current breadcrumb behaviour                                  |
 
 Scratch rows carry the `e2e-` slug prefix (J1) and are destroyed child-first in
 `finally` (J3). `e2e/global-setup.ts` reaps stale scratch geography by **slug**

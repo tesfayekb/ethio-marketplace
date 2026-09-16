@@ -215,6 +215,12 @@ export async function regionUnder(countryCode: string) {
   return data;
 }
 
+/** The rendered key of one stable region; country anchors themselves stay hidden. */
+export async function regionKeyUnder(countryCode: string) {
+  const [anchor, region] = await Promise.all([anchorOf(countryCode), regionUnder(countryCode)]);
+  return `${anchor.slug}/${region.slug}`;
+}
+
 /** The market anchor row (level `country`) of a market. */
 export async function anchorOf(countryCode: string) {
   const { data, error } = await adminClient()

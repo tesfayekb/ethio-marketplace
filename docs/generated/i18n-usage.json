@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 245,
-  "dynamicCallSites": 152,
+  "scanned": 247,
+  "dynamicCallSites": 157,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -734,14 +734,14 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.countriesHint": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.open": [
       "/admin/categories"
@@ -751,98 +751,98 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.parentRoot": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.position": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.positionBefore": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.positionCount": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.positionEnd": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.slugPreview": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.create.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.delete.confirm": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.delete.confirmLabel": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.delete.hint": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.delete.mismatch": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.delete.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.edit.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.empty": [
       "/admin/categories"
@@ -855,56 +855,56 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.error.nameRequired": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.error.parentRequired": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.error.reassignRequired": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.error.saveFailed": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.exclusions.current": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.exclusions.hint": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.exclusions.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.export.busy": [
       "/admin/categories"
@@ -920,70 +920,70 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.expiryDays": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.expiryNone": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.icon": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.iconChange": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.iconHint": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.name": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.order": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.orderManaged": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.field.priceEnabled": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.filter.allCategories": [
       "/admin/categories"
@@ -1009,98 +1009,98 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.acceptToast": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.accepted": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.busy": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.card": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.empty": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.generate": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.loading": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.og": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.regenerate": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.review": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.stageLabel": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.thumb": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.image.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.import.open": [
       "/admin/categories"
@@ -1119,154 +1119,154 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.addSubmit": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.empty": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.error": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.hint": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.loading": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.moveTo": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.primary": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.primaryTip": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.remove": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.root": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.paths.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.pointer.hint": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.pointer.parent": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.pointer.parentPlaceholder": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.pointer.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.retire.confirm": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.retire.hint": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.retire.noListings": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.retire.reassignCount": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.retire.reassignPlaceholder": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.retire.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.searchPlaceholder": [
       "/admin/categories"
@@ -1303,28 +1303,28 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.window.hint": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.window.title": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.categories.window.until": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.comingSoon": [
       "/admin/images"
@@ -1360,21 +1360,6 @@
       "/admin/countries"
     ],
     "admin.countries.col.updated": [
-      "/admin/countries"
-    ],
-    "admin.countries.create.bornClosed": [
-      "/admin/countries"
-    ],
-    "admin.countries.create.code": [
-      "/admin/countries"
-    ],
-    "admin.countries.create.codeHint": [
-      "/admin/countries"
-    ],
-    "admin.countries.create.open": [
-      "/admin/countries"
-    ],
-    "admin.countries.create.title": [
       "/admin/countries"
     ],
     "admin.countries.edit.title": [
@@ -1464,6 +1449,12 @@
     "admin.countries.searchPlaceholder": [
       "/admin/countries"
     ],
+    "admin.countries.tip.closed": [
+      "/admin/countries"
+    ],
+    "admin.countries.tip.open": [
+      "/admin/countries"
+    ],
     "admin.coverage.action.edit": [
       "/admin/coverage"
     ],
@@ -1537,86 +1528,89 @@
       "/admin"
     ],
     "admin.locations.action.deleteBlocked": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.action.edit": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.caption": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.col.aliases": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.col.counts": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.col.iso": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.col.name": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.col.order": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.col.path": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.col.status": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.counts.hint": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.create.bornRetired": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.create.level": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.create.open": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.create.parent": [
-      "/admin/locations"
+      "/admin/places"
+    ],
+    "admin.locations.create.parentCountry": [
+      "/admin/places"
     ],
     "admin.locations.create.slugPreview": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.create.title": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.delete.confirm": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.delete.confirmLabel": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.delete.hint": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.delete.title": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.edit.title": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.edit.translationsLink": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.empty": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.error": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.error.reason": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.export.busy": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.export.countries": [
       "/admin/countries"
@@ -1626,147 +1620,153 @@
     ],
     "admin.locations.export.error": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.export.locations": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.export.locationsHint": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.aliasAdd": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.aliasRemove": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.aliases": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.aliasesHint": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.centerLat": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.centerLng": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.centerOptional": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.centerRequired": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.iso": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.name": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.order": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.readOnlyLevel": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.slug": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.field.slugHint": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.activeOnly": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.all": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.allLevels": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.allStatuses": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.closedSuffix": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.country": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.level": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.pageSize": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.retiredOnly": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.filter.status": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.import.open": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.import.titleAll": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.import.titleScoped": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.loading": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.move.hint": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.move.noTargets": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.move.parent": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.move.submit": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.move.title": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.reorder.down": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.reorder.hint": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.reorder.submit": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.reorder.title": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.reorder.up": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.searchPlaceholder": [
       "/admin/countries",
-      "/admin/locations"
+      "/admin/places"
+    ],
+    "admin.locations.tip.active": [
+      "/admin/places"
+    ],
+    "admin.locations.tip.retired": [
+      "/admin/places"
     ],
     "admin.locations.transfer.scope": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.locations.transfer.scopeAll": [
-      "/admin/locations"
+      "/admin/places"
     ],
     "admin.nav.label": [
       "/admin"
@@ -1776,6 +1776,42 @@
     ],
     "admin.noSections.title": [
       "/admin"
+    ],
+    "admin.overview.error": [
+      "/admin/locations"
+    ],
+    "admin.overview.links": [
+      "/admin/locations"
+    ],
+    "admin.overview.loading": [
+      "/admin/locations"
+    ],
+    "admin.overview.locations.body": [
+      "/admin/locations"
+    ],
+    "admin.overview.locations.title": [
+      "/admin/locations"
+    ],
+    "admin.overview.markets": [
+      "/admin/locations"
+    ],
+    "admin.overview.markets.caption": [
+      "/admin/locations"
+    ],
+    "admin.overview.places": [
+      "/admin/locations"
+    ],
+    "admin.overview.places.caption": [
+      "/admin/locations"
+    ],
+    "admin.overview.plans": [
+      "/admin/locations"
+    ],
+    "admin.overview.plans.caption": [
+      "/admin/locations"
+    ],
+    "admin.overview.stats": [
+      "/admin/locations"
     ],
     "admin.roles.col.display": [
       "/admin/roles"
@@ -2815,7 +2851,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/dev/primitives"
     ],
     "common.close": [
@@ -2826,7 +2862,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -2860,7 +2896,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/dev/primitives"
     ],
     "common.tryAgain": [
@@ -3045,7 +3081,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -3058,7 +3094,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -3107,7 +3143,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -3119,7 +3155,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -3131,7 +3167,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -3143,7 +3179,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -3156,7 +3192,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -3168,7 +3204,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
@@ -3234,7 +3270,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/translations",
       "/admin/translations/$lang",
@@ -3248,7 +3284,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/translations",
       "/admin/translations/$lang",
@@ -3262,7 +3298,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/translations",
       "/admin/translations/$lang",
@@ -3276,7 +3312,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/translations",
       "/admin/translations/$lang",
@@ -3290,7 +3326,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/translations",
       "/admin/translations/$lang",
@@ -3304,7 +3340,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/translations",
       "/admin/translations/$lang",
@@ -3318,7 +3354,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/translations",
       "/admin/translations/$lang",
@@ -3342,7 +3378,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
-      "/admin/locations",
+      "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
       "/admin/translations",
