@@ -20,10 +20,12 @@ import { adminClient, createUser } from "./helpers/users";
  * client, never a rendered summary (J4). Anchors: structure and testids, never
  * English text, and tones by attribute (J5).
  *
- * FIXTURES (J1) — `free` is a REAL reference row, so CV-3 restores it in
- * `finally` rather than leaving it edited; CV-5's own plan carries the
- * `e_probe_` prefix and is deleted in `finally` (J3). The door's own shape is
- * `^[a-z_]{2,32}$`, so the axes are spelled in letters, never digits.
+ * FIXTURES (J1 / J3, R-CV) — `free` is a REAL reference row, so NO test mutates
+ * it: CV-2 and CV-6 only READ it, while CV-3, CV-4 and CV-5 each seed their OWN
+ * plan through the service client and delete it in `finally`. Every scratch plan
+ * carries the `e_probe_` prefix and is namespaced run × worker × project × test,
+ * so both twins run every case at once (J6 needs no single-project fence here).
+ * The door's shape is `^[a-z_]{2,32}$`, so the axes are spelled in letters.
  */
 
 const TWIN_BOUNDARY = 1024;
