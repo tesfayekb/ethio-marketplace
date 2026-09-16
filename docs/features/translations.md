@@ -976,3 +976,13 @@ before the roster read and are byte-identical afterwards (transient `e2e_attr_`
 / `e2e-cat-` records excluded, J6, as AT-20's invariant excludes them). Entity
 rows resolve through the shared `entityRow(page, stem)` twin helper; TR-14,
 TR-24 and TR-26 keep their exact structural anchors.
+
+## Bulk AI fill — a failed chunk (INC-207)
+
+The bulk bar sweeps the untranslated rows in chunks. A chunk whose call THROWS is
+retried ONCE; if it throws again, every key of that chunk lands in the summary's
+failed list with the server's own words as the reason, progress advances and the
+sweep continues. The summary therefore ALWAYS renders at the end of a run — a
+transient failure can never leave it null (F4). A permission or step-up refusal
+raised before the sweep keeps its own error path in `ai-bulk-error`, and TR-12
+waits on either the summary or that error, failing with its text.

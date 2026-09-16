@@ -12,8 +12,8 @@ const LINKS = [
     permission: "locations:view",
     path: "/admin/places",
     key: "locations",
-    titleKey: "admin.section.locations.title",
-    bodyKey: "admin.section.locations.body",
+    titleKey: "admin.section.places.title",
+    bodyKey: "admin.section.places.body",
   },
   {
     permission: "countries:view",

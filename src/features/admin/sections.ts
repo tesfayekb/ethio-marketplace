@@ -74,8 +74,8 @@ export const ADMIN_SECTIONS = [
     id: "locations",
     path: "/admin/places",
     permission: "locations:view",
-    titleKey: "admin.section.locations.title",
-    bodyKey: "admin.section.locations.body",
+    titleKey: "admin.section.places.title",
+    bodyKey: "admin.section.places.body",
     group: "locations",
   },
   {

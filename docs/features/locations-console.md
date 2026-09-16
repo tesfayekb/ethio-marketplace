@@ -17,7 +17,21 @@ this toolbar for the Countries section: places transfer alone here.
 
 ## The roster toolbar
 
-The toolbar (`location-toolbar-find`) carries four filters and the page-size
+L2d — the toolbar takes the CATEGORIES SHAPE. Its groups are DIRECT children of
+the primitive's own toolbar row: the find group (`location-toolbar-find`) first,
+the transfer group (`location-toolbar-transfer`) last, then the market-state line
+and the legend wrapping beneath on every width. No control carries a visible
+label element: the search shows the translated hint as its placeholder, each
+select names itself through `aria-label` and through a first option that carries
+its field ("Level: all levels"), so 360px reads as one wrapping row rather than a
+stack of labelled boxes.
+
+A renamed UI string gets a NEW key from L2d on: an approved `ui_translations` row
+for the old key would otherwise shadow the file forever (D3). That is why the
+option labels live on `admin.locations.filter.*Option` keys and the section
+title/body moved to `admin.section.places.*`.
+
+The find group carries four filters and the page-size
 control. **One read per country** (L2a-R): `admin_list_locations` is called with
 `p_country_code` alone, and search, level and status sieve that roster in the
 browser. Switching the country is the only control that fetches — a keystroke
@@ -51,10 +65,11 @@ titled "Import into all countries". The create dialog's parent picker then offer
 every market's anchor — closed ones suffixed — so a place can be prepared before
 its market opens.
 
-The same DataTable toolbar then carries `location-toolbar-transfer`, after the
-find group, with Download countries, Download places and Import. Its visible
-`location-transfer-scope` caption says `For <country>` so the target is never
-ambiguous. The groups wrap; there is no horizontal width override.
+The same DataTable toolbar row then carries `location-toolbar-transfer` as its
+last group, with Download places and **Import places**. Its inline
+`location-transfer-scope` caption reads `For <country> ·` BEFORE the buttons it
+governs, so the target is never ambiguous. The groups wrap; there is no
+horizontal width override.
 
 The roster is one `DataTable<LocationRow>` with `cardUntil="lg"`, keyed by row
 id, with the row test id `location-<key>` where the key is the **slash path** of

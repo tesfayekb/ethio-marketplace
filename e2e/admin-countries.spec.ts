@@ -97,6 +97,20 @@ test.describe("L2b countries console", () => {
     await page.getByTestId("country-status-filter").selectOption("closed");
     await expect(countryRow(page, "ET")).toHaveCount(0);
     await expect(countryRow(page, "US")).toHaveCount(0);
+
+    // L2d — the categories SHAPE, asserted on structure, never on English text.
+    const row = page.getByTestId("country-toolbar-find").locator("..");
+    await expect(row.locator("> [data-testid='country-toolbar-find']")).toHaveCount(1);
+    await expect(row.locator("> [data-testid='country-toolbar-transfer']")).toHaveCount(1);
+    await expect(row.locator("label")).toHaveCount(0);
+    const unlabelled = await row
+      .locator("select")
+      .evaluateAll((nodes) => nodes.filter((node) => !node.getAttribute("aria-label")).length);
+    expect(unlabelled, "a toolbar select carries no aria-label").toBe(0);
+    const last = await row.evaluate(
+      (node) => node.lastElementChild?.getAttribute("data-testid") ?? "",
+    );
+    expect(last, "the legend is not the toolbar's last child").toBe("country-legend");
     await expectNoHorizontalOverflow(page);
   });
 

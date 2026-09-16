@@ -310,7 +310,13 @@ export function AdminLocationsPage() {
               <p className="text-sm text-muted-foreground">{t("admin.locations.empty")}</p>
             }
             toolbar={
-              <div className="flex min-w-0 flex-wrap items-end gap-3">
+              /**
+               * L2d — THE TOOLBAR READS IN GROUPS (the categories shape): the
+               * find group and the transfer group are DIRECT children of the
+               * primitive's own toolbar row, the market state and the legend
+               * wrap beneath them on every width. No stacked labels (C1).
+               */
+              <>
                 <LocationsToolbar
                   markets={markets}
                   country={country}
@@ -340,29 +346,18 @@ export function AdminLocationsPage() {
                     window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
                   }}
                 />
-                {selectedMarket ? (
-                  <p
-                    className="w-full text-sm text-muted-foreground"
-                    data-testid="location-market-state"
-                  >
-                    {t(
-                      selectedMarket.isActive
-                        ? "admin.locations.market.open"
-                        : "admin.locations.market.closed",
-                    ).replace("{country}", selectedMarket.nameEn)}
-                  </p>
-                ) : null}
                 <div
                   data-testid="location-toolbar-transfer"
-                  className="flex min-w-0 flex-wrap items-center gap-2"
+                  className="flex flex-wrap items-center gap-2"
                 >
+                  {/* The scope reads INLINE, before the buttons it governs. */}
                   <span
-                    className="w-full text-sm text-muted-foreground"
+                    className="text-sm text-muted-foreground"
                     data-testid="location-transfer-scope"
                   >
                     {country === ""
-                      ? t("admin.locations.transfer.scopeAll")
-                      : t("admin.locations.transfer.scope").replace("{country}", countryName)}
+                      ? `${t("admin.locations.transfer.scopeAll")} ·`
+                      : `${t("admin.locations.transfer.scope").replace("{country}", countryName)} ·`}
                   </span>
                   <Button
                     type="button"
@@ -389,7 +384,7 @@ export function AdminLocationsPage() {
                       onClick={() => open({ kind: "import" })}
                     >
                       <Upload aria-hidden="true" className="size-4" />
-                      <span>{t("admin.locations.import.open")}</span>
+                      <span>{t("admin.locations.import.openPlaces")}</span>
                     </Button>
                   ) : null}
                   {exportError ? (
@@ -402,10 +397,26 @@ export function AdminLocationsPage() {
                     </p>
                   ) : null}
                 </div>
-                <p className="w-full text-sm text-muted-foreground" data-testid="location-legend">
+                {selectedMarket ? (
+                  <p
+                    className="basis-full text-xs text-muted-foreground"
+                    data-testid="location-market-state"
+                  >
+                    {t(
+                      selectedMarket.isActive
+                        ? "admin.locations.market.open"
+                        : "admin.locations.market.closed",
+                    ).replace("{country}", selectedMarket.nameEn)}
+                  </p>
+                ) : null}
+                {/* The legend wraps UNDER everything, on every width. */}
+                <p
+                  className="basis-full text-xs text-muted-foreground"
+                  data-testid="location-legend"
+                >
                   {`${t("admin.locations.tip.active")} ${t("admin.locations.tip.retired")}`}
                 </p>
-              </div>
+              </>
             }
             rowActions={rowActions}
             page={page}

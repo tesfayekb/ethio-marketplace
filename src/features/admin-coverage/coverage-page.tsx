@@ -8,6 +8,7 @@ import {
 } from "@/components/shell/data-table";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n } from "@/i18n";
@@ -46,8 +47,14 @@ export function AdminCoveragePage() {
   const [page, setPage] = useState(0);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
 
-  const rows = useMemo(() => query.data ?? [], [query.data]);
-  const byPlan = useMemo(() => new Map(rows.map((row) => [row.plan, row])), [rows]);
+  const [search, setSearch] = useState("");
+  const all = useMemo(() => query.data ?? [], [query.data]);
+  /** The one read is sieved in the browser: a keystroke costs nothing (G2). */
+  const rows = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return needle === "" ? all : all.filter((row) => row.plan.toLowerCase().includes(needle));
+  }, [all, search]);
+  const byPlan = useMemo(() => new Map(all.map((row) => [row.plan, row])), [all]);
   const selected = dialog.kind === "editor" ? (byPlan.get(dialog.plan) ?? null) : null;
 
   const open = (next: Dialog) => setDialog(next);
@@ -153,10 +160,7 @@ export function AdminCoveragePage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-coverage" className="min-w-0 space-y-4">
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-            <p className="min-w-0 text-sm text-muted-foreground" data-testid="coverage-note">
-              {t("admin.coverage.note")}
-            </p>
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-3">
             {mayUpdate ? (
               <Button
                 type="button"
@@ -187,6 +191,35 @@ export function AdminCoveragePage() {
             }
             emptyState={
               <p className="text-sm text-muted-foreground">{t("admin.coverage.empty")}</p>
+            }
+            toolbar={
+              /**
+               * L2d — the categories shape: the find group is a DIRECT child of
+               * the primitive's toolbar row with no visible label above it, and
+               * the note wraps beneath as the legend. Coverage has no transfer
+               * door, so the find group is the only group.
+               */
+              <>
+                <div
+                  className="flex flex-wrap items-center gap-2"
+                  data-testid="coverage-toolbar-find"
+                >
+                  <Input
+                    data-testid="coverage-search"
+                    className="md:w-72"
+                    aria-label={t("admin.coverage.filter.search")}
+                    placeholder={t("admin.coverage.searchPlaceholder")}
+                    value={search}
+                    onChange={(event) => {
+                      setSearch(event.target.value);
+                      setPage(0);
+                    }}
+                  />
+                </div>
+                <p className="basis-full text-xs text-muted-foreground" data-testid="coverage-note">
+                  {t("admin.coverage.note")}
+                </p>
+              </>
             }
             rowActions={rowActions}
             page={page}

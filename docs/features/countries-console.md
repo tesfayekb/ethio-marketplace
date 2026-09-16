@@ -23,11 +23,19 @@ request (G2).
 | Roles scoped          | detail    | Country-scoped role grants                                                 |
 | Updated               | wide      | The row's own `updated_at` day                                             |
 
-The toolbar carries the find group (`country-toolbar-find`: search, status,
-rows per page) and the TRANSFER group inside the same toolbar
-(`country-toolbar-transfer`): `country-export` downloads the markets file and
-`country-import` opens the shared import dialog with the markets file alone. A
-markets file names its own countries, so it is never scoped.
+L2d — the toolbar takes the CATEGORIES SHAPE: its groups are DIRECT children of
+the primitive's toolbar row and the legend wraps beneath. The find group
+(`country-toolbar-find`: search, status, rows per page) comes first, with no
+visible label element — the search shows its hint as a placeholder and each
+select names itself through `aria-label` and a first option carrying its field
+("Status: open and closed"). The TRANSFER group (`country-toolbar-transfer`) is
+the last group: an inline `country-transfer-scope` caption, then
+`country-export`, which downloads the markets file, and `country-import`, which
+opens the shared import dialog with the markets file alone. A markets file names
+its own countries, so it is never scoped.
+
+A renamed UI string gets a NEW key from L2d on — an approved database row for the
+old key would otherwise shadow the file forever (D3).
 
 The UNDO of a markets file removes what that file made: a market the batch
 created goes away together with the anchor place it was born with (INC-206,

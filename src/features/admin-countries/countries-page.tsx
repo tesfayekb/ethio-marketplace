@@ -248,7 +248,12 @@ export function AdminCountriesPage() {
               <p className="text-sm text-muted-foreground">{t("admin.countries.empty")}</p>
             }
             toolbar={
-              <div className="flex min-w-0 flex-wrap items-end gap-3">
+              /**
+               * L2d — the categories shape: the find group and the transfer
+               * group are DIRECT children of the primitive's toolbar row, the
+               * legend wraps beneath them; no stacked labels (C1).
+               */
+              <>
                 <CountriesToolbar
                   search={search}
                   onSearch={(value) => {
@@ -269,8 +274,15 @@ export function AdminCountriesPage() {
                 />
                 <div
                   data-testid="country-toolbar-transfer"
-                  className="flex min-w-0 flex-wrap items-center gap-2"
+                  className="flex flex-wrap items-center gap-2"
                 >
+                  {/* A markets file names its own countries: never scoped. */}
+                  <span
+                    className="text-sm text-muted-foreground"
+                    data-testid="country-transfer-scope"
+                  >
+                    {`${t("admin.countries.transfer.scope")} ·`}
+                  </span>
                   <Button
                     type="button"
                     variant="outline"
@@ -309,10 +321,13 @@ export function AdminCountriesPage() {
                     </p>
                   ) : null}
                 </div>
-                <p className="w-full text-sm text-muted-foreground" data-testid="country-legend">
+                <p
+                  className="basis-full text-xs text-muted-foreground"
+                  data-testid="country-legend"
+                >
                   {`${t("admin.countries.tip.open")} ${t("admin.countries.tip.closed")}`}
                 </p>
-              </div>
+              </>
             }
             rowActions={rowActions}
             page={page}
