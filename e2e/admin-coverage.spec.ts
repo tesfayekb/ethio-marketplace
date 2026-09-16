@@ -125,7 +125,21 @@ test.describe("L2b coverage console", () => {
       String(stored?.max_countries),
     );
     await expect(row.getByTestId("coverage-free-everywhere")).toBeVisible();
+    // L2d — the categories SHAPE: the find group is a direct child of the
+    // primitive's toolbar row, no visible label element, the note wraps last.
+    const toolbarRow = page.getByTestId("coverage-toolbar-find").locator("..");
+    await expect(toolbarRow.locator("> [data-testid='coverage-toolbar-find']")).toHaveCount(1);
+    await expect(toolbarRow.locator("label")).toHaveCount(0);
+    const last = await toolbarRow.evaluate(
+      (node) => node.lastElementChild?.getAttribute("data-testid") ?? "",
+    );
+    expect(last, "the note is not the toolbar's last child").toBe("coverage-note");
     await expect(page.getByTestId("coverage-note")).toBeVisible();
+
+    // The search sieves the one read in the browser.
+    await page.getByTestId("coverage-search").fill("free");
+    await expect(planRow(page, "free")).toBeVisible();
+    await page.getByTestId("coverage-search").fill("");
     await expectNoHorizontalOverflow(page);
   });
 

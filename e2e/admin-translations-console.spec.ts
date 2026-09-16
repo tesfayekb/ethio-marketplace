@@ -587,9 +587,17 @@ test.describe("U4b translations console", () => {
       await page.getByTestId("ai-bulk-confirm-run").click();
       await stepUpIfPrompted(page, secret);
       // VISIBILITY only — a localized summary string is never a count (INC-096g).
-      await expect(page.getByTestId("ai-bulk-summary"), {
-        message: `TR-12 step 3: the bulk summary never rendered within 90 s (${keys.length} keys queued for scope ${fence})`,
+      // INC-207 — the run either summarises or names its refusal; waiting on the
+      // summary alone turned a real failure into a mute 90 s timeout.
+      const summary = page.getByTestId("ai-bulk-summary");
+      const runError = page.getByTestId("ai-bulk-error");
+      await expect(summary.or(runError), {
+        message: `TR-12 step 3: neither the bulk summary nor a run error rendered within 90 s (${keys.length} keys queued for scope ${fence})`,
       }).toBeVisible({ timeout: 90000 });
+      if (await runError.isVisible()) {
+        throw new Error(`TR-12 step 3: the bulk run failed — ${await runError.innerText()}`);
+      }
+      await expect(summary).toBeVisible();
 
       // Database truth, per key: the only law for bulk assertions (TR-11's pattern).
       for (const key of keys) {

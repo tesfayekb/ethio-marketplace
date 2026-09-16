@@ -115,6 +115,25 @@ test.describe("L2a locations console", () => {
     const toolbar = page.getByTestId("data-table-toolbar");
     await expect(toolbar).toBeVisible();
     await expect(toolbar.getByTestId("location-toolbar-transfer")).toBeVisible();
+
+    // L2d — the categories SHAPE: both groups are direct children of the
+    // primitive's own toolbar row, no control carries a visible label element,
+    // every select names itself for a screen reader, and the legend is last.
+    const row = page.getByTestId("location-toolbar-find").locator("..");
+    await expect(row.locator("> [data-testid='location-toolbar-find']")).toHaveCount(1);
+    await expect(row.locator("> [data-testid='location-toolbar-transfer']")).toHaveCount(1);
+    await expect(row.locator("label")).toHaveCount(0);
+    const unlabelled = await row
+      .locator("select")
+      .evaluateAll((nodes) => nodes.filter((node) => !node.getAttribute("aria-label")).length);
+    expect(unlabelled, "a toolbar select carries no aria-label").toBe(0);
+    const last = await row.evaluate(
+      (node) => node.lastElementChild?.getAttribute("data-testid") ?? "",
+    );
+    expect(last, "the legend is not the toolbar's last child").toBe("location-legend");
+    await expect(page.getByTestId("location-import")).toContainText(
+      en["admin.locations.import.openPlaces"],
+    );
   });
 
   test("LT-2 roster: the seeded ET tree renders, an alias narrows the search, the level filter scopes, nothing overflows", async ({
@@ -955,7 +974,7 @@ test.describe("L2a locations console", () => {
         : { value: one.getAttribute("value"), text: (one.textContent ?? "").trim() };
     });
     expect(first?.value, "the picker's first option is not the all-countries scope").toBe("");
-    expect(first?.text).toBe(en["admin.locations.filter.all"]);
+    expect(first?.text).toBe(en["admin.locations.filter.allCountriesOption"]);
 
     // Regions from BOTH open markets stand in the one roster; anchors do not.
     await page.getByTestId("location-active-filter").selectOption("active");
@@ -967,7 +986,9 @@ test.describe("L2a locations console", () => {
     await expect(locationRow(page, us.slug)).toHaveCount(0);
 
     // The transfer group is unscoped, and the import dialog says so.
-    await expect(page.getByTestId("location-transfer-scope")).toHaveText(
+    // L2d — the caption is inline and carries its separator, so it CONTAINS
+    // the scope sentence rather than equalling it.
+    await expect(page.getByTestId("location-transfer-scope")).toContainText(
       en["admin.locations.transfer.scopeAll"],
     );
     await page.getByTestId("location-export-locations").click();

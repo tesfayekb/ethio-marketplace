@@ -1392,7 +1392,7 @@
     "admin.countries.field.unit": [
       "/admin/countries"
     ],
-    "admin.countries.filter.allStatuses": [
+    "admin.countries.filter.allStatusesOption": [
       "/admin/countries"
     ],
     "admin.countries.filter.closedOnly": [
@@ -1402,6 +1402,9 @@
       "/admin/countries"
     ],
     "admin.countries.filter.pageSize": [
+      "/admin/countries"
+    ],
+    "admin.countries.filter.search": [
       "/admin/countries"
     ],
     "admin.countries.filter.status": [
@@ -1453,6 +1456,9 @@
       "/admin/countries"
     ],
     "admin.countries.tip.open": [
+      "/admin/countries"
+    ],
+    "admin.countries.transfer.scope": [
       "/admin/countries"
     ],
     "admin.coverage.action.edit": [
@@ -1509,6 +1515,9 @@
     "admin.coverage.field.planHint": [
       "/admin/coverage"
     ],
+    "admin.coverage.filter.search": [
+      "/admin/coverage"
+    ],
     "admin.coverage.loading": [
       "/admin/coverage"
     ],
@@ -1516,6 +1525,9 @@
       "/admin/coverage"
     ],
     "admin.coverage.note": [
+      "/admin/coverage"
+    ],
+    "admin.coverage.searchPlaceholder": [
       "/admin/coverage"
     ],
     "admin.landing.body": [
@@ -1674,15 +1686,15 @@
       "/admin/countries",
       "/admin/places"
     ],
-    "admin.locations.filter.all": [
+    "admin.locations.filter.allCountriesOption": [
       "/admin/countries",
       "/admin/places"
     ],
-    "admin.locations.filter.allLevels": [
+    "admin.locations.filter.allLevelsOption": [
       "/admin/countries",
       "/admin/places"
     ],
-    "admin.locations.filter.allStatuses": [
+    "admin.locations.filter.allStatusesOption": [
       "/admin/countries",
       "/admin/places"
     ],
@@ -1706,11 +1718,15 @@
       "/admin/countries",
       "/admin/places"
     ],
+    "admin.locations.filter.search": [
+      "/admin/countries",
+      "/admin/places"
+    ],
     "admin.locations.filter.status": [
       "/admin/countries",
       "/admin/places"
     ],
-    "admin.locations.import.open": [
+    "admin.locations.import.openPlaces": [
       "/admin/places"
     ],
     "admin.locations.import.titleAll": [

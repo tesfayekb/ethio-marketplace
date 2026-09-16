@@ -145,13 +145,29 @@ export function AiBulkBar({
     try {
       for (let index = 0; index < items.length; index += AI_CHUNK_SIZE) {
         const chunk = items.slice(index, index + AI_CHUNK_SIZE);
-        const result =
+        const send = () =>
           scope === "entity"
-            ? await translateEntities.mutateAsync(chunk as AiEntityItem[])
-            : await translateUi.mutateAsync(chunk as AiTranslateItem[]);
-        done += result.done;
-        flagged += result.flagged;
-        failed.push(...result.failed);
+            ? translateEntities.mutateAsync(chunk as AiEntityItem[])
+            : translateUi.mutateAsync(chunk as AiTranslateItem[]);
+        // INC-207 — a chunk that THROWS is retried ONCE; if it throws again its
+        // keys land in `failed` with the server's own words and the sweep goes
+        // on, so a transient failure can never leave the summary null (F4).
+        let result: Awaited<ReturnType<typeof send>> | null = null;
+        try {
+          result = await send();
+        } catch {
+          try {
+            result = await send();
+          } catch (retryFailure: unknown) {
+            const reason = serverMessage(retryFailure) ?? "";
+            for (const item of chunk) failed.push({ key: item.key, reason });
+          }
+        }
+        if (result !== null) {
+          done += result.done;
+          flagged += result.flagged;
+          failed.push(...result.failed);
+        }
         setProgress({ done: index + chunk.length, total: items.length });
       }
     } finally {
