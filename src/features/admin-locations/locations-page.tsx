@@ -50,8 +50,9 @@ import { useAdminLocations, useAllCountries } from "./use-locations";
  * search / level / status controls sieve that roster in the browser, so nothing
  * fetches on a keystroke (G2).
  *
- * Countries and Coverage arrive at L2b and are deliberately NOT scaffolded: C4
- * forbids a placeholder standing in for a screen that does not exist yet.
+ * L2b-C1 — the roster OPENS on "All countries" (the door reads every market on
+ * a NULL scope) and the MARKETS file moved to the Countries section: this
+ * toolbar transfers places alone.
  */
 
 const DEFAULT_PAGE_SIZE = 25;
@@ -106,11 +107,6 @@ export function AdminLocationsPage() {
     );
   }, [countries.data]);
 
-  useEffect(() => {
-    if (country !== "" || markets.length === 0) return;
-    setCountry((markets.find((market) => market.isActive) ?? markets[0])?.code ?? "");
-  }, [country, markets]);
-
   const query = useAdminLocations(country);
   const countryName = markets.find((market) => market.code === country)?.nameEn ?? country;
   /** The country's whole tree: every key and every nesting comes from it. */
@@ -139,14 +135,15 @@ export function AdminLocationsPage() {
    * browser the CSV. The bearer comes from the live session, exactly as the
    * categories export does (B3). Every failure is announced (F4).
    */
-  const runExport = async (file: "countries" | "locations") => {
+  const runExport = async (file: "locations") => {
     setExporting(true);
     setExportError(false);
     try {
       const { data: session } = await supabase.auth.getSession();
       const token = session.session?.access_token ?? "";
-      if (country === "") throw new Error("no country selected");
-      const scope = `&scope=${encodeURIComponent(country)}`;
+      // L2b-C1 — "All countries" carries NO scope: the route then exports every
+      // market's places, and the file is named for the scope it was taken at.
+      const scope = country === "" ? "" : `&scope=${encodeURIComponent(country)}`;
       const response = await fetch(`/api/admin/locations/export?file=${file}${scope}`, {
         headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
       });
@@ -155,7 +152,7 @@ export function AdminLocationsPage() {
       const href = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = href;
-      anchor.download = `${country}-${file}.csv`;
+      anchor.download = `${country === "" ? "all" : country}-${file}.csv`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -349,31 +346,17 @@ export function AdminLocationsPage() {
                     className="w-full text-sm text-muted-foreground"
                     data-testid="location-transfer-scope"
                   >
-                    {t("admin.locations.transfer.scope").replace("{country}", countryName)}
+                    {country === ""
+                      ? t("admin.locations.transfer.scopeAll")
+                      : t("admin.locations.transfer.scope").replace("{country}", countryName)}
                   </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    title={t("admin.locations.export.countriesHint")}
-                    data-testid="location-export-countries"
-                    disabled={exporting || country === ""}
-                    onClick={() => void runExport("countries")}
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    <span>
-                      {exporting
-                        ? t("admin.locations.export.busy")
-                        : t("admin.locations.export.countries")}
-                    </span>
-                  </Button>
                   <Button
                     type="button"
                     variant="outline"
                     size="touch"
                     title={t("admin.locations.export.locationsHint")}
                     data-testid="location-export-locations"
-                    disabled={exporting || country === ""}
+                    disabled={exporting}
                     onClick={() => void runExport("locations")}
                   >
                     <Download aria-hidden="true" className="size-4" />
@@ -389,7 +372,6 @@ export function AdminLocationsPage() {
                       variant="outline"
                       size="touch"
                       data-testid="location-import"
-                      disabled={country === ""}
                       onClick={() => open({ kind: "import" })}
                     >
                       <Upload aria-hidden="true" className="size-4" />

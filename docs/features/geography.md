@@ -326,6 +326,9 @@ region, and that no field outside the eleven ever appears.
 
 ## Related
 
+- `docs/features/locations-console.md` — the Places roster over this tree.
+- `docs/features/countries-console.md` — the markets register and the
+  open/close, profile and rail-order verbs.
 - `docs/governance/locations-era-spec.md` — the ratified era spec (§3–§4 land here).
 - `docs/features/countries-reference.md` — the root reference table this FKs.
 - `docs/governance/migrations.md` — append-only migration law.

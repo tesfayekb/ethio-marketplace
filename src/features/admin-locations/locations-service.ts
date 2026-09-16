@@ -68,7 +68,10 @@ export interface LocationRow {
  */
 export async function listLocations(countryCode: string): Promise<LocationRow[]> {
   const { data, error } = await supabase.rpc("admin_list_locations", {
-    p_country_code: countryCode,
+    // L2b-C1 — "" is the ALL-COUNTRIES scope: the door reads every market when
+    // its country argument is NULL (L2b-M re-declaration), so the roster opens
+    // on every country with exactly one read.
+    p_country_code: (countryCode === "" ? null : countryCode) as unknown as string,
     p_search: "",
     p_level: null as unknown as string,
     p_active: null as unknown as boolean,

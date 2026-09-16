@@ -7,14 +7,15 @@ import { useI18n } from "@/i18n";
 import { ADMIN_LOCATIONS_KEY } from "./use-locations";
 
 /**
- * LOCATIONS ERA L2a — THE LOCATIONS IMPORT DIALOG.
+ * LOCATIONS ERA L2a — THE PLACES IMPORT DIALOG.
  *
- * The shared shell (`@/features/admin/import-dialog`) with the locations
- * preset: TWO files — markets and places — either of which is a complete run
- * on its own; the route refuses an empty pair. Every semantic verdict (the
- * header law, the caps, the formula law, `parentLaterInFile`, the delete
- * guards, `planHasRefusals`) is the server's; this file names the vocabulary so
- * each refusal renders as a sentence rather than a token (F4).
+ * The shared shell (`@/features/admin/import-dialog`) with the places preset.
+ * L2b-C1 — the MARKETS file moved to the Countries section, so this dialog
+ * offers the PLACES file alone; the whole-or-nothing sentence stays in the
+ * shell's header. Every semantic verdict (the header law, the caps, the formula
+ * law, `parentLaterInFile`, the delete guards, `planHasRefusals`) is the
+ * server's; this file names the vocabulary so each refusal renders as a
+ * sentence rather than a token (F4).
  */
 
 const PATH = "/api/admin/locations/import";
@@ -77,7 +78,7 @@ export function ImportLocationsDialog({
   guard,
   onClose,
 }: {
-  /** The toolbar's selected country: every locations import is scoped. */
+  /** The toolbar's selected country, or "" for every market (L2b-C1). */
   scope: string;
   country: string;
   guard: GuardFn;
@@ -90,27 +91,24 @@ export function ImportLocationsDialog({
     <ImportDialog
       testid="location-import-dialog"
       idPrefix="location-import"
-      title={t("admin.locations.import.titleScoped").replace("{country}", country)}
+      title={
+        scope === ""
+          ? t("admin.locations.import.titleAll")
+          : t("admin.locations.import.titleScoped").replace("{country}", country)
+      }
       path={PATH}
       keyPrefix="admin.locations.import"
       files={[
         {
-          field: "countries",
-          id: "location-import-countries",
-          labelKey: "admin.locations.import.countriesFile",
-          optional: true,
-        },
-        {
           field: "locations",
           id: "location-import-locations",
           labelKey: "admin.locations.import.locationsFile",
-          optional: true,
         },
       ]}
       countFields={COUNT_FIELDS}
       reasonKeys={REASON_KEYS}
       family="locations"
-      scope={scope}
+      scope={scope === "" ? null : scope}
       guard={guard}
       onClose={onClose}
       onWritten={async () => {

@@ -1,11 +1,14 @@
 import {
+  Flag,
   FolderTree,
   Globe2,
   Image,
   Languages,
+  MapPin,
   ScrollText,
   ShieldCheck,
   SlidersHorizontal,
+  Target,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -36,7 +39,9 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   users: Users,
   roles: ShieldCheck,
   audit: ScrollText,
-  locations: Globe2,
+  locations: MapPin,
+  countries: Flag,
+  coverage: Target,
   categories: FolderTree,
   attributes: SlidersHorizontal,
   images: Image,
@@ -45,6 +50,7 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
 
 const GROUP_ICONS: Record<AdminGroupId, LucideIcon> = {
   categories: FolderTree,
+  locations: Globe2,
 };
 
 function toItem(section: AdminSection): NavItem {

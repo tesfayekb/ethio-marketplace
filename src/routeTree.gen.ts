@@ -25,6 +25,8 @@ import { Route as AdminTranslationsRouteImport } from './routes/admin.translatio
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
 import { Route as AdminImagesRouteImport } from './routes/admin.images'
+import { Route as AdminCoverageRouteImport } from './routes/admin.coverage'
+import { Route as AdminCountriesRouteImport } from './routes/admin.countries'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
@@ -122,6 +124,16 @@ const AdminLocationsRoute = AdminLocationsRouteImport.update({
 const AdminImagesRoute = AdminImagesRouteImport.update({
   id: '/images',
   path: '/images',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCoverageRoute = AdminCoverageRouteImport.update({
+  id: '/coverage',
+  path: '/coverage',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCountriesRoute = AdminCountriesRouteImport.update({
+  id: '/countries',
+  path: '/countries',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
@@ -231,6 +243,8 @@ export interface FileRoutesByFullPath {
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/countries': typeof AdminCountriesRoute
+  '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -266,6 +280,8 @@ export interface FileRoutesByTo {
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/countries': typeof AdminCountriesRoute
+  '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -303,6 +319,8 @@ export interface FileRoutesById {
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/countries': typeof AdminCountriesRoute
+  '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -341,6 +359,8 @@ export interface FileRouteTypes {
     | '/admin/attributes'
     | '/admin/audit'
     | '/admin/categories'
+    | '/admin/countries'
+    | '/admin/coverage'
     | '/admin/images'
     | '/admin/locations'
     | '/admin/roles'
@@ -376,6 +396,8 @@ export interface FileRouteTypes {
     | '/admin/attributes'
     | '/admin/audit'
     | '/admin/categories'
+    | '/admin/countries'
+    | '/admin/coverage'
     | '/admin/images'
     | '/admin/locations'
     | '/admin/roles'
@@ -412,6 +434,8 @@ export interface FileRouteTypes {
     | '/admin/attributes'
     | '/admin/audit'
     | '/admin/categories'
+    | '/admin/countries'
+    | '/admin/coverage'
     | '/admin/images'
     | '/admin/locations'
     | '/admin/roles'
@@ -579,6 +603,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImagesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/coverage': {
+      id: '/admin/coverage'
+      path: '/coverage'
+      fullPath: '/admin/coverage'
+      preLoaderRoute: typeof AdminCoverageRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/countries': {
+      id: '/admin/countries'
+      path: '/countries'
+      fullPath: '/admin/countries'
+      preLoaderRoute: typeof AdminCountriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/categories': {
       id: '/admin/categories'
       path: '/categories'
@@ -712,6 +750,8 @@ interface AdminRouteChildren {
   AdminAttributesRoute: typeof AdminAttributesRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCountriesRoute: typeof AdminCountriesRoute
+  AdminCoverageRoute: typeof AdminCoverageRoute
   AdminImagesRoute: typeof AdminImagesRoute
   AdminLocationsRoute: typeof AdminLocationsRoute
   AdminRolesRoute: typeof AdminRolesRoute
@@ -728,6 +768,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAttributesRoute: AdminAttributesRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCountriesRoute: AdminCountriesRoute,
+  AdminCoverageRoute: AdminCoverageRoute,
   AdminImagesRoute: AdminImagesRoute,
   AdminLocationsRoute: AdminLocationsRoute,
   AdminRolesRoute: AdminRolesRoute,

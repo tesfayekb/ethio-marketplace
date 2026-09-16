@@ -5,9 +5,14 @@ Landed at LOCATIONS ERA **L2a**. The admin surface over the geography tree:
 with the root test id `admin-section-locations`.
 
 There are no tabs. One roster holds the location tree and its toolbar holds both
-the find and transfer controls. **Countries** and **Coverage** arrive at L2b and
-are deliberately absent rather than stubbed — C4 forbids a placeholder that
-replaces content.
+the find and transfer controls.
+
+**L2b-C1** — the section is now called **Places** and sits inside the
+**Locations** rail group together with **Countries**
+(`docs/features/countries-console.md`) and **Coverage**, whose roster and editor
+arrive at L2b-C2; its route renders the section register's own body line until
+then. The markets file and its picker LEFT this toolbar for the Countries
+section: places transfer alone here.
 
 ## The roster toolbar
 
@@ -25,9 +30,18 @@ costs no request on an expensive-data device.
 | Active / retired             | `location-active-filter`  | client sieve                                   |
 | Rows per page                | `location-page-size`      | client only (`ethio.admin.locations.pageSize`) |
 
-Every country is listed: open markets first A–Z, then closed markets A–Z. A
-closed option carries the translated suffix (`Canada · closed`) because a native
-select cannot render a badge. The default selection is the first open market.
+The picker's FIRST option is **All countries** (value `""`) and it is the
+DEFAULT: the door reads every market on a NULL scope (L2b-M), so the roster opens
+on the whole world with exactly one read, grouped by country, each row's path
+carrying its country name. Then come the open markets A–Z, then the closed ones
+A–Z. A closed option carries the translated suffix (`Canada · closed`) because a
+native select cannot render a badge.
+
+With **All countries** selected, the transfer group carries NO scope: the export
+URL omits `scope`, the caption reads "For all countries" and the import dialog is
+titled "Import into all countries". The create dialog's parent picker then offers
+every market's anchor — closed ones suffixed — so a place can be prepared before
+its market opens.
 
 The same DataTable toolbar then carries `location-toolbar-transfer`, after the
 find group, with Download countries, Download places and Import. Its visible
@@ -173,6 +187,7 @@ sentence that names where it belongs.
 | LT-10 | Tones — retired = `destructive`, active = `secondary`, level = `outline`, asserted by `data-tone`                                      |
 | LT-11 | One read: typing and the level/status filters cost zero requests; switching the country costs exactly one                              |
 | LT-12 | Transfer scope — export URLs carry the selected country, closed options carry the locale suffix, and the import title names its scope  |
+| LT-13 | All countries — the picker opens on it, the roster spans both open markets, and the transfer group carries no scope                    |
 
 Scratch rows carry the `e2e-` slug prefix (J1) and are destroyed child-first in
 `finally` (J3). `e2e/global-setup.ts` reaps stale scratch geography by **slug**
