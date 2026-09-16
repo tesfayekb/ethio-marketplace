@@ -65,7 +65,7 @@ console can translate it:
 | `levelMismatch`      | the level is not exactly one step below the parent's |
 | `crossCountry`       | the row's `country_code` differs from its parent's   |
 | `badSlug`            | the slug is not `^[a-z0-9]+(-[a-z0-9]+)*$`           |
-| `parentInactive`     | an ACTIVE row written under an inactive parent       |
+| `parentInactive`     | an ACTIVE row written under an inactive parent, EXCEPT under a country anchor |
 | `missingCoordinates` | a city or sub-city with no centre                    |
 
 Then it fills, ignoring the caller: country/region → both ancestor columns NULL;
@@ -79,6 +79,16 @@ turn; the trigger's WHEN clause ends the recursion (depth ≤ 3). **Deactivating
 parent does not touch its children**: the path rule already hides them, and
 `parentInactive` fires only for a row being written active under an inactive
 parent — so the cascade skips the touch when the row just became inactive.
+
+**INC-209 — THE ANCHOR IS EXEMPT.** A market's tree is PREPARED while the market
+is closed, so `parentInactive` does not fire when the inactive parent is the
+country anchor (`v_parent.level = 'country'`): a region may be written active
+under a closed anchor, and `loc_import_plan` mirrors the exemption at depth 2
+(`v_depth > 2 AND NOT COALESCE(v_parent_active, false)`). The rule BELOW the
+anchor is untouched — an active city under a retired region is still refused —
+and nothing becomes visible early: the path rule (`get_location_tree` requires an
+open market AND an active anchor) is unchanged, so a closed market's prepared
+tree stays hidden from every visitor.
 
 Both trigger functions have EXECUTE revoked from PUBLIC, `anon` and
 `authenticated`: trigger functions are never callable directly.

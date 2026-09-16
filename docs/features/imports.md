@@ -102,6 +102,11 @@ server returns.
   the EXPORT neutralises it with a leading apostrophe and the gate
   un-neutralises on the way in — `+ Add` survives a round trip, while a raw
   formula in a hand-made file is refused in the key column.
+  **INC-208 — a number is not a formula.** Every `int` and `decimal` column
+  declares `formula: "allow"`, because the column's own shape check already
+  proves the cell is a number: a plain negative (`-33.9`, a southern latitude)
+  imports as written. The export still neutralises, and `unneutralize` still
+  strips the apostrophe, so both spellings round-trip.
 - **One step, so the WRITE is metered.** This family has no preview door and no
   digest: the commit itself carries the one-in-flight and per-minute budget.
   `undo` takes the same route, so a taken-back run is audited like the run it
