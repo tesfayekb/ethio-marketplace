@@ -309,10 +309,7 @@ export function AdminCountriesPage() {
                     </p>
                   ) : null}
                 </div>
-                <p
-                  className="w-full text-sm text-muted-foreground"
-                  data-testid="country-legend"
-                >
+                <p className="w-full text-sm text-muted-foreground" data-testid="country-legend">
                   {`${t("admin.countries.tip.open")} ${t("admin.countries.tip.closed")}`}
                 </p>
               </div>

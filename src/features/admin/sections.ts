@@ -155,7 +155,9 @@ export function groupForSection(section: AdminSection) {
 
 /** The group whose own page exactly matches this pathname, when one exists. */
 export function groupForPath(pathname: string) {
-  return Object.values(ADMIN_GROUPS).find((group) => "path" in group && group.path === pathname) ?? null;
+  return (
+    Object.values(ADMIN_GROUPS).find((group) => "path" in group && group.path === pathname) ?? null
+  );
 }
 
 /** The declared group id of a section (the literal union hides the optional). */

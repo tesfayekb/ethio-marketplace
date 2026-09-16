@@ -402,10 +402,7 @@ export function AdminLocationsPage() {
                     </p>
                   ) : null}
                 </div>
-                <p
-                  className="w-full text-sm text-muted-foreground"
-                  data-testid="location-legend"
-                >
+                <p className="w-full text-sm text-muted-foreground" data-testid="location-legend">
                   {`${t("admin.locations.tip.active")} ${t("admin.locations.tip.retired")}`}
                 </p>
               </div>
