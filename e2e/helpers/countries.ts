@@ -59,14 +59,16 @@ export function scratchCountryName(code: string): string {
 /** Seed a scratch market before navigation; creation in the UI is file-only. */
 export async function seedCountry(code: string) {
   if (!isUserAssigned(code)) throw new Error(`[e2e:l2c] refusing to seed ${code}`);
-  const { error } = await adminClient().from("countries").insert({
-    code,
-    name_en: scratchCountryName(code),
-    is_active: false,
-    unit_system: "metric",
-    currency_code: "USD",
-    display_order: 0,
-  });
+  const { error } = await adminClient()
+    .from("countries")
+    .insert({
+      code,
+      name_en: scratchCountryName(code),
+      is_active: false,
+      unit_system: "metric",
+      currency_code: "USD",
+      display_order: 0,
+    });
   if (error) throw new Error(`[e2e:l2c] seeding ${code} failed: ${error.message}`);
 }
 

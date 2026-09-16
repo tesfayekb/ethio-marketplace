@@ -13,7 +13,8 @@ i18n'd empty-state page per section. No section functionality ships in U0.
 | `/admin/users`      | `src/routes/admin.users.tsx`      | Section empty state (U2)                  |
 | `/admin/roles`      | `src/routes/admin.roles.tsx`      | Section empty state (U2)                  |
 | `/admin/audit`      | `src/routes/admin.audit.tsx`      | Section empty state (U3)                  |
-| `/admin/locations`  | `src/routes/admin.locations.tsx`  | Section empty state (U4)                  |
+| `/admin/locations`  | `src/routes/admin.locations.tsx`  | Locations group overview                  |
+| `/admin/places`     | `src/routes/admin.places.tsx`     | Places console                            |
 | `/admin/categories` | `src/routes/admin.categories.tsx` | Section empty state (U5)                  |
 | `/admin/attributes` | `src/routes/admin.attributes.tsx` | Section empty state (U6)                  |
 | `/admin/images`     | `src/routes/admin.images.tsx`     | Section empty state (U8)                  |
@@ -27,7 +28,7 @@ Source of truth: `src/features/admin/sections.ts` (`ADMIN_SECTIONS`).
 | `users`      | `/admin/users`      | `profiles:view`     |
 | `roles`      | `/admin/roles`      | `roles:view`        |
 | `audit`      | `/admin/audit`      | `audit_logs:view`   |
-| `locations`  | `/admin/locations`  | `locations:manage`  |
+| `locations`  | `/admin/places`     | `locations:view`    |
 | `categories` | `/admin/categories` | `categories:manage` |
 | `attributes` | `/admin/attributes` | `categories:manage` |
 | `images`     | `/admin/images`     | `categories:manage` |
@@ -73,6 +74,15 @@ permitted sections → the panel simply shows no items.
   exists); `/admin` renders only the section body.
 - All spacing/colour via design tokens; logical properties only (`text-start`,
   `ms-*`/`me-*`); every string comes from `src/i18n/locales` (EN + AM).
+
+### Group-owned pages (L2c)
+
+C3-UX-2 is amended: **a group MAY own a page; only then is its header a link**.
+The Locations group links to `/admin/locations`, whose overview shows markets,
+places by level and coverage plans plus permission-filtered links. Catalog has
+no group path, so `admin-group-categories` remains today's non-interactive
+header. On a child page, the Locations breadcrumb segment links to the group;
+on the overview it is the current final segment.
 
 ## Testid inventory
 
