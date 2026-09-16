@@ -164,17 +164,18 @@ test.describe("L2b coverage console", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("CV-3 edit: the free plan is saved through the door and restored afterwards", async ({
+  test("CV-3 edit: the test's own plan is saved through the door and read back", async ({
     page,
   }, testInfo) => {
-    // `free` is a GLOBAL row: two twins editing and restoring it at once would
-    // read each other's restore, so this one runs in ONE project (J6).
-    test.skip(testInfo.project.name !== "desktop-1280", "one project only: a global plan row");
+    // R-CV: this test owns its plan, so it runs on BOTH projects and never
+    // touches the real `free` row (J3).
     const { secret } = await useJobSuperAdmin(page);
+    const plan = scratchPlan("edit", testInfo.project.name);
     try {
+      await seedPlan(plan);
       await gotoReady(page, "/admin/coverage");
-      await expect(planRow(page, "free")).toBeVisible({ timeout: 20000 });
-      await openEditor(page, "free");
+      await expect(planRow(page, plan)).toBeVisible({ timeout: 20000 });
+      await openEditor(page, plan);
       await page.getByTestId("coverage-editor-cities").fill("3");
       await page.getByTestId("coverage-editor-regions").fill("2");
       await page.getByTestId("coverage-editor-countries").fill("1");
@@ -182,35 +183,36 @@ test.describe("L2b coverage console", () => {
       await page.getByTestId("coverage-editor-save").click();
       await stepUpIfPrompted(page, secret);
 
-      await expect
-        .poll(async () => (await readPlan("free"))?.max_cities, { timeout: 20000 })
-        .toBe(3);
-      const stored = await readPlan("free");
+      await expect.poll(async () => (await readPlan(plan))?.max_cities, { timeout: 20000 }).toBe(3);
+      const stored = await readPlan(plan);
       expect(stored?.max_regions).toBe(2);
       expect(stored?.max_countries).toBe(1);
       expect(stored?.allow_everywhere).toBe(true);
     } finally {
-      await adminClient()
-        .from("coverage_plans")
-        .update({ max_cities: 1, max_regions: 1, max_countries: 1, allow_everywhere: false })
-        .eq("plan", "free");
+      await destroyPlan(plan);
     }
   });
 
   test("CV-4 refusal: a limit below one is refused by name and nothing is saved", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await useJobSuperAdmin(page);
-    await gotoReady(page, "/admin/coverage");
-    await expect(planRow(page, "free")).toBeVisible({ timeout: 20000 });
-    await openEditor(page, "free");
-    await page.getByTestId("coverage-editor-cities").fill("0");
-    await page.getByTestId("coverage-editor-save").click();
+    const plan = scratchPlan("deny", testInfo.project.name);
+    try {
+      await seedPlan(plan);
+      await gotoReady(page, "/admin/coverage");
+      await expect(planRow(page, plan)).toBeVisible({ timeout: 20000 });
+      await openEditor(page, plan);
+      await page.getByTestId("coverage-editor-cities").fill("0");
+      await page.getByTestId("coverage-editor-save").click();
 
-    await expect(page.getByTestId("coverage-editor-error")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("coverage-editor")).toBeVisible();
-    expect((await readPlan("free"))?.max_cities).toBe(1);
-    await page.getByTestId("coverage-dialog-cancel").click();
+      await expect(page.getByTestId("coverage-editor-error")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("coverage-editor")).toBeVisible();
+      expect((await readPlan(plan))?.max_cities).toBe(1);
+      await page.getByTestId("coverage-dialog-cancel").click();
+    } finally {
+      await destroyPlan(plan);
+    }
   });
 
   test("CV-5 add: a scratch plan is created through the door and seen in the roster", async ({
