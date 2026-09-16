@@ -250,3 +250,54 @@ export async function treeSlugs(page: Page, countryCode: string): Promise<string
   const body = (await response.json()) as { nodes?: { slug: string }[] };
   return (body.nodes ?? []).map((node) => node.slug);
 }
+
+/**
+ * L4b — AN ACTIVE SCRATCH CHAIN region → city → sub-city under a market, so the
+ * shell's cascade has a FOURTH step to render (J1: `e2e-` slugs, run × worker ×
+ * tag; J3: no reference row is written). Delete with `destroyLocation(region)`,
+ * which is already child-first.
+ */
+export async function seedScratchChain(countryCode: string) {
+  const supabase = adminClient();
+  const anchor = await anchorOf(countryCode);
+  // A city and a sub-city carry coordinates or the trigger refuses
+  // `missingCoordinates` — the fixture obeys the same door as the console.
+  const insert = async (level: string, parentId: string, tag: string) => {
+    const slug = scratchSlug(tag);
+    const needsPoint = level === "city" || level === "sub_city";
+    const { data, error } = await supabase
+      .from("locations")
+      .insert({
+        parent_id: parentId,
+        level,
+        country_code: countryCode,
+        slug,
+        name_en: slug,
+        is_active: true,
+        source: "admin",
+        center_lat: needsPoint ? 9.03 : null,
+        center_lng: needsPoint ? 38.74 : null,
+      })
+      .select("id, slug, name_en")
+      .single();
+    if (error || !data) {
+      throw new Error(`[e2e:l4b] seeding ${level} failed: ${error?.message ?? "no row"}`);
+    }
+    return data;
+  };
+  const region = await insert("region", anchor.id, "ls-region");
+  const city = await insert("city", region.id, "ls-city");
+  const subCity = await insert("sub_city", city.id, "ls-sub");
+  return { anchor, region, city, subCity };
+}
+
+/**
+ * The public tree route keeps a 15 s in-process cache, so a freshly seeded row
+ * is invisible for up to that long. Seed-before-navigate (J7) therefore means
+ * waiting on the ROUTE, never on a clock.
+ */
+export async function waitForTreeSlug(page: Page, countryCode: string, slug: string) {
+  await expect
+    .poll(async () => await treeSlugs(page, countryCode), { timeout: 30_000, intervals: [1000] })
+    .toContain(slug);
+}

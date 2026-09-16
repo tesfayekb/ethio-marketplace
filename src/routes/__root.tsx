@@ -9,7 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { getCookie, getRequestUrl } from "@tanstack/react-start/server";
+import { getCookie, getRequest, getRequestUrl } from "@tanstack/react-start/server";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -43,7 +43,23 @@ type SsrLangContext = {
   origin: string;
   /** The request path, so the alternates point at THIS page. */
   path: string;
+  /**
+   * L4b — THE SAVED AREA as the SSR request saw it: the `ethio_area` cookie,
+   * shaped "<CC>:<node id>", or null. Shape only; the shell resolves it against
+   * the market's own tree.
+   */
+  areaCookie: string | null;
+  /**
+   * L4b — the visitor's COUNTRY from the edge (DEC-063 verdict: `cf-ipcountry`,
+   * country-level), or null when the edge said nothing. A GUESS, never a
+   * default, and never persisted (law 10).
+   */
+  geoCountry: string | null;
 };
+
+/** The saved-area cookie: "<CC>:<uuid>" and nothing else. */
+const AREA_COOKIE = "ethio_area";
+const AREA_SHAPE = /^[A-Za-z]{2}:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Reads the star cookie and the anon publication gate on the server. The gate
@@ -58,6 +74,20 @@ const getSsrLangContext = createServerFn({ method: "GET" }).handler(
     const url = getRequestUrl();
     const raw = getCookie(LANGUAGE_STAR_COOKIE) ?? null;
     const star = raw && CODE_SHAPE.test(raw) ? raw : null;
+
+    // L4b — two more request facts, NO database call added to the root: the
+    // saved area (shape-validated cookie) and the edge's country guess. The
+    // judge is the shared server helper; it is imported inside the handler so
+    // the server-only module never enters the client graph.
+    const rawArea = getCookie(AREA_COOKIE) ?? null;
+    const areaCookie = rawArea && AREA_SHAPE.test(rawArea) ? rawArea : null;
+    let geoCountry: string | null = null;
+    try {
+      const { geoGuess } = await import("../server/geo/guess");
+      geoCountry = geoGuess(getRequest()).country;
+    } catch (error) {
+      console.error("[ssr-error] /__root geo guess threw", (error as Error).message);
+    }
 
     // Same resolution order as the generated client (dev serves VITE_*; the
     // deployed Worker serves the unprefixed pair).
@@ -82,7 +112,7 @@ const getSsrLangContext = createServerFn({ method: "GET" }).handler(
       }
     }
 
-    return { star, languages, origin: url.origin, path: url.pathname };
+    return { star, languages, origin: url.origin, path: url.pathname, areaCookie, geoCountry };
   },
 );
 

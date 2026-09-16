@@ -2,19 +2,47 @@
 
 ## Status
 
-| Layer                                              | State                        |
-| -------------------------------------------------- | ---------------------------- |
-| `public.locations` tree (country / region / city)  | LIVE (P2-a)                  |
-| Per-country tree route (ETag, cached)              | LIVE (L1c)                   |
-| Shell location row + cascading picker              | LIVE (built-visible)         |
-| Chosen area written into shell state / `useFeed`   | LIVE (accepted, not applied) |
-| IP resolution of the visitor's starting area       | NOT BUILT — this feature     |
-| Automatic city → region → country → world widening | NOT BUILT — this feature     |
-| Feed / category / subcategory narrowing by area    | NOT BUILT — this feature     |
+| Layer                                              | State                         |
+| -------------------------------------------------- | ----------------------------- |
+| `public.locations` tree (country / region / city)  | LIVE (P2-a)                   |
+| Per-country tree route (ETag, cached)              | LIVE (L1c)                    |
+| Open-markets route (ETag, cached)                  | LIVE (L4b)                    |
+| Shell picker on the cached routes (no table read)  | LIVE (L4b)                    |
+| Visitor's country guessed from the edge            | LIVE, country-level (DEC-063) |
+| Saved area (`ethio_area` cookie, one year)         | LIVE (L4b)                    |
+| Chosen area written into shell state / `useFeed`   | LIVE (accepted, not applied)  |
+| Automatic city → region → country → world widening | NOT BUILT — U7                |
+| Feed / category / subcategory narrowing by area    | NOT BUILT — U7                |
 
 The control exists and cascades over real seeded geography; **choosing an area
 does not yet change which listings appear.** That is deliberate and is the
 whole content of the pre-launch location-scoping feature described below.
+
+## What L4b landed
+
+**The reads.** The picker no longer touches `public.locations` from the browser.
+It reads two cached public routes instead: `GET /api/locations` (the OPEN
+markets — `get_open_countries`) and `GET /api/locations/<code>` (that market's
+visible tree). Both carry an ETag and `public, max-age=300`, so a repeat costs a
+304 or nothing; the browser's default cache is used, never a cache-busting query
+parameter. The routes serve `name_en` only — every rendered name still resolves
+through the entity bundle first (D3). A failed read renders the translated
+caption beside the controls and never a blank picker (C4/F4).
+
+**The guess.** The root's SSR context reads the visitor's country from the edge
+through the shared judge (`src/server/geo/guess.ts`); the DEC-063 verdict of
+2026-09-16 is that the edge gives `cf-ipcountry` and nothing finer, so the guess
+is COUNTRY-LEVEL. When that country is an OPEN market it pre-selects the market
+anchor and the caption "Showing listings near {country} — change?" stands beside
+the picker. A closed market, or no header at all, guesses nothing — there is no
+default market. No database call was added to the root.
+
+**The saved area.** A pick writes the cookie `ethio_area` as `<CC>:<node id>`
+for one year, so the country is known before the tree loads; clearing the
+country forgets it. The GUESS IS NEVER WRITTEN (law 10) — only a choice is.
+
+**Sub-city.** The cascade renders one step per level that exists in the data, so
+a market with sub-city rows gains a fourth step with no code change (LS-1).
 
 ## The model the feature will implement
 

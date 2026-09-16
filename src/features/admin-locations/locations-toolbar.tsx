@@ -100,7 +100,7 @@ export function LocationsToolbar({
       </select>
 
       <select
-        className={`${SELECT_CLASS} md:w-48`}
+        className={`${SELECT_CLASS} md:w-28`}
         data-testid="location-page-size"
         aria-label={t("admin.locations.filter.pageSize")}
         value={pageSize}

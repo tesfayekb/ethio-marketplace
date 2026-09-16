@@ -1,46 +1,38 @@
 import { ChevronDown, MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
 
-import { useShell } from "@/components/app-shell";
+import { useShell, type LocationNode } from "@/components/app-shell";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  asLocationNode,
+  useCountryTree,
+  useOpenMarkets,
+  type TreeNode,
+} from "@/components/shell/location-data";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 /**
- * LOCATION SELECTOR — band 3 of the shell's vertical stack. BUILT-VISIBLE,
- * FILTERING STUBBED.
+ * LOCATION SELECTOR — band 3 of the shell's vertical stack.
  *
- * What is real here: the cascade. The control reads the seeded
- * public.locations tree (country -> region -> city; `sub-city` is a FUTURE
- * level and simply does not render while no row carries it — graceful
- * degradation, not an error) and writes the chosen node into shell state, which
- * useFeed already accepts as `locationScope`.
+ * L4b: the cascade reads the CACHED public routes, never the table —
+ * `/api/locations` for the open markets and `/api/locations/<code>` for the
+ * chosen market's visible tree (anchor first, `name_en` only). Names still
+ * resolve through the entity bundle; a failed read renders the translated
+ * caption beside the controls and never a blank picker (C4/F4).
  *
- * SEAM — the pre-launch location-scoping feature owns all of this (see
- * docs/features/location-scoping.md):
- *   - IP resolution of the visitor's starting area (today: a placeholder area),
- *   - the automatic city -> region -> country -> world WIDENING ladder,
- *   - actually narrowing the feed by the chosen scope.
- * The feed therefore does NOT yet change when you pick an area. Category
- * filtering (the other axis) IS live; the two combine structurally already,
- * because useFeed takes categoryId AND locationScope in the same query pass.
+ * The levels come from the DATA: country → region → city → sub-city, one more
+ * step exactly when a sub-city exists under the chosen city.
+ *
+ * SEAM (U7): choosing an area writes the scope and the saved-area cookie; the
+ * feed's location axis is still stubbed, so listings do not narrow yet.
  */
-
-type LocationRow = {
-  id: string;
-  name_en: string;
-  name_am: string | null;
-  level: string;
-  parent_id: string | null;
-};
 
 const LEVELS: { level: string; labelKey: MessageKey }[] = [
   { level: "country", labelKey: "location.country" },
@@ -49,55 +41,26 @@ const LEVELS: { level: string; labelKey: MessageKey }[] = [
   { level: "sub_city", labelKey: "location.subCity" },
 ];
 
-function useLocationTree() {
-  const [rows, setRows] = useState<LocationRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    setIsLoading(true);
-    void Promise.resolve(
-      supabase
-        .from("locations")
-        .select("id,name_en,name_am,level,parent_id")
-        .eq("is_active", true)
-        .order("name_en", { ascending: true }),
-    )
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        // CONTAINMENT (INC-031 class): a geography read failure degrades this
-        // band to its empty affordance; it never throws through the shell.
-        setRows(error ? [] : ((data ?? []) as LocationRow[]));
-        setIsLoading(false);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setRows([]);
-        setIsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return { rows, isLoading };
+interface Option {
+  id: string;
+  name: string;
+  node: LocationNode | null;
 }
 
-function LevelPicker({
+function Picker({
   labelKey,
   options,
-  selected,
+  selectedId,
+  selectedName,
   onSelect,
 }: {
   labelKey: MessageKey;
-  options: LocationRow[];
-  selected: LocationRow | null;
-  onSelect: (row: LocationRow | null) => void;
+  options: Option[];
+  selectedId: string | null;
+  selectedName: string | null;
+  onSelect: (option: Option | null) => void;
 }) {
-  const { t, entities } = useI18n();
-  // U4d: the shared resolver, never an inline language ternary (law B2).
-  const name = (row: LocationRow) =>
-    entityName("location", { id: row.id, nameEn: row.name_en, nameAm: row.name_am }, entities);
+  const { t } = useI18n();
 
   return (
     <DropdownMenu>
@@ -109,22 +72,22 @@ function LevelPicker({
           className={cn(
             "inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            selected
+            selectedId !== null
               ? "font-medium text-foreground"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
           {/* The picker shows its OWN selection — never a second copy of an
               area label rendered elsewhere (INC-041). */}
-          <span className="max-w-[9rem] truncate">{selected ? name(selected) : t(labelKey)}</span>
+          <span className="max-w-[9rem] truncate">{selectedName ?? t(labelKey)}</span>
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
         <DropdownMenuItem onSelect={() => onSelect(null)}>{t("location.anyArea")}</DropdownMenuItem>
-        {options.map((row) => (
-          <DropdownMenuItem key={row.id} onSelect={() => onSelect(row)}>
-            {name(row)}
+        {options.map((option) => (
+          <DropdownMenuItem key={option.id} onSelect={() => onSelect(option)}>
+            {option.name}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -133,43 +96,79 @@ function LevelPicker({
 }
 
 export function LocationSelector() {
-  const { t } = useI18n();
-  const { locationPath, setLocationPath } = useShell();
-  const { rows, isLoading } = useLocationTree();
+  const { t, entities } = useI18n();
+  const {
+    locationPath,
+    setLocationPath,
+    locationCountry,
+    selectLocationCountry,
+    guessInUse,
+    guessCountryName,
+  } = useShell();
+  const markets = useOpenMarkets();
+  const tree = useCountryTree(locationCountry);
+
+  // U4d — the shared resolver, never an inline language ternary (law B2).
+  const treeName = (node: TreeNode) =>
+    entityName(
+      "location",
+      { id: node.id, nameEn: node.nameEn ?? node.slug, nameAm: null },
+      entities,
+    );
+
+  const marketOptions: Option[] = markets.markets.map((market) => ({
+    id: market.code,
+    name: market.nameEn,
+    node: null,
+  }));
+
+  const selectedMarket = markets.markets.find((market) => market.code === locationCountry) ?? null;
 
   /**
-   * THE CASCADE — Country -> Region -> City -> Sub-city, nothing before it.
-   *
-   * Level N's options are the children of level N-1's SELECTION, so each level
-   * renders only once its parent is chosen. A level with no rows (sub-city
-   * today) is omitted entirely rather than rendered empty. The DEEPEST selected
-   * level IS the chosen area — there is no separate area label to duplicate it.
+   * THE CASCADE below the country: level N's options are the children of level
+   * N-1's SELECTION, so a level renders only once its parent is chosen and a
+   * level with no rows (no sub-city under this city) is omitted entirely.
    */
-  const levels: {
-    level: string;
+  const deeper: {
     labelKey: MessageKey;
     depth: number;
-    options: LocationRow[];
-    selected: LocationRow | null;
+    options: Option[];
+    selectedId: string | null;
+    selectedName: string | null;
   }[] = [];
 
-  for (let depth = 0; depth < LEVELS.length; depth += 1) {
-    const definition = LEVELS[depth]!;
-    const parent = depth === 0 ? null : (locationPath[depth - 1] ?? null);
-    // Beyond the first level, an unselected parent ends the cascade.
-    if (depth > 0 && parent === null) break;
-    const options = rows.filter(
-      (row) => row.level === definition.level && (depth === 0 || row.parent_id === parent!.id),
-    );
-    if (options.length === 0) break;
-    levels.push({
-      level: definition.level,
-      labelKey: definition.labelKey,
-      depth,
-      options,
-      selected: locationPath[depth] ?? null,
-    });
+  if (locationCountry !== null) {
+    for (let depth = 1; depth < LEVELS.length; depth += 1) {
+      const definition = LEVELS[depth]!;
+      const parent = locationPath[depth - 1] ?? null;
+      if (parent === null) break;
+      const rows = tree.nodes.filter(
+        (node) => node.level === definition.level && node.parentId === parent.id,
+      );
+      if (rows.length === 0) break;
+      const selected = locationPath[depth] ?? null;
+      deeper.push({
+        labelKey: definition.labelKey,
+        depth,
+        options: rows.map((node) => ({
+          id: node.id,
+          name: treeName(node),
+          node: asLocationNode(node),
+        })),
+        selectedId: selected?.id ?? null,
+        selectedName: selected
+          ? entityName(
+              "location",
+              { id: selected.id, nameEn: selected.name_en, nameAm: selected.name_am },
+              entities,
+            )
+          : null,
+      });
+    }
   }
+
+  const failed = markets.failed || tree.failed;
+  const isLoading = markets.isLoading;
 
   return (
     <div
@@ -185,30 +184,53 @@ export function LocationSelector() {
         <span className="min-h-11 content-center text-sm text-muted-foreground">
           {t("common.loading")}
         </span>
-      ) : levels.length === 0 ? (
+      ) : failed ? (
+        <span
+          data-testid="location-error"
+          className="min-h-11 content-center text-sm text-muted-foreground"
+        >
+          {t("location.readFailed")}
+        </span>
+      ) : marketOptions.length === 0 ? (
         <span className="min-h-11 content-center text-sm text-muted-foreground">
           {t("location.empty")}
         </span>
       ) : (
-        levels.map((level) => (
-          <LevelPicker
-            key={level.level}
-            labelKey={level.labelKey}
-            options={level.options}
-            selected={level.selected}
-            onSelect={(row) =>
-              // Choosing at depth N replaces that level and drops everything
-              // below it — the cascade can never hold an orphaned child.
-              // SEAM: this writes the scope only; feed-narrowing is the
-              // pre-launch location-scoping feature.
-              setLocationPath(
-                row
-                  ? [...locationPath.slice(0, level.depth), row]
-                  : locationPath.slice(0, level.depth),
-              )
-            }
+        <>
+          <Picker
+            labelKey="location.country"
+            options={marketOptions}
+            selectedId={selectedMarket?.code ?? null}
+            selectedName={selectedMarket?.nameEn ?? null}
+            onSelect={(option) => selectLocationCountry(option?.id ?? null)}
           />
-        ))
+          {deeper.map((level) => (
+            <Picker
+              key={level.labelKey}
+              labelKey={level.labelKey}
+              options={level.options}
+              selectedId={level.selectedId}
+              selectedName={level.selectedName}
+              onSelect={(option) =>
+                // Choosing at depth N replaces that level and drops everything
+                // below it — the cascade can never hold an orphaned child.
+                setLocationPath(
+                  option?.node
+                    ? [...locationPath.slice(0, level.depth), option.node]
+                    : locationPath.slice(0, level.depth),
+                )
+              }
+            />
+          ))}
+          {guessInUse && guessCountryName !== null ? (
+            <span
+              data-testid="location-guess-caption"
+              className="min-h-11 content-center ps-1 text-xs text-muted-foreground"
+            >
+              {t("location.guessCaption").replace("{country}", guessCountryName)}
+            </span>
+          ) : null}
+        </>
       )}
     </div>
   );

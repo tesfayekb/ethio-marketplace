@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -15,6 +16,17 @@ import { AppFooter } from "@/components/shell/app-footer";
 import { AppHeader } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
+import {
+  anchorOf,
+  asLocationNode,
+  clearAreaCookie,
+  parseAreaCookie,
+  pathToNode,
+  readAreaCookie,
+  useCountryTree,
+  useOpenMarkets,
+  writeAreaCookie,
+} from "@/components/shell/location-data";
 import { LocationSelector } from "@/components/shell/location-selector";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
@@ -68,7 +80,16 @@ type ShellValue = {
   selectedCategoryId: string | null;
   /** The cascading area selection. SEAM: set here, not yet applied to the feed. */
   locationPath: LocationNode[];
+  /** Writes the selection AND the saved-area cookie (L4b, law 12). */
   setLocationPath: (path: LocationNode[]) => void;
+  /** The market whose tree the picker reads, or null when nothing is chosen. */
+  locationCountry: string | null;
+  /** Picks (or clears) the market; clearing forgets the saved area. */
+  selectLocationCountry: (code: string | null) => void;
+  /** True while the shown area comes from the edge guess, not from a pick. */
+  guessInUse: boolean;
+  /** The guessed market's English name, for the caption. */
+  guessCountryName: string | null;
   navOpen: boolean;
   setNavOpen: (open: boolean) => void;
   /** U0l-2 (SO-2): true while the hard-reset sign-out sequence is running. */
@@ -147,8 +168,124 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const { user, loading: authLoading, signOut } = useAuth();
   const [panelChoice, setPanelChoice] = useState<PanelId>("marketplace");
-  const [locationPath, setLocationPath] = useState<LocationNode[]>([]);
+  const [locationPath, setPathState] = useState<LocationNode[]>([]);
+  const [locationCountry, setCountryState] = useState<string | null>(null);
+  const [guessInUse, setGuessInUse] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+
+  /**
+   * L4b — THE INITIAL AREA, DERIVED ONCE, in this order (laws 10, 12, 13):
+   *   (a) the SAVED AREA cookie `ethio_area` ("<CC>:<node id>", so the country
+   *       is known before the tree loads) → the full path down to that node;
+   *   (b) else the visitor's COUNTRY from the edge (DEC-063 verdict: the
+   *       `cf-ipcountry` header, read on the root, country-level) when it is an
+   *       OPEN market → its anchor at depth 0, with the guess caption showing;
+   *   (c) else nothing at all — there is no default market.
+   * The GUESS IS NEVER WRITTEN to the cookie; only a pick is.
+   */
+  const ssrGeo = useRouterState({
+    select: (s) =>
+      s.matches[0]?.loaderData as
+        | { areaCookie?: string | null; geoCountry?: string | null }
+        | undefined,
+  });
+  const areaCookieRaw = ssrGeo?.areaCookie ?? null;
+  const geoCountry = ssrGeo?.geoCountry ?? null;
+  // I3 — one stable object per cookie VALUE, never a fresh one per render.
+  const savedArea = useMemo(
+    () => parseAreaCookie(areaCookieRaw) ?? readAreaCookie(),
+    [areaCookieRaw],
+  );
+  const { markets, isLoading: marketsLoading } = useOpenMarkets();
+  const guessCountry =
+    savedArea === null &&
+    geoCountry !== null &&
+    markets.some((market) => market.code === geoCountry)
+      ? geoCountry
+      : null;
+  const initialCountry = savedArea?.country ?? guessCountry;
+  /** The country whose tree the picker reads; the module cache shares the fetch. */
+  const treeCountry = locationCountry ?? initialCountry;
+  const { nodes: treeNodes } = useCountryTree(treeCountry);
+  const appliedRef = useRef(false);
+  const pendingSaveRef = useRef(false);
+
+  useEffect(() => {
+    if (appliedRef.current) return;
+    // The open-market list decides whether a guessed country is browsable at
+    // all, so the derivation must never LOCK before that read has answered.
+    if (marketsLoading) return;
+    if (initialCountry === null) {
+      appliedRef.current = true;
+      return;
+    }
+    if (treeNodes.length === 0) return;
+    const anchor = anchorOf(treeNodes);
+    if (anchor === null) {
+      appliedRef.current = true;
+      return;
+    }
+    appliedRef.current = true;
+    if (savedArea !== null) {
+      const path = pathToNode(treeNodes, savedArea.id);
+      if (path.length > 0) {
+        setCountryState(savedArea.country);
+        setPathState(path.map(asLocationNode));
+        return;
+      }
+    }
+    setCountryState(initialCountry);
+    setPathState([asLocationNode(anchor)]);
+    setGuessInUse(savedArea === null && guessCountry !== null);
+  }, [initialCountry, treeNodes, savedArea, guessCountry, marketsLoading]);
+
+  /** A market picked in the picker lands on its anchor as soon as the tree is in. */
+  useEffect(() => {
+    if (locationCountry === null || locationPath.length > 0) return;
+    const anchor = anchorOf(treeNodes);
+    if (anchor === null) return;
+    setPathState([asLocationNode(anchor)]);
+    if (pendingSaveRef.current) {
+      writeAreaCookie(locationCountry, anchor.id);
+      pendingSaveRef.current = false;
+    }
+  }, [locationCountry, locationPath.length, treeNodes]);
+
+  const selectLocationCountry = useCallback((code: string | null) => {
+    setGuessInUse(false);
+    appliedRef.current = true;
+    if (code === null) {
+      pendingSaveRef.current = false;
+      setCountryState(null);
+      setPathState([]);
+      clearAreaCookie();
+      return;
+    }
+    pendingSaveRef.current = true;
+    setCountryState(code);
+    setPathState([]);
+  }, []);
+
+  const persistLocationPath = useCallback(
+    (path: LocationNode[]) => {
+      setGuessInUse(false);
+      setPathState(path);
+      const deepest = path[path.length - 1];
+      if (deepest && locationCountry !== null) writeAreaCookie(locationCountry, deepest.id);
+    },
+    [locationCountry],
+  );
+
+  /** The hard reset drops the client-side selection; the cookie is untouched. */
+  const resetLocationState = useCallback(() => {
+    appliedRef.current = true;
+    pendingSaveRef.current = false;
+    setPathState([]);
+    setCountryState(null);
+    setGuessInUse(false);
+  }, []);
+
+  const guessCountryName = markets.find((market) => market.code === treeCountry)?.nameEn ?? null;
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
@@ -259,7 +396,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       setSigningOut(true);
       setPermissionsState({ permissions: [], loading: false });
       setPanelChoice("marketplace");
-      setLocationPath([]);
+      resetLocationState();
       setNavOpen(false);
       try {
         await signOut();
@@ -370,7 +507,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       selectedCategorySlug,
       selectedCategoryId,
       locationPath,
-      setLocationPath,
+      setLocationPath: persistLocationPath,
+      locationCountry: treeCountry,
+      selectLocationCountry,
+      guessInUse,
+      guessCountryName,
       navOpen,
       setNavOpen,
       signingOut,
@@ -385,6 +526,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     selectedCategorySlug,
     selectedCategoryId,
     locationPath,
+    persistLocationPath,
+    treeCountry,
+    selectLocationCountry,
+    guessInUse,
+    guessCountryName,
     navOpen,
     signingOut,
   ]);

@@ -20,6 +20,7 @@ import { Route as CSlugRouteImport } from './routes/c.$slug'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as ApiTranslateRouteImport } from './routes/api/translate'
+import { Route as ApiLocationsRouteImport } from './routes/api/locations'
 import { Route as ApiGeoRouteImport } from './routes/api/geo'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
@@ -103,6 +104,11 @@ const ApiTranslateRoute = ApiTranslateRouteImport.update({
   path: '/api/translate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLocationsRoute = ApiLocationsRouteImport.update({
+  id: '/api/locations',
+  path: '/api/locations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGeoRoute = ApiGeoRouteImport.update({
   id: '/api/geo',
   path: '/api/geo',
@@ -164,9 +170,9 @@ const AdminAttributesRoute = AdminAttributesRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const ApiLocationsCountryRoute = ApiLocationsCountryRouteImport.update({
-  id: '/api/locations/$country',
-  path: '/api/locations/$country',
-  getParentRoute: () => rootRouteImport,
+  id: '/$country',
+  path: '/$country',
+  getParentRoute: () => ApiLocationsRoute,
 } as any)
 const ApiI18nLangRoute = ApiI18nLangRouteImport.update({
   id: '/api/i18n/$lang',
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/geo': typeof ApiGeoRoute
+  '/api/locations': typeof ApiLocationsRouteWithChildren
   '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -303,6 +310,7 @@ export interface FileRoutesByTo {
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/geo': typeof ApiGeoRoute
+  '/api/locations': typeof ApiLocationsRouteWithChildren
   '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -344,6 +352,7 @@ export interface FileRoutesById {
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/geo': typeof ApiGeoRoute
+  '/api/locations': typeof ApiLocationsRouteWithChildren
   '/api/translate': typeof ApiTranslateRoute
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/reset': typeof AuthResetRoute
@@ -386,6 +395,7 @@ export interface FileRouteTypes {
     | '/admin/translations'
     | '/admin/users'
     | '/api/geo'
+    | '/api/locations'
     | '/api/translate'
     | '/auth/callback'
     | '/auth/reset'
@@ -425,6 +435,7 @@ export interface FileRouteTypes {
     | '/admin/translations'
     | '/admin/users'
     | '/api/geo'
+    | '/api/locations'
     | '/api/translate'
     | '/auth/callback'
     | '/auth/reset'
@@ -465,6 +476,7 @@ export interface FileRouteTypes {
     | '/admin/translations'
     | '/admin/users'
     | '/api/geo'
+    | '/api/locations'
     | '/api/translate'
     | '/auth_/callback'
     | '/auth_/reset'
@@ -495,6 +507,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   SettingsRoute: typeof SettingsRoute
   ApiGeoRoute: typeof ApiGeoRoute
+  ApiLocationsRoute: typeof ApiLocationsRouteWithChildren
   ApiTranslateRoute: typeof ApiTranslateRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetRoute: typeof AuthResetRoute
@@ -502,7 +515,6 @@ export interface RootRouteChildren {
   DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevTallRoute: typeof DevTallRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
-  ApiLocationsCountryRoute: typeof ApiLocationsCountryRoute
   ApiAdminAttributesExportRoute: typeof ApiAdminAttributesExportRoute
   ApiAdminAttributesImportRoute: typeof ApiAdminAttributesImportRoute
   ApiAdminCategoriesExportRoute: typeof ApiAdminCategoriesExportRoute
@@ -593,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTranslateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/locations': {
+      id: '/api/locations'
+      path: '/api/locations'
+      fullPath: '/api/locations'
+      preLoaderRoute: typeof ApiLocationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/geo': {
       id: '/api/geo'
       path: '/api/geo'
@@ -679,10 +698,10 @@ declare module '@tanstack/react-router' {
     }
     '/api/locations/$country': {
       id: '/api/locations/$country'
-      path: '/api/locations/$country'
+      path: '/$country'
       fullPath: '/api/locations/$country'
       preLoaderRoute: typeof ApiLocationsCountryRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiLocationsRoute
     }
     '/api/i18n/$lang': {
       id: '/api/i18n/$lang'
@@ -825,12 +844,25 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ApiLocationsRouteChildren {
+  ApiLocationsCountryRoute: typeof ApiLocationsCountryRoute
+}
+
+const ApiLocationsRouteChildren: ApiLocationsRouteChildren = {
+  ApiLocationsCountryRoute: ApiLocationsCountryRoute,
+}
+
+const ApiLocationsRouteWithChildren = ApiLocationsRoute._addFileChildren(
+  ApiLocationsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   SettingsRoute: SettingsRoute,
   ApiGeoRoute: ApiGeoRoute,
+  ApiLocationsRoute: ApiLocationsRouteWithChildren,
   ApiTranslateRoute: ApiTranslateRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetRoute: AuthResetRoute,
@@ -838,7 +870,6 @@ const rootRouteChildren: RootRouteChildren = {
   DevPrimitivesRoute: DevPrimitivesRoute,
   DevTallRoute: DevTallRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,
-  ApiLocationsCountryRoute: ApiLocationsCountryRoute,
   ApiAdminAttributesExportRoute: ApiAdminAttributesExportRoute,
   ApiAdminAttributesImportRoute: ApiAdminAttributesImportRoute,
   ApiAdminCategoriesExportRoute: ApiAdminCategoriesExportRoute,

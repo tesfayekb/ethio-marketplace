@@ -324,7 +324,16 @@ the entity overlay, keyed by id.
 conditional request, both refusals, the ancestor rule against a retired scratch
 region, and that no field outside the eleven ever appears.
 
-## Geo guess (L4a spike)
+## Geo guess (L4a spike; L4b verdict)
+
+The judge is the SHARED server helper `src/server/geo/guess.ts` (L4b, B2): both
+`GET /api/geo` and the root's SSR context read the same judgement, so there is
+no second copy to drift, and a throw logs `[ssr-error] geo-guess <message>` and
+answers "none".
+
+DEC-063 VERDICT (2026-09-16): in production the edge supplies `cf-ipcountry`
+only, so the visitor's guess is their COUNTRY. The shell uses it to pre-select an
+open market (see `location-scoping.md`); it is never persisted.
 
 `GET /api/geo` (`src/routes/api/geo.ts`) answers
 `{ country, regionCode, city, source }` with `Cache-Control: no-store`. It reads

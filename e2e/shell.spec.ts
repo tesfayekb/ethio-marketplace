@@ -13,6 +13,7 @@ import {
   switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
+import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient, createUser } from "./helpers/users";
 
 /** Grants a named role via the service role — the staff fixture (see rbac.spec.ts). */
@@ -1589,5 +1590,147 @@ test.describe("U4h device language star", () => {
       .locator("link[rel='alternate']")
       .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("href") ?? ""));
     for (const href of hrefs) expect(href).toMatch(/^https?:\/\//);
+  });
+});
+
+/**
+ * L4b — THE LOCATION PICKER ON THE CACHED TREE, THE COUNTRY GUESS, THE SAVED
+ * AREA. The picker reads `/api/locations` (open markets) and
+ * `/api/locations/<code>` (that market's visible tree); the visitor's country
+ * arrives on the root from the edge header (DEC-063 verdict) and pre-selects an
+ * OPEN market; a pick — never the guess — saves `ethio_area`.
+ *
+ * J1/J3: every fixture row is an `e2e-` scratch chain under ET, deleted
+ * child-first in `finally`; no reference row is ever written.
+ */
+test.describe("L4b location picker", () => {
+  /** The open markets, straight from the public route (no literal names). */
+  async function openMarkets(page: Page) {
+    const response = await page.request.get("/api/locations");
+    expect(response.status(), "the open-markets route did not answer 200").toBe(200);
+    const body = (await response.json()) as { countries?: { code: string; name_en: string }[] };
+    return body.countries ?? [];
+  }
+
+  async function pick(page: Page, level: string, name: string) {
+    await page.getByTestId(`location-level-${level}`).click();
+    await page.getByRole("menuitem", { name, exact: true }).click();
+    await expect(page.getByTestId(`location-level-${level}`)).toHaveText(
+      new RegExp(escapeRe(name)),
+    );
+  }
+
+  async function marketName(page: Page, code: string) {
+    const market = (await openMarkets(page)).find((row) => row.code === code);
+    expect(market, `${code} is not an open market`).toBeTruthy();
+    return market!.name_en;
+  }
+
+  test("LS-1 the cascade reaches a sub-city", async ({ page }) => {
+    const chain = await seedScratchChain("ET");
+    try {
+      const ethiopia = await marketName(page, "ET");
+      await waitForTreeSlug(page, "ET", chain.subCity.slug);
+      await gotoReady(page, "/");
+      await pick(page, "country", ethiopia);
+      await pick(page, "region", chain.region.name_en!);
+      await pick(page, "city", chain.city.name_en!);
+      // The FOURTH step exists exactly because a sub-city does.
+      await expect(page.getByTestId("location-level-subCity")).toBeVisible();
+      await pick(page, "subCity", chain.subCity.name_en!);
+      await expect(page.locator("[data-testid^='location-level-']")).toHaveCount(4);
+    } finally {
+      await destroyLocation(chain.region.slug);
+    }
+  });
+
+  test("LS-2 a pick is remembered, clearing forgets it", async ({ page }) => {
+    const chain = await seedScratchChain("ET");
+    try {
+      const ethiopia = await marketName(page, "ET");
+      await waitForTreeSlug(page, "ET", chain.subCity.slug);
+      await gotoReady(page, "/");
+      await pick(page, "country", ethiopia);
+      await pick(page, "region", chain.region.name_en!);
+      await pick(page, "city", chain.city.name_en!);
+
+      await expect
+        .poll(async () => await page.evaluate("document.cookie"), { timeout: 5000 })
+        .toContain("ethio_area=ET:");
+
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await waitForHydration(page);
+      await expect(page.getByTestId("location-level-city")).toHaveText(
+        new RegExp(escapeRe(chain.city.name_en!)),
+      );
+      // A remembered area is a CHOICE, so no guess caption stands beside it.
+      await expect(page.getByTestId("location-guess-caption")).toHaveCount(0);
+
+      // Clearing the country forgets the saved area entirely.
+      await page.getByTestId("location-level-country").click();
+      await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
+      await expect
+        .poll(async () => await page.evaluate("document.cookie"), { timeout: 5000 })
+        .not.toContain("ethio_area=ET:");
+    } finally {
+      await destroyLocation(chain.region.slug);
+    }
+  });
+
+  test("LS-3 an open market is guessed from the edge country, never saved", async ({ browser }) => {
+    const context = await browser.newContext({ extraHTTPHeaders: { "cf-ipcountry": "ET" } });
+    const page = await context.newPage();
+    try {
+      const ethiopia = await marketName(page, "ET");
+      await gotoReady(page, "/");
+      await expect(page.getByTestId("location-level-country")).toHaveText(
+        new RegExp(escapeRe(ethiopia)),
+      );
+      await expect(page.getByTestId("location-guess-caption")).toBeVisible();
+      // LAW 10 — the guess is never written to the saved-area cookie.
+      expect(await page.evaluate("document.cookie")).not.toContain("ethio_area=");
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("LS-4 a closed market is not guessed", async ({ browser }) => {
+    const context = await browser.newContext({ extraHTTPHeaders: { "cf-ipcountry": "CA" } });
+    const page = await context.newPage();
+    try {
+      const markets = await openMarkets(page);
+      expect(
+        markets.some((row) => row.code === "CA"),
+        "CA must stay a closed market",
+      ).toBe(false);
+      await gotoReady(page, "/");
+      await expect(page.getByTestId("location-guess-caption")).toHaveCount(0);
+      await expect(page.getByTestId("location-level-country")).toHaveText(
+        new RegExp(escapeRe(en["location.country"])),
+      );
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("LS-5 no header and no cookie: no guess, and the markets route caches", async ({ page }) => {
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("location-guess-caption")).toHaveCount(0);
+    await expect(page.getByTestId("location-level-country")).toHaveText(
+      new RegExp(escapeRe(en["location.country"])),
+    );
+
+    const first = await page.request.get("/api/locations");
+    expect(first.status()).toBe(200);
+    const body = (await first.json()) as { countries?: { code: string }[] };
+    const codes = (body.countries ?? []).map((row) => row.code);
+    expect(codes).toContain("ET");
+    expect(codes).toContain("US");
+
+    const etag = first.headers()["etag"]!;
+    const second = await page.request.get("/api/locations", {
+      headers: { "If-None-Match": etag },
+    });
+    expect(second.status(), "a conditional repeat must cost a 304").toBe(304);
   });
 });

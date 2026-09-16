@@ -53,7 +53,7 @@ export function CountriesToolbar({
       </select>
 
       <select
-        className={`${SELECT_CLASS} md:w-48`}
+        className={`${SELECT_CLASS} md:w-28`}
         data-testid="country-page-size"
         aria-label={t("admin.countries.filter.pageSize")}
         value={pageSize}

@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 248,
+  "scanned": 251,
   "dynamicCallSites": 157,
   "keys": {
     "account.deactivatedBanner": [
@@ -3083,7 +3083,19 @@
       "/admin",
       "/c/$slug"
     ],
+    "location.guessCaption": [
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
+    ],
     "location.label": [
+      "(every page)",
+      "/",
+      "/admin",
+      "/c/$slug"
+    ],
+    "location.readFailed": [
       "(every page)",
       "/",
       "/admin",
