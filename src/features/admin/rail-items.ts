@@ -80,16 +80,14 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = (() => {
     }
     let group = groups.get(groupId);
     if (!group) {
-      const config = ADMIN_GROUPS[groupId] as {
-        readonly titleKey: AdminSection["titleKey"];
-        readonly path?: string;
-      };
+      const config = ADMIN_GROUPS[groupId];
+      const groupPath = "path" in config ? config.path : undefined;
       const created: NavItem = {
         id: `ad-group-${groupId}`,
         testid: `admin-group-${groupId}`,
         labelKey: config.titleKey,
         icon: GROUP_ICONS[groupId],
-        path: config.path,
+        path: groupPath,
         defaultOpen: true,
         group: true,
         children: [],
