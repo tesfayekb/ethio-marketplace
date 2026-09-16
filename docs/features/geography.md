@@ -324,6 +324,38 @@ the entity overlay, keyed by id.
 conditional request, both refusals, the ancestor rule against a retired scratch
 region, and that no field outside the eleven ever appears.
 
+## Geo guess (L4a spike)
+
+`GET /api/geo` (`src/routes/api/geo.ts`) answers
+`{ country, regionCode, city, source }` with `Cache-Control: no-store`. It reads
+the request and NOTHING else: no database, no cookie, no storage, no listing.
+
+THE JUDGE (DEC-063, pre-committed — this order and nothing else):
+
+| Order | Source                                                  | Answer                                         |
+| ----- | ------------------------------------------------------- | ---------------------------------------------- |
+| 1     | the Cloudflare `cf` object, when it carries a `country` | country, `regionCode`/`city` when present      |
+| 2     | else the `cf-ipcountry` header, exactly two letters     | the country, upper-cased; region and city null |
+| 3     | else nothing                                            | all three null, `source: "none"`               |
+
+There is no other fallback, no default market and no `x-forwarded-*` parsing.
+A7 census: no export of `@tanstack/react-start/server` hands out the nitro
+request event, so branch 1 reads the non-standard `cf` property workerd hangs on
+the handler's own `Request` (the Cloudflare preset, `vite.config.ts`). In the
+node runtime that property is absent and the judge falls through.
+
+The guess must never take a page down (F4/I4): every throw logs
+`[ssr-error] /api/geo <message>` and still answers `{ source: "none" }` with
+nulls. Values are echoed as strings trimmed to 64 characters, never as HTML.
+
+`e2e/geo.spec.ts` — GE-1 the node runtime answers `none` with three nulls and
+`no-store` · GE-2 a `cf-ipcountry` header is the second source (an honest seam:
+production's edge overwrites the header) · GE-3 `e`, `ETH` and `<b>` are no
+guess at all.
+
+**Verdict pending the operator's published-URL read** — nothing consumes this
+route yet; the picker and provider are L4b, after the verdict.
+
 ## Related
 
 - `docs/features/locations-console.md` — the Places roster over this tree.
