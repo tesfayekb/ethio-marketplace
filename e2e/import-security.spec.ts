@@ -273,6 +273,13 @@ const FAMILIES: Family[] = [
           cells({ center_lng: "38.123456789" }),
           // an on/off cell that is neither true nor false
           cells({ is_active: "maybe" }),
+          /**
+           * INC-208 — A PLAIN NEGATIVE IS A NUMBER. A southern latitude spelt
+           * without the export's apostrophe must reach the planner: the gate's
+           * formula law exempts numeric columns, so this row is NOT refused as
+           * `formula` (the block below asserts no such refusal exists).
+           */
+          cells({ center_lat: "-33.9", center_lng: "18.4" }),
         ],
         reasons: ["badNumber", "badNumber", "badBoolean"],
       };
@@ -452,6 +459,11 @@ for (const family of FAMILIES) {
           JSON.stringify(shapeRefusals),
         ).toEqual(expect.arrayContaining(shape.reasons));
         for (const refusal of shapeRefusals) expect(refusal.row).toBeGreaterThan(1);
+        // INC-208: no numeric cell is read as a formula, in any family.
+        expect(
+          shapeRefusals.map((entry) => entry.reason),
+          JSON.stringify(shapeRefusals),
+        ).not.toContain("formula");
       }
 
       /**
