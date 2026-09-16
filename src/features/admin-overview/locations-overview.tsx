@@ -8,9 +8,9 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { useI18n } from "@/i18n";
 
 const LINKS = [
-  { permission: "locations:view", path: "/admin/places", key: "locations" },
-  { permission: "countries:view", path: "/admin/countries", key: "countries" },
-  { permission: "coverage:view", path: "/admin/coverage", key: "coverage" },
+  { permission: "locations:view", path: "/admin/places", key: "locations", titleKey: "admin.section.locations.title", bodyKey: "admin.section.locations.body" },
+  { permission: "countries:view", path: "/admin/countries", key: "countries", titleKey: "admin.section.countries.title", bodyKey: "admin.section.countries.body" },
+  { permission: "coverage:view", path: "/admin/coverage", key: "coverage", titleKey: "admin.section.coverage.title", bodyKey: "admin.section.coverage.body" },
 ] as const;
 
 export function LocationsOverview() {
@@ -81,8 +81,8 @@ export function LocationsOverview() {
             data-testid={`overview-link-${item.key}`}
             className="flex min-h-16 flex-col justify-center rounded-md border border-border bg-card p-4 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <span className="text-sm font-semibold text-foreground">{t(`admin.section.${item.key}.title`)}</span>
-            <span className="mt-1 text-xs text-muted-foreground">{t(`admin.section.${item.key}.body`)}</span>
+            <span className="text-sm font-semibold text-foreground">{t(item.titleKey)}</span>
+            <span className="mt-1 text-xs text-muted-foreground">{t(item.bodyKey)}</span>
           </Link>
         ))}
       </nav>
