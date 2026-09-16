@@ -614,6 +614,57 @@ export default async function globalSetup() {
     reaped += 1;
   }
 
+  /**
+   * DEC-062 EXTENSION (LOCATIONS ERA L2b-C1) — SCRATCH MARKETS. A country row
+   * whose CODE is in the ISO 3166-1 user-assigned ranges (QM–QZ, XA–XZ) AND
+   * whose name carries the `E2E-Scratch-` prefix is a fixture: no real ISO
+   * country is user-assigned, so a real market can never match. Its places (the
+   * anchor last) and its rail-order rows go before the row itself. Delete-only.
+   */
+  const USER_ASSIGNED = /^(Q[M-Z]|X[A-Z])$/;
+  const { data: staleCountries, error: staleCountryError } = await supabase
+    .from("countries")
+    .select("code, name_en, created_at")
+    .like("name_en", "E2E-Scratch-%")
+    .lt("created_at", cutoff);
+  if (staleCountryError) {
+    throw new Error(
+      `[e2e:setup] listing stale scratch countries failed: ${staleCountryError.message}`,
+    );
+  }
+  for (const row of staleCountries ?? []) {
+    if (!USER_ASSIGNED.test(row.code)) continue;
+    const { data: places } = await supabase
+      .from("locations")
+      .select("id, level")
+      .eq("country_code", row.code);
+    const ordered = [...(places ?? [])].sort(
+      (a, b) => (LEVEL_RANK[a.level] ?? 9) - (LEVEL_RANK[b.level] ?? 9),
+    );
+    for (const place of ordered) {
+      await supabase
+        .from("entity_translations")
+        .delete()
+        .eq("entity_type", "location")
+        .eq("entity_id", place.id);
+      const { error: placeError } = await supabase.from("locations").delete().eq("id", place.id);
+      if (placeError) {
+        throw new Error(
+          `[e2e:setup] reaping scratch place ${place.id} failed: ${placeError.message}`,
+        );
+      }
+      reaped += 1;
+    }
+    await supabase.from("country_root_order").delete().eq("country_code", row.code);
+    const { error: countryError } = await supabase.from("countries").delete().eq("code", row.code);
+    if (countryError) {
+      throw new Error(
+        `[e2e:setup] reaping scratch country ${row.code} failed: ${countryError.message}`,
+      );
+    }
+    reaped += 1;
+  }
+
   const { data: staleImportRevisions, error: importRevisionError } = await supabase
     .from("location_import_revisions")
     .delete()

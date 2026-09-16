@@ -24,12 +24,14 @@ export const ADMIN_LOCATIONS_KEY = [AUTH_DERIVED_ROOT, "admin", "locations"] as 
  * L2a-R — ONE READ PER COUNTRY. The key carries the country and NOTHING else:
  * search, level and status are client-side sieves over this one roster, so a
  * keystroke costs no request and switching the market is the only fetch.
+ *
+ * L2b-C1 — "" is no longer "nothing selected" but the ALL-COUNTRIES scope, so
+ * the read is always enabled and caches under its own `all` key.
  */
 export function useAdminLocations(countryCode: string) {
   return useQuery({
-    queryKey: [...ADMIN_LOCATIONS_KEY, "list", countryCode === "" ? "none" : countryCode],
+    queryKey: [...ADMIN_LOCATIONS_KEY, "list", countryCode === "" ? "all" : countryCode],
     queryFn: () => listLocations(countryCode),
-    enabled: countryCode !== "",
     staleTime: 15_000,
   });
 }

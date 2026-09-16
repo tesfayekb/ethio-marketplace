@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 228,
-  "dynamicCallSites": 135,
+  "scanned": 239,
+  "dynamicCallSites": 148,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -732,11 +732,13 @@
     "admin.categories.create.countries": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.countriesHint": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.open": [
@@ -745,71 +747,85 @@
     "admin.categories.create.parent": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.parentRoot": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.position": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.positionBefore": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.positionCount": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.positionEnd": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.slugPreview": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.create.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.delete.confirm": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.delete.confirmLabel": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.delete.hint": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.delete.mismatch": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.delete.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.edit.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.empty": [
@@ -821,41 +837,49 @@
     "admin.categories.error.imageFailed": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.error.nameRequired": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.error.parentRequired": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.error.reassignRequired": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.error.saveFailed": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.exclusions.current": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.exclusions.hint": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.exclusions.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.export.busy": [
@@ -870,51 +894,61 @@
     "admin.categories.field.allowListings": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.expiryDays": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.expiryNone": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.icon": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.iconChange": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.iconHint": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.name": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.order": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.orderManaged": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.field.priceEnabled": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.filter.allCategories": [
@@ -939,71 +973,85 @@
     "admin.categories.image.accept": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.acceptToast": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.accepted": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.busy": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.card": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.empty": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.generate": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.loading": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.og": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.regenerate": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.review": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.stageLabel": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.thumb": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.image.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.import.open": [
@@ -1021,111 +1069,133 @@
     "admin.categories.paths.add": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.addSubmit": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.empty": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.error": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.hint": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.loading": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.moveTo": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.primary": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.primaryTip": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.remove": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.root": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.paths.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.pointer.hint": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.pointer.parent": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.pointer.parentPlaceholder": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.pointer.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.retire.confirm": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.retire.hint": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.retire.noListings": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.retire.reassignCount": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.retire.reassignPlaceholder": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.retire.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.searchPlaceholder": [
@@ -1161,25 +1231,165 @@
     "admin.categories.window.from": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.window.hint": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.window.title": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.categories.window.until": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.comingSoon": [
+      "/admin/coverage",
       "/admin/images"
+    ],
+    "admin.countries.action.edit": [
+      "/admin/countries"
+    ],
+    "admin.countries.caption": [
+      "/admin/countries"
+    ],
+    "admin.countries.close.forceConfirm": [
+      "/admin/countries"
+    ],
+    "admin.countries.close.scopedHint": [
+      "/admin/countries"
+    ],
+    "admin.countries.col.name": [
+      "/admin/countries"
+    ],
+    "admin.countries.col.places": [
+      "/admin/countries"
+    ],
+    "admin.countries.col.rail": [
+      "/admin/countries"
+    ],
+    "admin.countries.col.roles": [
+      "/admin/countries"
+    ],
+    "admin.countries.col.status": [
+      "/admin/countries"
+    ],
+    "admin.countries.col.units": [
+      "/admin/countries"
+    ],
+    "admin.countries.col.updated": [
+      "/admin/countries"
+    ],
+    "admin.countries.create.bornClosed": [
+      "/admin/countries"
+    ],
+    "admin.countries.create.code": [
+      "/admin/countries"
+    ],
+    "admin.countries.create.codeHint": [
+      "/admin/countries"
+    ],
+    "admin.countries.create.open": [
+      "/admin/countries"
+    ],
+    "admin.countries.create.title": [
+      "/admin/countries"
+    ],
+    "admin.countries.edit.title": [
+      "/admin/countries"
+    ],
+    "admin.countries.edit.translationsLink": [
+      "/admin/countries"
+    ],
+    "admin.countries.empty": [
+      "/admin/countries"
+    ],
+    "admin.countries.error": [
+      "/admin/countries"
+    ],
+    "admin.countries.error.reason": [
+      "/admin/countries"
+    ],
+    "admin.countries.field.currency": [
+      "/admin/countries"
+    ],
+    "admin.countries.field.currencyHint": [
+      "/admin/countries"
+    ],
+    "admin.countries.field.name": [
+      "/admin/countries"
+    ],
+    "admin.countries.field.order": [
+      "/admin/countries"
+    ],
+    "admin.countries.field.unit": [
+      "/admin/countries"
+    ],
+    "admin.countries.filter.allStatuses": [
+      "/admin/countries"
+    ],
+    "admin.countries.filter.closedOnly": [
+      "/admin/countries"
+    ],
+    "admin.countries.filter.openOnly": [
+      "/admin/countries"
+    ],
+    "admin.countries.filter.pageSize": [
+      "/admin/countries"
+    ],
+    "admin.countries.filter.status": [
+      "/admin/countries"
+    ],
+    "admin.countries.import.title": [
+      "/admin/countries"
+    ],
+    "admin.countries.loading": [
+      "/admin/countries"
+    ],
+    "admin.countries.places.hint": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.down": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.empty": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.globalNote": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.hint": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.hintDialog": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.reset": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.submit": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.title": [
+      "/admin/countries"
+    ],
+    "admin.countries.rail.up": [
+      "/admin/countries"
+    ],
+    "admin.countries.roles.hint": [
+      "/admin/countries"
+    ],
+    "admin.countries.searchPlaceholder": [
+      "/admin/countries"
     ],
     "admin.landing.body": [
       "/admin"
@@ -1269,15 +1479,17 @@
       "/admin/locations"
     ],
     "admin.locations.export.busy": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.export.countries": [
-      "/admin/locations"
+      "/admin/countries"
     ],
     "admin.locations.export.countriesHint": [
-      "/admin/locations"
+      "/admin/countries"
     ],
     "admin.locations.export.error": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.export.locations": [
@@ -1329,33 +1541,49 @@
       "/admin/locations"
     ],
     "admin.locations.filter.activeOnly": [
+      "/admin/countries",
+      "/admin/locations"
+    ],
+    "admin.locations.filter.all": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.filter.allLevels": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.filter.allStatuses": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.filter.closedSuffix": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.filter.country": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.filter.level": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.filter.pageSize": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.filter.retiredOnly": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.filter.status": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.import.open": [
+      "/admin/locations"
+    ],
+    "admin.locations.import.titleAll": [
       "/admin/locations"
     ],
     "admin.locations.import.titleScoped": [
@@ -1395,9 +1623,13 @@
       "/admin/locations"
     ],
     "admin.locations.searchPlaceholder": [
+      "/admin/countries",
       "/admin/locations"
     ],
     "admin.locations.transfer.scope": [
+      "/admin/locations"
+    ],
+    "admin.locations.transfer.scopeAll": [
       "/admin/locations"
     ],
     "admin.nav.label": [
@@ -2445,6 +2677,7 @@
     "common.cancel": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/dev/primitives"
     ],
@@ -2454,6 +2687,7 @@
       "/admin",
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2486,6 +2720,7 @@
     "common.save": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/dev/primitives"
     ],
@@ -2669,6 +2904,7 @@
     "mfa.codeLabel": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2680,6 +2916,7 @@
     "mfa.codePlaceholder": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2727,6 +2964,7 @@
     "mfa.stepUpBody": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2737,6 +2975,7 @@
     "mfa.stepUpConfirm": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2747,6 +2986,7 @@
     "mfa.stepUpGoToSettings": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2757,6 +2997,7 @@
     "mfa.stepUpNoFactorBody": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2768,6 +3009,7 @@
     "mfa.stepUpNoFactorTitle": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2778,6 +3020,7 @@
     "mfa.stepUpTitle": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -2841,6 +3084,7 @@
       "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
+      "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/locations",
       "/admin/roles",
@@ -2853,6 +3097,7 @@
       "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
+      "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/locations",
       "/admin/roles",
@@ -2865,6 +3110,7 @@
       "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
+      "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/locations",
       "/admin/roles",
@@ -2877,6 +3123,7 @@
       "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
+      "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/locations",
       "/admin/roles",
@@ -2889,6 +3136,7 @@
       "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
+      "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/locations",
       "/admin/roles",
@@ -2901,6 +3149,7 @@
       "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
+      "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/locations",
       "/admin/roles",
@@ -2913,6 +3162,7 @@
       "/admin/attributes",
       "/admin/audit",
       "/admin/categories",
+      "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/locations",
       "/admin/roles",
@@ -2936,6 +3186,7 @@
     "settings.cancel": [
       "/admin/attributes",
       "/admin/categories",
+      "/admin/countries",
       "/admin/locations",
       "/admin/roles",
       "/admin/roles/$roleId",

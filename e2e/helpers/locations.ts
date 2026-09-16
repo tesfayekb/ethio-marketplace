@@ -97,6 +97,16 @@ export async function dialogDump(page: Page, label: string): Promise<string> {
   return `[dialog-dump ${label}] open dialogs: ${rendered}`;
 }
 
+/**
+ * L2b-C1 — THE PICKER OPENS ON "ALL COUNTRIES". A test about ONE market's tree
+ * therefore names its market first; the default itself is asserted by LT-13.
+ */
+export async function selectMarket(page: Page, code: string) {
+  const picker = page.getByTestId("location-country-filter");
+  await expect(picker).toBeVisible({ timeout: 20000 });
+  await picker.selectOption(code);
+}
+
 /** SEARCH IS THE ANCHOR — never page position (the categories precedent). */
 export async function findRow(page: Page, key: string, needle?: string): Promise<Locator> {
   const leaf = key.split("/").slice(-1)[0] ?? key;

@@ -210,9 +210,14 @@ export function LocationCreateDialog({
             value={chosen}
             onChange={(event) => setChosen(event.target.value)}
           >
+            {/* L2b-C1 — with every market in the roster the picker also offers
+                CLOSED countries' anchors, suffixed so the operator can see a
+                place is being prepared before its market opens. */}
             {parents.map((row) => (
               <option key={row.id} value={row.id}>
-                {row.path}
+                {row.isActive
+                  ? row.path
+                  : `${row.path} · ${t("admin.locations.filter.closedSuffix")}`}
               </option>
             ))}
           </select>

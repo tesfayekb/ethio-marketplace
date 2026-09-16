@@ -51,6 +51,8 @@ export function LocationsToolbar({
             value={country}
             onChange={(event) => onCountry(event.target.value)}
           >
+            {/* L2b-C1 — the roster OPENS here: every market at once, one read. */}
+            <option value="">{t("admin.locations.filter.all")}</option>
             {markets.map((market) => (
               <option key={market.code} value={market.code}>
                 {market.isActive

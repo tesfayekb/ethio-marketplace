@@ -32,6 +32,10 @@ export const ADMIN_GROUPS = {
   // IE-1r PART C — the LABEL is "Catalog"; the id, route and testid carrier
   // (`admin-group-categories`) are unchanged.
   categories: { id: "categories", titleKey: "admin.nav.group.catalog" },
+  // LOCATIONS ERA L2b-C1 — geography folds into ONE group the way Catalog did:
+  // Places (the tree), Countries (the markets) and Coverage (the plans). The
+  // group carries no permission of its own; each section keeps its gate (F3).
+  locations: { id: "locations", titleKey: "admin.nav.group.locations" },
 } as const satisfies Record<string, { readonly id: string; readonly titleKey: MessageKey }>;
 
 export type AdminGroupId = keyof typeof ADMIN_GROUPS;
@@ -64,6 +68,23 @@ export const ADMIN_SECTIONS = [
     permission: "locations:view",
     titleKey: "admin.section.locations.title",
     bodyKey: "admin.section.locations.body",
+    group: "locations",
+  },
+  {
+    id: "countries",
+    path: "/admin/countries",
+    permission: "countries:view",
+    titleKey: "admin.section.countries.title",
+    bodyKey: "admin.section.countries.body",
+    group: "locations",
+  },
+  {
+    id: "coverage",
+    path: "/admin/coverage",
+    permission: "coverage:view",
+    titleKey: "admin.section.coverage.title",
+    bodyKey: "admin.section.coverage.body",
+    group: "locations",
   },
   {
     id: "categories",

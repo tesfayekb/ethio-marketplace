@@ -244,9 +244,14 @@ export const am: Messages = {
   "admin.section.roles.body": "የሚና እና ፈቃድ አስተዳደር በU2 ይመጣል።",
   "admin.section.audit.title": "ኦዲት እና ደህንነት",
   "admin.section.audit.body": "የኦዲት እና ደህንነት መሣሪያዎች በU3 ይመጣሉ።",
-  "admin.section.locations.title": "አካባቢዎች",
-  "admin.section.locations.body": "የአካባቢ አስተዳደር በU4 ይመጣል።",
+  "admin.section.locations.title": "ቦታዎች",
+  "admin.section.locations.body": "በየገበያው ውስጥ ያሉ ክልሎች፣ ከተሞች እና ክፍለ ከተሞች።",
+  "admin.section.countries.title": "አገሮች",
+  "admin.section.countries.body": "እያንዳንዱ ገበያ፦ ክፍት ወይም ዝግ፣ መለኪያ፣ ገንዘብ እና የሐዲዱ ቅደም ተከተል።",
+  "admin.section.coverage.title": "ሽፋን",
+  "admin.section.coverage.body": "በየእቅዱ ሻጭ እስከምን ድረስ መድረስ ይችላል።",
   "admin.nav.group.catalog": "ካታሎግ",
+  "admin.nav.group.locations": "አካባቢዎች",
   "admin.section.categories.title": "ምድቦች",
   "admin.section.categories.body": "የምድብ አስተዳደር በU5 ይመጣል።",
   "admin.section.attributes.title": "ባህርያት",
@@ -1576,6 +1581,117 @@ export const am: Messages = {
   "admin.locations.import.reason.tooLong": "ያ ሕዋስ ይህ አምድ ከሚፈቅደው ይረዝማል።",
   "admin.locations.import.reason.required": "ይህ ሕዋስ ባዶ መሆን አይችልም።",
   "admin.locations.import.reason.unknown": "ይህ ረድፍ ተከልክሏል",
+  "admin.locations.filter.all": "\u1201\u1209\u121d \u12a0\u1308\u122e\u127d",
+  "admin.locations.import.titleAll":
+    "\u12c8\u12f0 \u1201\u1209\u121d \u12a0\u1308\u122e\u127d \u12a0\u1235\u1308\u1263",
+  "admin.locations.transfer.scopeAll": "\u1208\u1201\u1209\u121d \u12a0\u1308\u122e\u127d",
+  "admin.countries.caption":
+    "\u1260\u1218\u12dd\u1308\u1265 \u120b\u12eD \u12eb\u1209 \u1231\u1209 \u1308\u1260\u12eb\u12ce\u127d",
+  "admin.countries.loading": "\u12a0\u1308\u122e\u127d \u1260\u1218\u1320\u122d \u120b\u12ed\u2026",
+  "admin.countries.error":
+    "\u12a0\u1308\u122e\u1279 \u1218\u1320\u122d \u12a0\u120d\u1270\u1273\u1229\u121d\u1362",
+  "admin.countries.empty":
+    "\u1260\u12a5\u1290\u12da\u1205 \u121b\u1323\u122a\u12eb\u12ce\u127d \u12e8\u121a\u1218\u1233\u1230\u120d \u12a0\u1308\u122d \u12e8\u1208\u121d\u1362",
+  "admin.countries.searchPlaceholder":
+    "\u1235\u121d \u12c8\u12ed\u121d \u12ae\u12f5 \u12ed\u1348\u120d\u1309",
+  "admin.countries.filter.status": "\u1201\u1294\u1273",
+  "admin.countries.filter.allStatuses": "\u12ad\u1349\u1275 \u12a5\u1293 \u12dd\u130d",
+  "admin.countries.filter.openOnly": "\u12ad\u1349\u1275 \u1265\u127b",
+  "admin.countries.filter.closedOnly": "\u12dd\u130d \u1265\u127b",
+  "admin.countries.filter.pageSize":
+    "\u1260\u12a0\u1295\u12f5 \u1308\u1343 \u1228\u12f5\u1444\u127d",
+  "admin.countries.col.name": "\u12a0\u1308\u122d",
+  "admin.countries.col.status": "\u1201\u1294\u1273",
+  "admin.countries.col.places": "\u1265\u122a \u1263\u1275\u12ce\u127d \u1363 \u1260\u12e0\u1275",
+  "admin.countries.col.units": "\u1218\u1208\u12ad\u12eb \u00b7 \u1308\u1295\u12d8\u1265",
+  "admin.countries.col.rail": "\u12e8\u1213\u12f5\u12f5 \u1245\u12f0\u1275",
+  "admin.countries.col.roles": "\u12e8\u1273\u1230\u1229 \u121a\u1293\u12ce\u127d",
+  "admin.countries.col.updated": "\u12e8\u1270\u12d8\u1218\u1290\u1260\u1275",
+  "admin.countries.badge.open": "\u12ad\u1349\u1275",
+  "admin.countries.badge.closed": "\u12dd\u130d",
+  "admin.countries.tip.open":
+    "\u1308\u12dB\u12ce\u127d \u1260\u12a5\u1290\u12da\u1205 \u1308\u1260\u12eb \u120d\u1275\u1218\u120d\u12a8\u1271 \u12a5\u1293 \u1238\u127c\u127d \u1218\u1208\u1320\u134d \u12ed\u127d\u120b\u1209\u1362",
+  "admin.countries.tip.closed":
+    "\u1270\u12d8\u130b\u12ed\u1277\u120d \u130d\u1295 \u1270\u1230\u1234\u121e\u120d\u1362 \u1308\u1260\u12eb\u12cD \u12a8\u121a\u12ad\u1348\u1275 \u1260\u134A\u1275 \u1263\u1275\u12ce\u127d \u1260\u121b\u12d8\u130b\u1300\u1275 \u120b\u12ed \u1290\u12cD\u1362",
+  "admin.countries.places.hint":
+    "\u1265\u122a \u1263\u1275\u12ce\u127d \u00b7 \u1260\u1218\u12dd\u1308\u1265 \u120b\u12ed \u12eb\u1209 \u1263\u1275\u12ce\u127d",
+  "admin.countries.rail.hint":
+    "\u12ed\u1205 \u1308\u1260\u12eb \u1208\u122b\u1231 \u1260\u121b\u12d8\u1308\u1300\u1275 \u12e8\u121a\u12eb\u12dB\u1278\u12cD \u12e8\u1225\u122d \u121d\u12f5\u1266\u127d \u1265\u12d9\u1290\u1275\u1361 0 \u12a0\u1208\u121d\u12a0\u1240\u134D \u1245\u12f0\u1275 \u12ed\u12a8\u1270\u120b\u120d\u1362",
+  "admin.countries.roles.hint":
+    "\u1208\u12a5\u1290\u12da\u1205 \u1308\u1260\u12eb \u12e8\u1270\u1230\u1229 \u121a\u1293\u12ce\u127d\u1362",
+  "admin.countries.unit.metric": "\u121c\u1275\u122a\u12ad",
+  "admin.countries.unit.imperial": "\u12a2\u121d\u1350\u122a\u12eb\u120d",
+  "admin.countries.create.open": "\u12a0\u1308\u122d \u12ed\u1328\u121d\u1229",
+  "admin.countries.create.title": "\u12a0\u1308\u122d \u1218\u1328\u1218\u122d",
+  "admin.countries.create.code": "\u1201\u1208\u1275 \u1206\u1204 \u12ae\u12f5",
+  "admin.countries.create.codeHint":
+    "\u12e8ISO 3166-1 alpha-2 \u12ae\u12f5\u1361 \u1218\u1233\u120b\u1361 ET\u1362",
+  "admin.countries.create.bornClosed":
+    "\u12dd\u130d \u1206\u1296 \u1270\u1348\u1320\u122d\u1361 \u1263\u1275\u12ce\u1279 \u1232\u12d8\u130b\u1301 \u12ad\u1348\u1275 \u12ed\u12a0\u12cD\u1362",
+  "admin.countries.field.name": "\u1235\u121d (\u12a5\u1295\u130d\u120a\u12dD)",
+  "admin.countries.field.unit": "\u12e8\u1218\u1208\u12ad\u12eb \u1235\u122d\u12d3\u1275",
+  "admin.countries.field.currency": "\u12e8\u1308\u1295\u12d8\u1265 \u12ae\u12f5",
+  "admin.countries.field.currencyHint":
+    "\u12e8ISO 4217 \u12ae\u12f5\u1361 \u1218\u1233\u120b\u1361 ETB\u1362 \u12e8\u1208\u120d\u121d \u12ab\u1208 \u1263\u12f6 \u12ed\u1213\u1362",
+  "admin.countries.field.order": "\u1245\u12f0\u1275",
+  "admin.countries.action.edit": "\u12a0\u122d\u1275\u12d5",
+  "admin.countries.action.open": "\u12ed\u1205\u1295 \u1308\u1260\u12eb \u12ad\u1348\u1275",
+  "admin.countries.action.close": "\u12ed\u1205\u1295 \u1308\u1260\u12eb \u12dd\u130a",
+  "admin.countries.action.railOrder": "\u12e8\u1213\u12f5\u12f5 \u1245\u12f0\u1275",
+  "admin.countries.edit.title": "\u12a0\u1308\u122d \u12a0\u122d\u1275\u12d5",
+  "admin.countries.edit.anchorActive":
+    "\u12e8\u12a5\u1229 \u1218\u1230\u1228\u1275 \u1263\u1275 \u1265\u122a \u1290\u12cD\u1362",
+  "admin.countries.edit.anchorInactive":
+    "\u12e8\u12a5\u1229 \u1218\u1230\u1228\u1275 \u1263\u1275 \u12a0\u1208\u1260\u122a\u121d\u1362",
+  "admin.countries.edit.translationsLink":
+    "\u1260\u120c\u120e\u127d \u12ee\u1295\u12eb\u12ce\u127d \u12eb\u1209 \u1235\u121e\u127d \u1260\u1275\u122d\u1301\u121b\u1295 \u2192 \u12f3\u1275\u1293 \u12ed\u1230\u1290\u12f3\u1209\u1362",
+  "admin.countries.open.title": "\u12ed\u1205\u1295 \u1308\u1260\u12eb \u12ad\u1348\u1275",
+  "admin.countries.open.hint":
+    "\u1308\u12dB\u12ce\u127d \u1218\u1218\u120d\u12a8\u1275 \u12ed\u1300\u121d\u122b\u1209\u1361 \u12e8\u12a5\u1229 \u1218\u1230\u1228\u1275 \u1263\u1275\u121d \u1265\u122a \u12ed\u1206\u1293\u120d\u1362",
+  "admin.countries.open.confirm": "\u12ad\u1348\u1275",
+  "admin.countries.close.title": "\u12ed\u1205\u1295 \u1308\u1260\u12eb \u12dd\u130a",
+  "admin.countries.close.hint":
+    "\u12a8\u1218\u1218\u120d\u12a8\u1275 \u12ed\u1230\u12c8\u122b\u120d\u1362 \u121d\u1295\u121d \u12a0\u12ed\u1230\u1228\u12dd\u121d\u1362",
+  "admin.countries.close.confirm": "\u12dd\u130a",
+  "admin.countries.close.scopedHint":
+    "{count} \u12e8\u121a\u1293 \u121a\u1293\u12ce\u127d \u1208\u12a5\u1290\u12da\u1205 \u1308\u1260\u12eb \u1270\u1230\u1229 \u1290\u12cD\u1362 \u1218\u12dD\u130b\u1275 \u1308\u1260\u12eb\u12cD\u1295 \u12ed\u1230\u12ed\u121b\u120d \u121a\u1293\u12ce\u1279\u1295 \u130d\u1295 \u12eb\u1246\u12eb\u120d\u1362",
+  "admin.countries.close.forceConfirm":
+    "\u1260\u121d\u1295\u121d \u12dd\u130a \u2014 \u1308\u1260\u12eb\u12cD\u1295 \u12ed\u1230\u12ed\u121d\u1361 \u121a\u1293\u12ce\u1279 \u12ed\u1246\u12ede",
+  "admin.countries.rail.title": "\u12e8\u1213\u12f5\u12f5 \u1245\u12f0\u1275",
+  "admin.countries.rail.hintDialog":
+    "\u12a8\u12dA\u1205 \u1260\u1273\u127d \u12eb\u1208\u12cD \u1245\u12f0\u1275 \u1260\u12a5\u1290\u12da\u1205 \u1308\u1260\u12eb \u1308\u12dB\u12ce\u127d \u12e8\u121a\u12eb\u12e9\u1275 \u1290\u12cD\u1362",
+  "admin.countries.rail.globalNote":
+    "\u12ed\u1205 \u1308\u1260\u12eb \u12a0\u1201\u1295 \u12a0\u1208\u121d\u12a0\u1240\u134D \u1245\u12f0\u1275 \u12ed\u12a8\u1270\u120b\u120d\u1362",
+  "admin.countries.rail.up": "\u12c8\u12f0 \u120b\u12ed",
+  "admin.countries.rail.down": "\u12c8\u12f0 \u1273\u127d",
+  "admin.countries.rail.reset":
+    "\u12c8\u12f0 \u12a0\u1208\u121d\u12a0\u1240\u134D \u1245\u12f0\u1275 \u1218\u120d\u1235",
+  "admin.countries.rail.submit": "\u1245\u12f0\u1271\u1295 \u12a0\u1235\u1240\u121d\u1325",
+  "admin.countries.rail.empty":
+    "\u1308\u1295\u1276 \u12e8\u121a\u12eb\u12dB \u1265\u122a \u12e8\u1225\u122d \u121d\u12f5\u1265 \u12e8\u1208\u121d\u1362",
+  "admin.countries.import.title": "\u12a0\u1308\u122e\u127d\u1295 \u12a0\u1235\u1308\u1263",
+  "admin.countries.error.reason": "\u121d\u12ad\u1295\u12eb\u1275\u1361 {reason}",
+  "admin.countries.error.denied":
+    "\u12ed\u1205\u1295 \u1208\u121b\u12f5\u1228\u130d \u1348\u1243\u12f5 \u12e8\u120b\u12ce\u1275\u121d\u1362",
+  "admin.countries.error.stepUp":
+    "\u12ae\u12f5 \u12a0\u1228\u130b\u130d\u1320\u12cD \u12a5\u1293 \u12a5\u1290\u12f0\u1308\u1298 \u12ed\u121e\u12ad\u1229\u1362",
+  "admin.countries.error.unknown":
+    "\u12ed\u1205 \u1218\u1240\u1218\u1325 \u12a0\u120d\u1270\u1233\u12a8\u121d\u1362",
+  "admin.countries.error.badCountryCode":
+    "\u12e8\u12a0\u1308\u122d \u12ae\u12f5 \u1265\u1275\u12ad \u1201\u1208\u1275 \u1206\u1204 \u1290\u12cD\u1362",
+  "admin.countries.error.badUnitSystem":
+    "\u12e8\u1218\u1208\u12ad\u12eb \u1235\u122d\u12d3\u1271 \u121c\u1275\u122a\u12ad \u12c8\u12ed\u121d \u12a2\u121d\u1350\u122a\u12eb\u120d \u1265\u127b \u1290\u12cD\u1362",
+  "admin.countries.error.badCurrency":
+    "\u12eb \u1276\u1235\u1275 \u1206\u1204 \u12e8\u1308\u1295\u12d8\u1265 \u12ae\u12f5 \u12a0\u12ed\u12f0\u1208\u121d\u1362",
+  "admin.countries.error.nameRequired": "\u1235\u121d \u12eb\u1235\u1348\u120d\u130b\u120d\u1362",
+  "admin.countries.error.unknownCountry":
+    "\u12eb \u1308\u1260\u12eb \u1260\u1218\u12dd\u1308\u1265 \u120b\u12ed \u12e8\u1208\u121d\u1362",
+  "admin.countries.error.scopedRolesExist":
+    "\u12e8\u121a\u1293 \u121a\u1293\u12ce\u127d \u12a0\u1201\u1295\u121d \u12a5\u1290\u12da\u1205\u1295 \u1308\u1260\u12eb \u12ed\u12ed\u12dB\u1209\u1362",
+  "admin.countries.error.duplicateCategory":
+    "\u1260\u12ed\u1205 \u1245\u12f0\u1275 \u12cD\u1235\u1325 \u121d\u12f5\u1265 \u1201\u1208\u1275 \u130a\u12dc \u12a0\u1208\u1362",
+  "admin.countries.error.notARoot":
+    "\u1260\u1213\u12f5\u12f5 \u120b\u12ed \u12e8\u1225\u122d \u121d\u12f5\u1265 \u1265\u127b \u12ed\u1245\u12f0\u121b\u120d\u1362",
 };
 
 export default am;
