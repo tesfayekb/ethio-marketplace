@@ -1,8 +1,8 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35135712639  **PLATFORM-ORIGIN?**
-- Commit: `8f63e1a39d5e30851eb903aba9155e9c1b356a4f`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35137252449
+- Commit: `a85e96d85f21dd126331fc0d7d9b93e36153f281`
 - Attempt: 1
-- Written (UTC): 2026-09-16T18:50:02.836Z
+- Written (UTC): 2026-09-16T19:05:08.265Z
 
 No failed build/guard jobs in this run.
