@@ -15,6 +15,7 @@
 - ACT-U4-2: SSR inlining of the active language bundle (root loader) — client-merge limitation stands until then.
 - Ops security review: has_permission client-callable for arbitrary targets (revoke candidate); 68 gated-definer linter warnings (ruling); leaked-password protection toggle.
 - DNS cutover of ethio.com to this app behind the operator's Cloudflare zone: orange-cloud `ethio.com` and `www`, SSL/TLS mode checked (Full strict), Managed Transform "Add visitor location headers" ON (already on since 2026-09-16); acceptance = `/api/geo` answers `source: "cf-visitor"` with city and coordinates and the marketplace opens on the visitor's metro (DEC-063 amendment). Until then the guess is country-level. Rollback = grey-cloud both records.
+- Partition rehearsal (REQ-033 amended 2026-09-16): ONE physical partition at launch; on staging, rehearse the Ethiopia split as a copy by predicate (`home_country_code = 'ET'`, media keys under `et/`) plus one storage-adapter entry and the partition function flip, and record the runbook — the in-country pair (database + object storage: Ethio Telecom Cloud if its S3 API checks out, else MinIO on Wingu/Raxio) is stood up on the licensing trigger, not before. Counsel (Q-014): photos as personal data; edge caching as transfer; ECA registration.
 
 ## Secrets
 
