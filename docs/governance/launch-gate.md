@@ -14,6 +14,7 @@
 - ACT-U4-1: entity machine translation rides the REQ-004 engine (deferred by design).
 - ACT-U4-2: SSR inlining of the active language bundle (root loader) — client-merge limitation stands until then.
 - Ops security review: has_permission client-callable for arbitrary targets (revoke candidate); 68 gated-definer linter warnings (ruling); leaked-password protection toggle.
+- DNS cutover of ethio.com to this app behind the operator's Cloudflare zone: orange-cloud `ethio.com` and `www`, SSL/TLS mode checked (Full strict), Managed Transform "Add visitor location headers" ON (already on since 2026-09-16); acceptance = `/api/geo` answers `source: "cf-visitor"` with city and coordinates and the marketplace opens on the visitor's metro (DEC-063 amendment). Until then the guess is country-level. Rollback = grey-cloud both records.
 
 ## Secrets
 

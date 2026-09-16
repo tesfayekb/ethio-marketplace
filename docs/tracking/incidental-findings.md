@@ -2190,3 +2190,27 @@ INC-202 — CLOSED 2026-09-15 by L1c-C (aa75fd56): a thrown attempt is retried o
 ## INC-203 — import commits carry Amharic through the translation door, which is gated on translations:update
 
 Finding: admin_commit_category_import and admin_commit_location_import write a non-empty name_am cell through admin_save_entity_translation, whose own gate is has_permission(auth.uid(), 'translations', 'update'); an importer holding categories:import or locations:import but not translations:update fails on an Amharic cell. Invisible to a super-admin operator. Class: permission coupling across doors. OPEN — ruled at the L2 review (either the import doors write the am row with the same capture themselves, or the import permissions carry the translation grant by definition).
+
+## INC-204 — the L2a prompt specified row verbs, producing a six-button stack that clipped the roster
+
+Defect: the supervisor's L2a prompt listed create-child, edit, activate/retire, move, reorder and delete as "row actions"; the executor rendered them in the primitive's 96 px actions column, which overflowed and hid every verb; LT-2's overflow check tested the page, not the scroller, and stayed green. Evidence: the operator's walk 2026-09-15 (screenshots), supervisor read of rowActions in locations-page.tsx. Class: prompt mis-specifies a UI convention that the donor console already embodies (CT-8: one edit icon per row, verbs in the editor).
+
+INC-204 — CLOSED 2026-09-15 by L2a-R: the categories convention restored, the shared TipBadge lifted, LT-2 asserts the scroller and every action box, LT-8..11 added. Rule: a console prompt names the donor's pattern by its test ("as CT-8"), never re-describes it.
+
+## INC-205 — an executor format check ran before the last edit and reported clean on a red file
+
+Defect: L2a-R's report stated format:check clean while docs/features/locations-console.md failed the pinned prettier (hand-aligned tables); the check had run before the final doc edit. Evidence: run 35025336718 (Build, typecheck, lint: Format check step), supervisor reproduction offline with prettier 3.8.3. Class: a check that does not run last proves nothing.
+
+INC-205 — CLOSED 2026-09-15 by R-CI: the file re-aligned by the formatter; every prompt since carries "format:check as the LAST command"; DEC-066 makes the failure readable from the repo.
+
+## INC-206 — undoing a countries-file create was refused by the anchor it created itself
+
+Defect: since L2b-M a country row is born with its anchor (countries_anchor_on_insert), so the import undo's country:create branch — which refuses when any location row references the code — always answered undoBlocked:hasRows. Evidence: the executor's CO-7 limitation note (C1), supervisor read of the branch. Class: a trigger changed an invariant a sibling door relied on.
+
+INC-206 — CLOSED 2026-09-16 by 186a9cb4 (L2b-C2): admin_undo_location_import re-declared whole; undoing country:create removes the born anchor when it carries nothing; CO-7 proves the removal through the route.
+
+## INC-207 — a thrown bulk-AI chunk aborted the run without a summary; TR-12 reported a mute timeout
+
+Defect: ai-bulk-bar.tsx translated chunks in sequence and set the summary only after the last; a chunk whose request threw (network) fell into the error path with no summary, while TR-12 waited on the summary alone and reported "never rendered within 90 s". Evidence: run 35101545574 (shard 2, mobile-360, client-error attachments; gate fetches threw in the same run); five flake-ledger entries 2026-09-15/16 (DEC-030 threshold crossed). Class: F4 — a partial failure must still report; a test must read the failure it can see.
+
+INC-207 — CLOSED 2026-09-16 by L2d: a throwing chunk is retried once, then its keys land in the summary's failed list and the run continues (the summary always renders); TR-12 step 3 waits on summary or error and fails with the error's text.
