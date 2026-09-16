@@ -102,6 +102,12 @@ export interface ColumnRule {
    * FORMULA LAW, per column. A leading `=`/`+`/`-`/`@` is refused everywhere by
    * default. `allow` is declared ONLY for free-text columns whose export
    * neutralises them, where `+ Add` is legitimate content and not an attack.
+   *
+   * INC-208 — every NUMERIC column (`int`, `decimal`) is exempt as well: a
+   * plain negative (`-33.9`, a southern latitude) is a number, not a formula,
+   * and the column's own shape check proves it. The export still neutralises
+   * with a leading apostrophe and `unneutralize` still strips it, so both
+   * spellings round-trip.
    */
   formula?: "allow";
 }
