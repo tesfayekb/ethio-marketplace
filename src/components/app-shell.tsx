@@ -20,9 +20,11 @@ import {
   anchorOf,
   asLocationNode,
   clearAreaCookie,
+  type GuessFacts,
   parseAreaCookie,
   pathToNode,
   readAreaCookie,
+  resolveGuess,
   useCountryTree,
   useOpenMarkets,
   writeAreaCookie,
@@ -88,8 +90,8 @@ type ShellValue = {
   selectLocationCountry: (code: string | null) => void;
   /** True while the shown area comes from the edge guess, not from a pick. */
   guessInUse: boolean;
-  /** The guessed market's English name, for the caption. */
-  guessCountryName: string | null;
+  /** L4b-2 — the node the guess resolved to, so the caption can name it. */
+  guessNode: LocationNode | null;
   navOpen: boolean;
   setNavOpen: (open: boolean) => void;
   /** U0l-2 (SO-2): true while the hard-reset sign-out sequence is running. */
@@ -171,26 +173,46 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [locationPath, setPathState] = useState<LocationNode[]>([]);
   const [locationCountry, setCountryState] = useState<string | null>(null);
   const [guessInUse, setGuessInUse] = useState(false);
+  /** L4b-2 — the node the guess resolved to, so the caption can NAME it. */
+  const [guessNode, setGuessNode] = useState<LocationNode | null>(null);
   const [navOpen, setNavOpen] = useState(false);
 
   /**
-   * L4b — THE INITIAL AREA, DERIVED ONCE, in this order (laws 10, 12, 13):
+   * L4b-2 — THE INITIAL AREA, DERIVED ONCE, in this order (laws 10, 12, 13):
    *   (a) the SAVED AREA cookie `ethio_area` ("<CC>:<node id>", so the country
    *       is known before the tree loads) → the full path down to that node;
-   *   (b) else the visitor's COUNTRY from the edge (DEC-063 verdict: the
-   *       `cf-ipcountry` header, read on the root, country-level) when it is an
-   *       OPEN market → its anchor at depth 0, with the guess caption showing;
+   *   (b) else the EDGE'S GUESS, resolved over that market's cached tree by
+   *       `resolveGuess` — nearest curated metro within 60 km (a sub-city only
+   *       within 8 km), else the region by ISO code, else a city by slug, else
+   *       the market anchor — with the guess caption naming the chosen node;
    *   (c) else nothing at all — there is no default market.
    * The GUESS IS NEVER WRITTEN to the cookie; only a pick is.
    */
   const ssrGeo = useRouterState({
     select: (s) =>
       s.matches[0]?.loaderData as
-        | { areaCookie?: string | null; geoCountry?: string | null }
+        | { areaCookie?: string | null; geo?: GuessFacts | null }
         | undefined,
   });
   const areaCookieRaw = ssrGeo?.areaCookie ?? null;
-  const geoCountry = ssrGeo?.geoCountry ?? null;
+  // I3 — one stable object per SSR answer, never a fresh literal per render.
+  const geo = useMemo<GuessFacts>(
+    () => ({
+      country: ssrGeo?.geo?.country ?? null,
+      regionCode: ssrGeo?.geo?.regionCode ?? null,
+      city: ssrGeo?.geo?.city ?? null,
+      lat: ssrGeo?.geo?.lat ?? null,
+      lng: ssrGeo?.geo?.lng ?? null,
+    }),
+    [
+      ssrGeo?.geo?.country,
+      ssrGeo?.geo?.regionCode,
+      ssrGeo?.geo?.city,
+      ssrGeo?.geo?.lat,
+      ssrGeo?.geo?.lng,
+    ],
+  );
+  const geoCountry = geo.country;
   // I3 — one stable object per cookie VALUE, never a fresh one per render.
   const savedArea = useMemo(
     () => parseAreaCookie(areaCookieRaw) ?? readAreaCookie(),
@@ -235,9 +257,20 @@ export function AppShell({ children }: { children: ReactNode }) {
       }
     }
     setCountryState(initialCountry);
+    if (savedArea === null && guessCountry !== null) {
+      // L4b-2 — the guess resolved over the CACHED tree: geometry, then the
+      // region's ISO code, then the city's slug, then the market anchor.
+      const guessed = resolveGuess(treeNodes, geo);
+      const path = guessed === null ? [] : pathToNode(treeNodes, guessed.id);
+      const resolved = path.length > 0 ? path : [anchor];
+      setPathState(resolved.map(asLocationNode));
+      setGuessNode(asLocationNode(resolved[resolved.length - 1]!));
+      setGuessInUse(true);
+      return;
+    }
     setPathState([asLocationNode(anchor)]);
-    setGuessInUse(savedArea === null && guessCountry !== null);
-  }, [initialCountry, treeNodes, savedArea, guessCountry, marketsLoading]);
+    setGuessInUse(false);
+  }, [initialCountry, treeNodes, savedArea, guessCountry, marketsLoading, geo]);
 
   /** A market picked in the picker lands on its anchor as soon as the tree is in. */
   useEffect(() => {
@@ -253,6 +286,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const selectLocationCountry = useCallback((code: string | null) => {
     setGuessInUse(false);
+    setGuessNode(null);
     appliedRef.current = true;
     if (code === null) {
       pendingSaveRef.current = false;
@@ -269,6 +303,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const persistLocationPath = useCallback(
     (path: LocationNode[]) => {
       setGuessInUse(false);
+      setGuessNode(null);
       setPathState(path);
       const deepest = path[path.length - 1];
       if (deepest && locationCountry !== null) writeAreaCookie(locationCountry, deepest.id);
@@ -283,9 +318,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     setPathState([]);
     setCountryState(null);
     setGuessInUse(false);
+    setGuessNode(null);
   }, []);
-
-  const guessCountryName = markets.find((market) => market.code === treeCountry)?.nameEn ?? null;
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
@@ -511,7 +545,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       locationCountry: treeCountry,
       selectLocationCountry,
       guessInUse,
-      guessCountryName,
+      guessNode,
       navOpen,
       setNavOpen,
       signingOut,
@@ -530,7 +564,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     treeCountry,
     selectLocationCountry,
     guessInUse,
-    guessCountryName,
+    guessNode,
     navOpen,
     signingOut,
   ]);

@@ -17,6 +17,9 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/app-shell";
 import { I18nProvider, useI18n, LANGUAGE_STAR_COOKIE } from "../i18n";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
+// TYPE ONLY — the judge itself is a server module (import protection keeps
+// `src/server/**` out of the client graph); the handler imports it dynamically.
+import type { GeoAnswer } from "../server/geo/guess";
 
 /**
  * U4h — HEAD-COMPOSITION CENSUS (stated, per the task).
@@ -34,6 +37,20 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 /** A well-formed language code. Shape only; the client reconciles per gate. */
 const CODE_SHAPE = /^[a-z]{2,8}(-[a-z]{2,8})?$/i;
 
+/**
+ * The "no guess" answer, restated here because `GEO_NONE` is a VALUE of the
+ * server-only judge module and this file is client-reachable. It is the shape
+ * `geoGuess` itself returns when the edge said nothing (law 10 — no default).
+ */
+const NO_GEO: GeoAnswer = {
+  country: null,
+  regionCode: null,
+  city: null,
+  lat: null,
+  lng: null,
+  source: "none",
+};
+
 type SsrLangContext = {
   /** The device ★ as the SSR request saw it, or null. */
   star: string | null;
@@ -50,11 +67,11 @@ type SsrLangContext = {
    */
   areaCookie: string | null;
   /**
-   * L4b — the visitor's COUNTRY from the edge (DEC-063 verdict: `cf-ipcountry`,
-   * country-level), or null when the edge said nothing. A GUESS, never a
-   * default, and never persisted (law 10).
+   * L4b-2 — the WHOLE edge answer (DEC-063 amended: country, region code, city
+   * and coordinates when the edge provides them; country only until the
+   * ethio.com cutover). A GUESS, never a default, and never persisted (law 10).
    */
-  geoCountry: string | null;
+  geo: GeoAnswer;
 };
 
 /** The saved-area cookie: "<CC>:<uuid>" and nothing else. */
@@ -81,10 +98,10 @@ const getSsrLangContext = createServerFn({ method: "GET" }).handler(
     // the server-only module never enters the client graph.
     const rawArea = getCookie(AREA_COOKIE) ?? null;
     const areaCookie = rawArea && AREA_SHAPE.test(rawArea) ? rawArea : null;
-    let geoCountry: string | null = null;
+    let geo: GeoAnswer = NO_GEO;
     try {
       const { geoGuess } = await import("../server/geo/guess");
-      geoCountry = geoGuess(getRequest()).country;
+      geo = geoGuess(getRequest());
     } catch (error) {
       console.error("[ssr-error] /__root geo guess threw", (error as Error).message);
     }
@@ -112,7 +129,7 @@ const getSsrLangContext = createServerFn({ method: "GET" }).handler(
       }
     }
 
-    return { star, languages, origin: url.origin, path: url.pathname, areaCookie, geoCountry };
+    return { star, languages, origin: url.origin, path: url.pathname, areaCookie, geo };
   },
 );
 

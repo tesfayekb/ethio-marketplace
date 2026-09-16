@@ -103,7 +103,7 @@ export function LocationSelector() {
     locationCountry,
     selectLocationCountry,
     guessInUse,
-    guessCountryName,
+    guessNode,
   } = useShell();
   const markets = useOpenMarkets();
   const tree = useCountryTree(locationCountry);
@@ -222,12 +222,22 @@ export function LocationSelector() {
               }
             />
           ))}
-          {guessInUse && guessCountryName !== null ? (
+          {guessInUse && guessNode !== null ? (
             <span
               data-testid="location-guess-caption"
               className="min-h-11 content-center ps-1 text-xs text-muted-foreground"
             >
-              {t("location.guessCaption").replace("{country}", guessCountryName)}
+              {/* L4b-2 — the caption names the RESOLVED node (a metro, a region
+                  or the market), so `{area}` is a NEW key: the old `{country}`
+                  one could be shadowed by an approved DB row (law D3). */}
+              {t("location.guessAreaCaption").replace(
+                "{area}",
+                entityName(
+                  "location",
+                  { id: guessNode.id, nameEn: guessNode.name_en, nameAm: guessNode.name_am },
+                  entities,
+                ),
+              )}
             </span>
           ) : null}
         </>

@@ -13,7 +13,12 @@ import {
   switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
-import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
+import {
+  destroyLocation,
+  seedGuessFixture,
+  seedScratchChain,
+  waitForTreeSlug,
+} from "./helpers/locations";
 import { adminClient, createUser } from "./helpers/users";
 
 /** Grants a named role via the service role — the staff fixture (see rbac.spec.ts). */
@@ -1732,5 +1737,172 @@ test.describe("L4b location picker", () => {
       headers: { "If-None-Match": etag },
     });
     expect(second.status(), "a conditional repeat must cost a 304").toBe(304);
+  });
+
+  /**
+   * L4b-2 — THE CITY-LEVEL GUESS, resolved over the cached tree: geometry
+   * (60 km, a sub-city only within 8 km), else the region's ISO code, else the
+   * city name slugified, else the market anchor. Every target is a SCRATCH row
+   * (J3) and every header is injected, because the local edge sets none.
+   */
+  function caption(area: string) {
+    return en["location.guessAreaCaption"].replace("{area}", area);
+  }
+
+  /**
+   * A point more than 60 km from EVERY curated Ethiopian metro (the nearest,
+   * Jimma, is ~240 km away — read from the DB, never assumed), so the scratch
+   * city seeded AT it is unambiguously the nearest node and no reference row is
+   * ever the answer (J3/J6).
+   */
+  const GUESS_ORIGIN = { lat: 5.5, lng: 36.5 };
+
+  /**
+   * J1/J6 — the twins run in parallel, so each project (and worker) seeds its
+   * city at its OWN point, far enough apart that no run is ever the nearest node
+   * for another run's headers.
+   */
+  function guessPoint(project: string, worker: number) {
+    const slot = (project === "mobile-360" ? 0 : 1) * 4 + (worker % 4);
+    return { lat: GUESS_ORIGIN.lat - slot * 1.5, lng: GUESS_ORIGIN.lng - slot * 1.5 };
+  }
+
+  test("LS-6 the nearest curated metro wins by geometry", async ({ browser }) => {
+    const point = guessPoint(test.info().project.name, test.info().workerIndex);
+    const fixture = await seedGuessFixture("ET", point);
+    const context = await browser.newContext({
+      extraHTTPHeaders: {
+        "cf-ipcountry": "ET",
+        "cf-iplatitude": String(point.lat),
+        "cf-iplongitude": String(point.lng),
+        // A city NAME that matches nothing: geometry alone must decide.
+        "cf-ipcity": "Somewhere Else",
+      },
+    });
+    const page = await context.newPage();
+    try {
+      await waitForTreeSlug(page, "ET", fixture.city.slug);
+      await gotoReady(page, "/");
+      await expect(page.getByTestId("location-level-city")).toHaveText(
+        new RegExp(escapeRe(fixture.cityName)),
+      );
+      await expect(page.getByTestId("location-guess-caption")).toHaveText(
+        new RegExp(escapeRe(caption(fixture.cityName))),
+      );
+      expect(await page.evaluate("document.cookie")).not.toContain("ethio_area=");
+    } finally {
+      await context.close();
+      await destroyLocation(fixture.region.slug);
+    }
+  });
+
+  test("LS-7 a region code alone selects the region", async ({ browser }) => {
+    const point = guessPoint(test.info().project.name, test.info().workerIndex);
+    const fixture = await seedGuessFixture("ET", point);
+    const context = await browser.newContext({
+      extraHTTPHeaders: { "cf-ipcountry": "ET", "cf-region-code": fixture.regionCode },
+    });
+    const page = await context.newPage();
+    try {
+      await waitForTreeSlug(page, "ET", fixture.region.slug);
+      await gotoReady(page, "/");
+      await expect(page.getByTestId("location-level-region")).toHaveText(
+        new RegExp(escapeRe(fixture.region.name_en!)),
+      );
+      await expect(page.getByTestId("location-level-city")).toHaveText(
+        new RegExp(escapeRe(en["location.city"])),
+      );
+      await expect(page.getByTestId("location-guess-caption")).toHaveText(
+        new RegExp(escapeRe(caption(fixture.region.name_en!))),
+      );
+    } finally {
+      await context.close();
+      await destroyLocation(fixture.region.slug);
+    }
+  });
+
+  test("LS-8 a city name alone selects that city", async ({ browser }) => {
+    const point = guessPoint(test.info().project.name, test.info().workerIndex);
+    const fixture = await seedGuessFixture("ET", point);
+    const context = await browser.newContext({
+      extraHTTPHeaders: { "cf-ipcountry": "ET", "cf-ipcity": fixture.cityName },
+    });
+    const page = await context.newPage();
+    try {
+      await waitForTreeSlug(page, "ET", fixture.city.slug);
+      await gotoReady(page, "/");
+      await expect(page.getByTestId("location-level-city")).toHaveText(
+        new RegExp(escapeRe(fixture.cityName)),
+      );
+      await expect(page.getByTestId("location-guess-caption")).toHaveText(
+        new RegExp(escapeRe(caption(fixture.cityName))),
+      );
+    } finally {
+      await context.close();
+      await destroyLocation(fixture.region.slug);
+    }
+  });
+
+  test("LS-9 coordinates far from every metro stop at the market", async ({ browser }) => {
+    const point = guessPoint(test.info().project.name, test.info().workerIndex);
+    const fixture = await seedGuessFixture("ET", point);
+    const context = await browser.newContext({
+      extraHTTPHeaders: {
+        "cf-ipcountry": "ET",
+        "cf-iplatitude": "0.0001",
+        "cf-iplongitude": "0.0001",
+      },
+    });
+    const page = await context.newPage();
+    try {
+      const ethiopia = await marketName(page, "ET");
+      await waitForTreeSlug(page, "ET", fixture.city.slug);
+      await gotoReady(page, "/");
+      await expect(page.getByTestId("location-level-country")).toHaveText(
+        new RegExp(escapeRe(ethiopia)),
+      );
+      await expect(page.locator("[data-testid^='location-level-']")).toHaveCount(2);
+      await expect(page.getByTestId("location-guess-caption")).toHaveText(
+        new RegExp(escapeRe(caption(ethiopia))),
+      );
+    } finally {
+      await context.close();
+      await destroyLocation(fixture.region.slug);
+    }
+  });
+
+  test("LS-10 a saved area beats the deepest guess", async ({ browser, baseURL }) => {
+    const point = guessPoint(test.info().project.name, test.info().workerIndex);
+    const fixture = await seedGuessFixture("ET", point);
+    const chain = await seedScratchChain("ET");
+    const context = await browser.newContext({
+      extraHTTPHeaders: {
+        "cf-ipcountry": "ET",
+        "cf-iplatitude": String(point.lat),
+        "cf-iplongitude": String(point.lng),
+        "cf-ipcity": fixture.cityName,
+      },
+    });
+    const page = await context.newPage();
+    try {
+      await waitForTreeSlug(page, "ET", chain.city.slug);
+      await context.addCookies([
+        {
+          name: "ethio_area",
+          value: `ET:${chain.city.id}`,
+          url: baseURL!,
+        },
+      ]);
+      await gotoReady(page, "/");
+      await expect(page.getByTestId("location-level-city")).toHaveText(
+        new RegExp(escapeRe(chain.city.name_en!)),
+      );
+      // The saved area is a CHOICE, so the guess never speaks.
+      await expect(page.getByTestId("location-guess-caption")).toHaveCount(0);
+    } finally {
+      await context.close();
+      await destroyLocation(chain.region.slug);
+      await destroyLocation(fixture.region.slug);
+    }
   });
 });

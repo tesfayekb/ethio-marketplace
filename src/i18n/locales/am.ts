@@ -197,7 +197,7 @@ export const am: Messages = {
   "location.subCity": "ክፍለ ከተማ",
   "location.empty": "አካባቢዎች የሉም",
   "location.readFailed": "አካባቢዎችን መጫን አልተቻለም — በቅርቡ እንደገና ይሞክሩ",
-  "location.guessCaption": "ከ{country} አቅራቢያ ያሉ ማስታወቂያዎች ይታያሉ — ይቀይሩ?",
+  "location.guessAreaCaption": "ከ{area} አቅራቢያ ያሉ ማስታወቂያዎች ይታያሉ — ይቀይሩ?",
   "location.stubNote": "አካባቢ መምረጥ እስካሁን ማስታወቂያዎችን አያጣራም።",
   "shell.searchOpen": "ፍለጋ ክፈት",
   "shell.collapseRail": "የጎን ዝርዝርን አጥብብ",

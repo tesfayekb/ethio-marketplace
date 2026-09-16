@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { distanceKm } from "@/lib/geo-distance";
+
 /**
  * LOCATIONS ERA L4b — THE SHELL'S GEOGRAPHY SEAM (B2: one utility, one concern).
  *
@@ -39,6 +41,11 @@ export interface TreeNode {
   level: string;
   slug: string;
   nameEn: string | null;
+  /** L4b-2 — the curated centre, so the guess can be resolved by GEOMETRY. */
+  centerLat: number | null;
+  centerLng: number | null;
+  /** L4b-2 — the region's ISO 3166-2 code ("ET-OR"), for the region branch. */
+  isoCode: string | null;
 }
 
 /* ------------------------------- the cookie ------------------------------- */
@@ -102,6 +109,9 @@ interface TreePayload {
     level?: unknown;
     slug?: unknown;
     name_en?: unknown;
+    center_lat?: unknown;
+    center_lng?: unknown;
+    iso_3166_2?: unknown;
   }>;
 }
 
@@ -137,6 +147,14 @@ async function fetchTree(country: string): Promise<TreeNode[]> {
     level: String(row.level ?? ""),
     slug: String(row.slug ?? ""),
     nameEn: typeof row.name_en === "string" ? row.name_en : null,
+    centerLat:
+      typeof row.center_lat === "number" && Number.isFinite(row.center_lat) ? row.center_lat : null,
+    centerLng:
+      typeof row.center_lng === "number" && Number.isFinite(row.center_lng) ? row.center_lng : null,
+    isoCode:
+      typeof row.iso_3166_2 === "string" && row.iso_3166_2.trim() !== ""
+        ? row.iso_3166_2.trim()
+        : null,
   }));
 }
 
@@ -271,4 +289,104 @@ export function asLocationNode(node: TreeNode): ShellLocationNode {
     level: node.level,
     parent_id: node.parentId,
   };
+}
+
+/* ------------------------------- the guess -------------------------------- */
+
+/**
+ * L4b-2 — RESOLVING THE EDGE'S GUESS OVER THE CACHED TREE. Pure: a tree and an
+ * answer in, one node out, no React, no fetch, no cookie (law 10 — the guess is
+ * never persisted; only a pick is).
+ *
+ * THE ORDER, pre-committed (DEC-063 amended: geometry first, as deep as the
+ * edge's facts allow):
+ *   (a) coordinates → the NEAREST curated city or sub-city within 60 km; a
+ *       sub-city is taken only within 8 km, otherwise its parent city;
+ *   (b) else the region whose `iso_3166_2` is `<CC>-<regionCode>`;
+ *   (c) else a city or sub-city whose SLUG equals the slugified city name;
+ *   (d) else the market anchor — a fact about an open market, never a default.
+ *
+ * NAMED SEAM (weight law): the tree payload carries no `aliases`, so (c) matches
+ * the slugified name only. Alias matching waits for a batch that adds aliases to
+ * the read; until then a city known to the edge under another name falls to (d).
+ */
+export interface GuessFacts {
+  country: string | null;
+  regionCode: string | null;
+  city: string | null;
+  lat: number | null;
+  lng: number | null;
+}
+
+/** The nearest-metro window, in kilometres, and the sub-city window inside it. */
+const METRO_KM = 60;
+const SUB_CITY_KM = 8;
+
+function slugifyName(value: string): string {
+  return value
+    .normalize("NFKD")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function isSettlement(node: TreeNode): boolean {
+  return node.level === "city" || node.level === "sub_city";
+}
+
+function nearestSettlement(nodes: TreeNode[], lat: number, lng: number): TreeNode | null {
+  let best: TreeNode | null = null;
+  let bestKm = Number.POSITIVE_INFINITY;
+  for (const node of nodes) {
+    if (!isSettlement(node) || node.centerLat === null || node.centerLng === null) continue;
+    const km = distanceKm(lat, lng, node.centerLat, node.centerLng);
+    if (km < bestKm) {
+      best = node;
+      bestKm = km;
+    }
+  }
+  if (best === null || bestKm > METRO_KM) return null;
+  if (best.level === "sub_city" && bestKm > SUB_CITY_KM) {
+    const parent = nodes.find((node) => node.id === best!.parentId) ?? null;
+    return parent !== null && parent.level === "city" ? parent : best;
+  }
+  return best;
+}
+
+export function resolveGuess(nodes: TreeNode[], geo: GuessFacts): TreeNode | null {
+  const anchor = anchorOf(nodes);
+  if (anchor === null || geo.country === null) return null;
+  const country = geo.country.toUpperCase();
+
+  // (a) geometry
+  if (geo.lat !== null && geo.lng !== null) {
+    const nearest = nearestSettlement(nodes, geo.lat, geo.lng);
+    if (nearest !== null) return nearest;
+  }
+
+  // (b) the region's ISO 3166-2 code
+  if (geo.regionCode !== null) {
+    const wanted = `${country}-${geo.regionCode}`.toLowerCase();
+    const region = nodes.find(
+      (node) => node.level === "region" && (node.isoCode ?? "").toLowerCase() === wanted,
+    );
+    if (region) return region;
+  }
+
+  // (c) the city name, slugified: the node's own slug or its slugified name
+  // (the alias seam above — the payload carries no aliases).
+  if (geo.city !== null) {
+    const slug = slugifyName(geo.city);
+    if (slug !== "") {
+      const named = nodes.find(
+        (node) =>
+          isSettlement(node) &&
+          (node.slug.toLowerCase() === slug || slugifyName(node.nameEn ?? "") === slug),
+      );
+      if (named) return named;
+    }
+  }
+
+  // (d) the market itself
+  return anchor;
 }

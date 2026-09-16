@@ -2,17 +2,17 @@
 
 ## Status
 
-| Layer                                              | State                         |
-| -------------------------------------------------- | ----------------------------- |
-| `public.locations` tree (country / region / city)  | LIVE (P2-a)                   |
-| Per-country tree route (ETag, cached)              | LIVE (L1c)                    |
-| Open-markets route (ETag, cached)                  | LIVE (L4b)                    |
-| Shell picker on the cached routes (no table read)  | LIVE (L4b)                    |
-| Visitor's country guessed from the edge            | LIVE, country-level (DEC-063) |
-| Saved area (`ethio_area` cookie, one year)         | LIVE (L4b)                    |
-| Chosen area written into shell state / `useFeed`   | LIVE (accepted, not applied)  |
-| Automatic city → region → country → world widening | NOT BUILT — U7                |
-| Feed / category / subcategory narrowing by area    | NOT BUILT — U7                |
+| Layer                                              | State                                                    |
+| -------------------------------------------------- | -------------------------------------------------------- |
+| `public.locations` tree (country / region / city)  | LIVE (P2-a)                                              |
+| Per-country tree route (ETag, cached)              | LIVE (L1c)                                               |
+| Open-markets route (ETag, cached)                  | LIVE (L4b)                                               |
+| Shell picker on the cached routes (no table read)  | LIVE (L4b)                                               |
+| Visitor's area guessed from the edge               | LIVE, city-level when the edge gives coordinates (L4b-2) |
+| Saved area (`ethio_area` cookie, one year)         | LIVE (L4b)                                               |
+| Chosen area written into shell state / `useFeed`   | LIVE (accepted, not applied)                             |
+| Automatic city → region → country → world widening | NOT BUILT — U7                                           |
+| Feed / category / subcategory narrowing by area    | NOT BUILT — U7                                           |
 
 The control exists and cascades over real seeded geography; **choosing an area
 does not yet change which listings appear.** That is deliberate and is the
@@ -29,13 +29,17 @@ parameter. The routes serve `name_en` only — every rendered name still resolve
 through the entity bundle first (D3). A failed read renders the translated
 caption beside the controls and never a blank picker (C4/F4).
 
-**The guess.** The root's SSR context reads the visitor's country from the edge
-through the shared judge (`src/server/geo/guess.ts`); the DEC-063 verdict of
-2026-09-16 is that the edge gives `cf-ipcountry` and nothing finer, so the guess
-is COUNTRY-LEVEL. When that country is an OPEN market it pre-selects the market
-anchor and the caption "Showing listings near {country} — change?" stands beside
-the picker. A closed market, or no header at all, guesses nothing — there is no
-default market. No database call was added to the root.
+**The guess (L4b-2).** The root's SSR context reads the WHOLE judgement from the
+shared judge (`src/server/geo/guess.ts`) — country, region code, city name and
+coordinates — and hands it to the shell; no database call was added to the root.
+When that country is an OPEN market the shell resolves the guess over the tree it
+has already cached (`resolveGuess`): the nearest curated metro within 60 km (a
+sub-city only within 8 km), else the region by ISO code, else a city by slugified
+name, else the market anchor. The caption names the chosen node — "Showing
+listings near {area} — change?" — and a NEW key carries it, because the string's
+meaning changed (D3). A closed market, or nothing the edge could say, guesses
+nothing: there is no default market. Production stays country-level until the
+ethio.com cutover behind the operator's zone (see `geography.md`).
 
 **The saved area.** A pick writes the cookie `ethio_area` as `<CC>:<node id>`
 for one year, so the country is known before the tree loads; clearing the

@@ -324,46 +324,77 @@ the entity overlay, keyed by id.
 conditional request, both refusals, the ancestor rule against a retired scratch
 region, and that no field outside the eleven ever appears.
 
-## Geo guess (L4a spike; L4b verdict)
+## Geo guess (L4a spike; L4b verdict; L4b-2 visitor location)
 
 The judge is the SHARED server helper `src/server/geo/guess.ts` (L4b, B2): both
 `GET /api/geo` and the root's SSR context read the same judgement, so there is
 no second copy to drift, and a throw logs `[ssr-error] geo-guess <message>` and
 answers "none".
 
-DEC-063 VERDICT (2026-09-16): in production the edge supplies `cf-ipcountry`
-only, so the visitor's guess is their COUNTRY. The shell uses it to pre-select an
-open market (see `location-scoping.md`); it is never persisted.
+DEC-063 AMENDMENT (operator ruling, 2026-09-16): the guess is as deep as the
+edge's facts allow — GEOMETRY FIRST. Where the edge sends visitor-location
+coordinates the guess is city-level; where it sends the country header only, the
+guess is the country. It is never persisted.
 
 `GET /api/geo` (`src/routes/api/geo.ts`) answers
-`{ country, regionCode, city, source }` with `Cache-Control: no-store`. It reads
-the request and NOTHING else: no database, no cookie, no storage, no listing.
+`{ country, regionCode, city, lat, lng, source }` with `Cache-Control: no-store`.
+It reads the request and NOTHING else: no database, no cookie, no storage.
 
-THE JUDGE (DEC-063, pre-committed — this order and nothing else):
+THE JUDGE (pre-committed — this order and nothing else):
 
-| Order | Source                                                  | Answer                                         |
-| ----- | ------------------------------------------------------- | ---------------------------------------------- |
-| 1     | the Cloudflare `cf` object, when it carries a `country` | country, `regionCode`/`city` when present      |
-| 2     | else the `cf-ipcountry` header, exactly two letters     | the country, upper-cased; region and city null |
-| 3     | else nothing                                            | all three null, `source: "none"`               |
+| Order | Source                                                                                                                                                                                            | Answer                                                            |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 1     | the Cloudflare `cf` object, when it carries a `country`                                                                                                                                           | country, plus region/city/latitude/longitude when present         |
+| 2     | else the visitor-location headers: `cf-iplatitude` AND `cf-iplongitude` as finite decimals (±90/±180), or — when no coordinate header is offered at all — a valid `cf-ipcity` or `cf-region-code` | `source: "cf-visitor"` — whatever validates, coordinates included |
+| 3     | else the `cf-ipcountry` header, exactly two letters                                                                                                                                               | the country, upper-cased; everything else null                    |
+| 4     | else nothing                                                                                                                                                                                      | all fields null, `source: "none"`                                 |
 
-There is no other fallback, no default market and no `x-forwarded-*` parsing.
+Every field is validated on its own and a malformed one is DROPPED, never the
+answer: country two letters; city letters, spaces, hyphens and apostrophes, ≤ 64
+characters; region code ≤ 8 alphanumerics or hyphens; coordinates finite and in
+range. A coordinate header PRESENT but malformed discredits the whole
+visitor-location set — the answer falls to the country header (GE-5). There is no other fallback, no default market and no `x-forwarded-*`
+parsing, and no third-party IP service.
+
 A7 census: no export of `@tanstack/react-start/server` hands out the nitro
 request event, so branch 1 reads the non-standard `cf` property workerd hangs on
 the handler's own `Request` (the Cloudflare preset, `vite.config.ts`). In the
 node runtime that property is absent and the judge falls through.
 
+THE MAPPING (client side, `resolveGuess` in `src/components/shell/location-data.ts`,
+over the ALREADY CACHED tree of the guessed country — nothing else is fetched):
+
+1. coordinates → the nearest curated `city`/`sub_city` centre by
+   `distanceKm` (`src/lib/geo-distance.ts`, haversine on 6371.0088 km, the SQL
+   twin), taken only within **60 km**; a nearest `sub_city` is taken only within
+   **8 km**, otherwise its parent city;
+2. else the region whose `iso_3166_2` equals `<CC>-<region code>`
+   (case-insensitive);
+3. else a `city`/`sub_city` whose slug — or whose slugified `name_en` — equals
+   the slugified city name;
+4. else the market anchor (a fact, not a default).
+
+NAMED SEAM — ALIASES: the tree payload carries NO aliases by design (the weight
+law: eleven read columns, `get_location_tree`). Step 3 therefore matches the slug
+and the slugified name only; matching an alias would need the RPC and the tree
+route to carry them, and is deferred.
+
+CUTOVER NOTE: production answers `cf-header` (country only) until ethio.com is
+served through the operator's Cloudflare zone with "Add visitor location
+headers" switched on. The node E2E proves every branch by injected headers.
+
 The guess must never take a page down (F4/I4): every throw logs
 `[ssr-error] /api/geo <message>` and still answers `{ source: "none" }` with
 nulls. Values are echoed as strings trimmed to 64 characters, never as HTML.
 
-`e2e/geo.spec.ts` — GE-1 the node runtime answers `none` with three nulls and
-`no-store` · GE-2 a `cf-ipcountry` header is the second source (an honest seam:
+`e2e/geo.spec.ts` — GE-1 the node runtime answers `none` with nulls and
+`no-store` · GE-2 a `cf-ipcountry` header is a source (an honest seam:
 production's edge overwrites the header) · GE-3 `e`, `ETH` and `<b>` are no
-guess at all.
-
-**Verdict pending the operator's published-URL read** — nothing consumes this
-route yet; the picker and provider are L4b, after the verdict.
+guess at all · GE-4 the visitor-location headers answer `cf-visitor` with
+coordinates echoed as numbers · GE-5 malformed coordinates fall to the country
+header. `e2e/shell.spec.ts` — LS-6 nearest metro by geometry · LS-7 region code
+alone · LS-8 city name alone · LS-9 far coordinates stop at the market · LS-10 a
+saved area beats the deepest guess.
 
 ## Related
 

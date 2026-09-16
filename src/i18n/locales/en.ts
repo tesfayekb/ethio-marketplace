@@ -202,7 +202,7 @@ export const en = {
   "location.subCity": "Sub-city",
   "location.empty": "No areas available",
   "location.readFailed": "Areas could not be loaded — try again shortly",
-  "location.guessCaption": "Showing listings near {country} — change?",
+  "location.guessAreaCaption": "Showing listings near {area} — change?",
   "location.stubNote": "Choosing an area does not narrow listings yet.",
   "shell.searchOpen": "Open search",
   "shell.collapseRail": "Collapse sidebar",

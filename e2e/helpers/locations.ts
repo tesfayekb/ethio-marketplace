@@ -292,6 +292,71 @@ export async function seedScratchChain(countryCode: string) {
 }
 
 /**
+ * L4b-2 — A SCRATCH REGION + CITY shaped for the GUESS: the region carries an
+ * `iso_3166_2` code of its own and the city carries a CENTRE and a letters-only
+ * name, so the geometry, region-code and city-name branches each have a target
+ * that is a scratch row and never a reference row (J3). Delete with
+ * `destroyLocation(region.slug)`, which is already child-first.
+ *
+ * `regionCode` is a scratch code (never a real ISO subdivision) and `cityName`
+ * is letters and spaces only, because the judge validates `cf-ipcity` as a name.
+ */
+export async function seedGuessFixture(countryCode: string, point: { lat: number; lng: number }) {
+  const supabase = adminClient();
+  const anchor = await anchorOf(countryCode);
+  const regionSlug = scratchSlug("gs-region");
+  const citySlug = scratchSlug("gs-city");
+  const suffix = rand().replace(/[^a-z]/g, "") + "qx";
+  const regionCode = `Z${
+    rand()
+      .replace(/[^a-z]/gi, "")
+      .slice(0, 2)
+      .toUpperCase() || "Z9"
+  }`;
+  const cityName = `Escratch Guess City ${suffix}`;
+
+  const { data: region, error: regionError } = await supabase
+    .from("locations")
+    .insert({
+      parent_id: anchor.id,
+      level: "region",
+      country_code: countryCode,
+      slug: regionSlug,
+      name_en: regionSlug,
+      iso_3166_2: `${countryCode.toUpperCase()}-${regionCode}`,
+      is_active: true,
+      source: "admin",
+    })
+    .select("id, slug, name_en, iso_3166_2")
+    .single();
+  if (regionError || !region) {
+    throw new Error(`[e2e:l4b2] seeding region failed: ${regionError?.message ?? "no row"}`);
+  }
+
+  const { data: city, error: cityError } = await supabase
+    .from("locations")
+    .insert({
+      parent_id: region.id,
+      level: "city",
+      country_code: countryCode,
+      slug: citySlug,
+      name_en: cityName,
+      is_active: true,
+      source: "admin",
+      center_lat: point.lat,
+      center_lng: point.lng,
+    })
+    .select("id, slug, name_en, center_lat, center_lng")
+    .single();
+  if (cityError || !city) {
+    await destroyLocation(regionSlug);
+    throw new Error(`[e2e:l4b2] seeding city failed: ${cityError?.message ?? "no row"}`);
+  }
+
+  return { anchor, region, city, regionCode, cityName };
+}
+
+/**
  * The public tree route keeps a 15 s in-process cache, so a freshly seeded row
  * is invisible for up to that long. Seed-before-navigate (J7) therefore means
  * waiting on the ROUTE, never on a clock.
