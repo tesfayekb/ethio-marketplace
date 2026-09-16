@@ -62,8 +62,13 @@ async function readPlan(plan: string) {
   return data;
 }
 
-/** LETTERS ONLY — the door refuses a digit, so the axes are spelled out. */
-function scratchPlan(): string {
+/**
+ * LETTERS ONLY — the door refuses a digit, so every axis is spelled out. The
+ * `tag` axis keeps each test on its OWN plan (R-CV): no test mutates a real
+ * reference row, and two projects running at once never read each other's
+ * writes (J3 / J6).
+ */
+function scratchPlan(tag: string): string {
   const letters = (value: string) =>
     value
       .split("")
@@ -78,12 +83,28 @@ function scratchPlan(): string {
       .join("");
   const run = letters(process.env["E2E_SHARD"] ?? "local");
   const worker = letters(process.env["TEST_WORKER_INDEX"] ?? "0");
-  return `e_probe_${run}_${worker}`.slice(0, 32);
+  const project = letters(process.env["E2E_PROJECT"] ?? "");
+  return `e_probe_${tag}_${run}_${worker}_${project}`.replace(/_+$/, "").slice(0, 32);
 }
 
 async function destroyPlan(plan: string) {
   if (!plan.startsWith("e_probe_")) throw new Error(`[e2e:l2b] refusing to delete ${plan}`);
   await adminClient().from("coverage_plans").delete().eq("plan", plan);
+}
+
+/** Seeds the test's own plan through the service client (seed before navigate, J7). */
+async function seedPlan(plan: string) {
+  await destroyPlan(plan);
+  const { error } = await adminClient()
+    .from("coverage_plans")
+    .insert({
+      plan,
+      max_cities: 1,
+      max_regions: 1,
+      max_countries: 1,
+      allow_everywhere: false,
+    });
+  if (error) throw new Error(`[e2e:l2b] seeding the plan ${plan} failed: ${error.message}`);
 }
 
 test.describe("L2b coverage console", () => {
