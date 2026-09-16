@@ -58,15 +58,15 @@ touched.
 refuses and then fills. Each refusal raises exactly one message id, so the
 console can translate it:
 
-| Refusal              | When                                                 |
-| -------------------- | ---------------------------------------------------- |
-| `rootMustBeCountry`  | a NULL parent that is not a country, or the reverse  |
-| `parentMissing`      | `parent_id` names no row                             |
-| `levelMismatch`      | the level is not exactly one step below the parent's |
-| `crossCountry`       | the row's `country_code` differs from its parent's   |
-| `badSlug`            | the slug is not `^[a-z0-9]+(-[a-z0-9]+)*$`           |
+| Refusal              | When                                                                          |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `rootMustBeCountry`  | a NULL parent that is not a country, or the reverse                           |
+| `parentMissing`      | `parent_id` names no row                                                      |
+| `levelMismatch`      | the level is not exactly one step below the parent's                          |
+| `crossCountry`       | the row's `country_code` differs from its parent's                            |
+| `badSlug`            | the slug is not `^[a-z0-9]+(-[a-z0-9]+)*$`                                    |
 | `parentInactive`     | an ACTIVE row written under an inactive parent, EXCEPT under a country anchor |
-| `missingCoordinates` | a city or sub-city with no centre                    |
+| `missingCoordinates` | a city or sub-city with no centre                                             |
 
 Then it fills, ignoring the caller: country/region → both ancestor columns NULL;
 city → `region_id = parent.id`, `city_id = NULL`; sub-city → `region_id =
