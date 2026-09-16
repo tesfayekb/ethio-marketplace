@@ -68,7 +68,7 @@ async function readPlan(plan: string) {
  * reference row, and two projects running at once never read each other's
  * writes (J3 / J6).
  */
-function scratchPlan(tag: string): string {
+function scratchPlan(tag: string, project: string): string {
   const letters = (value: string) =>
     value
       .split("")
