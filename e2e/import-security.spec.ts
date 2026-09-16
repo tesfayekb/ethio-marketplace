@@ -459,6 +459,11 @@ for (const family of FAMILIES) {
           JSON.stringify(shapeRefusals),
         ).toEqual(expect.arrayContaining(shape.reasons));
         for (const refusal of shapeRefusals) expect(refusal.row).toBeGreaterThan(1);
+        // INC-208: no numeric cell is read as a formula, in any family.
+        expect(
+          shapeRefusals.map((entry) => entry.reason),
+          JSON.stringify(shapeRefusals),
+        ).not.toContain("formula");
       }
 
       /**
