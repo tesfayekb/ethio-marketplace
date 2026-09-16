@@ -83,8 +83,8 @@ function scratchPlan(tag: string, project: string): string {
       .join("");
   const run = letters(process.env["E2E_SHARD"] ?? "local");
   const worker = letters(process.env["TEST_WORKER_INDEX"] ?? "0");
-  const project = letters(process.env["E2E_PROJECT"] ?? "");
-  return `e_probe_${tag}_${run}_${worker}_${project}`.replace(/_+$/, "").slice(0, 32);
+  const twin = letters(project);
+  return `e_probe_${tag}_${run}_${worker}_${twin}`.replace(/_+$/, "").slice(0, 32);
 }
 
 async function destroyPlan(plan: string) {
