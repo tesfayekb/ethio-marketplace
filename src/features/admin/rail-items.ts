@@ -85,6 +85,7 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = (() => {
         testid: `admin-group-${groupId}`,
         labelKey: ADMIN_GROUPS[groupId].titleKey,
         icon: GROUP_ICONS[groupId],
+        path: "path" in ADMIN_GROUPS[groupId] ? ADMIN_GROUPS[groupId].path : undefined,
         defaultOpen: true,
         group: true,
         children: [],

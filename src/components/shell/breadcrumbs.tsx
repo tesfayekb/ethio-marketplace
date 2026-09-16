@@ -11,7 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { PANELS } from "@/config/panels";
-import { groupForSection, sectionForPath } from "@/features/admin/sections";
+import { groupForPath, groupForSection, sectionForPath } from "@/features/admin/sections";
 import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
 import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { useCategories } from "@/features/feed/use-feed";
@@ -93,6 +93,9 @@ export function Breadcrumbs() {
    */
   if (pathname.startsWith("/admin")) {
     const section = sectionForPath(pathname);
+    const ownGroup = groupForPath(pathname);
+    const sectionGroup = section ? groupForSection(section) : null;
+    const group = ownGroup ?? sectionGroup;
     /**
      * U1d — the user-detail route publishes the name through the SMALLEST
      * EXISTING SEAM: the react-query cache the detail page already fills
@@ -119,7 +122,7 @@ export function Breadcrumbs() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            {section ? (
+            {section || group ? (
               <BreadcrumbLink asChild>
                 <Link to="/admin" data-testid="breadcrumb-admin">
                   {t("panel.admin")}
@@ -131,15 +134,23 @@ export function Breadcrumbs() {
               </BreadcrumbPage>
             )}
           </BreadcrumbItem>
-          {section && groupForSection(section) ? (
+          {group ? (
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                {/* C3-UX-2 — Group › Section. The group owns no page, so the
-                    crumb is a label, never a dead link. */}
-                <BreadcrumbPage data-testid="breadcrumb-admin-group">
-                  {t(groupForSection(section)!.titleKey)}
-                </BreadcrumbPage>
+                {/* A group may own a page. On a child route it is a link; on
+                    the group's own page it is the current final segment. */}
+                {"path" in group && group.path !== pathname ? (
+                  <BreadcrumbLink asChild>
+                    <Link to={group.path} data-testid="breadcrumb-admin-group">
+                      {t(group.titleKey)}
+                    </Link>
+                  </BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage data-testid="breadcrumb-admin-group" className={CURRENT}>
+                    {t(group.titleKey)}
+                  </BreadcrumbPage>
+                )}
               </BreadcrumbItem>
             </>
           ) : null}

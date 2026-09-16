@@ -28,11 +28,12 @@ export const ADMIN_LOCATIONS_KEY = [AUTH_DERIVED_ROOT, "admin", "locations"] as 
  * L2b-C1 — "" is no longer "nothing selected" but the ALL-COUNTRIES scope, so
  * the read is always enabled and caches under its own `all` key.
  */
-export function useAdminLocations(countryCode: string) {
+export function useAdminLocations(countryCode: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...ADMIN_LOCATIONS_KEY, "list", countryCode === "" ? "all" : countryCode],
     queryFn: () => listLocations(countryCode),
     staleTime: 15_000,
+    enabled: options?.enabled ?? true,
   });
 }
 
