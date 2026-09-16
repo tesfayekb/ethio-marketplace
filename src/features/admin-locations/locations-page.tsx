@@ -109,14 +109,15 @@ export function AdminLocationsPage() {
 
   const query = useAdminLocations(country);
   const countryName = markets.find((market) => market.code === country)?.nameEn ?? country;
-  /** The country's whole tree: every key and every nesting comes from it. */
+  /** The full tree remains the ancestry source; country anchors never render. */
   const roster = useMemo(() => toRoster(query.data ?? []), [query.data]);
-  const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
+  const places = useMemo(() => roster.filter((row) => row.level !== "country"), [roster]);
+  const byId = useMemo(() => new Map(places.map((row) => [row.id, row])), [places]);
   /** A keystroke sieves, never fetches; deferring keeps typing smooth. */
   const deferredSearch = useDeferredValue(search);
   const rows = useMemo(
-    () => filterLocations(roster, { search: deferredSearch, level, status }),
-    [roster, deferredSearch, level, status],
+    () => filterLocations(places, { search: deferredSearch, level, status }),
+    [places, deferredSearch, level, status],
   );
   /** Every row that can still hold a child — the create dialog's picker. */
   const parents = useMemo(() => roster.filter((row) => childLevelOf(row.level) !== null), [roster]);
@@ -124,6 +125,7 @@ export function AdminLocationsPage() {
     () => roster.find((row) => row.level === "country")?.id ?? parents[0]?.id ?? "",
     [roster, parents],
   );
+  const selectedMarket = markets.find((market) => market.code === country) ?? null;
 
   const open = (next: Dialog) => setDialog(next);
   const close = () => setDialog({ kind: "none" });
@@ -338,6 +340,18 @@ export function AdminLocationsPage() {
                     window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
                   }}
                 />
+                {selectedMarket ? (
+                  <p
+                    className="w-full text-sm text-muted-foreground"
+                    data-testid="location-market-state"
+                  >
+                    {t(
+                      selectedMarket.isActive
+                        ? "admin.locations.market.open"
+                        : "admin.locations.market.closed",
+                    ).replace("{country}", selectedMarket.nameEn)}
+                  </p>
+                ) : null}
                 <div
                   data-testid="location-toolbar-transfer"
                   className="flex min-w-0 flex-wrap items-center gap-2"
@@ -388,6 +402,9 @@ export function AdminLocationsPage() {
                     </p>
                   ) : null}
                 </div>
+                <p className="w-full text-sm text-muted-foreground" data-testid="location-legend">
+                  {`${t("admin.locations.tip.active")} ${t("admin.locations.tip.retired")}`}
+                </p>
               </div>
             }
             rowActions={rowActions}

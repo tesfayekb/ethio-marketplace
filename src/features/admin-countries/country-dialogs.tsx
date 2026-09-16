@@ -3,16 +3,14 @@ import { useState } from "react";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
-import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import { countryErrorKey, UNIT_SYSTEMS, type CountryRefusal } from "./countries-service";
-import { useUpsertCountry } from "./use-countries";
 
 /**
- * LOCATIONS ERA L2b-C1 — THE COUNTRIES WRITE SURFACES (shared pieces + create).
+ * LOCATIONS ERA L2b-C1 — THE COUNTRIES WRITE SURFACE SHARED PIECES.
  *
  * Every submit runs through the page's step-up `guard`; the door behind it
  * re-checks the permission AND the step-up server-side (F3), so a refusal here
@@ -172,103 +170,4 @@ export function CountryFormFields({
 export function numberOrZero(raw: string): number {
   const parsed = Number(raw.trim());
   return Number.isFinite(parsed) ? parsed : 0;
-}
-
-/**
- * ADD A COUNTRY. It is born CLOSED by the door's own INSERT, and its anchor
- * place is born with it (the L2b-M trigger), so the dialog says so rather than
- * pretending the market is live.
- */
-export function CountryCreateDialog({ guard, onClose }: { guard: GuardFn; onClose: () => void }) {
-  const { t } = useI18n();
-  const upsert = useUpsertCountry();
-  const { refusal, clear, fail, render } = useCountryError();
-  const [code, setCode] = useState("");
-  const [created, setCreated] = useState(false);
-  const [form, setForm] = useState<CountryFormValues>({
-    nameEn: "",
-    unitSystem: "metric",
-    currencyCode: "",
-    displayOrder: "0",
-  });
-
-  const submit = () => {
-    clear();
-    if (!/^[A-Za-z]{2}$/.test(code.trim())) {
-      render("admin.countries.error.badCountryCode");
-      return;
-    }
-    if (form.nameEn.trim() === "") {
-      render("admin.countries.error.nameRequired");
-      return;
-    }
-    void guard(async () => {
-      try {
-        await upsert.mutateAsync({
-          code: code.trim().toUpperCase(),
-          nameEn: form.nameEn.trim(),
-          unitSystem: form.unitSystem,
-          currencyCode: form.currencyCode.trim() === "" ? null : form.currencyCode.trim(),
-          displayOrder: numberOrZero(form.displayOrder),
-        });
-        setCreated(true);
-      } catch (error) {
-        fail(error);
-      }
-    }).catch(fail);
-  };
-
-  return (
-    <CategoryModal
-      testid="country-create-dialog"
-      openedBy="create-button"
-      title={t("admin.countries.create.title")}
-      onClose={onClose}
-    >
-      {created ? (
-        <>
-          <p
-            role="status"
-            data-testid="country-create-closed"
-            className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-primary"
-          >
-            {t("admin.countries.create.bornClosed")}
-          </p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button type="button" size="touch" data-testid="country-create-close" onClick={onClose}>
-              {t("common.close")}
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <FormField
-            label={t("admin.countries.create.code")}
-            htmlFor="country-create-code"
-            help={t("admin.countries.create.codeHint")}
-          >
-            <Input
-              id="country-create-code"
-              data-testid="country-create-code"
-              value={code}
-              maxLength={2}
-              onChange={(event) => setCode(event.target.value.toUpperCase())}
-            />
-          </FormField>
-          <CountryFormFields
-            idPrefix="country-create"
-            values={form}
-            onChange={(next) => setForm((prev) => ({ ...prev, ...next }))}
-          />
-          <CountryErrorLine refusal={refusal} />
-          <CountryDialogActions
-            onCancel={onClose}
-            onSubmit={submit}
-            busy={upsert.isPending}
-            submitTestId="country-create-submit"
-          />
-        </>
-      )}
-    </CategoryModal>
-  );
 }

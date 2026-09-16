@@ -215,9 +215,11 @@ export function LocationCreateDialog({
                 place is being prepared before its market opens. */}
             {parents.map((row) => (
               <option key={row.id} value={row.id}>
-                {row.isActive
-                  ? row.path
-                  : `${row.path} · ${t("admin.locations.filter.closedSuffix")}`}
+                {row.level === "country"
+                  ? t("admin.locations.create.parentCountry").replace("{country}", row.nameEn)
+                  : row.isActive
+                    ? row.path
+                    : `${row.path} · ${t("admin.locations.filter.closedSuffix")}`}
               </option>
             ))}
           </select>

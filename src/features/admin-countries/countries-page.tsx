@@ -1,4 +1,4 @@
-import { Download, Pencil, Plus, Upload } from "lucide-react";
+import { Download, Pencil, Upload } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import {
@@ -16,7 +16,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { CountriesToolbar } from "./countries-toolbar";
 import { COUNTRY_COLUMN_PRIORITIES, filterCountries, type CountryRow } from "./countries-service";
-import { CountryCreateDialog } from "./country-dialogs";
 import { CountryEditorDialog } from "./country-editor";
 import { ImportCountriesDialog } from "./country-import-dialog";
 import { CountryVerbBar } from "./country-verb-bar";
@@ -43,7 +42,6 @@ const PAGE_SIZE_STORAGE_KEY = "ethio.admin.countries.pageSize";
 
 type Dialog =
   | { kind: "none" }
-  | { kind: "create" }
   | { kind: "editor"; code: string; openedBy: string }
   | { kind: "active"; code: string }
   | { kind: "rail"; code: string }
@@ -231,20 +229,6 @@ export function AdminCountriesPage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-countries" className="min-w-0 space-y-4">
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-3">
-            {mayUpdate ? (
-              <Button
-                type="button"
-                size="touch"
-                data-testid="country-create-open"
-                onClick={() => open({ kind: "create" })}
-              >
-                <Plus aria-hidden="true" className="size-4" />
-                <span>{t("admin.countries.create.open")}</span>
-              </Button>
-            ) : null}
-          </div>
-
           <DataTable<CountryRow>
             columns={columns}
             rows={rows}
@@ -325,6 +309,9 @@ export function AdminCountriesPage() {
                     </p>
                   ) : null}
                 </div>
+                <p className="w-full text-sm text-muted-foreground" data-testid="country-legend">
+                  {`${t("admin.countries.tip.open")} ${t("admin.countries.tip.closed")}`}
+                </p>
               </div>
             }
             rowActions={rowActions}
@@ -342,7 +329,6 @@ export function AdminCountriesPage() {
             }
           />
 
-          {dialog.kind === "create" ? <CountryCreateDialog guard={guard} onClose={close} /> : null}
           {selected !== null ? (
             <CountryEditorDialog
               key="country-editor"

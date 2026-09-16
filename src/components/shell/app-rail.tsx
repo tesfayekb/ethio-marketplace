@@ -105,7 +105,7 @@ type RailNode = {
   children?: RailNode[];
   /** C3-UX-2 — a group that renders expanded on its first frame. */
   defaultOpen?: boolean;
-  /** Verdict: a visual cluster — static header, always-present sub-items. */
+  /** A visual cluster with always-present sub-items; its header may own a page. */
   group?: boolean;
 };
 
@@ -134,22 +134,36 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   );
   const pad = { "--rail-pad": `${0.75 + depth * 0.75}rem` } as React.CSSProperties;
 
-  // VERDICT (C3-UX-2 closeout) — a GROUP is a visual cluster, NOT an
-  // accordion: a non-interactive header with its sub-items indented and
-  // always present. The header carries the active mark whenever a sub-route
-  // is active, so the cluster reads as the selected section family.
+  // C3-UX-2 amended — a GROUP is a visual cluster, NOT an accordion. A group
+  // MAY own a page; only then is its header a link. Its sub-items remain
+  // indented and always present, and categories remains non-interactive.
   if (hasChildren && node.group) {
+    const groupClassName = cn(ITEM_BASE, containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE);
     return (
       <li>
-        <div
-          data-testid={node.testid}
-          aria-label={node.label}
-          aria-current={containsActive(node) ? "true" : undefined}
-          style={pad}
-          className={cn(ITEM_BASE, containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE)}
-        >
-          {inner}
-        </div>
+        {node.path ? (
+          <Link
+            to={node.path}
+            onClick={node.onSelect}
+            data-testid={node.testid}
+            aria-label={node.label}
+            aria-current={node.active ? "page" : containsActive(node) ? "true" : undefined}
+            style={pad}
+            className={groupClassName}
+          >
+            {inner}
+          </Link>
+        ) : (
+          <div
+            data-testid={node.testid}
+            aria-label={node.label}
+            aria-current={containsActive(node) ? "true" : undefined}
+            style={pad}
+            className={groupClassName}
+          >
+            {inner}
+          </div>
+        )}
         <ul className="mt-0.5 flex flex-col gap-0.5">
           {node.children!.map((child) => (
             <RailRow key={child.key} node={child} depth={depth + 1} />

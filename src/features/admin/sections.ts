@@ -34,9 +34,17 @@ export const ADMIN_GROUPS = {
   categories: { id: "categories", titleKey: "admin.nav.group.catalog" },
   // LOCATIONS ERA L2b-C1 — geography folds into ONE group the way Catalog did:
   // Places (the tree), Countries (the markets) and Coverage (the plans). The
-  // group carries no permission of its own; each section keeps its gate (F3).
-  locations: { id: "locations", titleKey: "admin.nav.group.locations" },
-} as const satisfies Record<string, { readonly id: string; readonly titleKey: MessageKey }>;
+  // The group owns the overview page; it still carries no permission of its
+  // own, and each child section keeps its gate (F3).
+  locations: {
+    id: "locations",
+    titleKey: "admin.nav.group.locations",
+    path: "/admin/locations",
+  },
+} as const satisfies Record<
+  string,
+  { readonly id: string; readonly titleKey: MessageKey; readonly path?: string }
+>;
 
 export type AdminGroupId = keyof typeof ADMIN_GROUPS;
 
@@ -64,7 +72,7 @@ export const ADMIN_SECTIONS = [
   },
   {
     id: "locations",
-    path: "/admin/locations",
+    path: "/admin/places",
     permission: "locations:view",
     titleKey: "admin.section.locations.title",
     bodyKey: "admin.section.locations.body",
@@ -143,6 +151,13 @@ export function sectionById(id: AdminSectionId): AdminSection {
 export function groupForSection(section: AdminSection) {
   const id = sectionGroupId(section);
   return id ? ADMIN_GROUPS[id] : null;
+}
+
+/** The group whose own page exactly matches this pathname, when one exists. */
+export function groupForPath(pathname: string) {
+  return (
+    Object.values(ADMIN_GROUPS).find((group) => "path" in group && group.path === pathname) ?? null
+  );
 }
 
 /** The declared group id of a section (the literal union hides the optional). */

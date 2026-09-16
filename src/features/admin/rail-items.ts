@@ -80,19 +80,23 @@ export const ADMIN_NAV_ITEMS: readonly NavItem[] = (() => {
     }
     let group = groups.get(groupId);
     if (!group) {
-      group = {
+      const config = ADMIN_GROUPS[groupId];
+      const groupPath = "path" in config ? config.path : undefined;
+      const created: NavItem = {
         id: `ad-group-${groupId}`,
         testid: `admin-group-${groupId}`,
-        labelKey: ADMIN_GROUPS[groupId].titleKey,
+        labelKey: config.titleKey,
         icon: GROUP_ICONS[groupId],
+        path: groupPath,
         defaultOpen: true,
         group: true,
         children: [],
       };
-      groups.set(groupId, group);
-      items.push(group);
+      groups.set(groupId, created);
+      items.push(created);
+      group = created;
     }
-    group.children!.push(toItem(section));
+    group.children?.push(toItem(section));
   }
   return items;
 })();

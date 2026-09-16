@@ -13,6 +13,7 @@ import {
   readRootOrder,
   scratchCountryCode,
   scratchCountryName,
+  seedCountry,
   verb,
 } from "./helpers/countries";
 import {
@@ -99,34 +100,14 @@ test.describe("L2b countries console", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("CO-3 create: a scratch market is born closed with an inactive anchor", async ({ page }) => {
-    const { secret } = await useJobSuperAdmin(page);
-    const code = await scratchCountryCode();
-
-    try {
-      await gotoReady(page, "/admin/countries");
-      await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-open").click();
-      await expect(page.getByTestId("country-create-dialog")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-code").fill(code);
-      await page.getByTestId("country-create-name").fill(scratchCountryName(code));
-      await page.getByTestId("country-create-currency").fill("USD");
-      await page.getByTestId("country-create-submit").click();
-      await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("country-create-closed")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-close").click();
-
-      const row = await readCountry(code);
-      expect(row?.is_active).toBe(false);
-      expect(row?.currency_code).toBe("USD");
-      // The L2b-M trigger gave it an anchor place, born INACTIVE.
-      const anchor = await readAnchor(code);
-      expect(anchor?.level).toBe("country");
-      expect(anchor?.is_active).toBe(false);
-      expect(anchor?.parent_id).toBeNull();
-    } finally {
-      await destroyCountry(code);
-    }
+  test("CO-3 creation is absent from the header; the countries file is the only creation path", async ({
+    page,
+  }) => {
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/countries");
+    await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("country-create-open")).toHaveCount(0);
+    await expect(page.getByTestId("country-import")).toBeVisible();
   });
 
   test("CO-4 open and close: opening publishes the market's tree, closing takes it away", async ({
@@ -136,15 +117,9 @@ test.describe("L2b countries console", () => {
     const code = await scratchCountryCode();
 
     try {
+      await seedCountry(code);
       await gotoReady(page, "/admin/countries");
       await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-open").click();
-      await page.getByTestId("country-create-code").fill(code);
-      await page.getByTestId("country-create-name").fill(scratchCountryName(code));
-      await page.getByTestId("country-create-submit").click();
-      await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("country-create-closed")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-close").click();
 
       // A closed market is not published: the public tree refuses it.
       expect((await page.request.get(`/api/locations/${code}`)).status()).toBe(404);
@@ -186,15 +161,9 @@ test.describe("L2b countries console", () => {
     const code = await scratchCountryCode();
 
     try {
+      await seedCountry(code);
       await gotoReady(page, "/admin/countries");
       await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-open").click();
-      await page.getByTestId("country-create-code").fill(code);
-      await page.getByTestId("country-create-name").fill(scratchCountryName(code));
-      await page.getByTestId("country-create-submit").click();
-      await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("country-create-closed")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-close").click();
 
       await findRow(page, code, code);
       await openEditor(page, code);
@@ -222,15 +191,9 @@ test.describe("L2b countries console", () => {
     const code = await scratchCountryCode();
 
     try {
+      await seedCountry(code);
       await gotoReady(page, "/admin/countries");
       await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-open").click();
-      await page.getByTestId("country-create-code").fill(code);
-      await page.getByTestId("country-create-name").fill(scratchCountryName(code));
-      await page.getByTestId("country-create-submit").click();
-      await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("country-create-closed")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("country-create-close").click();
 
       await openVerb(page, code, "rail-order", code);
       await expect(page.getByTestId("country-rail-dialog")).toBeVisible({ timeout: 20000 });

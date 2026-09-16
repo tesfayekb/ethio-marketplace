@@ -303,6 +303,7 @@ test.describe("Admin shell (U0)", () => {
     // header carries the ACTIVE mark on a sub-route and every permitted
     // sub-item is always present beneath it.
     await expect(group).not.toHaveAttribute("aria-expanded", /.*/);
+    await expect(group).not.toHaveAttribute("href");
     await expect(group).toHaveClass(/bg-sidebar-accent/);
     for (const section of visible) {
       await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toBeVisible({ timeout: 15000 });
@@ -329,6 +330,9 @@ test.describe("Admin shell (U0)", () => {
     await expect(crumb.getByTestId("breadcrumb-admin-section")).toHaveText(
       en[visible[0]!.titleKey],
     );
+
+    const locations = scope.getByTestId("admin-group-locations");
+    await expect(locations).toHaveAttribute("href", "/admin/locations");
 
     // GATED PER SUB-ITEM: a moderator sees neither the group nor its members,
     // and every grouped deep link is refused to the landing with the notice.

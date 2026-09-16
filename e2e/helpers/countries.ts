@@ -56,6 +56,20 @@ export function scratchCountryName(code: string): string {
   return `E2E-Scratch-${code}-${run}-${worker}`;
 }
 
+/** Seed a scratch market before navigation; creation in the UI is file-only. */
+export async function seedCountry(code: string) {
+  if (!isUserAssigned(code)) throw new Error(`[e2e:l2c] refusing to seed ${code}`);
+  const { error } = await adminClient().from("countries").insert({
+    code,
+    name_en: scratchCountryName(code),
+    is_active: false,
+    unit_system: "metric",
+    currency_code: "USD",
+    display_order: 0,
+  });
+  if (error) throw new Error(`[e2e:l2c] seeding ${code} failed: ${error.message}`);
+}
+
 /** The roster keeps cards through `lg`, exactly as the places roster does. */
 export const TWIN_BOUNDARY = 1024;
 

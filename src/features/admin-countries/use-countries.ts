@@ -19,11 +19,12 @@ import {
 export const ADMIN_COUNTRIES_KEY = [AUTH_DERIVED_ROOT, "admin", "countries"] as const;
 
 /** ONE READ: search and status are client-side sieves over this roster. */
-export function useAdminCountries() {
+export function useAdminCountries(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...ADMIN_COUNTRIES_KEY, "list"],
     queryFn: listCountries,
     staleTime: 15_000,
+    enabled: options?.enabled ?? true,
   });
 }
 
