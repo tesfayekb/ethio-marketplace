@@ -97,15 +97,13 @@ async function destroyPlan(plan: string) {
 /** Seeds the test's own plan through the service client (seed before navigate, J7). */
 async function seedPlan(plan: string) {
   await destroyPlan(plan);
-  const { error } = await adminClient()
-    .from("coverage_plans")
-    .insert({
-      plan,
-      max_cities: 1,
-      max_regions: 1,
-      max_countries: 1,
-      allow_everywhere: false,
-    });
+  const { error } = await adminClient().from("coverage_plans").insert({
+    plan,
+    max_cities: 1,
+    max_regions: 1,
+    max_countries: 1,
+    allow_everywhere: false,
+  });
   if (error) throw new Error(`[e2e:l2b] seeding the plan ${plan} failed: ${error.message}`);
 }
 

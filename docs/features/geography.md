@@ -332,11 +332,11 @@ the request and NOTHING else: no database, no cookie, no storage, no listing.
 
 THE JUDGE (DEC-063, pre-committed — this order and nothing else):
 
-| Order | Source                                                   | Answer                                       |
-| ----- | -------------------------------------------------------- | -------------------------------------------- |
-| 1     | the Cloudflare `cf` object, when it carries a `country`   | country, `regionCode`/`city` when present    |
-| 2     | else the `cf-ipcountry` header, exactly two letters       | the country, upper-cased; region and city null |
-| 3     | else nothing                                             | all three null, `source: "none"`             |
+| Order | Source                                                  | Answer                                         |
+| ----- | ------------------------------------------------------- | ---------------------------------------------- |
+| 1     | the Cloudflare `cf` object, when it carries a `country` | country, `regionCode`/`city` when present      |
+| 2     | else the `cf-ipcountry` header, exactly two letters     | the country, upper-cased; region and city null |
+| 3     | else nothing                                            | all three null, `source: "none"`               |
 
 There is no other fallback, no default market and no `x-forwarded-*` parsing.
 A7 census: no export of `@tanstack/react-start/server` hands out the nitro
