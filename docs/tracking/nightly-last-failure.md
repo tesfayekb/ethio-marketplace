@@ -2,8 +2,8 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35064263598
 - Commit: `2e65e3a2b22443512fee66867c86061e495717b9`
-- Attempt: 1
-- Written (UTC): 2026-09-16T07:40:20.665Z
+- Attempt: 2
+- Written (UTC): 2026-09-16T18:25:34.758Z
 - Passed: 561 · Skipped: 44 · Failed: 30
 - Gating failures: 29 · Quarantined (@global-state, INC-117, non-gating): 1
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -1270,25 +1270,25 @@ Call log:
 Context:
 
 ```text
-          - listitem [ref=e778]:
-            - generic [ref=e779]: About
-          - listitem [ref=e780]:
-            - generic [ref=e781]: How it works
-      - navigation "Help" [ref=e782]:
-        - heading "Help" [level=2] [ref=e783]
-        - list [ref=e784]:
-          - listitem [ref=e785]:
-            - generic [ref=e786]: Safety
-          - listitem [ref=e787]:
-            - generic [ref=e788]: Contact
-      - navigation "Legal" [ref=e789]:
-        - heading "Legal" [level=2] [ref=e790]
-        - list [ref=e791]:
-          - listitem [ref=e792]:
-            - generic [ref=e793]: Terms
-          - listitem [ref=e794]:
-            - generic [ref=e795]: Privacy
-    - paragraph [ref=e797]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e777]:
+            - generic [ref=e778]: About
+          - listitem [ref=e779]:
+            - generic [ref=e780]: How it works
+      - navigation "Help" [ref=e781]:
+        - heading "Help" [level=2] [ref=e782]
+        - list [ref=e783]:
+          - listitem [ref=e784]:
+            - generic [ref=e785]: Safety
+          - listitem [ref=e786]:
+            - generic [ref=e787]: Contact
+      - navigation "Legal" [ref=e788]:
+        - heading "Legal" [level=2] [ref=e789]
+        - list [ref=e790]:
+          - listitem [ref=e791]:
+            - generic [ref=e792]: Terms
+          - listitem [ref=e793]:
+            - generic [ref=e794]: Privacy
+    - paragraph [ref=e796]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1320,5 +1320,5 @@ Context:
 ## Client errors: full
 
 ```text
-[client-error] console.error: TypeError: Failed to fetch at http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:13856:39 at getResponse (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:13903:20) at serverFnFetcher (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:13856:15) at async client (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:16052:17) at async callNextMiddleware (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:15983:20) at async userNext (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:15969:21) ×3
+[client-error] console.error: TypeError: Failed to fetch at http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:13856:39 at getResponse (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:13903:20) at serverFnFetcher (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:13856:15) at async client (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:16052:17) at async callNextMiddleware (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:15983:20) at async userNext (http://127.0.0.1:4173/assets/index-fs8a6Mgz.js:15969:21) ×6
 ```
