@@ -217,9 +217,9 @@ test.describe("L2b coverage console", () => {
 
   test("CV-5 add: a scratch plan is created through the door and seen in the roster", async ({
     page,
-  }) => {
+  }, testInfo) => {
     const { secret } = await useJobSuperAdmin(page);
-    const plan = scratchPlan();
+    const plan = scratchPlan("add", testInfo.project.name);
 
     try {
       await destroyPlan(plan);
