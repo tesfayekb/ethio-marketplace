@@ -2214,3 +2214,57 @@ INC-206 — CLOSED 2026-09-16 by 186a9cb4 (L2b-C2): admin_undo_location_import r
 Defect: ai-bulk-bar.tsx translated chunks in sequence and set the summary only after the last; a chunk whose request threw (network) fell into the error path with no summary, while TR-12 waited on the summary alone and reported "never rendered within 90 s". Evidence: run 35101545574 (shard 2, mobile-360, client-error attachments; gate fetches threw in the same run); five flake-ledger entries 2026-09-15/16 (DEC-030 threshold crossed). Class: F4 — a partial failure must still report; a test must read the failure it can see.
 
 INC-207 — CLOSED 2026-09-16 by L2d: a throwing chunk is retried once, then its keys land in the summary's failed list and the run continues (the summary always renders); TR-12 step 3 waits on summary or error and fails with the error's text.
+
+## INC-208 — decimal import columns refused a hand-typed negative number
+
+Defect: the gate's formula law refused any cell beginning with "-" unless the column allowed it; decimal/int columns carried no allowance, so a curator's plain negative longitude was refused while the export's apostrophe form round-tripped. Evidence: the cycle-1 diaspora file (34 cells), gate.ts isFormulaCell + registry.ts. Class: a type whose regex already proves the cell is a number was still subject to the formula guard.
+
+INC-208 — CLOSED 2026-09-16 by L3-FIX (7fcdddce): every decimal/int import column allows formula-leading; a hostile-catalogue probe proves a plain negative reaches the planner.
+
+## INC-209 — a closed market's anchor blocked the preparation of its tree
+
+Defect: the ancestry guard and the import planner refused any active row under an inactive parent; since L2b-M a closed market's anchor is inactive, so a curated tree could not be imported active under a closed country (58 rows refused parentInactive/parentLaterInFile), contradicting the era's law that a market's tree is prepared before it opens. Evidence: the cycle-1 diaspora preview 2026-09-16; guard line 161; planner conditions. Class: two laws collided at the anchor; supervisor design gap (the charter promised what the importer refused).
+
+INC-209 — CLOSED 2026-09-16 by L3-FIX: the country anchor is exempt (guard and planner re-declared whole, depth > 2 keeps the rule); the path rule keeps the tree hidden until the market opens; proofs P1–P3.
+
+## INC-210 — guarded-action tests raced the step-up modal with a fixed window
+
+Defect: tests clicked a guarded action and probed for the step-up modal for five seconds; when the server's step_up_required arrived later, the modal opened after the probe, the run parked on it, and the test saw neither outcome nor error (TR-12's "mute timeout"). Evidence: run 35155684382 shard 2; use-step-up.ts guard path; ui.ts stepUpIfPrompted. Class: a fixed-window probe for an event whose timing the server decides.
+
+INC-210 — CLOSED 2026-09-17 by U6-A1's rider: `awaitGuardedOutcome` waits for the outcome or the modal, answers the modal, keeps waiting; TR-12, CT-3, LT-3/6, CO-4, CV-3 use it.
+
+## INC-211 — the shell picker seeded a picked market with the previous market's anchor
+
+Defect: `useCountryTree` kept the previous country's nodes until the new fetch resolved; the anchor-landing effect fired on the stale nodes, seeded the path with the old market's anchor and wrote the cookie with a foreign node; the cascade rendered nothing until a reload. Evidence: operator walk 2026-09-16 (Australia); app-shell.tsx effect; location-data.ts hook. Class: state carried across a key change.
+
+INC-211 — CLOSED 2026-09-17 by A1-R: the hook resets on change; the cookie waits for the picked market's tree; LS-11.
+
+## INC-212 — new service-only tables were born client-granted
+
+Defect: Supabase's default privileges on public grant every new table to anon/authenticated at creation; three service-only tables of A1-2 were born client-granted; the migration's read-back proof caught it and rolled the whole file back. Evidence: A1-2 first attempt error "READ-BACK FAILED: a client role holds a grant on a service-only table"; pg_default_acl. Class: an environment default that a migration must undo explicitly.
+
+INC-212 — CLOSED 2026-09-17 by A1-2's retry: explicit REVOKE ALL FROM anon, authenticated after each new table; Knowledge v3.10 E1 proposal.
+
+## INC-213 — the executor committed while the local run was parity-blocked
+
+Defect: U6-A1 was committed with the DEC-023 local run refused by staging parity ("STAGING BEHIND"), against Knowledge A7 ("blocked by staging parity = NO commit"); the board went red until the operator applied the migrations. Evidence: the A1 completion report, limitation 2. Class: executor procedural slip, first occurrence.
+
+INC-213 — CLOSED 2026-09-17 (procedural; the law stands; every prompt restates it).
+
+## INC-214 — TR-34 pruned scratch rows by name only
+
+Defect: the Data-roster equality snapshot pruned scratch entries by a name regex; a sibling shard's scratch place with an Amharic name carried no marker and appeared as a phantom diff (15 flake-ledger entries). Evidence: run 35165292681 shard 2 ({"name":"አዲስ አበባ 35165292681-5"}). Class: an invariant reading global state without excluding other tests' rows (J6).
+
+INC-214 — CLOSED 2026-09-17 by A1-R: pruning by live identity across every scratch family plus the marker.
+
+## INC-215 — an action row's profile cells are dropped silently by the countries import
+
+Defect: for an existing country with action open/close, the commit takes the state branch and never the update branch; currency/unit edits on the same row are neither applied nor reported. Evidence: the cycle-3 countries file (EUR/GBP/KES on open rows) — the roster kept the blanks; loc_import_plan and admin_commit_location_import branches. Class: F4/F5 — an edit silently not applied.
+
+INC-215 — OPEN. Fix at U6-A2 (an action row applies its field edits, or reports them ignored). Interim rule for curators: profile edits on their own rows.
+
+## INC-216 — leaked open scratch markets crowded both rosters (the LT-13 / CO-* red)
+
+Defect: LS-11 seeded two scratch markets per run and cleaned up in a finally inside the test body, which a timeout abandons; `destroyCountry` discarded database errors, so partial failures left OPEN markets behind silently; the reaper removed only residue older than three hours. 26 open scratch markets sorted ahead of Ethiopia on the Countries roster and 85 scratch places pushed the Places roster past page 1; LT-13 and CO-1..7 asserted real rows by page-1 presence. Evidence: R-LT13 STEP 1 (staging counts and roster orders); runs 35176748289, 35190393232. Class: layered causes (timeout-abandoned finally · silent catch · reaper window) behind a page-position assertion; supervisor slip: the LT-13 brief assumed page-1 presence.
+
+INC-216 — CLOSED 2026-09-17 by R-LT13: destroy closes, deletes child-first and throws by step; the reaper reads every handle; shell fixtures clean up in afterEach; LT-13 and the CO tests locate rows through search and totals through DB truth; residue reaped.
