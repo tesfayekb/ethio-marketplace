@@ -793,6 +793,47 @@ export type Database = {
           },
         ]
       }
+      listing_revisions: {
+        Row: {
+          actor: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          id: string
+          kind: string
+          listing_id: string
+          seller_id: string
+        }
+        Insert: {
+          actor?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          kind: string
+          listing_id: string
+          seller_id: string
+        }
+        Update: {
+          actor?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          kind?: string
+          listing_id?: string
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_revisions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listings: {
         Row: {
           attributes: Json
@@ -1174,6 +1215,27 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          action: string
+          count: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          count?: number
+          key: string
+          window_start: string
+        }
+        Update: {
+          action?: string
+          count?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       resources: {
         Row: {
           created_at: string
@@ -1280,6 +1342,56 @@ export type Database = {
             columns: ["parent_role_id"]
             isOneToOne: false
             referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      screening_verdicts: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          flags: Json
+          id: string
+          listing_id: string
+          model: string | null
+          model_version: string | null
+          rationale: string | null
+          reviewer: string | null
+          tier: string
+          verdict: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          flags?: Json
+          id?: string
+          listing_id: string
+          model?: string | null
+          model_version?: string | null
+          rationale?: string | null
+          reviewer?: string | null
+          tier: string
+          verdict: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          flags?: Json
+          id?: string
+          listing_id?: string
+          model?: string | null
+          model_version?: string | null
+          rationale?: string | null
+          reviewer?: string | null
+          tier?: string
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_verdicts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
             referencedColumns: ["id"]
           },
         ]
@@ -1421,6 +1533,9 @@ export type Database = {
           created_at: string
           handle: string | null
           home_country_code: string | null
+          observed_at: string | null
+          observed_country_code: string | null
+          standing: Json
           user_id: string
         }
         Insert: {
@@ -1429,6 +1544,9 @@ export type Database = {
           created_at?: string
           handle?: string | null
           home_country_code?: string | null
+          observed_at?: string | null
+          observed_country_code?: string | null
+          standing?: Json
           user_id: string
         }
         Update: {
@@ -1437,6 +1555,9 @@ export type Database = {
           created_at?: string
           handle?: string | null
           home_country_code?: string | null
+          observed_at?: string | null
+          observed_country_code?: string | null
+          standing?: Json
           user_id?: string
         }
         Relationships: [
@@ -2385,6 +2506,15 @@ export type Database = {
       cat_ts: { Args: { p_text: string }; Returns: string }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
+      consume_rate_limit: {
+        Args: {
+          p_action: string
+          p_key: string
+          p_limit: number
+          p_window: string
+        }
+        Returns: Json
+      }
       country_export_row: { Args: { p_code: string }; Returns: Json }
       e2e_migration_ledger: { Args: never; Returns: string[] }
       effective_category_links: {
@@ -2608,6 +2738,10 @@ export type Database = {
       require_step_up_if_needed: {
         Args: { p_action: string; p_resource: string }
         Returns: undefined
+      }
+      residency_country_for: {
+        Args: { p_request_country: string; p_user_id: string }
+        Returns: string
       }
       revoke_role: {
         Args: { p_role_name: string; p_target_user: string }
