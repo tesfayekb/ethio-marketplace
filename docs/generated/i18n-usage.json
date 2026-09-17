@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 274,
-  "dynamicCallSites": 163,
+  "scanned": 277,
+  "dynamicCallSites": 168,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3275,6 +3275,22 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.assist.action": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.assist.done": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.assist.hint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.assist.working": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.category.browseLabel": [
       "/post",
       "/post/$listingId"
@@ -3335,6 +3351,42 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.details.count": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.details.descriptionLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.details.descriptionPlaceholder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.details.titleLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.details.titlePlaceholder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.details.videoHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.details.videoLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.details.videoPlaceholder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.details.why": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.error.load": [
       "/post",
       "/post/$listingId"
@@ -3344,6 +3396,10 @@
       "/post/$listingId"
     ],
     "post.loading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.optional": [
       "/post",
       "/post/$listingId"
     ],
@@ -3420,6 +3476,66 @@
       "/post/$listingId"
     ],
     "post.signIn.required": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.attest": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.boundsHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.choose": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.lengthHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.loadFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.multiHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.needCategory": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.noBound": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.none": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.optionsFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.optionsLoading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.otherPlaceholder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.presetHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.unitHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.why": [
       "/post",
       "/post/$listingId"
     ],

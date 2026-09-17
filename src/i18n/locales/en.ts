@@ -1970,7 +1970,8 @@ export const en = {
   "post.details.titleLabel": "Title",
   "post.details.titlePlaceholder": "e.g. Samsung fridge, working, one owner",
   "post.details.descriptionLabel": "Description",
-  "post.details.descriptionPlaceholder": "What it is, its condition, and anything a buyer should know.",
+  "post.details.descriptionPlaceholder":
+    "What it is, its condition, and anything a buyer should know.",
   "post.details.count": "{count} of {max}",
   "post.details.videoLabel": "YouTube link",
   "post.details.videoPlaceholder": "https://www.youtube.com/watch?v=…",

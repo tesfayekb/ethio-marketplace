@@ -293,7 +293,7 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
     attributeId: str(row, "attribute_id") ?? "",
     attrKey: str(row, "attr_key") ?? "",
     attrType: str(row, "attr_type") ?? "text",
-    nameEn: str(row, "name_en") ?? (str(row, "attr_key") ?? ""),
+    nameEn: str(row, "name_en") ?? str(row, "attr_key") ?? "",
     helpTextEn: str(row, "help_text_en"),
     isRequired: row["is_required"] === true,
     unit: str(row, "unit"),

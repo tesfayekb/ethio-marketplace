@@ -81,6 +81,18 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const valuesRef = useRef<DraftValues>(values);
   const pendingStepRef = useRef<number | null>(null);
   const inFlightRef = useRef(false);
+  /**
+   * THE ANSWER'S VERSION, bumped by every change and every raised step.
+   *
+   * A save carries the version it was built from. When it returns, the pending
+   * work is cleared ONLY if nothing changed while it was in the air; otherwise
+   * the newer answers are still pending and another pass runs at once. Without
+   * this, a `Next` that lands on top of an in-flight autosave was dropped on the
+   * floor — the seller's last edit never reached the door and the step never
+   * advanced, which is exactly the lost work this hook exists to prevent.
+   */
+  const versionRef = useRef(0);
+  const followUpRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aliveRef = useRef(true);
@@ -109,12 +121,15 @@ export function useDraft(initialListingId: string | null): UseDraft {
     };
   }, []);
 
-  /** One pass at the server with whatever is pending. Answers "did it take?". */
-  const flush = useCallback(async (): Promise<boolean> => {
+  /** The queue's entry point, held in a ref so the retry timer can reach it. */
+  const flushRef = useRef<(() => Promise<boolean>) | null>(null);
+
+  /** ONE pass at the server with whatever is pending. Answers "did it take?". */
+  const pass = useCallback(async (): Promise<boolean> => {
     const forStep = pendingStepRef.current;
     if (forStep === null) return true;
-    if (inFlightRef.current) return false;
     inFlightRef.current = true;
+    const sent = versionRef.current;
     setSaveState("saving");
 
     const answer = await saveDraft(bodyFor(forStep));
@@ -123,7 +138,14 @@ export function useDraft(initialListingId: string | null): UseDraft {
     if (!aliveRef.current) return answer.ok;
 
     if (answer.ok) {
-      pendingStepRef.current = null;
+      // Only the answers that were actually sent are settled: anything the
+      // seller changed while the request was in the air stays pending, and the
+      // follow-up flag makes the queue run again for it.
+      if (versionRef.current === sent) {
+        pendingStepRef.current = null;
+      } else {
+        followUpRef.current = true;
+      }
       const id = answer.payload["listing_id"];
       if (typeof id === "string") {
         listingRef.current = id;
@@ -132,7 +154,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       const served = answer.payload["draft_step"];
       if (typeof served === "number") setDraftStep(served);
       setRefusals([]);
-      setSaveState("saved");
+      setSaveState(followUpRef.current ? "unsaved" : "saved");
       return true;
     }
 
@@ -141,7 +163,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       setSaveState("unsaved");
       if (retryRef.current) clearTimeout(retryRef.current);
       retryRef.current = setTimeout(() => {
-        void flush();
+        void flushRef.current?.();
       }, RETRY_MS);
       return false;
     }
@@ -150,6 +172,33 @@ export function useDraft(initialListingId: string | null): UseDraft {
     setSaveState("unsaved");
     return false;
   }, [bodyFor]);
+
+  /**
+   * THE SAVE QUEUE. Every save — the debounce, a tap, `Next` — joins one chain,
+   * so a `Next` that arrives on top of an in-flight autosave WAITS for it and
+   * then sends the latest answers, instead of being dropped (which lost the
+   * seller's last edit and left the step behind).
+   */
+  const chainRef = useRef<Promise<boolean>>(Promise.resolve(true));
+  const flush = useCallback((): Promise<boolean> => {
+    const run = chainRef.current.then(async () => {
+      const took = await pass();
+      if (followUpRef.current) {
+        followUpRef.current = false;
+        return pass();
+      }
+      return took;
+    });
+    chainRef.current = run.then(
+      () => true,
+      () => false,
+    );
+    return run;
+  }, [pass]);
+
+  useEffect(() => {
+    flushRef.current = flush;
+  }, [flush]);
 
   const change = useCallback(
     (patch: Partial<DraftValues>, immediate: boolean) => {
@@ -161,6 +210,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // The step the change belongs to is the step on screen; a later Next
       // raises it. Coalescing keeps the HIGHEST pending step.
       pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, step);
+      versionRef.current += 1;
       setSaveState("unsaved");
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (immediate) {

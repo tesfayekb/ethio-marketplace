@@ -6,12 +6,16 @@ import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { createUser } from "./helpers/users";
 import {
+  attributesOf,
   destroyCategoryBranch,
   destroyListingsOf,
   destroyPostableCategory,
   draftsOf,
   seedCategoryBranch,
+  destroySpecSet,
   seedPostableCategory,
+  seedSpecSet,
+  textOf,
 } from "./helpers/posting";
 
 /**
@@ -40,12 +44,15 @@ test.describe("POSTING WIZARD", () => {
   const categories: string[] = [];
   const branches: string[] = [];
   const sellers: string[] = [];
+  const specs: string[] = [];
   const objects: { userId: string; listingId: string }[] = [];
 
   test.afterEach(async () => {
     // J3 — an afterEach survives a body timeout; a `finally` in the body does not.
     for (const ref of objects.splice(0)) await purgeListingObjects(ref.userId, ref.listingId);
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
+    // Links first: a category cannot be deleted while a definition link points at it.
+    await destroySpecSet(specs.splice(0));
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
     const branchSlugs = branches.splice(0);
     if (branchSlugs.length > 0) await destroyCategoryBranch(branchSlugs);
@@ -273,5 +280,140 @@ test.describe("POSTING WIZARD", () => {
         message: "PW-8: the retry did not save the draft",
       })
       .toEqual([category.id]);
+  });
+
+  /**
+   * U6-C1b — STEPS 3 AND 4.
+   *
+   * Reaching step 3 means walking the seller's real path: a category, then a
+   * photo, then Next — the same door answers the test relies on later. The
+   * definitions are SCRATCH (`seedSpecSet`): a real one could change its options
+   * under the test, and J3 forbids writing one.
+   */
+  async function reachStep3(
+    page: import("@playwright/test").Page,
+    userId: string,
+    category: { id: string; slug: string },
+  ) {
+    await gotoReady(page, "/post");
+    await chooseBySearch(page, category.slug, category.id);
+    const [draft] = await draftsOf(userId);
+    const listingId = String(draft?.id ?? "");
+    expect(listingId, "step 1 created no draft").not.toBe("");
+    objects.push({ userId, listingId });
+
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+    await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
+      timeout: 45_000,
+    });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    return listingId;
+  }
+
+  test("PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    const listingId = await reachStep3(page, user.id, category);
+
+    // GENERATED, NOT AUTHORED: one control per linked definition, each shape its own.
+    for (const attrKey of [
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+    ]) {
+      await expect(
+        page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`),
+        `PW-5: no control was generated for ${attrKey}`,
+      ).toBeVisible();
+    }
+    // DEC-050 bounds travel as a HINT beside the number, never as the verdict.
+    await expect(page.getByTestId("post-attr-bounds")).toBeVisible();
+
+    // DEC-053 — THE OPTIONS ARE NOT SHIPPED WITH THE FORM: the picker is idle until
+    // it is opened, and its list arrives on that first tap.
+    const picker = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`,
+    );
+    await expect(picker).toHaveAttribute("data-options", "idle");
+    await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "ready");
+    // Two scratch options plus the "choose" placeholder.
+    await expect(picker.locator("option")).toHaveCount(3);
+
+    // THE DOOR IS THE AUTHORITY: Next sends with the required detail empty, and the
+    // refusal lands beneath that detail's own control.
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),
+      "PW-5: the empty required detail was not refused under its own control",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    // DB TRUTH: a refused step never advances what the server recorded.
+    expect((await draftsOf(user.id))[0]?.draft_step, "PW-5: a refusal advanced the draft").toBe(2);
+
+    // Answered, the same step is accepted, and the door stores the normalised answers.
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill("e2e text answer");
+    await picker.selectOption(spec.optionValues[0] ?? "");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect
+      .poll(async () => (await attributesOf(listingId))[spec.text.attrKey], {
+        message: "PW-5: the answers never reached the draft",
+      })
+      .toBe("e2e text answer");
+    expect(
+      (await attributesOf(listingId))[spec.select.attrKey],
+      "PW-5: the chosen option was not recorded",
+    ).toBe(spec.optionValues[0]);
+  });
+
+  test("PW-6 the AI assist fills the title and description from the entered details, and both stay editable", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    const listingId = await reachStep3(page, user.id, category);
+
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill("e2e assist facts");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+
+    // Nothing is written until the seller asks: Next stays closed on empty text.
+    await expect(page.getByTestId("post-next")).toBeDisabled();
+    await page.getByTestId("post-assist").click();
+    await expect(page.getByTestId("post-assist-done")).toBeVisible();
+
+    const title = page.getByTestId("post-title");
+    const description = page.getByTestId("post-description");
+    await expect(title).not.toHaveValue("");
+    await expect(description).not.toHaveValue("");
+    // A SUGGESTION, NEVER AN AUTHOR: the seller can overwrite both.
+    await title.fill("e2e seller's own title");
+    await expect(title).toHaveValue("e2e seller's own title");
+    await expect(page.getByTestId("post-next")).toBeEnabled();
+
+    await page.getByTestId("post-next").click();
+    await expect
+      .poll(async () => (await textOf(listingId)).title, {
+        message: "PW-6: the seller's title never reached the draft",
+      })
+      .toBe("e2e seller's own title");
+    const stored = await textOf(listingId);
+    expect(stored.description, "PW-6: the description was not saved").not.toBe(null);
+    expect(stored.description, "PW-6: the description was saved empty").not.toBe("");
   });
 });

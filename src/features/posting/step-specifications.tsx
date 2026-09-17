@@ -58,7 +58,9 @@ function otherText(raw: unknown): string {
 }
 
 function chosenList(raw: unknown): string[] {
-  return Array.isArray(raw) ? raw.filter((entry): entry is string => typeof entry === "string") : [];
+  return Array.isArray(raw)
+    ? raw.filter((entry): entry is string => typeof entry === "string")
+    : [];
 }
 
 export function StepSpecifications({
@@ -99,8 +101,7 @@ export function StepSpecifications({
     void loadAttributeOptions(def.attributeId).then((list) => {
       setOptions((prev) => ({
         ...prev,
-        [def.attrKey]:
-          list === null ? { state: "failed", list: [] } : { state: "ready", list },
+        [def.attrKey]: list === null ? { state: "failed", list: [] } : { state: "ready", list },
       }));
     });
   };
@@ -158,7 +159,12 @@ export function StepSpecifications({
         const chosen = selectedValue(value);
 
         return (
-          <div key={def.attrKey} className="space-y-1" data-testid="post-spec" data-attr={def.attrKey}>
+          <div
+            key={def.attrKey}
+            className="space-y-1"
+            data-testid="post-spec"
+            data-attr={def.attrKey}
+          >
             <label htmlFor={controlId} className="text-sm font-medium text-foreground">
               {label}
             </label>
@@ -217,7 +223,9 @@ export function StepSpecifications({
                   data-attr={def.attrKey}
                   className="h-5 w-5 rounded border-input"
                   checked={value === true}
-                  onChange={(event) => write(def.attrKey, event.target.checked ? true : undefined, true)}
+                  onChange={(event) =>
+                    write(def.attrKey, event.target.checked ? true : undefined, true)
+                  }
                 />
                 <span>{t("post.specs.attest")}</span>
               </label>

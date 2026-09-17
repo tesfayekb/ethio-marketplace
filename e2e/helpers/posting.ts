@@ -262,3 +262,123 @@ export async function draftsOf(sellerId: string) {
   if (error) throw new Error(`[e2e:c1a] reading the seller's drafts failed: ${error.message}`);
   return data ?? [];
 }
+
+/**
+ * U6-C1b — A SCRATCH SPECIFICATION SET ON A SCRATCH LEAF.
+ *
+ * Step 3's form is GENERATED, so proving it needs one definition of each shape it
+ * renders — a required text field, a bounded number, an attestation and a picker
+ * with its own options. Every row here is namespaced scratch (`e2e_post_…`) and
+ * linked only to a scratch leaf: J3 forbids touching a real definition, and a real
+ * one could change its options under the test at any time.
+ */
+export interface ScratchAttr {
+  id: string;
+  attrKey: string;
+}
+
+export async function seedSpecSet(categoryId: string): Promise<{
+  text: ScratchAttr;
+  number: ScratchAttr;
+  bool: ScratchAttr;
+  select: ScratchAttr;
+  optionValues: string[];
+}> {
+  const supabase = adminClient();
+  const stem = `e2e_post_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const optionValues = [`${stem}_a`, `${stem}_b`];
+
+  const rows = [
+    { attr_key: `${stem}_text`, name_en: `${stem} text`, attr_type: "text", max_length: 40 },
+    {
+      attr_key: `${stem}_number`,
+      name_en: `${stem} number`,
+      attr_type: "number",
+      min_bound: "1",
+      max_bound: "9",
+      decimals: 0,
+      unit: "kg",
+    },
+    { attr_key: `${stem}_bool`, name_en: `${stem} bool`, attr_type: "boolean" },
+    {
+      attr_key: `${stem}_select`,
+      name_en: `${stem} select`,
+      attr_type: "single_select",
+      options: optionValues.map((value) => ({
+        value,
+        label_en: `${value} label`,
+        // DEC-050 — the strict option shape and nothing else; an unknown key is a refusal.
+        active: true,
+      })),
+    },
+  ];
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert(rows)
+    .select("id, attr_key, attr_type");
+  if (error || !data) {
+    throw new Error(`[e2e:c1b] seeding the spec set failed: ${error?.message ?? "no rows"}`);
+  }
+
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:c1b] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key };
+  };
+
+  const text = pick("_text");
+  const number = pick("_number");
+  const bool = pick("_bool");
+  const select = pick("_select");
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    // The text field is the REQUIRED one, so an empty step 3 has something to refuse.
+    { category_id: categoryId, attribute_id: text.id, is_required: true, display_order: 1 },
+    { category_id: categoryId, attribute_id: number.id, is_required: false, display_order: 2 },
+    { category_id: categoryId, attribute_id: bool.id, is_required: false, display_order: 3 },
+    { category_id: categoryId, attribute_id: select.id, is_required: false, display_order: 4 },
+  ]);
+  if (linkError) {
+    throw new Error(`[e2e:c1b] linking the spec set failed: ${linkError.message}`);
+  }
+
+  return { text, number, bool, select, optionValues };
+}
+
+/** Links first, then the definitions — a definition never leaves an orphan link (J3). */
+export async function destroySpecSet(attrKeys: string[]): Promise<void> {
+  if (attrKeys.length === 0) return;
+  const supabase = adminClient();
+  const { data } = await supabase.from("attributes").select("id").in("attr_key", attrKeys);
+  const ids = (data ?? []).map((row) => row.id);
+  if (ids.length === 0) return;
+  await supabase.from("category_attribute_links").delete().in("attribute_id", ids);
+  const { error } = await supabase.from("attributes").delete().in("id", ids);
+  if (error) throw new Error(`[e2e:c1b] destroying the spec set failed: ${error.message}`);
+}
+
+/** DB truth: the attributes the door recorded on a draft, normalised by the validator. */
+export async function attributesOf(listingId: string): Promise<Record<string, unknown>> {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("attributes")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:c1b] reading the draft attributes failed: ${error.message}`);
+  return (data?.attributes ?? {}) as Record<string, unknown>;
+}
+
+/** DB truth: the title and description the door recorded. */
+export async function textOf(listingId: string): Promise<{
+  title: string | null;
+  description: string | null;
+}> {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("title, description")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:c1b] reading the draft text failed: ${error.message}`);
+  return { title: data?.title ?? null, description: data?.description ?? null };
+}
