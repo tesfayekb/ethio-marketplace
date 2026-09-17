@@ -1950,21 +1950,19 @@ test.describe("L4b location picker", () => {
         new RegExp(escapeRe(second.region.name_en!)),
       );
 
-      const savedNodeId = async () => {
+      const savedArea = async () => {
         const cookie = String(await page.evaluate("document.cookie"));
-        const raw = /ethio_area=([^;]+)/.exec(cookie)?.[1] ?? "";
-        const value = decodeURIComponent(raw);
-        return value.startsWith(`${second.code}:`) ? value.slice(3) : "";
+        return decodeURIComponent(/ethio_area=([^;]+)/.exec(cookie)?.[1] ?? "");
       };
       await expect
-        .poll(savedNodeId, {
+        .poll(savedArea, {
           timeout: 20000,
-          message: "the saved area never named a node of the market that was picked",
+          message: "the saved area never named the market that was picked",
         })
-        .not.toBe("");
+        .toMatch(new RegExp(`^${second.code}:[0-9a-f-]{36}$`));
       // DB truth (J4): the saved node belongs to the market that was PICKED,
       // never to the one just left (INC-211).
-      const node = await readLocationById(await savedNodeId());
+      const node = await readLocationById((await savedArea()).split(":")[1]!);
       expect(node?.country_code).toBe(second.code);
     } finally {
       await destroyCountry(first.code);
