@@ -289,3 +289,118 @@ value forever after, and returns NULL when nothing is known — the caller refus
 inherited — `review` and `enforce` start ungranted and are assigned in the roles
 console. Their `admin.roles.perm.action.*` keys (EN + AM) ride A2's code turn (a
 recorded D2 exception: this landing touches no `src/`).
+
+## A2-M — the doors (2026-09-17)
+
+Migrations: `20260917112956_9add760c…` (marks `20260917120000`) and
+`20260917113152_479720fb…` (marks `20260917130000`).
+
+### The draft door
+
+```
+submit_listing(p_listing_id, p_step, p_category_id, p_title, p_description,
+               p_video_url, p_attributes, p_price_mode, p_price_amount,
+               p_price_currency, p_price_period, p_poster_expires_at,
+               p_coverage uuid[], p_contact_pref) RETURNS jsonb
+```
+
+`SECURITY DEFINER`, `authenticated`. The caller is the owner: `p_listing_id`
+NULL creates, otherwise `seller_id = auth.uid()` or the door raises
+`not your listing`. **Only a draft is writable here** — a published listing
+edits through `edit_listing`.
+
+Residency is a server fact (DEC-068): `home_country_code` is copied from
+`user_directory.observed_country_code`, and a NULL observation is refused as
+`residencyUnknown`. No client value is ever accepted.
+
+`draft_step := greatest(stored, p_step)`; `draft_updated_at := now()` (D14).
+
+**Step law (D12).** One validation authority,
+`validate_listing_draft(uid, step, …)`, validates every step **≤ step**
+strictly and tolerates the later ones empty. `publish_listing` and
+`edit_listing` call it with step 8, so there is exactly one rule set.
+
+| Step | Fields                    | Rules                                                                                                                                                                                                                                                                                                                                                   |
+| ---- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | category                  | leaf, active, `allow_listings`, not catch-all                                                                                                                                                                                                                                                                                                           |
+| 2    | photos                    | nothing — photos register through their own door                                                                                                                                                                                                                                                                                                        |
+| 3    | attributes                | `validate_listing_attributes` (its refusals pass through verbatim)                                                                                                                                                                                                                                                                                      |
+| 4    | title, description, video | title 1–120 after trim, description ≤ 5000, YouTube shape                                                                                                                                                                                                                                                                                               |
+| 5    | price                     | mode ∈ fixed/negotiable/free/contact; amount > 0 and required for the first two, NULL for the others; currency ∈ `currencies`, defaulting to the seller's home-country currency; period ∈ once/hour/day/week/month/year and equal to the category default when `price_period_locked`; poster expiry NULL or between now + 1 day and now + `expiry_days` |
+| 6    | coverage                  | every id an active place of ONE open market; per-level counts against the caller's plan (`free` for everyone in v1); the item's own place is `p_coverage[1]`; a sub-city or its city are both legal (D19)                                                                                                                                               |
+| 7    | contact                   | `messages` always true; `phone`/`telegram`/`whatsapp` objects of `{show, value}` with validated handles; nothing else                                                                                                                                                                                                                                   |
+| 8    | review                    | no fields of its own                                                                                                                                                                                                                                                                                                                                    |
+
+**Refusal vocabulary** (`{ ok:false, refusals:[{field, reason, detail?}] }`; a
+refusal writes nothing): `residencyUnknown`, `categoryNotPostable`, `required`,
+`tooLong`, `badShape`, `badValue`, `notPositive`, `mustBeEmpty`,
+`priceNotAllowed`, `unknownCurrency`, `periodLocked`, `posterExpiryTooSoon`,
+`posterExpiryTooLate`, `unknownPlace`, `multipleMarkets`,
+`coverageExceedsPlan:city|region|country`, `messagesRequired`,
+`showNeedsValue`, `badHandle`, `unknownKey`, `renewNeedsActive`,
+`renewTooSoon`. Ownership and lifecycle violations raise (`not your listing`,
+`illegal transition: x -> y`, `reviewer only`, `enforcement only`).
+
+Success returns `{ ok:true, listing_id, draft_step }`. Coverage replaces
+`listing_locations` wholesale; every write appends a `listing_revisions` row
+(`create`/`edit`) carrying the changed fields only.
+
+`listings.location_id` is NULLable now, with
+`listings_place_unless_draft CHECK (status = 'draft' OR location_id IS NOT NULL)`:
+a draft exists before step 6 chooses the place, and nothing leaves `draft`
+without one. The DEC-064 plan check replaces the blanket one-country trigger of
+`20260810073508`, which is dropped.
+
+### publish / edit — NAMED DEFERRAL
+
+`publish_listing(id)` is owner-only, runs the full step-8 validation and sets
+`status := 'screening'` with
+`published_first_at := coalesce(published_first_at, now())`. **Nothing goes live
+from an owner door.** Until the D1 screening gateway lands, a published listing
+stays in `screening` and no visitor sees it — a named deferral, not a gap.
+
+`edit_listing(…)` takes the same parameters without `p_step`, applies the full
+validation to a published listing and returns it to `screening`: every edit is
+re-screened.
+
+### The state machine
+
+`transition_listing(id, new_status)` over the nine states:
+
+| From            | To                              | Who                                                                                                              |
+| --------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| draft           | screening                       | owner (`publish_listing`)                                                                                        |
+| screening       | active, reduced, rejected, held | gateway (`service_role`) or `listings:review`                                                                    |
+| held            | active, reduced, rejected       | reviewer                                                                                                         |
+| active, reduced | screening                       | owner (edit)                                                                                                     |
+| active, reduced | sold, expired                   | owner                                                                                                            |
+| rejected        | screening                       | owner (re-publish after an edit)                                                                                 |
+| expired, sold   | screening                       | owner (`relist_listing`)                                                                                         |
+| any             | removed                         | `listings:enforce` or the owner — except a listing rejected for a severe reason, which enforcement alone removes |
+
+Promotion to `active`/`reduced` stamps `published_at`, `published_first_at` and
+`expires_at = now() + expiry_days`. Every move writes a `state` revision.
+
+Owner doors: `mark_sold` (state `sold`, `contact_pref` reduced to
+`{"messages": true}`), `renew_listing` (active only, `expires_at` extended,
+`renewed_count += 1`, refused as `renewTooSoon` inside seven days),
+`relist_listing` (expired|sold → screening), `delete_draft` (draft only;
+deletes the photo, coverage and revision rows — **the storage objects behind
+them are A2-C/B1's concern**, this door owns rows).
+
+### Photo doors
+
+`listing_photos` gains `width`, `height`, `bytes`, `paths`.
+`register_listing_photo(listing, photo, paths, width, height, bytes)` is
+**service-only** (`GRANT` to `service_role` alone; a signed-in caller is
+refused): only the strip route can attest `exif_stripped`. It appends at the
+next `display_order` and adopts the first photo as the cover.
+`set_cover_photo` and `remove_listing_photo` are owner doors; removing the
+cover promotes the next photo.
+
+### Reference data
+
+`public.currencies` (`code`, `name_en`, `minor_units`) — 156 active ISO 4217
+rows, RLS on with a public read policy, `SELECT` to `anon`/`authenticated`,
+`ALL` to `service_role`, birth grants revoked first (INC-212). Every
+`countries.currency_code` in use resolves against it (proven in-migration).

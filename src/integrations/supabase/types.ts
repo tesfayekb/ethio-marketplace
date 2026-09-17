@@ -579,6 +579,30 @@ export type Database = {
         }
         Relationships: []
       }
+      currencies: {
+        Row: {
+          code: string
+          created_at: string
+          minor_units: number
+          name_en: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          minor_units?: number
+          name_en: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          minor_units?: number
+          name_en?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       entity_translations: {
         Row: {
           approved_at: string | null
@@ -760,28 +784,40 @@ export type Database = {
       }
       listing_photos: {
         Row: {
+          bytes: number | null
           created_at: string
           display_order: number
           exif_stripped: boolean
+          height: number | null
           id: string
           listing_id: string
+          paths: Json
           storage_path: string
+          width: number | null
         }
         Insert: {
+          bytes?: number | null
           created_at?: string
           display_order?: number
           exif_stripped?: boolean
+          height?: number | null
           id?: string
           listing_id: string
+          paths?: Json
           storage_path: string
+          width?: number | null
         }
         Update: {
+          bytes?: number | null
           created_at?: string
           display_order?: number
           exif_stripped?: boolean
+          height?: number | null
           id?: string
           listing_id?: string
+          paths?: Json
           storage_path?: string
+          width?: number | null
         }
         Relationships: [
           {
@@ -842,16 +878,20 @@ export type Database = {
           cover_photo_id: string | null
           created_at: string
           description: string
+          draft_step: number
+          draft_updated_at: string
           expires_at: string | null
           home_country_code: string
           id: string
-          location_id: string
+          location_id: string | null
           poster_expires_at: string | null
           price_amount: number | null
           price_currency: string | null
           price_mode: string
           price_period: string
           published_at: string | null
+          published_first_at: string | null
+          renewed_count: number
           screening: Json | null
           search_tsv: unknown
           seller_id: string
@@ -868,16 +908,20 @@ export type Database = {
           cover_photo_id?: string | null
           created_at?: string
           description: string
+          draft_step?: number
+          draft_updated_at?: string
           expires_at?: string | null
           home_country_code: string
           id?: string
-          location_id: string
+          location_id?: string | null
           poster_expires_at?: string | null
           price_amount?: number | null
           price_currency?: string | null
           price_mode?: string
           price_period?: string
           published_at?: string | null
+          published_first_at?: string | null
+          renewed_count?: number
           screening?: Json | null
           search_tsv?: unknown
           seller_id: string
@@ -894,16 +938,20 @@ export type Database = {
           cover_photo_id?: string | null
           created_at?: string
           description?: string
+          draft_step?: number
+          draft_updated_at?: string
           expires_at?: string | null
           home_country_code?: string
           id?: string
-          location_id?: string
+          location_id?: string | null
           poster_expires_at?: string | null
           price_amount?: number | null
           price_currency?: string | null
           price_mode?: string
           price_period?: string
           published_at?: string | null
+          published_first_at?: string | null
+          renewed_count?: number
           screening?: Json | null
           search_tsv?: unknown
           seller_id?: string
@@ -1125,6 +1173,7 @@ export type Database = {
         Row: {
           account_status: string
           avatar_url: string | null
+          business_name: string | null
           contact_phone: string | null
           contact_prefs: Json
           contact_telegram: string | null
@@ -1137,6 +1186,7 @@ export type Database = {
           notification_prefs: Json
           preferred_language: string | null
           seller_alias: string | null
+          seller_type: string
           show_phone: boolean
           show_telegram: boolean
           status_changed_at: string | null
@@ -1148,6 +1198,7 @@ export type Database = {
         Insert: {
           account_status?: string
           avatar_url?: string | null
+          business_name?: string | null
           contact_phone?: string | null
           contact_prefs?: Json
           contact_telegram?: string | null
@@ -1160,6 +1211,7 @@ export type Database = {
           notification_prefs?: Json
           preferred_language?: string | null
           seller_alias?: string | null
+          seller_type?: string
           show_phone?: boolean
           show_telegram?: boolean
           status_changed_at?: string | null
@@ -1171,6 +1223,7 @@ export type Database = {
         Update: {
           account_status?: string
           avatar_url?: string | null
+          business_name?: string | null
           contact_phone?: string | null
           contact_prefs?: Json
           contact_telegram?: string | null
@@ -1183,6 +1236,7 @@ export type Database = {
           notification_prefs?: Json
           preferred_language?: string | null
           seller_alias?: string | null
+          seller_type?: string
           show_phone?: boolean
           show_telegram?: boolean
           status_changed_at?: string | null
@@ -2516,7 +2570,26 @@ export type Database = {
         Returns: Json
       }
       country_export_row: { Args: { p_code: string }; Returns: Json }
+      delete_draft: { Args: { p_listing_id: string }; Returns: Json }
       e2e_migration_ledger: { Args: never; Returns: string[] }
+      edit_listing: {
+        Args: {
+          p_attributes: Json
+          p_category_id: string
+          p_contact_pref: Json
+          p_coverage: string[]
+          p_description: string
+          p_listing_id: string
+          p_poster_expires_at: string
+          p_price_amount: number
+          p_price_currency: string
+          p_price_mode: string
+          p_price_period: string
+          p_title: string
+          p_video_url: string
+        }
+        Returns: Json
+      }
       effective_category_links: {
         Args: { p_category_id: string }
         Returns: {
@@ -2626,6 +2699,7 @@ export type Database = {
       get_open_countries: {
         Args: never
         Returns: {
+          anchor_id: string
           anchor_slug: string
           code: string
           currency_code: string
@@ -2695,6 +2769,7 @@ export type Database = {
       }
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
+      listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       loc_export_row: { Args: { p_id: string }; Returns: Json }
       loc_id_of_key: { Args: { p_key: string }; Returns: string }
       loc_import_plan: {
@@ -2725,6 +2800,7 @@ export type Database = {
         Args: { p_cutoff: string }
         Returns: number
       }
+      mark_sold: { Args: { p_listing_id: string }; Returns: Json }
       merge_attributes_impl: {
         Args: { p_sources: string[]; p_target: string }
         Returns: Json
@@ -2734,7 +2810,25 @@ export type Database = {
         Args: { p_target_user: string }
         Returns: undefined
       }
+      publish_listing: { Args: { p_listing_id: string }; Returns: Json }
+      register_listing_photo: {
+        Args: {
+          p_bytes: number
+          p_height: number
+          p_listing_id: string
+          p_paths: Json
+          p_photo_id: string
+          p_width: number
+        }
+        Returns: Json
+      }
+      relist_listing: { Args: { p_listing_id: string }; Returns: Json }
+      remove_listing_photo: {
+        Args: { p_listing_id: string; p_photo_id: string }
+        Returns: Json
+      }
       remove_own_password: { Args: never; Returns: undefined }
+      renew_listing: { Args: { p_listing_id: string }; Returns: Json }
       require_step_up_if_needed: {
         Args: { p_action: string; p_resource: string }
         Returns: undefined
@@ -2747,6 +2841,20 @@ export type Database = {
         Args: { p_role_name: string; p_target_user: string }
         Returns: undefined
       }
+      save_posting_identity: {
+        Args: {
+          p_alias?: string
+          p_business_name?: string
+          p_contact_pref?: Json
+          p_home_country_code?: string
+          p_seller_type?: string
+        }
+        Returns: Json
+      }
+      set_cover_photo: {
+        Args: { p_listing_id: string; p_photo_id: string }
+        Returns: Json
+      }
       set_language_order_impl: {
         Args: { p_codes: string[] }
         Returns: undefined
@@ -2755,20 +2863,22 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
       submit_listing: {
         Args: {
-          p_attributes?: Json
+          p_attributes: Json
           p_category_id: string
+          p_contact_pref: Json
+          p_coverage: string[]
           p_description: string
-          p_home_country_code: string
-          p_listing_id?: string
-          p_location_id: string
-          p_price_amount?: number
-          p_price_currency?: string
-          p_price_mode?: string
-          p_seller_id: string
-          p_status?: string
+          p_listing_id: string
+          p_poster_expires_at: string
+          p_price_amount: number
+          p_price_currency: string
+          p_price_mode: string
+          p_price_period: string
+          p_step: number
           p_title: string
+          p_video_url: string
         }
-        Returns: string
+        Returns: Json
       }
       transition_listing: {
         Args: { p_listing_id: string; p_new_status: string }
@@ -2788,6 +2898,26 @@ export type Database = {
       user_set_preferred_language: { Args: { p_code: string }; Returns: string }
       validate_listing_attributes: {
         Args: { p_attrs: Json; p_category_id: string; p_prior?: Json }
+        Returns: Json
+      }
+      validate_listing_draft: {
+        Args: {
+          p_attributes: Json
+          p_category_id: string
+          p_contact_pref: Json
+          p_coverage: string[]
+          p_description: string
+          p_poster_expires_at: string
+          p_price_amount: number
+          p_price_currency: string
+          p_price_mode: string
+          p_price_period: string
+          p_prior: Json
+          p_step: number
+          p_title: string
+          p_uid: string
+          p_video_url: string
+        }
         Returns: Json
       }
     }
