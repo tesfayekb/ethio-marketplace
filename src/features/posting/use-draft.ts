@@ -67,7 +67,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [listingId, setListingId] = useState<string | null>(initialListingId);
   const [step, setStep] = useState(1);
   const [draftStep, setDraftStep] = useState(1);
-  const [values, setValues] = useState<DraftValues>({ categoryId: null });
+  const [values, setValues] = useState<DraftValues>(EMPTY_VALUES);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [refusals, setRefusals] = useState<Refusal[]>([]);
   const [photos, setPhotos] = useState<DraftPhotoRow[]>([]);
@@ -99,6 +99,13 @@ export function useDraft(initialListingId: string | null): UseDraft {
       listingId: listingRef.current,
       step: forStep,
       categoryId: valuesRef.current.categoryId,
+      // Steps 3 and 4 travel on every save: the door validates a step's OWN
+      // fields strictly and tolerates the later ones empty (D12), so sending the
+      // whole set is what makes a Back-then-Next round trip lossless.
+      attributes: valuesRef.current.attributes,
+      title: valuesRef.current.title,
+      description: valuesRef.current.description,
+      videoUrl: valuesRef.current.videoUrl === "" ? null : valuesRef.current.videoUrl,
     };
   }, []);
 
@@ -201,7 +208,13 @@ export function useDraft(initialListingId: string | null): UseDraft {
           return;
         }
         listingRef.current = found.draft.id;
-        const next = { categoryId: found.draft.categoryId };
+        const next: DraftValues = {
+          categoryId: found.draft.categoryId,
+          attributes: found.draft.attributes,
+          title: found.draft.title ?? "",
+          description: found.draft.description ?? "",
+          videoUrl: found.draft.videoUrl ?? "",
+        };
         valuesRef.current = next;
         setValues(next);
         setListingId(found.draft.id);
