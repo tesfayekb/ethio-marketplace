@@ -210,7 +210,7 @@ export async function readDraft(
 ): Promise<{ draft: DraftRow; photos: DraftPhotoRow[] } | null> {
   const { data, error } = await supabase
     .from("listings")
-    .select("id,category_id,draft_step,status,title,description")
+    .select("id,category_id,draft_step,status,title,description,video_url,attributes")
     .eq("id", listingId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -231,6 +231,11 @@ export async function readDraft(
       status: data.status,
       title: data.title,
       description: data.description,
+      videoUrl: data.video_url,
+      attributes:
+        data.attributes !== null && typeof data.attributes === "object"
+          ? (data.attributes as Record<string, unknown>)
+          : {},
     },
     photos: (photos ?? []).map((row) => ({
       id: row.id,
