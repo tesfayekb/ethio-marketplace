@@ -162,3 +162,41 @@ Recorded 2026-07-30 (INC-006). Verified against live `ethio-prod` read-backs.
    grant is the feature, not a gap.
 3. **Leaked-password protection disabled — Supabase Pro-gated.** Not available on the current plan;
    deferred to the launch-gate list rather than silently ignored.
+
+## The posting identity door (A2-M, 2026-09-17)
+
+Migration `20260917113152_479720fb…` (mark `20260917130000`).
+
+```
+save_posting_identity(p_alias, p_seller_type, p_business_name,
+                      p_contact_pref, p_home_country_code) RETURNS jsonb
+```
+
+`SECURITY DEFINER`, `authenticated` only (D17). Every parameter is optional: a
+NULL leaves the stored value alone, so the door is a partial update and the
+posting flow can save what the seller has filled in so far.
+
+**The alias rule.** `seller_alias` is lower-cased, 3–30 characters of
+`[a-z0-9_]`, unique regardless of letter case (a partial unique index on
+`lower(seller_alias)`), and refused when it matches the reserved word list —
+the brand and role words (`admin`, `ethio`, `ethiopia`, `support`, `staff`,
+`moderator`, `official`, `system`, …) authored in-function because this schema
+carries no reserved-handle table. Refusals: `badShape`, `aliasReserved`,
+`aliasTaken`.
+
+**Seller type.** `profiles.seller_type` ∈ `person|business`; a business
+requires `business_name` (2–80 characters) → `required` / `badLength`.
+
+**Contact preferences** use exactly the draft door's shape rule
+(`listing_contact_refusals`), so a seller cannot save through this door a
+contact block the posting door would refuse.
+
+**The declared country goes through `confirm_home_country`** — provenance
+`user_confirmed`, written to both `user_directory` and `profiles`. Already
+confirmed and a different code arrives → `countryAlreadyConfirmed` (changing a
+confirmed country stays a support action). The door **never touches
+`observed_country_code`**: the observed fact is the residency authority
+(DEC-068) and is proven untouched in-migration.
+
+This is the UI moment the named deferral above was waiting for: the first
+contribution surface confirms the country, and it does so here.
