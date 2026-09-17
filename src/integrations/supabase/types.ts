@@ -784,28 +784,40 @@ export type Database = {
       }
       listing_photos: {
         Row: {
+          bytes: number | null
           created_at: string
           display_order: number
           exif_stripped: boolean
+          height: number | null
           id: string
           listing_id: string
+          paths: Json
           storage_path: string
+          width: number | null
         }
         Insert: {
+          bytes?: number | null
           created_at?: string
           display_order?: number
           exif_stripped?: boolean
+          height?: number | null
           id?: string
           listing_id: string
+          paths?: Json
           storage_path: string
+          width?: number | null
         }
         Update: {
+          bytes?: number | null
           created_at?: string
           display_order?: number
           exif_stripped?: boolean
+          height?: number | null
           id?: string
           listing_id?: string
+          paths?: Json
           storage_path?: string
+          width?: number | null
         }
         Relationships: [
           {
@@ -1161,6 +1173,7 @@ export type Database = {
         Row: {
           account_status: string
           avatar_url: string | null
+          business_name: string | null
           contact_phone: string | null
           contact_prefs: Json
           contact_telegram: string | null
@@ -1173,6 +1186,7 @@ export type Database = {
           notification_prefs: Json
           preferred_language: string | null
           seller_alias: string | null
+          seller_type: string
           show_phone: boolean
           show_telegram: boolean
           status_changed_at: string | null
@@ -1184,6 +1198,7 @@ export type Database = {
         Insert: {
           account_status?: string
           avatar_url?: string | null
+          business_name?: string | null
           contact_phone?: string | null
           contact_prefs?: Json
           contact_telegram?: string | null
@@ -1196,6 +1211,7 @@ export type Database = {
           notification_prefs?: Json
           preferred_language?: string | null
           seller_alias?: string | null
+          seller_type?: string
           show_phone?: boolean
           show_telegram?: boolean
           status_changed_at?: string | null
@@ -1207,6 +1223,7 @@ export type Database = {
         Update: {
           account_status?: string
           avatar_url?: string | null
+          business_name?: string | null
           contact_phone?: string | null
           contact_prefs?: Json
           contact_telegram?: string | null
@@ -1219,6 +1236,7 @@ export type Database = {
           notification_prefs?: Json
           preferred_language?: string | null
           seller_alias?: string | null
+          seller_type?: string
           show_phone?: boolean
           show_telegram?: boolean
           status_changed_at?: string | null
@@ -2681,6 +2699,7 @@ export type Database = {
       get_open_countries: {
         Args: never
         Returns: {
+          anchor_id: string
           anchor_slug: string
           code: string
           currency_code: string
@@ -2792,7 +2811,22 @@ export type Database = {
         Returns: undefined
       }
       publish_listing: { Args: { p_listing_id: string }; Returns: Json }
+      register_listing_photo: {
+        Args: {
+          p_bytes: number
+          p_height: number
+          p_listing_id: string
+          p_paths: Json
+          p_photo_id: string
+          p_width: number
+        }
+        Returns: Json
+      }
       relist_listing: { Args: { p_listing_id: string }; Returns: Json }
+      remove_listing_photo: {
+        Args: { p_listing_id: string; p_photo_id: string }
+        Returns: Json
+      }
       remove_own_password: { Args: never; Returns: undefined }
       renew_listing: { Args: { p_listing_id: string }; Returns: Json }
       require_step_up_if_needed: {
@@ -2806,6 +2840,20 @@ export type Database = {
       revoke_role: {
         Args: { p_role_name: string; p_target_user: string }
         Returns: undefined
+      }
+      save_posting_identity: {
+        Args: {
+          p_alias?: string
+          p_business_name?: string
+          p_contact_pref?: Json
+          p_home_country_code?: string
+          p_seller_type?: string
+        }
+        Returns: Json
+      }
+      set_cover_photo: {
+        Args: { p_listing_id: string; p_photo_id: string }
+        Returns: Json
       }
       set_language_order_impl: {
         Args: { p_codes: string[] }
