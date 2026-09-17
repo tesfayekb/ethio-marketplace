@@ -73,3 +73,48 @@ Two harness facts worth keeping:
   rejected by the font CDN's CORS preflight.
 - Cleanup runs in an `afterEach` (INC-218): objects, listings, then the scratch
   category branch, so a body timeout still reaps.
+
+## Step 3 — the specifications (C1b)
+
+Nothing on this screen is authored. `get_posting_schema` names the details a
+category asks for and each definition's `attr_type` chooses its control:
+
+| `attr_type`     | control                                | notes                                        |
+| --------------- | -------------------------------------- | -------------------------------------------- |
+| `text`          | single-line field                      | `max_length` said, preset shape hinted       |
+| `number`        | numeric field                          | DEC-050 bounds and unit as HINTS             |
+| `date`          | date field                             | —                                            |
+| `boolean`       | attestation checkbox                   | never pre-ticked                             |
+| `single_select` | native picker, options on the FIRST tap | DEC-053; `other` opens its own text field    |
+| `multi_select`  | the same lazy list as checkboxes       | "choose all that apply"                      |
+
+Bounds, lengths and presets are guidance; `validate_listing_attributes` is the
+authority (F3) and its refusal lands beneath the control that earned it. The
+form reports the keys it renders upward, so a refusal naming a field that is NOT
+on screen is still shown rather than swallowed (F4).
+
+## Step 4 — title, description, and the assist (C1b)
+
+The seller writes the title (≤120), the description and an optional YouTube
+link. `post-assist` calls `/api/listings/assist` (DEC-072) with the category and
+the answers from step 3; what comes back is a SUGGESTION dropped into both
+fields as ordinary editable text, never an author — the seller's edit is what
+saves.
+
+## The save queue
+
+Every save — the 2-second debounce, a tap, and `Next` — joins ONE chain. A
+`Next` that arrives while an autosave is still in the air waits for it and then
+sends the latest answers; a change made while a request was in flight stays
+pending and runs again straight after. Before this, such a collision was dropped
+on the floor: the seller's last edit never reached the door and the step did not
+advance.
+
+## Deferral — option-carried `facts` (D18)
+
+The prefill cannot be built yet: the DEC-050 option shape allowlist (`value`,
+`label_en`, `label_am`, `parent`, `active`, `bounds`, `aliases`, `allowed`)
+rejects a `facts` key, the public options read strips anything else, and the
+validator never projects it. It needs a migration, which this brief forbids; so
+`PW-9` is not written either — a test against an impossible shape would prove
+nothing.
