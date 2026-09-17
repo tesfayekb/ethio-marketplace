@@ -425,13 +425,13 @@ import routes' behaviour is unchanged (the import-security suite is the proof).
 
 ### The routes
 
-| Route | Door | Dial (env) | Default |
-| --- | --- | --- | --- |
-| `POST /api/listings/draft` | `submit_listing` | `RATE_LIMIT_DRAFT_PER_HOUR` | 30 / hour |
-| `POST /api/listings/publish` | `publish_listing` | `RATE_LIMIT_POST_PER_DAY` | 10 / day |
-| `POST /api/listings/identity` | `save_posting_identity` | `RATE_LIMIT_IDENTITY_PER_DAY` | 20 / day |
-| `POST /api/listings/assist` | Gemini (DEC-072) | `RATE_LIMIT_ASSIST_PER_HOUR` | 30 / hour |
-| `GET /api/attributes/<id>/options` | `get_attribute_options` | — (cached, anon) | — |
+| Route                              | Door                    | Dial (env)                    | Default   |
+| ---------------------------------- | ----------------------- | ----------------------------- | --------- |
+| `POST /api/listings/draft`         | `submit_listing`        | `RATE_LIMIT_DRAFT_PER_HOUR`   | 30 / hour |
+| `POST /api/listings/publish`       | `publish_listing`       | `RATE_LIMIT_POST_PER_DAY`     | 10 / day  |
+| `POST /api/listings/identity`      | `save_posting_identity` | `RATE_LIMIT_IDENTITY_PER_DAY` | 20 / day  |
+| `POST /api/listings/assist`        | Gemini (DEC-072)        | `RATE_LIMIT_ASSIST_PER_HOUR`  | 30 / hour |
+| `GET /api/attributes/<id>/options` | `get_attribute_options` | — (cached, anon)              | —         |
 
 The dial runs FIRST on every POST, before a byte of the body is judged, so a
 flood costs one counter row and never a validation pass (DEC-071). A refusal is
