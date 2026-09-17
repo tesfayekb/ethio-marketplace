@@ -32,6 +32,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
       # DEC-018 — the suite runs against the BUILT app, with the test
       # instruments compiled in (src/lib/env-flags.ts). PROD is unaffected:
       # VITE_E2E is set here and by `bun run build:e2e` only.
@@ -286,6 +287,7 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
       SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "cloudflare"
       # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
