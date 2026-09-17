@@ -95,9 +95,7 @@ test.describe("POSTING WIZARD", () => {
     expectSaved = true,
   ) {
     await page.getByTestId("post-category-search").fill(slug);
-    const hit = page.locator(
-      `[data-testid="post-category-hit"][data-category="${categoryId}"]`,
-    );
+    const hit = page.locator(`[data-testid="post-category-hit"][data-category="${categoryId}"]`);
     await expect(hit).toBeVisible();
     await hit.click();
     await expect(page.getByTestId("post-category-chosen")).toBeVisible();

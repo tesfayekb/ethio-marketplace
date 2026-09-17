@@ -10,10 +10,10 @@ steps 1–2. Steps 3–8 are declared in the rail and say so in words on screen
 
 ## The screens
 
-| Route              | Purpose                                                                |
-| ------------------ | ---------------------------------------------------------------------- |
-| `/post`            | Creates a draft. Public: a signed-out visitor sees a sign-in call, never a redirect. |
-| `/post/<id>`       | Resumes a draft. `noindex`. RLS decides ownership, never the URL.       |
+| Route        | Purpose                                                                              |
+| ------------ | ------------------------------------------------------------------------------------ |
+| `/post`      | Creates a draft. Public: a signed-out visitor sees a sign-in call, never a redirect. |
+| `/post/<id>` | Resumes a draft. `noindex`. RLS decides ownership, never the URL.                    |
 
 `src/routes/post_.$listingId.tsx` carries a TRAILING UNDERSCORE on the `post`
 segment on purpose. Without it the flat-file convention makes `post.tsx` a
