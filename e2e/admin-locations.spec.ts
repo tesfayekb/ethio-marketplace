@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import {
+  awaitGuardedOutcome,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,

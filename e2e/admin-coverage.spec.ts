@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 
 import { grantRole } from "./helpers/categories";
 import {
+  awaitGuardedOutcome,
   expectNoHorizontalOverflow,
   gotoReady,
   stepUpIfPrompted,

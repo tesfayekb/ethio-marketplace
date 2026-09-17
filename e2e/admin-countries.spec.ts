@@ -17,6 +17,7 @@ import {
   verb,
 } from "./helpers/countries";
 import {
+  awaitGuardedOutcome,
   expectNoHorizontalOverflow,
   gotoReady,
   stepUpIfPrompted,

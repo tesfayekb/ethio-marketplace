@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { CATEGORY_ICON_NAMES, CATCHALL_ICON_NAME } from "../src/lib/category-icon-names";
 import {
+  awaitGuardedOutcome,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,

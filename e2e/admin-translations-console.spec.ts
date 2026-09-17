@@ -8,6 +8,7 @@ import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { processId } from "./global-setup";
 import {
+  awaitGuardedOutcome,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
