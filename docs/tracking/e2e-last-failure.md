@@ -2,20 +2,13 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35216455983
 - Commit: `b8a02eb7a7bc06766038c09670743a739421e9eb`
-- Attempt: 2
-- Written (UTC): 2026-09-17T11:56:58.191Z
-- Passed: 727 · Skipped: 70 · Failed: 5
+- Attempt: 3
+- Written (UTC): 2026-09-17T12:18:59.667Z
+- Passed: 728 · Skipped: 70 · Failed: 5
 - Gating failures: 5 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): smoke, shard 2, shard 5
 - Sources without results: none
-
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `desktop-1280` · source `smoke` · shell.spec.ts › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node — Test timeout of 180000ms exceeded.
 
 ## Post-test errors: smoke
 
@@ -207,25 +200,25 @@ Received string:    "Could not find the function public.submit_listing(p_categor
 Context:
 
 ```text
-          - listitem [ref=e238]:
-            - generic [ref=e239]: About
-          - listitem [ref=e240]:
-            - generic [ref=e241]: How it works
-      - navigation "Help" [ref=e242]:
-        - heading "Help" [level=2] [ref=e243]
-        - list [ref=e244]:
-          - listitem [ref=e245]:
-            - generic [ref=e246]: Safety
-          - listitem [ref=e247]:
-            - generic [ref=e248]: Contact
-      - navigation "Legal" [ref=e249]:
-        - heading "Legal" [level=2] [ref=e250]
-        - list [ref=e251]:
-          - listitem [ref=e252]:
-            - generic [ref=e253]: Terms
-          - listitem [ref=e254]:
-            - generic [ref=e255]: Privacy
-    - paragraph [ref=e257]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e225]:
+            - generic [ref=e226]: About
+          - listitem [ref=e227]:
+            - generic [ref=e228]: How it works
+      - navigation "Help" [ref=e229]:
+        - heading "Help" [level=2] [ref=e230]
+        - list [ref=e231]:
+          - listitem [ref=e232]:
+            - generic [ref=e233]: Safety
+          - listitem [ref=e234]:
+            - generic [ref=e235]: Contact
+      - navigation "Legal" [ref=e236]:
+        - heading "Legal" [level=2] [ref=e237]
+        - list [ref=e238]:
+          - listitem [ref=e239]:
+            - generic [ref=e240]: Terms
+          - listitem [ref=e241]:
+            - generic [ref=e242]: Privacy
+    - paragraph [ref=e244]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -247,7 +240,9 @@ No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
 ```text
 [client-error] console.error: TypeError: Failed to fetch at http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:13856:39 at getResponse (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:13903:20) at serverFnFetcher (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:13856:15) at async client (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:16052:17) at async callNextMiddleware (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:15983:20) at async userNext (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:15969:21) ×3
-[client-error] console.error: Failed to load resource: the server responded with a status of 404 () ×2
+[client-error] console.error: Failed to load resource: the server responded with a status of 404 ()
+[client-error] console.error: TypeError: Failed to fetch at http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:13856:39 at getResponse (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:13903:20) at serverFnFetcher (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:13856:15) at async client (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:16052:17) at async callNextMiddleware (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:15983:20) at async userNext (http://127.0.0.1:4173/assets/index-Dx_HLiPo.js:15969:21) ×3
+[client-error] console.error: Failed to load resource: the server responded with a status of 404 ()
 ```
 
 ## Server errors: shard 5
