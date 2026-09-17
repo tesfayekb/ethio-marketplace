@@ -95,7 +95,10 @@ async function handlePost(request: Request): Promise<Response> {
   try {
     form = await request.formData();
   } catch (error) {
-    logRouteError(PATH, `unreadable multipart body: ${error instanceof Error ? error.message : ""}`);
+    logRouteError(
+      PATH,
+      `unreadable multipart body: ${error instanceof Error ? error.message : ""}`,
+    );
     return refusal("body", "badShape");
   }
 
@@ -113,7 +116,10 @@ async function handlePost(request: Request): Promise<Response> {
     return routeJson({ error: "server error" }, 500);
   }
   if (!listing || listing.seller_id !== userId) {
-    return routeJson({ ok: false, refusals: [{ field: "listingId", reason: "notYourListing" }] }, 403);
+    return routeJson(
+      { ok: false, refusals: [{ field: "listingId", reason: "notYourListing" }] },
+      403,
+    );
   }
   if (!OPEN_STATUSES.has(String(listing.status))) {
     return routeJson(

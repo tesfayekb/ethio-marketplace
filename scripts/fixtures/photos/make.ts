@@ -52,10 +52,7 @@ function pixels(width: number, height: number): Buffer {
 
 function app(marker: number, payload: Buffer): Buffer {
   const length = payload.length + 2;
-  return Buffer.concat([
-    Buffer.from([0xff, marker, (length >> 8) & 0xff, length & 0xff]),
-    payload,
-  ]);
+  return Buffer.concat([Buffer.from([0xff, marker, (length >> 8) & 0xff, length & 0xff]), payload]);
 }
 
 /** A little-endian TIFF holding an IFD0 with a GPS IFD carrying real GPS tags. */
@@ -123,11 +120,7 @@ function iccPayload(): Buffer {
   profile.write("ADBE", 4, "latin1");
   profile.write("mntrRGB XYZ ", 12, "latin1");
   profile.write("acsp", 36, "latin1");
-  return Buffer.concat([
-    Buffer.from("ICC_PROFILE\u0000", "latin1"),
-    Buffer.from([1, 1]),
-    profile,
-  ]);
+  return Buffer.concat([Buffer.from("ICC_PROFILE\u0000", "latin1"), Buffer.from([1, 1]), profile]);
 }
 
 /** Insert the metadata segments straight after the encoder's SOI + APP0. */
@@ -148,9 +141,7 @@ function injectJpegMetadata(encoded: Buffer): Buffer {
 }
 
 function writeJpeg(name: string, width: number, height: number, withMetadata: boolean): void {
-  const encoded = Buffer.from(
-    jpeg.encode({ data: pixels(width, height), width, height }, 82).data,
-  );
+  const encoded = Buffer.from(jpeg.encode({ data: pixels(width, height), width, height }, 82).data);
   const out = withMetadata ? injectJpegMetadata(encoded) : encoded;
   writeFileSync(join(OUT, name), out);
   console.log(`${name}: ${out.length} bytes, ${width}x${height}`);
@@ -216,7 +207,16 @@ function writeWebp(name: string, width: number, height: number): void {
   const png = new PNG({ width, height });
   pixels(width, height).copy(png.data);
   writeFileSync(source, PNG.sync.write(png));
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", source, "-c:v", "libwebp", encodedPath]);
+  execFileSync("ffmpeg", [
+    "-y",
+    "-loglevel",
+    "error",
+    "-i",
+    source,
+    "-c:v",
+    "libwebp",
+    encodedPath,
+  ]);
   const encoded = readFileSync(encodedPath);
   rmSync(source);
   rmSync(encodedPath);

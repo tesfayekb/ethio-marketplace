@@ -164,18 +164,14 @@ function stripPng(bytes: Uint8Array): StrippedImage {
   let i = 8;
 
   while (i + 8 <= bytes.length) {
-    const length =
-      (bytes[i]! << 24) | (bytes[i + 1]! << 16) | (bytes[i + 2]! << 8) | bytes[i + 3]!;
+    const length = (bytes[i]! << 24) | (bytes[i + 1]! << 16) | (bytes[i + 2]! << 8) | bytes[i + 3]!;
     if (length < 0 || i + 12 + length > bytes.length) throw new StripError("corruptImage");
     const type = ascii(bytes, i + 4, 4);
     if (type === "IHDR") {
       const at = i + 8;
       width = (bytes[at]! << 24) | (bytes[at + 1]! << 16) | (bytes[at + 2]! << 8) | bytes[at + 3]!;
       height =
-        (bytes[at + 4]! << 24) |
-        (bytes[at + 5]! << 16) |
-        (bytes[at + 6]! << 8) |
-        bytes[at + 7]!;
+        (bytes[at + 4]! << 24) | (bytes[at + 5]! << 16) | (bytes[at + 6]! << 8) | bytes[at + 7]!;
     }
     if (PNG_KEEP.has(type)) parts.push(bytes.subarray(i, i + 12 + length));
     i += 12 + length;

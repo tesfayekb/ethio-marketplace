@@ -79,8 +79,10 @@ test.describe("PHOTO PIPELINE", () => {
     );
     expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
     const listingId = String(answer.payload["listing_id"] ?? "");
-    expect(listingId, `PP: the draft route returned no listing (${JSON.stringify(answer.payload)})`)
-      .not.toBe("");
+    expect(
+      listingId,
+      `PP: the draft route returned no listing (${JSON.stringify(answer.payload)})`,
+    ).not.toBe("");
     objects.push({ userId, listingId });
     return listingId;
   }
@@ -140,8 +142,10 @@ test.describe("PHOTO PIPELINE", () => {
 
       const stored = await downloadObject(keyOf(rows[0]!, "cover"));
       const scan = scanForMetadata(stored);
-      expect(scan.found, `PP-2 ${name}: metadata survived (searched ${scan.searched.join(", ")})`)
-        .toEqual([]);
+      expect(
+        scan.found,
+        `PP-2 ${name}: metadata survived (searched ${scan.searched.join(", ")})`,
+      ).toEqual([]);
       const { assertStripped } = await import("../src/server/media/strip");
       expect(assertStripped(stored).found, `PP-2 ${name}: the self-check failed`).toEqual([]);
     }
@@ -267,7 +271,10 @@ test.describe("PHOTO PIPELINE", () => {
     expect(removed.payload["ok"], JSON.stringify(removed.payload)).toBe(true);
 
     const after = await photoRowsOf(listingId);
-    expect(after.map((row) => row.id), "PP-8: the row is gone").toEqual([rows[0]!.id]);
+    expect(
+      after.map((row) => row.id),
+      "PP-8: the row is gone",
+    ).toEqual([rows[0]!.id]);
     for (const key of keys) {
       expect(await objectExists(key), `PP-8: ${key} must be gone from storage`).toBe(false);
     }

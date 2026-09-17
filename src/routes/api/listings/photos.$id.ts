@@ -43,7 +43,9 @@ function refsOf(paths: unknown, storagePath: unknown): StoredRef[] {
       const row = value as Record<string, unknown>;
       const key = typeof row["key"] === "string" ? row["key"] : "";
       if (key === "") continue;
-      const partition = (typeof row["partition"] === "string" ? row["partition"] : "default") as Partition;
+      const partition = (
+        typeof row["partition"] === "string" ? row["partition"] : "default"
+      ) as Partition;
       refs.set(key, { partition, key });
     }
   }

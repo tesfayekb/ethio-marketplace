@@ -22,12 +22,7 @@ export const BUCKET = "listing-photos";
 
 const FIXTURES = join(dirname(new URL(import.meta.url).pathname), "../../scripts/fixtures/photos");
 
-export type FixtureName =
-  | "gps.jpg"
-  | "meta.png"
-  | "meta.webp"
-  | "marker-13px.jpg"
-  | "notimage.pdf";
+export type FixtureName = "gps.jpg" | "meta.png" | "meta.webp" | "marker-13px.jpg" | "notimage.pdf";
 
 export function fixture(name: FixtureName): Buffer {
   return readFileSync(join(FIXTURES, name));
@@ -43,7 +38,11 @@ const MIME: Record<string, string> = {
 function part(name: FixtureName, as?: string) {
   const filename = as ?? name;
   const ext = filename.split(".").pop() ?? "jpg";
-  return { name: filename, mimeType: MIME[ext] ?? "application/octet-stream", buffer: fixture(name) };
+  return {
+    name: filename,
+    mimeType: MIME[ext] ?? "application/octet-stream",
+    buffer: fixture(name),
+  };
 }
 
 export interface UploadAnswer {

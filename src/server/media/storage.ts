@@ -133,7 +133,10 @@ async function r2Request(
   const host = `${account}.r2.cloudflarestorage.com`;
   const path = `/${bucket}/${key.split("/").map(encodeURIComponent).join("/")}`;
   const now = new Date();
-  const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const stamp = now
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "");
   const day = stamp.slice(0, 8);
   const payloadHash = await sha256Hex(body ?? "");
 
@@ -147,22 +150,14 @@ async function r2Request(
   const signedNames = Object.keys(headers).sort();
   const canonicalHeaders = signedNames.map((name) => `${name}:${headers[name]}\n`).join("");
   const signedHeaders = signedNames.join(";");
-  const canonicalRequest = [
-    method,
-    path,
-    "",
-    canonicalHeaders,
-    signedHeaders,
-    payloadHash,
-  ].join("\n");
+  const canonicalRequest = [method, path, "", canonicalHeaders, signedHeaders, payloadHash].join(
+    "\n",
+  );
 
   const scope = `${day}/auto/s3/aws4_request`;
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    stamp,
-    scope,
-    await sha256Hex(canonicalRequest),
-  ].join("\n");
+  const stringToSign = ["AWS4-HMAC-SHA256", stamp, scope, await sha256Hex(canonicalRequest)].join(
+    "\n",
+  );
 
   let signingKey = await hmac(encoder.encode(`AWS4${secret}`), day);
   signingKey = await hmac(signingKey, "auto");
