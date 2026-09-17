@@ -8,6 +8,7 @@ import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { processId } from "./global-setup";
 import {
+  awaitGuardedOutcome,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
@@ -585,12 +586,14 @@ test.describe("U4b translations console", () => {
         message: `TR-12 step 2: the confirm dialog never opened for scope ${fence}`,
       }).toBeVisible();
       await page.getByTestId("ai-bulk-confirm-run").click();
-      await stepUpIfPrompted(page, secret);
       // VISIBILITY only — a localized summary string is never a count (INC-096g).
       // INC-207 — the run either summarises or names its refusal; waiting on the
       // summary alone turned a real failure into a mute 90 s timeout.
+      // INC-210 — and it races the step-up modal: whichever comes first is taken,
+      // the modal is answered, and the outcome is still awaited in full.
       const summary = page.getByTestId("ai-bulk-summary");
       const runError = page.getByTestId("ai-bulk-error");
+      await awaitGuardedOutcome(page, secret, summary.or(runError), { timeout: 90_000 });
       await expect(summary.or(runError), {
         message: `TR-12 step 3: neither the bulk summary nor a run error rendered within 90 s (${keys.length} keys queued for scope ${fence})`,
       }).toBeVisible({ timeout: 90000 });

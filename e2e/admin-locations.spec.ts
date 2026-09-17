@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import {
+  awaitGuardedOutcome,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
@@ -234,7 +235,8 @@ test.describe("L2a locations console", () => {
       );
       await page.getByTestId("location-create-name").fill(regionSlug);
       await page.getByTestId("location-create-submit").click();
-      await stepUpIfPrompted(page, secret);
+      // INC-210 — the born-retired confirmation or the gate, whichever comes.
+      await awaitGuardedOutcome(page, secret, page.getByTestId("location-create-retired"));
       await expect(page.getByTestId("location-create-retired")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-close").click();
 
@@ -254,7 +256,8 @@ test.describe("L2a locations console", () => {
       await page.getByTestId("location-create-lat").fill("9.03");
       await page.getByTestId("location-create-lng").fill("38.74");
       await page.getByTestId("location-create-submit").click();
-      await stepUpIfPrompted(page, secret);
+      // INC-210 — the born-retired confirmation or the gate, whichever comes.
+      await awaitGuardedOutcome(page, secret, page.getByTestId("location-create-retired"));
       await expect(page.getByTestId("location-create-retired")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-close").click();
 
@@ -272,7 +275,8 @@ test.describe("L2a locations console", () => {
       await page.getByTestId("location-create-lat").fill("9.04");
       await page.getByTestId("location-create-lng").fill("38.75");
       await page.getByTestId("location-create-submit").click();
-      await stepUpIfPrompted(page, secret);
+      // INC-210 — the born-retired confirmation or the gate, whichever comes.
+      await awaitGuardedOutcome(page, secret, page.getByTestId("location-create-retired"));
       await expect(page.getByTestId("location-create-retired")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-close").click();
 
@@ -290,7 +294,7 @@ test.describe("L2a locations console", () => {
       await openVerb(page, cityKey, "activate", citySlug);
       await expect(page.getByTestId("location-active-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-active-submit").click();
-      await stepUpIfPrompted(page, secret);
+      await awaitGuardedOutcome(page, secret, page.getByTestId("location-dialog-error"));
       await expect(page.getByTestId("location-dialog-error")).toBeVisible({ timeout: 20000 });
       expect((await readLocation(citySlug))?.is_active).toBe(false);
       await page.getByTestId("location-dialog-cancel").click();
@@ -530,7 +534,15 @@ test.describe("L2a locations console", () => {
       await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-move-parent").selectOption(second!.id);
       await page.getByTestId("location-move-submit").click();
-      await stepUpIfPrompted(page, secret);
+      await awaitGuardedOutcome(
+        page,
+        secret,
+        {
+          poll: async () => (await readLocation(citySlug))?.parent_id === second!.id,
+          describe: `LT-6: locations.parent_id = ${second!.id}`,
+        },
+        { timeout: 30000 },
+      );
 
       await expect
         .poll(async () => (await readLocation(citySlug))?.parent_id, {

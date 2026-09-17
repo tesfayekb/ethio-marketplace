@@ -162,3 +162,130 @@ guard cannot silently pass.
 - `docs/features/categories.md` — `expiry_days`, `price_enabled`, attributes.
 - `docs/features/geography.md` — `location_id` target.
 - `docs/governance/migrations.md` — append-only + idempotent migration law.
+
+## U6-A1 — the posting schema (2026-09-16)
+
+Migrations `fd11c7ab` (mark `20260917000000`) and `7145d6e9` (mark
+`20260917010000`). Still **no door**: `submit_listing`/`transition_listing` are
+untouched here and A2 re-declares them whole over the new states.
+
+### New columns
+
+`categories`: `capabilities text[]` (DEC-052 allowlist — only `bookable` and
+`map_pin` pass the CHECK), `default_price_period` (`once|hour|day|week|month|year`)
+and `price_period_locked` (DEC-067). Their console cells ride A2's code turn.
+
+`listings`: `price_period` (same set), `poster_expires_at`, `video_url` (CHECK:
+a YouTube watch or youtu.be URL only), `cover_photo_id`, `contact_pref jsonb`,
+`screening jsonb` and `search_tsv tsvector`.
+
+### The search column
+
+`listings_search_tsv_refresh` is a BEFORE INSERT OR UPDATE OF
+`title, description, attributes` trigger: title weight `A`, description `B`, the
+text values of `attributes` (strings, string arrays and an `other` record's
+`text`) weight `C`, all through the `'simple'` dictionary — a language-aware
+dictionary per listing language is U7's call. Index
+`listings_search_tsv_idx` (GIN).
+
+### The state set
+
+`status` widens to
+`draft | screening | active | reduced | rejected | held | expired | sold | removed`
+(DEC-070). The machine that governs the moves lands with A2's
+`transition_listing`.
+
+### One resolution, two readers
+
+`effective_category_links(p_category_id)` is the single resolution of the
+effective attribute set — the nearest link along the PRIMARY lineage of
+`category_tree_pointers` wins, exactly as the admin reader resolved it before.
+It is `service_role`-only and NOT client-callable.
+`admin_list_effective_category_links` was re-declared WHOLE (INC-183) over it:
+same signature, same gate, same ordering. The migration proves the row sets are
+identical for `houses`, `cars` and `apartments-condos` (0 differing rows) against
+an inline copy of the previous CTE — the reader itself cannot be called inside a
+migration, its gate needs a session.
+
+### The public posting read
+
+`get_posting_schema(p_category_id)` — STABLE definer, `anon` + `authenticated`,
+**no `has_permission`** (a category is public knowledge). It refuses
+`categoryNotFound`, `categoryInactive` and `categoryNotPostable`
+(`allow_listings = false`) and returns
+
+```text
+{ category: { id, slug, name_en, price_enabled, default_price_period,
+              price_period_locked, expiry_days, is_restricted, capabilities,
+              illustration },
+  attributes: [ { attribute_id, attr_key, attr_type, name_en, help_text_en,
+                  is_required, display_order, card_rank, unit, min_bound,
+                  max_bound, decimals, format, preset, max_length,
+                  option_count, allow_other } ] }
+```
+
+Ordered by `display_order`. **Option lists are never included** (DEC-053) — only
+the active count and whether an `other` option exists. Names in other languages
+come from the entity bundle, never from this read.
+
+`get_attribute_options(p_attribute_id)` returns the ACTIVE options in stored
+order (`value`, `label_en`, and `label_am`/`parent`/`aliases`/`bounds`/`allowed`
+only when stored) plus `version` for the route's ETag;
+`get_attribute_options_version` answers the version alone. Both are `anon` +
+`authenticated`. The route that serves them is A2's code turn.
+
+### The one validation authority
+
+`validate_listing_attributes(p_category_id, p_attrs, p_prior DEFAULT NULL)` —
+STABLE definer, `authenticated` only (DEC-051). It answers
+`{ ok: true, attrs }` or `{ ok: false, refusals: [ { attr_key, reason, detail? } ] }`.
+
+`p_prior` is the third argument, defaulted so the two-argument call in the spec
+still works: on an EDIT the door passes the listing's stored attributes, and an
+option deactivated since then stays valid **while its value is unchanged**.
+
+Refusal vocabulary: `unknownAttribute`, `required`, `badType`, `unknownOption`,
+`inactiveOption`, `otherNeedsText`, `outOfBounds`, `badDecimals`, `badPreset`,
+`tooLong`, `badMulti`, `dependentMissing`. Bounds resolve through
+`attr_bound_value` (so `year`, `year±n` are live), and a selected option's
+`bounds` fold onto the named sibling — tightest stated bound wins (DEC-050).
+Presets follow `attr_preset_ok`'s allowlist: `digits:n`, `vin` (17 chars, no
+I/O/Q), `plate-et`, `alnum:a-b`, `free:n`. Normalisation trims text, coerces a
+number to its declared decimals and canonicalises `other` to
+`{ value: 'other', text }` (text ≤ 120).
+
+The migration proves every reason fires **exactly once** against scratch
+definitions and links that are deleted again in the same block, and that the ok
+path normalises.
+
+### Revisions, verdicts, rate limits, residency facts
+
+`listing_revisions` (`listing_id`, `seller_id`, `kind` = create/edit/state,
+`before`, `after`, `actor`), `screening_verdicts` (`listing_id`, `tier`,
+`verdict`, `confidence`, `flags`, `model`, `model_version`, `rationale`,
+`reviewer`) and `rate_limits` (`key`, `action`, `window_start`, `count`) are
+**service-only**: RLS enabled, one deny-all client policy, `GRANT ALL` to
+`service_role` and an explicit `REVOKE ALL … FROM anon, authenticated` —
+Supabase's default privileges on `public` hand a new table to the browser roles
+at birth, and the migration's read-back refuses to pass until that is taken
+back.
+
+`consume_rate_limit(action, key, limit, window)` upserts the current window
+bucket and answers `{ allowed, remaining, resets_at }`. **A refusal is an
+answer, never an exception** — the caller renders it. Proof: a limit of 2 in a
+one-minute window allows twice and refuses the third with `resets_at` in the
+future.
+
+`user_directory` gains `observed_country_code`, `observed_at` and `standing`
+(DEC-068). `residency_country_for(user_id, request_country)` fills the
+observation the FIRST time only (a fact, never rewritten), returns the stored
+value forever after, and returns NULL when nothing is known — the caller refuses
+`residencyUnknown`. Counsel's rule (Q-014) changes this one function.
+
+### Permissions
+
+`listings` gains `view`, `review` (step-up) and `enforce` (step-up); every
+`listings:manage` grant is deleted. No role held `manage`, so nothing was
+inherited — `review` and `enforce` start ungranted and are assigned in the roles
+console. Their `admin.roles.perm.action.*` keys (EN + AM) ride A2's code turn (a
+recorded D2 exception: this landing touches no `src/`).

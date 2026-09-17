@@ -844,6 +844,62 @@ export async function stepUpIfPrompted(page: Page, secret: string) {
 }
 
 /**
+ * INC-210 — a guarded action races TWO futures: the outcome the test asserts,
+ * and the step-up modal. Waiting on the modal first (`stepUpIfPrompted`) burns
+ * its own timeout when the session is already AAL2 and the outcome has already
+ * landed; waiting on the outcome first hangs forever when the gate opened. This
+ * helper waits for EITHER, answers the modal when it is the one that came, and
+ * then keeps waiting for the outcome until the timeout.
+ *
+ * It never weakens an assertion: the caller's outcome is still awaited in full,
+ * and a timeout names which of the two it last saw.
+ *
+ * The outcome may be a locator OR a DB-truth predicate — many guarded consoles
+ * assert database state, not a banner, and those sites deserve the same race.
+ */
+export type GuardedOutcome = Locator | { poll: () => Promise<boolean>; describe: string };
+
+export async function awaitGuardedOutcome(
+  page: Page,
+  secret: string,
+  outcome: GuardedOutcome,
+  { timeout = 30000 }: { timeout?: number } = {},
+) {
+  const modal = page.getByTestId("step-up-modal");
+  const isLocator = typeof (outcome as Locator).isVisible === "function";
+  const describe = isLocator ? String(outcome) : (outcome as { describe: string }).describe;
+  const reached = async () =>
+    isLocator
+      ? await (outcome as Locator).isVisible().catch(() => false)
+      : await (outcome as { poll: () => Promise<boolean> }).poll().catch(() => false);
+
+  let answered = false;
+
+  // The poller IS the wait (no sleep): each tick reads the outcome first, then
+  // answers the gate once if that is what showed up instead.
+  await expect
+    .poll(
+      async () => {
+        if (await reached()) return "outcome";
+        if (!answered && (await modal.isVisible().catch(() => false))) {
+          await page.getByTestId("step-up-code").fill(totp(secret));
+          await page.getByTestId("step-up-submit").click();
+          await expect(modal).toBeHidden({ timeout: 20000 });
+          await expectAal2(page);
+          answered = true;
+          return (await reached()) ? "outcome" : "step-up answered, still waiting";
+        }
+        return answered ? "step-up answered, still waiting" : "neither yet";
+      },
+      {
+        timeout,
+        message: `[e2e:INC-210] the guarded outcome never arrived within ${timeout} ms — waited on ${describe}`,
+      },
+    )
+    .toBe("outcome");
+}
+
+/**
  * The session actually reached AAL2 (read from the DEV client, not inferred).
  *
  * U1g-2: getAuthenticatorAssuranceLevel() resolves to { data: { currentLevel,

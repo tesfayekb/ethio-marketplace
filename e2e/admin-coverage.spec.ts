@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 
 import { grantRole } from "./helpers/categories";
 import {
+  awaitGuardedOutcome,
   expectNoHorizontalOverflow,
   gotoReady,
   stepUpIfPrompted,
@@ -181,7 +182,15 @@ test.describe("L2b coverage console", () => {
       await page.getByTestId("coverage-editor-countries").fill("1");
       await page.getByTestId("coverage-editor-everywhere").check();
       await page.getByTestId("coverage-editor-save").click();
-      await stepUpIfPrompted(page, secret);
+      await awaitGuardedOutcome(
+        page,
+        secret,
+        {
+          poll: async () => (await readPlan(plan))?.max_cities === 3,
+          describe: `CV-3: coverage_plans.max_cities = 3 for ${plan}`,
+        },
+        { timeout: 30000 },
+      );
 
       await expect.poll(async () => (await readPlan(plan))?.max_cities, { timeout: 20000 }).toBe(3);
       const stored = await readPlan(plan);

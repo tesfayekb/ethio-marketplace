@@ -157,7 +157,9 @@ export type Database = {
       categories: {
         Row: {
           allow_listings: boolean
+          capabilities: string[]
           created_at: string
+          default_price_period: string
           description_am: string | null
           description_en: string | null
           display_order: number
@@ -175,6 +177,7 @@ export type Database = {
           name_en: string
           og_image_url: string | null
           price_enabled: boolean
+          price_period_locked: boolean
           slug: string
           updated_at: string
           visible_from: string | null
@@ -182,7 +185,9 @@ export type Database = {
         }
         Insert: {
           allow_listings?: boolean
+          capabilities?: string[]
           created_at?: string
+          default_price_period?: string
           description_am?: string | null
           description_en?: string | null
           display_order?: number
@@ -200,6 +205,7 @@ export type Database = {
           name_en: string
           og_image_url?: string | null
           price_enabled?: boolean
+          price_period_locked?: boolean
           slug: string
           updated_at?: string
           visible_from?: string | null
@@ -207,7 +213,9 @@ export type Database = {
         }
         Update: {
           allow_listings?: boolean
+          capabilities?: string[]
           created_at?: string
+          default_price_period?: string
           description_am?: string | null
           description_en?: string | null
           display_order?: number
@@ -225,6 +233,7 @@ export type Database = {
           name_en?: string
           og_image_url?: string | null
           price_enabled?: boolean
+          price_period_locked?: boolean
           slug?: string
           updated_at?: string
           visible_from?: string | null
@@ -784,63 +793,125 @@ export type Database = {
           },
         ]
       }
+      listing_revisions: {
+        Row: {
+          actor: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          id: string
+          kind: string
+          listing_id: string
+          seller_id: string
+        }
+        Insert: {
+          actor?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          kind: string
+          listing_id: string
+          seller_id: string
+        }
+        Update: {
+          actor?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          kind?: string
+          listing_id?: string
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_revisions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listings: {
         Row: {
           attributes: Json
           category_id: string
+          contact_pref: Json
+          cover_photo_id: string | null
           created_at: string
           description: string
           expires_at: string | null
           home_country_code: string
           id: string
           location_id: string
+          poster_expires_at: string | null
           price_amount: number | null
           price_currency: string | null
           price_mode: string
+          price_period: string
           published_at: string | null
+          screening: Json | null
+          search_tsv: unknown
           seller_id: string
           status: string
           tier: string
           title: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           attributes?: Json
           category_id: string
+          contact_pref?: Json
+          cover_photo_id?: string | null
           created_at?: string
           description: string
           expires_at?: string | null
           home_country_code: string
           id?: string
           location_id: string
+          poster_expires_at?: string | null
           price_amount?: number | null
           price_currency?: string | null
           price_mode?: string
+          price_period?: string
           published_at?: string | null
+          screening?: Json | null
+          search_tsv?: unknown
           seller_id: string
           status?: string
           tier?: string
           title: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           attributes?: Json
           category_id?: string
+          contact_pref?: Json
+          cover_photo_id?: string | null
           created_at?: string
           description?: string
           expires_at?: string | null
           home_country_code?: string
           id?: string
           location_id?: string
+          poster_expires_at?: string | null
           price_amount?: number | null
           price_currency?: string | null
           price_mode?: string
+          price_period?: string
           published_at?: string | null
+          screening?: Json | null
+          search_tsv?: unknown
           seller_id?: string
           status?: string
           tier?: string
           title?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
@@ -1144,6 +1215,27 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          action: string
+          count: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          count?: number
+          key: string
+          window_start: string
+        }
+        Update: {
+          action?: string
+          count?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       resources: {
         Row: {
           created_at: string
@@ -1250,6 +1342,56 @@ export type Database = {
             columns: ["parent_role_id"]
             isOneToOne: false
             referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      screening_verdicts: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          flags: Json
+          id: string
+          listing_id: string
+          model: string | null
+          model_version: string | null
+          rationale: string | null
+          reviewer: string | null
+          tier: string
+          verdict: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          flags?: Json
+          id?: string
+          listing_id: string
+          model?: string | null
+          model_version?: string | null
+          rationale?: string | null
+          reviewer?: string | null
+          tier: string
+          verdict: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          flags?: Json
+          id?: string
+          listing_id?: string
+          model?: string | null
+          model_version?: string | null
+          rationale?: string | null
+          reviewer?: string | null
+          tier?: string
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_verdicts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
             referencedColumns: ["id"]
           },
         ]
@@ -1391,6 +1533,9 @@ export type Database = {
           created_at: string
           handle: string | null
           home_country_code: string | null
+          observed_at: string | null
+          observed_country_code: string | null
+          standing: Json
           user_id: string
         }
         Insert: {
@@ -1399,6 +1544,9 @@ export type Database = {
           created_at?: string
           handle?: string | null
           home_country_code?: string | null
+          observed_at?: string | null
+          observed_country_code?: string | null
+          standing?: Json
           user_id: string
         }
         Update: {
@@ -1407,6 +1555,9 @@ export type Database = {
           created_at?: string
           handle?: string | null
           home_country_code?: string | null
+          observed_at?: string | null
+          observed_country_code?: string | null
+          standing?: Json
           user_id?: string
         }
         Relationships: [
@@ -2355,8 +2506,31 @@ export type Database = {
       cat_ts: { Args: { p_text: string }; Returns: string }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
+      consume_rate_limit: {
+        Args: {
+          p_action: string
+          p_key: string
+          p_limit: number
+          p_window: string
+        }
+        Returns: Json
+      }
       country_export_row: { Args: { p_code: string }; Returns: Json }
       e2e_migration_ledger: { Args: never; Returns: string[] }
+      effective_category_links: {
+        Args: { p_category_id: string }
+        Returns: {
+          attribute_id: string
+          card_rank: number
+          display_order: number
+          inherited: boolean
+          is_filterable: boolean
+          is_required: boolean
+          is_searchable: boolean
+          link_id: string
+          origin_id: string
+        }[]
+      }
       end_impersonation: { Args: { p_session: string }; Returns: undefined }
       entity_source_value: {
         Args: { p_field: string; p_id: string; p_type: string }
@@ -2375,6 +2549,11 @@ export type Database = {
           target_id: string
           target_name: string
         }[]
+      }
+      get_attribute_options: { Args: { p_attribute_id: string }; Returns: Json }
+      get_attribute_options_version: {
+        Args: { p_attribute_id: string }
+        Returns: string
       }
       get_browse_tree: {
         Args: { p_country_code: string }
@@ -2455,6 +2634,7 @@ export type Database = {
           unit_system: string
         }[]
       }
+      get_posting_schema: { Args: { p_category_id: string }; Returns: Json }
       get_role_hierarchy: { Args: { p_role_id: string }; Returns: string[] }
       get_ui_bundle: { Args: { p_lang: string }; Returns: Json }
       get_ui_bundle_version: { Args: { p_lang: string }; Returns: string }
@@ -2559,6 +2739,10 @@ export type Database = {
         Args: { p_action: string; p_resource: string }
         Returns: undefined
       }
+      residency_country_for: {
+        Args: { p_request_country: string; p_user_id: string }
+        Returns: string
+      }
       revoke_role: {
         Args: { p_role_name: string; p_target_user: string }
         Returns: undefined
@@ -2602,6 +2786,10 @@ export type Database = {
         Returns: boolean
       }
       user_set_preferred_language: { Args: { p_code: string }; Returns: string }
+      validate_listing_attributes: {
+        Args: { p_attrs: Json; p_category_id: string; p_prior?: Json }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

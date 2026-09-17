@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { CATEGORY_ICON_NAMES, CATCHALL_ICON_NAME } from "../src/lib/category-icon-names";
 import {
+  awaitGuardedOutcome,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
@@ -252,7 +253,16 @@ test.describe("C2 categories console", () => {
       await action(page, slug, "edit").click();
       await page.getByTestId("category-edit-name").fill(`E2E renamed ${slug}`);
       await page.getByTestId("category-edit-submit").click();
-      await stepUpIfPrompted(page, secret);
+      // INC-210 — the rename either lands or the gate opens; both are awaited.
+      await awaitGuardedOutcome(
+        page,
+        secret,
+        {
+          poll: async () => (await readCategory(slug))?.name_en === `E2E renamed ${slug}`,
+          describe: `CT-3: categories.name_en = "E2E renamed ${slug}"`,
+        },
+        { timeout: 30000 },
+      );
 
       await expect
         .poll(async () => (await readCategory(slug))?.name_en, { timeout: 20000 })
