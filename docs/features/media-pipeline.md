@@ -20,11 +20,11 @@ The real format is decided by magic bytes, never by the filename or the browser'
 content type: `FF D8 FF` (JPEG), `89 50 4E 47` (PNG), `RIFF … WEBP` (WebP).
 Anything else throws `unsupportedFormat`.
 
-| Format | Kept                                                          | Dropped                                                                               |
-| ------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| JPEG   | SOI, APP0 (JFIF only), DQT, SOF0/1/2, DHT, DRI, SOS…EOI       | every other APPn (EXIF APP1, XMP, ICC APP2, Photoshop IRB), COM, all bytes after EOI  |
-| PNG    | IHDR, PLTE, tRNS, gAMA, sRGB, IDAT, IEND (chunks copied whole, CRC intact) | tEXt, zTXt, iTXt, tIME, eXIf, iCCP, pHYs and every other ancillary chunk |
-| WebP   | VP8 / VP8L / ALPH, VP8X with its EXIF/XMP/ICC flag bits cleared | EXIF, XMP, ICCP chunks; ANIM/ANMF is refused as `unsupportedFormat` (no animation)     |
+| Format | Kept                                                                       | Dropped                                                                              |
+| ------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| JPEG   | SOI, APP0 (JFIF only), DQT, SOF0/1/2, DHT, DRI, SOS…EOI                    | every other APPn (EXIF APP1, XMP, ICC APP2, Photoshop IRB), COM, all bytes after EOI |
+| PNG    | IHDR, PLTE, tRNS, gAMA, sRGB, IDAT, IEND (chunks copied whole, CRC intact) | tEXt, zTXt, iTXt, tIME, eXIf, iCCP, pHYs and every other ancillary chunk             |
+| WebP   | VP8 / VP8L / ALPH, VP8X with its EXIF/XMP/ICC flag bits cleared            | EXIF, XMP, ICCP chunks; ANIM/ANMF is refused as `unsupportedFormat` (no animation)   |
 
 Dimensions are read from the format's own header (JPEG SOF, PNG IHDR, VP8/VP8L/
 VP8X), not from a library.
@@ -40,12 +40,12 @@ be invisible.
 `storageTargetFor(partition)` reads server env INSIDE the handler (F1) and
 answers `{ provider, bucket, publicBase }`:
 
-| Env                                                                              | Meaning                                | Default           |
-| -------------------------------------------------------------------------------- | -------------------------------------- | ----------------- |
-| `MEDIA_PROVIDER`                                                                 | `supabase` or `r2`                     | `supabase`        |
-| `MEDIA_BUCKET`                                                                   | the Supabase bucket                    | `listing-photos`  |
-| `MEDIA_PUBLIC_BASE`                                                              | the public URL base                    | the bucket's own  |
-| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE` | the R2 target                | —                 |
+| Env                                                                                        | Meaning             | Default          |
+| ------------------------------------------------------------------------------------------ | ------------------- | ---------------- |
+| `MEDIA_PROVIDER`                                                                           | `supabase` or `r2`  | `supabase`       |
+| `MEDIA_BUCKET`                                                                             | the Supabase bucket | `listing-photos` |
+| `MEDIA_PUBLIC_BASE`                                                                        | the public URL base | the bucket's own |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE` | the R2 target       | —                |
 
 `putObject` / `deleteObject` have two implementations: Supabase Storage through
 the service client, and R2 through its S3 API with **in-house AWS SigV4**
