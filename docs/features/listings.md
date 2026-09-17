@@ -320,16 +320,16 @@ Residency is a server fact (DEC-068): `home_country_code` is copied from
 strictly and tolerates the later ones empty. `publish_listing` and
 `edit_listing` call it with step 8, so there is exactly one rule set.
 
-| Step | Fields | Rules |
-| --- | --- | --- |
-| 1 | category | leaf, active, `allow_listings`, not catch-all |
-| 2 | photos | nothing — photos register through their own door |
-| 3 | attributes | `validate_listing_attributes` (its refusals pass through verbatim) |
-| 4 | title, description, video | title 1–120 after trim, description ≤ 5000, YouTube shape |
-| 5 | price | mode ∈ fixed/negotiable/free/contact; amount > 0 and required for the first two, NULL for the others; currency ∈ `currencies`, defaulting to the seller's home-country currency; period ∈ once/hour/day/week/month/year and equal to the category default when `price_period_locked`; poster expiry NULL or between now + 1 day and now + `expiry_days` |
-| 6 | coverage | every id an active place of ONE open market; per-level counts against the caller's plan (`free` for everyone in v1); the item's own place is `p_coverage[1]`; a sub-city or its city are both legal (D19) |
-| 7 | contact | `messages` always true; `phone`/`telegram`/`whatsapp` objects of `{show, value}` with validated handles; nothing else |
-| 8 | review | no fields of its own |
+| Step | Fields                    | Rules                                                                                                                                                                                                                                                                                                                                                   |
+| ---- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | category                  | leaf, active, `allow_listings`, not catch-all                                                                                                                                                                                                                                                                                                           |
+| 2    | photos                    | nothing — photos register through their own door                                                                                                                                                                                                                                                                                                        |
+| 3    | attributes                | `validate_listing_attributes` (its refusals pass through verbatim)                                                                                                                                                                                                                                                                                      |
+| 4    | title, description, video | title 1–120 after trim, description ≤ 5000, YouTube shape                                                                                                                                                                                                                                                                                               |
+| 5    | price                     | mode ∈ fixed/negotiable/free/contact; amount > 0 and required for the first two, NULL for the others; currency ∈ `currencies`, defaulting to the seller's home-country currency; period ∈ once/hour/day/week/month/year and equal to the category default when `price_period_locked`; poster expiry NULL or between now + 1 day and now + `expiry_days` |
+| 6    | coverage                  | every id an active place of ONE open market; per-level counts against the caller's plan (`free` for everyone in v1); the item's own place is `p_coverage[1]`; a sub-city or its city are both legal (D19)                                                                                                                                               |
+| 7    | contact                   | `messages` always true; `phone`/`telegram`/`whatsapp` objects of `{show, value}` with validated handles; nothing else                                                                                                                                                                                                                                   |
+| 8    | review                    | no fields of its own                                                                                                                                                                                                                                                                                                                                    |
 
 **Refusal vocabulary** (`{ ok:false, refusals:[{field, reason, detail?}] }`; a
 refusal writes nothing): `residencyUnknown`, `categoryNotPostable`, `required`,
@@ -367,16 +367,16 @@ re-screened.
 
 `transition_listing(id, new_status)` over the nine states:
 
-| From | To | Who |
-| --- | --- | --- |
-| draft | screening | owner (`publish_listing`) |
-| screening | active, reduced, rejected, held | gateway (`service_role`) or `listings:review` |
-| held | active, reduced, rejected | reviewer |
-| active, reduced | screening | owner (edit) |
-| active, reduced | sold, expired | owner |
-| rejected | screening | owner (re-publish after an edit) |
-| expired, sold | screening | owner (`relist_listing`) |
-| any | removed | `listings:enforce` or the owner — except a listing rejected for a severe reason, which enforcement alone removes |
+| From            | To                              | Who                                                                                                              |
+| --------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| draft           | screening                       | owner (`publish_listing`)                                                                                        |
+| screening       | active, reduced, rejected, held | gateway (`service_role`) or `listings:review`                                                                    |
+| held            | active, reduced, rejected       | reviewer                                                                                                         |
+| active, reduced | screening                       | owner (edit)                                                                                                     |
+| active, reduced | sold, expired                   | owner                                                                                                            |
+| rejected        | screening                       | owner (re-publish after an edit)                                                                                 |
+| expired, sold   | screening                       | owner (`relist_listing`)                                                                                         |
+| any             | removed                         | `listings:enforce` or the owner — except a listing rejected for a severe reason, which enforcement alone removes |
 
 Promotion to `active`/`reduced` stamps `published_at`, `published_first_at` and
 `expires_at = now() + expiry_days`. Every move writes a `state` revision.
