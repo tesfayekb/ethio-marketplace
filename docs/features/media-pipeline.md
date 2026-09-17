@@ -153,3 +153,14 @@ REQ-036's acceptance is `e2e/photo-pipeline.spec.ts`:
   listing → 403. PP-7 the eleventh photo → `tooManyPhotos`. PP-8 DELETE removes
   the row AND the objects; POST makes a photo the cover. PP-9 the seller's hourly
   ceiling → `rateLimited` with `resets_at`.
+
+## INC-220 — the storage policies key on the segment AFTER the partition
+
+The object key is `<partition>/<uid>/<listing>/<photo>/<variant>` (DEC-075), so
+the owner segment is the SECOND, not the first. `listing_photos_object_insert`,
+`listing_photos_object_owner_read` and `listing_photos_object_owner_delete` now
+test `(storage.foldername(name))[2] = auth.uid()::text`. The bucket held no
+objects when the policies moved, so no compatibility branch on segment 1 was
+kept. `listing_photos_object_public_read` is untouched and remains
+partition-agnostic: it joins `listing_photos.storage_path` and stays gated on
+`exif_stripped` AND an active listing.

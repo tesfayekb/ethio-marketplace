@@ -764,3 +764,20 @@ that judges answers (DEC-051) — the refusal vocabulary, the DEC-050 bound toke
 and option-conditioned folds, and the preset allowlist are documented in
 `docs/features/listings.md`. The attribute console keeps writing definitions; it
 never re-implements the judgement.
+
+## Option `facts` — a prefill, never a rule (D18)
+
+The DEC-050 option shape allowlist now carries a ninth key, `facts`: an object
+whose keys are attribute keys (`^[a-z0-9_]{2,64}$`) and whose values are scalars
+or lists of strings, at most 20 entries. Anything else is refused as
+`badFacts:<detail>` (`notObject`, `tooMany`, `key:<k>`, `listLength:<k>`,
+`listNotStrings:<k>`, `value:<k>`) by `attr_option_shape`, which every writer and
+the import planner already run — so no other function changes.
+
+`get_attribute_options(attribute_id)` projects `facts` beside `value`,
+`label_en`, `label_am`, `parent`, `aliases`, `bounds` and `allowed` for ACTIVE
+options; a retired option's facts never leave the database.
+
+`validate_listing_attributes` is deliberately UNCHANGED: facts prefill the
+sibling fields the seller can then edit, and the seller's own answers are what
+the validator judges. A fact is never an authority over a value.

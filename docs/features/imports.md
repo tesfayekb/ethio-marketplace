@@ -130,3 +130,35 @@ verdicts the route does. Nothing else changes: the body still carries only the
 fields that hold text, and the route remains the authority (F3). Proofs: AT-40
 (the optional caption renders, one file opens Preview), AT-54 (a
 definitions-only run previews and discards, writing nothing).
+
+## INC-215 — an action row applies its field edits too
+
+A countries-file row may carry `open` or `close` AND edited cells at the same
+time. The planner emits the compound op `open+update` / `close+update` and counts
+BOTH halves, so the preview of such a row reads "1 reactivated · 1 changed"
+instead of hiding the cells behind the state change. The commit applies the state
+and the fields in ONE statement each (name, unit system, currency, display
+order, root order) and writes both an `open`/`close` and an `update` revision, so
+Undo reverts both halves. Proof P1: a closed scratch market with `open` plus a
+new currency previews as 1 reactivated + 1 changed, commits to active with the
+new currency, and undoes to closed with the old one.
+
+## The categories file — three more cells (DEC-052 / DEC-067)
+
+`capabilities` (pipe-separated, allowlist `bookable|map_pin`),
+`default_price_period` (`once|hour|day|week|month|year`) and
+`price_period_locked` (`true|false`) are ordinary editable cells: planned as
+field diffs on creates and updates alike, applied on commit, captured in the
+revision rows and restored by Undo. An absent cell is SILENCE, never a deletion.
+An unknown value is refused BY NAME — `badCapability:<value>`, `badPeriod` with
+the offending value as its detail — and the row lands nothing. The export emits
+the three columns directly after `expiry_days`, so a file round-trips.
+
+## The attributes file — the option `facts` cell (D18)
+
+An option record may carry `facts`: an object of attribute keys (`^[a-z0-9_]{2,64}$`)
+to a scalar or a list of strings, at most 20 entries. It is validated by the same
+option shape function as every other key (refusal `badFacts:<detail>`); the
+definitions planner and commit are unchanged, because the options column passes
+through them whole. Facts are a PREFILL for the posting form, never a rule — the
+listing validator does not read them.

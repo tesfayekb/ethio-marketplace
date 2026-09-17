@@ -513,3 +513,15 @@ marks a date window is rendered only for the other window shapes — a scheduled
 row would otherwise carry the same word twice, and the runtime catalog (D3: the
 DB is truth for UI strings) can give the two keys the same value, so the roster
 suppresses the duplicate at the source rather than depending on the wording.
+
+## The three capability cells in the file (DEC-052 / DEC-067)
+
+`categories.capabilities`, `categories.default_price_period` and
+`categories.price_period_locked` are now part of the import/export file, in that
+order directly after `expiry_days`. The export writes capabilities
+pipe-separated (`map_pin|bookable`), the period as its stored word and the lock
+as `true`/`false`; the planner refuses an unknown capability as
+`badCapability:<value>` and an unknown period as `badPeriod`, naming the value,
+and applies valid cells on commit with Undo restoring the previous ones. The
+console editors remain the other way in (C2 lands their cells); the file and the
+console write the same columns through the same validation.
