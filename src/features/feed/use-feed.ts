@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
 import { supabase } from "@/integrations/supabase/client";
 
 import {
@@ -154,75 +155,30 @@ export interface FeedCategory {
 }
 
 /**
- * PROCESS-LIFETIME CACHE (INC-050). The category tree is admin-managed
- * reference data that every rail render needs, so re-reading it on each mount
- * (panel switch, drawer open, route change) cost a visible load lag on a slow
- * mobile connection. The first read is shared by every concurrent caller
- * (`inFlight`) and its result is remembered for the rest of the page session
- * (`cache`). Still READ-ONLY: nothing here writes, and a reload re-reads.
- */
-let cache: FeedCategory[] | null = null;
-let inFlight: Promise<FeedCategory[]> | null = null;
-
-async function readCategories(): Promise<FeedCategory[]> {
-  const [{ data: cats }, { data: pointers }] = await Promise.all([
-    supabase
-      .from("categories")
-      .select("id,name_en,name_am,slug,icon,display_order")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true }),
-    supabase.from("category_tree_pointers").select("child_id,parent_id"),
-  ]);
-  const childOfSomething = new Set(
-    (pointers ?? []).filter((p) => p.parent_id !== null).map((p) => p.child_id),
-  );
-  return (cats ?? [])
-    .filter((c) => !childOfSomething.has(c.id))
-    .map((c) => ({
-      id: c.id,
-      nameEn: c.name_en,
-      nameAm: c.name_am,
-      slug: c.slug,
-      icon: c.icon,
-    }));
-}
-
-/**
  * Live top-level categories for the Marketplace rail.
  * Top level = a category that is not the child of any tree pointer.
+ *
+ * U6-C1a — THE READ MOVED, THE BEHAVIOUR DID NOT. The `categories` +
+ * `category_tree_pointers` pair (and its process-lifetime cache, INC-050) now
+ * lives in `@/features/categories/category-tree`, because the posting wizard
+ * reads the same two tables and a second copy would be two sources of truth
+ * (B1/B2). This hook keeps its name, its shape and its containment law
+ * (INC-031: a failed read degrades to "no categories", it never throws through
+ * the shell); it now derives the roots from the shared tree instead of
+ * filtering the pointer set itself.
  */
 export function useCategories() {
-  const [categories, setCategories] = useState<FeedCategory[]>(cache ?? []);
-  const [isLoading, setIsLoading] = useState(cache === null);
-
-  useEffect(() => {
-    if (cache !== null) return;
-    let cancelled = false;
-    setIsLoading(true);
-
-    inFlight ??= readCategories();
-    void inFlight
-      .then((rows) => {
-        cache = rows;
-        inFlight = null;
-        if (cancelled) return;
-        setCategories(rows);
-        setIsLoading(false);
-      })
-      .catch(() => {
-        // CONTAINMENT (INC-031): the rail degrades to "no categories" rather than
-        // throwing through the shell. The feed itself stays fully usable.
-        // The failure is NOT cached, so the next mount retries.
-        inFlight = null;
-        if (cancelled) return;
-        setCategories([]);
-        setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+  const { tree, isLoading } = useCategoryTree();
+  const categories = useMemo<FeedCategory[]>(
+    () =>
+      rootsOf(tree).map((node) => ({
+        id: node.id,
+        nameEn: node.nameEn,
+        nameAm: node.nameAm,
+        slug: node.slug,
+        icon: node.icon,
+      })),
+    [tree],
+  );
   return { categories, isLoading };
 }

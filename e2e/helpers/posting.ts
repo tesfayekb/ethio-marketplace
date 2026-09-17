@@ -184,3 +184,81 @@ export function completeDraft(params: {
     contactPref: { messages: true },
   };
 }
+
+/**
+ * U6-C1a — A FOLDER WITH ONE POSTABLE LEAF UNDER IT.
+ *
+ * D11 needs both shapes to be provable: a folder is browsable and NEVER
+ * selectable, and only the leaf below it can be chosen. Both rows are namespaced
+ * scratch and are destroyed pointers-first by `destroyCategoryBranch`.
+ */
+export async function seedCategoryBranch() {
+  const supabase = adminClient();
+  const parentSlug = scratchCategorySlug();
+  const leafSlug = scratchCategorySlug();
+
+  const { data: parent, error: parentError } = await supabase
+    .from("categories")
+    .insert({
+      slug: parentSlug,
+      name_en: parentSlug,
+      is_active: true,
+      // A FOLDER: listings are not allowed here, so the wizard may only drill in.
+      allow_listings: false,
+      is_catchall: false,
+      display_order: 9100,
+    })
+    .select("id, slug")
+    .single();
+  if (parentError || !parent) {
+    throw new Error(`[e2e:c1a] seeding the folder failed: ${parentError?.message ?? "no row"}`);
+  }
+
+  const { data: leaf, error: leafError } = await supabase
+    .from("categories")
+    .insert({
+      slug: leafSlug,
+      name_en: leafSlug,
+      is_active: true,
+      allow_listings: true,
+      is_catchall: false,
+      display_order: 9101,
+    })
+    .select("id, slug")
+    .single();
+  if (leafError || !leaf) {
+    throw new Error(`[e2e:c1a] seeding the leaf failed: ${leafError?.message ?? "no row"}`);
+  }
+
+  const { error: pointerError } = await supabase
+    .from("category_tree_pointers")
+    .insert({ parent_id: parent.id, child_id: leaf.id, display_order: 1 });
+  if (pointerError) {
+    throw new Error(`[e2e:c1a] linking the branch failed: ${pointerError.message}`);
+  }
+
+  return { parent, leaf };
+}
+
+/** Pointers first, then the rows — a branch never leaves an orphan edge (J3). */
+export async function destroyCategoryBranch(slugs: string[]): Promise<void> {
+  const supabase = adminClient();
+  const { data } = await supabase.from("categories").select("id").in("slug", slugs);
+  const ids = (data ?? []).map((row) => row.id);
+  if (ids.length === 0) return;
+  await supabase.from("category_tree_pointers").delete().in("child_id", ids);
+  await supabase.from("category_tree_pointers").delete().in("parent_id", ids);
+  await supabase.from("listings").delete().in("category_id", ids);
+  await supabase.from("categories").delete().in("id", ids);
+}
+
+/** DB truth: the draft the wizard created for this seller, if any. */
+export async function draftsOf(sellerId: string) {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("id, category_id, draft_step, status")
+    .eq("seller_id", sellerId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`[e2e:c1a] reading the seller's drafts failed: ${error.message}`);
+  return data ?? [];
+}

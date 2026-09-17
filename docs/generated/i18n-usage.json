@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 263,
-  "dynamicCallSites": 157,
+  "scanned": 274,
+  "dynamicCallSites": 163,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3262,6 +3262,178 @@
       "/",
       "/admin",
       "/c/$slug"
+    ],
+    "post.action.back": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.action.next": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.action.retry": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.browseLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.change": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.chosen": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.empty": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.expect": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.expectNone": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.folder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.illustrationAlt": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.noHits": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.searchHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.searchLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.searchPlaceholder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.treeError": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.upOneLevel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.why": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.error.load": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.error.notYours": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.loading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.add": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.addHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.count": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.cover": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.done": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.makeCover": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.needOne": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.none": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.preparing": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.remove": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.retry": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.uploading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.why": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.progress.label": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.save.saved": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.save.saving": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.save.unsaved": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.signIn.action": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.signIn.required": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.stepLater": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.stepOf": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.title": [
+      "/post",
+      "/post/$listingId"
     ],
     "price.contact": [
       "/",

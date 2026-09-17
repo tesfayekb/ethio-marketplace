@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PostRouteImport } from './routes/post'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
 import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
 import { Route as CSlugRouteImport } from './routes/c.$slug'
@@ -61,6 +63,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PostRoute = PostRouteImport.update({
+  id: '/post',
+  path: '/post',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -80,6 +87,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const PostListingIdRoute = PostListingIdRouteImport.update({
+  id: '/post_/$listingId',
+  path: '/post/$listingId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DevTallRoute = DevTallRouteImport.update({
   id: '/dev/tall',
@@ -299,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -319,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/c/$slug': typeof CSlugRoute
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
+  '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
@@ -346,6 +360,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -366,6 +381,7 @@ export interface FileRoutesByTo {
   '/c/$slug': typeof CSlugRoute
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
+  '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
@@ -395,6 +411,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -415,6 +432,7 @@ export interface FileRoutesById {
   '/c/$slug': typeof CSlugRoute
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/tall': typeof DevTallRoute
+  '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
@@ -445,6 +463,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/post'
     | '/settings'
     | '/admin/attributes'
     | '/admin/audit'
@@ -465,6 +484,7 @@ export interface FileRouteTypes {
     | '/c/$slug'
     | '/dev/primitives'
     | '/dev/tall'
+    | '/post/$listingId'
     | '/admin/'
     | '/admin/impersonation/$sessionId'
     | '/admin/roles/$roleId'
@@ -492,6 +512,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/post'
     | '/settings'
     | '/admin/attributes'
     | '/admin/audit'
@@ -512,6 +533,7 @@ export interface FileRouteTypes {
     | '/c/$slug'
     | '/dev/primitives'
     | '/dev/tall'
+    | '/post/$listingId'
     | '/admin'
     | '/admin/impersonation/$sessionId'
     | '/admin/roles/$roleId'
@@ -540,6 +562,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/post'
     | '/settings'
     | '/admin/attributes'
     | '/admin/audit'
@@ -560,6 +583,7 @@ export interface FileRouteTypes {
     | '/c/$slug'
     | '/dev/primitives'
     | '/dev/tall'
+    | '/post_/$listingId'
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
     | '/admin/roles_/$roleId'
@@ -589,6 +613,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PostRoute: typeof PostRoute
   SettingsRoute: typeof SettingsRoute
   ApiGeoRoute: typeof ApiGeoRoute
   ApiLocationsRoute: typeof ApiLocationsRouteWithChildren
@@ -598,6 +623,7 @@ export interface RootRouteChildren {
   CSlugRoute: typeof CSlugRoute
   DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevTallRoute: typeof DevTallRoute
+  PostListingIdRoute: typeof PostListingIdRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
   ApiListingsAssistRoute: typeof ApiListingsAssistRoute
   ApiListingsDraftRoute: typeof ApiListingsDraftRoute
@@ -624,6 +650,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/post': {
+      id: '/post'
+      path: '/post'
+      fullPath: '/post'
+      preLoaderRoute: typeof PostRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -653,6 +686,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/post_/$listingId': {
+      id: '/post_/$listingId'
+      path: '/post/$listingId'
+      fullPath: '/post/$listingId'
+      preLoaderRoute: typeof PostListingIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dev/tall': {
       id: '/dev/tall'
@@ -1000,6 +1040,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  PostRoute: PostRoute,
   SettingsRoute: SettingsRoute,
   ApiGeoRoute: ApiGeoRoute,
   ApiLocationsRoute: ApiLocationsRouteWithChildren,
@@ -1009,6 +1050,7 @@ const rootRouteChildren: RootRouteChildren = {
   CSlugRoute: CSlugRoute,
   DevPrimitivesRoute: DevPrimitivesRoute,
   DevTallRoute: DevTallRoute,
+  PostListingIdRoute: PostListingIdRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,
   ApiListingsAssistRoute: ApiListingsAssistRoute,
   ApiListingsDraftRoute: ApiListingsDraftRoute,

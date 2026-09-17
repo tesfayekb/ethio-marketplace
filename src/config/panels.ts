@@ -85,6 +85,19 @@ export const PANELS: Record<PanelId, Panel> = {
     // shell already derives the Account panel from it.
     homePath: "/settings",
     items: [
+      /**
+       * U6-C1a — the posting entry. It sits FIRST because posting is the
+       * primary thing a signed-in seller comes to the Account panel to do, and
+       * it carries an explicit testid (`post-entry`) rather than the derived
+       * `rail-item-…` so the wizard's own tests address it by name.
+       */
+      {
+        id: "post-entry",
+        labelKey: "nav.postListing",
+        icon: PlusCircle,
+        path: "/post",
+        testid: "post-entry",
+      },
       { id: "ac-overview", labelKey: "nav.overview", icon: Gauge },
       { id: "ac-saved", labelKey: "nav.saved", icon: Heart },
       { id: "ac-activity", labelKey: "nav.activity", icon: ScrollText },
