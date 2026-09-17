@@ -388,7 +388,12 @@ export async function waitForOpenMarket(page: Page, code: string) {
   await expect
     .poll(
       async () => {
-        const response = await page.request.get("/api/locations");
+        // A test poll must never PRIME the browser cache with a stale answer the
+        // app would then reuse (the route answers `max-age=300`), so the poll
+        // revalidates: the cached entry is refreshed, not merely read.
+        const response = await page.request.get("/api/locations", {
+          headers: { "cache-control": "no-cache" },
+        });
         if (!response.ok()) return [];
         const body = (await response.json()) as { countries?: { code: string }[] };
         return (body.countries ?? []).map((row) => row.code);

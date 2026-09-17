@@ -1939,13 +1939,28 @@ test.describe("L4b location picker", () => {
       await waitForTreeSlug(page, second.code, second.region.slug);
       await gotoReady(page, "/");
 
-      await pick(page, "country", await marketName(page, first.code));
+      const firstName = await marketName(page, first.code);
+      const secondName = await marketName(page, second.code);
+      // The open-markets route caches for 15 s and the page may have loaded a
+      // list minted before the second market opened; the menu itself is the
+      // truth, so the page is reloaded until BOTH markets are offered.
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        await page.getByTestId("location-level-country").click();
+        const offered = await page
+          .getByRole("menuitem", { name: secondName, exact: true })
+          .isVisible();
+        await page.keyboard.press("Escape");
+        if (offered) break;
+        await gotoReady(page, "/");
+      }
+
+      await pick(page, "country", firstName);
       await expect(page.getByTestId("location-level-region")).toHaveText(
         new RegExp(escapeRe(first.region.name_en!)),
       );
 
       // NO reload between the two picks — this is the whole point of the test.
-      await pick(page, "country", await marketName(page, second.code));
+      await pick(page, "country", secondName);
       await expect(page.getByTestId("location-level-region")).toHaveText(
         new RegExp(escapeRe(second.region.name_en!)),
       );
