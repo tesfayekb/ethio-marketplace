@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35274975693
-- Commit: `2b4622e4cfed47c664d2f64c238e606378a8b43f`
-- Attempt: 3
-- Written (UTC): 2026-09-17T22:13:38.337Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35278532165
+- Commit: `be930caf4ed3c07b8a065a2133109eea5a48b0a4`
+- Attempt: 2
+- Written (UTC): 2026-09-17T22:16:04.928Z
 
 ## E2E preflight (migration parity, staging) — failure
 
@@ -43,7 +43,7 @@
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-514 packages installed [789.00ms]
+514 packages installed [812.00ms]
 ##[group]Run bun scripts/e2e-migration-preflight.ts
 [36;1mbun scripts/e2e-migration-preflight.ts[0m
 shell: /usr/bin/bash -e {0}
@@ -63,7 +63,7 @@ STAGING BEHIND: apply 20260917210704_6912f33f-1933-4d42-92d0-e8754bef56ab.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/a97f1349-7a8b-4298-9063-eb9071c4e603' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/ab990708-cbd3-46b7-a072-a040b8b654eb' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -83,7 +83,7 @@ Cleaning up orphan processes
 ### Evidence lines
 
 ```text
-##[error]INC-100 BROKEN ARTIFACT CONTRACT — attempt 3 downloaded ZERO results.json files; the report's zeros describe the download, not the suite.
+##[error]INC-100 BROKEN ARTIFACT CONTRACT — attempt 2 downloaded ZERO results.json files; the report's zeros describe the download, not the suite.
 [36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
 [36;1m    || echo "::warning::DEC-030 flake-ledger re-append failed"[0m
 [36;1m  echo "::warning::E2E failure report push failed after retries"[0m
@@ -106,10 +106,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35274975693
-  E2E_HEAD_COMMIT_MESSAGE: Migrated P2 policies to seg[2]
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35278532165
+  E2E_HEAD_COMMIT_MESSAGE: Fixed category proof auth
 
-X-Lovable-Edit-ID: edt-fc1c9605-4e13-4d88-8454-8b847bb7dd0e
+X-Lovable-Edit-ID: edt-a760d5bf-ab23-4d84-aea7-3cba74b2db62
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -123,12 +123,12 @@ context download: 0 context files found.
 Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-   2b4622e..8938f81  dev        -> origin/dev
-HEAD is now at 8938f81 ci: update CI status report [skip ci]
-[dev b72855f] ci: e2e failure report + flake ledger [skip ci]
+   be930ca..4b5efcb  dev        -> origin/dev
+HEAD is now at 4b5efcb ci: update CI status report [skip ci]
+[dev bb1eb98] ci: e2e failure report + flake ledger [skip ci]
  1 file changed, 4 insertions(+), 4 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   8938f81..b72855f  HEAD -> dev
+   4b5efcb..bb1eb98  HEAD -> dev
 ##[group]Run echo "smoke=skipped email=skipped shards=skipped"
 [36;1mecho "smoke=skipped email=skipped shards=skipped"[0m
 [36;1mif [ "skipped" != "success" ] || [ "skipped" != "success" ] || [ "skipped" != "success" ]; then[0m
@@ -144,7 +144,7 @@ smoke=skipped email=skipped shards=skipped
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/7cc2567c-c66b-4fef-99a2-7ddc5dbb20a7' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/2a20c3c3-244a-4e75-a4d8-1dbe6ca557cf' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
