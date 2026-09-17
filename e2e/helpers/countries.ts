@@ -118,6 +118,18 @@ export async function dialogDump(page: Page, label: string): Promise<string> {
   return `[dialog-dump ${label}] open dialogs: ${rendered}`;
 }
 
+/**
+ * R-LT13 — THE ROSTER IS READY WHEN ITS SEARCH FINDS ETHIOPIA. The door orders
+ * OPEN markets first (`is_active DESC, display_order, name_en`), so page 1 is
+ * whatever the catalog and other runs' fixtures make it (J6): a real market is
+ * located through the SEARCH BOX, never by page-1 presence. The needle is left
+ * in place, so the assertions that follow read the searched row.
+ */
+export async function awaitRoster(page: Page, code = "ET", needle = "eth") {
+  await expect(page.getByTestId("country-search")).toBeVisible({ timeout: 20000 });
+  await findRow(page, code, needle);
+}
+
 /** SEARCH IS THE ANCHOR — never page position (the places precedent). */
 export async function findRow(page: Page, code: string, needle?: string): Promise<Locator> {
   await page.getByTestId("country-search").fill(needle ?? code);
@@ -187,28 +199,66 @@ export async function readRootOrder(code: string) {
   return data ?? [];
 }
 
+/** DB truth (J4): how many market rows the roster's total must name. */
+export async function countCountries(): Promise<number> {
+  const { count, error } = await adminClient()
+    .from("countries")
+    .select("code", { count: "exact", head: true });
+  if (error) throw new Error(`[e2e:l2b] counting markets failed: ${error.message}`);
+  return count ?? 0;
+}
+
 /**
- * Destroys a scratch market: its places (deepest first), then its rail order,
- * then the row. Only ever called on a USER-ASSIGNED code.
+ * R-LT13 — DESTRUCTION FAILS LOUDLY. A silent catch is the defect class behind
+ * the leaked OPEN scratch markets that crowded page 1 of both rosters: the
+ * roster orders open markets FIRST, so one unreaped fixture displaces a real
+ * row. Every step is checked and every failure THROWS with the step named:
+ *
+ *   close the market → places deepest-first (the anchor last) → the rail order
+ *   → the roles scoped to it → the country row.
+ *
+ * Only ever called on a USER-ASSIGNED code.
  */
 export async function destroyCountry(code: string) {
   if (!isUserAssigned(code)) throw new Error(`[e2e:l2b] refusing to destroy ${code}`);
   const supabase = adminClient();
-  const { data: places } = await supabase
+  const fail = (step: string, message: string) => {
+    throw new Error(`[e2e:l2b] destroying ${code} failed at ${step}: ${message}`);
+  };
+
+  // CLOSE FIRST: a market that is still open outlives a partial failure as a
+  // roster row ahead of every real market.
+  const closed = await supabase.from("countries").update({ is_active: false }).eq("code", code);
+  if (closed.error) fail("close", closed.error.message);
+
+  const { data: places, error: placesError } = await supabase
     .from("locations")
     .select("id, level")
     .eq("country_code", code);
+  if (placesError) fail("listing places", placesError.message);
   const rank: Record<string, number> = { sub_city: 0, city: 1, region: 2, country: 3 };
   for (const place of [...(places ?? [])].sort(
     (a, b) => (rank[a.level] ?? 9) - (rank[b.level] ?? 9),
   )) {
-    await supabase
+    const translations = await supabase
       .from("entity_translations")
       .delete()
       .eq("entity_type", "location")
       .eq("entity_id", place.id);
-    await supabase.from("locations").delete().eq("id", place.id);
+    if (translations.error)
+      fail(`translations of ${place.level} ${place.id}`, translations.error.message);
+    const deleted = await supabase.from("locations").delete().eq("id", place.id);
+    if (deleted.error) fail(`place ${place.level} ${place.id}`, deleted.error.message);
   }
-  await supabase.from("country_root_order").delete().eq("country_code", code);
-  await supabase.from("countries").delete().eq("code", code);
+
+  const railOrder = await supabase.from("country_root_order").delete().eq("country_code", code);
+  if (railOrder.error) fail("rail order", railOrder.error.message);
+  const roles = await supabase.from("user_roles").delete().eq("scope_country", code);
+  if (roles.error) fail("scoped roles", roles.error.message);
+
+  const row = await supabase.from("countries").delete().eq("code", code);
+  if (row.error) fail("country row", row.error.message);
+
+  const left = await readCountry(code);
+  if (left !== null) fail("verification", "the market row still stands after the delete");
 }

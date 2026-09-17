@@ -3,6 +3,8 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { geometryDump, grantRole } from "./helpers/categories";
 import {
+  awaitRoster,
+  countCountries,
   countryRow,
   destroyCountry,
   findRow,
@@ -67,7 +69,7 @@ test.describe("L2b countries console", () => {
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/countries");
 
-    await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+    await awaitRoster(page);
     const toolbar = page.getByTestId("data-table-toolbar");
     await expect(toolbar).toBeVisible();
     await expect(toolbar.getByTestId("country-toolbar-transfer")).toBeVisible();
@@ -78,22 +80,32 @@ test.describe("L2b countries console", () => {
   }) => {
     await useJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
-    await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("country-search")).toBeVisible({ timeout: 20000 });
 
-    // The pagination total is the roster's own count: never fewer than the six
-    // seed markets, whether or not the ISO seed has been applied here.
-    const total = await page.getByTestId("country-pagination").innerText();
-    const digits = (total.match(/\d+/g) ?? []).map((value) => Number(value));
-    expect(Math.max(...digits, 0), `roster too small\n${total}`).toBeGreaterThanOrEqual(6);
+    // R-LT13 — EVERY MARKET RENDERS is a COUNT against DB truth (J4), never a
+    // page-1 sighting: the roster orders OPEN markets first, so its first page is
+    // whatever the catalog and other runs' fixtures make it (J6). The unfiltered
+    // pagination total must name the number of market rows the service client
+    // counts, and it is read BEFORE any needle narrows the roster.
+    await expect
+      .poll(
+        async () => {
+          const text = await page.getByTestId("country-pagination").innerText();
+          const digits = (text.match(/\d+/g) ?? []).map((value) => Number(value));
+          return Math.max(...digits, 0) === (await countCountries());
+        },
+        { timeout: 20000 },
+      )
+      .toBe(true);
 
+    // Search is the anchor: Ethiopia is located through the box, then its tone.
+    await awaitRoster(page);
     await expect(countryRow(page, "ET").getByTestId("country-ET-status")).toHaveAttribute(
       "data-tone",
       "secondary",
     );
 
-    // Search narrows to Ethiopia; the closed filter then hides every open one.
-    await page.getByTestId("country-search").fill("eth");
-    await expect(countryRow(page, "ET")).toBeVisible();
+    // The closed filter then hides every open one.
     await page.getByTestId("country-search").fill("");
     await page.getByTestId("country-status-filter").selectOption("closed");
     await expect(countryRow(page, "ET")).toHaveCount(0);
@@ -120,7 +132,7 @@ test.describe("L2b countries console", () => {
   }) => {
     await useJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
-    await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+    await awaitRoster(page);
     await expect(page.getByTestId("country-create-open")).toHaveCount(0);
     await expect(page.getByTestId("country-import")).toBeVisible();
   });
@@ -134,7 +146,7 @@ test.describe("L2b countries console", () => {
     try {
       await seedCountry(code);
       await gotoReady(page, "/admin/countries");
-      await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+      await awaitRoster(page);
 
       // A closed market is not published: the public tree refuses it.
       expect((await page.request.get(`/api/locations/${code}`)).status()).toBe(404);
@@ -194,7 +206,7 @@ test.describe("L2b countries console", () => {
     try {
       await seedCountry(code);
       await gotoReady(page, "/admin/countries");
-      await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+      await awaitRoster(page);
 
       await findRow(page, code, code);
       await openEditor(page, code);
@@ -224,7 +236,7 @@ test.describe("L2b countries console", () => {
     try {
       await seedCountry(code);
       await gotoReady(page, "/admin/countries");
-      await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+      await awaitRoster(page);
 
       await openVerb(page, code, "rail-order", code);
       await expect(page.getByTestId("country-rail-dialog")).toBeVisible({ timeout: 20000 });
@@ -279,7 +291,7 @@ test.describe("L2b countries console", () => {
 
     try {
       await gotoReady(page, "/admin/countries");
-      await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+      await awaitRoster(page);
       const toolbar = page.getByTestId("data-table-toolbar");
       await expect(toolbar.getByTestId("country-export")).toBeVisible();
       await expect(toolbar.getByTestId("country-import")).toBeVisible();
@@ -327,7 +339,7 @@ test.describe("L2b countries console", () => {
   }) => {
     await useJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
-    await expect(countryRow(page, "ET")).toBeVisible({ timeout: 20000 });
+    await awaitRoster(page);
 
     const scroller = await page.evaluate(() => {
       const node = document.querySelector('[data-testid="data-table-scroller"]');
