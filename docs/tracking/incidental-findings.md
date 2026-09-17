@@ -2263,7 +2263,7 @@ Defect: for an existing country with action open/close, the commit takes the sta
 
 INC-215 — OPEN. Fix at U6-A2 (an action row applies its field edits, or reports them ignored). Interim rule for curators: profile edits on their own rows.
 
-## INC-216 — leaked open scratch markets crowded both rosters (the LT-13 / CO-* red)
+## INC-216 — leaked open scratch markets crowded both rosters (the LT-13 / CO-\* red)
 
 Defect: LS-11 seeded two scratch markets per run and cleaned up in a finally inside the test body, which a timeout abandons; `destroyCountry` discarded database errors, so partial failures left OPEN markets behind silently; the reaper removed only residue older than three hours. 26 open scratch markets sorted ahead of Ethiopia on the Countries roster and 85 scratch places pushed the Places roster past page 1; LT-13 and CO-1..7 asserted real rows by page-1 presence. Evidence: R-LT13 STEP 1 (staging counts and roster orders); runs 35176748289, 35190393232. Class: layered causes (timeout-abandoned finally · silent catch · reaper window) behind a page-position assertion; supervisor slip: the LT-13 brief assumed page-1 presence.
 
