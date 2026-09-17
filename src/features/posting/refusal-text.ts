@@ -35,6 +35,19 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   rateLimited: "post.refusal.rateLimited",
   messagesRequired: "post.refusal.messagesRequired",
   notYourListing: "post.refusal.notYourListing",
+  // U6-C1b — the attribute validator's own vocabulary (`validate_listing_attributes`).
+  badType: "post.refusal.badType",
+  badPreset: "post.refusal.badPreset",
+  badDecimals: "post.refusal.badDecimals",
+  outOfBounds: "post.refusal.outOfBounds",
+  badMulti: "post.refusal.badMulti",
+  dependentMissing: "post.refusal.dependentMissing",
+  inactiveOption: "post.refusal.inactiveOption",
+  otherNeedsText: "post.refusal.otherNeedsText",
+  unknownOption: "post.refusal.unknownOption",
+  unknownAttribute: "post.refusal.unknownAttribute",
+  notPositive: "post.refusal.notPositive",
+  providerUnavailable: "post.refusal.providerUnavailable",
 };
 
 const PHOTO_REASONS: Record<string, MessageKey> = {
