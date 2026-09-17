@@ -27,7 +27,11 @@ function refusalsOf(payload: Record<string, unknown>): Refusal[] {
   return list.map((entry) => {
     const row = (entry ?? {}) as Record<string, unknown>;
     return {
-      field: String(row["field"] ?? ""),
+      // The attribute authority names the offending definition in `attr_key`
+      // rather than `field` (A1's own vocabulary), and the form's controls are
+      // keyed by exactly that — so both spellings resolve to one `field` here
+      // and a refused detail can never end up without a message under it.
+      field: String(row["field"] ?? row["attr_key"] ?? ""),
       reason: String(row["reason"] ?? ""),
       ...(typeof row["detail"] === "string" ? { detail: row["detail"] } : {}),
     };
