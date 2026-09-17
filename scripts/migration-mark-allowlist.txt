@@ -10,3 +10,4 @@
 20260917210006_86c1bbd7-b80c-4563-b57c-83d4def31bf7.sql | M-MAINT part B declared mark 20260917150000 precedes its filename stamp; ledger row healed to 20260917210006 by the corrective | 20260917210704
 20260917210349_c23b6c76-b29b-4cfe-b559-0d4abc728a9f.sql | M-MAINT proofs P3/P4 declared mark 20260917150500 precedes its filename stamp; ledger row healed to 20260917210349 by the corrective | 20260917210704
 20260917210459_0aa17784-c9c2-4f20-9b60-61ef643484c2.sql | M-MAINT proof P1 declared mark 20260917151000 precedes its filename stamp; ledger row healed to 20260917210459 by the corrective | 20260917210704
+20260917214504_776e63d7-3511-4fb8-a2c0-a57cb33b7e05.sql | M-MAINT proofs P3/P4 corrective run (operator resolved from the database) declared mark 20260917214500 precedes its filename stamp; ledger row healed to 20260917214504 by the corrective | 20260917214536
