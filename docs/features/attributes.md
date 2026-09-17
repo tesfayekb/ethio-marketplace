@@ -736,3 +736,31 @@ server judges every save (F3) and its refusals still render through
 owner's categories appears in no picker and nothing changes).
 
 Console (C3-UX-7/8/9): the option rows carry a search box and, for dependents, a parent filter — view-only, every stored record still round-trips on save (AT-55); the bounds and allowed pickers offer only targets that share a linked category with the definition being edited (the server's rule, pre-applied; a definition linked nowhere yet sees every candidate — AT-56); the attributes import dialog previews a definitions file alone, the links file being optional as the route always allowed (AT-54).
+
+## U6-A1 — the shared resolution and the public reads (2026-09-16)
+
+The effective-set resolution now lives in exactly one place:
+`effective_category_links(p_category_id)` — the nearest link along the PRIMARY
+lineage of `category_tree_pointers` wins. `admin_list_effective_category_links`
+was re-declared WHOLE over it (INC-183), same signature, same gate, same
+ordering; the migration proves identical row sets for `houses`, `cars` and
+`apartments-condos`. The helper itself is `service_role`-only — no client role
+holds EXECUTE on it, so the only client doors remain the gated readers.
+
+Two public reads sit on the same resolution:
+
+- `get_posting_schema(category_id)` — the posting form's whole definition set
+  with `option_count` and `allow_other`, **never the option lists** (DEC-053).
+- `get_attribute_options(attribute_id)` — the ACTIVE options, in stored order,
+  with a `version` for the route's ETag; `get_attribute_options_version` answers
+  the version alone.
+
+Both are callable by `anon` and `authenticated` and carry no `has_permission`
+check: a category and its questions are public knowledge. The console's own
+readers are unchanged.
+
+`validate_listing_attributes(category_id, attrs, prior)` is the ONE authority
+that judges answers (DEC-051) — the refusal vocabulary, the DEC-050 bound tokens
+and option-conditioned folds, and the preset allowlist are documented in
+`docs/features/listings.md`. The attribute console keeps writing definitions; it
+never re-implements the judgement.
