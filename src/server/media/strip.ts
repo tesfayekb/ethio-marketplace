@@ -332,7 +332,7 @@ export function assertStripped(bytes: Uint8Array): StripAudit {
   }
 
   for (const name of FORBIDDEN_NAMES) {
-    if (indexOfAscii(bytes, name) !== -1) found.push(name.replace(/\u0000/g, ""));
+    if (indexOfAscii(bytes, name) !== -1) found.push(name.split("\u0000").join(""));
   }
 
   return { clean: found.length === 0, found };
@@ -340,5 +340,5 @@ export function assertStripped(bytes: Uint8Array): StripAudit {
 
 /** The names `assertStripped` looks for, so a test can report what it searched. */
 export const STRIP_MARKER_NAMES: readonly string[] = FORBIDDEN_NAMES.map((name) =>
-  name.replace(/\u0000/g, ""),
+  name.split("\u0000").join(""),
 );
