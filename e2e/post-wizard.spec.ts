@@ -199,11 +199,13 @@ test.describe("POSTING WIZARD", () => {
     const rows = await photoRowsOf(listingId);
     const row = rows[0];
     expect(row?.exif_stripped, "PW-4: the stored photo is not marked stripped").toBe(true);
+    // Each variant is an object reference (`partition` + `key`), the B1 shape.
     for (const variant of ["cover", "card", "thumb"] as const) {
-      expect(
-        typeof (row?.paths as Record<string, unknown>)[variant],
-        `PW-4: the ${variant} variant is missing`,
-      ).toBe("string");
+      const ref = (row?.paths as Record<string, unknown>)[variant] as
+        | { partition?: unknown; key?: unknown }
+        | undefined;
+      expect(typeof ref?.partition, `PW-4: the ${variant} variant has no partition`).toBe("string");
+      expect(typeof ref?.key, `PW-4: the ${variant} variant has no stored key`).toBe("string");
     }
 
     await page.getByTestId("post-photo-remove").click();
