@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useI18n } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
@@ -144,7 +145,12 @@ export function StepSpecifications({
       <p className="text-sm text-muted-foreground">{t("post.specs.why")}</p>
 
       {schema.attributes.map((def) => {
-        const label = entities.map["attribute"]?.[def.attributeId]?.["label"] ?? def.nameEn;
+        // U4d/B2 — the shared resolver names a definition, never an inline ternary.
+        const label = entityName(
+          "attribute",
+          { id: def.attributeId, nameEn: def.nameEn, nameAm: null },
+          entities,
+        );
         const held = options[def.attrKey] ?? IDLE;
         const refusal = refusalFor(refusals, def.attrKey);
         const controlId = `post-attr-${def.attrKey}`;
