@@ -247,15 +247,74 @@ export async function readDraft(
 }
 
 /**
- * D11 — the posting schema for a leaf: the anon-callable public read, so step 1
- * can say what the form will ask for before the seller commits to the category.
- * A failure is `null`; the caller shows its own caption rather than a stack.
+ * U6-C1b — ONE DEFINITION AS THE FORM NEEDS IT.
+ *
+ * The names are the door's own (`attr_key`, `attr_type`, `min_bound`), carried
+ * across into camelCase ONCE here, so no control reads a snake_case key and no
+ * control invents a field the read does not carry.
  */
-export async function readPostingSchema(categoryId: string): Promise<{
+export interface AttrDef {
+  attributeId: string;
+  attrKey: string;
+  attrType: string;
+  nameEn: string;
+  helpTextEn: string | null;
+  isRequired: boolean;
+  unit: string | null;
+  minBound: string | null;
+  maxBound: string | null;
+  decimals: number | null;
+  format: string | null;
+  preset: string | null;
+  maxLength: number | null;
+  optionCount: number;
+  allowOther: boolean;
+}
+
+export interface PostingSchema {
+  /** How many details this category asks for, and how many of them are required. */
   details: number;
   required: number;
-  raw: unknown;
-} | null> {
+  attributes: AttrDef[];
+}
+
+function str(row: Record<string, unknown>, key: string): string | null {
+  const value = row[key];
+  return typeof value === "string" && value !== "" ? value : null;
+}
+
+function int(row: Record<string, unknown>, key: string): number | null {
+  const value = row[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function shapeDefinition(row: Record<string, unknown>): AttrDef {
+  return {
+    attributeId: str(row, "attribute_id") ?? "",
+    attrKey: str(row, "attr_key") ?? "",
+    attrType: str(row, "attr_type") ?? "text",
+    nameEn: str(row, "name_en") ?? (str(row, "attr_key") ?? ""),
+    helpTextEn: str(row, "help_text_en"),
+    isRequired: row["is_required"] === true,
+    unit: str(row, "unit"),
+    minBound: str(row, "min_bound"),
+    maxBound: str(row, "max_bound"),
+    decimals: int(row, "decimals"),
+    format: str(row, "format"),
+    preset: str(row, "preset"),
+    maxLength: int(row, "max_length"),
+    optionCount: int(row, "option_count") ?? 0,
+    allowOther: row["allow_other"] === true,
+  };
+}
+
+/**
+ * D11 — the posting schema for a leaf: the anon-callable public read. Step 1 uses
+ * the counts to say what the form will ask for before the seller commits to the
+ * category; step 3 builds every control from the definitions.
+ * A failure is `null`; the caller shows its own caption rather than a stack.
+ */
+export async function readPostingSchema(categoryId: string): Promise<PostingSchema | null> {
   const { data, error } = await supabase.rpc("get_posting_schema", {
     p_category_id: categoryId,
   });
@@ -264,9 +323,27 @@ export async function readPostingSchema(categoryId: string): Promise<{
   const definitions = Array.isArray(payload["attributes"])
     ? (payload["attributes"] as Record<string, unknown>[])
     : [];
+  const attributes = definitions.map(shapeDefinition).filter((row) => row.attrKey !== "");
   return {
-    details: definitions.length,
-    required: definitions.filter((row) => row["is_required"] === true).length,
-    raw: data,
+    details: attributes.length,
+    required: attributes.filter((row) => row.isRequired).length,
+    attributes,
   };
+}
+
+/**
+ * `POST /api/listings/assist` (DEC-072) — the writing assistant.
+ *
+ * GROUNDED-ONLY: the body carries the facts the seller already gave and nothing
+ * else, and the answer is a SUGGESTION the seller may edit or discard. A provider
+ * failure comes back as a refusal, so nothing is ever written from a guess (F4).
+ */
+export function requestAssist(body: {
+  categoryId: string;
+  attrs: Record<string, unknown>;
+  locale: string;
+}): Promise<DoorAnswer> {
+  return call("/api/listings/assist", JSON.stringify(body), {
+    "Content-Type": "application/json",
+  });
 }
