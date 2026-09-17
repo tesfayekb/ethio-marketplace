@@ -1,93 +1,139 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35155684382
-- Commit: `073f1a8146dfb7943d97f2e85d666ef015ec2208`
-- Attempt: 2
-- Written (UTC): 2026-09-16T22:16:19.945Z
-- Passed: 751 · Skipped: 70 · Failed: 1
-- Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
-- Post-test errors (DEC-059, non-gating): shard 2, changed
-- Sources without results: none
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35165292681
+- Commit: `368652e101fb53b83d7aa835c1981c93ceb102e3`
+- Attempt: 1
+- Written (UTC): 2026-09-17T00:08:36.330Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): none
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-## Flake ledger (DEC-030)
+## Server errors: smoke
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · admin-translations-data.spec.ts › U4b translations console › TR-34 the Data roster names each row's identity and changes nothing else — Error: expect(received).toBe(expected) // Object.is equality
+## Client errors: smoke
 
-## Post-test errors: shard 2
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+## Server errors: email
 
-```text
-[e2e:teardown] deleted 61 user(s) owned by process 35155684382-2
-```
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
 
-## Post-test errors: changed
+## Client errors: email
 
-changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+No `[client-error]` lines in the `email` log (or no log was uploaded).
 
-```text
-[e2e:teardown] deleted 23 user(s) owned by process 35155684382-changed
-```
+## Server errors: shard 1
 
-## admin-translations-console.spec.ts › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
-- Source: `shard 2`
-- Project: `mobile-360`
+## Client errors: shard 1
 
-```text
-Error: TR-12 step 3: neither the bulk summary nor a run error rendered within 90 s (3 keys queued for scope zxx-mo)
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('ai-bulk-summary').or(getByTestId('ai-bulk-error'))
-Expected: visible
-Timeout: 90000ms
-Error: element(s) not found
-
-Call log:
-  - TR-12 step 3: neither the bulk summary nor a run error rendered within 90 s (3 keys queued for scope zxx-mo) with timeout 90000ms
-  - waiting for getByTestId('ai-bulk-summary').or(getByTestId('ai-bulk-error'))
-
-```
-
-Context:
-
-```text
-          - listitem [ref=e506]:
-            - generic [ref=e507]: About
-          - listitem [ref=e508]:
-            - generic [ref=e509]: How it works
-      - navigation "Help" [ref=e510]:
-        - heading "Help" [level=2] [ref=e511]
-        - list [ref=e512]:
-          - listitem [ref=e513]:
-            - generic [ref=e514]: Safety
-          - listitem [ref=e515]:
-            - generic [ref=e516]: Contact
-      - navigation "Legal" [ref=e517]:
-        - heading "Legal" [level=2] [ref=e518]
-        - list [ref=e519]:
-          - listitem [ref=e520]:
-            - generic [ref=e521]: Terms
-          - listitem [ref=e522]:
-            - generic [ref=e523]: Privacy
-    - paragraph [ref=e525]: © 2026 ethio.com — All rights reserved.
-```
-```
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Server errors: shard 2
 
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-```
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
 
 ## Client errors: shard 2
 
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
+
 ```text
-[client-error] console.error: [client-error] gate fetch threw
-console.error: [client-error] gate fetch threw
+(no log tail was uploaded for this source)
+```
+
+## email: no results file
+
+email: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
 ```
