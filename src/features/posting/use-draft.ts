@@ -25,7 +25,20 @@ const RETRY_MS = 4000;
 
 export interface DraftValues {
   categoryId: string | null;
+  /** Step 3's answers, keyed by `attr_key` exactly as the door validates them. */
+  attributes: Record<string, unknown>;
+  title: string;
+  description: string;
+  videoUrl: string;
 }
+
+const EMPTY_VALUES: DraftValues = {
+  categoryId: null,
+  attributes: {},
+  title: "",
+  description: "",
+  videoUrl: "",
+};
 
 export interface UseDraft {
   listingId: string | null;
