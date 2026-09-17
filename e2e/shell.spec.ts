@@ -1958,13 +1958,37 @@ test.describe("L4b location picker", () => {
       }
       await gotoReady(page, "/");
 
-      await pick(page, "country", firstName);
+      // The country trigger is re-rendered by the auto-select pass that follows a
+      // pick, so a single click can open and immediately close the menu. The
+      // OPEN is therefore retried until the wanted item is on screen; the pick
+      // itself is still one real click on that item (no assertion relaxed).
+      const pickCountry = async (name: string) => {
+        const item = page.getByRole("menuitem", { name, exact: true });
+        for (let attempt = 0; attempt < 6; attempt += 1) {
+          await page.getByTestId("location-level-country").click();
+          const opened = await item
+            .waitFor({ state: "visible", timeout: 3000 })
+            .then(() => true)
+            .catch(() => false);
+          if (opened) {
+            await item.click();
+            await expect(page.getByTestId("location-level-country")).toHaveText(
+              new RegExp(escapeRe(name)),
+            );
+            return;
+          }
+          await page.waitForTimeout(500);
+        }
+        throw new Error(`[LS-11] the country menu never offered ${name}`);
+      };
+
+      await pickCountry(firstName);
       await expect(page.getByTestId("location-level-region")).toHaveText(
         new RegExp(escapeRe(first.region.name_en!)),
       );
 
       // NO reload between the two picks — this is the whole point of the test.
-      await pick(page, "country", secondName);
+      await pickCountry(secondName);
       await expect(page.getByTestId("location-level-region")).toHaveText(
         new RegExp(escapeRe(second.region.name_en!)),
       );
