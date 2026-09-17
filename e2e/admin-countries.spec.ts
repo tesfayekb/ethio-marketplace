@@ -141,7 +141,15 @@ test.describe("L2b countries console", () => {
       await openVerb(page, code, "open", code);
       await expect(page.getByTestId("country-active-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("country-active-confirm").click();
-      await stepUpIfPrompted(page, secret);
+      await awaitGuardedOutcome(
+        page,
+        secret,
+        {
+          poll: async () => (await readCountry(code))?.is_active === true,
+          describe: `CO-4: countries.is_active = true for ${code}`,
+        },
+        { timeout: 30000 },
+      );
       await expect
         .poll(async () => (await readCountry(code))?.is_active, { timeout: 20000 })
         .toBe(true);
@@ -154,7 +162,15 @@ test.describe("L2b countries console", () => {
 
       await openVerb(page, code, "close", code);
       await page.getByTestId("country-active-confirm").click();
-      await stepUpIfPrompted(page, secret);
+      await awaitGuardedOutcome(
+        page,
+        secret,
+        {
+          poll: async () => (await readCountry(code))?.is_active === false,
+          describe: `CO-4: countries.is_active = false for ${code}`,
+        },
+        { timeout: 30000 },
+      );
       await expect
         .poll(async () => (await readCountry(code))?.is_active, { timeout: 20000 })
         .toBe(false);
