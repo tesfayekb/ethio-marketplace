@@ -79,14 +79,14 @@ Two harness facts worth keeping:
 Nothing on this screen is authored. `get_posting_schema` names the details a
 category asks for and each definition's `attr_type` chooses its control:
 
-| `attr_type`     | control                                | notes                                        |
-| --------------- | -------------------------------------- | -------------------------------------------- |
-| `text`          | single-line field                      | `max_length` said, preset shape hinted       |
-| `number`        | numeric field                          | DEC-050 bounds and unit as HINTS             |
-| `date`          | date field                             | —                                            |
-| `boolean`       | attestation checkbox                   | never pre-ticked                             |
-| `single_select` | native picker, options on the FIRST tap | DEC-053; `other` opens its own text field    |
-| `multi_select`  | the same lazy list as checkboxes       | "choose all that apply"                      |
+| `attr_type`     | control                                 | notes                                     |
+| --------------- | --------------------------------------- | ----------------------------------------- |
+| `text`          | single-line field                       | `max_length` said, preset shape hinted    |
+| `number`        | numeric field                           | DEC-050 bounds and unit as HINTS          |
+| `date`          | date field                              | —                                         |
+| `boolean`       | attestation checkbox                    | never pre-ticked                          |
+| `single_select` | native picker, options on the FIRST tap | DEC-053; `other` opens its own text field |
+| `multi_select`  | the same lazy list as checkboxes        | "choose all that apply"                   |
 
 Bounds, lengths and presets are guidance; `validate_listing_attributes` is the
 authority (F3) and its refusal lands beneath the control that earned it. The
