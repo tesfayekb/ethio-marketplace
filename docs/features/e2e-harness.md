@@ -27,10 +27,13 @@ bun run e2e:local -- e2e/<spec>.spec.ts --project=desktop-1280
 `NITRO_PRESET=node-server`, and the staging `VITE_SUPABASE_URL` /
 `VITE_SUPABASE_PUBLISHABLE_KEY` pair taken from `E2E_SUPABASE_URL` /
 `E2E_SUPABASE_PUBLISHABLE_KEY` — then serves that build
-(`E2E_SERVE_BUILT=1 playwright test`) with the arguments passed through.
-Inside the Lovable editor sandbox the script also unsets `LOVABLE_SANDBOX` and
-`DEV_SERVER__PROJECT_PATH`: the config wrapper forces the cloudflare preset when
-it sees either, and the node serve then 404s every client asset.
+(`E2E_SERVE_BUILT=1 playwright test`) with the arguments passed through,
+handing the serve `SUPABASE_SERVICE_ROLE_KEY=$E2E_SUPABASE_SERVICE_ROLE_KEY`
+the same way CI does (DEC-076; the upload route's storage writes and the
+service-only photo door need it). Inside the Lovable editor sandbox the script
+also unsets `LOVABLE_SANDBOX` and `DEV_SERVER__PROJECT_PATH`: the config
+wrapper forces the cloudflare preset when it sees either, and the node serve
+then 404s every client asset.
 Building with the app's own default Supabase pair is what made authenticated
 specs fail locally while CI passed: the served app talked to a project the
 harness never seeded.
