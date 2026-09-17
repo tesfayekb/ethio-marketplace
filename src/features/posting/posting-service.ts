@@ -190,6 +190,8 @@ export interface DraftRow {
   status: string;
   title: string | null;
   description: string | null;
+  videoUrl: string | null;
+  attributes: Record<string, unknown>;
 }
 
 export interface DraftPhotoRow {
