@@ -132,3 +132,15 @@ the category axis; the location row describes the geographic one.
 
 Nothing else needs to move when the feature lands: the UI, the state, and the
 query seam are already in the shape the backend work expects.
+
+## What A2-C changed (INC-217 — market names)
+
+A market's NAME on a public surface is its ANCHOR place's name, so it must
+resolve through the entity bundle like every other place (law D3). The
+open-markets route `/api/locations` now publishes `anchor_id` alongside
+`anchor_slug`, `location-data.ts` carries it as `anchorId`, and the shell's
+country picker renders each market through
+`entityName("location", { id: anchorId, nameEn }, entities)` — the approved
+translation when one exists, `name_en` as the fallback, and `name_en` unchanged
+for a market with no anchor. No further picker behaviour changed: the guess, the
+auto-select law and the saved-area cookie are untouched, and no read was added.

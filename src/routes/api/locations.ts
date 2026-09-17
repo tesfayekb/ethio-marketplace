@@ -34,6 +34,13 @@ interface OpenCountry {
   currency_code: string | null;
   display_order: number | null;
   anchor_slug: string | null;
+  /**
+   * INC-217 — THE MARKET'S ANCHOR PLACE. A market's NAME on a public surface is
+   * the anchor location's name, so the picker can resolve it through the entity
+   * bundle (`entityName('location', anchor_id)`) instead of rendering `name_en`
+   * in English to everyone. The door gained this column in A2-M2.
+   */
+  anchor_id: string | null;
 }
 
 interface CacheEntry {
@@ -102,7 +109,7 @@ function respond(request: Request, entry: CacheEntry): Response {
   });
 }
 
-/** The six published fields and nothing else — no private column travels. */
+/** The published fields and nothing else — no private column travels. */
 function shapeCountry(row: OpenCountry): OpenCountry {
   return {
     code: (row.code ?? "").trim(),
@@ -111,6 +118,7 @@ function shapeCountry(row: OpenCountry): OpenCountry {
     currency_code: row.currency_code,
     display_order: row.display_order,
     anchor_slug: row.anchor_slug,
+    anchor_id: row.anchor_id,
   };
 }
 

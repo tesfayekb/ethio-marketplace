@@ -34,11 +34,16 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
 import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.$country'
+import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/publish'
+import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/identity'
+import { Route as ApiListingsDraftRouteImport } from './routes/api/listings/draft'
+import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/assist'
 import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
 import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
+import { Route as ApiAttributesIdOptionsRouteImport } from './routes/api/attributes.$id.options'
 import { Route as ApiAdminTranslationsImportRouteImport } from './routes/api/admin/translations/import'
 import { Route as ApiAdminLocationsImportRouteImport } from './routes/api/admin/locations/import'
 import { Route as ApiAdminLocationsExportRouteImport } from './routes/api/admin/locations/export'
@@ -174,6 +179,26 @@ const ApiLocationsCountryRoute = ApiLocationsCountryRouteImport.update({
   path: '/$country',
   getParentRoute: () => ApiLocationsRoute,
 } as any)
+const ApiListingsPublishRoute = ApiListingsPublishRouteImport.update({
+  id: '/api/listings/publish',
+  path: '/api/listings/publish',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiListingsIdentityRoute = ApiListingsIdentityRouteImport.update({
+  id: '/api/listings/identity',
+  path: '/api/listings/identity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiListingsDraftRoute = ApiListingsDraftRouteImport.update({
+  id: '/api/listings/draft',
+  path: '/api/listings/draft',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiListingsAssistRoute = ApiListingsAssistRouteImport.update({
+  id: '/api/listings/assist',
+  path: '/api/listings/assist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiI18nLangRoute = ApiI18nLangRouteImport.update({
   id: '/api/i18n/$lang',
   path: '/api/i18n/$lang',
@@ -200,6 +225,11 @@ const AdminImpersonationSessionIdRoute =
     path: '/impersonation/$sessionId',
     getParentRoute: () => AdminRoute,
   } as any)
+const ApiAttributesIdOptionsRoute = ApiAttributesIdOptionsRouteImport.update({
+  id: '/api/attributes/$id/options',
+  path: '/api/attributes/$id/options',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminTranslationsImportRoute =
   ApiAdminTranslationsImportRouteImport.update({
     id: '/api/admin/translations/import',
@@ -283,6 +313,10 @@ export interface FileRoutesByFullPath {
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/listings/assist': typeof ApiListingsAssistRoute
+  '/api/listings/draft': typeof ApiListingsDraftRoute
+  '/api/listings/identity': typeof ApiListingsIdentityRoute
+  '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -293,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/locations/export': typeof ApiAdminLocationsExportRoute
   '/api/admin/locations/import': typeof ApiAdminLocationsImportRoute
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
+  '/api/attributes/$id/options': typeof ApiAttributesIdOptionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -323,6 +358,10 @@ export interface FileRoutesByTo {
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/listings/assist': typeof ApiListingsAssistRoute
+  '/api/listings/draft': typeof ApiListingsDraftRoute
+  '/api/listings/identity': typeof ApiListingsIdentityRoute
+  '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -333,6 +372,7 @@ export interface FileRoutesByTo {
   '/api/admin/locations/export': typeof ApiAdminLocationsExportRoute
   '/api/admin/locations/import': typeof ApiAdminLocationsImportRoute
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
+  '/api/attributes/$id/options': typeof ApiAttributesIdOptionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -365,6 +405,10 @@ export interface FileRoutesById {
   '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/listings/assist': typeof ApiListingsAssistRoute
+  '/api/listings/draft': typeof ApiListingsDraftRoute
+  '/api/listings/identity': typeof ApiListingsIdentityRoute
+  '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -375,6 +419,7 @@ export interface FileRoutesById {
   '/api/admin/locations/export': typeof ApiAdminLocationsExportRoute
   '/api/admin/locations/import': typeof ApiAdminLocationsImportRoute
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
+  '/api/attributes/$id/options': typeof ApiAttributesIdOptionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -408,6 +453,10 @@ export interface FileRouteTypes {
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
     | '/api/i18n/$lang'
+    | '/api/listings/assist'
+    | '/api/listings/draft'
+    | '/api/listings/identity'
+    | '/api/listings/publish'
     | '/api/locations/$country'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -418,6 +467,7 @@ export interface FileRouteTypes {
     | '/api/admin/locations/export'
     | '/api/admin/locations/import'
     | '/api/admin/translations/import'
+    | '/api/attributes/$id/options'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -448,6 +498,10 @@ export interface FileRouteTypes {
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
     | '/api/i18n/$lang'
+    | '/api/listings/assist'
+    | '/api/listings/draft'
+    | '/api/listings/identity'
+    | '/api/listings/publish'
     | '/api/locations/$country'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -458,6 +512,7 @@ export interface FileRouteTypes {
     | '/api/admin/locations/export'
     | '/api/admin/locations/import'
     | '/api/admin/translations/import'
+    | '/api/attributes/$id/options'
   id:
     | '__root__'
     | '/'
@@ -489,6 +544,10 @@ export interface FileRouteTypes {
     | '/admin/translations_/$lang'
     | '/admin/users_/$userId'
     | '/api/i18n/$lang'
+    | '/api/listings/assist'
+    | '/api/listings/draft'
+    | '/api/listings/identity'
+    | '/api/listings/publish'
     | '/api/locations/$country'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -499,6 +558,7 @@ export interface FileRouteTypes {
     | '/api/admin/locations/export'
     | '/api/admin/locations/import'
     | '/api/admin/translations/import'
+    | '/api/attributes/$id/options'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -515,6 +575,10 @@ export interface RootRouteChildren {
   DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevTallRoute: typeof DevTallRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
+  ApiListingsAssistRoute: typeof ApiListingsAssistRoute
+  ApiListingsDraftRoute: typeof ApiListingsDraftRoute
+  ApiListingsIdentityRoute: typeof ApiListingsIdentityRoute
+  ApiListingsPublishRoute: typeof ApiListingsPublishRoute
   ApiAdminAttributesExportRoute: typeof ApiAdminAttributesExportRoute
   ApiAdminAttributesImportRoute: typeof ApiAdminAttributesImportRoute
   ApiAdminCategoriesExportRoute: typeof ApiAdminCategoriesExportRoute
@@ -524,6 +588,7 @@ export interface RootRouteChildren {
   ApiAdminLocationsExportRoute: typeof ApiAdminLocationsExportRoute
   ApiAdminLocationsImportRoute: typeof ApiAdminLocationsImportRoute
   ApiAdminTranslationsImportRoute: typeof ApiAdminTranslationsImportRoute
+  ApiAttributesIdOptionsRoute: typeof ApiAttributesIdOptionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -703,6 +768,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLocationsCountryRouteImport
       parentRoute: typeof ApiLocationsRoute
     }
+    '/api/listings/publish': {
+      id: '/api/listings/publish'
+      path: '/api/listings/publish'
+      fullPath: '/api/listings/publish'
+      preLoaderRoute: typeof ApiListingsPublishRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/listings/identity': {
+      id: '/api/listings/identity'
+      path: '/api/listings/identity'
+      fullPath: '/api/listings/identity'
+      preLoaderRoute: typeof ApiListingsIdentityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/listings/draft': {
+      id: '/api/listings/draft'
+      path: '/api/listings/draft'
+      fullPath: '/api/listings/draft'
+      preLoaderRoute: typeof ApiListingsDraftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/listings/assist': {
+      id: '/api/listings/assist'
+      path: '/api/listings/assist'
+      fullPath: '/api/listings/assist'
+      preLoaderRoute: typeof ApiListingsAssistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/i18n/$lang': {
       id: '/api/i18n/$lang'
       path: '/api/i18n/$lang'
@@ -737,6 +830,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/impersonation/$sessionId'
       preLoaderRoute: typeof AdminImpersonationSessionIdRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/api/attributes/$id/options': {
+      id: '/api/attributes/$id/options'
+      path: '/api/attributes/$id/options'
+      fullPath: '/api/attributes/$id/options'
+      preLoaderRoute: typeof ApiAttributesIdOptionsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/admin/translations/import': {
       id: '/api/admin/translations/import'
@@ -870,6 +970,10 @@ const rootRouteChildren: RootRouteChildren = {
   DevPrimitivesRoute: DevPrimitivesRoute,
   DevTallRoute: DevTallRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,
+  ApiListingsAssistRoute: ApiListingsAssistRoute,
+  ApiListingsDraftRoute: ApiListingsDraftRoute,
+  ApiListingsIdentityRoute: ApiListingsIdentityRoute,
+  ApiListingsPublishRoute: ApiListingsPublishRoute,
   ApiAdminAttributesExportRoute: ApiAdminAttributesExportRoute,
   ApiAdminAttributesImportRoute: ApiAdminAttributesImportRoute,
   ApiAdminCategoriesExportRoute: ApiAdminCategoriesExportRoute,
@@ -879,6 +983,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminLocationsExportRoute: ApiAdminLocationsExportRoute,
   ApiAdminLocationsImportRoute: ApiAdminLocationsImportRoute,
   ApiAdminTranslationsImportRoute: ApiAdminTranslationsImportRoute,
+  ApiAttributesIdOptionsRoute: ApiAttributesIdOptionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

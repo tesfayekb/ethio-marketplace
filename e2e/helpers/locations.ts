@@ -166,6 +166,24 @@ export async function activeRosterSpan(): Promise<{ total: number; countries: st
   };
 }
 
+/**
+ * L2a-R / LT-11 — THE OPEN MARKETS, from DB TRUTH (J4/J6).
+ *
+ * A test may never name a market by hand and may never pick one by POSITION in
+ * the console's select: the roster's order is `is_active DESC, name_en, code`, so
+ * another run's scratch market can sit at any index and the index that used to be
+ * "a different market" can be the SELECTED one. The set is therefore read through
+ * the service client and a market is chosen by VALUE.
+ */
+export async function openMarketCodes(): Promise<string[]> {
+  const { data, error } = await adminClient()
+    .from("countries")
+    .select("code")
+    .eq("is_active", true);
+  if (error) throw new Error(`[e2e:l2a] reading the open markets failed: ${error.message}`);
+  return (data ?? []).map((row) => row.code).sort();
+}
+
 /** DB truth (J4): the scratch location row read through the service client. */
 export async function readLocation(slug: string) {
   const { data, error } = await adminClient()
