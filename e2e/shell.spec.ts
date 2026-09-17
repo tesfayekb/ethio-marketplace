@@ -1946,11 +1946,14 @@ test.describe("L4b location picker", () => {
       // truth, so the page is reloaded until BOTH markets are offered.
       for (let attempt = 0; attempt < 8; attempt += 1) {
         await page.getByTestId("location-level-country").click();
-        const offered = await page
-          .getByRole("menuitem", { name: secondName, exact: true })
-          .isVisible();
+        const offered = await Promise.all(
+          [firstName, secondName].map((name) =>
+            page.getByRole("menuitem", { name, exact: true }).isVisible(),
+          ),
+        );
         await page.keyboard.press("Escape");
-        if (offered) break;
+        if (offered.every(Boolean)) break;
+        expect(attempt, "both scratch markets never reached the country menu").toBeLessThan(7);
         await gotoReady(page, "/");
       }
 
