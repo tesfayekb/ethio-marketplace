@@ -483,3 +483,27 @@ the door's refusal structure at 200, publish landing in `screening` and never
 `active` (DB truth), alias uniqueness case-insensitive, assist within the caps
 from the facts alone, the options route's ETag and 304, the dial's named refusal
 with `resets_at`, and 401 without a bearer on every POST route.
+
+## B1 — the photo routes (2026-09-17)
+
+The pipeline itself — the strip allowlist per format, the partition-keyed storage
+adapter, the upload-time policy pass, every dial and REQ-036's deny-proof — is
+documented in `docs/features/media-pipeline.md`. What belongs to a listing:
+
+- `POST /api/upload/photo` — multipart (`listingId`, `cover`, `card`, `thumb`).
+  Rate dial first, then ownership READ AS THE CALLER through
+  `listings_seller_read` (403 `notYourListing`), then the status gate (409
+  `listingNotOpenForPhotos` outside `draft`/`active`/`reduced`/`rejected`/
+  `held`/`expired`), then the cap (`tooManyPhotos`), then per-variant size,
+  strip, dimension and self-check refusals, then the policy pass on the cover,
+  then storage and `register_listing_photo` as the service role. The first photo
+  becomes the cover. A failure after a put deletes what was put.
+- `DELETE /api/listings/photos/$id` — owner-only; the objects go first, then
+  `remove_listing_photo`.
+- `POST /api/listings/photos/$id` with `{ action: 'cover' }` — owner-only;
+  `set_cover_photo`.
+
+`listing_photos.exif_stripped = true` is written in exactly one place, the upload
+route, and the door that writes it is service-role only: DEC-009's public-read
+gate cannot be claimed by a client. The database stores `{ partition, key }` per
+variant, never a URL.
