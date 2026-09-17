@@ -857,9 +857,7 @@ export async function stepUpIfPrompted(page: Page, secret: string) {
  * The outcome may be a locator OR a DB-truth predicate — many guarded consoles
  * assert database state, not a banner, and those sites deserve the same race.
  */
-export type GuardedOutcome =
-  | Locator
-  | { poll: () => Promise<boolean>; describe: string };
+export type GuardedOutcome = Locator | { poll: () => Promise<boolean>; describe: string };
 
 export async function awaitGuardedOutcome(
   page: Page,
@@ -875,29 +873,30 @@ export async function awaitGuardedOutcome(
       ? await (outcome as Locator).isVisible().catch(() => false)
       : await (outcome as { poll: () => Promise<boolean> }).poll().catch(() => false);
 
-  const deadline = Date.now() + timeout;
   let answered = false;
-  let lastSeen = "neither the outcome nor the step-up modal";
 
-  while (Date.now() < deadline) {
-    if (await reached()) return;
-    if (!answered && (await modal.isVisible().catch(() => false))) {
-      lastSeen = "the step-up modal";
-      await page.getByTestId("step-up-code").fill(totp(secret));
-      await page.getByTestId("step-up-submit").click();
-      await expect(modal).toBeHidden({ timeout: 20000 });
-      await expectAal2(page);
-      answered = true;
-      continue;
-    }
-    await page.waitForTimeout(250);
-  }
-
-  throw new Error(
-    `[e2e:INC-210] the guarded outcome never arrived within ${timeout} ms — waited on ${describe}; last saw ${lastSeen}${
-      answered ? " (the step-up modal was answered)" : ""
-    }`,
-  );
+  // The poller IS the wait (no sleep): each tick reads the outcome first, then
+  // answers the gate once if that is what showed up instead.
+  await expect
+    .poll(
+      async () => {
+        if (await reached()) return "outcome";
+        if (!answered && (await modal.isVisible().catch(() => false))) {
+          await page.getByTestId("step-up-code").fill(totp(secret));
+          await page.getByTestId("step-up-submit").click();
+          await expect(modal).toBeHidden({ timeout: 20000 });
+          await expectAal2(page);
+          answered = true;
+          return (await reached()) ? "outcome" : "step-up answered, still waiting";
+        }
+        return answered ? "step-up answered, still waiting" : "neither yet";
+      },
+      {
+        timeout,
+        message: `[e2e:INC-210] the guarded outcome never arrived within ${timeout} ms — waited on ${describe}`,
+      },
+    )
+    .toBe("outcome");
 }
 
 /**
