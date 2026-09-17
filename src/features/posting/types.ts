@@ -21,7 +21,7 @@ export const STEPS = [
 export const TOTAL_STEPS = STEPS.length;
 
 /** The steps this landing implements; the rest render "opens later" honestly. */
-export const IMPLEMENTED_THROUGH = 2;
+export const IMPLEMENTED_THROUGH = 4;
 
 /** One refusal, exactly as a door or route worded it. Never translated here. */
 export interface Refusal {
