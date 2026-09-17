@@ -68,11 +68,18 @@ export function StepSpecifications({
   values,
   onChange,
   refusals,
+  onFields,
 }: {
   categoryId: string | null;
   values: Record<string, unknown>;
   onChange: (attributes: Record<string, unknown>, immediate: boolean) => void;
   refusals: Refusal[];
+  /**
+   * The detail keys this form actually renders, reported upward so the wizard
+   * knows which refusals already have a control of their own on screen — and
+   * shows every OTHER refusal rather than swallowing it (F4).
+   */
+  onFields?: (attrKeys: string[]) => void;
 }) {
   const { t, entities } = useI18n();
   const [schema, setSchema] = useState<PostingSchema | null>(null);
@@ -92,6 +99,11 @@ export function StepSpecifications({
       cancelled = true;
     };
   }, [categoryId]);
+
+  useEffect(() => {
+    if (!onFields) return;
+    onFields(schema === null ? [] : schema.attributes.map((def) => def.attrKey));
+  }, [schema, onFields]);
 
   /** One control's list, fetched once, on the tap that opens it (DEC-053). */
   const openOptions = (def: AttrDef) => {

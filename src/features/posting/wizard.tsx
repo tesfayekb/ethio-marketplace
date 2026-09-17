@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { PageCard, PAGE_MAIN_CLASS } from "@/components/shell/page-card";
@@ -42,6 +43,17 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const { user, loading: authLoading } = useAuth();
   const draft = useDraft(listingId);
   const { tree, isLoading: treeLoading, error: treeError } = useCategoryTree();
+
+  // Which detail keys step 3 renders: refusals naming one of them are shown
+  // under that control, and every other refusal still reaches the seller (F4).
+  const [specFields, setSpecFields] = useState<string[]>([]);
+  const onSpecFields = useCallback((keys: string[]) => {
+    // I3 — an equality-guarded write: a re-render must not feed a fresh array
+    // back into the state it derives from.
+    setSpecFields((prev) =>
+      prev.length === keys.length && prev.every((key, index) => key === keys[index]) ? prev : keys,
+    );
+  }, []);
 
   const current = STEPS[draft.step - 1] ?? STEPS[0];
   const chosenCategory =
@@ -205,6 +217,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 values={draft.values.attributes}
                 refusals={draft.refusals}
                 onChange={(attributes, immediate) => draft.change({ attributes }, immediate)}
+                onFields={onSpecFields}
               />
             )}
             {draft.step === 4 && (
@@ -237,7 +250,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           // a seller can act on it; only refusals with no field of their own on
           // screen fall through to this list (F4 — never swallowed).
           .filter((refusal) => refusal.field !== "category_id")
-          .filter((refusal) => !(draft.step === 3 && refusal.field !== ""))
+          .filter((refusal) => !(draft.step === 3 && specFields.includes(refusal.field)))
           .filter(
             (refusal) =>
               !(
