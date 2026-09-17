@@ -638,9 +638,14 @@ export default async function globalSetup() {
   // used to be deleted without reading their error.
   for (const row of staleCountries ?? []) {
     if (!USER_ASSIGNED.test(row.code)) continue;
-    const closed = await supabase.from("countries").update({ is_active: false }).eq("code", row.code);
+    const closed = await supabase
+      .from("countries")
+      .update({ is_active: false })
+      .eq("code", row.code);
     if (closed.error) {
-      throw new Error(`[e2e:setup] closing scratch country ${row.code} failed: ${closed.error.message}`);
+      throw new Error(
+        `[e2e:setup] closing scratch country ${row.code} failed: ${closed.error.message}`,
+      );
     }
     const { data: places, error: placesError } = await supabase
       .from("locations")

@@ -996,7 +996,9 @@ test.describe("L2a locations console", () => {
     // client counts, and those places must belong to more than one market.
     await page.getByTestId("location-active-filter").selectOption("active");
     const span = await activeRosterSpan();
-    expect(span.countries.length, `the roster spans one market only\n${span.countries}`,
+    expect(
+      span.countries.length,
+      `the roster spans one market only\n${span.countries}`,
     ).toBeGreaterThanOrEqual(2);
     await expect
       .poll(

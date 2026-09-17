@@ -110,6 +110,7 @@ can never match.
 
 R-LT13 — THE ROSTER ORDERS OPEN MARKETS FIRST (`is_active DESC, display_order,
 name_en`), so a single leaked OPEN scratch market displaces a real row from page
+
 1. Two laws follow:
 
 - **Destruction fails loudly.** `destroyCountry` CLOSES the market first, then

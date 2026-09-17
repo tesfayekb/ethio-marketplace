@@ -245,7 +245,8 @@ export async function destroyCountry(code: string) {
       .delete()
       .eq("entity_type", "location")
       .eq("entity_id", place.id);
-    if (translations.error) fail(`translations of ${place.level} ${place.id}`, translations.error.message);
+    if (translations.error)
+      fail(`translations of ${place.level} ${place.id}`, translations.error.message);
     const deleted = await supabase.from("locations").delete().eq("id", place.id);
     if (deleted.error) fail(`place ${place.level} ${place.id}`, deleted.error.message);
   }
