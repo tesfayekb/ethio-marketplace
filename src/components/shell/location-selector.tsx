@@ -119,9 +119,24 @@ export function LocationSelector() {
       entities,
     );
 
+  /**
+   * INC-217 — A MARKET'S NAME IS ITS ANCHOR PLACE'S NAME, so it resolves through
+   * the entity bundle exactly like every other place (law D3): the approved
+   * Amharic row for the anchor names the market in Amharic, and `name_en` is the
+   * fallback until one exists. A market with no anchor id keeps `name_en`.
+   */
+  const marketLabel = (market: { code: string; nameEn: string; anchorId: string | null }) =>
+    market.anchorId === null
+      ? market.nameEn
+      : entityName(
+          "location",
+          { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
+          entities,
+        );
+
   const marketOptions: Option[] = markets.markets.map((market) => ({
     id: market.code,
-    name: market.nameEn,
+    name: marketLabel(market),
     node: null,
   }));
 
@@ -204,7 +219,7 @@ export function LocationSelector() {
             labelKey="location.country"
             options={marketOptions}
             selectedId={selectedMarket?.code ?? null}
-            selectedName={selectedMarket?.nameEn ?? null}
+            selectedName={selectedMarket === null ? null : marketLabel(selectedMarket)}
             onSelect={(option) => selectLocationCountry(option?.id ?? null)}
           />
           {deeper.map((level) => (

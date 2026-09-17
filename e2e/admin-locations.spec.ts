@@ -23,6 +23,7 @@ import {
   isCardTwin,
   locationRow,
   openEditor,
+  openMarketCodes,
   readLocation,
   readLocationTranslations,
   regionKeyUnder,
@@ -911,19 +912,24 @@ test.describe("L2a locations console", () => {
       .toBe(afterLoad);
 
     // Switching the market is the ONLY thing that fetches.
-    const options = await page.getByTestId("location-country-filter").locator("option").count();
-    if (options > 2) {
-      // option 0 is "All countries" and option 1 is the market already shown.
-      const other = await page
-        .getByTestId("location-country-filter")
-        .locator("option")
-        .nth(2)
-        .getAttribute("value");
-      await page.getByTestId("location-country-filter").selectOption(other!);
-      await expect
-        .poll(() => reads, { timeout: 20000, intervals: [500, 500, 1000] })
-        .toBe(afterLoad + 1);
-    }
+    // LT-11 (U6-A2-C) — the market is chosen by VALUE from the open set read
+    // through the service client, NEVER by option index: the select orders
+    // `is_active DESC, name_en, code`, so another run's scratch market can hold
+    // any index and index 2 was landing on the market ALREADY selected — a
+    // selection that changes no query key and correctly fetches nothing.
+    const select = page.getByTestId("location-country-filter");
+    const values = await select
+      .locator("option")
+      .evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
+    const other = (await openMarketCodes()).find((code) => code !== "ET" && values.includes(code));
+    expect(
+      other,
+      `no second OPEN market to switch to; the select offered ${values.join(", ")}`,
+    ).toBeTruthy();
+    await select.selectOption(other!);
+    await expect
+      .poll(() => reads, { timeout: 20000, intervals: [500, 500, 1000] })
+      .toBe(afterLoad + 1);
   });
 
   test("LT-12 transfer scope: exports and the import title follow the selected country", async ({

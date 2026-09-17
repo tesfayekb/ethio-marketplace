@@ -32,6 +32,11 @@ export interface OpenMarket {
   code: string;
   nameEn: string;
   anchorSlug: string | null;
+  /**
+   * INC-217 — the market's ANCHOR place, so its label resolves through the entity
+   * bundle like every other place name (law D3); `nameEn` stays the fallback.
+   */
+  anchorId: string | null;
   displayOrder: number;
 }
 
@@ -98,6 +103,7 @@ interface MarketsPayload {
     code?: unknown;
     name_en?: unknown;
     anchor_slug?: unknown;
+    anchor_id?: unknown;
     display_order?: unknown;
   }>;
 }
@@ -129,6 +135,7 @@ async function fetchMarkets(): Promise<OpenMarket[]> {
         .toUpperCase(),
       nameEn: String(row.name_en ?? "").trim(),
       anchorSlug: typeof row.anchor_slug === "string" ? row.anchor_slug : null,
+      anchorId: typeof row.anchor_id === "string" ? row.anchor_id : null,
       displayOrder: Number(row.display_order ?? 0),
     }))
     .filter((row) => CODE_RE.test(row.code))

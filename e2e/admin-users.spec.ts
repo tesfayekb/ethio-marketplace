@@ -335,13 +335,24 @@ test.describe("U1 admin users", () => {
     // INC-074: /auth is guarded while authenticated — switchUser signs out first.
     await switchUser(page, scratch.email, scratch.password);
     await gotoReady(page, "/");
+    // U6-A2-C — the door's contract changed with A2-M (step validation, no
+    // client-supplied seller or residency). The SEAM is unchanged: a deactivated
+    // account is refused BEFORE residency and before any field is judged.
     const message = await rpcFromBrowser(page, "submit_listing", {
-      p_seller_id: scratch.id,
+      p_listing_id: null,
+      p_step: 1,
       p_category_id: "00000000-0000-0000-0000-000000000000",
-      p_location_id: "00000000-0000-0000-0000-000000000000",
-      p_title: "U1 seam",
-      p_description: "U1 seam",
-      p_home_country_code: "ET",
+      p_title: null,
+      p_description: null,
+      p_video_url: null,
+      p_attributes: null,
+      p_price_mode: null,
+      p_price_amount: null,
+      p_price_currency: null,
+      p_price_period: null,
+      p_poster_expires_at: null,
+      p_coverage: null,
+      p_contact_pref: null,
     });
     expect(message ?? "").toContain("account is deactivated");
   });

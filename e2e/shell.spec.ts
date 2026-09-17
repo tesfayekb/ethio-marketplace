@@ -1955,19 +1955,14 @@ test.describe("L4b location picker", () => {
     const first = await seedMarket();
     const second = await seedMarket();
     try {
-      await waitForOpenMarket(page, first.code);
-      await waitForOpenMarket(page, second.code);
-      await waitForTreeSlug(page, first.code, first.region.slug);
-      await waitForTreeSlug(page, second.code, second.region.slug);
+      // INC-218 — THE BUDGET WAS THE BUG. This test used to wait on the open-market
+      // route and on each market's tree separately (four 30 s polls) BEFORE the
+      // 40 s in-browser poll below, which alone can exceed the three-minute
+      // budget and made the failure a timeout with nothing named. The in-browser
+      // poll already REVALIDATES the open-market list for both markets, so the
+      // per-market route waits are redundant; only the two trees are still waited
+      // for, and every wait names what it was looking for.
       await gotoReady(page, "/");
-
-      const firstName = await marketName(page, first.code);
-      const secondName = await marketName(page, second.code);
-      // The open-markets route caches for 15 s, so the page may have loaded a
-      // list minted before these markets opened. The list is refreshed IN THE
-      // BROWSER (`cache: "reload"`, so the entry the app reads is the fresh one)
-      // and the page reloaded until both markets are in it — the menu is never
-      // opened just to peek, which would race Radix's own open/close.
       await expect
         .poll(
           async () =>
@@ -1978,12 +1973,16 @@ test.describe("L4b location picker", () => {
             }),
           {
             timeout: 40000,
-            message: "both scratch markets never reached the open-market list",
+            message: `the open-market list never carried both ${first.code} and ${second.code}`,
           },
         )
         .toEqual(expect.arrayContaining([first.code, second.code]));
+      await waitForTreeSlug(page, first.code, first.region.slug);
+      await waitForTreeSlug(page, second.code, second.region.slug);
       await gotoReady(page, "/");
 
+      const firstName = await marketName(page, first.code);
+      const secondName = await marketName(page, second.code);
       // The country trigger is re-rendered by the auto-select pass that follows a
       // pick, so a single click can open and immediately close the menu. The
       // OPEN is therefore retried until the wanted item is on screen; the pick

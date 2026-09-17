@@ -404,3 +404,82 @@ cover promotes the next photo.
 rows, RLS on with a public read policy, `SELECT` to `anon`/`authenticated`,
 `ALL` to `service_role`, birth grants revoked first (INC-212). Every
 `countries.currency_code` in use resolves against it (proven in-migration).
+
+## A2-C — the posting routes (2026-09-17)
+
+Every door of A2-M is reached through ONE route shape. The route owns three
+things and no judgment: the dial, the residency FACT, and the translation of a
+camelCase body into the door's `p_*` parameters. Validation, coverage, price and
+contact laws stay in the door (F3), and a refusal comes back as the door's own
+JSON at status 200 with `ok:false` — never HTML, never a 500 (F4).
+
+### The shared user-scoped client
+
+`src/server/supabase/user-client.ts` is the ONE construction of a request-scoped
+Supabase client (B2/B3): the publishable key plus the request's `Authorization`
+bearer, with `userId` resolved from `auth.getUser()`. It also carries the shared
+`routeJson`, `refusal`, `logRouteError`, `readJsonBody`, `envDial` and
+`consumeRate` helpers. `src/server/imports/gate.ts` now calls it at both of its
+former inline sites; each gate keeps its own refusal wording and status, so the
+import routes' behaviour is unchanged (the import-security suite is the proof).
+
+### The routes
+
+| Route | Door | Dial (env) | Default |
+| --- | --- | --- | --- |
+| `POST /api/listings/draft` | `submit_listing` | `RATE_LIMIT_DRAFT_PER_HOUR` | 30 / hour |
+| `POST /api/listings/publish` | `publish_listing` | `RATE_LIMIT_POST_PER_DAY` | 10 / day |
+| `POST /api/listings/identity` | `save_posting_identity` | `RATE_LIMIT_IDENTITY_PER_DAY` | 20 / day |
+| `POST /api/listings/assist` | Gemini (DEC-072) | `RATE_LIMIT_ASSIST_PER_HOUR` | 30 / hour |
+| `GET /api/attributes/<id>/options` | `get_attribute_options` | — (cached, anon) | — |
+
+The dial runs FIRST on every POST, before a byte of the body is judged, so a
+flood costs one counter row and never a validation pass (DEC-071). A refusal is
+`{ ok:false, refusals:[{ field:"rate", reason:"rateLimited", detail:<resets_at> }] }`.
+
+### Residency on draft (DEC-068)
+
+The draft route calls `residency_country_for(userId, geoGuess(request).country)`
+BEFORE the door. The country comes from the EDGE and never from the body; the
+fact is granted once, so a later call from another country cannot move it. A null
+answer leaves the fact unset and `submit_listing` refuses `residencyUnknown` by
+itself — the route does not pre-empt that verdict.
+
+### Assist (DEC-072)
+
+One Gemini text call with the same server-side key name the category-image
+pipeline uses (`GEMINI_API_KEY`, `GEMINI_TEXT_MODEL`), read inside the handler.
+The prompt carries ONLY the facts the seller entered (category, attribute values,
+optional photo facts) and forbids anything else: no invented condition,
+measurement, price, contact detail or guarantee. The answer is JSON —
+`{ title (≤ 120), description (≤ 1200) }` — in the requested locale, clamped
+server-side. `E2E_FAKE_ASSIST=1` (or the harness-wide `E2E_FAKE_TRANSLATE=1`)
+returns a deterministic pair built from the category slug and the attribute
+values, so no test spends provider credit. A provider failure or an unusable
+answer is `{ field:"assist", reason:"providerUnavailable" }` — never a drafted
+guess.
+
+### The lazy option list (DEC-053)
+
+`GET /api/attributes/<id>/options` is anon-readable public reference data, served
+through the publishable key. Freshness is three layers: the version from
+`get_attribute_options_version` behind a 15 s in-process cache, that version AS
+the ETag (a conditional repeat costs a 304), and
+`public, max-age=300, stale-while-revalidate=3600` for the browser. An id no
+attribute has is a 404, never an empty 200.
+
+### Named deferrals
+
+- The D1 MODERATION GATEWAY: `publish_listing` lands a listing in `screening`
+  and the route marks where the gateway call will go. Nothing in A2-C can make a
+  listing `active`.
+- The categories file's `capabilities` / `default_price_period` cells wait for
+  B1's migration turn, where the SQL planner is re-declared whole (INC-183).
+
+### Proof
+
+`e2e/posting-routes.spec.ts` PR-1..PR-8: residency written once from the edge,
+the door's refusal structure at 200, publish landing in `screening` and never
+`active` (DB truth), alias uniqueness case-insensitive, assist within the caps
+from the facts alone, the options route's ETag and 304, the dial's named refusal
+with `resets_at`, and 401 without a bearer on every POST route.

@@ -18,10 +18,11 @@
  *   7 audit   → one event per preview/commit/undo; [ssr-error] on every failure
  * A rejected file is never stored anywhere.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 
 import { xliffUnits } from "@/features/admin/translations/io-formats";
 import type { Database } from "@/integrations/supabase/types";
+import { userClientFromRequest } from "@/server/supabase/user-client";
 import {
   BOUND_RE,
   FAMILIES,
@@ -754,28 +755,21 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
   if (family === null)
     return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
 
-  const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.toLowerCase().startsWith("bearer ")) {
+  // U6-A2-C (B2/B3) — the SHARED user-scoped client; the wording and the status
+  // of each refusal stay this gate's own (no behaviour change).
+  const caller = await userClientFromRequest(request);
+  if (caller.reason === "serverEnv") {
+    return refuse(path, caller.message, 500, { error: "server error" });
+  }
+  if (caller.reason === "missingBearer") {
     return { ok: false, response: json({ error: "missing bearer token" }, 401) };
   }
-
-  const supabaseUrl = process.env["SUPABASE_URL"] ?? "";
-  const publishable = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
-  if (supabaseUrl === "" || publishable === "") {
-    return refuse(path, "supabase server env missing", 500, { error: "server error" });
-  }
-
-  const supabase = createClient<Database>(supabaseUrl, publishable, {
-    global: { headers: { Authorization: authorization } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData?.user?.id) {
-    console.error(`[ssr-error] ${path} not signed in ${userError?.message ?? ""}`.trim());
+  if (caller.supabase === null || caller.userId === null) {
+    console.error(`[ssr-error] ${path} not signed in ${caller.message}`.trim());
     return { ok: false, response: json({ error: "not signed in" }, 401) };
   }
-  const userId = userData.user.id;
+  const supabase = caller.supabase;
+  const userId = caller.userId;
 
   const audit = async (
     event: "preview" | "commit" | "undo",
@@ -872,27 +866,20 @@ export async function openExportGate(
   if (family === null)
     return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
 
-  const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.toLowerCase().startsWith("bearer ")) {
+  // U6-A2-C (B2/B3) — the SHARED user-scoped client; the wording and the status
+  // of each refusal stay this gate's own (no behaviour change).
+  const caller = await userClientFromRequest(request);
+  if (caller.reason === "serverEnv") {
+    return refuse(path, caller.message, 500, { error: "server error" });
+  }
+  if (caller.reason === "missingBearer") {
     return { ok: false, response: json({ error: "missing bearer token" }, 401) };
   }
-
-  const supabaseUrl = process.env["SUPABASE_URL"] ?? "";
-  const publishable = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
-  if (supabaseUrl === "" || publishable === "") {
-    return refuse(path, "supabase server env missing", 500, { error: "server error" });
-  }
-
-  const supabase = createClient<Database>(supabaseUrl, publishable, {
-    global: { headers: { Authorization: authorization } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData?.user?.id) {
-    console.error(`[ssr-error] ${path} not signed in ${userError?.message ?? ""}`.trim());
+  if (caller.supabase === null || caller.userId === null) {
+    console.error(`[ssr-error] ${path} not signed in ${caller.message}`.trim());
     return { ok: false, response: json({ error: "not signed in" }, 401) };
   }
+  const supabase = caller.supabase;
 
   const scope = scopeParam === null || scopeParam.trim() === "" ? null : scopeParam.trim();
   if (scope !== null && family.scope === "category-slug" && !SLUG_RE.test(scope)) {
@@ -903,5 +890,5 @@ export async function openExportGate(
     return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
   }
 
-  return { ok: true, supabase, userId: userData.user.id, scope };
+  return { ok: true, supabase, userId: caller.userId, scope };
 }
