@@ -43,7 +43,7 @@ export function StepDetails({
   ) => void;
   refusals: Refusal[];
 }) {
-  const { t, lang } = useI18n();
+  const { t, language } = useI18n();
   const [assisting, setAssisting] = useState(false);
   const [assisted, setAssisted] = useState(false);
   const [assistRefusal, setAssistRefusal] = useState<string | null>(null);
@@ -56,7 +56,7 @@ export function StepDetails({
     if (categoryId === null || assisting) return;
     setAssisting(true);
     setAssistRefusal(null);
-    const answer = await requestAssist({ categoryId, attrs: attributes, locale: lang });
+    const answer = await requestAssist({ categoryId, attrs: attributes, locale: language });
     setAssisting(false);
 
     const suggestedTitle = answer.payload["title"];
