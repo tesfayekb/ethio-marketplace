@@ -15,10 +15,14 @@ import {
 } from "./helpers/ui";
 import {
   destroyLocation,
+  readLocationById,
   seedGuessFixture,
   seedScratchChain,
+  seedSingleOptionMarket,
+  waitForOpenMarket,
   waitForTreeSlug,
 } from "./helpers/locations";
+import { destroyCountry } from "./helpers/countries";
 import { adminClient, createUser } from "./helpers/users";
 
 /** Grants a named role via the service role — the staff fixture (see rbac.spec.ts). */
@@ -1809,11 +1813,14 @@ test.describe("L4b location picker", () => {
       await expect(page.getByTestId("location-level-region")).toHaveText(
         new RegExp(escapeRe(fixture.region.name_en!)),
       );
+      // L4b-3: the region is what the GUESS resolved, and the auto-select law
+      // then deepens into the region's ONLY city — so the caption, which always
+      // names the deepest resolved place, names that city.
       await expect(page.getByTestId("location-level-city")).toHaveText(
-        new RegExp(escapeRe(en["location.city"])),
+        new RegExp(escapeRe(fixture.cityName)),
       );
       await expect(page.getByTestId("location-guess-caption")).toHaveText(
-        new RegExp(escapeRe(caption(fixture.region.name_en!))),
+        new RegExp(escapeRe(caption(fixture.cityName))),
       );
     } finally {
       await context.close();
@@ -1903,6 +1910,134 @@ test.describe("L4b location picker", () => {
       await context.close();
       await destroyLocation(chain.region.slug);
       await destroyLocation(fixture.region.slug);
+    }
+  });
+  /**
+   * INC-211 — SWITCHING MARKETS WITHOUT A RELOAD. The picker used to keep the
+   * previous market's tree in state until the new fetch resolved, so the second
+   * market appeared to have no region step and the saved-area cookie could be
+   * written with a node from the market the user had just left. `useCountryTree`
+   * now empties the tree on every country change, and the cookie waits for the
+   * picked market's own tree (asserted here through the SERVICE CLIENT: the
+   * saved node's `country_code` must be the market that was picked).
+   */
+  test("LS-11 picking a second market renders its own tree and saves its own node", async ({
+    page,
+  }) => {
+    // BUDGET (J5): four cache windows are unavoidable here — the open-markets
+    // route and the tree route each cache 15 s, for each of the two markets — so
+    // this test is given three minutes rather than the default one.
+    test.setTimeout(180_000);
+    // TWO SCRATCH markets rather than two reference ones: the open set differs
+    // per project and no reference row may be mutated by a spec (J3).
+    const first = await seedSingleOptionMarket();
+    const second = await seedSingleOptionMarket();
+    try {
+      await waitForOpenMarket(page, first.code);
+      await waitForOpenMarket(page, second.code);
+      await waitForTreeSlug(page, first.code, first.region.slug);
+      await waitForTreeSlug(page, second.code, second.region.slug);
+      await gotoReady(page, "/");
+
+      await pick(page, "country", await marketName(page, first.code));
+      await expect(page.getByTestId("location-level-region")).toHaveText(
+        new RegExp(escapeRe(first.region.name_en!)),
+      );
+
+      // NO reload between the two picks — this is the whole point of the test.
+      await pick(page, "country", await marketName(page, second.code));
+      await expect(page.getByTestId("location-level-region")).toHaveText(
+        new RegExp(escapeRe(second.region.name_en!)),
+      );
+
+      const savedNodeId = async () => {
+        const cookie = String(await page.evaluate("document.cookie"));
+        const raw = /ethio_area=([^;]+)/.exec(cookie)?.[1] ?? "";
+        const value = decodeURIComponent(raw);
+        return value.startsWith(`${second.code}:`) ? value.slice(3) : "";
+      };
+      await expect
+        .poll(savedNodeId, {
+          timeout: 20000,
+          message: "the saved area never named a node of the market that was picked",
+        })
+        .not.toBe("");
+      // DB truth (J4): the saved node belongs to the market that was PICKED,
+      // never to the one just left (INC-211).
+      const node = await readLocationById(await savedNodeId());
+      expect(node?.country_code).toBe(second.code);
+    } finally {
+      await destroyCountry(first.code);
+      await destroyCountry(second.code);
+    }
+  });
+
+  /**
+   * L4b-3 (operator ruling 2026-09-16) — THE AUTO-SELECT LAW. A level with
+   * exactly ONE option is not a choice: the path extends into it by itself, all
+   * the way down. The control still renders that single option, so the selection
+   * remains changeable, and the deepest resolved place is what the row names.
+   */
+  test("LS-12 a market whose every level has one option resolves to the deepest place", async ({
+    page,
+  }) => {
+    const market = await seedSingleOptionMarket();
+    try {
+      await waitForOpenMarket(page, market.code);
+      await waitForTreeSlug(page, market.code, market.city.slug);
+      await gotoReady(page, "/");
+      const marketLabel = await marketName(page, market.code);
+      await pick(page, "country", marketLabel);
+
+      // The region AND the city are reached with no further click.
+      await expect(page.getByTestId("location-level-region")).toHaveText(
+        new RegExp(escapeRe(market.region.name_en!)),
+      );
+      await expect(page.getByTestId("location-level-city")).toHaveText(
+        new RegExp(escapeRe(market.city.name_en!)),
+      );
+      // The deepest control IS the name of the chosen area (INC-041 — the row
+      // never renders a second copy of it), and no deeper level exists.
+      await expect(page.locator("[data-testid^='location-level-']")).toHaveCount(3);
+
+      // Each single option is still OFFERED, so the resolution is changeable.
+      for (const [level, name] of [
+        ["region", market.region.name_en!],
+        ["city", market.city.name_en!],
+      ] as const) {
+        await page.getByTestId(`location-level-${level}`).click();
+        await expect(page.getByRole("menuitem", { name, exact: true })).toBeVisible();
+        await page.keyboard.press("Escape");
+      }
+    } finally {
+      await destroyCountry(market.code);
+    }
+  });
+
+  /** L4b-3 — TWO options are a CHOICE: the walk stops at the region. */
+  test("LS-13 a second city stops the auto-select at the region", async ({ page }) => {
+    const market = await seedSingleOptionMarket();
+    try {
+      const secondCity = await market.addCity();
+      await waitForOpenMarket(page, market.code);
+      await waitForTreeSlug(page, market.code, secondCity.slug);
+      await gotoReady(page, "/");
+      const marketLabel = await marketName(page, market.code);
+      await pick(page, "country", marketLabel);
+
+      await expect(page.getByTestId("location-level-region")).toHaveText(
+        new RegExp(escapeRe(market.region.name_en!)),
+      );
+      // The city step renders (its parent is chosen) but names NOTHING yet.
+      await expect(page.getByTestId("location-level-city")).toHaveText(
+        new RegExp(escapeRe(en["location.city"])),
+      );
+      await page.getByTestId("location-level-city").click();
+      for (const name of [market.city.name_en!, secondCity.name_en!]) {
+        await expect(page.getByRole("menuitem", { name, exact: true })).toBeVisible();
+      }
+    } finally {
+      await destroyCountry(market.code);
     }
   });
 });

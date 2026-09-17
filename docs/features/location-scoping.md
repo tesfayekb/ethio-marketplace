@@ -48,6 +48,32 @@ country forgets it. The GUESS IS NEVER WRITTEN (law 10) — only a choice is.
 **Sub-city.** The cascade renders one step per level that exists in the data, so
 a market with sub-city rows gains a fourth step with no code change (LS-1).
 
+## What A1-R changed (INC-211 + L4b-3)
+
+**The stale tree (INC-211).** `useCountryTree` empties its rows the moment the
+country changes and only then fetches, so no consumer ever sees the previous
+market's tree under the new country. The shell's "a market picked lands on its
+anchor" effect additionally requires the tree in hand to BE that market's tree
+(`treeCountry === locationCountry` and non-empty — the tree payload carries no
+country field, so the reset is what guarantees it), and the saved-area cookie is
+written only then. Picking a second market therefore renders its own region step
+with no reload, and the cookie can never name a node of the market just left.
+
+**The auto-select law (L4b-3, operator ruling 2026-09-16).** A level with exactly
+ONE option is not a choice: the path extends into it by itself, recursively down
+the levels (one region → one city → one sub-city). It is implemented in ONE
+place, `autoExtendPath` in `location-data.ts`, applied by the shell's path
+derivation over the tree it has already cached — NO fetch was added. The control
+still renders that single option, so the resolution stays changeable; the deepest
+selected picker names the resolved place (INC-041 — never a second copy of it);
+and the guess caption follows the deepest resolved node. Auto-select never writes
+the saved-area cookie: only a deliberate pick does (law 10).
+
+Tests: LS-11 (market switch without reload; cookie's node belongs to the picked
+market, checked through the service client), LS-12 (a scratch market with one
+region and one city resolves to the city, both single options still offered),
+LS-13 (a second city stops the walk at the region).
+
 ## The model the feature will implement
 
 **Starting area.** On first visit the user's area is resolved from their IP to

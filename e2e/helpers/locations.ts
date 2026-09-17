@@ -2,6 +2,7 @@ import { type Locator, type Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
 import { assertNoStringifiedLeak } from "./ui";
+import { readAnchor, scratchCountryCode, seedCountry } from "./countries";
 import { adminClient } from "./users";
 
 /**
@@ -365,4 +366,96 @@ export async function waitForTreeSlug(page: Page, countryCode: string, slug: str
   await expect
     .poll(async () => await treeSlugs(page, countryCode), { timeout: 30_000, intervals: [1000] })
     .toContain(slug);
+}
+
+/** DB truth (J4): which market a node belongs to — LS-11's identity check. */
+export async function readLocationById(id: string) {
+  const { data, error } = await adminClient()
+    .from("locations")
+    .select("id, slug, level, country_code, parent_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:l4b3] reading node ${id} failed: ${error.message}`);
+  return data;
+}
+
+/**
+ * The open-markets route keeps the same 15 s in-process cache as the tree, so a
+ * freshly opened scratch market is invisible for up to that long. Seed before
+ * navigate (J7) therefore means waiting on the ROUTE, never on a clock.
+ */
+export async function waitForOpenMarket(page: Page, code: string) {
+  await expect
+    .poll(
+      async () => {
+        const response = await page.request.get("/api/locations");
+        if (!response.ok()) return [];
+        const body = (await response.json()) as { countries?: { code: string }[] };
+        return (body.countries ?? []).map((row) => row.code);
+      },
+      { timeout: 30_000, intervals: [1000] },
+    )
+    .toContain(code);
+}
+
+/**
+ * L4b-3 — A SCRATCH MARKET WITH EXACTLY ONE REGION AND ONE CITY, so the
+ * auto-select law has a market whose every level is a single option. The market
+ * is OPENED for the test (its own country row plus its anchor) and destroyed —
+ * closed and deleted — by `destroyCountry(code)` in `finally`.
+ *
+ * J1/J3: the code comes from the ISO user-assigned ranges and the names are
+ * `e2e-loc-…` scratch slugs, so nothing a real market cares about is touched.
+ */
+export async function seedSingleOptionMarket() {
+  const supabase = adminClient();
+  const code = await scratchCountryCode();
+  await seedCountry(code);
+  const anchor = await readAnchor(code);
+  if (!anchor) throw new Error(`[e2e:l4b3] ${code} was seeded without an anchor place`);
+
+  const place = async (level: string, parentId: string, tag: string) => {
+    const slug = scratchSlug(tag);
+    const needsPoint = level === "city" || level === "sub_city";
+    const { data, error } = await supabase
+      .from("locations")
+      .insert({
+        parent_id: parentId,
+        level,
+        country_code: code,
+        slug,
+        name_en: slug,
+        is_active: true,
+        source: "admin",
+        center_lat: needsPoint ? 9.03 : null,
+        center_lng: needsPoint ? 38.74 : null,
+      })
+      .select("id, slug, name_en, level")
+      .single();
+    if (error || !data) {
+      throw new Error(`[e2e:l4b3] seeding ${level} in ${code} failed: ${error?.message ?? "none"}`);
+    }
+    return data;
+  };
+
+  // The anchor is born INACTIVE (trigger countries_anchor_on_insert); the tree
+  // read requires an ACTIVE anchor and an ACTIVE country, so both are opened.
+  const openAnchor = await supabase
+    .from("locations")
+    .update({ is_active: true })
+    .eq("id", anchor.id);
+  if (openAnchor.error) {
+    throw new Error(`[e2e:l4b3] opening the anchor of ${code} failed: ${openAnchor.error.message}`);
+  }
+  const region = await place("region", anchor.id, "l4b3-region");
+  const city = await place("city", region.id, "l4b3-city");
+  const openCountry = await supabase.from("countries").update({ is_active: true }).eq("code", code);
+  if (openCountry.error) {
+    throw new Error(`[e2e:l4b3] opening ${code} failed: ${openCountry.error.message}`);
+  }
+
+  /** LS-13 — a SECOND city turns the single option back into a choice. */
+  const addCity = async () => await place("city", region.id, "l4b3-city2");
+
+  return { code, anchor, region, city, addCity };
 }

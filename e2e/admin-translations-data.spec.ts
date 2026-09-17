@@ -32,18 +32,67 @@ import { translationMapperSelfTest } from "../src/features/admin/translations/tr
  */
 const SCRATCH_MARKER = /e2e[_-]/i;
 
-export function pruneScratch(value: unknown): unknown {
+/**
+ * INC-214 — THE MARKER REGEX ALONE IS NOT THE IDENTITY. Run 35165292681 shard 2
+ * reddened on a phantom LOCATION entry (`{"name":"አዲስ አበባ 35165292681-5"}`):
+ * a sibling shard's scratch place carries the `e2e-` prefix in its SLUG, but the
+ * bundle serves only the TRANSLATED NAME, which mentions nothing of the sort. A
+ * scratch family is therefore pruned by IDENTITY: the ids (and machine keys) of
+ * every live scratch row are enumerated through the service client at each
+ * capture's own time, and any entry keyed by one is dropped — in addition to the
+ * marker regex, which still catches everything it caught before.
+ */
+export async function scratchIdentities(
+  supabase: ReturnType<typeof adminClient>,
+): Promise<Set<string>> {
+  const ids = new Set<string>();
+  const add = (rows: Record<string, unknown>[] | null, fields: string[]) => {
+    for (const row of rows ?? []) {
+      for (const field of fields) {
+        const value = row[field];
+        if (typeof value === "string" && value !== "") ids.add(value);
+      }
+    }
+  };
+  const [categories, attributes, locations, countries] = await Promise.all([
+    supabase.from("categories").select("id, slug").like("slug", "e2e-%"),
+    supabase.from("attributes").select("id, attr_key").like("attr_key", "e2e\\_attr\\_%"),
+    supabase.from("locations").select("id, slug").like("slug", "e2e-%"),
+    supabase.from("countries").select("code, name_en").like("name_en", "E2E-Scratch-%"),
+  ]);
+  for (const result of [categories, attributes, locations, countries]) {
+    if (result.error) throw new Error(`TR-34 scratch census failed: ${result.error.message}`);
+  }
+  add(categories.data as Record<string, unknown>[] | null, ["id", "slug"]);
+  add(attributes.data as Record<string, unknown>[] | null, ["id", "attr_key"]);
+  add(locations.data as Record<string, unknown>[] | null, ["id", "slug"]);
+  add(countries.data as Record<string, unknown>[] | null, ["code", "name_en"]);
+  return ids;
+}
+
+function isScratch(value: unknown, ids: Set<string>): boolean {
+  const serialized = JSON.stringify(value) ?? "";
+  if (SCRATCH_MARKER.test(serialized)) return true;
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const id = (value as Record<string, unknown>)["id"];
+    if (typeof id === "string" && ids.has(id)) return true;
+  }
+  return false;
+}
+
+export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>()): unknown {
   if (Array.isArray(value)) {
-    return value
-      .filter((entry) => !SCRATCH_MARKER.test(JSON.stringify(entry) ?? ""))
-      .map((entry) => pruneScratch(entry));
+    return value.filter((entry) => !isScratch(entry, ids)).map((entry) => pruneScratch(entry, ids));
   }
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
     for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
       if (SCRATCH_MARKER.test(key)) continue;
-      if (SCRATCH_MARKER.test(JSON.stringify(entry) ?? "")) continue;
-      out[key] = pruneScratch(entry);
+      // The identity prune: an entity keyed by a live scratch id is transient,
+      // whatever its translated name happens to say (INC-214).
+      if (ids.has(key)) continue;
+      if (isScratch(entry, ids)) continue;
+      out[key] = pruneScratch(entry, ids);
     }
     return out;
   }
@@ -581,6 +630,9 @@ export function pruneScratch(value: unknown): unknown {
       // "this landing changed no STABLE entity string", so every transient
       // scratch row is pruned from both captures by the same rule.
       const readBundle = async () => {
+        // INC-214 — the scratch census is taken at THIS capture's own time, so
+        // each capture prunes exactly the fixtures that were live when it read.
+        const ids = await scratchIdentities(supabase);
         const raw = await page.evaluate(async () => {
           const client = (
             window as unknown as {
@@ -592,10 +644,11 @@ export function pruneScratch(value: unknown): unknown {
           const bundle = await client.rpc("get_entity_bundle", { p_lang: "am" });
           return JSON.stringify(bundle.data);
         });
-        return JSON.stringify(pruneScratch(JSON.parse(raw) as unknown));
+        return JSON.stringify(pruneScratch(JSON.parse(raw) as unknown, ids));
       };
 
       const readExports = async (token: string) => {
+        const ids = await scratchIdentities(supabase);
         const out: string[] = [];
         for (const file of ["definitions", "links"]) {
           const response = await page.request.get(`/api/admin/attributes/export?file=${file}`, {
@@ -611,7 +664,14 @@ export function pruneScratch(value: unknown): unknown {
           out.push(
             text
               .split("\r\n")
-              .filter((line) => !line.includes("e2e_attr_") && !line.includes("e2e-cat-"))
+              // The same identity rule as the bundle (INC-214): the marker
+              // prefixes PLUS every live scratch id / machine key.
+              .filter(
+                (line) =>
+                  !line.includes("e2e_attr_") &&
+                  !line.includes("e2e-cat-") &&
+                  ![...ids].some((id) => line.includes(id)),
+              )
               .join("\r\n"),
           );
         }

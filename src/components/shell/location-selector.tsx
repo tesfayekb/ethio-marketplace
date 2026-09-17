@@ -107,6 +107,9 @@ export function LocationSelector() {
   } = useShell();
   const markets = useOpenMarkets();
   const tree = useCountryTree(locationCountry);
+  // INC-211 — rows are used ONLY while they belong to the chosen market, so a
+  // market switch never renders the previous market's levels.
+  const treeNodes = tree.loadedCountry === locationCountry ? tree.nodes : [];
 
   // U4d — the shared resolver, never an inline language ternary (law B2).
   const treeName = (node: TreeNode) =>
@@ -142,7 +145,7 @@ export function LocationSelector() {
       const definition = LEVELS[depth]!;
       const parent = locationPath[depth - 1] ?? null;
       if (parent === null) break;
-      const rows = tree.nodes.filter(
+      const rows = treeNodes.filter(
         (node) => node.level === definition.level && node.parentId === parent.id,
       );
       if (rows.length === 0) break;

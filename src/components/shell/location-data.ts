@@ -213,32 +213,52 @@ export function useOpenMarkets(): { markets: OpenMarket[]; isLoading: boolean; f
 
 export function useCountryTree(country: string | null): {
   nodes: TreeNode[];
+  /**
+   * INC-211 — THE MARKET THE ROWS BELONG TO, published WITH the rows. A guard
+   * that compares the requested country with itself proves nothing: an effect
+   * downstream still reads the previous market's rows from the render in which
+   * the country changed. `loadedCountry` moves in lockstep with `nodes`, so a
+   * consumer can refuse rows that are not the picked market's.
+   */
+  loadedCountry: string | null;
   isLoading: boolean;
   failed: boolean;
 } {
   const [nodes, setNodes] = useState<TreeNode[]>([]);
+  const [loadedCountry, setLoadedCountry] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (country === null) {
       setNodes([]);
+      setLoadedCountry(null);
       setFailed(false);
       setIsLoading(false);
       return;
     }
     let cancelled = false;
+    // INC-211 — THE STALE TREE. The previous market's rows used to survive the
+    // country change until the new fetch resolved, so a consumer (the shell's
+    // anchor effect) could read the OLD market's anchor under the NEW country
+    // and even save it. The tree is therefore emptied FIRST, every time: while
+    // a market's tree is in flight there is no tree at all.
+    setNodes([]);
+    setLoadedCountry(null);
+    setFailed(false);
     setIsLoading(true);
     countryTreeOnce(country)
       .then((rows) => {
         if (cancelled) return;
         setNodes(rows);
+        setLoadedCountry(country);
         setFailed(false);
         setIsLoading(false);
       })
       .catch(() => {
         if (cancelled) return;
         setNodes([]);
+        setLoadedCountry(null);
         setFailed(true);
         setIsLoading(false);
       });
@@ -247,7 +267,7 @@ export function useCountryTree(country: string | null): {
     };
   }, [country]);
 
-  return { nodes, isLoading, failed };
+  return { nodes, loadedCountry, isLoading, failed };
 }
 
 /* -------------------------------- the shapes ------------------------------ */
@@ -289,6 +309,30 @@ export function asLocationNode(node: TreeNode): ShellLocationNode {
     level: node.level,
     parent_id: node.parentId,
   };
+}
+
+/**
+ * L4b-3 (operator ruling 2026-09-16) — THE AUTO-SELECT LAW, as one pure step.
+ *
+ * A level with exactly ONE option is not a choice, so the path extends into it
+ * by itself, recursively (one region → one city → one sub-city). Two or more
+ * options stop the walk: that IS a choice and the user makes it. The control
+ * still renders the single option, so the selection remains changeable.
+ *
+ * Pure: a tree and a path in, a path out. NO fetch is added — the walk reads the
+ * tree the picker has already cached.
+ */
+export function autoExtendPath(nodes: TreeNode[], path: ShellLocationNode[]): ShellLocationNode[] {
+  if (path.length === 0 || nodes.length === 0) return path;
+  const out = [...path];
+  // The tree is at most four levels deep; the bound makes a cycle impossible.
+  for (let step = 0; step < 4; step += 1) {
+    const deepest = out[out.length - 1]!;
+    const children = nodes.filter((node) => node.parentId === deepest.id);
+    if (children.length !== 1) break;
+    out.push(asLocationNode(children[0]!));
+  }
+  return out;
 }
 
 /* ------------------------------- the guess -------------------------------- */

@@ -19,6 +19,7 @@ import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import {
   anchorOf,
   asLocationNode,
+  autoExtendPath,
   clearAreaCookie,
   type GuessFacts,
   parseAreaCookie,
@@ -228,7 +229,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const initialCountry = savedArea?.country ?? guessCountry;
   /** The country whose tree the picker reads; the module cache shares the fetch. */
   const treeCountry = locationCountry ?? initialCountry;
-  const { nodes: treeNodes } = useCountryTree(treeCountry);
+  const { nodes: treeNodes, loadedCountry: treeLoadedCountry } = useCountryTree(treeCountry);
   const appliedRef = useRef(false);
   const pendingSaveRef = useRef(false);
 
@@ -241,7 +242,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       appliedRef.current = true;
       return;
     }
-    if (treeNodes.length === 0) return;
+    if (treeNodes.length === 0 || treeLoadedCountry !== initialCountry) return;
     const anchor = anchorOf(treeNodes);
     if (anchor === null) {
       appliedRef.current = true;
@@ -270,11 +271,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     setPathState([asLocationNode(anchor)]);
     setGuessInUse(false);
-  }, [initialCountry, treeNodes, savedArea, guessCountry, marketsLoading, geo]);
+  }, [initialCountry, treeNodes, treeLoadedCountry, savedArea, guessCountry, marketsLoading, geo]);
 
-  /** A market picked in the picker lands on its anchor as soon as the tree is in. */
+  /**
+   * A market picked in the picker lands on its anchor as soon as ITS OWN tree is
+   * in (INC-211). The tree route's rows carry no country field, so the hook
+   * publishes the market its rows belong to (`loadedCountry`) together with the
+   * rows: only when THAT equals the picked market is the anchor read. Until then
+   * there is no anchor and — decisively — NO cookie write, so the saved area can
+   * never name a place from the market the user just left.
+   */
   useEffect(() => {
     if (locationCountry === null || locationPath.length > 0) return;
+    if (treeLoadedCountry !== locationCountry || treeNodes.length === 0) return;
     const anchor = anchorOf(treeNodes);
     if (anchor === null) return;
     setPathState([asLocationNode(anchor)]);
@@ -282,7 +291,25 @@ export function AppShell({ children }: { children: ReactNode }) {
       writeAreaCookie(locationCountry, anchor.id);
       pendingSaveRef.current = false;
     }
-  }, [locationCountry, locationPath.length, treeNodes]);
+  }, [locationCountry, locationPath.length, treeNodes, treeLoadedCountry]);
+
+  /**
+   * L4b-3 — THE AUTO-SELECT LAW, in ONE place: the shell's path derivation.
+   * Whatever set the path (a pick, the saved area, the guess), a level with
+   * exactly one option extends it, recursively. The walk is pure and adds no
+   * fetch; when the shown area came from the GUESS its caption follows to the
+   * deepest resolved place. The cookie is untouched — only a pick writes it
+   * (law 10 / law 12), so the saved-area flow is unchanged.
+   */
+  useEffect(() => {
+    if (locationPath.length === 0 || treeNodes.length === 0) return;
+    // Only ever walk the tree the rows actually belong to (INC-211).
+    if (treeLoadedCountry !== treeCountry) return;
+    const extended = autoExtendPath(treeNodes, locationPath);
+    if (extended.length === locationPath.length) return;
+    setPathState(extended);
+    if (guessInUse) setGuessNode(extended[extended.length - 1]!);
+  }, [treeNodes, locationPath, treeCountry, treeLoadedCountry, guessInUse]);
 
   const selectLocationCountry = useCallback((code: string | null) => {
     setGuessInUse(false);
