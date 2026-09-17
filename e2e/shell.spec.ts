@@ -1941,21 +1941,22 @@ test.describe("L4b location picker", () => {
 
       const firstName = await marketName(page, first.code);
       const secondName = await marketName(page, second.code);
-      // The open-markets route caches for 15 s and the page may have loaded a
-      // list minted before the second market opened; the menu itself is the
-      // truth, so the page is reloaded until BOTH markets are offered.
+      // The open-markets route caches for 15 s, so the page may have loaded a
+      // list minted before these markets opened. The list is refreshed IN THE
+      // BROWSER (`cache: "reload"`, so the entry the app reads is the fresh one)
+      // and the page reloaded until both markets are in it — the menu is never
+      // opened just to peek, which would race Radix's own open/close.
       for (let attempt = 0; attempt < 8; attempt += 1) {
-        await page.getByTestId("location-level-country").click();
-        const offered = await Promise.all(
-          [firstName, secondName].map((name) =>
-            page.getByRole("menuitem", { name, exact: true }).isVisible(),
-          ),
-        );
-        await page.keyboard.press("Escape");
-        if (offered.every(Boolean)) break;
-        expect(attempt, "both scratch markets never reached the country menu").toBeLessThan(7);
-        await gotoReady(page, "/");
+        const codes = await page.evaluate(async () => {
+          const response = await fetch("/api/locations", { cache: "reload" });
+          const body = (await response.json()) as { countries?: { code?: string }[] };
+          return (body.countries ?? []).map((row) => String(row.code ?? ""));
+        });
+        if (codes.includes(first.code) && codes.includes(second.code)) break;
+        expect(attempt, "both scratch markets never reached the open-market list").toBeLessThan(7);
+        await page.waitForTimeout(2000);
       }
+      await gotoReady(page, "/");
 
       await pick(page, "country", firstName);
       await expect(page.getByTestId("location-level-region")).toHaveText(
