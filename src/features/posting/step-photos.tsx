@@ -108,7 +108,8 @@ export function StepPhotos({
       if (!aliveRef.current) return;
 
       if (answer.ok) {
-        const id = answer.payload["photo_id"];
+        // The B1 route answers with `photoId` (camelCase, its own contract).
+        const id = answer.payload["photoId"];
         patchItem(localId, {
           state: "stored",
           percent: 100,
