@@ -409,8 +409,22 @@ export async function waitForOpenMarket(page: Page, code: string) {
  */
 export async function seedSingleOptionMarket() {
   const supabase = adminClient();
-  const code = await scratchCountryCode();
-  await seedCountry(code);
+  // The user-assigned code space is small and two markets are seeded per test in
+  // parallel projects, so a collision on `countries_pkey` is expected and RETRIED
+  // rather than failing the test (J1 — the fixture must be namespaced AND unique).
+  let code = "";
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const candidate = await scratchCountryCode();
+    try {
+      await seedCountry(candidate);
+      code = candidate;
+      break;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes("countries_pkey")) throw error;
+    }
+  }
+  if (code === "") throw new Error("[e2e:l4b3] no free user-assigned country code after 12 tries");
   const anchor = await readAnchor(code);
   if (!anchor) throw new Error(`[e2e:l4b3] ${code} was seeded without an anchor place`);
 
