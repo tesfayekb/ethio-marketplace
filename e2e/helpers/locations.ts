@@ -143,6 +143,29 @@ export async function openVerb(page: Page, key: string, name: string, needle?: s
   await verb(page, name).click();
 }
 
+/**
+ * R-LT13 — DB TRUTH for the all-countries roster: how many ACTIVE places the
+ * roster renders and which markets they belong to. LT-13 reads the spanning
+ * claim from here rather than from page-1 presence, which the door's
+ * country-code order and another run's fixtures both move (J4/J6).
+ *
+ * Market ANCHORS (level `country`) are excluded, because the roster hides them:
+ * the count must be the rendered set, not the table.
+ */
+export async function activeRosterSpan(): Promise<{ total: number; countries: string[] }> {
+  const { data, error } = await adminClient()
+    .from("locations")
+    .select("country_code")
+    .eq("is_active", true)
+    .neq("level", "country");
+  if (error) throw new Error(`[e2e:l2b] counting active places failed: ${error.message}`);
+  const rows = data ?? [];
+  return {
+    total: rows.length,
+    countries: [...new Set(rows.map((row) => row.country_code))].sort(),
+  };
+}
+
 /** DB truth (J4): the scratch location row read through the service client. */
 export async function readLocation(slug: string) {
   const { data, error } = await adminClient()

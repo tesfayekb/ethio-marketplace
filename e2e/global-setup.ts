@@ -632,21 +632,39 @@ export default async function globalSetup() {
       `[e2e:setup] listing stale scratch countries failed: ${staleCountryError.message}`,
     );
   }
+  // R-LT13 — an OPEN scratch market is reaped exactly like a closed one (the
+  // roster sorts open markets FIRST, so one survivor displaces a real row), and
+  // every child handle is checked: the rail order and the roles scoped to it
+  // used to be deleted without reading their error.
   for (const row of staleCountries ?? []) {
     if (!USER_ASSIGNED.test(row.code)) continue;
-    const { data: places } = await supabase
+    const closed = await supabase.from("countries").update({ is_active: false }).eq("code", row.code);
+    if (closed.error) {
+      throw new Error(`[e2e:setup] closing scratch country ${row.code} failed: ${closed.error.message}`);
+    }
+    const { data: places, error: placesError } = await supabase
       .from("locations")
       .select("id, level")
       .eq("country_code", row.code);
+    if (placesError) {
+      throw new Error(
+        `[e2e:setup] listing places of scratch country ${row.code} failed: ${placesError.message}`,
+      );
+    }
     const ordered = [...(places ?? [])].sort(
       (a, b) => (LEVEL_RANK[a.level] ?? 9) - (LEVEL_RANK[b.level] ?? 9),
     );
     for (const place of ordered) {
-      await supabase
+      const { error: translationError } = await supabase
         .from("entity_translations")
         .delete()
         .eq("entity_type", "location")
         .eq("entity_id", place.id);
+      if (translationError) {
+        throw new Error(
+          `[e2e:setup] reaping translations of scratch place ${place.id} failed: ${translationError.message}`,
+        );
+      }
       const { error: placeError } = await supabase.from("locations").delete().eq("id", place.id);
       if (placeError) {
         throw new Error(
@@ -655,7 +673,24 @@ export default async function globalSetup() {
       }
       reaped += 1;
     }
-    await supabase.from("country_root_order").delete().eq("country_code", row.code);
+    const { error: railError } = await supabase
+      .from("country_root_order")
+      .delete()
+      .eq("country_code", row.code);
+    if (railError) {
+      throw new Error(
+        `[e2e:setup] reaping the rail order of ${row.code} failed: ${railError.message}`,
+      );
+    }
+    const { error: roleScopeError } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("scope_country", row.code);
+    if (roleScopeError) {
+      throw new Error(
+        `[e2e:setup] reaping roles scoped to ${row.code} failed: ${roleScopeError.message}`,
+      );
+    }
     const { error: countryError } = await supabase.from("countries").delete().eq("code", row.code);
     if (countryError) {
       throw new Error(

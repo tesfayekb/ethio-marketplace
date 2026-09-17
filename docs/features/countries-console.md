@@ -108,6 +108,21 @@ Fixtures use ISO 3166-1 USER-ASSIGNED codes (QM–QZ, XA–XZ) and the
 (DEC-062 extension, L2b-C1). No real ISO code is user-assigned, so a real market
 can never match.
 
+R-LT13 — THE ROSTER ORDERS OPEN MARKETS FIRST (`is_active DESC, display_order,
+name_en`), so a single leaked OPEN scratch market displaces a real row from page
+1. Two laws follow:
+
+- **Destruction fails loudly.** `destroyCountry` CLOSES the market first, then
+  deletes its places deepest-first (the anchor last), its rail-order rows and the
+  roles scoped to it, then the country row, verifying the row is gone; every step
+  throws with the failing step named. A silent catch is the defect class. The
+  reaper's country pass does the same, closing before deleting and reading the
+  error of every handle. Tests that seed markets destroy them in a hook, not only
+  in a `finally` the test's own timeout can abandon.
+- **A real row is located through the SEARCH BOX, never by page-1 presence**, and
+  a "every market renders" claim is a COUNT against the service client's own
+  total (J4/J6) read before any needle narrows the roster.
+
 ## Related
 
 - `docs/features/locations-console.md` — the Places roster in the same rail group.

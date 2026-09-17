@@ -1613,6 +1613,28 @@ test.describe("U4h device language star", () => {
  * child-first in `finally`; no reference row is ever written.
  */
 test.describe("L4b location picker", () => {
+  /**
+   * R-LT13 — CLEANUP THAT SURVIVES A TIMEOUT. A `finally` inside a test body is
+   * abandoned when the body exceeds its budget, and the leaked OPEN scratch
+   * markets crowded page 1 of both admin rosters (the door orders open markets
+   * first). Every seeded market is registered here and destroyed in `afterEach`,
+   * which Playwright runs with its own budget even after a timeout;
+   * `destroyCountry` is idempotent, so a body that already cleaned up is fine.
+   */
+  const seededMarkets = new Set<string>();
+
+  async function seedMarket() {
+    const market = await seedSingleOptionMarket();
+    seededMarkets.add(market.code);
+    return market;
+  }
+
+  test.afterEach(async () => {
+    const codes = [...seededMarkets];
+    seededMarkets.clear();
+    for (const code of codes) await destroyCountry(code);
+  });
+
   /** The open markets, straight from the public route (no literal names). */
   async function openMarkets(page: Page) {
     const response = await page.request.get("/api/locations");
@@ -1930,8 +1952,8 @@ test.describe("L4b location picker", () => {
     test.setTimeout(180_000);
     // TWO SCRATCH markets rather than two reference ones: the open set differs
     // per project and no reference row may be mutated by a spec (J3).
-    const first = await seedSingleOptionMarket();
-    const second = await seedSingleOptionMarket();
+    const first = await seedMarket();
+    const second = await seedMarket();
     try {
       await waitForOpenMarket(page, first.code);
       await waitForOpenMarket(page, second.code);
@@ -2025,7 +2047,7 @@ test.describe("L4b location picker", () => {
   test("LS-12 a market whose every level has one option resolves to the deepest place", async ({
     page,
   }) => {
-    const market = await seedSingleOptionMarket();
+    const market = await seedMarket();
     try {
       await waitForOpenMarket(page, market.code);
       await waitForTreeSlug(page, market.code, market.city.slug);
@@ -2060,7 +2082,7 @@ test.describe("L4b location picker", () => {
 
   /** L4b-3 — TWO options are a CHOICE: the walk stops at the region. */
   test("LS-13 a second city stops the auto-select at the region", async ({ page }) => {
-    const market = await seedSingleOptionMarket();
+    const market = await seedMarket();
     try {
       const secondCity = await market.addCity();
       await waitForOpenMarket(page, market.code);

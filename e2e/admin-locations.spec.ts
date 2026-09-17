@@ -15,6 +15,7 @@ import { adminClient, createUser } from "./helpers/users";
 import { geometryDump, grantRole } from "./helpers/categories";
 import {
   actionsOf,
+  activeRosterSpan,
   anchorOf,
   destroyLocation,
   editButton,
@@ -988,14 +989,38 @@ test.describe("L2a locations console", () => {
     expect(first?.value, "the picker's first option is not the all-countries scope").toBe("");
     expect(first?.text).toBe(en["admin.locations.filter.allCountriesOption"]);
 
-    // Regions from BOTH open markets stand in the one roster; anchors do not.
+    // R-LT13 — THE ROSTER SPANS MARKETS is read from DB TRUTH (J4/J6), never
+    // from page 1: the door orders by country code, so a single market's tree
+    // fills the first page and another run's fixtures shift every position.
+    // The total the roster names must be the number of ACTIVE places the service
+    // client counts, and those places must belong to more than one market.
     await page.getByTestId("location-active-filter").selectOption("active");
+    const span = await activeRosterSpan();
+    expect(span.countries.length, `the roster spans one market only\n${span.countries}`,
+    ).toBeGreaterThanOrEqual(2);
+    await expect
+      .poll(
+        async () => {
+          const text = await page.getByTestId("location-pagination").innerText();
+          const digits = (text.match(/\d+/g) ?? []).map((value) => Number(value));
+          return Math.max(...digits, 0) === span.total;
+        },
+        { timeout: 20000 },
+      )
+      .toBe(true);
+
+    // A REAL ROW of each market is located through the SEARCH BOX.
     const et = await anchorOf("ET");
     const us = await anchorOf("US");
-    await expect(locationRow(page, await regionKeyUnder("ET"))).toBeVisible({ timeout: 20000 });
-    await expect(locationRow(page, await regionKeyUnder("US"))).toBeVisible({ timeout: 20000 });
-    await expect(locationRow(page, et.slug)).toHaveCount(0);
-    await expect(locationRow(page, us.slug)).toHaveCount(0);
+    await findRow(page, await regionKeyUnder("ET"));
+    await findRow(page, await regionKeyUnder("US"));
+
+    // Anchors are excluded even when the search NAMES them.
+    for (const anchor of [et, us]) {
+      await page.getByTestId("location-search").fill(anchor.slug);
+      await expect(locationRow(page, anchor.slug)).toHaveCount(0);
+    }
+    await page.getByTestId("location-search").fill("");
 
     // The transfer group is unscoped, and the import dialog says so.
     // L2d — the caption is inline and carries its separator, so it CONTAINS
