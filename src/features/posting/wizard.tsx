@@ -7,7 +7,9 @@ import { useI18n } from "@/i18n";
 
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { StepCategory } from "./step-category";
+import { StepDetails } from "./step-details";
 import { StepPhotos } from "./step-photos";
+import { StepSpecifications } from "./step-specifications";
 import { useDraft } from "./use-draft";
 import { IMPLEMENTED_THROUGH, STEPS, TOTAL_STEPS } from "./types";
 
@@ -45,13 +47,25 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const chosenCategory =
     draft.values.categoryId === null ? null : (tree.byId.get(draft.values.categoryId) ?? null);
 
-  /** The step's own client-side completeness — the door decides for real. */
+  /**
+   * The step's own client-side completeness — the door decides for real.
+   *
+   * STEP 3 IS DELIBERATELY ALWAYS READY: which details a category REQUIRES is the
+   * validator's judgement (it knows dependencies, presets and bounds), so mirroring
+   * it here would risk a form that blocks what the door would accept, or worse,
+   * lets through what it refuses. `Next` sends, and a missing answer comes back as
+   * a refusal under its own control.
+   */
   const stepReady =
     draft.step === 1
       ? draft.values.categoryId !== null
       : draft.step === 2
         ? draft.photos.length > 0
-        : false;
+        : draft.step === 3
+          ? true
+          : draft.step === 4
+            ? draft.values.title.trim() !== "" && draft.values.description.trim() !== ""
+            : false;
 
   // A signed-out visitor is TOLD to sign in rather than redirected: `/post` is a
   // public route, and an auth gate here would both lose the intent and put a
@@ -184,6 +198,25 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
               <p className="mt-3 text-xs text-muted-foreground" data-testid="post-photos-needone">
                 {t("post.photos.needOne")}
               </p>
+            )}
+            {draft.step === 3 && (
+              <StepSpecifications
+                categoryId={draft.values.categoryId}
+                values={draft.values.attributes}
+                refusals={draft.refusals}
+                onChange={(attributes, immediate) => draft.change({ attributes }, immediate)}
+              />
+            )}
+            {draft.step === 4 && (
+              <StepDetails
+                categoryId={draft.values.categoryId}
+                attributes={draft.values.attributes}
+                title={draft.values.title}
+                description={draft.values.description}
+                videoUrl={draft.values.videoUrl}
+                refusals={draft.refusals}
+                onChange={(patch, immediate) => draft.change(patch, immediate)}
+              />
             )}
             {draft.step > IMPLEMENTED_THROUGH && (
               <p className="text-sm text-muted-foreground" data-testid="post-step-later">
