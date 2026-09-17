@@ -232,7 +232,19 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           </p>
         )}
         {draft.refusals
+          // A refusal is shown ONCE. Steps 3 and 4 render every refusal that
+          // names one of their own controls beneath that control, which is where
+          // a seller can act on it; only refusals with no field of their own on
+          // screen fall through to this list (F4 — never swallowed).
           .filter((refusal) => refusal.field !== "category_id")
+          .filter((refusal) => !(draft.step === 3 && refusal.field !== ""))
+          .filter(
+            (refusal) =>
+              !(
+                draft.step === 4 &&
+                ["title", "description", "video_url", "videoUrl"].includes(refusal.field)
+              ),
+          )
           .map((refusal) => (
             <p
               key={`${refusal.field}:${refusal.reason}`}
