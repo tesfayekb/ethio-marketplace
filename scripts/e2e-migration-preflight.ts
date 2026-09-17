@@ -35,12 +35,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REAL_MIGRATIONS_DIR = join(HERE, "..", "supabase", "migrations");
+const REAL_MARK_ALLOWLIST = join(HERE, "migration-mark-allowlist.txt");
 /**
  * DEC-054: the only knob the --self-test mode turns. It points the SAME reader
  * and the SAME healer logic at fixture directories; nothing about healedMark
  * changes.
  */
 let MIGRATIONS_DIR = REAL_MIGRATIONS_DIR;
+let MARK_ALLOWLIST_FILE = REAL_MARK_ALLOWLIST;
 const PROD_REF = "zwmvxvzzvjvtdcfcwiuf";
 
 type Probe = { kind: "function" | "table"; name: string };
@@ -114,7 +116,29 @@ function healedMark(mark: string): string {
  */
 export function missingAgainstLedger(local: string[], applied: string[]): string[] {
   const appliedSet = new Set(applied);
-  return local.filter((f) => !appliedSet.has(declaredMark(f)));
+  return local.filter((f) => !acceptableMarks(f).some((mark) => appliedSet.has(mark)));
+}
+
+/**
+ * DEC-022 allowlisted files may be healed by a later migration that INSERTS the
+ * immutable file's timestamp into the ledger. In that case either the original
+ * declared mark or the approved filename mark proves application. The allowlist
+ * remains the authority; arbitrary filename marks are never accepted.
+ */
+function acceptableMarks(filename: string): string[] {
+  const marks = new Set<string>([declaredMark(filename)]);
+  let allowlist = "";
+  try {
+    allowlist = readFileSync(MARK_ALLOWLIST_FILE, "utf8");
+  } catch {
+    return [...marks];
+  }
+  const listed = allowlist.split("\n").some((line) => {
+    const [name] = line.split("|");
+    return name?.trim() === filename;
+  });
+  if (listed) marks.add(versionOf(filename));
+  return [...marks];
 }
 
 function serviceClient(): { client: SupabaseClient; url: string } {
@@ -308,6 +332,7 @@ function literalMarks(dir: string): Set<string> {
 
 function pointAtFixtureDir(dir: string): void {
   MIGRATIONS_DIR = dir;
+  MARK_ALLOWLIST_FILE = join(dir, "migration-mark-allowlist.txt");
   healMap = null; // recompute the remap from the fixture set
 }
 
@@ -355,6 +380,18 @@ export function selfTest(): number {
       ledger: ["20250101000000", "20260102000000"],
       expectMissing: [],
     },
+    {
+      name: "e. allowlisted insert healer — filename mark → 0 missing",
+      dir: "allowlisted-insert",
+      ledger: ["20260101000000", "20260102000000"],
+      expectMissing: [],
+    },
+    {
+      name: "e. allowlisted insert healer — neither mark → 1 missing (bad input)",
+      dir: "allowlisted-insert",
+      ledger: ["20260102000000"],
+      expectMissing: ["20260101000000_a-declares-below-stamp.sql"],
+    },
   ];
 
   let failures = 0;
@@ -392,6 +429,7 @@ export function selfTest(): number {
   }
 
   MIGRATIONS_DIR = REAL_MIGRATIONS_DIR;
+  MARK_ALLOWLIST_FILE = REAL_MARK_ALLOWLIST;
   healMap = null;
 
   if (failures > 0) {

@@ -1,0 +1,4 @@
+INSERT INTO public.migration_marks (version) VALUES ('20260101000000')
+ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks (version) VALUES ('20260102000000')
+ON CONFLICT DO NOTHING;
