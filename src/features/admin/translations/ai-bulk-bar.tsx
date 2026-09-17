@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   AlertDialog,
@@ -187,8 +187,34 @@ export function AiBulkBar({
   const busy = progress !== null || translate.isPending;
   const countKnown = countState === "success";
 
+  /**
+   * INC-219 — READINESS IS A FACT, NOT A HOPE. A click that lands before the
+   * effects have run reaches a button whose handler is not yet live, and the run
+   * never starts — 54 TR-12 ledger entries of exactly that. The flag is set in an
+   * effect, so `data-ready="true"` means the handlers are mounted, and the test
+   * waits for it instead of for visibility alone.
+   */
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+
+  /** The run state, readable from outside: one attribute, five values. */
+  const runState = errorKey
+    ? "error"
+    : busy
+      ? "running"
+      : confirming
+        ? "confirming"
+        : summary
+          ? "done"
+          : "idle";
+
   return (
-    <div data-testid="ai-bulk-bar" className="flex min-w-0 flex-col gap-2">
+    <div
+      data-testid="ai-bulk-bar"
+      data-run-state={runState}
+      {...(progress ? { "data-progress": `${progress.done}/${progress.total}` } : {})}
+      className="flex min-w-0 flex-col gap-2"
+    >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <Button
           type="button"
@@ -196,7 +222,8 @@ export function AiBulkBar({
           className="min-h-11"
           data-testid="ai-bulk-start"
           data-count-state={countState}
-          disabled={busy || !countKnown || untranslated === 0}
+          data-ready={ready ? "true" : "false"}
+          disabled={!ready || busy || !countKnown || untranslated === 0}
           onClick={() => setConfirming(true)}
         >
           {countKnown
@@ -262,7 +289,12 @@ export function AiBulkBar({
             <AlertDialogCancel data-testid="ai-bulk-cancel">
               {t("admin.translations.ai.cancel")}
             </AlertDialogCancel>
-            <AlertDialogAction data-testid="ai-bulk-confirm-run" onClick={start}>
+            <AlertDialogAction
+              data-testid="ai-bulk-confirm-run"
+              data-ready={ready ? "true" : "false"}
+              disabled={!ready}
+              onClick={start}
+            >
               {t("admin.translations.ai.confirmCta").replace("{count}", String(untranslated))}
             </AlertDialogAction>
           </AlertDialogFooter>

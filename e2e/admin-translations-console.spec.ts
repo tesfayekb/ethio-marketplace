@@ -576,16 +576,38 @@ test.describe("U4b translations console", () => {
 
       // INC-185 — every wait names its step and the value it waited on, so a
       // timeout in the ledger reads as a sentence instead of a bare locator.
+      const bar = page.getByTestId("ai-bulk-bar");
+      const barState = async () =>
+        `run-state=${(await bar.getAttribute("data-run-state")) ?? "?"} progress=${
+          (await bar.getAttribute("data-progress")) ?? "-"
+        }`;
+
+      // INC-219 — VISIBILITY IS NOT READINESS. The button renders before its
+      // handlers are mounted, and a click that lands in that window is lost with
+      // no trace (54 ledger entries). `data-ready="true"` is set in an effect, so
+      // it is the fact that the click can be received.
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton, {
-        message: `TR-12 step 1: the bulk-AI start button never became visible for scope ${fence}`,
-      }).toBeVisible({ timeout: 20000 });
+        message: `TR-12 step 1: the bulk-AI start button never became ready for scope ${fence}`,
+      }).toHaveAttribute("data-ready", "true", { timeout: 20000 });
 
       await startButton.click();
       await expect(page.getByTestId("ai-bulk-confirm"), {
         message: `TR-12 step 2: the confirm dialog never opened for scope ${fence}`,
       }).toBeVisible();
-      await page.getByTestId("ai-bulk-confirm-run").click();
+      const confirmRun = page.getByTestId("ai-bulk-confirm-run");
+      await expect(confirmRun, {
+        message: `TR-12 step 2: the confirm's run action never became ready for scope ${fence}`,
+      }).toHaveAttribute("data-ready", "true", { timeout: 10_000 });
+      await confirmRun.click();
+
+      // INC-219 — the state must LEAVE `confirming` within 10 s. If it does not,
+      // the click was lost, and the failure says so instead of timing out at 90 s
+      // on a summary that was never going to arrive.
+      await expect(bar, {
+        message: `TR-12 step 2b: the bulk bar never left the confirming state for scope ${fence} — the run click was lost (${await barState()})`,
+      }).not.toHaveAttribute("data-run-state", "confirming", { timeout: 10_000 });
+
       // VISIBILITY only — a localized summary string is never a count (INC-096g).
       // INC-207 — the run either summarises or names its refusal; waiting on the
       // summary alone turned a real failure into a mute 90 s timeout.
@@ -593,9 +615,17 @@ test.describe("U4b translations console", () => {
       // the modal is answered, and the outcome is still awaited in full.
       const summary = page.getByTestId("ai-bulk-summary");
       const runError = page.getByTestId("ai-bulk-error");
-      await awaitGuardedOutcome(page, secret, summary.or(runError), { timeout: 90_000 });
+      try {
+        await awaitGuardedOutcome(page, secret, summary.or(runError), { timeout: 90_000 });
+      } catch (failure) {
+        throw new Error(
+          `TR-12 step 3: the guarded bulk run never resolved for scope ${fence} (${await barState()}) — ${
+            failure instanceof Error ? failure.message : String(failure)
+          }`,
+        );
+      }
       await expect(summary.or(runError), {
-        message: `TR-12 step 3: neither the bulk summary nor a run error rendered within 90 s (${keys.length} keys queued for scope ${fence})`,
+        message: `TR-12 step 3: neither the bulk summary nor a run error rendered within 90 s (${keys.length} keys queued for scope ${fence}, ${await barState()})`,
       }).toBeVisible({ timeout: 90000 });
       if (await runError.isVisible()) {
         throw new Error(`TR-12 step 3: the bulk run failed — ${await runError.innerText()}`);
