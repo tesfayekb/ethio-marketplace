@@ -1946,16 +1946,20 @@ test.describe("L4b location picker", () => {
       // BROWSER (`cache: "reload"`, so the entry the app reads is the fresh one)
       // and the page reloaded until both markets are in it — the menu is never
       // opened just to peek, which would race Radix's own open/close.
-      for (let attempt = 0; attempt < 8; attempt += 1) {
-        const codes = await page.evaluate(async () => {
-          const response = await fetch("/api/locations", { cache: "reload" });
-          const body = (await response.json()) as { countries?: { code?: string }[] };
-          return (body.countries ?? []).map((row) => String(row.code ?? ""));
-        });
-        if (codes.includes(first.code) && codes.includes(second.code)) break;
-        expect(attempt, "both scratch markets never reached the open-market list").toBeLessThan(7);
-        await page.waitForTimeout(2000);
-      }
+      await expect
+        .poll(
+          async () =>
+            page.evaluate(async () => {
+              const response = await fetch("/api/locations", { cache: "reload" });
+              const body = (await response.json()) as { countries?: { code?: string }[] };
+              return (body.countries ?? []).map((row) => String(row.code ?? ""));
+            }),
+          {
+            timeout: 40000,
+            message: "both scratch markets never reached the open-market list",
+          },
+        )
+        .toEqual(expect.arrayContaining([first.code, second.code]));
       await gotoReady(page, "/");
 
       // The country trigger is re-rendered by the auto-select pass that follows a
@@ -1977,7 +1981,6 @@ test.describe("L4b location picker", () => {
             );
             return;
           }
-          await page.waitForTimeout(500);
         }
         throw new Error(`[LS-11] the country menu never offered ${name}`);
       };
