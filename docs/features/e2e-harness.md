@@ -95,13 +95,13 @@ exercises the profile read through the correct owner-authenticated path.
 
 ## Environment
 
-| Name                            | Where                  | Notes                                                   |
-| ------------------------------- | ---------------------- | ------------------------------------------------------- |
-| `E2E_SUPABASE_URL`              | workflow env (literal) | Staging URL, non-secret                                 |
-| `E2E_SUPABASE_PUBLISHABLE_KEY`  | Actions **variable**   | Publishable/anon key, non-secret                        |
-| `E2E_SUPABASE_SERVICE_ROLE_KEY` | Actions **secret**     | Admin API only; setup/teardown, never a browser context |
+| Name                            | Where                                             | Notes                                                                                                                                                               |
+| ------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `E2E_SUPABASE_URL`              | workflow env (literal)                            | Staging URL, non-secret                                                                                                                                             |
+| `E2E_SUPABASE_PUBLISHABLE_KEY`  | Actions **variable**                              | Publishable/anon key, non-secret                                                                                                                                    |
+| `E2E_SUPABASE_SERVICE_ROLE_KEY` | Actions **secret**                                | Admin API only; setup/teardown, never a browser context                                                                                                             |
 | `SUPABASE_SERVICE_ROLE_KEY`     | `secrets.E2E_SUPABASE_SERVICE_ROLE_KEY` (DEC-076) | The app's own serve env on every E2E serving job and `e2e:local` — the upload route's storage writes and the service-only photo door; still never a browser context |
-| `E2E_USER_PASSWORD`             | optional               | Generated per run when unset (preferred)                |
+| `E2E_USER_PASSWORD`             | optional                                          | Generated per run when unset (preferred)                                                                                                                            |
 
 ## Test data isolation
 
