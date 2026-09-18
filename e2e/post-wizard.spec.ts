@@ -626,6 +626,8 @@ test.describe("POSTING WIZARD", () => {
       (await openRailScope(page)).getByTestId("post-entry"),
       "PW-15: the My Listings menu is not visible while posting",
     ).toBeVisible();
+    // Close the drawer before switching panels (it overlays the band on mobile).
+    await page.keyboard.press("Escape");
 
     await page.getByTestId("panel-tab-account").click();
     await expect(
