@@ -276,7 +276,7 @@ export async function destroyCategoryBranch(slugs: string[]): Promise<void> {
 export async function draftsOf(sellerId: string) {
   const { data, error } = await adminClient()
     .from("listings")
-    .select("id, category_id, draft_step, status")
+    .select("id, category_id, draft_step, status, attributes")
     .eq("seller_id", sellerId)
     .order("created_at", { ascending: true });
   if (error) throw new Error(`[e2e:c1a] reading the seller's drafts failed: ${error.message}`);
