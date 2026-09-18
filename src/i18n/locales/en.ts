@@ -2098,8 +2098,7 @@ export const en = {
   "post.review.activeWindowHint": "Any day within this category's {days}-day window.",
 
   // ---- U6-C1-R2 — the second operator walk's corrections -------------------
-  "post.photos.helper":
-    "Up to {max} photos · JPG, PNG or WebP · up to 6 MB · at least 480 px wide",
+  "post.photos.helper": "Up to {max} photos · JPG, PNG or WebP · up to 6 MB · at least 480 px wide",
   "post.specs.unitsLater": "Unit lists and default amounts per category come later.",
   "post.assist.triesLeft": "{left} of {max} tries left",
   "post.assist.exhausted": "You have used all {max} writing tries for this listing.",
