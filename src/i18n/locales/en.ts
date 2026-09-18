@@ -2006,7 +2006,8 @@ export const en = {
   "post.refusal.badHandle": "That does not look like a working number or handle.",
   "post.refusal.showNeedsValue": "Fill this in before you show it to buyers.",
   "post.refusal.unknownCountry": "That market is not on record.",
-  "post.refusal.countryAlreadyConfirmed": "Your home country is already set and cannot change here.",
+  "post.refusal.countryAlreadyConfirmed":
+    "Your home country is already set and cannot change here.",
   "post.specs.why": "These details are what buyers filter and search by.",
   "post.specs.needCategory": "Choose a category first.",
   "post.specs.none": "This category asks for no extra details.",

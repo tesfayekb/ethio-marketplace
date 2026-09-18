@@ -349,7 +349,9 @@ test.describe("PHOTO PIPELINE", () => {
       page.getByTestId("post-photo-retry"),
       "PP-10: a refusal is final — no retry may be offered",
     ).toHaveCount(0);
-    expect(await photoRowsOf(listingId), "PP-10: a refused photo is not registered").toHaveLength(0);
+    expect(await photoRowsOf(listingId), "PP-10: a refused photo is not registered").toHaveLength(
+      0,
+    );
     await page.unroute("**/api/upload/photo");
 
     // ---- a 5xx: one automatic second try, then the seller's own retry ----
