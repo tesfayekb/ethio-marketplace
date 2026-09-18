@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 284,
-  "dynamicCallSites": 191,
+  "scanned": 285,
+  "dynamicCallSites": 188,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3290,15 +3290,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.category.browseLabel": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.category.change": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.category.chosen": [
       "/post",
       "/post/$listingId"
     ],
@@ -3306,11 +3298,11 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.category.expect": [
+    "post.category.filterHint": [
       "/post",
       "/post/$listingId"
     ],
-    "post.category.expectNone": [
+    "post.category.filterLabel": [
       "/post",
       "/post/$listingId"
     ],
@@ -3323,14 +3315,6 @@
       "/post/$listingId"
     ],
     "post.category.noHits": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.category.searchHint": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.category.searchLabel": [
       "/post",
       "/post/$listingId"
     ],
@@ -3394,6 +3378,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.field.required": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.loading": [
       "/post",
       "/post/$listingId"
@@ -3426,10 +3414,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.photos.needOne": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.photos.none": [
       "/post",
       "/post/$listingId"
@@ -3447,6 +3431,18 @@
       "/post/$listingId"
     ],
     "post.photos.retry": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.rules": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.skip": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.standIn": [
       "/post",
       "/post/$listingId"
     ],
@@ -3486,14 +3482,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.price.expiryHint": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.price.expiryLabel": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.price.modeLabel": [
       "/post",
       "/post/$listingId"
@@ -3519,6 +3507,26 @@
       "/post/$listingId"
     ],
     "post.refusal.badShape": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.refusalSummary": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.activeFromFact": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.activeFromLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.activeUntilLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.activeWindowHint": [
       "/post",
       "/post/$listingId"
     ],
@@ -3563,6 +3571,10 @@
       "/post/$listingId"
     ],
     "post.review.why": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.save.paused": [
       "/post",
       "/post/$listingId"
     ],

@@ -376,3 +376,20 @@ Format: `- <date> · \`<project>\` · <title> · source \`<lane>\` · run <url> 
 - 2026-09-18 · `desktop-1280` · shell.spec.ts › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node · source `smoke` · run https://github.com/tesfayekb/ethio-marketplace/actions/runs/35353612829 · commit `50f8815b2ead01db72c87d6e88f38cee6a23ed06` · TimeoutError: locator.click: Timeout 10000ms exceeded.
 - 2026-09-18 · `desktop-1280` · post-wizard.spec.ts › POSTING WIZARD › PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan · source `shard 6` · run https://github.com/tesfayekb/ethio-marketplace/actions/runs/35353612829 · commit `50f8815b2ead01db72c87d6e88f38cee6a23ed06` · Error: PW-11: the scratch region never reached the picker
 - 2026-09-18 · `desktop-1280` · post-wizard.spec.ts › POSTING WIZARD › PW-13 review: the preview shows what was answered, and Publish lands in review — never live · source `shard 6` · run https://github.com/tesfayekb/ethio-marketplace/actions/runs/35361098072 · commit `2b91614ca13a9e2332f775c36f9f513643843707` · Error: reachStep7: the region level never rendered
+
+## 2026-09-18 — U6-C1-R1 local run: PW-3 / PW-4 / PW-6 / PW-13 / PW-17, step 1 stuck on "Opening the form…"
+
+- Where: `e2e/post-wizard.spec.ts`, `chooseBySearch` waiting for
+  `post-category-search`; the page shows the wizard shell with the tree reader
+  still loading (`useCategoryTree`, `src/features/categories/category-tree.ts`).
+- Shape: only under a full parallel run (2 workers × 2 projects); each affected
+  test passed alone immediately after (PW-4 on its own: 2 passed in 24.8 s), and
+  each passed in other full runs of the same build.
+- Cause (not this landing's): the shared anon `categories` +
+  `category_tree_pointers` read is slow enough under parallel load to exceed the
+  60 s test budget; the reader has no timeout and no retry, so the step stays on
+  its loading caption instead of naming a failure.
+- Not a verdict on the C1-R1 changes: step 1's markup renders before the read
+  resolves, and the same wait pre-dates the one-control rewrite.
+- Watch: 3 occurrences in 7 days → INC (DEC-030). A bounded read with a named
+  failure state belongs to the tree reader's own file, outside this scope.

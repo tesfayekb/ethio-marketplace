@@ -28,6 +28,12 @@ export const CATEGORY_COLUMNS = [
   "allow_listings",
   "is_catchall",
   "price_enabled",
+  // U6-C1-R1 — the posting cells the registry declares (CT-x). The export header
+  // IS the import header: a file that round-trips must carry them in this order,
+  // or the gate answers `badHeader` (the red board's three `[ssr-error]` lines).
+  "capabilities",
+  "default_price_period",
+  "price_period_locked",
   "expiry_days",
   "icon",
   "visible_from",

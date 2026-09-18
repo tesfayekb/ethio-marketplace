@@ -182,7 +182,10 @@ const FAMILIES: Family[] = [
       const slug = cells["category_slug"] ?? `e2e-cat-${rand()}`;
       const name = cells["name_en"] ?? "Hostile probe";
       const visibleFrom = cells["visible_from"] ?? "";
-      return `,${slug},,${name},,10,true,true,,true,30,,${visibleFrom},,,,,`;
+      // U6-C1-R1 — 21 cells, in CATEGORY_HEADER order: the three posting cells
+      // (capabilities, default_price_period, price_period_locked) sit between
+      // price_enabled and expiry_days, so `30` stays the expiry, not a capability.
+      return `,${slug},,${name},,10,true,true,,true,` + `,,,30,,${visibleFrom},,,,,`;
     },
   },
   {

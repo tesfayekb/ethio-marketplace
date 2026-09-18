@@ -3,10 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
+import { controlClass, Field } from "./field";
 import { encodeVariants } from "./photo-encode";
 import { deletePhoto, setCoverPhoto, uploadPhoto, type DraftPhotoRow } from "./posting-service";
 import { fill, photoRefusalKey } from "./refusal-text";
-import type { PhotoItem } from "./types";
+import type { PhotoItem, Refusal } from "./types";
 
 /**
  * U6-C1a — STEP 2: PHOTOS, PREPARED ON THE DEVICE AND SENT ONE AT A TIME.
@@ -54,11 +55,21 @@ export function StepPhotos({
   photos,
   onChanged,
   illustrationUrl,
+  videoUrl,
+  videoRefusal,
+  onChangeVideo,
+  onSkip,
 }: {
   listingId: string | null;
   photos: DraftPhotoRow[];
   onChanged: () => void;
   illustrationUrl: string | null;
+  /** U6-C1-R1 — the YouTube link lives beside the photos, not in step 4. */
+  videoUrl: string;
+  videoRefusal: Refusal | null;
+  onChangeVideo: (value: string) => void;
+  /** PHOTOS ARE OPTIONAL: the door asks for none, so the step offers to move on. */
+  onSkip: () => void;
 }) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -242,6 +253,9 @@ export function StepPhotos({
             />
           )}
           <p className="text-sm text-muted-foreground">{t("post.photos.none")}</p>
+          <p className="text-xs text-muted-foreground" data-testid="post-photos-standin">
+            {t("post.photos.standIn")}
+          </p>
         </div>
       )}
 
@@ -375,7 +389,42 @@ export function StepPhotos({
         <p className="text-xs text-muted-foreground">
           {fill(t("post.photos.addHint"), { max: MAX_PHOTOS })}
         </p>
+        <p className="text-xs text-muted-foreground" data-testid="post-photos-rules">
+          {t("post.photos.rules")}
+        </p>
+        {/* U6-C1-R1 — `validate_listing_draft` step 2 asks for NOTHING (photos are
+            registered through their own door), so a seller with no photo yet is
+            not held here: the category illustration stands in. */}
+        <button
+          type="button"
+          data-testid="post-photos-skip"
+          className={
+            "inline-flex min-h-11 w-full items-center justify-center rounded-md border " +
+            "border-input px-4 text-sm font-medium text-foreground hover:bg-accent"
+          }
+          onClick={onSkip}
+        >
+          {t("post.photos.skip")}
+        </button>
       </div>
+
+      <Field
+        id="post-video"
+        label={t("post.details.videoLabel")}
+        required={false}
+        refusal={videoRefusal}
+        hint={<p className="text-xs text-muted-foreground">{t("post.details.videoHint")}</p>}
+      >
+        <input
+          id="post-video"
+          data-testid="post-video"
+          inputMode="url"
+          className={controlClass(videoRefusal !== null)}
+          value={videoUrl}
+          placeholder={t("post.details.videoPlaceholder")}
+          onChange={(event) => onChangeVideo(event.target.value)}
+        />
+      </Field>
     </div>
   );
 }

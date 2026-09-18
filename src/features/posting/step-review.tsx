@@ -4,8 +4,9 @@ import { Link } from "@tanstack/react-router";
 import { readAreaCookie } from "@/components/shell/location-data";
 import { useI18n } from "@/i18n";
 
+import { controlClass, Field } from "./field";
 import { ListingPreview } from "./listing-preview";
-import { draftRefusalKey, fill } from "./refusal-text";
+import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import {
   publishListing,
   readPostingSchema,
@@ -54,15 +55,28 @@ const FIELD_STEPS: Record<string, number> = {
   alias: 7,
 };
 
+/** `YYYY-MM-DD` for a date `days` from today, which bounds the active window. */
+function isoDay(days: number): string {
+  return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+}
+
 export function StepReview({
   listingId,
   values,
   photos,
+  expiryDays,
+  refusals: doorRefusals,
+  onChangeExpiry,
   onGoTo,
 }: {
   listingId: string | null;
   values: DraftValues;
   photos: DraftPhotoRow[];
+  /** The category's poster window; the door falls back to 60 days when unset. */
+  expiryDays: number;
+  /** The draft door's own refusals, so `posterExpiry*` lands on this field. */
+  refusals: Refusal[];
+  onChangeExpiry: (value: string) => void;
   onGoTo: (step: number) => void;
 }) {
   const { t } = useI18n();
@@ -127,6 +141,51 @@ export function StepReview({
         country={readAreaCookie()?.country ?? null}
         contactPref={values.contactPref}
       />
+
+      {/*
+       * U6-C1-R1 — THE ACTIVE WINDOW, MOVED HERE FROM STEP 5. A seller thinks
+       * about how long the listing runs when they are looking at the finished
+       * listing, not while naming a price. "From" is a FACT, not a field: the
+       * door has no start date — a listing goes live the moment screening passes
+       * — so offering to edit it would be a promise nothing keeps (F4). "Until"
+       * is the category's window end by default and is editable within it.
+       */}
+      <div
+        className="space-y-2 rounded-md border border-border p-3"
+        data-testid="post-active-window"
+      >
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">{t("post.review.activeFromLabel")}</p>
+          <p className="text-sm text-muted-foreground" data-testid="post-active-from">
+            {t("post.review.activeFromFact")}
+          </p>
+        </div>
+        <Field
+          id="post-active-until"
+          label={t("post.review.activeUntilLabel")}
+          required={false}
+          refusal={
+            refusalFor(doorRefusals, "poster_expires_at") ??
+            refusalFor(refusals, "poster_expires_at")
+          }
+          hint={
+            <p className="text-xs text-muted-foreground">
+              {fill(t("post.review.activeWindowHint"), { days: expiryDays })}
+            </p>
+          }
+        >
+          <input
+            id="post-active-until"
+            data-testid="post-active-until"
+            type="date"
+            className={controlClass(false)}
+            value={values.posterExpiresAt === "" ? isoDay(expiryDays) : values.posterExpiresAt}
+            min={isoDay(1)}
+            max={isoDay(expiryDays)}
+            onChange={(event) => onChangeExpiry(event.target.value)}
+          />
+        </Field>
+      </div>
 
       {failed && (
         <p className="text-sm text-destructive" data-testid="post-review-failed">

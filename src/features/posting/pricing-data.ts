@@ -126,3 +126,37 @@ export function useSellerHome(): { home: SellerHome | null } {
   }, []);
   return { home };
 }
+
+/**
+ * U6-C1-R1 — THE CURRENCY PRESELECT, IN ORDER (D13).
+ *
+ * The price step must open on the currency the seller is most likely to mean:
+ *
+ *   1 the currency already saved on this draft (the caller checks that first),
+ *   2 the GUESS MARKET's currency — the edge's `cf-ipcountry`, echoed by
+ *     `/api/geo` (DEC-068), resolved to `countries.currency_code` through the
+ *     anon client,
+ *   3 `ETB`, the home market, as the last resort.
+ *
+ * A failed guess is not an error: it simply falls through to (3). Nothing here
+ * decides anything — `submit_listing` still judges the currency it is sent (F3).
+ */
+export const FALLBACK_CURRENCY = "ETB";
+
+export async function readGuessCurrency(): Promise<string> {
+  try {
+    const response = await fetch("/api/geo", { headers: { accept: "application/json" } });
+    if (!response.ok) return FALLBACK_CURRENCY;
+    const payload = (await response.json()) as { country?: string | null };
+    const country = typeof payload.country === "string" ? payload.country.toUpperCase() : null;
+    if (country === null) return FALLBACK_CURRENCY;
+    const { data } = await supabase
+      .from("countries")
+      .select("currency_code")
+      .eq("code", country)
+      .maybeSingle();
+    return data?.currency_code ?? FALLBACK_CURRENCY;
+  } catch {
+    return FALLBACK_CURRENCY;
+  }
+}

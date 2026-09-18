@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import type { Database } from "@/integrations/supabase/types";
+import { isE2E } from "@/lib/env-flags";
 import { geoGuess } from "@/server/geo/guess";
 import {
   consumeRate,
@@ -74,7 +75,13 @@ async function handlePost(request: Request): Promise<Response> {
     supabase,
     "draft",
     userId,
-    envDial("RATE_LIMIT_DRAFT_PER_HOUR", 30),
+    // INC-227 — 600/h: a wizard that autosaves every couple of seconds for an
+    // hour of honest work must not be throttled into a dead end. The E2E
+    // environment keeps its own low dial, which is what PR-7 proves.
+    // INC-227 — 600 an hour for a real seller (an autosave every few seconds must
+    // never become a dead end). The E2E build keeps the LOW dial so PR-7 can reach
+    // the ceiling in one test instead of six hundred calls.
+    envDial("RATE_LIMIT_DRAFT_PER_HOUR", isE2E ? 30 : 600),
     "1 hour",
   );
   if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);

@@ -80,6 +80,8 @@ export interface UseDraft {
   saveAt: (step: number) => Promise<boolean>;
   /** Retry by hand what the automatic retry has not yet managed. */
   retry: () => void;
+  /** INC-227 — seconds until autosave may resume; 0 when it is not paused. */
+  pauseSeconds: number;
   photos: DraftPhotoRow[];
   reloadPhotos: () => void;
   loading: boolean;
@@ -117,6 +119,25 @@ export function useDraft(initialListingId: string | null): UseDraft {
    */
   const versionRef = useRef(0);
   const followUpRef = useRef(false);
+  /**
+   * INC-228 — WHOSE SAVE IS IT? An AUTOSAVE is a backup of work in progress and
+   * is sent at the LAST COMPLETED step, so a half-filled step is never judged
+   * while the seller is still typing. `Next` is the only STRICT save: it names
+   * the step on screen and its refusals are what the seller sees.
+   */
+  /**
+   * INC-228 — WHICH STEP THE SELLER CLAIMED IS FINISHED (`null` while they are
+   * only typing). It is a STEP, not a boolean, on purpose: a `Next` that arrives
+   * on top of an in-flight autosave used to have its "strict" flag consumed by
+   * that earlier pass, so the step the seller asked about was never judged and
+   * the wizard advanced on an autosave's verdict.
+   */
+  const strictRef = useRef<number | null>(null);
+  /** The server's own `draft_step`, readable from inside a timer (I3). */
+  const draftStepRef = useRef(1);
+  /** INC-227 — when the draft dial is spent, the moment autosave may resume. */
+  const pausedUntilRef = useRef<number | null>(null);
+  const [pauseSeconds, setPauseSeconds] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aliveRef = useRef(true);
@@ -147,7 +168,12 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // later ones empty, so a Back-then-Next round trip loses nothing.
       priceMode: valuesRef.current.priceMode,
       priceAmount: valuesRef.current.priceAmount,
-      priceCurrency: valuesRef.current.priceCurrency,
+      // A CURRENCY WITHOUT AN AMOUNT IS NOT A PRICE. The control carries a
+      // preselected currency from the seller's market before any amount is typed;
+      // storing that alone breaks the listings price pair (amount NULL ⇔ currency
+      // NULL), so the pair travels together or not at all.
+      priceCurrency:
+        valuesRef.current.priceAmount === null ? null : valuesRef.current.priceCurrency,
       pricePeriod: valuesRef.current.pricePeriod,
       posterExpiresAt:
         valuesRef.current.posterExpiresAt === "" ? null : valuesRef.current.posterExpiresAt,
@@ -159,10 +185,36 @@ export function useDraft(initialListingId: string | null): UseDraft {
   /** The queue's entry point, held in a ref so the retry timer can reach it. */
   const flushRef = useRef<(() => Promise<boolean>) | null>(null);
 
+  /**
+   * INC-227 — WHAT WAS LAST ACCEPTED, so autosave only ever sends a CHANGE. The
+   * body is serialised without its step: the step is the intent, not the answer.
+   */
+  const serialOf = useCallback((): string => {
+    const { step: _step, ...rest } = bodyFor(0) as DraftBody & { step: number };
+    return JSON.stringify(rest);
+  }, [bodyFor]);
+  const lastSentSerialRef = useRef<string | null>(null);
+
   /** ONE pass at the server with whatever is pending. Answers "did it take?". */
   const pass = useCallback(async (): Promise<boolean> => {
     const forStep = pendingStepRef.current;
     if (forStep === null) return true;
+    const claimed = strictRef.current;
+    const strict = claimed !== null && forStep >= claimed;
+    const serial = serialOf();
+
+    // INC-227 — an autosave with nothing new to say says nothing at all.
+    if (!strict && serial === lastSentSerialRef.current) {
+      pendingStepRef.current = null;
+      setSaveState("saved");
+      return true;
+    }
+    // INC-227 — while the dial is spent, autosave WAITS. `Next` still goes (the
+    // door answers it), so the seller is never in a dead end.
+    if (!strict && pausedUntilRef.current !== null && Date.now() < pausedUntilRef.current) {
+      return false;
+    }
+
     inFlightRef.current = true;
     const sent = versionRef.current;
     setSaveState("saving");
@@ -173,28 +225,54 @@ export function useDraft(initialListingId: string | null): UseDraft {
     if (!aliveRef.current) return answer.ok;
 
     if (answer.ok) {
-      // Only the answers that were actually sent are settled: anything the
-      // seller changed while the request was in the air stays pending, and the
-      // follow-up flag makes the queue run again for it.
-      if (versionRef.current === sent) {
+      lastSentSerialRef.current = serial;
+      if (strict) strictRef.current = null;
+      pausedUntilRef.current = null;
+      setPauseSeconds(0);
+      // Only what was actually SENT is settled. The step is cleared only while it
+      // is still the step that went out: a `Next` that queued a HIGHER step while
+      // this pass was in the air must survive, or the step the seller claimed is
+      // never judged and the wizard advances on an autosave's verdict instead.
+      if (pendingStepRef.current !== null && pendingStepRef.current <= forStep) {
         pendingStepRef.current = null;
-      } else {
-        followUpRef.current = true;
       }
+      // Anything the seller changed while the request was in the air stays
+      // pending, and the follow-up flag makes the queue run again for it.
+      if (versionRef.current !== sent) followUpRef.current = true;
       const id = answer.payload["listing_id"];
       if (typeof id === "string") {
         listingRef.current = id;
         setListingId(id);
       }
       const served = answer.payload["draft_step"];
-      if (typeof served === "number") setDraftStep(served);
+      if (typeof served === "number") {
+        draftStepRef.current = served;
+        setDraftStep(served);
+      }
       setRefusals([]);
-      setSaveState(followUpRef.current ? "unsaved" : "saved");
+      // "Saved" unless the seller has typed something newer than what went out —
+      // and when they have, ANOTHER PASS IS ARMED HERE. Relying on the debounce
+      // timer alone left the caption stuck on "Not saved yet" when the newer
+      // answer arrived while this request was in the air.
+      if (versionRef.current === sent) {
+        setSaveState("saved");
+      } else {
+        // The seller typed while this request was in the air: THE STEP IS QUEUED
+        // AGAIN and another pass armed here. Leaving it to the debounce timer left
+        // the caption stuck on "Not saved yet" with nothing on its way.
+        setSaveState("unsaved");
+        pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, forStep);
+        if (retryRef.current) clearTimeout(retryRef.current);
+        retryRef.current = setTimeout(() => {
+          void flushRef.current?.();
+        }, 0);
+      }
       return true;
     }
 
     if (answer.unreachable || answer.refusals.length === 0) {
-      // Not a verdict: keep the answers, say so, and try again shortly.
+      // INC-228 — "Not saved yet" belongs to TRANSPORT alone: the answers are
+      // still here, nothing was judged, and another pass runs shortly.
       setSaveState("unsaved");
       if (retryRef.current) clearTimeout(retryRef.current);
       retryRef.current = setTimeout(() => {
@@ -203,10 +281,45 @@ export function useDraft(initialListingId: string | null): UseDraft {
       return false;
     }
 
-    setRefusals(answer.refusals);
-    setSaveState("unsaved");
+    // INC-227 — the dial, not a verdict about the answers: wait it out in words.
+    const limited = answer.refusals.find((refusal) => refusal.reason === "rateLimited");
+    if (limited !== undefined) {
+      const at = limited.detail === undefined ? Number.NaN : Date.parse(limited.detail);
+      pausedUntilRef.current = Number.isFinite(at) ? at : Date.now() + 60_000;
+      setPauseSeconds(Math.max(1, Math.ceil((pausedUntilRef.current - Date.now()) / 1000)));
+      setSaveState("idle");
+      return false;
+    }
+
+    // INC-228 — a REFUSAL IS NOT A FAILED SAVE. Only a strict save (Next) shows
+    // refusals; an autosave at the last completed step keeps them to itself,
+    // because the seller has not claimed the step is finished yet.
+    if (strict) {
+      setRefusals(answer.refusals);
+      strictRef.current = null;
+    }
+    setSaveState("idle");
     return false;
-  }, [bodyFor]);
+  }, [bodyFor, serialOf]);
+
+  /** The pause counts DOWN in words, and clears itself when it expires. */
+  useEffect(() => {
+    if (pauseSeconds <= 0) return;
+    const timer = setTimeout(() => {
+      const left =
+        pausedUntilRef.current === null
+          ? 0
+          : Math.ceil((pausedUntilRef.current - Date.now()) / 1000);
+      if (left <= 0) {
+        pausedUntilRef.current = null;
+        setPauseSeconds(0);
+        void flushRef.current?.();
+        return;
+      }
+      setPauseSeconds(left);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [pauseSeconds]);
 
   /**
    * THE SAVE QUEUE. Every save — the debounce, a tap, `Next` — joins one chain,
@@ -242,9 +355,12 @@ export function useDraft(initialListingId: string | null): UseDraft {
         valuesRef.current = next;
         return next;
       });
-      // The step the change belongs to is the step on screen; a later Next
-      // raises it. Coalescing keeps the HIGHEST pending step.
-      pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, step);
+      // INC-228 — AN AUTOSAVE IS SENT AT THE LAST COMPLETED STEP, never at the
+      // step being edited: a half-filled step must not be judged while the
+      // seller is still typing. The server's `draft_step` is that truth, capped
+      // at the step below the one on screen.
+      const backupStep = Math.max(0, Math.min(draftStepRef.current, step - 1));
+      pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, backupStep);
       versionRef.current += 1;
       setSaveState("unsaved");
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -262,6 +378,9 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const saveAt = useCallback(
     async (forStep: number) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      // INC-228 — the STRICT save: `Next` names the step on screen and its
+      // refusals are the ones the seller is shown.
+      strictRef.current = forStep;
       pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, forStep);
       return flush();
     },
@@ -310,6 +429,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
         valuesRef.current = next;
         setValues(next);
         setListingId(found.draft.id);
+        draftStepRef.current = found.draft.draftStep;
         setDraftStep(found.draft.draftStep);
         setPhotos(found.photos);
         // Open where the seller left off: the step AFTER the one the SERVER
@@ -362,6 +482,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       change,
       saveAt,
       retry,
+      pauseSeconds,
       photos,
       reloadPhotos,
       loading,
@@ -378,6 +499,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       change,
       saveAt,
       retry,
+      pauseSeconds,
       photos,
       reloadPhotos,
       loading,

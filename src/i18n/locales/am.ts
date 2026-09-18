@@ -1988,6 +1988,21 @@ export const am: Messages = {
   "post.review.reviewTitle": "በግምገማ ላይ",
   "post.review.reviewBody": "ዝርዝርዎ በመመርመር ላይ ነው። አብዛኛውን ጊዜ ጥቂት ደቂቃዎች ይወስዳል፤ ሲወጣ በ«ዝርዝሮቼ» ውስጥ ያዩታል።",
   "post.review.myListings": "ወደ ዝርዝሮቼ ይሂዱ",
+  // U6-C1-R1
+  "post.field.required": "ያስፈልጋል",
+  "post.refusalSummary": "ለመቀጠል እነዚህን ይሙሉ፦",
+  "post.category.filterLabel": "ምድብ ይፈልጉ",
+  "post.category.filterHint": "ቃል ይጻፉ፣ ወይም ከታች ያለውን ቡድን ይክፈቱ።",
+  "post.category.chipLabel": "ምድብ",
+  "post.photos.standIn": "የራስዎን ፎቶ እስኪጨምሩ ይህ ምስል ይተካል።",
+  "post.photos.rules":
+    "JPG፣ PNG ወይም WebP \u00b7 እያንዳንዱ እስከ 6 ሜባ \u00b7 ቢያንስ 480 ፒክስል ስፋት \u00b7 ጥሩ ብርሃን፣ ንጹህ ዳራ፣ ሙሉ እቃው በምስሉ ውስጥ",
+  "post.photos.skip": "ያለ ፎቶ ይቀጥሉ",
+  "post.save.paused": "ማስቀመጥ ለ {seconds} ሰከንድ ቆሟል",
+  "post.review.activeFromLabel": "ከመቼ ጀምሮ",
+  "post.review.activeUntilLabel": "እስከ መቼ",
+  "post.review.activeFromFact": "ግምገማውን እንዳለፈ ወዲያውኑ።",
+  "post.review.activeWindowHint": "በዚህ ምድብ {days} ቀን መስኮት ውስጥ ያለ ማንኛውም ቀን።",
 };
 
 export default am;

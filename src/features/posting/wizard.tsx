@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { PageCard, PAGE_MAIN_CLASS } from "@/components/shell/page-card";
-import { useCategoryTree } from "@/features/categories/category-tree";
+import { pathOf, useCategoryTree } from "@/features/categories/category-tree";
+import { entityName } from "@/i18n/entity";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 
+import { RefusalSummary } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { StepCategory } from "./step-category";
 import { StepDetails } from "./step-details";
@@ -43,7 +45,7 @@ const navButtonClass =
   "transition-colors disabled:opacity-60";
 
 export function PostingWizard({ listingId }: { listingId: string | null }) {
-  const { t } = useI18n();
+  const { t, entities } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const draft = useDraft(listingId);
   const { tree, isLoading: treeLoading, error: treeError } = useCategoryTree();
@@ -85,38 +87,16 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     draft.values.categoryId === null ? null : (tree.byId.get(draft.values.categoryId) ?? null);
 
   /**
-   * The step's own client-side completeness — the door decides for real.
+   * U6-C1-R1 — NO CLIENT GATE. `Next` is always pressable (only a publish in
+   * flight stops it). The reason is the operator walk: a greyed button with no
+   * explanation is a dead end, and a client mirror of the validator's rules is
+   * a second authority that will eventually disagree with the door (F3).
    *
-   * STEP 3 IS DELIBERATELY ALWAYS READY: which details a category REQUIRES is the
-   * validator's judgement (it knows dependencies, presets and bounds), so mirroring
-   * it here would risk a form that blocks what the door would accept, or worse,
-   * lets through what it refuses. `Next` sends, and a missing answer comes back as
-   * a refusal under its own control.
+   * So `Next` SENDS, the door judges, and the refusals it returns are rendered
+   * twice: under each named field, and as one red summary above `Next` listing
+   * the fields still to complete. The seller always knows what is missing and
+   * always has a way to ask.
    */
-  const stepReady =
-    draft.step === 1
-      ? draft.values.categoryId !== null
-      : draft.step === 2
-        ? draft.photos.length > 0
-        : draft.step === 3
-          ? true
-          : draft.step === 4
-            ? draft.values.title.trim() !== "" && draft.values.description.trim() !== ""
-            : draft.step === 5
-              ? // A priced mode needs an amount; free/contact need nothing. The
-                // currency may be left to the door, which falls back to the
-                // seller's home market's own currency (D13).
-                draft.values.priceMode === "free" ||
-                draft.values.priceMode === "contact" ||
-                draft.values.priceAmount !== null
-              : draft.step === 6
-                ? draft.values.coverage.length > 0
-                : // STEP 7 IS ALWAYS READY, for the same reason as step 3: which
-                  // channels are acceptable is `listing_contact_refusals`'s
-                  // judgement (messages is forced true on every save), and the
-                  // identity lives on the profile, committed as each answer
-                  // settles. Step 8 has no Next at all — Publish is its action.
-                  draft.step === 7;
 
   // D20 (U6-C2a) — a signed-out visitor never reaches this screen: the route's own
   // `beforeLoad` sends them to `/auth?return=…` and brings them back. What is left
@@ -185,6 +165,13 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
             {draft.saveState === "saved" && t("post.save.saved")}
             {draft.saveState === "unsaved" && t("post.save.unsaved")}
           </p>
+          {/* INC-227 — a rate refusal is a WAIT, never a wall: the caption counts
+              it down and `Next` keeps working. */}
+          {draft.pauseSeconds > 0 && (
+            <p className="text-xs text-muted-foreground" data-testid="post-save-paused">
+              {fill(t("post.save.paused"), { seconds: draft.pauseSeconds })}
+            </p>
+          )}
           {draft.saveState === "unsaved" && (
             <button
               type="button"
@@ -197,6 +184,29 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           )}
         </header>
 
+        {/* THE CHIP: the chosen category, on every step after the first, with the
+            way back to change it. The walk asked for the path, not the leaf. */}
+        {draft.step > 1 && chosenCategory !== null && (
+          <div
+            className="flex flex-wrap items-center gap-2 rounded-md bg-muted px-3 py-2"
+            data-testid="post-category-chip"
+          >
+            <span className="text-xs text-foreground" data-testid="post-category-chip-path">
+              {pathOf(tree, chosenCategory.id)
+                .map((node) => entityName("category", node, entities))
+                .join(" › ")}
+            </span>
+            <button
+              type="button"
+              data-testid="post-category-chip-change"
+              className="text-xs font-medium text-primary underline"
+              onClick={() => draft.goTo(1)}
+            >
+              {t("post.category.change")}
+            </button>
+          </div>
+        )}
+
         {draft.loading ? (
           <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
         ) : (
@@ -206,15 +216,15 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 tree={tree}
                 isLoading={treeLoading}
                 treeError={treeError}
-                chosenId={draft.values.categoryId}
                 onChoose={(categoryId) => {
-                  // An empty id is the "change" affordance clearing the choice;
-                  // it is a local edit, not a save (the door has no such move).
-                  if (categoryId === "") {
-                    draft.change({ categoryId: null }, false);
-                    return;
-                  }
+                  // ONE CONTROL, AUTO-ADVANCE: choosing a postable leaf IS the
+                  // answer to step 1, so the wizard saves it and moves on. No
+                  // confirmation screen — the chip above every later step is the
+                  // confirmation, and it carries the way back.
                   draft.change({ categoryId }, true);
+                  void draft.saveAt(1).then((saved) => {
+                    if (saved) draft.goTo(2);
+                  });
                 }}
               />
             )}
@@ -224,12 +234,17 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 photos={draft.photos}
                 onChanged={draft.reloadPhotos}
                 illustrationUrl={chosenCategory?.imageUrl ?? null}
+                videoUrl={draft.values.videoUrl}
+                videoRefusal={
+                  refusalFor(draft.refusals, "video_url") ?? refusalFor(draft.refusals, "videoUrl")
+                }
+                onChangeVideo={(videoUrl) => draft.change({ videoUrl }, false)}
+                onSkip={() => {
+                  void draft.saveAt(2).then((saved) => {
+                    if (saved) draft.goTo(3);
+                  });
+                }}
               />
-            )}
-            {draft.step === 2 && draft.photos.length === 0 && (
-              <p className="mt-3 text-xs text-muted-foreground" data-testid="post-photos-needone">
-                {t("post.photos.needOne")}
-              </p>
             )}
             {draft.step === 3 && (
               <StepSpecifications
@@ -246,7 +261,6 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 attributes={draft.values.attributes}
                 title={draft.values.title}
                 description={draft.values.description}
-                videoUrl={draft.values.videoUrl}
                 refusals={draft.refusals}
                 onChange={(patch, immediate) => draft.change(patch, immediate)}
               />
@@ -284,6 +298,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 listingId={draft.listingId}
                 values={draft.values}
                 photos={draft.photos}
+                expiryDays={facts?.expiryDays ?? 60}
+                refusals={draft.refusals}
+                onChangeExpiry={(posterExpiresAt) => draft.change({ posterExpiresAt }, true)}
                 onGoTo={draft.goTo}
               />
             )}
@@ -307,12 +324,13 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           // screen fall through to this list (F4 — never swallowed).
           .filter((refusal) => refusal.field !== "category_id")
           .filter((refusal) => !(draft.step === 3 && specFields.includes(refusal.field)))
+          // The YouTube link moved to step 2 (U6-C1-R1), so its refusal is shown
+          // there, beside the field that owns it.
           .filter(
-            (refusal) =>
-              !(
-                draft.step === 4 &&
-                ["title", "description", "video_url", "videoUrl"].includes(refusal.field)
-              ),
+            (refusal) => !(draft.step === 2 && ["video_url", "videoUrl"].includes(refusal.field)),
+          )
+          .filter(
+            (refusal) => !(draft.step === 4 && ["title", "description"].includes(refusal.field)),
           )
           .filter(
             (refusal) =>
@@ -328,6 +346,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
               ),
           )
           .filter((refusal) => !(draft.step === 6 && refusal.field === "coverage"))
+          // Step 8 owns the active window, so `posterExpiry*` renders on it.
+          .filter((refusal) => !(draft.step === 8 && refusal.field === "poster_expires_at"))
           .filter(
             (refusal) =>
               !(
@@ -348,6 +368,10 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
             </p>
           ))}
 
+        {/* U6-C1-R1 — ONE SUMMARY above the actions, naming by label what is
+            still missing; each entry focuses its own control. */}
+        <RefusalSummary refusals={draft.refusals} />
+
         {/* Primary actions sit at the BOTTOM, within thumb reach (C2). */}
         <footer className="flex gap-2 pt-2">
           <button
@@ -365,7 +389,6 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
               type="button"
               data-testid="post-next"
               className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90`}
-              disabled={!stepReady}
               onClick={() => {
                 void (async () => {
                   // Autosave on Next: the step advances only once the door has the
