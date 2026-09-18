@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import {
@@ -24,7 +25,7 @@ import {
   type AiEntityItem,
   type AiTranslateItem,
 } from "./translations-service";
-import { useAiTranslate, useAiTranslateEntities } from "./use-translations";
+import { ADMIN_TRANSLATIONS_KEY, useAiTranslate, useAiTranslateEntities } from "./use-translations";
 
 /**
  * U4c — BULK AI FILL.
@@ -51,6 +52,7 @@ export function AiBulkBar({
   guard,
   scope = "ui",
   countState = "success",
+  filter = "",
 }: {
   lang: string;
   untranslated: number;
@@ -62,6 +64,13 @@ export function AiBulkBar({
    * absent count renders as pending/error and never as a quiet "(0)".
    */
   countState?: CountState;
+  /**
+   * INC-219 — THE ROSTER'S SEARCH FILTER IS THE RUN'S SCOPE. An admin filters,
+   * then fills: with a filter set the sweep collects only the untranslated keys
+   * that match it (and the button says so), so a filtered console never starts
+   * a whole-catalog run. Empty string = today's behaviour, the whole language.
+   */
+  filter?: string;
 }) {
   const { t } = useI18n();
   const translateUi = useAiTranslate(lang);
@@ -77,6 +86,20 @@ export function AiBulkBar({
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
+  /** The filter only scopes the UI-key sweep; the entity scope is untouched. */
+  const search = scope === "entity" ? "" : filter.trim();
+  const filtered = search !== "";
+
+  /**
+   * The filtered count is a FACT read from the same door the run walks, so the
+   * button's number and the work it queues can never disagree (F4).
+   */
+  const filteredCount = useQuery({
+    queryKey: [...ADMIN_TRANSLATIONS_KEY, "ai-filtered-count", lang, search],
+    queryFn: () => listTranslations({ lang, status: "untranslated", search, limit: 1, offset: 0 }),
+    enabled: filtered,
+  });
+
   /** Collect the untranslated work up front so the progress count is honest. */
   const collectUi = async (): Promise<AiTranslateItem[]> => {
     const items: AiTranslateItem[] = [];
@@ -85,6 +108,7 @@ export function AiBulkBar({
       const page = await listTranslations({
         lang,
         status: "untranslated",
+        search,
         limit: AI_CHUNK_SIZE,
         offset,
       });
@@ -185,7 +209,21 @@ export function AiBulkBar({
   };
 
   const busy = progress !== null || translate.isPending;
-  const countKnown = countState === "success";
+
+  /**
+   * INC-119 stays the law with a filter set: the count is believed only when
+   * the filtered read SUCCEEDED, and a failed read renders as an error, never
+   * as a quiet "(0)".
+   */
+  const effectiveCountState: CountState = filtered
+    ? filteredCount.isError
+      ? "error"
+      : filteredCount.data === undefined
+        ? "pending"
+        : "success"
+    : countState;
+  const effectiveCount = filtered ? (filteredCount.data?.totalCount ?? 0) : untranslated;
+  const countKnown = effectiveCountState === "success";
 
   /**
    * INC-219 — READINESS IS A FACT, NOT A HOPE. A click that lands before the
@@ -221,16 +259,21 @@ export function AiBulkBar({
           variant="outline"
           className="min-h-11"
           data-testid="ai-bulk-start"
-          data-count-state={countState}
+          data-count-state={effectiveCountState}
+          data-scope={filtered ? "filtered" : "all"}
           data-ready={ready ? "true" : "false"}
-          disabled={!ready || busy || !countKnown || untranslated === 0}
+          disabled={!ready || busy || !countKnown || effectiveCount === 0}
           onClick={() => setConfirming(true)}
         >
           {countKnown
-            ? t("admin.translations.ai.bulkAction").replace("{count}", String(untranslated))
+            ? t(
+                filtered
+                  ? "admin.translations.ai.bulkActionFiltered"
+                  : "admin.translations.ai.bulkAction",
+              ).replace("{count}", String(effectiveCount))
             : t("admin.translations.ai.pending")}
         </Button>
-        {countState === "error" || countState === "missing" ? (
+        {effectiveCountState === "error" || effectiveCountState === "missing" ? (
           <span role="alert" data-testid="ai-bulk-count-error" className="text-sm text-destructive">
             {t("admin.translations.strings.error")}
           </span>
@@ -282,7 +325,7 @@ export function AiBulkBar({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("admin.translations.ai.confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("admin.translations.ai.confirmBody").replace("{count}", String(untranslated))}
+              {t("admin.translations.ai.confirmBody").replace("{count}", String(effectiveCount))}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -295,7 +338,7 @@ export function AiBulkBar({
               disabled={!ready}
               onClick={start}
             >
-              {t("admin.translations.ai.confirmCta").replace("{count}", String(untranslated))}
+              {t("admin.translations.ai.confirmCta").replace("{count}", String(effectiveCount))}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

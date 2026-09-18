@@ -582,11 +582,27 @@ test.describe("U4b translations console", () => {
           (await bar.getAttribute("data-progress")) ?? "-"
         }`;
 
+      // INC-219 (cause) — AN ADMIN FILTERS, THEN FILLS. Unfiltered, the bar
+      // sweeps the WHOLE fence language (1,685 untranslated keys), which cannot
+      // finish inside a mobile budget — the instrumentation caught it at
+      // progress=600/1685 after 90 s. The roster's search filter now scopes the
+      // run, so this test fills exactly its three scratch keys.
+      const startButton = page.getByTestId("ai-bulk-start");
+      await page.getByTestId("strings-search").fill(base);
+      await expect(startButton, {
+        message: `TR-12 step 0: the bulk-AI button never took the roster's filter ${base}`,
+      }).toHaveAttribute("data-scope", "filtered", { timeout: 20000 });
+      await expect(startButton, {
+        message: `TR-12 step 0: the filtered untranslated count never resolved for ${base} in scope ${fence}`,
+      }).toHaveAttribute("data-count-state", "success", { timeout: 20000 });
+      await expect(startButton, {
+        message: `TR-12 step 0: the filtered button never named this spec's ${keys.length} keys (it read "${await startButton.innerText()}")`,
+      }).toHaveText(new RegExp(`\\(${keys.length}\\)`), { timeout: 20000 });
+
       // INC-219 — VISIBILITY IS NOT READINESS. The button renders before its
       // handlers are mounted, and a click that lands in that window is lost with
       // no trace (54 ledger entries). `data-ready="true"` is set in an effect, so
       // it is the fact that the click can be received.
-      const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton, {
         message: `TR-12 step 1: the bulk-AI start button never became ready for scope ${fence}`,
       }).toHaveAttribute("data-ready", "true", { timeout: 20000 });

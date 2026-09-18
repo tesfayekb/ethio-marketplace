@@ -751,6 +751,7 @@ export const en = {
   "admin.translations.ai.row": "AI translate",
   "admin.translations.ai.pending": "Translating…",
   "admin.translations.ai.bulkAction": "AI-translate all untranslated ({count})",
+  "admin.translations.ai.bulkActionFiltered": "AI-fill untranslated among filtered ({count})",
   "admin.translations.ai.confirmTitle": "Machine-translate the untranslated strings?",
   "admin.translations.ai.confirmBody":
     "{count} strings will be sent for machine translation. Results land as provisional machine translations and still need approval before they ship.",

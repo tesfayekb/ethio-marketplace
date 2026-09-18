@@ -319,7 +319,12 @@ export function AdminTranslationsStringsPage({
               ) : null}
 
               {mayMachine && !(known?.isBase ?? false) ? (
-                <AiBulkBar lang={lang} untranslated={counts["untranslated"] ?? 0} guard={guard} />
+                <AiBulkBar
+                  lang={lang}
+                  untranslated={counts["untranslated"] ?? 0}
+                  filter={query}
+                  guard={guard}
+                />
               ) : null}
 
               {/* U4i ⑤⑦ — bulk delivery tools; manage-gated, server is the authority. */}

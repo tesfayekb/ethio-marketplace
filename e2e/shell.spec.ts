@@ -1955,28 +1955,31 @@ test.describe("L4b location picker", () => {
     const first = await seedMarket();
     const second = await seedMarket();
     try {
-      // INC-218 — THE BUDGET WAS THE BUG. This test used to wait on the open-market
-      // route and on each market's tree separately (four 30 s polls) BEFORE the
-      // 40 s in-browser poll below, which alone can exceed the three-minute
-      // budget and made the failure a timeout with nothing named. The in-browser
-      // poll already REVALIDATES the open-market list for both markets, so the
-      // per-market route waits are redundant; only the two trees are still waited
-      // for, and every wait names what it was looking for.
+      // INC-218 — THE BUDGET WAS THE BUG, AND IT WAS ONLY HALF FIXED. Three
+      // long waits still summed past the three-minute budget under a loaded
+      // machine — a 40 s open-market poll plus two 30 s tree polls — so the
+      // TEST timeout fired before any expect could name a step. Every wait here
+      // is now bounded at 20 s (the routes cache 15 s, so nothing honest needs
+      // longer) and every one of them says what it wanted and what was visible.
       await gotoReady(page, "/");
+      let openCodes: string[] = [];
       await expect
         .poll(
-          async () =>
-            page.evaluate(async () => {
+          async () => {
+            openCodes = await page.evaluate(async () => {
               const response = await fetch("/api/locations", { cache: "reload" });
               const body = (await response.json()) as { countries?: { code?: string }[] };
               return (body.countries ?? []).map((row) => String(row.code ?? ""));
-            }),
+            });
+            return openCodes;
+          },
           {
-            timeout: 40000,
-            message: `the open-market list never carried both ${first.code} and ${second.code}`,
+            timeout: 20000,
+            message: `LS-11 step 1: the open-market list never carried both ${first.code} and ${second.code} within 20 s`,
           },
         )
         .toEqual(expect.arrayContaining([first.code, second.code]));
+      // Both trees, each bounded and named inside the helper (INC-218).
       await waitForTreeSlug(page, first.code, first.region.slug);
       await waitForTreeSlug(page, second.code, second.region.slug);
       await gotoReady(page, "/");
@@ -1989,48 +1992,66 @@ test.describe("L4b location picker", () => {
       // itself is still one real click on that item (no assertion relaxed).
       const pickCountry = async (name: string) => {
         const item = page.getByRole("menuitem", { name, exact: true });
+        const trigger = page.getByTestId("location-level-country");
+        // The whole open-and-pick is bounded: six attempts of at most 3 s each,
+        // and the refusal names the option wanted and the options on screen.
         for (let attempt = 0; attempt < 6; attempt += 1) {
-          await page.getByTestId("location-level-country").click();
+          await trigger.click({ timeout: 10000 });
           const opened = await item
             .waitFor({ state: "visible", timeout: 3000 })
             .then(() => true)
             .catch(() => false);
           if (opened) {
-            await item.click();
-            await expect(page.getByTestId("location-level-country")).toHaveText(
-              new RegExp(escapeRe(name)),
-            );
+            await item.click({ timeout: 10000 });
+            await expect(trigger, {
+              message: `LS-11 step 2: the country control never named ${name} after the pick (it read "${await trigger.innerText()}")`,
+            }).toHaveText(new RegExp(escapeRe(name)), { timeout: 20000 });
             return;
           }
         }
-        throw new Error(`[LS-11] the country menu never offered ${name}`);
+        const offered = await page.getByRole("menuitem").allInnerTexts();
+        throw new Error(
+          `LS-11 step 2: the country menu never offered ${name} in six opens — visible options: ${
+            offered.join(" | ") || "(none)"
+          }`,
+        );
       };
 
       await pickCountry(firstName);
-      await expect(page.getByTestId("location-level-region")).toHaveText(
-        new RegExp(escapeRe(first.region.name_en!)),
-      );
+      await expect(page.getByTestId("location-level-region"), {
+        message: `LS-11 step 3: the first market's region ${first.region.name_en!} never appeared after picking ${firstName}`,
+      }).toHaveText(new RegExp(escapeRe(first.region.name_en!)), { timeout: 20000 });
 
       // NO reload between the two picks — this is the whole point of the test.
       await pickCountry(secondName);
-      await expect(page.getByTestId("location-level-region")).toHaveText(
-        new RegExp(escapeRe(second.region.name_en!)),
-      );
+      await expect(page.getByTestId("location-level-region"), {
+        message: `LS-11 step 4: the second market's region ${second.region.name_en!} never replaced the first market's tree after picking ${secondName} (INC-211)`,
+      }).toHaveText(new RegExp(escapeRe(second.region.name_en!)), { timeout: 20000 });
 
       const savedArea = async () => {
         const cookie = String(await page.evaluate("document.cookie"));
         return decodeURIComponent(/ethio_area=([^;]+)/.exec(cookie)?.[1] ?? "");
       };
+      let cookieSeen = "";
       await expect
-        .poll(savedArea, {
-          timeout: 20000,
-          message: "the saved area never named the market that was picked",
-        })
+        .poll(
+          async () => {
+            cookieSeen = await savedArea();
+            return cookieSeen;
+          },
+          {
+            timeout: 20000,
+            message: `LS-11 step 5: the saved-area cookie never named the picked market ${second.code} within 20 s`,
+          },
+        )
         .toMatch(new RegExp(`^${second.code}:[0-9a-f-]{36}$`));
       // DB truth (J4): the saved node belongs to the market that was PICKED,
       // never to the one just left (INC-211).
-      const node = await readLocationById((await savedArea()).split(":")[1]!);
-      expect(node?.country_code).toBe(second.code);
+      const node = await readLocationById(cookieSeen.split(":")[1]!);
+      expect(
+        node?.country_code,
+        `LS-11 step 6: the saved node ${cookieSeen} belongs to another market`,
+      ).toBe(second.code);
     } finally {
       await destroyCountry(first.code);
       await destroyCountry(second.code);
