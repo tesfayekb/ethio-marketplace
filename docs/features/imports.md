@@ -151,8 +151,10 @@ new currency, and undoes to closed with the old one.
 field diffs on creates and updates alike, applied on commit, captured in the
 revision rows and restored by Undo. An absent cell is SILENCE, never a deletion.
 An unknown value is refused BY NAME — `badCapability:<value>`, `badPeriod` with
-the offending value as its detail — and the row lands nothing. The export emits
-the three columns directly after `expiry_days`, so a file round-trips.
+the offending value as its detail — and the row lands nothing. C2b registered the
+three cells in the file spec itself, directly after `price_enabled` and before
+`expiry_days`, so a file round-trips through preview, commit, Undo and export in
+one header order (the header is exact: a file missing them is `badHeader`).
 
 ## The attributes file — the option `facts` cell (D18)
 
