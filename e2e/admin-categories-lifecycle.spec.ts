@@ -683,6 +683,10 @@ test.describe("CAT-IE categories import/export", () => {
     "allow_listings",
     "is_catchall",
     "price_enabled",
+    // U6-C2b — the posting cells the file now carries (CT-x), in registry order.
+    "capabilities",
+    "default_price_period",
+    "price_period_locked",
     "expiry_days",
     "icon",
     "visible_from",
