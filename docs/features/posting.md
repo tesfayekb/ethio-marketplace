@@ -35,7 +35,17 @@ screen at a draft's own address. The URL is unaffected.
 4. **A refusal is not a failure.** Refusals render beneath their named field and
    are not retried; only unreachability is.
 
-## Step 1 — category (D11)
+## Step 1 — ONE control (D11, C1-R1)
+
+The step is the TREE, with a filter box above it — not a search field beside a
+separate "or browse" list. Typing narrows the visible tree in place and every hit
+carries its full path, because "Doors & Windows" means little on its own. An empty
+box is the tree at the level the seller stands on. Folders drill in with a chevron
+and are never selectable; choosing a postable LEAF is the answer — the draft is
+created and the wizard advances at once, with no confirmation screen. From step 2
+onward the chosen category rides at the top of every step as a chip
+("Construction Material › Doors & Windows · Change"), which is both the
+confirmation and the way back.
 
 Search-to-leaf over the ONE shared tree reader
 (`src/features/categories/category-tree.ts`, lifted out of the feed so both
@@ -45,7 +55,16 @@ browsable and never selectable. Choosing a leaf creates the draft immediately �
 that is what makes the seller's work recoverable — and reads
 `get_posting_schema` to say how many details the next form will ask for.
 
-## Step 2 — photos (B2)
+## Step 2 — photos are OPTIONAL (B2, C1-R1)
+
+The door does not ask for a photo (`submit_listing` step 2 registers photos
+through their own door and validates nothing here), so the step does not pretend
+otherwise: it opens on the CATEGORY ILLUSTRATION as a stand-in ("this picture
+will stand in until you add your own") and offers "Add photos" beside "Continue
+without photos". The rules are stated before the picker, not after a rejection:
+JPG, PNG or WebP · up to 6 MB each · at least 480 px wide · good light, plain
+background, the whole item in frame. The YouTube link lives here too, beside the
+photos it belongs with (moved off step 4), with the DEC-073 shape hint.
 
 The device encodes before anything is sent: `createImageBitmap` with
 `imageOrientation: "from-image"` (so a portrait phone photo is not served
@@ -101,6 +120,27 @@ the answers from step 3; what comes back is a SUGGESTION dropped into both
 fields as ordinary editable text, never an author — the seller's edit is what
 saves.
 
+## Autosave is not an exam (INC-228, INC-227)
+
+- An autosave sends `p_step = <last completed step>` — never the step being
+  edited. A half-filled step is therefore never thrown back at a seller who is
+  still typing.
+- `Next` sends `p_step = <the step on screen>`: that is the only strict save, and
+  its refusals are the only ones rendered. Strictness travels with the STEP that
+  was claimed, so an autosave landing in between cannot consume it.
+- "Not saved yet" belongs to TRANSPORT alone (network, 5xx). A refusal is never
+  dressed as a failed save (F4).
+- Autosave sends only when the serialised answers CHANGED since the last accepted
+  save, and the dial is 600 saves an hour (`RATE_LIMIT_DRAFT_PER_HOUR`; the E2E
+  build keeps 30 so PR-7 can reach the ceiling). On a `rateLimited` refusal
+  autosave waits until `resets_at` and says so in words — `Next` still works, so
+  the seller is never in a dead end.
+- A required field carries its own primitive (`src/features/posting/field.tsx`):
+  an asterisk when required and "Optional" otherwise, a red border with the
+  message under the control on refusal, and a summary above Back/Next naming the
+  refused fields BY LABEL, each a link that focuses its control. `Next` is never
+  greyed out without that summary on screen.
+
 ## The save queue
 
 Every save — the 2-second debounce, a tap, and `Next` — joins ONE chain. A
@@ -130,6 +170,16 @@ pricing facts, and the screen obeys them.
 | `default_price_period` | the period the picker opens on                                                    |
 | `price_period_locked`  | the period is shown as a FACT, with no picker to change it (DEC-067)              |
 | `expiry_days`          | bounds the optional "until" date; beyond it the door refuses, under its own field |
+
+The ORDER is mode → currency → amount → period, and the period line appears only
+when the category lets the seller choose it (a locked period is a fact the buyer
+reads on the card). The currency is ONE searchable select — type "birr" or "ETB",
+arrow keys, enter — preselected from the saved posting currency, else the guess
+market's own currency (`cf-ipcountry` → `countries.currency_code`, read through
+the anon client), else ETB. There is no second currency box. A currency without an
+amount is not a price: the pair travels to the door together or not at all, which
+is what the `listings` price-pair rule requires. "Take it down on" left this step —
+the active window is answered on REVIEW as "active from / until".
 
 Four modes: a fixed price, a negotiable one, free, and "contact for a price".
 `free` and `contact` hide the amount entirely — the door refuses an amount sent
