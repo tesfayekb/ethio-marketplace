@@ -95,7 +95,8 @@ const ATTRIBUTE_HEADER =
   "is_per_variant,direct_link_count";
 const CATEGORY_HEADER =
   "category_path,category_slug,parent_slug,name_en,name_am,display_order,is_active," +
-  "allow_listings,is_catchall,price_enabled,expiry_days,icon,visible_from,visible_until," +
+  "allow_listings,is_catchall,price_enabled,capabilities,default_price_period," +
+  "price_period_locked,expiry_days,icon,visible_from,visible_until," +
   "excluded_country_codes,secondary_parents,listing_count,origin_scope";
 
 const TRANSLATION_HEADER = "key,source,translation,context";

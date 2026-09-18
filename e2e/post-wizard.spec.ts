@@ -4,12 +4,17 @@ import { expect, test } from "./fixtures";
 
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
 import { gotoReady, openRailScope, signInViaSession } from "./helpers/ui";
-import { destroyLocation, seedScratchChain } from "./helpers/locations";
+import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { createUser } from "./helpers/users";
 import {
+  activeCityOf,
   attributesOf,
+  contactPrefOf,
   coverageOf,
+  identityOf,
   pricingOf,
+  rand,
+  statusOf,
   destroyCategoryBranch,
   destroyListingsOf,
   destroyPostableCategory,
@@ -514,6 +519,13 @@ test.describe("POSTING WIZARD", () => {
      */
     const chain = await seedScratchChain("ET");
     places.push(chain.region.slug);
+    /**
+     * J7 — SEED, THEN WAIT FOR THE SERVED TREE, THEN NAVIGATE. The market tree is
+     * a cached public read: a wizard opened before the cache carries the scratch
+     * chain shows a picker without it, and the test fails on a stale copy rather
+     * than on the behaviour. The wait uses a plain no-store fetch (I6).
+     */
+    await waitForTreeSlug(page, "ET", chain.city.slug);
 
     const listingId = await reachStep5(page, user.id, category);
     // Step 5 is not this test's subject: `free` is the one mode that asks for
@@ -578,6 +590,142 @@ test.describe("POSTING WIZARD", () => {
     expect(stored.locationId, "PW-11: the item's own place is not the first coverage row").toBe(
       chain.city.id,
     );
+  });
+
+  /**
+   * U6-C2b — STEPS 7 AND 8. The walk goes through steps 5 and 6 the way a seller
+   * does (free price, one real active city), because a step entered any other way
+   * proves nothing about the wizard.
+   */
+  async function reachStep7(
+    page: import("@playwright/test").Page,
+    userId: string,
+    category: { id: string; slug: string },
+  ) {
+    const listingId = await reachStep5(page, userId, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+
+    const city = await activeCityOf("ET");
+    await waitForTreeSlug(page, "ET", city.slug);
+    const region = page.getByTestId("post-where-region");
+    await expect(region, "reachStep7: the region level never rendered").toBeVisible();
+    // The city's own region is whichever one carries it: the cascade is walked,
+    // not guessed, by selecting each region until the city appears.
+    const values = await region
+      .locator("option")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => (node as HTMLOptionElement).value).filter((value) => value !== ""),
+      );
+    let picked = false;
+    for (const value of values) {
+      await region.selectOption(value);
+      const cityPicker = page.getByTestId("post-where-city");
+      if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
+        await cityPicker.selectOption(city.id);
+        picked = true;
+        break;
+      }
+    }
+    expect(picked, `reachStep7: no region carried the city ${city.slug}`).toBe(true);
+    await page.getByTestId("post-where-add").click();
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    return listingId;
+  }
+
+  test("PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const listingId = await reachStep7(page, user.id, category);
+
+    // MESSAGES IS A FACT, NOT A CHOICE (`listing_contact_refusals`).
+    const messages = page.getByTestId("post-who-channel-messages");
+    await expect(messages, "PW-12: messages was switched off").toBeChecked();
+    await expect(messages, "PW-12: messages could be changed").toBeDisabled();
+
+    // A PLAINLY WRONG ALIAS COSTS NO ROUND TRIP: the shape is mirrored.
+    const alias = page.getByTestId("post-who-alias");
+    await alias.fill("no");
+    await expect(
+      page.getByTestId("post-who-alias-refusal"),
+      "PW-12: a too-short alias was accepted on screen",
+    ).toBeVisible();
+
+    // A GOOD ONE IS THE DOOR'S ANSWER, and the door's answer is a claim.
+    const wanted = `e2e_${rand()}`.slice(0, 30).toLowerCase();
+    await alias.fill(wanted);
+    await expect(
+      page.getByTestId("post-who-alias-ok"),
+      "PW-12: the alias was never confirmed by the door",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await identityOf(user.id)).alias, {
+        message: "PW-12: the alias never reached the profile",
+        timeout: 20_000,
+      })
+      .toBe(wanted);
+
+    // A CHANNEL IS TWO ANSWERS: a value AND a switch.
+    await page.getByTestId("post-who-value-phone").fill("+251911234567");
+    await page.getByTestId("post-who-show-phone").check();
+    await page.getByTestId("post-next").click();
+    await expect
+      .poll(
+        async () => {
+          const pref = await contactPrefOf(listingId);
+          const phone = pref["phone"] as { show?: boolean; value?: string } | undefined;
+          return `${phone?.show === true}:${phone?.value ?? ""}`;
+        },
+        { message: "PW-12: the shown phone never reached the draft", timeout: 20_000 },
+      )
+      .toBe("true:+251911234567");
+    expect(
+      (await contactPrefOf(listingId))["messages"],
+      "PW-12: messages was not stored true",
+    ).toBe(true);
+  });
+
+  test("PW-13 review: the preview shows what was answered, and Publish lands in review — never live", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const listingId = await reachStep7(page, user.id, category);
+
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+
+    // THE PREVIEW IS THE DRAFT: the title and the free price the walk answered.
+    await expect(page.getByTestId("post-review-title")).toHaveText("e2e c2a listing title");
+    await expect(
+      page.getByTestId("post-review-price"),
+      "PW-13: the free price is not shown in the preview",
+    ).not.toHaveText("");
+    // The last step has NO Next — Publish is its only forward action.
+    await expect(page.getByTestId("post-next"), "PW-13: step 8 still offers Next").toHaveCount(0);
+
+    await page.getByTestId("post-publish").click();
+    await expect(
+      page.getByTestId("post-in-review"),
+      "PW-13: publishing did not land on the in-review screen",
+    ).toBeVisible({ timeout: 20_000 });
+
+    // DB TRUTH (J4): SCREENING. No owner door may ever make a listing live.
+    await expect
+      .poll(async () => await statusOf(listingId), {
+        message: "PW-13: the listing never entered screening",
+        timeout: 20_000,
+      })
+      .toBe("screening");
   });
 
   test("PW-14 D20: a signed-out visitor is sent to sign in with a return path, comes back, and a foreign return is ignored", async ({

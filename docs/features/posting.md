@@ -161,10 +161,12 @@ accepted ONLY as a same-origin relative path — `https://evil…`, `//evil` and
 anything carrying a backslash fall back to `/`. It is a redirect, not a card:
 the old sign-in card is gone.
 
-KNOWN LIMIT: the return path survives the email door and an already-signed-in
-visit. Google's door returns through its own fixed callback
-(`auth-service.ts`, outside this landing's scope), so a seller who signs in with
-Google lands on the home feed and taps "Post a listing" again.
+INC-224 (C2b): Google's door now carries the same intent. The return path rides
+in the OAuth `redirectTo` URL's own query string (`oauthRedirectUrl`), not a
+cookie, and the callback re-applies `safeReturnPath` before it navigates — a
+tampered `return` is still only ever `/`. KNOWN LIMIT: the harness cannot drive
+Google's consent screen, so the assertion on that arm is the unit-level shape of
+`oauthRedirectUrl`, not an end-to-end walk; `PW-14` still walks the email door.
 
 ## The posting entry
 
@@ -182,8 +184,70 @@ prefilled market, "All of <city>" over a scratch region→city→sub-city chain,
 the plan cap, all against DB truth · `PW-14` D20 both ways, including a dropped
 off-site return · `PW-15` the entry lives in My Listings and not in Account.
 
-## Still to come — C2b
+## Step 7 — who the buyer reaches (C2b, D17)
 
-Steps 7 (identity) and 8 (review and publish), the D18 facts prefill (`PW-9`),
-and the categories-file cells (CT-x) are NOT in this landing and say so on
-screen through `post.stepLater`.
+Identity lives on the PROFILE, not on the listing: alias, person-or-business,
+business name and home country are read once (`readSellerIdentity`) and shown as
+a confirmed block with "Change these" when they already exist, so a seller who
+has posted before answers nothing. Only the channels belong to the listing
+(`contact_pref`).
+
+The alias is the DOOR's answer, never the screen's. The shape `^[a-z0-9_]{3,30}$`
+is mirrored client-side so a plainly wrong alias costs no round trip, but the only
+statement of availability is `save_posting_identity` itself, debounced 700 ms and
+idempotent (claiming the alias you already hold is not `aliasTaken`). Reserved
+names and case-insensitive collisions are the door's list, not the screen's.
+
+Messages cannot be switched off — `listing_contact_refusals` requires them — so
+the switch renders as a disabled, checked fact with a line saying why, never as a
+control that refuses on submit. A channel is TWO answers, a value and "show it";
+the handle shapes (`+2519…`, `@handle`) are hints, and the door validates them
+(`badHandle`, `showNeedsValue`). A confirmed home country is locked
+(`countryAlreadyConfirmed`); an unset one is filled from the saved-area cookie.
+
+## Step 8 — review and publish (C2b)
+
+The preview (`listing-preview.tsx`) is built from the DRAFT, never from a second
+read, and its cover is the SERVER's first photo in the server's own order
+(`card` ▸ `cover` ▸ `thumb`) — so what the seller reviews is what a buyer sees.
+Publish calls `publish_listing`, which lands the listing in SCREENING and never
+live: live is only ever reached through the D1 gateway (still deferred). A refusal
+on any earlier answer is shown with a "Go to step N" button through one
+`FIELD_STEPS` map, so nothing refuses in a place the seller cannot reach. An
+unreachable publish keeps the answers and says so (F4). "In review" links to My
+Listings' own wording; the page itself arrives with E1, so the link goes to the
+feed until then.
+
+## The upload blocker, and the retry law (PP-10)
+
+CAUSE, from the published server's own log: every upload answered 500 with
+`[ssr-error] /api/upload/photo Missing Supabase environment variable(s):
+SUPABASE_SERVICE_ROLE_KEY` — the production runtime carried the key under a
+different name only, so the registration client could not be built. Not
+multipart: the route never reached the body. The binding was repaired; the route
+and the multipart read are unchanged.
+
+The tile's classification was the second half of the bug: a 500 is a failure to
+REACH a verdict, a refusal IS a verdict, and the two must not share a path.
+
+- a verdict → `refused`, its reason once, said to be final, NO retry offered;
+- unreachable → ONE automatic second try, then `failed` with "couldn't send" and
+  a manual retry in the seller's hands (nothing silent, nothing forever).
+
+## Tests (C2b)
+
+`PP-10` a verdict is shown once and offers no retry; a 5xx is tried exactly twice
+and then hands a manual retry over · `PW-11` seeds its region→city chain through
+the service client and waits for `/api/locations/ET` to serve it BEFORE opening
+the wizard (J7) · `PW-12` messages disabled-and-checked, an alias shape refused
+under its field, the door-confirmed alias and a shown phone read from DB truth ·
+`PW-13` the preview carries the answered values, step 8 offers no Next, and
+Publish lands `screening` in DB truth.
+
+## Still deferred
+
+The D18 facts prefill (`PW-9`) is NOT landed. The seam exists (option records may
+carry `facts`, DEC-050), but reading them on the posting side needs the public
+options projection to expose `facts` to an anon reader, which is a migration —
+forbidden by this landing's brief. It says so on screen through `post.stepLater`.
+The D1 screening gateway remains a named deferral.

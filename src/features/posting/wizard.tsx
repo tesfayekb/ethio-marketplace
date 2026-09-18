@@ -11,6 +11,8 @@ import { StepDetails } from "./step-details";
 import { StepPhotos } from "./step-photos";
 import { StepPricing } from "./step-pricing";
 import { StepWhere } from "./step-where";
+import { StepWho } from "./step-who";
+import { StepReview } from "./step-review";
 import { StepSpecifications } from "./step-specifications";
 import { readPostingSchema } from "./posting-service";
 import { useDraft } from "./use-draft";
@@ -109,7 +111,12 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 draft.values.priceAmount !== null
               : draft.step === 6
                 ? draft.values.coverage.length > 0
-                : false;
+                : // STEP 7 IS ALWAYS READY, for the same reason as step 3: which
+                  // channels are acceptable is `listing_contact_refusals`'s
+                  // judgement (messages is forced true on every save), and the
+                  // identity lives on the profile, committed as each answer
+                  // settles. Step 8 has no Next at all — Publish is its action.
+                  draft.step === 7;
 
   // D20 (U6-C2a) — a signed-out visitor never reaches this screen: the route's own
   // `beforeLoad` sends them to `/auth?return=…` and brings them back. What is left
@@ -265,6 +272,21 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 onChange={(coverage, immediate) => draft.change({ coverage }, immediate)}
               />
             )}
+            {draft.step === 7 && (
+              <StepWho
+                contactPref={draft.values.contactPref}
+                refusals={draft.refusals}
+                onChange={(contactPref, immediate) => draft.change({ contactPref }, immediate)}
+              />
+            )}
+            {draft.step === 8 && (
+              <StepReview
+                listingId={draft.listingId}
+                values={draft.values}
+                photos={draft.photos}
+                onGoTo={draft.goTo}
+              />
+            )}
             {draft.step > IMPLEMENTED_THROUGH && (
               <p className="text-sm text-muted-foreground" data-testid="post-step-later">
                 {t("post.stepLater")}
@@ -306,6 +328,15 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
               ),
           )
           .filter((refusal) => !(draft.step === 6 && refusal.field === "coverage"))
+          .filter(
+            (refusal) =>
+              !(
+                draft.step === 7 &&
+                ["contact_pref", "messages", "phone", "telegram", "whatsapp"].includes(
+                  refusal.field,
+                )
+              ),
+          )
           .map((refusal) => (
             <p
               key={`${refusal.field}:${refusal.reason}`}
@@ -328,22 +359,25 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           >
             {t("post.action.back")}
           </button>
-          <button
-            type="button"
-            data-testid="post-next"
-            className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90`}
-            disabled={!stepReady || draft.step >= TOTAL_STEPS}
-            onClick={() => {
-              void (async () => {
-                // Autosave on Next: the step advances only once the door has the
-                // answers, so a resume can never land past what was recorded.
-                const saved = await draft.saveAt(draft.step);
-                if (saved) draft.goTo(draft.step + 1);
-              })();
-            }}
-          >
-            {t("post.action.next")}
-          </button>
+          {/* The last step has no Next: Publish is its only forward action. */}
+          {draft.step < TOTAL_STEPS && (
+            <button
+              type="button"
+              data-testid="post-next"
+              className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90`}
+              disabled={!stepReady}
+              onClick={() => {
+                void (async () => {
+                  // Autosave on Next: the step advances only once the door has the
+                  // answers, so a resume can never land past what was recorded.
+                  const saved = await draft.saveAt(draft.step);
+                  if (saved) draft.goTo(draft.step + 1);
+                })();
+              }}
+            >
+              {t("post.action.next")}
+            </button>
+          )}
         </footer>
       </PageCard>
     </main>
