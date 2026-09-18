@@ -716,6 +716,7 @@ export const am: Messages = {
   "admin.translations.ai.row": "በAI ተርጉም",
   "admin.translations.ai.pending": "በመተርጎም ላይ…",
   "admin.translations.ai.bulkAction": "ያልተተረጎሙትን ሁሉ በAI ተርጉም ({count})",
+  "admin.translations.ai.bulkActionFiltered": "ከተጣራው ውስጥ ያልተተረጎሙትን በAI ሙላ ({count})",
   "admin.translations.ai.confirmTitle": "ያልተተረጎሙትን ሐረጎች በማሽን ይተርጎሙ?",
   "admin.translations.ai.confirmBody":
     "{count} ሐረጎች ለማሽን ትርጉም ይላካሉ። ውጤቶቹ እንደ ጊዜያዊ የማሽን ትርጉም ይቀመጣሉ፤ ከመታተማቸው በፊት መጽደቅ አለባቸው።",

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 277,
-  "dynamicCallSites": 168,
+  "dynamicCallSites": 169,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2036,9 +2036,6 @@
     ],
     "admin.translations.add.title": [
       "/admin/translations"
-    ],
-    "admin.translations.ai.bulkAction": [
-      "/admin/translations/$lang"
     ],
     "admin.translations.ai.cancel": [
       "/admin/translations/$lang"

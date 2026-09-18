@@ -402,10 +402,26 @@ export async function seedGuessFixture(countryCode: string, point: { lat: number
  * The public tree route keeps a 15 s in-process cache, so a freshly seeded row
  * is invisible for up to that long. Seed-before-navigate (J7) therefore means
  * waiting on the ROUTE, never on a clock.
+ *
+ * INC-218 — EVERY WAIT IS BOUNDED AND NAMED, and the bound is 20 s: the cache
+ * window is 15 s, so a longer poll only lets a test's waits sum past its own
+ * budget and turn a real failure into an unnamed test timeout. The message
+ * carries what was wanted AND what the route actually returned.
  */
 export async function waitForTreeSlug(page: Page, countryCode: string, slug: string) {
+  let seen: string[] = [];
   await expect
-    .poll(async () => await treeSlugs(page, countryCode), { timeout: 30_000, intervals: [1000] })
+    .poll(
+      async () => {
+        seen = await treeSlugs(page, countryCode);
+        return seen;
+      },
+      {
+        timeout: 20_000,
+        intervals: [1000],
+        message: `the ${countryCode} tree never carried ${slug} within 20 s`,
+      },
+    )
     .toContain(slug);
 }
 
@@ -424,6 +440,8 @@ export async function readLocationById(id: string) {
  * The open-markets route keeps the same 15 s in-process cache as the tree, so a
  * freshly opened scratch market is invisible for up to that long. Seed before
  * navigate (J7) therefore means waiting on the ROUTE, never on a clock.
+ *
+ * INC-218 — bounded at 20 s and named, for the same reason as the tree wait.
  */
 export async function waitForOpenMarket(page: Page, code: string) {
   await expect
@@ -439,7 +457,11 @@ export async function waitForOpenMarket(page: Page, code: string) {
         const body = (await response.json()) as { countries?: { code: string }[] };
         return (body.countries ?? []).map((row) => row.code);
       },
-      { timeout: 30_000, intervals: [1000] },
+      {
+        timeout: 20_000,
+        intervals: [1000],
+        message: `the open-market list never carried ${code} within 20 s`,
+      },
     )
     .toContain(code);
 }
