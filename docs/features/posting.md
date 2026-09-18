@@ -161,10 +161,12 @@ accepted ONLY as a same-origin relative path — `https://evil…`, `//evil` and
 anything carrying a backslash fall back to `/`. It is a redirect, not a card:
 the old sign-in card is gone.
 
-KNOWN LIMIT: the return path survives the email door and an already-signed-in
-visit. Google's door returns through its own fixed callback
-(`auth-service.ts`, outside this landing's scope), so a seller who signs in with
-Google lands on the home feed and taps "Post a listing" again.
+INC-224 (C2b): Google's door now carries the same intent. The return path rides
+in the OAuth `redirectTo` URL's own query string (`oauthRedirectUrl`), not a
+cookie, and the callback re-applies `safeReturnPath` before it navigates — a
+tampered `return` is still only ever `/`. KNOWN LIMIT: the harness cannot drive
+Google's consent screen, so the assertion on that arm is the unit-level shape of
+`oauthRedirectUrl`, not an end-to-end walk; `PW-14` still walks the email door.
 
 ## The posting entry
 
