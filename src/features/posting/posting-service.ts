@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-import type { DoorAnswer, Refusal } from "./types";
+import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
 
 /**
  * U6-C1a — THE WIZARD'S ONLY WAY TO THE SERVER.
@@ -192,6 +192,13 @@ export interface DraftRow {
   description: string | null;
   videoUrl: string | null;
   attributes: Record<string, unknown>;
+  /** U6-C2a — step 5's stored answers, so a resume opens on what was saved. */
+  priceMode: string | null;
+  priceAmount: number | null;
+  priceCurrency: string | null;
+  pricePeriod: string | null;
+  /** The stored timestamptz, trimmed to the `YYYY-MM-DD` the date field holds. */
+  posterExpiresAt: string | null;
 }
 
 export interface DraftPhotoRow {
@@ -207,10 +214,12 @@ export interface DraftPhotoRow {
  */
 export async function readDraft(
   listingId: string,
-): Promise<{ draft: DraftRow; photos: DraftPhotoRow[] } | null> {
+): Promise<{ draft: DraftRow; photos: DraftPhotoRow[]; coverage: string[] } | null> {
   const { data, error } = await supabase
     .from("listings")
-    .select("id,category_id,draft_step,status,title,description,video_url,attributes")
+    .select(
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,poster_expires_at",
+    )
     .eq("id", listingId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -223,7 +232,18 @@ export async function readDraft(
     .order("display_order", { ascending: true });
   if (photoError) throw new Error(photoError.message);
 
+  // The coverage rows are the seller's own (`listing_locations` is scoped by the
+  // listing's owner), read in the order the door wrote them: the FIRST row is the
+  // item's own place.
+  const { data: places, error: placeError } = await supabase
+    .from("listing_locations")
+    .select("location_id,created_at")
+    .eq("listing_id", listingId)
+    .order("created_at", { ascending: true });
+  if (placeError) throw new Error(placeError.message);
+
   return {
+    coverage: (places ?? []).map((row) => row.location_id),
     draft: {
       id: data.id,
       categoryId: data.category_id,
@@ -236,6 +256,12 @@ export async function readDraft(
         data.attributes !== null && typeof data.attributes === "object"
           ? (data.attributes as Record<string, unknown>)
           : {},
+      priceMode: data.price_mode,
+      priceAmount: data.price_amount === null ? null : Number(data.price_amount),
+      priceCurrency: data.price_currency,
+      pricePeriod: data.price_period,
+      posterExpiresAt:
+        typeof data.poster_expires_at === "string" ? data.poster_expires_at.slice(0, 10) : null,
     },
     photos: (photos ?? []).map((row) => ({
       id: row.id,
@@ -276,6 +302,12 @@ export interface PostingSchema {
   details: number;
   required: number;
   attributes: AttrDef[];
+  /**
+   * U6-C2a — the `category` block the read already carried and step 1 never used:
+   * what the CATEGORY decides about price, period, poster window and
+   * capabilities. Step 5 mirrors every one of them (the door still decides).
+   */
+  category: CategoryFacts | null;
 }
 
 function str(row: Record<string, unknown>, key: string): string | null {
@@ -324,10 +356,29 @@ export async function readPostingSchema(categoryId: string): Promise<PostingSche
     ? (payload["attributes"] as Record<string, unknown>[])
     : [];
   const attributes = definitions.map(shapeDefinition).filter((row) => row.attrKey !== "");
+  const block = (payload["category"] ?? null) as Record<string, unknown> | null;
+  const capabilities = Array.isArray(block?.["capabilities"])
+    ? (block["capabilities"] as unknown[]).filter(
+        (entry): entry is string => typeof entry === "string",
+      )
+    : [];
   return {
     details: attributes.length,
     required: attributes.filter((row) => row.isRequired).length,
     attributes,
+    category:
+      block === null
+        ? null
+        : {
+            id: str(block, "id") ?? "",
+            slug: str(block, "slug") ?? "",
+            nameEn: str(block, "name_en") ?? "",
+            priceEnabled: block["price_enabled"] !== false,
+            defaultPricePeriod: str(block, "default_price_period") ?? "once",
+            pricePeriodLocked: block["price_period_locked"] === true,
+            expiryDays: int(block, "expiry_days"),
+            capabilities,
+          },
   };
 }
 

@@ -30,6 +30,15 @@ export interface DraftValues {
   title: string;
   description: string;
   videoUrl: string;
+  /** U6-C2a step 5 — the door's own vocabulary (DEC-067, D13). */
+  priceMode: string;
+  priceAmount: number | null;
+  priceCurrency: string | null;
+  pricePeriod: string | null;
+  /** `YYYY-MM-DD`, or empty for "use the category's normal window". */
+  posterExpiresAt: string;
+  /** U6-C2a step 6 — the coverage rows; the FIRST is the item's own place. */
+  coverage: string[];
 }
 
 const EMPTY_VALUES: DraftValues = {
@@ -38,6 +47,14 @@ const EMPTY_VALUES: DraftValues = {
   title: "",
   description: "",
   videoUrl: "",
+  // `fixed` is the door's own column default, so the screen starts where the
+  // server already stands rather than inventing a fifth state.
+  priceMode: "fixed",
+  priceAmount: null,
+  priceCurrency: null,
+  pricePeriod: null,
+  posterExpiresAt: "",
+  coverage: [],
 };
 
 export interface UseDraft {
@@ -118,6 +135,16 @@ export function useDraft(initialListingId: string | null): UseDraft {
       title: valuesRef.current.title,
       description: valuesRef.current.description,
       videoUrl: valuesRef.current.videoUrl === "" ? null : valuesRef.current.videoUrl,
+      // Steps 5 and 6 travel on every save for the same reason steps 3 and 4 do:
+      // the door validates a step's OWN fields strictly (D12) and tolerates the
+      // later ones empty, so a Back-then-Next round trip loses nothing.
+      priceMode: valuesRef.current.priceMode,
+      priceAmount: valuesRef.current.priceAmount,
+      priceCurrency: valuesRef.current.priceCurrency,
+      pricePeriod: valuesRef.current.pricePeriod,
+      posterExpiresAt:
+        valuesRef.current.posterExpiresAt === "" ? null : valuesRef.current.posterExpiresAt,
+      coverage: valuesRef.current.coverage.length === 0 ? null : valuesRef.current.coverage,
     };
   }, []);
 
@@ -264,6 +291,12 @@ export function useDraft(initialListingId: string | null): UseDraft {
           title: found.draft.title ?? "",
           description: found.draft.description ?? "",
           videoUrl: found.draft.videoUrl ?? "",
+          priceMode: found.draft.priceMode ?? "fixed",
+          priceAmount: found.draft.priceAmount,
+          priceCurrency: found.draft.priceCurrency,
+          pricePeriod: found.draft.pricePeriod,
+          posterExpiresAt: found.draft.posterExpiresAt ?? "",
+          coverage: found.coverage,
         };
         valuesRef.current = next;
         setValues(next);

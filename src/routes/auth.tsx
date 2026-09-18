@@ -25,8 +25,29 @@ const MAX_RESENDS_PER_VISIT = 3;
 /** D-004: the resend target is only ever the email captured at sign-up. */
 const PENDING_EMAIL_KEY = "ethio.auth.pendingEmail";
 
+/**
+ * D20 — THE RETURN PATH, AND WHY IT IS SO NARROW.
+ *
+ * A session-gated page sends a signed-out visitor here with `?return=<path>` and
+ * expects to be come back to. That parameter is attacker-controlled, so it is
+ * accepted ONLY as a same-origin relative path: it must start with a single `/`,
+ * and it must not continue with `/` or `\` (which the browser reads as a
+ * protocol-relative host) and must carry no scheme. `https://evil.example`,
+ * `//evil.example` and `/\evil.example` are all ignored in favour of `/`.
+ *
+ * This is the anti-pattern the standard exists to prevent: an open redirect on a
+ * sign-in page is a phishing primitive, not a convenience.
+ */
+const RETURN_RE = /^\/(?![/\\]).*$/;
+
+function safeReturnPath(raw: unknown): string {
+  if (typeof raw !== "string" || raw === "") return "/";
+  if (raw.includes("://") || raw.includes("\\")) return "/";
+  return RETURN_RE.test(raw) ? raw : "/";
+}
+
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): { view?: AuthView } => ({
+  validateSearch: (search: Record<string, unknown>): { view?: AuthView; return?: string } => ({
     view:
       search.view === "check-email"
         ? "check-email"
@@ -35,6 +56,8 @@ export const Route = createFileRoute("/auth")({
           : search.view === "forgot"
             ? "forgot"
             : undefined,
+    // Kept in the URL so it survives a reload of the sign-in screen itself.
+    ...(typeof search["return"] === "string" ? { return: search["return"] } : {}),
   }),
 
   head: () => ({
@@ -68,7 +91,9 @@ const secondaryButtonClass =
 function AuthScreen() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { view } = Route.useSearch();
+  const { view, return: returnParam } = Route.useSearch();
+  /** Where a successful sign-in of ANY door lands (D20); `/` when unset or unsafe. */
+  const afterSignIn = safeReturnPath(returnParam);
   const { signIn, signUp, resendConfirmation } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -108,12 +133,12 @@ function AuthScreen() {
     if (onCheckEmail) return;
     let active = true;
     void (async () => {
-      if ((await hasSessionRehydrating()) && active) void navigate({ to: "/" });
+      if ((await hasSessionRehydrating()) && active) void navigate({ to: afterSignIn });
     })();
     return () => {
       active = false;
     };
-  }, [onCheckEmail, navigate]);
+  }, [onCheckEmail, navigate, afterSignIn]);
 
   /** Session-smart: if already signed in, go home instead of to a sign-in form. */
   async function handleAlreadyConfirmed() {
@@ -122,7 +147,7 @@ function AuthScreen() {
     setBusy(false);
     if (signedIn) {
       window.sessionStorage.removeItem(PENDING_EMAIL_KEY);
-      void navigate({ to: "/" });
+      void navigate({ to: afterSignIn });
       return;
     }
     void navigate({ to: "/auth", search: {} });
@@ -214,7 +239,8 @@ function AuthScreen() {
       void navigate({ to: "/auth", search: { view: "check-email" } });
       return;
     }
-    void navigate({ to: "/" });
+    // D20 — back to the page that asked for the session.
+    void navigate({ to: afterSignIn });
   }
 
   /** Resends to `address` only: the form's own email, or the stored sign-up email. */
