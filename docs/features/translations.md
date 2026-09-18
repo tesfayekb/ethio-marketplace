@@ -977,6 +977,25 @@ before the roster read and are byte-identical afterwards (transient `e2e_attr_`
 rows resolve through the shared `entityRow(page, stem)` twin helper; TR-14,
 TR-24 and TR-26 keep their exact structural anchors.
 
+## Bulk AI fill — the roster's filter scopes the sweep (INC-219)
+
+An admin FILTERS, then FILLS. The interface-scope bulk bar takes the roster's
+active search filter and, when one is set, collects only the untranslated keys
+that MATCH it: the button reads "AI-fill untranslated among filtered (n)" and
+the count comes from a filtered read of the same list the roster shows. With no
+filter it behaves exactly as before and sweeps the whole language.
+
+INC-119 still governs the number: the filtered count is believed only when its
+read SUCCEEDED. A pending read renders as pending and a failed one as an error —
+never as a quiet "(0)" — and the button stays disabled unless the count is known
+and non-zero. The Data (entity) scope has no roster search and ignores the prop.
+
+This closed INC-219: TR-12's mobile timeout was not a slow provider but a
+FULL-CATALOG run — the instrumentation caught it at `progress=600/1685` after
+90 s in the fence language. TR-12 now types its scratch prefix into the roster
+search first and fills its three keys inside the same 90 s budget, with the same
+summary assertions.
+
 ## Bulk AI fill — a failed chunk (INC-207)
 
 The bulk bar sweeps the untranslated rows in chunks. A chunk whose call THROWS is
