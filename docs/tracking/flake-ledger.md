@@ -393,3 +393,5 @@ Format: `- <date> · \`<project>\` · <title> · source \`<lane>\` · run <url> 
   resolves, and the same wait pre-dates the one-control rewrite.
 - Watch: 3 occurrences in 7 days → INC (DEC-030). A bounded read with a named
   failure state belongs to the tree reader's own file, outside this scope.
+- 2026-09-18 · `desktop-1280` · shell.spec.ts › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node · source `smoke` · run https://github.com/tesfayekb/ethio-marketplace/actions/runs/35377429162 · commit `ca996c1045306cf7236e7cfc66593261d1d96fb9` · TimeoutError: locator.click: Timeout 10000ms exceeded.
+- 2026-09-18 · `mobile-360` · shell.spec.ts › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node · source `shard 3` · run https://github.com/tesfayekb/ethio-marketplace/actions/runs/35377429162 · commit `ca996c1045306cf7236e7cfc66593261d1d96fb9` · TimeoutError: locator.click: Timeout 10000ms exceeded.
