@@ -362,7 +362,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     ? "account"
     : pathname.startsWith("/admin")
       ? "admin"
-      : null;
+      : // U6-C2 — posting pages belong to My Listings: the panel and its
+        // menu stay visible while posting (operator walk 2026-09-18).
+        pathname === "/post" || pathname.startsWith("/post/")
+        ? "my-listings"
+        : null;
   /** The marketplace feed is "/" and every category route /c/<slug>. */
   const isFeedRoute = pathname === "/" || pathname.startsWith("/c/");
 
