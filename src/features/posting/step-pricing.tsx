@@ -1,38 +1,37 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
-import { useCurrencies, useSellerHome } from "./pricing-data";
+import { controlClass, Field } from "./field";
+import { readGuessCurrency, useCurrencies, useSellerHome } from "./pricing-data";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { PRICE_MODES, PRICE_PERIODS, type CategoryFacts, type Refusal } from "./types";
 
 /**
- * U6-C2a — STEP 5: WHAT IT COSTS (DEC-067, D13).
+ * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
  *
- * FOUR THINGS THE CATEGORY DECIDES, NOT THE SCREEN:
+ * THE ORDER IS THE POINT (operator walk 2026-09-18):
  *
- *  1 whether a price may be named at all (`price_enabled`) — a category that
- *    forbids one is said in words and the amount never appears;
- *  2 the PERIOD: `default_price_period` is the starting value, and when
- *    `price_period_locked` is true the period is SHOWN, fixed, with no picker —
- *    a rental category that charges by the month cannot be posted "once";
- *  3 how far a poster may run (`expiry_days`), which bounds the optional
- *    "expires on" date;
- *  4 the currency's DEFAULT, which is the seller's home market's currency.
+ *   mode → currency → amount → period
  *
- * Every one of those is a MIRROR. `submit_listing` is the authority (F3): its
- * `priceNotAllowed`, `periodLocked`, `posterExpiryTooSoon/TooLate` and
- * `unknownCurrency` refusals land beneath the field that earned them.
+ * A seller names the KIND of price first, then the money the number is in, then
+ * the number. Asking for an amount before its currency invites a figure in the
+ * wrong money. The period comes last and ONLY when the category leaves it
+ * choosable: a locked period is shown to the buyer on the card, so repeating it
+ * here as an un-editable line is noise.
  *
- * "free" and "contact" HIDE the amount rather than disabling it — the door
- * refuses an amount sent with either (`mustBeEmpty`), so the screen must not
- * keep one on display where a seller could believe it still applies.
+ * ONE CURRENCY CONTROL. 156 rows is a list, not a menu, so it is a combobox:
+ * type "birr" or "ETB", move with the arrows, choose with Enter. The second text
+ * box the walk found (a search field AND a select) is gone.
+ *
+ * The take-down date has LEFT this step: it belongs with the listing's active
+ * window, which the review step now owns.
+ *
+ * Every rule here is a MIRROR. `submit_listing` is the authority (F3): its
+ * `priceNotAllowed`, `periodLocked` and `unknownCurrency` refusals land beneath
+ * the field that earned them.
  */
-
-const fieldClass =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground " +
-  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 const MODE_KEYS: Record<string, MessageKey> = {
   fixed: "post.price.mode.fixed",
@@ -56,14 +55,8 @@ export interface PricingValues {
   priceAmount: number | null;
   priceCurrency: string | null;
   pricePeriod: string | null;
-  /** An ISO date (`YYYY-MM-DD`) or the empty string for "the default window". */
+  /** An ISO date (`YYYY-MM-DD`) or the empty string; step 8 owns this field now. */
   posterExpiresAt: string;
-}
-
-/** `YYYY-MM-DD` for a date `days` from today, which bounds the expiry field. */
-function isoDay(days: number): string {
-  const day = new Date(Date.now() + days * 86_400_000);
-  return day.toISOString().slice(0, 10);
 }
 
 export function StepPricing({
@@ -81,38 +74,54 @@ export function StepPricing({
   const { t, language } = useI18n();
   const currencies = useCurrencies();
   const { home } = useSellerHome();
-  const [currencyQuery, setCurrencyQuery] = useState("");
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  const guessRef = useRef<string | null>(null);
 
   const locked = facts?.pricePeriodLocked ?? false;
   const priceEnabled = facts?.priceEnabled ?? true;
   const amountShown = values.priceMode === "fixed" || values.priceMode === "negotiable";
-  const expiryDays = facts?.expiryDays ?? 60;
 
-  /**
-   * THE DEFAULTS ARRIVE ONCE, FROM FACTS, NEVER FROM A GUESS: the period from the
-   * category and the currency from the seller's home market. Both are written as
-   * ordinary changes (debounced, not immediate) so a seller who edits them
-   * immediately is not fighting the prefill.
-   */
+  /** The period's default comes from the category, written as an ordinary change. */
   useEffect(() => {
     if (facts === null || values.pricePeriod !== null) return;
     onChange({ pricePeriod: facts.defaultPricePeriod }, false);
   }, [facts, values.pricePeriod, onChange]);
 
+  /**
+   * THE CURRENCY PRESELECT: the saved value wins; otherwise the seller's home
+   * market, then the edge's guess market, then ETB (pricing-data.ts).
+   */
   useEffect(() => {
-    if (home === null || home.currencyCode === null || values.priceCurrency !== null) return;
-    onChange({ priceCurrency: home.currencyCode }, false);
+    if (values.priceCurrency !== null) return;
+    if (home !== null && home.currencyCode !== null) {
+      onChange({ priceCurrency: home.currencyCode }, false);
+      return;
+    }
+    if (home === null) return;
+    if (guessRef.current !== null) {
+      onChange({ priceCurrency: guessRef.current }, false);
+      return;
+    }
+    let cancelled = false;
+    void readGuessCurrency().then((code) => {
+      if (cancelled) return;
+      guessRef.current = code;
+      onChange({ priceCurrency: code }, false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [home, values.priceCurrency, onChange]);
 
   const modeRefusal = refusalFor(refusals, "price_mode");
   const amountRefusal = refusalFor(refusals, "price_amount");
   const currencyRefusal = refusalFor(refusals, "price_currency");
   const periodRefusal = refusalFor(refusals, "price_period");
-  const expiryRefusal = refusalFor(refusals, "poster_expires_at");
 
-  /** The picker is searchable by CODE and by NAME — 156 rows is a list, not a menu. */
-  const shownCurrencies = useMemo(() => {
-    const needle = currencyQuery.trim().toLowerCase();
+  const matches = useMemo(() => {
+    const needle = query.trim().toLowerCase();
     const rows =
       needle === ""
         ? currencies.currencies
@@ -121,7 +130,16 @@ export function StepPricing({
               row.code.toLowerCase().includes(needle) || row.nameEn.toLowerCase().includes(needle),
           );
     return rows.slice(0, 40);
-  }, [currencies.currencies, currencyQuery]);
+  }, [currencies.currencies, query]);
+
+  const chosen = currencies.currencies.find((row) => row.code === values.priceCurrency) ?? null;
+
+  const choose = (code: string) => {
+    onChange({ priceCurrency: code }, true);
+    setQuery("");
+    setOpen(false);
+    setHighlight(0);
+  };
 
   /** The seller's own locale formatting for the amount caption (never for storage). */
   const shownAmount =
@@ -133,9 +151,14 @@ export function StepPricing({
     <div className="space-y-5" data-testid="post-pricing">
       <p className="text-sm text-muted-foreground">{t("post.price.why")}</p>
 
-      {/* ------------------------------ the mode ------------------------------ */}
+      {/* ---------------------------- 1 · the mode --------------------------- */}
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium text-foreground">{t("post.price.modeLabel")}</legend>
+        <legend className="flex items-center gap-1 text-sm font-medium text-foreground">
+          <span>{t("post.price.modeLabel")}</span>
+          <span className="text-destructive" aria-hidden="true">
+            *
+          </span>
+        </legend>
         <div className="flex flex-wrap gap-2">
           {PRICE_MODES.map((mode) => (
             <button
@@ -175,106 +198,156 @@ export function StepPricing({
         )}
       </fieldset>
 
-      {/* ----------------------- the amount and currency ---------------------- */}
       {amountShown && (
-        <div className="space-y-1" data-testid="post-price-amount-block">
-          <label htmlFor="post-price-amount" className="text-sm font-medium text-foreground">
-            {t("post.price.amountLabel")}
-          </label>
-          <input
-            id="post-price-amount"
-            data-testid="post-price-amount"
-            inputMode="decimal"
-            className={fieldClass}
-            value={values.priceAmount === null ? "" : String(values.priceAmount)}
-            placeholder={t("post.price.amountPlaceholder")}
-            onChange={(event) => {
-              const raw = event.target.value.replace(/[^\d.]/g, "");
-              const parsed = raw === "" ? null : Number(raw);
-              onChange(
-                { priceAmount: parsed !== null && Number.isFinite(parsed) ? parsed : null },
-                false,
-              );
-            }}
-          />
-          {shownAmount !== "" && (
-            <p className="text-xs text-muted-foreground" data-testid="post-price-amount-shown">
-              {fill(t("post.price.amountShown"), {
-                amount: shownAmount,
-                currency: values.priceCurrency ?? "",
-              })}
-            </p>
-          )}
-          {amountRefusal !== null && (
-            <p className="text-sm text-destructive" data-testid="post-price-amount-refusal">
-              {t(draftRefusalKey(amountRefusal.reason))}
-            </p>
-          )}
-
-          <label
-            htmlFor="post-price-currency-search"
-            className="text-sm font-medium text-foreground"
-          >
-            {t("post.price.currencyLabel")}
-          </label>
-          <input
+        <>
+          {/* ------------------------- 2 · the currency ----------------------- */}
+          <Field
             id="post-price-currency-search"
-            data-testid="post-price-currency-search"
-            className={fieldClass}
-            value={currencyQuery}
-            placeholder={t("post.price.currencySearch")}
-            onChange={(event) => setCurrencyQuery(event.target.value)}
-          />
-          <select
-            data-testid="post-price-currency"
-            aria-label={t("post.price.currencyLabel")}
-            className={fieldClass}
-            value={values.priceCurrency ?? ""}
-            onChange={(event) => onChange({ priceCurrency: event.target.value || null }, true)}
+            label={t("post.price.currencyLabel")}
+            required={false}
+            refusal={currencyRefusal}
+            hint={
+              currencies.failed ? (
+                <p className="text-sm text-destructive" data-testid="post-price-currency-error">
+                  {t("post.price.currencyFailed")}
+                </p>
+              ) : undefined
+            }
           >
-            <option value="">{t("post.price.currencyNone")}</option>
-            {shownCurrencies.map((row) => (
-              <option key={row.code} value={row.code}>
-                {`${row.code} — ${row.nameEn}`}
-              </option>
-            ))}
-          </select>
-          {currencies.failed && (
-            <p className="text-sm text-destructive" data-testid="post-price-currency-error">
-              {t("post.price.currencyFailed")}
-            </p>
-          )}
-          {currencyRefusal !== null && (
-            <p className="text-sm text-destructive" data-testid="post-price-currency-refusal">
-              {t(draftRefusalKey(currencyRefusal.reason))}
-            </p>
-          )}
-        </div>
+            <div className="relative">
+              <input
+                id="post-price-currency-search"
+                data-testid="post-price-currency-search"
+                role="combobox"
+                aria-expanded={open}
+                aria-controls="post-price-currency-list"
+                autoComplete="off"
+                className={controlClass(currencyRefusal !== null)}
+                value={
+                  open || query !== ""
+                    ? query
+                    : chosen === null
+                      ? (values.priceCurrency ?? "")
+                      : `${chosen.code} — ${chosen.nameEn}`
+                }
+                placeholder={t("post.price.currencySearch")}
+                onFocus={() => setOpen(true)}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setOpen(true);
+                  setHighlight(0);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    setOpen(true);
+                    setHighlight((index) => Math.min(index + 1, Math.max(matches.length - 1, 0)));
+                    return;
+                  }
+                  if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    setHighlight((index) => Math.max(index - 1, 0));
+                    return;
+                  }
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    const row = matches[highlight];
+                    if (row !== undefined) choose(row.code);
+                    return;
+                  }
+                  if (event.key === "Escape") setOpen(false);
+                }}
+              />
+              {/* The chosen code, for a screen and for a test, in one place. */}
+              <span
+                className="sr-only"
+                data-testid="post-price-currency"
+                data-code={values.priceCurrency ?? ""}
+              >
+                {values.priceCurrency ?? t("post.price.currencyNone")}
+              </span>
+              {open && (
+                <ul
+                  id="post-price-currency-list"
+                  data-testid="post-price-currency-list"
+                  role="listbox"
+                  className={
+                    "absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border " +
+                    "border-border bg-background shadow-md"
+                  }
+                >
+                  {matches.map((row, index) => (
+                    <li key={row.code}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={row.code === values.priceCurrency}
+                        data-testid="post-price-currency-option"
+                        data-code={row.code}
+                        className={`flex min-h-11 w-full items-center px-3 text-start text-sm ${
+                          index === highlight ? "bg-accent" : ""
+                        }`}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => choose(row.code)}
+                      >
+                        {`${row.code} — ${row.nameEn}`}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Field>
+
+          {/* -------------------------- 3 · the amount ------------------------ */}
+          <Field
+            id="post-price-amount"
+            label={t("post.price.amountLabel")}
+            required={true}
+            refusal={amountRefusal}
+            hint={
+              shownAmount === "" ? undefined : (
+                <p className="text-xs text-muted-foreground" data-testid="post-price-amount-shown">
+                  {fill(t("post.price.amountShown"), {
+                    amount: shownAmount,
+                    currency: values.priceCurrency ?? "",
+                  })}
+                </p>
+              )
+            }
+          >
+            <input
+              id="post-price-amount"
+              data-testid="post-price-amount"
+              inputMode="decimal"
+              className={controlClass(amountRefusal !== null)}
+              value={values.priceAmount === null ? "" : String(values.priceAmount)}
+              placeholder={t("post.price.amountPlaceholder")}
+              onChange={(event) => {
+                const raw = event.target.value.replace(/[^\d.]/g, "");
+                const parsed = raw === "" ? null : Number(raw);
+                onChange(
+                  { priceAmount: parsed !== null && Number.isFinite(parsed) ? parsed : null },
+                  false,
+                );
+              }}
+            />
+          </Field>
+        </>
       )}
 
-      {/* ------------------------------ the period ---------------------------- */}
-      <div className="space-y-1">
-        <span className="text-sm font-medium text-foreground">{t("post.price.periodLabel")}</span>
-        {locked ? (
-          // DEC-067 — a locked period is a FACT about the category, so it is shown
-          // as one: no picker, no illusion of a choice the door would refuse.
-          <p
-            className="text-sm text-foreground"
-            data-testid="post-price-period-fixed"
-            data-period={values.pricePeriod ?? facts?.defaultPricePeriod ?? ""}
-          >
-            {fill(t("post.price.periodFixed"), {
-              period: t(
-                PERIOD_KEYS[values.pricePeriod ?? facts?.defaultPricePeriod ?? "once"] ??
-                  "post.price.period.once",
-              ),
-            })}
-          </p>
-        ) : (
+      {/* --------------- 4 · the period, ONLY when it is choosable ------------ */}
+      {!locked && (
+        <Field
+          id="post-price-period"
+          label={t("post.price.periodLabel")}
+          required={false}
+          refusal={periodRefusal}
+        >
           <select
+            id="post-price-period"
             data-testid="post-price-period"
-            aria-label={t("post.price.periodLabel")}
-            className={fieldClass}
+            className={controlClass(periodRefusal !== null)}
             value={values.pricePeriod ?? ""}
             onChange={(event) => onChange({ pricePeriod: event.target.value || null }, true)}
           >
@@ -284,38 +357,25 @@ export function StepPricing({
               </option>
             ))}
           </select>
-        )}
-        {periodRefusal !== null && (
-          <p className="text-sm text-destructive" data-testid="post-price-period-refusal">
-            {t(draftRefusalKey(periodRefusal.reason))}
-          </p>
-        )}
-      </div>
-
-      {/* ------------------------------ the expiry ---------------------------- */}
-      <div className="space-y-1">
-        <label htmlFor="post-price-expiry" className="text-sm font-medium text-foreground">
-          {t("post.price.expiryLabel")}
-        </label>
-        <input
-          id="post-price-expiry"
-          data-testid="post-price-expiry"
-          type="date"
-          className={fieldClass}
-          value={values.posterExpiresAt}
-          min={isoDay(1)}
-          max={isoDay(expiryDays)}
-          onChange={(event) => onChange({ posterExpiresAt: event.target.value }, true)}
-        />
-        <p className="text-xs text-muted-foreground">
-          {fill(t("post.price.expiryHint"), { days: expiryDays })}
-        </p>
-        {expiryRefusal !== null && (
-          <p className="text-sm text-destructive" data-testid="post-price-expiry-refusal">
-            {t(draftRefusalKey(expiryRefusal.reason))}
-          </p>
-        )}
-      </div>
+        </Field>
+      )}
+      {/* DEC-067 — a LOCKED period says nothing here: the buyer reads it on the
+          card, and a line the seller cannot act on is only noise. The value
+          still travels, so the door never has to guess it. */}
+      {locked && (
+        <span
+          className="sr-only"
+          data-testid="post-price-period-fixed"
+          data-period={values.pricePeriod ?? facts?.defaultPricePeriod ?? ""}
+        >
+          {fill(t("post.price.periodFixed"), {
+            period: t(
+              PERIOD_KEYS[values.pricePeriod ?? facts?.defaultPricePeriod ?? "once"] ??
+                "post.price.period.once",
+            ),
+          })}
+        </span>
+      )}
     </div>
   );
 }

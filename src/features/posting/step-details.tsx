@@ -28,7 +28,6 @@ export function StepDetails({
   attributes,
   title,
   description,
-  videoUrl,
   onChange,
   refusals,
 }: {
@@ -36,7 +35,6 @@ export function StepDetails({
   attributes: Record<string, unknown>;
   title: string;
   description: string;
-  videoUrl: string;
   onChange: (
     patch: { title?: string; description?: string; videoUrl?: string },
     immediate: boolean,
@@ -50,7 +48,6 @@ export function StepDetails({
 
   const titleRefusal = refusalFor(refusals, "title");
   const descriptionRefusal = refusalFor(refusals, "description");
-  const videoRefusal = refusalFor(refusals, "video_url") ?? refusalFor(refusals, "videoUrl");
 
   const assist = async () => {
     if (categoryId === null || assisting) return;
@@ -153,26 +150,6 @@ export function StepDetails({
         )}
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="post-video" className="text-sm font-medium text-foreground">
-          {t("post.details.videoLabel")}
-        </label>
-        <input
-          id="post-video"
-          data-testid="post-video"
-          inputMode="url"
-          className={fieldClass}
-          value={videoUrl}
-          placeholder={t("post.details.videoPlaceholder")}
-          onChange={(event) => onChange({ videoUrl: event.target.value }, false)}
-        />
-        <p className="text-xs text-muted-foreground">{t("post.details.videoHint")}</p>
-        {videoRefusal !== null && (
-          <p className="text-sm text-destructive" data-testid="post-video-refusal">
-            {t(draftRefusalKey(videoRefusal.reason))}
-          </p>
-        )}
-      </div>
     </div>
   );
 }

@@ -2080,6 +2080,22 @@ export const en = {
   "post.review.reviewBody":
     "Your listing is being checked. It usually takes a few minutes, and you'll see it in My listings when it goes live.",
   "post.review.myListings": "Go to My listings",
+  // U6-C1-R1 — the required-field primitive, the one-control category step,
+  // optional photos, the ordered price step and the review window.
+  "post.field.required": "Required",
+  "post.refusalSummary": "Complete these to continue:",
+  "post.category.filterLabel": "Find a category",
+  "post.category.filterHint": "Type a word, or open a group below.",
+  "post.category.chipLabel": "Category",
+  "post.photos.standIn": "This picture will stand in until you add your own.",
+  "post.photos.rules":
+    "JPG, PNG or WebP \u00b7 up to 6 MB each \u00b7 at least 480 px wide \u00b7 good light, plain background, the whole item in frame",
+  "post.photos.skip": "Continue without photos",
+  "post.save.paused": "Saving paused for {seconds} s",
+  "post.review.activeFromLabel": "Active from",
+  "post.review.activeUntilLabel": "Active until",
+  "post.review.activeFromFact": "As soon as it passes review.",
+  "post.review.activeWindowHint": "Any day within this category's {days}-day window.",
 } as const;
 
 export default en;

@@ -101,11 +101,12 @@ test.describe("POSTING WIZARD", () => {
     return row;
   }
 
-  /** Step 1 through the seller's own eyes: search, then choose the leaf. */
   /**
-   * Pick a leaf through the search box. `expectSaved` is false only where the
-   * save is deliberately made unreachable (PW-8); everywhere else the caller
-   * must not read DB truth before the door has answered (J7).
+   * U6-C1-R1 — STEP 1 IS ONE CONTROL. The filter narrows the tree in place and
+   * choosing a LEAF is the answer: the wizard saves it and advances to step 2 by
+   * itself, so there is no confirmation screen to click through. `expectSaved` is
+   * false only where the save is deliberately unreachable (PW-8); everywhere
+   * else the caller must not read DB truth before the door answered (J7).
    */
   async function chooseBySearch(
     page: import("@playwright/test").Page,
@@ -117,9 +118,11 @@ test.describe("POSTING WIZARD", () => {
     const hit = page.locator(`[data-testid="post-category-hit"][data-category="${categoryId}"]`);
     await expect(hit).toBeVisible();
     await hit.click();
-    await expect(page.getByTestId("post-category-chosen")).toBeVisible();
     if (expectSaved) {
       await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved");
+      // AUTO-ADVANCE: the leaf IS the answer, so step 2 opens with the chip.
+      await expect(page.getByTestId("post-step-2")).toBeVisible();
+      await expect(page.getByTestId("post-category-chip-path")).toContainText(slug);
     }
   }
 
@@ -131,8 +134,15 @@ test.describe("POSTING WIZARD", () => {
     // Eight steps, always visible: the seller can see how long this will take.
     await expect(page.getByTestId("post-progress").locator("li")).toHaveCount(8);
     await expect(page.getByTestId("post-back")).toBeDisabled();
-    // The step's own rule, mirrored: no category, no Next (the door still decides).
-    await expect(page.getByTestId("post-next")).toBeDisabled();
+    // U6-C1-R1 — NEXT IS NEVER GREYED: it sends, and the door's refusal is what
+    // stops the seller, named in the summary above the button.
+    await expect(page.getByTestId("post-next")).toBeEnabled();
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-refusal-summary"),
+      "PW-1: Next without a category did not name what is missing",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
   });
 
   test("PW-2 search-to-leaf chooses a category and creates the draft at once", async ({ page }) => {
@@ -153,7 +163,10 @@ test.describe("POSTING WIZARD", () => {
     const [draft] = await draftsOf(user.id);
     expect(draft?.status, "PW-2: a new draft must be a draft").toBe("draft");
     expect(draft?.draft_step, "PW-2: the door records step 1").toBe(1);
-    await expect(page.getByTestId("post-next")).toBeEnabled();
+    // The chip carries the PATH, and its Change link returns to the one control.
+    await expect(page.getByTestId("post-category-chip")).toBeVisible();
+    await page.getByTestId("post-category-chip-change").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
   });
 
   test("PW-3 a folder is browsable and never selectable; its leaf is (D11)", async ({ page }) => {
@@ -176,8 +189,10 @@ test.describe("POSTING WIZARD", () => {
     const leafRow = page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`);
     await expect(leafRow).toBeVisible();
     await leafRow.click();
-    await expect(page.getByTestId("post-category-chosen")).toBeVisible();
-    await expect(page.getByTestId("post-category-name")).toContainText(child.slug);
+    // The leaf advances by itself; the chip names the whole path, parent first.
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-category-chip-path")).toContainText(parent.slug);
+    await expect(page.getByTestId("post-category-chip-path")).toContainText(child.slug);
   });
 
   test("PW-4 a photo is prepared on the device, stored stripped, and removable", async ({
@@ -193,9 +208,7 @@ test.describe("POSTING WIZARD", () => {
     expect(listingId, "PW-4: step 1 created no draft to hang photos on").not.toBe("");
     objects.push({ userId: user.id, listingId });
 
-    await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible();
-
     await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
     // Exactly one photo was picked, so the locator is strict by construction (J5).
     const tile = page.getByTestId("post-photo-tile");
@@ -278,9 +291,10 @@ test.describe("POSTING WIZARD", () => {
     await chooseBySearch(page, category.slug, category.id, false);
 
     await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "unsaved");
-    // NOTHING WAS LOST: the chosen category is still on screen, and nothing was
-    // written, so the caption is not a lie in either direction.
-    await expect(page.getByTestId("post-category-name")).toContainText(category.slug);
+    // NOTHING WAS LOST AND NOTHING WAS WRITTEN: the seller is still on the one
+    // control (an unsaved choice never advances), so the caption lies in neither
+    // direction.
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
     expect(await draftsOf(user.id), "PW-8: an aborted save must write nothing").toEqual([]);
 
     await page.unroute("**/api/listings/draft");
@@ -292,6 +306,11 @@ test.describe("POSTING WIZARD", () => {
         message: "PW-8: the retry did not save the draft",
       })
       .toEqual([category.id]);
+    // The choice survived the outage: the seller is still on step 1 (a retry is
+    // not a forward move), and Next now carries them on with the chip in place.
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-category-chip-path")).toContainText(category.slug);
   });
 
   /**
@@ -314,7 +333,6 @@ test.describe("POSTING WIZARD", () => {
     expect(listingId, "step 1 created no draft").not.toBe("");
     objects.push({ userId, listingId });
 
-    await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible();
     await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
     await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
@@ -404,8 +422,9 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-4")).toBeVisible();
 
-    // Nothing is written until the seller asks: Next stays closed on empty text.
-    await expect(page.getByTestId("post-next")).toBeDisabled();
+    // Nothing is written until the seller asks; Next now sends and the door
+    // refuses the empty title, which the summary names (U6-C1-R1).
+    await expect(page.getByTestId("post-next")).toBeEnabled();
     await page.getByTestId("post-assist").click();
     await expect(page.getByTestId("post-assist-done")).toBeVisible();
 
@@ -416,7 +435,6 @@ test.describe("POSTING WIZARD", () => {
     // A SUGGESTION, NEVER AN AUTHOR: the seller can overwrite both.
     await title.fill("e2e seller's own title");
     await expect(title).toHaveValue("e2e seller's own title");
-    await expect(page.getByTestId("post-next")).toBeEnabled();
 
     await page.getByTestId("post-next").click();
     await expect
@@ -449,7 +467,7 @@ test.describe("POSTING WIZARD", () => {
     return listingId;
   }
 
-  test("PW-10 pricing: a locked period is shown fixed, free hides the amount, and a wrong expiry is refused under its field", async ({
+  test("PW-10 pricing: currency comes before the amount, a locked period shows no line, and free hides the amount", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -462,37 +480,44 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     const listingId = await reachStep5(page, user.id, category);
 
-    // A LOCKED PERIOD IS A FACT, NOT A CHOICE: shown fixed, with no picker at all.
-    const fixed = page.getByTestId("post-price-period-fixed");
-    await expect(fixed, "PW-10: the locked period was not shown as a fact").toBeVisible();
-    await expect(fixed).toHaveAttribute("data-period", "month");
+    // U6-C1-R1 — A LOCKED PERIOD IS NOT A LINE ON THIS STEP: the buyer reads it
+    // on the card, so nothing here asks about it and no picker exists.
     await expect(page.getByTestId("post-price-period")).toHaveCount(0);
+    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute(
+      "data-period",
+      "month",
+    );
+    // The take-down date has left this step for the review step's active window.
+    await expect(page.getByTestId("post-price-expiry")).toHaveCount(0);
+
+    // THE ORDER: mode → currency → amount. Read the DOM's own sequence, not a
+    // screenshot: the currency field must precede the amount field.
+    const order = await page.evaluate(() => {
+      const nodes = Array.from(
+        document.querySelectorAll('[data-testid="post-pricing"] [data-testid="post-field"]'),
+      );
+      return nodes.map((node) => node.getAttribute("data-field"));
+    });
+    expect(
+      order.indexOf("post-price-currency-search"),
+      "PW-10: the currency is not asked before the amount",
+    ).toBeLessThan(order.indexOf("post-price-amount"));
+
+    // ONE CURRENCY CONTROL, preselected — never two boxes for one answer.
+    await expect(page.getByTestId("post-price-currency-search")).toHaveCount(1);
+    await expect(page.getByTestId("post-price-currency")).not.toHaveAttribute("data-code", "");
 
     // `free` HIDES the amount — the door refuses an amount sent with it.
     await page.getByTestId("post-price-mode-free").click();
     await expect(
-      page.getByTestId("post-price-amount-block"),
+      page.getByTestId("post-price-amount"),
       "PW-10: free still offered an amount",
     ).toHaveCount(0);
 
     // A priced mode brings it back, and the door stores what was sent.
     await page.getByTestId("post-price-mode-fixed").click();
-    await expect(page.getByTestId("post-price-amount-block")).toBeVisible();
+    await expect(page.getByTestId("post-price-amount")).toBeVisible();
     await page.getByTestId("post-price-amount").fill("25000");
-
-    // THE DOOR IS THE AUTHORITY: an expiry beyond the category's own window is
-    // refused, and the refusal lands beneath the date field (F4).
-    const beyond = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
-    await page.getByTestId("post-price-expiry").fill(beyond);
-    await page.getByTestId("post-next").click();
-    await expect(
-      page.getByTestId("post-price-expiry-refusal"),
-      "PW-10: the out-of-window expiry was not refused under its own field",
-    ).toBeVisible();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
-
-    // Cleared, the same step is accepted and the price reaches the draft.
-    await page.getByTestId("post-price-expiry").fill("");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
     await expect
@@ -769,5 +794,86 @@ test.describe("POSTING WIZARD", () => {
       (await openRailScope(page)).getByTestId("post-entry"),
       "PW-15: the posting entry is still in Account",
     ).toHaveCount(0);
+  });
+
+  /**
+   * INC-228 — AUTOSAVE IS NOT AN EXAM. The wizard saves at the LAST COMPLETED
+   * step while the seller is still typing, so a half-filled step is never thrown
+   * back at them mid-sentence; only `Next` names the current step and only then
+   * does the door judge it strictly.
+   */
+  test("PW-16 typing is saved without judgement; only Next asks the door to judge the step", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    await reachStep3(page, user.id, category);
+
+    // One detail answered, the required text left alone: the autosave that follows
+    // must not refuse anything.
+    const picker = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`,
+    );
+    await picker.focus();
+    await picker.selectOption(spec.optionValues[0] ?? "");
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.number.attrKey}"]`)
+      .fill("7");
+    await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved", {
+      timeout: 20_000,
+    });
+    await page.waitForTimeout(3_000);
+    await expect(
+      page.getByTestId("post-refusal-summary"),
+      "PW-16: autosave judged a step the seller is still filling in",
+    ).toHaveCount(0);
+    await expect(page.locator('[data-testid="post-attr-refusal"]')).toHaveCount(0);
+    // DB TRUTH: the recorded step is still the last COMPLETED one (step 2).
+    expect(
+      (await draftsOf(user.id))[0]?.draft_step,
+      "PW-16: autosave advanced the recorded step",
+    ).toBe(2);
+
+    // Next asks for the verdict, and now the untouched required detail is refused.
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),
+      "PW-16: Next did not ask the door to judge the step",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-refusal-summary")).toBeVisible();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+  });
+
+  /**
+   * U6-C1-R1 — ONE searchable currency control, already carrying an answer.
+   *
+   * Honest limit: a signed-in seller's SAVED home market outranks the edge guess
+   * (D13), and `asEdge` speaks as Ethiopia, so what this asserts is the
+   * preselection itself plus the search: the guess branch is proven by
+   * `readGuessCurrency`'s own order, not through this door.
+   */
+  test("PW-17 the currency is preselected and searchable by name in one control", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await reachStep5(page, user.id, category);
+
+    const search = page.getByTestId("post-price-currency-search");
+    await expect(search, "PW-17: the currency is not one control").toHaveCount(1);
+    await expect(
+      page.getByTestId("post-price-currency"),
+      "PW-17: no currency was preselected",
+    ).not.toHaveAttribute("data-code", "");
+
+    // Typed by NAME, not by code: "birr" is how a seller says ETB.
+    await search.fill("birr");
+    const option = page.locator('[data-testid="post-price-currency-option"][data-code="ETB"]');
+    await expect(option, "PW-17: searching by name found no currency").toBeVisible();
+    await option.click();
+    await expect(page.getByTestId("post-price-currency")).toHaveAttribute("data-code", "ETB");
+    await expect(page.getByTestId("post-price-currency-list")).toHaveCount(0);
   });
 });
