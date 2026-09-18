@@ -294,6 +294,69 @@ under its field, the door-confirmed alias and a shown phone read from DB truth �
 `PW-13` the preview carries the answered values, step 8 offers no Next, and
 Publish lands `screening` in DB truth.
 
+## U6-C1-R2 — the second operator walk
+
+**Photos (step 2).** Nothing offers to skip: `Next` already carries a seller with
+no photo. The rules are ONE line — `post.photos.helper`, "Up to <n> photos · JPG,
+PNG or WebP · up to 6 MB · at least 480 px wide" — and `<n>` is one dial,
+`MAX_PHOTOS_PER_LISTING` in `types.ts` (M-MAINT-2 will source it from the plan).
+The stand-in illustration WALKS UP the tree: the chosen leaf's own picture, else
+the nearest ancestor that has one, derived from the shared tree reader, so a leaf
+seeded without an image still shows its family's picture (`PW-3`).
+
+**Specifications (step 3).** Every field renders through the field primitive: an
+asterisk when required, "Optional" otherwise, a SOFT red border on an empty
+required field from the start and a full border with the door's message after a
+refusal. INC-229: the answers live in the DRAFT, never in a step-local state that
+dies on unmount, so `Back` shows what was typed (`PW-18`).
+
+**Title and description (step 4) — DEC-072 in full.** The assist is given the
+category path, the step-3 answers, the seller's own draft words and the first
+three stored photos (card variants, fetched server-side and sent inline). The
+prompt asks it to write to SELL — natural title, persuasive but truthful body,
+the seller's own facts kept, nothing added that is not in the photos or the
+details, ≤ 120 / ≤ 1200 characters. Each retry carries the previous suggestions
+and asks for a different angle. The budget is the DOOR's:
+`consume_rate_limit('assist:<listing id>', …, 5, '10 years')` — five per listing,
+no schema change — and the remaining count is on screen. Suggestions arrive BESIDE
+the fields as a history of up to five, each with "Use this one"; the seller's own
+text is never overwritten without that tap (`PW-6`, `PW-19`).
+
+**Price (step 5).** The currency control shows a chevron — the combobox
+affordance the walk asked for. Nothing else changed.
+
+**Where (step 6).** The item's own place is ALSO the default selling place: the
+deepest place the cascade names lists itself under "Where this listing shows",
+with `Remove` and "Add it back" so the automatic rule is never a trap. Changing
+the cascade MOVES that automatic place rather than leaving a stale one to exhaust
+the plan. Further places come from a second cascade within the plan, and the plan
+counts what is used on screen. The automatic add is a DEBOUNCED save: the cascade
+settles across three levels, and racing one write per level let an earlier place
+land last (`PW-11`, `PW-20`).
+
+**Who (step 7).** Each channel is one row: the value and its "Show on the
+listing" switch side by side. The alias is SUGGESTED from the business name or
+the account's display name with a "Use it" chip, and the identity door now runs
+an IMITATION CHECK — one Gemini text call answering `{imitates, of}` — refusing
+`aliasImitatesBrand` with the name it resembles. A checker that cannot answer
+returns nothing: a broken check must never become an accidental ban list (F4).
+Fake mode: an alias containing "cocacola" imitates (`PW-12`).
+
+**Review (step 8).** A real review page: one section per step with the saved
+values and an `Edit` link that returns to that step — and `Next` there comes back
+to review rather than walking on. The preview sits beneath, then the active
+window, then Publish (`PW-13`).
+
+## Deferrals to M-MAINT-2
+
+- per-link allowed options + default values
+- plan photo cap
+- seller first/last name
+- the `pin` column: `validate_listing_attributes` refuses any key not in the
+  effective links set, so a reserved `_pin` inside `attributes` would be refused.
+  The map pin therefore needs its own column and the control is NOT shown yet.
+- the facts prefill check (D18 / `PW-9`)
+
 ## Still deferred
 
 The D18 facts prefill (`PW-9`) is NOT landed. The seam exists (option records may

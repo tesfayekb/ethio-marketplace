@@ -6,7 +6,7 @@ import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
 import { readSellerIdentity, saveIdentity, type SellerIdentity } from "./posting-service";
-import { draftRefusalKey, refusalFor } from "./refusal-text";
+import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 
 /**
@@ -207,6 +207,21 @@ export function StepWho({
 
   const countries = useMemo(() => markets.markets, [markets.markets]);
 
+  /**
+   * U6-C1-R2 — THE SUGGESTED SELLER NAME. A business is known by its business
+   * name; a person by the name on their account. The suggestion is squeezed into
+   * the alias SHAPE the door accepts, and offered — the seller still taps it.
+   */
+  const suggestedAlias = useMemo(() => {
+    const source = sellerType === "business" ? businessName : (identity?.displayName ?? "");
+    const shaped = source
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 30);
+    return ALIAS_RE.test(shaped) ? shaped : null;
+  }, [sellerType, businessName, identity]);
+
   return (
     <div className="space-y-5" data-testid="post-who">
       <p className="text-sm text-muted-foreground">{t("post.who.why")}</p>
@@ -275,9 +290,40 @@ export function StepWho({
             )}
             {aliasState === "refused" && aliasRefusal !== null && (
               <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
-                {t(draftRefusalKey(aliasRefusal.reason))}
+                {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
+                    so the seller can tell a coincidence from a rejection. */}
+                {aliasRefusal.reason === "aliasImitatesBrand"
+                  ? fill(t("post.refusal.aliasImitatesBrand"), {
+                      name: aliasRefusal.detail ?? "",
+                    })
+                  : t(draftRefusalKey(aliasRefusal.reason))}
               </p>
             )}
+            {/* THE SUGGESTION: a business's own name, or the account's name — the
+                seller's to take in one tap, never written for them. */}
+            {suggestedAlias !== null && suggestedAlias !== alias && (
+              <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span data-testid="post-who-alias-suggested">
+                  {fill(t("post.who.aliasSuggested"), { alias: suggestedAlias })}
+                </span>
+                <button
+                  type="button"
+                  data-testid="post-who-alias-use"
+                  className={smallButtonClass}
+                  onClick={() => {
+                    setAlias(suggestedAlias);
+                    checkAlias(suggestedAlias);
+                  }}
+                >
+                  {t("post.who.aliasUseIt")}
+                </button>
+              </p>
+            )}
+            {/* A NAMED DEFERRAL, said on screen (A3): first and last name need a
+                schema change — M-MAINT-2. */}
+            <p className="text-xs text-muted-foreground" data-testid="post-who-name-later">
+              {t("post.who.nameLater")}
+            </p>
           </div>
 
           {/* ------------------------- person or business ---------------------- */}
@@ -371,24 +417,29 @@ export function StepWho({
               >
                 {t(CHANNEL_LABELS[channel])}
               </label>
-              <input
-                id={`post-who-value-${channel}`}
-                data-testid={`post-who-value-${channel}`}
-                className={fieldClass}
-                value={current.value}
-                inputMode={channel === "telegram" ? "text" : "tel"}
-                onChange={(event) => setChannel(channel, { value: event.target.value.trim() })}
-              />
-              <p className="text-xs text-muted-foreground">{t(CHANNEL_HINTS[channel])}</p>
-              <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+              {/* U6-C1-R2 — ONE ROW PER CHANNEL: the number and the permission sit
+                  side by side, so whether a buyer will see it is visible at a
+                  glance rather than a switch further down the screen. */}
+              <div className="flex items-center gap-3">
                 <input
-                  type="checkbox"
-                  data-testid={`post-who-show-${channel}`}
-                  checked={current.show}
-                  onChange={(event) => setChannel(channel, { show: event.target.checked })}
+                  id={`post-who-value-${channel}`}
+                  data-testid={`post-who-value-${channel}`}
+                  className={`${fieldClass} grow`}
+                  value={current.value}
+                  inputMode={channel === "telegram" ? "text" : "tel"}
+                  onChange={(event) => setChannel(channel, { value: event.target.value.trim() })}
                 />
-                <span>{t("post.who.showIt")}</span>
-              </label>
+                <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-foreground">
+                  <input
+                    type="checkbox"
+                    data-testid={`post-who-show-${channel}`}
+                    checked={current.show}
+                    onChange={(event) => setChannel(channel, { show: event.target.checked })}
+                  />
+                  <span>{t("post.who.showOnListing")}</span>
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">{t(CHANNEL_HINTS[channel])}</p>
               {refusal !== null && (
                 <p className="text-sm text-destructive" data-testid={`post-who-refusal-${channel}`}>
                   {t(draftRefusalKey(refusal.reason))}

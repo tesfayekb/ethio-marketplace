@@ -62,6 +62,9 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   showNeedsValue: "post.refusal.showNeedsValue",
   unknownCountry: "post.refusal.unknownCountry",
   countryAlreadyConfirmed: "post.refusal.countryAlreadyConfirmed",
+  // U6-C1-R2 — the writing budget and the alias imitation check.
+  assistBudgetSpent: "post.refusal.assistBudgetSpent",
+  aliasImitatesBrand: "post.refusal.aliasImitatesBrand",
 };
 
 const PHOTO_REASONS: Record<string, MessageKey> = {

@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 
 import { readAreaCookie } from "@/components/shell/location-data";
 import { useI18n } from "@/i18n";
+import type { MessageKey } from "@/i18n";
 
 import { controlClass, Field } from "./field";
 import { ListingPreview } from "./listing-preview";
@@ -14,7 +15,7 @@ import {
   type DraftPhotoRow,
 } from "./posting-service";
 import type { DraftValues } from "./use-draft";
-import type { Refusal } from "./types";
+import { MAX_PHOTOS_PER_LISTING, type Refusal } from "./types";
 
 /**
  * U6-C2b — STEP 8: REVIEW & PUBLISH (spec §4 B2 step 8).
@@ -55,6 +56,19 @@ const FIELD_STEPS: Record<string, number> = {
   alias: 7,
 };
 
+/** The price modes that ARE the answer, with no figure behind them (DEC-067). */
+const PRICE_MODE_KEYS: Record<string, MessageKey> = {
+  free: "post.price.mode.free",
+  contact: "post.price.mode.contact",
+};
+
+/** The channels a listing may show, for the review line. */
+const CHANNEL_KEYS: { key: string; nameKey: MessageKey }[] = [
+  { key: "phone", nameKey: "post.who.channel.phone" },
+  { key: "telegram", nameKey: "post.who.channel.telegram" },
+  { key: "whatsapp", nameKey: "post.who.channel.whatsapp" },
+];
+
 /** `YYYY-MM-DD` for a date `days` from today, which bounds the active window. */
 function isoDay(days: number): string {
   return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
@@ -62,6 +76,7 @@ function isoDay(days: number): string {
 
 export function StepReview({
   listingId,
+  categoryPath,
   values,
   photos,
   expiryDays,
@@ -70,6 +85,8 @@ export function StepReview({
   onGoTo,
 }: {
   listingId: string | null;
+  /** The chosen category's full path, in the seller's language. */
+  categoryPath: string;
   values: DraftValues;
   photos: DraftPhotoRow[];
   /** The category's poster window; the door falls back to 60 days when unset. */
@@ -101,6 +118,58 @@ export function StepReview({
     };
   }, [categoryId]);
 
+  /**
+   * THE SECTIONS: one per step, each rendering the SAVED value in the seller's
+   * language. Nothing is fetched for them — the draft and the attribute
+   * definitions already on this screen are the whole source.
+   */
+  const attrLine = Object.entries(values.attributes)
+    .map(([key, value]) => {
+      const def = definitions.find((entry) => entry.attrKey === key);
+      const rendered = Array.isArray(value) ? value.join(", ") : String(value);
+      return `${def?.nameEn ?? key}: ${rendered}`;
+    })
+    .join(" · ");
+  const priceLine =
+    values.priceMode === "free" || values.priceMode === "contact"
+      ? t(PRICE_MODE_KEYS[values.priceMode] ?? "post.price.modeLabel")
+      : [values.priceCurrency ?? "", values.priceAmount === null ? "" : String(values.priceAmount)]
+          .join(" ")
+          .trim();
+  const channelLine = CHANNEL_KEYS.filter((entry) => {
+    const row = values.contactPref[entry.key];
+    return (
+      row !== null && typeof row === "object" && (row as Record<string, unknown>)["show"] === true
+    );
+  })
+    .map((entry) => t(entry.nameKey))
+    .concat(t("post.who.channel.messages"))
+    .join(" · ");
+
+  const sections: { step: number; nameKey: MessageKey; value: string }[] = [
+    { step: 1, nameKey: "post.step.category", value: categoryPath },
+    {
+      step: 2,
+      nameKey: "post.step.photos",
+      value: fill(t("post.photos.count"), {
+        count: photos.length,
+        max: MAX_PHOTOS_PER_LISTING,
+      }),
+    },
+    { step: 3, nameKey: "post.step.specifications", value: attrLine },
+    { step: 4, nameKey: "post.step.details", value: values.title },
+    { step: 5, nameKey: "post.step.price", value: priceLine },
+    {
+      step: 6,
+      nameKey: "post.step.place",
+      value:
+        values.coverage.length === 0
+          ? ""
+          : fill(t("post.review.placesCount"), { count: values.coverage.length }),
+    },
+    { step: 7, nameKey: "post.step.contact", value: channelLine },
+  ];
+
   if (inReview) {
     return (
       <div className="space-y-3" data-testid="post-in-review">
@@ -126,6 +195,42 @@ export function StepReview({
   return (
     <div className="space-y-4" data-testid="post-review">
       <p className="text-sm text-muted-foreground">{t("post.review.why")}</p>
+
+      {/*
+       * U6-C1-R2 — A REAL REVIEW PAGE: one section per step, the SAVED value in
+       * words, and an Edit link that goes to that step and brings the seller back
+       * here on Next. A seller must be able to check the whole listing without
+       * walking the wizard again.
+       */}
+      <div className="space-y-2" data-testid="post-review-summary">
+        <p className="text-sm font-medium text-foreground">{t("post.review.summaryLabel")}</p>
+        <dl className="divide-y divide-border rounded-md border border-border">
+          {sections.map((section) => (
+            <div
+              key={section.step}
+              className="flex items-start justify-between gap-3 p-3"
+              data-testid="post-review-section"
+              data-step={section.step}
+            >
+              <div className="min-w-0 space-y-1">
+                <dt className="text-xs font-medium text-muted-foreground">{t(section.nameKey)}</dt>
+                <dd className="break-words text-sm text-foreground" data-testid="post-review-value">
+                  {section.value === "" ? t("post.review.notGiven") : section.value}
+                </dd>
+              </div>
+              <button
+                type="button"
+                data-testid="post-review-edit"
+                data-step={section.step}
+                className="min-h-11 shrink-0 text-xs font-medium text-primary underline"
+                onClick={() => onGoTo(section.step)}
+              >
+                {t("post.review.edit")}
+              </button>
+            </div>
+          ))}
+        </dl>
+      </div>
 
       <ListingPreview
         title={values.title}

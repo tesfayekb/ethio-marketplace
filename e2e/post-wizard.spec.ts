@@ -170,7 +170,11 @@ test.describe("POSTING WIZARD", () => {
   });
 
   test("PW-3 a folder is browsable and never selectable; its leaf is (D11)", async ({ page }) => {
-    const { parent, leaf: child } = await seedCategoryBranch();
+    // U6-C1-R2 — the folder carries an illustration and the LEAF has none, so the
+    // stand-in on step 2 can only come from the ancestor walk.
+    const { parent, leaf: child } = await seedCategoryBranch({
+      parentImageUrl: "https://example.invalid/e2e-standin.jpg",
+    });
     branches.push(parent.slug, child.slug);
     await seller(page);
     await gotoReady(page, "/post");
@@ -193,6 +197,11 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-2")).toBeVisible();
     await expect(page.getByTestId("post-category-chip-path")).toContainText(parent.slug);
     await expect(page.getByTestId("post-category-chip-path")).toContainText(child.slug);
+    // The leaf has no picture of its own: the stand-in is the FOLDER's.
+    await expect(
+      page.getByTestId("post-photos-illustration"),
+      "PW-3: a leaf without its own illustration showed no ancestor stand-in",
+    ).toHaveAttribute("src", "https://example.invalid/e2e-standin.jpg");
   });
 
   test("PW-4 a photo is prepared on the device, stored stripped, and removable", async ({
@@ -209,6 +218,15 @@ test.describe("POSTING WIZARD", () => {
     objects.push({ userId: user.id, listingId });
 
     await expect(page.getByTestId("post-step-2")).toBeVisible();
+    // U6-C1-R2 — PHOTOS ARE OPTIONAL and the step opens with a STAND-IN: the
+    // helper line states the rules once and nothing offers to skip, because Next
+    // already carries a seller who has no photo to give.
+    await expect(page.getByTestId("post-photos-helper")).toBeVisible();
+    await expect(page.getByTestId("post-photos-standin")).toBeVisible();
+    await expect(
+      page.getByTestId("post-photos-skip"),
+      "PW-4: the removed skip button is still on screen",
+    ).toHaveCount(0);
     await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
     // Exactly one photo was picked, so the locator is strict by construction (J5).
     const tile = page.getByTestId("post-photo-tile");
@@ -429,9 +447,38 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-assist-done")).toBeVisible();
 
     const title = page.getByTestId("post-title");
-    const description = page.getByTestId("post-description");
-    await expect(title).not.toHaveValue("");
-    await expect(description).not.toHaveValue("");
+    // U6-C1-R2 — A SUGGESTION, NEVER AN AUTHOR: the answer arrives BESIDE the
+    // fields; the seller's own boxes are not written until they say so.
+    await expect(page.getByTestId("post-assist-history")).toBeVisible();
+    await expect(title, "PW-6: the assist wrote into the seller's title itself").toHaveValue("");
+
+    // U6-C1-R2 — EACH TRY IS A DIFFERENT ANGLE, AND THE BUDGET IS VISIBLE: the
+    // history keeps every suggestion, a second try differs from the first, and
+    // the counter says how many tries are left (DEC-072).
+    const firstSuggestion = await page
+      .locator(
+        '[data-testid="post-assist-suggestion"][data-index="0"] [data-testid="post-assist-suggestion-title"]',
+      )
+      .innerText();
+    await expect(page.getByTestId("post-assist-tries")).toBeVisible();
+    const afterOne = await page.getByTestId("post-assist-tries").getAttribute("data-left");
+    await page.getByTestId("post-assist").click();
+    await expect(page.locator('[data-testid="post-assist-suggestion"]')).toHaveCount(2, {
+      timeout: 30_000,
+    });
+    const secondSuggestion = await page
+      .locator(
+        '[data-testid="post-assist-suggestion"][data-index="1"] [data-testid="post-assist-suggestion-title"]',
+      )
+      .innerText();
+    expect(secondSuggestion, "PW-6: the second try repeated the first").not.toBe(firstSuggestion);
+    const afterTwo = await page.getByTestId("post-assist-tries").getAttribute("data-left");
+    expect(Number(afterTwo), "PW-6: the try counter did not decrement").toBeLessThan(
+      Number(afterOne),
+    );
+    // "Use this one" puts a kept suggestion into the seller's own fields.
+    await page.locator('[data-testid="post-assist-use"][data-index="0"]').click();
+    await expect(title).toHaveValue(firstSuggestion);
     // A SUGGESTION, NEVER AN AUTHOR: the seller can overwrite both.
     await title.fill("e2e seller's own title");
     await expect(title).toHaveValue("e2e seller's own title");
@@ -583,22 +630,30 @@ test.describe("POSTING WIZARD", () => {
     ).toHaveCount(1);
     await expect(subCity.locator(`option[value="${chain.subCity.id}"]`)).toHaveCount(1);
 
-    // "All of <city>" adds ONE place: the city node itself.
-    await page.getByTestId("post-where-add").click();
+    // "All of <city>" is the explicit whole-city pick.
+    await subCity.selectOption("");
+
+    // U6-C1-R2 — THE ITEM'S PLACE IS ALSO WHERE IT SHOWS: "All of <city>" needs
+    // no "Add this place" tap, the city node lands in the list by itself.
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
     await expect(
       page.locator(`[data-testid="post-where-chosen-row"][data-id="${chain.city.id}"]`),
-      "PW-11: the whole-city choice did not record the city node",
+      "PW-11: the whole-city choice did not record the city node by itself",
     ).toBeVisible();
 
     // THE PLAN: one city. A second place is refused before a round trip is spent.
-    await subCity.selectOption(chain.subCity.id);
+    await page.getByTestId("post-where-extra-region").selectOption(chain.region.id);
+    await page.getByTestId("post-where-extra-city").selectOption(chain.city.id);
+    // A DIFFERENT place from the default (the whole city), so the plan — not a
+    // duplicate — is what refuses it.
+    await page.getByTestId("post-where-extra-subcity").selectOption(chain.subCity.id);
     await page.getByTestId("post-where-add").click();
     await expect(
       page.getByTestId("post-where-plan-full"),
       "PW-11: a second place was accepted past the plan",
     ).toBeVisible();
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+    await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute("data-used", "1");
 
     // DB TRUTH: one coverage row, and it is the item's own place (J4).
     await page.getByTestId("post-next").click();
@@ -654,8 +709,10 @@ test.describe("POSTING WIZARD", () => {
       }
     }
     expect(picked, `reachStep7: no region carried the city ${city.slug}`).toBe(true);
-    await page.getByTestId("post-where-add").click();
-    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+    // The chosen place shows itself into the list (U6-C1-R2) — no tap needed.
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
+      timeout: 20_000,
+    });
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7")).toBeVisible();
     return listingId;
@@ -696,6 +753,26 @@ test.describe("POSTING WIZARD", () => {
       })
       .toBe(wanted);
 
+    // U6-C1-R2 — AN IMITATION IS REFUSED BY THE DOOR, NAMING WHAT IT RESEMBLES.
+    // Fake mode makes the verdict deterministic: an alias carrying "cocacola"
+    // imitates, and no provider is called.
+    await alias.fill("e2e_cocacola_shop");
+    await expect(
+      page.getByTestId("post-who-alias-refusal"),
+      "PW-12: an imitating alias was accepted",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await identityOf(user.id)).alias, {
+        message: "PW-12: a refused alias must not reach the profile",
+        timeout: 20_000,
+      })
+      .toBe(wanted);
+    await alias.fill(wanted);
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+
+    // THE SUGGESTION and the show-switch live on the channel's own row.
+    await expect(page.getByTestId("post-who-show-phone")).toBeVisible();
+
     // A CHANNEL IS TWO ANSWERS: a value AND a switch.
     await page.getByTestId("post-who-value-phone").fill("+251911234567");
     await page.getByTestId("post-who-show-phone").check();
@@ -729,8 +806,26 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible();
 
+    // U6-C1-R2 — A REAL REVIEW PAGE: one section per step, each with its own Edit.
+    await expect(page.locator('[data-testid="post-review-section"]')).toHaveCount(7);
+    await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e r2 edited title");
+    // Next from an EDIT returns to review, never onward into the wizard.
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-step-8"),
+      "PW-13: Next after an edit did not come back to review",
+    ).toBeVisible();
+    await expect
+      .poll(async () => (await textOf(listingId)).title, {
+        message: "PW-13: the edited title never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe("e2e r2 edited title");
+
     // THE PREVIEW IS THE DRAFT: the title and the free price the walk answered.
-    await expect(page.getByTestId("post-review-title")).toHaveText("e2e c2a listing title");
+    await expect(page.getByTestId("post-review-title")).toHaveText("e2e r2 edited title");
     await expect(
       page.getByTestId("post-review-price"),
       "PW-13: the free price is not shown in the preview",
@@ -852,6 +947,133 @@ test.describe("POSTING WIZARD", () => {
     ).toBeVisible();
     await expect(page.getByTestId("post-refusal-summary")).toBeVisible();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
+  });
+
+  /**
+   * U6-C1-R2 — WHERE IT SHOWS. The item's own place is the default showing place:
+   * it lists itself, it can be taken out and put back, and the plan's count is a
+   * fact on screen rather than a surprise at the end.
+   */
+  test("PW-20 where: the default place lists itself, comes back, and the plan bounds the rest", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const listingId = await reachStep5(page, user.id, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+
+    const city = await activeCityOf("ET");
+    const region = page.getByTestId("post-where-region");
+    await expect(region, "PW-20: the region level never rendered").toBeVisible();
+    const values = await region
+      .locator("option")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => (node as HTMLOptionElement).value).filter((value) => value !== ""),
+      );
+    let picked = false;
+    for (const value of values) {
+      await region.selectOption(value);
+      const cityPicker = page.getByTestId("post-where-city");
+      if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
+        await cityPicker.selectOption(city.id);
+        picked = true;
+        break;
+      }
+    }
+    expect(picked, `PW-20: no region carried the city ${city.slug}`).toBe(true);
+    const subCity = page.getByTestId("post-where-subcity");
+    if ((await subCity.count()) === 1) await subCity.selectOption("");
+
+    // NO TAP: the chosen place is where the listing shows.
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
+      timeout: 20_000,
+    });
+    await expect(
+      page.locator(`[data-testid="post-where-chosen-row"][data-id="${city.id}"]`),
+      "PW-20: the item's own place did not list itself",
+    ).toBeVisible();
+
+    // REMOVED — and offered back, so the automatic rule is never a trap.
+    await page.locator(`[data-testid="post-where-remove"][data-id="${city.id}"]`).click();
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "0");
+    await page.getByTestId("post-where-add-back").click();
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+    await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute("data-used", "1");
+
+    // DB TRUTH (J4): exactly the one place the screen shows.
+    await page.getByTestId("post-next").click();
+    await expect
+      .poll(async () => (await coverageOf(listingId)).placeIds.length, {
+        message: "PW-20: the coverage never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe(1);
+  });
+
+  /**
+   * INC-229 — THE WIZARD STATE IS THE DRAFT. A step's answers live in the draft,
+   * never in a state that dies when the step unmounts, so going Back shows what
+   * was typed rather than an empty form.
+   */
+  test("PW-18 specifications survive a step Back", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    await reachStep3(page, user.id, category);
+
+    const text = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`,
+    );
+    const number = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.number.attrKey}"]`,
+    );
+    await text.fill("e2e back text");
+    await number.fill("7");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(
+      page.locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`),
+      "PW-18: the typed detail was lost on Back",
+    ).toHaveValue("e2e back text");
+    await expect(
+      page.locator(`[data-testid="post-attr-control"][data-attr="${spec.number.attrKey}"]`),
+      "PW-18: the typed number was lost on Back",
+    ).toHaveValue("7");
+    // An EMPTY required detail wears a soft border from the start (U6-C1-R2).
+    await expect(
+      page.locator(`[data-testid="post-field"][data-field="post-attr-${spec.text.attrKey}"]`),
+      "PW-18: the details do not render through the field primitive",
+    ).toBeVisible();
+  });
+
+  /**
+   * DEC-072 — THE SELLER'S WORDS WIN. The assistant is given the draft to build
+   * on, so a phrase the seller wrote survives into the suggestion. Fake mode
+   * makes that provable without a provider call.
+   */
+  test("PW-19 the seller's own phrase survives into the suggestion", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await reachStep3(page, user.id, category);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+
+    const phrase = "gray and very strong";
+    await page.getByTestId("post-description").fill(`${phrase} steel door`);
+    await page.getByTestId("post-assist").click();
+    await expect(page.getByTestId("post-assist-done")).toBeVisible({ timeout: 30_000 });
+    await expect(
+      page.locator(
+        '[data-testid="post-assist-suggestion"][data-index="0"] [data-testid="post-assist-suggestion-description"]',
+      ),
+      "PW-19: the seller's own phrase did not survive into the suggestion",
+    ).toContainText(phrase);
   });
 
   /**

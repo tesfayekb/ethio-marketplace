@@ -54,9 +54,18 @@ export const fieldControlClass =
   "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 " +
   "focus-visible:ring-ring";
 
-/** The border a control wears: destructive when the door refused it. */
-export function controlClass(refused: boolean): string {
-  return `${fieldControlClass} ${refused ? "border-destructive" : "border-input"}`;
+/**
+ * The border a control wears.
+ *
+ * U6-C1-R2 — THREE STATES, NOT TWO. A refused control wears the full
+ * destructive border (the door has spoken). A REQUIRED control that is still
+ * EMPTY wears a soft one from the start: the seller can see, before pressing
+ * anything, which answers the form is still waiting for — without the screen
+ * claiming a refusal nobody made (F4).
+ */
+export function controlClass(refused: boolean, soft = false): string {
+  const border = refused ? "border-destructive" : soft ? "border-destructive/40" : "border-input";
+  return `${fieldControlClass} ${border}`;
 }
 
 export function Field({
@@ -65,6 +74,8 @@ export function Field({
   required,
   refusal,
   hint,
+  refusalTestId = "post-field-refusal",
+  refusalAttr,
   children,
 }: {
   /** The control's own `id`; the summary focuses it by this name. */
@@ -74,6 +85,9 @@ export function Field({
   /** The door's refusal for this field, or `null`. */
   refusal: Refusal | null;
   hint?: ReactNode;
+  /** Steps whose refusals carry their own anchor (the generated details) name it. */
+  refusalTestId?: string;
+  refusalAttr?: string;
   children: ReactNode;
 }) {
   const { t } = useI18n();
@@ -95,8 +109,9 @@ export function Field({
       {refusal !== null && (
         <p
           className="text-sm text-destructive"
-          data-testid="post-field-refusal"
+          data-testid={refusalTestId}
           data-field={id}
+          data-attr={refusalAttr}
           role="alert"
         >
           {t(draftRefusalKey(refusal.reason))}

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 285,
-  "dynamicCallSites": 188,
+  "dynamicCallSites": 191,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3278,11 +3278,35 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.assist.again": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.assist.done": [
       "/post",
       "/post/$listingId"
     ],
+    "post.assist.exhausted": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.assist.hint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.assist.historyLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.assist.suggestionNumber": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.assist.triesLeft": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.assist.use": [
       "/post",
       "/post/$listingId"
     ],
@@ -3394,10 +3418,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.photos.addHint": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.photos.count": [
       "/post",
       "/post/$listingId"
@@ -3407,6 +3427,10 @@
       "/post/$listingId"
     ],
     "post.photos.done": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.helper": [
       "/post",
       "/post/$listingId"
     ],
@@ -3431,14 +3455,6 @@
       "/post/$listingId"
     ],
     "post.photos.retry": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.photos.rules": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.photos.skip": [
       "/post",
       "/post/$listingId"
     ],
@@ -3506,6 +3522,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.refusal.aliasImitatesBrand": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.refusal.badShape": [
       "/post",
       "/post/$listingId"
@@ -3534,6 +3554,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.review.edit": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.review.fixStep": [
       "/post",
       "/post/$listingId"
@@ -3547,6 +3571,14 @@
       "/post/$listingId"
     ],
     "post.review.noTitle": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.notGiven": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.placesCount": [
       "/post",
       "/post/$listingId"
     ],
@@ -3567,6 +3599,10 @@
       "/post/$listingId"
     ],
     "post.review.reviewTitle": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.summaryLabel": [
       "/post",
       "/post/$listingId"
     ],
@@ -3646,6 +3682,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.specs.unitsLater": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.specs.why": [
       "/post",
       "/post/$listingId"
@@ -3662,6 +3702,14 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.where.addAnother": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.addBack": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.where.addPlace": [
       "/post",
       "/post/$listingId"
@@ -3671,6 +3719,14 @@
       "/post/$listingId"
     ],
     "post.where.chosenLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.defaultPlaceHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.defaultPlaceLabel": [
       "/post",
       "/post/$listingId"
     ],
@@ -3695,6 +3751,10 @@
       "/post/$listingId"
     ],
     "post.where.planCaption": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.planCount": [
       "/post",
       "/post/$listingId"
     ],
@@ -3738,6 +3798,14 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.aliasSuggested": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.aliasUseIt": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.businessLabel": [
       "/post",
       "/post/$listingId"
@@ -3774,6 +3842,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.nameLater": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.readFailed": [
       "/post",
       "/post/$listingId"
@@ -3782,7 +3854,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.who.showIt": [
+    "post.who.showOnListing": [
       "/post",
       "/post/$listingId"
     ],

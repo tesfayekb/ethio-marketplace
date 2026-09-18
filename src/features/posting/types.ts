@@ -24,6 +24,23 @@ export const TOTAL_STEPS = STEPS.length;
 export const IMPLEMENTED_THROUGH = 8;
 
 /**
+ * U6-C1-R2 — HOW MANY PHOTOS A LISTING MAY CARRY, in ONE place.
+ *
+ * The number is said on screen, enforced by the picker and counted by the grid,
+ * so it may be declared only once. M-MAINT-2 will source it from the seller's
+ * plan; until then the dial is this constant and the upload door's own cap
+ * remains the authority (F3).
+ */
+export const MAX_PHOTOS_PER_LISTING = 10;
+
+/**
+ * U6-C1-R2 — HOW MANY TIMES THE WRITING HELPER MAY BE ASKED, per listing.
+ * The DOOR counts the spend (`consume_rate_limit` over a ten-year window); this
+ * constant is only what the screen says in words, and the two agree by design.
+ */
+export const ASSIST_TRIES = 5;
+
+/**
  * U6-C2a — THE PRICE VOCABULARY, the door's own words (DEC-067, D13).
  *
  * These four modes and six periods are `listings_price_mode_check` and

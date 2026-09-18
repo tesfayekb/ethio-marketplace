@@ -396,9 +396,20 @@ export async function readPostingSchema(categoryId: string): Promise<PostingSche
  * failure comes back as a refusal, so nothing is ever written from a guess (F4).
  */
 export function requestAssist(body: {
+  /** The draft, so the door can count this listing's five tries (U6-C1-R2). */
+  listingId: string | null;
   categoryId: string;
+  /** The chosen category's full path, in the seller's language. */
+  categoryPath: string;
   attrs: Record<string, unknown>;
   locale: string;
+  /** The first three stored photos (card variant) — the model may look at them. */
+  photoUrls: string[];
+  /** The seller's own draft; their words win over the model's phrasing. */
+  title: string;
+  description: string;
+  /** Every suggestion already shown, so the next one takes a different angle. */
+  previous: { title: string; description: string }[];
 }): Promise<DoorAnswer> {
   return call("/api/listings/assist", JSON.stringify(body), {
     "Content-Type": "application/json",
@@ -420,6 +431,8 @@ export interface SellerIdentity {
   businessName: string | null;
   contactPrefs: Record<string, unknown>;
   homeCountryCode: string | null;
+  /** U6-C1-R2 — the account's own name, the source of the SUGGESTED alias. */
+  displayName: string | null;
 }
 
 export async function readSellerIdentity(): Promise<SellerIdentity | null> {
@@ -428,7 +441,7 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
   if (userId === null) return null;
   const { data, error } = await supabase
     .from("profiles")
-    .select("seller_alias,seller_type,business_name,contact_prefs,home_country_code")
+    .select("seller_alias,seller_type,business_name,contact_prefs,home_country_code,display_name")
     .eq("user_id", userId)
     .maybeSingle();
   if (error) return null;
@@ -439,6 +452,7 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
       businessName: null,
       contactPrefs: {},
       homeCountryCode: null,
+      displayName: null,
     };
   }
   return {
@@ -450,6 +464,7 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
         ? (data.contact_prefs as Record<string, unknown>)
         : {},
     homeCountryCode: data.home_country_code ?? null,
+    displayName: data.display_name ?? null,
   };
 }
 

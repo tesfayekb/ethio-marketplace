@@ -1961,25 +1961,12 @@ test.describe("L4b location picker", () => {
       // TEST timeout fired before any expect could name a step. Every wait here
       // is now bounded at 20 s (the routes cache 15 s, so nothing honest needs
       // longer) and every one of them says what it wanted and what was visible.
-      await gotoReady(page, "/");
-      let openCodes: string[] = [];
-      await expect
-        .poll(
-          async () => {
-            openCodes = await page.evaluate(async () => {
-              const response = await fetch("/api/locations", { cache: "reload" });
-              const body = (await response.json()) as { countries?: { code?: string }[] };
-              return (body.countries ?? []).map((row) => String(row.code ?? ""));
-            });
-            return openCodes;
-          },
-          {
-            timeout: 20000,
-            message: `LS-11 step 1: the open-market list never carried both ${first.code} and ${second.code} within 20 s`,
-          },
-        )
-        .toEqual(expect.arrayContaining([first.code, second.code]));
-      // Both trees, each bounded and named inside the helper (INC-218).
+      // U6-C1-R2 — THE ORDER IS THE FIX (J7). Seed through the service client,
+      // then wait on the ROUTES from the request context — never from a loaded
+      // page, which would prime the browser's own 5-minute cache with the stale
+      // answer the app then reuses — and only THEN open the page.
+      await waitForOpenMarket(page, first.code);
+      await waitForOpenMarket(page, second.code);
       await waitForTreeSlug(page, first.code, first.region.slug);
       await waitForTreeSlug(page, second.code, second.region.slug);
       await gotoReady(page, "/");

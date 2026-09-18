@@ -37,6 +37,66 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
+const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+
+const IMITATION_PROMPT = [
+  "Does this marketplace seller name imitate or impersonate a well-known company,",
+  "brand, bank, government body or public figure?",
+  'Answer JSON only: {"imitates": boolean, "of": string}.',
+  "Answer false for ordinary personal names, generic words and small local shops.",
+].join(" ");
+
+/**
+ * U6-C1-R2 — THE IMITATION CHECK (Tier A rigor, F3).
+ *
+ * A seller name that passes the door's shape and uniqueness rules can still be
+ * theft: `commercialbankofethiopia` is free and well formed. One model call is
+ * asked ONLY that question, and its answer is used ONLY to refuse — never to
+ * accept, never to rename. A provider that cannot answer does NOT block a seller:
+ * the alias goes to the door as before, because a broken checker must not become
+ * an accidental ban list (F4).
+ *
+ * FAKE MODE (`E2E_FAKE_ASSIST=1` / `E2E_FAKE_TRANSLATE=1`): an alias containing
+ * "cocacola" imitates, everything else does not — no provider call, no spend.
+ */
+async function imitationOf(alias: string): Promise<string | null> {
+  const fake =
+    (process.env["E2E_FAKE_ASSIST"] ?? "") === "1" ||
+    (process.env["E2E_FAKE_TRANSLATE"] ?? "") === "1";
+  if (fake) return alias.includes("cocacola") ? "Coca-Cola" : null;
+
+  const key = process.env["GEMINI_API_KEY"] ?? "";
+  if (key.trim() === "") return null;
+  const model = (process.env["GEMINI_TEXT_MODEL"] ?? "").trim() || "gemini-3.5-flash-lite";
+  try {
+    const response = await fetch(`${GEMINI_BASE}/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: IMITATION_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: `Seller name: ${alias}` }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0 },
+      }),
+    });
+    if (!response.ok) {
+      logRouteError(PATH, `imitation check ${response.status}`);
+      return null;
+    }
+    const parsed = (await response.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const answer = JSON.parse(parsed.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}") as {
+      imitates?: unknown;
+      of?: unknown;
+    };
+    if (answer.imitates !== true) return null;
+    return typeof answer.of === "string" && answer.of.trim() !== "" ? answer.of.trim() : alias;
+  } catch (error) {
+    logRouteError(PATH, `imitation check unusable: ${error instanceof Error ? error.message : ""}`);
+    return null;
+  }
+}
+
 async function handlePost(request: Request): Promise<Response> {
   const caller = await userClientFromRequest(request);
   const refused = refuseUserClient(PATH, caller);
@@ -54,6 +114,11 @@ async function handlePost(request: Request): Promise<Response> {
   if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
 
   const body = await readJsonBody(request);
+  const alias = text(body["alias"]);
+  if (alias !== null) {
+    const imitated = await imitationOf(alias.toLowerCase());
+    if (imitated !== null) return refusal("alias", "aliasImitatesBrand", imitated);
+  }
   const args = {
     p_alias: text(body["alias"]),
     p_seller_type: text(body["sellerType"]),

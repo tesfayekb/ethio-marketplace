@@ -2096,6 +2096,32 @@ export const en = {
   "post.review.activeUntilLabel": "Active until",
   "post.review.activeFromFact": "As soon as it passes review.",
   "post.review.activeWindowHint": "Any day within this category's {days}-day window.",
+
+  // ---- U6-C1-R2 — the second operator walk's corrections -------------------
+  "post.photos.helper":
+    "Up to {max} photos · JPG, PNG or WebP · up to 6 MB · at least 480 px wide",
+  "post.specs.unitsLater": "Unit lists and default amounts per category come later.",
+  "post.assist.triesLeft": "{left} of {max} tries left",
+  "post.assist.exhausted": "You have used all {max} writing tries for this listing.",
+  "post.assist.historyLabel": "Suggestions",
+  "post.assist.use": "Use this one",
+  "post.assist.again": "Write another version",
+  "post.assist.suggestionNumber": "Version {number}",
+  "post.who.aliasSuggested": "Suggested: {alias}",
+  "post.who.aliasUseIt": "Use it",
+  "post.who.nameLater": "First and last name come later.",
+  "post.who.showOnListing": "Show on the listing",
+  "post.refusal.aliasImitatesBrand": "That name looks like {name}. Please choose another.",
+  "post.refusal.assistBudgetSpent": "You have used all the writing tries for this listing.",
+  "post.where.defaultPlaceLabel": "Where the item is",
+  "post.where.defaultPlaceHint": "This is also where the listing shows, unless you remove it.",
+  "post.where.addBack": "Add it back",
+  "post.where.addAnother": "Add another place",
+  "post.where.planCount": "{used} of {max} cities",
+  "post.review.summaryLabel": "What you are posting",
+  "post.review.edit": "Edit",
+  "post.review.placesCount": "{count} place(s)",
+  "post.review.notGiven": "Not given",
 } as const;
 
 export default en;

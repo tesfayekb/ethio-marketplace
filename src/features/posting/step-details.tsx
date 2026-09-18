@@ -2,37 +2,55 @@ import { useState } from "react";
 
 import { useI18n } from "@/i18n";
 
+import { Field, controlClass } from "./field";
 import { requestAssist } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
-import type { Refusal } from "./types";
+import { ASSIST_TRIES, type Refusal } from "./types";
 
 /**
- * U6-C1b — STEP 4: TITLE, DESCRIPTION, AND THE WRITING HELP (DEC-072).
+ * U6-C1b / U6-C1-R2 — STEP 4: TITLE, DESCRIPTION AND THE WRITING HELP (DEC-072).
  *
- * THE ASSIST IS A SUGGESTION, NEVER AN AUTHOR. It is grounded only in the details
- * the seller already entered — the category and the step-3 answers — and it lands
- * in the two fields as ordinary editable text, so the seller keeps authorship and
- * nothing is ever published that they did not read. A provider that cannot answer
- * says so in words (F4); it never writes a placeholder.
+ * THE ASSIST IS A SUGGESTION, NEVER AN AUTHOR. It is grounded in what the seller
+ * already gave — the category path, the step-3 answers, their own draft words and
+ * the first three photos — and the answer arrives as a SUGGESTION beside the
+ * fields, not into them: the seller reads it, then presses "Use this one". Their
+ * own text stays editable throughout, so authorship never leaves them.
+ *
+ * EVERY TRY IS KEPT. Up to five suggestions build a short history, each one
+ * offered for use, each one told to take a different angle from the ones before.
+ * The budget belongs to the DOOR (five per listing) and the remaining count is
+ * said in words — never a button that silently stops working.
+ *
+ * A provider that cannot answer says so in words (F4); it never writes a
+ * placeholder.
  */
 
 const TITLE_MAX = 120;
-const DESCRIPTION_MAX = 4000;
+const DESCRIPTION_MAX = 1200;
 
-const fieldClass =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground " +
-  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+interface Suggestion {
+  title: string;
+  description: string;
+}
 
 export function StepDetails({
+  listingId,
   categoryId,
+  categoryPath,
   attributes,
+  photoUrls,
   title,
   description,
   onChange,
   refusals,
 }: {
+  listingId: string | null;
   categoryId: string | null;
+  /** The chosen category's full path, already in the seller's language. */
+  categoryPath: string;
   attributes: Record<string, unknown>;
+  /** The first three stored photos (card variant), passed to the assistant. */
+  photoUrls: string[];
   title: string;
   description: string;
   onChange: (
@@ -43,30 +61,49 @@ export function StepDetails({
 }) {
   const { t, language } = useI18n();
   const [assisting, setAssisting] = useState(false);
-  const [assisted, setAssisted] = useState(false);
+  const [history, setHistory] = useState<Suggestion[]>([]);
   const [assistRefusal, setAssistRefusal] = useState<string | null>(null);
+  const [triesLeft, setTriesLeft] = useState<number | null>(null);
 
   const titleRefusal = refusalFor(refusals, "title");
   const descriptionRefusal = refusalFor(refusals, "description");
 
+  /** The door's own count when it gave one; otherwise what this screen has spent. */
+  const left = triesLeft ?? Math.max(0, ASSIST_TRIES - history.length);
+  const spent = left === 0;
+
   const assist = async () => {
-    if (categoryId === null || assisting) return;
+    if (categoryId === null || assisting || spent) return;
     setAssisting(true);
     setAssistRefusal(null);
-    const answer = await requestAssist({ categoryId, attrs: attributes, locale: language });
+    const answer = await requestAssist({
+      listingId,
+      categoryId,
+      categoryPath,
+      attrs: attributes,
+      locale: language,
+      photoUrls: photoUrls.slice(0, 3),
+      title,
+      description,
+      previous: history,
+    });
     setAssisting(false);
 
     const suggestedTitle = answer.payload["title"];
     const suggestedDescription = answer.payload["description"];
+    const reportedLeft = answer.payload["triesLeft"];
+    if (typeof reportedLeft === "number") setTriesLeft(reportedLeft);
     if (
       answer.ok &&
       typeof suggestedTitle === "string" &&
       typeof suggestedDescription === "string"
     ) {
-      // Both fields at once, saved immediately: the seller sees the suggestion in
-      // the same fields they can edit, and the draft holds it even if they leave.
-      onChange({ title: suggestedTitle, description: suggestedDescription }, true);
-      setAssisted(true);
+      setHistory((prev) =>
+        [...prev, { title: suggestedTitle, description: suggestedDescription }].slice(
+          -ASSIST_TRIES,
+        ),
+      );
+      if (typeof reportedLeft !== "number") setTriesLeft(null);
       return;
     }
     setAssistRefusal(answer.refusals[0]?.reason ?? "providerUnavailable");
@@ -76,79 +113,134 @@ export function StepDetails({
     <div className="space-y-5" data-testid="post-details">
       <p className="text-sm text-muted-foreground">{t("post.details.why")}</p>
 
-      <div className="space-y-1">
-        <label htmlFor="post-title" className="text-sm font-medium text-foreground">
-          {t("post.details.titleLabel")}
-        </label>
+      <Field
+        id="post-title"
+        label={t("post.details.titleLabel")}
+        required
+        refusal={titleRefusal}
+        hint={
+          <p className="text-xs text-muted-foreground">
+            {fill(t("post.details.count"), { count: title.length, max: TITLE_MAX })}
+          </p>
+        }
+      >
         <input
           id="post-title"
           data-testid="post-title"
-          className={fieldClass}
+          className={controlClass(titleRefusal !== null, title.trim() === "")}
           value={title}
           maxLength={TITLE_MAX}
           placeholder={t("post.details.titlePlaceholder")}
           onChange={(event) => onChange({ title: event.target.value }, false)}
         />
-        <p className="text-xs text-muted-foreground">
-          {fill(t("post.details.count"), { count: title.length, max: TITLE_MAX })}
-        </p>
-        {titleRefusal !== null && (
-          <p className="text-sm text-destructive" data-testid="post-title-refusal">
-            {t(draftRefusalKey(titleRefusal.reason))}
-          </p>
-        )}
-      </div>
+      </Field>
 
-      <div className="space-y-1">
-        <label htmlFor="post-description" className="text-sm font-medium text-foreground">
-          {t("post.details.descriptionLabel")}
-        </label>
+      <Field
+        id="post-description"
+        label={t("post.details.descriptionLabel")}
+        required
+        refusal={descriptionRefusal}
+        hint={
+          <p className="text-xs text-muted-foreground">
+            {fill(t("post.details.count"), { count: description.length, max: DESCRIPTION_MAX })}
+          </p>
+        }
+      >
         <textarea
           id="post-description"
           data-testid="post-description"
           rows={6}
-          className={fieldClass}
+          className={controlClass(descriptionRefusal !== null, description.trim() === "")}
           value={description}
           maxLength={DESCRIPTION_MAX}
           placeholder={t("post.details.descriptionPlaceholder")}
           onChange={(event) => onChange({ description: event.target.value }, false)}
         />
-        <p className="text-xs text-muted-foreground">
-          {fill(t("post.details.count"), { count: description.length, max: DESCRIPTION_MAX })}
-        </p>
-        {descriptionRefusal !== null && (
-          <p className="text-sm text-destructive" data-testid="post-description-refusal">
-            {t(draftRefusalKey(descriptionRefusal.reason))}
-          </p>
-        )}
-      </div>
+      </Field>
 
-      <div className="space-y-1">
+      <div className="space-y-2">
         <button
           type="button"
           data-testid="post-assist"
-          data-state={assisting ? "working" : assisted ? "done" : "idle"}
-          disabled={assisting || categoryId === null}
+          data-state={assisting ? "working" : history.length > 0 ? "done" : "idle"}
+          disabled={assisting || categoryId === null || spent}
           className={
             "inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm " +
             "font-medium text-foreground hover:bg-muted disabled:opacity-60"
           }
           onClick={() => void assist()}
         >
-          {assisting ? t("post.assist.working") : t("post.assist.action")}
+          {assisting
+            ? t("post.assist.working")
+            : history.length === 0
+              ? t("post.assist.action")
+              : t("post.assist.again")}
         </button>
         <p className="text-xs text-muted-foreground">{t("post.assist.hint")}</p>
-        {assisted && assistRefusal === null && (
-          <p className="text-xs text-muted-foreground" data-testid="post-assist-done">
+        {history.length > 0 && (
+          <p className="text-xs text-foreground" data-testid="post-assist-done">
             {t("post.assist.done")}
           </p>
         )}
+        <p
+          className="text-xs text-muted-foreground"
+          data-testid="post-assist-tries"
+          data-left={left}
+        >
+          {spent
+            ? fill(t("post.assist.exhausted"), { max: ASSIST_TRIES })
+            : fill(t("post.assist.triesLeft"), { left, max: ASSIST_TRIES })}
+        </p>
         {assistRefusal !== null && (
           <p className="text-sm text-destructive" data-testid="post-assist-refusal">
             {t(draftRefusalKey(assistRefusal))}
           </p>
         )}
       </div>
+
+      {history.length > 0 && (
+        <div className="space-y-3" data-testid="post-assist-history">
+          <p className="text-sm font-medium text-foreground">{t("post.assist.historyLabel")}</p>
+          {history.map((entry, index) => (
+            <div
+              key={`${index}-${entry.title}`}
+              className="space-y-2 rounded-md border border-input p-3"
+              data-testid="post-assist-suggestion"
+              data-index={index}
+            >
+              <p className="text-xs text-muted-foreground">
+                {fill(t("post.assist.suggestionNumber"), { number: index + 1 })}
+              </p>
+              <p
+                className="text-sm font-medium text-foreground"
+                data-testid="post-assist-suggestion-title"
+              >
+                {entry.title}
+              </p>
+              <p
+                className="text-sm text-muted-foreground"
+                data-testid="post-assist-suggestion-description"
+              >
+                {entry.description}
+              </p>
+              <button
+                type="button"
+                data-testid="post-assist-use"
+                data-index={index}
+                className={
+                  "inline-flex min-h-11 items-center rounded-md border border-input px-4 " +
+                  "text-sm font-medium text-foreground hover:bg-muted"
+                }
+                onClick={() =>
+                  onChange({ title: entry.title, description: entry.description }, true)
+                }
+              >
+                {t("post.assist.use")}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

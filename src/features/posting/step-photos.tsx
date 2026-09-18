@@ -7,7 +7,7 @@ import { controlClass, Field } from "./field";
 import { encodeVariants } from "./photo-encode";
 import { deletePhoto, setCoverPhoto, uploadPhoto, type DraftPhotoRow } from "./posting-service";
 import { fill, photoRefusalKey } from "./refusal-text";
-import type { PhotoItem, Refusal } from "./types";
+import { MAX_PHOTOS_PER_LISTING, type PhotoItem, type Refusal } from "./types";
 
 /**
  * U6-C1a — STEP 2: PHOTOS, PREPARED ON THE DEVICE AND SENT ONE AT A TIME.
@@ -29,7 +29,8 @@ import type { PhotoItem, Refusal } from "./types";
  * the grid below is re-read from the server after every accepted change.
  */
 
-const MAX_PHOTOS = 10;
+/** U6-C1-R2 — the cap is ONE dial, declared in `types.ts` (M-MAINT-2: the plan). */
+const MAX_PHOTOS = MAX_PHOTOS_PER_LISTING;
 
 const tileButtonClass =
   "min-h-11 grow rounded-md border border-input px-2 text-xs font-medium text-foreground " +
@@ -58,7 +59,6 @@ export function StepPhotos({
   videoUrl,
   videoRefusal,
   onChangeVideo,
-  onSkip,
 }: {
   listingId: string | null;
   photos: DraftPhotoRow[];
@@ -68,8 +68,6 @@ export function StepPhotos({
   videoUrl: string;
   videoRefusal: Refusal | null;
   onChangeVideo: (value: string) => void;
-  /** PHOTOS ARE OPTIONAL: the door asks for none, so the step offers to move on. */
-  onSkip: () => void;
 }) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -245,6 +243,7 @@ export function StepPhotos({
           {illustrationUrl !== null && (
             <img
               src={illustrationUrl}
+              data-testid="post-photos-illustration"
               alt={t("post.category.illustrationAlt")}
               width={320}
               height={240}
@@ -386,26 +385,12 @@ export function StepPhotos({
         >
           {t("post.photos.add")}
         </button>
-        <p className="text-xs text-muted-foreground">
-          {fill(t("post.photos.addHint"), { max: MAX_PHOTOS })}
+        {/* U6-C1-R2 — ONE helper line, and no second button: `validate_listing_draft`
+            step 2 asks for nothing, so plain `Next` already moves a seller on with
+            no photos and the category illustration stands in for them. */}
+        <p className="text-xs text-muted-foreground" data-testid="post-photos-helper">
+          {fill(t("post.photos.helper"), { max: MAX_PHOTOS })}
         </p>
-        <p className="text-xs text-muted-foreground" data-testid="post-photos-rules">
-          {t("post.photos.rules")}
-        </p>
-        {/* U6-C1-R1 — `validate_listing_draft` step 2 asks for NOTHING (photos are
-            registered through their own door), so a seller with no photo yet is
-            not held here: the category illustration stands in. */}
-        <button
-          type="button"
-          data-testid="post-photos-skip"
-          className={
-            "inline-flex min-h-11 w-full items-center justify-center rounded-md border " +
-            "border-input px-4 text-sm font-medium text-foreground hover:bg-accent"
-          }
-          onClick={onSkip}
-        >
-          {t("post.photos.skip")}
-        </button>
       </div>
 
       <Field

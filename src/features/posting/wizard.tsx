@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PageCard, PAGE_MAIN_CLASS } from "@/components/shell/page-card";
 import { pathOf, useCategoryTree } from "@/features/categories/category-tree";
@@ -67,6 +67,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    * door remains the authority (F3).
    */
   const [facts, setFacts] = useState<CategoryFacts | null>(null);
+  /** Set when the seller left the review page to edit one step (U6-C1-R2). */
+  const [returnToReview, setReturnToReview] = useState(false);
   const categoryId = draft.values.categoryId;
   useEffect(() => {
     if (categoryId === null) {
@@ -85,6 +87,23 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const current = STEPS[draft.step - 1] ?? STEPS[0];
   const chosenCategory =
     draft.values.categoryId === null ? null : (tree.byId.get(draft.values.categoryId) ?? null);
+
+  /**
+   * U6-C1-R2 — THE STAND-IN PICTURE INHERITS. Most leaves carry no illustration
+   * of their own — the curated images sit on the branches — so the stand-in is
+   * the NEAREST ANCESTOR's picture, found by walking the chosen leaf's own path
+   * upwards. Nothing is fetched for this: `pathOf` reads the shared tree the
+   * step-1 control already loaded.
+   */
+  const illustrationUrl = useMemo(() => {
+    if (chosenCategory === null) return null;
+    const chain = pathOf(tree, chosenCategory.id);
+    for (let index = chain.length - 1; index >= 0; index -= 1) {
+      const url = chain[index]?.imageUrl ?? null;
+      if (typeof url === "string" && url !== "") return url;
+    }
+    return null;
+  }, [tree, chosenCategory]);
 
   /**
    * U6-C1-R1 — NO CLIENT GATE. `Next` is always pressable (only a publish in
@@ -125,6 +144,28 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   }
 
   const categoryRefusal = refusalFor(draft.refusals, "category_id");
+
+  /**
+   * U6-C1-R2 — WHAT THE WRITING HELPER IS ALLOWED TO SEE (DEC-072): the chosen
+   * category's full path in the seller's own language, and the first three
+   * STORED photos' card images. Nothing is fetched for either — the path comes
+   * from the tree the step-1 control already loaded, the images from the rows
+   * the photo step registered.
+   */
+  const categoryPath =
+    chosenCategory === null
+      ? ""
+      : pathOf(tree, chosenCategory.id)
+          .map((node) => entityName("category", node, entities))
+          .join(" › ");
+  const assistPhotoUrls = draft.photos
+    .map((row) => {
+      const paths = row.paths ?? {};
+      const card = paths["card"] ?? paths["cover"] ?? paths["thumb"];
+      return typeof card === "string" ? card : null;
+    })
+    .filter((url): url is string => url !== null)
+    .slice(0, 3);
 
   return (
     <main className={PAGE_MAIN_CLASS}>
@@ -233,17 +274,12 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 listingId={draft.listingId}
                 photos={draft.photos}
                 onChanged={draft.reloadPhotos}
-                illustrationUrl={chosenCategory?.imageUrl ?? null}
+                illustrationUrl={illustrationUrl}
                 videoUrl={draft.values.videoUrl}
                 videoRefusal={
                   refusalFor(draft.refusals, "video_url") ?? refusalFor(draft.refusals, "videoUrl")
                 }
                 onChangeVideo={(videoUrl) => draft.change({ videoUrl }, false)}
-                onSkip={() => {
-                  void draft.saveAt(2).then((saved) => {
-                    if (saved) draft.goTo(3);
-                  });
-                }}
               />
             )}
             {draft.step === 3 && (
@@ -257,7 +293,10 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
             )}
             {draft.step === 4 && (
               <StepDetails
+                listingId={draft.listingId}
                 categoryId={draft.values.categoryId}
+                categoryPath={categoryPath}
+                photoUrls={assistPhotoUrls}
                 attributes={draft.values.attributes}
                 title={draft.values.title}
                 description={draft.values.description}
@@ -296,12 +335,19 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
             {draft.step === 8 && (
               <StepReview
                 listingId={draft.listingId}
+                categoryPath={categoryPath}
                 values={draft.values}
                 photos={draft.photos}
                 expiryDays={facts?.expiryDays ?? 60}
                 refusals={draft.refusals}
                 onChangeExpiry={(posterExpiresAt) => draft.change({ posterExpiresAt }, true)}
-                onGoTo={draft.goTo}
+                onGoTo={(step) => {
+                  // U6-C1-R2 — EDIT COMES BACK. A seller who left review to fix
+                  // one field returns to review on Next, not into the rest of
+                  // the wizard.
+                  setReturnToReview(true);
+                  draft.goTo(step);
+                }}
               />
             )}
             {draft.step > IMPLEMENTED_THROUGH && (
@@ -394,7 +440,13 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                   // Autosave on Next: the step advances only once the door has the
                   // answers, so a resume can never land past what was recorded.
                   const saved = await draft.saveAt(draft.step);
-                  if (saved) draft.goTo(draft.step + 1);
+                  if (!saved) return;
+                  if (returnToReview) {
+                    setReturnToReview(false);
+                    draft.goTo(TOTAL_STEPS);
+                    return;
+                  }
+                  draft.goTo(draft.step + 1);
                 })();
               }}
             >

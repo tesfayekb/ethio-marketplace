@@ -4,8 +4,9 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
+import { Field, controlClass } from "./field";
 import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
-import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
+import { fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 
 /**
@@ -30,10 +31,6 @@ import type { Refusal } from "./types";
  *  - An option list is never shipped with the form. A preset can hold thousands
  *    of rows, and a seller opens one or two controls.
  */
-
-const fieldClass =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground " +
-  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 type OptionState = { state: "idle" | "loading" | "ready" | "failed"; list: AttrOption[] };
 
@@ -156,6 +153,12 @@ export function StepSpecifications({
   return (
     <div className="space-y-5" data-testid="post-specs">
       <p className="text-sm text-muted-foreground">{t("post.specs.why")}</p>
+      {/* U6-C1-R2 — A NAMED DEFERRAL, said on screen rather than implied: a
+          category cannot yet narrow a unit list or carry a default amount. That
+          needs per-link allowed options and defaults — M-MAINT-2 (A3). */}
+      <p className="text-xs text-muted-foreground" data-testid="post-specs-units-later">
+        {t("post.specs.unitsLater")}
+      </p>
 
       {schema.attributes.map((def) => {
         // U4d/B2 — the shared resolver names a definition, never an inline ternary.
@@ -169,6 +172,19 @@ export function StepSpecifications({
         const controlId = `post-attr-${def.attrKey}`;
         const value = values[def.attrKey];
         const chosen = selectedValue(value);
+        /**
+         * U6-C1-R2 — EVERY FIELD THROUGH THE PRIMITIVE. The asterisk, the word
+         * "Optional", the refusal message and the red border all come from one
+         * place now, so no detail can be presented differently from the rest.
+         * A required answer that is still missing wears the SOFT border from the
+         * start — visible guidance, not a refusal nobody made (F4).
+         */
+        const empty =
+          value === undefined ||
+          value === null ||
+          value === "" ||
+          (Array.isArray(value) && value.length === 0);
+        const ctrl = controlClass(refusal !== null, def.isRequired && empty);
 
         return (
           <div
@@ -177,208 +193,202 @@ export function StepSpecifications({
             data-testid="post-spec"
             data-attr={def.attrKey}
           >
-            <label htmlFor={controlId} className="text-sm font-medium text-foreground">
-              {label}
-            </label>
-            {!def.isRequired && (
-              <span className="ms-2 text-xs text-muted-foreground">{t("post.optional")}</span>
-            )}
-
-            {def.attrType === "text" && (
-              <input
-                id={controlId}
-                data-testid="post-attr-control"
-                data-attr={def.attrKey}
-                className={fieldClass}
-                value={typeof value === "string" ? value : ""}
-                maxLength={def.maxLength ?? undefined}
-                onChange={(event) => write(def.attrKey, event.target.value)}
-              />
-            )}
-
-            {def.attrType === "number" && (
-              <input
-                id={controlId}
-                type="number"
-                inputMode="decimal"
-                data-testid="post-attr-control"
-                data-attr={def.attrKey}
-                className={fieldClass}
-                value={typeof value === "number" ? String(value) : ""}
-                step={def.decimals === null || def.decimals === 0 ? 1 : 10 ** -def.decimals}
-                onChange={(event) => {
-                  const raw = event.target.value;
-                  const parsed = Number(raw);
-                  write(def.attrKey, raw === "" || !Number.isFinite(parsed) ? undefined : parsed);
-                }}
-              />
-            )}
-
-            {def.attrType === "date" && (
-              <input
-                id={controlId}
-                type="date"
-                data-testid="post-attr-control"
-                data-attr={def.attrKey}
-                className={fieldClass}
-                value={typeof value === "string" ? value : ""}
-                onChange={(event) => write(def.attrKey, event.target.value, true)}
-              />
-            )}
-
-            {def.attrType === "boolean" && (
-              <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+            <Field
+              id={controlId}
+              label={label}
+              required={def.isRequired}
+              refusal={refusal}
+              refusalTestId="post-attr-refusal"
+              refusalAttr={def.attrKey}
+            >
+              {def.attrType === "text" && (
                 <input
                   id={controlId}
-                  type="checkbox"
                   data-testid="post-attr-control"
                   data-attr={def.attrKey}
-                  className="h-5 w-5 rounded border-input"
-                  checked={value === true}
+                  className={ctrl}
+                  value={typeof value === "string" ? value : ""}
+                  maxLength={def.maxLength ?? undefined}
+                  onChange={(event) => write(def.attrKey, event.target.value)}
+                />
+              )}
+
+              {def.attrType === "number" && (
+                <input
+                  id={controlId}
+                  type="number"
+                  inputMode="decimal"
+                  data-testid="post-attr-control"
+                  data-attr={def.attrKey}
+                  className={ctrl}
+                  value={typeof value === "number" ? String(value) : ""}
+                  step={def.decimals === null || def.decimals === 0 ? 1 : 10 ** -def.decimals}
+                  onChange={(event) => {
+                    const raw = event.target.value;
+                    const parsed = Number(raw);
+                    write(def.attrKey, raw === "" || !Number.isFinite(parsed) ? undefined : parsed);
+                  }}
+                />
+              )}
+
+              {def.attrType === "date" && (
+                <input
+                  id={controlId}
+                  type="date"
+                  data-testid="post-attr-control"
+                  data-attr={def.attrKey}
+                  className={ctrl}
+                  value={typeof value === "string" ? value : ""}
+                  onChange={(event) => write(def.attrKey, event.target.value, true)}
+                />
+              )}
+
+              {def.attrType === "boolean" && (
+                <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                  <input
+                    id={controlId}
+                    type="checkbox"
+                    data-testid="post-attr-control"
+                    data-attr={def.attrKey}
+                    className="h-5 w-5 rounded border-input"
+                    checked={value === true}
+                    onChange={(event) =>
+                      write(def.attrKey, event.target.checked ? true : undefined, true)
+                    }
+                  />
+                  <span>{t("post.specs.attest")}</span>
+                </label>
+              )}
+
+              {def.attrType === "single_select" && (
+                <select
+                  id={controlId}
+                  data-testid="post-attr-control"
+                  data-attr={def.attrKey}
+                  data-options={held.state}
+                  className={ctrl}
+                  value={chosen}
+                  onFocus={() => openOptions(def)}
+                  onPointerDown={() => openOptions(def)}
+                  onChange={(event) => {
+                    const picked = event.target.value;
+                    if (picked === "other") {
+                      write(def.attrKey, { value: "other", text: otherText(value) }, false);
+                      return;
+                    }
+                    write(def.attrKey, picked === "" ? undefined : picked, true);
+                  }}
+                >
+                  <option value="">{t("post.specs.choose")}</option>
+                  {held.list.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {optionLabel(option, entities.lang)}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {def.attrType === "single_select" && chosen === "other" && (
+                <input
+                  data-testid="post-attr-other"
+                  data-attr={def.attrKey}
+                  className={ctrl}
+                  value={otherText(value)}
+                  maxLength={120}
+                  placeholder={t("post.specs.otherPlaceholder")}
                   onChange={(event) =>
-                    write(def.attrKey, event.target.checked ? true : undefined, true)
+                    write(
+                      def.attrKey,
+                      event.target.value === ""
+                        ? { value: "other" }
+                        : { value: "other", text: event.target.value },
+                    )
                   }
                 />
-                <span>{t("post.specs.attest")}</span>
-              </label>
-            )}
+              )}
 
-            {def.attrType === "single_select" && (
-              <select
-                id={controlId}
-                data-testid="post-attr-control"
-                data-attr={def.attrKey}
-                data-options={held.state}
-                className={fieldClass}
-                value={chosen}
-                onFocus={() => openOptions(def)}
-                onPointerDown={() => openOptions(def)}
-                onChange={(event) => {
-                  const picked = event.target.value;
-                  if (picked === "other") {
-                    write(def.attrKey, { value: "other", text: otherText(value) }, false);
-                    return;
-                  }
-                  write(def.attrKey, picked === "" ? undefined : picked, true);
-                }}
-              >
-                <option value="">{t("post.specs.choose")}</option>
-                {held.list.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {optionLabel(option, entities.lang)}
-                  </option>
-                ))}
-              </select>
-            )}
+              {def.attrType === "multi_select" && held.state !== "ready" && (
+                <button
+                  type="button"
+                  data-testid="post-attr-open"
+                  data-attr={def.attrKey}
+                  data-options={held.state}
+                  className={`${ctrl} text-start`}
+                  onClick={() => openOptions(def)}
+                >
+                  {held.state === "loading"
+                    ? t("post.specs.optionsLoading")
+                    : t("post.specs.choose")}
+                </button>
+              )}
 
-            {def.attrType === "single_select" && chosen === "other" && (
-              <input
-                data-testid="post-attr-other"
-                data-attr={def.attrKey}
-                className={fieldClass}
-                value={otherText(value)}
-                maxLength={120}
-                placeholder={t("post.specs.otherPlaceholder")}
-                onChange={(event) =>
-                  write(
-                    def.attrKey,
-                    event.target.value === ""
-                      ? { value: "other" }
-                      : { value: "other", text: event.target.value },
-                  )
-                }
-              />
-            )}
+              {def.attrType === "multi_select" && held.state === "ready" && (
+                <ul className="space-y-1" data-testid="post-attr-checks" data-attr={def.attrKey}>
+                  {held.list.map((option) => {
+                    const list = chosenList(value);
+                    return (
+                      <li key={option.value}>
+                        <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                          <input
+                            type="checkbox"
+                            data-testid="post-attr-check"
+                            data-value={option.value}
+                            className="h-5 w-5 rounded border-input"
+                            checked={list.includes(option.value)}
+                            onChange={(event) =>
+                              write(
+                                def.attrKey,
+                                event.target.checked
+                                  ? [...list, option.value]
+                                  : list.filter((entry) => entry !== option.value),
+                                true,
+                              )
+                            }
+                          />
+                          <span>{optionLabel(option, entities.lang)}</span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
 
-            {def.attrType === "multi_select" && held.state !== "ready" && (
-              <button
-                type="button"
-                data-testid="post-attr-open"
-                data-attr={def.attrKey}
-                data-options={held.state}
-                className={`${fieldClass} text-start`}
-                onClick={() => openOptions(def)}
-              >
-                {held.state === "loading" ? t("post.specs.optionsLoading") : t("post.specs.choose")}
-              </button>
-            )}
+              {held.state === "failed" && (
+                <p className="text-xs text-destructive" data-testid="post-attr-options-error">
+                  {t("post.specs.optionsFailed")}
+                </p>
+              )}
 
-            {def.attrType === "multi_select" && held.state === "ready" && (
-              <ul className="space-y-1" data-testid="post-attr-checks" data-attr={def.attrKey}>
-                {held.list.map((option) => {
-                  const list = chosenList(value);
-                  return (
-                    <li key={option.value}>
-                      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                        <input
-                          type="checkbox"
-                          data-testid="post-attr-check"
-                          data-value={option.value}
-                          className="h-5 w-5 rounded border-input"
-                          checked={list.includes(option.value)}
-                          onChange={(event) =>
-                            write(
-                              def.attrKey,
-                              event.target.checked
-                                ? [...list, option.value]
-                                : list.filter((entry) => entry !== option.value),
-                              true,
-                            )
-                          }
-                        />
-                        <span>{optionLabel(option, entities.lang)}</span>
-                      </label>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-
-            {held.state === "failed" && (
-              <p className="text-xs text-destructive" data-testid="post-attr-options-error">
-                {t("post.specs.optionsFailed")}
-              </p>
-            )}
-
-            {/* The definition's own guidance, then the DEC-050 hints — advice, never
+              {/* The definition's own guidance, then the DEC-050 hints — advice, never
                 the verdict: the door decides and its refusal lands below. */}
-            {def.helpTextEn !== null && (
-              <p className="text-xs text-muted-foreground">{def.helpTextEn}</p>
-            )}
-            {def.attrType === "number" && (def.minBound !== null || def.maxBound !== null) && (
-              <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
-                {fill(t("post.specs.boundsHint"), {
-                  min: def.minBound ?? t("post.specs.noBound"),
-                  max: def.maxBound ?? t("post.specs.noBound"),
-                })}
-              </p>
-            )}
-            {def.attrType === "number" && def.unit !== null && (
-              <p className="text-xs text-muted-foreground">
-                {fill(t("post.specs.unitHint"), { unit: def.unit })}
-              </p>
-            )}
-            {def.attrType === "text" && def.maxLength !== null && (
-              <p className="text-xs text-muted-foreground">
-                {fill(t("post.specs.lengthHint"), { max: def.maxLength })}
-              </p>
-            )}
-            {def.attrType === "text" && def.preset !== null && (
-              <p className="text-xs text-muted-foreground">{t("post.specs.presetHint")}</p>
-            )}
-            {def.attrType === "multi_select" && (
-              <p className="text-xs text-muted-foreground">{t("post.specs.multiHint")}</p>
-            )}
-
-            {refusal !== null && (
-              <p
-                className="text-sm text-destructive"
-                data-testid="post-attr-refusal"
-                data-attr={def.attrKey}
-              >
-                {t(draftRefusalKey(refusal.reason))}
-              </p>
-            )}
+              {def.helpTextEn !== null && (
+                <p className="text-xs text-muted-foreground">{def.helpTextEn}</p>
+              )}
+              {def.attrType === "number" && (def.minBound !== null || def.maxBound !== null) && (
+                <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
+                  {fill(t("post.specs.boundsHint"), {
+                    min: def.minBound ?? t("post.specs.noBound"),
+                    max: def.maxBound ?? t("post.specs.noBound"),
+                  })}
+                </p>
+              )}
+              {def.attrType === "number" && def.unit !== null && (
+                <p className="text-xs text-muted-foreground">
+                  {fill(t("post.specs.unitHint"), { unit: def.unit })}
+                </p>
+              )}
+              {def.attrType === "text" && def.maxLength !== null && (
+                <p className="text-xs text-muted-foreground">
+                  {fill(t("post.specs.lengthHint"), { max: def.maxLength })}
+                </p>
+              )}
+              {def.attrType === "text" && def.preset !== null && (
+                <p className="text-xs text-muted-foreground">{t("post.specs.presetHint")}</p>
+              )}
+              {def.attrType === "multi_select" && (
+                <p className="text-xs text-muted-foreground">{t("post.specs.multiHint")}</p>
+              )}
+            </Field>
           </div>
         );
       })}

@@ -101,6 +101,11 @@ export function StepWhere({
   const [subCity, setSubCity] = useState<string | null>(null);
   const [prefilled, setPrefilled] = useState(false);
   const [planBlocked, setPlanBlocked] = useState(false);
+  /** U6-C1-R2 — the seller took the item's own place out of the showing list. */
+  const [defaultRemoved, setDefaultRemoved] = useState(false);
+  const [extraRegion, setExtraRegion] = useState<string | null>(null);
+  const [extraCity, setExtraCity] = useState<string | null>(null);
+  const [extraSubCity, setExtraSubCity] = useState<string | null>(null);
   const [guess, setGuess] = useState<GuessFacts | null>(null);
 
   const tree = useCountryTree(country);
@@ -199,14 +204,52 @@ export function StepWhere({
   const cities = useMemo(() => childrenOf(region, "city"), [childrenOf, region]);
   const subCities = useMemo(() => childrenOf(city, "sub_city"), [childrenOf, city]);
 
-  /** The deepest place the cascade currently names — what "Add" would add. */
-  const candidateId = subCity ?? city ?? region;
-  const candidate = candidateId === null ? null : (nodes.find((n) => n.id === candidateId) ?? null);
+  /**
+   * U6-C1-R2 — THE ITEM'S PLACE IS ALSO WHERE IT SHOWS (D19). The deepest place
+   * the cascade names is added to the list BY ITSELF — a seller who said where
+   * the item is has already said where it should be seen, and being made to tap
+   * "Add this place" for the same answer was the walk's complaint. It can still
+   * be removed (a seller selling in one city but living in another), and put
+   * back, so the automatic choice is never a trap.
+   */
+  const defaultId = subCity ?? city ?? region;
+  const extras = useMemo(() => coverage.filter((id) => id !== defaultId), [coverage, defaultId]);
+
+  /**
+   * The PREVIOUS default, so that changing the cascade MOVES the automatic place
+   * rather than leaving a stale one behind and then refusing the new one for
+   * being over the plan — the walk's own trap.
+   */
+  const lastDefault = useRef<string | null>(null);
+  useEffect(() => {
+    if (defaultId === null || defaultRemoved) {
+      lastDefault.current = defaultId;
+      return;
+    }
+    if (coverage.includes(defaultId)) {
+      lastDefault.current = defaultId;
+      return;
+    }
+    const kept = extras.filter((id) => id !== lastDefault.current);
+    if (kept.length >= PLAN_CITIES) return;
+    lastDefault.current = defaultId;
+    // NOT an immediate save: the cascade settles through several levels (region,
+    // then city, then the whole-city choice) and racing one write per level let
+    // an earlier place land last. The autosave sends the settled answer once,
+    // and Next saves it again under the door's own eye.
+    onChange([defaultId, ...kept], false);
+  }, [defaultId, defaultRemoved, coverage, extras, onChange]);
 
   const chosen = coverage
     .map((id) => nodes.find((node) => node.id === id) ?? null)
     .filter((node): node is TreeNode => node !== null);
   const cityCount = coverage.length;
+
+  /** The SECOND cascade — a further place, within the same market and the plan. */
+  const extraRegions = regions;
+  const extraCities = useMemo(() => childrenOf(extraRegion, "city"), [childrenOf, extraRegion]);
+  const extraSubCities = useMemo(() => childrenOf(extraCity, "sub_city"), [childrenOf, extraCity]);
+  const extraId = extraSubCity ?? extraCity ?? extraRegion;
 
   const add = (id: string) => {
     if (coverage.includes(id)) return;
@@ -222,6 +265,9 @@ export function StepWhere({
 
   const remove = (id: string) => {
     setPlanBlocked(false);
+    // Removing the item's own place is remembered, so the automatic rule does not
+    // immediately put it back — that would make Remove look broken.
+    if (id === defaultId) setDefaultRemoved(true);
     onChange(
       coverage.filter((entry) => entry !== id),
       true,
@@ -233,6 +279,7 @@ export function StepWhere({
   return (
     <div className="space-y-5" data-testid="post-where">
       <p className="text-sm text-muted-foreground">{t("post.where.why")}</p>
+      <p className="text-sm font-medium text-foreground">{t("post.where.defaultPlaceLabel")}</p>
 
       {/* ------------------------------ the market ---------------------------- */}
       <div className="space-y-1">
@@ -379,11 +426,24 @@ export function StepWhere({
         </p>
       )}
 
+      <p className="text-xs text-muted-foreground" data-testid="post-where-default-hint">
+        {t("post.where.defaultPlaceHint")}
+      </p>
+
       {/* --------------------------- the chosen places ------------------------ */}
       <div className="space-y-2">
         <p className="text-sm font-medium text-foreground">{t("post.where.chosenLabel")}</p>
         <p className="text-xs text-muted-foreground" data-testid="post-where-plan">
           {fill(t("post.where.planCaption"), { cities: PLAN_CITIES })}
+        </p>
+        {/* U6-C1-R2 — the caption COUNTS what is used, so the plan is a fact on
+            screen rather than a surprise at the end. */}
+        <p
+          className="text-xs text-muted-foreground"
+          data-testid="post-where-plan-count"
+          data-used={cityCount}
+        >
+          {fill(t("post.where.planCount"), { used: cityCount, max: PLAN_CITIES })}
         </p>
         <ul className="space-y-1" data-testid="post-where-chosen" data-count={cityCount}>
           {chosen.map((node) => (
@@ -394,6 +454,7 @@ export function StepWhere({
               <button
                 type="button"
                 data-testid="post-where-remove"
+                data-id={node.id}
                 className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
                 onClick={() => remove(node.id)}
               >
@@ -402,20 +463,104 @@ export function StepWhere({
             </li>
           ))}
         </ul>
-        <button
-          type="button"
-          data-testid="post-where-add"
-          disabled={candidate === null}
-          className={
-            "inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm " +
-            "font-medium text-foreground hover:bg-muted disabled:opacity-60"
-          }
-          onClick={() => {
-            if (candidate !== null) add(candidate.id);
-          }}
-        >
-          {t("post.where.addPlace")}
-        </button>
+        {/* The item's own place, taken out — offered back in one tap. */}
+        {defaultRemoved && defaultId !== null && (
+          <button
+            type="button"
+            data-testid="post-where-add-back"
+            className={
+              "inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm " +
+              "font-medium text-foreground hover:bg-muted"
+            }
+            onClick={() => {
+              setDefaultRemoved(false);
+              add(defaultId);
+            }}
+          >
+            {t("post.where.addBack")}
+          </button>
+        )}
+
+        {/* ------------------------ another place (D19) ---------------------- */}
+        <div className="space-y-2 rounded-md border border-input p-3">
+          <p className="text-sm font-medium text-foreground">{t("post.where.addAnother")}</p>
+          {extraRegions.length > 0 && (
+            <select
+              id="post-where-extra-region"
+              data-testid="post-where-extra-region"
+              aria-label={t(LEVEL_KEYS["region"] ?? "post.where.level.region")}
+              className={fieldClass}
+              value={extraRegion ?? ""}
+              onChange={(event) => {
+                setExtraRegion(event.target.value || null);
+                setExtraCity(null);
+                setExtraSubCity(null);
+              }}
+            >
+              <option value="">{t("post.where.levelNone")}</option>
+              {extraRegions.map((node) => (
+                <option key={node.id} value={node.id}>
+                  {nameOf(node)}
+                </option>
+              ))}
+            </select>
+          )}
+          {extraCities.length > 0 && (
+            <select
+              id="post-where-extra-city"
+              data-testid="post-where-extra-city"
+              aria-label={t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
+              className={fieldClass}
+              value={extraCity ?? ""}
+              onChange={(event) => {
+                setExtraCity(event.target.value || null);
+                setExtraSubCity(null);
+              }}
+            >
+              <option value="">{t("post.where.levelNone")}</option>
+              {extraCities.map((node) => (
+                <option key={node.id} value={node.id}>
+                  {nameOf(node)}
+                </option>
+              ))}
+            </select>
+          )}
+          {extraCity !== null && extraSubCities.length > 0 && (
+            <select
+              id="post-where-extra-subcity"
+              data-testid="post-where-extra-subcity"
+              aria-label={t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
+              className={fieldClass}
+              value={extraSubCity ?? ""}
+              onChange={(event) => setExtraSubCity(event.target.value || null)}
+            >
+              <option value="">
+                {fill(t("post.where.allOf"), {
+                  name: nameOf(nodes.find((node) => node.id === extraCity) ?? extraSubCities[0]!),
+                })}
+              </option>
+              {extraSubCities.map((node) => (
+                <option key={node.id} value={node.id}>
+                  {nameOf(node)}
+                </option>
+              ))}
+            </select>
+          )}
+          <button
+            type="button"
+            data-testid="post-where-add"
+            disabled={extraId === null}
+            className={
+              "inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm " +
+              "font-medium text-foreground hover:bg-muted disabled:opacity-60"
+            }
+            onClick={() => {
+              if (extraId !== null) add(extraId);
+            }}
+          >
+            {t("post.where.addPlace")}
+          </button>
+        </div>
         {planBlocked && (
           <p className="text-sm text-destructive" data-testid="post-where-plan-full">
             {t("post.where.planFull")}

@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useI18n } from "@/i18n";
@@ -222,7 +223,7 @@ export function StepPricing({
                 aria-expanded={open}
                 aria-controls="post-price-currency-list"
                 autoComplete="off"
-                className={controlClass(currencyRefusal !== null)}
+                className={`${controlClass(currencyRefusal !== null)} pe-10`}
                 value={
                   open || query !== ""
                     ? query
@@ -257,6 +258,14 @@ export function StepPricing({
                   }
                   if (event.key === "Escape") setOpen(false);
                 }}
+              />
+              {/* U6-C1-R2 — THE AFFORDANCE: a chevron, so the box reads as a list
+                  to open rather than a plain text field. Decorative only — the
+                  input itself is the control the keyboard drives. */}
+              <ChevronDown
+                aria-hidden="true"
+                data-testid="post-price-currency-chevron"
+                className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
               />
               {/* The chosen code, for a screen and for a test, in one place. */}
               <span

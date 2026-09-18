@@ -212,7 +212,7 @@ export function completeDraft(params: {
  * selectable, and only the leaf below it can be chosen. Both rows are namespaced
  * scratch and are destroyed pointers-first by `destroyCategoryBranch`.
  */
-export async function seedCategoryBranch() {
+export async function seedCategoryBranch(options: { parentImageUrl?: string } = {}) {
   const supabase = adminClient();
   const parentSlug = scratchCategorySlug();
   const leafSlug = scratchCategorySlug();
@@ -227,8 +227,11 @@ export async function seedCategoryBranch() {
       allow_listings: false,
       is_catchall: false,
       display_order: 9100,
+      // U6-C1-R2 — the ANCESTOR's illustration: the stand-in a leaf without one
+      // of its own must inherit (PW-4).
+      ...(options.parentImageUrl === undefined ? {} : { image_url: options.parentImageUrl }),
     })
-    .select("id, slug")
+    .select("id, slug, image_url")
     .single();
   if (parentError || !parent) {
     throw new Error(`[e2e:c1a] seeding the folder failed: ${parentError?.message ?? "no row"}`);

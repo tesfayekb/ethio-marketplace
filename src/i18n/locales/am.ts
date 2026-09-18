@@ -2003,6 +2003,31 @@ export const am: Messages = {
   "post.review.activeUntilLabel": "እስከ መቼ",
   "post.review.activeFromFact": "ግምገማውን እንዳለፈ ወዲያውኑ።",
   "post.review.activeWindowHint": "በዚህ ምድብ {days} ቀን መስኮት ውስጥ ያለ ማንኛውም ቀን።",
+
+  // ---- U6-C1-R2 — የሁለተኛው ግምገማ እርማቶች ------------------------------------
+  "post.photos.helper": "እስከ {max} ፎቶዎች · JPG፣ PNG ወይም WebP · እስከ 6 ሜባ · ቢያንስ 480 ፒክስል ስፋት",
+  "post.specs.unitsLater": "በምድብ የተወሰኑ የመለኪያ ዝርዝሮችና ነባሪ መጠኖች ቆይተው ይመጣሉ።",
+  "post.assist.triesLeft": "ከ{max} ሙከራዎች {left} ቀርተዋል",
+  "post.assist.exhausted": "ለዚህ ማስታወቂያ ሁሉንም {max} የጽሑፍ ሙከራዎች ተጠቅመዋል።",
+  "post.assist.historyLabel": "የቀረቡ ሐሳቦች",
+  "post.assist.use": "እሱን ተጠቀም",
+  "post.assist.again": "ሌላ አማራጭ ጻፍ",
+  "post.assist.suggestionNumber": "አማራጭ {number}",
+  "post.who.aliasSuggested": "የቀረበ፦ {alias}",
+  "post.who.aliasUseIt": "ተጠቀምበት",
+  "post.who.nameLater": "የመጀመሪያና የአባት ስም ቆይተው ይመጣሉ።",
+  "post.who.showOnListing": "በማስታወቂያው ላይ አሳይ",
+  "post.refusal.aliasImitatesBrand": "ይህ ስም {name}ን ይመስላል። ሌላ ይምረጡ።",
+  "post.refusal.assistBudgetSpent": "ለዚህ ማስታወቂያ ሁሉንም የጽሑፍ ሙከራዎች ተጠቅመዋል።",
+  "post.where.defaultPlaceLabel": "ዕቃው የሚገኝበት ቦታ",
+  "post.where.defaultPlaceHint": "ካላስወገዱት በስተቀር ማስታወቂያው የሚታየውም እዚህ ነው።",
+  "post.where.addBack": "መልሰው ጨምሩት",
+  "post.where.addAnother": "ሌላ ቦታ ጨምር",
+  "post.where.planCount": "ከ{max} ከተሞች {used}",
+  "post.review.summaryLabel": "የሚለጥፉት ነገር",
+  "post.review.edit": "አስተካክል",
+  "post.review.placesCount": "{count} ቦታ(ዎች)",
+  "post.review.notGiven": "አልተሰጠም",
 };
 
 export default am;
