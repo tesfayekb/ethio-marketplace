@@ -118,3 +118,72 @@ rejects a `facts` key, the public options read strips anything else, and the
 validator never projects it. It needs a migration, which this brief forbids; so
 `PW-9` is not written either — a test against an impossible shape would prove
 nothing.
+
+## Step 5 — the price (C2a)
+
+Nothing here is authored either: `get_posting_schema` carries the category's own
+pricing facts, and the screen obeys them.
+
+| Fact                   | What the screen does                                                              |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `price_enabled=false`  | no price is asked at all; the step says so and moves on                           |
+| `default_price_period` | the period the picker opens on                                                    |
+| `price_period_locked`  | the period is shown as a FACT, with no picker to change it (DEC-067)              |
+| `expiry_days`          | bounds the optional "until" date; beyond it the door refuses, under its own field |
+
+Four modes: a fixed price, a negotiable one, free, and "contact for a price".
+`free` and `contact` hide the amount entirely — the door refuses an amount sent
+with them, so offering one would be a trap. The currency picker is searchable
+over the ISO table and opens on the seller's home market's currency (D13); left
+alone, the door applies that same fallback itself.
+
+## Step 6 — where it is (C2a, D19)
+
+The editor stands on the SAME shell seam the browse picker uses
+(`useOpenMarkets`, `useCountryTree`, the saved-area cookie and `/api/geo`) — one
+tree reader, never a second. It opens on the seller's saved area, else the
+guess, else their market, and the caption names what it pre-filled and why.
+
+A city that carries sub-cities offers **All of &lt;city&gt;** first: whole-city
+coverage is the CITY node itself, not a list of its children (D19). The plan
+(DEC-064) is stated in words beside the list and enforced before a round trip is
+spent — on the free plan a second place is refused on screen, and the door
+refuses it again with `coverageExceedsPlan` if anything gets past.
+
+A map pin is NOT part of this landing: `listing_locations.lat/lng` and
+`map_visible` exist, and the pin editor arrives with the detail page.
+
+## D20 — a session-gated page keeps the seller's intent
+
+`/post` and `/post/<id>` are session-gated: a signed-out visitor is sent to
+`/auth?return=<path>` and lands back where they were going. The return value is
+accepted ONLY as a same-origin relative path — `https://evil…`, `//evil` and
+anything carrying a backslash fall back to `/`. It is a redirect, not a card:
+the old sign-in card is gone.
+
+KNOWN LIMIT: the return path survives the email door and an already-signed-in
+visit. Google's door returns through its own fixed callback
+(`auth-service.ts`, outside this landing's scope), so a seller who signs in with
+Google lands on the home feed and taps "Post a listing" again.
+
+## The posting entry
+
+"Post a listing" is My Listings' first item (`post-entry`), not Account's. My
+Listings itself stays on the INC-071 grandfather (`homePath: null`): a panel with
+a home activates by NAVIGATION, and the shell derives the active panel from
+`/settings` and `/admin` only — pointing it at `/post` would open the wizard with
+the marketplace rail beside it (INC-058). Its own page, and that mapping, arrive
+with E1.
+
+## Tests (C2a)
+
+`PW-10` the locked period, the hidden amount and a refused expiry · `PW-11` the
+prefilled market, "All of <city>" over a scratch region→city→sub-city chain, and
+the plan cap, all against DB truth · `PW-14` D20 both ways, including a dropped
+off-site return · `PW-15` the entry lives in My Listings and not in Account.
+
+## Still to come — C2b
+
+Steps 7 (identity) and 8 (review and publish), the D18 facts prefill (`PW-9`),
+and the categories-file cells (CT-x) are NOT in this landing and say so on
+screen through `post.stepLater`.

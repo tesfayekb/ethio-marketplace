@@ -3,10 +3,13 @@ import { join } from "node:path";
 import { expect, test } from "./fixtures";
 
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { gotoReady, openRailScope, signInViaSession } from "./helpers/ui";
+import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import { createUser } from "./helpers/users";
 import {
   attributesOf,
+  coverageOf,
+  pricingOf,
   destroyCategoryBranch,
   destroyListingsOf,
   destroyPostableCategory,
@@ -46,6 +49,8 @@ test.describe("POSTING WIZARD", () => {
   const sellers: string[] = [];
   const specs: string[] = [];
   const objects: { userId: string; listingId: string }[] = [];
+  /** L4b scratch geography (region → city → sub-city); destroyed child-first. */
+  const places: string[] = [];
 
   test.afterEach(async () => {
     // J3 — an afterEach survives a body timeout; a `finally` in the body does not.
@@ -56,6 +61,8 @@ test.describe("POSTING WIZARD", () => {
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
     const branchSlugs = branches.splice(0);
     if (branchSlugs.length > 0) await destroyCategoryBranch(branchSlugs);
+    // The scratch chain goes last: a coverage row must be gone before its place.
+    for (const slug of places.splice(0)) await destroyLocation(slug);
   });
 
   /**
@@ -415,5 +422,204 @@ test.describe("POSTING WIZARD", () => {
     const stored = await textOf(listingId);
     expect(stored.description, "PW-6: the description was not saved").not.toBe(null);
     expect(stored.description, "PW-6: the description was saved empty").not.toBe("");
+  });
+  /**
+   * U6-C2a — STEPS 5 AND 6. `reachStep5` walks the seller through 1–4 the way a
+   * seller walks them (J7: seeded rows are asserted visible before they are
+   * acted on), because a wizard step that is entered any other way proves
+   * nothing about the wizard.
+   */
+  async function reachStep5(
+    page: import("@playwright/test").Page,
+    userId: string,
+    category: { id: string; slug: string },
+  ) {
+    const listingId = await reachStep3(page, userId, category);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e c2a listing title");
+    await page.getByTestId("post-description").fill("e2e c2a listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    return listingId;
+  }
+
+  test("PW-10 pricing: a locked period is shown fixed, free hides the amount, and a wrong expiry is refused under its field", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    // DEC-067 — a category that charges by the month, locked, with a short window.
+    const category = await seedPostableCategory({
+      defaultPricePeriod: "month",
+      pricePeriodLocked: true,
+      expiryDays: 3,
+    });
+    categories.push(category.slug);
+    const listingId = await reachStep5(page, user.id, category);
+
+    // A LOCKED PERIOD IS A FACT, NOT A CHOICE: shown fixed, with no picker at all.
+    const fixed = page.getByTestId("post-price-period-fixed");
+    await expect(fixed, "PW-10: the locked period was not shown as a fact").toBeVisible();
+    await expect(fixed).toHaveAttribute("data-period", "month");
+    await expect(page.getByTestId("post-price-period")).toHaveCount(0);
+
+    // `free` HIDES the amount — the door refuses an amount sent with it.
+    await page.getByTestId("post-price-mode-free").click();
+    await expect(
+      page.getByTestId("post-price-amount-block"),
+      "PW-10: free still offered an amount",
+    ).toHaveCount(0);
+
+    // A priced mode brings it back, and the door stores what was sent.
+    await page.getByTestId("post-price-mode-fixed").click();
+    await expect(page.getByTestId("post-price-amount-block")).toBeVisible();
+    await page.getByTestId("post-price-amount").fill("25000");
+
+    // THE DOOR IS THE AUTHORITY: an expiry beyond the category's own window is
+    // refused, and the refusal lands beneath the date field (F4).
+    const beyond = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+    await page.getByTestId("post-price-expiry").fill(beyond);
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-price-expiry-refusal"),
+      "PW-10: the out-of-window expiry was not refused under its own field",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+
+    // Cleared, the same step is accepted and the price reaches the draft.
+    await page.getByTestId("post-price-expiry").fill("");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    await expect
+      .poll(async () => (await pricingOf(listingId)).amount, {
+        message: "PW-10: the amount never reached the draft",
+      })
+      .toBe(25000);
+    const stored = await pricingOf(listingId);
+    expect(stored.mode, "PW-10: the mode was not stored").toBe("fixed");
+    expect(stored.period, "PW-10: the locked period was not stored").toBe("month");
+    expect(stored.currency, "PW-10: no currency was stored for a priced listing").not.toBe(null);
+  });
+
+  test("PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    /**
+     * D19 — the sub-city case needs a city that HAS sub-cities. Ethiopia's real
+     * catalogue carries one in production and not in staging, and J3 forbids
+     * writing a reference row in either, so the case stands on its own SCRATCH
+     * chain under ET's anchor: region → city → sub-city, reaped in the afterEach.
+     */
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+
+    const listingId = await reachStep5(page, user.id, category);
+    // Step 5 is not this test's subject: `free` is the one mode that asks for
+    // nothing, so the price step is answered honestly and left behind.
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+
+    // DEC-068 — the edge said ET (asEdge), so the market picker stands on ET.
+    await expect(
+      page.getByTestId("post-where-market"),
+      "PW-11: the market was not prefilled from the edge",
+    ).toHaveValue("ET");
+
+    // J7 — the seeded rows must be on screen before they are acted on.
+    const region = page.getByTestId("post-where-region");
+    await expect(
+      region.locator(`option[value="${chain.region.id}"]`),
+      "PW-11: the scratch region never reached the picker",
+    ).toHaveCount(1, { timeout: 20_000 });
+    await region.selectOption(chain.region.id);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+
+    // D19 — the sub-city level, with WHOLE-CITY coverage offered first.
+    const subCity = page.getByTestId("post-where-subcity");
+    await expect(subCity, "PW-11: the sub-city level never rendered").toBeVisible();
+    await expect(
+      subCity.locator('option[value=""]'),
+      "PW-11: no whole-city option was offered",
+    ).toHaveCount(1);
+    await expect(subCity.locator(`option[value="${chain.subCity.id}"]`)).toHaveCount(1);
+
+    // "All of <city>" adds ONE place: the city node itself.
+    await page.getByTestId("post-where-add").click();
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+    await expect(
+      page.locator(`[data-testid="post-where-chosen-row"][data-id="${chain.city.id}"]`),
+      "PW-11: the whole-city choice did not record the city node",
+    ).toBeVisible();
+
+    // THE PLAN: one city. A second place is refused before a round trip is spent.
+    await subCity.selectOption(chain.subCity.id);
+    await page.getByTestId("post-where-add").click();
+    await expect(
+      page.getByTestId("post-where-plan-full"),
+      "PW-11: a second place was accepted past the plan",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+
+    // DB TRUTH: one coverage row, and it is the item's own place (J4).
+    await page.getByTestId("post-next").click();
+    await expect
+      .poll(async () => (await coverageOf(listingId)).placeIds.length, {
+        message: "PW-11: the coverage never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe(1);
+    const stored = await coverageOf(listingId);
+    expect(stored.placeIds[0], "PW-11: the stored place is not the chosen city").toBe(
+      chain.city.id,
+    );
+    expect(stored.locationId, "PW-11: the item's own place is not the first coverage row").toBe(
+      chain.city.id,
+    );
+  });
+
+  test("PW-14 D20: a signed-out visitor is sent to sign in with a return path, comes back, and a foreign return is ignored", async ({
+    page,
+  }) => {
+    // NO session: the guard, not a card, decides what happens (D20).
+    await page.goto("/post");
+    await expect(page, "PW-14: /post did not send a signed-out visitor to sign in").toHaveURL(
+      /\/auth\?.*return=%2Fpost/,
+    );
+
+    // An OFF-SITE return is not a destination: the standard accepts only a
+    // same-origin relative path, so this one is dropped in favour of "/".
+    await page.goto("/auth?return=https%3A%2F%2Fevil.example%2Fsteal");
+    const user = await seller(page);
+    await expect(page).not.toHaveURL(/evil\.example/);
+
+    // And the real thing: signed in, the return path is honoured.
+    await gotoReady(page, "/post");
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    expect(user.id, "PW-14: no seller identity was minted").not.toBe("");
+  });
+
+  test("PW-15 the posting entry lives in My Listings, not in Account", async ({ page }) => {
+    await seller(page);
+    await gotoReady(page, "/");
+
+    // U0e — the panel band activates the panel; the drawer then lists ONLY that
+    // panel's items (J5: openRailScope resolves the right viewport twin).
+    await page.getByTestId("panel-tab-my-listings").click();
+    const entry = (await openRailScope(page)).getByTestId("post-entry");
+    await expect(entry, "PW-15: My Listings does not carry the posting entry").toBeVisible();
+
+    // It is the WIZARD's entry, not a placeholder.
+    await entry.click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await expect(page).toHaveURL(/\/post$/);
+
+    await page.getByTestId("panel-tab-account").click();
+    await expect(
+      (await openRailScope(page)).getByTestId("post-entry"),
+      "PW-15: the posting entry is still in Account",
+    ).toHaveCount(0);
   });
 });

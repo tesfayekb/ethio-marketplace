@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { PostingWizard } from "@/features/posting/wizard";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * U6-C1a — `/post/<id>`: RESUMING a draft.
+ * U6-C1a/C2a — `/post/<id>`: RESUMING a draft.
  *
  * The draft's own address. The wizard reads the row as its owner (RLS decides,
  * not the URL), opens at the step the server recorded, and says plainly when the
@@ -12,6 +13,11 @@ import { PostingWizard } from "@/features/posting/wizard";
  *
  * `noindex`: a draft is nobody's landing page.
  *
+ * D20 — the same sign-in standard as `/post`, carrying THIS draft's address as
+ * the return path, so a seller whose session lapsed mid-listing comes back to the
+ * listing they were writing and not to the home feed. `ssr: false` keeps the
+ * guard client-side, where the session actually lives.
+ *
  * The trailing underscore in the FILE name (`post_.$listingId.tsx`) opts this
  * route out of nesting under `post.tsx`: the URL stays `/post/<id>`, while the
  * screen is its own leaf instead of a child rendered inside `/post`. Without it
@@ -19,6 +25,16 @@ import { PostingWizard } from "@/features/posting/wizard";
  * no `<Outlet />` silently shows the CREATE screen at a draft's own address.
  */
 export const Route = createFileRoute("/post_/$listingId")({
+  ssr: false,
+  beforeLoad: async ({ params }) => {
+    const { data } = await supabase.auth.getUser();
+    if (data.user === null) {
+      throw redirect({
+        to: "/auth",
+        search: { return: `/post/${encodeURIComponent(params.listingId)}` },
+      });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Continue your listing — ethio.com" },

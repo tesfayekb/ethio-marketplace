@@ -47,6 +47,11 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   unknownOption: "post.refusal.unknownOption",
   unknownAttribute: "post.refusal.unknownAttribute",
   notPositive: "post.refusal.notPositive",
+  // U6-C2a — step 5 and step 6's own vocabulary.
+  priceNotAllowed: "post.refusal.priceNotAllowed",
+  posterExpiryTooSoon: "post.refusal.posterExpiryTooSoon",
+  posterExpiryTooLate: "post.refusal.posterExpiryTooLate",
+  multipleMarkets: "post.refusal.multipleMarkets",
   providerUnavailable: "post.refusal.providerUnavailable",
 };
 

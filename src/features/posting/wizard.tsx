@@ -1,5 +1,4 @@
-import { useCallback, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useCallback, useEffect, useState } from "react";
 
 import { PageCard, PAGE_MAIN_CLASS } from "@/components/shell/page-card";
 import { useCategoryTree } from "@/features/categories/category-tree";
@@ -10,9 +9,12 @@ import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { StepCategory } from "./step-category";
 import { StepDetails } from "./step-details";
 import { StepPhotos } from "./step-photos";
+import { StepPricing } from "./step-pricing";
+import { StepWhere } from "./step-where";
 import { StepSpecifications } from "./step-specifications";
+import { readPostingSchema } from "./posting-service";
 import { useDraft } from "./use-draft";
-import { IMPLEMENTED_THROUGH, STEPS, TOTAL_STEPS } from "./types";
+import { IMPLEMENTED_THROUGH, STEPS, TOTAL_STEPS, type CategoryFacts } from "./types";
 
 /**
  * U6-C1a — THE WIZARD SHELL: ONE SCREEN AT A TIME, AT 360 PIXELS.
@@ -55,6 +57,27 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     );
   }, []);
 
+  /**
+   * U6-C2a — WHAT THE CATEGORY DECIDES, read once per category from the same
+   * public posting read step 1 and step 3 already use. Step 5 mirrors it; the
+   * door remains the authority (F3).
+   */
+  const [facts, setFacts] = useState<CategoryFacts | null>(null);
+  const categoryId = draft.values.categoryId;
+  useEffect(() => {
+    if (categoryId === null) {
+      setFacts(null);
+      return;
+    }
+    let cancelled = false;
+    void readPostingSchema(categoryId).then((schema) => {
+      if (!cancelled) setFacts(schema?.category ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId]);
+
   const current = STEPS[draft.step - 1] ?? STEPS[0];
   const chosenCategory =
     draft.values.categoryId === null ? null : (tree.byId.get(draft.values.categoryId) ?? null);
@@ -77,36 +100,26 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           ? true
           : draft.step === 4
             ? draft.values.title.trim() !== "" && draft.values.description.trim() !== ""
-            : false;
+            : draft.step === 5
+              ? // A priced mode needs an amount; free/contact need nothing. The
+                // currency may be left to the door, which falls back to the
+                // seller's home market's own currency (D13).
+                draft.values.priceMode === "free" ||
+                draft.values.priceMode === "contact" ||
+                draft.values.priceAmount !== null
+              : draft.step === 6
+                ? draft.values.coverage.length > 0
+                : false;
 
-  // A signed-out visitor is TOLD to sign in rather than redirected: `/post` is a
-  // public route, and an auth gate here would both lose the intent and put a
-  // localStorage-dependent guard on a server-rendered path.
-  if (authLoading) {
+  // D20 (U6-C2a) — a signed-out visitor never reaches this screen: the route's own
+  // `beforeLoad` sends them to `/auth?return=…` and brings them back. What is left
+  // here is the honest in-between: the session is still being read, or the
+  // redirect is in flight.
+  if (authLoading || user === null) {
     return (
       <main className={PAGE_MAIN_CLASS}>
         <PageCard>
           <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
-        </PageCard>
-      </main>
-    );
-  }
-
-  if (user === null) {
-    return (
-      <main className={PAGE_MAIN_CLASS}>
-        <PageCard>
-          <h1 className="text-lg font-semibold text-foreground">{t("post.title")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground" data-testid="post-signin-required">
-            {t("post.signIn.required")}
-          </p>
-          <Link
-            to="/auth"
-            data-testid="post-signin-link"
-            className="mt-4 inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-          >
-            {t("post.signIn.action")}
-          </Link>
         </PageCard>
       </main>
     );
@@ -231,6 +244,27 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 onChange={(patch, immediate) => draft.change(patch, immediate)}
               />
             )}
+            {draft.step === 5 && (
+              <StepPricing
+                facts={facts}
+                values={{
+                  priceMode: draft.values.priceMode,
+                  priceAmount: draft.values.priceAmount,
+                  priceCurrency: draft.values.priceCurrency,
+                  pricePeriod: draft.values.pricePeriod,
+                  posterExpiresAt: draft.values.posterExpiresAt,
+                }}
+                refusals={draft.refusals}
+                onChange={(patch, immediate) => draft.change(patch, immediate)}
+              />
+            )}
+            {draft.step === 6 && (
+              <StepWhere
+                coverage={draft.values.coverage}
+                refusals={draft.refusals}
+                onChange={(coverage, immediate) => draft.change({ coverage }, immediate)}
+              />
+            )}
             {draft.step > IMPLEMENTED_THROUGH && (
               <p className="text-sm text-muted-foreground" data-testid="post-step-later">
                 {t("post.stepLater")}
@@ -258,6 +292,20 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 ["title", "description", "video_url", "videoUrl"].includes(refusal.field)
               ),
           )
+          .filter(
+            (refusal) =>
+              !(
+                draft.step === 5 &&
+                [
+                  "price_mode",
+                  "price_amount",
+                  "price_currency",
+                  "price_period",
+                  "poster_expires_at",
+                ].includes(refusal.field)
+              ),
+          )
+          .filter((refusal) => !(draft.step === 6 && refusal.field === "coverage"))
           .map((refusal) => (
             <p
               key={`${refusal.field}:${refusal.reason}`}

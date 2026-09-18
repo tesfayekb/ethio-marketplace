@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 277,
-  "dynamicCallSites": 169,
+  "scanned": 280,
+  "dynamicCallSites": 181,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3452,6 +3452,62 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.price.amountLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.amountPlaceholder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.amountShown": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.currencyFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.currencyLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.currencyNone": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.currencySearch": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.expiryHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.expiryLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.modeLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.notAllowed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.periodFixed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.periodLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.why": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.progress.label": [
       "/post",
       "/post/$listingId"
@@ -3465,14 +3521,6 @@
       "/post/$listingId"
     ],
     "post.save.unsaved": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.signIn.action": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.signIn.required": [
       "/post",
       "/post/$listingId"
     ],
@@ -3545,6 +3593,66 @@
       "/post/$listingId"
     ],
     "post.title": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.addPlace": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.allOf": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.chosenLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.levelNone": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.marketFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.marketLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.marketLoading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.pinLater": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.planCaption": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.planFull": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.prefilled": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.removePlace": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.treeFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.treeLoading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.why": [
       "/post",
       "/post/$listingId"
     ],

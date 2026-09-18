@@ -58,12 +58,35 @@ export const PANELS: Record<PanelId, Panel> = {
     id: "my-listings",
     labelKey: "panel.myListings",
     icon: ClipboardList,
-    // INC-071 grandfather: My Listings has NO route yet — its pages arrive with
-    // its own build. Until then activation stays on the legacy state path.
+    /**
+     * U6-C2a — My Listings STAYS on the INC-071 grandfather (`homePath: null`).
+     *
+     * A panel with a `homePath` activates by NAVIGATION alone (useSwitchPanel),
+     * and the shell derives the active panel from the path — a derivation that
+     * knows /settings and /admin and nothing else. Pointing this panel at /post
+     * would therefore open the wizard with the MARKETPLACE rail beside it
+     * (INC-058, exactly). Its own page arrives with E1 and brings the mapping.
+     */
     homePath: null,
+
     items: [
+      /**
+       * U6-C2a — THE POSTING ENTRY LIVES HERE, in MY LISTINGS.
+       *
+       * It sits FIRST because posting is the thing a seller comes to this panel
+       * to do, and it carries an explicit testid (`post-entry`) rather than the
+       * derived `rail-item-…` so the wizard's own tests address it by name. It
+       * moved out of Account in C2a: Account is about the person, My Listings is
+       * about what they are selling, and posting belongs to the second.
+       */
+      {
+        id: "post-entry",
+        labelKey: "nav.postListing",
+        icon: PlusCircle,
+        path: "/post",
+        testid: "post-entry",
+      },
       { id: "ml-dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
-      { id: "ml-post", labelKey: "nav.postListing", icon: PlusCircle },
       { id: "ml-listings", labelKey: "nav.myListings", icon: ListChecks },
       { id: "ml-messages", labelKey: "nav.messages", icon: MessageSquare },
       { id: "ml-featured", labelKey: "nav.featured", icon: Sparkles },
@@ -85,19 +108,6 @@ export const PANELS: Record<PanelId, Panel> = {
     // shell already derives the Account panel from it.
     homePath: "/settings",
     items: [
-      /**
-       * U6-C1a — the posting entry. It sits FIRST because posting is the
-       * primary thing a signed-in seller comes to the Account panel to do, and
-       * it carries an explicit testid (`post-entry`) rather than the derived
-       * `rail-item-…` so the wizard's own tests address it by name.
-       */
-      {
-        id: "post-entry",
-        labelKey: "nav.postListing",
-        icon: PlusCircle,
-        path: "/post",
-        testid: "post-entry",
-      },
       { id: "ac-overview", labelKey: "nav.overview", icon: Gauge },
       { id: "ac-saved", labelKey: "nav.saved", icon: Heart },
       { id: "ac-activity", labelKey: "nav.activity", icon: ScrollText },

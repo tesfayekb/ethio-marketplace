@@ -1,16 +1,29 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { PostingWizard } from "@/features/posting/wizard";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * U6-C1a — `/post`: the wizard for a listing that does not exist yet.
+ * U6-C2a — `/post`: the wizard for a listing that does not exist yet.
  *
- * The route is PUBLIC and server-rendered: a signed-out visitor who taps "Post a
- * listing" must see the form's first question and a sign-in invitation, not a
- * redirect that loses their intent. The draft itself is created by the door at
- * step 1, which is where authentication actually becomes non-negotiable.
+ * D20 — THE SIGN-IN REDIRECT STANDARD (replaces C1a's "please sign in" card).
+ * A session-gated page sends a signed-out visitor to `/auth` carrying the page it
+ * was asked for as a RELATIVE `return` path, and `/auth` comes back to it after a
+ * successful sign-in. The intent is never lost, and the seller never has to find
+ * "Post a listing" a second time.
+ *
+ * `ssr: false` is what makes the guard honest rather than a redirect loop: the
+ * Supabase session lives in `localStorage`, which the server cannot read, so a
+ * server-rendered gate would bounce a signed-in seller on every hard refresh.
+ * The wizard's own screen is not a shareable landing page, so nothing is lost by
+ * rendering it on the client alone.
  */
 export const Route = createFileRoute("/post")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data.user === null) throw redirect({ to: "/auth", search: { return: "/post" } });
+  },
   head: () => ({
     meta: [
       { title: "Post a listing — ethio.com" },

@@ -78,7 +78,19 @@ export function reasonsOf(payload: Record<string, unknown>): { field: string; re
 }
 
 /** A POSTABLE LEAF category: active, listings allowed, no children, not catch-all. */
-export async function seedPostableCategory() {
+export async function seedPostableCategory(
+  /**
+   * U6-C2a — the PRICING FACTS a leaf may carry (DEC-052/067). A test that needs a
+   * locked period or a short poster window asks for it here rather than editing a
+   * real category (J3: no reference row is ever written).
+   */
+  facts: {
+    defaultPricePeriod?: string;
+    pricePeriodLocked?: boolean;
+    expiryDays?: number;
+    priceEnabled?: boolean;
+  } = {},
+) {
   const slug = scratchCategorySlug();
   const { data, error } = await adminClient()
     .from("categories")
@@ -89,6 +101,14 @@ export async function seedPostableCategory() {
       allow_listings: true,
       is_catchall: false,
       display_order: 9000,
+      ...(facts.defaultPricePeriod === undefined
+        ? {}
+        : { default_price_period: facts.defaultPricePeriod }),
+      ...(facts.pricePeriodLocked === undefined
+        ? {}
+        : { price_period_locked: facts.pricePeriodLocked }),
+      ...(facts.expiryDays === undefined ? {} : { expiry_days: facts.expiryDays }),
+      ...(facts.priceEnabled === undefined ? {} : { price_enabled: facts.priceEnabled }),
     })
     .select("id, slug")
     .single();
@@ -381,4 +401,51 @@ export async function textOf(listingId: string): Promise<{
     .maybeSingle();
   if (error) throw new Error(`[e2e:c1b] reading the draft text failed: ${error.message}`);
   return { title: data?.title ?? null, description: data?.description ?? null };
+}
+
+/** U6-C2a DB truth: what the door actually stored for step 5. */
+export async function pricingOf(listingId: string): Promise<{
+  mode: string | null;
+  amount: number | null;
+  currency: string | null;
+  period: string | null;
+}> {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("price_mode,price_amount,price_currency,price_period")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:c2a] reading the price failed: ${error.message}`);
+  return {
+    mode: data?.price_mode ?? null,
+    amount:
+      data?.price_amount === null || data?.price_amount === undefined
+        ? null
+        : Number(data.price_amount),
+    currency: data?.price_currency ?? null,
+    period: data?.price_period ?? null,
+  };
+}
+
+/** U6-C2a DB truth: the coverage rows the door wrote, and the item's own place. */
+export async function coverageOf(listingId: string): Promise<{
+  placeIds: string[];
+  locationId: string | null;
+}> {
+  const supabase = adminClient();
+  const rows = await supabase
+    .from("listing_locations")
+    .select("location_id,created_at")
+    .eq("listing_id", listingId)
+    .order("created_at", { ascending: true });
+  if (rows.error) throw new Error(`[e2e:c2a] reading the coverage failed: ${rows.error.message}`);
+  const listing = await supabase
+    .from("listings")
+    .select("location_id")
+    .eq("id", listingId)
+    .maybeSingle();
+  return {
+    placeIds: (rows.data ?? []).map((row) => row.location_id),
+    locationId: listing.data?.location_id ?? null,
+  };
 }
