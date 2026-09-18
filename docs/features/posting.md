@@ -180,7 +180,9 @@ with E1.
 `PW-10` the locked period, the hidden amount and a refused expiry · `PW-11` the
 prefilled market, "All of <city>" over a scratch region→city→sub-city chain, and
 the plan cap, all against DB truth · `PW-14` D20 both ways, including a dropped
-off-site return · `PW-15` the entry lives in My Listings and not in Account.
+off-site return · `PW-15` the entry lives in My Listings and not in Account, and
+the shell keeps My Listings active (tab and menu) on `/post` and `/post/<id>` —
+the shell's route→panel derivation owns `/post` (operator walk 2026-09-18).
 
 ## Still to come — C2b
 

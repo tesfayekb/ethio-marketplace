@@ -616,6 +616,19 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-1")).toBeVisible();
     await expect(page).toHaveURL(/\/post$/);
 
+    // C2 addendum (operator walk 2026-09-18): /post belongs to My Listings —
+    // the panel stays active and its menu stays visible while posting.
+    await expect(
+      page.getByTestId("panel-tab-my-listings"),
+      "PW-15: /post fell back to another panel; My Listings must own the posting pages",
+    ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      (await openRailScope(page)).getByTestId("post-entry"),
+      "PW-15: the My Listings menu is not visible while posting",
+    ).toBeVisible();
+    // Close the drawer before switching panels (it overlays the band on mobile).
+    await page.keyboard.press("Escape");
+
     await page.getByTestId("panel-tab-account").click();
     await expect(
       (await openRailScope(page)).getByTestId("post-entry"),
