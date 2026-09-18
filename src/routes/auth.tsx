@@ -8,7 +8,9 @@ import {
 } from "@/features/auth/auth-service";
 import { useAuth } from "@/features/auth/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { safeReturnPath } from "@/lib/return-path";
 import { PAGE_MAIN_CLASS, PageCard } from "@/components/shell/page-card";
+
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -26,25 +28,10 @@ const MAX_RESENDS_PER_VISIT = 3;
 const PENDING_EMAIL_KEY = "ethio.auth.pendingEmail";
 
 /**
- * D20 — THE RETURN PATH, AND WHY IT IS SO NARROW.
- *
- * A session-gated page sends a signed-out visitor here with `?return=<path>` and
- * expects to be come back to. That parameter is attacker-controlled, so it is
- * accepted ONLY as a same-origin relative path: it must start with a single `/`,
- * and it must not continue with `/` or `\` (which the browser reads as a
- * protocol-relative host) and must carry no scheme. `https://evil.example`,
- * `//evil.example` and `/\evil.example` are all ignored in favour of `/`.
- *
- * This is the anti-pattern the standard exists to prevent: an open redirect on a
- * sign-in page is a phishing primitive, not a convenience.
+ * D20 / INC-224 — the return path's rule is the SHARED one in
+ * `@/lib/return-path`, because the Google door lands on `/auth/callback` and
+ * must judge the same parameter by the same test (B2: one utility per concern).
  */
-const RETURN_RE = /^\/(?![/\\]).*$/;
-
-function safeReturnPath(raw: unknown): string {
-  if (typeof raw !== "string" || raw === "") return "/";
-  if (raw.includes("://") || raw.includes("\\")) return "/";
-  return RETURN_RE.test(raw) ? raw : "/";
-}
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { view?: AuthView; return?: string } => ({
@@ -288,7 +275,9 @@ function AuthScreen() {
     setResendSent(false);
     setCanResend(false);
     setBusy(true);
-    const result = await signInWithGoogle();
+    // INC-224 — the Google door carries the same return path the email door does.
+    const result = await signInWithGoogle(afterSignIn);
+
     if (!result.ok) {
       setBusy(false);
       setErrorKey(result.errorKey);

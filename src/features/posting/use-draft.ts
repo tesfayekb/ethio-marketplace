@@ -39,6 +39,12 @@ export interface DraftValues {
   posterExpiresAt: string;
   /** U6-C2a step 6 — the coverage rows; the FIRST is the item's own place. */
   coverage: string[];
+  /**
+   * U6-C2b step 7 — THIS LISTING's contact channels, `listing_contact_refusals`
+   * shape: `{ messages: true, phone: { show, value }, … }`. Messages is always
+   * true, because the door refuses a listing nobody can be reached about.
+   */
+  contactPref: Record<string, unknown>;
 }
 
 const EMPTY_VALUES: DraftValues = {
@@ -55,6 +61,7 @@ const EMPTY_VALUES: DraftValues = {
   pricePeriod: null,
   posterExpiresAt: "",
   coverage: [],
+  contactPref: { messages: true },
 };
 
 export interface UseDraft {
@@ -145,6 +152,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       posterExpiresAt:
         valuesRef.current.posterExpiresAt === "" ? null : valuesRef.current.posterExpiresAt,
       coverage: valuesRef.current.coverage.length === 0 ? null : valuesRef.current.coverage,
+      contactPref: valuesRef.current.contactPref,
     };
   }, []);
 
@@ -297,6 +305,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
           pricePeriod: found.draft.pricePeriod,
           posterExpiresAt: found.draft.posterExpiresAt ?? "",
           coverage: found.coverage,
+          contactPref: found.draft.contactPref,
         };
         valuesRef.current = next;
         setValues(next);

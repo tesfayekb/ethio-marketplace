@@ -449,3 +449,34 @@ export async function coverageOf(listingId: string): Promise<{
     locationId: listing.data?.location_id ?? null,
   };
 }
+
+/** U6-C2b DB truth: the listing's own contact channels (`listings.contact_pref`). */
+export async function contactPrefOf(listingId: string): Promise<Record<string, unknown>> {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("contact_pref")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:c2b] reading the channels failed: ${error.message}`);
+  const value = data?.contact_pref;
+  return value !== null && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+/** U6-C2b DB truth: the seller identity `save_posting_identity` wrote to the profile. */
+export async function identityOf(userId: string): Promise<{
+  alias: string | null;
+  sellerType: string | null;
+  businessName: string | null;
+}> {
+  const { data, error } = await adminClient()
+    .from("profiles")
+    .select("seller_alias,seller_type,business_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:c2b] reading the identity failed: ${error.message}`);
+  return {
+    alias: data?.seller_alias ?? null,
+    sellerType: data?.seller_type ?? null,
+    businessName: data?.business_name ?? null,
+  };
+}

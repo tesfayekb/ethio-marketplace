@@ -21,7 +21,7 @@ export const STEPS = [
 export const TOTAL_STEPS = STEPS.length;
 
 /** The steps this landing implements; the rest render "opens later" honestly. */
-export const IMPLEMENTED_THROUGH = 6;
+export const IMPLEMENTED_THROUGH = 8;
 
 /**
  * U6-C2a — THE PRICE VOCABULARY, the door's own words (DEC-067, D13).
@@ -75,7 +75,16 @@ export interface DoorAnswer {
 /** The autosave's visible state (C4 — every screen says where it stands). */
 export type SaveState = "idle" | "saving" | "saved" | "unsaved";
 
-/** One photo in the grid, from the moment the device picks it. */
+/**
+ * One photo in the grid, from the moment the device picks it.
+ *
+ * U6-C2b / PP-10 — THE RETRY LAW IS IN THE STATE, NOT IN THE BUTTON.
+ * `refused` is a VERDICT: the screening said no, and saying it again cannot
+ * change the answer, so a refused tile never retries — it shows its reason once
+ * and waits to be replaced. `failed` is the absence of a verdict (offline, or the
+ * server's own breakage): that is retried ONCE automatically, and if it fails
+ * again the tile says "couldn't send" and offers the seller the retry.
+ */
 export interface PhotoItem {
   /** A client id, stable across the upload so progress belongs to one tile. */
   localId: string;
@@ -83,11 +92,13 @@ export interface PhotoItem {
   photoId: string | null;
   /** The on-device blob URL — the preview until the server confirms. */
   previewUrl: string;
-  state: "preparing" | "uploading" | "stored" | "failed";
+  state: "preparing" | "uploading" | "stored" | "failed" | "refused";
   percent: number;
   /** A refused photo names its reason in words and can be replaced. */
   refusalKey: MessageKey | null;
   isCover: boolean;
   /** Kept so a failed upload can be retried without re-picking the file. */
   file: File | null;
+  /** How many times THIS tile has been sent; the auto-retry spends exactly one. */
+  attempts: number;
 }

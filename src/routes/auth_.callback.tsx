@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { completeEmailVerification } from "@/features/auth/auth-service";
 import { useI18n } from "@/i18n";
+import { safeReturnPath } from "@/lib/return-path";
 
 export const Route = createFileRoute("/auth_/callback")({
   head: () => ({
@@ -35,6 +36,15 @@ function AuthCallback() {
   const [status, setStatus] = useState<"checking" | "confirmed" | "noSession" | "failed">(
     "checking",
   );
+  /**
+   * INC-224 — WHERE THIS LANDING GOES NEXT. The Google door put the seller's
+   * intended path in this URL's own `return` parameter (see `oauthRedirectUrl`),
+   * and it is judged HERE by the shared same-origin rule: anything else is `/`.
+   * Read once, from the landing URL, before any navigation rewrites it.
+   */
+  const [target] = useState(() =>
+    safeReturnPath(new URLSearchParams(window.location.search).get("return")),
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -43,13 +53,18 @@ function AuthCallback() {
       const result = await completeEmailVerification();
       if (cancelled) return;
       // "invalid or expired" requires a genuine error param AND no session.
-      setStatus(result.ok ? "confirmed" : result.hadError ? "failed" : "noSession");
+      const settled = result.ok ? "confirmed" : result.hadError ? "failed" : "noSession";
+      setStatus(settled);
+      // A session AND a destination: there is nothing to confirm by hand.
+      if (settled === "confirmed" && target !== "/") {
+        void navigate({ to: target, replace: true });
+      }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [navigate, target]);
 
   if (status === "checking") {
     return (
@@ -66,7 +81,7 @@ function AuthCallback() {
         <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirmedBody")}</p>
         <button
           type="button"
-          onClick={() => void navigate({ to: "/" })}
+          onClick={() => void navigate({ to: target })}
           className={`${primaryButtonClass} mt-6`}
         >
           {t("auth.continue")}

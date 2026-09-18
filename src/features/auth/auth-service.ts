@@ -3,6 +3,7 @@ import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/su
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import type { MessageKey } from "@/i18n";
+import { safeReturnPath } from "@/lib/return-path";
 
 import type {
   AuthResult,
@@ -15,6 +16,22 @@ import type {
 /** Where Supabase sends the user after they click the confirmation link. */
 export function emailRedirectUrl(): string {
   return `${window.location.origin}/auth/callback`;
+}
+
+/**
+ * INC-224 — WHERE THE GOOGLE DOOR COMES BACK TO, AND HOW THE RETURN TRAVELS.
+ *
+ * The return path rides in the OAuth `redirectTo` URL's own query string — NOT
+ * in a cookie: `redirectTo` is the one value the provider hands back untouched,
+ * it is validated against Supabase's allow-list as an origin, and a cookie would
+ * have to survive a cross-site POST back to the callback (SameSite=Lax drops
+ * exactly that). The callback re-validates the parameter with the SAME shared
+ * rule before it navigates, so a tampered `return` is still only ever `/`.
+ */
+export function oauthRedirectUrl(returnPath?: string): string {
+  const base = emailRedirectUrl();
+  const safe = safeReturnPath(returnPath);
+  return safe === "/" ? base : `${base}?return=${encodeURIComponent(safe)}`;
 }
 
 function isEmailNotConfirmed(message: string, code?: string): boolean {
@@ -92,12 +109,15 @@ export async function signInWithPassword({ email, password }: Credentials): Prom
  * self-documenting even though the provider is configured server-side; they
  * stay minimal (email, profile, openid) — nothing else is ever requested.
  * The redirect target reuses the email door's helper: one source of truth.
+ *
+ * INC-224 — a `returnPath` the sign-in screen was given travels with it, so a
+ * seller sent to sign in from the wizard lands back on the wizard.
  */
-export async function signInWithGoogle(): Promise<AuthResult> {
+export async function signInWithGoogle(returnPath?: string): Promise<AuthResult> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: emailRedirectUrl(),
+      redirectTo: oauthRedirectUrl(returnPath),
       scopes: "email profile openid",
     },
   });

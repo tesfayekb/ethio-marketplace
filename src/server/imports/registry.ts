@@ -263,6 +263,19 @@ export const FAMILIES: Record<string, FamilySpec> = {
           { name: "allow_listings", klass: "editable", type: "bool" },
           { name: "is_catchall", klass: "read-only", type: "bool" },
           { name: "price_enabled", klass: "editable", type: "bool" },
+          /**
+           * U6-C2b (CT-x) — WHAT THE POSTING DOOR READS, EDITABLE IN THE FILE.
+           *
+           * `admin_import_categories` already plans these three (M-MAINT proof
+           * P3a–P3e), and step 5 of the wizard now obeys them: a period the
+           * category locks is shown as a fact, not a control. Leaving them out of
+           * the file meant an operator could set them one row at a time in the
+           * console and never in bulk — the cell is the same authority, so it is
+           * the same door (INC-188: nothing stored is dropped by a round trip).
+           */
+          { name: "capabilities", klass: "editable", type: "pipe" },
+          { name: "default_price_period", klass: "editable", type: "text", maxLength: MAX_LABEL },
+          { name: "price_period_locked", klass: "editable", type: "bool" },
           { name: "expiry_days", klass: "editable", type: "int", formula: "allow" },
           { name: "icon", klass: "editable", type: "text", maxLength: MAX_LABEL },
           { name: "visible_from", klass: "editable", type: "date" },

@@ -53,6 +53,15 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   posterExpiryTooLate: "post.refusal.posterExpiryTooLate",
   multipleMarkets: "post.refusal.multipleMarkets",
   providerUnavailable: "post.refusal.providerUnavailable",
+  // U6-C2b — step 7's own vocabulary (`save_posting_identity`,
+  // `listing_contact_refusals`): the identity door answers here.
+  aliasReserved: "post.refusal.aliasReserved",
+  aliasTaken: "post.refusal.aliasTaken",
+  badLength: "post.refusal.badLength",
+  badHandle: "post.refusal.badHandle",
+  showNeedsValue: "post.refusal.showNeedsValue",
+  unknownCountry: "post.refusal.unknownCountry",
+  countryAlreadyConfirmed: "post.refusal.countryAlreadyConfirmed",
 };
 
 const PHOTO_REASONS: Record<string, MessageKey> = {

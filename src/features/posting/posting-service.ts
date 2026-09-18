@@ -199,6 +199,8 @@ export interface DraftRow {
   pricePeriod: string | null;
   /** The stored timestamptz, trimmed to the `YYYY-MM-DD` the date field holds. */
   posterExpiresAt: string | null;
+  /** U6-C2b — step 7's stored channels, in `listing_contact_refusals` shape. */
+  contactPref: Record<string, unknown>;
 }
 
 export interface DraftPhotoRow {
@@ -218,7 +220,7 @@ export async function readDraft(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,poster_expires_at",
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,poster_expires_at,contact_pref",
     )
     .eq("id", listingId)
     .maybeSingle();
@@ -262,6 +264,10 @@ export async function readDraft(
       pricePeriod: data.price_period,
       posterExpiresAt:
         typeof data.poster_expires_at === "string" ? data.poster_expires_at.slice(0, 10) : null,
+      contactPref:
+        data.contact_pref !== null && typeof data.contact_pref === "object"
+          ? (data.contact_pref as Record<string, unknown>)
+          : { messages: true },
     },
     photos: (photos ?? []).map((row) => ({
       id: row.id,
@@ -395,6 +401,86 @@ export function requestAssist(body: {
   locale: string;
 }): Promise<DoorAnswer> {
   return call("/api/listings/assist", JSON.stringify(body), {
+    "Content-Type": "application/json",
+  });
+}
+
+/**
+ * U6-C2b — STEP 7's IDENTITY, read as the owner (`profiles_owner_read`).
+ *
+ * A seller who has posted before must not be asked again: the stored alias,
+ * seller type, business name, channels and home country come back here so the
+ * screen can CONFIRM them instead of demanding them (spec §4 B2 step 7).
+ * `null` means the read itself failed — the screen says so rather than pretending
+ * this is a first posting (F4).
+ */
+export interface SellerIdentity {
+  alias: string | null;
+  sellerType: string | null;
+  businessName: string | null;
+  contactPrefs: Record<string, unknown>;
+  homeCountryCode: string | null;
+}
+
+export async function readSellerIdentity(): Promise<SellerIdentity | null> {
+  const { data: session } = await supabase.auth.getUser();
+  const userId = session.user?.id ?? null;
+  if (userId === null) return null;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("seller_alias,seller_type,business_name,contact_prefs,home_country_code")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) return null;
+  if (!data) {
+    return {
+      alias: null,
+      sellerType: null,
+      businessName: null,
+      contactPrefs: {},
+      homeCountryCode: null,
+    };
+  }
+  return {
+    alias: data.seller_alias ?? null,
+    sellerType: data.seller_type ?? null,
+    businessName: data.business_name ?? null,
+    contactPrefs:
+      data.contact_prefs !== null && typeof data.contact_prefs === "object"
+        ? (data.contact_prefs as Record<string, unknown>)
+        : {},
+    homeCountryCode: data.home_country_code ?? null,
+  };
+}
+
+/**
+ * `POST /api/listings/identity` — `save_posting_identity`, which is the only
+ * authority on an alias (case-insensitive uniqueness AND the reserved list). The
+ * screen mirrors the SHAPE so a plainly wrong alias costs no round trip; whether
+ * an alias is FREE is a question only this door can answer (F3).
+ *
+ * Every field is optional and a missing one leaves the stored value alone, so the
+ * availability check sends the alias alone and changes nothing else.
+ */
+export function saveIdentity(body: {
+  alias?: string;
+  sellerType?: string;
+  businessName?: string | null;
+  contactPref?: unknown;
+  homeCountryCode?: string;
+}): Promise<DoorAnswer> {
+  return call("/api/listings/identity", JSON.stringify(body), {
+    "Content-Type": "application/json",
+  });
+}
+
+/**
+ * `POST /api/listings/publish` — `publish_listing`, which moves a complete draft
+ * to SCREENING. Nothing goes live from here: D1 is the gateway that decides, and
+ * "in review" is the honest word for what the seller has just done (DEC-065).
+ */
+export function publishListing(listingId: string): Promise<DoorAnswer> {
+  return call("/api/listings/publish", JSON.stringify({ listingId }), {
     "Content-Type": "application/json",
   });
 }

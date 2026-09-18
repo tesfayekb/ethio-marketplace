@@ -1,3 +1,5 @@
+import { join } from "node:path";
+
 import { expect, test } from "./fixtures";
 
 import {
@@ -39,6 +41,12 @@ import { createUser } from "./helpers/users";
  */
 
 const DRAFT = "/api/listings/draft";
+
+/** The tile tests (PP-10) pick a real file from the device, as a seller does. */
+const FIXTURE = join(
+  import.meta.dirname ?? new URL(".", import.meta.url).pathname,
+  "../scripts/fixtures/photos/gps.jpg",
+);
 
 test.describe("PHOTO PIPELINE", () => {
   const categories: string[] = [];
@@ -295,5 +303,79 @@ test.describe("PHOTO PIPELINE", () => {
       "",
     );
     expect(await photoRowsOf(listingId), "PP-9: nothing may be registered").toHaveLength(0);
+  });
+
+  /**
+   * PP-10 — THE RETRY LAW, on the tile. A verdict is FINAL: it is said once,
+   * with its reason, and the tile offers no retry. A failure to REACH a verdict
+   * is not a verdict: it is tried once more on its own, then handed to the
+   * seller with a manual retry (F4 — nothing is silent, nothing is a phantom).
+   *
+   * The refusal arm rides the door's own fake-mode verdict shape; the 5xx arm
+   * counts the route's calls, which is the only way to observe "once more".
+   */
+  test("PP-10 a refusal is final and never retried; a 5xx is retried once, then handed over", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+
+    // ---- a verdict: refused once, with its reason, and no retry offered ----
+    await page.route("**/api/upload/photo", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ok: false,
+          refusals: [{ field: "photo", reason: "not_a_photo", detail: "fake mode" }],
+        }),
+      });
+    });
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+    const refused = page.getByTestId("post-photo-tile");
+    await expect(refused, "PP-10: a verdict must land the tile in refused").toHaveAttribute(
+      "data-state",
+      "refused",
+      { timeout: 45_000 },
+    );
+    await expect(page.getByTestId("post-photo-refused")).toBeVisible();
+    await expect(
+      page.getByTestId("post-photo-state"),
+      "PP-10: the refusal must carry its own reason",
+    ).not.toHaveText("");
+    await expect(
+      page.getByTestId("post-photo-retry"),
+      "PP-10: a refusal is final — no retry may be offered",
+    ).toHaveCount(0);
+    expect(await photoRowsOf(listingId), "PP-10: a refused photo is not registered").toHaveLength(0);
+    await page.unroute("**/api/upload/photo");
+
+    // ---- a 5xx: one automatic second try, then the seller's own retry ----
+    let calls = 0;
+    await page.route("**/api/upload/photo", async (route) => {
+      calls += 1;
+      await route.fulfill({ status: 500, contentType: "application/json", body: '{"error":"x"}' });
+    });
+    const second = await draft(page, token, user.id);
+    await gotoReady(page, `/post/${second}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+    const failed = page.getByTestId("post-photo-tile");
+    await expect(failed, "PP-10: an unreachable verdict lands in failed").toHaveAttribute(
+      "data-state",
+      "failed",
+      { timeout: 45_000 },
+    );
+    expect(calls, "PP-10: a 5xx is tried exactly twice — once more, not forever").toBe(2);
+    const manual = page.getByTestId("post-photo-retry");
+    await expect(manual, "PP-10: the seller keeps a manual retry").toBeVisible();
+    await manual.click();
+    await expect
+      .poll(() => calls, { message: "PP-10: the manual retry never reached the door" })
+      .toBe(3);
+    expect(await photoRowsOf(listingId), "PP-10: nothing was registered").toHaveLength(0);
+    await page.unroute("**/api/upload/photo");
   });
 });

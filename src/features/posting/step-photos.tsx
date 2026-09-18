@@ -80,11 +80,24 @@ export function StepPhotos({
     );
   }, []);
 
-  /** One photo, end to end: encode on the device, then send and register. */
+  /**
+   * One photo, end to end: encode on the device, then send and register.
+   *
+   * PP-10 — THE RETRY LAW. `attempt` counts this tile's sends. A REFUSAL is a
+   * verdict and is final: it is shown once, with its reason, and never sent
+   * again. A FAILURE TO REACH A VERDICT (offline, or the server's own 5xx) is
+   * retried ONCE automatically; if the second send also fails the tile says
+   * "couldn't send" and hands the retry to the seller (F4: nothing is silent).
+   */
   const send = useCallback(
-    async (localId: string, file: File) => {
+    async (localId: string, file: File, attempt = 0) => {
       if (listingId === null) return;
-      patchItem(localId, { state: "preparing", percent: 0, refusalKey: null });
+      patchItem(localId, {
+        state: "preparing",
+        percent: 0,
+        refusalKey: null,
+        attempts: attempt + 1,
+      });
 
       let encoded;
       try {
@@ -120,14 +133,20 @@ export function StepPhotos({
         return;
       }
 
-      const reason = answer.refusals[0]?.reason ?? "";
+      if (answer.unreachable) {
+        // No verdict was reached. One automatic second try, then the seller's.
+        if (attempt === 0) {
+          await send(localId, file, 1);
+          return;
+        }
+        patchItem(localId, { state: "failed", refusalKey: "post.photos.couldNotSend" });
+        return;
+      }
+
+      // A verdict. Final by definition — the tile stops here (PP-10).
       patchItem(localId, {
-        state: "failed",
-        // Unreachable is not a verdict: the tile offers "send again", it does not
-        // accuse the photo of anything (F4).
-        refusalKey: answer.unreachable
-          ? ("post.save.unsaved" satisfies MessageKey)
-          : photoRefusalKey(reason),
+        state: "refused",
+        refusalKey: photoRefusalKey(answer.refusals[0]?.reason ?? ""),
       });
     },
     [listingId, onChanged, patchItem],
@@ -137,7 +156,11 @@ export function StepPhotos({
   const pick = useCallback(
     async (files: FileList | null) => {
       if (files === null || files.length === 0 || listingId === null) return;
-      const room = MAX_PHOTOS - (photos.length + items.filter((i) => i.state !== "failed").length);
+      // A tile that will never become a photo does not hold a slot.
+      const holding = items.filter(
+        (item) => item.state !== "failed" && item.state !== "refused",
+      ).length;
+      const room = MAX_PHOTOS - (photos.length + holding);
       const chosen = Array.from(files).slice(0, Math.max(0, room));
       const queued: PhotoItem[] = chosen.map((file) => ({
         localId: makeLocalId(),
@@ -148,6 +171,7 @@ export function StepPhotos({
         refusalKey: null,
         isCover: false,
         file,
+        attempts: 0,
       }));
       setItems((prev) => [...prev, ...queued]);
       setBusy(true);
@@ -241,26 +265,36 @@ export function StepPhotos({
               {item.state === "uploading" &&
                 fill(t("post.photos.uploading"), { percent: item.percent })}
               {item.state === "stored" && t("post.photos.done")}
-              {item.state === "failed" && item.refusalKey !== null && t(item.refusalKey)}
+              {(item.state === "failed" || item.state === "refused") &&
+                item.refusalKey !== null &&
+                t(item.refusalKey)}
             </p>
+            {/* PP-10 — a refusal says so once, and says it is final. */}
+            {item.state === "refused" && (
+              <p className="text-xs text-destructive" data-testid="post-photo-refused">
+                {t("post.photos.refusedFinal")}
+              </p>
+            )}
             {item.photoId !== null && item.photoId === coverId && (
               <p className="text-xs font-medium text-foreground" data-testid="post-photo-cover">
                 {t("post.photos.cover")}
               </p>
             )}
             <div className="flex gap-2">
+              {/* Only a failure to REACH a verdict is retryable (PP-10). */}
               {item.state === "failed" && item.file !== null && (
                 <button
                   type="button"
                   data-testid="post-photo-retry"
                   className={tileButtonClass}
                   onClick={() => {
-                    if (item.file) void send(item.localId, item.file);
+                    if (item.file) void send(item.localId, item.file, 1);
                   }}
                 >
                   {t("post.photos.retry")}
                 </button>
               )}
+
               {item.photoId !== null && item.photoId !== coverId && (
                 <button
                   type="button"
