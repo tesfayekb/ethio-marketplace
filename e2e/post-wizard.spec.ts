@@ -824,7 +824,15 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved", {
       timeout: 20_000,
     });
-    await page.waitForTimeout(3_000);
+    // J7 — the truth the autosave leaves behind, not a sleep: the answer reached
+    // the draft row, so whatever the door had to say about this step it has said.
+    await expect
+      .poll(async () => JSON.stringify((await draftsOf(user.id))[0]?.attributes ?? {}), {
+        timeout: 20_000,
+        intervals: [500],
+        message: "PW-16: the typed detail never reached the draft row",
+      })
+      .toContain("7");
     await expect(
       page.getByTestId("post-refusal-summary"),
       "PW-16: autosave judged a step the seller is still filling in",

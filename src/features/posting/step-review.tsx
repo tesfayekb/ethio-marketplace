@@ -150,7 +150,10 @@ export function StepReview({
        * — so offering to edit it would be a promise nothing keeps (F4). "Until"
        * is the category's window end by default and is editable within it.
        */}
-      <div className="space-y-2 rounded-md border border-border p-3" data-testid="post-active-window">
+      <div
+        className="space-y-2 rounded-md border border-border p-3"
+        data-testid="post-active-window"
+      >
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">{t("post.review.activeFromLabel")}</p>
           <p className="text-sm text-muted-foreground" data-testid="post-active-from">

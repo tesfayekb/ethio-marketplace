@@ -110,7 +110,8 @@ export function Field({
 function focusField(field: string): void {
   const byId = document.getElementById(field);
   const target =
-    byId ?? document.querySelector<HTMLElement>(`[data-testid="post-field"][data-field="${field}"]`);
+    byId ??
+    document.querySelector<HTMLElement>(`[data-testid="post-field"][data-field="${field}"]`);
   if (target === null) return;
   target.scrollIntoView({ block: "center" });
   if (typeof (target as HTMLElement & { focus?: () => void }).focus === "function") target.focus();

@@ -149,7 +149,6 @@ export function StepDetails({
           </p>
         )}
       </div>
-
     </div>
   );
 }

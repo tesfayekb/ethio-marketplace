@@ -389,7 +389,6 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
               type="button"
               data-testid="post-next"
               className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90`}
-
               onClick={() => {
                 void (async () => {
                   // Autosave on Next: the step advances only once the door has the
