@@ -313,6 +313,40 @@ applies (fail-safe). Clocks persist in `sb-<ref>-last-activity-at` and
 `sb-<ref>-session-started-at`, which makes the policy survive reloads and apply
 across tabs. Expiry runs the same hard reset and shows a translated notice.
 
+### The clocks are session-scoped (INC-223)
+
+Operator evidence (2026-09-18/19): a correct sign-in landed on the marketplace
+signed out, with "Signed out for inactivity"; the second sign-in worked. The
+race, reproduced locally: the clocks were GLOBAL, and `useSessionPolicy` ran a
+SYNCHRONOUS first tick in an effect declared BEFORE the shell effect that
+started the clocks. So the first tick read the stamps left behind by a PREVIOUS
+session (a session that ended without the hard reset — tab closed, token
+expiry) and judged the brand-new session idle. Trace:
+
+```text
+[inc223] tick   05:15:59.738  startedAt/lastActivityAt = now - 5 h
+[inc223] EXPIRE idle 05:15:59.742
+[inc223] startSessionClocks 05:15:59.743   ← too late
+```
+
+Two laws now hold:
+
+1. **Identity.** A third stamp, `sb-<ref>-session-ref`, records WHICH session
+   the clocks describe: the issuing instant of the live access token
+   (`expires_at - expires_in`, read synchronously from the persisted supabase
+   token — no supabase call, so it is safe inside an auth-state effect, law I5).
+   A stamp set whose `sessionRef` differs from the live session is treated as
+   ABSENT, and a fresh window starts.
+2. **Ordering.** The shell starts this session's clocks in the SAME effect that
+   flips the policy `active` (`clocksReady`), and the hook no longer ticks
+   synchronously — the first read happens one interval later.
+
+A full-page reload of a live session keeps its clocks (same `sessionRef`), so
+refreshing never silently extends the idle or absolute window. The limits, the
+warning and the cross-tab activity sharing are unchanged. Proof: SP-6 (stale
+stamps, staff limits → stays signed in, stamps re-keyed) and SP-7 (reload keeps
+the clocks) in `e2e/auth-signout.spec.ts`, alongside SP-1/SP-3.
+
 This is UX enforcement only; the authoritative bound is the Supabase Auth
 refresh-token / session configuration (operator item). Law F3 is unchanged.
 
