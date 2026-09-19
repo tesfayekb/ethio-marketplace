@@ -186,6 +186,55 @@ async function overridePolicy(
   }, policy);
 }
 
+/**
+ * INC-223 — the policy clocks are localStorage stamps keyed on the project ref,
+ * exactly like the supabase token (see src/features/session/session-policy.ts).
+ */
+function policyKeys() {
+  const ref = new URL(process.env["E2E_SUPABASE_URL"]!).hostname.split(".")[0];
+  return {
+    lastActivityAt: `sb-${ref}-last-activity-at`,
+    sessionStartedAt: `sb-${ref}-session-started-at`,
+    sessionRef: `sb-${ref}-session-ref`,
+    authToken: `sb-${ref}-auth-token`,
+  };
+}
+
+/** Plants a PREVIOUS session's clocks, before any app code runs. */
+async function seedStaleClocks(page: Page, ageMs: number) {
+  await page.addInitScript(
+    ({ keys, ageMs: age }: { keys: ReturnType<typeof policyKeys>; ageMs: number }) => {
+      const w = window as unknown as { __inc223Seeded?: boolean };
+      if (w.__inc223Seeded) return;
+      w.__inc223Seeded = true;
+      const stale = String(Date.now() - age);
+      localStorage.setItem(keys.lastActivityAt, stale);
+      localStorage.setItem(keys.sessionStartedAt, stale);
+      localStorage.setItem(keys.sessionRef, "previous-session");
+    },
+    { keys: policyKeys(), ageMs },
+  );
+}
+
+async function readStamps(page: Page) {
+  return page.evaluate((keys) => {
+    const token = localStorage.getItem(keys.authToken);
+    const parsed = token
+      ? (JSON.parse(token) as { expires_at?: number; expires_in?: number })
+      : null;
+    return {
+      lastActivityAt: localStorage.getItem(keys.lastActivityAt),
+      sessionStartedAt: localStorage.getItem(keys.sessionStartedAt),
+      sessionRef: localStorage.getItem(keys.sessionRef),
+      liveRef:
+        parsed && typeof parsed.expires_at === "number" && typeof parsed.expires_in === "number"
+          ? String(parsed.expires_at - parsed.expires_in)
+          : null,
+    };
+  }, policyKeys());
+}
+
+
 test.describe("U0k session policy", () => {
   test("SP-1 idle: the warning appears, then the session is hard-reset", async ({ page }) => {
     await overridePolicy(page, { idleMs: 4000, warnMs: 2500, absoluteMs: 600_000 });
