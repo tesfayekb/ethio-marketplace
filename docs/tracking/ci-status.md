@@ -1,36 +1,31 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `7d4ca282c21a391996e993a06b3a25c91a270355` (short `7d4ca28`)
+- Commit: `e70ff0273d1620ae4992a3674aefef9b66672193` (short `e70ff02`)
 - Conclusion: **FAILURE**
-- Completed (UTC): 2026-09-19T05:39:39Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35423992681
+- Completed (UTC): 2026-09-19T05:45:16Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35424748594
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
+| Hardcoded string scan (enforcing) | success |
 | Gitleaks secrets scan | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
 | i18n used-on map is fresh (U4i ②) | success |
+| Component tests | success |
+| E2E preflight (migration parity, staging) | failure |
+| Migration linter (with self-test) | success |
+| First-paint bundle budget (gzipped ceiling) | success |
 | Import gate guard (with self-test) | success |
 | Dependency vulnerability audit (enforcing on high/critical) | success |
-| Migration linter (with self-test) | success |
-| Build, typecheck, lint | success |
-| Listing-write seam guard (with self-test) | success |
-| Hardcoded string scan (enforcing) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| Component tests | success |
-| E2E preflight (migration parity, staging) | success |
 | Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| E2E build (shared dist) | success |
-| E2E email (serial, quota-bound) | success |
-| E2E changed specs (fast lane) | success |
-| E2E shard 6/6 | success |
-| E2E shard 5/6 | success |
-| E2E shard 3/6 | failure |
-| E2E shard 1/6 | success |
-| E2E shard 2/6 | success |
-| E2E shard 4/6 | success |
-| E2E smoke tier | success |
+| Listing-write seam guard (with self-test) | success |
+| Build, typecheck, lint | success |
 | E2E (Playwright, ethio-staging) | failure |
+| E2E build (shared dist) | skipped |
+| E2E changed specs (fast lane) | skipped |
+| E2E smoke tier | skipped |
+| E2E shard ${{ matrix.shard }}/6 | skipped |
+| E2E email (serial, quota-bound) | skipped |
 | Promote to main (fast-forward on green) | skipped |
