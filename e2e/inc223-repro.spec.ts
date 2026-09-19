@@ -19,28 +19,13 @@ test("INC223 repro: stale stamps sign the new session out", async ({ page }) => 
     if (m.text().includes("[inc223]")) logs.push(m.text());
   });
 
-  await page.addInitScript(() => {
-    const ref =
-      (
-        document.querySelector("meta[name='x-none']") as HTMLElement | null
-      )?.getAttribute?.("content") ?? null;
-    void ref;
+  await page.addInitScript((ref: string) => {
     const w = window as unknown as { __inc223Seeded?: boolean };
     if (w.__inc223Seeded) return;
     w.__inc223Seeded = true;
     const stale = Date.now() - 3 * 60 * 60 * 1000;
-    const key = Object.keys(localStorage);
-    void key;
-    // the project ref is derived by the app the same way; seed both plausible
-    // stamps by listing what the app writes is impossible pre-boot, so seed by
-    // known env-derived ref injected below.
-    const projectRef = (window as unknown as { __inc223Ref?: string }).__inc223Ref;
-    if (!projectRef) return;
-    localStorage.setItem(`sb-${projectRef}-last-activity-at`, String(stale));
-    localStorage.setItem(`sb-${projectRef}-session-started-at`, String(stale));
-  });
-  await page.addInitScript((ref) => {
-    (window as unknown as { __inc223Ref?: string }).__inc223Ref = ref;
+    localStorage.setItem(`sb-${ref}-last-activity-at`, String(stale));
+    localStorage.setItem(`sb-${ref}-session-started-at`, String(stale));
   }, new URL(process.env["E2E_SUPABASE_URL"]!).hostname.split(".")[0]);
 
   await gotoReady(page, "/");
