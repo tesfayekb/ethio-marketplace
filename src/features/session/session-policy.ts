@@ -183,6 +183,7 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
     const tick = () => {
       if (firedRef.current) return;
       const now = Date.now();
+      console.log("[inc223] tick", new Date(now).toISOString(), "tier", tier, "startedAt", readStamp(keys.sessionStartedAt), "lastActivityAt", readStamp(keys.lastActivityAt));
       const startedAt = readStamp(keys.sessionStartedAt) ?? now;
       const lastActivityAt = readStamp(keys.lastActivityAt) ?? now;
 
@@ -197,6 +198,7 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
       if (idleLeft <= 0) {
         firedRef.current = true;
         setSecondsLeft(null);
+        console.log("[inc223] EXPIRE idle", new Date().toISOString());
         onExpireRef.current("idle");
         return;
       }

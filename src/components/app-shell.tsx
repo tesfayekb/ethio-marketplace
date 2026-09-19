@@ -515,6 +515,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   /** (b) A fresh sign-in starts fresh clocks. */
   useEffect(() => {
     if (user === null) return;
+    console.log("[inc223] startSessionClocks", new Date().toISOString());
     startSessionClocks();
     setSessionNotice(null);
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
