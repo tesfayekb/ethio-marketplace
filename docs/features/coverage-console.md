@@ -70,10 +70,25 @@ untouched.
 - `docs/features/countries-console.md` — the markets register in the same rail group.
 - `docs/features/locations-console.md` — the Places roster in the same rail group.
 
-## Deferred — the photo cap cell (D22)
+## The photo cap (D22) — the door takes it since M-MAINT-3
 
-`coverage_plans.max_photos` landed with M-MAINT-2 Part A and the photo door
-enforces it, but the plans editor does NOT yet show it: the only write door,
-`admin_set_coverage_plan`, takes no `p_max_photos`, so a cell here would be a
-field that saves nothing (F4). The cell and CV-7 ride the migration that adds
-the parameter.
+`coverage_plans.max_photos` landed with M-MAINT-2 Part A (the photo door
+enforces it, the posting read returns it with the plan document) and since
+M-MAINT-3 the console's own write door carries it:
+
+`admin_set_coverage_plan(p_plan, p_max_cities, p_max_regions, p_max_countries,
+p_allow_everywhere, p_max_photos smallint DEFAULT NULL)`
+
+- the cap is bounded 0..30; anything else refuses `badMaxPhotos`, rendered by
+  name in `coverage-editor-error` like every other refusal above;
+- an ABSENT cap means NO CHANGE — the plan's stored cap when it exists, the
+  column's own default for a new plan. So a save that does not mention photos
+  can never silently reset them;
+- the audit row carries `max_photos` in both `old` and `new`.
+
+The editor's `max_photos` cell and CV-7 ride the consumers landing (R3b-2); the
+door no longer blocks them. Proof P3 of the M-MAINT-3 migration set a SCRATCH
+plan's cap to 3 through the door and read it back through `plan_caps`, refused
+31 by name without changing the stored 3, and asserted the real `free` row
+untouched. The scratch plan's name is spelled in letters (`e_probe_…`) because
+the door's plan shape refuses a digit.

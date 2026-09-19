@@ -811,6 +811,61 @@ restored by Undo and echoed by the export. Refusals name themselves —
 `docs/features/imports.md`.
 
 U6-C1-R3b-1 added both cells to the import REGISTRY and the export's link
-columns, so the console's own file round trips them (AT-21). The per-row editor
-cell is deferred: `admin_update_attribute_link` accepts neither parameter, and a
-field that saves nothing is a phantom success (F4).
+columns, so the console's own file round trips them (AT-21).
+
+Since M-MAINT-3 the two LINK DOORS accept them as well —
+`admin_link_attribute(…, p_allowed_options text[], p_default_value jsonb,
+p_visible_when jsonb)` and `admin_update_attribute_link(p_link_id,
+p_is_required, p_is_filterable, p_allowed_options, p_default_value,
+p_visible_when, p_clear_cells text[])`. A NULL parameter means NO CHANGE;
+clearing a cell is deliberate, through `p_clear_cells`
+(`allowed_options` · `default_value` · `visible_when`; anything else refuses
+`badClearCell:<name>`). Both doors judge the three cells through ONE reader,
+`attr_link_cells_refusal`, BEFORE writing anything (F5) — a refused attempt
+leaves no trace — and the audit row carries the full before and after of every
+cell. The per-row CONSOLE cells ride the consumers landing (R3b-2).
+
+## D24 — CONDITIONAL ATTRIBUTES (`visible_when`), M-MAINT-3
+
+A link may carry a CONDITION: `category_attribute_links.visible_when` is either
+`NULL` or
+
+```json
+{ "key": "<sibling definition key linked to the SAME category>", "in": ["electric", "plug_in_hybrid"] }
+```
+
+At most eight values; no other keys are allowed. The shape is guarded twice: the
+IMMUTABLE checker `public.attr_visible_when_ok(jsonb)` and the CHECK constraint
+`category_attribute_links_visible_when_shape` that calls it, so an illegal shape
+cannot exist in the table whatever writes it. The doors add the SEMANTICS:
+
+| Refusal                            | Meaning                                              |
+| ---------------------------------- | ---------------------------------------------------- |
+| `badVisibleWhen:badShape`          | not the two-key object above, or more than 8 values  |
+| `badVisibleWhen:self`              | a link cannot be conditioned on its own key          |
+| `badVisibleWhen:unknownSibling:<k>` | `<k>` is not linked to this category (direct or inherited) |
+| `badVisibleWhen:notInOptions:<v>`  | `<v>` is not one of that sibling's option values     |
+
+### THE VALIDATOR LAW
+
+`validate_listing_attributes` reads the condition through the IMMUTABLE
+`attr_visible_when_met(attrs, prior, visible_when)` (the sent answers first, the
+listing's prior answers as the fallback) and, when the condition is NOT met:
+
+1. the link is treated as ABSENT — it is NEVER refused as `required`; and
+2. any value sent for it is DROPPED from the normalised attrs — a hidden answer
+   is NEVER stored, so `submit_listing` cannot persist it.
+
+`get_posting_schema` projects `visible_when` per attribute, so the wizard hides
+exactly what the door will ignore (`docs/features/posting.md`).
+
+Proof P1 (in the M-MAINT-3 migration, on scratch rows): `fuel` with
+`charging_type` conditioned on `electric|plug_in_hybrid` — `fuel=petrol` with no
+charging type PASSES, `fuel=electric` without it refuses `required`,
+`fuel=petrol` WITH a charging type passes and stores no charging type, and a
+condition naming a key outside the category refuses `badVisibleWhen`.
+
+**Named deferral** — the ATTRIBUTES FILE has no `visible_when` cell yet: the
+planner, commit, Undo and export must be re-declared WHOLE to carry it, which
+rides the next landing that touches those four routines. Until then the
+condition is set through the link doors only.
