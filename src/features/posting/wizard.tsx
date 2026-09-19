@@ -75,6 +75,19 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const [facts, setFacts] = useState<CategoryFacts | null>(null);
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
+  /**
+   * U6-C1-R3b-1 STEP 2b — WHAT A CATEGORY CHANGE COST.
+   *
+   * Every category asks its own questions, so moving a half-written draft to
+   * another category leaves answers that the new schema has no field for. Those
+   * answers are DROPPED — keeping them would mean publishing facts under labels
+   * the category never offered — and the seller is told WHICH ones, by label,
+   * instead of discovering the gap at the publish door. The photos are not
+   * touched: a picture can still be right. They are only FLAGGED, because the fit
+   * rule runs again at publish (D21) and a seller warned once is not ambushed.
+   */
+  const [droppedFields, setDroppedFields] = useState<string[]>([]);
+  const [photosNeedRecheck, setPhotosNeedRecheck] = useState(false);
   const categoryId = draft.values.categoryId;
   /** U6-C1-R3a-2 — step 1's only answer: a leaf. No leaf, nothing to send. */
   const needsLeaf = draft.step === 1 && categoryId === null;
@@ -256,6 +269,74 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                     </li>
                   ))}
                 </ol>
+                {/*
+                 * U6-C1-R3b-1 STEP 4 — THE MOBILE STEP STRIP. The desktop rail
+                 * (the aside) tells a seller where they are and lets them jump
+                 * back; below `lg` there was no rail and no way back except Back,
+                 * Back, Back. The strip is that rail, laid on its side: eight
+                 * numbers, a tick for the ones behind, the current one LABELLED
+                 * (a lone highlighted digit is not an answer to "where am I"),
+                 * horizontally scrollable at 360.
+                 *
+                 * ONLY WHAT IS DONE IS TAPPABLE. A step the seller has not reached
+                 * has nothing to show and no answers to edit, so it is a plain
+                 * number and not a button — an affordance that leads nowhere is a
+                 * lie about the wizard's shape.
+                 */}
+                <ol
+                  aria-label={t("post.progress.stripLabel")}
+                  data-testid="post-step-strip"
+                  className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden"
+                >
+                  {STEPS.map((entry) => {
+                    const done = entry.step < draft.step;
+                    const reachable = entry.step <= Math.max(draft.draftStep + 1, draft.step);
+                    const current = entry.step === draft.step;
+                    const face = (
+                      <>
+                        <span
+                          className={`grid size-6 shrink-0 place-items-center rounded-full border text-xs ${
+                            entry.step <= draft.step
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border text-muted-foreground"
+                          }`}
+                        >
+                          {done ? "✓" : entry.step}
+                        </span>
+                        {current ? (
+                          <span className="truncate text-xs font-medium text-foreground">
+                            {t(entry.nameKey)}
+                          </span>
+                        ) : (
+                          <span className="sr-only">{t(entry.nameKey)}</span>
+                        )}
+                      </>
+                    );
+                    return (
+                      <li
+                        key={entry.step}
+                        aria-current={current ? "step" : undefined}
+                        data-testid="post-step-strip-item"
+                        data-step={entry.step}
+                        data-state={current ? "current" : reachable ? "reachable" : "later"}
+                      >
+                        {reachable && !current ? (
+                          <button
+                            type="button"
+                            data-testid={`post-step-strip-go-${entry.step}`}
+                            className="flex min-h-11 items-center gap-2 rounded-md px-1"
+                            aria-label={fill(t("post.progress.stepNumber"), { step: entry.step })}
+                            onClick={() => draft.goTo(entry.step)}
+                          >
+                            {face}
+                          </button>
+                        ) : (
+                          <span className="flex min-h-11 items-center gap-2 px-1">{face}</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
                 <p
                   className="text-xs text-muted-foreground"
                   data-testid="post-save-state"
@@ -307,6 +388,32 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 </div>
               )}
 
+              {(droppedFields.length > 0 || photosNeedRecheck) && (
+                <div
+                  className="space-y-1 rounded-md border border-border bg-muted p-3"
+                  data-testid="post-category-changed"
+                >
+                  <p className="text-sm font-medium text-foreground">
+                    {t("post.category.changedTitle")}
+                  </p>
+                  {droppedFields.length > 0 && (
+                    <p className="text-sm text-foreground" data-testid="post-category-dropped">
+                      {fill(t("post.category.changedDropped"), {
+                        fields: droppedFields.join(", "),
+                      })}
+                    </p>
+                  )}
+                  {photosNeedRecheck && (
+                    <p
+                      className="text-sm text-muted-foreground"
+                      data-testid="post-category-photos-recheck"
+                    >
+                      {t("post.category.changedPhotos")}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <FormLayout
                 footer={
                   <div className="space-y-1">
@@ -314,12 +421,36 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                       <button
                         type="button"
                         data-testid="post-back"
-                        className={`${navButtonClass} border border-input text-foreground hover:bg-accent`}
+                        /* U6-C1-R3b-1 STEP 3 — SECONDARY TOKENS, not a bare
+                           outline: on the card the old transparent Back read as
+                           disabled next to the filled Next. */
+                        className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
                         disabled={draft.step === 1}
                         onClick={() => draft.goTo(draft.step - 1)}
                       >
                         {t("post.action.back")}
                       </button>
+                      {/*
+                       * U6-C1-R3b-1 STEP 2a — THE WAY BACK FROM AN EDIT. `Next`
+                       * already returns to review, but a seller who decides the
+                       * field was fine after all had to press Next (and be judged)
+                       * to get back. This returns without claiming anything.
+                       * Secondary-button tokens, not a bare link: it sits on the
+                       * card beside Next and has to be readable there.
+                       */}
+                      {returnToReview && draft.step < TOTAL_STEPS ? (
+                        <button
+                          type="button"
+                          data-testid="post-back-to-review"
+                          className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
+                          onClick={() => {
+                            setReturnToReview(false);
+                            draft.goTo(TOTAL_STEPS);
+                          }}
+                        >
+                          {t("post.action.backToReview")}
+                        </button>
+                      ) : null}
                       {draft.step < TOTAL_STEPS ? (
                         <button
                           type="button"
@@ -375,16 +506,57 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           isLoading={treeLoading}
                           treeError={treeError}
                           invalid={triedWithoutLeaf && categoryId === null}
-                          onChoose={(categoryId) => {
+                          onChoose={(nextCategoryId) => {
                             // ONE CONTROL, AUTO-ADVANCE: choosing a postable leaf IS the
                             // answer to step 1, so the wizard saves it and moves on. No
                             // confirmation screen — the chip above every later step is the
                             // confirmation, and it carries the way back.
                             setTriedWithoutLeaf(false);
-                            draft.change({ categoryId }, true);
-                            void draft.saveAt(1).then((saved) => {
-                              if (saved) draft.goTo(2);
-                            });
+                            const previous = draft.values.categoryId;
+                            const answered = Object.keys(draft.values.attributes).length > 0;
+                            if (previous === null || previous === nextCategoryId || !answered) {
+                              setDroppedFields([]);
+                              setPhotosNeedRecheck(false);
+                              draft.change({ categoryId: nextCategoryId }, true);
+                              void draft.saveAt(1).then((saved) => {
+                                if (saved) draft.goTo(2);
+                              });
+                              return;
+                            }
+                            // A REAL CHANGE ON A WRITTEN DRAFT: the two schemas are
+                            // read (the old one only to LABEL what is leaving), the
+                            // orphans are dropped, and the specifications step is
+                            // reopened on the answers that remain.
+                            void (async () => {
+                              const [before, after] = await Promise.all([
+                                readPostingSchema(previous),
+                                readPostingSchema(nextCategoryId),
+                              ]);
+                              const allowed = new Set(
+                                (after?.attributes ?? []).map((entry) => entry.attrKey),
+                              );
+                              const kept: Record<string, unknown> = {};
+                              const lost: string[] = [];
+                              for (const [key, value] of Object.entries(draft.values.attributes)) {
+                                if (allowed.has(key)) {
+                                  kept[key] = value;
+                                  continue;
+                                }
+                                const definition = (before?.attributes ?? []).find(
+                                  (entry) => entry.attrKey === key,
+                                );
+                                lost.push(definition?.nameEn ?? key);
+                              }
+                              setDroppedFields(lost);
+                              setPhotosNeedRecheck(draft.photos.length > 0);
+                              draft.change({ categoryId: nextCategoryId, attributes: kept }, false);
+                              // REWIND, not `saveAt`: the claim must come DOWN to
+                              // step 1, or the save is judged at step 3 against a
+                              // schema the remaining answers cannot satisfy and the
+                              // orphans are never dropped (see `rewindTo`).
+                              const saved = await draft.rewindTo(1);
+                              if (saved) draft.goTo(lost.length > 0 ? 3 : 2);
+                            })();
                           }}
                         />
                       )}
@@ -463,6 +635,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           categoryPath={categoryPath}
                           values={draft.values}
                           photos={draft.photos}
+                          illustrationUrl={illustrationUrl}
                           expiryDays={facts?.expiryDays ?? 60}
                           refusals={draft.refusals}
                           onChangeExpiry={(posterExpiresAt) =>

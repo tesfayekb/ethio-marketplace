@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { Z_POPOVER } from "@/components/layout/layers";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -333,7 +334,7 @@ export function StepPricing({
                   data-testid="post-price-currency-list"
                   role="listbox"
                   className={
-                    "absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border " +
+                    `absolute ${Z_POPOVER} mt-1 max-h-64 w-full overflow-y-auto rounded-md border ` +
                     "border-border bg-background shadow-md"
                   }
                 >

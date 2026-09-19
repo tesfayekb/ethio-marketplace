@@ -185,5 +185,16 @@ Both cells are PLANNED as field diffs (`change = change` when either differs),
 APPLIED on commit only when the file carried them, CAPTURED in the batch
 revisions (`prev`/`post`), RESTORED by Undo, and ECHOED by the export
 (`piece|set`, the default as value text, `''` when `NULL`) — so an export round
-trips silently. M-MAINT-2 **Part B**, proof P1b. The registry/console cells ride
-C1-R3.
+trips silently. M-MAINT-2 **Part B**, proof P1b.
+
+Since U6-C1-R3b-1 both cells are DECLARED IN THE REGISTRY too, so the file the
+console exports carries them and the file an operator uploads may set them:
+`allowed_options` is an editable `pipe` cell and `default_value` an editable text
+cell (120 characters, a leading `-` is a NUMBER and not a formula, INC-208), both
+after `card_rank` and before `origin`. The links header is therefore
+`category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,allowed_options,default_value,origin (read-only)`.
+Shape only lives at the gate; every semantic verdict stays the planner's
+(`badAllowedOption:` / `badDefault:`). AT-21 sets both from a file and reads the
+export's echo. The per-row CONSOLE cell is still deferred:
+`admin_update_attribute_link` takes neither parameter, so an editor field there
+would save nothing (F4) — it rides that migration.

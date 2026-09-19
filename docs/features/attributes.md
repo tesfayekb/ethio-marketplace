@@ -809,3 +809,8 @@ restored by Undo and echoed by the export. Refusals name themselves —
 `badAllowedOption:<value>` (including `typeNotSelect`) and `badDefault:<detail>`
 (`notANumber`, `notABoolean`, `notADate`, `notInOptions`). See
 `docs/features/imports.md`.
+
+U6-C1-R3b-1 added both cells to the import REGISTRY and the export's link
+columns, so the console's own file round trips them (AT-21). The per-row editor
+cell is deferred: `admin_update_attribute_link` accepts neither parameter, and a
+field that saves nothing is a phantom success (F4).

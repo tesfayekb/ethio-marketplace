@@ -776,7 +776,11 @@ test.describe("CAT-IE categories import/export", () => {
     }
     if (current.length > 0) records.push(current.replace(/\r$/, ""));
     const header = records.shift() ?? "";
-    const kept = records.filter((record) => record.trim().length > 0 && !/e2e-cat-/.test(record));
+    // U6-C1-R3b-1 STEP 1b — EVERY same-run scratch row leaves the assertion, not
+    // just `e2e-cat-`: a concurrent worker's fixture under ANY `e2e_`/`e2e-`
+    // stem may be mid-mutation between the export and the preview, and that is
+    // another test's business (J6). Real rows are the whole invariant.
+    const kept = records.filter((record) => record.trim().length > 0 && !/e2e[_-]/.test(record));
     return { text: `\uFEFF${[header, ...kept].join("\r\n")}\r\n`, rows: kept.length };
   }
 

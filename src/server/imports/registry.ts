@@ -223,6 +223,8 @@ export const FAMILIES: Record<string, FamilySpec> = {
       {
         id: "links",
         identityHeader: "category_path",
+        // A file may stop after `origin`: the two per-link cells are trailing.
+        optionalFrom: 7,
         identityColumns: ["category_slug", "attribute_key"],
         // IE-6: nearest-wins is the planner's verdict, not the gate's.
         duplicateIdentity: "planner",
@@ -234,6 +236,30 @@ export const FAMILIES: Record<string, FamilySpec> = {
           { name: "is_filterable", klass: "editable", type: "bool" },
           { name: "card_rank", klass: "editable", type: "int", formula: "allow" },
           { name: "origin", klass: "read-only", type: "text" },
+          /**
+           * M-MAINT-2 B / U6-C1-R3b-1 STEP 7 — THE TWO PER-LINK CELLS (D-spec
+           * §12). `allowed_options` narrows the definition's own option list for
+           * THIS category; `default_value` prefills it. `attr_import_plan` and
+           * `admin_commit_attribute_import` have judged and written both since
+           * 20260920000002, and `attr_export_payload` echoes them — leaving them
+           * out of the FILE meant an operator could set them one link at a time
+           * and never in bulk, and a round trip dropped what was stored
+           * (INC-188). They sit LAST, behind `optionalFrom`, so a file an
+           * operator exported before this change is still a valid file: a cell
+           * a file never carries is a cell the planner never touches. Shape only
+           * here; every semantic rule (is the value one the definition offers,
+           * is the default inside the narrowing) stays the planner's verdict
+           * (`badAllowedOption:` / `badDefault:`).
+           */
+          { name: "allowed_options", klass: "editable", type: "pipe" },
+          {
+            name: "default_value",
+            klass: "editable",
+            type: "text",
+            maxLength: MAX_LABEL,
+            // INC-208's rule: a numeric default (`-3`) is a number, not a formula.
+            formula: "allow",
+          },
           { name: "action", klass: "action", values: ACTION_ATTRIBUTE_LINKS },
         ],
       },

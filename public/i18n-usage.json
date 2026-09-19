@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 295,
-  "dynamicCallSites": 194,
+  "scanned": 298,
+  "dynamicCallSites": 199,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3355,6 +3355,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.action.backToReview": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.action.next": [
       "/post",
       "/post/$listingId"
@@ -3404,6 +3408,18 @@
       "/post/$listingId"
     ],
     "post.category.change": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.changedDropped": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.changedPhotos": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.changedTitle": [
       "/post",
       "/post/$listingId"
     ],
@@ -3567,6 +3583,34 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.preview.close": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.preview.descriptionLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.preview.detailsLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.preview.mapPlaceholder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.preview.photoCount": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.preview.sellerLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.preview.title": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.price.amountLabel": [
       "/post",
       "/post/$listingId"
@@ -3620,6 +3664,14 @@
       "/post/$listingId"
     ],
     "post.progress.label": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.progress.stepNumber": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.progress.stripLabel": [
       "/post",
       "/post/$listingId"
     ],
@@ -3684,6 +3736,10 @@
       "/post/$listingId"
     ],
     "post.review.placesCount": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.previewAsBuyer": [
       "/post",
       "/post/$listingId"
     ],
@@ -3931,6 +3987,18 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.channel.phone": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.channel.telegram": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.channel.whatsapp": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.channelsLabel": [
       "/post",
       "/post/$listingId"
@@ -3955,11 +4023,23 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.firstNameLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.lastNameLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.messagesAlways": [
       "/post",
       "/post/$listingId"
     ],
-    "post.who.nameLater": [
+    "post.who.nameBusinessHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.nameHint": [
       "/post",
       "/post/$listingId"
     ],

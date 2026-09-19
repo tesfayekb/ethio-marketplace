@@ -457,6 +457,68 @@ test.describe("POSTING WIZARD", () => {
     ).toBe(spec.optionValues[0]);
   });
 
+  test("PW-26 a category change drops the details the new category never asks, by name", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    // BOTH leaves are seeded BEFORE the page reads the catalogue: the category
+    // search answers from the version-cached bundle, so a leaf born after the
+    // first read is invisible to it.
+    const other = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    const listingId = await reachStep3(page, user.id, category);
+
+    // An ANSWERED draft: the text detail is stored under the first category.
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill("e2e answer to be dropped");
+    // DEC-053: an option list is read on the first tap, so the picker is focused
+    // before it is answered (the law PW-5 states).
+    const pw26Picker = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`,
+    );
+    await pw26Picker.focus();
+    await expect(pw26Picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+    await pw26Picker.selectOption(spec.optionValues[0] ?? "");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect
+      .poll(async () => Object.keys(await attributesOf(listingId)).length, {
+        message: "PW-26: the answers never reached the draft",
+        timeout: 20_000,
+      })
+      .toBeGreaterThan(0);
+
+    // THE CHANGE: the second leaf, which asks NOTHING, chosen from step 1.
+    for (let hop = 0; hop < 3; hop += 1) await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await chooseBySearch(page, other.slug, other.id, false);
+
+    // U6-C1-R3b-1 STEP 2b — the orphans are named, the photos are flagged, and the
+    // specifications step is reopened.
+    const notice = page.getByTestId("post-category-changed");
+    await expect(notice, "PW-26: a category change said nothing").toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-category-dropped"),
+      "PW-26: the dropped detail was not named",
+    ).toContainText(spec.text.nameEn);
+    await expect(
+      page.getByTestId("post-category-photos-recheck"),
+      "PW-26: the photos were not flagged for the new category",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+
+    // DB TRUTH (J4): nothing the new category cannot ask survived.
+    await expect
+      .poll(async () => Object.keys(await attributesOf(listingId)).length, {
+        message: "PW-26: an orphan detail survived the category change",
+        timeout: 20_000,
+      })
+      .toBe(0);
+  });
+
   test("PW-6 the AI assist fills the title and description from the entered details, and both stay editable", async ({
     page,
   }) => {
@@ -608,6 +670,40 @@ test.describe("POSTING WIZARD", () => {
     expect(stored.mode, "PW-10: the mode was not stored").toBe("fixed");
     expect(stored.period, "PW-10: the locked period was not stored").toBe("month");
     expect(stored.currency, "PW-10: no currency was stored for a priced listing").not.toBe(null);
+  });
+
+  test("LY-6 at 360 the open currency list is above the sticky action bar", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360", "mobile-360 only");
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    await reachStep5(page, user.id, category);
+
+    // U6-C1-R3b-1 STEP 3 — the list opens UPWARDS into the bar's space. The proof
+    // is what the FINGER would hit, not what the DOM contains: the element at the
+    // first option's own centre must be that option.
+    await page.getByTestId("post-price-mode-fixed").click();
+    await page.getByTestId("post-price-currency-search").focus();
+    // J5 — the row is named, never taken by position: ETB is the Ethiopian
+    // market's own currency and the one the list opens on.
+    const first = page
+      .getByTestId("post-price-currency-list")
+      .locator('[data-testid="post-price-currency-option"][data-code="ETB"]');
+    await expect(first, "LY-6: the currency list never opened").toBeVisible();
+    const box = await first.boundingBox();
+    expect(box, "LY-6: the first currency option has no box").not.toBe(null);
+    const hit = await page.evaluate(
+      ({ x, y }) => {
+        const node = document.elementFromPoint(x, y);
+        return node?.closest("[data-testid]")?.getAttribute("data-testid") ?? "";
+      },
+      { x: (box?.x ?? 0) + (box?.width ?? 0) / 2, y: (box?.y ?? 0) + (box?.height ?? 0) / 2 },
+    );
+    expect(hit, "LY-6: the sticky action bar covers the open currency list").toBe(
+      "post-price-currency-option",
+    );
   });
 
   test("PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan", async ({
@@ -802,6 +898,21 @@ test.describe("POSTING WIZARD", () => {
     await alias.fill(wanted);
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
 
+    // U6-C1-R3b-1 STEP 5 (D17) — A PERSON IS NAMED. The names are the profile's,
+    // not the listing's, and reach it through the same identity door.
+    await page.getByTestId("post-who-first").fill("Abebe");
+    await page.getByTestId("post-who-last").fill("Bekele");
+    await page.getByTestId("post-who-alias").click();
+    await expect
+      .poll(
+        async () => {
+          const row = await identityOf(user.id);
+          return `${row.firstName ?? ""}|${row.lastName ?? ""}`;
+        },
+        { message: "PW-12: the seller's names never reached the profile", timeout: 20_000 },
+      )
+      .toBe("Abebe|Bekele");
+
     // THE SUGGESTION and the show-switch live on the channel's own row.
     await expect(page.getByTestId("post-who-show-phone")).toBeVisible();
 
@@ -856,6 +967,34 @@ test.describe("POSTING WIZARD", () => {
       })
       .toBe("e2e r2 edited title");
 
+    // U6-C1-R3b-1 STEP 2a — BACK TO REVIEW WITHOUT A JUDGEMENT: the edit step
+    // offers its own way home, and it does not go through the door.
+    await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    const back = page.getByTestId("post-back-to-review");
+    await expect(back, "PW-13: an edit offered no way back to review").toBeVisible();
+    await back.click();
+    await expect(
+      page.getByTestId("post-step-8"),
+      "PW-13: Back to review did not return to review",
+    ).toBeVisible();
+
+    // STEP 2c — THE BUYER'S EYE: the sheet renders the DETAIL, above everything.
+    await page.getByTestId("post-preview-open").click();
+    const sheet = page.getByTestId("post-preview-sheet");
+    await expect(sheet, "PW-13: the buyer preview never opened").toBeVisible();
+    await expect(sheet.getByTestId("listing-detail-title")).toHaveText("e2e r2 edited title");
+    await expect(
+      sheet.getByTestId("listing-detail-seller"),
+      "PW-13: the buyer preview shows no seller block",
+    ).toBeVisible();
+    await expect(
+      sheet.getByTestId("listing-detail-map"),
+      "PW-13: the buyer preview shows no map area",
+    ).toBeVisible();
+    await page.getByTestId("post-preview-close").click();
+    await expect(sheet, "PW-13: the preview sheet would not close").toHaveCount(0);
+
     // THE PREVIEW IS THE DRAFT: the title and the free price the walk answered.
     await expect(page.getByTestId("post-review-title")).toHaveText("e2e r2 edited title");
     await expect(
@@ -878,6 +1017,37 @@ test.describe("POSTING WIZARD", () => {
         timeout: 20_000,
       })
       .toBe("screening");
+  });
+
+  test("PW-27 the mobile strip walks back to a step already done, and no further", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360", "mobile-360 only");
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    await reachStep7(page, user.id, category);
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+
+    // U6-C1-R3b-1 STEP 4 — eight numbers, and the one the seller is on is named.
+    const strip = page.getByTestId("post-step-strip");
+    await expect(strip, "PW-27: the mobile step strip never rendered").toBeVisible();
+    await expect(strip.locator('[data-testid="post-step-strip-item"]')).toHaveCount(8);
+
+    // BACK to a step already answered, then forward again to review — both taps.
+    await strip.getByTestId("post-step-strip-go-5").click();
+    await expect(
+      page.getByTestId("post-step-5"),
+      "PW-27: the strip would not go back to a step already done",
+    ).toBeVisible();
+    await page.getByTestId("post-step-strip-go-8").click();
+    await expect(
+      page.getByTestId("post-step-8"),
+      "PW-27: the strip would not return to review",
+    ).toBeVisible();
   });
 
   test("PW-14 D20: a signed-out visitor is sent to sign in with a return path, comes back, and a foreign return is ignored", async ({

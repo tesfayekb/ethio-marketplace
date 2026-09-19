@@ -56,6 +56,14 @@ const LINK_COLUMNS = [
   "is_filterable",
   "card_rank",
   "origin",
+  // M-MAINT-2 B / U6-C1-R3b-1 STEP 7 — the two per-link cells the payload
+  // already emits (`attr_export_payload`, 20260920000002). The route formats
+  // nothing (IE-3b): `allowed_options` arrives as a pipe string and
+  // `default_value` as the text the planner reads back. They are LAST because
+  // the gate makes trailing cells optional, so a file exported before this
+  // change is still a valid file.
+  "allowed_options",
+  "default_value",
 ] as const;
 
 /**
