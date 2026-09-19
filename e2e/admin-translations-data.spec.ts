@@ -9,6 +9,7 @@ import {
   stepUpIfPrompted,
 } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { stripScratchRows } from "./helpers/exports";
 import {
   entityRow,
   langRow,
@@ -661,19 +662,12 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
           // the invariant is about THIS landing's shape change, so transient
           // rows are excluded exactly as AT-20's invariant excludes them.
           const text = await response.text();
-          out.push(
-            text
-              .split("\r\n")
-              // The same identity rule as the bundle (INC-214): the marker
-              // prefixes PLUS every live scratch id / machine key.
-              .filter(
-                (line) =>
-                  !line.includes("e2e_attr_") &&
-                  !line.includes("e2e-cat-") &&
-                  ![...ids].some((id) => line.includes(id)),
-              )
-              .join("\r\n"),
-          );
+          // The same identity rule as the bundle (INC-214): the ONE harness
+          // strip (`stripScratchRows`, R-TR34/G28) drops every record naming
+          // an `e2e_`/`e2e-` stem PLUS every record carrying a live scratch
+          // id / machine key. The BOM the file opens with is re-emitted by
+          // the helper, so the comparison stays byte-true to the export.
+          out.push(stripScratchRows(text, ids).text);
         }
         return out;
       };

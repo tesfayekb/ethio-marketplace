@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
+import { stripScratchRows } from "./helpers/exports";
 import {
   scratchSlug,
   bandOnly,
@@ -753,36 +754,11 @@ test.describe("CAT-IE categories import/export", () => {
   /**
    * A concurrent spec may create or destroy its own scratch categories between
    * the export and the preview, which would read as a phantom add. CT-18
-   * asserts the invariant over the RATIFIED roster only.
+   * asserts the invariant over the RATIFIED roster only — the strip itself is
+   * the ONE harness helper (`stripScratchRows`, e2e/helpers/exports.ts,
+   * R-TR34/G28): EVERY same-run scratch row under ANY `e2e_`/`e2e-` stem
+   * leaves the assertion; real rows are the whole invariant.
    */
-  function withoutScratchRows(text: string): { text: string; rows: number } {
-    const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
-    const records: string[] = [];
-    let current = "";
-    let quoted = false;
-    for (let index = 0; index < body.length; index += 1) {
-      const char = body[index] as string;
-      if (char === '"') {
-        quoted = !quoted;
-        current += char;
-        continue;
-      }
-      if (char === "\n" && !quoted) {
-        records.push(current.replace(/\r$/, ""));
-        current = "";
-        continue;
-      }
-      current += char;
-    }
-    if (current.length > 0) records.push(current.replace(/\r$/, ""));
-    const header = records.shift() ?? "";
-    // U6-C1-R3b-1 STEP 1b — EVERY same-run scratch row leaves the assertion, not
-    // just `e2e-cat-`: a concurrent worker's fixture under ANY `e2e_`/`e2e-`
-    // stem may be mid-mutation between the export and the preview, and that is
-    // another test's business (J6). Real rows are the whole invariant.
-    const kept = records.filter((record) => record.trim().length > 0 && !/e2e[_-]/.test(record));
-    return { text: `\uFEFF${[header, ...kept].join("\r\n")}\r\n`, rows: kept.length };
-  }
 
   function countsOf(text: string): number[] {
     return (text.match(/\d+/g) ?? []).map((digits) => Number(digits));
@@ -824,7 +800,7 @@ test.describe("CAT-IE categories import/export", () => {
       headers: { Authorization: `Bearer ${token}` },
     });
     expect(response.status()).toBe(200);
-    const exported = withoutScratchRows(await response.text());
+    const exported = stripScratchRows(await response.text());
     expect(exported.rows, "CT-18 the export produced no rows to re-import").toBeGreaterThan(0);
 
     const startedAt = new Date().toISOString();

@@ -9,6 +9,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
+import { stripScratchRows } from "./helpers/exports";
 import {
   rand,
   bandOnly,
@@ -1536,43 +1537,11 @@ test.describe("C3 attributes console", () => {
   /**
    * A concurrent spec may create or destroy its own scratch fixtures between the
    * export and the preview, which would read as a phantom add. AT-20 asserts the
-   * invariant over the STABLE library only.
-   *
-   * U6-C1-R3b-1 STEP 1b — the stem list is gone: EVERY record naming ANY
-   * `e2e_`/`e2e-` fixture is dropped, not only `e2e_attr_` and `e2e-cat-`. The
-   * posting specs seed definitions under `e2e_fold_…`, which the old two-stem
-   * filter kept in the file; a worker mutating its own fold set between the
-   * export and the preview then read as a phantom change (J6 — another test's
-   * rows are never this test's invariant).
+   * invariant over the STABLE library only — the strip itself is the ONE harness
+   * helper (`stripScratchRows`, e2e/helpers/exports.ts, R-TR34/G28): EVERY record
+   * naming ANY `e2e_`/`e2e-` fixture is dropped, so a worker mutating its own
+   * fold set between the export and the preview never reads as a phantom change.
    */
-  function withoutScratchRecords(text: string): { text: string; rows: number } {
-    const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
-    const records: string[] = [];
-    let current = "";
-    let quoted = false;
-    for (let index = 0; index < body.length; index += 1) {
-      const char = body[index] as string;
-      if (char === '"') {
-        quoted = !quoted;
-        current += char;
-        continue;
-      }
-      if (char === "\n" && !quoted) {
-        records.push(current.replace(/\r$/, ""));
-        current = "";
-        continue;
-      }
-      current += char;
-    }
-    if (current.length > 0) records.push(current.replace(/\r$/, ""));
-
-    const header = records.shift() ?? "";
-    const kept = records.filter((record) => record.trim().length > 0 && !/e2e[_-]/.test(record));
-    return {
-      text: `\uFEFF${[header, ...kept].join("\r\n")}\r\n`,
-      rows: kept.length,
-    };
-  }
 
   /** RFC 4180 cell for a hand-authored fixture file. */
   function cell(value: string): string {
@@ -1623,8 +1592,8 @@ test.describe("C3 attributes console", () => {
     });
     expect(linksResponse.status()).toBe(200);
 
-    const definitionsFile = withoutScratchRecords(await definitionsResponse.text());
-    const linksFile = withoutScratchRecords(await linksResponse.text());
+    const definitionsFile = stripScratchRows(await definitionsResponse.text());
+    const linksFile = stripScratchRows(await linksResponse.text());
     const definitions = definitionsFile.text;
     const links = linksFile.text;
     const expectedUnchanged = definitionsFile.rows + linksFile.rows;
