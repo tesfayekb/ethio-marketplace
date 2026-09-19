@@ -1,3 +1,4 @@
+import { Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { useI18n } from "@/i18n";
@@ -6,6 +7,7 @@ import { Field, controlClass } from "./field";
 import { requestAssist } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { ASSIST_TRIES, type Refusal } from "./types";
+import { checkText, mergeRefusals } from "./validate";
 
 /**
  * U6-C1b / U6-C1-R2 — STEP 4: TITLE, DESCRIPTION AND THE WRITING HELP (DEC-072).
@@ -65,8 +67,22 @@ export function StepDetails({
   const [assistRefusal, setAssistRefusal] = useState<string | null>(null);
   const [triesLeft, setTriesLeft] = useState<number | null>(null);
 
-  const titleRefusal = refusalFor(refusals, "title");
-  const descriptionRefusal = refusalFor(refusals, "description");
+  /**
+   * U6-C1-R3a / STEP 8 — THE SAME RULES, ON BLUR. What the seller has written is
+   * judged when they leave the field, in the door's own words (`required`,
+   * `tooLong`), so nothing waits until Next to be told. The door still decides
+   * (F3): a refusal it sends replaces whatever this screen saw.
+   */
+  const [local, setLocal] = useState<Refusal[]>([]);
+  const seen = mergeRefusals(refusals, local);
+  const note = (field: string, found: Refusal | null) =>
+    setLocal((prev) => [
+      ...prev.filter((entry) => entry.field !== field),
+      ...(found ? [found] : []),
+    ]);
+
+  const titleRefusal = refusalFor(seen, "title");
+  const descriptionRefusal = refusalFor(seen, "description");
 
   /** The door's own count when it gave one; otherwise what this screen has spent. */
   const left = triesLeft ?? Math.max(0, ASSIST_TRIES - history.length);
@@ -131,6 +147,12 @@ export function StepDetails({
           value={title}
           maxLength={TITLE_MAX}
           placeholder={t("post.details.titlePlaceholder")}
+          onBlur={(event) =>
+            note(
+              "title",
+              checkText("title", event.target.value, { required: true, max: TITLE_MAX }),
+            )
+          }
           onChange={(event) => onChange({ title: event.target.value }, false)}
         />
       </Field>
@@ -154,50 +176,24 @@ export function StepDetails({
           value={description}
           maxLength={DESCRIPTION_MAX}
           placeholder={t("post.details.descriptionPlaceholder")}
+          onBlur={(event) =>
+            note(
+              "description",
+              checkText("description", event.target.value, {
+                required: true,
+                max: DESCRIPTION_MAX,
+              }),
+            )
+          }
           onChange={(event) => onChange({ description: event.target.value }, false)}
         />
       </Field>
 
-      <div className="space-y-2">
-        <button
-          type="button"
-          data-testid="post-assist"
-          data-state={assisting ? "working" : history.length > 0 ? "done" : "idle"}
-          disabled={assisting || categoryId === null || spent}
-          className={
-            "inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm " +
-            "font-medium text-foreground hover:bg-muted disabled:opacity-60"
-          }
-          onClick={() => void assist()}
-        >
-          {assisting
-            ? t("post.assist.working")
-            : history.length === 0
-              ? t("post.assist.action")
-              : t("post.assist.again")}
-        </button>
-        <p className="text-xs text-muted-foreground">{t("post.assist.hint")}</p>
-        {history.length > 0 && (
-          <p className="text-xs text-foreground" data-testid="post-assist-done">
-            {t("post.assist.done")}
-          </p>
-        )}
-        <p
-          className="text-xs text-muted-foreground"
-          data-testid="post-assist-tries"
-          data-left={left}
-        >
-          {spent
-            ? fill(t("post.assist.exhausted"), { max: ASSIST_TRIES })
-            : fill(t("post.assist.triesLeft"), { left, max: ASSIST_TRIES })}
-        </p>
-        {assistRefusal !== null && (
-          <p className="text-sm text-destructive" data-testid="post-assist-refusal">
-            {t(draftRefusalKey(assistRefusal))}
-          </p>
-        )}
-      </div>
-
+      {/* U6-C1-R3a / STEP 7 — THE SUGGESTIONS COME FIRST. They belong beside the
+          words they are about, between the description and the button that asks
+          for another one: the seller reads, uses or ignores, and only then asks
+          again. The button below them carries the sparkle that marks machine help
+          everywhere else in the product. */}
       {history.length > 0 && (
         <div className="space-y-3" data-testid="post-assist-history">
           <p className="text-sm font-medium text-foreground">{t("post.assist.historyLabel")}</p>
@@ -241,6 +237,53 @@ export function StepDetails({
           ))}
         </div>
       )}
+
+      <div className="space-y-2">
+        <button
+          type="button"
+          data-testid="post-assist"
+          data-state={assisting ? "working" : history.length > 0 ? "done" : "idle"}
+          disabled={assisting || categoryId === null || spent}
+          className={
+            "inline-flex min-h-11 items-center gap-2 rounded-md border border-input px-4 text-sm " +
+            "font-medium text-foreground hover:bg-muted disabled:opacity-60"
+          }
+          onClick={() => void assist()}
+        >
+          <Sparkles
+            className="h-4 w-4 shrink-0"
+            aria-hidden="true"
+            data-testid="post-assist-icon"
+          />
+          <span>
+            {assisting
+              ? t("post.assist.working")
+              : history.length === 0
+                ? t("post.assist.action")
+                : t("post.assist.again")}
+          </span>
+        </button>
+        <p className="text-xs text-muted-foreground">{t("post.assist.hint")}</p>
+        {history.length > 0 && (
+          <p className="text-xs text-foreground" data-testid="post-assist-done">
+            {t("post.assist.done")}
+          </p>
+        )}
+        <p
+          className="text-xs text-muted-foreground"
+          data-testid="post-assist-tries"
+          data-left={left}
+        >
+          {spent
+            ? fill(t("post.assist.exhausted"), { max: ASSIST_TRIES })
+            : fill(t("post.assist.triesLeft"), { left, max: ASSIST_TRIES })}
+        </p>
+        {assistRefusal !== null && (
+          <p className="text-sm text-destructive" data-testid="post-assist-refusal">
+            {t(draftRefusalKey(assistRefusal))}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

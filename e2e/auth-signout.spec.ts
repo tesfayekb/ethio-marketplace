@@ -220,16 +220,38 @@ async function readStamps(page: Page) {
   return page.evaluate((keys) => {
     const token = localStorage.getItem(keys.authToken);
     const parsed = token
-      ? (JSON.parse(token) as { expires_at?: number; expires_in?: number })
+      ? (JSON.parse(token) as {
+          access_token?: string;
+          expires_at?: number;
+          expires_in?: number;
+        })
       : null;
+    // U6-C1-R3a — the live ref is the JWT `session_id` claim (stable across a
+    // token refresh), with the old issuance stamp kept only as the fallback the
+    // app itself uses when the payload cannot be read.
+    const sessionId = (() => {
+      const payload = parsed?.access_token?.split(".")[1];
+      if (payload === undefined) return null;
+      try {
+        const claims = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as {
+          session_id?: unknown;
+        };
+        return typeof claims.session_id === "string" && claims.session_id !== ""
+          ? claims.session_id
+          : null;
+      } catch {
+        return null;
+      }
+    })();
     return {
       lastActivityAt: localStorage.getItem(keys.lastActivityAt),
       sessionStartedAt: localStorage.getItem(keys.sessionStartedAt),
       sessionRef: localStorage.getItem(keys.sessionRef),
       liveRef:
-        parsed && typeof parsed.expires_at === "number" && typeof parsed.expires_in === "number"
+        sessionId ??
+        (parsed && typeof parsed.expires_at === "number" && typeof parsed.expires_in === "number"
           ? String(parsed.expires_at - parsed.expires_in)
-          : null,
+          : null),
     };
   }, policyKeys());
 }

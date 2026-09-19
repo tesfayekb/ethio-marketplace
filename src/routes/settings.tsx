@@ -673,8 +673,10 @@ function SettingsScreen() {
           ) : null}
         </Section>
 
-        {/* Section 4 — security */}
-        <Section aria-labelledby="settings-security">
+        {/* Section 4 — security. U6-C1-R3a: `id="security"` is the rail's anchor
+            target ("Sign-in and security" → /settings#security), so that item can
+            be current on its own instead of sharing the highlight with Settings. */}
+        <Section id="security" aria-labelledby="settings-security">
           <h2 id="settings-security" className="text-base font-semibold text-foreground">
             {t("settings.security")}
           </h2>

@@ -119,6 +119,30 @@ async function handlePost(request: Request): Promise<Response> {
     const imitated = await imitationOf(alias.toLowerCase());
     if (imitated !== null) return refusal("alias", "aliasImitatesBrand", imitated);
   }
+  /**
+   * U6-C1-R3a / STEP 8 — THE CONTACT SHAPE IS JUDGED BEFORE THE PROFILE IS
+   * TOUCHED. The alias, the seller type and the business name are saved by the
+   * same door as the channels, so a badly shaped channel must refuse BEFORE
+   * anything is written — a phone of "number" used to travel unexamined when the
+   * object never reached the door. `listing_contact_refusals` is the same
+   * validator the door and the draft use (F3: one authority, asked earlier).
+   */
+  const pref = body["contactPref"];
+  if (pref !== undefined && pref !== null) {
+    const { data: found, error: checkError } = await supabase.rpc("listing_contact_refusals", {
+      p_pref: pref as never,
+    });
+    if (checkError) {
+      logRouteError(PATH, checkError.message);
+      return routeJson(
+        { ok: false, refusals: [{ field: "door", reason: checkError.message }] },
+        200,
+      );
+    }
+    const refusals = Array.isArray(found) ? found : [];
+    if (refusals.length > 0) return routeJson({ ok: false, refusals }, 200);
+  }
+
   const args = {
     p_alias: text(body["alias"]),
     p_seller_type: text(body["sellerType"]),

@@ -519,7 +519,12 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
 
                   {/* U6-C1-R1 — ONE SUMMARY above the actions, naming by label what is
             still missing; each entry focuses its own control. */}
-                  <RefusalSummary refusals={draft.refusals} />
+                  <RefusalSummary
+                    refusals={draft.refusals}
+                    step={draft.step}
+                    specFields={specFields}
+                    onGoTo={draft.goTo}
+                  />
                 </div>
               </FormLayout>
             </Section>

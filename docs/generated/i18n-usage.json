@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 294,
-  "dynamicCallSites": 193,
+  "scanned": 295,
+  "dynamicCallSites": 194,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3623,6 +3623,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.refusalSummary.elsewhere": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.review.activeFromFact": [
       "/post",
       "/post/$listingId"
@@ -3832,6 +3836,10 @@
       "/post/$listingId"
     ],
     "post.where.marketLoading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.noRegions": [
       "/post",
       "/post/$listingId"
     ],
