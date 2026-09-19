@@ -297,4 +297,60 @@ test.describe("U0k session policy", () => {
     await expect(other.getByTestId("account-menu")).toHaveCount(0);
     await other.close();
   });
+
+  /**
+   * INC-223 — A PREVIOUS SESSION'S MARKER JUDGES NOTHING. Before the fix the
+   * policy's synchronous first tick read these 3 h-old stamps and hard-reset a
+   * correct sign-in with "Signed out for inactivity".
+   */
+  test("SP-6 stale stamps from a previous session never sign the new one out", async ({ page }) => {
+    // Staff limits, stated explicitly: idle 30 min, absolute 12 h.
+    await overridePolicy(page, { idleMs: 30 * 60_000, warnMs: 60_000, absoluteMs: 12 * 60 * 60_000 });
+    await seedStaleClocks(page, 3 * 60 * 60_000);
+    const user = await createUser({ confirmed: true });
+    await grantRole(user.id, "super_admin");
+
+    await signIn(page, user.email, user.password);
+
+    // Ten seconds of the real policy clock: ten ticks, no expiry.
+    for (let i = 0; i < 10; i += 1) {
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027: the subject IS elapsed policy time
+      await page.waitForTimeout(1000);
+      await expect(page.getByTestId("account-menu")).toBeVisible();
+      await expect(page.getByTestId("session-notice")).toHaveCount(0);
+      await expect(page.getByTestId("session-idle-warning")).toHaveCount(0);
+    }
+
+    const stamps = await readStamps(page);
+    expect(stamps.liveRef, "no live session ref to key the clocks on").not.toBeNull();
+    expect(stamps.sessionRef, "clocks still carry the previous session's ref").toBe(stamps.liveRef);
+    expect(
+      Date.now() - Number(stamps.sessionStartedAt),
+      "the stale start stamp survived the sign-in",
+    ).toBeLessThan(60_000);
+  });
+
+  test("SP-7 reload of a live session keeps its clocks (no silent extension)", async ({ page }) => {
+    await overridePolicy(page, { idleMs: 30 * 60_000, warnMs: 60_000, absoluteMs: 12 * 60 * 60_000 });
+    const user = await createUser({ confirmed: true });
+
+    await signIn(page, user.email, user.password);
+    const before = await readStamps(page);
+    expect(before.sessionRef).toBe(before.liveRef);
+
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027: the stamps must differ if they were rewritten
+    await page.waitForTimeout(2000);
+    await page.reload();
+    await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+
+    const after = await readStamps(page);
+    expect(after.sessionStartedAt, "the reload restarted the absolute window").toBe(
+      before.sessionStartedAt,
+    );
+    expect(Number(after.lastActivityAt), "the reload reset the idle clock").toBeLessThan(
+      Number(before.lastActivityAt) + 1500,
+    );
+    expect(after.sessionRef).toBe(before.sessionRef);
+    await expect(page.getByTestId("session-notice")).toHaveCount(0);
+  });
 });
