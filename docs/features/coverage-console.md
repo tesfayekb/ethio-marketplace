@@ -69,3 +69,11 @@ untouched.
 
 - `docs/features/countries-console.md` — the markets register in the same rail group.
 - `docs/features/locations-console.md` — the Places roster in the same rail group.
+
+## Deferred — the photo cap cell (D22)
+
+`coverage_plans.max_photos` landed with M-MAINT-2 Part A and the photo door
+enforces it, but the plans editor does NOT yet show it: the only write door,
+`admin_set_coverage_plan`, takes no `p_max_photos`, so a cell here would be a
+field that saves nothing (F4). The cell and CV-7 ride the migration that adds
+the parameter.

@@ -238,11 +238,18 @@ function optionsOf(raw: string): OptionCell[] | null {
 }
 
 /**
- * DEC-050 L2b / DEC-057 L2 — THE OPTION RECORD'S SHAPE, at the gate. Keys are
- * exactly the eight the platform writes; `active` is a boolean, `bounds` and
+ * DEC-050 L2b / DEC-057 L2 / D18 — THE OPTION RECORD'S SHAPE, at the gate. Keys
+ * are exactly the NINE the platform writes; `active` is a boolean, `bounds` and
  * `allowed` objects and `aliases` an array. Nothing SEMANTIC is judged here
- * (co-linkage, parents, every range and every `allowed` target belong to
- * `attr_option_shape`/the planner).
+ * (co-linkage, parents, every range, every `allowed` target and every `facts`
+ * entry belong to `attr_option_shape`/the planner).
+ *
+ * INC-234 — `facts` was MISSING here while the database's own
+ * `attr_option_shape` had allowed it since 20260917210006, so the console's own
+ * export of a fold set carrying facts was refused by the importer's gate
+ * (`badOption.unknownOptionKey`) and AT-20's round trip could never be a no-op.
+ * The gate now spells the same nine keys the door spells — one authority, asked
+ * earlier (F3).
  */
 const OPTION_KEYS = new Set([
   "value",
@@ -253,6 +260,7 @@ const OPTION_KEYS = new Set([
   "bounds",
   "aliases",
   "allowed",
+  "facts",
 ]);
 
 interface OptionShapeFault {

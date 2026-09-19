@@ -298,6 +298,8 @@ export async function draftsOf(sellerId: string) {
 export interface ScratchAttr {
   id: string;
   attrKey: string;
+  /** The definition's own label — what a screen shows, and what a test reads. */
+  nameEn: string;
 }
 
 export async function seedSpecSet(categoryId: string): Promise<{
@@ -339,7 +341,7 @@ export async function seedSpecSet(categoryId: string): Promise<{
   const { data, error } = await supabase
     .from("attributes")
     .insert(rows)
-    .select("id, attr_key, attr_type");
+    .select("id, attr_key, attr_type, name_en");
   if (error || !data) {
     throw new Error(`[e2e:c1b] seeding the spec set failed: ${error?.message ?? "no rows"}`);
   }
@@ -347,7 +349,7 @@ export async function seedSpecSet(categoryId: string): Promise<{
   const pick = (suffix: string): ScratchAttr => {
     const row = data.find((entry) => entry.attr_key.endsWith(suffix));
     if (!row) throw new Error(`[e2e:c1b] the ${suffix} definition is missing`);
-    return { id: row.id, attrKey: row.attr_key };
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
   };
 
   const text = pick("_text");
@@ -402,12 +404,39 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   const modelYearFloor = 1968;
   const modelYearValue = 1999;
 
-  const option = (value: string, extra: Record<string, unknown> = {}) => ({
-    value,
-    label_en: `${value} label`,
-    active: true,
-    ...extra,
-  });
+  /**
+   * U6-C1-R3b-1 STEP 1a — THE FIXTURE WRITES THE SHAPE THE CONSOLE WRITES.
+   *
+   * DEC-050's option record allows exactly nine keys (`value, label_en,
+   * label_am, parent, active, bounds, aliases, allowed, facts`). A fixture that
+   * invents a tenth is a fixture the platform's own export/import round trip can
+   * never carry (AT-20), so the allowlist is asserted HERE, where the row is
+   * born, instead of being discovered at a door three specs away.
+   */
+  const OPTION_KEYS = [
+    "value",
+    "label_en",
+    "label_am",
+    "parent",
+    "active",
+    "bounds",
+    "aliases",
+    "allowed",
+    "facts",
+  ];
+  const option = (value: string, extra: Record<string, unknown> = {}) => {
+    const stray = Object.keys(extra).filter((name) => !OPTION_KEYS.includes(name));
+    if (stray.length > 0) {
+      throw new Error(`[e2e:fold] option ${value} carries non-DEC-050 keys: ${stray.join(", ")}`);
+    }
+    return {
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      active: true,
+      ...extra,
+    };
+  };
 
   const rows = [
     {
@@ -447,14 +476,17 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
     },
   ];
 
-  const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert(rows)
+    .select("id, attr_key, name_en");
   if (error || !data) {
     throw new Error(`[e2e:r3a2] seeding the fold set failed: ${error?.message ?? "no rows"}`);
   }
   const pick = (suffix: string): ScratchAttr => {
     const row = data.find((entry) => entry.attr_key.endsWith(suffix));
     if (!row) throw new Error(`[e2e:r3a2] the ${suffix} definition is missing`);
-    return { id: row.id, attrKey: row.attr_key };
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
   };
   const make = pick("_make");
   const model = pick("_model");
@@ -592,10 +624,13 @@ export async function identityOf(userId: string): Promise<{
   alias: string | null;
   sellerType: string | null;
   businessName: string | null;
+  /** D17 (M-MAINT-2 A) — the seller's own name, the profile's own columns. */
+  firstName: string | null;
+  lastName: string | null;
 }> {
   const { data, error } = await adminClient()
     .from("profiles")
-    .select("seller_alias,seller_type,business_name")
+    .select("seller_alias,seller_type,business_name,first_name,last_name")
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw new Error(`[e2e:c2b] reading the identity failed: ${error.message}`);
@@ -603,5 +638,7 @@ export async function identityOf(userId: string): Promise<{
     alias: data?.seller_alias ?? null,
     sellerType: data?.seller_type ?? null,
     businessName: data?.business_name ?? null,
+    firstName: data?.first_name ?? null,
+    lastName: data?.last_name ?? null,
   };
 }

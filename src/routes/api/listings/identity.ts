@@ -147,6 +147,10 @@ async function handlePost(request: Request): Promise<Response> {
     p_alias: text(body["alias"]),
     p_seller_type: text(body["sellerType"]),
     p_business_name: text(body["businessName"]),
+    // D17 (M-MAINT-2 A) — the door owns both rules: a person must be named
+    // (`nameRequired`) and 60 characters is the ceiling. The route only carries.
+    p_first_name: text(body["firstName"]),
+    p_last_name: text(body["lastName"]),
     p_contact_pref: body["contactPref"] === undefined ? null : body["contactPref"],
     p_home_country_code: text(body["homeCountryCode"]),
   } as unknown as IdentityArgs;

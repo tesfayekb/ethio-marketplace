@@ -99,6 +99,9 @@ export function StepWho({
   const [aliasState, setAliasState] = useState<AliasState>("idle");
   const [sellerType, setSellerType] = useState("person");
   const [businessName, setBusinessName] = useState("");
+  /** D17 — the account's own name, apart from the public alias. */
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [country, setCountry] = useState("");
   const [countryLocked, setCountryLocked] = useState(false);
   /** Refusals the identity door named, kept apart from the draft's own. */
@@ -130,6 +133,8 @@ export function StepWho({
       checkedAliasRef.current = found.alias ?? "";
       setSellerType(found.sellerType ?? "person");
       setBusinessName(found.businessName ?? "");
+      setFirstName(found.firstName ?? "");
+      setLastName(found.lastName ?? "");
       // A confirmed home country cannot be changed here (`countryAlreadyConfirmed`);
       // an unset one is FILLED IN from the seller's own saved area and confirmed.
       if (found.homeCountryCode !== null) {
@@ -201,6 +206,8 @@ export function StepWho({
   const aliasRefusal = refusalFor(identityRefusals, "alias");
   const typeRefusal = refusalFor(identityRefusals, "seller_type");
   const businessRefusal = refusalFor(identityRefusals, "business_name");
+  const firstRefusal = refusalFor(identityRefusals, "first_name");
+  const lastRefusal = refusalFor(identityRefusals, "last_name");
   const countryRefusal = refusalFor(identityRefusals, "home_country_code");
   /** The door names a channel refusal on the channel's own key. */
   const draftRefusalOf = (field: string) => refusalFor(refusals, field);
@@ -322,10 +329,68 @@ export function StepWho({
                 </button>
               </p>
             )}
-            {/* A NAMED DEFERRAL, said on screen (A3): first and last name need a
-                schema change — M-MAINT-2. */}
-            <p className="text-xs text-muted-foreground" data-testid="post-who-name-later">
-              {t("post.who.nameLater")}
+          </div>
+
+          {/*
+           * D17 / M-MAINT-2 A — THE SELLER'S OWN NAME, now that the columns exist
+           * (`profiles.first_name`/`last_name`, mark 20260920000000) and the door
+           * takes them (`save_posting_identity`'s `p_first_name`/`p_last_name`).
+           *
+           * IT IS NOT THE PUBLIC NAME. The alias is what a buyer reads; these two
+           * belong to the account, and the hint says so plainly rather than
+           * leaving a seller to guess what a marketplace will publish about them.
+           * A PERSON must give them (the door refuses `nameRequired`); a BUSINESS
+           * is known by its business name, so for a business they are optional and
+           * the hint changes to say it.
+           */}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="post-who-names">
+            <div className="space-y-1">
+              <label htmlFor="post-who-first" className="text-sm font-medium text-foreground">
+                {t("post.who.firstNameLabel")}
+              </label>
+              <input
+                id="post-who-first"
+                data-testid="post-who-first"
+                className={fieldClass}
+                value={firstName}
+                autoComplete="given-name"
+                onChange={(event) => setFirstName(event.target.value)}
+                onBlur={() => {
+                  void commit({ firstName });
+                }}
+              />
+              {firstRefusal !== null && (
+                <p className="text-sm text-destructive" data-testid="post-who-first-refusal">
+                  {t(draftRefusalKey(firstRefusal.reason))}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="post-who-last" className="text-sm font-medium text-foreground">
+                {t("post.who.lastNameLabel")}
+              </label>
+              <input
+                id="post-who-last"
+                data-testid="post-who-last"
+                className={fieldClass}
+                value={lastName}
+                autoComplete="family-name"
+                onChange={(event) => setLastName(event.target.value)}
+                onBlur={() => {
+                  void commit({ lastName });
+                }}
+              />
+              {lastRefusal !== null && (
+                <p className="text-sm text-destructive" data-testid="post-who-last-refusal">
+                  {t(draftRefusalKey(lastRefusal.reason))}
+                </p>
+              )}
+            </div>
+            <p
+              className="text-xs text-muted-foreground md:col-span-2"
+              data-testid="post-who-name-hint"
+            >
+              {sellerType === "business" ? t("post.who.nameBusinessHint") : t("post.who.nameHint")}
             </p>
           </div>
 

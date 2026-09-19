@@ -461,3 +461,55 @@ D24 — CONDITIONAL ATTRIBUTES (a detail that only appears when another detail
 holds a given value) needs a per-link condition in the schema, which is a
 migration; the folds above are the option-level half of that idea, not a
 substitute.
+
+## U6-C1-R3b-1 — review, the buyer's eye, and the layers
+
+**EDIT COMES HOME TWICE.** An Edit link on review opens the step it names and
+that step carries a `Back to review` action (`post-back-to-review`): Next returns
+to review after judging the step, Back returns without claiming anything. Both
+use the secondary-button tokens, because a transparent outline on the card read
+as disabled beside the filled Next.
+
+**A CATEGORY CHANGE IS A RE-VALIDATION.** Choosing a different leaf on a draft
+that already carries answers reads BOTH schemas — the old one only to LABEL what
+is leaving — drops every attribute the new category never asks, and reopens the
+specifications step with a notice (`post-category-changed`) that NAMES the
+dropped details (`post-category-dropped`). Photos are never deleted: they are
+FLAGGED for a re-check (`post-category-photos-recheck`), because the fit rule
+runs again at publish (D21). Silence here would mean publishing facts under
+labels the category never offered.
+
+**PREVIEW AS BUYERS SEE IT.** `post-preview-open` opens a full-screen sheet
+(`post-preview-sheet`, portalled, Escape closes, body scroll locked) rendering
+the listing DETAIL: gallery or the ancestor illustration, title, price with
+currency and period, the places, the details table BY LABEL, the description, the
+seller block (alias, and the business name for a business) with the shown
+channels, and the map area placeholder. It lives in
+`src/features/posting/preview/` (`listing-detail.tsx` + `preview-sheet.tsx`) and
+U7 MOUNTS THE SAME COMPONENTS on the public listing page — the wizard's preview
+and the buyer's page cannot drift, because they are one component.
+
+**THE LAYER ORDER IS DECLARED ONCE** in `src/components/layout/layers.ts`:
+sticky action bar (`z-20`) < popover/listbox/menu (`z-40`) < sheet (`z-50`). Two
+components each choosing `z-10` let source order decide, and the bar won — a
+seller tapping a currency hit Next underneath it (LY-6).
+
+**THE MOBILE STEP STRIP** (`post-step-strip`, `lg:hidden`) is the desktop rail
+laid on its side: eight numbers, ticks behind, the current one LABELLED,
+horizontally scrollable at 360. Only steps already reached are buttons; a step
+with nothing to show is a plain number, never a tappable lie. The desktop aside
+is unchanged.
+
+**STEP 7 NAMES (D17).** First and last name sit above the seller type and reach
+`save_posting_identity`'s `p_first_name`/`p_last_name`. A person must be named;
+a business must carry a business name and may leave the names empty. The door
+owns both rules — the screen mirrors them. The review's seller line shows the
+business name (or the alias) before the channels.
+
+### Deferred — the plan photo cap (D22)
+
+The photos step still reads its cap from `MAX_PHOTOS_PER_LISTING`, not from
+`coverage_plans.max_photos`. The column exists (M-MAINT-2 Part A) but
+`get_posting_schema` does not return the plan caps and `admin_set_coverage_plan`
+takes no `p_max_photos`, so neither the READ nor the Plans-editor WRITE has a
+door; both are migrations, and this task carried none. CV-7 rides that migration.

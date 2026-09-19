@@ -443,6 +443,9 @@ export interface SellerIdentity {
   alias: string | null;
   sellerType: string | null;
   businessName: string | null;
+  /** D17 (M-MAINT-2 A) — the account's own name, never the public one. */
+  firstName: string | null;
+  lastName: string | null;
   contactPrefs: Record<string, unknown>;
   homeCountryCode: string | null;
   /** U6-C1-R2 — the account's own name, the source of the SUGGESTED alias. */
@@ -455,7 +458,9 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
   if (userId === null) return null;
   const { data, error } = await supabase
     .from("profiles")
-    .select("seller_alias,seller_type,business_name,contact_prefs,home_country_code,display_name")
+    .select(
+      "seller_alias,seller_type,business_name,first_name,last_name,contact_prefs,home_country_code,display_name",
+    )
     .eq("user_id", userId)
     .maybeSingle();
   if (error) return null;
@@ -464,6 +469,8 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
       alias: null,
       sellerType: null,
       businessName: null,
+      firstName: null,
+      lastName: null,
       contactPrefs: {},
       homeCountryCode: null,
       displayName: null,
@@ -473,6 +480,8 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
     alias: data.seller_alias ?? null,
     sellerType: data.seller_type ?? null,
     businessName: data.business_name ?? null,
+    firstName: data.first_name ?? null,
+    lastName: data.last_name ?? null,
     contactPrefs:
       data.contact_prefs !== null && typeof data.contact_prefs === "object"
         ? (data.contact_prefs as Record<string, unknown>)
@@ -495,6 +504,9 @@ export function saveIdentity(body: {
   alias?: string;
   sellerType?: string;
   businessName?: string | null;
+  /** D17 — both travel to `p_first_name`/`p_last_name`; a missing one is silence. */
+  firstName?: string | null;
+  lastName?: string | null;
   contactPref?: unknown;
   homeCountryCode?: string;
 }): Promise<DoorAnswer> {

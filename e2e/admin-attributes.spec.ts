@@ -972,7 +972,7 @@ test.describe("C3 attributes console", () => {
         "attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant (read-only),direct_link_count (read-only)",
       );
       expect(links.slice(1).split("\r\n")[0]).toBe(
-        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)",
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value",
       );
 
       // FORMULA SAFETY: the "="-opening label is prefixed with a single quote
@@ -989,10 +989,11 @@ test.describe("C3 attributes console", () => {
       // attribute with `origin` naming the parent slug.
       const childRow = links.split("\r\n").find((line) => line.includes(`,${childSlug},${key},`));
       expect(childRow, "AT-15 the inherited link is missing from links.csv").toBeTruthy();
-      expect(childRow!.endsWith(`,${parentSlug}`)).toBe(true);
+      // The origin is no longer the last cell: the two per-link cells trail it.
+      expect(childRow!.endsWith(`,${parentSlug},,`)).toBe(true);
       // The parent's own row names ITSELF as the origin.
       const parentRow = links.split("\r\n").find((line) => line.includes(`,${parentSlug},${key},`));
-      expect(parentRow!.endsWith(`,${parentSlug}`)).toBe(true);
+      expect(parentRow!.endsWith(`,${parentSlug},,`)).toBe(true);
     } finally {
       await supabase.from("category_attribute_links").delete().eq("attribute_id", attributeId);
       await destroyCategory(childSlug);
@@ -1196,7 +1197,7 @@ test.describe("C3 attributes console", () => {
       const links = texts.get(`${fixture.parentSlug}-links.csv`)!;
       const lines = links.slice(1).split("\r\n").filter(Boolean);
       expect(lines[0]).toBe(
-        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)",
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value",
       );
       // ONLY the subtree: every data row's category_slug is parent or child.
       const slugs = new Set(lines.slice(1).map((line) => line.split(",")[1]));
@@ -1205,7 +1206,8 @@ test.describe("C3 attributes console", () => {
         line.includes(`,${fixture.childSlug},${fixture.keyA},`),
       );
       expect(childRow, "AT-18 the inherited row is missing").toBeTruthy();
-      expect(childRow!.endsWith(`,${fixture.parentSlug}`)).toBe(true);
+      // The origin is no longer the last cell: the two per-link cells trail it.
+      expect(childRow!.endsWith(`,${fixture.parentSlug},,`)).toBe(true);
     } finally {
       await fixture.destroy();
     }
@@ -1534,8 +1536,14 @@ test.describe("C3 attributes console", () => {
   /**
    * A concurrent spec may create or destroy its own scratch fixtures between the
    * export and the preview, which would read as a phantom add. AT-20 asserts the
-   * invariant over the STABLE library only: every record naming an `e2e_attr_`
-   * attribute or an `e2e-cat-` category is dropped from both files.
+   * invariant over the STABLE library only.
+   *
+   * U6-C1-R3b-1 STEP 1b — the stem list is gone: EVERY record naming ANY
+   * `e2e_`/`e2e-` fixture is dropped, not only `e2e_attr_` and `e2e-cat-`. The
+   * posting specs seed definitions under `e2e_fold_…`, which the old two-stem
+   * filter kept in the file; a worker mutating its own fold set between the
+   * export and the preview then read as a phantom change (J6 — another test's
+   * rows are never this test's invariant).
    */
   function withoutScratchRecords(text: string): { text: string; rows: number } {
     const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
@@ -1559,9 +1567,7 @@ test.describe("C3 attributes console", () => {
     if (current.length > 0) records.push(current.replace(/\r$/, ""));
 
     const header = records.shift() ?? "";
-    const kept = records.filter(
-      (record) => record.trim().length > 0 && !/e2e_attr_/.test(record) && !/e2e-cat-/.test(record),
-    );
+    const kept = records.filter((record) => record.trim().length > 0 && !/e2e[_-]/.test(record));
     return {
       text: `\uFEFF${[header, ...kept].join("\r\n")}\r\n`,
       rows: kept.length,
@@ -2326,6 +2332,105 @@ test.describe("C3 attributes console", () => {
     }
   });
   /**
+   * AT-21 (U6-C1-R3b-1 STEP 7) — THE TWO PER-LINK CELLS (D-spec §12,
+   * M-MAINT-2 B). A links FILE narrows one category's copy of a shared
+   * definition (`allowed_options`) and prefills it (`default_value`); the commit
+   * writes both, and the export echoes what was stored — a console that drops a
+   * field it does not show is INC-188, and so is a file that does.
+   */
+  test("AT-21 a links file sets the allowed options and the default, and the export echoes both", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-link-${rand()}`;
+    try {
+      const { data: attribute } = await supabase
+        .from("attributes")
+        .insert({
+          attr_key: key,
+          name_en: key,
+          attr_type: "single_select",
+          options: [
+            { value: "alpha", label_en: "Alpha", active: true },
+            { value: "beta", label_en: "Beta", active: true },
+            { value: "gamma", label_en: "Gamma", active: true },
+          ],
+        })
+        .select("id")
+        .single();
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      await supabase.from("category_attribute_links").insert({
+        category_id: category!.id,
+        attribute_id: attribute!.id,
+        is_required: false,
+        is_filterable: false,
+      });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      // The two cells are TRAILING (the gate's `optionalFrom`), so the file the
+      // console exports carries them after `origin`.
+      const header = `${LINK_HEADER},allowed_options,default_value`;
+      const links = `${header}\r\n${slug},${slug},${key},false,false,,${slug},alpha|beta,beta\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect((preview.payload["counts"] as Record<string, number>).changes).toBe(1);
+      expect((preview.payload["refusals"] ?? []) as unknown[]).toHaveLength(0);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+
+      // DB TRUTH (J4): both cells landed on the link, and nowhere else.
+      const stored = await supabase
+        .from("category_attribute_links")
+        .select("allowed_options,default_value")
+        .eq("category_id", category!.id)
+        .eq("attribute_id", attribute!.id)
+        .single();
+      expect(stored.data?.allowed_options, "AT-21 the narrowing was not stored").toEqual([
+        "alpha",
+        "beta",
+      ]);
+      expect(JSON.stringify(stored.data?.default_value), "AT-21 the default was not stored").toBe(
+        JSON.stringify("beta"),
+      );
+
+      // THE ROUND TRIP: the export carries back exactly what was stored.
+      const exported = await page.request.get("/api/admin/attributes/export?file=links", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(exported.status()).toBe(200);
+      const body = await exported.text();
+      const row = body.split("\r\n").find((line) => line.includes(`,${slug},${key},`));
+      expect(row, "AT-21 the scratch link is missing from the export").toBeTruthy();
+      expect(row, "AT-21 the export dropped the two per-link cells").toContain(",alpha|beta,beta");
+    } finally {
+      const { data: row } = await supabase
+        .from("attributes")
+        .select("id")
+        .eq("attr_key", key)
+        .maybeSingle();
+      if (row) await supabase.from("category_attribute_links").delete().eq("attribute_id", row.id);
+      await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
    * AT-27 — COLUMN CLASSES (IE-3). A links row carries an edited read-only
    * cell (`category_path`) AND a real editable change (`is_required`): the
    * preview lists the ignored cell, counts exactly one change, the commit
@@ -2370,8 +2475,10 @@ test.describe("C3 attributes console", () => {
       // `category_path` is derived — the file lies about it on purpose. The
       // header also carries the export's " (read-only)" suffix.
       const header =
-        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only)";
-      const links = `${header}\r\nTOTALLY WRONG PATH,${slug},${key},true,false,,${slug}\r\n`;
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value";
+      // U6-C1-R3b-1 STEP 7 — two more cells (`allowed_options`, `default_value`),
+      // left empty here: this row is about the derived path, not about them.
+      const links = `${header}\r\nTOTALLY WRONG PATH,${slug},${key},true,false,,${slug},,\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", links });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);

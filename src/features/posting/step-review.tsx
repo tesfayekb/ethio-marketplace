@@ -11,9 +11,12 @@ import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import {
   publishListing,
   readPostingSchema,
+  readSellerIdentity,
   type AttrDef,
   type DraftPhotoRow,
+  type SellerIdentity,
 } from "./posting-service";
+import { PreviewSheet } from "./preview/preview-sheet";
 import type { DraftValues } from "./use-draft";
 import { MAX_PHOTOS_PER_LISTING, type Refusal } from "./types";
 
@@ -79,6 +82,7 @@ export function StepReview({
   categoryPath,
   values,
   photos,
+  illustrationUrl,
   expiryDays,
   refusals: doorRefusals,
   onChangeExpiry,
@@ -89,6 +93,8 @@ export function StepReview({
   categoryPath: string;
   values: DraftValues;
   photos: DraftPhotoRow[];
+  /** The nearest ancestor category's picture, the stand-in when there is no photo. */
+  illustrationUrl: string | null;
   /** The category's poster window; the door falls back to 60 days when unset. */
   expiryDays: number;
   /** The draft door's own refusals, so `posterExpiry*` lands on this field. */
@@ -98,10 +104,23 @@ export function StepReview({
 }) {
   const { t } = useI18n();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
+  /** U6-C1-R3b-1 — the seller block the buyer's-eye preview and the summary show. */
+  const [identity, setIdentity] = useState<SellerIdentity | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [refusals, setRefusals] = useState<Refusal[]>([]);
   const [failed, setFailed] = useState(false);
   const [inReview, setInReview] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void readSellerIdentity().then((found) => {
+      if (!cancelled) setIdentity(found);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const categoryId = values.categoryId;
   useEffect(() => {
@@ -146,6 +165,13 @@ export function StepReview({
     .concat(t("post.who.channel.messages"))
     .join(" · ");
 
+  const sellerName =
+    identity === null
+      ? ""
+      : identity.sellerType === "business" && (identity.businessName ?? "") !== ""
+        ? `${identity.businessName} (${identity.alias ?? ""})`.replace(" ()", "")
+        : (identity.alias ?? "");
+
   const sections: { step: number; nameKey: MessageKey; value: string }[] = [
     { step: 1, nameKey: "post.step.category", value: categoryPath },
     {
@@ -167,7 +193,13 @@ export function StepReview({
           ? ""
           : fill(t("post.review.placesCount"), { count: values.coverage.length }),
     },
-    { step: 7, nameKey: "post.step.contact", value: channelLine },
+    {
+      step: 7,
+      nameKey: "post.step.contact",
+      // D17 — the seller block names WHO is selling before HOW to reach them: a
+      // business by its business name, a person by the public alias.
+      value: [sellerName, channelLine].filter((part) => part !== "").join(" · "),
+    },
   ];
 
   if (inReview) {
@@ -246,6 +278,44 @@ export function StepReview({
         country={readAreaCookie()?.country ?? null}
         contactPref={values.contactPref}
       />
+
+      {/*
+       * U6-C1-R3b-1 STEP 2c — THE ONE WAY TO SEE THE LISTING AS A BUYER WILL.
+       * The panel above is a check-list; this opens the DETAIL, rendered by the
+       * very components U7 will mount on the public page.
+       */}
+      <button
+        type="button"
+        data-testid="post-preview-open"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground hover:bg-accent"
+        onClick={() => setPreviewOpen(true)}
+      >
+        {t("post.review.previewAsBuyer")}
+      </button>
+
+      {previewOpen && (
+        <PreviewSheet
+          onClose={() => setPreviewOpen(false)}
+          view={{
+            title: values.title,
+            description: values.description,
+            priceMode: values.priceMode,
+            priceAmount: values.priceAmount,
+            priceCurrency: values.priceCurrency,
+            pricePeriod: values.pricePeriod,
+            attributes: values.attributes,
+            definitions,
+            photos,
+            illustrationUrl,
+            coverage: values.coverage,
+            country: readAreaCookie()?.country ?? null,
+            contactPref: values.contactPref,
+            sellerAlias: identity?.alias ?? null,
+            sellerBusinessName:
+              identity?.sellerType === "business" ? (identity?.businessName ?? null) : null,
+          }}
+        />
+      )}
 
       {/*
        * U6-C1-R1 — THE ACTIVE WINDOW, MOVED HERE FROM STEP 5. A seller thinks

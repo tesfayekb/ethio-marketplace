@@ -78,6 +78,15 @@ export interface UseDraft {
   change: (patch: Partial<DraftValues>, immediate: boolean) => void;
   /** Save the current answers at a given step and answer whether it took. */
   saveAt: (step: number) => Promise<boolean>;
+  /**
+   * U6-C1-R3b-1 — A CATEGORY CHANGE REWINDS THE CLAIM. `saveAt` only ever
+   * RAISES the step a save claims (INC-228: a Next queued on top of an
+   * autosave must survive). When the seller changes the category, the later
+   * answers are no longer the ones being judged, so the claim must come DOWN
+   * to step 1 — otherwise the save goes out as step 3, is judged against the
+   * NEW schema it cannot satisfy, and the orphan answers are never dropped.
+   */
+  rewindTo: (step: number) => Promise<boolean>;
   /** Retry by hand what the automatic retry has not yet managed. */
   retry: () => void;
   /** INC-227 — seconds until autosave may resume; 0 when it is not paused. */
@@ -350,11 +359,17 @@ export function useDraft(initialListingId: string | null): UseDraft {
 
   const change = useCallback(
     (patch: Partial<DraftValues>, immediate: boolean) => {
-      setValues((prev) => {
-        const next = { ...prev, ...patch };
-        valuesRef.current = next;
-        return next;
-      });
+      /*
+       * THE REF IS WRITTEN HERE, NOT IN THE UPDATER. React runs a state updater
+       * when it renders, not when it is queued, so a save fired in the same turn
+       * as the change read the PREVIOUS answers out of the ref and sent them
+       * (PW-26: a dropped detail travelled back to the door). The ref is the
+       * save's source of truth, so it is advanced synchronously and the state is
+       * set from the same object.
+       */
+      const next = { ...valuesRef.current, ...patch };
+      valuesRef.current = next;
+      setValues(next);
       // INC-228 — AN AUTOSAVE IS SENT AT THE LAST COMPLETED STEP, never at the
       // step being edited: a half-filled step must not be judged while the
       // seller is still typing. The server's `draft_step` is that truth, capped
@@ -382,6 +397,17 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // refusals are the ones the seller is shown.
       strictRef.current = forStep;
       pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, forStep);
+      return flush();
+    },
+    [flush],
+  );
+
+  const rewindTo = useCallback(
+    async (forStep: number) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      strictRef.current = forStep;
+      pendingStepRef.current = forStep;
+      draftStepRef.current = Math.min(draftStepRef.current, forStep);
       return flush();
     },
     [flush],
@@ -481,6 +507,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       refusals,
       change,
       saveAt,
+      rewindTo,
       retry,
       pauseSeconds,
       photos,
@@ -498,6 +525,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       refusals,
       change,
       saveAt,
+      rewindTo,
       retry,
       pauseSeconds,
       photos,
