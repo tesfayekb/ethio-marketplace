@@ -781,3 +781,23 @@ options; a retired option's facts never leave the database.
 `validate_listing_attributes` is deliberately UNCHANGED: facts prefill the
 sibling fields the seller can then edit, and the seller's own answers are what
 the validator judges. A fact is never an authority over a value.
+
+## Per-link option scope and defaults (D-spec §12, M-MAINT-2 Part A)
+
+A `category_attribute_links` row may narrow the definition it points at:
+
+- `allowed_options text[]` — a subset of the definition's option values. `NULL`
+  means every ACTIVE option; an EMPTY array is refused by the table's CHECK, so
+  "narrowed to nothing" cannot be stored.
+- `default_value jsonb` — a scalar or array matching the definition's type,
+  prefilled by the posting form and never enforced.
+
+The definition still owns the option records (labels, `active`, `bounds`,
+`aliases`, `facts`); the link only says which of them this category offers.
+`get_posting_schema` projects both cells per attribute and counts
+`option_count`/`allow_other` THROUGH the narrowing.
+`validate_listing_attributes` refuses a select or multi value outside a
+non-`NULL` `allowed_options` with `optionNotAllowed:<value>`, after
+`unknownOption` and `inactiveOption`; a value the listing ALREADY carried
+(`p_prior`) is not refused, so a later narrowing never blocks an edit to an
+unrelated field.

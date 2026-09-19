@@ -507,3 +507,35 @@ documented in `docs/features/media-pipeline.md`. What belongs to a listing:
 route, and the door that writes it is service-role only: DEC-009's public-read
 gate cannot be claimed by a client. The database stores `{ partition, key }` per
 variant, never a URL.
+
+## The map pin (M-MAINT-2 Part A)
+
+`listings` carries `pin_lat numeric(9,6)`, `pin_lng numeric(9,6)`,
+`pin_precision text` (`exact` | `approx`, NULL only when there is no pin) and
+`street_address text` (≤ 200 characters, the seller's own or a reverse-geocoded
+street line — rendered as DATA, never HTML). Latitude and longitude are both set
+or both NULL (table CHECK).
+
+`set_listing_pin(p_listing_id, p_lat, p_lng, p_precision, p_street)` is the only
+door. Owner-only; allowed in `draft`, `active`, `reduced`, `rejected`, `held` and
+`expired`; NULL latitude or longitude clears all four columns. Refusals by name:
+`not your listing`, `pinNotEditable:<status>`, `badLatitude:<v>`,
+`badLongitude:<v>`, `badPrecision:<v>`, `streetTooLong:<n>`. F5 order — gates,
+then the before/after capture, then the write; every change is captured as a
+`listing_revisions` row of kind `edit` (the kind CHECK allows
+`create|edit|state`, so the pin is an edit, not a new kind).
+
+**The precision rule.** A public listing read may return `pin_lat`/`pin_lng` as
+given ONLY when `pin_precision = 'exact'`; when it is `approx` it may return a
+centre rounded to about 500 m and nothing finer. No public listing read exists
+yet (no `get_listing_public`-class function today), so the rule has no consumer
+in this landing — U7 honours it when the public reads are written.
+
+## The plan photo cap (D22)
+
+`coverage_plans.max_photos smallint NOT NULL DEFAULT 10` (CHECK 0..30); the real
+`free` row stays 10. `register_listing_photo` resolves the seller's cap through
+`seller_plan(user_id)` → `plan_photo_cap(plan)` and refuses a photo beyond it
+with `tooManyPhotos:<cap>`; the upload route's own cap is a MIRROR, not the
+authority. Plans are not per-seller yet — `seller_plan` returns `free` for every
+seller and is the single seam to change when they are.

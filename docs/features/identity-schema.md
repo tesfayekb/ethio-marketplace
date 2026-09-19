@@ -200,3 +200,14 @@ confirmed country stays a support action). The door **never touches
 
 This is the UI moment the named deferral above was waiting for: the first
 contribution surface confirms the country, and it does so here.
+
+## The seller's own name (D17, M-MAINT-2 Part A)
+
+`profiles.first_name` and `profiles.last_name` are optional text, each trimmed,
+non-empty when present and at most 60 characters (table CHECK). They are written
+only by `save_posting_identity`, whose signature is now
+`(p_alias, p_seller_type, p_business_name, p_first_name, p_last_name,
+p_contact_pref, p_home_country_code)`; a NULL leaves the stored value alone, and
+a name longer than 60 characters is refused BY FIELD
+(`{ field: 'first_name' | 'last_name', reason: 'badLength' }`) with nothing
+written — proven in-migration (P3).

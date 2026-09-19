@@ -164,3 +164,12 @@ option shape function as every other key (refusal `badFacts:<detail>`); the
 definitions planner and commit are unchanged, because the options column passes
 through them whole. Facts are a PREFILL for the posting form, never a rule — the
 listing validator does not read them.
+
+## The links file — `allowed_options` and `default_value` (D-spec §12)
+
+The two per-link cells travel in the links file: `allowed_options`
+pipe-separated (`piece|set`, empty = every option) and `default_value` as value
+text. Planning, commit, Undo and the export echo ride M-MAINT-2 **Part B**; Part
+A landed the columns, the schema read and the validator only. Until Part B
+lands, the cells are written by migration or console only, and a links file
+carrying them is read-only for those two columns.

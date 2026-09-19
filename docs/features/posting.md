@@ -370,3 +370,17 @@ carry `facts`, DEC-050), but reading them on the posting side needs the public
 options projection to expose `facts` to an anon reader, which is a migration —
 forbidden by this landing's brief. It says so on screen through `post.stepLater`.
 The D1 screening gateway remains a named deferral.
+
+## What M-MAINT-2 Part A gave the wizard
+
+- The specification read (`get_posting_schema`) now carries, per attribute,
+  `allowed_options` (NULL = every active option) and `default_value`, and a
+  `plan` object with the caller's caps (`max_photos` plus the coverage caps) —
+  one document, no second call for the photo limit.
+- The map pin has its own columns and its own door (`set_listing_pin`), so the
+  reserved-key problem is gone: the pin never travels inside `attributes`. The
+  control itself rides C1-R3.
+- The seller's first and last name are written by `save_posting_identity`.
+
+Still deferred: the D18 facts prefill (`PW-9`), the links-file cells and their
+Undo (M-MAINT-2 Part B), and the D1 screening gateway.
