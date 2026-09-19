@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { gotoReady, signIn } from "./helpers/ui";
+import { gotoReady } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 async function grantRole(userId: string, roleName: string) {
@@ -28,9 +28,12 @@ test("INC223 repro: stale stamps sign the new session out", async ({ page }) => 
     localStorage.setItem(`sb-${ref}-session-started-at`, String(stale));
   }, new URL(process.env["E2E_SUPABASE_URL"]!).hostname.split(".")[0]);
 
-  await gotoReady(page, "/");
-  await signIn(page, user.email, user.password);
-  await page.waitForTimeout(6000);
+  await gotoReady(page, "/auth");
+  await page.locator("#auth-email").fill(user.email);
+  await page.locator("#auth-password").fill(user.password);
+  await page.locator('form button[type="submit"]').click();
+  await page.waitForTimeout(8000);
+  console.log("URL:", page.url());
   console.log("TRACE:\n" + logs.join("\n"));
   console.log("NOTICE COUNT:", await page.getByTestId("session-notice").count());
   expect(true).toBe(true);
