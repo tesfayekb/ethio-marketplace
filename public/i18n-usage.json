@@ -1,10 +1,61 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 285,
-  "dynamicCallSites": 191,
+  "scanned": 294,
+  "dynamicCallSites": 193,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
+    ],
+    "account.overview.alias": [
+      "/account"
+    ],
+    "account.overview.business": [
+      "/account"
+    ],
+    "account.overview.editProfile": [
+      "/account"
+    ],
+    "account.overview.homeCountry": [
+      "/account"
+    ],
+    "account.overview.listings": [
+      "/account"
+    ],
+    "account.overview.loadError": [
+      "/account"
+    ],
+    "account.overview.memberSince": [
+      "/account"
+    ],
+    "account.overview.noListings": [
+      "/account"
+    ],
+    "account.overview.noNotifications": [
+      "/account"
+    ],
+    "account.overview.notSet": [
+      "/account"
+    ],
+    "account.overview.nothingSaved": [
+      "/account"
+    ],
+    "account.overview.notifications": [
+      "/account"
+    ],
+    "account.overview.profile": [
+      "/account"
+    ],
+    "account.overview.quickActions": [
+      "/account"
+    ],
+    "account.overview.saved": [
+      "/account"
+    ],
+    "account.overview.sellerType": [
+      "/account"
+    ],
+    "account.overview.title": [
+      "/account"
     ],
     "admin.accessDenied": [
       "/admin"
@@ -2682,6 +2733,7 @@
     "app.name": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug",
       "/dev/primitives",
@@ -2729,6 +2781,7 @@
     "auth.createAccount": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/auth",
       "/c/$slug"
@@ -2823,6 +2876,7 @@
     "auth.signIn": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/auth",
       "/c/$slug"
@@ -2833,6 +2887,7 @@
     "auth.signOut": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
@@ -2842,6 +2897,7 @@
     "auth.signedInAs": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
@@ -2870,6 +2926,7 @@
     "common.close": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/admin/attributes",
       "/admin/categories",
@@ -2886,6 +2943,7 @@
     "common.dismiss": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
@@ -2895,6 +2953,7 @@
     "common.loading": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/admin/categories",
       "/c/$slug",
@@ -2968,6 +3027,7 @@
     "footer.rights": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
@@ -2977,12 +3037,14 @@
     "impersonation.banner": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "impersonation.endNow": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/admin/impersonation/$sessionId",
       "/c/$slug"
@@ -3014,6 +3076,7 @@
     "impersonation.open": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
@@ -3057,6 +3120,7 @@
     "impersonation.unknownTarget": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/admin/impersonation/$sessionId",
       "/c/$slug"
@@ -3067,36 +3131,42 @@
     "language.label": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "location.anyArea": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "location.empty": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "location.guessAreaCaption": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "location.label": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "location.readFailed": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
@@ -3247,20 +3317,39 @@
     "nav.home": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
+    ],
+    "nav.postListing": [
+      "/account"
     ],
     "nav.profile": [
       "(every page)",
       "/",
+      "/account",
+      "/admin",
+      "/c/$slug"
+    ],
+    "nav.signInSecurity": [
+      "/account"
+    ],
+    "panel.account": [
+      "(every page)",
+      "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "panel.admin": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
+    ],
+    "panel.myListings": [
+      "/account"
     ],
     "post.action.back": [
       "/post",
@@ -4007,12 +4096,14 @@
     "session.idleWarning": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "session.staySignedIn": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
@@ -4074,6 +4165,7 @@
     "settings.navLabel": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
@@ -4126,114 +4218,133 @@
     "shell.accountMenu": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.allCategories": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.breadcrumbLabel": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.categoriesEmpty": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.categoriesLabel": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.collapseRail": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.expandRail": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.mainNav": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.menuTitle": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.openMenu": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.panelLabel": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.placeholderBody": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.placeholderTitle": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.searchClose": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.searchLabel": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.searchPlaceholder": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.skipToContent": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.switchPanel": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],
     "shell.themeToggle": [
       "(every page)",
       "/",
+      "/account",
       "/admin",
       "/c/$slug"
     ],

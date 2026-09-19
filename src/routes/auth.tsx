@@ -9,7 +9,8 @@ import {
 import { useAuth } from "@/features/auth/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { safeReturnPath } from "@/lib/return-path";
-import { PAGE_MAIN_CLASS, PageCard } from "@/components/shell/page-card";
+import { PageShell } from "@/components/layout/page-shell";
+import { PageCard } from "@/components/shell/page-card";
 
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
@@ -321,7 +322,7 @@ function AuthScreen() {
 
   if (onForgot) {
     return (
-      <main className={PAGE_MAIN_CLASS}>
+      <PageShell as="main" width="narrow">
         <PageCard>
           <h1 className="text-xl font-semibold text-foreground">{t("auth.resetTitle")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetBody")}</p>
@@ -382,13 +383,13 @@ function AuthScreen() {
             {t("auth.backToSignIn")}
           </button>
         </PageCard>
-      </main>
+      </PageShell>
     );
   }
 
   if (onCheckEmail && confirmed) {
     return (
-      <main className={PAGE_MAIN_CLASS}>
+      <PageShell as="main" width="narrow">
         <PageCard>
           <h1 className="text-xl font-semibold text-foreground">{t("auth.confirmedInline")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirmedBody")}</p>
@@ -400,7 +401,7 @@ function AuthScreen() {
             {t("auth.continue")}
           </button>
         </PageCard>
-      </main>
+      </PageShell>
     );
   }
 
@@ -413,7 +414,7 @@ function AuthScreen() {
         : t("auth.resend");
 
     return (
-      <main className={PAGE_MAIN_CLASS}>
+      <PageShell as="main" width="narrow">
         <PageCard>
           <h1 className="text-xl font-semibold text-foreground">{t("auth.checkEmail")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -472,12 +473,12 @@ function AuthScreen() {
             </button>
           )}
         </PageCard>
-      </main>
+      </PageShell>
     );
   }
 
   return (
-    <main className={PAGE_MAIN_CLASS}>
+    <PageShell as="main" width="narrow">
       <PageCard>
         <h1 className="text-xl font-semibold text-foreground">
           {isSignIn ? t("auth.signIn") : t("auth.createAccount")}
@@ -611,6 +612,6 @@ function AuthScreen() {
           </div>
         </section>
       </PageCard>
-    </main>
+    </PageShell>
   );
 }

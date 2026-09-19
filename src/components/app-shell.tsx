@@ -358,11 +358,12 @@ export function AppShell({ children }: { children: ReactNode }) {
    * page beside the MARKETPLACE category rail. The panel is now DERIVED: a
    * route that belongs to a panel owns the panel while it is open.
    */
-  const routePanel: PanelId | null = pathname.startsWith("/settings")
-    ? "account"
-    : pathname.startsWith("/admin")
-      ? "admin"
-      : null;
+  const routePanel: PanelId | null =
+    pathname.startsWith("/settings") || pathname.startsWith("/account")
+      ? "account"
+      : pathname.startsWith("/admin")
+        ? "admin"
+        : null;
   /** The marketplace feed is "/" and every category route /c/<slug>. */
   const isFeedRoute = pathname === "/" || pathname.startsWith("/c/");
 
@@ -525,7 +526,10 @@ export function AppShell({ children }: { children: ReactNode }) {
    * route standing open is replaced by the marketplace immediately, so no
    * gated UI survives a sign-out on any screen size.
    */
-  const gatedRoute = pathname.startsWith("/admin") || pathname.startsWith("/settings");
+  const gatedRoute =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/account");
   useEffect(() => {
     if (authLoading || user !== null) return;
     void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });

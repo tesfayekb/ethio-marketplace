@@ -104,11 +104,9 @@ export const PANELS: Record<PanelId, Panel> = {
     id: "account",
     labelKey: "panel.account",
     icon: CircleUser,
-    // Censused truth: /settings is the only Account-owned route today, and the
-    // shell already derives the Account panel from it.
-    homePath: "/settings",
+    homePath: "/account",
     items: [
-      { id: "ac-overview", labelKey: "nav.overview", icon: Gauge },
+      { id: "ac-overview", labelKey: "nav.overview", icon: Gauge, path: "/account" },
       { id: "ac-saved", labelKey: "nav.saved", icon: Heart },
       { id: "ac-activity", labelKey: "nav.activity", icon: ScrollText },
       { id: "ac-notifications", labelKey: "nav.notifications", icon: Bell },

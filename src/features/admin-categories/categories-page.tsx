@@ -23,6 +23,7 @@ import {
 } from "@/components/shell/data-table";
 import { categoryRowGlyph } from "@/components/shell/category-glyphs";
 import { PageCard } from "@/components/shell/page-card";
+import { PageShell } from "@/components/layout/page-shell";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -814,7 +815,11 @@ export function AdminCategoriesPage() {
   return (
     <StepUpGate>
       {(guard) => (
-        <div data-testid="admin-section-categories" className="min-w-0 space-y-4">
+        <PageShell
+          width="full"
+          data-testid="admin-section-categories"
+          className="space-y-4 p-0 md:p-0 xl:p-0"
+        >
           {mayCreate ? (
             <PageCard testid="category-create-card">
               <Button
@@ -1132,7 +1137,7 @@ export function AdminCategoriesPage() {
               }
             />
           ) : null}
-        </div>
+        </PageShell>
       )}
     </StepUpGate>
   );

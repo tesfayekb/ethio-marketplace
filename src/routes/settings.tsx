@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
-import { PageCard, PAGE_MAIN_CLASS } from "@/components/shell/page-card";
+import { ContentGrid } from "@/components/layout/content-grid";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageShell } from "@/components/layout/page-shell";
+import { Section } from "@/components/layout/section";
 import {
   changeEmail,
   changePassword,
@@ -271,9 +274,9 @@ function SettingsScreen() {
 
   if (checkingSession) {
     return (
-      <main className={PAGE_MAIN_CLASS}>
+      <PageShell as="main" width="wide">
         <p className="text-sm text-muted-foreground">{t("auth.checking")}</p>
-      </main>
+      </PageShell>
     );
   }
 
@@ -286,15 +289,15 @@ function SettingsScreen() {
   const canRemovePassword = passwordPresent === true && hasFallbackIdentity;
 
   return (
-    <main className={PAGE_MAIN_CLASS}>
-      <h1 className="text-xl font-semibold text-foreground">{t("settings.title")}</h1>
+    <PageShell as="main" width="wide" data-testid="settings-page-shell">
+      <PageHeader title={t("settings.title")} />
 
       {accountDeactivated ? (
-        <PageCard className="mt-4 border-destructive" testid="account-deactivated-banner">
+        <Section className="mt-4 border-destructive" testid="account-deactivated-banner">
           <p role="alert" className="text-sm font-medium text-destructive">
             {t("account.deactivatedBanner")}
           </p>
-        </PageCard>
+        </Section>
       ) : null}
 
       {errorKey ? (
@@ -308,476 +311,482 @@ function SettingsScreen() {
         </p>
       ) : null}
 
-      {/* Section 1 — identity (read-only; editing waits for the REQ-021 gateway) */}
-      <PageCard className="mt-6" aria-labelledby="settings-identity">
-        <h2 id="settings-identity" className="text-base font-semibold text-foreground">
-          {t("settings.identity")}
-        </h2>
-        <dl className="mt-3 grid grid-cols-1 gap-2 text-sm">
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">{t("settings.displayName")}</dt>
-            <dd className="truncate text-foreground">{user?.displayName ?? "—"}</dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">{t("settings.email")}</dt>
-            <dd className="truncate text-foreground">{user?.email ?? "—"}</dd>
-          </div>
-          {/* U4h — the DEVICE ★, shown here as a READ-OUT: the star is chosen in
+      <ContentGrid className="mt-6">
+        {/* Section 1 — identity (read-only; editing waits for the REQ-021 gateway) */}
+        <Section aria-labelledby="settings-identity">
+          <h2 id="settings-identity" className="text-base font-semibold text-foreground">
+            {t("settings.identity")}
+          </h2>
+          <dl className="mt-3 grid grid-cols-1 gap-2 text-sm">
+            <div className="flex justify-between gap-3">
+              <dt className="text-muted-foreground">{t("settings.displayName")}</dt>
+              <dd className="truncate text-foreground">{user?.displayName ?? "—"}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-muted-foreground">{t("settings.email")}</dt>
+              <dd className="truncate text-foreground">{user?.email ?? "—"}</dd>
+            </div>
+            {/* U4h — the DEVICE ★, shown here as a READ-OUT: the star is chosen in
               the language switcher (one affordance, C-laws), and this row only
               tells the operator which device default is currently in force. */}
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">{t("settings.deviceLanguage")}</dt>
-            <dd className="truncate text-foreground" data-testid="settings-device-language">
-              {star
-                ? (publicLanguages.find((row) => row.code === star)?.name_native ?? star)
-                : t("settings.deviceLanguageNone")}
-            </dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-muted-foreground">{t("settings.memberSince")}</dt>
-            <dd className="text-foreground">
-              {memberSince
-                ? new Intl.DateTimeFormat(language, { dateStyle: "medium" }).format(
-                    new Date(memberSince),
-                  )
-                : "—"}
-            </dd>
-          </div>
-        </dl>
-      </PageCard>
+            <div className="flex justify-between gap-3">
+              <dt className="text-muted-foreground">{t("settings.deviceLanguage")}</dt>
+              <dd className="truncate text-foreground" data-testid="settings-device-language">
+                {star
+                  ? (publicLanguages.find((row) => row.code === star)?.name_native ?? star)
+                  : t("settings.deviceLanguageNone")}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-muted-foreground">{t("settings.memberSince")}</dt>
+              <dd className="text-foreground">
+                {memberSince
+                  ? new Intl.DateTimeFormat(language, { dateStyle: "medium" }).format(
+                      new Date(memberSince),
+                    )
+                  : "—"}
+              </dd>
+            </div>
+          </dl>
+        </Section>
 
-      {/* Section 2 — sign-in methods */}
-      <PageCard className="mt-6" aria-labelledby="settings-methods">
-        <h2 id="settings-methods" className="text-base font-semibold text-foreground">
-          {t("settings.methods")}
-        </h2>
+        {/* Section 2 — sign-in methods */}
+        <Section aria-labelledby="settings-methods">
+          <h2 id="settings-methods" className="text-base font-semibold text-foreground">
+            {t("settings.methods")}
+          </h2>
 
-        {identitiesErrorKey ? (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            {t(identitiesErrorKey)}
-          </p>
-        ) : null}
+          {identitiesErrorKey ? (
+            <p role="alert" className="mt-3 text-sm text-destructive">
+              {t(identitiesErrorKey)}
+            </p>
+          ) : null}
 
-        {identities === null ? (
-          <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
-        ) : (
-          <ul className="mt-3 flex flex-col gap-3">
-            {identities.map((identity) => (
-              <li
-                key={identity.identityId}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
-              >
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-foreground">
-                    {t(providerLabelKey(identity.provider))}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {identity.lastUsedAt
-                      ? t("settings.lastUsed").replace(
-                          "{when}",
-                          relativeTime(identity.lastUsedAt, language),
-                        )
-                      : t("settings.lastUsedNever")}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void handleUnlink(identity)}
-                  disabled={busy || onlyOneMethod}
-                  title={onlyOneMethod ? t("settings.lastMethodGuard") : undefined}
-                  className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+          {identities === null ? (
+            <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-3">
+              {identities.map((identity) => (
+                <li
+                  key={identity.identityId}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
                 >
-                  {t("settings.unlink")}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground">
+                      {t(providerLabelKey(identity.provider))}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {identity.lastUsedAt
+                        ? t("settings.lastUsed").replace(
+                            "{when}",
+                            relativeTime(identity.lastUsedAt, language),
+                          )
+                        : t("settings.lastUsedNever")}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void handleUnlink(identity)}
+                    disabled={busy || onlyOneMethod}
+                    title={onlyOneMethod ? t("settings.lastMethodGuard") : undefined}
+                    className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+                  >
+                    {t("settings.unlink")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
 
-        {/* P1-g TRUTH MODEL (R2): the password row. It renders whatever the
+          {/* P1-g TRUTH MODEL (R2): the password row. It renders whatever the
             server says — a password with no email identity is shown here
             rather than hidden, which is exactly the INC-024 ghost shape. */}
-        {passwordStateErrorKey ? (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            {t(passwordStateErrorKey)}
-          </p>
-        ) : null}
+          {passwordStateErrorKey ? (
+            <p role="alert" className="mt-3 text-sm text-destructive">
+              {t(passwordStateErrorKey)}
+            </p>
+          ) : null}
 
-        {passwordPresent === null && !passwordStateErrorKey ? (
-          <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
-        ) : null}
+          {passwordPresent === null && !passwordStateErrorKey ? (
+            <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+          ) : null}
 
-        {passwordPresent !== null ? (
-          <div
-            data-testid="password-method"
-            className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
-          >
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-foreground">
-                {t("settings.passwordMethod")}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {passwordPresent
-                  ? t("settings.passwordMethodPresent")
-                  : t("settings.passwordMethodAbsent")}
-              </span>
+          {passwordPresent !== null ? (
+            <div
+              data-testid="password-method"
+              className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
+            >
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-foreground">
+                  {t("settings.passwordMethod")}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {passwordPresent
+                    ? t("settings.passwordMethodPresent")
+                    : t("settings.passwordMethodAbsent")}
+                </span>
+              </div>
+              {passwordPresent ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    reset();
+                    setConfirmingRemovePassword(true);
+                  }}
+                  disabled={busy || !canRemovePassword}
+                  title={canRemovePassword ? undefined : t("settings.lastMethodGuard")}
+                  className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+                >
+                  {t("settings.removePassword")}
+                </button>
+              ) : null}
             </div>
-            {passwordPresent ? (
+          ) : null}
+
+          {passwordPresent === false ? (
+            <p className="mt-2 text-xs text-muted-foreground">{t("settings.setPasswordHint")}</p>
+          ) : null}
+
+          {confirmingRemovePassword ? (
+            <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
+              <p className="text-sm text-foreground">{t("settings.removePasswordConfirm")}</p>
               <button
                 type="button"
-                onClick={() => {
-                  reset();
-                  setConfirmingRemovePassword(true);
-                }}
-                disabled={busy || !canRemovePassword}
-                title={canRemovePassword ? undefined : t("settings.lastMethodGuard")}
-                className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
-              >
-                {t("settings.removePassword")}
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-
-        {passwordPresent === false ? (
-          <p className="mt-2 text-xs text-muted-foreground">{t("settings.setPasswordHint")}</p>
-        ) : null}
-
-        {confirmingRemovePassword ? (
-          <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
-            <p className="text-sm text-foreground">{t("settings.removePasswordConfirm")}</p>
-            <button
-              type="button"
-              onClick={() => void handleRemovePassword()}
-              disabled={busy}
-              className={primaryButtonClass}
-            >
-              {busy ? t("auth.working") : t("settings.removePasswordConfirmYes")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmingRemovePassword(false)}
-              disabled={busy}
-              className={secondaryButtonClass}
-            >
-              {t("settings.cancel")}
-            </button>
-          </div>
-        ) : null}
-
-        {onlyOneMethod && identities !== null ? (
-          <p className="mt-3 text-xs text-muted-foreground">{t("settings.lastMethodGuard")}</p>
-        ) : null}
-
-        {identities !== null && !identities.some((i) => i.provider === "google") ? (
-          <button
-            type="button"
-            onClick={() => void handleLinkGoogle()}
-            disabled={busy}
-            className={`${secondaryButtonClass} mt-4`}
-          >
-            {busy ? t("auth.working") : t("settings.linkGoogle")}
-          </button>
-        ) : null}
-      </PageCard>
-
-      {/* Section 3 — two-factor authentication (U1f) */}
-      <PageCard className="mt-6" aria-labelledby="settings-mfa" testid="settings-mfa">
-        <h2 id="settings-mfa" className="text-base font-semibold text-foreground">
-          {t("mfa.title")}
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground">{t("mfa.description")}</p>
-
-        {mfa.errorKey ? (
-          <p role="alert" data-testid="mfa-error" className="mt-3 text-sm text-destructive">
-            {t(mfa.errorKey)}
-          </p>
-        ) : null}
-        {mfa.successKey ? (
-          <p role="status" data-testid="mfa-success" className="mt-3 text-sm text-muted-foreground">
-            {t(mfa.successKey)}
-          </p>
-        ) : null}
-
-        {mfa.factors === null ? (
-          <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
-        ) : (
-          <p data-testid="mfa-status" className="mt-3 text-sm font-medium text-foreground">
-            {mfa.factors.length > 0 ? t("mfa.statusOn") : t("mfa.statusOff")}
-          </p>
-        )}
-
-        {/* U1f-4: with no factor left, sensitive actions cannot be stepped up. */}
-        {mfa.factors !== null && mfa.factors.length === 0 ? (
-          <p data-testid="mfa-off-warning" className="mt-2 text-sm text-muted-foreground">
-            {t("mfa.stepUpNoFactorBody")}
-          </p>
-        ) : null}
-
-        {(mfa.factors ?? []).map((factor) => (
-          <div
-            key={factor.id}
-            data-testid={`mfa-factor-${factor.id}`}
-            className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
-          >
-            <div className="flex min-w-0 flex-col">
-              <span className="text-sm font-medium text-foreground">
-                {factor.friendlyName ?? t("mfa.factorName")}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {t("mfa.addedOn").replace("{when}", relativeTime(factor.createdAt, language))}
-              </span>
-            </div>
-            <button
-              type="button"
-              data-testid="mfa-remove"
-              onClick={() => {
-                setRemoveCode("");
-                setRemovingFactorId(factor.id);
-              }}
-              disabled={mfa.busy}
-              className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
-            >
-              {t("mfa.remove")}
-            </button>
-          </div>
-        ))}
-
-        {/* MF-5 — removal re-verifies with a live code before the factor goes. */}
-        {removingFactorId ? (
-          <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
-            <p className="text-sm text-foreground">{t("mfa.removeConfirm")}</p>
-            <label htmlFor="mfa-remove-code" className="text-sm text-muted-foreground">
-              {t("mfa.codeLabel")}
-            </label>
-            <input
-              id="mfa-remove-code"
-              data-testid="mfa-remove-code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              placeholder={t("mfa.codePlaceholder")}
-              value={removeCode}
-              onChange={(e) => setRemoveCode(e.target.value)}
-              className={fieldClass}
-            />
-            <button
-              type="button"
-              data-testid="mfa-remove-confirm"
-              disabled={mfa.busy || removeCode.trim() === ""}
-              onClick={() => {
-                void mfa.removeFactor(removingFactorId, removeCode).then((ok) => {
-                  if (ok) {
-                    setRemovingFactorId(null);
-                    setRemoveCode("");
-                  }
-                });
-              }}
-              className={primaryButtonClass}
-            >
-              {mfa.busy ? t("auth.working") : t("mfa.removeConfirmYes")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setRemovingFactorId(null)}
-              disabled={mfa.busy}
-              className={secondaryButtonClass}
-            >
-              {t("settings.cancel")}
-            </button>
-          </div>
-        ) : null}
-
-        {mfa.pending === null && (mfa.factors ?? []).length === 0 ? (
-          <button
-            type="button"
-            data-testid="mfa-enroll"
-            disabled={mfa.busy}
-            onClick={() => void mfa.startEnrollment(t("mfa.factorName"))}
-            className={`${primaryButtonClass} mt-4`}
-          >
-            {mfa.busy ? t("auth.working") : t("mfa.enroll")}
-          </button>
-        ) : null}
-
-        {mfa.pending ? (
-          <div data-testid="mfa-enroll-panel" className="mt-4 flex flex-col gap-3">
-            <p className="text-sm text-foreground">{t("mfa.step1")}</p>
-            <img
-              data-testid="mfa-qr"
-              src={mfa.pending.qrCode}
-              alt={t("mfa.qrAlt")}
-              width={200}
-              height={200}
-              loading="lazy"
-              className="h-[200px] w-[200px] self-start rounded-md border border-border bg-background p-2"
-            />
-            <label htmlFor="mfa-secret" className="text-sm text-muted-foreground">
-              {t("mfa.secretLabel")}
-            </label>
-            <input
-              id="mfa-secret"
-              data-testid="mfa-secret"
-              readOnly
-              value={mfa.pending.secret}
-              className={fieldClass}
-            />
-            <p className="text-sm text-foreground">{t("mfa.step2")}</p>
-            <label htmlFor="mfa-code" className="text-sm text-muted-foreground">
-              {t("mfa.codeLabel")}
-            </label>
-            <input
-              id="mfa-code"
-              data-testid="mfa-code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              placeholder={t("mfa.codePlaceholder")}
-              value={enrollCode}
-              onChange={(e) => setEnrollCode(e.target.value)}
-              className={fieldClass}
-            />
-            <button
-              type="button"
-              data-testid="mfa-verify"
-              disabled={mfa.busy || enrollCode.trim() === ""}
-              onClick={() => {
-                void mfa.confirmEnrollment(enrollCode).then((ok) => {
-                  if (ok) setEnrollCode("");
-                });
-              }}
-              className={primaryButtonClass}
-            >
-              {mfa.busy ? t("auth.working") : t("mfa.verifyActivate")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEnrollCode("");
-                void mfa.cancelEnrollment();
-              }}
-              disabled={mfa.busy}
-              className={secondaryButtonClass}
-            >
-              {t("settings.cancel")}
-            </button>
-          </div>
-        ) : null}
-      </PageCard>
-
-      {/* Section 4 — security */}
-      <PageCard className="mt-6" aria-labelledby="settings-security">
-        <h2 id="settings-security" className="text-base font-semibold text-foreground">
-          {t("settings.security")}
-        </h2>
-
-        {/* P1-g: with no password there is nothing to change. The recovery flow
-            is the way to set one, so the hint points there instead of showing a
-            form that could only ever fail. */}
-        {passwordPresent === false ? (
-          <p className="mt-4 text-sm text-muted-foreground">{t("settings.setPasswordHint")}</p>
-        ) : null}
-
-        <form
-          onSubmit={handleChangePassword}
-          hidden={passwordPresent === false}
-          className="mt-4 flex flex-col gap-3"
-        >
-          <h3 className="text-sm font-medium text-foreground">{t("settings.changePassword")}</h3>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="current-password" className="text-sm text-muted-foreground">
-              {t("settings.currentPassword")}
-            </label>
-            <input
-              id="current-password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className={fieldClass}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="new-password" className="text-sm text-muted-foreground">
-              {t("settings.newPassword")}
-            </label>
-            <input
-              id="new-password"
-              type="password"
-              autoComplete="new-password"
-              minLength={MIN_PASSWORD_LENGTH}
-              required
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder={t("auth.passwordPlaceholder")}
-              className={fieldClass}
-            />
-          </div>
-          <button type="submit" disabled={busy} className={primaryButtonClass}>
-            {busy ? t("auth.working") : t("settings.changePassword")}
-          </button>
-        </form>
-
-        <form onSubmit={handleChangeEmail} className="mt-8 flex flex-col gap-3">
-          <h3 className="text-sm font-medium text-foreground">{t("settings.changeEmail")}</h3>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="new-email" className="text-sm text-muted-foreground">
-              {t("settings.newEmail")}
-            </label>
-            <input
-              id="new-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              required
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              placeholder={t("auth.emailPlaceholder")}
-              className={fieldClass}
-            />
-          </div>
-          <button type="submit" disabled={busy} className={secondaryButtonClass}>
-            {busy ? t("auth.working") : t("settings.changeEmail")}
-          </button>
-        </form>
-
-        <div className="mt-8 flex flex-col gap-3">
-          {confirmingSignOutOthers ? (
-            <>
-              <p className="text-sm text-foreground">{t("settings.signOutOthersConfirm")}</p>
-              <button
-                type="button"
-                onClick={() => void handleSignOutOthers()}
+                onClick={() => void handleRemovePassword()}
                 disabled={busy}
                 className={primaryButtonClass}
               >
-                {busy ? t("auth.working") : t("settings.signOutOthersConfirmYes")}
+                {busy ? t("auth.working") : t("settings.removePasswordConfirmYes")}
               </button>
               <button
                 type="button"
-                onClick={() => setConfirmingSignOutOthers(false)}
+                onClick={() => setConfirmingRemovePassword(false)}
                 disabled={busy}
                 className={secondaryButtonClass}
               >
                 {t("settings.cancel")}
               </button>
-            </>
-          ) : (
+            </div>
+          ) : null}
+
+          {onlyOneMethod && identities !== null ? (
+            <p className="mt-3 text-xs text-muted-foreground">{t("settings.lastMethodGuard")}</p>
+          ) : null}
+
+          {identities !== null && !identities.some((i) => i.provider === "google") ? (
             <button
               type="button"
-              onClick={() => {
-                reset();
-                setConfirmingSignOutOthers(true);
-              }}
+              onClick={() => void handleLinkGoogle()}
               disabled={busy}
-              className={secondaryButtonClass}
+              className={`${secondaryButtonClass} mt-4`}
             >
-              {t("settings.signOutOthers")}
+              {busy ? t("auth.working") : t("settings.linkGoogle")}
             </button>
+          ) : null}
+        </Section>
+
+        {/* Section 3 — two-factor authentication (U1f) */}
+        <Section aria-labelledby="settings-mfa" testid="settings-mfa">
+          <h2 id="settings-mfa" className="text-base font-semibold text-foreground">
+            {t("mfa.title")}
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">{t("mfa.description")}</p>
+
+          {mfa.errorKey ? (
+            <p role="alert" data-testid="mfa-error" className="mt-3 text-sm text-destructive">
+              {t(mfa.errorKey)}
+            </p>
+          ) : null}
+          {mfa.successKey ? (
+            <p
+              role="status"
+              data-testid="mfa-success"
+              className="mt-3 text-sm text-muted-foreground"
+            >
+              {t(mfa.successKey)}
+            </p>
+          ) : null}
+
+          {mfa.factors === null ? (
+            <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+          ) : (
+            <p data-testid="mfa-status" className="mt-3 text-sm font-medium text-foreground">
+              {mfa.factors.length > 0 ? t("mfa.statusOn") : t("mfa.statusOff")}
+            </p>
           )}
-        </div>
-      </PageCard>
-    </main>
+
+          {/* U1f-4: with no factor left, sensitive actions cannot be stepped up. */}
+          {mfa.factors !== null && mfa.factors.length === 0 ? (
+            <p data-testid="mfa-off-warning" className="mt-2 text-sm text-muted-foreground">
+              {t("mfa.stepUpNoFactorBody")}
+            </p>
+          ) : null}
+
+          {(mfa.factors ?? []).map((factor) => (
+            <div
+              key={factor.id}
+              data-testid={`mfa-factor-${factor.id}`}
+              className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
+            >
+              <div className="flex min-w-0 flex-col">
+                <span className="text-sm font-medium text-foreground">
+                  {factor.friendlyName ?? t("mfa.factorName")}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {t("mfa.addedOn").replace("{when}", relativeTime(factor.createdAt, language))}
+                </span>
+              </div>
+              <button
+                type="button"
+                data-testid="mfa-remove"
+                onClick={() => {
+                  setRemoveCode("");
+                  setRemovingFactorId(factor.id);
+                }}
+                disabled={mfa.busy}
+                className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+              >
+                {t("mfa.remove")}
+              </button>
+            </div>
+          ))}
+
+          {/* MF-5 — removal re-verifies with a live code before the factor goes. */}
+          {removingFactorId ? (
+            <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
+              <p className="text-sm text-foreground">{t("mfa.removeConfirm")}</p>
+              <label htmlFor="mfa-remove-code" className="text-sm text-muted-foreground">
+                {t("mfa.codeLabel")}
+              </label>
+              <input
+                id="mfa-remove-code"
+                data-testid="mfa-remove-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                placeholder={t("mfa.codePlaceholder")}
+                value={removeCode}
+                onChange={(e) => setRemoveCode(e.target.value)}
+                className={fieldClass}
+              />
+              <button
+                type="button"
+                data-testid="mfa-remove-confirm"
+                disabled={mfa.busy || removeCode.trim() === ""}
+                onClick={() => {
+                  void mfa.removeFactor(removingFactorId, removeCode).then((ok) => {
+                    if (ok) {
+                      setRemovingFactorId(null);
+                      setRemoveCode("");
+                    }
+                  });
+                }}
+                className={primaryButtonClass}
+              >
+                {mfa.busy ? t("auth.working") : t("mfa.removeConfirmYes")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRemovingFactorId(null)}
+                disabled={mfa.busy}
+                className={secondaryButtonClass}
+              >
+                {t("settings.cancel")}
+              </button>
+            </div>
+          ) : null}
+
+          {mfa.pending === null && (mfa.factors ?? []).length === 0 ? (
+            <button
+              type="button"
+              data-testid="mfa-enroll"
+              disabled={mfa.busy}
+              onClick={() => void mfa.startEnrollment(t("mfa.factorName"))}
+              className={`${primaryButtonClass} mt-4`}
+            >
+              {mfa.busy ? t("auth.working") : t("mfa.enroll")}
+            </button>
+          ) : null}
+
+          {mfa.pending ? (
+            <div data-testid="mfa-enroll-panel" className="mt-4 flex flex-col gap-3">
+              <p className="text-sm text-foreground">{t("mfa.step1")}</p>
+              <img
+                data-testid="mfa-qr"
+                src={mfa.pending.qrCode}
+                alt={t("mfa.qrAlt")}
+                width={200}
+                height={200}
+                loading="lazy"
+                className="h-[200px] w-[200px] self-start rounded-md border border-border bg-background p-2"
+              />
+              <label htmlFor="mfa-secret" className="text-sm text-muted-foreground">
+                {t("mfa.secretLabel")}
+              </label>
+              <input
+                id="mfa-secret"
+                data-testid="mfa-secret"
+                readOnly
+                value={mfa.pending.secret}
+                className={fieldClass}
+              />
+              <p className="text-sm text-foreground">{t("mfa.step2")}</p>
+              <label htmlFor="mfa-code" className="text-sm text-muted-foreground">
+                {t("mfa.codeLabel")}
+              </label>
+              <input
+                id="mfa-code"
+                data-testid="mfa-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                placeholder={t("mfa.codePlaceholder")}
+                value={enrollCode}
+                onChange={(e) => setEnrollCode(e.target.value)}
+                className={fieldClass}
+              />
+              <button
+                type="button"
+                data-testid="mfa-verify"
+                disabled={mfa.busy || enrollCode.trim() === ""}
+                onClick={() => {
+                  void mfa.confirmEnrollment(enrollCode).then((ok) => {
+                    if (ok) setEnrollCode("");
+                  });
+                }}
+                className={primaryButtonClass}
+              >
+                {mfa.busy ? t("auth.working") : t("mfa.verifyActivate")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEnrollCode("");
+                  void mfa.cancelEnrollment();
+                }}
+                disabled={mfa.busy}
+                className={secondaryButtonClass}
+              >
+                {t("settings.cancel")}
+              </button>
+            </div>
+          ) : null}
+        </Section>
+
+        {/* Section 4 — security */}
+        <Section aria-labelledby="settings-security">
+          <h2 id="settings-security" className="text-base font-semibold text-foreground">
+            {t("settings.security")}
+          </h2>
+
+          {/* P1-g: with no password there is nothing to change. The recovery flow
+            is the way to set one, so the hint points there instead of showing a
+            form that could only ever fail. */}
+          {passwordPresent === false ? (
+            <p className="mt-4 text-sm text-muted-foreground">{t("settings.setPasswordHint")}</p>
+          ) : null}
+
+          <form
+            onSubmit={handleChangePassword}
+            hidden={passwordPresent === false}
+            className="mt-4 flex flex-col gap-3"
+          >
+            <h3 className="text-sm font-medium text-foreground">{t("settings.changePassword")}</h3>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="current-password" className="text-sm text-muted-foreground">
+                {t("settings.currentPassword")}
+              </label>
+              <input
+                id="current-password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className={fieldClass}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="new-password" className="text-sm text-muted-foreground">
+                {t("settings.newPassword")}
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                autoComplete="new-password"
+                minLength={MIN_PASSWORD_LENGTH}
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder={t("auth.passwordPlaceholder")}
+                className={fieldClass}
+              />
+            </div>
+            <button type="submit" disabled={busy} className={primaryButtonClass}>
+              {busy ? t("auth.working") : t("settings.changePassword")}
+            </button>
+          </form>
+
+          <form onSubmit={handleChangeEmail} className="mt-8 flex flex-col gap-3">
+            <h3 className="text-sm font-medium text-foreground">{t("settings.changeEmail")}</h3>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="new-email" className="text-sm text-muted-foreground">
+                {t("settings.newEmail")}
+              </label>
+              <input
+                id="new-email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                required
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder={t("auth.emailPlaceholder")}
+                className={fieldClass}
+              />
+            </div>
+            <button type="submit" disabled={busy} className={secondaryButtonClass}>
+              {busy ? t("auth.working") : t("settings.changeEmail")}
+            </button>
+          </form>
+
+          <div className="mt-8 flex flex-col gap-3">
+            {confirmingSignOutOthers ? (
+              <>
+                <p className="text-sm text-foreground">{t("settings.signOutOthersConfirm")}</p>
+                <button
+                  type="button"
+                  onClick={() => void handleSignOutOthers()}
+                  disabled={busy}
+                  className={primaryButtonClass}
+                >
+                  {busy ? t("auth.working") : t("settings.signOutOthersConfirmYes")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingSignOutOthers(false)}
+                  disabled={busy}
+                  className={secondaryButtonClass}
+                >
+                  {t("settings.cancel")}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  reset();
+                  setConfirmingSignOutOthers(true);
+                }}
+                disabled={busy}
+                className={secondaryButtonClass}
+              >
+                {t("settings.signOutOthers")}
+              </button>
+            )}
+          </div>
+        </Section>
+      </ContentGrid>
+    </PageShell>
   );
 }

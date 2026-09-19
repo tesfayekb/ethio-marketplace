@@ -2,8 +2,12 @@
 
 Status: CLOSED 2026-08-03. Trimmed per DEC-012.
 
-Route: `src/routes/settings.tsx` (auth-required, 360px primary).
+Route: `src/routes/settings.tsx` (auth-required, mobile-first).
 Service: `src/features/auth/auth-service.ts`.
+
+LAYOUT-1 places Settings in the shared wide `PageShell`, with `PageHeader` and a
+responsive `ContentGrid` of `Section` cards: one column on a phone, two at `lg`,
+and three at `2xl`. Authentication behavior and action selectors are unchanged.
 
 ## Scope and the two operator rulings
 
