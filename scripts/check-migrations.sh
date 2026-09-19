@@ -261,7 +261,11 @@ check_mark_file() {
     return 1
   fi
   local best
-  best=$(grep -oE "migration_marks[^;]*'[0-9]{14}'" "$file" \
+  # The statement may be written across several lines (the migration tool
+  # formats the SQL it writes and the file cannot be edited afterwards), so the
+  # file is flattened to ONE line before the mark literal is read — otherwise a
+  # correctly self-marking migration reads as unmarked (M-MAINT-2 Part A).
+  best=$(tr '\n' ' ' < "$file" | grep -oE "migration_marks[^;]*'[0-9]{14}'" \
     | grep -oE "'[0-9]{14}'" | tr -d "'" | sort | tail -1)
   if [ -z "$best" ]; then
     echo "  - $file (mark carries no 14-digit version literal)"
