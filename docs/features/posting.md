@@ -479,6 +479,15 @@ FLAGGED for a re-check (`post-category-photos-recheck`), because the fit rule
 runs again at publish (D21). Silence here would mean publishing facts under
 labels the category never offered.
 
+**THE DROP IS SAVED BY A REWIND, NOT A CLAIM.** `draft.saveAt` only ever RAISES
+the step claim (INC-228), so a category change saves through `draft.rewindTo(1)`:
+the claim falls back to step 1, where the door validates the category alone and
+accepts the emptied attribute map. And the save reads its values from the values
+REF, which is now advanced SYNCHRONOUSLY inside `change()` — a React state
+updater runs at render, so a save fired in the same turn as the change used to
+send the PREVIOUS answers and the dropped details travelled straight back into
+the row (PW-26).
+
 **PREVIEW AS BUYERS SEE IT.** `post-preview-open` opens a full-screen sheet
 (`post-preview-sheet`, portalled, Escape closes, body scroll locked) rendering
 the listing DETAIL: gallery or the ancestor illustration, title, price with
