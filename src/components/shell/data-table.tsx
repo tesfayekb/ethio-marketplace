@@ -3,6 +3,7 @@ import { Fragment, type KeyboardEvent, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Toolbar } from "@/components/layout/toolbar";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -279,9 +280,7 @@ export function DataTable<T>({
 
   const toolbarBlock = toolbar ? (
     <PageCard testid="data-table-toolbar" className="min-w-0">
-      <div className="flex min-w-0 flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
-        {toolbar}
-      </div>
+      <Toolbar>{toolbar}</Toolbar>
     </PageCard>
   ) : null;
 

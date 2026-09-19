@@ -8,6 +8,12 @@ What landed: the wizard shell, the draft (autosave, offline retry, resume) and
 steps 1–2. Steps 3–8 are declared in the rail and say so in words on screen
 (`post.stepLater`); C1b lands the specification form, title and description.
 
+LAYOUT-1 keeps the compact phone header and adds a shared split layout at `lg`:
+the form remains in a reading-width column, while a sticky aside shows all eight
+steps with completion ticks, the chosen category, and a live listing preview
+from step 4. `FormLayout` owns the safe-area-aware sticky Back/Next bar below
+`md`; it is a normal footer on larger screens.
+
 ## The screens
 
 | Route        | Purpose                                                                              |

@@ -7,6 +7,7 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { PageCard } from "@/components/shell/page-card";
+import { PageShell } from "@/components/layout/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -223,7 +224,11 @@ export function AdminTranslationsStringsPage({
   return (
     <StepUpGate>
       {(guard) => (
-        <div data-testid="admin-translations-strings" className="min-w-0 space-y-4">
+        <PageShell
+          width="full"
+          data-testid="admin-translations-strings"
+          className="space-y-4 p-0 md:p-0 xl:p-0"
+        >
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
               {t("admin.translations.strings.title").replace(
@@ -461,7 +466,7 @@ export function AdminTranslationsStringsPage({
               />
             </>
           )}
-        </div>
+        </PageShell>
       )}
     </StepUpGate>
   );

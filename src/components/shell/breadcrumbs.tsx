@@ -86,6 +86,32 @@ export function Breadcrumbs() {
     );
   }
 
+  if (pathname === "/account") {
+    return (
+      <Breadcrumb
+        data-testid="breadcrumbs"
+        aria-label={t("shell.breadcrumbLabel")}
+        className="mb-3"
+      >
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/" data-testid="breadcrumb-home">
+                {t("nav.home")}
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage data-testid="breadcrumb-account" className={CURRENT}>
+              {t("panel.account")}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
+
   /**
    * U0c — ADMIN ROUTES feed THIS seam, route-derived (INC-058). The admin
    * panel no longer carries its own breadcrumb row: exactly one breadcrumb
