@@ -2003,11 +2003,51 @@ test.describe("L4b location picker", () => {
             return;
           }
         }
+        /**
+         * INC-218 — THE REFUSAL IS THE EVIDENCE (R3b-2 STEP 1). Three attempts
+         * closed this as a budget problem and it came back, so the refusal now
+         * carries everything needed to tell the two hypotheses apart without
+         * another run: what the menu held (in the DOM, and of those what was
+         * visible), and what the BROWSER'S OWN read of `/api/locations` — the
+         * very request the app makes, through the same HTTP cache — answered.
+         *
+         *   the code is in the browser's body but not in the DOM → the app
+         *   rendered from a DIFFERENT, older answer (a cache seam);
+         *   the item is in the DOM but never visible → the sheet clips it.
+         */
         const offered = await uiPage.getByRole("menuitem").allInnerTexts();
+        const inDom = await item.count();
+        const read = await uiPage.evaluate<{
+          status: number;
+          length: number;
+          codes: string[];
+          error?: string;
+        }>(async () => {
+          try {
+            const response = await fetch("/api/locations", {
+              headers: { accept: "application/json" },
+            });
+            const text = await response.text();
+            const parsed = JSON.parse(text) as { countries?: { code?: string }[] };
+            return {
+              status: response.status,
+              length: text.length,
+              codes: (parsed.countries ?? []).map((row) => String(row.code ?? "")),
+            };
+          } catch (error) {
+            return { status: 0, length: 0, codes: [] as string[], error: String(error) };
+          }
+        });
         throw new Error(
-          `LS-11 step 2: the country menu never offered ${name} in six opens — visible options: ${
-            offered.join(" | ") || "(none)"
-          }`,
+          [
+            `LS-11 step 2: the country menu never offered ${name} in six opens.`,
+            `menu items in the DOM (${offered.length}): ${offered.join(" | ") || "(none)"}`,
+            `the wanted item's DOM count: ${inDom}`,
+            `browser /api/locations: status ${read.status}, body ${read.length} bytes, ${read.codes.length} codes: ${read.codes.join(",") || "(none)"}`,
+            `the scratch market ${first.code}/${second.code} in that body: ${String(
+              read.codes.includes(first.code),
+            )}/${String(read.codes.includes(second.code))}`,
+          ].join("\n"),
         );
       };
 
