@@ -223,3 +223,22 @@ lines, the `e2e:local` env entry and the three helpers as one revert.
 DEC-059: the teardown retries each pooled-user delete three times with backoff and, when only those users survive, warns and exits normally — the residue reaper owns them (J3); a survivor it did not fail to delete is still an error, and the out-of-namespace guard is untouched. The failure reporter extracts post-test lines (`[e2e:teardown]`, trailing `Error:` blocks) from every source's log tail: a red form gets a "Post-test errors" section, a green form a "Post-test warnings: n" line. A green shard is never failed by cleanup, and cleanup never goes unseen. The reporter's `--self-test` renders into a temp directory and never touches the tracked evidence file (INC-191).
 
 Deletions are declared either by the `[intentional-delete]` commit-message marker or by a line the same push adds to `docs/tracking/intentional-deletions.txt` (INC-192) — the executor cannot author commit messages, so the manifest is its door. The reporter's post-test window starts at the final Playwright summary line, so a failing test's own error is never reported twice (INC-194).
+
+## R-TR34 — the G28 law: whole-export comparisons strip same-run scratch rows
+
+A comparison of two WHOLE exports (a before/after capture, a round-trip no-op
+assertion) strips same-run scratch rows through ONE helper:
+`stripScratchRows` in `e2e/helpers/exports.ts`. A concurrent worker — or the
+other viewport project — may mint and destroy its own `e2e_`/`e2e-` fixtures
+between the two captures; those rows are another test's business (J6) and
+never part of the invariant, which is the STABLE roster. The CSV form splits
+RFC 4180 records (quotes respected), preserves the BOM and header, drops every
+record naming the stem anywhere in the record, and returns the surviving row
+count for the `unchanged` assertion; the parsed-row form applies the same
+rule to rows already out of the file. An optional live-identity set
+(INC-214 — `scratchIdentities` censused by the caller at each capture's own
+time) additionally drops rows keyed by a scratch id whose own cells mention
+nothing of the stem. Adopted by AT-20 (admin-attributes), CT-18
+(admin-categories-lifecycle) and TR-34 (admin-translations-data); the class
+was hit three times (G28) before it became a law. No assertion is weakened:
+the comparison still covers every real row.
