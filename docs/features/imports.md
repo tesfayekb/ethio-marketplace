@@ -167,9 +167,24 @@ listing validator does not read them.
 
 ## The links file — `allowed_options` and `default_value` (D-spec §12)
 
-The two per-link cells travel in the links file: `allowed_options`
-pipe-separated (`piece|set`, empty = every option) and `default_value` as value
-text. Planning, commit, Undo and the export echo ride M-MAINT-2 **Part B**; Part
-A landed the columns, the schema read and the validator only. Until Part B
-lands, the cells are written by migration or console only, and a links file
-carrying them is read-only for those two columns.
+The two per-link cells travel in the links file, after the existing cells:
+
+- `allowed_options` — pipe-separated subset of the DEFINITION's own option
+  values (`piece|set`). An ABSENT cell changes nothing; a PRESENT and EMPTY cell
+  clears the narrowing (`NULL` = every option). A value outside the definition's
+  options refuses `badAllowedOption:<value>`; a non-select definition refuses
+  `badAllowedOption:typeNotSelect`. The definition is read POST-PLAN, so a file
+  that adds the definition and narrows the link in one pass is legal.
+- `default_value` — value text judged against the definition's TYPE, and against
+  the shortlist in force (this row's when it carries one, otherwise the stored
+  one). A bad value refuses `badDefault:<detail>` —
+  `notANumber:`, `notABoolean:`, `notADate:`, `notInOptions:`. A multi-select
+  default is pipe-separated and stored as an array.
+
+Both cells are PLANNED as field diffs (`change = change` when either differs),
+APPLIED on commit only when the file carried them, CAPTURED in the batch
+revisions (`prev`/`post`), RESTORED by Undo, and ECHOED by the export
+(`piece|set`, the default as value text, `''` when `NULL`) — so an export round
+trips silently. M-MAINT-2 **Part B**, proof P1b. The registry/console cells ride
+C1-R3.
+

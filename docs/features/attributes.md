@@ -801,3 +801,12 @@ non-`NULL` `allowed_options` with `optionNotAllowed:<value>`, after
 `unknownOption` and `inactiveOption`; a value the listing ALREADY carried
 (`p_prior`) is not refused, so a later narrowing never blocks an edit to an
 unrelated field.
+
+Since M-MAINT-2 **Part B** both cells also travel in the ATTRIBUTES FILE, per
+link: `allowed_options` pipe-separated and `default_value` as value text,
+planned as field diffs, applied on commit, captured in the batch revisions,
+restored by Undo and echoed by the export. Refusals name themselves —
+`badAllowedOption:<value>` (including `typeNotSelect`) and `badDefault:<detail>`
+(`notANumber`, `notABoolean`, `notADate`, `notInOptions`). See
+`docs/features/imports.md`.
+
