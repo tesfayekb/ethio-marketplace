@@ -23,7 +23,7 @@ test("INC223 repro: stale stamps sign the new session out", async ({ page }) => 
     const w = window as unknown as { __inc223Seeded?: boolean };
     if (w.__inc223Seeded) return;
     w.__inc223Seeded = true;
-    const stale = Date.now() - 3 * 60 * 60 * 1000;
+    const stale = Date.now() - 5 * 60 * 60 * 1000;
     localStorage.setItem(`sb-${ref}-last-activity-at`, String(stale));
     localStorage.setItem(`sb-${ref}-session-started-at`, String(stale));
   }, new URL(process.env["E2E_SUPABASE_URL"]!).hostname.split(".")[0]);
