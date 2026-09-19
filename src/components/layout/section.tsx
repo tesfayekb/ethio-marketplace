@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
+import type { ContentGridSpan } from "@/components/layout/content-grid";
 import { cn } from "@/lib/utils";
 
 /** The titled content card shared by settings and overview families. */
@@ -9,6 +10,7 @@ export function Section({
   children,
   className,
   testid = "layout-section",
+  span = 1,
   ...props
 }: {
   title?: ReactNode;
@@ -16,10 +18,12 @@ export function Section({
   children: ReactNode;
   className?: string;
   testid?: string;
+  span?: ContentGridSpan;
 } & HTMLAttributes<HTMLElement>) {
   return (
     <section
       data-testid={testid}
+      data-grid-span={span}
       className={cn("min-w-0 rounded-lg border border-border bg-card p-4 md:p-6", className)}
       {...props}
     >
