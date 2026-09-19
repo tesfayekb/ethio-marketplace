@@ -195,6 +195,24 @@ after `card_rank` and before `origin`. The links header is therefore
 `category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,allowed_options,default_value,origin (read-only)`.
 Shape only lives at the gate; every semantic verdict stays the planner's
 (`badAllowedOption:` / `badDefault:`). AT-21 sets both from a file and reads the
-export's echo. The per-row CONSOLE cell is still deferred:
-`admin_update_attribute_link` takes neither parameter, so an editor field there
-would save nothing (F4) — it rides that migration.
+export's echo. Since M-MAINT-3 both cells also have a DOOR
+(`admin_link_attribute` / `admin_update_attribute_link`), so the console's own
+per-row cells no longer wait on a migration.
+
+### NAMED DEFERRAL — no `visible_when` cell in the file yet (M-MAINT-3)
+
+D24's condition (`category_attribute_links.visible_when`, see
+`docs/features/attributes.md`) is set through the LINK DOORS only. The attributes
+FILE does not carry it: `attr_import_plan`, `admin_commit_attribute_import`,
+`admin_undo_attribute_import` and `attr_export_payload` must each be re-declared
+WHOLE to plan, apply, capture, restore and echo the cell, and M-MAINT-3 landed
+the doors half only (operator-approved). Consequences until that landing:
+
+- an uploaded links file that carries a `visible_when` column has it IGNORED as
+  an unknown column at the gate — it never half-applies;
+- an export round trip does NOT preserve a condition set through the door, so a
+  full-file re-import leaves conditions untouched rather than clearing them
+  (the planner never writes the column).
+
+The cell's text form is decided and will be `key=value1|value2`, placed after
+`default_value`, with the planner's own refusal `badVisibleWhen:<detail>`.

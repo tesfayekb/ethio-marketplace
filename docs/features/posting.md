@@ -515,10 +515,33 @@ a business must carry a business name and may leave the names empty. The door
 owns both rules — the screen mirrors them. The review's seller line shows the
 business name (or the alias) before the channels.
 
-### Deferred — the plan photo cap (D22)
+### The plan document (D22) — both doors exist since M-MAINT-3
 
-The photos step still reads its cap from `MAX_PHOTOS_PER_LISTING`, not from
-`coverage_plans.max_photos`. The column exists (M-MAINT-2 Part A) but
-`get_posting_schema` does not return the plan caps and `admin_set_coverage_plan`
-takes no `p_max_photos`, so neither the READ nor the Plans-editor WRITE has a
-door; both are migrations, and this task carried none. CV-7 rides that migration.
+`get_posting_schema` returns `plan` = `{ plan, max_photos, max_cities,
+max_regions, max_countries, allow_everywhere }` for the CALLER
+(`plan_caps(seller_plan(auth.uid()))`; plans are not per-seller yet, so
+`seller_plan` answers `free` for everyone). The Plans editor's write door
+`admin_set_coverage_plan` now takes `p_max_photos smallint` (0..30, refusal
+`badMaxPhotos`); an ABSENT cap means no change — the stored cap for an existing
+plan, the column default for a new one. The photos step should therefore read
+its cap from that ONE document instead of `MAX_PHOTOS_PER_LISTING`; that screen
+change and CV-7 ride the consumers landing (R3b-2), not a migration.
+
+### Conditional questions (D24) — since M-MAINT-3
+
+Every attribute row in the specification read carries `visible_when`: either
+`null` or `{ "key": "<sibling attr_key in the same category>", "in": [ … ] }`
+(at most eight values). The rule the wizard mirrors is the DOOR's:
+
+- the condition is MET when the sibling's current answer is one of the listed
+  values (a single value, one of a multi-select's values, or an `other`
+  object's `value`);
+- a question whose condition is NOT met is NOT ASKED and is never required —
+  `validate_listing_attributes` treats it as absent, so it can never refuse
+  `required` for a hidden question;
+- an answer sent for a hidden question is DROPPED from the normalised attrs, so
+  it is never stored. Changing the sibling back therefore never resurrects a
+  stale answer from the row.
+
+The screen must hide the control (not merely disable it) and keep sending
+whatever the seller typed — the door decides what survives.
