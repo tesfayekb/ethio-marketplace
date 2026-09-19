@@ -76,6 +76,10 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
   const categoryId = draft.values.categoryId;
+  /** U6-C1-R3a-2 — step 1's only answer: a leaf. No leaf, nothing to send. */
+  const needsLeaf = draft.step === 1 && categoryId === null;
+  const [triedWithoutLeaf, setTriedWithoutLeaf] = useState(false);
+
   useEffect(() => {
     if (categoryId === null) {
       setFacts(null);
@@ -305,37 +309,49 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
 
               <FormLayout
                 footer={
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      data-testid="post-back"
-                      className={`${navButtonClass} border border-input text-foreground hover:bg-accent`}
-                      disabled={draft.step === 1}
-                      onClick={() => draft.goTo(draft.step - 1)}
-                    >
-                      {t("post.action.back")}
-                    </button>
-                    {draft.step < TOTAL_STEPS ? (
+                  <div className="space-y-1">
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        data-testid="post-next"
-                        className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90`}
-                        onClick={() => {
-                          void (async () => {
-                            const saved = await draft.saveAt(draft.step);
-                            if (!saved) return;
-                            if (returnToReview) {
-                              setReturnToReview(false);
-                              draft.goTo(TOTAL_STEPS);
-                              return;
-                            }
-                            draft.goTo(draft.step + 1);
-                          })();
-                        }}
+                        data-testid="post-back"
+                        className={`${navButtonClass} border border-input text-foreground hover:bg-accent`}
+                        disabled={draft.step === 1}
+                        onClick={() => draft.goTo(draft.step - 1)}
                       >
-                        {t("post.action.next")}
+                        {t("post.action.back")}
                       </button>
-                    ) : null}
+                      {draft.step < TOTAL_STEPS ? (
+                        <button
+                          type="button"
+                          data-testid="post-next"
+                          className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60`}
+                          /* U6-C1-R3a-2 — STEP 1 HAS ONE ANSWER and it is a leaf:
+                             with none chosen there is nothing to send, so Next is
+                             closed and says why underneath. Every later step keeps
+                             sending (the door is the judge, F3). */
+                          disabled={needsLeaf}
+                          onClick={() => {
+                            void (async () => {
+                              const saved = await draft.saveAt(draft.step);
+                              if (!saved) return;
+                              if (returnToReview) {
+                                setReturnToReview(false);
+                                draft.goTo(TOTAL_STEPS);
+                                return;
+                              }
+                              draft.goTo(draft.step + 1);
+                            })();
+                          }}
+                        >
+                          {t("post.action.next")}
+                        </button>
+                      ) : null}
+                    </div>
+                    {needsLeaf && (
+                      <p className="text-xs text-muted-foreground" data-testid="post-next-blocked">
+                        {t("post.category.nextBlocked")}
+                      </p>
+                    )}
                   </div>
                 }
               >
@@ -343,17 +359,28 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                   {draft.loading ? (
                     <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
                   ) : (
-                    <section data-testid={`post-step-${draft.step}`}>
+                    <section
+                      data-testid={`post-step-${draft.step}`}
+                      /* A KEYBOARD SELLER PRESSING ENTER on step 1 with no leaf gets
+                         the same answer as a tap on a closed Next: the choice group
+                         outlined, and the reason said (F4). */
+                      onKeyDown={(event) => {
+                        if (event.key !== "Enter" || !needsLeaf) return;
+                        setTriedWithoutLeaf(true);
+                      }}
+                    >
                       {draft.step === 1 && (
                         <StepCategory
                           tree={tree}
                           isLoading={treeLoading}
                           treeError={treeError}
+                          invalid={triedWithoutLeaf && categoryId === null}
                           onChoose={(categoryId) => {
                             // ONE CONTROL, AUTO-ADVANCE: choosing a postable leaf IS the
                             // answer to step 1, so the wizard saves it and moves on. No
                             // confirmation screen — the chip above every later step is the
                             // confirmation, and it carries the way back.
+                            setTriedWithoutLeaf(false);
                             draft.change({ categoryId }, true);
                             void draft.saveAt(1).then((saved) => {
                               if (saved) draft.goTo(2);
@@ -361,6 +388,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           }}
                         />
                       )}
+
                       {draft.step === 2 && (
                         <StepPhotos
                           listingId={draft.listingId}

@@ -160,3 +160,94 @@ export async function readGuessCurrency(): Promise<string> {
     return FALLBACK_CURRENCY;
   }
 }
+
+/* --------------------- U6-C1-R3a-2 — the currency law --------------------- */
+
+/**
+ * THE MONEY THE SELLER LAST USED. A seller who priced their last listing in ETB
+ * means ETB again, wherever the edge thinks they are today — so their OWN last
+ * listing outranks the guess market. An owner read through RLS: no other
+ * seller's row is visible, and a failure simply yields `null`.
+ */
+export async function readLastListingCurrency(): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("listings")
+    .select("price_currency,created_at")
+    .not("price_currency", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || data === null) return null;
+  const code = data.price_currency;
+  return typeof code === "string" && code.length === 3 ? code.toUpperCase() : null;
+}
+
+export interface MarketCurrency {
+  /** The market's country code, so the seller's own market can go first. */
+  country: string;
+  currencyCode: string;
+  displayOrder: number;
+}
+
+/**
+ * THE SHORT LIST IS THE OPEN MARKETS' MONEY. Fifteen markets is the ceiling the
+ * rail already lives with, so the picker opens on the currencies a seller here
+ * could plausibly want — the full ISO list stays one row away ("More
+ * currencies…"). Read from the same public `/api/locations` document the rail
+ * uses, so no second source of market truth is invented.
+ */
+export async function readMarketCurrencies(): Promise<MarketCurrency[]> {
+  try {
+    const response = await fetch("/api/locations", { headers: { accept: "application/json" } });
+    if (!response.ok) return [];
+    const payload = (await response.json()) as {
+      countries?: Array<{ code?: unknown; currency_code?: unknown; display_order?: unknown }>;
+    };
+    return (payload.countries ?? [])
+      .map((row) => ({
+        country: String(row.code ?? "")
+          .trim()
+          .toUpperCase(),
+        currencyCode: String(row.currency_code ?? "")
+          .trim()
+          .toUpperCase(),
+        displayOrder: Number(row.display_order ?? 0),
+      }))
+      .filter((row) => /^[A-Z]{2}$/.test(row.country) && /^[A-Z]{3}$/.test(row.currencyCode))
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  } catch {
+    return [];
+  }
+}
+
+/** The market currencies in rail order, the seller's market first, deduplicated. */
+export function shortlistCurrencies(
+  markets: MarketCurrency[],
+  homeCountry: string | null,
+  max = 15,
+): string[] {
+  const ordered = [
+    ...markets.filter((row) => homeCountry !== null && row.country === homeCountry),
+    ...markets.filter((row) => homeCountry === null || row.country !== homeCountry),
+  ];
+  const out: string[] = [];
+  for (const row of ordered) {
+    if (!out.includes(row.currencyCode)) out.push(row.currencyCode);
+    if (out.length === max) break;
+  }
+  return out;
+}
+
+export function useMarketCurrencies(): { markets: MarketCurrency[] } {
+  const [markets, setMarkets] = useState<MarketCurrency[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    void readMarketCurrencies().then((rows) => {
+      if (!cancelled) setMarkets(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return { markets };
+}

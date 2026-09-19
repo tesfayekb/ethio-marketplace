@@ -65,6 +65,11 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   // U6-C1-R2 — the writing budget and the alias imitation check.
   assistBudgetSpent: "post.refusal.assistBudgetSpent",
   aliasImitatesBrand: "post.refusal.aliasImitatesBrand",
+  // U6-C1-R3a-2 — D18 fact BOUNDS, mirrored client-side only: the chosen model
+  // says the year cannot be below its floor. The door answers `outOfBounds`.
+  belowModelYear: "post.refusal.belowModelYear",
+  aboveModelYear: "post.refusal.aboveModelYear",
+  optionNotAllowed: "post.refusal.optionNotAllowed",
 };
 
 const PHOTO_REASONS: Record<string, MessageKey> = {

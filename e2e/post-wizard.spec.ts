@@ -20,6 +20,7 @@ import {
   destroyPostableCategory,
   draftsOf,
   seedCategoryBranch,
+  seedFoldSet,
   destroySpecSet,
   seedPostableCategory,
   seedSpecSet,
@@ -80,7 +81,15 @@ test.describe("POSTING WIZARD", () => {
   async function asEdge(page: import("@playwright/test").Page) {
     // Scoped to the posting routes on purpose: a blanket extra header would also
     // ride along to the font CDN and be rejected by its CORS preflight.
+    // U6-C1-R3a-2 — `/api/geo` is in the scope too: the residency guess feeds the
+    // market and currency prefills, and without the header the guess is null and
+    // the screen falls back to the first open market (the PW-11/PW-20 reds).
     await page.route("**/api/listings/**", async (route) => {
+      await route.continue({
+        headers: { ...route.request().headers(), "cf-ipcountry": "ET" },
+      });
+    });
+    await page.route("**/api/geo", async (route) => {
       await route.continue({
         headers: { ...route.request().headers(), "cf-ipcountry": "ET" },
       });
@@ -134,14 +143,20 @@ test.describe("POSTING WIZARD", () => {
     // Eight steps, always visible: the seller can see how long this will take.
     await expect(page.getByTestId("post-progress").locator("li")).toHaveCount(8);
     await expect(page.getByTestId("post-back")).toBeDisabled();
-    // U6-C1-R1 — NEXT IS NEVER GREYED: it sends, and the door's refusal is what
-    // stops the seller, named in the summary above the button.
-    await expect(page.getByTestId("post-next")).toBeEnabled();
-    await page.getByTestId("post-next").click();
+    // U6-C1-R3a-2 — STEP 1 HAS ONE ANSWER: with no leaf there is nothing to send,
+    // so Next is closed and the caption says what is missing.
     await expect(
-      page.getByTestId("post-refusal-summary"),
-      "PW-1: Next without a category did not name what is missing",
-    ).toBeVisible();
+      page.getByTestId("post-next"),
+      "PW-1: Next was pressable with no category chosen",
+    ).toBeDisabled();
+    await expect(page.getByTestId("post-next-blocked")).toBeVisible();
+    // A keyboard seller pressing Enter gets the choice group outlined, not silence.
+    await page.getByTestId("post-category-search").press("Enter");
+    await expect(
+      page.getByTestId("post-category-group"),
+      "PW-1: Enter with no leaf left the choice group unmarked",
+    ).toHaveAttribute("data-invalid", "1");
+    await expect(page.getByTestId("post-category-refusal")).toBeVisible();
     await expect(page.getByTestId("post-step-1")).toBeVisible();
   });
 
@@ -202,6 +217,23 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-photos-illustration"),
       "PW-3: a leaf without its own illustration showed no ancestor stand-in",
     ).toHaveAttribute("src", "https://example.invalid/e2e-standin.jpg");
+    /**
+     * U6-C1-R3a-2 (the PW-4 illustration law, proved where the stand-in actually
+     * renders): a FIXED 4:3 box, never taller than 240 px, the picture CONTAINED
+     * inside it — so a tall or wide stand-in is neither stretched nor cropped.
+     */
+    const box = await page.getByTestId("post-photos-illustration-box").boundingBox();
+    expect(box, "PW-3: the illustration box was not laid out").not.toBeNull();
+    const ratio = (box?.width ?? 0) / (box?.height ?? 1);
+    expect(
+      Math.abs(ratio - 4 / 3),
+      `PW-3: the illustration box is ${ratio}:1, not 4:3`,
+    ).toBeLessThan(0.05);
+    expect(
+      box?.height ?? 0,
+      "PW-3: the illustration box is taller than 240 px",
+    ).toBeLessThanOrEqual(241);
+    await expect(page.getByTestId("post-photos-illustration")).toHaveCSS("object-fit", "contain");
   });
 
   test("PW-4 a photo is prepared on the device, stored stripped, and removable", async ({
@@ -959,12 +991,24 @@ test.describe("POSTING WIZARD", () => {
   }) => {
     const user = await seller(page);
     const category = await leaf();
+    const city = await activeCityOf("ET");
+    /**
+     * U6-C1-R3a-2 — THE SAVED AREA IS ESTABLISHED BY THIS TEST (J7): the where
+     * step seeds its market from the `ethio_area` cookie, so ET is stated here
+     * rather than inherited from whatever the edge or a sibling test left behind.
+     */
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${city.id}`,
+        url: page.url() === "about:blank" ? "http://127.0.0.1:4173" : new URL(page.url()).origin,
+      },
+    ]);
     const listingId = await reachStep5(page, user.id, category);
     await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
 
-    const city = await activeCityOf("ET");
     const region = page.getByTestId("post-where-region");
     await expect(region, "PW-20: the region level never rendered").toBeVisible();
     const values = await region
@@ -1093,10 +1137,34 @@ test.describe("POSTING WIZARD", () => {
 
     const search = page.getByTestId("post-price-currency-search");
     await expect(search, "PW-17: the currency is not one control").toHaveCount(1);
+    /**
+     * U6-C1-R3a-2 — THE CURRENCY LAW: this seller has no earlier listing, so the
+     * default falls to the GUESS MARKET, which `asEdge` states as ET → ETB.
+     */
     await expect(
       page.getByTestId("post-price-currency"),
-      "PW-17: no currency was preselected",
-    ).not.toHaveAttribute("data-code", "");
+      "PW-17: the guess market's currency was not preselected",
+    ).toHaveAttribute("data-code", "ETB");
+
+    // THE LIST OPENS SHORT: the open markets' currencies, not 156 rows.
+    await search.click();
+    const options = page.getByTestId("post-price-currency-option");
+    const shortCount = await options.count();
+    expect(shortCount, "PW-17: the picker opened on the full ISO list").toBeLessThanOrEqual(15);
+    expect(shortCount, "PW-17: the picker opened on nothing").toBeGreaterThan(0);
+    const codes = await options.evaluateAll((nodes) =>
+      nodes.map((node) => (node as HTMLElement).dataset["code"] ?? ""),
+    );
+    expect(codes[0], "PW-17: the seller's own market's currency is not first").toBe("ETB");
+
+    // …and the way to every other currency is one row, said in words.
+    const more = page.getByTestId("post-price-currency-more");
+    await expect(more, "PW-17: the short list offered no way to more currencies").toBeVisible();
+    await more.click();
+    expect(
+      await options.count(),
+      "PW-17: More currencies did not reveal a longer list",
+    ).toBeGreaterThan(shortCount);
 
     // Typed by NAME, not by code: "birr" is how a seller says ETB.
     await search.fill("birr");
@@ -1105,5 +1173,178 @@ test.describe("POSTING WIZARD", () => {
     await option.click();
     await expect(page.getByTestId("post-price-currency")).toHaveAttribute("data-code", "ETB");
     await expect(page.getByTestId("post-price-currency-list")).toHaveCount(0);
+  });
+
+  /* ------------- U6-C1-R3a-2 — folds, per-link narrowing, facts ------------- */
+
+  /**
+   * DEC-050 `parent` — A CHILD SHOWS ONLY WHAT HANGS UNDER THE PARENT'S ANSWER.
+   * The pair is scratch (a make with two models under it and one under another),
+   * so no real catalogue row is read or written (J3).
+   */
+  test("PW-21 a child detail shows only the chosen parent's options and clears on change", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const fold = await seedFoldSet(category.id);
+    specs.push(...fold.attrKeys);
+    await reachStep3(page, user.id, category);
+
+    const make = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`,
+    );
+    const model = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`,
+    );
+
+    // WITH NO PARENT ANSWER the child is closed and says which answer it waits for.
+    await expect(model, "PW-21: the child was open with no parent chosen").toBeDisabled();
+    await expect(
+      page.locator(`[data-testid="post-attr-parent-first"][data-attr="${fold.model.attrKey}"]`),
+    ).toBeVisible();
+
+    await make.selectOption(fold.makeValues[0]);
+    await expect(model).toBeEnabled();
+    await expect(
+      model.locator("option"),
+      "PW-21: the child did not narrow to the chosen make's models",
+    ).toHaveCount(3); // the empty row + two models
+    await expect(model.locator(`option[value="${fold.modelValues[0]}"]`)).toHaveCount(1);
+    await expect(
+      model.locator(`option[value="${fold.modelValues[2]}"]`),
+      "PW-21: a model of the other make was offered",
+    ).toHaveCount(0);
+
+    await model.selectOption(fold.modelValues[0]);
+    await expect(model).toHaveValue(fold.modelValues[0]);
+
+    // THE PARENT CHANGES — the answer that no longer fits is cleared, not kept.
+    await make.selectOption(fold.makeValues[1]);
+    await expect(model, "PW-21: a model that no longer fits survived the make change").toHaveValue(
+      "",
+    );
+    await expect(model.locator(`option[value="${fold.modelValues[2]}"]`)).toHaveCount(1);
+  });
+
+  /**
+   * M-MAINT-2 §12 — the LINK narrows the shortlist and opens on a default. The
+   * door refuses anything outside `allowed_options` (`optionNotAllowed`); this is
+   * the seam's half of that law.
+   */
+  test("PW-22 a link's allowed options narrow the picker and its default prefills", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const fold = await seedFoldSet(category.id);
+    specs.push(...fold.attrKeys);
+    const listingId = await reachStep3(page, user.id, category);
+
+    const unit = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.unit.attrKey}"]`,
+    );
+    await expect(unit, "PW-22: the link's default did not prefill").toHaveValue(
+      fold.unitValues[0],
+      { timeout: 20_000 },
+    );
+    await expect(unit.locator(`option[value="${fold.unitValues[1]}"]`)).toHaveCount(1);
+    await expect(
+      unit.locator(`option[value="${fold.unitValues[2]}"]`),
+      "PW-22: an option outside the link's shortlist was offered",
+    ).toHaveCount(0);
+
+    // J4 — DB truth: the default the screen showed is what the door recorded.
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect
+      .poll(async () => (await attributesOf(listingId))[fold.unit.attrKey], {
+        message: "PW-22: the prefilled default never reached the draft",
+      })
+      .toBe(fold.unitValues[0]);
+  });
+
+  /**
+   * D18 — THE MODEL ALREADY KNOWS THINGS. Choosing an option whose `facts` name a
+   * sibling fills that sibling in and says where the answer came from.
+   */
+  test("PW-9 an option's facts prefill the siblings they name", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const fold = await seedFoldSet(category.id);
+    specs.push(...fold.attrKeys);
+    const listingId = await reachStep3(page, user.id, category);
+
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
+      .selectOption(fold.makeValues[0]);
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
+      .selectOption(fold.modelValues[1]);
+
+    const year = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.year.attrKey}"]`,
+    );
+    await expect(year, "PW-9: the model's known year did not prefill").toHaveValue(
+      String(fold.modelYearValue),
+      { timeout: 20_000 },
+    );
+    await expect(
+      page.locator(`[data-testid="post-attr-from-model"][data-attr="${fold.year.attrKey}"]`),
+      "PW-9: the prefilled field did not say where the answer came from",
+    ).toBeVisible();
+
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect
+      .poll(async () => (await attributesOf(listingId))[fold.year.attrKey], {
+        message: "PW-9: the prefilled year never reached the draft",
+      })
+      .toBe(fold.modelYearValue);
+  });
+
+  /**
+   * D18 — A FACT MAY BE A BOUND. The model's floor year narrows the sibling in this
+   * MIRROR only: the door's own bounds remain the authority (F3), and the seam
+   * simply says so before the seller wastes a Next.
+   */
+  test("PW-25 a fact's bound refuses a year the chosen model predates", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const fold = await seedFoldSet(category.id);
+    specs.push(...fold.attrKeys);
+    await reachStep3(page, user.id, category);
+
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
+      .selectOption(fold.makeValues[0]);
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
+      .selectOption(fold.modelValues[0]);
+
+    const year = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.year.attrKey}"]`,
+    );
+    await year.fill("1960");
+    await year.blur();
+    await expect(
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${fold.year.attrKey}"]`),
+      "PW-25: a year below the model's floor was not refused on the screen",
+    ).toBeVisible();
+
+    // The hint carries the model's floor, so the seller knows what is acceptable.
+    await expect(
+      page.locator(
+        `[data-testid="post-spec"][data-attr="${fold.year.attrKey}"] [data-testid="post-attr-bounds"]`,
+      ),
+      "PW-25: the bounds hint does not carry the model's floor",
+    ).toContainText(String(fold.modelYearFloor));
+
+    await year.fill(String(fold.modelYearFloor + 1));
+    await year.blur();
+    await expect(
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${fold.year.attrKey}"]`),
+      "PW-25: an acceptable year kept the refusal on screen",
+    ).toHaveCount(0);
   });
 });

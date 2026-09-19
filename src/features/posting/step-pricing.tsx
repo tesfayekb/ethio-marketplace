@@ -5,7 +5,16 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
 import { controlClass, Field } from "./field";
-import { readGuessCurrency, useCurrencies, useSellerHome } from "./pricing-data";
+import {
+  readGuessCurrency,
+  readLastListingCurrency,
+  shortlistCurrencies,
+  useCurrencies,
+  useMarketCurrencies,
+  useSellerHome,
+  type CurrencyRow,
+} from "./pricing-data";
+
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { PRICE_MODES, PRICE_PERIODS, type CategoryFacts, type Refusal } from "./types";
 import { checkNumber, mergeRefusals } from "./validate";
@@ -76,10 +85,14 @@ export function StepPricing({
   const { t, language } = useI18n();
   const currencies = useCurrencies();
   const { home } = useSellerHome();
+  const { markets } = useMarketCurrencies();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const guessRef = useRef<string | null>(null);
+  /** The preselect is resolved ONCE per visit, never re-raced by a re-render. */
+  const resolvedRef = useRef(false);
 
   const locked = facts?.pricePeriodLocked ?? false;
   const priceEnabled = facts?.priceEnabled ?? true;
@@ -92,30 +105,37 @@ export function StepPricing({
   }, [facts, values.pricePeriod, onChange]);
 
   /**
-   * THE CURRENCY PRESELECT: the saved value wins; otherwise the seller's home
-   * market, then the edge's guess market, then ETB (pricing-data.ts).
+   * U6-C1-R3a-2 — THE CURRENCY PRESELECT, IN ORDER:
+   *
+   *   1 the currency already SAVED on this draft (nothing overrides the seller),
+   *   2 the seller's OWN LAST LISTING's currency — what they used before is what
+   *     they mean now, wherever the edge thinks they are today,
+   *   3 the GUESS MARKET's currency (`cf-ipcountry` through `/api/geo`),
+   *   4 `ETB`.
+   *
+   * The door still judges the currency it is sent (F3); this only opens the
+   * screen on the answer the seller most likely means.
    */
   useEffect(() => {
     if (values.priceCurrency !== null) return;
-    if (home !== null && home.currencyCode !== null) {
-      onChange({ priceCurrency: home.currencyCode }, false);
-      return;
-    }
-    if (home === null) return;
-    if (guessRef.current !== null) {
-      onChange({ priceCurrency: guessRef.current }, false);
-      return;
-    }
-    let cancelled = false;
-    void readGuessCurrency().then((code) => {
-      if (cancelled) return;
-      guessRef.current = code;
-      onChange({ priceCurrency: code }, false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [home, values.priceCurrency, onChange]);
+    if (resolvedRef.current) return;
+    resolvedRef.current = true;
+    /**
+     * NO CANCELLATION HERE, deliberately: this effect's identity changes with
+     * every draft write, and a cleanup that abandoned the in-flight read would
+     * leave `resolvedRef` set and the seller with no currency at all.
+     */
+    void (async () => {
+      const last = await readLastListingCurrency();
+      if (last !== null) {
+        onChange({ priceCurrency: last }, false);
+        return;
+      }
+      const guessed = await readGuessCurrency();
+      guessRef.current = guessed;
+      onChange({ priceCurrency: guessed }, false);
+    })();
+  }, [values.priceCurrency, onChange]);
 
   /**
    * U6-C1-R3a / STEP 8 — the amount is judged on blur with the door's own rules
@@ -130,17 +150,40 @@ export function StepPricing({
   const currencyRefusal = refusalFor(seen, "price_currency");
   const periodRefusal = refusalFor(seen, "price_period");
 
+  /**
+   * THE LIST IS THE OPEN MARKETS' MONEY, the seller's own market first, until the
+   * seller asks for more: typing a needle, or the "More currencies…" row, opens
+   * the full ISO list. A short list is the whole point — 156 rows is a haystack
+   * on a 360 px screen.
+   */
+  const shortlist = useMemo(
+    () => shortlistCurrencies(markets, home?.countryCode ?? null),
+    [markets, home],
+  );
+
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const rows =
-      needle === ""
-        ? currencies.currencies
-        : currencies.currencies.filter(
-            (row) =>
-              row.code.toLowerCase().includes(needle) || row.nameEn.toLowerCase().includes(needle),
-          );
-    return rows.slice(0, 40);
-  }, [currencies.currencies, query]);
+    if (needle !== "") {
+      return currencies.currencies
+        .filter(
+          (row) =>
+            row.code.toLowerCase().includes(needle) || row.nameEn.toLowerCase().includes(needle),
+        )
+        .slice(0, 40);
+    }
+    if (showAll || shortlist.length === 0) return currencies.currencies.slice(0, 40);
+    const rows = shortlist
+      .map((code) => currencies.currencies.find((row) => row.code === code) ?? null)
+      .filter((row): row is CurrencyRow => row !== null);
+    return rows;
+  }, [currencies.currencies, query, shortlist, showAll]);
+
+  /** True while the picker is showing the short list and more remain behind it. */
+  const moreHidden =
+    query.trim() === "" &&
+    !showAll &&
+    shortlist.length > 0 &&
+    matches.length < currencies.currencies.length;
 
   const chosen = currencies.currencies.find((row) => row.code === values.priceCurrency) ?? null;
 
@@ -312,6 +355,24 @@ export function StepPricing({
                       </button>
                     </li>
                   ))}
+                  {/* THE WAY OUT OF THE SHORT LIST: one row, at the end, revealing
+                      every ISO currency — never a hidden capability. */}
+                  {moreHidden && (
+                    <li>
+                      <button
+                        type="button"
+                        data-testid="post-price-currency-more"
+                        className="flex min-h-11 w-full items-center px-3 text-start text-sm text-muted-foreground"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          setShowAll(true);
+                          setHighlight(0);
+                        }}
+                      >
+                        {t("post.price.moreCurrencies")}
+                      </button>
+                    </li>
+                  )}
                 </ul>
               )}
             </div>

@@ -369,6 +369,128 @@ export async function seedSpecSet(categoryId: string): Promise<{
   return { text, number, bool, select, optionValues };
 }
 
+/**
+ * U6-C1-R3a-2 — A SCRATCH FOLD SET: a parent picker, a child whose options hang
+ * under it (DEC-050 `parent`), a number the child's FACTS speak about (D18), and a
+ * picker narrowed per link by `allowed_options` with a `default_value`
+ * (M-MAINT-2 §12). One seed proves folds, facts, fact bounds, the link's subset
+ * and its default — all on scratch rows under a scratch leaf (J3).
+ */
+export interface FoldSet {
+  make: ScratchAttr;
+  model: ScratchAttr;
+  year: ScratchAttr;
+  unit: ScratchAttr;
+  makeValues: [string, string];
+  /** Two models under the FIRST make, one under the second. */
+  modelValues: [string, string, string];
+  unitValues: [string, string, string];
+  /** The fact bound the first model carries for the year field. */
+  modelYearFloor: number;
+  /** The year the second model prefills. */
+  modelYearValue: number;
+  attrKeys: string[];
+}
+
+export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
+  const supabase = adminClient();
+  const stem = `e2e_fold_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const yearKey = `${stem}_year`;
+  const makeValues: [string, string] = [`${stem}_mk1`, `${stem}_mk2`];
+  const modelValues: [string, string, string] = [`${stem}_md1`, `${stem}_md2`, `${stem}_md3`];
+  const unitValues: [string, string, string] = [`${stem}_pc`, `${stem}_set`, `${stem}_jug`];
+  const modelYearFloor = 1968;
+  const modelYearValue = 1999;
+
+  const option = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    active: true,
+    ...extra,
+  });
+
+  const rows = [
+    {
+      attr_key: `${stem}_make`,
+      name_en: `${stem} make`,
+      attr_type: "single_select",
+      options: makeValues.map((value) => option(value)),
+    },
+    {
+      attr_key: `${stem}_model`,
+      name_en: `${stem} model`,
+      attr_type: "single_select",
+      options: [
+        // A FACT THAT IS A BOUND: this model was not made before 1968.
+        option(modelValues[0], {
+          parent: makeValues[0],
+          facts: { [yearKey]: { min: modelYearFloor } },
+        }),
+        // A FACT THAT IS A VALUE: the year is known, and the form says so.
+        option(modelValues[1], { parent: makeValues[0], facts: { [yearKey]: modelYearValue } }),
+        option(modelValues[2], { parent: makeValues[1] }),
+      ],
+    },
+    {
+      attr_key: yearKey,
+      name_en: `${stem} year`,
+      attr_type: "number",
+      min_bound: "1900",
+      max_bound: "2030",
+      decimals: 0,
+    },
+    {
+      attr_key: `${stem}_unit`,
+      name_en: `${stem} unit`,
+      attr_type: "single_select",
+      options: unitValues.map((value) => option(value)),
+    },
+  ];
+
+  const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
+  if (error || !data) {
+    throw new Error(`[e2e:r3a2] seeding the fold set failed: ${error?.message ?? "no rows"}`);
+  }
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:r3a2] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key };
+  };
+  const make = pick("_make");
+  const model = pick("_model");
+  const year = pick("_year");
+  const unit = pick("_unit");
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
+    { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
+    { category_id: categoryId, attribute_id: year.id, is_required: false, display_order: 3 },
+    {
+      category_id: categoryId,
+      attribute_id: unit.id,
+      is_required: false,
+      display_order: 4,
+      // M-MAINT-2 §12 — this category accepts two of the three units, and opens on one.
+      allowed_options: [unitValues[0], unitValues[1]],
+      default_value: unitValues[0],
+    },
+  ]);
+  if (linkError) throw new Error(`[e2e:r3a2] linking the fold set failed: ${linkError.message}`);
+
+  return {
+    make,
+    model,
+    year,
+    unit,
+    makeValues,
+    modelValues,
+    unitValues,
+    modelYearFloor,
+    modelYearValue,
+    attrKeys: [make.attrKey, model.attrKey, year.attrKey, unit.attrKey],
+  };
+}
+
 /** Links first, then the definitions — a definition never leaves an orphan link (J3). */
 export async function destroySpecSet(attrKeys: string[]): Promise<void> {
   if (attrKeys.length === 0) return;

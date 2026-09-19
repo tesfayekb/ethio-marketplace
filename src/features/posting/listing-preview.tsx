@@ -111,14 +111,19 @@ export function ListingPreview({
       data-testid="post-review-preview"
     >
       {cover !== null ? (
-        <img
-          src={cover}
-          alt=""
-          width={320}
-          height={240}
-          loading="lazy"
-          className="h-40 w-full rounded-sm object-cover"
-        />
+        <div
+          className="mx-auto flex aspect-[4/3] w-full max-w-80 items-center justify-center overflow-hidden rounded-sm"
+          data-testid="post-review-cover-box"
+        >
+          <img
+            src={cover}
+            alt=""
+            width={320}
+            height={240}
+            loading="lazy"
+            className="h-full w-full object-contain"
+          />
+        </div>
       ) : (
         <p className="text-xs text-muted-foreground" data-testid="post-review-nophoto">
           {t("feed.noPhoto")}

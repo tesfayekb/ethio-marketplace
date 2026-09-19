@@ -2054,6 +2054,15 @@ export const am: Messages = {
   "post.review.edit": "አስተካክል",
   "post.review.placesCount": "{count} ቦታ(ዎች)",
   "post.review.notGiven": "አልተሰጠም",
+  "post.refusal.belowModelYear": "ይህ ይህ ሞዴል ከተሠራበት ዓመት በፊት ነው።",
+  "post.refusal.aboveModelYear": "ይህ ይህ ሞዴል ከተሠራበት ዓመት በኋላ ነው።",
+  "post.refusal.optionNotAllowed": "ይህ ምርጫ በዚህ ምድብ ውስጥ አይቀርብም።",
+  "post.specs.parentFirst": "በመጀመሪያ {parent}ን ይምረጡ።",
+  "post.specs.fromModel": "ከሞዴሉ የተወሰደ — የተለየ ከሆነ ያስተካክሉ።",
+  "post.specs.noneForParent": "ከላይ ለመረጡት ምርጫ አማራጭ የለም።",
+  "post.category.nextBlocked": "ለመቀጠል ምድብ ይምረጡ።",
+  "post.category.chooseOne": "ከዝርዝሩ ውስጥ ምድብ ይምረጡ።",
+  "post.price.moreCurrencies": "ተጨማሪ ገንዘቦች…",
 };
 
 export default am;

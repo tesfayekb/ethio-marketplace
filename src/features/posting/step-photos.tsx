@@ -241,16 +241,25 @@ export function StepPhotos({
       {items.length === 0 && photos.length === 0 && (
         <div className="space-y-2" data-testid="post-photos-empty">
           {illustrationUrl !== null && (
-            <img
-              src={illustrationUrl}
-              data-testid="post-photos-illustration"
-              alt={t("post.category.illustrationAlt")}
-              width={320}
-              height={240}
-              loading="lazy"
-              className="h-32 w-full rounded-md object-cover opacity-60"
-            />
+            /* U6-C1-R3a-2 — THE STAND-IN FITS ITS BOX: a fixed 4:3 frame, the
+               picture contained and centred inside it, never stretched or
+               cropped, and never taller than 240 px. */
+            <div
+              className="mx-auto flex aspect-[4/3] w-full max-w-80 items-center justify-center overflow-hidden rounded-md"
+              data-testid="post-photos-illustration-box"
+            >
+              <img
+                src={illustrationUrl}
+                data-testid="post-photos-illustration"
+                alt={t("post.category.illustrationAlt")}
+                width={320}
+                height={240}
+                loading="lazy"
+                className="h-full w-full object-contain opacity-60"
+              />
+            </div>
           )}
+
           <p className="text-sm text-muted-foreground">{t("post.photos.none")}</p>
           <p className="text-xs text-muted-foreground" data-testid="post-photos-standin">
             {t("post.photos.standIn")}

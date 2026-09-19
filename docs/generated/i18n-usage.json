@@ -3407,6 +3407,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.category.chooseOne": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.category.empty": [
       "/post",
       "/post/$listingId"
@@ -3424,6 +3428,10 @@
       "/post/$listingId"
     ],
     "post.category.illustrationAlt": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.nextBlocked": [
       "/post",
       "/post/$listingId"
     ],
@@ -3591,6 +3599,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.price.moreCurrencies": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.price.notAllowed": [
       "/post",
       "/post/$listingId"
@@ -3731,6 +3743,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.specs.fromModel": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.specs.lengthHint": [
       "/post",
       "/post/$listingId"
@@ -3755,6 +3771,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.specs.noneForParent": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.specs.optionsFailed": [
       "/post",
       "/post/$listingId"
@@ -3767,15 +3787,15 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.specs.parentFirst": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.specs.presetHint": [
       "/post",
       "/post/$listingId"
     ],
     "post.specs.unitHint": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.specs.unitsLater": [
       "/post",
       "/post/$listingId"
     ],

@@ -40,11 +40,17 @@ export function StepCategory({
   isLoading,
   treeError,
   onChoose,
+  invalid = false,
 }: {
   tree: CategoryTree;
   isLoading: boolean;
   treeError: boolean;
   onChoose: (categoryId: string) => void;
+  /**
+   * U6-C1-R3a-2 — true once someone tried to continue with no leaf chosen: the
+   * choice group wears the refusal outline until a choice clears it (F4).
+   */
+  invalid?: boolean;
 }) {
   const { t, entities } = useI18n();
   const [term, setTerm] = useState("");
@@ -99,80 +105,95 @@ export function StepCategory({
 
       {/* THE ONE CONTROL. Filtered, it is the matching leaves with their paths;
           unfiltered, it is the level the seller stands on. */}
-      {filtering ? (
-        <ul className="space-y-2" data-testid="post-category-hits">
-          {hits.length === 0 && (
-            <li className="text-sm text-muted-foreground" data-testid="post-category-nohits">
-              {t("post.category.noHits")}
-            </li>
-          )}
-          {hits.map((node) => (
-            <li key={node.id}>
-              <button
-                type="button"
-                data-testid="post-category-hit"
-                data-category={node.id}
-                className={`${rowClass} flex-col items-start gap-0`}
-                onClick={() => onChoose(node.id)}
-              >
-                <span className="font-medium">{label(node)}</span>
-                <span className="text-xs text-muted-foreground">
-                  {pathOf(tree, node.id)
-                    .map((step) => label(step))
-                    .join(" › ")}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="space-y-2">
-          {cursor !== null && (
-            <>
-              <p className="text-xs text-muted-foreground" data-testid="post-browse-trail">
-                {trail.map((node) => label(node)).join(" › ")}
-              </p>
-              <button
-                type="button"
-                data-testid="post-browse-up"
-                className={rowClass}
-                onClick={() => setCursor(tree.parentOf.get(cursor) ?? null)}
-              >
-                {t("post.category.upOneLevel")}
-              </button>
-            </>
-          )}
-          <ul className="space-y-2" data-testid="post-browse-level">
-            {level.map((node) => {
-              const postable = isPostable(tree, node);
-              const folder = childrenOf(tree, node.id).length > 0;
-              return (
-                <li key={node.id}>
-                  <button
-                    type="button"
-                    data-testid={folder ? "post-browse-folder" : "post-browse-leaf"}
-                    data-category={node.id}
-                    disabled={!folder && !postable}
-                    className={rowClass}
-                    onClick={() => {
-                      if (folder) setCursor(node.id);
-                      else onChoose(node.id);
-                    }}
-                  >
-                    <span className="grow">{label(node)}</span>
-                    {folder && (
-                      <span className="text-xs text-muted-foreground" aria-hidden="true">
-                        ›
-                      </span>
-                    )}
-                    {folder && <span className="sr-only">{t("post.category.folder")}</span>}
-                  </button>
-                </li>
-              );
-            })}
+      <div
+        data-testid="post-category-group"
+        data-invalid={invalid ? "1" : "0"}
+        className={
+          invalid
+            ? "rounded-md border border-destructive p-2 ring-1 ring-destructive"
+            : "rounded-md border border-transparent p-2"
+        }
+      >
+        {invalid && (
+          <p className="pb-2 text-sm text-destructive" data-testid="post-category-refusal">
+            {t("post.category.chooseOne")}
+          </p>
+        )}
+        {filtering ? (
+          <ul className="space-y-2" data-testid="post-category-hits">
+            {hits.length === 0 && (
+              <li className="text-sm text-muted-foreground" data-testid="post-category-nohits">
+                {t("post.category.noHits")}
+              </li>
+            )}
+            {hits.map((node) => (
+              <li key={node.id}>
+                <button
+                  type="button"
+                  data-testid="post-category-hit"
+                  data-category={node.id}
+                  className={`${rowClass} flex-col items-start gap-0`}
+                  onClick={() => onChoose(node.id)}
+                >
+                  <span className="font-medium">{label(node)}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {pathOf(tree, node.id)
+                      .map((step) => label(step))
+                      .join(" › ")}
+                  </span>
+                </button>
+              </li>
+            ))}
           </ul>
-        </div>
-      )}
+        ) : (
+          <div className="space-y-2">
+            {cursor !== null && (
+              <>
+                <p className="text-xs text-muted-foreground" data-testid="post-browse-trail">
+                  {trail.map((node) => label(node)).join(" › ")}
+                </p>
+                <button
+                  type="button"
+                  data-testid="post-browse-up"
+                  className={rowClass}
+                  onClick={() => setCursor(tree.parentOf.get(cursor) ?? null)}
+                >
+                  {t("post.category.upOneLevel")}
+                </button>
+              </>
+            )}
+            <ul className="space-y-2" data-testid="post-browse-level">
+              {level.map((node) => {
+                const postable = isPostable(tree, node);
+                const folder = childrenOf(tree, node.id).length > 0;
+                return (
+                  <li key={node.id}>
+                    <button
+                      type="button"
+                      data-testid={folder ? "post-browse-folder" : "post-browse-leaf"}
+                      data-category={node.id}
+                      disabled={!folder && !postable}
+                      className={rowClass}
+                      onClick={() => {
+                        if (folder) setCursor(node.id);
+                        else onChoose(node.id);
+                      }}
+                    >
+                      <span className="grow">{label(node)}</span>
+                      {folder && (
+                        <span className="text-xs text-muted-foreground" aria-hidden="true">
+                          ›
+                        </span>
+                      )}
+                      {folder && <span className="sr-only">{t("post.category.folder")}</span>}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

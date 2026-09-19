@@ -19,17 +19,29 @@ export interface AttrOption {
   labelAm: string | null;
   /** DEC-050 cascade: the parent option's value this one hangs under. */
   parent: string | null;
+  /**
+   * D18 — WHAT THE MODEL ALREADY SAYS. A fact is either a VALUE for a sibling
+   * detail (`{ fuel: "petrol" }`) or a BOUND on it (`{ year: { min: 1968 } }`).
+   * A value is offered as a prefill the seller may edit; a bound narrows the
+   * client mirror only — the door's own bounds remain the authority (F3).
+   */
+  facts: Record<string, unknown> | null;
 }
 
 const cache = new Map<string, AttrOption[]>();
 
 function shape(row: Record<string, unknown>): AttrOption {
   const value = typeof row["value"] === "string" ? row["value"] : "";
+  const facts = row["facts"];
   return {
     value,
     labelEn: typeof row["label_en"] === "string" ? row["label_en"] : value,
     labelAm: typeof row["label_am"] === "string" ? row["label_am"] : null,
     parent: typeof row["parent"] === "string" ? row["parent"] : null,
+    facts:
+      facts !== null && typeof facts === "object" && !Array.isArray(facts)
+        ? (facts as Record<string, unknown>)
+        : null,
   };
 }
 

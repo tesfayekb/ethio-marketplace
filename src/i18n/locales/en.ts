@@ -2147,6 +2147,15 @@ export const en = {
   "post.review.edit": "Edit",
   "post.review.placesCount": "{count} place(s)",
   "post.review.notGiven": "Not given",
+  "post.refusal.belowModelYear": "That is earlier than this model was made.",
+  "post.refusal.aboveModelYear": "That is later than this model was made.",
+  "post.refusal.optionNotAllowed": "That choice is not offered in this category.",
+  "post.specs.parentFirst": "Choose {parent} first.",
+  "post.specs.fromModel": "From the model — edit if different.",
+  "post.specs.noneForParent": "This choice has no options for what you picked above.",
+  "post.category.nextBlocked": "Choose a category to continue.",
+  "post.category.chooseOne": "Choose a category from the list.",
+  "post.price.moreCurrencies": "More currencies…",
 } as const;
 
 export default en;

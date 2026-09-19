@@ -301,6 +301,14 @@ export interface AttrDef {
   maxLength: number | null;
   optionCount: number;
   allowOther: boolean;
+  /**
+   * M-MAINT-2 §12 — the LINK's own narrowing and default: `allowedOptions` is the
+   * subset of the definition's option values this category accepts (`null` = all),
+   * and `defaultValue` prefills an empty field. The door narrows too
+   * (`optionNotAllowed`), so this is a mirror (F3).
+   */
+  allowedOptions: string[] | null;
+  defaultValue: unknown;
 }
 
 export interface PostingSchema {
@@ -343,6 +351,12 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
     maxLength: int(row, "max_length"),
     optionCount: int(row, "option_count") ?? 0,
     allowOther: row["allow_other"] === true,
+    allowedOptions: Array.isArray(row["allowed_options"])
+      ? (row["allowed_options"] as unknown[]).filter(
+          (entry): entry is string => typeof entry === "string",
+        )
+      : null,
+    defaultValue: row["default_value"] ?? null,
   };
 }
 

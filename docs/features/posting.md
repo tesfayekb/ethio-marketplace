@@ -156,14 +156,16 @@ pending and runs again straight after. Before this, such a collision was dropped
 on the floor: the seller's last edit never reached the door and the step did not
 advance.
 
-## Deferral — option-carried `facts` (D18)
+## Option-carried `facts` (D18, C1-R3a-2)
 
-The prefill cannot be built yet: the DEC-050 option shape allowlist (`value`,
-`label_en`, `label_am`, `parent`, `active`, `bounds`, `aliases`, `allowed`)
-rejects a `facts` key, the public options read strips anything else, and the
-validator never projects it. It needs a migration, which this brief forbids; so
-`PW-9` is not written either — a test against an impossible shape would prove
-nothing.
+`get_attribute_options` projects `facts`, so the prefill is built: choosing an
+option whose `facts` name sibling details fills those siblings in (only where
+they are still empty) and marks each one "From the model — edit if different"
+(`post-attr-from-model`). A fact may carry a BOUND instead of a value —
+`{ year: { min: 1968 } }` — and that bound narrows the sibling's number control
+in the CLIENT MIRROR only: `belowModelYear` / `aboveModelYear` are read on blur,
+while `validate_listing_attributes` remains the authority (F3). `PW-9` proves the
+prefill, `PW-25` the bound.
 
 ## Step 5 — the price (C2a)
 
@@ -416,3 +418,46 @@ Open from this walk (part 2): the DEC-050 option folds, the D18 facts prefill
 (`PW-9`), the per-link `allowed_options`/`default_value` consumers, the fixed
 illustration box, the currency law (seller's last listing → market, the open
 markets' currencies with "More…"), and step 1's disabled Next with its caption.
+
+## U6-C1-R3a-2 — the specification form, the picture and the price list
+
+- **Option folds (DEC-050 `parent`).** A picker whose options hang under another
+  picker's answer shows ONLY the options of the chosen parent. The schema read
+  does not name the parent, so the seam discovers it structurally: a picker whose
+  options carry `parent` values belongs to the earlier picker whose own option
+  values contain them. With no parent answer the child is disabled and says
+  "Choose <parent> first" (`post-attr-parent-first`); a child answer that no
+  longer fits is cleared when the parent changes; a parent answer with no child
+  options says so (`post-attr-no-options`). `PW-21`.
+- **The link narrows and opens on a default (M-MAINT-2 §12).** `allowed_options`
+  from the link filters the shortlist further, and `default_value` prefills an
+  empty field once per category. The door's `optionNotAllowed` stays the
+  authority. `PW-22`.
+- **DEC-053 still holds.** A list is fetched on the tap that opens it. Only two
+  things must be known BEFORE a tap — a fold (which exists only between two
+  pickers) and a link default — so small lists are read up front only when the
+  step has more than one picker or a default to apply; a lone small picker stays
+  lazy, and a big preset always does.
+- **The illustration fits its box.** A fixed 4:3 frame, at most 320×240, the
+  picture `object-fit: contain` and centred, in the photos step and in the review
+  preview — never stretched, never cropped. `PW-3`.
+- **The currency law.** The default is the currency already on the draft, then
+  the seller's OWN LAST LISTING's currency, then the guess market's currency,
+  then `ETB`. The list opens SHORT: the currencies of the OPEN markets (at most
+  15), the seller's own market's currency first and the rest in the rail's order,
+  deduplicated, with a "More currencies…" row that reveals the full ISO list.
+  `PW-17`.
+- **Step 1 asks for a leaf.** Next is disabled until a leaf is chosen, with the
+  caption "Choose a category to continue"; a keyboard seller who presses Enter
+  gets the choice group outlined and a refusal beside it, cleared on choice.
+- **Per-test sellers.** Every posting test that creates a draft mints its own
+  seller, and `asEdge` also answers `/api/geo` with `cf-ipcountry: ET` so a test
+  that asserts a market prefill established it itself (PW-11, PW-20; PW-20 also
+  states the `ethio_area` cookie).
+
+### Deferred to M-MAINT-3
+
+D24 — CONDITIONAL ATTRIBUTES (a detail that only appears when another detail
+holds a given value) needs a per-link condition in the schema, which is a
+migration; the folds above are the option-level half of that idea, not a
+substitute.
