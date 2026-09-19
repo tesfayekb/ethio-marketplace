@@ -255,6 +255,7 @@ export type Database = {
           is_required: boolean
           is_searchable: boolean
           updated_at: string
+          visible_when: Json | null
         }
         Insert: {
           allowed_options?: string[] | null
@@ -269,6 +270,7 @@ export type Database = {
           is_required?: boolean
           is_searchable?: boolean
           updated_at?: string
+          visible_when?: Json | null
         }
         Update: {
           allowed_options?: string[] | null
@@ -283,6 +285,7 @@ export type Database = {
           is_required?: boolean
           is_searchable?: boolean
           updated_at?: string
+          visible_when?: Json | null
         }
         Relationships: [
           {
@@ -1868,11 +1871,14 @@ export type Database = {
       admin_language_delete_preview: { Args: { p_code: string }; Returns: Json }
       admin_link_attribute: {
         Args: {
+          p_allowed_options?: string[]
           p_attribute_id: string
           p_category_id: string
+          p_default_value?: Json
           p_display_order: number
           p_is_filterable: boolean
           p_is_required: boolean
+          p_visible_when?: Json
         }
         Returns: string
       }
@@ -2286,6 +2292,7 @@ export type Database = {
           p_allow_everywhere: boolean
           p_max_cities: number
           p_max_countries: number
+          p_max_photos?: number
           p_max_regions: number
           p_plan: string
         }
@@ -2358,9 +2365,13 @@ export type Database = {
       }
       admin_update_attribute_link: {
         Args: {
+          p_allowed_options?: string[]
+          p_clear_cells?: string[]
+          p_default_value?: Json
           p_is_filterable?: boolean
           p_is_required?: boolean
           p_link_id: string
+          p_visible_when?: Json
         }
         Returns: undefined
       }
@@ -2523,6 +2534,16 @@ export type Database = {
         }[]
       }
       attr_json_or_null: { Args: { p_text: string }; Returns: Json }
+      attr_link_cells_refusal: {
+        Args: {
+          p_allowed: string[]
+          p_attribute_id: string
+          p_category_id: string
+          p_default: Json
+          p_visible_when: Json
+        }
+        Returns: string
+      }
       attr_link_origin: {
         Args: { p_cat: string; p_key: string }
         Returns: string
@@ -2549,6 +2570,11 @@ export type Database = {
         }
         Returns: string
       }
+      attr_visible_when_met: {
+        Args: { p_attrs: Json; p_prior: Json; p_vw: Json }
+        Returns: boolean
+      }
+      attr_visible_when_ok: { Args: { p_vw: Json }; Returns: boolean }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
         Returns: {
