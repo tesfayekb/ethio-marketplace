@@ -4,8 +4,14 @@ import { expect, test } from "./fixtures";
 
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
 import { gotoReady, openRailScope, signInViaSession } from "./helpers/ui";
-import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
-import { createUser } from "./helpers/users";
+import {
+  destroyLocation,
+  readServedTree,
+  seedScratchChain,
+  waitForServedTree,
+  waitForTreeSlug,
+} from "./helpers/locations";
+import { adminClient, createUser } from "./helpers/users";
 import {
   activeCityOf,
   attributesOf,
@@ -20,6 +26,7 @@ import {
   destroyPostableCategory,
   draftsOf,
   seedCategoryBranch,
+  seedConditionalSet,
   seedFoldSet,
   destroySpecSet,
   seedPostableCategory,
@@ -816,6 +823,15 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-6")).toBeVisible();
 
     const city = await activeCityOf("ET");
+    /**
+     * INC-235 — THE ROUTE FIRST, THE SCREEN SECOND. Under four workers the where
+     * step used to open before `/api/locations/ET` had served the city, and the
+     * cascade then had nothing to offer. The node-side wait (`cache: "no-store"`)
+     * proves the ROUTE is ready without priming the browser's own read, and the
+     * browser wait below still proves the APP received it.
+     */
+    const startedAt = Date.now();
+    const served = await waitForServedTree("ET", city.slug);
     await waitForTreeSlug(page, "ET", city.slug);
     const region = page.getByTestId("post-where-region");
     await expect(region, "reachStep7: the region level never rendered").toBeVisible();
@@ -836,7 +852,28 @@ test.describe("POSTING WIZARD", () => {
         break;
       }
     }
-    expect(picked, `reachStep7: no region carried the city ${city.slug}`).toBe(true);
+    if (!picked) {
+      // INC-235 — THE REFUSAL SAYS WHAT IT SAW: the market on screen, every region
+      // the cascade offered, what the route served then and now, and how long the
+      // walk had taken. A bare "no region carried the city" is not evidence.
+      const market = await page.getByTestId("post-where-market").inputValue();
+      const slugs = await region
+        .locator("option")
+        .evaluateAll((nodes) => nodes.map((node) => node.textContent ?? ""));
+      const now = await readServedTree("ET");
+      expect(
+        picked,
+        [
+          `reachStep7: no region carried the city ${city.slug}.`,
+          `the market select's value: ${market || "(empty)"}`,
+          `regions offered (${values.length}): ${slugs.join(" | ") || "(none)"}`,
+          `the tree route when the step opened: status ${served.status}, ${served.slugs.length} slugs`,
+          `the tree route now: status ${now.status}, ${now.slugs.length} slugs, markets ${now.codes.join(",") || "(none)"}`,
+          `the city ${city.slug} in that read: ${now.slugs.includes(city.slug) ? "yes" : "NO"}`,
+          `elapsed since the tree wait: ${Date.now() - startedAt} ms`,
+        ].join("\n"),
+      ).toBe(true);
+    }
     // The chosen place shows itself into the list (U6-C1-R2) — no tap needed.
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
       timeout: 20_000,
@@ -1432,6 +1469,81 @@ test.describe("POSTING WIZARD", () => {
         message: "PW-22: the prefilled default never reached the draft",
       })
       .toBe(fold.unitValues[0]);
+  });
+
+  /**
+   * D24 — A CONDITIONAL DETAIL. The charging question is asked ONLY when the fuel
+   * is electric; while it is not asked it is absent — not on screen, not required,
+   * and never sent, whatever a seller answered before changing the fuel.
+   */
+  test("PW-28 a conditional detail appears only when its condition is met", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const set = await seedConditionalSet(category.id);
+    specs.push(...set.attrKeys);
+    const listingId = await reachStep3(page, user.id, category);
+
+    const fuel = page.locator(`[data-testid="post-attr-control"][data-attr="${set.fuel.attrKey}"]`);
+    const charging = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${set.charging.attrKey}"]`,
+    );
+    await expect(fuel, "PW-28: the fuel detail never rendered").toBeVisible({ timeout: 20_000 });
+    await expect(
+      charging,
+      "PW-28: the conditional detail was on screen with no fuel chosen",
+    ).toHaveCount(0);
+
+    await fuel.selectOption(set.fuelValues.petrol);
+    await expect(charging, "PW-28: petrol asked for a charging type").toHaveCount(0);
+
+    await fuel.selectOption(set.fuelValues.electric);
+    await expect(charging, "PW-28: electric did not ask for a charging type").toBeVisible({
+      timeout: 20_000,
+    });
+    await charging.selectOption(set.chargingValue);
+
+    // THE CONDITION FALLS AWAY — the answer goes with it, on screen and in the row.
+    await fuel.selectOption(set.fuelValues.petrol);
+    await expect(charging).toHaveCount(0);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => Object.keys(await attributesOf(listingId)).includes(set.charging.attrKey), {
+        message: "PW-28: an unasked answer reached the draft",
+        timeout: 20_000,
+      })
+      .toBe(false);
+  });
+
+  /**
+   * D22 — THE PHOTO CAP IS THE PLAN'S. Plans are NOT per-seller yet (there is no
+   * seller→plan column), so `seller_plan()` hands every seller the same row: this
+   * test asserts the caption FOLLOWS THE DOCUMENT, reading the same cap from the
+   * plans table it was served from.
+   */
+  test("PW-29 the photos caption counts against the plan's cap", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await gotoReady(page, "/post");
+    await chooseBySearch(page, category.slug, category.id);
+    const [draft] = await draftsOf(user.id);
+    objects.push({ userId: user.id, listingId: String(draft?.id ?? "") });
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+
+    const { data, error } = await adminClient()
+      .from("coverage_plans")
+      .select("plan, max_photos")
+      .eq("plan", "free")
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:r3b2] reading the plan failed: ${error.message}`);
+    const cap = Number(data?.max_photos ?? 0);
+    expect(cap, "PW-29: the plan served no photo cap").toBeGreaterThan(0);
+
+    const caption = page.getByTestId("post-photos-count");
+    await expect(caption, "PW-29: the caption never rendered the plan's cap").toContainText(
+      String(cap),
+      { timeout: 20_000 },
+    );
   });
 
   /**

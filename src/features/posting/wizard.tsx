@@ -22,7 +22,7 @@ import { StepWho } from "./step-who";
 import { StepReview } from "./step-review";
 import { StepSpecifications } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
-import { readPostingSchema } from "./posting-service";
+import { readPostingSchema, type PlanCaps } from "./posting-service";
 import { useDraft } from "./use-draft";
 import { IMPLEMENTED_THROUGH, STEPS, TOTAL_STEPS, type CategoryFacts } from "./types";
 
@@ -73,6 +73,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    * door remains the authority (F3).
    */
   const [facts, setFacts] = useState<CategoryFacts | null>(null);
+  /** D22 — the seller's plan caps, as the posting document reports them. */
+  const [planCaps, setPlanCaps] = useState<PlanCaps | null>(null);
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
   /**
@@ -100,7 +102,11 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     }
     let cancelled = false;
     void readPostingSchema(categoryId).then((schema) => {
-      if (!cancelled) setFacts(schema?.category ?? null);
+      if (cancelled) return;
+      setFacts(schema?.category ?? null);
+      // D22 — the plan travels with the same document; the caps the wizard holds
+      // are never read from a second place.
+      setPlanCaps(schema?.plan ?? null);
     });
     return () => {
       cancelled = true;
@@ -573,6 +579,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             refusalFor(draft.refusals, "videoUrl")
                           }
                           onChangeVideo={(videoUrl) => draft.change({ videoUrl }, false)}
+                          maxPhotos={planCaps?.maxPhotos ?? null}
                         />
                       )}
                       {draft.step === 3 && (
@@ -638,6 +645,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           illustrationUrl={illustrationUrl}
                           expiryDays={facts?.expiryDays ?? 60}
                           refusals={draft.refusals}
+                          maxPhotos={planCaps?.maxPhotos ?? null}
                           onChangeExpiry={(posterExpiresAt) =>
                             draft.change({ posterExpiresAt }, true)
                           }

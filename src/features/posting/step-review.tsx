@@ -18,7 +18,7 @@ import {
 } from "./posting-service";
 import { PreviewSheet } from "./preview/preview-sheet";
 import type { DraftValues } from "./use-draft";
-import { MAX_PHOTOS_PER_LISTING, type Refusal } from "./types";
+import type { Refusal } from "./types";
 
 /**
  * U6-C2b — STEP 8: REVIEW & PUBLISH (spec §4 B2 step 8).
@@ -87,6 +87,7 @@ export function StepReview({
   refusals: doorRefusals,
   onChangeExpiry,
   onGoTo,
+  maxPhotos,
 }: {
   listingId: string | null;
   /** The chosen category's full path, in the seller's language. */
@@ -101,6 +102,8 @@ export function StepReview({
   refusals: Refusal[];
   onChangeExpiry: (value: string) => void;
   onGoTo: (step: number) => void;
+  /** D22 — the plan's photo cap from the posting document; `null` = not read. */
+  maxPhotos: number | null;
 }) {
   const { t } = useI18n();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
@@ -177,10 +180,12 @@ export function StepReview({
     {
       step: 2,
       nameKey: "post.step.photos",
-      value: fill(t("post.photos.count"), {
-        count: photos.length,
-        max: MAX_PHOTOS_PER_LISTING,
-      }),
+      // D22 — the summary counts against the PLAN's cap; with no plan document
+      // read yet the line stays empty rather than quoting a cap nobody set (F4).
+      value:
+        maxPhotos === null
+          ? ""
+          : fill(t("post.photos.count"), { count: photos.length, max: maxPhotos }),
     },
     { step: 3, nameKey: "post.step.specifications", value: attrLine },
     { step: 4, nameKey: "post.step.details", value: values.title },

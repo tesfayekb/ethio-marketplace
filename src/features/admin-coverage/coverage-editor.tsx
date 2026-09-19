@@ -42,6 +42,7 @@ export function CoverageEditorDialog({
     maxCities: String(row.maxCities),
     maxRegions: String(row.maxRegions),
     maxCountries: String(row.maxCountries),
+    maxPhotos: String(row.maxPhotos),
     allowEverywhere: row.allowEverywhere,
   }));
 
@@ -55,6 +56,13 @@ export function CoverageEditorDialog({
       render("admin.coverage.error.belowMinimum");
       return;
     }
+    // D22 — the door's own bound, mirrored so the surface refuses before the
+    // round trip; the door remains the authority (F3).
+    const photos = numberOrZero(form.maxPhotos);
+    if (photos < 0 || photos > 30) {
+      render("admin.coverage.error.badMaxPhotos");
+      return;
+    }
     void guard(async () => {
       try {
         await save.mutateAsync({
@@ -62,6 +70,7 @@ export function CoverageEditorDialog({
           maxCities: numberOrZero(form.maxCities),
           maxRegions: numberOrZero(form.maxRegions),
           maxCountries: numberOrZero(form.maxCountries),
+          maxPhotos: photos,
           allowEverywhere: form.allowEverywhere,
         });
         onClose();

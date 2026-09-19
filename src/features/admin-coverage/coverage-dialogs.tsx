@@ -94,10 +94,12 @@ export interface CoverageFormValues {
   maxCities: string;
   maxRegions: string;
   maxCountries: string;
+  /** D22 — the plan's photo cap, as typed. */
+  maxPhotos: string;
   allowEverywhere: boolean;
 }
 
-/** The four limit fields, shared by create and the editor (B3). */
+/** The limit fields, shared by create and the editor (B3). */
 export function CoverageFormFields({
   idPrefix,
   values,
@@ -109,15 +111,12 @@ export function CoverageFormFields({
 }) {
   const { t } = useI18n();
   const number = (
-    key: "maxCities" | "maxRegions" | "maxCountries",
+    key: "maxCities" | "maxRegions" | "maxCountries" | "maxPhotos",
     label: MessageKey,
     suffix: string,
+    help: MessageKey = "admin.coverage.field.limitHint",
   ) => (
-    <FormField
-      label={t(label)}
-      htmlFor={`${idPrefix}-${suffix}`}
-      help={t("admin.coverage.field.limitHint")}
-    >
+    <FormField label={t(label)} htmlFor={`${idPrefix}-${suffix}`} help={t(help)}>
       <Input
         id={`${idPrefix}-${suffix}`}
         data-testid={`${idPrefix}-${suffix}`}
@@ -133,6 +132,13 @@ export function CoverageFormFields({
       {number("maxCities", "admin.coverage.field.cities", "cities")}
       {number("maxRegions", "admin.coverage.field.regions", "regions")}
       {number("maxCountries", "admin.coverage.field.countries", "countries")}
+      {/* D22 — the ONE dial the photos step reads, editable here (0..30). */}
+      {number(
+        "maxPhotos",
+        "admin.coverage.field.photos",
+        "photos",
+        "admin.coverage.field.photosHint",
+      )}
       <label className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
         <input
           type="checkbox"

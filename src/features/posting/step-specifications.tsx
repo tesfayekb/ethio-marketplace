@@ -84,6 +84,22 @@ function chosenList(raw: unknown): string[] {
     : [];
 }
 
+/**
+ * D24 — IS THIS DETAIL ASKED FOR AT ALL? A link with no condition always is. A
+ * condition is met when the sibling it names holds one of its listed answers —
+ * a single answer, an `other` pick, or one of a multi-select's answers. The
+ * door (`validate_listing_attributes`) decides the same way and DROPS a value
+ * sent for an unmet link, so this is the mirror and never the authority (F3).
+ */
+function conditionMet(def: AttrDef, values: Record<string, unknown>): boolean {
+  const condition = def.visibleWhen;
+  if (condition === null) return true;
+  const held = values[condition.key];
+  const picked = selectedValue(held);
+  if (picked !== "") return condition.in.includes(picked);
+  return chosenList(held).some((entry) => condition.in.includes(entry));
+}
+
 function isEmpty(value: unknown): boolean {
   return (
     value === undefined ||
@@ -152,8 +168,14 @@ export function StepSpecifications({
 
   useEffect(() => {
     if (!onFields) return;
-    onFields(schema === null ? [] : schema.attributes.map((def) => def.attrKey));
-  }, [schema, onFields]);
+    // D24 — only the details the answers actually ask for are reported, so a
+    // hidden required field can never hold `Next` shut.
+    onFields(
+      schema === null
+        ? []
+        : schema.attributes.filter((def) => conditionMet(def, values)).map((def) => def.attrKey),
+    );
+  }, [schema, onFields, values]);
 
   /** One control's list, fetched once, on the tap that opens it (DEC-053). */
   const openOptions = useCallback((def: AttrDef) => {
@@ -205,6 +227,28 @@ export function StepSpecifications({
   );
 
   const definitions = useMemo(() => schema?.attributes ?? [], [schema]);
+
+  /**
+   * D24 — THE DETAILS THIS ANSWER SET ACTUALLY ASKS FOR, re-evaluated on every
+   * change. A hidden detail is absent: it is not rendered, it is not counted as
+   * required, and any answer it still holds is cleared below so nothing unasked
+   * is ever sent.
+   */
+  const asked = useMemo(
+    () => definitions.filter((def) => conditionMet(def, values)),
+    [definitions, values],
+  );
+
+  useEffect(() => {
+    const shown = new Set(asked.map((def) => def.attrKey));
+    const orphans = definitions.filter(
+      (def) => !shown.has(def.attrKey) && !isEmpty(values[def.attrKey]),
+    );
+    if (orphans.length === 0) return;
+    const next = { ...values };
+    for (const def of orphans) delete next[def.attrKey];
+    onChange(next, false);
+  }, [asked, definitions, values, onChange]);
 
   /** The narrowed option list of one definition, before the fold is applied. */
   const allowedListOf = useCallback(
@@ -414,7 +458,8 @@ export function StepSpecifications({
     <div className="space-y-5" data-testid="post-specs">
       <p className="text-sm text-muted-foreground">{t("post.specs.why")}</p>
 
-      {schema.attributes.map((def) => {
+      {/* D24 — only the details this answer set asks for are on screen. */}
+      {asked.map((def) => {
         // U4d/B2 — the shared resolver names a definition, never an inline ternary.
         const label = nameOf(def);
         const held = options[def.attrKey] ?? IDLE;

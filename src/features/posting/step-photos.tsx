@@ -7,7 +7,7 @@ import { controlClass, Field } from "./field";
 import { encodeVariants } from "./photo-encode";
 import { deletePhoto, setCoverPhoto, uploadPhoto, type DraftPhotoRow } from "./posting-service";
 import { fill, photoRefusalKey } from "./refusal-text";
-import { MAX_PHOTOS_PER_LISTING, type PhotoItem, type Refusal } from "./types";
+import type { PhotoItem, Refusal } from "./types";
 
 /**
  * U6-C1a — STEP 2: PHOTOS, PREPARED ON THE DEVICE AND SENT ONE AT A TIME.
@@ -29,8 +29,13 @@ import { MAX_PHOTOS_PER_LISTING, type PhotoItem, type Refusal } from "./types";
  * the grid below is re-read from the server after every accepted change.
  */
 
-/** U6-C1-R2 — the cap is ONE dial, declared in `types.ts` (M-MAINT-2: the plan). */
-const MAX_PHOTOS = MAX_PHOTOS_PER_LISTING;
+/**
+ * D22 — WHEN THE PLAN HAS NOT ARRIVED YET the screen states no cap of its own:
+ * the grid keeps working, the caption waits, and the upload door's own count
+ * remains the authority (F3/F4). This is the "unknown" reading of the dial, never
+ * a second dial.
+ */
+const NO_CAP = Number.POSITIVE_INFINITY;
 
 const tileButtonClass =
   "min-h-11 grow rounded-md border border-input px-2 text-xs font-medium text-foreground " +
@@ -59,6 +64,7 @@ export function StepPhotos({
   videoUrl,
   videoRefusal,
   onChangeVideo,
+  maxPhotos,
 }: {
   listingId: string | null;
   photos: DraftPhotoRow[];
@@ -68,8 +74,12 @@ export function StepPhotos({
   videoUrl: string;
   videoRefusal: Refusal | null;
   onChangeVideo: (value: string) => void;
+  /** D22 — the plan's cap from the posting document; `null` = not read yet. */
+  maxPhotos: number | null;
 }) {
   const { t } = useI18n();
+  /** The one dial, for this render: the plan's number, or no cap of our own. */
+  const MAX_PHOTOS = maxPhotos ?? NO_CAP;
   const inputRef = useRef<HTMLInputElement>(null);
   /** Tiles for photos this session picked; server rows fill the rest. */
   const [items, setItems] = useState<PhotoItem[]>([]);
@@ -189,7 +199,7 @@ export function StepPhotos({
       }
       if (aliveRef.current) setBusy(false);
     },
-    [items, listingId, photos.length, send],
+    [items, listingId, photos.length, send, MAX_PHOTOS],
   );
 
   const remove = useCallback(
@@ -232,11 +242,15 @@ export function StepPhotos({
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">{t("post.photos.why")}</p>
 
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground" data-testid="post-photos-count">
-          {fill(t("post.photos.count"), { count: total, max: MAX_PHOTOS })}
-        </p>
-      </div>
+      {/* D22 — the count SAYS the plan's cap, so it waits for the plan rather than
+          stating a number nobody granted (F4). */}
+      {maxPhotos !== null && (
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground" data-testid="post-photos-count">
+            {fill(t("post.photos.count"), { count: total, max: maxPhotos })}
+          </p>
+        </div>
+      )}
 
       {items.length === 0 && photos.length === 0 && (
         <div className="space-y-2" data-testid="post-photos-empty">

@@ -24,6 +24,8 @@ export interface CoveragePlanRow {
   maxCities: number;
   maxRegions: number;
   maxCountries: number;
+  /** D22 — how many photos a listing on this plan may carry (0..30). */
+  maxPhotos: number;
   allowEverywhere: boolean;
   updatedAt: string;
 }
@@ -31,7 +33,9 @@ export interface CoveragePlanRow {
 export async function listCoveragePlans(): Promise<CoveragePlanRow[]> {
   const { data, error } = await supabase
     .from("coverage_plans")
-    .select("plan, max_cities, max_regions, max_countries, allow_everywhere, updated_at")
+    .select(
+      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, updated_at",
+    )
     .order("plan");
   if (error) throw error;
   return (data ?? []).map((row) => ({
@@ -39,6 +43,7 @@ export async function listCoveragePlans(): Promise<CoveragePlanRow[]> {
     maxCities: Number(row.max_cities ?? 0),
     maxRegions: Number(row.max_regions ?? 0),
     maxCountries: Number(row.max_countries ?? 0),
+    maxPhotos: Number(row.max_photos ?? 0),
     allowEverywhere: row.allow_everywhere === true,
     updatedAt: row.updated_at ?? "",
   }));
@@ -49,6 +54,7 @@ export interface SetCoveragePlanInput {
   maxCities: number;
   maxRegions: number;
   maxCountries: number;
+  maxPhotos: number;
   allowEverywhere: boolean;
 }
 
@@ -58,6 +64,9 @@ export async function setCoveragePlan(input: SetCoveragePlanInput): Promise<void
     p_max_cities: input.maxCities,
     p_max_regions: input.maxRegions,
     p_max_countries: input.maxCountries,
+    // D22 — the cap travels with the rest of the row (INC-188: a save never
+    // drops a field the surface holds).
+    p_max_photos: input.maxPhotos,
     p_allow_everywhere: input.allowEverywhere,
   });
   if (error) throw error;
@@ -66,7 +75,7 @@ export async function setCoveragePlan(input: SetCoveragePlanInput): Promise<void
 /* ------------------------------- refusals -------------------------------- */
 
 /** Every refusal id the coverage door raises, copied by name (E7). */
-export const COVERAGE_REFUSAL_IDS = ["badPlan", "belowMinimum"] as const;
+export const COVERAGE_REFUSAL_IDS = ["badPlan", "belowMinimum", "badMaxPhotos"] as const;
 
 export interface CoverageRefusal {
   key: MessageKey;
@@ -96,6 +105,7 @@ export const COVERAGE_COLUMN_PRIORITIES = {
   cities: "primary",
   regions: "primary",
   countries: "primary",
+  photos: "primary",
   everywhere: "secondary",
   updated: "detail",
 } as const;

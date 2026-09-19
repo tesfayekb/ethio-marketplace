@@ -425,6 +425,63 @@ export async function waitForTreeSlug(page: Page, countryCode: string, slug: str
     .toContain(slug);
 }
 
+/**
+ * INC-235 — THE SERVED TREE, READ FROM NODE AND NEVER FROM THE BROWSER.
+ *
+ * `treeSlugs` goes through `page.request`, which shares the context's cache: a
+ * poll there can hand the app a stale answer it then reuses. This reader is a
+ * plain node fetch with `cache: "no-store"`, so waiting on it proves the ROUTE
+ * serves the market without priming anything the picker will read (J7).
+ */
+export async function readServedTree(countryCode: string): Promise<{
+  status: number;
+  slugs: string[];
+  codes: string[];
+}> {
+  const base = process.env["E2E_BASE_URL"] ?? "http://127.0.0.1:4173";
+  try {
+    const response = await fetch(`${base}/api/locations/${countryCode}`, {
+      cache: "no-store",
+      headers: { accept: "application/json" },
+    });
+    if (!response.ok) return { status: response.status, slugs: [], codes: [] };
+    const body = (await response.json()) as {
+      nodes?: { slug?: string; country_code?: string }[];
+    };
+    const nodes = body.nodes ?? [];
+    return {
+      status: response.status,
+      slugs: nodes.map((node) => node.slug ?? "").filter((slug) => slug !== ""),
+      codes: [...new Set(nodes.map((node) => node.country_code ?? "").filter((c) => c !== ""))],
+    };
+  } catch (cause) {
+    return { status: 0, slugs: [], codes: [`fetch failed: ${(cause as Error).message}`] };
+  }
+}
+
+/**
+ * INC-235 — WAIT FOR THE ROUTE TO SERVE THE MARKET before the where step opens.
+ * Bounded at 20 s like every other tree wait (the cache window is 15 s) and the
+ * refusal names what the route did return, never a bare timeout.
+ */
+export async function waitForServedTree(countryCode: string, slug: string) {
+  let seen: { status: number; slugs: string[] } = { status: 0, slugs: [] };
+  await expect
+    .poll(
+      async () => {
+        seen = await readServedTree(countryCode);
+        return seen.slugs;
+      },
+      {
+        timeout: 20_000,
+        intervals: [1000],
+        message: `INC-235: /api/locations/${countryCode} never served ${slug} within 20 s`,
+      },
+    )
+    .toContain(slug);
+  return seen;
+}
+
 /** DB truth (J4): which market a node belongs to — LS-11's identity check. */
 export async function readLocationById(id: string) {
   const { data, error } = await adminClient()

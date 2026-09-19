@@ -24,14 +24,13 @@ export const TOTAL_STEPS = STEPS.length;
 export const IMPLEMENTED_THROUGH = 8;
 
 /**
- * U6-C1-R2 — HOW MANY PHOTOS A LISTING MAY CARRY, in ONE place.
- *
- * The number is said on screen, enforced by the picker and counted by the grid,
- * so it may be declared only once. M-MAINT-2 will source it from the seller's
- * plan; until then the dial is this constant and the upload door's own cap
- * remains the authority (F3).
+ * D22 (M-MAINT-3) — HOW MANY PHOTOS A LISTING MAY CARRY IS THE PLAN'S ANSWER,
+ * not a constant: `get_posting_schema` reports `plan.max_photos` and the photos
+ * step, the caption and the review line all read that one document (see
+ * `PlanCaps` in posting-service.ts). The upload door counts for itself, so the
+ * screen's cap is a mirror (F3). The constant this block replaced is gone on
+ * purpose — a second dial could disagree with the plan.
  */
-export const MAX_PHOTOS_PER_LISTING = 10;
 
 /**
  * U6-C1-R2 — HOW MANY TIMES THE WRITING HELPER MAY BE ASKED, per listing.

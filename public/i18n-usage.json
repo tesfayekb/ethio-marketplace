@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 298,
-  "dynamicCallSites": 199,
+  "dynamicCallSites": 200,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1527,6 +1527,9 @@
     "admin.coverage.col.everywhere": [
       "/admin/coverage"
     ],
+    "admin.coverage.col.photos": [
+      "/admin/coverage"
+    ],
     "admin.coverage.col.plan": [
       "/admin/coverage"
     ],
@@ -1555,9 +1558,6 @@
       "/admin/coverage"
     ],
     "admin.coverage.field.everywhere": [
-      "/admin/coverage"
-    ],
-    "admin.coverage.field.limitHint": [
       "/admin/coverage"
     ],
     "admin.coverage.field.plan": [

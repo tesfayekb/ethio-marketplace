@@ -105,6 +105,17 @@ export function AdminCoveragePage() {
       ),
     },
     {
+      key: "photos",
+      header: t("admin.coverage.col.photos"),
+      priority: COVERAGE_COLUMN_PRIORITIES.photos,
+      align: "end",
+      cell: (row) => (
+        <span className="text-sm tabular-nums" data-testid={`coverage-${row.plan}-photos`}>
+          {row.maxPhotos}
+        </span>
+      ),
+    },
+    {
       key: "everywhere",
       header: t("admin.coverage.col.everywhere"),
       priority: COVERAGE_COLUMN_PRIORITIES.everywhere,

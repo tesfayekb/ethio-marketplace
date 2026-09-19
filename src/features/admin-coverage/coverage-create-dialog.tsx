@@ -31,6 +31,7 @@ export function CoverageCreateDialog({ guard, onClose }: { guard: GuardFn; onClo
     maxCities: "1",
     maxRegions: "1",
     maxCountries: "1",
+    maxPhotos: "10",
     allowEverywhere: false,
   });
 
@@ -48,6 +49,11 @@ export function CoverageCreateDialog({ guard, onClose }: { guard: GuardFn; onClo
       render("admin.coverage.error.belowMinimum");
       return;
     }
+    const photos = numberOrZero(form.maxPhotos);
+    if (photos < 0 || photos > 30) {
+      render("admin.coverage.error.badMaxPhotos");
+      return;
+    }
     void guard(async () => {
       try {
         await save.mutateAsync({
@@ -55,6 +61,7 @@ export function CoverageCreateDialog({ guard, onClose }: { guard: GuardFn; onClo
           maxCities: numberOrZero(form.maxCities),
           maxRegions: numberOrZero(form.maxRegions),
           maxCountries: numberOrZero(form.maxCountries),
+          maxPhotos: photos,
           allowEverywhere: form.allowEverywhere,
         });
         onClose();

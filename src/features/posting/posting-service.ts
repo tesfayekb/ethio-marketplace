@@ -309,6 +309,27 @@ export interface AttrDef {
    */
   allowedOptions: string[] | null;
   defaultValue: unknown;
+  /**
+   * D24 (M-MAINT-3) — THE CONDITION THIS DETAIL HANGS ON: `{ key, in }` names a
+   * SIBLING detail in the same category and the answers that make this one apply.
+   * `null` = always asked. `validate_listing_attributes` treats an unmet link as
+   * absent for `required` and DROPS any value sent for it, so the form's hiding
+   * is a mirror of the door, never the authority (F3).
+   */
+  visibleWhen: { key: string; in: string[] } | null;
+}
+
+/**
+ * D22 (M-MAINT-3) — THE SELLER'S PLAN CAPS, as `get_posting_schema` reports them
+ * through `seller_plan()`. `maxPhotos` is the ONE dial the photos step obeys; the
+ * upload door counts for itself, so this is a mirror (F3).
+ */
+export interface PlanCaps {
+  plan: string;
+  maxCities: number | null;
+  maxRegions: number | null;
+  maxCountries: number | null;
+  maxPhotos: number | null;
 }
 
 export interface PostingSchema {
@@ -322,6 +343,8 @@ export interface PostingSchema {
    * capabilities. Step 5 mirrors every one of them (the door still decides).
    */
   category: CategoryFacts | null;
+  /** D22 — the caller's own plan caps; `null` when the read carries no block. */
+  plan: PlanCaps | null;
 }
 
 function str(row: Record<string, unknown>, key: string): string | null {
@@ -357,7 +380,21 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
         )
       : null,
     defaultValue: row["default_value"] ?? null,
+    visibleWhen: shapeCondition(row["visible_when"]),
   };
+}
+
+/** D24 — a condition is used ONLY when it carries both halves; anything else is
+ * "always asked", so a malformed row can never hide a question silently. */
+function shapeCondition(raw: unknown): { key: string; in: string[] } | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const row = raw as Record<string, unknown>;
+  const key = typeof row["key"] === "string" ? row["key"] : "";
+  const values = Array.isArray(row["in"])
+    ? (row["in"] as unknown[]).filter((entry): entry is string => typeof entry === "string")
+    : [];
+  if (key === "" || values.length === 0) return null;
+  return { key, in: values };
 }
 
 /**
@@ -382,10 +419,21 @@ export async function readPostingSchema(categoryId: string): Promise<PostingSche
         (entry): entry is string => typeof entry === "string",
       )
     : [];
+  const planBlock = (payload["plan"] ?? null) as Record<string, unknown> | null;
   return {
     details: attributes.length,
     required: attributes.filter((row) => row.isRequired).length,
     attributes,
+    plan:
+      planBlock === null
+        ? null
+        : {
+            plan: str(planBlock, "plan") ?? "",
+            maxCities: int(planBlock, "max_cities"),
+            maxRegions: int(planBlock, "max_regions"),
+            maxCountries: int(planBlock, "max_countries"),
+            maxPhotos: int(planBlock, "max_photos"),
+          },
     category:
       block === null
         ? null

@@ -1835,6 +1835,7 @@ export const en = {
   "admin.coverage.col.cities": "Cities",
   "admin.coverage.col.regions": "Regions",
   "admin.coverage.col.countries": "Countries",
+  "admin.coverage.col.photos": "Photos at most",
   "admin.coverage.col.everywhere": "Everywhere",
   "admin.coverage.col.updated": "Updated",
   "admin.coverage.everywhere.yes": "Yes",
@@ -1852,6 +1853,8 @@ export const en = {
   "admin.coverage.field.cities": "Cities at most",
   "admin.coverage.field.regions": "Regions at most",
   "admin.coverage.field.countries": "Countries at most",
+  "admin.coverage.field.photos": "Photos at most",
+  "admin.coverage.field.photosHint": "0 to 30 photos per listing.",
   "admin.coverage.field.everywhere": "Allow everywhere",
   "admin.coverage.field.limitHint": "At least 1.",
   "admin.coverage.noDelete": "A plan can be edited, never removed.",
@@ -1861,6 +1864,7 @@ export const en = {
   "admin.coverage.error.unknown": "That could not be saved.",
   "admin.coverage.error.badPlan": "A plan name is 2 to 32 lower-case letters or underscores.",
   "admin.coverage.error.belowMinimum": "Every limit is at least 1.",
+  "admin.coverage.error.badMaxPhotos": "The photo limit is between 0 and 30.",
 
   // U6-C1a — THE POSTING WIZARD (D1: no literal UI string).
   "post.head.title": "Post a listing — ethio.com",

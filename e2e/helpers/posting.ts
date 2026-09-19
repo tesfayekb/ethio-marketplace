@@ -523,6 +523,87 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   };
 }
 
+/**
+ * D24 — A CONDITIONAL PAIR: a fuel detail, and a charging detail the category
+ * asks for ONLY when the fuel is electric. Both rows are scratch (J1/J3), the
+ * condition is written on the LINK exactly as the door's checker shapes it.
+ */
+export interface ConditionalSet {
+  fuel: ScratchAttr;
+  charging: ScratchAttr;
+  fuelValues: { petrol: string; electric: string };
+  chargingValue: string;
+  attrKeys: string[];
+}
+
+export async function seedConditionalSet(categoryId: string): Promise<ConditionalSet> {
+  const supabase = adminClient();
+  const stem = `e2e_cond_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const petrol = `${stem}_petrol`;
+  const electric = `${stem}_electric`;
+  const plug = `${stem}_plug`;
+  const option = (value: string) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+  });
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: `${stem}_fuel`,
+        name_en: `${stem} fuel`,
+        attr_type: "single_select",
+        options: [option(petrol), option(electric)],
+      },
+      {
+        attr_key: `${stem}_charging`,
+        name_en: `${stem} charging`,
+        attr_type: "single_select",
+        options: [option(plug)],
+      },
+    ])
+    .select("id, attr_key, name_en");
+  if (error || !data) {
+    throw new Error(
+      `[e2e:r3b2] seeding the conditional set failed: ${error?.message ?? "no rows"}`,
+    );
+  }
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:r3b2] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
+  };
+  const fuel = pick("_fuel");
+  const charging = pick("_charging");
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: fuel.id, is_required: false, display_order: 1 },
+    {
+      category_id: categoryId,
+      attribute_id: charging.id,
+      // D24 — required, but only when it is ASKED: the validator treats an unmet
+      // link as absent, so `petrol` never owes an answer here.
+      is_required: true,
+      display_order: 2,
+      visible_when: { key: fuel.attrKey, in: [electric] },
+    },
+  ]);
+  if (linkError) {
+    throw new Error(`[e2e:r3b2] linking the conditional set failed: ${linkError.message}`);
+  }
+
+  return {
+    fuel,
+    charging,
+    fuelValues: { petrol, electric },
+    chargingValue: plug,
+    attrKeys: [fuel.attrKey, charging.attrKey],
+  };
+}
+
 /** Links first, then the definitions — a definition never leaves an orphan link (J3). */
 export async function destroySpecSet(attrKeys: string[]): Promise<void> {
   if (attrKeys.length === 0) return;

@@ -15,7 +15,7 @@ import {
 import { adminClient, createUser } from "./helpers/users";
 
 /**
- * LOCATIONS ERA L2b-C2 — THE COVERAGE CONSOLE (CV-1..CV-6).
+ * LOCATIONS ERA L2b-C2 — THE COVERAGE CONSOLE (CV-1..CV-7).
  *
  * Identity: the pooled job super admin for consumers (J9). Truth: the service
  * client, never a rendered summary (J4). Anchors: structure and testids, never
@@ -58,7 +58,7 @@ async function openEditor(page: Page, plan: string) {
 async function readPlan(plan: string) {
   const { data, error } = await adminClient()
     .from("coverage_plans")
-    .select("plan, max_cities, max_regions, max_countries, allow_everywhere")
+    .select("plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere")
     .eq("plan", plan)
     .maybeSingle();
   if (error) throw new Error(`[e2e:l2b] reading the plan ${plan} failed: ${error.message}`);
@@ -197,6 +197,48 @@ test.describe("L2b coverage console", () => {
       expect(stored?.max_regions).toBe(2);
       expect(stored?.max_countries).toBe(1);
       expect(stored?.allow_everywhere).toBe(true);
+    } finally {
+      await destroyPlan(plan);
+    }
+  });
+
+  test("CV-7 photo cap: the plan's photo cap round-trips through the door (D22)", async ({
+    page,
+  }, testInfo) => {
+    // D22 — the cap the posting document hands the photos step is edited HERE,
+    // and this test owns its own plan, so the real `free` row is untouched (J3).
+    const { secret } = await useJobSuperAdmin(page);
+    const plan = scratchPlan("photos", testInfo.project.name);
+    try {
+      await seedPlan(plan);
+      await gotoReady(page, "/admin/coverage");
+      await expect(planRow(page, plan)).toBeVisible({ timeout: 20000 });
+      await expect(planRow(page, plan).getByTestId(`coverage-${plan}-photos`)).toBeVisible();
+      await openEditor(page, plan);
+      await page.getByTestId("coverage-editor-photos").fill("3");
+      await page.getByTestId("coverage-editor-save").click();
+      await awaitGuardedOutcome(
+        page,
+        secret,
+        {
+          poll: async () => (await readPlan(plan))?.max_photos === 3,
+          describe: `CV-7: coverage_plans.max_photos = 3 for ${plan}`,
+        },
+        { timeout: 30000 },
+      );
+      await expect.poll(async () => (await readPlan(plan))?.max_photos, { timeout: 20000 }).toBe(3);
+      await expect(planRow(page, plan).getByTestId(`coverage-${plan}-photos`)).toHaveText("3", {
+        timeout: 20000,
+      });
+
+      // The door's bound is the authority; the surface refuses 31 by name and
+      // the stored cap stays at 3 (F3/F4).
+      await openEditor(page, plan);
+      await page.getByTestId("coverage-editor-photos").fill("31");
+      await page.getByTestId("coverage-editor-save").click();
+      await expect(page.getByTestId("coverage-editor-error")).toBeVisible({ timeout: 20000 });
+      expect((await readPlan(plan))?.max_photos).toBe(3);
+      await page.getByTestId("coverage-dialog-cancel").click();
     } finally {
       await destroyPlan(plan);
     }
