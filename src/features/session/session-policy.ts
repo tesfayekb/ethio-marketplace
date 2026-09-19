@@ -206,6 +206,13 @@ type Options = {
  * The policy clock. One 1s interval reads the persisted stamps, so the policy
  * survives reloads and is cross-tab by construction (every tab reads the same
  * localStorage stamps; activity in one tab extends all of them).
+ *
+ * INC-223 — TWO ORDERING LAWS. (1) The caller activates the policy only after
+ * the clocks for THIS session exist, and there is NO synchronous first tick:
+ * the first read happens one interval later, never in the same commit as the
+ * sign-in. (2) Even then, stamps that do not belong to the live session are
+ * treated as absent and re-started, so a previous session's marker can never
+ * judge a new one.
  */
 export function useSessionPolicy({ active, tier, onExpire }: Options) {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
@@ -225,7 +232,8 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
     }
     firedRef.current = false;
     const keys = sessionPolicyKeys();
-    if (readStamp(keys.sessionStartedAt) === null) startSessionClocks();
+    // Session-scoped: absent OR foreign stamps start a fresh window.
+    if (!sessionClocksAreCurrent()) startSessionClocks();
     if (readStamp(keys.lastActivityAt) === null) writeStamp(keys.lastActivityAt, Date.now());
 
     let lastWrite = 0;
@@ -247,6 +255,12 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
 
     const tick = () => {
       if (firedRef.current) return;
+      // A stamp set that does not belong to the live session judges nothing.
+      if (!sessionClocksAreCurrent()) {
+        startSessionClocks();
+        setSecondsLeft(null);
+        return;
+      }
       const now = Date.now();
       const startedAt = readStamp(keys.sessionStartedAt) ?? now;
       const lastActivityAt = readStamp(keys.lastActivityAt) ?? now;
@@ -268,7 +282,7 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
       setSecondsLeft(idleLeft <= warnBefore() ? Math.ceil(idleLeft / 1000) : null);
     };
 
-    tick();
+    // INC-223: no synchronous tick — the first read is one interval later.
     const timer = window.setInterval(tick, TICK_MS);
 
     return () => {
