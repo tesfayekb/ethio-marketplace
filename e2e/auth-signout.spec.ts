@@ -234,7 +234,6 @@ async function readStamps(page: Page) {
   }, policyKeys());
 }
 
-
 test.describe("U0k session policy", () => {
   test("SP-1 idle: the warning appears, then the session is hard-reset", async ({ page }) => {
     await overridePolicy(page, { idleMs: 4000, warnMs: 2500, absoluteMs: 600_000 });
@@ -305,7 +304,11 @@ test.describe("U0k session policy", () => {
    */
   test("SP-6 stale stamps from a previous session never sign the new one out", async ({ page }) => {
     // Staff limits, stated explicitly: idle 30 min, absolute 12 h.
-    await overridePolicy(page, { idleMs: 30 * 60_000, warnMs: 60_000, absoluteMs: 12 * 60 * 60_000 });
+    await overridePolicy(page, {
+      idleMs: 30 * 60_000,
+      warnMs: 60_000,
+      absoluteMs: 12 * 60 * 60_000,
+    });
     await seedStaleClocks(page, 3 * 60 * 60_000);
     const user = await createUser({ confirmed: true });
     await grantRole(user.id, "super_admin");
@@ -331,7 +334,11 @@ test.describe("U0k session policy", () => {
   });
 
   test("SP-7 reload of a live session keeps its clocks (no silent extension)", async ({ page }) => {
-    await overridePolicy(page, { idleMs: 30 * 60_000, warnMs: 60_000, absoluteMs: 12 * 60 * 60_000 });
+    await overridePolicy(page, {
+      idleMs: 30 * 60_000,
+      warnMs: 60_000,
+      absoluteMs: 12 * 60 * 60_000,
+    });
     const user = await createUser({ confirmed: true });
 
     await signIn(page, user.email, user.password);
