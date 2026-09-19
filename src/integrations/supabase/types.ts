@@ -243,10 +243,12 @@ export type Database = {
       }
       category_attribute_links: {
         Row: {
+          allowed_options: string[] | null
           attribute_id: string
           card_rank: number | null
           category_id: string
           created_at: string
+          default_value: Json | null
           display_order: number
           id: string
           is_filterable: boolean
@@ -255,10 +257,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allowed_options?: string[] | null
           attribute_id: string
           card_rank?: number | null
           category_id: string
           created_at?: string
+          default_value?: Json | null
           display_order?: number
           id?: string
           is_filterable?: boolean
@@ -267,10 +271,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allowed_options?: string[] | null
           attribute_id?: string
           card_rank?: number | null
           category_id?: string
           created_at?: string
+          default_value?: Json | null
           display_order?: number
           id?: string
           is_filterable?: boolean
@@ -554,6 +560,7 @@ export type Database = {
           allow_everywhere: boolean
           max_cities: number
           max_countries: number
+          max_photos: number
           max_regions: number
           plan: string
           updated_at: string
@@ -563,6 +570,7 @@ export type Database = {
           allow_everywhere?: boolean
           max_cities: number
           max_countries: number
+          max_photos?: number
           max_regions: number
           plan: string
           updated_at?: string
@@ -572,6 +580,7 @@ export type Database = {
           allow_everywhere?: boolean
           max_cities?: number
           max_countries?: number
+          max_photos?: number
           max_regions?: number
           plan?: string
           updated_at?: string
@@ -884,6 +893,9 @@ export type Database = {
           home_country_code: string
           id: string
           location_id: string | null
+          pin_lat: number | null
+          pin_lng: number | null
+          pin_precision: string | null
           poster_expires_at: string | null
           price_amount: number | null
           price_currency: string | null
@@ -896,6 +908,7 @@ export type Database = {
           search_tsv: unknown
           seller_id: string
           status: string
+          street_address: string | null
           tier: string
           title: string
           updated_at: string
@@ -914,6 +927,9 @@ export type Database = {
           home_country_code: string
           id?: string
           location_id?: string | null
+          pin_lat?: number | null
+          pin_lng?: number | null
+          pin_precision?: string | null
           poster_expires_at?: string | null
           price_amount?: number | null
           price_currency?: string | null
@@ -926,6 +942,7 @@ export type Database = {
           search_tsv?: unknown
           seller_id: string
           status?: string
+          street_address?: string | null
           tier?: string
           title: string
           updated_at?: string
@@ -944,6 +961,9 @@ export type Database = {
           home_country_code?: string
           id?: string
           location_id?: string | null
+          pin_lat?: number | null
+          pin_lng?: number | null
+          pin_precision?: string | null
           poster_expires_at?: string | null
           price_amount?: number | null
           price_currency?: string | null
@@ -956,6 +976,7 @@ export type Database = {
           search_tsv?: unknown
           seller_id?: string
           status?: string
+          street_address?: string | null
           tier?: string
           title?: string
           updated_at?: string
@@ -1182,7 +1203,9 @@ export type Database = {
           created_at: string
           default_post_location_id: string | null
           display_name: string
+          first_name: string | null
           home_country_code: string | null
+          last_name: string | null
           notification_prefs: Json
           preferred_language: string | null
           seller_alias: string | null
@@ -1207,7 +1230,9 @@ export type Database = {
           created_at?: string
           default_post_location_id?: string | null
           display_name: string
+          first_name?: string | null
           home_country_code?: string | null
+          last_name?: string | null
           notification_prefs?: Json
           preferred_language?: string | null
           seller_alias?: string | null
@@ -1232,7 +1257,9 @@ export type Database = {
           created_at?: string
           default_post_location_id?: string | null
           display_name?: string
+          first_name?: string | null
           home_country_code?: string | null
+          last_name?: string | null
           notification_prefs?: Json
           preferred_language?: string | null
           seller_alias?: string | null
@@ -2806,6 +2833,8 @@ export type Database = {
         Returns: Json
       }
       next_language_sort: { Args: never; Returns: number }
+      plan_caps: { Args: { p_plan: string }; Returns: Json }
+      plan_photo_cap: { Args: { p_plan: string }; Returns: number }
       promote_to_super_admin: {
         Args: { p_target_user: string }
         Returns: undefined
@@ -2846,11 +2875,14 @@ export type Database = {
           p_alias?: string
           p_business_name?: string
           p_contact_pref?: Json
+          p_first_name?: string
           p_home_country_code?: string
+          p_last_name?: string
           p_seller_type?: string
         }
         Returns: Json
       }
+      seller_plan: { Args: { p_user_id: string }; Returns: string }
       set_cover_photo: {
         Args: { p_listing_id: string; p_photo_id: string }
         Returns: Json
@@ -2858,6 +2890,16 @@ export type Database = {
       set_language_order_impl: {
         Args: { p_codes: string[] }
         Returns: undefined
+      }
+      set_listing_pin: {
+        Args: {
+          p_lat?: number
+          p_listing_id: string
+          p_lng?: number
+          p_precision?: string
+          p_street?: string
+        }
+        Returns: Json
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
