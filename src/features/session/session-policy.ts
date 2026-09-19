@@ -73,6 +73,8 @@ export function sessionPolicyKeys() {
   return {
     lastActivityAt: `sb-${ref}-last-activity-at`,
     sessionStartedAt: `sb-${ref}-session-started-at`,
+    /** INC-223 — which session these clocks belong to. */
+    sessionRef: `sb-${ref}-session-ref`,
   };
 }
 
@@ -83,6 +85,54 @@ export function sessionPolicyKeys() {
  * writes the stamp any more. `clearSessionClocks` still removes the legacy key
  * so pre-L5 browsers shed it on their next sign-out.
  */
+
+/**
+ * INC-223 — THE IDENTITY OF THE LIVE SESSION, read synchronously.
+ *
+ * The clocks used to be global: a marker left behind by a PREVIOUS session
+ * (tab closed, token expiry — anything that is not the hard reset) was read by
+ * the first tick of the NEXT sign-in and judged it idle, so a correct sign-in
+ * ended on the marketplace with "Signed out for inactivity". The stamps now
+ * carry the session they describe; a stamp set whose `sessionRef` differs from
+ * the live session is treated as ABSENT.
+ *
+ * MECHANISM: the persisted supabase token (plain JSON, see e2e/helpers/session.ts)
+ * gives `expires_at - expires_in` = the issuing instant (`iat`) of the current
+ * access token. Reading localStorage is synchronous and calls NO supabase API,
+ * so this is safe inside an auth-state effect (law I5: the auth lock is held).
+ */
+export function liveSessionRef(): string | null {
+  if (typeof window === "undefined") return null;
+  const key =
+    `sb-${projectRef()}-auth-token` in window.localStorage
+      ? `sb-${projectRef()}-auth-token`
+      : Object.keys(window.localStorage).find(
+          (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
+        );
+  if (!key) return null;
+  const raw = window.localStorage.getItem(key);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as { expires_at?: number; expires_in?: number } | null;
+    const expiresAt = parsed?.expires_at;
+    const expiresIn = parsed?.expires_in;
+    if (typeof expiresAt !== "number" || typeof expiresIn !== "number") return null;
+    return String(expiresAt - expiresIn);
+  } catch {
+    return null;
+  }
+}
+
+/** True when the persisted clocks describe the session that is live right now. */
+export function sessionClocksAreCurrent(): boolean {
+  if (typeof window === "undefined") return false;
+  const keys = sessionPolicyKeys();
+  if (readStamp(keys.sessionStartedAt) === null) return false;
+  const live = liveSessionRef();
+  // No readable token → nothing to compare against; the stamps stand as written.
+  if (live === null) return true;
+  return window.localStorage.getItem(keys.sessionRef) === live;
+}
 
 function readStamp(key: string): number | null {
   if (typeof window === "undefined") return null;
@@ -97,9 +147,23 @@ function writeStamp(key: string, value: number) {
   window.localStorage.setItem(key, String(value));
 }
 
-/** Fresh session start + activity clock (sign-in success, or first mount). */
+/**
+ * Ensure clocks for THIS session (sign-in success, or first mount).
+ *
+ * INC-223: a reload of a live session KEEPS its clocks (same `sessionRef`), so
+ * the idle and absolute windows are not silently extended by refreshing the
+ * page; anything else — no stamps, or stamps from another session — starts a
+ * fresh window.
+ */
 export function startSessionClocks(now = Date.now()) {
+  if (typeof window === "undefined") return;
   const keys = sessionPolicyKeys();
+  if (sessionClocksAreCurrent()) {
+    if (readStamp(keys.lastActivityAt) === null) writeStamp(keys.lastActivityAt, now);
+    return;
+  }
+  const live = liveSessionRef();
+  window.localStorage.setItem(keys.sessionRef, live ?? "");
   writeStamp(keys.sessionStartedAt, now);
   writeStamp(keys.lastActivityAt, now);
 }
@@ -110,6 +174,7 @@ export function clearSessionClocks() {
   const keys = sessionPolicyKeys();
   window.localStorage.removeItem(keys.lastActivityAt);
   window.localStorage.removeItem(keys.sessionStartedAt);
+  window.localStorage.removeItem(keys.sessionRef);
   // INC-167: shed the retired U1f step-up hint from pre-L5 browsers.
   window.localStorage.removeItem(`sb-${projectRef()}-stepped-up-at`);
 }
@@ -141,6 +206,13 @@ type Options = {
  * The policy clock. One 1s interval reads the persisted stamps, so the policy
  * survives reloads and is cross-tab by construction (every tab reads the same
  * localStorage stamps; activity in one tab extends all of them).
+ *
+ * INC-223 — TWO ORDERING LAWS. (1) The caller activates the policy only after
+ * the clocks for THIS session exist, and there is NO synchronous first tick:
+ * the first read happens one interval later, never in the same commit as the
+ * sign-in. (2) Even then, stamps that do not belong to the live session are
+ * treated as absent and re-started, so a previous session's marker can never
+ * judge a new one.
  */
 export function useSessionPolicy({ active, tier, onExpire }: Options) {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
@@ -160,7 +232,8 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
     }
     firedRef.current = false;
     const keys = sessionPolicyKeys();
-    if (readStamp(keys.sessionStartedAt) === null) startSessionClocks();
+    // Session-scoped: absent OR foreign stamps start a fresh window.
+    if (!sessionClocksAreCurrent()) startSessionClocks();
     if (readStamp(keys.lastActivityAt) === null) writeStamp(keys.lastActivityAt, Date.now());
 
     let lastWrite = 0;
@@ -182,6 +255,12 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
 
     const tick = () => {
       if (firedRef.current) return;
+      // A stamp set that does not belong to the live session judges nothing.
+      if (!sessionClocksAreCurrent()) {
+        startSessionClocks();
+        setSecondsLeft(null);
+        return;
+      }
       const now = Date.now();
       const startedAt = readStamp(keys.sessionStartedAt) ?? now;
       const lastActivityAt = readStamp(keys.lastActivityAt) ?? now;
@@ -203,7 +282,7 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
       setSecondsLeft(idleLeft <= warnBefore() ? Math.ceil(idleLeft / 1000) : null);
     };
 
-    tick();
+    // INC-223: no synchronous tick — the first read is one interval later.
     const timer = window.setInterval(tick, TICK_MS);
 
     return () => {
