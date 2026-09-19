@@ -204,7 +204,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 <p className="mt-4 text-xs text-muted-foreground">{categoryPath}</p>
               ) : null}
             </Section>
-            {draft.step >= 4 ? (
+            {draft.step >= 4 && draft.step < 8 ? (
               <ListingPreview
                 title={draft.values.title}
                 description={draft.values.description}

@@ -751,7 +751,7 @@ test.describe("mobile chrome", () => {
 
     // INC-071: activation IS navigation. The URL is Account's homePath, and
     // the drawer stays OPEN on the new panel's items.
-    await expect(page).toHaveURL(/\/settings$/);
+    await expect(page).toHaveURL(/\/account$/);
     await expect(drawer).toBeVisible();
     await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
     await expect(drawer.getByTestId("rail-item-ac-overview")).toBeVisible();
@@ -1015,7 +1015,7 @@ test.describe("panel header band (U0d)", () => {
     await page.getByRole("menu").getByTestId("panel-header-option-account").click();
 
     // INC-071 — the route, not state, decides the panel.
-    await expect(page).toHaveURL(/\/settings$/);
+    await expect(page).toHaveURL(/\/account$/);
     await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
     await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible();
     await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
