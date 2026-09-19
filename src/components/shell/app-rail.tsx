@@ -98,6 +98,12 @@ type RailNode = {
   label: string;
   icon?: NavItem["icon"];
   path?: string;
+  /**
+   * U6-C1-R3a — an ANCHOR item: a section of a page another item already owns
+   * ("Sign-in and security" inside /settings). Two items sharing one path both
+   * highlighted, which told the seller nothing; the hash separates them.
+   */
+  hash?: string;
   /** Route params for a dynamic path (U0l: /c/$slug). */
   params?: Record<string, string>;
   active?: boolean;
@@ -226,6 +232,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <Link
             to={node.path}
             params={node.params}
+            hash={node.hash}
             onClick={node.onSelect}
             data-testid={node.testid}
             aria-current={node.active ? "page" : undefined}
@@ -361,6 +368,22 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   // Active state for routed items — the current section is highlighted the
   // same way for every panel (U0b).
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const hash = useRouterState({ select: (s) => s.location.hash }).replace(/^#/, "");
+
+  /**
+   * U6-C1-R3a — ONE HIGHLIGHT. "Sign-in and security" and "Settings" both live
+   * at /settings, and the old rule (path prefix) lit both at once. An item that
+   * names a section carries its `hash`, and a routed item is current only when
+   * the path AND the hash match exactly — so exactly one item is ever current.
+   */
+  const isCurrent = (item: NavItem): boolean => {
+    if (item.path === undefined) return false;
+    const anchored = PANELS[activePanel].items.some(
+      (other) => other.path === item.path && other.hash !== undefined,
+    );
+    if (anchored) return pathname === item.path && hash === (item.hash ?? "");
+    return pathname === item.path || pathname.startsWith(`${item.path}/`);
+  };
 
   const toNode = (item: NavItem): RailNode => ({
     key: item.id,
@@ -368,7 +391,8 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     label: t(item.labelKey),
     icon: item.icon,
     path: item.path,
-    active: item.path ? pathname === item.path || pathname.startsWith(`${item.path}/`) : undefined,
+    hash: item.hash,
+    active: item.path ? isCurrent(item) : undefined,
     onSelect: item.path ? onNavigate : undefined,
     children: item.children?.map(toNode),
     defaultOpen: item.defaultOpen,

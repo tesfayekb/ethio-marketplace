@@ -1922,6 +1922,7 @@ export const am: Messages = {
   "post.where.level.city": "ከተማ",
   "post.where.level.sub_city": "ክፍለ ከተማ",
   "post.where.levelNone": "አንዱን ይምረጡ",
+  "post.where.noRegions": "በዚህ ገበያ እስካሁን ክልሎች የሉም — ገበያው ራሱ አካባቢዎ ነው።",
   "post.where.allOf": "ሙሉ {name}",
   "post.where.planCaption": "የእርስዎ ዕቅድ፦ {cities} ከተማ",
   "post.where.planFull": "የእርስዎ ዕቅድ አንድ ከተማ ይሸፍናል። ሌላ ከመጨመር በፊት አንዱን ያንሱ።",
@@ -2015,6 +2016,7 @@ export const am: Messages = {
   // U6-C1-R1
   "post.field.required": "ያስፈልጋል",
   "post.refusalSummary": "ለመቀጠል እነዚህን ይሙሉ፦",
+  "post.refusalSummary.elsewhere": "{step} ያስተካክሉ፦ {label}",
   "post.category.filterLabel": "ምድብ ይፈልጉ",
   "post.category.filterHint": "ቃል ይጻፉ፣ ወይም ከታች ያለውን ቡድን ይክፈቱ።",
   "post.category.chipLabel": "ምድብ",

@@ -96,11 +96,32 @@ export function sessionPolicyKeys() {
  * carry the session they describe; a stamp set whose `sessionRef` differs from
  * the live session is treated as ABSENT.
  *
- * MECHANISM: the persisted supabase token (plain JSON, see e2e/helpers/session.ts)
- * gives `expires_at - expires_in` = the issuing instant (`iat`) of the current
- * access token. Reading localStorage is synchronous and calls NO supabase API,
+ * U6-C1-R3a (INC-223 rider) — THE REF IS THE SESSION, NOT THE TOKEN. It was the
+ * access token's issuing instant, which CHANGES on every refresh: an hourly
+ * refresh therefore re-keyed the clocks and silently restarted the ABSOLUTE
+ * window — the one limit a refresh must never extend. The ref is now the JWT's
+ * `session_id` claim, which is stable for the life of the session and changes
+ * only when the user signs in again.
+ *
+ * MECHANISM: the persisted supabase token is plain JSON (see
+ * e2e/helpers/session.ts); its `access_token` payload is base64url. Reading
+ * localStorage and decoding a string is synchronous and calls NO supabase API,
  * so this is safe inside an auth-state effect (law I5: the auth lock is held).
  */
+function decodeSessionId(accessToken: string): string | null {
+  const payload = accessToken.split(".")[1];
+  if (payload === undefined) return null;
+  try {
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const claims = JSON.parse(json) as { session_id?: unknown };
+    return typeof claims.session_id === "string" && claims.session_id !== ""
+      ? claims.session_id
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function liveSessionRef(): string | null {
   if (typeof window === "undefined") return null;
   const key =
@@ -113,7 +134,18 @@ export function liveSessionRef(): string | null {
   const raw = window.localStorage.getItem(key);
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as { expires_at?: number; expires_in?: number } | null;
+    const parsed = JSON.parse(raw) as {
+      access_token?: unknown;
+      expires_at?: number;
+      expires_in?: number;
+    } | null;
+    if (typeof parsed?.access_token === "string") {
+      const sessionId = decodeSessionId(parsed.access_token);
+      if (sessionId !== null) return sessionId;
+    }
+    // A token whose payload cannot be read still identifies ONE issuance: the
+    // old rule is kept as the fallback rather than treating the clocks as
+    // foreign, which would restart the window on every tick.
     const expiresAt = parsed?.expires_at;
     const expiresIn = parsed?.expires_in;
     if (typeof expiresAt !== "number" || typeof expiresIn !== "number") return null;

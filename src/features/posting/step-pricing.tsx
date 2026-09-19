@@ -8,6 +8,7 @@ import { controlClass, Field } from "./field";
 import { readGuessCurrency, useCurrencies, useSellerHome } from "./pricing-data";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { PRICE_MODES, PRICE_PERIODS, type CategoryFacts, type Refusal } from "./types";
+import { checkNumber, mergeRefusals } from "./validate";
 
 /**
  * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
@@ -116,10 +117,18 @@ export function StepPricing({
     };
   }, [home, values.priceCurrency, onChange]);
 
-  const modeRefusal = refusalFor(refusals, "price_mode");
-  const amountRefusal = refusalFor(refusals, "price_amount");
-  const currencyRefusal = refusalFor(refusals, "price_currency");
-  const periodRefusal = refusalFor(refusals, "price_period");
+  /**
+   * U6-C1-R3a / STEP 8 — the amount is judged on blur with the door's own rules
+   * (`required`, `notPositive`), so a zero or an empty box says so here rather
+   * than on Next. `submit_listing` remains the authority (F3).
+   */
+  const [local, setLocal] = useState<Refusal[]>([]);
+  const seen = mergeRefusals(refusals, local);
+
+  const modeRefusal = refusalFor(seen, "price_mode");
+  const amountRefusal = refusalFor(seen, "price_amount");
+  const currencyRefusal = refusalFor(seen, "price_currency");
+  const periodRefusal = refusalFor(seen, "price_period");
 
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -332,6 +341,16 @@ export function StepPricing({
               className={controlClass(amountRefusal !== null)}
               value={values.priceAmount === null ? "" : String(values.priceAmount)}
               placeholder={t("post.price.amountPlaceholder")}
+              onBlur={() => {
+                const found = checkNumber("price_amount", values.priceAmount, {
+                  required: true,
+                  positive: true,
+                });
+                setLocal((prev) => [
+                  ...prev.filter((entry) => entry.field !== "price_amount"),
+                  ...(found === null ? [] : [found]),
+                ]);
+              }}
               onChange={(event) => {
                 const raw = event.target.value.replace(/[^\d.]/g, "");
                 const parsed = raw === "" ? null : Number(raw);

@@ -8,6 +8,7 @@ import type { MessageKey } from "@/i18n";
 import { readSellerIdentity, saveIdentity, type SellerIdentity } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
+import { checkChannel } from "./validate";
 
 /**
  * U6-C2b — STEP 7: WHO IS SELLING, AND HOW A BUYER REACHES THEM (spec §4 B2).
@@ -203,6 +204,8 @@ export function StepWho({
   const countryRefusal = refusalFor(identityRefusals, "home_country_code");
   /** The door names a channel refusal on the channel's own key. */
   const draftRefusalOf = (field: string) => refusalFor(refusals, field);
+  /** What this screen saw on blur, in the doors' own words (U6-C1-R3a). */
+  const [local, setLocal] = useState<Refusal[]>([]);
   const messagesRefusal = refusalFor(refusals, "messages") ?? refusalFor(refusals, "contact_pref");
 
   const countries = useMemo(() => markets.markets, [markets.markets]);
@@ -408,7 +411,18 @@ export function StepWho({
 
         {CHANNELS.map((channel) => {
           const current = channelOf(contactPref, channel);
-          const refusal = draftRefusalOf(channel);
+          /**
+           * U6-C1-R3a / STEP 8 — the door's refusal first, then what this screen
+           * saw on blur (same shapes, same words). The identity route now asks
+           * `listing_contact_refusals` BEFORE saving, so a phone of "number" is
+           * refused there too and lands on this same control (`contact_pref.phone`).
+           */
+          const refusal =
+            draftRefusalOf(channel) ??
+            draftRefusalOf(`contact_pref.${channel}`) ??
+            refusalFor(identityRefusals, `contact_pref.${channel}`) ??
+            local.find((entry) => entry.field === `contact_pref.${channel}`) ??
+            null;
           return (
             <div key={channel} className="space-y-1" data-testid={`post-who-channel-${channel}`}>
               <label
@@ -427,6 +441,14 @@ export function StepWho({
                   className={`${fieldClass} grow`}
                   value={current.value}
                   inputMode={channel === "telegram" ? "text" : "tel"}
+                  onBlur={(event) => {
+                    const field = `contact_pref.${channel}`;
+                    const found = checkChannel(channel, event.target.value, current.show, field);
+                    setLocal((prev) => [
+                      ...prev.filter((entry) => entry.field !== field),
+                      ...(found === null ? [] : [found]),
+                    ]);
+                  }}
                   onChange={(event) => setChannel(channel, { value: event.target.value.trim() })}
                 />
                 <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-foreground">

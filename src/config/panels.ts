@@ -113,7 +113,15 @@ export const PANELS: Record<PanelId, Panel> = {
       { id: "ac-addresses", labelKey: "nav.addresses", icon: MapPin },
       { id: "ac-profile", labelKey: "nav.profile", icon: CircleUser },
       // P1-f already owns this surface — link to it, never rebuild it.
-      { id: "ac-security", labelKey: "nav.signInSecurity", icon: KeyRound, path: "/settings" },
+      // U6-C1-R3a — an ANCHOR into that page's security section, so this item and
+      // "Settings" below it are never highlighted together.
+      {
+        id: "ac-security",
+        labelKey: "nav.signInSecurity",
+        icon: KeyRound,
+        path: "/settings",
+        hash: "security",
+      },
       { id: "ac-settings", labelKey: "settings.navLabel", icon: Settings, path: "/settings" },
       { id: "ac-help", labelKey: "nav.help", icon: HelpCircle },
     ],

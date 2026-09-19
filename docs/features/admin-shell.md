@@ -407,3 +407,13 @@ Breadcrumbs read Group › Section: `breadcrumb-admin-group` sits before
 `breadcrumb-admin-section` for any grouped page.
 
 E2E: `e2e/admin-shell.spec.ts` A-5.
+
+### The session ref is the JWT `session_id` (U6-C1-R3a rider)
+
+The first fix keyed the clocks on the token's issuing instant
+(`expires_at - expires_in`), which a token REFRESH changes — so a refresh
+restarted the absolute window. The ref is now the access token's `session_id`
+claim, decoded client-side from the token payload: it is stable across every
+refresh of the same session and differs for every new sign-in. The issuing
+instant survives only as the fallback for a token whose payload cannot be read,
+which keeps a stale marker from being treated as foreign on every tick.

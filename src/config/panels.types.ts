@@ -18,6 +18,12 @@ export interface NavItem {
   icon?: LucideIcon;
   /** Absolute route path. Absent = placeholder item (its page is a later feature). */
   path?: string;
+  /**
+   * U6-C1-R3a — an ANCHOR item: a named SECTION of a page another item already
+   * owns. Two items sharing one path both highlighted; the active rule is
+   * "exact path + hash", so only one item can ever be current.
+   */
+  hash?: string;
   /** Section heading this item sits under (admin nav is sectioned). */
   section?: MessageKey;
   /** When set, the item renders only if the user holds this permission. */

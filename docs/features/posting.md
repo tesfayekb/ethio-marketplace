@@ -384,3 +384,35 @@ The D1 screening gateway remains a named deferral.
 
 Still deferred: the D18 facts prefill (`PW-9`), the links-file cells and their
 Undo (M-MAINT-2 Part B), and the D1 screening gateway.
+
+## U6-C1-R3a (part 1) — the third operator walk
+
+- **The where step no longer waits on the prefill.** The region control used to
+  be gated on the resolved market prefill, so a slow guess/saved-area read left
+  `post-where-region` unrendered (PW-13/PW-20, twice on mobile). The cascade now
+  renders as soon as the market's own tree nodes arrive; the country is seeded
+  from the saved-area cookie, and the market prefill only writes when it names a
+  DIFFERENT country. A market with no regions says so in its own caption
+  (`post.where.noRegions`) rather than rendering nothing.
+- **Validation everywhere, the doors still the authority (F3).**
+  `src/features/posting/validate.ts` mirrors the doors' rules — phone/WhatsApp
+  `^\+[0-9]{7,15}$`, Telegram `^@?[A-Za-z0-9_]{5,32}$`, the YouTube shape, text
+  lengths, number bounds and decimals, the expiry window — and returns the SAME
+  refusal vocabulary the doors use, so a message read on blur and a message read
+  from a refusal are the same words. `mergeRefusals` lets the door's verdict win
+  wherever both spoke. Nothing is decided on the client: a screen that passes
+  its own check still asks the door on Next.
+- **The identity route asks before it saves.** `/api/listings/identity` calls
+  `listing_contact_refusals` BEFORE `save_posting_identity`, so a phone of
+  "number" is refused `badHandle` on `contact_pref.phone` instead of being
+  stored. Step 7 renders that refusal under the channel it names.
+- **The summary speaks in labels (INC-231).** `RefusalSummary` lists a field by
+  its LABEL, for the current step; a refusal naming a field of ANOTHER step
+  reads "Fix <step>: <label>" and navigates there.
+- **Title and description.** The suggestion list sits between the description
+  field and the assist button, and the button carries the `Sparkles` icon.
+
+Open from this walk (part 2): the DEC-050 option folds, the D18 facts prefill
+(`PW-9`), the per-link `allowed_options`/`default_value` consumers, the fixed
+illustration box, the currency law (seller's last listing → market, the open
+markets' currencies with "More…"), and step 1's disabled Next with its caption.

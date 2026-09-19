@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
-import { draftRefusalKey } from "./refusal-text";
-import type { Refusal } from "./types";
+import { draftRefusalKey, fill } from "./refusal-text";
+import { STEPS, type Refusal } from "./types";
 
 /**
  * U6-C1-R1 — THE REQUIRED-FIELD PRIMITIVE (B3: one shape, every step).
@@ -47,7 +47,60 @@ const FIELD_LABEL_KEYS: Record<string, MessageKey> = {
   telegram: "post.who.channel.telegram",
   whatsapp: "post.who.channel.whatsapp",
   alias: "post.who.aliasLabel",
+  // U6-C1-R3a — the contact door names its fields with the object's own path
+  // (`listing_contact_refusals`), so those names carry labels too.
+  "contact_pref.messages": "post.who.channel.messages",
+  "contact_pref.phone": "post.who.channel.phone",
+  "contact_pref.telegram": "post.who.channel.telegram",
+  "contact_pref.whatsapp": "post.who.channel.whatsapp",
 };
+
+/**
+ * INC-231 — WHICH STEP OWNS A FIELD.
+ *
+ * The summary above Back/Next is about THIS step: a seller reading "Title" under
+ * the price form has no control to fix and no idea where it lives. A refusal
+ * naming another step's field therefore renders as "Fix <Step name>: <label>"
+ * and takes the seller there in one tap — nothing is swallowed (F4), and nothing
+ * is shown where it cannot be acted on.
+ *
+ * An attribute key has no entry: the specification step declares its own fields
+ * and the wizard reports them, so those refusals are matched by that list.
+ */
+const FIELD_STEPS: Record<string, number> = {
+  category_id: 1,
+  photos: 2,
+  video_url: 2,
+  videoUrl: 2,
+  attributes: 3,
+  title: 4,
+  description: 4,
+  price_mode: 5,
+  price_amount: 5,
+  price_currency: 5,
+  price_period: 5,
+  coverage: 6,
+  contact_pref: 7,
+  "contact_pref.messages": 7,
+  "contact_pref.phone": 7,
+  "contact_pref.telegram": 7,
+  "contact_pref.whatsapp": 7,
+  messages: 7,
+  phone: 7,
+  telegram: 7,
+  whatsapp: 7,
+  alias: 7,
+  seller_type: 7,
+  business_name: 7,
+  home_country_code: 7,
+  poster_expires_at: 8,
+};
+
+/** Which step a refused field belongs to, or `null` when no step claims it. */
+export function stepOfField(field: string, specFields: readonly string[] = []): number | null {
+  if (specFields.includes(field)) return 3;
+  return FIELD_STEPS[field] ?? null;
+}
 
 export const fieldControlClass =
   "min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground " +
@@ -134,15 +187,33 @@ function focusField(field: string): void {
 
 /**
  * THE RED SUMMARY, above Back/Next. It lists the refused fields BY LABEL and each
- * name jumps to its control. It renders only when the door has actually refused
- * something — it is never a pre-emptive warning.
+ * name jumps to its control. It renders only when a refusal actually exists — it
+ * is never a pre-emptive warning.
+ *
+ * INC-231 — BY LABEL, AND BY STEP. A field of THIS step is a label that focuses
+ * its own control; a field of ANOTHER step reads "Fix <Step name>: <label>" and
+ * navigates there, because a name with no control beside it is a dead end.
  */
-export function RefusalSummary({ refusals }: { refusals: Refusal[] }) {
+export function RefusalSummary({
+  refusals,
+  step,
+  specFields = [],
+  onGoTo,
+}: {
+  refusals: Refusal[];
+  /** The step on screen; entries belonging elsewhere are labelled with theirs. */
+  step: number;
+  /** The detail keys step 3 renders, so an attribute refusal finds its step. */
+  specFields?: readonly string[];
+  onGoTo?: (step: number) => void;
+}) {
   const { t } = useI18n();
   if (refusals.length === 0) return null;
   const named = refusals.map((refusal) => {
     const key = FIELD_LABEL_KEYS[refusal.field];
-    return { field: refusal.field, label: key === undefined ? refusal.field : t(key) };
+    const owner = stepOfField(refusal.field, specFields);
+    const label = key === undefined ? refusal.field : t(key);
+    return { field: refusal.field, label, owner };
   });
   return (
     <div
@@ -152,19 +223,36 @@ export function RefusalSummary({ refusals }: { refusals: Refusal[] }) {
     >
       <p className="text-sm font-medium text-destructive">{t("post.refusalSummary")}</p>
       <ul className="mt-1 flex flex-wrap gap-2">
-        {named.map((entry) => (
-          <li key={entry.field}>
-            <button
-              type="button"
-              data-testid="post-refusal-summary-field"
-              data-field={entry.field}
-              className="min-h-11 text-sm font-medium text-destructive underline"
-              onClick={() => focusField(entry.field)}
-            >
-              {entry.label}
-            </button>
-          </li>
-        ))}
+        {named.map((entry) => {
+          const elsewhere = entry.owner !== null && entry.owner !== step;
+          const stepName =
+            entry.owner === null ? "" : t(STEPS[entry.owner - 1]?.nameKey ?? "post.step.category");
+          return (
+            <li key={entry.field}>
+              <button
+                type="button"
+                data-testid="post-refusal-summary-field"
+                data-field={entry.field}
+                data-step={entry.owner ?? ""}
+                className="min-h-11 text-sm font-medium text-destructive underline"
+                onClick={() => {
+                  if (elsewhere && onGoTo !== undefined) {
+                    onGoTo(entry.owner!);
+                    return;
+                  }
+                  focusField(entry.field);
+                }}
+              >
+                {elsewhere
+                  ? fill(t("post.refusalSummary.elsewhere"), {
+                      step: stepName,
+                      label: entry.label,
+                    })
+                  : entry.label}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

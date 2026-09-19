@@ -1945,6 +1945,7 @@ test.describe("L4b location picker", () => {
    */
   test("LS-11 picking a second market renders its own tree and saves its own node", async ({
     page,
+    browser,
   }) => {
     // BUDGET (J5): four cache windows are unavoidable here — the open-markets
     // route and the tree route each cache 15 s, for each of the two markets — so
@@ -1969,17 +1970,23 @@ test.describe("L4b location picker", () => {
       await waitForOpenMarket(page, second.code);
       await waitForTreeSlug(page, first.code, first.region.slug);
       await waitForTreeSlug(page, second.code, second.region.slug);
-      await gotoReady(page, "/");
+      // U6-C1-R3a — A FRESH BROWSER CONTEXT, NOT A FRESH PAGE. The HTTP cache of
+      // /api/locations lives per CONTEXT: the polls above are the very requests
+      // whose early answers the app would then reuse, so the page that does the
+      // picking is opened in a context that has never asked those routes.
+      const ui = await browser.newContext({ viewport: page.viewportSize() ?? undefined });
+      const uiPage = await ui.newPage();
+      await gotoReady(uiPage, "/");
 
-      const firstName = await marketName(page, first.code);
-      const secondName = await marketName(page, second.code);
+      const firstName = await marketName(uiPage, first.code);
+      const secondName = await marketName(uiPage, second.code);
       // The country trigger is re-rendered by the auto-select pass that follows a
       // pick, so a single click can open and immediately close the menu. The
       // OPEN is therefore retried until the wanted item is on screen; the pick
       // itself is still one real click on that item (no assertion relaxed).
       const pickCountry = async (name: string) => {
-        const item = page.getByRole("menuitem", { name, exact: true });
-        const trigger = page.getByTestId("location-level-country");
+        const item = uiPage.getByRole("menuitem", { name, exact: true });
+        const trigger = uiPage.getByTestId("location-level-country");
         // The whole open-and-pick is bounded: six attempts of at most 3 s each,
         // and the refusal names the option wanted and the options on screen.
         for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -1996,7 +2003,7 @@ test.describe("L4b location picker", () => {
             return;
           }
         }
-        const offered = await page.getByRole("menuitem").allInnerTexts();
+        const offered = await uiPage.getByRole("menuitem").allInnerTexts();
         throw new Error(
           `LS-11 step 2: the country menu never offered ${name} in six opens — visible options: ${
             offered.join(" | ") || "(none)"
@@ -2005,18 +2012,18 @@ test.describe("L4b location picker", () => {
       };
 
       await pickCountry(firstName);
-      await expect(page.getByTestId("location-level-region"), {
+      await expect(uiPage.getByTestId("location-level-region"), {
         message: `LS-11 step 3: the first market's region ${first.region.name_en!} never appeared after picking ${firstName}`,
       }).toHaveText(new RegExp(escapeRe(first.region.name_en!)), { timeout: 20000 });
 
       // NO reload between the two picks — this is the whole point of the test.
       await pickCountry(secondName);
-      await expect(page.getByTestId("location-level-region"), {
+      await expect(uiPage.getByTestId("location-level-region"), {
         message: `LS-11 step 4: the second market's region ${second.region.name_en!} never replaced the first market's tree after picking ${secondName} (INC-211)`,
       }).toHaveText(new RegExp(escapeRe(second.region.name_en!)), { timeout: 20000 });
 
       const savedArea = async () => {
-        const cookie = String(await page.evaluate("document.cookie"));
+        const cookie = String(await uiPage.evaluate("document.cookie"));
         return decodeURIComponent(/ethio_area=([^;]+)/.exec(cookie)?.[1] ?? "");
       };
       let cookieSeen = "";
@@ -2039,6 +2046,7 @@ test.describe("L4b location picker", () => {
         node?.country_code,
         `LS-11 step 6: the saved node ${cookieSeen} belongs to another market`,
       ).toBe(second.code);
+      await ui.close();
     } finally {
       await destroyCountry(first.code);
       await destroyCountry(second.code);

@@ -95,7 +95,13 @@ export function StepWhere({
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
 
-  const [country, setCountry] = useState<string | null>(null);
+  /**
+   * U6-C1-R3a (PW-13/PW-20) — the saved area's market is known SYNCHRONOUSLY, so
+   * the tree fetch starts on the first frame instead of waiting for the open-market
+   * read. The market prefill below still has the last word for a seller with no
+   * saved area, or one whose saved market is no longer open.
+   */
+  const [country, setCountry] = useState<string | null>(() => readAreaCookie()?.country ?? null);
   const [region, setRegion] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
   const [subCity, setSubCity] = useState<string | null>(null);
@@ -142,8 +148,10 @@ export function StepWhere({
     const found = markets.markets.find((market) => market.code === wanted) ?? markets.markets[0];
     if (found === undefined) return;
     marketSeeded.current = true;
-    setCountry(found.code);
-  }, [markets.markets, guess]);
+    // The cookie may already have chosen this market on the first frame; writing
+    // the same code again would reset the cascade for nothing (I3).
+    if (found.code !== country) setCountry(found.code);
+  }, [markets.markets, guess, country]);
 
   /**
    * THE PLACE PREFILL, over the market's cached tree: the saved node when it
@@ -337,7 +345,14 @@ export function StepWhere({
         </p>
       )}
 
-      {regions.length > 0 && (
+      {/* U6-C1-R3a (PW-13/PW-20) — THE CASCADE APPEARS WITH THE TREE, NOT WITH THE
+          PREFILL. The region control used to wait for `regions.length > 0`, which
+          is the ANCHOR's children: a market whose anchor resolves a moment after
+          its rows, or a prefill that never lands, left the step with no control at
+          all and nothing said. It now renders as soon as the market's own rows
+          arrive, with its own caption when that market has no regions to offer —
+          a visible, honest empty state instead of an absent field (C4). */}
+      {nodes.length > 0 && (
         <div className="space-y-1">
           <label htmlFor="post-where-region" className="text-sm font-medium text-foreground">
             {t(LEVEL_KEYS["region"] ?? "post.where.level.region")}
@@ -361,6 +376,11 @@ export function StepWhere({
               </option>
             ))}
           </select>
+          {regions.length === 0 && (
+            <p className="text-xs text-muted-foreground" data-testid="post-where-region-empty">
+              {t("post.where.noRegions")}
+            </p>
+          )}
         </div>
       )}
 

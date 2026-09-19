@@ -2011,6 +2011,7 @@ export const en = {
   "post.where.level.city": "City",
   "post.where.level.sub_city": "Sub-city",
   "post.where.levelNone": "Choose one",
+  "post.where.noRegions": "This market has no regions yet — the market itself is your area.",
   "post.where.allOf": "All of {name}",
   "post.where.planCaption": "Your plan: {cities} city",
   "post.where.planFull": "Your plan covers one city. Remove a place before adding another.",
@@ -2108,6 +2109,7 @@ export const en = {
   // optional photos, the ordered price step and the review window.
   "post.field.required": "Required",
   "post.refusalSummary": "Complete these to continue:",
+  "post.refusalSummary.elsewhere": "Fix {step}: {label}",
   "post.category.filterLabel": "Find a category",
   "post.category.filterHint": "Type a word, or open a group below.",
   "post.category.chipLabel": "Category",
