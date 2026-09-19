@@ -506,18 +506,31 @@ export function AppShell({ children }: { children: ReactNode }) {
     [hardReset],
   );
 
+  /**
+   * INC-223 — THE POLICY STARTS AFTER THIS SESSION'S CLOCKS EXIST. The clocks
+   * used to be started in an effect declared AFTER the policy hook, so the
+   * hook's first (synchronous) tick read the PREVIOUS session's marker and
+   * signed a correct sign-in straight back out with "Signed out for
+   * inactivity". The clocks are now established in the same effect that
+   * activates the policy, and the policy is inert until then.
+   */
+  const [clocksReady, setClocksReady] = useState(false);
+  useEffect(() => {
+    if (user === null) {
+      setClocksReady(false);
+      return;
+    }
+    // Same session on a reload keeps its clocks; anything else starts fresh.
+    startSessionClocks();
+    setSessionNotice(null);
+    setClocksReady(true);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const { warningSecondsLeft, extend } = useSessionPolicy({
-    active: user !== null,
+    active: user !== null && clocksReady,
     tier,
     onExpire,
   });
-
-  /** (b) A fresh sign-in starts fresh clocks. */
-  useEffect(() => {
-    if (user === null) return;
-    startSessionClocks();
-    setSessionNotice(null);
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * THE LIVE GUARD (the security fix). `user` comes from the shell's
