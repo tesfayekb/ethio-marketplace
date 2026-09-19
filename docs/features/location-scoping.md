@@ -144,3 +144,27 @@ country picker renders each market through
 translation when one exists, `name_en` as the fallback, and `name_en` unchanged
 for a market with no anchor. No further picker behaviour changed: the guess, the
 auto-select law and the saved-area cookie are untouched, and no read was added.
+
+## LS-11's refusal is the evidence (INC-218, R3b-2 STEP 1)
+
+INC-218 was closed three times by budget work and came back each time, so the
+test no longer merely says that the market was not offered. When `pickCountry`
+exhausts its six opens, `e2e/shell.spec.ts` refuses with, on separate lines:
+
+- every `menuitem` name the menu held in the DOM, and how many there were;
+- the DOM count of the wanted item specifically (present-but-clipped is a
+  different fault from absent);
+- the BROWSER'S OWN read of `/api/locations` — the very request the app makes,
+  through the same HTTP cache — as status, body length and the codes it listed;
+- whether each scratch market's code was in that body.
+
+The two hypotheses are told apart without another run: the code present in the
+browser's body but the item absent from the DOM means the app rendered from a
+DIFFERENT, older answer (a cache seam between the shell's read and the route);
+the item present in the DOM but never visible means the 360-pixel menu clips it
+and the pick needs to scroll — or the picker needs a filter box, which the
+nineteen-market list would justify. No fix is applied to either hypothesis until
+a run names one: R3b-2 STEP 1 reproduced nothing (mobile-360 alone, mobile-360 +
+desktop-1280 under a four-worker load with the posting suite, and three
+consecutive repeats of both projects all passed), so the instrumentation is the
+whole landing and INC-218 stays open until its next occurrence speaks.
