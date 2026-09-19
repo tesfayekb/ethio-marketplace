@@ -86,8 +86,12 @@ p_allow_everywhere, p_max_photos smallint DEFAULT NULL)`
   can never silently reset them;
 - the audit row carries `max_photos` in both `old` and `new`.
 
-The editor's `max_photos` cell and CV-7 ride the consumers landing (R3b-2); the
-door no longer blocks them. Proof P3 of the M-MAINT-3 migration set a SCRATCH
+The editor's `max_photos` cell landed with R3b-2 Part 2a: the roster carries a
+"Photos at most" column and the plan editor (and the add-a-plan dialog) a cell
+beside the three place limits, saved through the door with the rest of the row
+(INC-188). The surface mirrors the door's 0..30 bound and refuses by name before
+the round trip; CV-7 sets a scratch plan's cap to 3, reads it back from the
+table and the roster, and asserts 31 is refused with the stored 3 intact. Proof P3 of the M-MAINT-3 migration set a SCRATCH
 plan's cap to 3 through the door and read it back through `plan_caps`, refused
 31 by name without changing the stored 3, and asserted the real `free` row
 untouched. The scratch plan's name is spelled in letters (`e_probe_…`) because

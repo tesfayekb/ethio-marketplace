@@ -525,7 +525,14 @@ max_regions, max_countries, allow_everywhere }` for the CALLER
 `badMaxPhotos`); an ABSENT cap means no change — the stored cap for an existing
 plan, the column default for a new one. The photos step should therefore read
 its cap from that ONE document instead of `MAX_PHOTOS_PER_LISTING`; that screen
-change and CV-7 ride the consumers landing (R3b-2), not a migration.
+change landed with R3b-2 Part 2a: the wizard holds the plan block from the same
+schema read and hands `plan.max_photos` to the photos step and to the review's
+step-2 line — `MAX_PHOTOS_PER_LISTING` is DELETED, there is no second dial. Until
+the document arrives the caption is absent rather than quoting a cap nobody
+granted (F4), and the upload door's own count stays the authority (F3). PW-29
+asserts the caption follows the served document (plans are not per-seller, so it
+cannot yet assert a per-seller cap); CV-7 round-trips a scratch plan's cap
+through the Plans editor.
 
 ### Conditional questions (D24) — since M-MAINT-3
 
@@ -542,6 +549,13 @@ Every attribute row in the specification read carries `visible_when`: either
 - an answer sent for a hidden question is DROPPED from the normalised attrs, so
   it is never stored. Changing the sibling back therefore never resurrects a
   stale answer from the row.
+
+The FORM's half (R3b-2 Part 2a): visibility is recomputed on every change, a
+question whose condition is unmet is not rendered, is not reported as a field the
+step requires, and any answer it still holds is cleared from the draft — so
+nothing unasked is ever sent. PW-28 walks petrol → no charging question →
+electric → the question appears → petrol again → the answer is gone from the
+screen AND from the row.
 
 The screen must hide the control (not merely disable it) and keep sending
 whatever the seller typed — the door decides what survives.
