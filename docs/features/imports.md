@@ -187,4 +187,3 @@ revisions (`prev`/`post`), RESTORED by Undo, and ECHOED by the export
 (`piece|set`, the default as value text, `''` when `NULL`) — so an export round
 trips silently. M-MAINT-2 **Part B**, proof P1b. The registry/console cells ride
 C1-R3.
-

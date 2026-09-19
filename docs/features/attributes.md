@@ -809,4 +809,3 @@ restored by Undo and echoed by the export. Refusals name themselves —
 `badAllowedOption:<value>` (including `typeNotSelect`) and `badDefault:<detail>`
 (`notANumber`, `notABoolean`, `notADate`, `notInOptions`). See
 `docs/features/imports.md`.
-
