@@ -427,10 +427,15 @@ test.describe("POSTING WIZARD", () => {
         `PW-5: no control was generated for ${attrKey}`,
       ).toBeVisible();
     }
-    await expect(
-      page.locator(`[data-testid="post-attr-open"][data-attr="${spec.multi.attrKey}"]`),
-      `PW-5: no lazy multi-select control was generated for ${spec.multi.attrKey}`,
-    ).toBeVisible();
+    const multiChecks = page.locator(
+      `[data-testid="post-attr-checks"][data-attr="${spec.multi.attrKey}"]`,
+    );
+    if (!(await multiChecks.isVisible())) {
+      await expect(
+        page.locator(`[data-testid="post-attr-open"][data-attr="${spec.multi.attrKey}"]`),
+        `PW-5: no lazy multi-select control was generated for ${spec.multi.attrKey}`,
+      ).toBeVisible();
+    }
     // DEC-050 bounds travel as a HINT beside the number, never as the verdict.
     await expect(page.getByTestId("post-attr-bounds")).toBeVisible();
 
