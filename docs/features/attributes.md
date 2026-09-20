@@ -187,9 +187,9 @@ the bearer token off the request, builds a caller-context publishable client
 invalid token as 401, and logs `[ssr-error] /api/admin/attributes/export …`
 before every failure answer (I4, F4).
 
-| File              | Columns, in order                                                                                        |
-| ----------------- | -------------------------------------------------------------------------------------------------------- |
-| `definitions.csv` | `attribute_key`, `label_en`, `label_am`, `type`, `options`, `is_per_variant`, `direct_link_count`        |
+| File              | Columns, in order                                                                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `definitions.csv` | `attribute_key`, `label_en`, `label_am`, `type`, `options`, `is_per_variant`, `direct_link_count`                                            |
 | `links.csv`       | `category_path`, `category_slug`, `attribute_key`, `is_required`, `is_filterable`, `card_rank`, `origin`, `allowed_options`, `default_value` |
 
 Both files carry a UTF-8 BOM (Excel needs it to read Ge'ez), CRLF rows and

@@ -148,10 +148,11 @@ export function StepReview({
     let cancelled = false;
     void Promise.all(
       definitions
-        .filter((definition) =>
-          ["single_select", "multi_select"].includes(definition.attrType),
-        )
-        .map(async (definition) => [definition.attrKey, await loadAttributeOptions(definition.attributeId)] as const),
+        .filter((definition) => ["single_select", "multi_select"].includes(definition.attrType))
+        .map(
+          async (definition) =>
+            [definition.attrKey, await loadAttributeOptions(definition.attributeId)] as const,
+        ),
     ).then((entries) => {
       if (cancelled) return;
       setAttributeOptions(

@@ -116,8 +116,7 @@ export function useUpdateAttributeLink() {
       defaultValue?: unknown;
       visibleWhen?: VisibleWhen;
       clearCells?: LinkCellName[];
-    }) =>
-      updateAttributeLink(input),
+    }) => updateAttributeLink(input),
     onSettled: invalidate,
   });
 }

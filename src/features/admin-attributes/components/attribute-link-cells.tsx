@@ -60,9 +60,10 @@ export function AttributeLinkCells({
     [conditionKey, siblings],
   );
   const isSelect = row.attrType === "single_select" || row.attrType === "multi_select";
-  const effectiveOptions = allowed.length === 0
-    ? row.options
-    : row.options.filter((option) => allowed.includes(option.value));
+  const effectiveOptions =
+    allowed.length === 0
+      ? row.options
+      : row.options.filter((option) => allowed.includes(option.value));
 
   return (
     <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-3">
@@ -123,7 +124,9 @@ export function AttributeLinkCells({
               </>
             ) : (
               effectiveOptions.map((option) => (
-                <option key={option.value} value={option.value}>{optionLabel(option)}</option>
+                <option key={option.value} value={option.value}>
+                  {optionLabel(option)}
+                </option>
               ))
             )}
           </select>
@@ -170,7 +173,9 @@ export function AttributeLinkCells({
           {siblings
             .filter((sibling) => sibling.attrKey !== row.attrKey && sibling.options.length > 0)
             .map((sibling) => (
-              <option key={sibling.attrKey} value={sibling.attrKey}>{sibling.nameEn}</option>
+              <option key={sibling.attrKey} value={sibling.attrKey}>
+                {sibling.nameEn}
+              </option>
             ))}
         </select>
         {conditionOptions.map((option) => (

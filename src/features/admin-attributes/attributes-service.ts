@@ -355,7 +355,10 @@ function toVisibleWhen(value: unknown): VisibleWhen | null {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
   const row = value as Record<string, unknown>;
   return typeof row["key"] === "string" && Array.isArray(row["in"])
-    ? { key: row["key"], in: row["in"].filter((entry): entry is string => typeof entry === "string") }
+    ? {
+        key: row["key"],
+        in: row["in"].filter((entry): entry is string => typeof entry === "string"),
+      }
     : null;
 }
 
