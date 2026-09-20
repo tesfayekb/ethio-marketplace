@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { expect, test } from "./fixtures";
 
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
-import { gotoReady, openRailScope, signInViaSession } from "./helpers/ui";
+import { gotoReady, openRailScope, signInViaSession, switchLanguage } from "./helpers/ui";
 import {
   destroyLocation,
   readServedTree,
@@ -406,7 +406,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     const listingId = await reachStep3(page, user.id, category);
 
     // GENERATED, NOT AUTHORED: one control per linked definition, each shape its own.
@@ -415,6 +421,7 @@ test.describe("POSTING WIZARD", () => {
       spec.number.attrKey,
       spec.bool.attrKey,
       spec.select.attrKey,
+      spec.multi.attrKey,
     ]) {
       await expect(
         page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`),
@@ -474,7 +481,13 @@ test.describe("POSTING WIZARD", () => {
     // first read is invisible to it.
     const other = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     const listingId = await reachStep3(page, user.id, category);
 
     // An ANSWERED draft: the text detail is stored under the first category.
@@ -532,7 +545,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     const listingId = await reachStep3(page, user.id, category);
 
     await page
@@ -1056,6 +1075,101 @@ test.describe("POSTING WIZARD", () => {
       .toBe("screening");
   });
 
+  test("PW-30 review and buyer preview render option labels, units, multi-values and booleans", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    await reachStep3(page, user.id, category);
+
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill("e2e labelled review");
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.number.attrKey}"]`)
+      .fill("5");
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.bool.attrKey}"]`)
+      .check();
+    const select = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`,
+    );
+    await select.focus();
+    await select.selectOption(spec.optionValues[0] ?? "");
+    await page.locator(`[data-testid="post-attr-open"][data-attr="${spec.multi.attrKey}"]`).click();
+    const checks = page.locator(
+      `[data-testid="post-attr-checks"][data-attr="${spec.multi.attrKey}"]`,
+    );
+    for (const value of spec.optionValues) {
+      await checks.locator(`[data-testid="post-attr-check"][data-value="${value}"]`).check();
+    }
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e labelled title");
+    await page.getByTestId("post-description").fill("e2e labelled description");
+    await page.getByTestId("post-next").click();
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    const city = await activeCityOf("ET");
+    await waitForServedTree("ET", city.slug);
+    await waitForTreeSlug(page, "ET", city.slug);
+    const region = page.getByTestId("post-where-region");
+    const regions = await region
+      .locator("option")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => (node as HTMLOptionElement).value).filter(Boolean),
+      );
+    for (const value of regions) {
+      await region.selectOption(value);
+      const cityPicker = page.getByTestId("post-where-city");
+      if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
+        await cityPicker.selectOption(city.id);
+        break;
+      }
+    }
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
+      timeout: 20_000,
+    });
+    await page.getByTestId("post-next").click();
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+
+    const summary = page.getByTestId("post-review-preview");
+    await expect(summary.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
+      `${spec.optionValues[0]} label`,
+    );
+    await expect(summary.locator(`[data-key="${spec.multi.attrKey}"]`)).toHaveText(
+      spec.optionValues.map((value) => `${value} label`).join(", "),
+    );
+    await expect(summary.locator(`[data-key="${spec.number.attrKey}"]`)).toHaveText("5 km");
+    await expect(summary.locator(`[data-key="${spec.bool.attrKey}"]`)).toHaveText("Yes");
+    await page.getByTestId("post-preview-open").click();
+    const buyer = page.getByTestId("post-preview-sheet");
+    await expect(buyer.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
+      `${spec.optionValues[0]} label`,
+    );
+    await expect(buyer.locator(`[data-key="${spec.number.attrKey}"]`)).toHaveText("5 km");
+    await page.getByTestId("post-preview-close").click();
+
+    await switchLanguage(page, "am");
+    await expect(summary.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
+      `${spec.optionValues[0]} ምልክት`,
+    );
+    await expect(summary.locator(`[data-key="${spec.bool.attrKey}"]`)).toHaveText("አዎ");
+    await switchLanguage(page, "en").catch(() => undefined);
+  });
+
   test("PW-27 the mobile strip walks back to a step already done, and no further", async ({
     page,
   }, testInfo) => {
@@ -1073,6 +1187,13 @@ test.describe("POSTING WIZARD", () => {
     const strip = page.getByTestId("post-step-strip");
     await expect(strip, "PW-27: the mobile step strip never rendered").toBeVisible();
     await expect(strip.locator('[data-testid="post-step-strip-item"]')).toHaveCount(8);
+    await expect(
+      strip.locator('[data-testid="post-step-strip-item"]').filter({ hasText: /\S+/ }),
+      "LY-7: every mobile pill must name its step",
+    ).toHaveCount(8);
+    await expect(strip.locator('[data-step="8"]')).toHaveAttribute("data-state", "current");
+    await expect(strip.locator('[data-step="7"]')).toHaveAttribute("data-state", "completed");
+    await expect(strip.locator('[data-step="7"]')).toContainText("✓");
 
     // BACK to a step already answered, then forward again to review — both taps.
     await strip.getByTestId("post-step-strip-go-5").click();
@@ -1142,7 +1263,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     await reachStep3(page, user.id, category);
 
     // One detail answered, the required text left alone: the autosave that follows
@@ -1272,7 +1399,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     await reachStep3(page, user.id, category);
 
     const text = page.locator(

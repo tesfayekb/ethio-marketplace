@@ -2167,6 +2167,114 @@ test.describe("C3 attributes console", () => {
 
     // PREVIEW WRITES NOTHING (F5).
     expect(await readAttribute(key)).toBeNull();
+
+    // PART 2b — THE LINK DOOR AND BOTH CONSOLE READERS SPEAK THE SAME CELLS.
+    const supabase = adminClient();
+    const categorySlug = `e2e-link-cells-${rand()}`;
+    const parentKey = `e2e_attr_${rand()}`;
+    const childKey = `e2e_attr_${rand()}`;
+    const values = [`${childKey}_one`, `${childKey}_two`];
+    let categoryId = "";
+    let parentId = "";
+    let childId = "";
+    try {
+      const category = await supabase
+        .from("categories")
+        .insert({
+          slug: categorySlug,
+          name_en: categorySlug,
+          is_active: true,
+          allow_listings: true,
+        })
+        .select("id")
+        .single();
+      if (category.error || !category.data)
+        throw new Error(`AT-22 category: ${category.error?.message}`);
+      categoryId = category.data.id;
+      const attributes = await supabase
+        .from("attributes")
+        .insert([
+          {
+            attr_key: parentKey,
+            name_en: parentKey,
+            attr_type: "single_select",
+            options: [{ value: "show", label_en: "Show", active: true }],
+          },
+          {
+            attr_key: childKey,
+            name_en: childKey,
+            attr_type: "single_select",
+            options: values.map((value) => ({ value, label_en: value, active: true })),
+          },
+        ])
+        .select("id,attr_key");
+      if (attributes.error || !attributes.data)
+        throw new Error(`AT-22 attributes: ${attributes.error?.message}`);
+      parentId = attributes.data.find((row) => row.attr_key === parentKey)?.id ?? "";
+      childId = attributes.data.find((row) => row.attr_key === childKey)?.id ?? "";
+      expect(parentId).not.toBe("");
+      expect(childId).not.toBe("");
+
+      const landed = await page.evaluate(
+        async ([cat, parent, child, first, condition]) => {
+          const client = (
+            window as unknown as {
+              __ethioSupabase: {
+                rpc: (
+                  fn: string,
+                  args: Record<string, unknown>,
+                ) => Promise<{ data: unknown; error: { message: string } | null }>;
+              };
+            }
+          ).__ethioSupabase;
+          const parentLink = await client.rpc("admin_link_attribute", {
+            p_category_id: cat,
+            p_attribute_id: parent,
+            p_is_required: false,
+            p_is_filterable: true,
+            p_display_order: 1,
+          });
+          if (parentLink.error) throw new Error(parentLink.error.message);
+          const childLink = await client.rpc("admin_link_attribute", {
+            p_category_id: cat,
+            p_attribute_id: child,
+            p_is_required: false,
+            p_is_filterable: true,
+            p_display_order: 2,
+            p_allowed_options: [first],
+            p_default_value: first,
+            p_visible_when: { key: condition, in: ["show"] },
+          });
+          if (childLink.error) throw new Error(childLink.error.message);
+          const own = await client.rpc("admin_list_category_attribute_links", {
+            p_category_id: cat,
+          });
+          const effective = await client.rpc("admin_list_effective_category_links", {
+            p_category_id: cat,
+          });
+          if (own.error || effective.error)
+            throw new Error(own.error?.message ?? effective.error?.message);
+          return { own: own.data, effective: effective.data };
+        },
+        [categoryId, parentId, childId, values[0] ?? "", parentKey],
+      );
+      for (const rows of [landed.own, landed.effective]) {
+        const child = (rows as Record<string, unknown>[]).find(
+          (row) => row["attr_key"] === childKey,
+        );
+        expect(child?.["allowed_options"]).toEqual([values[0]]);
+        expect(child?.["default_value"]).toBe(values[0]);
+        expect(child?.["visible_when"]).toEqual({ key: parentKey, in: ["show"] });
+      }
+    } finally {
+      if (childId !== "")
+        await supabase.from("category_attribute_links").delete().eq("attribute_id", childId);
+      if (parentId !== "")
+        await supabase.from("category_attribute_links").delete().eq("attribute_id", parentId);
+      await destroyAttribute(childKey);
+      await destroyAttribute(parentKey);
+      if (categoryId !== "") await destroyCategory(categorySlug);
+    }
   });
 
   /** AT-23 — no `categories:import`: no control, and the route refuses. */

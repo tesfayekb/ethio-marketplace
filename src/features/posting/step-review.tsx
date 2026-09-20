@@ -7,6 +7,9 @@ import type { MessageKey } from "@/i18n";
 
 import { controlClass, Field } from "./field";
 import { ListingPreview } from "./listing-preview";
+import { attributeDisplayValue } from "./attribute-display";
+import { loadAttributeOptions, type AttrOption } from "./attribute-options";
+import { entityName } from "@/i18n/entity";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import {
   publishListing,
@@ -105,8 +108,9 @@ export function StepReview({
   /** D22 — the plan's photo cap from the posting document; `null` = not read. */
   maxPhotos: number | null;
 }) {
-  const { t } = useI18n();
+  const { t, entities, language } = useI18n();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
+  const [attributeOptions, setAttributeOptions] = useState<Record<string, AttrOption[]>>({});
   /** U6-C1-R3b-1 — the seller block the buyer's-eye preview and the summary show. */
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -140,6 +144,26 @@ export function StepReview({
     };
   }, [categoryId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all(
+      definitions
+        .filter((definition) => ["single_select", "multi_select"].includes(definition.attrType))
+        .map(
+          async (definition) =>
+            [definition.attrKey, await loadAttributeOptions(definition.attributeId)] as const,
+        ),
+    ).then((entries) => {
+      if (cancelled) return;
+      setAttributeOptions(
+        Object.fromEntries(entries.map(([key, options]) => [key, options ?? []])),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [definitions]);
+
   /**
    * THE SECTIONS: one per step, each rendering the SAVED value in the seller's
    * language. Nothing is fetched for them — the draft and the attribute
@@ -148,8 +172,20 @@ export function StepReview({
   const attrLine = Object.entries(values.attributes)
     .map(([key, value]) => {
       const def = definitions.find((entry) => entry.attrKey === key);
-      const rendered = Array.isArray(value) ? value.join(", ") : String(value);
-      return `${def?.nameEn ?? key}: ${rendered}`;
+      if (def === undefined) return `${key}: ${String(value)}`;
+      const name = entityName(
+        "attribute",
+        { id: def.attributeId, nameEn: def.nameEn, nameAm: null },
+        entities,
+      );
+      return `${name}: ${attributeDisplayValue(
+        def,
+        value,
+        attributeOptions[key] ?? [],
+        language,
+        t("post.review.yes"),
+        t("post.review.no"),
+      )}`;
     })
     .join(" · ");
   const priceLine =
@@ -278,6 +314,7 @@ export function StepReview({
         pricePeriod={values.pricePeriod}
         attributes={values.attributes}
         definitions={definitions}
+        attributeOptions={attributeOptions}
         photos={photos}
         coverage={values.coverage}
         country={readAreaCookie()?.country ?? null}
@@ -310,6 +347,7 @@ export function StepReview({
             pricePeriod: values.pricePeriod,
             attributes: values.attributes,
             definitions,
+            attributeOptions,
             photos,
             illustrationUrl,
             coverage: values.coverage,

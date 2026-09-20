@@ -22,6 +22,7 @@ import { StepWho } from "./step-who";
 import { StepReview } from "./step-review";
 import { StepSpecifications } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
+import { MobileStepStrip } from "./mobile-step-strip";
 import { readPostingSchema, type PlanCaps } from "./posting-service";
 import { useDraft } from "./use-draft";
 import { IMPLEMENTED_THROUGH, STEPS, TOTAL_STEPS, type CategoryFacts } from "./types";
@@ -237,6 +238,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 pricePeriod={draft.values.pricePeriod}
                 attributes={draft.values.attributes}
                 definitions={[]}
+                attributeOptions={{}}
                 photos={draft.photos}
                 coverage={draft.values.coverage}
                 country={readAreaCookie()?.country ?? null}
@@ -289,60 +291,11 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                  * number and not a button — an affordance that leads nowhere is a
                  * lie about the wizard's shape.
                  */}
-                <ol
-                  aria-label={t("post.progress.stripLabel")}
-                  data-testid="post-step-strip"
-                  className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden"
-                >
-                  {STEPS.map((entry) => {
-                    const done = entry.step < draft.step;
-                    const reachable = entry.step <= Math.max(draft.draftStep + 1, draft.step);
-                    const current = entry.step === draft.step;
-                    const face = (
-                      <>
-                        <span
-                          className={`grid size-6 shrink-0 place-items-center rounded-full border text-xs ${
-                            entry.step <= draft.step
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border text-muted-foreground"
-                          }`}
-                        >
-                          {done ? "✓" : entry.step}
-                        </span>
-                        {current ? (
-                          <span className="truncate text-xs font-medium text-foreground">
-                            {t(entry.nameKey)}
-                          </span>
-                        ) : (
-                          <span className="sr-only">{t(entry.nameKey)}</span>
-                        )}
-                      </>
-                    );
-                    return (
-                      <li
-                        key={entry.step}
-                        aria-current={current ? "step" : undefined}
-                        data-testid="post-step-strip-item"
-                        data-step={entry.step}
-                        data-state={current ? "current" : reachable ? "reachable" : "later"}
-                      >
-                        {reachable && !current ? (
-                          <button
-                            type="button"
-                            data-testid={`post-step-strip-go-${entry.step}`}
-                            className="flex min-h-11 items-center gap-2 rounded-md px-1"
-                            aria-label={fill(t("post.progress.stepNumber"), { step: entry.step })}
-                            onClick={() => draft.goTo(entry.step)}
-                          >
-                            {face}
-                          </button>
-                        ) : (
-                          <span className="flex min-h-11 items-center gap-2 px-1">{face}</span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ol>
+                <MobileStepStrip
+                  step={draft.step}
+                  draftStep={draft.draftStep}
+                  onGoTo={draft.goTo}
+                />
                 <p
                   className="text-xs text-muted-foreground"
                   data-testid="post-save-state"

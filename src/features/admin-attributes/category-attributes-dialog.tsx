@@ -8,6 +8,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
 import { AttributeErrorLine, useAttributeError } from "./attribute-dialogs";
+import { AttributeLinkCells } from "./components/attribute-link-cells";
 import { useAttributeLabel } from "./use-attribute-label";
 import {
   CARD_ATTRIBUTE_MAXIMUM,
@@ -282,6 +283,15 @@ export function CategoryAttributesDialog({
                     : t("admin.attributes.card.rank").replace("{rank}", String(row.cardRank))}
                 </label>
               </div>
+              <AttributeLinkCells
+                row={row}
+                siblings={effectiveRows}
+                onSave={(cells) =>
+                  runToggle(`cells:${row.attrKey}`, () =>
+                    updateLink.mutateAsync({ linkId: row.linkId, ...cells }),
+                  )
+                }
+              />
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"

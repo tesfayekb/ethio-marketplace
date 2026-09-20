@@ -3,6 +3,8 @@ import { entityName } from "@/i18n/entity";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
 import { fill } from "../refusal-text";
+import { attributeDisplayValue } from "../attribute-display";
+import type { AttrOption } from "../attribute-options";
 import type { AttrDef, DraftPhotoRow } from "../posting-service";
 import type { PricePeriod } from "../types";
 import type { MessageKey } from "@/i18n";
@@ -57,6 +59,7 @@ export interface ListingDetailView {
   pricePeriod: string | null;
   attributes: Record<string, unknown>;
   definitions: AttrDef[];
+  attributeOptions: Record<string, AttrOption[]>;
   photos: DraftPhotoRow[];
   /** The nearest ancestor category's picture, shown when there is no photo. */
   illustrationUrl: string | null;
@@ -69,7 +72,7 @@ export interface ListingDetailView {
 }
 
 export function ListingDetail(view: ListingDetailView) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const tree = useCountryTree(view.country);
   const nodes: TreeNode[] = tree.loadedCountry === view.country ? tree.nodes : [];
 
@@ -178,15 +181,26 @@ export function ListingDetail(view: ListingDetailView) {
           <dl className="divide-y divide-border rounded-md border border-border text-sm">
             {facts.map((definition) => (
               <div key={definition.attrKey} className="flex justify-between gap-3 p-2">
-                <dt className="text-muted-foreground">{definition.nameEn}</dt>
+                <dt className="text-muted-foreground">
+                  {entityName(
+                    "attribute",
+                    { id: definition.attributeId, nameEn: definition.nameEn, nameAm: null },
+                    entities,
+                  )}
+                </dt>
                 <dd
                   className="text-end text-foreground"
                   data-testid="listing-detail-spec"
                   data-key={definition.attrKey}
                 >
-                  {Array.isArray(view.attributes[definition.attrKey])
-                    ? (view.attributes[definition.attrKey] as unknown[]).join(", ")
-                    : String(view.attributes[definition.attrKey])}
+                  {attributeDisplayValue(
+                    definition,
+                    view.attributes[definition.attrKey],
+                    view.attributeOptions[definition.attrKey] ?? [],
+                    language,
+                    t("post.review.yes"),
+                    t("post.review.no"),
+                  )}
                 </dd>
               </div>
             ))}

@@ -307,6 +307,7 @@ export async function seedSpecSet(categoryId: string): Promise<{
   number: ScratchAttr;
   bool: ScratchAttr;
   select: ScratchAttr;
+  multi: ScratchAttr;
   optionValues: string[];
 }> {
   const supabase = adminClient();
@@ -322,17 +323,31 @@ export async function seedSpecSet(categoryId: string): Promise<{
       min_bound: "1",
       max_bound: "9",
       decimals: 0,
-      unit: "kg",
+      unit: "km",
     },
     { attr_key: `${stem}_bool`, name_en: `${stem} bool`, attr_type: "boolean" },
     {
       attr_key: `${stem}_select`,
       name_en: `${stem} select`,
+      name_am: `${stem} ምርጫ`,
       attr_type: "single_select",
       options: optionValues.map((value) => ({
         value,
         label_en: `${value} label`,
+        label_am: `${value} ምልክት`,
         // DEC-050 — the strict option shape and nothing else; an unknown key is a refusal.
+        active: true,
+      })),
+    },
+    {
+      attr_key: `${stem}_multi`,
+      name_en: `${stem} multi`,
+      name_am: `${stem} ብዙ`,
+      attr_type: "multi_select",
+      options: optionValues.map((value) => ({
+        value,
+        label_en: `${value} label`,
+        label_am: `${value} ምልክት`,
         active: true,
       })),
     },
@@ -356,6 +371,7 @@ export async function seedSpecSet(categoryId: string): Promise<{
   const number = pick("_number");
   const bool = pick("_bool");
   const select = pick("_select");
+  const multi = pick("_multi");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
     // The text field is the REQUIRED one, so an empty step 3 has something to refuse.
@@ -363,12 +379,13 @@ export async function seedSpecSet(categoryId: string): Promise<{
     { category_id: categoryId, attribute_id: number.id, is_required: false, display_order: 2 },
     { category_id: categoryId, attribute_id: bool.id, is_required: false, display_order: 3 },
     { category_id: categoryId, attribute_id: select.id, is_required: false, display_order: 4 },
+    { category_id: categoryId, attribute_id: multi.id, is_required: false, display_order: 5 },
   ]);
   if (linkError) {
     throw new Error(`[e2e:c1b] linking the spec set failed: ${linkError.message}`);
   }
 
-  return { text, number, bool, select, optionValues };
+  return { text, number, bool, select, multi, optionValues };
 }
 
 /**
