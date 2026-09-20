@@ -14,6 +14,10 @@ steps with completion ticks, the chosen category, and a live listing preview
 from step 4. `FormLayout` owns the safe-area-aware sticky Back/Next bar below
 `md`; it is a normal footer on larger screens.
 
+On phones, all eight steps stay in one horizontally scrollable row of labelled
+pills. The current pill is filled and scrolled into view; completed pills carry a
+tick and remain tappable.
+
 ## The screens
 
 | Route        | Purpose                                                                              |
@@ -117,6 +121,10 @@ Bounds, lengths and presets are guidance; `validate_listing_attributes` is the
 authority (F3) and its refusal lands beneath the control that earned it. The
 form reports the keys it renders upward, so a refusal naming a field that is NOT
 on screen is still shown rather than swallowed (F4).
+
+Review and buyer preview resolve stored option values to their language-aware
+labels, append units to measured values, join multiple choices with commas, and
+render booleans as Yes/No rather than raw storage values.
 
 ## Step 4 — title, description, and the assist (C1b)
 

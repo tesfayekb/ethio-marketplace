@@ -238,6 +238,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 pricePeriod={draft.values.pricePeriod}
                 attributes={draft.values.attributes}
                 definitions={[]}
+                attributeOptions={{}}
                 photos={draft.photos}
                 coverage={draft.values.coverage}
                 country={readAreaCookie()?.country ?? null}

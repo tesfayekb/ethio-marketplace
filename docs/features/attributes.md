@@ -50,7 +50,9 @@ by name or key.
 
 Category editor → **Attributes** — the per-category LINK MANAGER. Linked list
 with required / filterable toggles, Move up / Move down, Unlink, and a
-searchable picker over the library.
+searchable picker over the library. Every direct link also edits its category-specific
+allowed option subset, typed default value, and conditional visibility through the
+link doors; the two console readers project those cells so the editor never drops them.
 
 ## The two-must-display law
 
@@ -188,7 +190,7 @@ before every failure answer (I4, F4).
 | File              | Columns, in order                                                                                        |
 | ----------------- | -------------------------------------------------------------------------------------------------------- |
 | `definitions.csv` | `attribute_key`, `label_en`, `label_am`, `type`, `options`, `is_per_variant`, `direct_link_count`        |
-| `links.csv`       | `category_path`, `category_slug`, `attribute_key`, `is_required`, `is_filterable`, `card_rank`, `origin` |
+| `links.csv`       | `category_path`, `category_slug`, `attribute_key`, `is_required`, `is_filterable`, `card_rank`, `origin`, `allowed_options`, `default_value` |
 
 Both files carry a UTF-8 BOM (Excel needs it to read Ge'ez), CRLF rows and
 RFC-4180 escaping, and any cell opening with `=`, `+`, `-` or `@` is prefixed
@@ -204,6 +206,10 @@ translation, falling back to `attributes.name_am`.
 LIMITATION: the normalized model carries no per-variant flag, so
 `is_per_variant` is emitted as an EMPTY cell rather than asserting a `false`
 the database never stated.
+
+The registry accepts the two trailing per-link cells after `unit` in its versioned
+definition. The `visible_when` file cell remains deferred: adding it requires whole
+re-declarations of the import planner, commit, undo, and export routines.
 
 PARITY (INC-176): `admin_export_attributes()` reached the connected project
 before its migration file existed. `20260907173330_5a9c6351` re-declares it
