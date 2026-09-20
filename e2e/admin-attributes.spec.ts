@@ -3339,7 +3339,7 @@ test.describe("C3 attributes console", () => {
         .toEqual([keys[2], keys[0], keys[1]]);
 
       // A BLANK CELL CHANGES NOTHING.
-      const blank = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,,\r\n`;
+      const blank = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,\r\n`;
       const quiet = await importPost(page, token, { mode: "preview", links: blank });
       expect(quiet.status, JSON.stringify(quiet.payload)).toBe(200);
       expect(
@@ -3348,7 +3348,7 @@ test.describe("C3 attributes console", () => {
       ).toBe(0);
 
       // A NON-INTEGER IS REFUSED BY NAME, never rounded (F4).
-      const hostile = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,,1.5\r\n`;
+      const hostile = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,1.5\r\n`;
       const refused = await importPost(page, token, { mode: "preview", links: hostile });
       expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
       const refusals = (refused.payload["refusals"] ?? []) as Record<string, unknown>[];
