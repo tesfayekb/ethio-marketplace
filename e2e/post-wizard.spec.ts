@@ -1180,14 +1180,19 @@ test.describe("POSTING WIZARD", () => {
         break;
       }
     }
-    await expect(page.getByTestId("post-where-chosen"), why("PW-30: no place was chosen"))
-      .toHaveAttribute("data-count", "1", {
-        timeout: 20_000,
-      });
+    await expect(
+      page.getByTestId("post-where-chosen"),
+      why("PW-30: no place was chosen"),
+    ).toHaveAttribute("data-count", "1", {
+      timeout: 20_000,
+    });
     mark("place chosen");
     await page.getByTestId("post-next").click();
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok"), why("PW-30: the alias never cleared")).toBeVisible({
+    await expect(
+      page.getByTestId("post-who-alias-ok"),
+      why("PW-30: the alias never cleared"),
+    ).toBeVisible({
       timeout: 20_000,
     });
     await page.getByTestId("post-next").click();
