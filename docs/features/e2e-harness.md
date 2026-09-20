@@ -242,3 +242,45 @@ nothing of the stem. Adopted by AT-20 (admin-attributes), CT-18
 (admin-categories-lifecycle) and TR-34 (admin-translations-data); the class
 was hit three times (G28) before it became a law. No assertion is weakened:
 the comparison still covers every real row.
+
+## R-EVID — evidence that survives a hard test timeout
+
+Two failure classes cost a whole CI run because the evidence they carried was
+produced by machinery that a timeout skips. Both are now laws.
+
+**A full-walk test's per-step ladder is ATTACHED, not printed.** Timings kept in
+a local array and surfaced through an expect message plus a trailing
+`console.log` are lost exactly when they are needed: if the TEST budget expires,
+no expect ever refuses and no trailing statement runs, so the report carries a
+footer snapshot and nothing else (run 35501302989, PW-30 on both projects). The
+ladder therefore lives in a describe-scoped array and is attached from the
+`afterEach` via `test.info().attach("step-timings", …)` — the same hook the
+fixture cleanup uses, and for the same reason (J3: an `afterEach` survives a
+body timeout, a body `finally` does not). The attachment is unconditional, so a
+green run publishes its measurement too.
+
+That attachment immediately paid for itself: PW-30's ladder showed the walk
+finishing in 17 s of a 172 s budget, with both Amharic reads passed, and the
+trace named the hang as `click [data-testid="language-option-en"] timeout: 0` —
+an UNBOUNDED click in a trailing `switchLanguage(page, "en")` restore that
+`.catch(() => undefined)` could never neutralise, because an unbounded click
+does not reject. The restore asserted nothing and Playwright gives every test
+its own context, so it was deleted rather than bounded.
+
+**An instrumented refusal is only evidence if it ALWAYS fires.** A dump built
+after a bounded retry loop is dead code when a Playwright action timeout throws
+out of the loop first — LS-11's dump (menu items, the browser's own
+`/api/locations` body and codes, whether the scratch market was listed) never
+printed in that run, leaving only `locator.click: Timeout 10000ms exceeded`.
+Every click inside such a loop is therefore a bounded ATTEMPT: a lost click
+spends one attempt and continues, so the loop can only end at the evidence.
+
+**Which label source an Amharic option read asserts** (censused for PW-30):
+option records are NOT entities in the translation bundle — they live inside the
+definition's `options` array — so `entityName` never sees them. Both the
+specification form (`step-specifications.tsx`) and the review
+(`step-review.tsx`, through `attributeDisplayValue`) resolve option labels with
+`optionLabel(option, lang)`, which is the record's own overlay: `label_am` under
+Amharic, `label_en` beneath it. A test therefore sets `label_am` on the scratch
+option and asserts it; there is no DB tier above the record, so no D3 overlay
+assertion and no entity-translation approval apply.

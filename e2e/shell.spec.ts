@@ -1989,14 +1989,25 @@ test.describe("L4b location picker", () => {
         const trigger = uiPage.getByTestId("location-level-country");
         // The whole open-and-pick is bounded: six attempts of at most 3 s each,
         // and the refusal names the option wanted and the options on screen.
+        /**
+         * R-EVID STEP 2 — THE INSTRUMENTED REFUSAL MUST ALWAYS FIRE. In run
+         * 35501302989 (desktop-1280, so not the mobile sheet) the dump below
+         * never printed: Playwright's own `locator.click` timeout threw out of
+         * the loop first, and the report carried only "locator.click: Timeout
+         * 10000ms exceeded" plus a footer snapshot. Both clicks are therefore
+         * BOUNDED ATTEMPTS — a lost click is one spent attempt, never an escape
+         * from the loop — so the six opens always end in the evidence below.
+         */
+        const attempt_ = async (action: Promise<void>) =>
+          action.then(() => true).catch(() => false);
         for (let attempt = 0; attempt < 6; attempt += 1) {
-          await trigger.click({ timeout: 10000 });
+          if (!(await attempt_(trigger.click({ timeout: 10000 })))) continue;
           const opened = await item
             .waitFor({ state: "visible", timeout: 3000 })
             .then(() => true)
             .catch(() => false);
           if (opened) {
-            await item.click({ timeout: 10000 });
+            if (!(await attempt_(item.click({ timeout: 10000 })))) continue;
             await expect(trigger, {
               message: `LS-11 step 2: the country control never named ${name} after the pick (it read "${await trigger.innerText()}")`,
             }).toHaveText(new RegExp(escapeRe(name)), { timeout: 20000 });
