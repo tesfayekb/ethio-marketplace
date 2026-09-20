@@ -1105,7 +1105,9 @@ test.describe("POSTING WIZARD", () => {
     await select.focus();
     await select.selectOption(spec.optionValues[0] ?? "");
     await page.locator(`[data-testid="post-attr-open"][data-attr="${spec.multi.attrKey}"]`).click();
-    const checks = page.locator(`[data-testid="post-attr-checks"][data-attr="${spec.multi.attrKey}"]`);
+    const checks = page.locator(
+      `[data-testid="post-attr-checks"][data-attr="${spec.multi.attrKey}"]`,
+    );
     for (const value of spec.optionValues) {
       await checks.locator(`[data-testid="post-attr-check"][data-value="${value}"]`).check();
     }
@@ -1121,9 +1123,11 @@ test.describe("POSTING WIZARD", () => {
     await waitForServedTree("ET", city.slug);
     await waitForTreeSlug(page, "ET", city.slug);
     const region = page.getByTestId("post-where-region");
-    const regions = await region.locator("option").evaluateAll((nodes) =>
-      nodes.map((node) => (node as HTMLOptionElement).value).filter(Boolean),
-    );
+    const regions = await region
+      .locator("option")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => (node as HTMLOptionElement).value).filter(Boolean),
+      );
     for (const value of regions) {
       await region.selectOption(value);
       const cityPicker = page.getByTestId("post-where-city");

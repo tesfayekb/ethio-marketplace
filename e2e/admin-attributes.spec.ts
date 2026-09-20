@@ -2180,10 +2180,16 @@ test.describe("C3 attributes console", () => {
     try {
       const category = await supabase
         .from("categories")
-        .insert({ slug: categorySlug, name_en: categorySlug, is_active: true, allow_listings: true })
+        .insert({
+          slug: categorySlug,
+          name_en: categorySlug,
+          is_active: true,
+          allow_listings: true,
+        })
         .select("id")
         .single();
-      if (category.error || !category.data) throw new Error(`AT-22 category: ${category.error?.message}`);
+      if (category.error || !category.data)
+        throw new Error(`AT-22 category: ${category.error?.message}`);
       categoryId = category.data.id;
       const attributes = await supabase
         .from("attributes")
@@ -2202,7 +2208,8 @@ test.describe("C3 attributes console", () => {
           },
         ])
         .select("id,attr_key");
-      if (attributes.error || !attributes.data) throw new Error(`AT-22 attributes: ${attributes.error?.message}`);
+      if (attributes.error || !attributes.data)
+        throw new Error(`AT-22 attributes: ${attributes.error?.message}`);
       parentId = attributes.data.find((row) => row.attr_key === parentKey)?.id ?? "";
       childId = attributes.data.find((row) => row.attr_key === childKey)?.id ?? "";
       expect(parentId).not.toBe("");
@@ -2213,7 +2220,10 @@ test.describe("C3 attributes console", () => {
           const client = (
             window as unknown as {
               __ethioSupabase: {
-                rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+                rpc: (
+                  fn: string,
+                  args: Record<string, unknown>,
+                ) => Promise<{ data: unknown; error: { message: string } | null }>;
               };
             }
           ).__ethioSupabase;
@@ -2236,22 +2246,31 @@ test.describe("C3 attributes console", () => {
             p_visible_when: { key: condition, in: ["show"] },
           });
           if (childLink.error) throw new Error(childLink.error.message);
-          const own = await client.rpc("admin_list_category_attribute_links", { p_category_id: cat });
-          const effective = await client.rpc("admin_list_effective_category_links", { p_category_id: cat });
-          if (own.error || effective.error) throw new Error(own.error?.message ?? effective.error?.message);
+          const own = await client.rpc("admin_list_category_attribute_links", {
+            p_category_id: cat,
+          });
+          const effective = await client.rpc("admin_list_effective_category_links", {
+            p_category_id: cat,
+          });
+          if (own.error || effective.error)
+            throw new Error(own.error?.message ?? effective.error?.message);
           return { own: own.data, effective: effective.data };
         },
         [categoryId, parentId, childId, values[0] ?? "", parentKey],
       );
       for (const rows of [landed.own, landed.effective]) {
-        const child = (rows as Record<string, unknown>[]).find((row) => row["attr_key"] === childKey);
+        const child = (rows as Record<string, unknown>[]).find(
+          (row) => row["attr_key"] === childKey,
+        );
         expect(child?.["allowed_options"]).toEqual([values[0]]);
         expect(child?.["default_value"]).toBe(values[0]);
         expect(child?.["visible_when"]).toEqual({ key: parentKey, in: ["show"] });
       }
     } finally {
-      if (childId !== "") await supabase.from("category_attribute_links").delete().eq("attribute_id", childId);
-      if (parentId !== "") await supabase.from("category_attribute_links").delete().eq("attribute_id", parentId);
+      if (childId !== "")
+        await supabase.from("category_attribute_links").delete().eq("attribute_id", childId);
+      if (parentId !== "")
+        await supabase.from("category_attribute_links").delete().eq("attribute_id", parentId);
       await destroyAttribute(childKey);
       await destroyAttribute(parentKey);
       if (categoryId !== "") await destroyCategory(categorySlug);
