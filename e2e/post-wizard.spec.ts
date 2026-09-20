@@ -1961,15 +1961,16 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * INC-240 (PW-32) — A PARENT CHANGE RE-DERIVES WHAT THE PARENT SUPPLIED.
+   * D25 (PW-32) — A MODEL CHANGE RESETS EVERYTHING THE MODEL SPEAKS ABOUT.
    *
-   * Three claims in one walk, because they are one rule: the model's answers are
-   * the model's (they change with it), a detail the new model knows nothing about
-   * goes EMPTY rather than keeping the old model's answer, and an answer the
-   * seller typed is never overwritten — the model's newer value is offered beside
-   * it instead.
+   * R3b-3a let a seller's own edit survive a model change; the walk showed why
+   * that is wrong for a model-dependent detail — a Golf's doors left standing
+   * under a Corolla is a listing that lies. So EVERY detail a model names (a
+   * fact it fills, a year it bounds, a condition it decides) is re-derived or
+   * emptied on a make/model change, a detail NO model names (the mileage) keeps
+   * the seller's answer, and the reset is reversible for ten seconds.
    */
-  test("PW-32 prefilled details re-derive when the model changes, seller edits survive", async ({
+  test("PW-32 model-dependent details reset on a model change, seller-only details survive, and Undo restores", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -1983,6 +1984,8 @@ test.describe("POSTING WIZARD", () => {
     const body = control(shift.body.attrKey);
     const battery = control(shift.battery.attrKey);
     const doors = control(shift.doors.attrKey);
+    const year = control(shift.year.attrKey);
+    const mileage = control(shift.mileage.attrKey);
 
     await control(shift.make.attrKey).selectOption(shift.makeValue);
     await control(shift.model.attrKey).selectOption(shift.golf);
@@ -1995,14 +1998,48 @@ test.describe("POSTING WIZARD", () => {
       { timeout: 20_000 },
     );
 
-    // 1 — A DIFFERENT MODEL, A DIFFERENT BODY: re-derived, not left behind.
+    // The seller's own answers: a year INSIDE this model's floor, and a mileage
+    // no option anywhere names.
+    await year.selectOption(String(shift.golfYear));
+    await mileage.fill("120000");
+    await mileage.blur();
+    await expect(year, "PW-32: the typed year did not stand").toHaveValue(String(shift.golfYear), {
+      timeout: 20_000,
+    });
+
+    // 1 — A DIFFERENT MODEL: its own body, its own doors.
     await control(shift.model.attrKey).selectOption(shift.corolla);
     await expect(body, "PW-32: the body did not re-derive from the new model").toHaveValue(
       shift.bodySedan,
       { timeout: 20_000 },
     );
+    await expect(doors, "PW-32: the door count did not re-derive").toHaveValue(
+      String(shift.corollaDoors),
+      { timeout: 20_000 },
+    );
+    // 2 — A DETAIL THE NEW MODEL SAYS NOTHING ABOUT IS EMPTY, even though the
+    // seller chose it: the year belonged to the old model's bound.
+    await expect(year, "PW-32: a model-dependent year survived the model change").toHaveValue("", {
+      timeout: 20_000,
+    });
+    // 3 — A DETAIL NO MODEL NAMES IS THE SELLER'S, always.
+    await expect(mileage, "PW-32: the seller's own mileage was reset").toHaveValue("120000");
 
-    // 2 — A FACT THE NEW MODEL DOES NOT CARRY LEAVES THE DETAIL EMPTY.
+    // 4 — THE RESET IS SAID, AND TAKEN BACK.
+    const offer = page.getByTestId("post-specs-reset");
+    await expect(offer, "PW-32: the reset was never announced").toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-specs-reset-undo").click();
+    await expect(year, "PW-32: Undo did not restore the previous year").toHaveValue(
+      String(shift.golfYear),
+      { timeout: 20_000 },
+    );
+    await expect(body, "PW-32: Undo did not restore the previous body").toHaveValue(
+      shift.bodyHatch,
+      { timeout: 20_000 },
+    );
+    await expect(mileage, "PW-32: Undo disturbed the seller's own mileage").toHaveValue("120000");
+
+    // A model carrying a battery still fills it, and losing it still empties it.
     await control(shift.model.attrKey).selectOption(shift.byd);
     await expect(battery, "PW-32: the battery fact did not prefill").toHaveValue(
       String(shift.bydBattery),
@@ -2013,29 +2050,70 @@ test.describe("POSTING WIZARD", () => {
       battery,
       "PW-32: a model with no battery fact kept the previous model's battery",
     ).toHaveValue("", { timeout: 20_000 });
-    await expect(doors, "PW-32: the door count did not re-derive").toHaveValue(
-      String(shift.corollaDoors),
-      { timeout: 20_000 },
-    );
+  });
 
-    // 3 — THE SELLER'S OWN ANSWER SURVIVES, and the model's is OFFERED.
-    await doors.fill("7");
-    await doors.blur();
-    await control(shift.model.attrKey).selectOption(shift.golf);
-    await expect(doors, "PW-32: a seller-edited door count was overwritten").toHaveValue("7", {
+  /**
+   * U6-C1-R3b-3b STEP 4 (PW-33) — A PLACE IS ADDED UNDER A PLACE ALREADY LISTED.
+   *
+   * The walk's complaint: adding a second city meant answering the market and the
+   * region again in a second cascade. Each listed place now opens its OWN next
+   * level — a region offers its cities, a city its sub-cities — and nothing above
+   * it is re-asked. The free plan carries ONE city and plans are not per-seller,
+   * so the second place is refused by the plan in words (F3: the door repeats it).
+   */
+  test("PW-33 a further place is added under a place already listed, and the plan refuses the second", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+
+    await reachStep5(page, user.id, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+
+    const region = page.getByTestId("post-where-region");
+    await expect(
+      region.locator(`option[value="${chain.region.id}"]`),
+      "PW-33: the scratch region never reached the picker",
+    ).toHaveCount(1, { timeout: 20_000 });
+    await region.selectOption(chain.region.id);
+    // The REGION alone is the item's place, so the listed row is the region and
+    // its own next level (its cities) is what may be added under it.
+    await expect(
+      page.locator(`[data-testid="post-where-chosen-row"][data-id="${chain.region.id}"]`),
+      "PW-33: the region did not list itself",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-where-plan-levels")).toBeVisible();
+
+    const under = page.locator(
+      `[data-testid="post-where-add-under"][data-id="${chain.region.id}"]`,
+    );
+    await expect(under, "PW-33: the listed region offered no place beneath it").toBeVisible({
       timeout: 20_000,
     });
-    await expect(
-      page.locator(`[data-testid="post-attr-model-differs"][data-attr="${shift.doors.attrKey}"]`),
-      "PW-32: the edited detail never offered the model's own value",
-    ).toBeVisible({ timeout: 20_000 });
-
-    await page
-      .locator(`[data-testid="post-attr-use-model"][data-attr="${shift.doors.attrKey}"]`)
-      .click();
-    await expect(doors, "PW-32: taking the model's value did not apply it").toHaveValue(
-      String(shift.golfDoors),
-      { timeout: 20_000 },
+    await under.click();
+    const picker = page.locator(
+      `[data-testid="post-where-under-select"][data-id="${chain.region.id}"]`,
     );
+    // THE NEXT LEVEL ONLY: the region's own city, with no market or region re-asked.
+    await expect(
+      picker.locator(`option[value="${chain.city.id}"]`),
+      "PW-33: the nested picker did not offer the region's city",
+    ).toHaveCount(1, { timeout: 20_000 });
+    await picker.selectOption(chain.city.id);
+    await page
+      .locator(`[data-testid="post-where-under-add"][data-id="${chain.region.id}"]`)
+      .click();
+
+    // THE PLAN: one place. The refusal is the plan's, said before a round trip.
+    await expect(
+      page.getByTestId("post-where-plan-full"),
+      "PW-33: a second place was accepted past the plan",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
   });
 });

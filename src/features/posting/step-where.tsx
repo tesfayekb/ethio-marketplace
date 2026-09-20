@@ -53,6 +53,13 @@ const LEVEL_KEYS: Record<string, MessageKey> = {
   sub_city: "post.where.level.sub_city",
 };
 
+/** STEP 4 — the ONE level a place may be narrowed into, and no deeper. */
+const NEXT_LEVEL: Record<string, string> = {
+  country: "region",
+  region: "city",
+  city: "sub_city",
+};
+
 /** The free plan, from `coverage_plans`: one city, one region, one country. */
 const PLAN_CITIES = 1;
 
@@ -119,6 +126,15 @@ export function StepWhere({
   const [extraRegion, setExtraRegion] = useState<string | null>(null);
   const [extraCity, setExtraCity] = useState<string | null>(null);
   const [extraSubCity, setExtraSubCity] = useState<string | null>(null);
+  /**
+   * U6-C1-R3b-3b STEP 4 — ADDING A PLACE UNDER A PLACE ALREADY LISTED. The
+   * second cascade restarts from the market; adding another city in the region
+   * already on the list should not make a seller re-answer the market and the
+   * region. `under` is the listed place whose next level is open, `underPick`
+   * the child chosen in it.
+   */
+  const [under, setUnder] = useState<string | null>(null);
+  const [underPick, setUnderPick] = useState<string | null>(null);
   const [guess, setGuess] = useState<GuessFacts | null>(null);
 
   const tree = useCountryTree(country);
@@ -277,6 +293,12 @@ export function StepWhere({
     .map((id) => nodes.find((node) => node.id === id) ?? null)
     .filter((node): node is TreeNode => node !== null);
   const cityCount = coverage.length;
+  /** STEP 4 — what is used, BY LEVEL, so the caption matches the plan's own shape. */
+  const levelCounts = {
+    region: chosen.filter((node) => node.level === "region").length,
+    city: chosen.filter((node) => node.level === "city").length,
+    sub_city: chosen.filter((node) => node.level === "sub_city").length,
+  };
 
   /** The SECOND cascade — a further place, within the same market and the plan. */
   const extraRegions = regions;
@@ -499,23 +521,89 @@ export function StepWhere({
         >
           {fill(t("post.where.planCount"), { used: cityCount, max: PLAN_CITIES })}
         </p>
+        {/* STEP 4 — THE PLAN COUNTS BY LEVEL, because the plan's own limits are
+            per level: a region, a city and a sub-city are not interchangeable. */}
+        <p className="text-xs text-muted-foreground" data-testid="post-where-plan-levels">
+          {fill(t("post.where.planLevels"), {
+            regions: levelCounts.region,
+            cities: levelCounts.city,
+            subCities: levelCounts.sub_city,
+          })}
+        </p>
         <ul className="space-y-1" data-testid="post-where-chosen" data-count={cityCount}>
-          {chosen.map((node) => (
-            <li key={node.id} className="flex items-center justify-between gap-2 text-sm">
-              <span data-testid="post-where-chosen-row" data-id={node.id}>
-                {nameOf(node)}
-              </span>
-              <button
-                type="button"
-                data-testid="post-where-remove"
-                data-id={node.id}
-                className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
-                onClick={() => remove(node.id)}
-              >
-                {t("post.where.removePlace")}
-              </button>
-            </li>
-          ))}
+          {chosen.map((node) => {
+            const deeper = NEXT_LEVEL[node.level] ?? null;
+            const offered = deeper === null ? [] : childrenOf(node.id, deeper);
+            return (
+              <li key={node.id} className="space-y-1 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span data-testid="post-where-chosen-row" data-id={node.id}>
+                    {nameOf(node)}
+                  </span>
+                  <button
+                    type="button"
+                    data-testid="post-where-remove"
+                    data-id={node.id}
+                    className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
+                    onClick={() => remove(node.id)}
+                  >
+                    {t("post.where.removePlace")}
+                  </button>
+                </div>
+                {/* STEP 4 — THE NEXT LEVEL ONLY, under this very place. */}
+                {offered.length > 0 && (
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      data-testid="post-where-add-under"
+                      data-id={node.id}
+                      className="min-h-11 text-start text-xs font-medium text-primary underline"
+                      onClick={() => {
+                        setUnder(under === node.id ? null : node.id);
+                        setUnderPick(null);
+                      }}
+                    >
+                      {t("post.where.addUnder")}
+                    </button>
+                    {under === node.id && (
+                      <>
+                        <select
+                          data-testid="post-where-under-select"
+                          data-id={node.id}
+                          aria-label={t(LEVEL_KEYS[deeper ?? "city"] ?? "post.where.level.city")}
+                          className={fieldClass}
+                          value={underPick ?? ""}
+                          onChange={(event) => setUnderPick(event.target.value || null)}
+                        >
+                          <option value="">{t("post.where.levelNone")}</option>
+                          {offered.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              {nameOf(child)}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          data-testid="post-where-under-add"
+                          data-id={node.id}
+                          disabled={underPick === null}
+                          className={
+                            "inline-flex min-h-11 items-center rounded-md border border-input px-4 " +
+                            "text-sm font-medium text-foreground hover:bg-muted disabled:opacity-60"
+                          }
+                          onClick={() => {
+                            if (underPick !== null) add(underPick);
+                          }}
+                        >
+                          {t("post.where.addPlace")}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
         {/* The item's own place, taken out — offered back in one tap. */}
         {defaultRemoved && defaultId !== null && (

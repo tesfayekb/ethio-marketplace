@@ -1449,6 +1449,7 @@ export const en = {
   "admin.attributes.links.filterable": "Filterable",
   /* UX-2 PART 5 — the link manager saves as you go and says so. */
   "admin.attributes.links.saved": "Saved",
+  "admin.attributes.links.order": "Order {order}",
   "admin.attributes.links.done": "Done",
   "admin.attributes.links.autosave": "Changes save as you go",
   "admin.attributes.links.unlink": "Unlink",
@@ -2164,6 +2165,10 @@ export const en = {
   "post.specs.modelDiffers": "This model says something different.",
   "post.specs.useModelValue": "Use the model's value",
   "post.specs.noneForParent": "This choice has no options for what you picked above.",
+  "post.specs.resetForModel": "Details reset for {model}",
+  "post.specs.resetUndo": "Undo",
+  "post.where.addUnder": "Add a place under this",
+  "post.where.planLevels": "{regions} region(s), {cities} city(ies), {subCities} sub-city(ies)",
   "post.category.nextBlocked": "Choose a category to continue.",
   "post.category.chooseOne": "Choose a category from the list.",
   "post.price.moreCurrencies": "More currencies…",

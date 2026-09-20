@@ -315,7 +315,17 @@ export function CategoryAttributesDialog({
                   runCell(() => updateLink.mutateAsync({ linkId: row.linkId, ...cells }))
                 }
               />
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {/* U6-C1-R3b-3b STEP 2 — THE ORDER IS VISIBLE WHERE IT IS CHANGED.
+                    Read-only here: the two buttons remain the way to reorder, and
+                    the links file is the way to set many at once. */}
+                <span
+                  className="text-xs text-muted-foreground"
+                  data-testid={`category-attribute-order-${row.attrKey}`}
+                  data-order={String(row.displayOrder)}
+                >
+                  {t("admin.attributes.links.order").replace("{order}", String(row.displayOrder))}
+                </span>
                 <Button
                   type="button"
                   variant="outline"

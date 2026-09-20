@@ -346,19 +346,71 @@ export function StepSpecifications({
   }, [definitions, values, allowedListOf]);
 
   /**
-   * INC-240 — ONE RECONCILIATION, RUN AFTER EVERY ANSWER.
+   * D25 — WHICH DETAILS BELONG TO THE MODEL. A detail is MODEL-DEPENDENT when a
+   * parent option speaks about it at all: a fact that fills it, a fact that
+   * bounds it (a year), or a condition that decides whether it is asked. Every
+   * other detail is the SELLER's (mileage, colour, condition, plate) and no
+   * parent change may ever touch it.
+   */
+  const dependents = useMemo(() => {
+    const out = new Set<string>();
+    for (const def of definitions) {
+      if (def.visibleWhen !== null) out.add(def.attrKey);
+      if (!SELECT_TYPES.includes(def.attrType)) continue;
+      for (const option of allowedListOf(def)) {
+        for (const key of Object.keys(option.facts ?? {})) out.add(key);
+      }
+    }
+    return out;
+  }, [definitions, allowedListOf]);
+
+  /**
+   * D25 — THE PARENTS WHOSE CHANGE RESETS THOSE DETAILS: a picker whose options
+   * carry facts (the model), and a picker another picker's options hang under
+   * (the make). Their own answers are never reset by this rule — the narrowing
+   * below still clears a child that no longer fits.
+   */
+  const parents = useMemo(() => {
+    const out = new Set<string>();
+    for (const def of definitions) {
+      if (!SELECT_TYPES.includes(def.attrType)) continue;
+      const list = allowedListOf(def);
+      if (list.some((option) => Object.keys(option.facts ?? {}).length > 0)) out.add(def.attrKey);
+    }
+    for (const owner of Object.values(folds)) out.add(owner);
+    return out;
+  }, [definitions, allowedListOf, folds]);
+
+  /** The parent answers as this screen last saw them, to notice a change at all. */
+  const parentsSeen = useRef<Record<string, string> | null>(null);
+  /** D25 — an undo offer lives for ten seconds and never outlives its own step. */
+  const [undoOffer, setUndoOffer] = useState<{
+    values: Record<string, unknown>;
+    prefills: Record<string, unknown>;
+    model: string;
+  } | null>(null);
+  const skipReset = useRef(false);
+
+  useEffect(() => {
+    if (undoOffer === null) return;
+    const timer = setTimeout(() => setUndoOffer(null), 10_000);
+    return () => clearTimeout(timer);
+  }, [undoOffer]);
+
+  /**
+   * D25 / INC-240 — ONE RECONCILIATION, RUN AFTER EVERY ANSWER.
    *
-   * A parent change is not just a narrowing: the answers the OLD parent supplied
-   * are stale the moment it changes. So this effect, in one patch:
+   * A parent change is not just a narrowing: everything the OLD parent spoke
+   * about is stale the moment it changes. So this effect, in one patch:
+   *   0 RESETS every model-dependent detail when a parent answer changes — the
+   *     new option's fact, or EMPTY when it carries none — regardless of who
+   *     typed the previous answer, and offers an Undo for ten seconds. Details
+   *     no parent names keep their answers.
    *   1 clears a value the narrowing no longer offers (the fold, and the link's
    *     `allowed_options` — a value that no longer fits is never left to be
    *     refused at the door later),
-   *   2 RE-DERIVES every prefilled answer the seller has not touched: the new
-   *     option's fact replaces it, and an option carrying no fact for that detail
-   *     leaves it EMPTY rather than keeping the previous model's answer,
+   *   2 re-derives every prefilled answer the seller has not touched,
    *   3 fills a still-empty detail a fact speaks about.
-   * A seller-edited answer is never rewritten here; the control offers the
-   * model's value in words instead (see `post.specs.modelDiffers`).
    */
   const reconcile = useRef("");
   useEffect(() => {
@@ -366,6 +418,51 @@ export function StepSpecifications({
     const next = { ...values };
     let changed = false;
     const owned: Record<string, unknown> = { ...prefills };
+
+    // 0 — A PARENT CHANGED: everything it speaks about is re-derived from it.
+    const now: Record<string, string> = {};
+    for (const key of parents) now[key] = selectedValue(values[key]);
+    const before = parentsSeen.current;
+    const movedKey =
+      before === null
+        ? null
+        : (Object.keys(now).find((key) => (before[key] ?? "") !== now[key]) ?? null);
+    parentsSeen.current = now;
+    if (movedKey !== null && !skipReset.current) {
+      const snapshot = { ...values };
+      const heldPrefills = { ...prefills };
+      for (const key of dependents) {
+        if (parents.has(key)) continue;
+        if (definitions.every((def) => def.attrKey !== key)) continue;
+        const fact = facts.prefill[key];
+        if (fact === undefined) {
+          if (!isEmpty(next[key])) {
+            delete next[key];
+            changed = true;
+          }
+          delete owned[key];
+          continue;
+        }
+        if (!same(next[key], fact)) {
+          next[key] = fact;
+          changed = true;
+        }
+        owned[key] = fact;
+      }
+      if (changed) {
+        const parentDef = definitions.find((def) => def.attrKey === movedKey) ?? null;
+        const option =
+          parentDef === null
+            ? undefined
+            : allowedListOf(parentDef).find((entry) => entry.value === now[movedKey]);
+        setUndoOffer({
+          values: snapshot,
+          prefills: heldPrefills,
+          model: option === undefined ? "" : optionLabel(option, entities.lang),
+        });
+      }
+    }
+    skipReset.current = false;
 
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
@@ -396,7 +493,7 @@ export function StepSpecifications({
     for (const [key, written] of Object.entries(owned)) {
       const def = definitions.find((entry) => entry.attrKey === key);
       if (def === undefined) continue;
-      if (!same(values[key], written)) continue; // the seller owns it now
+      if (!same(next[key], written)) continue; // the seller owns it now
       const fact = facts.prefill[key];
       if (fact === undefined) {
         delete owned[key];
@@ -434,7 +531,21 @@ export function StepSpecifications({
     if (reconcile.current === stamp) return;
     reconcile.current = stamp;
     onChange(next, false);
-  }, [schema, definitions, folds, options, values, facts, prefills, visibleOptionsOf, onChange]);
+  }, [
+    schema,
+    definitions,
+    folds,
+    options,
+    values,
+    facts,
+    prefills,
+    parents,
+    dependents,
+    allowedListOf,
+    entities.lang,
+    visibleOptionsOf,
+    onChange,
+  ]);
 
   /** M-MAINT-2 §12 — the LINK's default fills an empty field, once. */
   const defaulted = useRef<string | null>(null);
@@ -509,6 +620,35 @@ export function StepSpecifications({
   return (
     <div className="space-y-5" data-testid="post-specs">
       <p className="text-sm text-muted-foreground">{t("post.specs.why")}</p>
+
+      {/* D25 — THE RESET SAYS SO, AND IS REVERSIBLE. A parent change re-derives
+          every detail that parent speaks about; for ten seconds the previous
+          answers can be taken back in one tap (F4: nothing happens silently). */}
+      {undoOffer !== null && (
+        <p
+          role="status"
+          aria-live="polite"
+          className="flex flex-wrap items-center gap-2 rounded-md border border-border p-3 text-sm text-foreground"
+          data-testid="post-specs-reset"
+        >
+          <span>{fill(t("post.specs.resetForModel"), { model: undoOffer.model })}</span>
+          <button
+            type="button"
+            className="min-h-11 font-medium text-primary underline"
+            data-testid="post-specs-reset-undo"
+            onClick={() => {
+              const offer = undoOffer;
+              skipReset.current = true;
+              setPrefills(offer.prefills);
+              onChange(offer.values, true);
+              setUndoOffer(null);
+            }}
+          >
+            {t("post.specs.resetUndo")}
+          </button>
+        </p>
+      )}
+
 
       {/* D24 — only the details this answer set asks for are on screen. */}
       {asked.map((def) => {

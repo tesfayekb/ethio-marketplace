@@ -146,6 +146,15 @@ export function ImportAttributesDialog({
           field: "definitions",
           id: "attribute-import-definitions",
           labelKey: "admin.attributes.import.definitionsFile",
+          /**
+           * U6-C1-R3b-3b STEP 3 — A LINKS-ONLY RUN. The route has always refused
+           * only when BOTH files are empty, so a links file alone was a legal
+           * run the dialog would not let an operator start: Preview stayed shut
+           * and the only way to reorder or re-cell links in bulk was to re-upload
+           * the definitions file beside them. Both slots are optional now; the
+           * shared shell still requires at least ONE file.
+           */
+          optional: true,
         },
         {
           field: "links",
