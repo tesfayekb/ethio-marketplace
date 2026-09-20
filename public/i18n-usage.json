@@ -3928,6 +3928,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.where.marketChoose": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.where.marketFailed": [
       "/post",
       "/post/$listingId"
@@ -3937,6 +3941,10 @@
       "/post/$listingId"
     ],
     "post.where.marketLoading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.marketUnresolved": [
       "/post",
       "/post/$listingId"
     ],

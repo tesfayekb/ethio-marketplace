@@ -567,3 +567,28 @@ screen AND from the row.
 
 The screen must hide the control (not merely disable it) and keep sending
 whatever the seller typed — the door decides what survives.
+
+## INC-237 (R-CLEAN) — THE MARKET IS NEVER GUESSED FOR THE SELLER
+
+The where step's market control used to fall back to the FIRST open market while
+the prefill chain was still resolving, so a seller with a slow guess read saw a
+market they never chose standing as their answer — and, because the cascade below
+follows the market, a place in the wrong country one tap away.
+
+The control now renders an unvalued **"Choose one"** option (`post.where.marketChoose`)
+until the chain — the saved-area cookie, then the edge's guess (`/api/geo`,
+DEC-068) — resolves a market that is OPEN. Only then does it take that market.
+There is no first-option fallback. When the chain resolves to nothing, the
+control stays on "Choose one" and says why in its own caption
+(`post.where.marketUnresolved`, `post-where-market-unresolved`); a saved market
+that is no longer open is cleared along with the cascade rather than left
+standing.
+
+PW-31 proves it: `/api/geo` is delayed three seconds, the select is asserted
+EMPTY for those seconds and `ET` afterwards. The first open market in the rail's
+order is AE, so a first-option fallback would fail the empty assertion.
+
+PW-30 carries an EVIDENCED budget: the full eight-step walk was measured at 86 s
+on mobile-360 under four workers, and `test.setTimeout` is twice that
+measurement, stated in the test beside the number. Every read inside it is
+bounded at 20 s and names the wait it lost.

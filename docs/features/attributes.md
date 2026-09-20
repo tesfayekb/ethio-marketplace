@@ -851,7 +851,11 @@ A link may carry a CONDITION: `category_attribute_links.visible_when` is either
 }
 ```
 
-At most eight values; no other keys are allowed. The shape is guarded twice: the
+The `key` accepts the DEFINITION-KEY charset `^[a-z0-9_][a-z0-9_-]{1,63}$` since
+INC-238 (R-CLEAN) — hyphens included, so a real sibling such as
+`fuel_type-vehicles` can be named; the refusal names are unchanged, and every
+condition that validated before still validates. At most eight values; no other
+keys are allowed. The shape is guarded twice: the
 IMMUTABLE checker `public.attr_visible_when_ok(jsonb)` and the CHECK constraint
 `category_attribute_links_visible_when_shape` that calls it, so an illegal shape
 cannot exist in the table whatever writes it. The doors add the SEMANTICS:
@@ -882,7 +886,8 @@ charging type PASSES, `fuel=electric` without it refuses `required`,
 `fuel=petrol` WITH a charging type passes and stores no charging type, and a
 condition naming a key outside the category refuses `badVisibleWhen`.
 
-**Named deferral** — the ATTRIBUTES FILE has no `visible_when` cell yet: the
-planner, commit, Undo and export must be re-declared WHOLE to carry it, which
-rides the next landing that touches those four routines. Until then the
-condition is set through the link doors only.
+**Closed (M-MAINT-3b)** — the ATTRIBUTES FILE now carries a `visible_when` cell
+(`key=value1|value2`, after `default_value`): the planner, commit, Undo and
+export were re-declared WHOLE to carry it, a BLANK cell changes nothing and a
+missing column is ignored, so a console-set condition survives every import
+(`docs/features/imports.md`).

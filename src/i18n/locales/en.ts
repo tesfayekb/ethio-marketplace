@@ -2007,6 +2007,8 @@ export const en = {
     "Leave it empty to use the normal window. At most {days} days from today.",
   "post.where.why": "Say where the item is. Buyers browse their own area first.",
   "post.where.marketLabel": "Market",
+  "post.where.marketChoose": "Choose one",
+  "post.where.marketUnresolved": "We could not tell which market you are in. Choose one.",
   "post.where.marketLoading": "Loading markets…",
   "post.where.marketFailed": "The market list could not be loaded. Try again in a moment.",
   "post.where.treeLoading": "Loading places…",

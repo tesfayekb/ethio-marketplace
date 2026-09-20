@@ -222,9 +222,10 @@ question.
   offer; the sibling's option list is read POST-PLAN).
 
 The sibling key must match the condition checker's charset
-(`^[a-z][a-z0-9_]{1,63}$`, `attr_visible_when_ok`), which does NOT allow
-hyphens; a hyphenated sibling key refuses `badVisibleWhen:badShape` until that
-checker is widened.
+(`attr_visible_when_ok`), which since INC-238 is the DEFINITION-KEY charset
+`^[a-z0-9_][a-z0-9_-]{1,63}$` — hyphens included, so a hyphenated sibling such as
+`fuel_type-vehicles` is accepted. Anything outside it refuses
+`badVisibleWhen:badShape`.
 
 Proof: M-MAINT-3b P2 (planner diff, commit, schema read, export echo, blank
 cell, missing column, refusals, Undo).

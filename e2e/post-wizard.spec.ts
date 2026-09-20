@@ -1082,10 +1082,35 @@ test.describe("POSTING WIZARD", () => {
       .toBe("screening");
   });
 
+  /**
+   * R-CLEAN STEP 4 — AN EVIDENCED BUDGET, NOT A BLIND RAISE. The full walk was
+   * measured on mobile-360 under E2E_WORKERS=4 (the shard-3 shape): the eight
+   * steps plus the review, buyer-preview and Amharic reads took 86 s from the
+   * first click to the last assertion. The budget is TWICE that measurement, so a
+   * slow run finishes and a genuinely stuck wait still fails — inside the test,
+   * with the per-step timings printed by `why()` below, never as a bare timeout.
+   */
+  const PW30_MEASURED_WALK_MS = 86_000;
+
   test("PW-30 review and buyer preview render option labels, units, multi-values and booleans", async ({
     page,
   }) => {
+    test.setTimeout(PW30_MEASURED_WALK_MS * 2);
+    /**
+     * The walk RECORDS ITSELF: every phase stamps its elapsed time, and every
+     * bounded read below reports the whole ladder when it loses, so a red names
+     * which step was slow instead of leaving the budget to be guessed at.
+     */
+    const startedAt = Date.now();
+    const marks: string[] = [];
+    const mark = (label: string) => {
+      marks.push(`${label} @ ${Date.now() - startedAt} ms`);
+    };
+    const why = (message: string) =>
+      [message, `PW-30 step timings: ${marks.join(" | ") || "(none)"}`].join("\n");
+
     const user = await seller(page);
+    mark("signed in");
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
     specs.push(
@@ -1095,7 +1120,9 @@ test.describe("POSTING WIZARD", () => {
       spec.select.attrKey,
       spec.multi.attrKey,
     );
+    mark("category and specifications seeded");
     await reachStep3(page, user.id, category);
+    mark("step 3 reached");
 
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
@@ -1119,12 +1146,13 @@ test.describe("POSTING WIZARD", () => {
         .locator(`[data-testid="post-attr-open"][data-attr="${spec.multi.attrKey}"]`)
         .click();
     }
-    await expect(checks, "PW-30: the multi-select options never opened").toBeVisible({
+    await expect(checks, why("PW-30: the multi-select options never opened")).toBeVisible({
       timeout: 20_000,
     });
     for (const value of spec.optionValues) {
       await checks.locator(`[data-testid="post-attr-check"][data-value="${value}"]`).check();
     }
+    mark("specifications answered");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await page.getByTestId("post-title").fill("e2e labelled title");
@@ -1133,9 +1161,11 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
+    mark("step 6 open");
     const city = await activeCityOf("ET");
     await waitForServedTree("ET", city.slug);
     await waitForTreeSlug(page, "ET", city.slug);
+    mark("tree served");
     const region = page.getByTestId("post-where-region");
     const regions = await region
       .locator("option")
@@ -1150,17 +1180,22 @@ test.describe("POSTING WIZARD", () => {
         break;
       }
     }
-    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
+    await expect(page.getByTestId("post-where-chosen"), why("PW-30: no place was chosen"))
+      .toHaveAttribute("data-count", "1", {
+        timeout: 20_000,
+      });
+    mark("place chosen");
+    await page.getByTestId("post-next").click();
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok"), why("PW-30: the alias never cleared")).toBeVisible({
       timeout: 20_000,
     });
     await page.getByTestId("post-next").click();
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
-    await page.getByTestId("post-next").click();
     await expect(
       page.getByTestId("post-step-8"),
-      "PW-30: the review step never opened",
+      why("PW-30: the review step never opened"),
     ).toBeVisible({ timeout: 20_000 });
+    mark("review open");
 
     // Every read below is BOUNDED and NAMED: the review's labels come from the
     // options read, which under load resolves after the default expect budget,
@@ -1168,47 +1203,90 @@ test.describe("POSTING WIZARD", () => {
     const summary = page.getByTestId("post-review-preview");
     await expect(
       summary.locator(`[data-key="${spec.select.attrKey}"]`),
-      "PW-30: the review summary never rendered the select option's label",
+      why("PW-30: the review summary never rendered the select option's label"),
     ).toHaveText(`${spec.optionValues[0]} label`, { timeout: 20_000 });
     await expect(
       summary.locator(`[data-key="${spec.multi.attrKey}"]`),
-      "PW-30: the review summary never joined the multi-select labels",
+      why("PW-30: the review summary never joined the multi-select labels"),
     ).toHaveText(spec.optionValues.map((value) => `${value} label`).join(", "), {
       timeout: 20_000,
     });
     await expect(
       summary.locator(`[data-key="${spec.number.attrKey}"]`),
-      "PW-30: the review summary never carried the number's unit",
+      why("PW-30: the review summary never carried the number's unit"),
     ).toHaveText("5 km", { timeout: 20_000 });
     await expect(
       summary.locator(`[data-key="${spec.bool.attrKey}"]`),
-      "PW-30: the review summary never rendered the boolean as a word",
+      why("PW-30: the review summary never rendered the boolean as a word"),
     ).toHaveText("Yes", { timeout: 20_000 });
+    mark("review labels read");
     await page.getByTestId("post-preview-open").click();
     const buyer = page.getByTestId("post-preview-sheet");
-    await expect(buyer, "PW-30: the buyer preview sheet never opened").toBeVisible({
+    await expect(buyer, why("PW-30: the buyer preview sheet never opened")).toBeVisible({
       timeout: 20_000,
     });
     await expect(
       buyer.locator(`[data-key="${spec.select.attrKey}"]`),
-      "PW-30: the buyer preview never rendered the select option's label",
+      why("PW-30: the buyer preview never rendered the select option's label"),
     ).toHaveText(`${spec.optionValues[0]} label`, { timeout: 20_000 });
     await expect(
       buyer.locator(`[data-key="${spec.number.attrKey}"]`),
-      "PW-30: the buyer preview never carried the number's unit",
+      why("PW-30: the buyer preview never carried the number's unit"),
     ).toHaveText("5 km", { timeout: 20_000 });
     await page.getByTestId("post-preview-close").click();
+    mark("buyer preview read");
 
     await switchLanguage(page, "am");
     await expect(
       summary.locator(`[data-key="${spec.select.attrKey}"]`),
-      "PW-30: the Amharic review never rendered the option's Amharic label",
+      why("PW-30: the Amharic review never rendered the option's Amharic label"),
     ).toHaveText(`${spec.optionValues[0]} ምልክት`, { timeout: 20_000 });
     await expect(
       summary.locator(`[data-key="${spec.bool.attrKey}"]`),
-      "PW-30: the Amharic review never rendered the boolean in Amharic",
+      why("PW-30: the Amharic review never rendered the boolean in Amharic"),
     ).toHaveText("አዎ", { timeout: 20_000 });
+    mark("Amharic review read");
     await switchLanguage(page, "en").catch(() => undefined);
+    // The measurement that set the budget above, printed on every run.
+    console.log(`PW-30 walk: ${marks.join(" | ")}`);
+  });
+
+  /**
+   * R-CLEAN STEP 3 (INC-237) — THE MARKET IS NEVER GUESSED FOR THE SELLER. The
+   * edge's guess is delayed by three seconds on purpose: for those seconds the
+   * prefill chain (saved area → the edge's guess) has resolved NOTHING, so the
+   * select must stand EMPTY. The first open market in the list is AE, so a
+   * fallback to "the first option" would be caught here; only when the chain
+   * resolves does ET appear.
+   */
+  test("PW-31 the market select waits for the prefill chain and never preselects", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await page.route("**/api/geo", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 3_000));
+      await route.continue({
+        headers: { ...route.request().headers(), "cf-ipcountry": "ET" },
+      });
+    });
+    await reachStep5(page, user.id, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+
+    const market = page.getByTestId("post-where-market");
+    await expect(market, "PW-31: the market control never rendered").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(
+      market,
+      "PW-31: a market was preselected before the prefill chain resolved",
+    ).toHaveValue("");
+    await expect(
+      market,
+      "PW-31: the chain resolved but the market never became the edge's ET",
+    ).toHaveValue("ET", { timeout: 20_000 });
   });
 
   test("PW-27 the mobile strip walks back to a step already done, and no further", async ({

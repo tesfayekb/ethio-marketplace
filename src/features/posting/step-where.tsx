@@ -100,6 +100,11 @@ export function StepWhere({
    * the tree fetch starts on the first frame instead of waiting for the open-market
    * read. The market prefill below still has the last word for a seller with no
    * saved area, or one whose saved market is no longer open.
+   *
+   * INC-237 — AND UNTIL THE CHAIN RESOLVES, NOTHING IS CHOSEN. The select shows
+   * "Choose one" while the saved area and the edge's guess are still being read,
+   * and it NEVER falls back to the first open market: a market the seller never
+   * named, silently preselected, put listings in the wrong country.
    */
   const [country, setCountry] = useState<string | null>(() => readAreaCookie()?.country ?? null);
   const [region, setRegion] = useState<string | null>(null);
@@ -107,6 +112,8 @@ export function StepWhere({
   const [subCity, setSubCity] = useState<string | null>(null);
   const [prefilled, setPrefilled] = useState(false);
   const [planBlocked, setPlanBlocked] = useState(false);
+  /** INC-237 — the chain finished and named no market the door would accept. */
+  const [marketUnresolved, setMarketUnresolved] = useState(false);
   /** U6-C1-R2 — the seller took the item's own place out of the showing list. */
   const [defaultRemoved, setDefaultRemoved] = useState(false);
   const [extraRegion, setExtraRegion] = useState<string | null>(null);
@@ -137,17 +144,35 @@ export function StepWhere({
   }, []);
 
   /**
-   * THE MARKET PREFILL: the saved area's country, else the edge's country, else
-   * the first open market. Runs once, and only while the seller has not picked.
+   * THE MARKET PREFILL (INC-237): the saved area's country, else the edge's
+   * country — AND NOTHING ELSE. It waits for BOTH reads (the open markets and the
+   * guess) before deciding, so the select is empty rather than wrong while they
+   * are in flight; it runs once; and when the chain names no open market the
+   * select STAYS on "Choose one" with its caption instead of taking the first
+   * option in the list.
    */
   const marketSeeded = useRef(false);
   useEffect(() => {
-    if (marketSeeded.current || markets.markets.length === 0) return;
+    if (marketSeeded.current || markets.markets.length === 0 || guess === null) return;
     const saved = readAreaCookie();
-    const wanted = saved?.country ?? guess?.country?.toUpperCase() ?? null;
-    const found = markets.markets.find((market) => market.code === wanted) ?? markets.markets[0];
-    if (found === undefined) return;
+    const wanted = saved?.country ?? guess.country?.toUpperCase() ?? null;
+    const found =
+      wanted === null ? undefined : markets.markets.find((market) => market.code === wanted);
     marketSeeded.current = true;
+    if (found === undefined) {
+      // The chain resolved to nothing: the seller answers, in words (C4).
+      setMarketUnresolved(true);
+      // A saved market that is no longer open must not stand on screen either.
+      if (country !== null) {
+        setCountry(null);
+        setRegion(null);
+        setCity(null);
+        setSubCity(null);
+        setPrefilled(false);
+      }
+      return;
+    }
+    setMarketUnresolved(false);
     // The cookie may already have chosen this market on the first frame; writing
     // the same code again would reset the cascade for nothing (I3).
     if (found.code !== country) setCountry(found.code);
@@ -320,6 +345,10 @@ export function StepWhere({
               if (coverage.length > 0) onChange([], true);
             }}
           >
+            {/* INC-237 — the empty choice exists whenever nothing is chosen, so the
+                control can honestly show "Choose one" instead of a market the
+                prefill never resolved. */}
+            {country === null && <option value="">{t("post.where.marketChoose")}</option>}
             {markets.markets.map((market) => (
               <option key={market.code} value={market.code}>
                 {market.anchorId === null
@@ -332,6 +361,11 @@ export function StepWhere({
               </option>
             ))}
           </select>
+        )}
+        {marketUnresolved && country === null && (
+          <p className="text-xs text-muted-foreground" data-testid="post-where-market-unresolved">
+            {t("post.where.marketUnresolved")}
+          </p>
         )}
       </div>
 
