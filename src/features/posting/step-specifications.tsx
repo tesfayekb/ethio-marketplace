@@ -639,7 +639,19 @@ export function StepSpecifications({
             onClick={() => {
               const offer = undoOffer;
               skipReset.current = true;
-              setPrefills(offer.prefills);
+              /**
+               * A RESTORED ANSWER IS THE SELLER'S. Handing provenance back
+               * unchanged would let step 2 re-derive the very values this tap
+               * just restored — the new model's fact would overwrite them on the
+               * next pass. So only a restored answer that still MATCHES the
+               * current fact stays the model's; every other one becomes the
+               * seller's and is left alone.
+               */
+              const kept: Record<string, unknown> = {};
+              for (const [key, written] of Object.entries(offer.prefills)) {
+                if (same(facts.prefill[key], written)) kept[key] = written;
+              }
+              setPrefills(kept);
               onChange(offer.values, true);
               setUndoOffer(null);
             }}
