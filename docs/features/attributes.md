@@ -773,9 +773,17 @@ never re-implements the judgement.
 
 ## Option `facts` — a prefill, never a rule (D18)
 
+THE LAW: **bounds ENFORCE, facts PREFILL.** A `bounds` entry narrows what the
+validator accepts; a `facts` entry only fills a sibling field in for the seller,
+who may then edit it.
+
 The DEC-050 option shape allowlist now carries a ninth key, `facts`: an object
-whose keys are attribute keys (`^[a-z0-9_]{2,64}$`) and whose values are scalars
-or lists of strings, at most 20 entries. Anything else is refused as
+whose keys are attribute keys and whose values are scalars
+or lists of strings, at most 20 entries. Since INC-236 a facts KEY is judged by
+the DEFINITION-KEY charset `^[a-z0-9_][a-z0-9_-]{1,63}$` — the same charset as
+`attribute_key`, hyphens included, so a real key such as `fuel_type-vehicles`
+prefills instead of refusing. A key outside it still refuses
+`badFacts:key:<k>`, unchanged. Anything else is refused as
 `badFacts:<detail>` (`notObject`, `tooMany`, `key:<k>`, `listLength:<k>`,
 `listNotStrings:<k>`, `value:<k>`) by `attr_option_shape`, which every writer and
 the import planner already run — so no other function changes.

@@ -158,7 +158,9 @@ one header order (the header is exact: a file missing them is `badHeader`).
 
 ## The attributes file — the option `facts` cell (D18)
 
-An option record may carry `facts`: an object of attribute keys (`^[a-z0-9_]{2,64}$`)
+An option record may carry `facts`: an object of attribute keys (the
+DEFINITION-KEY charset `^[a-z0-9_][a-z0-9_-]{1,63}$` since INC-236, hyphens
+included, so a real key such as `fuel_type-vehicles` is accepted)
 to a scalar or a list of strings, at most 20 entries. It is validated by the same
 option shape function as every other key (refusal `badFacts:<detail>`); the
 definitions planner and commit are unchanged, because the options column passes
@@ -199,20 +201,30 @@ export's echo. Since M-MAINT-3 both cells also have a DOOR
 (`admin_link_attribute` / `admin_update_attribute_link`), so the console's own
 per-row cells no longer wait on a migration.
 
-### NAMED DEFERRAL — no `visible_when` cell in the file yet (M-MAINT-3)
+## The links file — `visible_when` (D24, M-MAINT-3b)
 
-D24's condition (`category_attribute_links.visible_when`, see
-`docs/features/attributes.md`) is set through the LINK DOORS only. The attributes
-FILE does not carry it: `attr_import_plan`, `admin_commit_attribute_import`,
-`admin_undo_attribute_import` and `attr_export_payload` must each be re-declared
-WHOLE to plan, apply, capture, restore and echo the cell, and M-MAINT-3 landed
-the doors half only (operator-approved). Consequences until that landing:
+The D24 condition is a links-file cell too, placed AFTER `default_value`, in the
+text form `key=value1|value2` (for example `fuel_type-vehicles=electric|plugin_hybrid`):
+the sibling definition key, `=`, then the pipe-separated values that reveal this
+question.
 
-- an uploaded links file that carries a `visible_when` column has it IGNORED as
-  an unknown column at the gate — it never half-applies;
-- an export round trip does NOT preserve a condition set through the door, so a
-  full-file re-import leaves conditions untouched rather than clearing them
-  (the planner never writes the column).
+- It is PLANNED as a field diff, APPLIED on commit through the SAME validation
+  the link doors use, CAPTURED in the batch revision, RESTORED by Undo and
+  ECHOED by the export after `default_value` — so an export round trips.
+- THE BLANK RULE (the `name_am` rule): a BLANK cell CHANGES NOTHING, and a
+  MISSING column is ignored. A condition set in the console therefore SURVIVES
+  every import; there is deliberately no file syntax for clearing one (the
+  console clears it).
+- Refusals name the cause: `badVisibleWhen` with detail `badShape` (no `=`, no
+  key or no values, or a shape the checker rejects), `self` (the row's own key),
+  `unknownSibling:<key>` (not linked to that category, directly, by inheritance
+  or by this same file) and `notInOptions:<value>` (a value the sibling does not
+  offer; the sibling's option list is read POST-PLAN).
 
-The cell's text form is decided and will be `key=value1|value2`, placed after
-`default_value`, with the planner's own refusal `badVisibleWhen:<detail>`.
+The sibling key must match the condition checker's charset
+(`^[a-z][a-z0-9_]{1,63}$`, `attr_visible_when_ok`), which does NOT allow
+hyphens; a hyphenated sibling key refuses `badVisibleWhen:badShape` until that
+checker is widened.
+
+Proof: M-MAINT-3b P2 (planner diff, commit, schema read, export echo, blank
+cell, missing column, refusals, Undo).
