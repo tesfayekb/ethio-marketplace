@@ -898,3 +898,15 @@ while the cell matches what is stored, enabled the moment it differs, and after
 the door answers the cell carries a translated `Saved` caption or, on a refusal,
 its failure caption — never a silent no-op (C4/F4). AT-59 asserts the three
 states and DB truth after the refusal (AT-23 was already taken).
+
+## The links file carries `display_order` (M-ORDER)
+
+The links import/export now carries the link's own `display_order` after
+`visible_when` — the same column Move up / Move down writes. A blank or missing
+cell changes nothing, a non-negative integer is applied on commit (an add with
+no cell still appends last), Undo restores the prior order, and the export
+echoes it so a round trip is silent. Refusal: `badDisplayOrder:<value>`.
+
+**Deferred, named:** the registry file cell in the console's own links table and
+the per-row order control ride the next code turn; until then the cell reaches
+the door through the links file itself.

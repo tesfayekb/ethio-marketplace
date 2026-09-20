@@ -243,3 +243,31 @@ The sibling key must match the condition checker's charset
 
 Proof: M-MAINT-3b P2 (planner diff, commit, schema read, export echo, blank
 cell, missing column, refusals, Undo).
+
+## The links file — `display_order` (M-ORDER)
+
+The order a category shows its questions in is a links-file cell too, placed
+AFTER `visible_when`, as a plain NON-NEGATIVE INTEGER (`0` included). It is the
+SAME column the console's Move up / Move down writes, so the two paths never
+disagree.
+
+- It is PLANNED as a field diff (a row whose ONLY difference is its order is a
+  `change`, never `unchanged`), APPLIED on commit — an ADD takes the file's
+  value and, with no cell, still appends last (`max + 1`) — CAPTURED in the
+  batch revision (`prev`/`post` both carry `display_order`), RESTORED by Undo
+  with the rest of the prior link row, and ECHOED by the export after
+  `visible_when`, so an export round trips as unchanged.
+- THE BLANK RULE (the `name_am` rule): a BLANK cell CHANGES NOTHING and a
+  MISSING column is ignored, so a console reorder SURVIVES every import.
+- A cell that is not a non-negative integer refuses `badDisplayOrder:<value>`
+  (reason `badDisplayOrder`, with the offending text in both `detail` and
+  `value`), and the refused row leaves NO link entry in the plan.
+- TIES are untouched: the posting read (`get_posting_schema`) already orders by
+  `display_order` with `attr_key` as the tie-break, so two links sharing an
+  order stay alphabetical.
+
+Proof: M-ORDER P1 (absent, blank, identical, changed, zero, and the three
+refusals) and P2 (a scratch leaf with three links reordered by file → the plan
+counts three changes → the commit writes them → the posting read lists the new
+order → the export echoes it → an untouched re-export is silent → Undo restores
+the prior order).
