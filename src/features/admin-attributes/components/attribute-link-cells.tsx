@@ -28,6 +28,31 @@ function typedDefault(type: string, raw: string): unknown {
   return raw;
 }
 
+/**
+ * U6-C1-R3b-3a STEP 3 — THE THREE CELLS SAY WHERE THEY STAND.
+ *
+ * A Save that is always enabled teaches nobody whether anything is pending, and a
+ * write that vanishes teaches nobody whether it landed. So each cell carries its
+ * own state: Save is SHUT while the cell matches what is stored, OPEN the moment
+ * the operator changes it, and shut again with a translated "Saved" caption once
+ * the door answers; a refusal is an error caption beside the same button, never a
+ * silent nothing (F4).
+ */
+type CellState = "idle" | "saving" | "saved" | "error";
+
+const CELLS = ["allowed", "default", "condition"] as const;
+type Cell = (typeof CELLS)[number];
+
+const IDLE_STATES: Record<Cell, CellState> = {
+  allowed: "idle",
+  default: "idle",
+  condition: "idle",
+};
+
+function stamp(value: unknown): string {
+  return JSON.stringify(value ?? null);
+}
+
 export function AttributeLinkCells({
   row,
   siblings,
@@ -35,24 +60,41 @@ export function AttributeLinkCells({
 }: {
   row: AttributeLink;
   siblings: AttributeLink[];
+  /** Resolves TRUE when the door accepted the write, FALSE when it refused. */
   onSave: (input: {
     allowedOptions?: string[];
     defaultValue?: unknown;
     visibleWhen?: VisibleWhen;
     clearCells?: LinkCellName[];
-  }) => void;
+  }) => Promise<boolean>;
 }) {
   const { t } = useI18n();
   const [allowed, setAllowed] = useState<string[]>(row.allowedOptions ?? []);
   const [defaultValue, setDefaultValue] = useState(defaultText(row.defaultValue));
   const [conditionKey, setConditionKey] = useState(row.visibleWhen?.key ?? "");
   const [conditionValues, setConditionValues] = useState<string[]>(row.visibleWhen?.in ?? []);
+  const [states, setStates] = useState<Record<Cell, CellState>>(IDLE_STATES);
+  /**
+   * WHAT IS STORED, as this editor last saw it: the row when it arrived, and the
+   * accepted value after each write. Dirtiness is measured against THIS, so a
+   * successful save leaves the cell clean even before the roster refetches.
+   */
+  const [baseline, setBaseline] = useState({
+    allowed: stamp([...(row.allowedOptions ?? [])].sort()),
+    default: defaultText(row.defaultValue),
+    condition: stamp(row.visibleWhen),
+  });
 
   useEffect(() => {
     setAllowed(row.allowedOptions ?? []);
     setDefaultValue(defaultText(row.defaultValue));
     setConditionKey(row.visibleWhen?.key ?? "");
     setConditionValues(row.visibleWhen?.in ?? []);
+    setBaseline({
+      allowed: stamp([...(row.allowedOptions ?? [])].sort()),
+      default: defaultText(row.defaultValue),
+      condition: stamp(row.visibleWhen),
+    });
   }, [row]);
 
   const conditionOptions = useMemo(
@@ -64,6 +106,49 @@ export function AttributeLinkCells({
     allowed.length === 0
       ? row.options
       : row.options.filter((option) => allowed.includes(option.value));
+
+  const conditionNow: VisibleWhen | null =
+    conditionKey === "" || conditionValues.length === 0
+      ? null
+      : { key: conditionKey, in: conditionValues };
+  const dirty: Record<Cell, boolean> = {
+    allowed: stamp([...allowed].sort()) !== baseline.allowed,
+    default: defaultValue !== baseline.default,
+    condition: stamp(conditionNow) !== baseline.condition,
+  };
+
+  const save = (
+    cell: Cell,
+    input: Parameters<typeof onSave>[0],
+    accepted: Partial<typeof baseline>,
+  ) => {
+    setStates((prev) => ({ ...prev, [cell]: "saving" }));
+    void onSave(input).then((ok) => {
+      setStates((prev) => ({ ...prev, [cell]: ok ? "saved" : "error" }));
+      if (ok) setBaseline((prev) => ({ ...prev, ...accepted }));
+    });
+  };
+
+  /** One caption for all three cells, so no cell can report differently. */
+  const caption = (cell: Cell) =>
+    states[cell] === "saved" && !dirty[cell] ? (
+      <span
+        role="status"
+        aria-live="polite"
+        data-testid={`category-attribute-cell-saved-${cell}-${row.attrKey}`}
+        className="text-xs text-muted-foreground"
+      >
+        {t("admin.attributes.links.saved")}
+      </span>
+    ) : states[cell] === "error" ? (
+      <span
+        role="alert"
+        data-testid={`category-attribute-cell-error-${cell}-${row.attrKey}`}
+        className="text-xs text-destructive"
+      >
+        {t("admin.attributes.link.saveFailed")}
+      </span>
+    ) : null;
 
   return (
     <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-3">
@@ -92,16 +177,20 @@ export function AttributeLinkCells({
           variant="outline"
           size="touch"
           data-testid={`category-attribute-save-allowed-${row.attrKey}`}
+          disabled={!dirty.allowed || states.allowed === "saving"}
           onClick={() =>
-            onSave(
+            save(
+              "allowed",
               allowed.length === 0
                 ? { clearCells: ["allowed_options"] }
                 : { allowedOptions: allowed },
+              { allowed: stamp([...allowed].sort()) },
             )
           }
         >
           {t("common.save")}
         </Button>
+        {caption("allowed")}
       </fieldset>
 
       <div className="space-y-1">
@@ -144,16 +233,20 @@ export function AttributeLinkCells({
           variant="outline"
           size="touch"
           data-testid={`category-attribute-save-default-${row.attrKey}`}
+          disabled={!dirty.default || states.default === "saving"}
           onClick={() =>
-            onSave(
+            save(
+              "default",
               defaultValue === ""
                 ? { clearCells: ["default_value"] }
                 : { defaultValue: typedDefault(row.attrType, defaultValue) },
+              { default: defaultValue },
             )
           }
         >
           {t("common.save")}
         </Button>
+        {caption("default")}
       </div>
 
       <fieldset className="space-y-1">
@@ -199,16 +292,20 @@ export function AttributeLinkCells({
           variant="outline"
           size="touch"
           data-testid={`category-attribute-save-condition-${row.attrKey}`}
+          disabled={!dirty.condition || states.condition === "saving"}
           onClick={() =>
-            onSave(
-              conditionKey === "" || conditionValues.length === 0
+            save(
+              "condition",
+              conditionNow === null
                 ? { clearCells: ["visible_when"] }
-                : { visibleWhen: { key: conditionKey, in: conditionValues } },
+                : { visibleWhen: conditionNow },
+              { condition: stamp(conditionNow) },
             )
           }
         >
           {t("common.save")}
         </Button>
+        {caption("condition")}
       </fieldset>
     </div>
   );

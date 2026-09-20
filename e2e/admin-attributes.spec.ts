@@ -3136,6 +3136,111 @@ test.describe("C3 attributes console", () => {
   });
 
   /**
+   * U6-C1-R3b-3a STEP 3 (AT-59) — THE LINK CELL SAYS WHERE IT STANDS.
+   *
+   * C4: a cell that writes owes the operator three answers — nothing to save, it
+   * saved, it did not save. Save is disabled while the cell matches what is
+   * stored, enabled the moment it differs, and after the door answers the cell
+   * carries either its Saved caption or, on a refusal, its failure caption (F4 —
+   * never a silent no-op). The numbering continues the file's own series; AT-23
+   * is already taken by an earlier test.
+   */
+  test("AT-59 the link editor's Save reflects change, saved and error", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const values = [`${key}_one`, `${key}_two`];
+    let slug = "";
+    try {
+      const seeded = await supabase.from("attributes").insert({
+        attr_key: key,
+        name_en: key,
+        attr_type: "single_select",
+        options: values.map((value) => ({ value, label_en: value, active: true })),
+      });
+      if (seeded.error) throw new Error(`AT-59 seeding the definition: ${seeded.error.message}`);
+
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
+      await openEditor(page, slug);
+      await action(page, slug, "attributes").click();
+      await expect(page.getByTestId("category-attributes-dialog")).toBeVisible({ timeout: 20_000 });
+
+      await page.getByTestId("category-attribute-search").fill(key);
+      await page
+        .getByTestId("category-attribute-picker")
+        .selectOption({ label: `${key} (${key})` });
+      await page.getByTestId("category-attribute-add").click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(async () => (await readLinks(scratch!.id)).length, { timeout: 20_000 })
+        .toBe(1);
+
+      /** The one cell this test writes, read as DB truth (J4). */
+      const allowedOf = async (): Promise<unknown> => {
+        const { data } = await adminClient()
+          .from("category_attribute_links")
+          .select("allowed_options")
+          .eq("category_id", scratch!.id)
+          .limit(1);
+        return (data ?? [])[0]?.allowed_options ?? null;
+      };
+
+      const save = page.getByTestId(`category-attribute-save-allowed-${key}`);
+      // 1 — NOTHING TO SAVE: the cell matches what is stored.
+      await expect(save, "AT-59 Save was offered with no change").toBeDisabled({
+        timeout: 20_000,
+      });
+
+      // 2 — A CHANGE ENABLES IT, and the door's acceptance is announced.
+      await page.getByTestId(`category-attribute-allowed-${key}-${values[0]}`).click();
+      await expect(save, "AT-59 Save stayed disabled after a change").toBeEnabled({
+        timeout: 20_000,
+      });
+      await save.click();
+      await stepUpIfPrompted(page, secret);
+      await expect(
+        page.getByTestId(`category-attribute-cell-saved-allowed-${key}`),
+        "AT-59 the cell never reported Saved",
+      ).toBeVisible({ timeout: 20_000 });
+      await expect(save, "AT-59 Save stayed enabled after a clean save").toBeDisabled({
+        timeout: 20_000,
+      });
+      await expect
+        .poll(allowedOf, {
+          timeout: 20_000,
+          message: await dialogDump(page, "AT-59 the allowed options never landed"),
+        })
+        .toEqual([values[0]]);
+
+      // 3 — A REFUSED WRITE SAYS SO, in the cell that asked for it.
+      await page.route("**/rest/v1/rpc/admin_update_attribute_link", (route) => route.abort());
+      await page.getByTestId(`category-attribute-allowed-${key}-${values[1]}`).click();
+      await expect(save, "AT-59 Save stayed disabled before the failing write").toBeEnabled({
+        timeout: 20_000,
+      });
+      await save.click();
+      await expect(
+        page.getByTestId(`category-attribute-cell-error-allowed-${key}`),
+        "AT-59 a refused write reported no failure in the cell",
+      ).toBeVisible({ timeout: 20_000 });
+      await page.unroute("**/rest/v1/rpc/admin_update_attribute_link");
+      // DB TRUTH (J4): the refusal wrote nothing.
+      expect(await allowedOf(), "AT-59 a refused write changed the stored cell").toEqual([
+        values[0],
+      ]);
+    } finally {
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
    * AT-40 (IE-7) — THE THREE DIALOG STATES, DRIVEN TO APPLIED. A scratch pair
    * of files is chosen through the real pickers, previewed, confirmed through
    * step-up and then taken back: the applied banner is present, Confirm and

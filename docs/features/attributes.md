@@ -891,3 +891,10 @@ condition naming a key outside the category refuses `badVisibleWhen`.
 export were re-declared WHOLE to carry it, a BLANK cell changes nothing and a
 missing column is ignored, so a console-set condition survives every import
 (`docs/features/imports.md`).
+
+**Closed (U6-C1-R3b-3a)** — the LINK EDITOR'S THREE CELLS (`allowed_options`,
+`default_value`, `visible_when`) each report their own state: Save is disabled
+while the cell matches what is stored, enabled the moment it differs, and after
+the door answers the cell carries a translated `Saved` caption or, on a refusal,
+its failure caption — never a silent no-op (C4/F4). AT-59 asserts the three
+states and DB truth after the refusal (AT-23 was already taken).

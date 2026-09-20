@@ -592,3 +592,27 @@ PW-30 carries an EVIDENCED budget: the full eight-step walk was measured at 86 s
 on mobile-360 under four workers, and `test.setTimeout` is twice that
 measurement, stated in the test beside the number. Every read inside it is
 bounded at 20 s and names the wait it lost.
+
+## The model's answers are the model's (INC-240)
+
+A detail the seller never typed but the chosen option supplied is held apart from
+one the seller wrote: the form remembers WHAT IT PREFILLED, per detail. When a
+parent option changes — make → model, model → its facts — every prefilled detail
+the seller has not since edited is re-derived from the NEW option's facts, and a
+detail the new option says nothing about goes EMPTY rather than keeping the
+previous model's answer. Conditions re-evaluate and `allowed_options` re-narrow in
+the same pass, so a value the new parent no longer offers is cleared.
+
+A value the SELLER typed is never overwritten. When the new option's fact
+disagrees with it, the seller keeps their answer and the form offers the model's
+value beside the control ("Use the model's value"); taking it makes that value
+prefilled again. PW-32 walks all three claims in one form.
+
+## A year is a picker, not a number box
+
+A number detail declared `format = 'year'` renders as a select from its EFFECTIVE
+floor — the selected parent option's bound for that key, else the definition's
+minimum, else 1900 — up to next year, newest first, behind a "Choose" entry. The
+door's bounds remain the authority (F3); the picker simply cannot reach outside
+them, so there is no negative year and no free text. PW-25 asserts a model whose
+floor is 1968 offers nothing below it.

@@ -385,6 +385,9 @@
     "admin.attributes.link.none": [
       "/admin/categories"
     ],
+    "admin.attributes.link.saveFailed": [
+      "/admin/categories"
+    ],
     "admin.attributes.link.visibleWhen": [
       "/admin/categories"
     ],
@@ -3836,6 +3839,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.specs.modelDiffers": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.specs.multiHint": [
       "/post",
       "/post/$listingId"
@@ -3877,6 +3884,10 @@
       "/post/$listingId"
     ],
     "post.specs.unitHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.useModelValue": [
       "/post",
       "/post/$listingId"
     ],
