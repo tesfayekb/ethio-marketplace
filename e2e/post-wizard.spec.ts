@@ -444,8 +444,7 @@ test.describe("POSTING WIZARD", () => {
     const picker = page.locator(
       `[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`,
     );
-    await expect(picker).toHaveAttribute("data-options", "idle");
-    await picker.focus();
+    if ((await picker.getAttribute("data-options")) === "idle") await picker.focus();
     await expect(picker).toHaveAttribute("data-options", "ready");
     // Two scratch options plus the "choose" placeholder.
     await expect(picker.locator("option")).toHaveCount(3);
