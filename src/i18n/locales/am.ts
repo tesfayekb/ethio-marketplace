@@ -1918,6 +1918,8 @@ export const am: Messages = {
   "post.price.expiryHint": "የተለመደውን ጊዜ ለመጠቀም ባዶ ይተዉት። ከዛሬ ጀምሮ ቢበዛ {days} ቀናት።",
   "post.where.why": "ዕቃው የሚገኝበትን ቦታ ይናገሩ። ገዢዎች በመጀመሪያ የራሳቸውን አካባቢ ይመለከታሉ።",
   "post.where.marketLabel": "ገበያ",
+  "post.where.marketChoose": "አንዱን ይምረጡ",
+  "post.where.marketUnresolved": "በየትኛው ገበያ ውስጥ እንደሆኑ ማወቅ አልቻልንም። አንዱን ይምረጡ።",
   "post.where.marketLoading": "ገበያዎች እየተጫኑ ነው…",
   "post.where.marketFailed": "የገበያ ዝርዝሩ አልተጫነም። ከጥቂት ቆይታ በኋላ ይሞክሩ።",
   "post.where.treeLoading": "ቦታዎች እየተጫኑ ነው…",
