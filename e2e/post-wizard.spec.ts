@@ -1157,30 +1157,57 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-8")).toBeVisible();
+    await expect(
+      page.getByTestId("post-step-8"),
+      "PW-30: the review step never opened",
+    ).toBeVisible({ timeout: 20_000 });
 
+    // Every read below is BOUNDED and NAMED: the review's labels come from the
+    // options read, which under load resolves after the default expect budget,
+    // and a bare 60 s test timeout names no wait at all (shard-3 red).
     const summary = page.getByTestId("post-review-preview");
-    await expect(summary.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
-      `${spec.optionValues[0]} label`,
-    );
-    await expect(summary.locator(`[data-key="${spec.multi.attrKey}"]`)).toHaveText(
-      spec.optionValues.map((value) => `${value} label`).join(", "),
-    );
-    await expect(summary.locator(`[data-key="${spec.number.attrKey}"]`)).toHaveText("5 km");
-    await expect(summary.locator(`[data-key="${spec.bool.attrKey}"]`)).toHaveText("Yes");
+    await expect(
+      summary.locator(`[data-key="${spec.select.attrKey}"]`),
+      "PW-30: the review summary never rendered the select option's label",
+    ).toHaveText(`${spec.optionValues[0]} label`, { timeout: 20_000 });
+    await expect(
+      summary.locator(`[data-key="${spec.multi.attrKey}"]`),
+      "PW-30: the review summary never joined the multi-select labels",
+    ).toHaveText(spec.optionValues.map((value) => `${value} label`).join(", "), {
+      timeout: 20_000,
+    });
+    await expect(
+      summary.locator(`[data-key="${spec.number.attrKey}"]`),
+      "PW-30: the review summary never carried the number's unit",
+    ).toHaveText("5 km", { timeout: 20_000 });
+    await expect(
+      summary.locator(`[data-key="${spec.bool.attrKey}"]`),
+      "PW-30: the review summary never rendered the boolean as a word",
+    ).toHaveText("Yes", { timeout: 20_000 });
     await page.getByTestId("post-preview-open").click();
     const buyer = page.getByTestId("post-preview-sheet");
-    await expect(buyer.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
-      `${spec.optionValues[0]} label`,
-    );
-    await expect(buyer.locator(`[data-key="${spec.number.attrKey}"]`)).toHaveText("5 km");
+    await expect(buyer, "PW-30: the buyer preview sheet never opened").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(
+      buyer.locator(`[data-key="${spec.select.attrKey}"]`),
+      "PW-30: the buyer preview never rendered the select option's label",
+    ).toHaveText(`${spec.optionValues[0]} label`, { timeout: 20_000 });
+    await expect(
+      buyer.locator(`[data-key="${spec.number.attrKey}"]`),
+      "PW-30: the buyer preview never carried the number's unit",
+    ).toHaveText("5 km", { timeout: 20_000 });
     await page.getByTestId("post-preview-close").click();
 
     await switchLanguage(page, "am");
-    await expect(summary.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
-      `${spec.optionValues[0]} ምልክት`,
-    );
-    await expect(summary.locator(`[data-key="${spec.bool.attrKey}"]`)).toHaveText("አዎ");
+    await expect(
+      summary.locator(`[data-key="${spec.select.attrKey}"]`),
+      "PW-30: the Amharic review never rendered the option's Amharic label",
+    ).toHaveText(`${spec.optionValues[0]} ምልክት`, { timeout: 20_000 });
+    await expect(
+      summary.locator(`[data-key="${spec.bool.attrKey}"]`),
+      "PW-30: the Amharic review never rendered the boolean in Amharic",
+    ).toHaveText("አዎ", { timeout: 20_000 });
     await switchLanguage(page, "en").catch(() => undefined);
   });
 
