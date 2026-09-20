@@ -162,10 +162,24 @@ An option record may carry `facts`: an object of attribute keys (the
 DEFINITION-KEY charset `^[a-z0-9_][a-z0-9_-]{1,63}$` since INC-236, hyphens
 included, so a real key such as `fuel_type-vehicles` is accepted)
 to a scalar or a list of strings, at most 20 entries. It is validated by the same
-option shape function as every other key (refusal `badFacts:<detail>`); the
-definitions planner and commit are unchanged, because the options column passes
-through them whole. Facts are a PREFILL for the posting form, never a rule — the
-listing validator does not read them.
+option shape function as every other key (refusal `badFacts:<detail>`). Facts are
+a PREFILL for the posting form, never a rule — the listing validator does not
+read them.
+
+**`facts` is diffed, written and echoed** (M-FACTS, INC-239). The definition
+verdict compares the option cell through `attr_option_norm` (value, labels,
+parent) and `attr_option_norm_v2` (plus `active`, `bounds`, `aliases`,
+`allowed`) — and `facts` was outside both, so a file whose ONLY change was
+`facts` previewed as `unchanged` and landed nothing (phantom success, F4). The
+v2 normalisation now carries `facts`: a change in facts alone plans as `changed`
+with the diff naming `options`; an ABSENT or EMPTY facts object stays invisible,
+so a file that never mentions facts is still silent. The commit writes the whole
+options cell, the export echoes every stored option key, and Undo restores the
+prior options cell whole — all three already did, which the file's proof
+demonstrates end to end (export → add facts → plan → commit → options read →
+export → undo). One caveat: the echo follows jsonb's own key order (keys sort by
+length, then bytes), so `facts` appears BEFORE `bounds` in the cell, not after;
+the round trip is unaffected.
 
 ## The links file — `allowed_options` and `default_value` (D-spec §12)
 
