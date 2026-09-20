@@ -65,7 +65,27 @@ test.describe("POSTING WIZARD", () => {
   /** L4b scratch geography (region → city → sub-city); destroyed child-first. */
   const places: string[] = [];
 
+  /**
+   * R-EVID STEP 1 — TIMINGS THAT SURVIVE A HARD TEST TIMEOUT. A full-walk test's
+   * per-step ladder used to live in a local array printed by `why()` (an expect
+   * message) and by a trailing `console.log`. Run 35501302989 lost BOTH: the
+   * budget itself expired, so no expect ever refused and the trailing log never
+   * ran — the report carried a footer snapshot and nothing else.
+   *
+   * The ladder is therefore written into a DESCRIBE-scoped array and attached
+   * from the `afterEach`, which runs after a body timeout (J3, same reason the
+   * cleanup lives there). Every full-walk test pushes into `walkMarks`; the
+   * attachment is unconditional, so a green run carries its measurement too.
+   */
+  const walkMarks: string[] = [];
+
   test.afterEach(async () => {
+    const ladder = walkMarks.splice(0);
+    if (ladder.length > 0) {
+      await test
+        .info()
+        .attach("step-timings", { body: ladder.join("\n"), contentType: "text/plain" });
+    }
     // J3 — an afterEach survives a body timeout; a `finally` in the body does not.
     for (const ref of objects.splice(0)) await purgeListingObjects(ref.userId, ref.listingId);
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
@@ -1102,7 +1122,9 @@ test.describe("POSTING WIZARD", () => {
      * which step was slow instead of leaving the budget to be guessed at.
      */
     const startedAt = Date.now();
-    const marks: string[] = [];
+    // R-EVID — the ladder is the DESCRIBE-scoped array, so the `afterEach`
+    // attaches it even when the budget itself expires (no expect refuses then).
+    const marks = walkMarks;
     const mark = (label: string) => {
       marks.push(`${label} @ ${Date.now() - startedAt} ms`);
     };
@@ -1241,6 +1263,24 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-preview-close").click();
     mark("buyer preview read");
 
+    /**
+     * R-EVID STEP 1 — WHICH LABEL SOURCE THE AMHARIC BRANCH READS (censused).
+     *
+     *   `src/features/posting/step-specifications.tsx` (lines 596, 660) renders
+     *   `optionLabel(option, entities.lang)`, and `step-review.tsx` (line 181)
+     *   goes through `attributeDisplayValue`, which maps every value through the
+     *   SAME `optionLabel`. That resolver (`attribute-options.ts`) is the option
+     *   RECORD's own overlay: `label_am` when the language is `am`, else
+     *   `label_en`. Option records are NOT entities in the translation bundle —
+     *   they live inside the definition's `options` array — so the entity bundle
+     *   (`entityName`) never sees them; the bundle resolves the DEFINITION's name
+     *   only.
+     *
+     * The option-record branch therefore applies: the scratch definition carries
+     * `label_am` on each option (`seedSpecSet`), and this read asserts it. No
+     * approval through the service client is needed and no D3 overlay assertion
+     * would be meaningful here, because there is no DB tier above the record.
+     */
     await switchLanguage(page, "am");
     await expect(
       summary.locator(`[data-key="${spec.select.attrKey}"]`),
@@ -1251,7 +1291,21 @@ test.describe("POSTING WIZARD", () => {
       why("PW-30: the Amharic review never rendered the boolean in Amharic"),
     ).toHaveText("አዎ", { timeout: 20_000 });
     mark("Amharic review read");
-    await switchLanguage(page, "en").catch(() => undefined);
+    /**
+     * R-EVID STEP 1 — THE CAUSE THE LADDER NAMED. Both Amharic reads PASSED
+     * (`Amharic review read` is the last stamp in the attachment) and the walk
+     * was 17 s of a 172 s budget; the 155 s that followed were spent inside the
+     * trailing `switchLanguage(page, "en")` restore. The trace names the exact
+     * call: `click internal:testid=[data-testid="language-option-en"] timeout: 0`
+     * — an UNBOUNDED click, so on mobile-360 the `en` item never became
+     * actionable after the Amharic switch and `.catch(() => undefined)` could
+     * never fire, because an unbounded click does not reject.
+     *
+     * The restore is DELETED rather than bounded: it asserted nothing (hence the
+     * swallowed catch) and Playwright gives every test its own context, so the
+     * device language cannot leak into the next test. Nothing is hidden — the
+     * two Amharic assertions above are untouched, and they are the coverage.
+     */
     // The measurement that set the budget above, printed on every run.
     console.log(`PW-30 walk: ${marks.join(" | ")}`);
   });
