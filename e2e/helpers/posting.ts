@@ -323,7 +323,7 @@ export async function seedSpecSet(categoryId: string): Promise<{
       min_bound: "1",
       max_bound: "9",
       decimals: 0,
-      unit: "kg",
+      unit: "km",
     },
     { attr_key: `${stem}_bool`, name_en: `${stem} bool`, attr_type: "boolean" },
     {

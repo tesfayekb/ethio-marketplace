@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { expect, test } from "./fixtures";
 
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
-import { gotoReady, openRailScope, signInViaSession } from "./helpers/ui";
+import { gotoReady, openRailScope, signInViaSession, switchLanguage } from "./helpers/ui";
 import {
   destroyLocation,
   readServedTree,
@@ -481,7 +481,13 @@ test.describe("POSTING WIZARD", () => {
     // first read is invisible to it.
     const other = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     const listingId = await reachStep3(page, user.id, category);
 
     // An ANSWERED draft: the text detail is stored under the first category.
@@ -539,7 +545,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     const listingId = await reachStep3(page, user.id, category);
 
     await page
@@ -1156,7 +1168,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     await reachStep3(page, user.id, category);
 
     // One detail answered, the required text left alone: the autosave that follows
@@ -1286,7 +1304,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     await reachStep3(page, user.id, category);
 
     const text = page.locator(
