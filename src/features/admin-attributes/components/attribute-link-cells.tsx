@@ -118,8 +118,8 @@ export function AttributeLinkCells({
             <option value="">{t("admin.attributes.link.none")}</option>
             {row.attrType === "boolean" ? (
               <>
-                <option value="true">{t("common.yes")}</option>
-                <option value="false">{t("common.no")}</option>
+                <option value="true">{t("post.review.yes")}</option>
+                <option value="false">{t("post.review.no")}</option>
               </>
             ) : (
               effectiveOptions.map((option) => (

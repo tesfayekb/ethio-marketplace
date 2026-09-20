@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-v2-fields";
 
@@ -421,8 +422,8 @@ export async function updateAttributeLink(input: {
     p_is_required: input.isRequired ?? (null as unknown as boolean),
     p_is_filterable: input.isFilterable ?? (null as unknown as boolean),
     p_allowed_options: input.allowedOptions ?? (null as unknown as string[]),
-    p_default_value: input.defaultValue ?? null,
-    p_visible_when: input.visibleWhen ?? null,
+    p_default_value: (input.defaultValue ?? null) as Json,
+    p_visible_when: (input.visibleWhen ?? null) as Json,
     p_clear_cells: input.clearCells ?? (null as unknown as string[]),
   });
   if (error) throw error;
