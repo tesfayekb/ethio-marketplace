@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
@@ -17,8 +17,10 @@ export function MobileStepStrip({
 }) {
   const { t } = useI18n();
   const currentRef = useRef<HTMLLIElement | null>(null);
+  const [furthestVisited, setFurthestVisited] = useState(step);
 
   useEffect(() => {
+    setFurthestVisited((held) => Math.max(held, step));
     currentRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [step]);
 
@@ -29,12 +31,12 @@ export function MobileStepStrip({
       className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden"
     >
       {STEPS.map((entry) => {
-        const done = entry.step < step;
         const current = entry.step === step;
         const completed = entry.step <= draftStep;
+        const visited = entry.step <= furthestVisited;
         const content = (
           <>
-            <span aria-hidden="true">{done ? "✓" : entry.step}</span>
+            <span aria-hidden="true">{completed ? "✓" : entry.step}</span>
             <span>{t(entry.nameKey)}</span>
           </>
         );
@@ -48,7 +50,7 @@ export function MobileStepStrip({
             data-state={current ? "current" : completed ? "completed" : "later"}
             className="shrink-0"
           >
-            {completed && !current ? (
+            {visited && !current ? (
               <Button
                 type="button"
                 variant="ghost"

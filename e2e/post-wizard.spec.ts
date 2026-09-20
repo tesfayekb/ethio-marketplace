@@ -1104,10 +1104,17 @@ test.describe("POSTING WIZARD", () => {
     );
     await select.focus();
     await select.selectOption(spec.optionValues[0] ?? "");
-    await page.locator(`[data-testid="post-attr-open"][data-attr="${spec.multi.attrKey}"]`).click();
     const checks = page.locator(
       `[data-testid="post-attr-checks"][data-attr="${spec.multi.attrKey}"]`,
     );
+    if (!(await checks.isVisible())) {
+      await page
+        .locator(`[data-testid="post-attr-open"][data-attr="${spec.multi.attrKey}"]`)
+        .click();
+    }
+    await expect(checks, "PW-30: the multi-select options never opened").toBeVisible({
+      timeout: 20_000,
+    });
     for (const value of spec.optionValues) {
       await checks.locator(`[data-testid="post-attr-check"][data-value="${value}"]`).check();
     }
