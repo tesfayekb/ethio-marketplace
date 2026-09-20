@@ -13,3 +13,30 @@
 #
 # false positive — random scratch-key literal inside a migration proof block (no secret)
 484c19a5ab8e5bc9da04ceb3c68d4af42378aca2:supabase/migrations/20260831060745_c719360f-757c-4a00-b2ba-71e4bc2bbf0a.sql:generic-api-key:529
+
+# R-CLEAN — the M-MAINT-3b Part 2 proof block (lines 705-848) declares SCRATCH
+# attribute keys inside a migration proof. The generic-api-key entropy heuristic
+# scored those hyphenated literals as keys. Both commits that carry the file are
+# listed; the rule stays fully armed everywhere else.
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:705  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:723  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:734  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:743  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:753  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:779  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:797  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:806  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:815  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:828  # scratch attribute key in a migration proof, not a secret
+67cad7192c83ed8c779c4c35e59a7e33f24ed3a3:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:848  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:705  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:723  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:734  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:743  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:753  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:779  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:797  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:806  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:815  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:828  # scratch attribute key in a migration proof, not a secret
+a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:848  # scratch attribute key in a migration proof, not a secret
