@@ -2183,6 +2183,11 @@ export const en = {
     "Leave empty to offer every option. Separate values with |.",
   "admin.attributes.link.defaultValue": "Default value",
   "admin.attributes.link.defaultValueHint": "Prefilled when a seller opens this category.",
+  "admin.attributes.link.none": "No default",
+  "admin.attributes.link.visibleWhen": "Show when",
+  "admin.attributes.link.alwaysVisible": "Always visible",
+  "post.review.yes": "Yes",
+  "post.review.no": "No",
   "admin.coverage.maxPhotos": "Photos",
 } as const;
 

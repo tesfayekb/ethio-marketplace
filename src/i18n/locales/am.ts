@@ -2088,6 +2088,11 @@ export const am: Messages = {
   "admin.attributes.link.allowedOptionsHint": "ሁሉንም አማራጭ ለማቅረብ ባዶ ይተዉ። እሴቶችን በ| ይለያዩ።",
   "admin.attributes.link.defaultValue": "ነባሪ እሴት",
   "admin.attributes.link.defaultValueHint": "ሻጭ ይህን ምድብ ሲከፍት አስቀድሞ ይሞላል።",
+  "admin.attributes.link.none": "ነባሪ የለም",
+  "admin.attributes.link.visibleWhen": "የሚታይበት ጊዜ",
+  "admin.attributes.link.alwaysVisible": "ሁልጊዜ ይታይ",
+  "post.review.yes": "አዎ",
+  "post.review.no": "አይ",
   "admin.coverage.maxPhotos": "ፎቶዎች",
 };
 

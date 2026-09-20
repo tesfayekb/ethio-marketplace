@@ -17,6 +17,8 @@ import {
   updateAttributeLink,
   upsertAttribute,
   type UpsertAttributeInput,
+  type LinkCellName,
+  type VisibleWhen,
 } from "./attributes-service";
 
 /**
@@ -106,7 +108,15 @@ export function useLinkAttribute() {
 export function useUpdateAttributeLink() {
   const invalidate = useInvalidateAttributes();
   return useMutation({
-    mutationFn: (input: { linkId: string; isRequired?: boolean; isFilterable?: boolean }) =>
+    mutationFn: (input: {
+      linkId: string;
+      isRequired?: boolean;
+      isFilterable?: boolean;
+      allowedOptions?: string[];
+      defaultValue?: unknown;
+      visibleWhen?: VisibleWhen;
+      clearCells?: LinkCellName[];
+    }) =>
       updateAttributeLink(input),
     onSettled: invalidate,
   });

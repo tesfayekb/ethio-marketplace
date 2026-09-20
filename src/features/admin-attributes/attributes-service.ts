@@ -339,6 +339,23 @@ export interface AttributeLink {
   cardRank: number | null;
   /** DEC-045 — the parent definition's key, or null for a flat attribute. */
   dependsOnKey: string | null;
+  allowedOptions: string[] | null;
+  defaultValue: unknown | null;
+  visibleWhen: VisibleWhen | null;
+}
+
+export interface VisibleWhen {
+  key: string;
+  in: string[];
+}
+export type LinkCellName = "allowed_options" | "default_value" | "visible_when";
+
+function toVisibleWhen(value: unknown): VisibleWhen | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+  return typeof row["key"] === "string" && Array.isArray(row["in"])
+    ? { key: row["key"], in: row["in"].filter((entry): entry is string => typeof entry === "string") }
+    : null;
 }
 
 export async function listCategoryLinks(categoryId: string): Promise<AttributeLink[]> {
@@ -358,6 +375,9 @@ export async function listCategoryLinks(categoryId: string): Promise<AttributeLi
     displayOrder: Number(row.display_order ?? 0),
     cardRank: row.card_rank === null ? null : Number(row.card_rank),
     dependsOnKey: row.depends_on_key ?? null,
+    allowedOptions: row.allowed_options ?? null,
+    defaultValue: row.default_value ?? null,
+    visibleWhen: toVisibleWhen(row.visible_when),
   }));
 }
 
@@ -391,11 +411,19 @@ export async function updateAttributeLink(input: {
   linkId: string;
   isRequired?: boolean;
   isFilterable?: boolean;
+  allowedOptions?: string[];
+  defaultValue?: unknown;
+  visibleWhen?: VisibleWhen;
+  clearCells?: LinkCellName[];
 }): Promise<void> {
   const { error } = await supabase.rpc("admin_update_attribute_link", {
     p_link_id: input.linkId,
     p_is_required: input.isRequired ?? (null as unknown as boolean),
     p_is_filterable: input.isFilterable ?? (null as unknown as boolean),
+    p_allowed_options: input.allowedOptions ?? (null as unknown as string[]),
+    p_default_value: input.defaultValue ?? null,
+    p_visible_when: input.visibleWhen ?? null,
+    p_clear_cells: input.clearCells ?? (null as unknown as string[]),
   });
   if (error) throw error;
 }
@@ -524,6 +552,9 @@ export async function listEffectiveCategoryLinks(categoryId: string): Promise<Ef
     displayOrder: Number(row.display_order ?? 0),
     cardRank: row.card_rank === null ? null : Number(row.card_rank),
     dependsOnKey: row.depends_on_key ?? null,
+    allowedOptions: row.allowed_options ?? null,
+    defaultValue: row.default_value ?? null,
+    visibleWhen: toVisibleWhen(row.visible_when),
     inherited: row.inherited === true,
     originId: row.origin_id,
     originSlug: row.origin_slug,
