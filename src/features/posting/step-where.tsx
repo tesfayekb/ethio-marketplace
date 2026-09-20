@@ -100,6 +100,11 @@ export function StepWhere({
    * the tree fetch starts on the first frame instead of waiting for the open-market
    * read. The market prefill below still has the last word for a seller with no
    * saved area, or one whose saved market is no longer open.
+   *
+   * INC-237 — AND UNTIL THE CHAIN RESOLVES, NOTHING IS CHOSEN. The select shows
+   * "Choose one" while the saved area and the edge's guess are still being read,
+   * and it NEVER falls back to the first open market: a market the seller never
+   * named, silently preselected, put listings in the wrong country.
    */
   const [country, setCountry] = useState<string | null>(() => readAreaCookie()?.country ?? null);
   const [region, setRegion] = useState<string | null>(null);
@@ -107,6 +112,8 @@ export function StepWhere({
   const [subCity, setSubCity] = useState<string | null>(null);
   const [prefilled, setPrefilled] = useState(false);
   const [planBlocked, setPlanBlocked] = useState(false);
+  /** INC-237 — the chain finished and named no market the door would accept. */
+  const [marketUnresolved, setMarketUnresolved] = useState(false);
   /** U6-C1-R2 — the seller took the item's own place out of the showing list. */
   const [defaultRemoved, setDefaultRemoved] = useState(false);
   const [extraRegion, setExtraRegion] = useState<string | null>(null);
