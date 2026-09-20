@@ -144,17 +144,35 @@ export function StepWhere({
   }, []);
 
   /**
-   * THE MARKET PREFILL: the saved area's country, else the edge's country, else
-   * the first open market. Runs once, and only while the seller has not picked.
+   * THE MARKET PREFILL (INC-237): the saved area's country, else the edge's
+   * country — AND NOTHING ELSE. It waits for BOTH reads (the open markets and the
+   * guess) before deciding, so the select is empty rather than wrong while they
+   * are in flight; it runs once; and when the chain names no open market the
+   * select STAYS on "Choose one" with its caption instead of taking the first
+   * option in the list.
    */
   const marketSeeded = useRef(false);
   useEffect(() => {
-    if (marketSeeded.current || markets.markets.length === 0) return;
+    if (marketSeeded.current || markets.markets.length === 0 || guess === null) return;
     const saved = readAreaCookie();
-    const wanted = saved?.country ?? guess?.country?.toUpperCase() ?? null;
-    const found = markets.markets.find((market) => market.code === wanted) ?? markets.markets[0];
-    if (found === undefined) return;
+    const wanted = saved?.country ?? guess.country?.toUpperCase() ?? null;
+    const found =
+      wanted === null ? undefined : markets.markets.find((market) => market.code === wanted);
     marketSeeded.current = true;
+    if (found === undefined) {
+      // The chain resolved to nothing: the seller answers, in words (C4).
+      setMarketUnresolved(true);
+      // A saved market that is no longer open must not stand on screen either.
+      if (country !== null) {
+        setCountry(null);
+        setRegion(null);
+        setCity(null);
+        setSubCity(null);
+        setPrefilled(false);
+      }
+      return;
+    }
+    setMarketUnresolved(false);
     // The cookie may already have chosen this market on the first frame; writing
     // the same code again would reset the cascade for nothing (I3).
     if (found.code !== country) setCountry(found.code);
