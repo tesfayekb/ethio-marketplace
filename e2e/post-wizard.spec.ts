@@ -1075,6 +1075,97 @@ test.describe("POSTING WIZARD", () => {
       .toBe("screening");
   });
 
+  test("PW-30 review and buyer preview render option labels, units, multi-values and booleans", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    await reachStep3(page, user.id, category);
+
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill("e2e labelled review");
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.number.attrKey}"]`)
+      .fill("5");
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.bool.attrKey}"]`)
+      .check();
+    const select = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`,
+    );
+    await select.focus();
+    await select.selectOption(spec.optionValues[0] ?? "");
+    await page.locator(`[data-testid="post-attr-open"][data-attr="${spec.multi.attrKey}"]`).click();
+    const checks = page.locator(`[data-testid="post-attr-checks"][data-attr="${spec.multi.attrKey}"]`);
+    for (const value of spec.optionValues) {
+      await checks.locator(`[data-testid="post-attr-check"][data-value="${value}"]`).check();
+    }
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e labelled title");
+    await page.getByTestId("post-description").fill("e2e labelled description");
+    await page.getByTestId("post-next").click();
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    const city = await activeCityOf("ET");
+    await waitForServedTree("ET", city.slug);
+    await waitForTreeSlug(page, "ET", city.slug);
+    const region = page.getByTestId("post-where-region");
+    const regions = await region.locator("option").evaluateAll((nodes) =>
+      nodes.map((node) => (node as HTMLOptionElement).value).filter(Boolean),
+    );
+    for (const value of regions) {
+      await region.selectOption(value);
+      const cityPicker = page.getByTestId("post-where-city");
+      if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
+        await cityPicker.selectOption(city.id);
+        break;
+      }
+    }
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
+      timeout: 20_000,
+    });
+    await page.getByTestId("post-next").click();
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+
+    const summary = page.getByTestId("post-review-preview");
+    await expect(summary.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
+      `${spec.optionValues[0]} label`,
+    );
+    await expect(summary.locator(`[data-key="${spec.multi.attrKey}"]`)).toHaveText(
+      spec.optionValues.map((value) => `${value} label`).join(", "),
+    );
+    await expect(summary.locator(`[data-key="${spec.number.attrKey}"]`)).toHaveText("5 km");
+    await expect(summary.locator(`[data-key="${spec.bool.attrKey}"]`)).toHaveText("Yes");
+    await page.getByTestId("post-preview-open").click();
+    const buyer = page.getByTestId("post-preview-sheet");
+    await expect(buyer.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
+      `${spec.optionValues[0]} label`,
+    );
+    await expect(buyer.locator(`[data-key="${spec.number.attrKey}"]`)).toHaveText("5 km");
+    await page.getByTestId("post-preview-close").click();
+
+    await switchLanguage(page, "am");
+    await expect(summary.locator(`[data-key="${spec.select.attrKey}"]`)).toHaveText(
+      `${spec.optionValues[0]} ምልክት`,
+    );
+    await expect(summary.locator(`[data-key="${spec.bool.attrKey}"]`)).toHaveText("አዎ");
+    await switchLanguage(page, "en").catch(() => undefined);
+  });
+
   test("PW-27 the mobile strip walks back to a step already done, and no further", async ({
     page,
   }, testInfo) => {
