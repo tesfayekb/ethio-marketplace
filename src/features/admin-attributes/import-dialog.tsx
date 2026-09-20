@@ -35,6 +35,8 @@ const REASON_KEYS = new Set([
   "outOfScope",
   "inheritedRow",
   "badCardRank",
+  // M-ORDER / R3b-3b — the links file's own order cell.
+  "badDisplayOrder",
   "formula",
   // UX-2 PART 6 / IE-8 — a new key that is really a renamed identity.
   "keyRename",

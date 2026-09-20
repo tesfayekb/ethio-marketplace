@@ -3244,7 +3244,7 @@ test.describe("C3 attributes console", () => {
    * U6-C1-R3b-3b STEP 2 (AT-60) — THE LINKS FILE CARRIES THE ORDER.
    *
    * M-ORDER landed `display_order` in the planner, the commit, the export and the
-   * undo; the registry now offers it as an editable cell after `visible_when`. The
+   * undo; the registry now offers it as an editable cell after `default_value`. The
    * proof is the ORDER THE SELLER WOULD SEE: three scratch links are reordered by
    * file and the posting read — the same read the wizard builds step 3 from —
    * lists them in the new order. A blank cell changes nothing, and a non-integer
