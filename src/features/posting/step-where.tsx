@@ -345,6 +345,10 @@ export function StepWhere({
               if (coverage.length > 0) onChange([], true);
             }}
           >
+            {/* INC-237 — the empty choice exists whenever nothing is chosen, so the
+                control can honestly show "Choose one" instead of a market the
+                prefill never resolved. */}
+            {country === null && <option value="">{t("post.where.marketChoose")}</option>}
             {markets.markets.map((market) => (
               <option key={market.code} value={market.code}>
                 {market.anchorId === null
@@ -357,6 +361,11 @@ export function StepWhere({
               </option>
             ))}
           </select>
+        )}
+        {marketUnresolved && country === null && (
+          <p className="text-xs text-muted-foreground" data-testid="post-where-market-unresolved">
+            {t("post.where.marketUnresolved")}
+          </p>
         )}
       </div>
 
