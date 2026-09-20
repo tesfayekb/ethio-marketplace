@@ -1,10 +1,10 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35426728709
-- Commit: `d122ffcfd5c4baaf6e2d165fb5e6320e37e3def9`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35494364609
+- Commit: `49f6b92df84e18ddc55a5703420ab9e733e1d8bf`
 - Attempt: 1
-- Written (UTC): 2026-09-19T07:58:51.794Z
-- Passed: 716 · Skipped: 45 · Failed: 2
+- Written (UTC): 2026-09-20T07:43:18.594Z
+- Passed: 738 · Skipped: 47 · Failed: 2
 - Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 1
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): nightly, full
@@ -15,7 +15,7 @@
 nightly: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 4 user(s) owned by process 35426728709-nightly
+[e2e:teardown] deleted 4 user(s) owned by process 35494364609-nightly
 ```
 
 ## Post-test errors: full
@@ -23,7 +23,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 full: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 337 user(s) owned by process 35426728709-nightly
+[e2e:teardown] deleted 355 user(s) owned by process 35494364609-nightly
 ```
 
 ## admin-categories-images.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state
@@ -62,46 +62,44 @@ Context:
 ```
 ```
 
-## shell.spec.ts › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node
+## post-wizard.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans
 
 - Source: `full`
 - Project: `mobile-360`
 
 ```text
-TimeoutError: locator.click: Timeout 10000ms exceeded.
-Call log:
-  - waiting for getByRole('menuitem', { name: 'E2E-Scratch-XX-nightly-0', exact: true })
-
+Test timeout of 60000ms exceeded.
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e79]:
-            - generic [ref=e80]: About
-          - listitem [ref=e81]:
-            - generic [ref=e82]: How it works
-      - navigation "Help" [ref=e83]:
-        - heading "Help" [level=2] [ref=e84]
-        - list [ref=e85]:
-          - listitem [ref=e86]:
-            - generic [ref=e87]: Safety
-          - listitem [ref=e88]:
-            - generic [ref=e89]: Contact
-      - navigation "Legal" [ref=e90]:
-        - heading "Legal" [level=2] [ref=e91]
-        - list [ref=e92]:
-          - listitem [ref=e93]:
-            - generic [ref=e94]: Terms
-          - listitem [ref=e95]:
-            - generic [ref=e96]: Privacy
-    - paragraph [ref=e98]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e217]:
+            - generic [ref=e218]: ስለ እኛ
+          - listitem [ref=e219]:
+            - generic [ref=e220]: እንዴት እንደሚሰራ
+      - navigation "እገዛ" [ref=e221]:
+        - heading "እገዛ" [level=2] [ref=e222]
+        - list [ref=e223]:
+          - listitem [ref=e224]:
+            - generic [ref=e225]: ደህንነት
+          - listitem [ref=e226]:
+            - generic [ref=e227]: ያግኙን
+      - navigation "ሕጋዊ" [ref=e228]:
+        - heading "ሕጋዊ" [level=2] [ref=e229]
+        - list [ref=e230]:
+          - listitem [ref=e231]:
+            - generic [ref=e232]: ውሎች
+          - listitem [ref=e233]:
+            - generic [ref=e234]: ግላዊነት
+    - paragraph [ref=e236]: © 2026 ethio.com — መብቱ በሙሉ የተጠበቀ ነው።
 ```
 ```
 
 ## Server errors: full
 
 ```text
+[WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
 [WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
@@ -121,7 +119,6 @@ Context:
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
 ## Client errors: full
