@@ -1,139 +1,107 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35499612827
-- Commit: `aeaf92e7f08a1c4949ee778aaba97aaa6e9c0a15`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35500698825
+- Commit: `95ff2b199a0c058aa045a897ac782a3095a267c9`
 - Attempt: 1
-- Written (UTC): 2026-09-20T08:27:59.443Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): none
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Written (UTC): 2026-09-20T09:04:58.980Z
+- Passed: 844 · Skipped: 74 · Failed: 2
+- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 1
+- Post-test errors (DEC-059, non-gating): shard 6
+- Sources without results: none
 
-## Server errors: smoke
+## Flake ledger (DEC-030)
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
 
-## Client errors: smoke
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · shell.spec.ts › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node — TimeoutError: locator.click: Timeout 10000ms exceeded.
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+## Post-test errors: shard 6
 
-## Server errors: email
+shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+```text
+[e2e:teardown] deleted 64 user(s) owned by process 35500698825-6
+```
 
-## Client errors: email
+## post-wizard.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans
 
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+- Source: `shard 6`
+- Project: `desktop-1280`
 
-## Server errors: shard 1
+```text
+Test timeout of 172000ms exceeded.
+```
 
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+Context:
 
-## Client errors: shard 1
+```text
+          - listitem [ref=e429]:
+            - generic [ref=e430]: ስለ እኛ
+          - listitem [ref=e431]:
+            - generic [ref=e432]: እንዴት እንደሚሰራ
+      - navigation "እገዛ" [ref=e433]:
+        - heading "እገዛ" [level=2] [ref=e434]
+        - list [ref=e435]:
+          - listitem [ref=e436]:
+            - generic [ref=e437]: ደህንነት
+          - listitem [ref=e438]:
+            - generic [ref=e439]: ያግኙን
+      - navigation "ሕጋዊ" [ref=e440]:
+        - heading "ሕጋዊ" [level=2] [ref=e441]
+        - list [ref=e442]:
+          - listitem [ref=e443]:
+            - generic [ref=e444]: ውሎች
+          - listitem [ref=e445]:
+            - generic [ref=e446]: ግላዊነት
+    - paragraph [ref=e448]: © 2026 ethio.com — መብቱ በሙሉ የተጠበቀ ነው።
+```
+```
 
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+## shell.spec.ts › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node
 
-## Server errors: shard 2
+- Source: `shard 6`
+- Project: `desktop-1280`
 
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+```text
+TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for getByRole('menuitem', { name: 'E2E-Scratch-XA-6-0', exact: true })
 
-## Client errors: shard 2
+```
 
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+Context:
 
-## Server errors: shard 3
-
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Server errors: shard 4
-
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Server errors: shard 5
-
-No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Client errors: shard 5
-
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+```text
+          - listitem [ref=e264]:
+            - generic [ref=e265]: About
+          - listitem [ref=e266]:
+            - generic [ref=e267]: How it works
+      - navigation "Help" [ref=e268]:
+        - heading "Help" [level=2] [ref=e269]
+        - list [ref=e270]:
+          - listitem [ref=e271]:
+            - generic [ref=e272]: Safety
+          - listitem [ref=e273]:
+            - generic [ref=e274]: Contact
+      - navigation "Legal" [ref=e275]:
+        - heading "Legal" [level=2] [ref=e276]
+        - list [ref=e277]:
+          - listitem [ref=e278]:
+            - generic [ref=e279]: Terms
+          - listitem [ref=e280]:
+            - generic [ref=e281]: Privacy
+    - paragraph [ref=e283]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors: shard 6
 
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+```text
+[WebServer] [ssr-error] /api/listings/draft listing not found
+```
 
 ## Client errors: shard 6
 
 No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
