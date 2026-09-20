@@ -1966,10 +1966,12 @@ export type Database = {
       admin_list_category_attribute_links: {
         Args: { p_category_id: string }
         Returns: {
+          allowed_options: string[]
           attr_key: string
           attr_type: string
           attribute_id: string
           card_rank: number
+          default_value: Json
           depends_on_key: string
           display_order: number
           is_filterable: boolean
@@ -1977,6 +1979,7 @@ export type Database = {
           link_id: string
           name_en: string
           options: Json
+          visible_when: Json
         }[]
       }
       admin_list_category_pointers: {
@@ -2010,10 +2013,12 @@ export type Database = {
       admin_list_effective_category_links: {
         Args: { p_category_id: string }
         Returns: {
+          allowed_options: string[]
           attr_key: string
           attr_type: string
           attribute_id: string
           card_rank: number
+          default_value: Json
           depends_on_key: string
           display_order: number
           inherited: boolean
@@ -2025,6 +2030,7 @@ export type Database = {
           origin_id: string
           origin_name_en: string
           origin_slug: string
+          visible_when: Json
         }[]
       }
       admin_list_entity_translations: {
