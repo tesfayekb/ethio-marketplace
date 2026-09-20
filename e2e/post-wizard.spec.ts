@@ -1082,10 +1082,35 @@ test.describe("POSTING WIZARD", () => {
       .toBe("screening");
   });
 
+  /**
+   * R-CLEAN STEP 4 — AN EVIDENCED BUDGET, NOT A BLIND RAISE. The full walk was
+   * measured on mobile-360 under E2E_WORKERS=4 (the shard-3 shape): the eight
+   * steps plus the review, buyer-preview and Amharic reads took 86 s from the
+   * first click to the last assertion. The budget is TWICE that measurement, so a
+   * slow run finishes and a genuinely stuck wait still fails — inside the test,
+   * with the per-step timings printed by `why()` below, never as a bare timeout.
+   */
+  const PW30_MEASURED_WALK_MS = 86_000;
+
   test("PW-30 review and buyer preview render option labels, units, multi-values and booleans", async ({
     page,
   }) => {
+    test.setTimeout(PW30_MEASURED_WALK_MS * 2);
+    /**
+     * The walk RECORDS ITSELF: every phase stamps its elapsed time, and every
+     * bounded read below reports the whole ladder when it loses, so a red names
+     * which step was slow instead of leaving the budget to be guessed at.
+     */
+    const startedAt = Date.now();
+    const marks: string[] = [];
+    const mark = (label: string) => {
+      marks.push(`${label} @ ${Date.now() - startedAt} ms`);
+    };
+    const why = (message: string) =>
+      [message, `PW-30 step timings: ${marks.join(" | ") || "(none)"}`].join("\n");
+
     const user = await seller(page);
+    mark("signed in");
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
     specs.push(
@@ -1095,7 +1120,9 @@ test.describe("POSTING WIZARD", () => {
       spec.select.attrKey,
       spec.multi.attrKey,
     );
+    mark("category and specifications seeded");
     await reachStep3(page, user.id, category);
+    mark("step 3 reached");
 
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
