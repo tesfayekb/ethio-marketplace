@@ -1157,9 +1157,10 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-8"), "PW-30: the review step never opened").toBeVisible(
-      { timeout: 20_000 },
-    );
+    await expect(
+      page.getByTestId("post-step-8"),
+      "PW-30: the review step never opened",
+    ).toBeVisible({ timeout: 20_000 });
 
     // Every read below is BOUNDED and NAMED: the review's labels come from the
     // options read, which under load resolves after the default expect budget,
