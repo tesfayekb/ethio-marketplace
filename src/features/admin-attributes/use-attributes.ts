@@ -99,6 +99,9 @@ export function useLinkAttribute() {
       isRequired: boolean;
       isFilterable: boolean;
       displayOrder: number | null;
+      allowedOptions?: string[];
+      defaultValue?: unknown;
+      visibleWhen?: VisibleWhen;
     }) => linkAttribute(input),
     onSettled: invalidate,
   });

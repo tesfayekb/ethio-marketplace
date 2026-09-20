@@ -391,6 +391,9 @@ export async function linkAttribute(input: {
   isRequired: boolean;
   isFilterable: boolean;
   displayOrder: number | null;
+  allowedOptions?: string[];
+  defaultValue?: unknown;
+  visibleWhen?: VisibleWhen;
 }): Promise<string> {
   const { data, error } = await supabase.rpc("admin_link_attribute", {
     p_category_id: input.categoryId,
@@ -398,6 +401,9 @@ export async function linkAttribute(input: {
     p_is_required: input.isRequired,
     p_is_filterable: input.isFilterable,
     p_display_order: input.displayOrder as number,
+    p_allowed_options: input.allowedOptions ?? (null as unknown as string[]),
+    p_default_value: (input.defaultValue ?? null) as Json,
+    p_visible_when: (input.visibleWhen ?? null) as Json,
   });
   if (error) throw error;
   return data as string;

@@ -406,7 +406,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     const listingId = await reachStep3(page, user.id, category);
 
     // GENERATED, NOT AUTHORED: one control per linked definition, each shape its own.
@@ -415,6 +421,7 @@ test.describe("POSTING WIZARD", () => {
       spec.number.attrKey,
       spec.bool.attrKey,
       spec.select.attrKey,
+      spec.multi.attrKey,
     ]) {
       await expect(
         page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`),
@@ -1073,6 +1080,13 @@ test.describe("POSTING WIZARD", () => {
     const strip = page.getByTestId("post-step-strip");
     await expect(strip, "PW-27: the mobile step strip never rendered").toBeVisible();
     await expect(strip.locator('[data-testid="post-step-strip-item"]')).toHaveCount(8);
+    await expect(
+      strip.locator('[data-testid="post-step-strip-item"]').filter({ hasText: /\S+/ }),
+      "LY-7: every mobile pill must name its step",
+    ).toHaveCount(8);
+    await expect(strip.locator('[data-step="8"]')).toHaveAttribute("data-state", "current");
+    await expect(strip.locator('[data-step="7"]')).toHaveAttribute("data-state", "completed");
+    await expect(strip.locator('[data-step="7"]')).toContainText("✓");
 
     // BACK to a step already answered, then forward again to review — both taps.
     await strip.getByTestId("post-step-strip-go-5").click();
