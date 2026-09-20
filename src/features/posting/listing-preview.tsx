@@ -3,6 +3,8 @@ import { entityName } from "@/i18n/entity";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
 import { fill } from "./refusal-text";
+import { attributeDisplayValue } from "./attribute-display";
+import type { AttrOption } from "./attribute-options";
 import type { AttrDef, DraftPhotoRow } from "./posting-service";
 import type { PricePeriod } from "./types";
 import type { MessageKey } from "@/i18n";
@@ -50,6 +52,7 @@ export function ListingPreview({
   pricePeriod,
   attributes,
   definitions,
+  attributeOptions = {},
   photos,
   coverage,
   country,
@@ -63,13 +66,14 @@ export function ListingPreview({
   pricePeriod: string | null;
   attributes: Record<string, unknown>;
   definitions: AttrDef[];
+  attributeOptions?: Record<string, AttrOption[]>;
   photos: DraftPhotoRow[];
   coverage: string[];
   /** The market the coverage belongs to, so place names can be resolved. */
   country: string | null;
   contactPref: Record<string, unknown>;
 }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const tree = useCountryTree(country);
   const nodes: TreeNode[] = tree.loadedCountry === country ? tree.nodes : [];
   const cover = coverUrlOf(photos);
@@ -159,13 +163,26 @@ export function ListingPreview({
             })
             .map((definition) => (
               <div key={definition.attrKey} className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">{definition.nameEn}</dt>
+                <dt className="text-muted-foreground">
+                  {entityName(
+                    "attribute",
+                    { id: definition.attributeId, nameEn: definition.nameEn, nameAm: null },
+                    entities,
+                  )}
+                </dt>
                 <dd
                   className="text-foreground"
                   data-testid="post-review-spec"
                   data-key={definition.attrKey}
                 >
-                  {String(attributes[definition.attrKey])}
+                  {attributeDisplayValue(
+                    definition,
+                    attributes[definition.attrKey],
+                    attributeOptions[definition.attrKey] ?? [],
+                    language,
+                    t("post.review.yes"),
+                    t("post.review.no"),
+                  )}
                 </dd>
               </div>
             ))}
