@@ -27,6 +27,7 @@ import {
   draftsOf,
   seedCategoryBranch,
   seedConditionalSet,
+  seedFactShiftSet,
   seedFoldSet,
   destroySpecSet,
   seedPostableCategory,
@@ -1897,11 +1898,14 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * D18 — A FACT MAY BE A BOUND. The model's floor year narrows the sibling in this
-   * MIRROR only: the door's own bounds remain the authority (F3), and the seam
-   * simply says so before the seller wastes a Next.
+   * U6-C1-R3b-3a STEP 2 — A YEAR CANNOT BE TYPED WRONG.
+   *
+   * D18's fact bound used to be a warning under a free number box; a `format =
+   * 'year'` detail is now a PICKER whose floor is the chosen model's own bound, so
+   * a year the model predates is not refused — it is not offered. The door's
+   * bounds remain the authority (F3); this proves the control can never reach them.
    */
-  test("PW-25 a fact's bound refuses a year the chosen model predates", async ({ page }) => {
+  test("PW-25 a year field is a picker bounded by the chosen model's floor", async ({ page }) => {
     const user = await seller(page);
     const category = await leaf();
     const fold = await seedFoldSet(category.id);
@@ -1918,26 +1922,120 @@ test.describe("POSTING WIZARD", () => {
     const year = page.locator(
       `[data-testid="post-attr-control"][data-attr="${fold.year.attrKey}"]`,
     );
-    await year.fill("1960");
-    await year.blur();
+    // NO FREE TEXT: the control is a picker, not a number box.
+    await expect(year, "PW-25: the year field carries no picker mark").toHaveAttribute(
+      "data-year",
+      "1",
+      { timeout: 20_000 },
+    );
+
+    const offered = async () =>
+      (await year.locator("option").allTextContents())
+        .map((text) => Number(text.trim()))
+        .filter((value) => Number.isFinite(value) && value > 0);
+    await expect
+      .poll(offered, {
+        message: "PW-25: the year picker never narrowed to the model's floor",
+        timeout: 20_000,
+      })
+      .toContain(fold.modelYearFloor);
+    const years = await offered();
+
+    const below = years.filter((value) => value < fold.modelYearFloor);
+    expect(
+      below,
+      `PW-25: the picker offered years below the model's floor: ${below.join(", ")}`,
+    ).toHaveLength(0);
+    expect(
+      years.filter((value) => value <= 0),
+      "PW-25: the picker offered a non-positive year",
+    ).toHaveLength(0);
+    // NEWEST FIRST: the first offered year is the highest one.
+    expect(years[0], "PW-25: the picker is not newest-first").toBe(Math.max(...years));
+
+    await year.selectOption(String(fold.modelYearFloor));
     await expect(
       page.locator(`[data-testid="post-attr-refusal"][data-attr="${fold.year.attrKey}"]`),
-      "PW-25: a year below the model's floor was not refused on the screen",
-    ).toBeVisible();
-
-    // The hint carries the model's floor, so the seller knows what is acceptable.
-    await expect(
-      page.locator(
-        `[data-testid="post-spec"][data-attr="${fold.year.attrKey}"] [data-testid="post-attr-bounds"]`,
-      ),
-      "PW-25: the bounds hint does not carry the model's floor",
-    ).toContainText(String(fold.modelYearFloor));
-
-    await year.fill(String(fold.modelYearFloor + 1));
-    await year.blur();
-    await expect(
-      page.locator(`[data-testid="post-attr-refusal"][data-attr="${fold.year.attrKey}"]`),
-      "PW-25: an acceptable year kept the refusal on screen",
+      "PW-25: the model's own floor year was refused",
     ).toHaveCount(0);
+  });
+
+  /**
+   * INC-240 (PW-32) — A PARENT CHANGE RE-DERIVES WHAT THE PARENT SUPPLIED.
+   *
+   * Three claims in one walk, because they are one rule: the model's answers are
+   * the model's (they change with it), a detail the new model knows nothing about
+   * goes EMPTY rather than keeping the old model's answer, and an answer the
+   * seller typed is never overwritten — the model's newer value is offered beside
+   * it instead.
+   */
+  test("PW-32 prefilled details re-derive when the model changes, seller edits survive", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const shift = await seedFactShiftSet(category.id);
+    specs.push(...shift.attrKeys);
+    await reachStep3(page, user.id, category);
+
+    const control = (attrKey: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+    const body = control(shift.body.attrKey);
+    const battery = control(shift.battery.attrKey);
+    const doors = control(shift.doors.attrKey);
+
+    await control(shift.make.attrKey).selectOption(shift.makeValue);
+    await control(shift.model.attrKey).selectOption(shift.golf);
+    await expect(body, "PW-32: the first model's body did not prefill").toHaveValue(
+      shift.bodyHatch,
+      { timeout: 20_000 },
+    );
+    await expect(doors, "PW-32: the first model's door count did not prefill").toHaveValue(
+      String(shift.golfDoors),
+      { timeout: 20_000 },
+    );
+
+    // 1 — A DIFFERENT MODEL, A DIFFERENT BODY: re-derived, not left behind.
+    await control(shift.model.attrKey).selectOption(shift.corolla);
+    await expect(body, "PW-32: the body did not re-derive from the new model").toHaveValue(
+      shift.bodySedan,
+      { timeout: 20_000 },
+    );
+
+    // 2 — A FACT THE NEW MODEL DOES NOT CARRY LEAVES THE DETAIL EMPTY.
+    await control(shift.model.attrKey).selectOption(shift.byd);
+    await expect(battery, "PW-32: the battery fact did not prefill").toHaveValue(
+      String(shift.bydBattery),
+      { timeout: 20_000 },
+    );
+    await control(shift.model.attrKey).selectOption(shift.corolla);
+    await expect(
+      battery,
+      "PW-32: a model with no battery fact kept the previous model's battery",
+    ).toHaveValue("", { timeout: 20_000 });
+    await expect(doors, "PW-32: the door count did not re-derive").toHaveValue(
+      String(shift.corollaDoors),
+      { timeout: 20_000 },
+    );
+
+    // 3 — THE SELLER'S OWN ANSWER SURVIVES, and the model's is OFFERED.
+    await doors.fill("7");
+    await doors.blur();
+    await control(shift.model.attrKey).selectOption(shift.golf);
+    await expect(doors, "PW-32: a seller-edited door count was overwritten").toHaveValue("7", {
+      timeout: 20_000,
+    });
+    await expect(
+      page.locator(`[data-testid="post-attr-model-differs"][data-attr="${shift.doors.attrKey}"]`),
+      "PW-32: the edited detail never offered the model's own value",
+    ).toBeVisible({ timeout: 20_000 });
+
+    await page
+      .locator(`[data-testid="post-attr-use-model"][data-attr="${shift.doors.attrKey}"]`)
+      .click();
+    await expect(doors, "PW-32: taking the model's value did not apply it").toHaveValue(
+      String(shift.golfDoors),
+      { timeout: 20_000 },
+    );
   });
 });

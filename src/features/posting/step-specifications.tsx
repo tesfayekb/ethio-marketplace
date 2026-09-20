@@ -109,6 +109,18 @@ function isEmpty(value: unknown): boolean {
   );
 }
 
+/**
+ * INC-240 — TWO ANSWERS ARE THE SAME ANSWER. A detail's value may be a string, a
+ * number, a boolean, an `other` pair or a list, so provenance is compared by
+ * SHAPE, not by identity — one comparator, used by the reconciliation and by the
+ * caption alike, so the screen and the re-derivation can never disagree.
+ */
+function same(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (isEmpty(a) && isEmpty(b)) return true;
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
+
 interface FactBound {
   min: number | null;
   max: number | null;
@@ -147,8 +159,15 @@ export function StepSpecifications({
   const [schema, setSchema] = useState<PostingSchema | null>(null);
   const [failed, setFailed] = useState(false);
   const [options, setOptions] = useState<Record<string, OptionState>>({});
-  /** The details this screen filled in from a chosen option's facts (D18). */
-  const [fromModel, setFromModel] = useState<string[]>([]);
+  /**
+   * INC-240 — WHO WROTE THIS ANSWER. For every detail this screen filled in from
+   * a chosen option's facts (D18) we remember the EXACT value we wrote. The value
+   * still standing in the draft then tells us who owns it:
+   *   - equal to what we wrote → still the model's answer, ours to re-derive;
+   *   - different → the seller typed over it, and a parent change never discards
+   *     a person's own words (it offers the model's new value instead).
+   */
+  const [prefills, setPrefills] = useState<Record<string, unknown>>({});
   /** What this screen alone saw wrong — the door's own refusal always wins. */
   const [local, setLocal] = useState<Refusal[]>([]);
 
@@ -327,21 +346,31 @@ export function StepSpecifications({
   }, [definitions, values, allowedListOf]);
 
   /**
-   * A CHILD VALUE THAT NO LONGER FITS IS CLEARED, and a fact's value fills a
-   * sibling that is still empty. Both are ordinary changes to the draft, written
-   * in ONE patch so a parent change costs one save.
+   * INC-240 — ONE RECONCILIATION, RUN AFTER EVERY ANSWER.
+   *
+   * A parent change is not just a narrowing: the answers the OLD parent supplied
+   * are stale the moment it changes. So this effect, in one patch:
+   *   1 clears a value the narrowing no longer offers (the fold, and the link's
+   *     `allowed_options` — a value that no longer fits is never left to be
+   *     refused at the door later),
+   *   2 RE-DERIVES every prefilled answer the seller has not touched: the new
+   *     option's fact replaces it, and an option carrying no fact for that detail
+   *     leaves it EMPTY rather than keeping the previous model's answer,
+   *   3 fills a still-empty detail a fact speaks about.
+   * A seller-edited answer is never rewritten here; the control offers the
+   * model's value in words instead (see `post.specs.modelDiffers`).
    */
   const reconcile = useRef("");
   useEffect(() => {
     if (schema === null) return;
     const next = { ...values };
     let changed = false;
-    const filled: string[] = [];
+    const owned: Record<string, unknown> = { ...prefills };
 
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const parentKey = folds[def.attrKey];
-      if (parentKey === undefined) continue;
+      if (parentKey === undefined && def.allowedOptions === null) continue;
       const held = options[def.attrKey] ?? IDLE;
       if (held.state !== "ready") continue;
       const offered = new Set(visibleOptionsOf(def).map((option) => option.value));
@@ -363,14 +392,40 @@ export function StepSpecifications({
       }
     }
 
+    // 2 — the model's own answers, re-derived from whatever the parent now says.
+    for (const [key, written] of Object.entries(owned)) {
+      const def = definitions.find((entry) => entry.attrKey === key);
+      if (def === undefined) continue;
+      if (!same(values[key], written)) continue; // the seller owns it now
+      const fact = facts.prefill[key];
+      if (fact === undefined) {
+        delete owned[key];
+        if (!isEmpty(next[key])) {
+          delete next[key];
+          changed = true;
+        }
+        continue;
+      }
+      if (!same(fact, written)) {
+        owned[key] = fact;
+        next[key] = fact;
+        changed = true;
+      }
+    }
+
+    // 3 — a fact fills a detail that is still empty.
     for (const [key, value] of Object.entries(facts.prefill)) {
+      if (key in owned) continue;
       const def = definitions.find((entry) => entry.attrKey === key);
       if (def === undefined) continue;
       if (!isEmpty(next[key])) continue;
+      owned[key] = value;
       next[key] = value;
-      filled.push(key);
       changed = true;
     }
+
+    // I3 — the mirror of provenance is written only when it actually moved.
+    if (JSON.stringify(owned) !== JSON.stringify(prefills)) setPrefills(owned);
 
     if (!changed) return;
     // I3 — the same patch is never written twice: a reconciliation is identified
@@ -378,11 +433,8 @@ export function StepSpecifications({
     const stamp = JSON.stringify(next);
     if (reconcile.current === stamp) return;
     reconcile.current = stamp;
-    if (filled.length > 0) {
-      setFromModel((prev) => [...new Set([...prev, ...filled])]);
-    }
     onChange(next, false);
-  }, [schema, definitions, folds, options, values, facts, visibleOptionsOf, onChange]);
+  }, [schema, definitions, folds, options, values, facts, prefills, visibleOptionsOf, onChange]);
 
   /** M-MAINT-2 §12 — the LINK's default fills an empty field, once. */
   const defaulted = useRef<string | null>(null);
@@ -485,6 +537,45 @@ export function StepSpecifications({
          */
         const empty = isEmpty(value);
         const ctrl = controlClass(refusal !== null, def.isRequired && empty);
+        /**
+         * INC-240 — WHOSE ANSWER IS ON SCREEN. `fromModel` says the model's own
+         * answer still stands; `modelDiffers` says the seller's own answer stands
+         * and the model would say something else — offered, never imposed.
+         */
+        const written = def.attrKey in prefills ? prefills[def.attrKey] : undefined;
+        const fromModel = def.attrKey in prefills && same(value, written);
+        const modelValue = facts.prefill[def.attrKey];
+        const modelDiffers =
+          def.attrKey in prefills &&
+          !fromModel &&
+          !empty &&
+          modelValue !== undefined &&
+          !same(value, modelValue);
+        /**
+         * STEP 2 — A YEAR IS A PICKER, NOT A TYPED NUMBER. A `format = 'year'`
+         * number offers the years the item can plausibly be: from the EFFECTIVE
+         * floor (the chosen option's fact bound, else the definition's own
+         * minimum, else 1900) to next year, newest first. There is no free text
+         * and no negative year to type. The door's bounds remain the authority
+         * (F3) — this control simply cannot produce a year it would refuse.
+         */
+        const yearMode = def.attrType === "number" && def.format === "year";
+        const yearFloorRaw =
+          bound?.min ?? (def.minBound === null ? null : Number(def.minBound)) ?? null;
+        const yearFloor =
+          yearFloorRaw !== null && Number.isFinite(yearFloorRaw) ? Math.trunc(yearFloorRaw) : 1900;
+        const nextYear = new Date().getFullYear() + 1;
+        const yearCapRaw = bound?.max ?? (def.maxBound === null ? null : Number(def.maxBound));
+        const yearCeiling = Math.trunc(
+          yearCapRaw !== null && Number.isFinite(yearCapRaw)
+            ? Math.min(yearCapRaw, nextYear)
+            : nextYear,
+        );
+        const years = yearMode
+          ? Array.from({ length: Math.max(0, yearCeiling - yearFloor + 1) }, (_, index) =>
+              String(yearCeiling - index),
+            )
+          : [];
 
         return (
           <div
@@ -514,7 +605,31 @@ export function StepSpecifications({
                 />
               )}
 
-              {def.attrType === "number" && (
+              {def.attrType === "number" && yearMode && (
+                <select
+                  id={controlId}
+                  data-testid="post-attr-control"
+                  data-attr={def.attrKey}
+                  data-year="1"
+                  className={ctrl}
+                  value={typeof value === "number" ? String(value) : ""}
+                  onChange={(event) => {
+                    const raw = event.target.value;
+                    const next = raw === "" ? null : Number(raw);
+                    judgeNumber(def, next);
+                    write(def.attrKey, next === null ? undefined : next, true);
+                  }}
+                >
+                  <option value="">{t("post.specs.choose")}</option>
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {def.attrType === "number" && !yearMode && (
                 <input
                   id={controlId}
                   type="number"
@@ -687,13 +802,38 @@ export function StepSpecifications({
               )}
 
               {/* D18 — filled in from the chosen model, and said so. */}
-              {fromModel.includes(def.attrKey) && (
+              {fromModel && (
                 <p
                   className="text-xs text-muted-foreground"
                   data-testid="post-attr-from-model"
                   data-attr={def.attrKey}
                 >
                   {t("post.specs.fromModel")}
+                </p>
+              )}
+
+              {/* INC-240 — THE SELLER'S OWN ANSWER STANDS, and the model's newer
+                  one is OFFERED beside it. Nothing is overwritten by a parent
+                  change once a person has typed over it. */}
+              {modelDiffers && (
+                <p
+                  className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+                  data-testid="post-attr-model-differs"
+                  data-attr={def.attrKey}
+                >
+                  <span>{t("post.specs.modelDiffers")}</span>
+                  <button
+                    type="button"
+                    className="min-h-11 text-start font-medium text-primary underline"
+                    data-testid="post-attr-use-model"
+                    data-attr={def.attrKey}
+                    onClick={() => {
+                      setPrefills((prev) => ({ ...prev, [def.attrKey]: modelValue }));
+                      write(def.attrKey, modelValue, true);
+                    }}
+                  >
+                    {t("post.specs.useModelValue")}
+                  </button>
                 </p>
               )}
 

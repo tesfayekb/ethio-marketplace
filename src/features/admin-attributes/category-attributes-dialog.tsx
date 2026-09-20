@@ -150,6 +150,31 @@ export function CategoryAttributesDialog({
     }).catch(fail);
   };
 
+  /**
+   * U6-C1-R3b-3a STEP 3 — A CELL WRITE ANSWERS ITS OWN CALLER. The three link
+   * cells own their Saved/failed captions, so the dialog hands each write's
+   * VERDICT back instead of swallowing it: `true` only when the door accepted,
+   * `false` on any refusal (which also lands in the dialog's error line, F4).
+   */
+  const runCell = async (action: () => Promise<void>): Promise<boolean> => {
+    setMessage(null);
+    setSavedTag(null);
+    let ok = false;
+    try {
+      await guard(async () => {
+        try {
+          await action();
+          ok = true;
+        } catch (error) {
+          fail(error);
+        }
+      });
+    } catch (error) {
+      fail(error);
+    }
+    return ok;
+  };
+
   const move = (index: number, delta: number) => {
     const next = [...rows];
     const target = index + delta;
@@ -287,9 +312,7 @@ export function CategoryAttributesDialog({
                 row={row}
                 siblings={effectiveRows}
                 onSave={(cells) =>
-                  runToggle(`cells:${row.attrKey}`, () =>
-                    updateLink.mutateAsync({ linkId: row.linkId, ...cells }),
-                  )
+                  runCell(() => updateLink.mutateAsync({ linkId: row.linkId, ...cells }))
                 }
               />
               <div className="flex flex-wrap gap-2">

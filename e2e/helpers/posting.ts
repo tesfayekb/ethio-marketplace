@@ -484,6 +484,9 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
       min_bound: "1900",
       max_bound: "2030",
       decimals: 0,
+      // U6-C1-R3b-3a STEP 2 — a year is a BOUNDED PICKER on the form, so the
+      // fixture declares the format the door already allows for one.
+      format: "year",
     },
     {
       attr_key: `${stem}_unit`,
@@ -618,6 +621,157 @@ export async function seedConditionalSet(categoryId: string): Promise<Conditiona
     fuelValues: { petrol, electric },
     chargingValue: plug,
     attrKeys: [fuel.attrKey, charging.attrKey],
+  };
+}
+
+/**
+ * U6-C1-R3b-3a STEP 1 (INC-240) — A SET WHOSE MODELS DISAGREE.
+ *
+ * Re-derivation can only be proven by a SECOND parent whose facts differ from the
+ * first: one model that knows its body and its doors, one that knows a battery
+ * nobody else has, and one that knows a different body and a different door
+ * count. Every row is namespaced scratch under a scratch leaf (J1/J3).
+ */
+export interface FactShiftSet {
+  make: ScratchAttr;
+  model: ScratchAttr;
+  body: ScratchAttr;
+  battery: ScratchAttr;
+  doors: ScratchAttr;
+  makeValue: string;
+  /** hatchback body + 3 doors, no battery. */
+  golf: string;
+  /** a battery, and the hatchback body. */
+  byd: string;
+  /** sedan body + 5 doors, no battery. */
+  corolla: string;
+  bodyHatch: string;
+  bodySedan: string;
+  bydBattery: number;
+  golfDoors: number;
+  corollaDoors: number;
+  attrKeys: string[];
+}
+
+export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet> {
+  const supabase = adminClient();
+  const stem = `e2e_shift_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const makeValue = `${stem}_mk`;
+  const golf = `${stem}_golf`;
+  const byd = `${stem}_byd`;
+  const corolla = `${stem}_corolla`;
+  const bodyKey = `${stem}_body`;
+  const batteryKey = `${stem}_battery`;
+  const doorsKey = `${stem}_doors`;
+  const bodyHatch = `${stem}_hatch`;
+  const bodySedan = `${stem}_sedan`;
+  const bydBattery = 60;
+  const golfDoors = 3;
+  const corollaDoors = 5;
+
+  const option = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...extra,
+  });
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: `${stem}_make`,
+        name_en: `${stem} make`,
+        attr_type: "single_select",
+        options: [option(makeValue)],
+      },
+      {
+        attr_key: `${stem}_model`,
+        name_en: `${stem} model`,
+        attr_type: "single_select",
+        options: [
+          option(golf, {
+            parent: makeValue,
+            facts: { [bodyKey]: bodyHatch, [doorsKey]: golfDoors },
+          }),
+          option(byd, {
+            parent: makeValue,
+            facts: { [bodyKey]: bodyHatch, [batteryKey]: bydBattery },
+          }),
+          option(corolla, {
+            parent: makeValue,
+            facts: { [bodyKey]: bodySedan, [doorsKey]: corollaDoors },
+          }),
+        ],
+      },
+      {
+        attr_key: bodyKey,
+        name_en: `${stem} body`,
+        attr_type: "single_select",
+        options: [option(bodyHatch), option(bodySedan)],
+      },
+      {
+        attr_key: batteryKey,
+        name_en: `${stem} battery`,
+        attr_type: "number",
+        min_bound: "1",
+        max_bound: "999",
+        decimals: 0,
+      },
+      {
+        attr_key: doorsKey,
+        name_en: `${stem} doors`,
+        attr_type: "number",
+        min_bound: "1",
+        max_bound: "9",
+        decimals: 0,
+      },
+    ])
+    .select("id, attr_key, name_en");
+  if (error || !data) {
+    throw new Error(
+      `[e2e:r3b3a] seeding the fact-shift set failed: ${error?.message ?? "no rows"}`,
+    );
+  }
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:r3b3a] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
+  };
+  const make = pick("_make");
+  const model = pick("_model");
+  const body = pick("_body");
+  const battery = pick("_battery");
+  const doors = pick("_doors");
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
+    { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
+    { category_id: categoryId, attribute_id: body.id, is_required: false, display_order: 3 },
+    { category_id: categoryId, attribute_id: battery.id, is_required: false, display_order: 4 },
+    { category_id: categoryId, attribute_id: doors.id, is_required: false, display_order: 5 },
+  ]);
+  if (linkError) {
+    throw new Error(`[e2e:r3b3a] linking the fact-shift set failed: ${linkError.message}`);
+  }
+
+  return {
+    make,
+    model,
+    body,
+    battery,
+    doors,
+    makeValue,
+    golf,
+    byd,
+    corolla,
+    bodyHatch,
+    bodySedan,
+    bydBattery,
+    golfDoors,
+    corollaDoors,
+    attrKeys: [make.attrKey, model.attrKey, body.attrKey, battery.attrKey, doors.attrKey],
   };
 }
 
