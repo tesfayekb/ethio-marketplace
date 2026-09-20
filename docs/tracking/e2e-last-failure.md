@@ -1,70 +1,58 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35496780365
-- Commit: `7c3397e1be5046ba1a8ed5ca8b9b979e2a3f60cb`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35497453196
+- Commit: `ed3086cb3d258bca7daadc5222a497eaaf704ebb`
 - Attempt: 1
-- Written (UTC): 2026-09-20T07:24:56.731Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
+- Written (UTC): 2026-09-20T07:53:29.869Z
+- Passed: 843 · Skipped: 74 · Failed: 1
+- Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 1
 - Post-test errors (DEC-059, non-gating): none
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Sources without results: none
 
-## Server errors: smoke
+## Flake ledger (DEC-030)
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
 
-## Client errors: smoke
+- FLAKY (passed on retry) · `desktop-1280` · source `smoke` · shell.spec.ts › app shell › the location row cascades Country -> Region -> City, city selectable — Error: expect(locator).toBeVisible() failed
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+## shell.spec.ts › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node
 
-## Server errors: email
+- Source: `shard 6`
+- Project: `desktop-1280`
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+```text
+TimeoutError: locator.click: Timeout 10000ms exceeded.
+Call log:
+  - waiting for getByRole('menuitem', { name: 'E2E-Scratch-QS-6-0', exact: true })
 
-## Client errors: email
+```
 
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+Context:
 
-## Server errors: shard 1
-
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Client errors: shard 1
-
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 3
-
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Server errors: shard 4
-
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Server errors: shard 5
-
-No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Client errors: shard 5
-
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+```text
+          - listitem [ref=e276]:
+            - generic [ref=e277]: About
+          - listitem [ref=e278]:
+            - generic [ref=e279]: How it works
+      - navigation "Help" [ref=e280]:
+        - heading "Help" [level=2] [ref=e281]
+        - list [ref=e282]:
+          - listitem [ref=e283]:
+            - generic [ref=e284]: Safety
+          - listitem [ref=e285]:
+            - generic [ref=e286]: Contact
+      - navigation "Legal" [ref=e287]:
+        - heading "Legal" [level=2] [ref=e288]
+        - list [ref=e289]:
+          - listitem [ref=e290]:
+            - generic [ref=e291]: Terms
+          - listitem [ref=e292]:
+            - generic [ref=e293]: Privacy
+    - paragraph [ref=e295]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors: shard 6
 
@@ -73,67 +61,3 @@ No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
 ## Client errors: shard 6
 
 No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
