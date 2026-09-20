@@ -1087,6 +1087,8 @@ export const am: Messages = {
     "የተወረሰ መስመር — ለ“{category_slug}” ቀጥተኛ መስመር ይጨምሩ ወይም በ“{detail}” ላይ ያስተካክሉ",
   "admin.attributes.import.reason.badCardRank":
     "የካርድ ቦታ 1፣ 2 ወይም 3 መሆን አለበት — ይህ መስመር “{card_rank}” ይላል",
+  "admin.attributes.import.reason.badDisplayOrder":
+    "ቅደም ተከተል ከ0 ወይም በላይ ሙሉ ቁጥር መሆን አለበት — ይህ መስመር “{detail}” ይላል",
   "admin.attributes.import.reason.formula": "ሕዋሶች በ = + - @ መጀመር አይችሉም",
   "admin.attributes.import.reason.keyRename":
     "ቁልፎች ማንነት ናቸው፦ “{detail}”ን መልሰው አዲስ ቁልፍ ከማከል ይልቅ label_enን ይቀይሩ",

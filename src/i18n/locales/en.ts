@@ -1148,6 +1148,8 @@ export const en = {
     "Inherited row — add a direct row for “{category_slug}”, or edit it at “{detail}”",
   "admin.attributes.import.reason.badCardRank":
     "Card position must be 1, 2 or 3 — this row reads “{card_rank}”",
+  "admin.attributes.import.reason.badDisplayOrder":
+    "Order must be a whole number of 0 or more — this row reads “{detail}”",
   "admin.attributes.import.reason.formula": "Cells may not start with = + - @",
   "admin.attributes.import.reason.keyRename":
     "Keys are identities: restore \u201c{detail}\u201d and change label_en instead of adding a new key",
