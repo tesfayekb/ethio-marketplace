@@ -3302,10 +3302,15 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      // The four trailing cells, in the file's own order (the gate's optionalFrom).
-      const header = `${LINK_HEADER},allowed_options,default_value,visible_when,display_order`;
+      /**
+       * The trailing cells, in the FILE's own order (the gate's `optionalFrom`):
+       * `allowed_options`, `default_value`, then `display_order`. The links file
+       * still carries NO `visible_when` column — that cell remains the console's
+       * alone (a named deferral), so naming it here is an `unknownColumn`.
+       */
+      const header = `${LINK_HEADER},allowed_options,default_value,display_order`;
       const row = (key: string, order: string) =>
-        `${slug},${slug},${key},false,false,,${slug},,,,${order}`;
+        `${slug},${slug},${key},false,false,,${slug},,,${order}`;
       // THE NEW ORDER: third, first, second.
       const links =
         `${header}\r\n` +
@@ -3420,7 +3425,7 @@ test.describe("C3 attributes console", () => {
         page.getByTestId("attribute-import-preview"),
         "AT-61 Preview refused a links-only file",
       ).toBeEnabled();
-      await expect(page.getByTestId("attribute-import-definitions-chosen")).toHaveCount(0);
+      await expect(page.getByTestId("attribute-import-definitions-chosen")).toHaveText("");
 
       await page.getByTestId("attribute-import-preview").click();
       await expect(page.getByTestId("attribute-import-counts")).toBeVisible({ timeout: 120_000 });
