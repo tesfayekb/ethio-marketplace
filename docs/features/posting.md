@@ -469,8 +469,8 @@ markets' currencies with "More…"), and step 1's disabled Next with its caption
   the authority (F3). `PW-35`.
 - **A changed list is noticed (INC-243).** An option list is cached for sixty
   seconds with the definition's version as its ETag (`max-age=60,
-  stale-while-revalidate=300`), and the version is `md5(updated_at + active option
-  count)` over the definition row — which the attributes-file commit rewrites on
+stale-while-revalidate=300`), and the version is `md5(updated_at + active option
+count)` over the definition row — which the attributes-file commit rewrites on
   every update, so a curator's edit reaches a seller's open form within the minute
   instead of the five it used to hold. Changing the category forgets the lists it
   held.
