@@ -303,7 +303,9 @@ export interface AttrDef {
   attrKey: string;
   attrType: string;
   nameEn: string;
+  nameAm: string | null;
   helpTextEn: string | null;
+  helpTextAm: string | null;
   isRequired: boolean;
   unit: string | null;
   minBound: string | null;
@@ -376,7 +378,9 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
     attrKey: str(row, "attr_key") ?? "",
     attrType: str(row, "attr_type") ?? "text",
     nameEn: str(row, "name_en") ?? str(row, "attr_key") ?? "",
+    nameAm: str(row, "name_am"),
     helpTextEn: str(row, "help_text_en"),
+    helpTextAm: str(row, "help_text_am"),
     isRequired: row["is_required"] === true,
     unit: str(row, "unit"),
     minBound: str(row, "min_bound"),

@@ -1,5 +1,6 @@
 import { optionLabel, type AttrOption } from "./attribute-options";
 import type { AttrDef } from "./posting-service";
+import { catalogText } from "@/i18n";
 
 export function attributeDisplayValue(
   definition: AttrDef,
@@ -22,7 +23,6 @@ export function attributeDisplayValue(
   };
 
   const rendered = Array.isArray(value) ? value.map(renderOne).join(", ") : renderOne(value);
-  return definition.unit === null || definition.unit === ""
-    ? rendered
-    : `${rendered} ${definition.unit}`;
+  const unit = catalogText(definition.unit ?? "", null, language);
+  return unit === "" ? rendered : `${rendered} ${unit}`;
 }

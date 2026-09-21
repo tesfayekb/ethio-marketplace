@@ -2607,4 +2607,72 @@ test.describe("POSTING WIZARD", () => {
     expect(refusal?.field, "PW-41: the refusal named another field").toBe("geocode");
     expect(refusal?.reason, "PW-41: the refusal used another word").toBe("rateLimited");
   });
+
+  test("PW-42 Amharic catalog text falls back field by field", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    const helpAm = `${spec.text.attrKey} የአማርኛ እገዛ`;
+    const helpEn = `${spec.number.attrKey} English help`;
+    const { error } = await adminClient()
+      .from("attributes")
+      .upsert([
+        {
+          id: spec.text.id,
+          attr_key: spec.text.attrKey,
+          name_en: spec.text.nameEn,
+          name_am: `${spec.text.attrKey} የአማርኛ መለያ`,
+          attr_type: "text",
+          max_length: 40,
+          help_text_en: `${spec.text.attrKey} English help`,
+          help_text_am: helpAm,
+        },
+        {
+          id: spec.number.id,
+          attr_key: spec.number.attrKey,
+          name_en: spec.number.nameEn,
+          attr_type: "number",
+          min_bound: "1",
+          max_bound: "9",
+          decimals: 0,
+          unit: "km",
+          help_text_en: helpEn,
+          help_text_am: null,
+        },
+      ]);
+    if (error) throw new Error(`[e2e:pw42] seeding localized help failed: ${error.message}`);
+
+    await switchLanguage(page, "am");
+    await reachStep3(page, user.id, category);
+
+    await expect(
+      page.locator(`[data-testid="post-spec"][data-attr="${spec.text.attrKey}"]`),
+      "PW-42: the definition's Amharic label did not render",
+    ).toContainText(`${spec.text.attrKey} የአማርኛ መለያ`);
+    await expect(
+      page.locator(`[data-testid="post-spec"][data-attr="${spec.text.attrKey}"]`),
+      "PW-42: Amharic help did not outrank English help",
+    ).toContainText(helpAm);
+    await expect(
+      page.locator(`[data-testid="post-spec"][data-attr="${spec.number.attrKey}"]`),
+      "PW-42: missing Amharic help did not fall back to English",
+    ).toContainText(helpEn);
+
+    const picker = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`,
+    );
+    if ((await picker.getAttribute("data-options")) === "idle") await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "ready");
+    await expect(
+      picker.locator(`option[value="${spec.optionValues[0]}"]`),
+      "PW-42: the option's Amharic label did not render",
+    ).toHaveText(`${spec.optionValues[0]} ምልክት`);
+  });
 });

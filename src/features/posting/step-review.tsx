@@ -178,7 +178,7 @@ export function StepReview({
       if (def === undefined) return `${key}: ${String(value)}`;
       const name = entityName(
         "attribute",
-        { id: def.attributeId, nameEn: def.nameEn, nameAm: null },
+        { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
         entities,
       );
       return `${name}: ${attributeDisplayValue(

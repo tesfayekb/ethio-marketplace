@@ -202,7 +202,11 @@ export function ListingDetail(view: ListingDetailView) {
                 <dt className="text-muted-foreground">
                   {entityName(
                     "attribute",
-                    { id: definition.attributeId, nameEn: definition.nameEn, nameAm: null },
+                    {
+                      id: definition.attributeId,
+                      nameEn: definition.nameEn,
+                      nameAm: definition.nameAm,
+                    },
                     entities,
                   )}
                 </dt>

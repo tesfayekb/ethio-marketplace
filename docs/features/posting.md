@@ -768,3 +768,12 @@ Tests: PW-37 (tap → `exact`, the row agrees with the screen), PW-38 (search �
 the marker moves and the street line fills), PW-39 (`approx` → the preview draws
 the circle and no marker), PW-40 (Remove clears all four columns), PW-41 (the
 61st call in an hour is `rateLimited`).
+
+## Catalog text language rule (R-HELP / INC-253)
+
+Attribute labels, help text, option labels and units use one rule everywhere in
+the wizard, review and buyer preview: `catalogText(en, am, lang)` returns the
+non-empty Amharic value when the active language is Amharic, otherwise English.
+The posting schema carries `name_am` and `help_text_am`; units currently have no
+Amharic database column, so they deliberately take the English fallback branch.
+PW-42 proves Amharic help and option labels as well as per-field English fallback.

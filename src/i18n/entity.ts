@@ -53,10 +53,15 @@ const NAME_FIELD: Record<EntityType, string> = {
   attribute: "label",
 };
 
+/** One fallback law for catalog-authored English and Amharic text. */
+export function catalogText(en: string, am: string | null | undefined, lang: string): string {
+  if (lang === "am" && am !== null && am !== undefined && am.trim() !== "") return am;
+  return en;
+}
+
 /** The single name resolver, over each type's translated field. */
 export function entityName(type: EntityType, row: NamedEntity, bundle: EntityBundle): string {
   const fromDb = bundle.map[type]?.[row.id]?.[NAME_FIELD[type]];
   if (typeof fromDb === "string" && fromDb !== "") return fromDb;
-  if (bundle.lang === "am" && row.nameAm) return row.nameAm;
-  return row.nameEn;
+  return catalogText(row.nameEn, row.nameAm, bundle.lang);
 }

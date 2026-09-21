@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useI18n } from "@/i18n";
+import { catalogText, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
@@ -832,7 +832,11 @@ export function StepSpecifications({
   }
 
   const nameOf = (def: AttrDef) =>
-    entityName("attribute", { id: def.attributeId, nameEn: def.nameEn, nameAm: null }, entities);
+    entityName(
+      "attribute",
+      { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+      entities,
+    );
 
   return (
     <div className="space-y-5" data-testid="post-specs">
@@ -1299,8 +1303,10 @@ export function StepSpecifications({
 
               {/* The definition's own guidance, then the DEC-050 hints — advice, never
                 the verdict: the door decides and its refusal lands below. */}
-              {def.helpTextEn !== null && (
-                <p className="text-xs text-muted-foreground">{def.helpTextEn}</p>
+              {catalogText(def.helpTextEn ?? "", def.helpTextAm, entities.lang) !== "" && (
+                <p className="text-xs text-muted-foreground" data-testid="post-attr-help">
+                  {catalogText(def.helpTextEn ?? "", def.helpTextAm, entities.lang)}
+                </p>
               )}
               {def.attrType === "number" && (bound.min !== null || bound.max !== null) && (
                 <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
@@ -1312,7 +1318,9 @@ export function StepSpecifications({
               )}
               {def.attrType === "number" && def.unit !== null && (
                 <p className="text-xs text-muted-foreground">
-                  {fill(t("post.specs.unitHint"), { unit: def.unit })}
+                  {fill(t("post.specs.unitHint"), {
+                    unit: catalogText(def.unit, null, entities.lang),
+                  })}
                 </p>
               )}
               {def.attrType === "text" && def.maxLength !== null && (

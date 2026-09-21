@@ -13,6 +13,8 @@
  * pretending the catalogue has nothing.
  */
 
+import { catalogText } from "@/i18n";
+
 export interface AttrOption {
   value: string;
   labelEn: string;
@@ -144,6 +146,5 @@ export async function loadAttributeOptions(attributeId: string): Promise<AttrOpt
  * it. One resolver, here, so no control writes its own language ternary (B2).
  */
 export function optionLabel(option: AttrOption, lang: string): string {
-  if (lang === "am" && option.labelAm !== null && option.labelAm !== "") return option.labelAm;
-  return option.labelEn;
+  return catalogText(option.labelEn, option.labelAm, lang);
 }
