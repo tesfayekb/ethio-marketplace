@@ -847,6 +847,123 @@ export async function seedConditionalSet(categoryId: string): Promise<Conditiona
 }
 
 /**
+ * INC-257 — A FACT WHOSE TARGET THE SAME CHOICE UNHIDES (the Treadmill shape).
+ *
+ * Three scratch definitions, the real catalogue's own arrangement:
+ *   · a TYPE, whose first option carries the fact `power = electric`,
+ *   · a POWER detail the category asks for ONLY under that type — so the very
+ *     selection that speaks the fact is what puts its target on screen,
+ *   · a VOLTAGE detail with the LINK's own default, asked for only when the power
+ *     is electric. It is what made the incident visible: the defaults pass fired
+ *     in the same commit and erased the just-prefilled power source.
+ * Every row is namespaced scratch under a scratch leaf (J1/J3).
+ */
+export interface UnhideFactSet {
+  type: ScratchAttr;
+  power: ScratchAttr;
+  volt: ScratchAttr;
+  typeValues: { treadmill: string; mat: string };
+  powerValues: { electric: string; manual: string };
+  voltDefault: string;
+  attrKeys: string[];
+}
+
+export async function seedUnhideFactSet(categoryId: string): Promise<UnhideFactSet> {
+  const supabase = adminClient();
+  const stem = `e2e_unhide_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const treadmill = `${stem}_treadmill`;
+  const mat = `${stem}_mat`;
+  const electric = `${stem}_electric`;
+  const manual = `${stem}_manual`;
+  const volts = `${stem}_220v`;
+  const option = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...extra,
+  });
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: `${stem}_type`,
+        name_en: `${stem} type`,
+        attr_type: "single_select",
+        options: [option(treadmill), option(mat)],
+      },
+      {
+        attr_key: `${stem}_power`,
+        name_en: `${stem} power`,
+        attr_type: "single_select",
+        options: [option(electric), option(manual)],
+      },
+      {
+        attr_key: `${stem}_volt`,
+        name_en: `${stem} volt`,
+        attr_type: "single_select",
+        options: [option(volts)],
+      },
+    ])
+    .select("id, attr_key, name_en");
+  if (error || !data) {
+    throw new Error(`[e2e:inc257] seeding the unhide set failed: ${error?.message ?? "no rows"}`);
+  }
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:inc257] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
+  };
+  const type = pick("_type");
+  const power = pick("_power");
+  const volt = pick("_volt");
+
+  // The fact is written on the TYPE's own option record, the shape DEC-050 fixes.
+  const { error: factError } = await supabase
+    .from("attributes")
+    .update({
+      options: [option(treadmill, { facts: { [power.attrKey]: electric } }), option(mat)],
+    })
+    .eq("id", type.id);
+  if (factError) {
+    throw new Error(`[e2e:inc257] writing the option's fact failed: ${factError.message}`);
+  }
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: type.id, is_required: false, display_order: 1 },
+    {
+      category_id: categoryId,
+      attribute_id: power.id,
+      is_required: false,
+      display_order: 2,
+      visible_when: { key: type.attrKey, in: [treadmill] },
+    },
+    {
+      category_id: categoryId,
+      attribute_id: volt.id,
+      is_required: false,
+      display_order: 3,
+      default_value: volts,
+      visible_when: { key: power.attrKey, in: [electric] },
+    },
+  ]);
+  if (linkError) {
+    throw new Error(`[e2e:inc257] linking the unhide set failed: ${linkError.message}`);
+  }
+
+  return {
+    type,
+    power,
+    volt,
+    typeValues: { treadmill, mat },
+    powerValues: { electric, manual },
+    voltDefault: volts,
+    attrKeys: [type.attrKey, power.attrKey, volt.attrKey],
+  };
+}
+
+/**
  * U6-C1-R3b-3a STEP 1 (INC-240) — A SET WHOSE MODELS DISAGREE.
  *
  * Re-derivation can only be proven by a SECOND parent whose facts differ from the

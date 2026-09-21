@@ -32,6 +32,7 @@ import {
   seedCategoryBranch,
   surfaceCategoryUnder,
   seedConditionalSet,
+  seedUnhideFactSet,
   seedColourSet,
   seedFactShiftSet,
   linkSpecToCategory,
@@ -2674,5 +2675,67 @@ test.describe("POSTING WIZARD", () => {
       picker.locator(`option[value="${spec.optionValues[0]}"]`),
       "PW-42: the option's Amharic label did not render",
     ).toHaveText(`${spec.optionValues[0]} ምልክት`);
+  });
+
+  /**
+   * INC-257 — A FACT REACHES A SIBLING THE SAME CHOICE UNHID. Selecting the type
+   * both puts the power detail on screen and says what it is, so the prefill must
+   * land on a detail that was hidden a moment earlier; the voltage default, asked
+   * for only once the power is electric, must arrive too instead of erasing it.
+   * Choosing the other type takes the whole branch away, on screen and in the row.
+   */
+  test("PW-43 a fact prefills a sibling the same selection unhides", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const set = await seedUnhideFactSet(category.id);
+    specs.push(...set.attrKeys);
+    const listingId = await reachStep3(page, user.id, category);
+
+    const type = page.locator(`[data-testid="post-attr-control"][data-attr="${set.type.attrKey}"]`);
+    const power = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${set.power.attrKey}"]`,
+    );
+    const volt = page.locator(`[data-testid="post-attr-control"][data-attr="${set.volt.attrKey}"]`);
+    await expect(type, "PW-43: the type detail never rendered").toBeVisible({ timeout: 20_000 });
+    await expect(
+      power,
+      "PW-43: the conditional sibling was on screen with no type chosen",
+    ).toHaveCount(0);
+
+    await type.selectOption(set.typeValues.treadmill);
+    await expect(power, "PW-43: the type did not unhide its sibling").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(power, "PW-43: the fact did not prefill the unhidden sibling").toHaveValue(
+      set.powerValues.electric,
+      { timeout: 20_000 },
+    );
+    await expect(volt, "PW-43: the deeper conditional never followed the prefill").toHaveValue(
+      set.voltDefault,
+      { timeout: 20_000 },
+    );
+
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.power.attrKey], {
+        message: "PW-43: the prefilled answer never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe(set.powerValues.electric);
+
+    // THE OTHER TYPE ASKS FOR NEITHER — both answers go, on screen and in the row.
+    await type.selectOption(set.typeValues.mat);
+    await expect(power, "PW-43: a hidden sibling stayed on screen").toHaveCount(0);
+    await expect(volt, "PW-43: a hidden deeper detail stayed on screen").toHaveCount(0);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(
+        async () => {
+          const held = Object.keys(await attributesOf(listingId));
+          return held.includes(set.power.attrKey) || held.includes(set.volt.attrKey);
+        },
+        { message: "PW-43: an unasked answer stayed in the draft", timeout: 20_000 },
+      )
+      .toBe(false);
   });
 });
