@@ -1018,21 +1018,38 @@ export function StepSpecifications({
                 />
               )}
 
+              {/*
+               * D27 — THE BOX SAYS WHAT IT IS, AND NOBODY TICKS IT BUT THE SELLER.
+               * The box carries the DETAIL's own name (an attestation the seller
+               * recognises), and what the catalogue knows about the chosen model is
+               * a hint beside it — never a tick already made on their behalf.
+               */}
               {def.attrType === "boolean" && (
-                <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                  <input
-                    id={controlId}
-                    type="checkbox"
-                    data-testid="post-attr-control"
-                    data-attr={def.attrKey}
-                    className="h-5 w-5 rounded border-input"
-                    checked={value === true}
-                    onChange={(event) =>
-                      write(def.attrKey, event.target.checked ? true : undefined, true)
-                    }
-                  />
-                  <span>{t("post.specs.attest")}</span>
-                </label>
+                <div className="space-y-1">
+                  <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                    <input
+                      id={controlId}
+                      type="checkbox"
+                      data-testid="post-attr-control"
+                      data-attr={def.attrKey}
+                      className="h-5 w-5 rounded border-input"
+                      checked={value === true}
+                      onChange={(event) =>
+                        write(def.attrKey, event.target.checked ? true : undefined, true)
+                      }
+                    />
+                    <span>{label}</span>
+                  </label>
+                  {facts.hints[def.attrKey] === true && (
+                    <p
+                      className="text-xs text-muted-foreground"
+                      data-testid="post-attr-fact-hint"
+                      data-attr={def.attrKey}
+                    >
+                      {fill(t("post.specs.factHint"), { value: label })}
+                    </p>
+                  )}
+                </div>
               )}
 
               {def.attrType === "single_select" && (
