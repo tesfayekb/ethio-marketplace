@@ -483,7 +483,11 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
           facts: { [yearKey]: { min: modelYearFloor } },
         }),
         // A FACT THAT IS A VALUE: the year is known, and the form says so.
-        option(modelValues[1], { parent: makeValues[0], facts: { [yearKey]: modelYearValue } }),
+        // D27 — and a fact about an ATTESTATION, which may only ever be a HINT.
+        option(modelValues[1], {
+          parent: makeValues[0],
+          facts: { [yearKey]: modelYearValue, [dualKey]: true },
+        }),
         option(modelValues[2], { parent: makeValues[1] }),
       ],
     },
