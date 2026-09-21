@@ -423,6 +423,7 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   const supabase = adminClient();
   const stem = `e2e_fold_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
   const yearKey = `${stem}_year`;
+  const dualKey = `${stem}_dual`;
   const makeValues: [string, string] = [`${stem}_mk1`, `${stem}_mk2`];
   const modelValues: [string, string, string] = [`${stem}_md1`, `${stem}_md2`, `${stem}_md3`];
   const unitValues: [string, string, string] = [`${stem}_pc`, `${stem}_set`, `${stem}_jug`];
@@ -502,6 +503,7 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
       // fixture declares the format the door already allows for one.
       format: "year",
     },
+    { attr_key: dualKey, name_en: `${stem} dual`, attr_type: "boolean" },
     {
       attr_key: `${stem}_unit`,
       name_en: `${stem} unit`,
@@ -532,9 +534,11 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   const model = pick("_model");
   const year = pick("_year");
   const unit = pick("_unit");
+  const dual = pick("_dual");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
     { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
+    { category_id: categoryId, attribute_id: dual.id, is_required: false, display_order: 5 },
     { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
     { category_id: categoryId, attribute_id: year.id, is_required: false, display_order: 3 },
     {
@@ -554,13 +558,14 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
     model,
     year,
     unit,
+    dual,
     makeValues,
     modelValues,
     unitValues,
     modelYearFloor,
     modelYearValue,
     unitYearFloor,
-    attrKeys: [make.attrKey, model.attrKey, year.attrKey, unit.attrKey],
+    attrKeys: [make.attrKey, model.attrKey, year.attrKey, unit.attrKey, dual.attrKey],
   };
 }
 
