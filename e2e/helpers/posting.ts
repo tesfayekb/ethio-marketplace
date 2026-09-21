@@ -557,6 +557,56 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
 }
 
 /**
+ * D26 — A SCRATCH COLOUR DETAIL. The DEFINITION is namespaced per run, worker and
+ * project (J1); its option VALUES are the catalogue's own colour words on purpose,
+ * because that is what the swatch map is keyed by — they live inside this scratch
+ * row and touch no shared list (J3). One value (`other`) has no ink, so the
+ * neutral ring is proven beside the painted ones.
+ */
+export interface ColourSet {
+  colour: ScratchAttr;
+  /** A value with ink, and the one that must render the neutral ring. */
+  inked: string;
+  neutral: string;
+  attrKeys: string[];
+}
+
+export async function seedColourSet(categoryId: string): Promise<ColourSet> {
+  const supabase = adminClient();
+  const stem = `e2e_colour_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const values = ["black", "white", "other"];
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert({
+      attr_key: `${stem}_colour`,
+      name_en: `${stem} colour`,
+      name_am: `${stem} ቀለም`,
+      attr_type: "single_select",
+      options: values.map((value) => ({
+        value,
+        label_en: `${value} label`,
+        label_am: `${value} ምልክት`,
+        active: true,
+      })),
+    })
+    .select("id, attr_key, name_en")
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:d26] seeding the colour set failed: ${error?.message ?? "no row"}`);
+  }
+  const colour: ScratchAttr = { id: data.id, attrKey: data.attr_key, nameEn: data.name_en };
+  const { error: linkError } = await supabase.from("category_attribute_links").insert({
+    category_id: categoryId,
+    attribute_id: colour.id,
+    is_required: false,
+    display_order: 1,
+  });
+  if (linkError) throw new Error(`[e2e:d26] linking the colour set failed: ${linkError.message}`);
+  return { colour, inked: "black", neutral: "other", attrKeys: [colour.attrKey] };
+}
+
+
+/**
  * D24 — A CONDITIONAL PAIR: a fuel detail, and a charging detail the category
  * asks for ONLY when the fuel is electric. Both rows are scratch (J1/J3), the
  * condition is written on the LINK exactly as the door's checker shapes it.
