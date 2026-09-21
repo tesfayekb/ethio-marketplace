@@ -25,7 +25,16 @@ import type { Database } from "@/integrations/supabase/types";
  * attribute has.
  */
 
-const MAX_AGE = 300;
+/**
+ * INC-243 — A CURATOR'S COMMIT MUST REACH AN OPEN FORM. The version already moves
+ * on a file commit (`admin_commit_attribute_import` writes `attributes.updated_at`,
+ * which `get_attribute_options_version` hashes), so the stale seam was the FIVE
+ * MINUTES a browser was told to keep the body without asking. A minute of
+ * freshness with five of stale-while-revalidate keeps the list free on a tap and
+ * costs a 304 after a change.
+ */
+const MAX_AGE = 60;
+const SWR = 300;
 const CACHE_TTL_MS = 15_000;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -55,7 +64,7 @@ function fail(id: string, error: string, status: number): Response {
 }
 
 function respond(request: Request, entry: CacheEntry): Response {
-  const cacheControl = `public, max-age=${MAX_AGE}, stale-while-revalidate=3600`;
+  const cacheControl = `public, max-age=${MAX_AGE}, stale-while-revalidate=${SWR}`;
   if (request.headers.get("If-None-Match") === entry.etag) {
     return new Response(null, {
       status: 304,
