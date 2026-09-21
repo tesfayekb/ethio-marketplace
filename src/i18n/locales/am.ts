@@ -1825,7 +1825,6 @@ export const am: Messages = {
   "post.category.noHits": "ምንም አልተገኘም። ሌላ ቃል ይሞክሩ፣ ወይም ከታች ያስሱ።",
   "post.category.browseLabel": "ወይም ያስሱ",
   "post.category.folder": "ክፈት",
-  "post.category.upOneLevel": "አንድ ደረጃ ወደ ላይ",
   "post.category.chosen": "የተመረጠ ምድብ",
   "post.category.change": "ቀይር",
   "post.category.expect": "{details} ዝርዝሮች፣ {required} አስፈላጊ",

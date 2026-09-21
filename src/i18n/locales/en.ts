@@ -1904,7 +1904,6 @@ export const en = {
   "post.category.noHits": "Nothing matched. Try another word, or browse below.",
   "post.category.browseLabel": "Or browse",
   "post.category.folder": "Open",
-  "post.category.upOneLevel": "Up one level",
   "post.category.chosen": "Chosen category",
   "post.category.change": "Change",
   "post.category.expect": "{details} details, {required} required",
