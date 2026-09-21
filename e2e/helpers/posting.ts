@@ -426,6 +426,8 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   const unitValues: [string, string, string] = [`${stem}_pc`, `${stem}_set`, `${stem}_jug`];
   const modelYearFloor = 1968;
   const modelYearValue = 1999;
+  // INC-242 — a floor carried by a SIBLING's option, above the definition's own.
+  const unitYearFloor = 1975;
 
   /**
    * U6-C1-R3b-1 STEP 1a — THE FIXTURE WRITES THE SHAPE THE CONSOLE WRITES.
@@ -498,7 +500,11 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
       attr_key: `${stem}_unit`,
       name_en: `${stem} unit`,
       attr_type: "single_select",
-      options: unitValues.map((value) => option(value)),
+      options: unitValues.map((value, index) =>
+        // INC-242 — the OPENING unit speaks about the year although the year
+        // hangs under nothing: the bound must still reach the picker.
+        index === 0 ? option(value, { facts: { [yearKey]: { min: unitYearFloor } } }) : option(value),
+      ),
     },
   ];
 
