@@ -488,6 +488,26 @@ markets' currencies with "More…"), and step 1's disabled Next with its caption
   The fixture behind `PW-25` and `PW-32` is copied verbatim from the served payload,
   because the earlier fixture nested the bound inside `facts` — a shape the
   catalogue never writes — and so the test passed while production did not. `PW-25`.
+- **A fact reaches a sibling the same selection unhides (INC-257).** Visibility is
+  decided BEFORE a fact is applied, and against the answers as the current
+  selection leaves them — because the very choice that carries a fact is often what
+  puts its target on screen (Sports › Fitness › Treadmill says `power_source =
+electric`, and Power Source is linked with
+  `visible_when equipment_type = treadmill | exercise_bike | elliptical |
+rowing_machine`). Judged against the PREVIOUS answers the target was still
+  hidden, so the prefill was refused and the published listing showed Power Source
+  empty, while facts to always-visible targets (dairy cow → per head, rebar → per
+  quintal) worked. Two things were wrong and both are fixed here: the three passes
+  that write answers on this step (the hidden-answer sweep, the reconciliation, the
+  link defaults) all spread the `values` PROP, and React runs them in one commit —
+  so the last writer erased the earlier one, and the voltage default (`220v`) wiped
+  the power source it had just been given. Every pass now builds on the latest
+  answers this screen knows, so they compose. The rule runs both ways: a target the
+  choice unhid receives its prefill (and a default of its own once IT becomes
+  asked), a target the choice hid stores nothing, and the patch is swept once at the
+  end so nothing unasked leaves the step — the mirror of what the door drops (F3,
+  D24). A link default is likewise only written into a field the seller is actually
+  asked for. `PW-43`.
 - **A category change clears the fold on screen too (INC-248).** When the new
   category still asks a picker the previous one asked, the picker shows "Choose":
   the door had already cleared the answer, and a control still displaying it was a

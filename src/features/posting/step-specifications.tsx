@@ -184,6 +184,34 @@ export function StepSpecifications({
   /** What this screen alone saw wrong — the door's own refusal always wins. */
   const [local, setLocal] = useState<Refusal[]>([]);
 
+  /**
+   * INC-257 — EVERY PATCH IS BUILT ON THE LATEST ANSWERS, NEVER ON THE PROP.
+   *
+   * Three passes on this screen write answers — the hidden-answer sweep, the
+   * reconciliation (D25/D18) and the link defaults (M-MAINT-2 §12) — and React
+   * runs all three in the SAME commit, where the `values` prop is still the one
+   * that opened it. Each used to spread that stale prop, so the LAST pass erased
+   * what an earlier one had just written: a fact prefilled onto a sibling the
+   * same selection had unhidden (Treadmill → Power Source) was wiped by the
+   * defaults pass before it could ever reach the door, and the published listing
+   * showed the detail empty. The latest answers live here instead — the prop
+   * whenever it moves, our own patch whenever we write one — so the passes
+   * COMPOSE rather than overwrite one another.
+   */
+  const latestRef = useRef(values);
+  const propSeen = useRef(values);
+  if (propSeen.current !== values) {
+    propSeen.current = values;
+    latestRef.current = values;
+  }
+  const emit = useCallback(
+    (next: Record<string, unknown>, immediate = false) => {
+      latestRef.current = next;
+      onChange(next, immediate);
+    },
+    [onChange],
+  );
+
   useEffect(() => {
     if (categoryId === null) return;
     let cancelled = false;
@@ -260,12 +288,12 @@ export function StepSpecifications({
   /** A written answer, debounced by the draft; an absent answer drops its key. */
   const write = useCallback(
     (attrKey: string, value: unknown, immediate = false) => {
-      const next = { ...values };
+      const next = { ...latestRef.current };
       if (isEmpty(value)) delete next[attrKey];
       else next[attrKey] = value;
-      onChange(next, immediate);
+      emit(next, immediate);
     },
-    [values, onChange],
+    [emit],
   );
 
   const definitions = useMemo(() => schema?.attributes ?? [], [schema]);
@@ -282,15 +310,18 @@ export function StepSpecifications({
   );
 
   useEffect(() => {
-    const shown = new Set(asked.map((def) => def.attrKey));
+    const view = latestRef.current;
+    const shown = new Set(
+      definitions.filter((def) => conditionMet(def, view)).map((def) => def.attrKey),
+    );
     const orphans = definitions.filter(
-      (def) => !shown.has(def.attrKey) && !isEmpty(values[def.attrKey]),
+      (def) => !shown.has(def.attrKey) && !isEmpty(view[def.attrKey]),
     );
     if (orphans.length === 0) return;
-    const next = { ...values };
+    const next = { ...view };
     for (const def of orphans) delete next[def.attrKey];
-    onChange(next, false);
-  }, [asked, definitions, values, onChange]);
+    emit(next, false);
+  }, [asked, definitions, values, emit]);
 
   /** The narrowed option list of one definition, before the fold is applied. */
   const allowedListOf = useCallback(
@@ -553,17 +584,32 @@ export function StepSpecifications({
    *     refused at the door later),
    *   2 re-derives every prefilled answer the seller has not touched,
    *   3 fills a still-empty detail a fact speaks about.
+   *
+   * INC-257 — VISIBILITY IS DECIDED BEFORE A FACT IS APPLIED, against the answers
+   * AS THIS SELECTION LEAVES THEM (`next`), not as they were before it. The same
+   * choice that carries the fact often also UNHIDES its target (Treadmill unhides
+   * Power Source and says it is electric), so a fact judged against the previous
+   * answers would be dropped for a detail that is now on screen. The rule runs
+   * both ways: a target the choice UNHID receives its prefill, a target the choice
+   * HID stores nothing (R3b), and the final sweep below drops whatever the last
+   * word of this patch leaves unasked.
    */
   const reconcile = useRef("");
   useEffect(() => {
     if (schema === null) return;
-    const next = { ...values };
+    const view = latestRef.current;
+    const next = { ...view };
     let changed = false;
     const owned: Record<string, unknown> = { ...prefills };
+    /** D24 — is this detail asked for, given the answers this patch now holds? */
+    const shown = (key: string): boolean => {
+      const def = definitions.find((entry) => entry.attrKey === key) ?? null;
+      return def === null ? false : conditionMet(def, next);
+    };
 
     // 0 — A PARENT CHANGED: everything it speaks about is re-derived from it.
     const now: Record<string, string> = {};
-    for (const key of parents) now[key] = selectedValue(values[key]);
+    for (const key of parents) now[key] = selectedValue(view[key]);
     const before = parentsSeen.current;
     const movedKey =
       before === null
@@ -577,7 +623,7 @@ export function StepSpecifications({
      * second reset over the answers that were just restored.
      */
     if (movedKey !== null && now[movedKey] !== "" && !skipReset.current) {
-      const snapshot = { ...values };
+      const snapshot = { ...view };
       const heldPrefills = { ...prefills };
       /**
        * D25b — HOW WIDE THE RESET IS. A ROOT change (the make) starts the whole
@@ -594,6 +640,19 @@ export function StepSpecifications({
       for (const key of scope) {
         const keyDef = definitions.find((def) => def.attrKey === key) ?? null;
         if (keyDef === null) continue;
+        /**
+         * INC-257 — A DETAIL THIS CHOICE HID STORES NOTHING (R3b). The condition is
+         * read from `next`, which already holds the answer just chosen, so the
+         * question is "is it asked NOW" and not "was it asked before".
+         */
+        if (!conditionMet(keyDef, next)) {
+          if (!isEmpty(next[key])) {
+            delete next[key];
+            changed = true;
+          }
+          delete owned[key];
+          continue;
+        }
         const fact = source[key];
         if (fact === undefined) {
           /**
@@ -654,7 +713,7 @@ export function StepSpecifications({
       const held = options[def.attrKey] ?? IDLE;
       if (held.state !== "ready") continue;
       const offered = new Set(visibleOptionsOf(def).map((option) => option.value));
-      const held_value = values[def.attrKey];
+      const held_value = view[def.attrKey];
       if (def.attrType === "multi_select") {
         const list = chosenList(held_value);
         const kept = list.filter((entry) => offered.has(entry));
@@ -678,7 +737,10 @@ export function StepSpecifications({
       if (def === undefined) continue;
       if (!same(next[key], written)) continue; // the seller owns it now
       const fact = facts.prefill[key];
-      if (fact === undefined) {
+      // INC-257 — a detail the answers no longer ask for keeps nothing, whoever
+      // wrote it: the sweep below would drop it anyway, and our provenance must
+      // not claim an answer that is not on screen.
+      if (fact === undefined || !shown(key)) {
         delete owned[key];
         if (!isEmpty(next[key])) {
           delete next[key];
@@ -693,12 +755,15 @@ export function StepSpecifications({
       }
     }
 
-    // 3 — a fact fills a detail that is still empty.
+    // 3 — a fact fills a detail that is still empty AND asked for (INC-257): the
+    // very selection that carries the fact is what unhid its target, so the
+    // condition is judged on `next`, after this patch's own answers.
     for (const [key, value] of Object.entries(facts.prefill)) {
       if (key in owned) continue;
       const def = definitions.find((entry) => entry.attrKey === key);
       if (def === undefined) continue;
       if (!isEmpty(next[key])) continue;
+      if (!conditionMet(def, next)) continue;
       owned[key] = value;
       next[key] = value;
       changed = true;
@@ -713,6 +778,7 @@ export function StepSpecifications({
     for (const def of definitions) {
       if (def.attrType !== "single_select") continue;
       if (narrowing[def.attrKey] === undefined) continue;
+      if (!conditionMet(def, next)) continue;
       const held = options[def.attrKey] ?? IDLE;
       if (held.state !== "ready") continue;
       const offered = visibleOptionsOf(def);
@@ -720,6 +786,21 @@ export function StepSpecifications({
       const only = offered[0]?.value ?? "";
       if (only === "" || same(next[def.attrKey], only)) continue;
       next[def.attrKey] = only;
+      changed = true;
+    }
+
+    /**
+     * INC-257 — THE LAST WORD IS VISIBILITY. Every pass above may have moved an
+     * answer a condition reads, so the patch is swept once at the end: a detail
+     * this patch leaves unasked carries nothing out of this screen, and the door
+     * (validate_listing_attributes) drops it too, so what the seller sees and what
+     * is saved are the same thing (F3, D24).
+     */
+    for (const def of definitions) {
+      if (isEmpty(next[def.attrKey])) continue;
+      if (conditionMet(def, next)) continue;
+      delete next[def.attrKey];
+      delete owned[def.attrKey];
       changed = true;
     }
 
@@ -732,7 +813,7 @@ export function StepSpecifications({
     const stamp = JSON.stringify(next);
     if (reconcile.current === stamp) return;
     reconcile.current = stamp;
-    onChange(next, false);
+    emit(next, false);
   }, [
     schema,
     definitions,
@@ -748,7 +829,7 @@ export function StepSpecifications({
     allowedListOf,
     entities.lang,
     visibleOptionsOf,
-    onChange,
+    emit,
   ]);
 
   /**
@@ -761,19 +842,44 @@ export function StepSpecifications({
   const defaulted = useRef<string | null>(null);
   useEffect(() => {
     if (schema === null || categoryId === null) return;
-    if (defaulted.current === categoryId && !defaultsAgain.current) return;
-    defaulted.current = categoryId;
+    /**
+     * INC-257 — THE PASS IS SPENT PER SET OF ASKED FIELDS, not once per category.
+     * A default is only written into a field the seller is asked for, so a field a
+     * later answer UNHIDES (voltage, once the power source is electric) must get
+     * its turn when it appears — while a field already offered keeps whatever the
+     * seller has since done to it, because its own entry in this stamp has not
+     * moved.
+     */
+    const stamp = [
+      categoryId,
+      ...definitions
+        .filter(
+          (def) =>
+            def.defaultValue !== null &&
+            def.defaultValue !== undefined &&
+            conditionMet(def, latestRef.current),
+        )
+        .map((def) => def.attrKey)
+        .sort(),
+    ].join("|");
+    if (defaulted.current === stamp && !defaultsAgain.current) return;
+    defaulted.current = stamp;
     defaultsAgain.current = false;
-    const next = { ...values };
+    const next = { ...latestRef.current };
     let changed = false;
     for (const def of definitions) {
       if (def.defaultValue === null || def.defaultValue === undefined) continue;
       if (!isEmpty(next[def.attrKey])) continue;
+      // INC-257 — a default belongs to a field the seller is ASKED for. Voltage's
+      // 220v used to be written into a hidden field on mount, which both saved an
+      // unasked answer and, built on the stale prop, erased the fact the same
+      // commit had just prefilled onto Power Source.
+      if (!conditionMet(def, next)) continue;
       next[def.attrKey] = def.defaultValue;
       changed = true;
     }
-    if (changed) onChange(next, false);
-  }, [schema, categoryId, definitions, values, onChange]);
+    if (changed) emit(next, false);
+  }, [schema, categoryId, definitions, values, emit]);
 
   const seen = useMemo(() => {
     const named = new Set(refusals.map((entry) => entry.field));
