@@ -724,7 +724,8 @@ export function StepSpecifications({
             : (schema.attributes.find((entry) => entry.attrKey === parentKey) ?? null);
         /** A fold with no parent answer yet: closed, and saying what it waits for. */
         const waiting = parentDef !== null && selectedValue(values[parentKey ?? ""]) === "";
-        const bound = facts.bounds[def.attrKey] ?? null;
+        // INC-242 — the definition's bounds narrowed by every chosen option.
+        const bound = boundsOf(def);
         /**
          * U6-C1-R2 — EVERY FIELD THROUGH THE PRIMITIVE. The asterisk, the word
          * "Optional", the refusal message and the red border all come from one
