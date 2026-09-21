@@ -2047,7 +2047,6 @@ test.describe("POSTING WIZARD", () => {
       })
       .toBe(deep.floorYear);
     const years = await offered();
-    console.log("INC-247 offered:", JSON.stringify(years));
     expect(years[0], "PW-25: the picker is not newest-first").toBe(Math.max(...years));
     expect(
       years.filter((value) => value < deep.floorYear),
