@@ -598,6 +598,17 @@ resolver for a bound: a numeric literal is itself, `year`, `year+N` and `year-N`
 resolve against the UTC calendar year. CHECK constraints hold the same law at
 the table, so nothing can be written around the doors.
 
+**An option VALUE has no charset rule** (M-SHAPE, INC-254). Nothing in the
+database or the app restricts the characters of an option `value`: it is judged
+only for length (64) by the import gate, and for uniqueness and parentage by the
+shape and planner. Digit-led values are therefore ordinary and legitimate —
+`220v`, `128gb`, `4g_lte`, `12mm`, `60x60`, `4x2`, `2wd` and `17+` are all live,
+and a charset like `^[a-z0-9][a-z0-9_.-]{0,63}$` would REFUSE the catalog's own
+`17+`. `badShape` is never an option-cell refusal: for an attributes file it
+comes only from a links row's `visible_when` cell (no `=`, no key, or no values).
+
+
+
 Bounds co-linkage (DEC-057b): an option's `bounds` may only name a `number`
 definition that is linked — directly or through the primary lineage (INH-1) — in
 AT LEAST ONE category where the owner is linked; a target linked in none of them
