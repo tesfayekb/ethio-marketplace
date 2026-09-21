@@ -901,12 +901,25 @@ states and DB truth after the refusal (AT-23 was already taken).
 
 ## The links file carries `display_order` (M-ORDER)
 
-The links import/export now carries the link's own `display_order` after
-`visible_when` — the same column Move up / Move down writes. A blank or missing
-cell changes nothing, a non-negative integer is applied on commit (an add with
-no cell still appends last), Undo restores the prior order, and the export
-echoes it so a round trip is silent. Refusal: `badDisplayOrder:<value>`.
+The links import/export now carries the link's own `display_order` — the same
+column Move up / Move down writes. A blank or missing cell changes nothing, a
+non-negative integer is applied on commit (an add with no cell still appends
+last), Undo restores the prior order, and the door refuses a value it cannot read
+as `badDisplayOrder:<value>`.
 
-**Deferred, named:** the registry file cell in the console's own links table and
-the per-row order control ride the next code turn; until then the cell reaches
-the door through the links file itself.
+**Closed (U6-C1-R3b-3b)** — the REGISTRY CELL and the ORDER THE OPERATOR SEES.
+The links registry now declares `display_order` as its last editable cell, after
+`default_value` (the links file has no `visible_when` column — that cell stays the
+console's alone), so a file may reorder a category's questions; the gate judges
+the cell's shape first, refusing a non-integer as `badNumber` naming
+`display_order`, and the door's own `badDisplayOrder` covers a shape-legal value
+it still rejects. In the category attributes dialog each link row now SHOWS its
+order number beside Move up / Move down, read-only there — the buttons remain the
+way to reorder, and the number is what the file and the posting read agree on.
+AT-60 reorders three scratch links by file and asserts the posting read follows,
+with the blank-cell no-op and the refusal in the same walk.
+
+**Deferred, named:** the CSV export route's link columns still stop at
+`default_value`, so an exported links file does not echo `display_order` (or
+`visible_when`); the order survives a round trip only through the blank rule.
+Extending the export route rides a named follow-up turn.
