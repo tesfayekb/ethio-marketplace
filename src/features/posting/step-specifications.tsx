@@ -831,8 +831,8 @@ export function StepSpecifications({
                   className={ctrl}
                   value={typeof value === "number" ? String(value) : ""}
                   step={def.decimals === null || def.decimals === 0 ? 1 : 10 ** -def.decimals}
-                  min={bound?.min ?? undefined}
-                  max={bound?.max ?? undefined}
+                  min={bound.min ?? undefined}
+                  max={bound.max ?? undefined}
                   onChange={(event) => {
                     const raw = event.target.value;
                     const parsed = Number(raw);
