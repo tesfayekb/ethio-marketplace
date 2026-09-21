@@ -31,6 +31,7 @@ import {
   seedConditionalSet,
   seedColourSet,
   seedFactShiftSet,
+  linkSpecToCategory,
   seedDeepFoldSet,
   seedFoldSet,
   destroySpecSet,
