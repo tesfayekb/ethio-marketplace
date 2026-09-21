@@ -4,7 +4,7 @@ import { catalogText, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
-import { colourInk, isColourKey } from "./colour-swatches";
+import { colourSwatch, isColourKey } from "./colour-swatches";
 import { Field, controlClass } from "./field";
 import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
@@ -33,9 +33,11 @@ import type { Refusal } from "./types";
  *     refuses anything else with `optionNotAllowed:<value>`.
  *   2 THE FOLD (DEC-050 `parent`) — a child detail shows only the options that
  *     hang under the value chosen for its PARENT detail (Model ← Make,
- *     Series ← Brand). With no parent value the child is closed and says which
- *     answer it is waiting for; a child value that no longer fits is cleared the
- *     moment the parent changes, never left to be refused later.
+ *     Series ← Brand). INC-260 also accepts the published parent-prefixed value
+ *     shape (`byd_seagull`) when the child list is reached through a surfaced
+ *     leaf. With no parent value the child is closed and says which answer it is
+ *     waiting for; a child value that no longer fits is cleared the moment the
+ *     parent changes, never left to be refused later.
  *   3 THE FACTS (D18) — the chosen option may already know things about the
  *     item: `{ fuel: "petrol" }` prefills that sibling and says "from the model —
  *     edit if different", and `{ year: { min: 1968 } }` narrows the sibling's
@@ -148,6 +150,18 @@ function boundOf(raw: unknown): FactBound | null {
   const max = num("max");
   if (min === null && max === null) return null;
   return { min, max };
+}
+
+function optionStems(value: string): string[] {
+  const parts = value.split("_").filter((part) => part !== "");
+  const out = [value];
+  for (let index = 1; index < parts.length; index += 1) out.push(parts.slice(index).join("_"));
+  return out;
+}
+
+function optionBelongsToParent(option: AttrOption, parentValue: string): boolean {
+  if (option.parent === parentValue) return true;
+  return optionStems(option.value).some((stem) => stem.startsWith(`${parentValue}_`));
 }
 
 export function StepSpecifications({
@@ -353,13 +367,15 @@ export function StepSpecifications({
       const candidates = definitions.filter(
         (other) => other.attrKey !== def.attrKey && SELECT_TYPES.includes(other.attrType),
       );
-      const owner = candidates.find((other) =>
-        allowedListOf(other).some((option) => parents.has(option.value)),
-      );
+      const owner = candidates.find((other) => {
+        const own = selectedValue(values[other.attrKey]);
+        if (own !== "" && parents.has(own)) return true;
+        return allowedListOf(other).some((option) => parents.has(option.value));
+      });
       if (owner !== undefined) out[def.attrKey] = owner.attrKey;
     }
     return out;
-  }, [definitions, allowedListOf]);
+  }, [definitions, allowedListOf, values]);
 
   /**
    * INC-244 — WHAT THE CHOSEN OPTIONS RULE OUT. An option's `allowed` names
@@ -397,7 +413,7 @@ export function StepSpecifications({
       if (parentKey === undefined) return list;
       const parentValue = selectedValue(values[parentKey]);
       if (parentValue === "") return [];
-      return list.filter((option) => option.parent === parentValue);
+      return list.filter((option) => optionBelongsToParent(option, parentValue));
     },
     [allowedListOf, folds, values, narrowing],
   );
@@ -998,6 +1014,19 @@ export function StepSpecifications({
         const value = values[def.attrKey];
         const chosen = selectedValue(value);
         const shown = visibleOptionsOf(def);
+        const colourOptions =
+          def.attrType === "single_select" && isColourKey(def.attrKey)
+            ? shown
+                .map((option) => ({ option, swatch: colourSwatch(option.value) }))
+                .filter(
+                  (
+                    entry,
+                  ): entry is {
+                    option: AttrOption;
+                    swatch: NonNullable<ReturnType<typeof colourSwatch>>;
+                  } => entry.swatch !== null,
+                )
+            : [];
         /**
          * INC-244 — SET BY THE MODEL. The chosen options leave exactly one
          * admissible answer, so the reconciliation above has already written it and
@@ -1215,18 +1244,17 @@ export function StepSpecifications({
                 </select>
               )}
 
-              {/* D26 — THE COLOUR IS SHOWN. The picker above stays (it is the
-                  accessible control and the door's own vocabulary); these
-                  swatches are a second way to answer the same question, each one
-                  44 pixels so a thumb can hit it, each one labelled. */}
-              {def.attrType === "single_select" && isColourKey(def.attrKey) && (
+              {/* D26 / INC-259 — THE COLOUR IS SHOWN. The picker above stays (it is
+                  the accessible control and the door's own vocabulary); swatches are
+                  shown only for options that resolve to a colour or pattern, so an
+                  unrelated list never becomes a tray of empty circles. */}
+              {colourOptions.length > 0 && (
                 <div
                   className="flex flex-wrap gap-2"
                   data-testid="post-attr-swatches"
                   data-attr={def.attrKey}
                 >
-                  {shown.map((option) => {
-                    const ink = colourInk(option.value);
+                  {colourOptions.map(({ option, swatch }) => {
                     const label = optionLabel(option, entities.lang);
                     return (
                       <button
@@ -1235,6 +1263,7 @@ export function StepSpecifications({
                         data-testid="post-attr-swatch"
                         data-attr={def.attrKey}
                         data-value={option.value}
+                        data-swatch={swatch.kind}
                         aria-pressed={chosen === option.value}
                         title={label}
                         aria-label={label}
@@ -1256,10 +1285,14 @@ export function StepSpecifications({
                           aria-hidden="true"
                           data-testid="post-attr-swatch-ink"
                           className={
-                            "block size-7 rounded-full border " +
-                            (ink === null ? "border-muted-foreground bg-muted" : "border-border")
+                            "block size-7 rounded-full border border-border " +
+                            (swatch.kind === "pattern"
+                              ? "bg-[repeating-linear-gradient(45deg,var(--muted)_0_4px,var(--border)_4px_8px)]"
+                              : "")
                           }
-                          style={ink === null ? undefined : { backgroundColor: ink }}
+                          style={
+                            swatch.kind === "solid" ? { backgroundColor: swatch.ink } : undefined
+                          }
                         />
                       </button>
                     );

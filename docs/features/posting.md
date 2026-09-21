@@ -141,7 +141,11 @@ on screen is still shown rather than swallowed (F4).
 
 Review and buyer preview resolve stored option values to their language-aware
 labels, append units to measured values, join multiple choices with commas, and
-render booleans as Yes/No rather than raw storage values.
+render booleans as Yes/No rather than raw storage values. Colour swatches resolve
+from the stored value first and then from the stem after a parent prefix
+(`dog_black` → `black`); patterned stems (`brindle`, `tabby`, `calico`,
+`tricolour`, `multicolour`, `black_tan`) render as neutral patterned chips, and a
+colour-like definition with no resolvable option renders no swatch tray.
 
 ## Step 4 — title, description, and the assist (C1b)
 
@@ -189,8 +193,11 @@ they are still empty) and marks each one "From the model — edit if different"
 (`post-attr-from-model`). A fact may carry a BOUND instead of a value —
 `{ year: { min: 1968 } }` — and that bound narrows the sibling's number control
 in the CLIENT MIRROR only: `belowModelYear` / `aboveModelYear` are read on blur,
-while `validate_listing_attributes` remains the authority (F3). `PW-9` proves the
-prefill, `PW-25` the bound.
+while `validate_listing_attributes` remains the authority (F3). Dependent lists
+first follow explicit option `parent` cells and also accept the published
+parent-prefixed stored-value shape (`byd_seagull` under `byd`), so a leaf surfaced
+under another branch still narrows by the parent control linked on that leaf.
+`PW-9` proves the prefill, `PW-25` the bound, and `PW-44` the surfaced leaf.
 
 ## Step 5 — the price (C2a)
 

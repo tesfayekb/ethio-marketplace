@@ -717,52 +717,78 @@ export async function seedDeepFoldSet(params: {
 }
 
 /**
- * D26 — A SCRATCH COLOUR DETAIL. The DEFINITION is namespaced per run, worker and
- * project (J1); its option VALUES are the catalogue's own colour words on purpose,
- * because that is what the swatch map is keyed by — they live inside this scratch
- * row and touch no shared list (J3). One value (`other`) has no ink, so the
- * neutral ring is proven beside the painted ones.
+ * D26 / INC-259 — A SCRATCH COLOUR DETAIL. The DEFINITION is namespaced per run,
+ * worker and project (J1). It carries both bare catalogue colour words and the
+ * parent-prefixed shape (`dog_black`, `cat_tabby`) that triggered the incident.
+ * The unrelated row proves the tray is suppressed when no option resolves.
  */
 export interface ColourSet {
   colour: ScratchAttr;
-  /** A value with ink, and the one that must render the neutral ring. */
+  plain: ScratchAttr;
+  /** A bare value with ink, a prefixed solid, a prefixed pattern, and no swatch. */
   inked: string;
-  neutral: string;
+  prefixed: string;
+  pattern: string;
+  unresolved: string;
   attrKeys: string[];
 }
 
 export async function seedColourSet(categoryId: string): Promise<ColourSet> {
   const supabase = adminClient();
   const stem = `e2e_colour_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
-  const values = ["black", "white", "other"];
+  const inked = "black";
+  const prefixed = "dog_black";
+  const pattern = "cat_tabby";
+  const unresolved = `${stem}_unmapped`;
+  const option = (value: string) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+  });
   const { data, error } = await supabase
     .from("attributes")
-    .insert({
-      attr_key: `${stem}_colour`,
-      name_en: `${stem} colour`,
-      name_am: `${stem} ቀለም`,
-      attr_type: "single_select",
-      options: values.map((value) => ({
-        value,
-        label_en: `${value} label`,
-        label_am: `${value} ምልክት`,
-        active: true,
-      })),
-    })
-    .select("id, attr_key, name_en")
-    .single();
+    .insert([
+      {
+        attr_key: `${stem}_colour`,
+        name_en: `${stem} colour`,
+        name_am: `${stem} ቀለም`,
+        attr_type: "single_select",
+        options: [option(inked), option("white"), option(prefixed), option(pattern)],
+      },
+      {
+        attr_key: `${stem}_plain_colour`,
+        name_en: `${stem} plain colour`,
+        name_am: `${stem} ቀለም ባዶ`,
+        attr_type: "single_select",
+        options: [option(unresolved)],
+      },
+    ])
+    .select("id, attr_key, name_en");
   if (error || !data) {
-    throw new Error(`[e2e:d26] seeding the colour set failed: ${error?.message ?? "no row"}`);
+    throw new Error(`[e2e:d26] seeding the colour set failed: ${error?.message ?? "no rows"}`);
   }
-  const colour: ScratchAttr = { id: data.id, attrKey: data.attr_key, nameEn: data.name_en };
-  const { error: linkError } = await supabase.from("category_attribute_links").insert({
-    category_id: categoryId,
-    attribute_id: colour.id,
-    is_required: false,
-    display_order: 1,
-  });
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:d26] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
+  };
+  const colour = pick("_colour");
+  const plain = pick("_plain_colour");
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: colour.id, is_required: false, display_order: 1 },
+    { category_id: categoryId, attribute_id: plain.id, is_required: false, display_order: 2 },
+  ]);
   if (linkError) throw new Error(`[e2e:d26] linking the colour set failed: ${linkError.message}`);
-  return { colour, inked: "black", neutral: "other", attrKeys: [colour.attrKey] };
+  return {
+    colour,
+    plain,
+    inked,
+    prefixed,
+    pattern,
+    unresolved,
+    attrKeys: [colour.attrKey, plain.attrKey],
+  };
 }
 
 /**
@@ -1395,6 +1421,83 @@ export async function seedAllowedSet(categoryId: string): Promise<AllowedSet> {
     fuelElectric,
     fuelPetrol,
     attrKeys: [model.attrKey, fuel.attrKey],
+  };
+}
+
+/**
+ * INC-260 — A SURFACED LEAF STILL OWNS ITS DEPENDENT LIST. The real Vehicle Hire
+ * leaf is surfaced under Travel and Vehicles while Cars remains a separate
+ * control leaf; its make/model links live directly on Vehicle Hire. This scratch
+ * shape mirrors that: the seller reaches a leaf through a second parent, then a
+ * model value whose parent is the chosen make must still narrow in place.
+ */
+export interface SurfacedDependentSet {
+  make: ScratchAttr;
+  model: ScratchAttr;
+  makeValues: { byd: string; toyota: string };
+  modelValues: { byd: string; toyota: string };
+  attrKeys: string[];
+}
+
+export async function seedSurfacedDependentSet(categoryId: string): Promise<SurfacedDependentSet> {
+  const supabase = adminClient();
+  const stem = `e2e_surf_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const byd = `${stem}_byd`;
+  const toyota = `${stem}_toyota`;
+  const bydModel = `${byd}_seagull`;
+  const toyotaModel = `${toyota}_corolla`;
+  const option = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...extra,
+  });
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: `${stem}_make`,
+        name_en: `${stem} make`,
+        attr_type: "single_select",
+        options: [option(byd), option(toyota)],
+      },
+      {
+        attr_key: `${stem}_model`,
+        name_en: `${stem} model`,
+        attr_type: "single_select",
+        options: [option(bydModel, { parent: byd }), option(toyotaModel, { parent: toyota })],
+      },
+    ])
+    .select("id, attr_key, name_en");
+  if (error || !data) {
+    throw new Error(
+      `[e2e:inc260] seeding the surfaced dependent set failed: ${error?.message ?? "no rows"}`,
+    );
+  }
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:inc260] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
+  };
+  const make = pick("_make");
+  const model = pick("_model");
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
+    { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
+  ]);
+  if (linkError) {
+    throw new Error(`[e2e:inc260] linking the surfaced dependent set failed: ${linkError.message}`);
+  }
+
+  return {
+    make,
+    model,
+    makeValues: { byd, toyota },
+    modelValues: { byd: bydModel, toyota: toyotaModel },
+    attrKeys: [make.attrKey, model.attrKey],
   };
 }
 
