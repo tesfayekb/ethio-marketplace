@@ -544,11 +544,23 @@ export function StepSpecifications({
         ? definitions.map((def) => def.attrKey).filter((key) => key !== movedKey)
         : [...dependents].filter((key) => !parents.has(key));
       for (const key of scope) {
-        if (definitions.every((def) => def.attrKey !== key)) continue;
+        const keyDef = definitions.find((def) => def.attrKey === key) ?? null;
+        if (keyDef === null) continue;
         const fact = source[key];
         if (fact === undefined) {
-          if (!isEmpty(next[key])) {
-            delete next[key];
+          /**
+           * INC-245 — A DEFAULT IS WHAT AN EMPTY FIELD STARTS FROM. The reset empties
+           * the field, so the LINK's own opening answer takes the place the fact would
+           * have had; with no default the field is simply empty again.
+           */
+          const opening = keyDef.defaultValue ?? undefined;
+          if (opening === undefined) {
+            if (!isEmpty(next[key])) {
+              delete next[key];
+              changed = true;
+            }
+          } else if (!same(next[key], opening)) {
+            next[key] = opening;
             changed = true;
           }
           delete owned[key];
