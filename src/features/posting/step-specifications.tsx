@@ -1040,15 +1040,14 @@ export function StepSpecifications({
               {def.helpTextEn !== null && (
                 <p className="text-xs text-muted-foreground">{def.helpTextEn}</p>
               )}
-              {def.attrType === "number" &&
-                (bound !== null || def.minBound !== null || def.maxBound !== null) && (
-                  <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
-                    {fill(t("post.specs.boundsHint"), {
-                      min: bound?.min ?? def.minBound ?? t("post.specs.noBound"),
-                      max: bound?.max ?? def.maxBound ?? t("post.specs.noBound"),
-                    })}
-                  </p>
-                )}
+              {def.attrType === "number" && (bound.min !== null || bound.max !== null) && (
+                <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
+                  {fill(t("post.specs.boundsHint"), {
+                    min: bound.min ?? t("post.specs.noBound"),
+                    max: bound.max ?? t("post.specs.noBound"),
+                  })}
+                </p>
+              )}
               {def.attrType === "number" && def.unit !== null && (
                 <p className="text-xs text-muted-foreground">
                   {fill(t("post.specs.unitHint"), { unit: def.unit })}
