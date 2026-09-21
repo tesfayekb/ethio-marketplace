@@ -1268,3 +1268,23 @@ export async function seedAllowedSet(categoryId: string): Promise<AllowedSet> {
     attrKeys: [model.attrKey, fuel.attrKey],
   };
 }
+
+/**
+ * INC-248 — THE SAME QUESTION UNDER TWO LEAVES. A category change can only be
+ * proved to CLEAR a chosen option when the new category asks the same question,
+ * so a spec set's own picker is linked to a second scratch leaf here. Both leaves
+ * and the definition are namespaced scratch and destroyed with them (J3).
+ */
+export async function linkSpecToCategory(
+  categoryId: string,
+  attributeId: string,
+  displayOrder = 9,
+): Promise<void> {
+  const { error } = await adminClient().from("category_attribute_links").insert({
+    category_id: categoryId,
+    attribute_id: attributeId,
+    is_required: false,
+    display_order: displayOrder,
+  });
+  if (error) throw new Error(`[e2e:inc248] linking the definition failed: ${error.message}`);
+}
