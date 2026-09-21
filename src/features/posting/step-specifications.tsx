@@ -828,6 +828,16 @@ export function StepSpecifications({
         const value = values[def.attrKey];
         const chosen = selectedValue(value);
         const shown = visibleOptionsOf(def);
+        /**
+         * INC-244 — SET BY THE MODEL. The chosen options leave exactly one
+         * admissible answer, so the reconciliation above has already written it and
+         * the picker has nothing to offer: it shows that answer, says where it came
+         * from and takes no taps.
+         */
+        const lockedByModel =
+          def.attrType === "single_select" &&
+          narrowing[def.attrKey] !== undefined &&
+          shown.length === 1;
         const parentKey = folds[def.attrKey];
         const parentDef =
           parentKey === undefined
@@ -994,7 +1004,8 @@ export function StepSpecifications({
                   data-attr={def.attrKey}
                   data-options={held.state}
                   data-waiting={waiting ? "1" : "0"}
-                  disabled={waiting}
+                  data-locked={lockedByModel ? "1" : "0"}
+                  disabled={waiting || lockedByModel}
                   className={ctrl}
                   value={chosen}
                   onFocus={() => openOptions(def)}
