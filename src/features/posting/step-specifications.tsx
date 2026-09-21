@@ -481,13 +481,30 @@ export function StepSpecifications({
         ? null
         : (Object.keys(now).find((key) => (before[key] ?? "") !== now[key]) ?? null);
     parentsSeen.current = now;
-    if (movedKey !== null && !skipReset.current) {
+    /**
+     * A reset follows a parent the seller MOVED TO SOMETHING. A parent emptied by
+     * the narrowing below (its own parent changed, or an Undo put back an answer
+     * the new parent cannot hold) is not a new choice, and must not cascade a
+     * second reset over the answers that were just restored.
+     */
+    if (movedKey !== null && now[movedKey] !== "" && !skipReset.current) {
       const snapshot = { ...values };
       const heldPrefills = { ...prefills };
-      for (const key of dependents) {
-        if (parents.has(key)) continue;
+      /**
+       * D25b — HOW WIDE THE RESET IS. A ROOT change (the make) starts the whole
+       * form over: every other detail, the seller's own included, and the only
+       * facts that may prefill are the ones the NEW root option itself carries —
+       * the children it is about to clear are stale by definition. A MODEL change
+       * keeps D25's scope: the details some option speaks about, and no others.
+       */
+      const rootChange = roots.has(movedKey);
+      const source = rootChange ? (facts.byOwner[movedKey] ?? {}) : facts.prefill;
+      const scope = rootChange
+        ? definitions.map((def) => def.attrKey).filter((key) => key !== movedKey)
+        : [...dependents].filter((key) => !parents.has(key));
+      for (const key of scope) {
         if (definitions.every((def) => def.attrKey !== key)) continue;
-        const fact = facts.prefill[key];
+        const fact = source[key];
         if (fact === undefined) {
           if (!isEmpty(next[key])) {
             delete next[key];
