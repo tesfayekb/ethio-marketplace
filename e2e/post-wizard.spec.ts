@@ -1984,6 +1984,8 @@ test.describe("POSTING WIZARD", () => {
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
       .selectOption(fold.modelValues[0]);
+    // The make change started the form over, so the sibling answers again.
+    await unit.selectOption(fold.unitValues[0]);
     await expect
       .poll(async () => Math.min(...(await offered())), {
         message: "PW-25: two bounds did not intersect at the higher floor",
