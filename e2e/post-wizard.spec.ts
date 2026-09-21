@@ -1918,19 +1918,23 @@ test.describe("POSTING WIZARD", () => {
     specs.push(...fold.attrKeys);
     await reachStep3(page, user.id, category);
 
-    // The SIBLING alone: a make and model that say nothing about the year.
+    const unit = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.unit.attrKey}"]`,
+    );
+    // The SIBLING alone: a make and model that say nothing about the year, and the
+    // unit answered AFTER them — a make change is a fresh start (D25b), so the
+    // sibling's answer is given once the cascade has settled.
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
       .selectOption(fold.makeValues[1]);
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
       .selectOption(fold.modelValues[2]);
-    // The unit picker opens on its own default (the link's `default_value`), and
-    // that option is the one carrying the year's floor.
-    await expect(
-      page.locator(`[data-testid="post-attr-control"][data-attr="${fold.unit.attrKey}"]`),
-      "PW-25: the unit did not open on its link's default",
-    ).toHaveValue(fold.unitValues[0], { timeout: 20_000 });
+    await unit.selectOption(fold.unitValues[0]);
+    await expect(unit, "PW-25: the sibling's answer did not stand").toHaveValue(
+      fold.unitValues[0],
+      { timeout: 20_000 },
+    );
 
     const year = page.locator(
       `[data-testid="post-attr-control"][data-attr="${fold.year.attrKey}"]`,
