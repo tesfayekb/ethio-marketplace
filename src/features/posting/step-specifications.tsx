@@ -176,6 +176,13 @@ export function StepSpecifications({
     if (categoryId === null) return;
     let cancelled = false;
     setFailed(false);
+    /**
+     * INC-243 — A NEW READ ASKS AGAIN. The lists held for the previous category
+     * are dropped with the schema that named them, so a form never renders one
+     * category's options against another's definitions, and the re-open pays a
+     * conditional request the edge answers with 304 when nothing moved.
+     */
+    setOptions({});
     void readPostingSchema(categoryId).then((read) => {
       if (cancelled) return;
       setSchema(read);
@@ -311,17 +318,45 @@ export function StepSpecifications({
     return out;
   }, [definitions, allowedListOf]);
 
-  /** The options a control may actually offer: the link's subset, then the fold. */
+  /**
+   * INC-244 — WHAT THE CHOSEN OPTIONS RULE OUT. An option's `allowed` names
+   * sibling details and the ONLY answers they may hold under it
+   * (`{ fuel: ["electric"] }`). Every chosen option of every picker contributes,
+   * and two contributions for the same sibling meet at their INTERSECTION — the
+   * stricter reading, the one the door itself applies. This is the mirror of
+   * `attr_allowed_check`; the door remains the authority (F3).
+   */
+  const narrowing = useMemo(() => {
+    const out: Record<string, string[]> = {};
+    for (const def of definitions) {
+      if (!SELECT_TYPES.includes(def.attrType)) continue;
+      const picked = selectedValue(values[def.attrKey]);
+      if (picked === "") continue;
+      const option = allowedListOf(def).find((entry) => entry.value === picked);
+      const allowed = option?.allowed;
+      if (allowed === null || allowed === undefined) continue;
+      for (const [key, list] of Object.entries(allowed)) {
+        const held = out[key];
+        out[key] = held === undefined ? [...list] : held.filter((entry) => list.includes(entry));
+      }
+    }
+    return out;
+  }, [definitions, values, allowedListOf]);
+
+  /** The options a control may actually offer: the link's subset, the fold, then
+   * whatever the chosen options allow (INC-244). */
   const visibleOptionsOf = useCallback(
     (def: AttrDef): AttrOption[] => {
-      const list = allowedListOf(def);
+      const only = narrowing[def.attrKey];
+      let list = allowedListOf(def);
+      if (only !== undefined) list = list.filter((option) => only.includes(option.value));
       const parentKey = folds[def.attrKey];
       if (parentKey === undefined) return list;
       const parentValue = selectedValue(values[parentKey]);
       if (parentValue === "") return [];
       return list.filter((option) => option.parent === parentValue);
     },
-    [allowedListOf, folds, values],
+    [allowedListOf, folds, values, narrowing],
   );
 
   /**
