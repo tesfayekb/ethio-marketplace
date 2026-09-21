@@ -1898,26 +1898,38 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * U6-C1-R3b-3a STEP 2 — A YEAR CANNOT BE TYPED WRONG.
+   * U6-C1-R3b-3c STEP 1 (INC-242) — A BOUND COMES FROM WHATEVER OPTION CARRIES IT.
    *
-   * D18's fact bound used to be a warning under a free number box; a `format =
-   * 'year'` detail is now a PICKER whose floor is the chosen model's own bound, so
-   * a year the model predates is not refused — it is not offered. The door's
-   * bounds remain the authority (F3); this proves the control can never reach them.
+   * The year picker used to read only the bound of the option it HANGS UNDER, so a
+   * floor written on any other answer was quietly ignored — a listing could be
+   * offered a year the catalogue had already ruled out. The effective bounds are
+   * now the definition's own narrowed by EVERY chosen option; here the floor sits
+   * on the unit picker's opening option, and the year hangs under nothing at all.
+   * The door's bounds remain the authority (F3); this proves the control can never
+   * reach them.
    */
-  test("PW-25 a year field is a picker bounded by the chosen model's floor", async ({ page }) => {
+  test("PW-25 a year picker is bounded by every chosen option, including a sibling's", async ({
+    page,
+  }) => {
     const user = await seller(page);
     const category = await leaf();
     const fold = await seedFoldSet(category.id);
     specs.push(...fold.attrKeys);
     await reachStep3(page, user.id, category);
 
+    // The SIBLING alone: a make and model that say nothing about the year.
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
-      .selectOption(fold.makeValues[0]);
+      .selectOption(fold.makeValues[1]);
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
-      .selectOption(fold.modelValues[0]);
+      .selectOption(fold.modelValues[2]);
+    // The unit picker opens on its own default (the link's `default_value`), and
+    // that option is the one carrying the year's floor.
+    await expect(
+      page.locator(`[data-testid="post-attr-control"][data-attr="${fold.unit.attrKey}"]`),
+      "PW-25: the unit did not open on its link's default",
+    ).toHaveValue(fold.unitValues[0], { timeout: 20_000 });
 
     const year = page.locator(
       `[data-testid="post-attr-control"][data-attr="${fold.year.attrKey}"]`,
@@ -1935,16 +1947,16 @@ test.describe("POSTING WIZARD", () => {
         .filter((value) => Number.isFinite(value) && value > 0);
     await expect
       .poll(offered, {
-        message: "PW-25: the year picker never narrowed to the model's floor",
+        message: "PW-25: the year picker never took the sibling option's floor",
         timeout: 20_000,
       })
-      .toContain(fold.modelYearFloor);
+      .toContain(fold.unitYearFloor);
     const years = await offered();
 
-    const below = years.filter((value) => value < fold.modelYearFloor);
+    const below = years.filter((value) => value < fold.unitYearFloor);
     expect(
       below,
-      `PW-25: the picker offered years below the model's floor: ${below.join(", ")}`,
+      `PW-25: the picker offered years below the sibling's floor: ${below.join(", ")}`,
     ).toHaveLength(0);
     expect(
       years.filter((value) => value <= 0),
@@ -1953,11 +1965,26 @@ test.describe("POSTING WIZARD", () => {
     // NEWEST FIRST: the first offered year is the highest one.
     expect(years[0], "PW-25: the picker is not newest-first").toBe(Math.max(...years));
 
-    await year.selectOption(String(fold.modelYearFloor));
+    await year.selectOption(String(fold.unitYearFloor));
     await expect(
       page.locator(`[data-testid="post-attr-refusal"][data-attr="${fold.year.attrKey}"]`),
-      "PW-25: the model's own floor year was refused",
+      "PW-25: the sibling's own floor year was refused",
     ).toHaveCount(0);
+
+    // TWO BOUNDS NARROW TOGETHER: the parent model's floor (1968) and the
+    // sibling's (1975) intersect at the higher one — never the looser.
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
+      .selectOption(fold.makeValues[0]);
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
+      .selectOption(fold.modelValues[0]);
+    await expect
+      .poll(async () => Math.min(...(await offered())), {
+        message: "PW-25: two bounds did not intersect at the higher floor",
+        timeout: 20_000,
+      })
+      .toBe(Math.max(fold.modelYearFloor, fold.unitYearFloor));
   });
 
   /**
