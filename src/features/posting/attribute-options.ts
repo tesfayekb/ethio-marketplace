@@ -84,6 +84,7 @@ function stringList(raw: unknown): string[] {
 function shape(row: Record<string, unknown>): AttrOption {
   const value = typeof row["value"] === "string" ? row["value"] : "";
   const facts = row["facts"];
+  const boundsRaw = row["bounds"];
   const allowedRaw = row["allowed"];
   let allowed: Record<string, string[]> | null = null;
   if (allowedRaw !== null && typeof allowedRaw === "object" && !Array.isArray(allowedRaw)) {
@@ -104,6 +105,10 @@ function shape(row: Record<string, unknown>): AttrOption {
         ? (facts as Record<string, unknown>)
         : null,
     allowed,
+    bounds:
+      boundsRaw !== null && typeof boundsRaw === "object" && !Array.isArray(boundsRaw)
+        ? (boundsRaw as Record<string, unknown>)
+        : null,
   };
 }
 
