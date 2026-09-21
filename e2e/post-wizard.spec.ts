@@ -259,7 +259,10 @@ test.describe("POSTING WIZARD", () => {
 
     await folder.click();
     await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
-    await expect(folder, "PW-3: the all-categories crumb did not return to the roots").toBeVisible();
+    await expect(
+      folder,
+      "PW-3: the all-categories crumb did not return to the roots",
+    ).toBeVisible();
     await folder.click();
     await expect(leafRow).toBeVisible();
     await leafRow.click();
@@ -1815,7 +1818,6 @@ test.describe("POSTING WIZARD", () => {
       { timeout: 20_000 },
     );
 
-
     // J4 — DB truth: the default the screen showed is what the door recorded.
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-4")).toBeVisible();
@@ -2311,7 +2313,6 @@ test.describe("POSTING WIZARD", () => {
       "PW-36: the surfaced leaf is missing under the root it was surfaced under",
     ).toBeVisible({ timeout: 20_000 });
   });
-
 
   /**
    * U6-C1-R3b-3b STEP 4 (PW-33) — A PLACE IS ADDED UNDER A PLACE ALREADY LISTED.

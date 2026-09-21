@@ -66,7 +66,9 @@ export function forgetAttributeOptions(): void {
 
 function stringList(raw: unknown): string[] {
   if (typeof raw === "string") return [raw];
-  return Array.isArray(raw) ? raw.filter((entry): entry is string => typeof entry === "string") : [];
+  return Array.isArray(raw)
+    ? raw.filter((entry): entry is string => typeof entry === "string")
+    : [];
 }
 
 function shape(row: Record<string, unknown>): AttrOption {

@@ -199,10 +199,7 @@ export function StepCategory({
             </nav>
             {/* The level scrolls inside the card, so Back and Next never leave the
                 screen on a 360-pixel phone. */}
-            <ul
-              className="max-h-[60vh] space-y-2 overflow-y-auto"
-              data-testid="post-browse-level"
-            >
+            <ul className="max-h-[60vh] space-y-2 overflow-y-auto" data-testid="post-browse-level">
               {level.map((node) => {
                 const postable = isPostable(tree, node);
                 const folder = childrenOf(tree, node.id).length > 0;

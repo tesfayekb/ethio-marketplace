@@ -1169,8 +1169,6 @@ export function StepSpecifications({
                 </p>
               )}
 
-
-
               {/* THE FOLD, IN WORDS: the child says which answer it waits for, so a
                   closed control is never a dead end (F4). */}
               {waiting && parentDef !== null && (
