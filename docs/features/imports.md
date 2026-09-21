@@ -246,10 +246,23 @@ cell, missing column, refusals, Undo).
 
 ## The links file — `display_order` (M-ORDER)
 
-The order a category shows its questions in is a links-file cell too, placed
-AFTER `visible_when`, as a plain NON-NEGATIVE INTEGER (`0` included). It is the
-SAME column the console's Move up / Move down writes, so the two paths never
-disagree.
+The order a category shows its questions in is a links-file cell too, as a plain
+NON-NEGATIVE INTEGER (`0` included). It is the SAME column the console's Move up /
+Move down writes, so the two paths never disagree.
+
+**Where it sits (U6-C1-R3b-3b).** The registry offers `display_order` as the last
+editable links cell, AFTER `default_value` — the links file carries NO
+`visible_when` column (that cell is the console's alone, a named deferral), so
+naming `visible_when` in a links file is an `unknownColumn` refusal. The CSV
+export route's link columns still stop at `default_value`, so an exported links
+file does not yet echo the order cell; a round trip therefore leaves the order
+alone (the blank rule below) rather than restating it. Closing that echo is a
+named follow-up.
+
+**Links-only runs.** A links file needs no definitions file: both slots in the
+import dialog are optional and Preview opens with either one, while the route
+still refuses a run with neither (AT-61). Reordering a category's questions is
+therefore one small file, not a re-upload of the whole library.
 
 - It is PLANNED as a field diff (a row whose ONLY difference is its order is a
   `change`, never `unchanged`), APPLIED on commit — an ADD takes the file's
