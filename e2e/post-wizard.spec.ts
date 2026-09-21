@@ -15,6 +15,8 @@ import { adminClient, createUser } from "./helpers/users";
 import {
   activeCityOf,
   attributesOf,
+  bearerOf,
+  pinOf,
   contactPrefOf,
   coverageOf,
   identityOf,
@@ -2407,5 +2409,186 @@ test.describe("POSTING WIZARD", () => {
       "PW-33: a second place was accepted past the plan",
     ).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+  });
+
+  /* ======================= U6-C1-R3b-4 — THE MAP PIN ======================= */
+
+  /**
+   * THE PIN'S OWN DOOR, NOT THE DRAFT'S. Every assertion below pairs what the
+   * screen says with the FOUR COLUMNS `set_listing_pin` owns, read through the
+   * service client (J4) — because "saved" on screen must mean the row moved.
+   *
+   * The geocoder is the fake table (`E2E_FAKE_GEOCODE=1`): the suite proves our
+   * routes, the dial and the wiring, never OpenStreetMap's uptime.
+   */
+  async function openPinAt6(
+    page: import("@playwright/test").Page,
+    userId: string,
+    category: { id: string; slug: string },
+  ) {
+    const listingId = await reachStep5(page, userId, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    await page.getByTestId("post-where-pin-open").click();
+    // The map is a lazy chunk: the box appears when the chunk has landed.
+    await expect(page.getByTestId("post-pin-map"), "the map chunk never mounted").toBeVisible({
+      timeout: 20_000,
+    });
+    return listingId;
+  }
+
+  test("PW-37 a tap on the map places a pin and the door stores it as exact", async ({ page }) => {
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const listingId = await openPinAt6(page, user.id, category);
+
+    const position = page.getByTestId("post-pin-position");
+    await expect(position, "PW-37: a pin existed before the seller placed one").toHaveAttribute(
+      "data-lat",
+      "",
+    );
+    await page.getByTestId("post-pin-map").click({ position: { x: 120, y: 90 } });
+    await expect(position, "PW-37: the tap placed no pin").not.toHaveAttribute("data-lat", "", {
+      timeout: 20_000,
+    });
+
+    await page.getByTestId("post-pin-save").click();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+
+    // DB TRUTH: the coordinates the screen shows are the coordinates the row holds.
+    const shown = {
+      lat: await position.getAttribute("data-lat"),
+      lng: await position.getAttribute("data-lng"),
+    };
+    const row = await pinOf(listingId);
+    expect(row.precision, "PW-37: the door stored another precision").toBe("exact");
+    expect(row.lat, "PW-37: no latitude reached the row").not.toBeNull();
+    expect(row.lng, "PW-37: no longitude reached the row").not.toBeNull();
+    expect(row.lat!.toFixed(5), "PW-37: the row disagrees with the screen").toBe(shown.lat);
+    expect(row.lng!.toFixed(5), "PW-37: the row disagrees with the screen").toBe(shown.lng);
+  });
+
+  test("PW-38 a place search moves the pin and fills the street line", async ({ page }) => {
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const listingId = await openPinAt6(page, user.id, category);
+
+    await page.getByTestId("post-pin-search").fill("Bole");
+    const result = page.locator('[data-testid="post-pin-result"]').first();
+    await expect(result, "PW-38: the search offered no place").toBeVisible({ timeout: 20_000 });
+    await result.click();
+
+    const position = page.getByTestId("post-pin-position");
+    await expect(position, "PW-38: choosing a result placed no pin").not.toHaveAttribute(
+      "data-lat",
+      "",
+      { timeout: 20_000 },
+    );
+    // The street line is FILLED, not asserted: the seller may still edit it, and
+    // what they type is what the door stores.
+    const street = page.getByTestId("post-pin-street");
+    await expect(street).not.toHaveValue("");
+    await street.fill("e2e pin street");
+    await page.getByTestId("post-pin-save").click();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+
+    const row = await pinOf(listingId);
+    expect(row.street, "PW-38: the seller's own street line did not reach the row").toBe(
+      "e2e pin street",
+    );
+    expect(row.lat, "PW-38: the searched place left no latitude").not.toBeNull();
+  });
+
+  test("PW-39 an approximate pin is stored as approx and drawn as an area, never a point", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const listingId = await openPinAt6(page, user.id, category);
+
+    await page.getByTestId("post-pin-map").click({ position: { x: 140, y: 110 } });
+    await page.getByTestId("post-pin-precision-approx").click();
+    await page.getByTestId("post-pin-save").click();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+    expect((await pinOf(listingId)).precision, "PW-39: the door stored the exact point").toBe(
+      "approx",
+    );
+
+    // THE BUYER'S EYE: the still map is the circle, and the exact marker is absent.
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+    await page.getByTestId("post-preview-open").click();
+    await expect(page.getByTestId("post-preview-sheet")).toBeVisible();
+    const drawn = page.getByTestId("listing-map-circle");
+    await expect(drawn, "PW-39: the preview drew no area for an approximate pin").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(drawn).toHaveAttribute("data-precision", "approx");
+    await expect(
+      page.getByTestId("listing-map-pin"),
+      "PW-39: the preview showed the exact point of a hidden pin",
+    ).toHaveCount(0);
+  });
+
+  test("PW-40 removing the pin clears all four columns", async ({ page }) => {
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const listingId = await openPinAt6(page, user.id, category);
+
+    await page.getByTestId("post-pin-map").click({ position: { x: 100, y: 80 } });
+    await page.getByTestId("post-pin-street").fill("e2e pin to remove");
+    await page.getByTestId("post-pin-save").click();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+    expect((await pinOf(listingId)).lat, "PW-40: nothing was saved to remove").not.toBeNull();
+
+    await page.getByTestId("post-pin-remove").click();
+    await expect(page.getByTestId("post-pin-removed")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-pin-position")).toHaveAttribute("data-lat", "");
+
+    const row = await pinOf(listingId);
+    expect(
+      [row.lat, row.lng, row.precision, row.street],
+      "PW-40: a removed pin left a column behind",
+    ).toEqual([null, null, null, null]);
+  });
+
+  test("PW-41 the geocode route spends a dial and refuses the call past its ceiling", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const bearer = await bearerOf(page);
+    const ceiling = 60;
+
+    let refusedAt = 0;
+    let refusal: { field: string; reason: string } | null = null;
+    for (let attempt = 1; attempt <= ceiling + 2; attempt += 1) {
+      // A DISTINCT QUERY EVERY TIME, so the cache can never stand in for the dial.
+      const response = await page.request.get(
+        `/api/geo/search?q=${encodeURIComponent(`bole-${user.id.slice(0, 8)}-${attempt}`)}`,
+        { headers: { Authorization: `Bearer ${bearer}` } },
+      );
+      expect(response.status(), `PW-41: call ${attempt} was not answered`).toBe(200);
+      const payload = (await response.json()) as Record<string, unknown>;
+      if (payload["ok"] !== true) {
+        refusedAt = attempt;
+        refusal = reasonsOf(payload)[0] ?? null;
+        break;
+      }
+    }
+
+    expect(refusedAt, `PW-41: the dial never closed within ${ceiling + 2} calls`).toBeGreaterThan(
+      ceiling - 1,
+    );
+    expect(refusal?.field, "PW-41: the refusal named another field").toBe("geocode");
+    expect(refusal?.reason, "PW-41: the refusal used another word").toBe("rateLimited");
   });
 });
