@@ -644,14 +644,23 @@ export async function seedDeepFoldSet(params: {
       name_en: `${stem} model`,
       attr_type: "single_select",
       options: [
-        // A SINGLE-YEAR MODEL: the fact pins the year, written as the file writes it.
+        /**
+         * R-SW / INC-249 — THE SHAPE THE CATALOGUE ACTUALLY SERVES. Copied
+         * verbatim from the published site's own payload for `model-cars`
+         * (BYD Han: `"bounds": {"year": {"min": 2020}}`, beside `facts`), because
+         * the earlier fixture nested the bound INSIDE `facts` — a shape the
+         * curated catalogue never writes — and so PW-25 passed while every real
+         * model's floor was ignored on production.
+         *
+         * A SINGLE-YEAR MODEL: the bound pins the year, as text, as the file writes it.
+         */
         option(pinModel, {
           parent: seriesValue,
-          facts: { [yearKey]: { min: String(pinnedYear), max: String(pinnedYear) } },
+          bounds: { [yearKey]: { min: String(pinnedYear), max: String(pinnedYear) } },
         }),
         option(floorModel, {
           parent: seriesValue,
-          facts: { [yearKey]: { min: String(floorYear) } },
+          bounds: { [yearKey]: { min: String(floorYear) } },
         }),
       ],
     },
@@ -928,10 +937,11 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
           option(golf, {
             parent: makeValue,
             // D25 — this model BOUNDS the year; the others say nothing about it.
+            // R-SW — the bound sits in the record's OWN `bounds`, as served.
+            bounds: { [yearKey]: { min: golfYearFloor } },
             facts: {
               [bodyKey]: bodyHatch,
               [doorsKey]: golfDoors,
-              [yearKey]: { min: golfYearFloor },
             },
           }),
           option(byd, {
