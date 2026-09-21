@@ -661,7 +661,6 @@ export function StepSpecifications({
         </p>
       )}
 
-
       {/* D24 — only the details this answer set asks for are on screen. */}
       {asked.map((def) => {
         // U4d/B2 — the shared resolver names a definition, never an inline ternary.

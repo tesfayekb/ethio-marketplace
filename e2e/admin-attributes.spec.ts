@@ -3294,9 +3294,7 @@ test.describe("C3 attributes console", () => {
         const rows = Array.isArray(payload["attributes"])
           ? (payload["attributes"] as Record<string, unknown>[])
           : [];
-        return rows
-          .map((row) => String(row["attr_key"] ?? ""))
-          .filter((key) => keys.includes(key));
+        return rows.map((row) => String(row["attr_key"] ?? "")).filter((key) => keys.includes(key));
       };
       expect(await orderOf(), "AT-60 the seeded order is not the read's order").toEqual(keys);
 
@@ -3358,7 +3356,9 @@ test.describe("C3 attributes console", () => {
       expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
       const refusals = (refused.payload["refusals"] ?? []) as Record<string, unknown>[];
       expect(
-        refusals.map((entry) => `${String(entry["reason"] ?? "")}:${String(entry["detail"] ?? "")}`),
+        refusals.map(
+          (entry) => `${String(entry["reason"] ?? "")}:${String(entry["detail"] ?? "")}`,
+        ),
         `AT-60 a non-integer order was not refused by name: ${JSON.stringify(refused.payload)}`,
       ).toContain("badNumber:display_order");
     } finally {
@@ -3472,8 +3472,6 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(key);
     }
   });
-
-
 
   /**
    * AT-40 (IE-7) — THE THREE DIALOG STATES, DRIVEN TO APPLIED. A scratch pair
