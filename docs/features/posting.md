@@ -492,9 +492,9 @@ markets' currencies with "More…"), and step 1's disabled Next with its caption
   decided BEFORE a fact is applied, and against the answers as the current
   selection leaves them — because the very choice that carries a fact is often what
   puts its target on screen (Sports › Fitness › Treadmill says `power_source =
-  electric`, and Power Source is linked with
+electric`, and Power Source is linked with
   `visible_when equipment_type = treadmill | exercise_bike | elliptical |
-  rowing_machine`). Judged against the PREVIOUS answers the target was still
+rowing_machine`). Judged against the PREVIOUS answers the target was still
   hidden, so the prefill was refused and the published listing showed Power Source
   empty, while facts to always-visible targets (dairy cow → per head, rebar → per
   quintal) worked. Two things were wrong and both are fixed here: the three passes
