@@ -230,7 +230,10 @@ export function StepSpecifications({
     const foldsPossible = selects.length > 1;
     for (const def of selects) {
       if (def.optionCount === 0 || def.optionCount > EAGER_OPTION_LIMIT) continue;
-      if (!foldsPossible && def.defaultValue === null) continue;
+      // D26 — a colour's swatches ARE the control's face, so they cannot wait for
+      // a tap on the picker beside them.
+      const colour = def.attrType === "single_select" && isColourKey(def.attrKey);
+      if (!colour && !foldsPossible && def.defaultValue === null) continue;
       openOptions(def);
     }
   }, [schema, openOptions]);
