@@ -709,6 +709,12 @@ export interface FactShiftSet {
   year: ScratchAttr;
   mileage: ScratchAttr;
   makeValue: string;
+  /**
+   * D25b — A SECOND MAKE, with no model of its own: changing the ROOT of the
+   * cascade names a different item entirely, so every detail starts over — the
+   * seller's own answers included.
+   */
+  otherMake: string;
   /** hatchback body + 3 doors + a year floor, no battery. */
   golf: string;
   /** a battery, and the hatchback body. */
@@ -730,6 +736,7 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
   const supabase = adminClient();
   const stem = `e2e_shift_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
   const makeValue = `${stem}_mk`;
+  const otherMake = `${stem}_mk2`;
   const golf = `${stem}_golf`;
   const byd = `${stem}_byd`;
   const corolla = `${stem}_corolla`;
