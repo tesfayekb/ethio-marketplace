@@ -510,6 +510,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             // confirmation screen — the chip above every later step is the
                             // confirmation, and it carries the way back.
                             setTriedWithoutLeaf(false);
+                            setNoticeDismissed(false);
                             const previous = draft.values.categoryId;
                             const answered = Object.keys(draft.values.attributes).length > 0;
                             if (previous === null || previous === nextCategoryId || !answered) {
@@ -535,8 +536,32 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                               );
                               const kept: Record<string, unknown> = {};
                               const lost: string[] = [];
+                              let refolded = false;
                               for (const [key, value] of Object.entries(draft.values.attributes)) {
-                                if (allowed.has(key)) {
+                                const afterDef =
+                                  (after?.attributes ?? []).find(
+                                    (entry) => entry.attrKey === key,
+                                  ) ?? null;
+                                /**
+                                 * INC-248 — A CHOSEN OPTION BELONGS TO THE CATEGORY IT WAS
+                                 * CHOSEN IN. A picker with the same key under the new
+                                 * category offers the new category's own list, so carrying
+                                 * the old answer over left the brand, series and model
+                                 * pickers holding values the new list may not even contain
+                                 * — a value the seller could not see and could not clear.
+                                 * Every chosen option is dropped here, so the pickers open
+                                 * on "Choose" both in the draft and on screen. Typed
+                                 * answers a new field still asks for travel as before.
+                                 */
+                                if (
+                                  afterDef !== null &&
+                                  (afterDef.attrType === "single_select" ||
+                                    afterDef.attrType === "multi_select")
+                                ) {
+                                  refolded = true;
+                                  continue;
+                                }
+                                if (afterDef !== null && allowed.has(key)) {
                                   kept[key] = value;
                                   continue;
                                 }
@@ -553,7 +578,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                               // schema the remaining answers cannot satisfy and the
                               // orphans are never dropped (see `rewindTo`).
                               const saved = await draft.rewindTo(1);
-                              if (saved) draft.goTo(lost.length > 0 ? 3 : 2);
+                              if (saved) draft.goTo(lost.length > 0 || refolded ? 3 : 2);
                             })();
                           }}
                         />
