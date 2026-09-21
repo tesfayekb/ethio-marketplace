@@ -2478,8 +2478,10 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await openPinAt6(page, user.id, category);
 
     await page.getByTestId("post-pin-search").fill("Bole");
-    const result = page.locator('[data-testid="post-pin-result"]').first();
-    await expect(result, "PW-38: the search offered no place").toBeVisible({ timeout: 20_000 });
+    // The fake table answers with exactly one place, so the count is the anchor
+    // and no positional `.first()` is needed (J5).
+    const result = page.getByTestId("post-pin-result");
+    await expect(result, "PW-38: the search offered no place").toHaveCount(1, { timeout: 20_000 });
     await result.click();
 
     const position = page.getByTestId("post-pin-position");
