@@ -869,15 +869,18 @@ A link may carry a CONDITION: `category_attribute_links.visible_when` is either
 The `key` accepts the DEFINITION-KEY charset `^[a-z0-9_][a-z0-9_-]{1,63}$` since
 INC-238 (R-CLEAN) — hyphens included, so a real sibling such as
 `fuel_type-vehicles` can be named; the refusal names are unchanged, and every
-condition that validated before still validates. At most eight values; no other
-keys are allowed. The shape is guarded twice: the
+condition that validated before still validates. At most 64 values (M-SHAPE
+addendum, INC-254 — the cap was 8 and a real condition needs 20:
+`authentic-original` on the international fashion brands); no other keys are
+allowed. The shape is guarded twice: the
 IMMUTABLE checker `public.attr_visible_when_ok(jsonb)` and the CHECK constraint
 `category_attribute_links_visible_when_shape` that calls it, so an illegal shape
 cannot exist in the table whatever writes it. The doors add the SEMANTICS:
 
 | Refusal                             | Meaning                                                    |
 | ----------------------------------- | ---------------------------------------------------------- |
-| `badVisibleWhen:badShape`           | not the two-key object above, or more than 8 values        |
+| `badVisibleWhen:badShape`           | not the two-key object above, or more than 64 values       |
+
 | `badVisibleWhen:self`               | a link cannot be conditioned on its own key                |
 | `badVisibleWhen:unknownSibling:<k>` | `<k>` is not linked to this category (direct or inherited) |
 | `badVisibleWhen:notInOptions:<v>`   | `<v>` is not one of that sibling's option values           |
