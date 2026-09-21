@@ -752,22 +752,16 @@ export function StepSpecifications({
         /**
          * STEP 2 — A YEAR IS A PICKER, NOT A TYPED NUMBER. A `format = 'year'`
          * number offers the years the item can plausibly be: from the EFFECTIVE
-         * floor (the chosen option's fact bound, else the definition's own
-         * minimum, else 1900) to next year, newest first. There is no free text
-         * and no negative year to type. The door's bounds remain the authority
-         * (F3) — this control simply cannot produce a year it would refuse.
+         * floor (INC-242 — the definition's minimum narrowed by every chosen
+         * option's bound, else 1900) to next year, newest first. There is no free
+         * text and no negative year to type. The door's bounds remain the
+         * authority (F3) — this control cannot produce a year it would refuse.
          */
         const yearMode = def.attrType === "number" && def.format === "year";
-        const yearFloorRaw =
-          bound?.min ?? (def.minBound === null ? null : Number(def.minBound)) ?? null;
-        const yearFloor =
-          yearFloorRaw !== null && Number.isFinite(yearFloorRaw) ? Math.trunc(yearFloorRaw) : 1900;
+        const yearFloor = bound.min !== null ? Math.trunc(bound.min) : 1900;
         const nextYear = new Date().getFullYear() + 1;
-        const yearCapRaw = bound?.max ?? (def.maxBound === null ? null : Number(def.maxBound));
         const yearCeiling = Math.trunc(
-          yearCapRaw !== null && Number.isFinite(yearCapRaw)
-            ? Math.min(yearCapRaw, nextYear)
-            : nextYear,
+          bound.max !== null ? Math.min(bound.max, nextYear) : nextYear,
         );
         const years = yearMode
           ? Array.from({ length: Math.max(0, yearCeiling - yearFloor + 1) }, (_, index) =>
