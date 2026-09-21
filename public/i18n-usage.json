@@ -3428,6 +3428,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.category.allRoots": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.category.change": [
       "/post",
       "/post/$listingId"
@@ -3480,11 +3484,11 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.category.treeError": [
+    "post.category.trailLabel": [
       "/post",
       "/post/$listingId"
     ],
-    "post.category.upOneLevel": [
+    "post.category.treeError": [
       "/post",
       "/post/$listingId"
     ],
@@ -3891,6 +3895,10 @@
       "/post/$listingId"
     ],
     "post.specs.resetUndo": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.setByModel": [
       "/post",
       "/post/$listingId"
     ],
