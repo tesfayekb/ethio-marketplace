@@ -1146,6 +1146,19 @@ export function StepSpecifications({
                 </ul>
               )}
 
+              {/* INC-244 — a locked answer says whose answer it is. */}
+              {lockedByModel && (
+                <p
+                  className="text-xs text-muted-foreground"
+                  data-testid="post-attr-set-by-model"
+                  data-attr={def.attrKey}
+                >
+                  {t("post.specs.setByModel")}
+                </p>
+              )}
+
+
+
               {/* THE FOLD, IN WORDS: the child says which answer it waits for, so a
                   closed control is never a dead end (F4). */}
               {waiting && parentDef !== null && (
