@@ -241,8 +241,18 @@ The sibling key must match the condition checker's charset
 `fuel_type-vehicles` is accepted. Anything outside it refuses
 `badVisibleWhen:badShape`.
 
+**The registry declares it (R-GATE, INC-241).** The planner has judged
+`visible_when` since M-MAINT-3b and `attr_export_payload` has echoed it since the
+same day, but the REGISTRY did not declare the column — so the gate, doing
+exactly its job, refused an operator's own exported file with
+`unknownColumn:visible_when`. The cell is declared now, in the database's order
+(after `default_value`, before `display_order`), as an editable text cell capped
+at 480 characters. The gate checks SHAPE only; every semantic rule above stays the
+planner's verdict.
+
 Proof: M-MAINT-3b P2 (planner diff, commit, schema read, export echo, blank
-cell, missing column, refusals, Undo).
+cell, missing column, refusals, Undo) and AT-62 (a scratch link with a condition
+and an order exported through the real route and previewed back as unchanged).
 
 ## The links file — `display_order` (M-ORDER)
 
@@ -250,14 +260,21 @@ The order a category shows its questions in is a links-file cell too, as a plain
 NON-NEGATIVE INTEGER (`0` included). It is the SAME column the console's Move up /
 Move down writes, so the two paths never disagree.
 
-**Where it sits (U6-C1-R3b-3b).** The registry offers `display_order` as the last
-editable links cell, AFTER `default_value` — the links file carries NO
-`visible_when` column (that cell is the console's alone, a named deferral), so
-naming `visible_when` in a links file is an `unknownColumn` refusal. The CSV
-export route's link columns still stop at `default_value`, so an exported links
-file does not yet echo the order cell; a round trip therefore leaves the order
-alone (the blank rule below) rather than restating it. Closing that echo is a
-named follow-up.
+**Where it sits.** The registry offers `display_order` as the last editable links
+cell, AFTER `visible_when` — the same order the SQL export emits, so the four
+trailing cells read `allowed_options`, `default_value`, `visible_when`,
+`display_order` in both directions and the CSV export route now echoes all four
+(R-GATE closed the round-trip gap named by U6-C1-R3b-3b).
+
+## Unknown columns are refused BY NAME
+
+The gate compares every header cell against the family's declared columns and
+answers `unknownColumn` with the offending NAME in `detail`, before it judges
+column ORDER and before any row is parsed. It never ignores a column it does not
+know: a cell quietly dropped is a file that reads as applied and changed nothing
+(F4). The two halves of that law are proved together — IG-5 asserts that a
+made-up links column is refused by name AND that the four declared trailing cells
+are admitted, so the door can be neither silent nor shut on a real file.
 
 **Links-only runs.** A links file needs no definitions file: both slots in the
 import dialog are optional and Preview opens with either one, while the route

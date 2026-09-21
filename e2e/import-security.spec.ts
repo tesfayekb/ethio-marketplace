@@ -362,12 +362,26 @@ for (const family of FAMILIES) {
       expect(empty.status, JSON.stringify(empty.payload)).toBe(400);
       expect(empty.payload["error"]).toBe("no file");
 
-      // (d) a header carrying a column the family does not declare.
+      /**
+       * (d) a header carrying a column the family does not declare. R-GATE /
+       * INC-241 — the verdict must NAME the column, not merely say the header is
+       * wrong: an operator adding a cell the importer does not accept has to be
+       * told WHICH cell, because the alternative — ignoring it — lands a file
+       * that reads as applied and changed nothing (F4). The gate judges unknown
+       * columns before ordering, so `unknownColumn` is the only answer.
+       */
       const unknown = await post(page, token, {
         [family.field]: `${family.header},evil\r\n`,
       });
       expect(unknown.status, JSON.stringify(unknown.payload)).toBe(400);
-      expect(["unknownColumn", "badHeader"]).toContain(unknown.payload["error"]);
+      expect(
+        unknown.payload["error"],
+        `IG-1 an unknown column was not refused by name: ${JSON.stringify(unknown.payload)}`,
+      ).toBe("unknownColumn");
+      expect(
+        unknown.payload["detail"],
+        `IG-1 the refusal did not say WHICH column: ${JSON.stringify(unknown.payload)}`,
+      ).toBe("evil");
 
       // (e) OVER THE BYTE CAP — 1 MB of well-formed rows is still refused.
       const filler = family.row({ [family.identity]: "e2e-cat-filler" });
@@ -873,3 +887,67 @@ for (const family of FAMILIES) {
     }
   });
 }
+
+/**
+ * IG-5 — THE SECOND FILE OF A TWO-FILE FAMILY IS A DOOR TOO (R-GATE, INC-241).
+ *
+ * The parameterised catalogue above drives each family through its PRIMARY file
+ * only; the attributes family accepts a second one, the links file, and that is
+ * exactly where the operator's real import was refused. Two facts have to hold
+ * together for that refusal to be honest: a column the links family does not
+ * declare is refused BY NAME, and the columns it now does declare —
+ * `visible_when` and `display_order`, the cells the database and the export have
+ * carried all along — are NOT refused. One without the other is either a silent
+ * drop (F4) or a door shut on a legitimate file.
+ */
+test.describe("IMPORT-GATE attributes-links", () => {
+  const LINK_HEADER =
+    "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin";
+
+  test("IG-5 attributes-links: an undeclared column is refused by name and the declared cells are not", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/attributes");
+    const token = await bearerOf(page);
+
+    const post = async (links: string) => {
+      const response = await page.request.post("/api/admin/attributes/import", {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        data: { mode: "preview", digest: true, links },
+      });
+      let payload: Record<string, unknown> = {};
+      try {
+        payload = (await response.json()) as Record<string, unknown>;
+      } catch {
+        payload = {};
+      }
+      return { status: response.status(), payload };
+    };
+
+    // A MADE-UP COLUMN — refused whole, and the refusal says which one.
+    const evil = await post(`${LINK_HEADER},allowed_options,evil_when\r\n`);
+    expect(evil.status, JSON.stringify(evil.payload)).toBe(400);
+    expect(
+      evil.payload["error"],
+      `IG-5 an undeclared links column was not refused: ${JSON.stringify(evil.payload)}`,
+    ).toBe("unknownColumn");
+    expect(
+      evil.payload["detail"],
+      `IG-5 the refusal did not name the column: ${JSON.stringify(evil.payload)}`,
+    ).toBe("evil_when");
+
+    // THE FOUR TRAILING CELLS THE FAMILY DECLARES — the header is admitted, so
+    // an operator's own export is never turned away at the door (INC-241).
+    const real = await post(
+      `${LINK_HEADER},allowed_options,default_value,visible_when,display_order\r\n`,
+    );
+    expect(
+      real.status,
+      `IG-5 a declared links header was refused: ${JSON.stringify(real.payload)}`,
+    ).toBe(200);
+    expect(real.payload["error"] ?? null).toBeNull();
+  });
+});

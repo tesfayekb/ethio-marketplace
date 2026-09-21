@@ -973,7 +973,7 @@ test.describe("C3 attributes console", () => {
         "attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant (read-only),direct_link_count (read-only)",
       );
       expect(links.slice(1).split("\r\n")[0]).toBe(
-        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value",
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value,visible_when,display_order",
       );
 
       // FORMULA SAFETY: the "="-opening label is prefixed with a single quote
@@ -990,11 +990,19 @@ test.describe("C3 attributes console", () => {
       // attribute with `origin` naming the parent slug.
       const childRow = links.split("\r\n").find((line) => line.includes(`,${childSlug},${key},`));
       expect(childRow, "AT-15 the inherited link is missing from links.csv").toBeTruthy();
-      // The origin is no longer the last cell: the two per-link cells trail it.
-      expect(childRow!.endsWith(`,${parentSlug},,`)).toBe(true);
+      /**
+       * The origin is no longer the last cell: the FOUR per-link cells trail it
+       * (`allowed_options`, `default_value`, `visible_when`, `display_order` —
+       * R-GATE echoed the last two). Only the order carries a value here.
+       */
+      expect(childRow!, `AT-15 the inherited row's trailing cells: ${childRow}`).toMatch(
+        new RegExp(`,${parentSlug},,,,\\d+$`),
+      );
       // The parent's own row names ITSELF as the origin.
       const parentRow = links.split("\r\n").find((line) => line.includes(`,${parentSlug},${key},`));
-      expect(parentRow!.endsWith(`,${parentSlug},,`)).toBe(true);
+      expect(parentRow!, `AT-15 the parent row's trailing cells: ${parentRow}`).toMatch(
+        new RegExp(`,${parentSlug},,,,\\d+$`),
+      );
     } finally {
       await supabase.from("category_attribute_links").delete().eq("attribute_id", attributeId);
       await destroyCategory(childSlug);
@@ -1198,7 +1206,7 @@ test.describe("C3 attributes console", () => {
       const links = texts.get(`${fixture.parentSlug}-links.csv`)!;
       const lines = links.slice(1).split("\r\n").filter(Boolean);
       expect(lines[0]).toBe(
-        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value",
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value,visible_when,display_order",
       );
       // ONLY the subtree: every data row's category_slug is parent or child.
       const slugs = new Set(lines.slice(1).map((line) => line.split(",")[1]));
@@ -1207,8 +1215,11 @@ test.describe("C3 attributes console", () => {
         line.includes(`,${fixture.childSlug},${fixture.keyA},`),
       );
       expect(childRow, "AT-18 the inherited row is missing").toBeTruthy();
-      // The origin is no longer the last cell: the two per-link cells trail it.
-      expect(childRow!.endsWith(`,${fixture.parentSlug},,`)).toBe(true);
+      // The origin is no longer the last cell: the FOUR per-link cells trail it
+      // (R-GATE added `visible_when` and `display_order`; only the order has a value).
+      expect(childRow!, `AT-18 the inherited row's trailing cells: ${childRow}`).toMatch(
+        new RegExp(`,${fixture.parentSlug},,,,\\d+$`),
+      );
     } finally {
       await fixture.destroy();
     }
@@ -3301,14 +3312,13 @@ test.describe("C3 attributes console", () => {
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
       /**
-       * The trailing cells, in the FILE's own order (the gate's `optionalFrom`):
-       * `allowed_options`, `default_value`, then `display_order`. The links file
-       * still carries NO `visible_when` column — that cell remains the console's
-       * alone (a named deferral), so naming it here is an `unknownColumn`.
+       * The trailing cells, in the FILE's own order (the gate's `optionalFrom`)
+       * and the database's: `allowed_options`, `default_value`, `visible_when`,
+       * then `display_order` (R-GATE — the condition cell is a file cell now).
        */
-      const header = `${LINK_HEADER},allowed_options,default_value,display_order`;
+      const header = `${LINK_HEADER},allowed_options,default_value,visible_when,display_order`;
       const row = (key: string, order: string) =>
-        `${slug},${slug},${key},false,false,,${slug},,,${order}`;
+        `${slug},${slug},${key},false,false,,${slug},,,,${order}`;
       // THE NEW ORDER: third, first, second.
       const links =
         `${header}\r\n` +
@@ -3337,7 +3347,7 @@ test.describe("C3 attributes console", () => {
         .toEqual([keys[2], keys[0], keys[1]]);
 
       // A BLANK CELL CHANGES NOTHING.
-      const blank = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,\r\n`;
+      const blank = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,,\r\n`;
       const quiet = await importPost(page, token, { mode: "preview", links: blank });
       expect(quiet.status, JSON.stringify(quiet.payload)).toBe(200);
       expect(
@@ -3351,7 +3361,7 @@ test.describe("C3 attributes console", () => {
        * `badNumber` naming `display_order`; the RPC's own `badDisplayOrder` is
        * what a shape-legal value the door still rejects would read.
        */
-      const hostile = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,1.5\r\n`;
+      const hostile = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,,1.5\r\n`;
       const refused = await importPost(page, token, { mode: "preview", links: hostile });
       expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
       const refusals = (refused.payload["refusals"] ?? []) as Record<string, unknown>[];
@@ -3374,6 +3384,134 @@ test.describe("C3 attributes console", () => {
       }
       await destroyCategory(slug);
       for (const key of keys) await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * R-GATE STEP 3 (AT-62) — A CONDITION AND AN ORDER SURVIVE A ROUND TRIP.
+   *
+   * INC-241's second half: the database held a link's condition and its order,
+   * the file could not say either, so an operator who exported a category and
+   * re-imported it silently proposed nothing about them — and, once the gate
+   * knew the column, would have been told a real cell was unknown. The proof is
+   * the operator's OWN walk: a scratch leaf whose second question only appears
+   * for one answer to the first is exported through the real route and previewed
+   * back through the real door. The export must STATE both cells, and the
+   * preview must read UNCHANGED (IE-2b).
+   */
+  test("AT-62 an exported link's condition and order re-import as unchanged", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const parentKey = `e2e_attr_${rand()}`;
+    const childKey = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-cond-${rand()}`;
+    try {
+      const { data: parent, error: parentError } = await supabase
+        .from("attributes")
+        .insert({
+          attr_key: parentKey,
+          name_en: parentKey,
+          attr_type: "single_select",
+          options: [
+            { value: "saloon", label_en: "Saloon" },
+            { value: "pickup", label_en: "Pickup" },
+          ],
+        })
+        .select("id")
+        .single();
+      if (parentError) throw new Error(`AT-62 seeding the sibling: ${parentError.message}`);
+      const { data: child, error: childError } = await supabase
+        .from("attributes")
+        .insert({ attr_key: childKey, name_en: childKey, attr_type: "text" })
+        .select("id")
+        .single();
+      if (childError) throw new Error(`AT-62 seeding the conditioned row: ${childError.message}`);
+
+      const { data: category, error: categoryError } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+        .select("id")
+        .single();
+      if (categoryError) throw new Error(`AT-62 seeding the category: ${categoryError.message}`);
+      const pointed = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: null, child_id: category!.id, display_order: 941 });
+      if (pointed.error) throw new Error(`AT-62 seeding the pointer: ${pointed.error.message}`);
+
+      const linked = await supabase.from("category_attribute_links").insert([
+        {
+          category_id: category!.id,
+          attribute_id: parent!.id,
+          is_required: false,
+          is_filterable: false,
+          display_order: 0,
+        },
+        {
+          category_id: category!.id,
+          attribute_id: child!.id,
+          is_required: false,
+          is_filterable: false,
+          display_order: 7,
+          visible_when: { key: parentKey, in: ["pickup"] },
+        },
+      ]);
+      if (linked.error) throw new Error(`AT-62 seeding the links: ${linked.error.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // THE REAL ROUTE, scoped to this scratch leaf alone (J6).
+      const response = await page.request.get(
+        `/api/admin/attributes/export?file=links&scope=${slug}`,
+        { headers },
+      );
+      expect(response.status(), "AT-62 the scoped links export failed").toBe(200);
+      const links = await response.text();
+
+      // THE FILE STATES BOTH CELLS, in the database's own order.
+      const header = links.slice(1).split("\r\n")[0] ?? "";
+      expect(header, `AT-62 the export header omitted a cell: ${header}`).toContain(
+        "default_value,visible_when,display_order",
+      );
+      const childRow = links.split("\r\n").find((line) => line.includes(childKey)) ?? "";
+      expect(childRow, `AT-62 the export did not echo the condition: ${childRow}`).toContain(
+        `${parentKey}=pickup`,
+      );
+      expect(childRow, `AT-62 the export did not echo the order: ${childRow}`).toMatch(/,7$/);
+
+      // AND THE ROUND TRIP IS A NO-OP (IE-2b).
+      const preview = await importPost(page, token, { mode: "preview", links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(
+        (preview.payload["refusals"] ?? []) as unknown[],
+        `AT-62 the round trip was refused: ${JSON.stringify(preview.payload)}`,
+      ).toHaveLength(0);
+      expect(
+        [counts.adds, counts.changes],
+        `AT-62 the round trip was not a no-op: ${JSON.stringify(preview.payload)}`,
+      ).toEqual([0, 0]);
+      expect(
+        counts.unchanged,
+        `AT-62 the round trip read nothing: ${JSON.stringify(preview.payload)}`,
+      ).toBe(2);
+    } finally {
+      for (const key of [parentKey, childKey]) {
+        const { data: attribute } = await supabase
+          .from("attributes")
+          .select("id")
+          .eq("attr_key", key)
+          .maybeSingle();
+        if (attribute) {
+          await supabase.from("category_attribute_links").delete().eq("attribute_id", attribute.id);
+        }
+      }
+      await destroyCategory(slug);
+      for (const key of [parentKey, childKey]) await destroyAttribute(key);
     }
   });
 

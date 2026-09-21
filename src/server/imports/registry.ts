@@ -41,6 +41,12 @@ export const KEY_RE = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
 export const MAX_UNIT = 16;
 /** A help sentence's ceiling, mirroring `attr_cell_check`. */
 export const MAX_HELP = 240;
+/**
+ * R-GATE — a links-row condition cell (`key=value1|value2`). One key plus a
+ * list of option values; generous enough for a long sibling list, bounded so a
+ * pasted paragraph is refused as a cell rather than parsed as a condition.
+ */
+export const MAX_CONDITION = 480;
 
 /**
  * DEC-050 L2b — a bound cell is a numeric literal or a year token (`year`,
@@ -261,6 +267,20 @@ export const FAMILIES: Record<string, FamilySpec> = {
             formula: "allow",
           },
           /**
+           * R-GATE / INC-241 — THE CONDITION CELL, AT LAST. `attr_import_plan`
+           * has judged a links-row `visible_when` since M-MAINT-3b (20260920
+           * 075213) and `attr_export_payload` echoes it, but the REGISTRY never
+           * declared it — so the gate, doing exactly its job, refused the
+           * operator's own exported file with `unknownColumn:visible_when`. The
+           * column was never ignored; it was simply not admitted. It is
+           * admitted here, in the SQL's own order (after `default_value`, before
+           * `display_order`), as the planner's TEXT form `key=value1|value2`.
+           * SHAPE ONLY: a blank cell changes nothing, and every semantic rule
+           * (does the sibling exist, is it linked here, are the values its own)
+           * stays the planner's verdict (`badVisibleWhen:`).
+           */
+          { name: "visible_when", klass: "editable", type: "text", maxLength: MAX_CONDITION },
+          /**
            * U6-C1-R3b-3b STEP 2 / M-ORDER — THE ORDER THE FORM ASKS IN. The same
            * column the console's Move up/down writes, so a whole category's
            * question order can be set in one file instead of one tap at a time.
@@ -268,10 +288,6 @@ export const FAMILIES: Record<string, FamilySpec> = {
            * it and the posting read orders by it; a BLANK cell changes nothing.
            * Shape only here (an integer); `badDisplayOrder:<value>` is the
            * planner's verdict.
-           *
-           * NAMED DEFERRAL — `visible_when` is still not a file cell (the SQL
-           * export echoes it, this file does not), so the order cell sits where
-           * that column will eventually precede it (docs/features/imports.md).
            */
           { name: "display_order", klass: "editable", type: "int", formula: "allow" },
           { name: "action", klass: "action", values: ACTION_ATTRIBUTE_LINKS },

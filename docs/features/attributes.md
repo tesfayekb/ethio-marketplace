@@ -208,8 +208,14 @@ LIMITATION: the normalized model carries no per-variant flag, so
 the database never stated.
 
 The registry accepts the two trailing per-link cells after `unit` in its versioned
-definition. The `visible_when` file cell remains deferred: adding it requires whole
-re-declarations of the import planner, commit, undo, and export routines.
+definition. R-GATE (INC-241) closed the last two gaps in the LINKS file: the
+registry declares `visible_when` (text `key=value1|value2`) after `default_value`
+and before `display_order` — the planner and `attr_export_payload` had carried
+both for days, so no SQL re-declaration was needed — and the CSV export route's
+link columns now echo both, in that order. The four trailing links cells are
+therefore `allowed_options`, `default_value`, `visible_when`, `display_order` in
+the file, the export and the database alike (AT-62 proves the round trip;
+docs/features/imports.md holds the cell rules).
 
 PARITY (INC-176): `admin_export_attributes()` reached the connected project
 before its migration file existed. `20260907173330_5a9c6351` re-declares it

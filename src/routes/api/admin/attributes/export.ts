@@ -64,6 +64,17 @@ const LINK_COLUMNS = [
   // change is still a valid file.
   "allowed_options",
   "default_value",
+  /**
+   * R-GATE / INC-241 — THE LAST TWO CELLS THE DATABASE ALREADY CARRIED.
+   * `attr_export_payload` emits `visible_when` (the planner's text form
+   * `key=value1|value2`) and `display_order` in exactly this order; the route
+   * formats nothing (IE-3b). Leaving them out meant an operator's own export
+   * did not state a condition or an order the database held, so a round trip
+   * dropped them from the file even though the importer now accepts both
+   * (INC-188's rule: a file never drops a field the database keeps).
+   */
+  "visible_when",
+  "display_order",
 ] as const;
 
 /**
