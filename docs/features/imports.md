@@ -181,6 +181,16 @@ export → undo). One caveat: the echo follows jsonb's own key order (keys sort 
 length, then bytes), so `facts` appears BEFORE `bounds` in the cell, not after;
 the round trip is unaffected.
 
+**An UNCHANGED option cell is not re-validated** (M-SHAPE, INC-254). The strict
+DEC-050 option shape runs only on an option cell whose parsed form DIFFERS from
+the stored one. A cell identical to the stored options is the catalog's own
+state — judged when it was written — so re-importing a byte-identical export can
+never refuse; the row simply falls through to the ordinary diff and plans as
+`unchanged`. Every altered cell, and every cell of a brand-new definition, is
+judged in full exactly as before: one added key still refuses `badOption` with
+`unknownOptionKey:<key>`. The file's proof walks EVERY live definition through a
+byte-identical re-import and requires zero refusals.
+
 ## The links file — `allowed_options` and `default_value` (D-spec §12)
 
 The two per-link cells travel in the links file, after the existing cells:
