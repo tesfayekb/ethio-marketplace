@@ -390,6 +390,13 @@ export function StepSpecifications({
     const prefill: Record<string, unknown> = {};
     const bounds: Record<string, FactBound[]> = {};
     const byOwner: Record<string, Record<string, unknown>> = {};
+    /**
+     * D27 — A FACT NEVER TICKS A BOX FOR THE SELLER. A boolean detail is an
+     * ATTESTATION: the seller states it, nobody states it for them. What the
+     * catalogue knows about the model is shown BESIDE the unticked box as a hint,
+     * so the seller can agree in one tap without the form having agreed already.
+     */
+    const hints: Record<string, unknown> = {};
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const picked = selectedValue(values[def.attrKey]);
@@ -399,15 +406,22 @@ export function StepSpecifications({
       const mine: Record<string, unknown> = {};
       for (const [key, raw] of Object.entries(option.facts)) {
         const bound = boundOf(raw);
-        if (bound !== null) (bounds[key] ??= []).push(bound);
-        else if (typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
-          prefill[key] = raw;
-          mine[key] = raw;
+        if (bound !== null) {
+          (bounds[key] ??= []).push(bound);
+          continue;
         }
+        if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean") continue;
+        const target = definitions.find((entry) => entry.attrKey === key) ?? null;
+        if (target !== null && target.attrType === "boolean") {
+          hints[key] = raw;
+          continue;
+        }
+        prefill[key] = raw;
+        mine[key] = raw;
       }
       byOwner[def.attrKey] = mine;
     }
-    return { prefill, bounds, byOwner };
+    return { prefill, bounds, byOwner, hints };
   }, [definitions, values, allowedListOf]);
 
   /**
