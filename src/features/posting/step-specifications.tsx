@@ -127,11 +127,23 @@ interface FactBound {
   max: number | null;
 }
 
+/**
+ * INC-247 — A BOUND WRITTEN AS TEXT IS STILL A BOUND. A fact that arrives through
+ * the attributes FILE carries its numbers as the file wrote them (`"1968"`), and
+ * reading only JSON numbers here was how a model's floor was quietly ignored and
+ * the picker offered years the catalogue had already ruled out. A numeric string
+ * is read as the number it is; anything that is not a number is not a bound.
+ */
 function boundOf(raw: unknown): FactBound | null {
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
   const row = raw as Record<string, unknown>;
-  const num = (key: string) =>
-    typeof row[key] === "number" && Number.isFinite(row[key]) ? Number(row[key]) : null;
+  const num = (key: string): number | null => {
+    const held = row[key];
+    if (typeof held === "number") return Number.isFinite(held) ? held : null;
+    if (typeof held !== "string" || held.trim() === "") return null;
+    const parsed = Number(held);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
   const min = num("min");
   const max = num("max");
   if (min === null && max === null) return null;
