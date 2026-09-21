@@ -27,6 +27,7 @@ import {
   draftsOf,
   seedCategoryBranch,
   seedConditionalSet,
+  seedColourSet,
   seedFactShiftSet,
   seedFoldSet,
   destroySpecSet,
