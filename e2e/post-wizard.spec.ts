@@ -2077,6 +2077,91 @@ test.describe("POSTING WIZARD", () => {
       battery,
       "PW-32: a model with no battery fact kept the previous model's battery",
     ).toHaveValue("", { timeout: 20_000 });
+
+    /**
+     * D25b — A MAKE CHANGE IS A DIFFERENT CAR. The mileage the seller typed
+     * belonged to the Corolla; under another make it is not "kept", it is wrong.
+     * So the whole form starts over — the seller's own answers included — and the
+     * offer takes it all back.
+     */
+    await mileage.fill("120000");
+    await mileage.blur();
+    await expect(mileage, "PW-32: the mileage did not stand before the make change").toHaveValue(
+      "120000",
+      { timeout: 20_000 },
+    );
+    await control(shift.make.attrKey).selectOption(shift.otherMake);
+    await expect(
+      control(shift.model.attrKey),
+      "PW-32: a model from the previous make survived the make change",
+    ).toHaveValue("", { timeout: 20_000 });
+    await expect(body, "PW-32: the body survived the make change").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect(
+      mileage,
+      "PW-32: the seller's own mileage survived a make change (D25b: a different car)",
+    ).toHaveValue("", { timeout: 20_000 });
+
+    // AND IT IS REVERSIBLE. The model cannot come back — it hangs under the
+    // previous make, and the narrowing clears what the new make cannot hold — but
+    // everything the new make does not decide is restored.
+    const rootOffer = page.getByTestId("post-specs-reset");
+    await expect(rootOffer, "PW-32: the make reset was never announced").toBeVisible({
+      timeout: 20_000,
+    });
+    await page.getByTestId("post-specs-reset-undo").click();
+    await expect(mileage, "PW-32: Undo did not restore the seller's mileage").toHaveValue("120000", {
+      timeout: 20_000,
+    });
+  });
+
+  /**
+   * U6-C1-R3b-3c STEP 3 (D26) — A COLOUR IS SEEN.
+   *
+   * "black" is a word in a list; a colour is a colour. Every option of a colour
+   * detail carries a swatch beside its own label, and a value the map says nothing
+   * about renders a NEUTRAL RING rather than an invented colour (F4).
+   */
+  test("PW-34 a colour detail offers swatches, and an unmapped value stays neutral", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const set = await seedColourSet(category.id);
+    specs.push(...set.attrKeys);
+    await reachStep3(page, user.id, category);
+
+    const swatch = (value: string) =>
+      page.locator(
+        `[data-testid="post-attr-swatch"][data-attr="${set.colour.attrKey}"][data-value="${value}"]`,
+      );
+    await expect(swatch(set.inked), "PW-34: the colour option carries no swatch").toBeVisible({
+      timeout: 20_000,
+    });
+    // THE INK IS THE OPTION'S OWN, not a theme colour.
+    await expect
+      .poll(
+        async () =>
+          swatch(set.inked)
+            .getByTestId("post-attr-swatch-ink")
+            .evaluate((node) => getComputedStyle(node).backgroundColor),
+        { message: "PW-34: the swatch was never painted", timeout: 20_000 },
+      )
+      .toBe("rgb(17, 17, 17)");
+
+    // A VALUE WITH NO INK IS STILL OFFERED, as a neutral ring.
+    await expect(
+      swatch(set.neutral),
+      "PW-34: an unmapped colour value lost its swatch",
+    ).toBeVisible();
+
+    // AND THE SWATCH ANSWERS THE QUESTION the picker beside it asks.
+    await swatch(set.inked).click();
+    await expect(
+      page.locator(`[data-testid="post-attr-control"][data-attr="${set.colour.attrKey}"]`),
+      "PW-34: tapping a swatch did not answer the detail",
+    ).toHaveValue(set.inked, { timeout: 20_000 });
   });
 
   /**
