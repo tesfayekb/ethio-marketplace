@@ -726,3 +726,45 @@ RING rather than an invented colour (F4), and is still offered and still labelle
 A colour's options load eagerly, because the swatches ARE the control's face.
 PW-34 asserts the painted swatch, the neutral one and that a tap answers the
 detail.
+
+## U6-C1-R3b-4 — the map pin
+
+A pin is OPTIONAL for every category and it is NOT part of the draft's autosave:
+it has its own four columns (`pin_lat`, `pin_lng`, `pin_precision`,
+`street_address`) and its own door, `set_listing_pin`, which is owner-gated and
+clears all four when it is called without coordinates. So the pin is saved when
+the seller says Save, and removed when the seller says Remove — never as a side
+effect of typing somewhere else.
+
+**The control** (`src/features/posting/map/map-pin-dropper.tsx`) opens from the
+where step behind "Add a map pin (optional)". It is a LAZY chunk: Leaflet is
+dynamically imported, never statically, both because the package ships a UMD
+build that touches `window` (SSR would crash on it) and because the marketplace
+must not download a mapping library to show a feed. The first-paint budget guard
+proves it stayed off the entry (`scripts/check-bundle-size.mjs`).
+
+Inside it the seller can: search a place, tap or drag the marker, use the
+browser's own location (a refusal is answered in words, never silence), switch
+between the street and satellite layers (both attributions kept), edit the
+street line the reverse geocoder filled, and choose between showing the exact
+pin and showing an approximate area. Controls are 44 px and the map fits the
+card at 360.
+
+**The geocoder is ours, not the browser's.** `/api/geo/search` and
+`/api/geo/reverse` are the only callers of Nominatim, in this order: a bearer
+and a real user (never anonymous) → the dial
+`consume_rate_limit('geocode', <user>, 60, '1 hour')` BEFORE any outbound call →
+a 24-hour in-process cache keyed by the query → a shape of our own
+(`label`/`lat`/`lng`, or a single `street`). A spent dial is the door's own
+word, `rateLimited`. `E2E_FAKE_GEOCODE=1` answers from a fixed table so the
+suite never depends on an upstream service.
+
+**Approximate means approximate.** The buyer-facing still map
+(`map-preview.tsx`) draws a 500 m circle around a centre SNAPPED to a 0.005°
+grid for an approximate pin, and a marker only for an exact one — the exact
+point of an approximate pin is never sent to the drawing, not merely hidden by it.
+
+Tests: PW-37 (tap → `exact`, the row agrees with the screen), PW-38 (search →
+the marker moves and the street line fills), PW-39 (`approx` → the preview draws
+the circle and no marker), PW-40 (Remove clears all four columns), PW-41 (the
+61st call in an hour is `rateLimited`).
