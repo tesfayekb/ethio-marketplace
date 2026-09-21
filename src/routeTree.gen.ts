@@ -43,6 +43,8 @@ import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/i
 import { Route as ApiListingsDraftRouteImport } from './routes/api/listings/draft'
 import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/assist'
 import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
+import { Route as ApiGeoSearchRouteImport } from './routes/api/geo/search'
+import { Route as ApiGeoReverseRouteImport } from './routes/api/geo/reverse'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
 import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
@@ -229,6 +231,16 @@ const ApiI18nLangRoute = ApiI18nLangRouteImport.update({
   path: '/api/i18n/$lang',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGeoSearchRoute = ApiGeoSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => ApiGeoRoute,
+} as any)
+const ApiGeoReverseRoute = ApiGeoReverseRouteImport.update({
+  id: '/reverse',
+  path: '/reverse',
+  getParentRoute: () => ApiGeoRoute,
+} as any)
 const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
   id: '/users_/$userId',
   path: '/users/$userId',
@@ -331,7 +343,7 @@ export interface FileRoutesByFullPath {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
-  '/api/geo': typeof ApiGeoRoute
+  '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
   '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -345,6 +357,8 @@ export interface FileRoutesByFullPath {
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
+  '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
@@ -381,7 +395,7 @@ export interface FileRoutesByTo {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
-  '/api/geo': typeof ApiGeoRoute
+  '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
   '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -395,6 +409,8 @@ export interface FileRoutesByTo {
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
+  '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
@@ -433,7 +449,7 @@ export interface FileRoutesById {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
-  '/api/geo': typeof ApiGeoRoute
+  '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
   '/api/translate': typeof ApiTranslateRoute
   '/auth_/callback': typeof AuthCallbackRoute
@@ -447,6 +463,8 @@ export interface FileRoutesById {
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
+  '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
@@ -500,6 +518,8 @@ export interface FileRouteTypes {
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
+    | '/api/geo/reverse'
+    | '/api/geo/search'
     | '/api/i18n/$lang'
     | '/api/listings/assist'
     | '/api/listings/draft'
@@ -550,6 +570,8 @@ export interface FileRouteTypes {
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
+    | '/api/geo/reverse'
+    | '/api/geo/search'
     | '/api/i18n/$lang'
     | '/api/listings/assist'
     | '/api/listings/draft'
@@ -601,6 +623,8 @@ export interface FileRouteTypes {
     | '/admin/roles_/$roleId'
     | '/admin/translations_/$lang'
     | '/admin/users_/$userId'
+    | '/api/geo/reverse'
+    | '/api/geo/search'
     | '/api/i18n/$lang'
     | '/api/listings/assist'
     | '/api/listings/draft'
@@ -628,7 +652,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PostRoute: typeof PostRoute
   SettingsRoute: typeof SettingsRoute
-  ApiGeoRoute: typeof ApiGeoRoute
+  ApiGeoRoute: typeof ApiGeoRouteWithChildren
   ApiLocationsRoute: typeof ApiLocationsRouteWithChildren
   ApiTranslateRoute: typeof ApiTranslateRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -896,6 +920,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiI18nLangRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/geo/search': {
+      id: '/api/geo/search'
+      path: '/search'
+      fullPath: '/api/geo/search'
+      preLoaderRoute: typeof ApiGeoSearchRouteImport
+      parentRoute: typeof ApiGeoRoute
+    }
+    '/api/geo/reverse': {
+      id: '/api/geo/reverse'
+      path: '/reverse'
+      fullPath: '/api/geo/reverse'
+      preLoaderRoute: typeof ApiGeoReverseRouteImport
+      parentRoute: typeof ApiGeoRoute
+    }
     '/admin/users_/$userId': {
       id: '/admin/users_/$userId'
       path: '/users/$userId'
@@ -1044,6 +1082,19 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ApiGeoRouteChildren {
+  ApiGeoReverseRoute: typeof ApiGeoReverseRoute
+  ApiGeoSearchRoute: typeof ApiGeoSearchRoute
+}
+
+const ApiGeoRouteChildren: ApiGeoRouteChildren = {
+  ApiGeoReverseRoute: ApiGeoReverseRoute,
+  ApiGeoSearchRoute: ApiGeoSearchRoute,
+}
+
+const ApiGeoRouteWithChildren =
+  ApiGeoRoute._addFileChildren(ApiGeoRouteChildren)
+
 interface ApiLocationsRouteChildren {
   ApiLocationsCountryRoute: typeof ApiLocationsCountryRoute
 }
@@ -1063,7 +1114,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PostRoute: PostRoute,
   SettingsRoute: SettingsRoute,
-  ApiGeoRoute: ApiGeoRoute,
+  ApiGeoRoute: ApiGeoRouteWithChildren,
   ApiLocationsRoute: ApiLocationsRouteWithChildren,
   ApiTranslateRoute: ApiTranslateRoute,
   AuthCallbackRoute: AuthCallbackRoute,

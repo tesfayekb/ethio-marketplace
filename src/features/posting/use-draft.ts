@@ -64,6 +64,21 @@ const EMPTY_VALUES: DraftValues = {
   contactPref: { messages: true },
 };
 
+/**
+ * U6-C1-R3b-4 — THE PIN IS NOT A DRAFT FIELD.
+ *
+ * It is deliberately OUTSIDE `DraftValues`: the pin has its own door
+ * (`set_listing_pin`), so autosave must never carry it and the draft door must
+ * never be asked to judge it. The hook still HOLDS it, because a resume and the
+ * buyer preview must read one source — the row the door wrote.
+ */
+export interface DraftPin {
+  lat: number;
+  lng: number;
+  precision: string;
+  street: string | null;
+}
+
 export interface UseDraft {
   listingId: string | null;
   /** The step on screen (1-based), which the seller drives with Back/Next. */
@@ -93,6 +108,10 @@ export interface UseDraft {
   pauseSeconds: number;
   photos: DraftPhotoRow[];
   reloadPhotos: () => void;
+  /** The saved pin, or `null` when this listing has none. */
+  pin: DraftPin | null;
+  /** What the pin's own door just wrote, so the screen and the row agree. */
+  setPin: (pin: DraftPin | null) => void;
   loading: boolean;
   /** A resume that cannot be honoured says why, in words. */
   loadError: "notFound" | "failed" | null;
@@ -109,6 +128,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [loading, setLoading] = useState(initialListingId !== null);
   const [loadError, setLoadError] = useState<"notFound" | "failed" | null>(null);
   const [photoNonce, setPhotoNonce] = useState(0);
+  const [pin, setPin] = useState<DraftPin | null>(null);
 
   // Refs, not state: the save machinery must not re-run an effect to work, and
   // the latest values must be readable from inside a timer (I3).
@@ -458,6 +478,16 @@ export function useDraft(initialListingId: string | null): UseDraft {
         draftStepRef.current = found.draft.draftStep;
         setDraftStep(found.draft.draftStep);
         setPhotos(found.photos);
+        setPin(
+          found.draft.pinLat === null || found.draft.pinLng === null
+            ? null
+            : {
+                lat: found.draft.pinLat,
+                lng: found.draft.pinLng,
+                precision: found.draft.pinPrecision ?? "exact",
+                street: found.draft.streetAddress,
+              },
+        );
         // Open where the seller left off: the step AFTER the one the SERVER
         // recorded, never past what this landing can honestly render.
         setStep(Math.min(Math.max(found.draft.draftStep, 1) + 1, IMPLEMENTED_THROUGH));
@@ -512,6 +542,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
       pauseSeconds,
       photos,
       reloadPhotos,
+      pin,
+      setPin,
       loading,
       loadError,
     }),
@@ -530,6 +562,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       pauseSeconds,
       photos,
       reloadPhotos,
+      pin,
       loading,
       loadError,
     ],

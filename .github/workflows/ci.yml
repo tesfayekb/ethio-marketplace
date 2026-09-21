@@ -331,6 +331,7 @@ jobs:
       # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
       # needs no provider key and spends nothing. PROD is unaffected.
       E2E_FAKE_TRANSLATE: "1"
+      E2E_FAKE_GEOCODE: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -462,6 +463,7 @@ jobs:
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
       E2E_FAKE_TRANSLATE: "1"
+      E2E_FAKE_GEOCODE: "1"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -607,6 +609,7 @@ jobs:
       # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
       # needs no provider key and spends nothing. PROD is unaffected.
       E2E_FAKE_TRANSLATE: "1"
+      E2E_FAKE_GEOCODE: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -729,6 +732,7 @@ jobs:
       # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
       # needs no provider key and spends nothing. PROD is unaffected.
       E2E_FAKE_TRANSLATE: "1"
+      E2E_FAKE_GEOCODE: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2

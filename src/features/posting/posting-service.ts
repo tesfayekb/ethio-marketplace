@@ -201,6 +201,15 @@ export interface DraftRow {
   posterExpiresAt: string | null;
   /** U6-C2b — step 7's stored channels, in `listing_contact_refusals` shape. */
   contactPref: Record<string, unknown>;
+  /**
+   * U6-C1-R3b-4 — the map pin as the door stores it. The four columns travel
+   * together: `set_listing_pin` writes all four or clears all four, so a resume
+   * and the buyer preview read ONE source and cannot disagree about a pin.
+   */
+  pinLat: number | null;
+  pinLng: number | null;
+  pinPrecision: string | null;
+  streetAddress: string | null;
 }
 
 export interface DraftPhotoRow {
@@ -220,7 +229,7 @@ export async function readDraft(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,poster_expires_at,contact_pref",
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,poster_expires_at,contact_pref,pin_lat,pin_lng,pin_precision,street_address",
     )
     .eq("id", listingId)
     .maybeSingle();
@@ -268,6 +277,10 @@ export async function readDraft(
         data.contact_pref !== null && typeof data.contact_pref === "object"
           ? (data.contact_pref as Record<string, unknown>)
           : { messages: true },
+      pinLat: data.pin_lat === null ? null : Number(data.pin_lat),
+      pinLng: data.pin_lng === null ? null : Number(data.pin_lng),
+      pinPrecision: data.pin_precision,
+      streetAddress: data.street_address,
     },
     photos: (photos ?? []).map((row) => ({
       id: row.id,
@@ -572,4 +585,50 @@ export function publishListing(listingId: string): Promise<DoorAnswer> {
   return call("/api/listings/publish", JSON.stringify({ listingId }), {
     "Content-Type": "application/json",
   });
+}
+
+/**
+ * U6-C1-R3b-4 — THE PIN'S OWN DOOR: `set_listing_pin`.
+ *
+ * SECURITY DEFINER, owner-gated, and the only way the four pin columns change.
+ * The call carries the caller's own session, so a listing that is not this
+ * account's is refused by the function, not by the screen — and NULL coordinates
+ * clear all four columns in one statement, which is what "Remove the pin" means.
+ *
+ * The answer is a plain boolean because that is all the screen needs: a refusal
+ * is a translated caption, and the refusal's own reason is logged by the door.
+ */
+export async function savePin(
+  listingId: string,
+  lat: number,
+  lng: number,
+  precision: string,
+  street: string | null,
+): Promise<boolean> {
+  const { error } = await supabase.rpc("set_listing_pin", {
+    p_listing_id: listingId,
+    p_lat: lat,
+    p_lng: lng,
+    p_precision: precision,
+    p_street: street ?? undefined,
+  });
+  if (error !== null) {
+    console.error("[pin] set_listing_pin refused:", error.message);
+    return false;
+  }
+  return true;
+}
+
+/** The same door with no coordinates, which is how the door spells "cleared". */
+export async function clearPin(listingId: string): Promise<boolean> {
+  // Every coordinate argument is omitted: the door's own DEFAULT NULL is what
+  // spells "clear", so the screen states no value it would then have to unstate.
+  const { error } = await supabase.rpc("set_listing_pin", {
+    p_listing_id: listingId,
+  });
+  if (error !== null) {
+    console.error("[pin] set_listing_pin refused:", error.message);
+    return false;
+  }
+  return true;
 }

@@ -642,6 +642,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           coverage={draft.values.coverage}
                           refusals={draft.refusals}
                           onChange={(coverage, immediate) => draft.change({ coverage }, immediate)}
+                          listingId={draft.listingId}
+                          pin={draft.pin}
+                          onPinSaved={(pin) => draft.setPin(pin)}
                         />
                       )}
                       {draft.step === 7 && (
@@ -663,6 +666,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           expiryDays={facts?.expiryDays ?? 60}
                           refusals={draft.refusals}
                           maxPhotos={planCaps?.maxPhotos ?? null}
+                          pin={draft.pin}
                           onChangeExpiry={(posterExpiresAt) =>
                             draft.change({ posterExpiresAt }, true)
                           }

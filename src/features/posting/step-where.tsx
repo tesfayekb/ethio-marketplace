@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   anchorOf,
@@ -13,8 +13,20 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
+import { clearPin, savePin } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
+import type { PinValue } from "./map/map-pin-dropper";
 import type { Refusal } from "./types";
+
+/**
+ * U6-C1-R3b-4 — THE MAP IS A LAZY CHUNK. Leaflet, its stylesheet and the dropper
+ * are fetched by the tap that opens the section, so the marketplace's first paint
+ * never carries a mapping library (the weight and budget guards prove it), and a
+ * seller who never asks for a pin never downloads one.
+ */
+const MapPinDropper = lazy(() =>
+  import("./map/map-pin-dropper").then((mod) => ({ default: mod.MapPinDropper })),
+);
 
 /**
  * U6-C2a — STEP 6: WHERE IT IS, AND WHERE IT SHOWS (DEC-064, D19).
@@ -42,9 +54,10 @@ import type { Refusal } from "./types";
  * that counts is `coverageExceedsPlan:<level>` from `submit_listing`, which
  * renders beneath the list when it comes.
  *
- * NAMED DEFERRAL — THE MAP PIN. No category carries the `map_pin` capability yet,
- * so no pin control is rendered: the screen says a pin will be offered for
- * categories that use one, and the control lands with the capability (docs).
+ * U6-C1-R3b-4 — THE MAP PIN, OPTIONAL FOR EVERY CATEGORY. The section is closed
+ * until the seller taps it open, it blocks nothing, and it is saved by its OWN
+ * owner-gated door (`set_listing_pin`) rather than by the draft's autosave — so a
+ * pin that the door refuses never appears as saved (F4).
  */
 
 const LEVEL_KEYS: Record<string, MessageKey> = {
@@ -93,14 +106,24 @@ export function StepWhere({
   coverage,
   refusals,
   onChange,
+  listingId = null,
+  pin = null,
+  onPinSaved,
 }: {
   /** The chosen place ids; the FIRST one is the item's own place (spec §4 C2). */
   coverage: string[];
   refusals: Refusal[];
   onChange: (coverage: string[], immediate: boolean) => void;
+  /** The draft the pin belongs to; with none there is nothing to pin yet. */
+  listingId?: string | null;
+  /** The saved pin, so reopening the section shows the seller's own answer. */
+  pin?: PinValue | null;
+  /** What the door wrote, so the wizard and the buyer preview read one source. */
+  onPinSaved?: (pin: PinValue | null) => void;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
+  const [pinOpen, setPinOpen] = useState(false);
 
   /**
    * U6-C1-R3a (PW-13/PW-20) — the saved area's market is known SYNCHRONOUSLY, so
@@ -330,6 +353,20 @@ export function StepWhere({
   };
 
   const coverageRefusal = refusalFor(refusals, "coverage");
+
+  /**
+   * WHERE THE MAP OPENS: the seller's own place if the tree knows its centre,
+   * else the market's, else nothing — the dropper falls back on its own and the
+   * seller drags from there. Never a coordinate this screen invents.
+   */
+  const pinCentre = useMemo(() => {
+    const first = chosen.find((node) => node.centerLat !== null && node.centerLng !== null);
+    if (first !== undefined) return { lat: first.centerLat, lng: first.centerLng };
+    const market = nodes.find(
+      (node) => node.level === "country" && node.centerLat !== null && node.centerLng !== null,
+    );
+    return { lat: market?.centerLat ?? null, lng: market?.centerLng ?? null };
+  }, [chosen, nodes]);
 
   return (
     <div className="space-y-5" data-testid="post-where">
@@ -713,9 +750,53 @@ export function StepWhere({
             {t(draftRefusalKey(coverageRefusal.reason))}
           </p>
         )}
-        <p className="text-xs text-muted-foreground" data-testid="post-where-pin-later">
-          {t("post.where.pinLater")}
-        </p>
+        {/* ------------------------------ the map pin --------------------------- */}
+        {listingId === null ? (
+          <p className="text-xs text-muted-foreground" data-testid="post-where-pin-later">
+            {t("post.where.pinLater")}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            <button
+              type="button"
+              className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
+              aria-expanded={pinOpen}
+              onClick={() => setPinOpen(!pinOpen)}
+              data-testid="post-where-pin-open"
+            >
+              {t(pinOpen ? "post.pin.close" : "post.pin.open")}
+            </button>
+            {pinOpen && (
+              <Suspense
+                fallback={
+                  <p className="text-xs text-muted-foreground">{t("post.pin.searching")}</p>
+                }
+              >
+                <MapPinDropper
+                  saved={pin}
+                  centreLat={pinCentre.lat}
+                  centreLng={pinCentre.lng}
+                  onSave={async (value) => {
+                    const ok = await savePin(
+                      listingId,
+                      value.lat,
+                      value.lng,
+                      value.precision,
+                      value.street,
+                    );
+                    if (ok) onPinSaved?.(value);
+                    return ok;
+                  }}
+                  onRemove={async () => {
+                    const ok = await clearPin(listingId);
+                    if (ok) onPinSaved?.(null);
+                    return ok;
+                  }}
+                />
+              </Suspense>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

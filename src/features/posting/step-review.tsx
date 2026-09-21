@@ -91,6 +91,7 @@ export function StepReview({
   onChangeExpiry,
   onGoTo,
   maxPhotos,
+  pin = null,
 }: {
   listingId: string | null;
   /** The chosen category's full path, in the seller's language. */
@@ -107,6 +108,8 @@ export function StepReview({
   onGoTo: (step: number) => void;
   /** D22 — the plan's photo cap from the posting document; `null` = not read. */
   maxPhotos: number | null;
+  /** U6-C1-R3b-4 — the saved pin, so the buyer's-eye preview draws what the door holds. */
+  pin?: { lat: number; lng: number; precision: string; street: string | null } | null;
 }) {
   const { t, entities, language } = useI18n();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
@@ -356,6 +359,9 @@ export function StepReview({
             sellerAlias: identity?.alias ?? null,
             sellerBusinessName:
               identity?.sellerType === "business" ? (identity?.businessName ?? null) : null,
+            pinLat: pin?.lat ?? null,
+            pinLng: pin?.lng ?? null,
+            pinPrecision: pin?.precision ?? null,
           }}
         />
       )}

@@ -1,3 +1,13 @@
+import { lazy, Suspense } from "react";
+
+/**
+ * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
+ * with no pin never downloads Leaflet, and neither does the first paint.
+ */
+const MapPreview = lazy(() =>
+  import("../map/map-preview").then((mod) => ({ default: mod.MapPreview })),
+);
+
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
@@ -69,6 +79,14 @@ export interface ListingDetailView {
   /** The public seller name, and the business name when there is one. */
   sellerAlias: string | null;
   sellerBusinessName: string | null;
+  /**
+   * U6-C1-R3b-4 — the saved pin, exactly as the door holds it. `approx` is drawn
+   * as a 500-metre circle whose centre is snapped inside `MapPreview`, so this
+   * component can carry the true coordinates without revealing them.
+   */
+  pinLat?: number | null;
+  pinLng?: number | null;
+  pinPrecision?: string | null;
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -258,11 +276,16 @@ export function ListingDetail(view: ListingDetailView) {
       </section>
 
       {/* ------------------------------- the map ---------------------------- */}
-      <div
-        className="grid min-h-24 place-items-center rounded-md border border-dashed border-border p-3"
-        data-testid="listing-detail-map"
-      >
-        <p className="text-xs text-muted-foreground">{t("post.preview.mapPlaceholder")}</p>
+      <div data-testid="listing-detail-map">
+        {typeof view.pinLat === "number" && typeof view.pinLng === "number" ? (
+          <Suspense fallback={<p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>}>
+            <MapPreview lat={view.pinLat} lng={view.pinLng} precision={view.pinPrecision ?? "exact"} />
+          </Suspense>
+        ) : (
+          <div className="grid min-h-24 place-items-center rounded-md border border-dashed border-border p-3">
+            <p className="text-xs text-muted-foreground">{t("post.preview.mapPlaceholder")}</p>
+          </div>
+        )}
       </div>
     </article>
   );
