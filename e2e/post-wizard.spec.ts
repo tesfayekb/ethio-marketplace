@@ -593,6 +593,20 @@ test.describe("POSTING WIZARD", () => {
     ).toBeVisible();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
 
+    // INC-248 — ON SCREEN AS WELL AS IN STATE: the picker the new category still
+    // asks shows "Choose", not the option chosen under the previous category.
+    await expect(
+      page.locator(`[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`),
+      "PW-26: the fold picker kept the previous category's option on screen",
+    ).toHaveValue("", { timeout: 20_000 });
+
+    // The notice can be put away once read (R-YEAR STEP 5).
+    await page.getByTestId("post-category-changed-dismiss").click();
+    await expect(
+      page.getByTestId("post-category-changed"),
+      "PW-26: the notice could not be dismissed",
+    ).toHaveCount(0);
+
     // DB TRUTH (J4): nothing the new category cannot ask survived.
     await expect
       .poll(async () => Object.keys(await attributesOf(listingId)).length, {
