@@ -1300,3 +1300,28 @@ export async function linkSpecToCategory(
   });
   if (error) throw new Error(`[e2e:inc248] linking the definition failed: ${error.message}`);
 }
+
+/**
+ * U6-C1-R3b-4 DB TRUTH: the four pin columns `set_listing_pin` owns. Read
+ * through the service client, because the assertion is about the ROW, not about
+ * what a screen claims (J4).
+ */
+export async function pinOf(listingId: string): Promise<{
+  lat: number | null;
+  lng: number | null;
+  precision: string | null;
+  street: string | null;
+}> {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("pin_lat,pin_lng,pin_precision,street_address")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:r3b4] reading the pin failed: ${error.message}`);
+  return {
+    lat: data?.pin_lat === null || data?.pin_lat === undefined ? null : Number(data.pin_lat),
+    lng: data?.pin_lng === null || data?.pin_lng === undefined ? null : Number(data.pin_lng),
+    precision: data?.pin_precision ?? null,
+    street: data?.street_address ?? null,
+  };
+}
