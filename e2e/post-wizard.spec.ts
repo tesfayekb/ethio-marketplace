@@ -547,6 +547,9 @@ test.describe("POSTING WIZARD", () => {
       spec.select.attrKey,
       spec.multi.attrKey,
     );
+    // INC-248 — the SECOND leaf asks the SAME picker, so a chosen option could
+    // travel across the change on screen while the door had already cleared it.
+    await linkSpecToCategory(other.id, spec.select.id);
     const listingId = await reachStep3(page, user.id, category);
 
     // An ANSWERED draft: the text detail is stored under the first category.
