@@ -17,6 +17,7 @@ import {
   attributesOf,
   bearerOf,
   pinOf,
+  reasonsOf,
   contactPrefOf,
   coverageOf,
   identityOf,
