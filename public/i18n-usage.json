@@ -3436,15 +3436,15 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.category.changedDropped": [
+    "post.category.changedCleared": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.changedDismiss": [
       "/post",
       "/post/$listingId"
     ],
     "post.category.changedPhotos": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.category.changedTitle": [
       "/post",
       "/post/$listingId"
     ],
@@ -3822,15 +3822,15 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.specs.attest": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.specs.boundsHint": [
       "/post",
       "/post/$listingId"
     ],
     "post.specs.choose": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.factHint": [
       "/post",
       "/post/$listingId"
     ],

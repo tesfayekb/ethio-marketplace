@@ -127,11 +127,23 @@ interface FactBound {
   max: number | null;
 }
 
+/**
+ * INC-247 — A BOUND WRITTEN AS TEXT IS STILL A BOUND. A fact that arrives through
+ * the attributes FILE carries its numbers as the file wrote them (`"1968"`), and
+ * reading only JSON numbers here was how a model's floor was quietly ignored and
+ * the picker offered years the catalogue had already ruled out. A numeric string
+ * is read as the number it is; anything that is not a number is not a bound.
+ */
 function boundOf(raw: unknown): FactBound | null {
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
   const row = raw as Record<string, unknown>;
-  const num = (key: string) =>
-    typeof row[key] === "number" && Number.isFinite(row[key]) ? Number(row[key]) : null;
+  const num = (key: string): number | null => {
+    const held = row[key];
+    if (typeof held === "number") return Number.isFinite(held) ? held : null;
+    if (typeof held !== "string" || held.trim() === "") return null;
+    const parsed = Number(held);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
   const min = num("min");
   const max = num("max");
   if (min === null && max === null) return null;
@@ -378,6 +390,13 @@ export function StepSpecifications({
     const prefill: Record<string, unknown> = {};
     const bounds: Record<string, FactBound[]> = {};
     const byOwner: Record<string, Record<string, unknown>> = {};
+    /**
+     * D27 — A FACT NEVER TICKS A BOX FOR THE SELLER. A boolean detail is an
+     * ATTESTATION: the seller states it, nobody states it for them. What the
+     * catalogue knows about the model is shown BESIDE the unticked box as a hint,
+     * so the seller can agree in one tap without the form having agreed already.
+     */
+    const hints: Record<string, unknown> = {};
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const picked = selectedValue(values[def.attrKey]);
@@ -387,15 +406,23 @@ export function StepSpecifications({
       const mine: Record<string, unknown> = {};
       for (const [key, raw] of Object.entries(option.facts)) {
         const bound = boundOf(raw);
-        if (bound !== null) (bounds[key] ??= []).push(bound);
-        else if (typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
-          prefill[key] = raw;
-          mine[key] = raw;
+        if (bound !== null) {
+          (bounds[key] ??= []).push(bound);
+          continue;
         }
+        if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean")
+          continue;
+        const target = definitions.find((entry) => entry.attrKey === key) ?? null;
+        if (target !== null && target.attrType === "boolean") {
+          hints[key] = raw;
+          continue;
+        }
+        prefill[key] = raw;
+        mine[key] = raw;
       }
       byOwner[def.attrKey] = mine;
     }
-    return { prefill, bounds, byOwner };
+    return { prefill, bounds, byOwner, hints };
   }, [definitions, values, allowedListOf]);
 
   /**
@@ -992,21 +1019,38 @@ export function StepSpecifications({
                 />
               )}
 
+              {/*
+               * D27 — THE BOX SAYS WHAT IT IS, AND NOBODY TICKS IT BUT THE SELLER.
+               * The box carries the DETAIL's own name (an attestation the seller
+               * recognises), and what the catalogue knows about the chosen model is
+               * a hint beside it — never a tick already made on their behalf.
+               */}
               {def.attrType === "boolean" && (
-                <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                  <input
-                    id={controlId}
-                    type="checkbox"
-                    data-testid="post-attr-control"
-                    data-attr={def.attrKey}
-                    className="h-5 w-5 rounded border-input"
-                    checked={value === true}
-                    onChange={(event) =>
-                      write(def.attrKey, event.target.checked ? true : undefined, true)
-                    }
-                  />
-                  <span>{t("post.specs.attest")}</span>
-                </label>
+                <div className="space-y-1">
+                  <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                    <input
+                      id={controlId}
+                      type="checkbox"
+                      data-testid="post-attr-control"
+                      data-attr={def.attrKey}
+                      className="h-5 w-5 rounded border-input"
+                      checked={value === true}
+                      onChange={(event) =>
+                        write(def.attrKey, event.target.checked ? true : undefined, true)
+                      }
+                    />
+                    <span>{label}</span>
+                  </label>
+                  {facts.hints[def.attrKey] === true && (
+                    <p
+                      className="text-xs text-muted-foreground"
+                      data-testid="post-attr-fact-hint"
+                      data-attr={def.attrKey}
+                    >
+                      {fill(t("post.specs.factHint"), { value: label })}
+                    </p>
+                  )}
+                </div>
               )}
 
               {def.attrType === "single_select" && (

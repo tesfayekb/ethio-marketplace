@@ -400,6 +400,8 @@ export interface FoldSet {
   model: ScratchAttr;
   year: ScratchAttr;
   unit: ScratchAttr;
+  /** D27 — an ATTESTATION a model's facts speak about, and may never tick. */
+  dual: ScratchAttr;
   makeValues: [string, string];
   /** Two models under the FIRST make, one under the second. */
   modelValues: [string, string, string];
@@ -421,6 +423,7 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   const supabase = adminClient();
   const stem = `e2e_fold_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
   const yearKey = `${stem}_year`;
+  const dualKey = `${stem}_dual`;
   const makeValues: [string, string] = [`${stem}_mk1`, `${stem}_mk2`];
   const modelValues: [string, string, string] = [`${stem}_md1`, `${stem}_md2`, `${stem}_md3`];
   const unitValues: [string, string, string] = [`${stem}_pc`, `${stem}_set`, `${stem}_jug`];
@@ -481,7 +484,11 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
           facts: { [yearKey]: { min: modelYearFloor } },
         }),
         // A FACT THAT IS A VALUE: the year is known, and the form says so.
-        option(modelValues[1], { parent: makeValues[0], facts: { [yearKey]: modelYearValue } }),
+        // D27 — and a fact about an ATTESTATION, which may only ever be a HINT.
+        option(modelValues[1], {
+          parent: makeValues[0],
+          facts: { [yearKey]: modelYearValue, [dualKey]: true },
+        }),
         option(modelValues[2], { parent: makeValues[1] }),
       ],
     },
@@ -496,6 +503,7 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
       // fixture declares the format the door already allows for one.
       format: "year",
     },
+    { attr_key: dualKey, name_en: `${stem} dual`, attr_type: "boolean" },
     {
       attr_key: `${stem}_unit`,
       name_en: `${stem} unit`,
@@ -526,9 +534,11 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   const model = pick("_model");
   const year = pick("_year");
   const unit = pick("_unit");
+  const dual = pick("_dual");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
     { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
+    { category_id: categoryId, attribute_id: dual.id, is_required: false, display_order: 5 },
     { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
     { category_id: categoryId, attribute_id: year.id, is_required: false, display_order: 3 },
     {
@@ -548,13 +558,152 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
     model,
     year,
     unit,
+    dual,
     makeValues,
     modelValues,
     unitValues,
     modelYearFloor,
     modelYearValue,
     unitYearFloor,
-    attrKeys: [make.attrKey, model.attrKey, year.attrKey, unit.attrKey],
+    attrKeys: [make.attrKey, model.attrKey, year.attrKey, unit.attrKey, dual.attrKey],
+  };
+}
+
+/**
+ * INC-247 — THE REAL SHAPE, NOT A CONVENIENT ONE.
+ *
+ * The catalogue's own vehicles shape has three properties the flat fold set above
+ * does not, and every one of them was a place a bound could get lost:
+ *
+ *   1 the YEAR is linked at the SECTION and only INHERITED by the leaf
+ *     (`effective_category_links`), so the field on screen does not come from the
+ *     leaf's own links at all;
+ *   2 the fold is THREE levels deep — brand → series → model — so the option that
+ *     carries the bound sits two levels below the first answer;
+ *   3 the bound is written the way the attributes FILE writes it, as TEXT, and one
+ *     model is a single-year model (`min = max`).
+ *
+ * One seed, both cases: `pinModel` pins the year to exactly one value, `floorModel`
+ * carries a floor alone.
+ */
+export interface DeepFoldSet {
+  brand: ScratchAttr;
+  series: ScratchAttr;
+  model: ScratchAttr;
+  year: ScratchAttr;
+  brandValue: string;
+  seriesValue: string;
+  /** The model whose fact pins the year to one value (min = max). */
+  pinModel: string;
+  /** The model whose fact carries a floor only. */
+  floorModel: string;
+  pinnedYear: number;
+  floorYear: number;
+  attrKeys: string[];
+}
+
+export async function seedDeepFoldSet(params: {
+  /** The leaf the seller posts in: brand, series and model are linked here. */
+  leafId: string;
+  /** The SECTION above it: the year is linked here and inherited by the leaf. */
+  sectionId: string;
+}): Promise<DeepFoldSet> {
+  const supabase = adminClient();
+  const stem = `e2e_deep_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const yearKey = `${stem}_year`;
+  const brandValue = `${stem}_br1`;
+  const seriesValue = `${stem}_se1`;
+  const pinModel = `${stem}_md_pin`;
+  const floorModel = `${stem}_md_floor`;
+  const pinnedYear = 2014;
+  const floorYear = 2008;
+
+  const option = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...extra,
+  });
+
+  const rows = [
+    {
+      attr_key: `${stem}_brand`,
+      name_en: `${stem} brand`,
+      attr_type: "single_select",
+      options: [option(brandValue), option(`${stem}_br2`)],
+    },
+    {
+      attr_key: `${stem}_series`,
+      name_en: `${stem} series`,
+      attr_type: "single_select",
+      options: [option(seriesValue, { parent: brandValue })],
+    },
+    {
+      attr_key: `${stem}_model`,
+      name_en: `${stem} model`,
+      attr_type: "single_select",
+      options: [
+        // A SINGLE-YEAR MODEL: the fact pins the year, written as the file writes it.
+        option(pinModel, {
+          parent: seriesValue,
+          facts: { [yearKey]: { min: String(pinnedYear), max: String(pinnedYear) } },
+        }),
+        option(floorModel, {
+          parent: seriesValue,
+          facts: { [yearKey]: { min: String(floorYear) } },
+        }),
+      ],
+    },
+    {
+      attr_key: yearKey,
+      name_en: `${stem} year`,
+      attr_type: "number",
+      min_bound: "1900",
+      max_bound: "2030",
+      decimals: 0,
+      format: "year",
+    },
+  ];
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert(rows)
+    .select("id, attr_key, name_en");
+  if (error || !data) {
+    throw new Error(`[e2e:r-year] seeding the deep fold failed: ${error?.message ?? "no rows"}`);
+  }
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:r-year] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
+  };
+  const brand = pick("_brand");
+  const series = pick("_series");
+  const model = pick("_model");
+  const year = pick("_year");
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: params.leafId, attribute_id: brand.id, is_required: false, display_order: 1 },
+    { category_id: params.leafId, attribute_id: series.id, is_required: false, display_order: 2 },
+    { category_id: params.leafId, attribute_id: model.id, is_required: false, display_order: 3 },
+    // THE INHERITED FIELD: linked at the section, never at the leaf.
+    { category_id: params.sectionId, attribute_id: year.id, is_required: false, display_order: 4 },
+  ]);
+  if (linkError) throw new Error(`[e2e:r-year] linking the deep fold failed: ${linkError.message}`);
+
+  return {
+    brand,
+    series,
+    model,
+    year,
+    brandValue,
+    seriesValue,
+    pinModel,
+    floorModel,
+    pinnedYear,
+    floorYear,
+    attrKeys: [brand.attrKey, series.attrKey, model.attrKey, year.attrKey],
   };
 }
 
@@ -1120,4 +1269,24 @@ export async function seedAllowedSet(categoryId: string): Promise<AllowedSet> {
     fuelPetrol,
     attrKeys: [model.attrKey, fuel.attrKey],
   };
+}
+
+/**
+ * INC-248 — THE SAME QUESTION UNDER TWO LEAVES. A category change can only be
+ * proved to CLEAR a chosen option when the new category asks the same question,
+ * so a spec set's own picker is linked to a second scratch leaf here. Both leaves
+ * and the definition are namespaced scratch and destroyed with them (J3).
+ */
+export async function linkSpecToCategory(
+  categoryId: string,
+  attributeId: string,
+  displayOrder = 9,
+): Promise<void> {
+  const { error } = await adminClient().from("category_attribute_links").insert({
+    category_id: categoryId,
+    attribute_id: attributeId,
+    is_required: false,
+    display_order: displayOrder,
+  });
+  if (error) throw new Error(`[e2e:inc248] linking the definition failed: ${error.message}`);
 }

@@ -467,6 +467,27 @@ markets' currencies with "More…"), and step 1's disabled Next with its caption
   SINGLE admitted value is written and the control locked with a translated caption
   naming where the answer came from. `attr_allowed_check` and the publish door stay
   the authority (F3). `PW-35`.
+- **A bound written as text is still a bound (INC-247).** A fact that arrives
+  through the attributes FILE carries its numbers as the file wrote them
+  (`{"min": "1968"}`), and the resolver used to read JSON numbers alone — so the
+  model's floor was silently dropped and the year picker offered years the
+  catalogue had already ruled out. Reproduced on the catalogue's own shape: the
+  year linked at a SECTION and only inherited by the leaf, a three-level fold
+  (brand → series → model), the bound on the MODEL option; the picker offered from
+  **1900** (the definition's own minimum) instead of 2008. A bound now applies from
+  whatever answer carries it, whatever link the bounded field came from and however
+  deep the fold; a model with `min = max` pins the picker to that one year.
+  `PW-25`.
+- **A category change clears the fold on screen too (INC-248).** When the new
+  category still asks a picker the previous one asked, the picker shows "Choose":
+  the door had already cleared the answer, and a control still displaying it was a
+  phantom (F4). `PW-26`.
+- **A fact never ticks an attestation (D27).** A boolean detail is the seller's
+  statement, so what the catalogue knows about the model renders as a hint beside
+  the UNTICKED box ("This model: <label>"), and the box carries the definition's own
+  label. `PW-9`.
+- **The cleared-answers notice is one line, and dismissible.** "Some answers didn't
+  apply to <category> and were cleared: <labels>" (EN/AM), with Dismiss beside it.
 - **A changed list is noticed (INC-243).** An option list is cached for sixty
   seconds with the definition's version as its ETag (`max-age=60,
 stale-while-revalidate=300`), and the version is `md5(updated_at + active option

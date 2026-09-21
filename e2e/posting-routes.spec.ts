@@ -202,7 +202,10 @@ test.describe("POSTING ROUTES", () => {
     expect(first.status()).toBe(200);
     const etag = first.headers()["etag"] ?? "";
     expect(etag, "the options route published no ETag").not.toBe("");
-    expect(first.headers()["cache-control"] ?? "").toContain("max-age=300");
+    // INC-243 — the list is held for ONE minute, with five of stale-while-revalidate,
+    // so a curator's file commit reaches an open form within the minute.
+    expect(first.headers()["cache-control"] ?? "").toContain("max-age=60");
+    expect(first.headers()["cache-control"] ?? "").toContain("stale-while-revalidate=300");
 
     const repeat = await page.request.get(path, { headers: { "If-None-Match": etag } });
     expect(repeat.status()).toBe(304);

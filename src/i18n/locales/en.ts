@@ -2176,11 +2176,14 @@ export const en = {
   "post.action.backToReview": "Back to review",
   "post.progress.stripLabel": "Steps",
   "post.progress.stepNumber": "Step {step}",
-  "post.category.changedTitle": "The new category asks different questions",
-  "post.category.changedDropped":
-    "These answers do not fit the new category and were removed: {fields}",
+  // D5 — R-YEAR STEP 5 rewords the cleared-answers notice, so it is a NEW key; the
+  // title and the old sentence are retired with the two-line notice they belonged to.
+  "post.category.changedCleared":
+    "Some answers didn’t apply to {category} and were cleared: {fields}",
+  "post.category.changedDismiss": "Dismiss",
   "post.category.changedPhotos": "Check your photos against the new category before you publish.",
   "post.specs.setByModel": "Set by the model — this is the only answer it allows.",
+  "post.specs.factHint": "This model: {value}",
   "post.category.allRoots": "All categories",
   "post.category.trailLabel": "Where you are",
   "post.review.previewAsBuyer": "Preview as buyers see it",

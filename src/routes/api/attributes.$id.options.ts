@@ -18,7 +18,7 @@ import type { Database } from "@/integrations/supabase/types";
  * FRESHNESS, in three layers, the shape the locations and bundle routes use:
  *   1 `get_attribute_options_version` → an in-process cache good for 15 s
  *   2 the version IS the ETag, so a conditional request costs a 304
- *   3 `public, max-age=300, stale-while-revalidate=3600` for the browser
+ *   3 `public, max-age=60, stale-while-revalidate=300` for the browser (INC-243)
  *
  * CENSUS NOTE: `attributes` carries no active flag of its own — an option row's
  * `active` field is what the door already filters — so 404 here means an id no
