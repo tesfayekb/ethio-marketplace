@@ -410,7 +410,8 @@ export function StepSpecifications({
           (bounds[key] ??= []).push(bound);
           continue;
         }
-        if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean") continue;
+        if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean")
+          continue;
         const target = definitions.find((entry) => entry.attrKey === key) ?? null;
         if (target !== null && target.attrType === "boolean") {
           hints[key] = raw;

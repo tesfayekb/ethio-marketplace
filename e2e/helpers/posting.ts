@@ -649,7 +649,10 @@ export async function seedDeepFoldSet(params: {
           parent: seriesValue,
           facts: { [yearKey]: { min: String(pinnedYear), max: String(pinnedYear) } },
         }),
-        option(floorModel, { parent: seriesValue, facts: { [yearKey]: { min: String(floorYear) } } }),
+        option(floorModel, {
+          parent: seriesValue,
+          facts: { [yearKey]: { min: String(floorYear) } },
+        }),
       ],
     },
     {
@@ -703,7 +706,6 @@ export async function seedDeepFoldSet(params: {
     attrKeys: [brand.attrKey, series.attrKey, model.attrKey, year.attrKey],
   };
 }
-
 
 /**
  * D26 — A SCRATCH COLOUR DETAIL. The DEFINITION is namespaced per run, worker and
