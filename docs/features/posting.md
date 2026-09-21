@@ -619,11 +619,46 @@ what the tap just restored. PW-32 walks all of it in one form: a typed year and 
 prefilled body under one model, both re-derived under the next, the mileage
 surviving, and Undo putting the previous answers back.
 
+### A make change starts over (D25b)
+
+The MAKE is the root of the cascade — the picker other pickers hang under which
+hangs under nothing itself. Changing it does not adjust an item, it names a
+DIFFERENT item, so every detail on the form clears and re-prefills from the new
+make's own facts: the seller's answers included, mileage and colour and all. Only
+the moved answer itself survives. The same ten-second Undo offer covers it.
+
+A MODEL change keeps D25's narrower scope (the details some option speaks about).
+A parent emptied by the narrowing pass — its own parent moved, or an Undo put back
+an answer the new parent cannot hold — is NOT a new choice and cascades no second
+reset, so an Undo is never undone by the pass that follows it. The model itself
+cannot come back through Undo when the make moved: it hangs under the previous
+make, and the narrowing clears what the new one cannot hold. PW-32 asserts that.
+
 ## A year is a picker, not a number box
 
 A number detail declared `format = 'year'` renders as a select from its EFFECTIVE
-floor — the selected parent option's bound for that key, else the definition's
-minimum, else 1900 — up to next year, newest first, behind a "Choose" entry. The
-door's bounds remain the authority (F3); the picker simply cannot reach outside
-them, so there is no negative year and no free text. PW-25 asserts a model whose
-floor is 1968 offers nothing below it.
+floor up to next year, newest first, behind a "Choose" entry. The door's bounds
+remain the authority (F3); the picker simply cannot reach outside them, so there is
+no negative year and no free text.
+
+**EFFECTIVE bounds come from every chosen option (INC-242).** A field's bounds are
+its definition's own, narrowed by the `bounds` of EVERY option currently selected
+anywhere on the form that names this field's key — not only the option it hangs
+under. A floor written on the unit picker's option applies to the year although
+the year depends on nothing; two floors intersect at the HIGHER one, never the
+looser. One resolver serves the picker, the numeric field's `min`/`max`, the bounds
+caption and the local judgement, so they cannot disagree. PW-25 proves it with the
+floor on a sibling's option.
+
+## A colour is seen, not read (D26)
+
+A single-select detail whose key names a colour (`/colou?r/`) renders its options
+as SWATCHES beside the picker: 44-pixel labelled buttons, each painted with the ink
+the catalogue value stands for, the picker itself kept as the accessible control
+and the door's vocabulary. The value→ink map is DATA in `colour-swatches.ts` (the
+catalogue's own colour words), not theming — a design token cannot say what colour
+a car is. A value the map says nothing about, `other` included, renders a NEUTRAL
+RING rather than an invented colour (F4), and is still offered and still labelled.
+A colour's options load eagerly, because the swatches ARE the control's face.
+PW-34 asserts the painted swatch, the neutral one and that a tap answers the
+detail.
