@@ -140,9 +140,7 @@ function boundOf(raw: unknown): FactBound | null {
   const num = (key: string): number | null => {
     const held = row[key];
     if (typeof held === "number") return Number.isFinite(held) ? held : null;
-    if (typeof held !== "string" || held.trim() === "") return null;
-    const parsed = Number(held);
-    return Number.isFinite(parsed) ? parsed : null;
+    return null;
   };
   const min = num("min");
   const max = num("max");
