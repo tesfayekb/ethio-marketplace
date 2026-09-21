@@ -768,7 +768,7 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
         attr_key: `${stem}_make`,
         name_en: `${stem} make`,
         attr_type: "single_select",
-        options: [option(makeValue)],
+        options: [option(makeValue), option(otherMake)],
       },
       {
         attr_key: `${stem}_model`,
@@ -868,6 +868,7 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
   }
 
   return {
+    otherMake,
     make,
     model,
     body,
