@@ -316,7 +316,12 @@ export function MapPinDropper({
         </p>
       )}
 
-      <p className="text-sm text-foreground" data-testid="post-pin-position">
+      <p
+        className="text-sm text-foreground"
+        data-testid="post-pin-position"
+        data-lat={position === null ? "" : position.lat.toFixed(5)}
+        data-lng={position === null ? "" : position.lng.toFixed(5)}
+      >
         {position === null
           ? t("post.pin.none")
           : fill(t("post.pin.at"), {
