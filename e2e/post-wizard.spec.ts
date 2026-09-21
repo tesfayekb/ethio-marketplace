@@ -34,6 +34,7 @@ import {
   seedConditionalSet,
   seedUnhideFactSet,
   seedColourSet,
+  seedSurfacedDependentSet,
   seedFactShiftSet,
   linkSpecToCategory,
   seedDeepFoldSet,
@@ -2216,11 +2217,12 @@ test.describe("POSTING WIZARD", () => {
   /**
    * U6-C1-R3b-3c STEP 3 (D26) — A COLOUR IS SEEN.
    *
-   * "black" is a word in a list; a colour is a colour. Every option of a colour
-   * detail carries a swatch beside its own label, and a value the map says nothing
-   * about renders a NEUTRAL RING rather than an invented colour (F4).
+   * "black" is a word in a list; a colour is a colour. A parent-prefixed value
+   * (`dog_black`) resolves through its stem, and a patterned colour (`cat_tabby`)
+   * renders a neutral patterned chip. If no option resolves to a visual colour the
+   * tray is absent rather than a row of empty circles (F4).
    */
-  test("PW-34 a colour detail offers swatches, and an unmapped value stays neutral", async ({
+  test("PW-34 a colour detail offers stemmed swatches, and an unmapped list shows no tray", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -2247,11 +2249,32 @@ test.describe("POSTING WIZARD", () => {
       )
       .toBe("rgb(17, 17, 17)");
 
-    // A VALUE WITH NO INK IS STILL OFFERED, as a neutral ring.
+    // A PARENT-PREFIXED VALUE paints from its colour stem.
     await expect(
-      swatch(set.neutral),
-      "PW-34: an unmapped colour value lost its swatch",
+      swatch(set.prefixed),
+      "PW-34: a prefixed colour value has no swatch",
     ).toBeVisible();
+    await expect
+      .poll(
+        async () =>
+          swatch(set.prefixed)
+            .getByTestId("post-attr-swatch-ink")
+            .evaluate((node) => getComputedStyle(node).backgroundColor),
+        { message: "PW-34: the prefixed swatch was never painted", timeout: 20_000 },
+      )
+      .toBe("rgb(17, 17, 17)");
+
+    // A PATTERN STEM renders as the neutral patterned chip, not an empty circle.
+    await expect(
+      swatch(set.pattern),
+      "PW-34: a patterned colour value has no swatch",
+    ).toHaveAttribute("data-swatch", "pattern");
+
+    // AN UNRELATED COLOUR-LIKE FIELD with no resolvable option gets no tray at all.
+    await expect(
+      page.locator(`[data-testid="post-attr-swatches"][data-attr="${set.plain.attrKey}"]`),
+      "PW-34: an unresolved colour list rendered empty swatches",
+    ).toHaveCount(0);
 
     // AND THE SWATCH ANSWERS THE QUESTION the picker beside it asks.
     await swatch(set.inked).click();
@@ -2355,6 +2378,69 @@ test.describe("POSTING WIZARD", () => {
       page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
       "PW-36: the surfaced leaf is missing under the root it was surfaced under",
     ).toBeVisible({ timeout: 20_000 });
+  });
+
+  /**
+   * INC-260 — A DEPENDENT LIST ON A SURFACED LEAF STILL FOLLOWS ITS PARENT.
+   * Vehicle Hire is visible under a second branch, but its make and model controls
+   * are linked directly to that leaf. The fold must therefore be resolved from the
+   * leaf's own option relationships, not from the category path the seller used.
+   */
+  test("PW-44 a dependent list on a surfaced leaf narrows by its parent", async ({ page }) => {
+    const { parent, leaf: child } = await seedCategoryBranch();
+    branches.push(parent.slug, child.slug);
+    const second = await seedPostableCategory();
+    categories.push(second.slug);
+    await surfaceCategoryUnder(second.id, child.id);
+    const set = await seedSurfacedDependentSet(child.id);
+    specs.push(...set.attrKeys);
+
+    const user = await seller(page);
+    await gotoReady(page, "/post");
+    await page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`).click();
+    await page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`).click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    const [draft] = await draftsOf(user.id);
+    const listingId = String(draft?.id ?? "");
+    expect(listingId, "PW-44: choosing the surfaced leaf created no draft").not.toBe("");
+    objects.push({ userId: user.id, listingId });
+
+    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+    await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
+      timeout: 45_000,
+    });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+
+    const make = page.locator(`[data-testid="post-attr-control"][data-attr="${set.make.attrKey}"]`);
+    const model = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${set.model.attrKey}"]`,
+    );
+    await expect(model, "PW-44: the child picker was open before its parent").toBeDisabled();
+
+    await make.selectOption(set.makeValues.byd);
+    await expect(model, "PW-44: the model picker did not open under its parent").toBeEnabled({
+      timeout: 20_000,
+    });
+    await expect(
+      model.locator(`option[value="${set.modelValues.byd}"]`),
+      "PW-44: the BYD model was not offered on the surfaced leaf",
+    ).toHaveCount(1);
+    await expect(
+      model.locator(`option[value="${set.modelValues.toyota}"]`),
+      "PW-44: the other make's model was offered on the surfaced leaf",
+    ).toHaveCount(0);
+
+    await model.selectOption(set.modelValues.byd);
+    await expect(model, "PW-44: the BYD model did not stay selected").toHaveValue(
+      set.modelValues.byd,
+    );
+
+    await make.selectOption(set.makeValues.toyota);
+    await expect(model, "PW-44: a model from the previous parent survived").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect(model.locator(`option[value="${set.modelValues.toyota}"]`)).toHaveCount(1);
   });
 
   /**
