@@ -569,6 +569,10 @@ export function StepSpecifications({
           prefills: heldPrefills,
           model: option === undefined ? "" : optionLabel(option, entities.lang),
         });
+        // INC-245 — a reset empties fields the LINK has a default for, and a
+        // default is what an empty field starts from. So the defaults pass below
+        // is re-opened by this reset, not spent once per category.
+        defaultsAgain.current = true;
       }
     }
     skipReset.current = false;
@@ -576,7 +580,15 @@ export function StepSpecifications({
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const parentKey = folds[def.attrKey];
-      if (parentKey === undefined && def.allowedOptions === null) continue;
+      // INC-244 — an answer outside what the chosen options allow is cleared here
+      // too, never left for the door to refuse at the end.
+      if (
+        parentKey === undefined &&
+        def.allowedOptions === null &&
+        narrowing[def.attrKey] === undefined
+      ) {
+        continue;
+      }
       const held = options[def.attrKey] ?? IDLE;
       if (held.state !== "ready") continue;
       const offered = new Set(visibleOptionsOf(def).map((option) => option.value));
@@ -630,6 +642,25 @@ export function StepSpecifications({
       changed = true;
     }
 
+    /**
+     * INC-244 — ONE ALLOWED ANSWER IS THE ANSWER. When the chosen options leave a
+     * single-select picker with exactly one admissible value, the form fills it and
+     * the control below says so and locks: there is nothing to choose, and leaving
+     * it empty would only earn a refusal at the door.
+     */
+    for (const def of definitions) {
+      if (def.attrType !== "single_select") continue;
+      if (narrowing[def.attrKey] === undefined) continue;
+      const held = options[def.attrKey] ?? IDLE;
+      if (held.state !== "ready") continue;
+      const offered = visibleOptionsOf(def);
+      if (offered.length !== 1) continue;
+      const only = offered[0]?.value ?? "";
+      if (only === "" || same(next[def.attrKey], only)) continue;
+      next[def.attrKey] = only;
+      changed = true;
+    }
+
     // I3 — the mirror of provenance is written only when it actually moved.
     if (JSON.stringify(owned) !== JSON.stringify(prefills)) setPrefills(owned);
 
@@ -647,6 +678,7 @@ export function StepSpecifications({
     options,
     values,
     facts,
+    narrowing,
     prefills,
     parents,
     roots,
@@ -657,11 +689,19 @@ export function StepSpecifications({
     onChange,
   ]);
 
-  /** M-MAINT-2 §12 — the LINK's default fills an empty field, once. */
+  /**
+   * M-MAINT-2 §12 / INC-245 — THE LINK's DEFAULT FILLS AN EMPTY FIELD: on the
+   * first render of the step for this category, and again after a make or model
+   * reset has emptied fields (D25/D25b). It never overwrites an answer that is
+   * there, so a seller who cleared a field between those two moments keeps it
+   * clear.
+   */
   const defaulted = useRef<string | null>(null);
   useEffect(() => {
-    if (schema === null || categoryId === null || defaulted.current === categoryId) return;
+    if (schema === null || categoryId === null) return;
+    if (defaulted.current === categoryId && !defaultsAgain.current) return;
     defaulted.current = categoryId;
+    defaultsAgain.current = false;
     const next = { ...values };
     let changed = false;
     for (const def of definitions) {
