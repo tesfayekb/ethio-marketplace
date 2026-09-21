@@ -3241,6 +3241,239 @@ test.describe("C3 attributes console", () => {
   });
 
   /**
+   * U6-C1-R3b-3b STEP 2 (AT-60) — THE LINKS FILE CARRIES THE ORDER.
+   *
+   * M-ORDER landed `display_order` in the planner, the commit, the export and the
+   * undo; the registry now offers it as an editable cell after `default_value`. The
+   * proof is the ORDER THE SELLER WOULD SEE: three scratch links are reordered by
+   * file and the posting read — the same read the wizard builds step 3 from —
+   * lists them in the new order. A blank cell changes nothing, and a non-integer
+   * is refused by name rather than rounded.
+   */
+  test("AT-60 a links file reorders three links and the posting read follows", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const keys = [`e2e_attr_${rand()}`, `e2e_attr_${rand()}`, `e2e_attr_${rand()}`];
+    const slug = `e2e-cat-order-${rand()}`;
+    try {
+      const ids: string[] = [];
+      for (const key of keys) {
+        const { data, error } = await supabase
+          .from("attributes")
+          .insert({ attr_key: key, name_en: key, attr_type: "text" })
+          .select("id")
+          .single();
+        if (error) throw new Error(`AT-60 seeding ${key}: ${error.message}`);
+        ids.push(data!.id);
+      }
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      for (const [index, attributeId] of ids.entries()) {
+        const inserted = await supabase.from("category_attribute_links").insert({
+          category_id: category!.id,
+          attribute_id: attributeId,
+          is_required: false,
+          is_filterable: false,
+          display_order: index,
+        });
+        if (inserted.error) throw new Error(`AT-60 seeding a link: ${inserted.error.message}`);
+      }
+
+      /** The ORDER the posting read reports, scratch keys only (J6). */
+      const orderOf = async (): Promise<string[]> => {
+        const { data } = await supabase.rpc("get_posting_schema", {
+          p_category_id: category!.id,
+        });
+        const payload = (data ?? {}) as Record<string, unknown>;
+        const rows = Array.isArray(payload["attributes"])
+          ? (payload["attributes"] as Record<string, unknown>[])
+          : [];
+        return rows.map((row) => String(row["attr_key"] ?? "")).filter((key) => keys.includes(key));
+      };
+      expect(await orderOf(), "AT-60 the seeded order is not the read's order").toEqual(keys);
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      /**
+       * The trailing cells, in the FILE's own order (the gate's `optionalFrom`):
+       * `allowed_options`, `default_value`, then `display_order`. The links file
+       * still carries NO `visible_when` column — that cell remains the console's
+       * alone (a named deferral), so naming it here is an `unknownColumn`.
+       */
+      const header = `${LINK_HEADER},allowed_options,default_value,display_order`;
+      const row = (key: string, order: string) =>
+        `${slug},${slug},${key},false,false,,${slug},,,${order}`;
+      // THE NEW ORDER: third, first, second.
+      const links =
+        `${header}\r\n` +
+        `${row(keys[0]!, "1")}\r\n` +
+        `${row(keys[1]!, "2")}\r\n` +
+        `${row(keys[2]!, "0")}\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(
+        (preview.payload["counts"] as Record<string, number>).changes,
+        `AT-60 the order was not planned as a change: ${JSON.stringify(preview.payload)}`,
+      ).toBe(3);
+      expect((preview.payload["refusals"] ?? []) as unknown[]).toHaveLength(0);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+
+      // DB TRUTH (J4), then the read the wizard uses.
+      await expect
+        .poll(orderOf, { timeout: 30_000, message: "AT-60 the posting read kept the old order" })
+        .toEqual([keys[2], keys[0], keys[1]]);
+
+      // A BLANK CELL CHANGES NOTHING.
+      const blank = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,\r\n`;
+      const quiet = await importPost(page, token, { mode: "preview", links: blank });
+      expect(quiet.status, JSON.stringify(quiet.payload)).toBe(200);
+      expect(
+        (quiet.payload["counts"] as Record<string, number>).changes,
+        `AT-60 a blank order cell planned a change: ${JSON.stringify(quiet.payload)}`,
+      ).toBe(0);
+
+      /**
+       * A NON-INTEGER IS REFUSED BY NAME, never rounded (F4). The GATE judges the
+       * cell's shape before the RPC ever sees it, so the verdict is the gate's
+       * `badNumber` naming `display_order`; the RPC's own `badDisplayOrder` is
+       * what a shape-legal value the door still rejects would read.
+       */
+      const hostile = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,1.5\r\n`;
+      const refused = await importPost(page, token, { mode: "preview", links: hostile });
+      expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
+      const refusals = (refused.payload["refusals"] ?? []) as Record<string, unknown>[];
+      expect(
+        refusals.map(
+          (entry) => `${String(entry["reason"] ?? "")}:${String(entry["detail"] ?? "")}`,
+        ),
+        `AT-60 a non-integer order was not refused by name: ${JSON.stringify(refused.payload)}`,
+      ).toContain("badNumber:display_order");
+    } finally {
+      for (const key of keys) {
+        const { data: attribute } = await supabase
+          .from("attributes")
+          .select("id")
+          .eq("attr_key", key)
+          .maybeSingle();
+        if (attribute) {
+          await supabase.from("category_attribute_links").delete().eq("attribute_id", attribute.id);
+        }
+      }
+      await destroyCategory(slug);
+      for (const key of keys) await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * U6-C1-R3b-3b STEP 3 (AT-61) — A LINKS-ONLY IMPORT.
+   *
+   * Changing one category's copy of a shared definition — an order, a narrowing,
+   * a default — needs no definitions file at all, and asking for one taught the
+   * operator to re-upload the whole library to move a row. Preview now opens with
+   * the links file alone, and the run is confirmed through the real doors.
+   */
+  test("AT-61 the import dialog previews and confirms a links-only file", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-linksonly-${rand()}`;
+    try {
+      const { data: attribute, error } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "text" })
+        .select("id")
+        .single();
+      if (error) throw new Error(`AT-61 seeding the definition: ${error.message}`);
+      const { data: category } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug })
+        .select("id")
+        .single();
+      const linked = await supabase.from("category_attribute_links").insert({
+        category_id: category!.id,
+        attribute_id: attribute!.id,
+        is_required: false,
+        is_filterable: false,
+      });
+      if (linked.error) throw new Error(`AT-61 seeding the link: ${linked.error.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-import").click();
+      await expect(page.getByTestId("attribute-import-dialog")).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId("attribute-import-preview")).toBeDisabled();
+
+      // THE LINKS FILE ALONE opens Preview.
+      await attachCsv(
+        page,
+        "attribute-import-links",
+        "links.csv",
+        `${LINK_HEADER}\r\n${slug},${slug},${key},true,false,,${slug}\r\n`,
+      );
+      await expect(page.getByTestId("attribute-import-links-chosen")).toHaveText("links.csv");
+      await expect(
+        page.getByTestId("attribute-import-preview"),
+        "AT-61 Preview refused a links-only file",
+      ).toBeEnabled();
+      // The definitions slot stands empty — and says so, rather than naming a file.
+      await expect(page.getByTestId("attribute-import-definitions-chosen")).not.toHaveText(
+        "definitions.csv",
+      );
+
+      await page.getByTestId("attribute-import-preview").click();
+      await expect(page.getByTestId("attribute-import-counts")).toBeVisible({ timeout: 120_000 });
+      await expect(page.getByTestId("attribute-import-refusals")).toHaveCount(0);
+
+      await page.getByTestId("attribute-import-confirm").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("attribute-import-applied")).toBeVisible({ timeout: 120_000 });
+
+      // DB TRUTH (J4): the links-only run landed its one change.
+      await expect
+        .poll(
+          async () => {
+            const { data } = await adminClient()
+              .from("category_attribute_links")
+              .select("is_required")
+              .eq("category_id", category!.id)
+              .eq("attribute_id", attribute!.id)
+              .maybeSingle();
+            return data?.is_required ?? null;
+          },
+          { timeout: 30_000, message: "AT-61 the links-only commit wrote nothing" },
+        )
+        .toBe(true);
+
+      await page.getByTestId("attribute-import-close").click();
+      await expect(page.getByTestId("attribute-import-dialog")).toHaveCount(0);
+    } finally {
+      const { data: row } = await supabase
+        .from("attributes")
+        .select("id")
+        .eq("attr_key", key)
+        .maybeSingle();
+      if (row) await supabase.from("category_attribute_links").delete().eq("attribute_id", row.id);
+      await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
    * AT-40 (IE-7) — THE THREE DIALOG STATES, DRIVEN TO APPLIED. A scratch pair
    * of files is chosen through the real pickers, previewed, confirmed through
    * step-up and then taken back: the applied banner is present, Confirm and
@@ -3265,11 +3498,14 @@ test.describe("C3 attributes console", () => {
        * READY — Preview waits for a file; Confirm is not rendered at all.
        * C3-UX-8 — the links slot says in words that it is optional, so ONE file
        * opens Preview (the route has always accepted a definitions-only run).
+       * U6-C1-R3b-3b STEP 3 — the DEFINITIONS slot is optional too now, because a
+       * links-only change (an order, a narrowing) needs no definitions file; the
+       * dialog still requires ONE of the two, asserted by the disabled Preview.
        */
       await expect(page.getByTestId("attribute-import-confirm")).toHaveCount(0);
       await expect(page.getByTestId("attribute-import-definitions-choose")).toBeVisible();
       await expect(page.getByTestId("attribute-import-links-optional")).toBeVisible();
-      await expect(page.getByTestId("attribute-import-definitions-optional")).toHaveCount(0);
+      await expect(page.getByTestId("attribute-import-definitions-optional")).toBeVisible();
       await expect(page.getByTestId("attribute-import-preview")).toBeDisabled();
       await attachCsv(
         page,

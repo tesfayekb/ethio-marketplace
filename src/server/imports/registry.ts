@@ -260,6 +260,20 @@ export const FAMILIES: Record<string, FamilySpec> = {
             // INC-208's rule: a numeric default (`-3`) is a number, not a formula.
             formula: "allow",
           },
+          /**
+           * U6-C1-R3b-3b STEP 2 / M-ORDER — THE ORDER THE FORM ASKS IN. The same
+           * column the console's Move up/down writes, so a whole category's
+           * question order can be set in one file instead of one tap at a time.
+           * `attr_import_plan` judges it, the commit writes it, the export echoes
+           * it and the posting read orders by it; a BLANK cell changes nothing.
+           * Shape only here (an integer); `badDisplayOrder:<value>` is the
+           * planner's verdict.
+           *
+           * NAMED DEFERRAL — `visible_when` is still not a file cell (the SQL
+           * export echoes it, this file does not), so the order cell sits where
+           * that column will eventually precede it (docs/features/imports.md).
+           */
+          { name: "display_order", klass: "editable", type: "int", formula: "allow" },
           { name: "action", klass: "action", values: ACTION_ATTRIBUTE_LINKS },
         ],
       },

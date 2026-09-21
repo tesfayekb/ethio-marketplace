@@ -1148,6 +1148,8 @@ export const en = {
     "Inherited row — add a direct row for “{category_slug}”, or edit it at “{detail}”",
   "admin.attributes.import.reason.badCardRank":
     "Card position must be 1, 2 or 3 — this row reads “{card_rank}”",
+  "admin.attributes.import.reason.badDisplayOrder":
+    "Order must be a whole number of 0 or more — this row reads “{detail}”",
   "admin.attributes.import.reason.formula": "Cells may not start with = + - @",
   "admin.attributes.import.reason.keyRename":
     "Keys are identities: restore \u201c{detail}\u201d and change label_en instead of adding a new key",
@@ -1449,6 +1451,7 @@ export const en = {
   "admin.attributes.links.filterable": "Filterable",
   /* UX-2 PART 5 — the link manager saves as you go and says so. */
   "admin.attributes.links.saved": "Saved",
+  "admin.attributes.links.order": "Order {order}",
   "admin.attributes.links.done": "Done",
   "admin.attributes.links.autosave": "Changes save as you go",
   "admin.attributes.links.unlink": "Unlink",
@@ -2164,6 +2167,10 @@ export const en = {
   "post.specs.modelDiffers": "This model says something different.",
   "post.specs.useModelValue": "Use the model's value",
   "post.specs.noneForParent": "This choice has no options for what you picked above.",
+  "post.specs.resetForModel": "Details reset for {model}",
+  "post.specs.resetUndo": "Undo",
+  "post.where.addUnder": "Add a place under this",
+  "post.where.planLevels": "{regions} region(s), {cities} city(ies), {subCities} sub-city(ies)",
   "post.category.nextBlocked": "Choose a category to continue.",
   "post.category.chooseOne": "Choose a category from the list.",
   "post.price.moreCurrencies": "More currencies…",

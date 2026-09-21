@@ -638,18 +638,28 @@ export interface FactShiftSet {
   body: ScratchAttr;
   battery: ScratchAttr;
   doors: ScratchAttr;
+  /**
+   * U6-C1-R3b-3b (D25) — a year the FIRST model bounds and the others say nothing
+   * about, and a mileage NO option ever names: one is the model's, one is the
+   * seller's, and a model change must treat them differently.
+   */
+  year: ScratchAttr;
+  mileage: ScratchAttr;
   makeValue: string;
-  /** hatchback body + 3 doors, no battery. */
+  /** hatchback body + 3 doors + a year floor, no battery. */
   golf: string;
   /** a battery, and the hatchback body. */
   byd: string;
-  /** sedan body + 5 doors, no battery. */
+  /** sedan body + 5 doors, no battery and no year. */
   corolla: string;
   bodyHatch: string;
   bodySedan: string;
   bydBattery: number;
   golfDoors: number;
   corollaDoors: number;
+  /** The year floor the first model carries, and a year inside it. */
+  golfYearFloor: number;
+  golfYear: number;
   attrKeys: string[];
 }
 
@@ -663,11 +673,15 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
   const bodyKey = `${stem}_body`;
   const batteryKey = `${stem}_battery`;
   const doorsKey = `${stem}_doors`;
+  const yearKey = `${stem}_year`;
+  const mileageKey = `${stem}_mileage`;
   const bodyHatch = `${stem}_hatch`;
   const bodySedan = `${stem}_sedan`;
   const bydBattery = 60;
   const golfDoors = 3;
   const corollaDoors = 5;
+  const golfYearFloor = 2000;
+  const golfYear = 2015;
 
   const option = (value: string, extra: Record<string, unknown> = {}) => ({
     value,
@@ -693,7 +707,12 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
         options: [
           option(golf, {
             parent: makeValue,
-            facts: { [bodyKey]: bodyHatch, [doorsKey]: golfDoors },
+            // D25 — this model BOUNDS the year; the others say nothing about it.
+            facts: {
+              [bodyKey]: bodyHatch,
+              [doorsKey]: golfDoors,
+              [yearKey]: { min: golfYearFloor },
+            },
           }),
           option(byd, {
             parent: makeValue,
@@ -727,6 +746,24 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
         max_bound: "9",
         decimals: 0,
       },
+      {
+        attr_key: yearKey,
+        name_en: `${stem} year`,
+        attr_type: "number",
+        min_bound: "1900",
+        max_bound: "2030",
+        decimals: 0,
+        format: "year",
+      },
+      {
+        // NO option ever names this detail: it is the SELLER's, start to finish.
+        attr_key: mileageKey,
+        name_en: `${stem} mileage`,
+        attr_type: "number",
+        min_bound: "0",
+        max_bound: "999999",
+        decimals: 0,
+      },
     ])
     .select("id, attr_key, name_en");
   if (error || !data) {
@@ -744,6 +781,8 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
   const body = pick("_body");
   const battery = pick("_battery");
   const doors = pick("_doors");
+  const year = pick("_year");
+  const mileage = pick("_mileage");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
     { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
@@ -751,6 +790,8 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
     { category_id: categoryId, attribute_id: body.id, is_required: false, display_order: 3 },
     { category_id: categoryId, attribute_id: battery.id, is_required: false, display_order: 4 },
     { category_id: categoryId, attribute_id: doors.id, is_required: false, display_order: 5 },
+    { category_id: categoryId, attribute_id: year.id, is_required: false, display_order: 6 },
+    { category_id: categoryId, attribute_id: mileage.id, is_required: false, display_order: 7 },
   ]);
   if (linkError) {
     throw new Error(`[e2e:r3b3a] linking the fact-shift set failed: ${linkError.message}`);
@@ -762,6 +803,8 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
     body,
     battery,
     doors,
+    year,
+    mileage,
     makeValue,
     golf,
     byd,
@@ -771,7 +814,17 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
     bydBattery,
     golfDoors,
     corollaDoors,
-    attrKeys: [make.attrKey, model.attrKey, body.attrKey, battery.attrKey, doors.attrKey],
+    golfYearFloor,
+    golfYear,
+    attrKeys: [
+      make.attrKey,
+      model.attrKey,
+      body.attrKey,
+      battery.attrKey,
+      doors.attrKey,
+      year.attrKey,
+      mileage.attrKey,
+    ],
   };
 }
 

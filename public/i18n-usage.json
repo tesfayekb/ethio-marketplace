@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 301,
-  "dynamicCallSites": 199,
+  "dynamicCallSites": 200,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -407,6 +407,9 @@
       "/admin/categories"
     ],
     "admin.attributes.links.filterable": [
+      "/admin/categories"
+    ],
+    "admin.attributes.links.order": [
       "/admin/categories"
     ],
     "admin.attributes.links.pickNone": [
@@ -3883,6 +3886,14 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.specs.resetForModel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.resetUndo": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.specs.unitHint": [
       "/post",
       "/post/$listingId"
@@ -3916,6 +3927,10 @@
       "/post/$listingId"
     ],
     "post.where.addPlace": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.addUnder": [
       "/post",
       "/post/$listingId"
     ],
@@ -3976,6 +3991,10 @@
       "/post/$listingId"
     ],
     "post.where.planFull": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.planLevels": [
       "/post",
       "/post/$listingId"
     ],

@@ -593,7 +593,7 @@ on mobile-360 under four workers, and `test.setTimeout` is twice that
 measurement, stated in the test beside the number. Every read inside it is
 bounded at 20 s and names the wait it lost.
 
-## The model's answers are the model's (INC-240)
+## A model change resets what the model speaks about (D25, INC-240)
 
 A detail the seller never typed but the chosen option supplied is held apart from
 one the seller wrote: the form remembers WHAT IT PREFILLED, per detail. When a
@@ -603,10 +603,21 @@ detail the new option says nothing about goes EMPTY rather than keeping the
 previous model's answer. Conditions re-evaluate and `allowed_options` re-narrow in
 the same pass, so a value the new parent no longer offers is cleared.
 
-A value the SELLER typed is never overwritten. When the new option's fact
-disagrees with it, the seller keeps their answer and the form offers the model's
-value beside the control ("Use the model's value"); taking it makes that value
-prefilled again. PW-32 walks all three claims in one form.
+**D25 (U6-C1-R3b-3b) REPLACES R3b-3a's survival rule for a MODEL-DEPENDENT
+detail.** The walk showed why: a Golf's door count left standing under a Corolla
+is a listing that lies, whoever typed it. So on a make or model change EVERY
+detail that model speaks about — a fact it fills, a bound it sets (the year), a
+condition it decides — is reset to the new option's prefill or to empty,
+REGARDLESS of a seller edit; and a detail NO option anywhere names (mileage,
+colour, condition, plate) keeps the seller's answer untouched.
+
+The reset is never silent (F4): a translated caption names the new model and
+offers Undo for ten seconds, restoring the previous answers in one tap. A
+restored answer becomes the SELLER's — it is only handed back to the model when
+it still matches the current fact — so the next reconciliation cannot overwrite
+what the tap just restored. PW-32 walks all of it in one form: a typed year and a
+prefilled body under one model, both re-derived under the next, the mileage
+surviving, and Undo putting the previous answers back.
 
 ## A year is a picker, not a number box
 
