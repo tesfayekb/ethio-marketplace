@@ -27,6 +27,7 @@ import {
   draftsOf,
   seedCategoryBranch,
   seedConditionalSet,
+  seedColourSet,
   seedFactShiftSet,
   seedFoldSet,
   destroySpecSet,
@@ -1898,26 +1899,42 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * U6-C1-R3b-3a STEP 2 — A YEAR CANNOT BE TYPED WRONG.
+   * U6-C1-R3b-3c STEP 1 (INC-242) — A BOUND COMES FROM WHATEVER OPTION CARRIES IT.
    *
-   * D18's fact bound used to be a warning under a free number box; a `format =
-   * 'year'` detail is now a PICKER whose floor is the chosen model's own bound, so
-   * a year the model predates is not refused — it is not offered. The door's
-   * bounds remain the authority (F3); this proves the control can never reach them.
+   * The year picker used to read only the bound of the option it HANGS UNDER, so a
+   * floor written on any other answer was quietly ignored — a listing could be
+   * offered a year the catalogue had already ruled out. The effective bounds are
+   * now the definition's own narrowed by EVERY chosen option; here the floor sits
+   * on the unit picker's opening option, and the year hangs under nothing at all.
+   * The door's bounds remain the authority (F3); this proves the control can never
+   * reach them.
    */
-  test("PW-25 a year field is a picker bounded by the chosen model's floor", async ({ page }) => {
+  test("PW-25 a year picker is bounded by every chosen option, including a sibling's", async ({
+    page,
+  }) => {
     const user = await seller(page);
     const category = await leaf();
     const fold = await seedFoldSet(category.id);
     specs.push(...fold.attrKeys);
     await reachStep3(page, user.id, category);
 
+    const unit = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.unit.attrKey}"]`,
+    );
+    // The SIBLING alone: a make and model that say nothing about the year, and the
+    // unit answered AFTER them — a make change is a fresh start (D25b), so the
+    // sibling's answer is given once the cascade has settled.
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
-      .selectOption(fold.makeValues[0]);
+      .selectOption(fold.makeValues[1]);
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
-      .selectOption(fold.modelValues[0]);
+      .selectOption(fold.modelValues[2]);
+    await unit.selectOption(fold.unitValues[0]);
+    await expect(unit, "PW-25: the sibling's answer did not stand").toHaveValue(
+      fold.unitValues[0],
+      { timeout: 20_000 },
+    );
 
     const year = page.locator(
       `[data-testid="post-attr-control"][data-attr="${fold.year.attrKey}"]`,
@@ -1935,16 +1952,16 @@ test.describe("POSTING WIZARD", () => {
         .filter((value) => Number.isFinite(value) && value > 0);
     await expect
       .poll(offered, {
-        message: "PW-25: the year picker never narrowed to the model's floor",
+        message: "PW-25: the year picker never took the sibling option's floor",
         timeout: 20_000,
       })
-      .toContain(fold.modelYearFloor);
+      .toContain(fold.unitYearFloor);
     const years = await offered();
 
-    const below = years.filter((value) => value < fold.modelYearFloor);
+    const below = years.filter((value) => value < fold.unitYearFloor);
     expect(
       below,
-      `PW-25: the picker offered years below the model's floor: ${below.join(", ")}`,
+      `PW-25: the picker offered years below the sibling's floor: ${below.join(", ")}`,
     ).toHaveLength(0);
     expect(
       years.filter((value) => value <= 0),
@@ -1953,11 +1970,28 @@ test.describe("POSTING WIZARD", () => {
     // NEWEST FIRST: the first offered year is the highest one.
     expect(years[0], "PW-25: the picker is not newest-first").toBe(Math.max(...years));
 
-    await year.selectOption(String(fold.modelYearFloor));
+    await year.selectOption(String(fold.unitYearFloor));
     await expect(
       page.locator(`[data-testid="post-attr-refusal"][data-attr="${fold.year.attrKey}"]`),
-      "PW-25: the model's own floor year was refused",
+      "PW-25: the sibling's own floor year was refused",
     ).toHaveCount(0);
+
+    // TWO BOUNDS NARROW TOGETHER: the parent model's floor (1968) and the
+    // sibling's (1975) intersect at the higher one — never the looser.
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
+      .selectOption(fold.makeValues[0]);
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
+      .selectOption(fold.modelValues[0]);
+    // The make change started the form over, so the sibling answers again.
+    await unit.selectOption(fold.unitValues[0]);
+    await expect
+      .poll(async () => Math.min(...(await offered())), {
+        message: "PW-25: two bounds did not intersect at the higher floor",
+        timeout: 20_000,
+      })
+      .toBe(Math.max(fold.modelYearFloor, fold.unitYearFloor));
   });
 
   /**
@@ -2050,6 +2084,94 @@ test.describe("POSTING WIZARD", () => {
       battery,
       "PW-32: a model with no battery fact kept the previous model's battery",
     ).toHaveValue("", { timeout: 20_000 });
+
+    /**
+     * D25b — A MAKE CHANGE IS A DIFFERENT CAR. The mileage the seller typed
+     * belonged to the Corolla; under another make it is not "kept", it is wrong.
+     * So the whole form starts over — the seller's own answers included — and the
+     * offer takes it all back.
+     */
+    await mileage.fill("120000");
+    await mileage.blur();
+    await expect(mileage, "PW-32: the mileage did not stand before the make change").toHaveValue(
+      "120000",
+      { timeout: 20_000 },
+    );
+    await control(shift.make.attrKey).selectOption(shift.otherMake);
+    await expect(
+      control(shift.model.attrKey),
+      "PW-32: a model from the previous make survived the make change",
+    ).toHaveValue("", { timeout: 20_000 });
+    await expect(body, "PW-32: the body survived the make change").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect(
+      mileage,
+      "PW-32: the seller's own mileage survived a make change (D25b: a different car)",
+    ).toHaveValue("", { timeout: 20_000 });
+
+    // AND IT IS REVERSIBLE. The model cannot come back — it hangs under the
+    // previous make, and the narrowing clears what the new make cannot hold — but
+    // everything the new make does not decide is restored.
+    const rootOffer = page.getByTestId("post-specs-reset");
+    await expect(rootOffer, "PW-32: the make reset was never announced").toBeVisible({
+      timeout: 20_000,
+    });
+    await page.getByTestId("post-specs-reset-undo").click();
+    await expect(mileage, "PW-32: Undo did not restore the seller's mileage").toHaveValue(
+      "120000",
+      {
+        timeout: 20_000,
+      },
+    );
+  });
+
+  /**
+   * U6-C1-R3b-3c STEP 3 (D26) — A COLOUR IS SEEN.
+   *
+   * "black" is a word in a list; a colour is a colour. Every option of a colour
+   * detail carries a swatch beside its own label, and a value the map says nothing
+   * about renders a NEUTRAL RING rather than an invented colour (F4).
+   */
+  test("PW-34 a colour detail offers swatches, and an unmapped value stays neutral", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const set = await seedColourSet(category.id);
+    specs.push(...set.attrKeys);
+    await reachStep3(page, user.id, category);
+
+    const swatch = (value: string) =>
+      page.locator(
+        `[data-testid="post-attr-swatch"][data-attr="${set.colour.attrKey}"][data-value="${value}"]`,
+      );
+    await expect(swatch(set.inked), "PW-34: the colour option carries no swatch").toBeVisible({
+      timeout: 20_000,
+    });
+    // THE INK IS THE OPTION'S OWN, not a theme colour.
+    await expect
+      .poll(
+        async () =>
+          swatch(set.inked)
+            .getByTestId("post-attr-swatch-ink")
+            .evaluate((node) => getComputedStyle(node).backgroundColor),
+        { message: "PW-34: the swatch was never painted", timeout: 20_000 },
+      )
+      .toBe("rgb(17, 17, 17)");
+
+    // A VALUE WITH NO INK IS STILL OFFERED, as a neutral ring.
+    await expect(
+      swatch(set.neutral),
+      "PW-34: an unmapped colour value lost its swatch",
+    ).toBeVisible();
+
+    // AND THE SWATCH ANSWERS THE QUESTION the picker beside it asks.
+    await swatch(set.inked).click();
+    await expect(
+      page.locator(`[data-testid="post-attr-control"][data-attr="${set.colour.attrKey}"]`),
+      "PW-34: tapping a swatch did not answer the detail",
+    ).toHaveValue(set.inked, { timeout: 20_000 });
   });
 
   /**

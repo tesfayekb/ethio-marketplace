@@ -4,6 +4,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
+import { colourInk, isColourKey } from "./colour-swatches";
 import { Field, controlClass } from "./field";
 import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
@@ -229,7 +230,10 @@ export function StepSpecifications({
     const foldsPossible = selects.length > 1;
     for (const def of selects) {
       if (def.optionCount === 0 || def.optionCount > EAGER_OPTION_LIMIT) continue;
-      if (!foldsPossible && def.defaultValue === null) continue;
+      // D26 — a colour's swatches ARE the control's face, so they cannot wait for
+      // a tap on the picker beside them.
+      const colour = def.attrType === "single_select" && isColourKey(def.attrKey);
+      if (!colour && !foldsPossible && def.defaultValue === null) continue;
       openOptions(def);
     }
   }, [schema, openOptions]);
@@ -324,26 +328,67 @@ export function StepSpecifications({
    * THE FACTS OF EVERY CHOSEN OPTION (D18), gathered once: the values to prefill
    * and the bounds to narrow. A later option wins over an earlier one for the
    * same sibling, which is the order the seller answered them in.
+   *
+   * INC-242 — A BOUND COMES FROM WHATEVER WAS CHOSEN, NOT FROM A PARENT. The
+   * model's year floor bounds the year although the year is nobody's child: the
+   * facts of EVERY chosen option of EVERY picker on the form are collected here,
+   * and `bounds` keeps them ALL per key (they are intersected in `boundsOf`
+   * below) rather than letting the last one read win.
+   *
+   * `byOwner` keeps each picker's own contribution apart, because D25b must
+   * re-prefill from ONE option — the make the seller just changed to — and not
+   * from the stale facts of the children that change is about to clear.
    */
   const facts = useMemo(() => {
     const prefill: Record<string, unknown> = {};
-    const bounds: Record<string, FactBound> = {};
+    const bounds: Record<string, FactBound[]> = {};
+    const byOwner: Record<string, Record<string, unknown>> = {};
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const picked = selectedValue(values[def.attrKey]);
       if (picked === "") continue;
       const option = allowedListOf(def).find((entry) => entry.value === picked);
       if (option?.facts === null || option?.facts === undefined) continue;
+      const mine: Record<string, unknown> = {};
       for (const [key, raw] of Object.entries(option.facts)) {
         const bound = boundOf(raw);
-        if (bound !== null) bounds[key] = bound;
+        if (bound !== null) (bounds[key] ??= []).push(bound);
         else if (typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
           prefill[key] = raw;
+          mine[key] = raw;
         }
       }
+      byOwner[def.attrKey] = mine;
     }
-    return { prefill, bounds };
+    return { prefill, bounds, byOwner };
   }, [definitions, values, allowedListOf]);
+
+  /**
+   * INC-242 — THE EFFECTIVE BOUNDS OF ONE DETAIL: its definition's own bounds
+   * NARROWED by every chosen option that speaks about it (the tightest floor and
+   * the tightest ceiling win). One resolver, used by the year picker, the numeric
+   * mirror, the bounds caption and the local judgement alike, so the screen can
+   * never offer a value one part of it would refuse. The door remains the
+   * authority (F3) — this is the mirror.
+   */
+  const boundsOf = useCallback(
+    (def: AttrDef): { min: number | null; max: number | null; narrowed: boolean } => {
+      const own = (raw: string | null): number | null => {
+        if (raw === null) return null;
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+      let min = own(def.minBound);
+      let max = own(def.maxBound);
+      const fromOptions = facts.bounds[def.attrKey] ?? [];
+      for (const bound of fromOptions) {
+        if (bound.min !== null) min = min === null ? bound.min : Math.max(min, bound.min);
+        if (bound.max !== null) max = max === null ? bound.max : Math.min(max, bound.max);
+      }
+      return { min, max, narrowed: fromOptions.length > 0 };
+    },
+    [facts],
+  );
 
   /**
    * D25 — WHICH DETAILS BELONG TO THE MODEL. A detail is MODEL-DEPENDENT when a
@@ -380,6 +425,18 @@ export function StepSpecifications({
     for (const owner of Object.values(folds)) out.add(owner);
     return out;
   }, [definitions, allowedListOf, folds]);
+
+  /**
+   * D25b — THE ROOT OF THE CASCADE: a picker other pickers hang under which hangs
+   * under nothing itself (the MAKE). Changing it does not adjust a car — it names
+   * a DIFFERENT car, so every detail on the form starts over, the seller's own
+   * answers included. A model change stays D25's narrower reset.
+   */
+  const roots = useMemo(() => {
+    const out = new Set<string>();
+    for (const owner of Object.values(folds)) if (!(owner in folds)) out.add(owner);
+    return out;
+  }, [folds]);
 
   /** The parent answers as this screen last saw them, to notice a change at all. */
   const parentsSeen = useRef<Record<string, string> | null>(null);
@@ -428,13 +485,30 @@ export function StepSpecifications({
         ? null
         : (Object.keys(now).find((key) => (before[key] ?? "") !== now[key]) ?? null);
     parentsSeen.current = now;
-    if (movedKey !== null && !skipReset.current) {
+    /**
+     * A reset follows a parent the seller MOVED TO SOMETHING. A parent emptied by
+     * the narrowing below (its own parent changed, or an Undo put back an answer
+     * the new parent cannot hold) is not a new choice, and must not cascade a
+     * second reset over the answers that were just restored.
+     */
+    if (movedKey !== null && now[movedKey] !== "" && !skipReset.current) {
       const snapshot = { ...values };
       const heldPrefills = { ...prefills };
-      for (const key of dependents) {
-        if (parents.has(key)) continue;
+      /**
+       * D25b — HOW WIDE THE RESET IS. A ROOT change (the make) starts the whole
+       * form over: every other detail, the seller's own included, and the only
+       * facts that may prefill are the ones the NEW root option itself carries —
+       * the children it is about to clear are stale by definition. A MODEL change
+       * keeps D25's scope: the details some option speaks about, and no others.
+       */
+      const rootChange = roots.has(movedKey);
+      const source = rootChange ? (facts.byOwner[movedKey] ?? {}) : facts.prefill;
+      const scope = rootChange
+        ? definitions.map((def) => def.attrKey).filter((key) => key !== movedKey)
+        : [...dependents].filter((key) => !parents.has(key));
+      for (const key of scope) {
         if (definitions.every((def) => def.attrKey !== key)) continue;
-        const fact = facts.prefill[key];
+        const fact = source[key];
         if (fact === undefined) {
           if (!isEmpty(next[key])) {
             delete next[key];
@@ -540,6 +614,7 @@ export function StepSpecifications({
     facts,
     prefills,
     parents,
+    roots,
     dependents,
     allowedListOf,
     entities.lang,
@@ -568,12 +643,17 @@ export function StepSpecifications({
     return [...refusals, ...local.filter((entry) => !named.has(entry.field))];
   }, [refusals, local]);
 
-  /** A number judged against the door's bounds AND the chosen model's floor. */
+  /**
+   * A number judged against the EFFECTIVE bounds (INC-242) — the definition's own
+   * narrowed by every chosen option. The wording stays the model's, because a
+   * floor only appears here when an option put it there; a definition-only bound
+   * is the door's to refuse.
+   */
   const judgeNumber = (def: AttrDef, value: number | null) => {
-    const bound = facts.bounds[def.attrKey] ?? null;
+    const bound = boundsOf(def);
     setLocal((prev) => {
       const rest = prev.filter((entry) => entry.field !== def.attrKey);
-      if (value === null || bound === null) return rest;
+      if (value === null || !bound.narrowed) return rest;
       if (bound.min !== null && value < bound.min) {
         return [
           ...rest,
@@ -678,7 +758,8 @@ export function StepSpecifications({
             : (schema.attributes.find((entry) => entry.attrKey === parentKey) ?? null);
         /** A fold with no parent answer yet: closed, and saying what it waits for. */
         const waiting = parentDef !== null && selectedValue(values[parentKey ?? ""]) === "";
-        const bound = facts.bounds[def.attrKey] ?? null;
+        // INC-242 — the definition's bounds narrowed by every chosen option.
+        const bound = boundsOf(def);
         /**
          * U6-C1-R2 — EVERY FIELD THROUGH THE PRIMITIVE. The asterisk, the word
          * "Optional", the refusal message and the red border all come from one
@@ -705,22 +786,16 @@ export function StepSpecifications({
         /**
          * STEP 2 — A YEAR IS A PICKER, NOT A TYPED NUMBER. A `format = 'year'`
          * number offers the years the item can plausibly be: from the EFFECTIVE
-         * floor (the chosen option's fact bound, else the definition's own
-         * minimum, else 1900) to next year, newest first. There is no free text
-         * and no negative year to type. The door's bounds remain the authority
-         * (F3) — this control simply cannot produce a year it would refuse.
+         * floor (INC-242 — the definition's minimum narrowed by every chosen
+         * option's bound, else 1900) to next year, newest first. There is no free
+         * text and no negative year to type. The door's bounds remain the
+         * authority (F3) — this control cannot produce a year it would refuse.
          */
         const yearMode = def.attrType === "number" && def.format === "year";
-        const yearFloorRaw =
-          bound?.min ?? (def.minBound === null ? null : Number(def.minBound)) ?? null;
-        const yearFloor =
-          yearFloorRaw !== null && Number.isFinite(yearFloorRaw) ? Math.trunc(yearFloorRaw) : 1900;
+        const yearFloor = bound.min !== null ? Math.trunc(bound.min) : 1900;
         const nextYear = new Date().getFullYear() + 1;
-        const yearCapRaw = bound?.max ?? (def.maxBound === null ? null : Number(def.maxBound));
         const yearCeiling = Math.trunc(
-          yearCapRaw !== null && Number.isFinite(yearCapRaw)
-            ? Math.min(yearCapRaw, nextYear)
-            : nextYear,
+          bound.max !== null ? Math.min(bound.max, nextYear) : nextYear,
         );
         const years = yearMode
           ? Array.from({ length: Math.max(0, yearCeiling - yearFloor + 1) }, (_, index) =>
@@ -790,8 +865,8 @@ export function StepSpecifications({
                   className={ctrl}
                   value={typeof value === "number" ? String(value) : ""}
                   step={def.decimals === null || def.decimals === 0 ? 1 : 10 ** -def.decimals}
-                  min={bound?.min ?? undefined}
-                  max={bound?.max ?? undefined}
+                  min={bound.min ?? undefined}
+                  max={bound.max ?? undefined}
                   onChange={(event) => {
                     const raw = event.target.value;
                     const parsed = Number(raw);
@@ -863,6 +938,58 @@ export function StepSpecifications({
                     </option>
                   ))}
                 </select>
+              )}
+
+              {/* D26 — THE COLOUR IS SHOWN. The picker above stays (it is the
+                  accessible control and the door's own vocabulary); these
+                  swatches are a second way to answer the same question, each one
+                  44 pixels so a thumb can hit it, each one labelled. */}
+              {def.attrType === "single_select" && isColourKey(def.attrKey) && (
+                <div
+                  className="flex flex-wrap gap-2"
+                  data-testid="post-attr-swatches"
+                  data-attr={def.attrKey}
+                >
+                  {shown.map((option) => {
+                    const ink = colourInk(option.value);
+                    const label = optionLabel(option, entities.lang);
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        data-testid="post-attr-swatch"
+                        data-attr={def.attrKey}
+                        data-value={option.value}
+                        aria-pressed={chosen === option.value}
+                        title={label}
+                        aria-label={label}
+                        className={
+                          "flex min-h-11 min-w-11 items-center justify-center rounded-md border p-1 " +
+                          (chosen === option.value
+                            ? "border-primary ring-2 ring-ring"
+                            : "border-input")
+                        }
+                        onClick={() => {
+                          if (option.value === "other") {
+                            write(def.attrKey, { value: "other", text: otherText(value) }, false);
+                            return;
+                          }
+                          write(def.attrKey, option.value, true);
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          data-testid="post-attr-swatch-ink"
+                          className={
+                            "block size-7 rounded-full border " +
+                            (ink === null ? "border-muted-foreground bg-muted" : "border-border")
+                          }
+                          style={ink === null ? undefined : { backgroundColor: ink }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
               )}
 
               {def.attrType === "single_select" && chosen === "other" && (
@@ -999,15 +1126,14 @@ export function StepSpecifications({
               {def.helpTextEn !== null && (
                 <p className="text-xs text-muted-foreground">{def.helpTextEn}</p>
               )}
-              {def.attrType === "number" &&
-                (bound !== null || def.minBound !== null || def.maxBound !== null) && (
-                  <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
-                    {fill(t("post.specs.boundsHint"), {
-                      min: bound?.min ?? def.minBound ?? t("post.specs.noBound"),
-                      max: bound?.max ?? def.maxBound ?? t("post.specs.noBound"),
-                    })}
-                  </p>
-                )}
+              {def.attrType === "number" && (bound.min !== null || bound.max !== null) && (
+                <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
+                  {fill(t("post.specs.boundsHint"), {
+                    min: bound.min ?? t("post.specs.noBound"),
+                    max: bound.max ?? t("post.specs.noBound"),
+                  })}
+                </p>
+              )}
               {def.attrType === "number" && def.unit !== null && (
                 <p className="text-xs text-muted-foreground">
                   {fill(t("post.specs.unitHint"), { unit: def.unit })}

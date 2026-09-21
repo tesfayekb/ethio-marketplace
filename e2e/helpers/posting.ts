@@ -408,6 +408,12 @@ export interface FoldSet {
   modelYearFloor: number;
   /** The year the second model prefills. */
   modelYearValue: number;
+  /**
+   * INC-242 — A BOUND FROM A SIBLING, not a parent. The unit picker's opening
+   * option also speaks about the year, although the year hangs under nothing at
+   * all: a bound belongs to whatever option carries it.
+   */
+  unitYearFloor: number;
   attrKeys: string[];
 }
 
@@ -420,6 +426,8 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   const unitValues: [string, string, string] = [`${stem}_pc`, `${stem}_set`, `${stem}_jug`];
   const modelYearFloor = 1968;
   const modelYearValue = 1999;
+  // INC-242 — a floor carried by a SIBLING's option, above the definition's own.
+  const unitYearFloor = 1975;
 
   /**
    * U6-C1-R3b-1 STEP 1a — THE FIXTURE WRITES THE SHAPE THE CONSOLE WRITES.
@@ -492,7 +500,13 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
       attr_key: `${stem}_unit`,
       name_en: `${stem} unit`,
       attr_type: "single_select",
-      options: unitValues.map((value) => option(value)),
+      options: unitValues.map((value, index) =>
+        // INC-242 — the OPENING unit speaks about the year although the year
+        // hangs under nothing: the bound must still reach the picker.
+        index === 0
+          ? option(value, { facts: { [yearKey]: { min: unitYearFloor } } })
+          : option(value),
+      ),
     },
   ];
 
@@ -539,8 +553,58 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
     unitValues,
     modelYearFloor,
     modelYearValue,
+    unitYearFloor,
     attrKeys: [make.attrKey, model.attrKey, year.attrKey, unit.attrKey],
   };
+}
+
+/**
+ * D26 — A SCRATCH COLOUR DETAIL. The DEFINITION is namespaced per run, worker and
+ * project (J1); its option VALUES are the catalogue's own colour words on purpose,
+ * because that is what the swatch map is keyed by — they live inside this scratch
+ * row and touch no shared list (J3). One value (`other`) has no ink, so the
+ * neutral ring is proven beside the painted ones.
+ */
+export interface ColourSet {
+  colour: ScratchAttr;
+  /** A value with ink, and the one that must render the neutral ring. */
+  inked: string;
+  neutral: string;
+  attrKeys: string[];
+}
+
+export async function seedColourSet(categoryId: string): Promise<ColourSet> {
+  const supabase = adminClient();
+  const stem = `e2e_colour_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const values = ["black", "white", "other"];
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert({
+      attr_key: `${stem}_colour`,
+      name_en: `${stem} colour`,
+      name_am: `${stem} ቀለም`,
+      attr_type: "single_select",
+      options: values.map((value) => ({
+        value,
+        label_en: `${value} label`,
+        label_am: `${value} ምልክት`,
+        active: true,
+      })),
+    })
+    .select("id, attr_key, name_en")
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:d26] seeding the colour set failed: ${error?.message ?? "no row"}`);
+  }
+  const colour: ScratchAttr = { id: data.id, attrKey: data.attr_key, nameEn: data.name_en };
+  const { error: linkError } = await supabase.from("category_attribute_links").insert({
+    category_id: categoryId,
+    attribute_id: colour.id,
+    is_required: false,
+    display_order: 1,
+  });
+  if (linkError) throw new Error(`[e2e:d26] linking the colour set failed: ${linkError.message}`);
+  return { colour, inked: "black", neutral: "other", attrKeys: [colour.attrKey] };
 }
 
 /**
@@ -646,6 +710,12 @@ export interface FactShiftSet {
   year: ScratchAttr;
   mileage: ScratchAttr;
   makeValue: string;
+  /**
+   * D25b — A SECOND MAKE, with no model of its own: changing the ROOT of the
+   * cascade names a different item entirely, so every detail starts over — the
+   * seller's own answers included.
+   */
+  otherMake: string;
   /** hatchback body + 3 doors + a year floor, no battery. */
   golf: string;
   /** a battery, and the hatchback body. */
@@ -667,6 +737,7 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
   const supabase = adminClient();
   const stem = `e2e_shift_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
   const makeValue = `${stem}_mk`;
+  const otherMake = `${stem}_mk2`;
   const golf = `${stem}_golf`;
   const byd = `${stem}_byd`;
   const corolla = `${stem}_corolla`;
@@ -698,7 +769,7 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
         attr_key: `${stem}_make`,
         name_en: `${stem} make`,
         attr_type: "single_select",
-        options: [option(makeValue)],
+        options: [option(makeValue), option(otherMake)],
       },
       {
         attr_key: `${stem}_model`,
@@ -798,6 +869,7 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
   }
 
   return {
+    otherMake,
     make,
     model,
     body,
