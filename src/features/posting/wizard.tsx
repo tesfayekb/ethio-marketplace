@@ -91,6 +91,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    */
   const [droppedFields, setDroppedFields] = useState<string[]>([]);
   const [photosNeedRecheck, setPhotosNeedRecheck] = useState(false);
+  /** R-YEAR STEP 5 — the notice is read once and can be put away. */
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
   const categoryId = draft.values.categoryId;
   /** U6-C1-R3a-2 — step 1's only answer: a leaf. No leaf, nothing to send. */
   const needsLeaf = draft.step === 1 && categoryId === null;
