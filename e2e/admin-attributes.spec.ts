@@ -3347,15 +3347,20 @@ test.describe("C3 attributes console", () => {
         `AT-60 a blank order cell planned a change: ${JSON.stringify(quiet.payload)}`,
       ).toBe(0);
 
-      // A NON-INTEGER IS REFUSED BY NAME, never rounded (F4).
+      /**
+       * A NON-INTEGER IS REFUSED BY NAME, never rounded (F4). The GATE judges the
+       * cell's shape before the RPC ever sees it, so the verdict is the gate's
+       * `badNumber` naming `display_order`; the RPC's own `badDisplayOrder` is
+       * what a shape-legal value the door still rejects would read.
+       */
       const hostile = `${header}\r\n${slug},${slug},${keys[0]},false,false,,${slug},,,1.5\r\n`;
       const refused = await importPost(page, token, { mode: "preview", links: hostile });
       expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
       const refusals = (refused.payload["refusals"] ?? []) as Record<string, unknown>[];
       expect(
-        refusals.map((entry) => String(entry["reason"] ?? "")),
-        `AT-60 a non-integer order was not refused: ${JSON.stringify(refused.payload)}`,
-      ).toContain("badDisplayOrder");
+        refusals.map((entry) => `${String(entry["reason"] ?? "")}:${String(entry["detail"] ?? "")}`),
+        `AT-60 a non-integer order was not refused by name: ${JSON.stringify(refused.payload)}`,
+      ).toContain("badNumber:display_order");
     } finally {
       for (const key of keys) {
         const { data: attribute } = await supabase
@@ -3425,7 +3430,10 @@ test.describe("C3 attributes console", () => {
         page.getByTestId("attribute-import-preview"),
         "AT-61 Preview refused a links-only file",
       ).toBeEnabled();
-      await expect(page.getByTestId("attribute-import-definitions-chosen")).toHaveText("");
+      // The definitions slot stands empty — and says so, rather than naming a file.
+      await expect(page.getByTestId("attribute-import-definitions-chosen")).not.toHaveText(
+        "definitions.csv",
+      );
 
       await page.getByTestId("attribute-import-preview").click();
       await expect(page.getByTestId("attribute-import-counts")).toBeVisible({ timeout: 120_000 });
