@@ -2087,6 +2087,7 @@ export const am: Messages = {
   "post.category.changedDismiss": "ዝጋ",
   "post.category.changedPhotos": "ከመለጠፍዎ በፊት ፎቶዎችዎን ከአዲሱ ምድብ ጋር ያመሳክሩ።",
   "post.specs.setByModel": "በሞዴሉ የተወሰነ — ሞዴሉ የሚፈቅደው መልስ ይህ ብቻ ነው።",
+  "post.specs.factHint": "ይህ ሞዴል፦ {value}",
   "post.category.allRoots": "ሁሉም ምድቦች",
   "post.category.trailLabel": "የአሁኑ ደረጃ",
   "post.review.previewAsBuyer": "ገዢዎች እንደሚያዩት ይመልከቱ",
