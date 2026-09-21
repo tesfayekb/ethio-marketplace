@@ -454,10 +454,26 @@ markets' currencies with "More…"), and step 1's disabled Next with its caption
   "Choose <parent> first" (`post-attr-parent-first`); a child answer that no
   longer fits is cleared when the parent changes; a parent answer with no child
   options says so (`post-attr-no-options`). `PW-21`.
-- **The link narrows and opens on a default (M-MAINT-2 §12).** `allowed_options`
-  from the link filters the shortlist further, and `default_value` prefills an
-  empty field once per category. The door's `optionNotAllowed` stays the
-  authority. `PW-22`.
+- **The link narrows and opens on a default (M-MAINT-2 §12, INC-245).**
+  `allowed_options` from the link filters the shortlist further, and
+  `default_value` is what an EMPTY field starts from — on the first render of the
+  step and again wherever a make or model reset has just emptied the field, never
+  over an answer that is there. The door's `optionNotAllowed` stays the authority.
+  `PW-22`.
+- **An option's `allowed` narrows its siblings (INC-244).** The same resolver that
+  gathers bounds from every chosen option gathers `allowed` too: a sibling picker
+  offers only the values the chosen options admit (intersected with the link's own
+  shortlist), an answer outside them is cleared rather than left for the door, and a
+  SINGLE admitted value is written and the control locked with a translated caption
+  naming where the answer came from. `attr_allowed_check` and the publish door stay
+  the authority (F3). `PW-35`.
+- **A changed list is noticed (INC-243).** An option list is cached for sixty
+  seconds with the definition's version as its ETag (`max-age=60,
+  stale-while-revalidate=300`), and the version is `md5(updated_at + active option
+  count)` over the definition row — which the attributes-file commit rewrites on
+  every update, so a curator's edit reaches a seller's open form within the minute
+  instead of the five it used to hold. Changing the category forgets the lists it
+  held.
 - **DEC-053 still holds.** A list is fetched on the tap that opens it. Only two
   things must be known BEFORE a tap — a fold (which exists only between two
   pickers) and a link default — so small lists are read up front only when the
