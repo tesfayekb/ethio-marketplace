@@ -57,6 +57,23 @@ onward the chosen category rides at the top of every step as a chip
 ("Construction Material › Doors & Windows · Change"), which is both the
 confirmation and the way back.
 
+### Where you are, and the way up (U6-C1-R3b-3d)
+
+The level is named by tappable CRUMBS above the tree — "All categories › Vehicles ›
+Cars" — and a tap on any crumb goes to that level; the crumb for the level you are
+on takes no tap. "Up one level" is retired: BACK does it. Inside the tree Back
+climbs one level, and only at the roots is it closed, because there is nothing
+above them. The level list scrolls inside the card so Back and Next keep their
+place in the sticky bar at every width (LAYOUT-1). PW-3 walks the crumbs and the
+climb.
+
+The tree also carries a category EVERYWHERE it is surfaced (INC-246). Surfacing is
+a pointer, not a move, and the reader used to keep one parent per category — so a
+leaf the marketplace rail showed under two roots could be reached under one of them
+only. Every pointer row is now a branch; the PATH shown on the chip stays the first
+pointer's, so a category has one well-defined trail to name. PW-36 surfaces a
+scratch leaf under a scratch root and finds it in both places.
+
 Search-to-leaf over the ONE shared tree reader
 (`src/features/categories/category-tree.ts`, lifted out of the feed so both
 consumers read the same rows). Search matches the active language's entity name
