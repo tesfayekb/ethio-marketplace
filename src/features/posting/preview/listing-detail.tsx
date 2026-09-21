@@ -278,8 +278,14 @@ export function ListingDetail(view: ListingDetailView) {
       {/* ------------------------------- the map ---------------------------- */}
       <div data-testid="listing-detail-map">
         {typeof view.pinLat === "number" && typeof view.pinLng === "number" ? (
-          <Suspense fallback={<p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>}>
-            <MapPreview lat={view.pinLat} lng={view.pinLng} precision={view.pinPrecision ?? "exact"} />
+          <Suspense
+            fallback={<p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>}
+          >
+            <MapPreview
+              lat={view.pinLat}
+              lng={view.pinLng}
+              precision={view.pinPrecision ?? "exact"}
+            />
           </Suspense>
         ) : (
           <div className="grid min-h-24 place-items-center rounded-md border border-dashed border-border p-3">

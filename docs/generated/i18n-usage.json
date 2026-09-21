@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 302,
-  "dynamicCallSites": 200,
+  "scanned": 309,
+  "dynamicCallSites": 205,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3605,6 +3605,90 @@
       "/post/$listingId"
     ],
     "post.photos.why": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.at": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.layerSatellite": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.layerStreet": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.locate": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.noResults": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.none": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.precisionLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.remove": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.removed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.save": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.saveFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.saved": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.saving": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.searchLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.searchPlaceholder": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.searching": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.streetHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.streetLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.tapHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.title": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.why": [
       "/post",
       "/post/$listingId"
     ],

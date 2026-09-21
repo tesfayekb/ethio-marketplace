@@ -80,9 +80,7 @@ export async function reverseStreet(lat: number, lng: number): Promise<ReverseAn
   if (reason !== null) return { street: null, reason };
   return {
     street:
-      typeof payload["street"] === "string" && payload["street"] !== ""
-        ? payload["street"]
-        : null,
+      typeof payload["street"] === "string" && payload["street"] !== "" ? payload["street"] : null,
     reason: null,
   };
 }

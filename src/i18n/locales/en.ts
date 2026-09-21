@@ -2031,7 +2031,8 @@ export const en = {
   "post.pin.open": "Add a map pin (optional)",
   "post.pin.close": "Hide the map",
   "post.pin.title": "Map pin",
-  "post.pin.why": "Buyers find you faster with a pin. It is optional, and you choose how exact it is.",
+  "post.pin.why":
+    "Buyers find you faster with a pin. It is optional, and you choose how exact it is.",
   "post.pin.searchLabel": "Search for a place",
   "post.pin.searchPlaceholder": "A street, a landmark, an area",
   "post.pin.searching": "Looking…",
@@ -2056,11 +2057,13 @@ export const en = {
   "post.pin.saveFailed": "The pin was not saved. Try again.",
   "post.pin.none": "No pin yet.",
   "post.pin.at": "Pin at {lat}, {lng}",
-  "post.pin.geocodeRateLimited": "Too many searches for now. Tap the map instead, or try again later.",
+  "post.pin.geocodeRateLimited":
+    "Too many searches for now. Tap the map instead, or try again later.",
   "post.pin.geocodeUnavailable": "The place search is unavailable. Tap the map instead.",
   "post.pin.geocodeSignedOut": "Sign in again to search for a place.",
   "post.pin.previewExact": "The exact pin a buyer sees.",
-  "post.pin.previewApprox": "A buyer sees this area, about 500 metres across — not your exact spot.",
+  "post.pin.previewApprox":
+    "A buyer sees this area, about 500 metres across — not your exact spot.",
   "post.refusal.priceNotAllowed": "This category cannot carry a price.",
   "post.refusal.posterExpiryTooSoon": "Choose a date at least one day from today.",
   "post.refusal.posterExpiryTooLate": "That date is beyond what this category allows.",
