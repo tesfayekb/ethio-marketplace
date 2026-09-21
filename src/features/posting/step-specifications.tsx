@@ -610,6 +610,7 @@ export function StepSpecifications({
     facts,
     prefills,
     parents,
+    roots,
     dependents,
     allowedListOf,
     entities.lang,
