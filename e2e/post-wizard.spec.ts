@@ -238,6 +238,30 @@ test.describe("POSTING WIZARD", () => {
     await folder.click();
     const leafRow = page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`);
     await expect(leafRow).toBeVisible();
+
+    /**
+     * U6-C1-R3b-3d STEP 5 — THE CRUMBS SAY WHERE YOU ARE, AND BACK CLIMBS.
+     * Inside the folder the trail names the level and BACK leaves the level, not the
+     * step; at the roots Back is closed because there is nothing above them, and the
+     * crumb for "all categories" returns in one tap.
+     */
+    await expect(
+      page.locator(`[data-testid="post-browse-crumb"][data-category="${parent.id}"]`),
+      "PW-3: the level is not named by a crumb",
+    ).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(folder, "PW-3: Back inside the tree did not climb to the roots").toBeVisible();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await expect(
+      page.getByTestId("post-back"),
+      "PW-3: Back is still offered at the roots of step 1",
+    ).toBeDisabled();
+
+    await folder.click();
+    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+    await expect(folder, "PW-3: the all-categories crumb did not return to the roots").toBeVisible();
+    await folder.click();
+    await expect(leafRow).toBeVisible();
     await leafRow.click();
     // The leaf advances by itself; the chip names the whole path, parent first.
     await expect(page.getByTestId("post-step-2")).toBeVisible();
