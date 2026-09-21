@@ -551,6 +551,7 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
     unitValues,
     modelYearFloor,
     modelYearValue,
+    unitYearFloor,
     attrKeys: [make.attrKey, model.attrKey, year.attrKey, unit.attrKey],
   };
 }
