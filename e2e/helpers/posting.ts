@@ -400,6 +400,8 @@ export interface FoldSet {
   model: ScratchAttr;
   year: ScratchAttr;
   unit: ScratchAttr;
+  /** D27 — an ATTESTATION a model's facts speak about, and may never tick. */
+  dual: ScratchAttr;
   makeValues: [string, string];
   /** Two models under the FIRST make, one under the second. */
   modelValues: [string, string, string];
