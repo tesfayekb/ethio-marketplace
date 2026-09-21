@@ -2118,9 +2118,12 @@ test.describe("POSTING WIZARD", () => {
       timeout: 20_000,
     });
     await page.getByTestId("post-specs-reset-undo").click();
-    await expect(mileage, "PW-32: Undo did not restore the seller's mileage").toHaveValue("120000", {
-      timeout: 20_000,
-    });
+    await expect(mileage, "PW-32: Undo did not restore the seller's mileage").toHaveValue(
+      "120000",
+      {
+        timeout: 20_000,
+      },
+    );
   });
 
   /**

@@ -503,7 +503,9 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
       options: unitValues.map((value, index) =>
         // INC-242 — the OPENING unit speaks about the year although the year
         // hangs under nothing: the bound must still reach the picker.
-        index === 0 ? option(value, { facts: { [yearKey]: { min: unitYearFloor } } }) : option(value),
+        index === 0
+          ? option(value, { facts: { [yearKey]: { min: unitYearFloor } } })
+          : option(value),
       ),
     },
   ];
@@ -604,7 +606,6 @@ export async function seedColourSet(categoryId: string): Promise<ColourSet> {
   if (linkError) throw new Error(`[e2e:d26] linking the colour set failed: ${linkError.message}`);
   return { colour, inked: "black", neutral: "other", attrKeys: [colour.attrKey] };
 }
-
 
 /**
  * D24 — A CONDITIONAL PAIR: a fuel detail, and a charging detail the category
