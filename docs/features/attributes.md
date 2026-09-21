@@ -607,8 +607,6 @@ and a charset like `^[a-z0-9][a-z0-9_.-]{0,63}$` would REFUSE the catalog's own
 `17+`. `badShape` is never an option-cell refusal: for an attributes file it
 comes only from a links row's `visible_when` cell (no `=`, no key, or no values).
 
-
-
 Bounds co-linkage (DEC-057b): an option's `bounds` may only name a `number`
 definition that is linked — directly or through the primary lineage (INH-1) — in
 AT LEAST ONE category where the owner is linked; a target linked in none of them

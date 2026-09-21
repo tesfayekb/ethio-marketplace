@@ -191,8 +191,6 @@ judged in full exactly as before: one added key still refuses `badOption` with
 `unknownOptionKey:<key>`. The file's proof walks EVERY live definition through a
 byte-identical re-import and requires zero refusals.
 
-
-
 ## The links file — `allowed_options` and `default_value` (D-spec §12)
 
 The two per-link cells travel in the links file, after the existing cells:
