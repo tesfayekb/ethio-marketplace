@@ -937,6 +937,56 @@ export function StepSpecifications({
                 </select>
               )}
 
+              {/* D26 — THE COLOUR IS SHOWN. The picker above stays (it is the
+                  accessible control and the door's own vocabulary); these
+                  swatches are a second way to answer the same question, each one
+                  44 pixels so a thumb can hit it, each one labelled. */}
+              {def.attrType === "single_select" && isColourKey(def.attrKey) && (
+                <div
+                  className="flex flex-wrap gap-2"
+                  data-testid="post-attr-swatches"
+                  data-attr={def.attrKey}
+                >
+                  {shown.map((option) => {
+                    const ink = colourInk(option.value);
+                    const label = optionLabel(option, entities.lang);
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        data-testid="post-attr-swatch"
+                        data-attr={def.attrKey}
+                        data-value={option.value}
+                        aria-pressed={chosen === option.value}
+                        title={label}
+                        aria-label={label}
+                        className={
+                          "flex min-h-11 min-w-11 items-center justify-center rounded-md border p-1 " +
+                          (chosen === option.value ? "border-primary ring-2 ring-ring" : "border-input")
+                        }
+                        onClick={() => {
+                          if (option.value === "other") {
+                            write(def.attrKey, { value: "other", text: otherText(value) }, false);
+                            return;
+                          }
+                          write(def.attrKey, option.value, true);
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          data-testid="post-attr-swatch-ink"
+                          className={
+                            "block size-7 rounded-full border " +
+                            (ink === null ? "border-muted-foreground bg-muted" : "border-border")
+                          }
+                          style={ink === null ? undefined : { backgroundColor: ink }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               {def.attrType === "single_select" && chosen === "other" && (
                 <input
                   data-testid="post-attr-other"
