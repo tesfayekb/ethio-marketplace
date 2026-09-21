@@ -4,6 +4,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
+import { colourInk, isColourKey } from "./colour-swatches";
 import { Field, controlClass } from "./field";
 import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
