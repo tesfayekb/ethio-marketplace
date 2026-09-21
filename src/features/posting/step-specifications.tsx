@@ -482,6 +482,8 @@ export function StepSpecifications({
     model: string;
   } | null>(null);
   const skipReset = useRef(false);
+  /** INC-245 — a reset re-opens the link defaults for the fields it emptied. */
+  const defaultsAgain = useRef(false);
 
   useEffect(() => {
     if (undoOffer === null) return;
