@@ -877,13 +877,13 @@ IMMUTABLE checker `public.attr_visible_when_ok(jsonb)` and the CHECK constraint
 `category_attribute_links_visible_when_shape` that calls it, so an illegal shape
 cannot exist in the table whatever writes it. The doors add the SEMANTICS:
 
-| Refusal                             | Meaning                                                    |
-| ----------------------------------- | ---------------------------------------------------------- |
-| `badVisibleWhen:badShape`           | not the two-key object above, or more than 64 values       |
+| Refusal                   | Meaning                                              |
+| ------------------------- | ---------------------------------------------------- |
+| `badVisibleWhen:badShape` | not the two-key object above, or more than 64 values |
 
-| `badVisibleWhen:self`               | a link cannot be conditioned on its own key                |
+| `badVisibleWhen:self` | a link cannot be conditioned on its own key |
 | `badVisibleWhen:unknownSibling:<k>` | `<k>` is not linked to this category (direct or inherited) |
-| `badVisibleWhen:notInOptions:<v>`   | `<v>` is not one of that sibling's option values           |
+| `badVisibleWhen:notInOptions:<v>` | `<v>` is not one of that sibling's option values |
 
 ### THE VALIDATOR LAW
 
