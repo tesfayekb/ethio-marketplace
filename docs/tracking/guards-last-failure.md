@@ -1,9 +1,82 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35583002527
-- Commit: `e75d4a31b9be132e8fa3e23ddf07b029eb99bb8e`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35583584566
+- Commit: `fe5aa69ba85d0239834e1d98182a7d5bd372892d`
 - Attempt: 1
-- Written (UTC): 2026-09-21T09:24:31.406Z
+- Written (UTC): 2026-09-21T09:30:15.031Z
+
+## Build, typecheck, lint — failure
+
+### Evidence lines
+
+```text
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
++ @tanstack/react-router@1.170.16
++ @tanstack/react-start@1.168.26
++ @tanstack/router-plugin@1.168.18
++ @types/pngjs@6.0.5
++ class-variance-authority@0.7.1
++ clsx@2.1.1
++ cmdk@1.1.1
++ date-fns@4.1.0
++ embla-carousel-react@8.6.0
++ input-otp@1.4.2
++ jpeg-js@0.4.4
++ leaflet@1.9.4
++ lucide-react@0.575.0
++ pngjs@7.0.0
++ react@19.2.5
++ react-day-picker@9.14.0
++ react-dom@19.2.5
++ react-hook-form@7.73.1
++ react-resizable-panels@4.10.0
++ recharts@2.15.4
++ sonner@2.0.7
++ tailwind-merge@3.5.0
++ tailwindcss@4.2.4
++ tw-animate-css@1.4.0
++ vaul@1.1.2
++ vite-tsconfig-paths@6.1.1
++ zod@3.25.76
+
+517 packages installed [4.14s]
+##[group]Run bun run typecheck
+[36;1mbun run typecheck[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+$ tsc --noEmit
+##[group]Run bun run format:check
+[36;1mbun run format:check[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+$ prettier --check "src/**" "e2e/**" "docs/**" "*.{json,js,ts,md}"
+Checking formatting...
+[[33mwarn[39m] docs/features/attributes.md
+[[33mwarn[39m] Code style issues found in the above file. Run Prettier with --write to fix.
+error: script "format:check" exited with code 1
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.55.0
+Temporarily overriding HOME='/home/runner/work/_temp/e30b0fdf-32cd-475d-916e-0fcb1f928674' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
 
 ## E2E preflight (migration parity, staging) — failure
 
@@ -45,7 +118,7 @@
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-517 packages installed [829.00ms]
+517 packages installed [1301.00ms]
 ##[group]Run bun scripts/e2e-migration-preflight.ts
 [36;1mbun scripts/e2e-migration-preflight.ts[0m
 shell: /usr/bin/bash -e {0}
@@ -63,7 +136,7 @@ STAGING BEHIND: apply 20260921092130_872f21f4-7e65-4643-8d4b-eeed116a6e37.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/9535b8e7-8108-4bc4-a0a4-4c332c139ce4' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/94196400-66da-48aa-98f5-de6970a180fe' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -106,10 +179,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35583002527
-  E2E_HEAD_COMMIT_MESSAGE: Censused bodies before change
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35583584566
+  E2E_HEAD_COMMIT_MESSAGE: Fixed attr_visible_when_ok cap
 
-X-Lovable-Edit-ID: edt-7162aefa-dc56-480c-a75c-afd853e08949
+X-Lovable-Edit-ID: edt-828ff417-8b0e-4106-b9c2-9a69ea21b703
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -123,11 +196,11 @@ context download: 0 context files found.
 Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-HEAD is now at e75d4a3 Censused bodies before change
-[dev 1d729d4] ci: e2e failure report + flake ledger [skip ci]
- 1 file changed, 136 insertions(+), 6 deletions(-)
+HEAD is now at fe5aa69 Fixed attr_visible_when_ok cap
+[dev 99e8f12] ci: e2e failure report + flake ledger [skip ci]
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   e75d4a3..1d729d4  HEAD -> dev
+   fe5aa69..99e8f12  HEAD -> dev
 ##[group]Run echo "smoke=skipped email=skipped shards=skipped"
 [36;1mecho "smoke=skipped email=skipped shards=skipped"[0m
 [36;1mif [ "skipped" != "success" ] || [ "skipped" != "success" ] || [ "skipped" != "success" ]; then[0m
@@ -143,7 +216,7 @@ smoke=skipped email=skipped shards=skipped
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/9f159227-429d-4a74-8040-dc43ff3500e4' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/ff29dba9-7f37-4230-811f-da4384aa3664' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
