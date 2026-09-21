@@ -408,6 +408,12 @@ export interface FoldSet {
   modelYearFloor: number;
   /** The year the second model prefills. */
   modelYearValue: number;
+  /**
+   * INC-242 — A BOUND FROM A SIBLING, not a parent. The unit picker's opening
+   * option also speaks about the year, although the year hangs under nothing at
+   * all: a bound belongs to whatever option carries it.
+   */
+  unitYearFloor: number;
   attrKeys: string[];
 }
 
