@@ -422,6 +422,18 @@ export function StepSpecifications({
     return out;
   }, [definitions, allowedListOf, folds]);
 
+  /**
+   * D25b — THE ROOT OF THE CASCADE: a picker other pickers hang under which hangs
+   * under nothing itself (the MAKE). Changing it does not adjust a car — it names
+   * a DIFFERENT car, so every detail on the form starts over, the seller's own
+   * answers included. A model change stays D25's narrower reset.
+   */
+  const roots = useMemo(() => {
+    const out = new Set<string>();
+    for (const owner of Object.values(folds)) if (!(owner in folds)) out.add(owner);
+    return out;
+  }, [folds]);
+
   /** The parent answers as this screen last saw them, to notice a change at all. */
   const parentsSeen = useRef<Record<string, string> | null>(null);
   /** D25 — an undo offer lives for ten seconds and never outlives its own step. */
