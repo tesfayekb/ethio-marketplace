@@ -609,12 +609,17 @@ export function StepSpecifications({
     return [...refusals, ...local.filter((entry) => !named.has(entry.field))];
   }, [refusals, local]);
 
-  /** A number judged against the door's bounds AND the chosen model's floor. */
+  /**
+   * A number judged against the EFFECTIVE bounds (INC-242) — the definition's own
+   * narrowed by every chosen option. The wording stays the model's, because a
+   * floor only appears here when an option put it there; a definition-only bound
+   * is the door's to refuse.
+   */
   const judgeNumber = (def: AttrDef, value: number | null) => {
-    const bound = facts.bounds[def.attrKey] ?? null;
+    const bound = boundsOf(def);
     setLocal((prev) => {
       const rest = prev.filter((entry) => entry.field !== def.attrKey);
-      if (value === null || bound === null) return rest;
+      if (value === null || !bound.narrowed) return rest;
       if (bound.min !== null && value < bound.min) {
         return [
           ...rest,
