@@ -116,7 +116,10 @@ export async function readCategoryTree(): Promise<CategoryTree> {
         )
         .eq("is_active", true)
         .order("display_order", { ascending: true }),
-      supabase.from("category_tree_pointers").select("child_id,parent_id"),
+      supabase
+        .from("category_tree_pointers")
+        .select("child_id,parent_id,display_order")
+        .order("display_order", { ascending: true }),
     ]);
   // Law F4 — a failed read is a failure, never an empty tree that reads as
   // "there are no categories". The caller renders the error state.
