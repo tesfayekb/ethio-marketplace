@@ -34,6 +34,16 @@ export interface AttrOption {
    * (F3).
    */
   allowed: Record<string, string[]> | null;
+  /**
+   * R-SW / INC-249 — WHAT THE MODEL BOUNDS. The door's own option record keeps a
+   * bound in its OWN `bounds` object, beside `facts`:
+   * `{"bounds": {"year": {"min": 2020}}}`. This shape was never read here, so the
+   * posting form saw no floor at all on real catalogue data and offered years the
+   * catalogue had ruled out. The numbers arrive as the file wrote them — a string
+   * is still a number (INC-247) — so they are kept raw and read by the form's one
+   * bound reader. The door's bounds remain the authority (F3).
+   */
+  bounds: Record<string, unknown> | null;
 }
 
 /**

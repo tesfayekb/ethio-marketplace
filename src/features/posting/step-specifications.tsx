@@ -402,9 +402,21 @@ export function StepSpecifications({
       const picked = selectedValue(values[def.attrKey]);
       if (picked === "") continue;
       const option = allowedListOf(def).find((entry) => entry.value === picked);
-      if (option?.facts === null || option?.facts === undefined) continue;
+      if (option === undefined) continue;
+      /**
+       * R-SW / INC-249 — A BOUND LIVES IN `bounds`, NOT IN `facts`. The catalogue's
+       * own option records (DEC-050) carry a SEPARATE `bounds` object beside
+       * `facts` — `{"bounds": {"year": {"min": 2020}}}` on BYD Han — and this
+       * screen only ever looked inside `facts`, so every real model's floor was
+       * ignored and a 2020 car offered 1900. Both places are read now: `bounds`
+       * first, because it is where the door writes them.
+       */
+      for (const [key, raw] of Object.entries(option.bounds ?? {})) {
+        const bound = boundOf(raw);
+        if (bound !== null) (bounds[key] ??= []).push(bound);
+      }
       const mine: Record<string, unknown> = {};
-      for (const [key, raw] of Object.entries(option.facts)) {
+      for (const [key, raw] of Object.entries(option.facts ?? {})) {
         const bound = boundOf(raw);
         if (bound !== null) {
           (bounds[key] ??= []).push(bound);
@@ -466,6 +478,8 @@ export function StepSpecifications({
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       for (const option of allowedListOf(def)) {
         for (const key of Object.keys(option.facts ?? {})) out.add(key);
+        // R-SW — a bound is an option speaking about a detail too (the year).
+        for (const key of Object.keys(option.bounds ?? {})) out.add(key);
       }
     }
     return out;
@@ -482,7 +496,14 @@ export function StepSpecifications({
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const list = allowedListOf(def);
-      if (list.some((option) => Object.keys(option.facts ?? {}).length > 0)) out.add(def.attrKey);
+      if (
+        list.some(
+          (option) =>
+            Object.keys(option.facts ?? {}).length > 0 ||
+            Object.keys(option.bounds ?? {}).length > 0,
+        )
+      )
+        out.add(def.attrKey);
     }
     for (const owner of Object.values(folds)) out.add(owner);
     return out;
