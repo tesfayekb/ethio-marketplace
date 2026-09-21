@@ -324,26 +324,67 @@ export function StepSpecifications({
    * THE FACTS OF EVERY CHOSEN OPTION (D18), gathered once: the values to prefill
    * and the bounds to narrow. A later option wins over an earlier one for the
    * same sibling, which is the order the seller answered them in.
+   *
+   * INC-242 — A BOUND COMES FROM WHATEVER WAS CHOSEN, NOT FROM A PARENT. The
+   * model's year floor bounds the year although the year is nobody's child: the
+   * facts of EVERY chosen option of EVERY picker on the form are collected here,
+   * and `bounds` keeps them ALL per key (they are intersected in `boundsOf`
+   * below) rather than letting the last one read win.
+   *
+   * `byOwner` keeps each picker's own contribution apart, because D25b must
+   * re-prefill from ONE option — the make the seller just changed to — and not
+   * from the stale facts of the children that change is about to clear.
    */
   const facts = useMemo(() => {
     const prefill: Record<string, unknown> = {};
-    const bounds: Record<string, FactBound> = {};
+    const bounds: Record<string, FactBound[]> = {};
+    const byOwner: Record<string, Record<string, unknown>> = {};
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const picked = selectedValue(values[def.attrKey]);
       if (picked === "") continue;
       const option = allowedListOf(def).find((entry) => entry.value === picked);
       if (option?.facts === null || option?.facts === undefined) continue;
+      const mine: Record<string, unknown> = {};
       for (const [key, raw] of Object.entries(option.facts)) {
         const bound = boundOf(raw);
-        if (bound !== null) bounds[key] = bound;
+        if (bound !== null) (bounds[key] ??= []).push(bound);
         else if (typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
           prefill[key] = raw;
+          mine[key] = raw;
         }
       }
+      byOwner[def.attrKey] = mine;
     }
-    return { prefill, bounds };
+    return { prefill, bounds, byOwner };
   }, [definitions, values, allowedListOf]);
+
+  /**
+   * INC-242 — THE EFFECTIVE BOUNDS OF ONE DETAIL: its definition's own bounds
+   * NARROWED by every chosen option that speaks about it (the tightest floor and
+   * the tightest ceiling win). One resolver, used by the year picker, the numeric
+   * mirror, the bounds caption and the local judgement alike, so the screen can
+   * never offer a value one part of it would refuse. The door remains the
+   * authority (F3) — this is the mirror.
+   */
+  const boundsOf = useCallback(
+    (def: AttrDef): { min: number | null; max: number | null; narrowed: boolean } => {
+      const own = (raw: string | null): number | null => {
+        if (raw === null) return null;
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+      let min = own(def.minBound);
+      let max = own(def.maxBound);
+      const fromOptions = facts.bounds[def.attrKey] ?? [];
+      for (const bound of fromOptions) {
+        if (bound.min !== null) min = min === null ? bound.min : Math.max(min, bound.min);
+        if (bound.max !== null) max = max === null ? bound.max : Math.min(max, bound.max);
+      }
+      return { min, max, narrowed: fromOptions.length > 0 };
+    },
+    [facts],
+  );
 
   /**
    * D25 — WHICH DETAILS BELONG TO THE MODEL. A detail is MODEL-DEPENDENT when a
