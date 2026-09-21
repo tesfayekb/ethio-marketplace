@@ -1776,6 +1776,22 @@ test.describe("POSTING WIZARD", () => {
       "PW-22: an option outside the link's shortlist was offered",
     ).toHaveCount(0);
 
+    /**
+     * INC-245 — A DEFAULT IS WHAT AN EMPTY FIELD STARTS FROM, not a one-off. A make
+     * change empties every detail (D25b), so the link's default fills the unit again
+     * rather than leaving a field the category says has an opening answer.
+     */
+    await unit.selectOption(fold.unitValues[1]);
+    await expect(unit).toHaveValue(fold.unitValues[1]);
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
+      .selectOption(fold.makeValues[1]);
+    await expect(unit, "PW-22: the link's default did not return after a make reset").toHaveValue(
+      fold.unitValues[0],
+      { timeout: 20_000 },
+    );
+
+
     // J4 — DB truth: the default the screen showed is what the door recorded.
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-4")).toBeVisible();
