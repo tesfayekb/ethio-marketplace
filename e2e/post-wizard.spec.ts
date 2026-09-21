@@ -2175,6 +2175,103 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * U6-C1-R3b-3d STEP 2 (INC-244) — WHAT THE MODEL RULES OUT.
+   *
+   * An option's `allowed` names a sibling picker and the only answers it admits.
+   * The picker offers those and nothing else; a single admissible answer is written
+   * and the control says whose answer it is and takes no taps. A model that allows
+   * everything leaves the same picker open. The door narrows too; this is the
+   * mirror (F3).
+   */
+  test("PW-35 a model's allowed set narrows and locks a sibling picker", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const set = await seedAllowedSet(category.id);
+    specs.push(...set.attrKeys);
+    const listingId = await reachStep3(page, user.id, category);
+
+    const model = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${set.model.attrKey}"]`,
+    );
+    const fuel = page.locator(`[data-testid="post-attr-control"][data-attr="${set.fuel.attrKey}"]`);
+    await expect(fuel, "PW-35: the fuel picker never rendered").toBeVisible({ timeout: 20_000 });
+    // BEFORE a model is chosen the picker offers its whole list.
+    await expect(fuel.locator(`option[value="${set.fuelPetrol}"]`)).toHaveCount(1);
+
+    await model.selectOption(set.strictModel);
+    // ONE ANSWER ADMITTED: it is written, said, and the control is closed.
+    await expect(fuel, "PW-35: the only allowed fuel was not written").toHaveValue(
+      set.fuelElectric,
+      { timeout: 20_000 },
+    );
+    await expect(
+      fuel.locator(`option[value="${set.fuelPetrol}"]`),
+      "PW-35: a fuel the model rules out was still offered",
+    ).toHaveCount(0);
+    await expect(fuel, "PW-35: the narrowed picker was not locked").toHaveAttribute(
+      "data-locked",
+      "1",
+    );
+    await expect(
+      page.locator(`[data-testid="post-attr-set-by-model"][data-attr="${set.fuel.attrKey}"]`),
+      "PW-35: a locked answer never said where it came from",
+    ).toBeVisible();
+
+    // J4 — DB truth: what the narrowing wrote is what the door recorded.
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.fuel.attrKey], {
+        message: "PW-35: the narrowed answer never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe(set.fuelElectric);
+
+    // A MODEL THAT RULES NOTHING OUT leaves the picker open again.
+    await model.selectOption(set.openModel);
+    await expect(
+      fuel.locator(`option[value="${set.fuelPetrol}"]`),
+      "PW-35: the picker stayed narrowed under a model with no allowed set",
+    ).toHaveCount(1, { timeout: 20_000 });
+    await expect(fuel, "PW-35: the picker stayed locked").toHaveAttribute("data-locked", "0");
+  });
+
+  /**
+   * U6-C1-R3b-3d STEP 4 (INC-246) — A SURFACED CATEGORY IS IN THE TREE.
+   *
+   * Surfacing a category under a second root is a POINTER, and the wizard's tree
+   * used to remember only one parent per category — so a leaf the marketplace rail
+   * showed under two roots could be reached under one of them only. Both places now
+   * carry it.
+   */
+  test("PW-36 a category surfaced under a second root appears under it in the tree", async ({
+    page,
+  }) => {
+    const { parent, leaf: child } = await seedCategoryBranch();
+    branches.push(parent.slug, child.slug);
+    const second = await seedPostableCategory();
+    categories.push(second.slug);
+    await surfaceCategoryUnder(second.id, child.id);
+
+    await seller(page);
+    await gotoReady(page, "/post");
+
+    // UNDER THE FIRST PARENT, as before.
+    await page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`).click();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
+      "PW-36: the leaf is missing under its first parent",
+    ).toBeVisible();
+
+    // AND UNDER THE SECOND, which the second surfacing turned into a folder.
+    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+    await page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`).click();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
+      "PW-36: the surfaced leaf is missing under the root it was surfaced under",
+    ).toBeVisible({ timeout: 20_000 });
+  });
+
+
+  /**
    * U6-C1-R3b-3b STEP 4 (PW-33) — A PLACE IS ADDED UNDER A PLACE ALREADY LISTED.
    *
    * The walk's complaint: adding a second city meant answering the market and the
