@@ -1934,6 +1934,20 @@ test.describe("POSTING WIZARD", () => {
       "PW-9: the prefilled field did not say where the answer came from",
     ).toBeVisible();
 
+    /**
+     * D27 — AN ATTESTATION IS NOT PREFILLED. The same model's facts also speak
+     * about a boolean detail: the box stays UNTICKED and the fact appears beside
+     * it as a hint, because only the seller may state what is true of their item.
+     */
+    const dual = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.dual.attrKey}"]`,
+    );
+    await expect(
+      page.locator(`[data-testid="post-attr-fact-hint"][data-attr="${fold.dual.attrKey}"]`),
+      "PW-9: the model's boolean fact was not shown as a hint",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(dual, "PW-9: a fact ticked the attestation for the seller").not.toBeChecked();
+
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
@@ -1941,6 +1955,11 @@ test.describe("POSTING WIZARD", () => {
         message: "PW-9: the prefilled year never reached the draft",
       })
       .toBe(fold.modelYearValue);
+    // The unticked attestation reached nothing: an absent answer is absent.
+    expect(
+      (await attributesOf(listingId))[fold.dual.attrKey],
+      "PW-9: an unticked attestation was stored anyway",
+    ).toBeUndefined();
   });
 
   /**
