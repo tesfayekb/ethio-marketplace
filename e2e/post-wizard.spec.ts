@@ -1953,38 +1953,26 @@ test.describe("POSTING WIZARD", () => {
    * The door's bounds remain the authority (F3); this proves the control can never
    * reach them.
    */
-  test("PW-25 a year picker is bounded by every chosen option, including a sibling's", async ({
+  test("PW-25 an inherited year picker is bounded by the model chosen three levels down", async ({
     page,
   }) => {
+    // INC-247 — THE CATALOGUE'S OWN SHAPE: the year is linked at the SECTION and
+    // only inherited by the leaf, the fold is three levels deep, and the bound is
+    // written as the attributes FILE writes it (text).
+    const { parent, leaf: child } = await seedCategoryBranch();
+    branches.push(parent.slug, child.slug);
     const user = await seller(page);
-    const category = await leaf();
-    const fold = await seedFoldSet(category.id);
-    specs.push(...fold.attrKeys);
-    await reachStep3(page, user.id, category);
+    const deep = await seedDeepFoldSet({ leafId: child.id, sectionId: parent.id });
+    specs.push(...deep.attrKeys);
+    await reachStep3(page, user.id, child);
 
-    const unit = page.locator(
-      `[data-testid="post-attr-control"][data-attr="${fold.unit.attrKey}"]`,
-    );
-    // The SIBLING alone: a make and model that say nothing about the year, and the
-    // unit answered AFTER them — a make change is a fresh start (D25b), so the
-    // sibling's answer is given once the cascade has settled.
-    await page
-      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
-      .selectOption(fold.makeValues[1]);
-    await page
-      .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
-      .selectOption(fold.modelValues[2]);
-    await unit.selectOption(fold.unitValues[0]);
-    await expect(unit, "PW-25: the sibling's answer did not stand").toHaveValue(
-      fold.unitValues[0],
-      { timeout: 20_000 },
-    );
-
-    const year = page.locator(
-      `[data-testid="post-attr-control"][data-attr="${fold.year.attrKey}"]`,
-    );
-    // NO FREE TEXT: the control is a picker, not a number box.
-    await expect(year, "PW-25: the year field carries no picker mark").toHaveAttribute(
+    const control = (attrKey: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+    const year = control(deep.year.attrKey);
+    await expect(year, "PW-25: the inherited year field never rendered").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(year, "PW-25: the inherited year field carries no picker mark").toHaveAttribute(
       "data-year",
       "1",
       { timeout: 20_000 },
@@ -1994,48 +1982,39 @@ test.describe("POSTING WIZARD", () => {
       (await year.locator("option").allTextContents())
         .map((text) => Number(text.trim()))
         .filter((value) => Number.isFinite(value) && value > 0);
-    await expect
-      .poll(offered, {
-        message: "PW-25: the year picker never took the sibling option's floor",
-        timeout: 20_000,
-      })
-      .toContain(fold.unitYearFloor);
-    const years = await offered();
 
-    const below = years.filter((value) => value < fold.unitYearFloor);
-    expect(
-      below,
-      `PW-25: the picker offered years below the sibling's floor: ${below.join(", ")}`,
-    ).toHaveLength(0);
-    expect(
-      years.filter((value) => value <= 0),
-      "PW-25: the picker offered a non-positive year",
-    ).toHaveLength(0);
-    // NEWEST FIRST: the first offered year is the highest one.
-    expect(years[0], "PW-25: the picker is not newest-first").toBe(Math.max(...years));
+    // THE FOLD, three answers deep.
+    await control(deep.brand.attrKey).selectOption(deep.brandValue);
+    await control(deep.series.attrKey).selectOption(deep.seriesValue);
+    await control(deep.model.attrKey).selectOption(deep.floorModel);
 
-    await year.selectOption(String(fold.unitYearFloor));
-    await expect(
-      page.locator(`[data-testid="post-attr-refusal"][data-attr="${fold.year.attrKey}"]`),
-      "PW-25: the sibling's own floor year was refused",
-    ).toHaveCount(0);
-
-    // TWO BOUNDS NARROW TOGETHER: the parent model's floor (1968) and the
-    // sibling's (1975) intersect at the higher one — never the looser.
-    await page
-      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
-      .selectOption(fold.makeValues[0]);
-    await page
-      .locator(`[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`)
-      .selectOption(fold.modelValues[0]);
-    // The make change started the form over, so the sibling answers again.
-    await unit.selectOption(fold.unitValues[0]);
+    // CASE 1 — A FLOOR ALONE.
     await expect
       .poll(async () => Math.min(...(await offered())), {
-        message: "PW-25: two bounds did not intersect at the higher floor",
+        message: "PW-25: the model's floor never reached the inherited picker",
         timeout: 20_000,
       })
-      .toBe(Math.max(fold.modelYearFloor, fold.unitYearFloor));
+      .toBe(deep.floorYear);
+    const years = await offered();
+    expect(years[0], "PW-25: the picker is not newest-first").toBe(Math.max(...years));
+    expect(
+      years.filter((value) => value < deep.floorYear),
+      "PW-25: the picker offered years below the model's floor",
+    ).toHaveLength(0);
+
+    // CASE 2 — ONE YEAR ONLY (min = max): the picker offers exactly that year.
+    await control(deep.model.attrKey).selectOption(deep.pinModel);
+    await expect
+      .poll(offered, {
+        message: "PW-25: a single-year model did not pin the picker",
+        timeout: 20_000,
+      })
+      .toEqual([deep.pinnedYear]);
+    await year.selectOption(String(deep.pinnedYear));
+    await expect(
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${deep.year.attrKey}"]`),
+      "PW-25: the model's only year was refused",
+    ).toHaveCount(0);
   });
 
   /**
