@@ -2021,10 +2021,23 @@ test.describe("POSTING WIZARD", () => {
         .map((text) => Number(text.trim()))
         .filter((value) => Number.isFinite(value) && value > 0);
 
+    // DEC-053 — an option list is read on the first tap, so each level of the fold
+    // is focused and awaited before it is answered.
+    const answer = async (attrKey: string, value: string) => {
+      const picker = control(attrKey);
+      await picker.focus();
+      await expect(picker, `PW-25: ${attrKey} never loaded its options`).toHaveAttribute(
+        "data-options",
+        "ready",
+        { timeout: 20_000 },
+      );
+      await picker.selectOption(value);
+    };
+
     // THE FOLD, three answers deep.
-    await control(deep.brand.attrKey).selectOption(deep.brandValue);
-    await control(deep.series.attrKey).selectOption(deep.seriesValue);
-    await control(deep.model.attrKey).selectOption(deep.floorModel);
+    await answer(deep.brand.attrKey, deep.brandValue);
+    await answer(deep.series.attrKey, deep.seriesValue);
+    await answer(deep.model.attrKey, deep.floorModel);
 
     // CASE 1 — A FLOOR ALONE.
     await expect
@@ -2041,7 +2054,7 @@ test.describe("POSTING WIZARD", () => {
     ).toHaveLength(0);
 
     // CASE 2 — ONE YEAR ONLY (min = max): the picker offers exactly that year.
-    await control(deep.model.attrKey).selectOption(deep.pinModel);
+    await answer(deep.model.attrKey, deep.pinModel);
     await expect
       .poll(offered, {
         message: "PW-25: a single-year model did not pin the picker",
