@@ -95,6 +95,12 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   /** U6-C1-R3a-2 — step 1's only answer: a leaf. No leaf, nothing to send. */
   const needsLeaf = draft.step === 1 && categoryId === null;
   const [triedWithoutLeaf, setTriedWithoutLeaf] = useState(false);
+  /**
+   * U6-C1-R3b-3d STEP 5 — WHICH LEVEL OF THE TREE STEP 1 STANDS ON. It lives here,
+   * not inside the step, because BACK leaves a level while there is one to leave
+   * and only then leaves the step.
+   */
+  const [categoryCursor, setCategoryCursor] = useState<string | null>(null);
 
   useEffect(() => {
     if (categoryId === null) {
@@ -384,8 +390,16 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                            outline: on the card the old transparent Back read as
                            disabled next to the filled Next. */
                         className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
-                        disabled={draft.step === 1}
-                        onClick={() => draft.goTo(draft.step - 1)}
+                        disabled={draft.step === 1 && categoryCursor === null}
+                        onClick={() => {
+                          // STEP 5 — inside the tree, Back climbs one level; at the
+                          // roots it leaves the step, as it always did.
+                          if (draft.step === 1 && categoryCursor !== null) {
+                            setCategoryCursor(tree.parentOf.get(categoryCursor) ?? null);
+                            return;
+                          }
+                          draft.goTo(draft.step - 1);
+                        }}
                       >
                         {t("post.action.back")}
                       </button>
@@ -464,6 +478,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           tree={tree}
                           isLoading={treeLoading}
                           treeError={treeError}
+                          cursor={categoryCursor}
+                          onCursor={setCategoryCursor}
                           invalid={triedWithoutLeaf && categoryId === null}
                           onChoose={(nextCategoryId) => {
                             // ONE CONTROL, AUTO-ADVANCE: choosing a postable leaf IS the

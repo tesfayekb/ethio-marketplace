@@ -26,13 +26,64 @@ export interface AttrOption {
    * client mirror only — the door's own bounds remain the authority (F3).
    */
   facts: Record<string, unknown> | null;
+  /**
+   * INC-244 — WHAT THE MODEL RULES OUT. `allowed` names sibling details and the
+   * ONLY answers they may hold under this option (`{ fuel: ["electric"] }`). The
+   * form narrows the sibling's picker to them, clears an answer outside them and
+   * locks the picker on a single one; the door narrows too, so this is the mirror
+   * (F3).
+   */
+  allowed: Record<string, string[]> | null;
 }
 
-const cache = new Map<string, AttrOption[]>();
+/**
+ * INC-243 — A LIST IS REMEMBERED, NOT PINNED. The page-session cache used to hold
+ * the first answer for the whole visit, so a curator's file commit could not
+ * reach a form already open — although the door's own version DOES move (the
+ * commit writes `attributes.updated_at`, and the version is derived from it). The
+ * entry now carries the version it was read at and expires after a minute; the
+ * refetch is a conditional request the edge answers with 304 when nothing moved.
+ */
+const TTL_MS = 60_000;
+
+interface CacheEntry {
+  options: AttrOption[];
+  version: string;
+  at: number;
+}
+
+const cache = new Map<string, CacheEntry>();
+
+/** The version of the list currently held, if any — the form's refetch signal. */
+export function heldOptionsVersion(attributeId: string): string | null {
+  return cache.get(attributeId)?.version ?? null;
+}
+
+/** Drops what is held, so the next open re-asks (a category change, a retry). */
+export function forgetAttributeOptions(): void {
+  cache.clear();
+}
+
+function stringList(raw: unknown): string[] {
+  if (typeof raw === "string") return [raw];
+  return Array.isArray(raw)
+    ? raw.filter((entry): entry is string => typeof entry === "string")
+    : [];
+}
 
 function shape(row: Record<string, unknown>): AttrOption {
   const value = typeof row["value"] === "string" ? row["value"] : "";
   const facts = row["facts"];
+  const allowedRaw = row["allowed"];
+  let allowed: Record<string, string[]> | null = null;
+  if (allowedRaw !== null && typeof allowedRaw === "object" && !Array.isArray(allowedRaw)) {
+    const out: Record<string, string[]> = {};
+    for (const [key, entry] of Object.entries(allowedRaw as Record<string, unknown>)) {
+      const list = stringList(entry);
+      if (list.length > 0) out[key] = list;
+    }
+    if (Object.keys(out).length > 0) allowed = out;
+  }
   return {
     value,
     labelEn: typeof row["label_en"] === "string" ? row["label_en"] : value,
@@ -42,27 +93,32 @@ function shape(row: Record<string, unknown>): AttrOption {
       facts !== null && typeof facts === "object" && !Array.isArray(facts)
         ? (facts as Record<string, unknown>)
         : null,
+    allowed,
   };
 }
 
 export async function loadAttributeOptions(attributeId: string): Promise<AttrOption[] | null> {
   const held = cache.get(attributeId);
-  if (held) return held;
+  if (held && Date.now() - held.at < TTL_MS) return held.options;
   try {
     const response = await fetch(`/api/attributes/${attributeId}/options`, {
       headers: { Accept: "application/json" },
     });
-    if (!response.ok) return null;
+    if (!response.ok) return held ? held.options : null;
     const payload = (await response.json()) as Record<string, unknown>;
     const list = Array.isArray(payload["options"]) ? payload["options"] : null;
-    if (list === null) return null;
+    if (list === null) return held ? held.options : null;
     const options = list
       .map((entry) => shape((entry ?? {}) as Record<string, unknown>))
       .filter((option) => option.value !== "");
-    cache.set(attributeId, options);
+    cache.set(attributeId, {
+      options,
+      version: typeof payload["version"] === "string" ? payload["version"] : "",
+      at: Date.now(),
+    });
     return options;
   } catch {
-    return null;
+    return held ? held.options : null;
   }
 }
 

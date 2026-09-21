@@ -176,6 +176,13 @@ export function StepSpecifications({
     if (categoryId === null) return;
     let cancelled = false;
     setFailed(false);
+    /**
+     * INC-243 — A NEW READ ASKS AGAIN. The lists held for the previous category
+     * are dropped with the schema that named them, so a form never renders one
+     * category's options against another's definitions, and the re-open pays a
+     * conditional request the edge answers with 304 when nothing moved.
+     */
+    setOptions({});
     void readPostingSchema(categoryId).then((read) => {
       if (cancelled) return;
       setSchema(read);
@@ -311,17 +318,45 @@ export function StepSpecifications({
     return out;
   }, [definitions, allowedListOf]);
 
-  /** The options a control may actually offer: the link's subset, then the fold. */
+  /**
+   * INC-244 — WHAT THE CHOSEN OPTIONS RULE OUT. An option's `allowed` names
+   * sibling details and the ONLY answers they may hold under it
+   * (`{ fuel: ["electric"] }`). Every chosen option of every picker contributes,
+   * and two contributions for the same sibling meet at their INTERSECTION — the
+   * stricter reading, the one the door itself applies. This is the mirror of
+   * `attr_allowed_check`; the door remains the authority (F3).
+   */
+  const narrowing = useMemo(() => {
+    const out: Record<string, string[]> = {};
+    for (const def of definitions) {
+      if (!SELECT_TYPES.includes(def.attrType)) continue;
+      const picked = selectedValue(values[def.attrKey]);
+      if (picked === "") continue;
+      const option = allowedListOf(def).find((entry) => entry.value === picked);
+      const allowed = option?.allowed;
+      if (allowed === null || allowed === undefined) continue;
+      for (const [key, list] of Object.entries(allowed)) {
+        const held = out[key];
+        out[key] = held === undefined ? [...list] : held.filter((entry) => list.includes(entry));
+      }
+    }
+    return out;
+  }, [definitions, values, allowedListOf]);
+
+  /** The options a control may actually offer: the link's subset, the fold, then
+   * whatever the chosen options allow (INC-244). */
   const visibleOptionsOf = useCallback(
     (def: AttrDef): AttrOption[] => {
-      const list = allowedListOf(def);
+      const only = narrowing[def.attrKey];
+      let list = allowedListOf(def);
+      if (only !== undefined) list = list.filter((option) => only.includes(option.value));
       const parentKey = folds[def.attrKey];
       if (parentKey === undefined) return list;
       const parentValue = selectedValue(values[parentKey]);
       if (parentValue === "") return [];
       return list.filter((option) => option.parent === parentValue);
     },
-    [allowedListOf, folds, values],
+    [allowedListOf, folds, values, narrowing],
   );
 
   /**
@@ -447,6 +482,8 @@ export function StepSpecifications({
     model: string;
   } | null>(null);
   const skipReset = useRef(false);
+  /** INC-245 — a reset re-opens the link defaults for the fields it emptied. */
+  const defaultsAgain = useRef(false);
 
   useEffect(() => {
     if (undoOffer === null) return;
@@ -507,11 +544,23 @@ export function StepSpecifications({
         ? definitions.map((def) => def.attrKey).filter((key) => key !== movedKey)
         : [...dependents].filter((key) => !parents.has(key));
       for (const key of scope) {
-        if (definitions.every((def) => def.attrKey !== key)) continue;
+        const keyDef = definitions.find((def) => def.attrKey === key) ?? null;
+        if (keyDef === null) continue;
         const fact = source[key];
         if (fact === undefined) {
-          if (!isEmpty(next[key])) {
-            delete next[key];
+          /**
+           * INC-245 — A DEFAULT IS WHAT AN EMPTY FIELD STARTS FROM. The reset empties
+           * the field, so the LINK's own opening answer takes the place the fact would
+           * have had; with no default the field is simply empty again.
+           */
+          const opening = keyDef.defaultValue ?? undefined;
+          if (opening === undefined) {
+            if (!isEmpty(next[key])) {
+              delete next[key];
+              changed = true;
+            }
+          } else if (!same(next[key], opening)) {
+            next[key] = opening;
             changed = true;
           }
           delete owned[key];
@@ -534,6 +583,10 @@ export function StepSpecifications({
           prefills: heldPrefills,
           model: option === undefined ? "" : optionLabel(option, entities.lang),
         });
+        // INC-245 — a reset empties fields the LINK has a default for, and a
+        // default is what an empty field starts from. So the defaults pass below
+        // is re-opened by this reset, not spent once per category.
+        defaultsAgain.current = true;
       }
     }
     skipReset.current = false;
@@ -541,7 +594,15 @@ export function StepSpecifications({
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const parentKey = folds[def.attrKey];
-      if (parentKey === undefined && def.allowedOptions === null) continue;
+      // INC-244 — an answer outside what the chosen options allow is cleared here
+      // too, never left for the door to refuse at the end.
+      if (
+        parentKey === undefined &&
+        def.allowedOptions === null &&
+        narrowing[def.attrKey] === undefined
+      ) {
+        continue;
+      }
       const held = options[def.attrKey] ?? IDLE;
       if (held.state !== "ready") continue;
       const offered = new Set(visibleOptionsOf(def).map((option) => option.value));
@@ -595,6 +656,25 @@ export function StepSpecifications({
       changed = true;
     }
 
+    /**
+     * INC-244 — ONE ALLOWED ANSWER IS THE ANSWER. When the chosen options leave a
+     * single-select picker with exactly one admissible value, the form fills it and
+     * the control below says so and locks: there is nothing to choose, and leaving
+     * it empty would only earn a refusal at the door.
+     */
+    for (const def of definitions) {
+      if (def.attrType !== "single_select") continue;
+      if (narrowing[def.attrKey] === undefined) continue;
+      const held = options[def.attrKey] ?? IDLE;
+      if (held.state !== "ready") continue;
+      const offered = visibleOptionsOf(def);
+      if (offered.length !== 1) continue;
+      const only = offered[0]?.value ?? "";
+      if (only === "" || same(next[def.attrKey], only)) continue;
+      next[def.attrKey] = only;
+      changed = true;
+    }
+
     // I3 — the mirror of provenance is written only when it actually moved.
     if (JSON.stringify(owned) !== JSON.stringify(prefills)) setPrefills(owned);
 
@@ -612,6 +692,7 @@ export function StepSpecifications({
     options,
     values,
     facts,
+    narrowing,
     prefills,
     parents,
     roots,
@@ -622,11 +703,19 @@ export function StepSpecifications({
     onChange,
   ]);
 
-  /** M-MAINT-2 §12 — the LINK's default fills an empty field, once. */
+  /**
+   * M-MAINT-2 §12 / INC-245 — THE LINK's DEFAULT FILLS AN EMPTY FIELD: on the
+   * first render of the step for this category, and again after a make or model
+   * reset has emptied fields (D25/D25b). It never overwrites an answer that is
+   * there, so a seller who cleared a field between those two moments keeps it
+   * clear.
+   */
   const defaulted = useRef<string | null>(null);
   useEffect(() => {
-    if (schema === null || categoryId === null || defaulted.current === categoryId) return;
+    if (schema === null || categoryId === null) return;
+    if (defaulted.current === categoryId && !defaultsAgain.current) return;
     defaulted.current = categoryId;
+    defaultsAgain.current = false;
     const next = { ...values };
     let changed = false;
     for (const def of definitions) {
@@ -751,6 +840,16 @@ export function StepSpecifications({
         const value = values[def.attrKey];
         const chosen = selectedValue(value);
         const shown = visibleOptionsOf(def);
+        /**
+         * INC-244 — SET BY THE MODEL. The chosen options leave exactly one
+         * admissible answer, so the reconciliation above has already written it and
+         * the picker has nothing to offer: it shows that answer, says where it came
+         * from and takes no taps.
+         */
+        const lockedByModel =
+          def.attrType === "single_select" &&
+          narrowing[def.attrKey] !== undefined &&
+          shown.length === 1;
         const parentKey = folds[def.attrKey];
         const parentDef =
           parentKey === undefined
@@ -917,7 +1016,8 @@ export function StepSpecifications({
                   data-attr={def.attrKey}
                   data-options={held.state}
                   data-waiting={waiting ? "1" : "0"}
-                  disabled={waiting}
+                  data-locked={lockedByModel ? "1" : "0"}
+                  disabled={waiting || lockedByModel}
                   className={ctrl}
                   value={chosen}
                   onFocus={() => openOptions(def)}
@@ -1056,6 +1156,17 @@ export function StepSpecifications({
                     );
                   })}
                 </ul>
+              )}
+
+              {/* INC-244 — a locked answer says whose answer it is. */}
+              {lockedByModel && (
+                <p
+                  className="text-xs text-muted-foreground"
+                  data-testid="post-attr-set-by-model"
+                  data-attr={def.attrKey}
+                >
+                  {t("post.specs.setByModel")}
+                </p>
               )}
 
               {/* THE FOLD, IN WORDS: the child says which answer it waits for, so a

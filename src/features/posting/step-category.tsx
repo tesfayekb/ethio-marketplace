@@ -29,11 +29,21 @@ import { useI18n } from "@/i18n";
  *
  * D11 is rendered rather than explained: a group drills in, a postable leaf is
  * choosable, an unpostable leaf is visible but inert.
+ *
+ * U6-C1-R3b-3d STEP 5 — WHERE YOU ARE, AND THE WAY BACK. The level is now named
+ * by TAPPABLE CRUMBS (All categories › Vehicles › Cars): a tap goes straight to
+ * that level, so nobody climbs a deep tree one row at a time. "Up one level" is
+ * retired — the wizard's own Back does that job while there is a level to leave,
+ * and the crumbs say what Back will do. The level list scrolls INSIDE the card,
+ * so Back and Next stay on screen at every size (the LAYOUT-1 sticky bar).
  */
 
 const rowClass =
   "flex min-h-11 w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-start " +
   "text-sm text-foreground hover:bg-accent disabled:opacity-60";
+
+const crumbClass =
+  "min-h-11 rounded-md border border-border px-3 py-1 text-xs text-foreground hover:bg-accent";
 
 export function StepCategory({
   tree,
@@ -41,6 +51,8 @@ export function StepCategory({
   treeError,
   onChoose,
   invalid = false,
+  cursor,
+  onCursor,
 }: {
   tree: CategoryTree;
   isLoading: boolean;
@@ -51,11 +63,15 @@ export function StepCategory({
    * choice group wears the refusal outline until a choice clears it (F4).
    */
   invalid?: boolean;
+  /**
+   * Where the tree stands: `null` is the root level. The WIZARD holds it, because
+   * its Back button leaves a level before it leaves the step.
+   */
+  cursor: string | null;
+  onCursor: (id: string | null) => void;
 }) {
   const { t, entities } = useI18n();
   const [term, setTerm] = useState("");
-  /** Where the tree stands: `null` is the root level. */
-  const [cursor, setCursor] = useState<string | null>(null);
 
   const label = (node: CategoryNode) => entityName("category", node, entities);
   const filtering = term.trim() !== "";
@@ -147,22 +163,43 @@ export function StepCategory({
           </ul>
         ) : (
           <div className="space-y-2">
-            {cursor !== null && (
-              <>
-                <p className="text-xs text-muted-foreground" data-testid="post-browse-trail">
-                  {trail.map((node) => label(node)).join(" › ")}
-                </p>
-                <button
-                  type="button"
-                  data-testid="post-browse-up"
-                  className={rowClass}
-                  onClick={() => setCursor(tree.parentOf.get(cursor) ?? null)}
-                >
-                  {t("post.category.upOneLevel")}
-                </button>
-              </>
-            )}
-            <ul className="space-y-2" data-testid="post-browse-level">
+            {/* THE CRUMBS ARE THE NAVIGATION: each one is a level, each one a tap. */}
+            <nav
+              className="flex flex-wrap items-center gap-1"
+              data-testid="post-browse-trail"
+              aria-label={t("post.category.trailLabel")}
+            >
+              <button
+                type="button"
+                data-testid="post-browse-crumb"
+                data-category=""
+                className={crumbClass}
+                disabled={cursor === null}
+                onClick={() => onCursor(null)}
+              >
+                {t("post.category.allRoots")}
+              </button>
+              {trail.map((node) => (
+                <span key={node.id} className="flex items-center gap-1">
+                  <span aria-hidden="true" className="text-xs text-muted-foreground">
+                    ›
+                  </span>
+                  <button
+                    type="button"
+                    data-testid="post-browse-crumb"
+                    data-category={node.id}
+                    className={crumbClass}
+                    disabled={node.id === cursor}
+                    onClick={() => onCursor(node.id)}
+                  >
+                    {label(node)}
+                  </button>
+                </span>
+              ))}
+            </nav>
+            {/* The level scrolls inside the card, so Back and Next never leave the
+                screen on a 360-pixel phone. */}
+            <ul className="max-h-[60vh] space-y-2 overflow-y-auto" data-testid="post-browse-level">
               {level.map((node) => {
                 const postable = isPostable(tree, node);
                 const folder = childrenOf(tree, node.id).length > 0;
@@ -175,7 +212,7 @@ export function StepCategory({
                       disabled={!folder && !postable}
                       className={rowClass}
                       onClick={() => {
-                        if (folder) setCursor(node.id);
+                        if (folder) onCursor(node.id);
                         else onChoose(node.id);
                       }}
                     >

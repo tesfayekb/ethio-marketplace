@@ -57,6 +57,23 @@ onward the chosen category rides at the top of every step as a chip
 ("Construction Material › Doors & Windows · Change"), which is both the
 confirmation and the way back.
 
+### Where you are, and the way up (U6-C1-R3b-3d)
+
+The level is named by tappable CRUMBS above the tree — "All categories › Vehicles ›
+Cars" — and a tap on any crumb goes to that level; the crumb for the level you are
+on takes no tap. "Up one level" is retired: BACK does it. Inside the tree Back
+climbs one level, and only at the roots is it closed, because there is nothing
+above them. The level list scrolls inside the card so Back and Next keep their
+place in the sticky bar at every width (LAYOUT-1). PW-3 walks the crumbs and the
+climb.
+
+The tree also carries a category EVERYWHERE it is surfaced (INC-246). Surfacing is
+a pointer, not a move, and the reader used to keep one parent per category — so a
+leaf the marketplace rail showed under two roots could be reached under one of them
+only. Every pointer row is now a branch; the PATH shown on the chip stays the first
+pointer's, so a category has one well-defined trail to name. PW-36 surfaces a
+scratch leaf under a scratch root and finds it in both places.
+
 Search-to-leaf over the ONE shared tree reader
 (`src/features/categories/category-tree.ts`, lifted out of the feed so both
 consumers read the same rows). Search matches the active language's entity name
@@ -437,10 +454,26 @@ markets' currencies with "More…"), and step 1's disabled Next with its caption
   "Choose <parent> first" (`post-attr-parent-first`); a child answer that no
   longer fits is cleared when the parent changes; a parent answer with no child
   options says so (`post-attr-no-options`). `PW-21`.
-- **The link narrows and opens on a default (M-MAINT-2 §12).** `allowed_options`
-  from the link filters the shortlist further, and `default_value` prefills an
-  empty field once per category. The door's `optionNotAllowed` stays the
-  authority. `PW-22`.
+- **The link narrows and opens on a default (M-MAINT-2 §12, INC-245).**
+  `allowed_options` from the link filters the shortlist further, and
+  `default_value` is what an EMPTY field starts from — on the first render of the
+  step and again wherever a make or model reset has just emptied the field, never
+  over an answer that is there. The door's `optionNotAllowed` stays the authority.
+  `PW-22`.
+- **An option's `allowed` narrows its siblings (INC-244).** The same resolver that
+  gathers bounds from every chosen option gathers `allowed` too: a sibling picker
+  offers only the values the chosen options admit (intersected with the link's own
+  shortlist), an answer outside them is cleared rather than left for the door, and a
+  SINGLE admitted value is written and the control locked with a translated caption
+  naming where the answer came from. `attr_allowed_check` and the publish door stay
+  the authority (F3). `PW-35`.
+- **A changed list is noticed (INC-243).** An option list is cached for sixty
+  seconds with the definition's version as its ETag (`max-age=60,
+stale-while-revalidate=300`), and the version is `md5(updated_at + active option
+count)` over the definition row — which the attributes-file commit rewrites on
+  every update, so a curator's edit reaches a seller's open form within the minute
+  instead of the five it used to hold. Changing the category forgets the lists it
+  held.
 - **DEC-053 still holds.** A list is fetched on the tap that opens it. Only two
   things must be known BEFORE a tap — a fold (which exists only between two
   pickers) and a link default — so small lists are read up front only when the

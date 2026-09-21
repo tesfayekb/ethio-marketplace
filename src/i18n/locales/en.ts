@@ -1904,7 +1904,6 @@ export const en = {
   "post.category.noHits": "Nothing matched. Try another word, or browse below.",
   "post.category.browseLabel": "Or browse",
   "post.category.folder": "Open",
-  "post.category.upOneLevel": "Up one level",
   "post.category.chosen": "Chosen category",
   "post.category.change": "Change",
   "post.category.expect": "{details} details, {required} required",
@@ -2181,6 +2180,9 @@ export const en = {
   "post.category.changedDropped":
     "These answers do not fit the new category and were removed: {fields}",
   "post.category.changedPhotos": "Check your photos against the new category before you publish.",
+  "post.specs.setByModel": "Set by the model — this is the only answer it allows.",
+  "post.category.allRoots": "All categories",
+  "post.category.trailLabel": "Where you are",
   "post.review.previewAsBuyer": "Preview as buyers see it",
   "post.preview.title": "As buyers see it",
   "post.preview.close": "Close preview",

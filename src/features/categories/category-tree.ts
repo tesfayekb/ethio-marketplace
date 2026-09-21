@@ -51,7 +51,12 @@ export interface CategoryNode {
 export interface CategoryTree {
   /** Every active category, in `display_order`. */
   nodes: CategoryNode[];
-  /** child id → parent id. A category absent from this map is a root. */
+  /**
+   * child id → its FIRST parent id. A category absent from this map is a root.
+   * INC-246 — a category may be surfaced under several parents; this map keeps
+   * one of them so `pathOf` stays a single well-defined path (the trail a hit
+   * shows). Every surfacing is in `childrenOf`.
+   */
   parentOf: Map<string, string>;
   /** parent id → its children, in `display_order`. */
   childrenOf: Map<string, CategoryNode[]>;
@@ -68,26 +73,34 @@ const EMPTY_TREE: CategoryTree = {
 let cache: CategoryTree | null = null;
 let inFlight: Promise<CategoryTree> | null = null;
 
+/**
+ * INC-246 — EVERY SURFACING IS A BRANCH. A category surfaced under two roots has
+ * TWO pointer rows, and the wizard's tree must show it in both places, exactly
+ * where the marketplace rail shows it. The children of a parent are therefore
+ * built from the POINTERS themselves — not from a single child→parent map, which
+ * could only ever remember the last row read and silently dropped the other
+ * surfacing.
+ */
 function buildTree(
   rows: CategoryNode[],
   pointers: { child_id: string; parent_id: string | null }[],
 ): CategoryTree {
   const byId = new Map(rows.map((row) => [row.id, row]));
   const parentOf = new Map<string, string>();
+  const childrenOf = new Map<string, CategoryNode[]>();
   for (const pointer of pointers) {
     if (pointer.parent_id === null) continue;
     // A pointer to a row the active read did not return (an inactive parent or
     // child) is not a tree edge anyone may walk.
-    if (!byId.has(pointer.child_id) || !byId.has(pointer.parent_id)) continue;
-    parentOf.set(pointer.child_id, pointer.parent_id);
+    const child = byId.get(pointer.child_id);
+    if (child === undefined || !byId.has(pointer.parent_id)) continue;
+    if (!parentOf.has(pointer.child_id)) parentOf.set(pointer.child_id, pointer.parent_id);
+    const siblings = childrenOf.get(pointer.parent_id) ?? [];
+    if (!siblings.some((entry) => entry.id === child.id)) siblings.push(child);
+    childrenOf.set(pointer.parent_id, siblings);
   }
-  const childrenOf = new Map<string, CategoryNode[]>();
-  for (const row of rows) {
-    const parent = parentOf.get(row.id);
-    if (parent === undefined) continue;
-    const siblings = childrenOf.get(parent) ?? [];
-    siblings.push(row);
-    childrenOf.set(parent, siblings);
+  for (const siblings of childrenOf.values()) {
+    siblings.sort((a, b) => a.displayOrder - b.displayOrder);
   }
   return { nodes: rows, parentOf, childrenOf, byId };
 }
@@ -103,7 +116,10 @@ export async function readCategoryTree(): Promise<CategoryTree> {
         )
         .eq("is_active", true)
         .order("display_order", { ascending: true }),
-      supabase.from("category_tree_pointers").select("child_id,parent_id"),
+      supabase
+        .from("category_tree_pointers")
+        .select("child_id,parent_id,display_order")
+        .order("display_order", { ascending: true }),
     ]);
   // Law F4 — a failed read is a failure, never an empty tree that reads as
   // "there are no categories". The caller renders the error state.

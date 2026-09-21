@@ -25,7 +25,9 @@ import {
   destroyListingsOf,
   destroyPostableCategory,
   draftsOf,
+  seedAllowedSet,
   seedCategoryBranch,
+  surfaceCategoryUnder,
   seedConditionalSet,
   seedColourSet,
   seedFactShiftSet,
@@ -235,6 +237,33 @@ test.describe("POSTING WIZARD", () => {
 
     await folder.click();
     const leafRow = page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`);
+    await expect(leafRow).toBeVisible();
+
+    /**
+     * U6-C1-R3b-3d STEP 5 — THE CRUMBS SAY WHERE YOU ARE, AND BACK CLIMBS.
+     * Inside the folder the trail names the level and BACK leaves the level, not the
+     * step; at the roots Back is closed because there is nothing above them, and the
+     * crumb for "all categories" returns in one tap.
+     */
+    await expect(
+      page.locator(`[data-testid="post-browse-crumb"][data-category="${parent.id}"]`),
+      "PW-3: the level is not named by a crumb",
+    ).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(folder, "PW-3: Back inside the tree did not climb to the roots").toBeVisible();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await expect(
+      page.getByTestId("post-back"),
+      "PW-3: Back is still offered at the roots of step 1",
+    ).toBeDisabled();
+
+    await folder.click();
+    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+    await expect(
+      folder,
+      "PW-3: the all-categories crumb did not return to the roots",
+    ).toBeVisible();
+    await folder.click();
     await expect(leafRow).toBeVisible();
     await leafRow.click();
     // The leaf advances by itself; the chip names the whole path, parent first.
@@ -1774,6 +1803,21 @@ test.describe("POSTING WIZARD", () => {
       "PW-22: an option outside the link's shortlist was offered",
     ).toHaveCount(0);
 
+    /**
+     * INC-245 — A DEFAULT IS WHAT AN EMPTY FIELD STARTS FROM, not a one-off. A make
+     * change empties every detail (D25b), so the link's default fills the unit again
+     * rather than leaving a field the category says has an opening answer.
+     */
+    await unit.selectOption(fold.unitValues[1]);
+    await expect(unit).toHaveValue(fold.unitValues[1]);
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
+      .selectOption(fold.makeValues[1]);
+    await expect(unit, "PW-22: the link's default did not return after a make reset").toHaveValue(
+      fold.unitValues[0],
+      { timeout: 20_000 },
+    );
+
     // J4 — DB truth: the default the screen showed is what the door recorded.
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-4")).toBeVisible();
@@ -2172,6 +2216,102 @@ test.describe("POSTING WIZARD", () => {
       page.locator(`[data-testid="post-attr-control"][data-attr="${set.colour.attrKey}"]`),
       "PW-34: tapping a swatch did not answer the detail",
     ).toHaveValue(set.inked, { timeout: 20_000 });
+  });
+
+  /**
+   * U6-C1-R3b-3d STEP 2 (INC-244) — WHAT THE MODEL RULES OUT.
+   *
+   * An option's `allowed` names a sibling picker and the only answers it admits.
+   * The picker offers those and nothing else; a single admissible answer is written
+   * and the control says whose answer it is and takes no taps. A model that allows
+   * everything leaves the same picker open. The door narrows too; this is the
+   * mirror (F3).
+   */
+  test("PW-35 a model's allowed set narrows and locks a sibling picker", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const set = await seedAllowedSet(category.id);
+    specs.push(...set.attrKeys);
+    const listingId = await reachStep3(page, user.id, category);
+
+    const model = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${set.model.attrKey}"]`,
+    );
+    const fuel = page.locator(`[data-testid="post-attr-control"][data-attr="${set.fuel.attrKey}"]`);
+    await expect(fuel, "PW-35: the fuel picker never rendered").toBeVisible({ timeout: 20_000 });
+    // BEFORE a model is chosen the picker offers its whole list.
+    await expect(fuel.locator(`option[value="${set.fuelPetrol}"]`)).toHaveCount(1);
+
+    await model.selectOption(set.strictModel);
+    // ONE ANSWER ADMITTED: it is written, said, and the control is closed.
+    await expect(fuel, "PW-35: the only allowed fuel was not written").toHaveValue(
+      set.fuelElectric,
+      { timeout: 20_000 },
+    );
+    await expect(
+      fuel.locator(`option[value="${set.fuelPetrol}"]`),
+      "PW-35: a fuel the model rules out was still offered",
+    ).toHaveCount(0);
+    await expect(fuel, "PW-35: the narrowed picker was not locked").toHaveAttribute(
+      "data-locked",
+      "1",
+    );
+    await expect(
+      page.locator(`[data-testid="post-attr-set-by-model"][data-attr="${set.fuel.attrKey}"]`),
+      "PW-35: a locked answer never said where it came from",
+    ).toBeVisible();
+
+    // J4 — DB truth: what the narrowing wrote is what the door recorded.
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.fuel.attrKey], {
+        message: "PW-35: the narrowed answer never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe(set.fuelElectric);
+
+    // A MODEL THAT RULES NOTHING OUT leaves the picker open again.
+    await model.selectOption(set.openModel);
+    await expect(
+      fuel.locator(`option[value="${set.fuelPetrol}"]`),
+      "PW-35: the picker stayed narrowed under a model with no allowed set",
+    ).toHaveCount(1, { timeout: 20_000 });
+    await expect(fuel, "PW-35: the picker stayed locked").toHaveAttribute("data-locked", "0");
+  });
+
+  /**
+   * U6-C1-R3b-3d STEP 4 (INC-246) — A SURFACED CATEGORY IS IN THE TREE.
+   *
+   * Surfacing a category under a second root is a POINTER, and the wizard's tree
+   * used to remember only one parent per category — so a leaf the marketplace rail
+   * showed under two roots could be reached under one of them only. Both places now
+   * carry it.
+   */
+  test("PW-36 a category surfaced under a second root appears under it in the tree", async ({
+    page,
+  }) => {
+    const { parent, leaf: child } = await seedCategoryBranch();
+    branches.push(parent.slug, child.slug);
+    const second = await seedPostableCategory();
+    categories.push(second.slug);
+    await surfaceCategoryUnder(second.id, child.id);
+
+    await seller(page);
+    await gotoReady(page, "/post");
+
+    // UNDER THE FIRST PARENT, as before.
+    await page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`).click();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
+      "PW-36: the leaf is missing under its first parent",
+    ).toBeVisible();
+
+    // AND UNDER THE SECOND, which the second surfacing turned into a folder.
+    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+    await page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`).click();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
+      "PW-36: the surfaced leaf is missing under the root it was surfaced under",
+    ).toBeVisible({ timeout: 20_000 });
   });
 
   /**
