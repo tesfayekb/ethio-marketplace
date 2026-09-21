@@ -478,6 +478,16 @@ markets' currencies with "More…"), and step 1's disabled Next with its caption
   whatever answer carries it, whatever link the bounded field came from and however
   deep the fold; a model with `min = max` pins the picker to that one year.
   `PW-25`.
+- **A bound lives in `bounds`, not in `facts` (INC-249, R-SW).** DEC-050's option
+  record keeps a bound in its OWN `bounds` object, BESIDE `facts` — the published
+  site serves BYD Han as `{"facts": {…}, "bounds": {"year": {"min": 2020}}}` — and
+  this screen read `facts` alone, so no real catalogue model bounded anything and a
+  2020-only car still offered 1900. The client option shape now carries `bounds`,
+  the resolver reads it first (a nested `facts` bound is still honoured for a file
+  that writes one), and a bound also marks its field MODEL-DEPENDENT for D25/D25b.
+  The fixture behind `PW-25` and `PW-32` is copied verbatim from the served payload,
+  because the earlier fixture nested the bound inside `facts` — a shape the
+  catalogue never writes — and so the test passed while production did not. `PW-25`.
 - **A category change clears the fold on screen too (INC-248).** When the new
   category still asks a picker the previous one asked, the picker shows "Choose":
   the door had already cleared the answer, and a control still displaying it was a
