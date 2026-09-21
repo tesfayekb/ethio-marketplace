@@ -1019,3 +1019,105 @@ export async function identityOf(userId: string): Promise<{
     lastName: data?.last_name ?? null,
   };
 }
+
+/**
+ * U6-C1-R3b-3d STEP 4 (INC-246) — A CATEGORY SURFACED UNDER A SECOND PARENT.
+ *
+ * Surfacing is a POINTER, not a move: the row keeps its first parent and gains
+ * another place it is shown. The wizard's tree must show it in both places, the
+ * way the marketplace rail does.
+ */
+export async function surfaceCategoryUnder(
+  parentId: string,
+  childId: string,
+  displayOrder = 1,
+): Promise<void> {
+  const { error } = await adminClient()
+    .from("category_tree_pointers")
+    .insert({ parent_id: parentId, child_id: childId, display_order: displayOrder });
+  if (error) throw new Error(`[e2e:r3b3d] surfacing the category failed: ${error.message}`);
+}
+
+/**
+ * U6-C1-R3b-3d STEP 2 (INC-244) — A SET WHOSE MODEL RULES ANSWERS OUT.
+ *
+ * One model option carries `allowed` naming a SIBLING picker and the single answer
+ * it admits (`{ fuel: [electric] }`); the other carries nothing, so the same
+ * picker offers its whole list. The door (`attr_allowed_check` / the validator)
+ * decides the same way; the form is the mirror (F3).
+ */
+export interface AllowedSet {
+  model: ScratchAttr;
+  fuel: ScratchAttr;
+  /** The model that allows one fuel only, and the model that allows them all. */
+  strictModel: string;
+  openModel: string;
+  fuelElectric: string;
+  fuelPetrol: string;
+  attrKeys: string[];
+}
+
+export async function seedAllowedSet(categoryId: string): Promise<AllowedSet> {
+  const supabase = adminClient();
+  const stem = `e2e_allow_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const strictModel = `${stem}_ev`;
+  const openModel = `${stem}_any`;
+  const fuelElectric = `${stem}_electric`;
+  const fuelPetrol = `${stem}_petrol`;
+  const option = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...extra,
+  });
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: `${stem}_model`,
+        name_en: `${stem} model`,
+        attr_type: "single_select",
+        options: [
+          option(strictModel, { allowed: { [`${stem}_fuel`]: [fuelElectric] } }),
+          option(openModel),
+        ],
+      },
+      {
+        attr_key: `${stem}_fuel`,
+        name_en: `${stem} fuel`,
+        attr_type: "single_select",
+        options: [option(fuelPetrol), option(fuelElectric)],
+      },
+    ])
+    .select("id, attr_key, name_en");
+  if (error || !data) {
+    throw new Error(`[e2e:r3b3d] seeding the allowed set failed: ${error?.message ?? "no rows"}`);
+  }
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:r3b3d] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
+  };
+  const model = pick("_model");
+  const fuel = pick("_fuel");
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 1 },
+    { category_id: categoryId, attribute_id: fuel.id, is_required: false, display_order: 2 },
+  ]);
+  if (linkError) {
+    throw new Error(`[e2e:r3b3d] linking the allowed set failed: ${linkError.message}`);
+  }
+
+  return {
+    model,
+    fuel,
+    strictModel,
+    openModel,
+    fuelElectric,
+    fuelPetrol,
+    attrKeys: [model.attrKey, fuel.attrKey],
+  };
+}
