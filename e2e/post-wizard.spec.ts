@@ -911,16 +911,12 @@ test.describe("POSTING WIZARD", () => {
    * does (free price, one real active city), because a step entered any other way
    * proves nothing about the wizard.
    */
-  async function reachStep7(
-    page: import("@playwright/test").Page,
-    userId: string,
-    category: { id: string; slug: string },
-  ) {
-    const listingId = await reachStep5(page, userId, category);
-    await page.getByTestId("post-price-mode-free").click();
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-6")).toBeVisible();
-
+  /**
+   * ONE REAL CITY, walked the way a seller walks it — extracted so the pin tests
+   * can reach step 7 through the SAME cascade `reachStep7` uses, rather than a
+   * second copy that could drift from it (B1).
+   */
+  async function chooseOneCity(page: import("@playwright/test").Page) {
     const city = await activeCityOf("ET");
     /**
      * INC-235 — THE ROUTE FIRST, THE SCREEN SECOND. Under four workers the where
@@ -977,6 +973,19 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
       timeout: 20_000,
     });
+  }
+
+  async function reachStep7(
+    page: import("@playwright/test").Page,
+    userId: string,
+    category: { id: string; slug: string },
+  ) {
+    const listingId = await reachStep5(page, userId, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+
+    await chooseOneCity(page);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7")).toBeVisible();
     return listingId;
@@ -2426,11 +2435,15 @@ test.describe("POSTING WIZARD", () => {
     page: import("@playwright/test").Page,
     userId: string,
     category: { id: string; slug: string },
+    withCoverage = false,
   ) {
     const listingId = await reachStep5(page, userId, category);
     await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
+    // A pin is not coverage: only the tests that walk ON to step 7 need a place,
+    // because the door refuses a step 6 with none.
+    if (withCoverage) await chooseOneCity(page);
     await page.getByTestId("post-where-pin-open").click();
     // The map is a lazy chunk: the box appears when the chunk has landed.
     await expect(page.getByTestId("post-pin-map"), "the map chunk never mounted").toBeVisible({
@@ -2511,7 +2524,7 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await seedPostableCategory();
     categories.push(category.slug);
-    const listingId = await openPinAt6(page, user.id, category);
+    const listingId = await openPinAt6(page, user.id, category, true);
 
     await page.getByTestId("post-pin-map").click({ position: { x: 140, y: 110 } });
     await page.getByTestId("post-pin-precision-approx").click();
