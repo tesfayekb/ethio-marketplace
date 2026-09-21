@@ -353,19 +353,40 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 </div>
               )}
 
-              {(droppedFields.length > 0 || photosNeedRecheck) && (
+              {/*
+               * R-YEAR STEP 5 — ONE LINE, IN THE SELLER'S WORDS, AND DISMISSIBLE.
+               * The old notice was a heading plus a sentence; a seller who has just
+               * changed category needs one plain line naming the new category and
+               * the answers that did not travel with them (F4: nothing vanishes in
+               * silence), and a way to put it away once read.
+               */}
+              {(droppedFields.length > 0 || photosNeedRecheck) && !noticeDismissed && (
                 <div
                   className="space-y-1 rounded-md border border-border bg-muted p-3"
                   data-testid="post-category-changed"
                 >
-                  <p className="text-sm font-medium text-foreground">
-                    {t("post.category.changedTitle")}
-                  </p>
                   {droppedFields.length > 0 && (
-                    <p className="text-sm text-foreground" data-testid="post-category-dropped">
-                      {fill(t("post.category.changedDropped"), {
-                        fields: droppedFields.join(", "),
-                      })}
+                    <p
+                      className="flex flex-wrap items-center gap-2 text-sm text-foreground"
+                      data-testid="post-category-dropped"
+                    >
+                      <span>
+                        {fill(t("post.category.changedCleared"), {
+                          category:
+                            chosenCategory === null
+                              ? ""
+                              : entityName("category", chosenCategory, entities),
+                          fields: droppedFields.join(", "),
+                        })}
+                      </span>
+                      <button
+                        type="button"
+                        className="min-h-11 font-medium text-primary underline"
+                        data-testid="post-category-changed-dismiss"
+                        onClick={() => setNoticeDismissed(true)}
+                      >
+                        {t("post.category.changedDismiss")}
+                      </button>
                     </p>
                   )}
                   {photosNeedRecheck && (
