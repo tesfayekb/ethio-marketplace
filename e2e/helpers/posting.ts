@@ -1631,3 +1631,109 @@ export async function pinOf(listingId: string): Promise<{
     street: data?.street_address ?? null,
   };
 }
+
+/**
+ * D30 / D33 — A LEVEL WHOSE ORDER IS PROVABLE.
+ *
+ * The host gets TWO children of its own (the higher display orders) and one GUEST
+ * surfaced from another home with the LOWEST category order and the lowest pointer
+ * order — so an ordering that reads the category's own order, as the tree did
+ * before D30, puts the guest first. Every row is namespaced scratch and is
+ * destroyed pointers-first by `destroyCategoryBranch` (J1/J3).
+ */
+export interface SurfacedLevelSet {
+  host: { id: string; slug: string };
+  own: { id: string; slug: string }[];
+  guest: { id: string; slug: string };
+  guestHome: { id: string; slug: string };
+  slugs: string[];
+}
+
+export async function seedSurfacedLevel(): Promise<SurfacedLevelSet> {
+  const supabase = adminClient();
+  const mint = async (order: number, leaf: boolean) => {
+    const slug = scratchCategorySlug();
+    const { data, error } = await supabase
+      .from("categories")
+      .insert({
+        slug,
+        name_en: slug,
+        is_active: true,
+        allow_listings: leaf,
+        is_catchall: false,
+        display_order: order,
+      })
+      .select("id, slug")
+      .single();
+    if (error || !data) {
+      throw new Error(`[e2e:d30] seeding ${slug} failed: ${error?.message ?? "no row"}`);
+    }
+    return data;
+  };
+
+  const host = await mint(9300, false);
+  const guestHome = await mint(9301, false);
+  const ownFirst = await mint(9320, true);
+  const ownSecond = await mint(9321, true);
+  // The guest sorts FIRST by the category's own order — and must still render last.
+  const guest = await mint(9310, true);
+
+  const edges = [
+    { parent_id: host.id, child_id: ownFirst.id, display_order: 2 },
+    { parent_id: host.id, child_id: ownSecond.id, display_order: 3 },
+    { parent_id: guestHome.id, child_id: guest.id, display_order: 1 },
+    // The SURFACING: the lowest pointer order on the level, and still a guest.
+    { parent_id: host.id, child_id: guest.id, display_order: 1 },
+  ];
+  for (const edge of edges) {
+    const { error } = await supabase.from("category_tree_pointers").insert(edge);
+    if (error) throw new Error(`[e2e:d30] linking the level failed: ${error.message}`);
+  }
+
+  return {
+    host,
+    own: [ownFirst, ownSecond],
+    guest,
+    guestHome,
+    slugs: [host.slug, guestHome.slug, ownFirst.slug, ownSecond.slug, guest.slug],
+  };
+}
+
+/**
+ * DB truth for the READ-ONLY catch-all anchor (J2/J4): any active host whose
+ * children include an `other-…` row. The catalog differs per project, so the
+ * anchor is DISCOVERED rather than named; a project without one has nothing to
+ * assert and the caller skips that half.
+ */
+export async function anyCatchAllLevel(): Promise<{ hostId: string; otherId: string } | null> {
+  const supabase = adminClient();
+  const { data: others } = await supabase
+    .from("categories")
+    .select("id")
+    .like("slug", "other-%")
+    .eq("is_active", true)
+    .limit(50);
+  const otherIds = (others ?? []).map((row) => row.id);
+  if (otherIds.length === 0) return null;
+  const { data: edges } = await supabase
+    .from("category_tree_pointers")
+    .select("parent_id, child_id")
+    .in("child_id", otherIds)
+    .not("parent_id", "is", null);
+  for (const edge of edges ?? []) {
+    const parentId = String(edge.parent_id);
+    const { data: parent } = await supabase
+      .from("categories")
+      .select("id, is_active")
+      .eq("id", parentId)
+      .maybeSingle();
+    if (!parent?.is_active) continue;
+    const { count } = await supabase
+      .from("category_tree_pointers")
+      .select("child_id", { count: "exact", head: true })
+      .eq("parent_id", parentId);
+    if ((count ?? 0) < 2) continue;
+    return { hostId: parentId, otherId: String(edge.child_id) };
+  }
+  return null;
+}

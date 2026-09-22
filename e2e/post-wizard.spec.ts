@@ -30,6 +30,8 @@ import {
   draftsOf,
   seedAllowedSet,
   seedCategoryBranch,
+  seedSurfacedLevel,
+  anyCatchAllLevel,
   surfaceCategoryUnder,
   seedConditionalSet,
   seedUnhideFactSet,
@@ -2514,6 +2516,73 @@ test.describe("POSTING WIZARD", () => {
       page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
       "PW-46: the surfaced leaf is missing under its host root",
     ).toBeVisible({ timeout: 20_000 });
+  });
+
+  /**
+   * D30 / D33 — THE ORDER OF A LEVEL: HOST'S OWN CHILDREN, THEN GUESTS, THEN "other-".
+   *
+   * A guest (a category surfaced by a secondary pointer) used to sort by its own
+   * display order and could therefore open a level ahead of the host's own
+   * children. The level now reads: primaries by pointer order, then the surfaced
+   * children by pointer order, and any catch-all (`other-…`) last of all. The
+   * catch-all half is asserted READ-ONLY against the real catalog, because a
+   * scratch slug may never carry the `other-` prefix (J1).
+   */
+  test("PW-47 a level lists the host's own children first, guests next and other- last", async ({
+    page,
+  }) => {
+    const level = await seedSurfacedLevel();
+    branches.push(...level.slugs);
+
+    await seller(page);
+    await gotoReady(page, "/post");
+    const host = page.locator(
+      `[data-testid="post-browse-folder"][data-category="${level.host.id}"]`,
+    );
+    await expect(host, "PW-47: the host never reached the tree").toBeVisible({ timeout: 20_000 });
+    await host.click();
+
+    // J7 — the rows are on screen before anything is asserted about their order.
+    const entries = page.locator('[data-testid="post-browse-level"] [data-category]');
+    await expect
+      .poll(() => entries.count(), {
+        message: "PW-47: the host's level never rendered its children",
+        timeout: 20_000,
+      })
+      .toBe(3);
+    const order = await entries.evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute("data-category") ?? ""),
+    );
+    expect(order, "PW-47: the surfaced guest did not follow the host's own children").toEqual([
+      level.own[0]!.id,
+      level.own[1]!.id,
+      level.guest.id,
+    ]);
+
+    // THE CATCH-ALL, read-only: the last child of a real host is its `other-` row.
+    const anchor = await anyCatchAllLevel();
+    if (anchor === null) {
+      // A project whose catalog carries no catch-all has nothing to assert here.
+      return;
+    }
+    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+    const realHost = page.locator(
+      `[data-testid="post-browse-folder"][data-category="${anchor.hostId}"]`,
+    );
+    await expect(realHost, "PW-47: the catch-all's host is not on the root level").toBeVisible({
+      timeout: 20_000,
+    });
+    await realHost.click();
+    await expect
+      .poll(() => entries.count(), {
+        message: "PW-47: the real host's level never rendered",
+        timeout: 20_000,
+      })
+      .toBeGreaterThan(1);
+    const realOrder = await entries.evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute("data-category") ?? ""),
+    );
+    expect(realOrder.at(-1), "PW-47: the catch-all is not last on the level").toBe(anchor.otherId);
   });
 
   /**

@@ -106,26 +106,87 @@ export function forgetCategoryTree(): void {
  * could only ever remember the last row read and silently dropped the other
  * surfacing.
  */
-function buildTree(
+/**
+ * D30 — A HOST'S OWN CHILDREN COME FIRST, AND "OTHER" COMES LAST.
+ *
+ * A category surfaced under a host (a SECONDARY pointer) is a guest: it belongs
+ * after every child whose primary home this host is, so a seller reading the
+ * level meets the host's own taxonomy before another branch's leaves. And a
+ * catch-all row — any slug opening with `other-` — is the last thing on its
+ * level wherever it sits, primary or surfaced: it is the answer a seller reaches
+ * for only after the named ones failed.
+ *
+ * D33 — WITHIN THE GUESTS, THE POINTER DECIDES. The pointer's own
+ * `display_order` orders the surfaced children, so a curator can place a guest
+ * among the others; when the pointers carry no distinction the tie falls back to
+ * the category's own order, which is "after the primaries" and nothing more.
+ */
+export function isOtherSlug(slug: string): boolean {
+  return slug.startsWith("other-");
+}
+
+interface Edge {
+  node: CategoryNode;
+  /** False for the child's PRIMARY pointer, true for every surfacing. */
+  surfaced: boolean;
+  /** D33 — the pointer's own order; the guests are sorted by it. */
+  pointerOrder: number;
+}
+
+function compareEdges(a: Edge, b: Edge): number {
+  const other = Number(isOtherSlug(a.node.slug)) - Number(isOtherSlug(b.node.slug));
+  if (other !== 0) return other;
+  const guest = Number(a.surfaced) - Number(b.surfaced);
+  if (guest !== 0) return guest;
+  if (a.surfaced && a.pointerOrder !== b.pointerOrder) return a.pointerOrder - b.pointerOrder;
+  return a.node.displayOrder - b.node.displayOrder;
+}
+
+/**
+ * INC-246 — EVERY SURFACING IS A BRANCH. A category surfaced under two roots has
+ * TWO pointer rows, and the wizard's tree must show it in both places, exactly
+ * where the marketplace rail shows it. The children of a parent are therefore
+ * built from the POINTERS themselves — not from a single child→parent map, which
+ * could only ever remember the last row read and silently dropped the other
+ * surfacing.
+ *
+ * The rows arrive in the order the database ranks pointers (`display_order`,
+ * then `created_at`), so the FIRST pointer of a child is its primary home: that
+ * is the edge `parentOf` keeps, and therefore the home the wizard's breadcrumb
+ * shows (D30).
+ */
+export function buildTree(
   rows: CategoryNode[],
-  pointers: { child_id: string; parent_id: string | null }[],
+  pointers: { child_id: string; parent_id: string | null; display_order?: number | null }[],
 ): CategoryTree {
   const byId = new Map(rows.map((row) => [row.id, row]));
   const parentOf = new Map<string, string>();
-  const childrenOf = new Map<string, CategoryNode[]>();
+  const edgesOf = new Map<string, Edge[]>();
   for (const pointer of pointers) {
     if (pointer.parent_id === null) continue;
     // A pointer to a row the active read did not return (an inactive parent or
     // child) is not a tree edge anyone may walk.
     const child = byId.get(pointer.child_id);
     if (child === undefined || !byId.has(pointer.parent_id)) continue;
-    if (!parentOf.has(pointer.child_id)) parentOf.set(pointer.child_id, pointer.parent_id);
-    const siblings = childrenOf.get(pointer.parent_id) ?? [];
-    if (!siblings.some((entry) => entry.id === child.id)) siblings.push(child);
-    childrenOf.set(pointer.parent_id, siblings);
+    const primary = !parentOf.has(pointer.child_id);
+    if (primary) parentOf.set(pointer.child_id, pointer.parent_id);
+    const siblings = edgesOf.get(pointer.parent_id) ?? [];
+    if (!siblings.some((entry) => entry.node.id === child.id)) {
+      siblings.push({
+        node: child,
+        surfaced: !primary,
+        pointerOrder: pointer.display_order ?? child.displayOrder,
+      });
+    }
+    edgesOf.set(pointer.parent_id, siblings);
   }
-  for (const siblings of childrenOf.values()) {
-    siblings.sort((a, b) => a.displayOrder - b.displayOrder);
+  const childrenOf = new Map<string, CategoryNode[]>();
+  for (const [parent, siblings] of edgesOf) {
+    siblings.sort(compareEdges);
+    childrenOf.set(
+      parent,
+      siblings.map((entry) => entry.node),
+    );
   }
   return { nodes: rows, parentOf, childrenOf, byId };
 }
@@ -144,7 +205,7 @@ interface TreePayload {
     image_thumb_url: string | null;
     display_order: number;
   }[];
-  pointers: { child_id: string; parent_id: string | null }[];
+  pointers: { child_id: string; parent_id: string | null; display_order: number | null }[];
 }
 
 /**
@@ -202,7 +263,14 @@ export function loadCategoryTree(): Promise<CategoryTree> {
 
 /** The roots: a category no active pointer names as a child. */
 export function rootsOf(tree: CategoryTree): CategoryNode[] {
-  return tree.nodes.filter((node) => !tree.parentOf.has(node.id));
+  const roots = tree.nodes.filter((node) => !tree.parentOf.has(node.id));
+  // D30 — the rail obeys the same last place for a catch-all root as every
+  // deeper level does. Nothing else is re-ordered: the read already arrives in
+  // `display_order`.
+  return roots.sort(
+    (a, b) =>
+      Number(isOtherSlug(a.slug)) - Number(isOtherSlug(b.slug)) || a.displayOrder - b.displayOrder,
+  );
 }
 
 /** A node's children, in `display_order`; empty means it is a LEAF. */

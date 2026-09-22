@@ -144,10 +144,16 @@ async function handleGet(request: Request): Promise<Response> {
       .select(NODE_COLUMNS)
       .eq("is_active", true)
       .order("display_order", { ascending: true }),
+    // D33 — THE POINTER CARRIES THE ORDER, AND THE FIRST POINTER IS THE PRIMARY
+    // HOME. The rows are served in exactly the order `cat_primary_pointer` ranks
+    // them — `display_order`, then `created_at` — so the reader's "first pointer
+    // of a child is its primary" is the SAME verdict the database reaches for the
+    // export's `parent_slug` and `category_path` (D30's breadcrumb).
     supabase
       .from("category_tree_pointers")
       .select("child_id,parent_id,display_order")
-      .order("display_order", { ascending: true }),
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: true }),
   ]);
   // F4 — a failed read is a failure, never an empty tree that reads as "there
   // are no categories".
