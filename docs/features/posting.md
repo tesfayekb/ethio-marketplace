@@ -74,6 +74,18 @@ only. Every pointer row is now a branch; the PATH shown on the chip stays the fi
 pointer's, so a category has one well-defined trail to name. PW-36 surfaces a
 scratch leaf under a scratch root and finds it in both places.
 
+D30/D33 — THE ORDER OF A LEVEL. A level reads: the host's OWN children first (a
+primary pointer), then the GUESTS it surfaces, and any catch-all — a category whose
+slug opens with `other-` — last of all, at every level and on the root rail.
+Within each of those bands the order is the POINTER's `display_order`, then the
+pointer's age, then the category's own display order, so a curator orders a guest
+where they want it without touching the category it belongs to; a pointer with no
+order of its own simply lands after the primaries. The crumb still names the
+primary home (the first pointer), which is the trail the export writes. PW-47
+seeds a host with two children of its own and a guest whose own order sorts it
+first, asserts the level reads own-own-guest, and then reads a real host's level
+read-only to assert its catch-all is last.
+
 The tree is VERSION-KEYED, not pinned (INC-263). It used to be read once per visit
 straight from the browser into a module cache with no expiry, so a curator's
 categories import was invisible until the tab was closed — the console showed
