@@ -358,7 +358,7 @@ function optionCellShape(raw: string): OptionCellShape | null {
   }
 
   const segments: OptionSegment[] = [];
-  for (const part of text.split("|")) {
+  for (const part of splitOptionSegments(text)) {
     const segment = part.trim();
     if (segment === "") continue;
     if (!segment.startsWith("{")) {
