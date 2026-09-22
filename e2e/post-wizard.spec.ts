@@ -2478,6 +2478,7 @@ test.describe("POSTING WIZARD", () => {
     await surfaceCategoryUnder(second.id, child.id);
 
     /** Leaves the wizard and returns, which is all a seller ever does. */
+    let seen = "";
     const bothRootsCarryIt = async (): Promise<boolean> => {
       await gotoReady(page, "/");
       await gotoReady(page, "/post");
@@ -2485,16 +2486,24 @@ test.describe("POSTING WIZARD", () => {
         `[data-testid="post-browse-folder"][data-category="${parent.id}"]`,
       );
       const host = page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`);
-      return (await first.count()) > 0 && (await host.count()) > 0;
+      const anyFirst = await page.locator(`[data-category="${parent.id}"]`).count();
+      const anyHost = await page.locator(`[data-category="${second.id}"]`).count();
+      const firstFolder = await first.count();
+      const hostFolder = await host.count();
+      seen = `parent=${parent.id} any=${String(anyFirst)} folder=${String(firstFolder)} · host=${second.id} any=${String(anyHost)} folder=${String(hostFolder)}`;
+      return firstFolder > 0 && hostFolder > 0;
     };
 
-    await expect
-      .poll(bothRootsCarryIt, {
-        message: "PW-46: the imported category never reached the wizard's tree",
-        timeout: 60_000,
-        intervals: [1_000, 2_000, 2_000, 5_000],
-      })
-      .toBe(true);
+    const deadline = Date.now() + 45_000;
+    let carried = false;
+    while (!carried && Date.now() < deadline) {
+      carried = await bothRootsCarryIt();
+      if (!carried) await page.waitForTimeout(2_000);
+    }
+    expect(carried, `PW-46: the tree never carried it — ${seen}`).toBe(true);
+
+
+
 
     // UNDER ITS OWN PARENT.
     await page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`).click();

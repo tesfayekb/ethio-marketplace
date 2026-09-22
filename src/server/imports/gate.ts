@@ -238,18 +238,24 @@ function optionsOf(raw: string): OptionCell[] | null {
 }
 
 /**
- * DEC-050 L2b / DEC-057 L2 / D18 — THE OPTION RECORD'S SHAPE, at the gate. Keys
- * are exactly the NINE the platform writes; `active` is a boolean, `bounds` and
- * `allowed` objects and `aliases` an array. Nothing SEMANTIC is judged here
- * (co-linkage, parents, every range, every `allowed` target and every `facts`
- * entry belong to `attr_option_shape`/the planner).
+ * DEC-050 L2b / DEC-057 L2 / D18 / D28 — THE OPTION RECORD'S SHAPE, at the gate.
+ * Keys are exactly the TEN the platform writes; `active` is a boolean, `bounds`
+ * and `allowed` objects, `aliases` an array and `swatch` a string. Nothing
+ * SEMANTIC is judged here (co-linkage, parents, every range, every `allowed`
+ * target, every `facts` entry and a swatch's own spelling belong to
+ * `attr_option_shape`/the planner).
  *
  * INC-234 — `facts` was MISSING here while the database's own
  * `attr_option_shape` had allowed it since 20260917210006, so the console's own
  * export of a fold set carrying facts was refused by the importer's gate
  * (`badOption.unknownOptionKey`) and AT-20's round trip could never be a no-op.
- * The gate now spells the same nine keys the door spells — one authority, asked
- * earlier (F3).
+ *
+ * INC-264 — `swatch` repeated that mistake exactly. D28/M-SWATCH added it to
+ * `attr_option_shape` (20260922100000) and to the diff and the options read, and
+ * the landing report claimed the gate needed nothing: it did, because the gate
+ * keeps its own copy of this list and refuses FIRST, so a definitions file whose
+ * only change was a colour never reached the door that allows it. The two lists
+ * are now the same ten keys — one authority, asked earlier (F3).
  */
 const OPTION_KEYS = new Set([
   "value",
@@ -261,6 +267,7 @@ const OPTION_KEYS = new Set([
   "aliases",
   "allowed",
   "facts",
+  "swatch",
 ]);
 
 interface OptionShapeFault {
@@ -357,6 +364,15 @@ export function optionShapeFault(raw: string): OptionShapeFault | null {
       return { reason: "optionShape", detail: `${value}|aliasesNotArray` };
     }
     /**
+     * D28 — `swatch` is TEXT here and nothing more. Which spellings are legal
+     * (one hex, two hexes, `pattern:<name>`) is `attr_option_shape`'s verdict,
+     * named `badSwatch:<cell>` by the door (INC-264).
+     */
+    if ("swatch" in record && typeof record["swatch"] !== "string") {
+      return { reason: "optionShape", detail: `${value}|swatchNotString` };
+    }
+
+    /**
      * DEC-057 L2 — `allowed` is a set of select-attribute keys, each carrying a
      * list of that attribute's own values. SHAPE ONLY: which target is legal,
      * how many, and whether a value exists is `attr_allowed_check`'s verdict.
@@ -403,7 +419,11 @@ export function normalizeOptionsCell(raw: string): string {
         (name === "bounds" && emptyObject) ||
         // DEC-057 L2 — a spelled-out empty `allowed` is silence, as `bounds` is.
         (name === "allowed" && emptyObject) ||
-        (name === "aliases" && Array.isArray(value) && value.length === 0);
+        (name === "aliases" && Array.isArray(value) && value.length === 0) ||
+        // D28 — a blank `swatch` is silence too, exactly as the diff reads it:
+        // an empty cell declares no colour, so it is not a change (INC-264).
+        (name === "swatch" && typeof value === "string" && value.trim() === "");
+
       if (isDefault) {
         cut = true;
         continue;

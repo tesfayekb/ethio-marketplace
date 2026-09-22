@@ -200,11 +200,22 @@ shape function as every other key (`attr_option_shape`), which refuses anything
 else by name: `badSwatch:red`, `badSwatch:#GGG`, `badSwatch:pattern:plaid`,
 `badSwatch:empty`, `badSwatch:notString`.
 
-It needs NO new column and no gate change: the cell travels inside the existing
-`options` cell, whose whole record the gate measures for size only (the planner and
-the shape function own meaning, F3/E7), and the export emits each option record
-verbatim — so a swatch round-trips through export, preview, commit and Undo the
-moment it is written.
+It needs NO new column: the cell travels inside the existing `options` cell, and the
+export emits each option record verbatim — so a swatch round-trips through export,
+preview, commit and Undo the moment it is written.
+
+It DID need a gate change, and the M-SWATCH landing was wrong to say otherwise
+(INC-264). The importer's gate keeps its OWN copy of the option-key allowlist in
+`src/server/imports/gate.ts` and refuses BEFORE the door is asked, so a definitions
+file whose only edit was a colour came back "Option 'white' carries a field this
+import does not know" (`badOption.unknownOptionKey`) even though
+`attr_option_shape` allowed it — the same mistake `facts` made in INC-234. The gate
+now spells the same ten keys the door spells, judges `swatch` as TEXT only
+(`swatchNotString`) and treats a BLANK swatch as silence when normalising, leaving
+every spelling verdict to the door. AT-63 previews an operator's swatch-only file as
+1 change · 0 refusals, and still refuses an invented key by name and `badSwatch` for
+an illegal spelling.
+
 
 `swatch` is DIFFED like `facts` (INC-239): `attr_option_norm_v2` carries it, so a
 file whose only change is a swatch plans as `changed` with the diff naming

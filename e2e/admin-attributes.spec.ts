@@ -1699,6 +1699,93 @@ test.describe("C3 attributes console", () => {
   });
 
   /**
+   * AT-63 (INC-264) — A SWATCH-ONLY CHANGE PREVIEWS AS ONE CHANGE, REFUSING NONE.
+   *
+   * D28 gave the option record an optional `swatch`, and the door
+   * (`attr_option_shape`) has allowed it since 20260922100000 — but the importer's
+   * GATE keeps its own copy of the option-key list and refuses first, so a
+   * definitions file whose only edit was a colour came back
+   * "Option 'white' carries a field this import does not know". The two lists must
+   * agree, so this asserts the operator's actual file: a valid swatch on an
+   * existing definition is 1 change and 0 refusals, while a key nobody knows is
+   * still refused by name.
+   */
+  test("AT-63 a swatch-only definitions file previews as one change", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const key = `e2e_attr_${rand()}`;
+    try {
+      await adminClient()
+        .from("attributes")
+        .insert({
+          attr_key: key,
+          name_en: key,
+          attr_type: "single_select",
+          options: [
+            { value: "white", label_en: "White" },
+            { value: "cat_tabby", label_en: "Tabby" },
+          ],
+        });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      // THE OPERATOR'S FILE: the only edit is the colour of each option — one
+      // hex, and a pattern (D28's three kinds, two of them here).
+      const withSwatches = [
+        '{"value":"white","label_en":"White","swatch":"#ffffff"}',
+        '{"value":"cat_tabby","label_en":"Tabby","swatch":"pattern:tabby"}',
+      ].join("|");
+      const definitions =
+        `${DEF_HEADER}\r\n` +
+        v2([key, key, "", "single_select", cell(withSwatches), "", "", "0"].join(",")) +
+        "\r\n";
+
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(
+        counts,
+        `AT-63 a swatch-only file must plan as changed: ${JSON.stringify(preview.payload["refusals"])}`,
+      ).toMatchObject({ adds: 0, changes: 1, refusals: 0 });
+
+      // AND THE ALLOWLIST IS STILL AN ALLOWLIST: an invented key refuses by name.
+      const invented = [
+        '{"value":"white","label_en":"White","swatch":"#ffffff"}',
+        '{"value":"cat_tabby","label_en":"Tabby","nope":"x"}',
+      ].join("|");
+      const bad =
+        `${DEF_HEADER}\r\n` +
+        v2([key, key, "", "single_select", cell(invented), "", "", "0"].join(",")) +
+        "\r\n";
+      const refused = await importPost(page, token, { mode: "preview", definitions: bad });
+      const refusals = (refused.payload["refusals"] as Record<string, unknown>[]) ?? [];
+      expect(JSON.stringify(refusals), "AT-63 an unknown option key escaped the gate").toContain(
+        "nope",
+      );
+
+      // A SPELLING THE DOOR REJECTS IS STILL REJECTED — the gate only judges text.
+      const wrong = [
+        '{"value":"white","label_en":"White","swatch":"red"}',
+        '{"value":"cat_tabby","label_en":"Tabby"}',
+      ].join("|");
+      const worse =
+        `${DEF_HEADER}\r\n` +
+        v2([key, key, "", "single_select", cell(wrong), "", "", "0"].join(",")) +
+        "\r\n";
+      const badSwatch = await importPost(page, token, { mode: "preview", definitions: worse });
+      expect(
+        JSON.stringify(badSwatch.payload["refusals"] ?? []),
+        "AT-63 an illegal swatch spelling was not refused",
+      ).toContain("badSwatch");
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
    * AT-43 (UX-2 PART 6 / IE-8) — THE RENAME DETECTOR. A file that introduces a
    * new key carrying an existing definition's label, type and options while
    * dropping that definition is renaming an IDENTITY, not adding an attribute:
