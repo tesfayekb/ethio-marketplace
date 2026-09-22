@@ -38,14 +38,28 @@ import type { Database } from "@/integrations/supabase/types";
 
 const MAX_AGE = 60;
 const SWR = 300;
-/** Same freshness window as the options and locations routes, deliberately. */
-const VERSION_TTL_MS = 15_000;
 
+/**
+ * INC-265 — THE HOLD IS THE BODY, NEVER THE VERSION.
+ *
+ * The first landing of this route also held the VERSION for fifteen seconds: a
+ * request inside that window was answered from `cached` without asking the
+ * database whether the tree had moved. On one process that serves many readers
+ * — the built node serve the suite runs, and equally a warm worker — a category
+ * created a moment ago was therefore absent from the tree for up to fifteen
+ * seconds, and every reader asking in that window got the same stale answer.
+ * That is the exact staleness INC-263 was opened about, one seam further in.
+ *
+ * So the version is asked on EVERY request (one short read-only stamp) and the
+ * cached BODY is reused only while that stamp is unmoved — which is where the
+ * real saving was anyway: the two tree queries. The browser still holds the body
+ * for sixty seconds and pays a 304 to revalidate, so INC-263's promise stands
+ * and a curator's import is visible on the next read, not fifteen seconds later.
+ */
 interface CacheEntry {
   version: string;
   etag: string;
   body: string;
-  checkedAt: number;
 }
 
 let cached: CacheEntry | null = null;
@@ -96,9 +110,6 @@ const NODE_COLUMNS =
   "id,name_en,name_am,slug,icon,display_order,allow_listings,is_catchall,image_url,image_thumb_url";
 
 async function handleGet(request: Request): Promise<Response> {
-  const now = Date.now();
-  if (cached !== null && now - cached.checkedAt < VERSION_TTL_MS) return respond(request, cached);
-
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
   if (url === "" || publishable === "") return fail("supabase server env missing", 500);
@@ -107,6 +118,8 @@ async function handleGet(request: Request): Promise<Response> {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  // EVERY request asks the stamp (INC-265): the body may be held, the truth of
+  // whether it is still the answer may not.
   const { data: version, error: versionError } = await supabase.rpc("get_category_tree_version");
   if (versionError) return fail(versionError.message, 502);
   const resolved = typeof version === "string" ? version : "";
@@ -115,10 +128,7 @@ async function handleGet(request: Request): Promise<Response> {
 
   // Version unchanged → the body already held is still the answer, and neither
   // the categories nor the pointers are read a second time.
-  if (cached !== null && cached.version === resolved) {
-    cached.checkedAt = now;
-    return respond(request, cached);
-  }
+  if (cached !== null && cached.version === resolved) return respond(request, cached);
 
   // A conditional hit on a fresh version never touches the tree queries either.
   if (request.headers.get("If-None-Match") === etag) {
@@ -152,7 +162,6 @@ async function handleGet(request: Request): Promise<Response> {
       nodes: nodes.data ?? [],
       pointers: pointers.data ?? [],
     }),
-    checkedAt: now,
   };
   cached = entry;
   return respond(request, entry);

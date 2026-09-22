@@ -76,16 +76,17 @@ const EMPTY_TREE: CategoryTree = {
 };
 
 /**
- * How long a held tree is trusted before the version is re-checked. The route
- * holds its own answer for the same span, so an import is visible well inside
- * the sixty seconds the browser is allowed to keep the body (INC-263).
+ * INC-265 — A MOUNT NEVER SKIPS THE ASK. The first landing trusted a held tree
+ * for fifteen seconds without asking, which put a second stale window on top of
+ * the route's: a category created a moment before a visit was simply not there.
+ * The held tree is now a RENDERING head start, never a licence to skip the read:
+ * every mount revalidates, an unmoved version answers with a 304 and hands back
+ * the SAME tree object, so nothing re-renders for nothing (I3) and a curator's
+ * change is on screen on the next visit.
  */
-const TTL_MS = 15_000;
-
 interface Held {
   tree: CategoryTree;
   version: string;
-  at: number;
 }
 
 let cache: Held | null = null;
@@ -178,18 +179,16 @@ export async function readCategoryTree(): Promise<{ tree: CategoryTree; version:
 }
 
 /**
- * The shared read. A held tree younger than `TTL_MS` is the answer; older, the
- * route is asked again and an UNMOVED version keeps the same tree object, so a
- * consumer's identity checks do not fire (I3).
+ * The shared read (INC-265). The route is ALWAYS asked — concurrent callers share
+ * the one request in flight — and an UNMOVED version keeps the same tree object,
+ * so a consumer's identity checks do not fire (I3) and the ask costs a 304.
  */
 export function loadCategoryTree(): Promise<CategoryTree> {
-  const held = cache;
-  if (held !== null && Date.now() - held.at < TTL_MS) return Promise.resolve(held.tree);
   inFlight ??= readCategoryTree().then(
     ({ tree, version }) => {
       const previous = cache;
       const settled = previous !== null && previous.version === version ? previous.tree : tree;
-      cache = { tree: settled, version, at: Date.now() };
+      cache = { tree: settled, version };
       inFlight = null;
       return settled;
     },

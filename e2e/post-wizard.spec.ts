@@ -2478,34 +2478,27 @@ test.describe("POSTING WIZARD", () => {
     await surfaceCategoryUnder(second.id, child.id);
 
     /**
-     * Leaves the wizard and returns, which is all a seller ever does. The level
-     * list is CLIENT-fed (the tree read runs after hydration), so a count taken
-     * at hydration would read zero for EVERY category — J7: the rows must be on
-     * screen before anything is asserted about them.
+     * INC-265 — ONE RETURN IS ENOUGH. The seller leaves the wizard and comes back
+     * ONCE: no polling over repeated visits, because the tree read no longer holds
+     * a stale answer on either side of the wire. The level list is CLIENT-fed, so
+     * the rows must be on screen before anything is asserted about them (J7).
      */
-    const bothRootsCarryIt = async (): Promise<boolean> => {
-      await gotoReady(page, "/");
-      await gotoReady(page, "/post");
-      await expect
-        .poll(() => page.locator('[data-testid="post-browse-level"] [data-category]').count(), {
-          message: "the level list never rendered a category",
-          timeout: 30_000,
-        })
-        .toBeGreaterThan(0);
-      const first = page.locator(
-        `[data-testid="post-browse-folder"][data-category="${parent.id}"]`,
-      );
-      const host = page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`);
-      return (await first.count()) > 0 && (await host.count()) > 0;
-    };
-
+    await gotoReady(page, "/");
+    await gotoReady(page, "/post");
     await expect
-      .poll(bothRootsCarryIt, {
-        message: "PW-46: the imported category never reached the wizard's tree",
-        timeout: 60_000,
-        intervals: [1_000, 2_000, 2_000, 5_000],
+      .poll(() => page.locator('[data-testid="post-browse-level"] [data-category]').count(), {
+        message: "PW-46: the level list never rendered a category",
+        timeout: 30_000,
       })
-      .toBe(true);
+      .toBeGreaterThan(0);
+    await expect(
+      page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`),
+      "PW-46: the new branch never reached the wizard's tree on the next visit",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`),
+      "PW-46: the host root never reached the wizard's tree on the next visit",
+    ).toBeVisible({ timeout: 20_000 });
 
     // UNDER ITS OWN PARENT.
     await page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`).click();
@@ -2540,30 +2533,15 @@ test.describe("POSTING WIZARD", () => {
 
     const user = await seller(page);
     /**
-     * INC-263: the tree carries a version the route holds for a few seconds, so a
-     * category surfaced a moment ago can still be absent from the FIRST load.
-     * The seller's own remedy — come back — is what the test does.
+     * INC-265 — THE FIRST LOAD CARRIES IT. A category surfaced a moment ago is on
+     * the FIRST visit, because neither the route nor the client holds an answer
+     * without asking the tree's stamp. No re-entry, no polling over visits.
      */
+    await gotoReady(page, "/post");
     const host = page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`);
-    await expect
-      .poll(
-        async () => {
-          await gotoReady(page, "/post");
-          await expect
-            .poll(() => page.locator('[data-testid="post-browse-level"] [data-category]').count(), {
-              message: "the level list never rendered a category",
-              timeout: 30_000,
-            })
-            .toBeGreaterThan(0);
-          return await host.count();
-        },
-        {
-          message: "PW-44: the surfaced host root never carried the leaf",
-          timeout: 60_000,
-          intervals: [1_000, 2_000, 2_000, 5_000],
-        },
-      )
-      .toBeGreaterThan(0);
+    await expect(host, "PW-44: the surfaced host root was absent from the first load").toBeVisible({
+      timeout: 20_000,
+    });
     await host.click();
 
     await page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`).click();
