@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { supabase } from "@/integrations/supabase/client";
 import { entityName, type EntityBundle } from "@/i18n";
+
 
 /**
  * U6-C1a — THE ONE CATEGORY-TREE READER (law B2).

@@ -45,6 +45,7 @@ import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/ass
 import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
 import { Route as ApiGeoSearchRouteImport } from './routes/api/geo/search'
 import { Route as ApiGeoReverseRouteImport } from './routes/api/geo/reverse'
+import { Route as ApiCategoriesTreeRouteImport } from './routes/api/categories.tree'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
 import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
@@ -241,6 +242,11 @@ const ApiGeoReverseRoute = ApiGeoReverseRouteImport.update({
   path: '/reverse',
   getParentRoute: () => ApiGeoRoute,
 } as any)
+const ApiCategoriesTreeRoute = ApiCategoriesTreeRouteImport.update({
+  id: '/api/categories/tree',
+  path: '/api/categories/tree',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
   id: '/users_/$userId',
   path: '/users/$userId',
@@ -357,6 +363,7 @@ export interface FileRoutesByFullPath {
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/api/categories/tree': typeof ApiCategoriesTreeRoute
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
@@ -409,6 +416,7 @@ export interface FileRoutesByTo {
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/api/categories/tree': typeof ApiCategoriesTreeRoute
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
@@ -463,6 +471,7 @@ export interface FileRoutesById {
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
+  '/api/categories/tree': typeof ApiCategoriesTreeRoute
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
@@ -518,6 +527,7 @@ export interface FileRouteTypes {
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
+    | '/api/categories/tree'
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
@@ -570,6 +580,7 @@ export interface FileRouteTypes {
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
+    | '/api/categories/tree'
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
@@ -623,6 +634,7 @@ export interface FileRouteTypes {
     | '/admin/roles_/$roleId'
     | '/admin/translations_/$lang'
     | '/admin/users_/$userId'
+    | '/api/categories/tree'
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
@@ -661,6 +673,7 @@ export interface RootRouteChildren {
   DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevTallRoute: typeof DevTallRoute
   PostListingIdRoute: typeof PostListingIdRoute
+  ApiCategoriesTreeRoute: typeof ApiCategoriesTreeRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
   ApiListingsAssistRoute: typeof ApiListingsAssistRoute
   ApiListingsDraftRoute: typeof ApiListingsDraftRoute
@@ -934,6 +947,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGeoReverseRouteImport
       parentRoute: typeof ApiGeoRoute
     }
+    '/api/categories/tree': {
+      id: '/api/categories/tree'
+      path: '/api/categories/tree'
+      fullPath: '/api/categories/tree'
+      preLoaderRoute: typeof ApiCategoriesTreeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/users_/$userId': {
       id: '/admin/users_/$userId'
       path: '/users/$userId'
@@ -1123,6 +1143,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevPrimitivesRoute: DevPrimitivesRoute,
   DevTallRoute: DevTallRoute,
   PostListingIdRoute: PostListingIdRoute,
+  ApiCategoriesTreeRoute: ApiCategoriesTreeRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,
   ApiListingsAssistRoute: ApiListingsAssistRoute,
   ApiListingsDraftRoute: ApiListingsDraftRoute,
