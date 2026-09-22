@@ -1305,6 +1305,10 @@ export function StepSpecifications({
                           write(def.attrKey, option.value, true);
                         }}
                       >
+                        {/* D28 — ONE TILE PER KIND: a single fill, a diagonal half
+                            and half for a two-tone, and a simple striped tile for
+                            a pattern. The inks are the catalogue's own DATA; every
+                            frame around them stays a design token (C3). */}
                         <span
                           aria-hidden="true"
                           data-testid="post-attr-swatch-ink"
@@ -1315,7 +1319,13 @@ export function StepSpecifications({
                               : "")
                           }
                           style={
-                            swatch.kind === "solid" ? { backgroundColor: swatch.ink } : undefined
+                            swatch.kind === "solid"
+                              ? { backgroundColor: swatch.ink }
+                              : swatch.kind === "duo"
+                                ? {
+                                    backgroundImage: `linear-gradient(135deg, ${swatch.inks[0]} 0 50%, ${swatch.inks[1]} 50% 100%)`,
+                                  }
+                                : undefined
                           }
                         />
                       </button>
