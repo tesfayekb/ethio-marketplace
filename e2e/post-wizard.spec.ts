@@ -2451,6 +2451,72 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * INC-263 — A CURATOR'S CHANGE REACHES THE TREE WITHIN THE CACHE WINDOW.
+   *
+   * The wizard's tree was read once per visit and kept for the whole session, so a
+   * categories import was invisible until the tab was closed: the console showed
+   * baby-food under food-drink while the published wizard had neither the row nor
+   * the re-parenting, an hour later. This test opens the wizard FIRST — so the old
+   * tree is genuinely held — and only then creates the category, with a secondary
+   * parent (INC-246), asserting it reaches BOTH roots without a new tab.
+   */
+  test("PW-46 a category created with a secondary parent reaches the tree inside the cache window", async ({
+    page,
+  }) => {
+    await seller(page);
+    // THE STALE SEAM: the tree is read and held before anything is created.
+    await gotoReady(page, "/post");
+    await expect(
+      page.getByTestId("post-browse-level"),
+      "PW-46: the tree never rendered before the change",
+    ).toBeVisible({ timeout: 20_000 });
+
+    const { parent, leaf: child } = await seedCategoryBranch();
+    branches.push(parent.slug, child.slug);
+    const second = await seedPostableCategory();
+    categories.push(second.slug);
+    await surfaceCategoryUnder(second.id, child.id);
+
+    /** Leaves the wizard and returns, which is all a seller ever does. */
+    const bothRootsCarryIt = async (): Promise<boolean> => {
+      await gotoReady(page, "/");
+      await gotoReady(page, "/post");
+      const first = page.locator(
+        `[data-testid="post-browse-folder"][data-category="${parent.id}"]`,
+      );
+      const host = page.locator(
+        `[data-testid="post-browse-folder"][data-category="${second.id}"]`,
+      );
+      return (await first.count()) > 0 && (await host.count()) > 0;
+    };
+
+    await expect
+      .poll(bothRootsCarryIt, {
+        message: "PW-46: the imported category never reached the wizard's tree",
+        timeout: 60_000,
+        intervals: [1_000, 2_000, 2_000, 5_000],
+      })
+      .toBe(true);
+
+    // UNDER ITS OWN PARENT.
+    await page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`).click();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
+      "PW-46: the new leaf is missing under its own parent",
+    ).toBeVisible({ timeout: 20_000 });
+
+    // AND UNDER THE ROOT IT WAS SURFACED INTO, in the same window (INC-246).
+    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+    await page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`).click();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
+      "PW-46: the surfaced leaf is missing under its host root",
+    ).toBeVisible({ timeout: 20_000 });
+  });
+
+
+
+  /**
    * INC-260 — A DEPENDENT LIST ON A SURFACED LEAF STILL FOLLOWS ITS PARENT.
    * Vehicle Hire is visible under a second branch, but its make and model controls
    * are linked directly to that leaf. The fold must therefore be resolved from the
