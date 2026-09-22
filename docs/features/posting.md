@@ -754,6 +754,41 @@ A colour's options load eagerly, because the swatches ARE the control's face.
 PW-34 asserts the painted swatch, the neutral one and that a tap answers the
 detail.
 
+## D28 / M-SWATCH — the catalogue may say the colour itself
+
+A name lookup can only paint a colour it recognises, so an option gains an
+OPTIONAL `swatch` cell that says what the colour IS, in exactly three spellings:
+`#RRGGBB` (one ink), `#RRGGBB|#RRGGBB` (a two-tone, drawn as a diagonal half and
+half) and `pattern:<tabby|brindle|calico|tricolour|multicolour|striped>` (a simple
+patterned tile). `attr_option_shape` validates the cell at the door and refuses
+anything else BY NAME (`badSwatch:red`, `badSwatch:#GGG`,
+`badSwatch:pattern:plaid`, `badSwatch:empty`, `badSwatch:notString`);
+`attr_option_norm_v2` carries it into the import DIFF, so a file whose only change
+is a swatch plans as `changed` rather than reading as applied and landing nothing
+(F4, the INC-239 law for `facts`); `get_attribute_options` projects it.
+
+THE DECLARED CELL WINS, THE NAME IS THE FALLBACK: `optionSwatch()` reads the cell
+first and only then the value's own stem (INC-259). An option that says nothing and
+whose name means nothing renders NO tile, and a list where nothing resolves renders
+no tray at all. PW-45 walks a scratch colour detail whose values are deliberately
+not colour words and asserts the three tile kinds, the missing fourth, and that a
+tap still answers the detail.
+
+## INC-260 (follow-up) — whose list is this?
+
+A dependent list finds its parent by COVERAGE, not by the first match. The
+published Vehicle Hire leaf asks a vehicle-type question first, and that question
+offers `other`; the car-model library files one model under a parent called `other`
+too — so the type question looked like the model's parent and every make left the
+list empty. The owner is now the candidate select that covers the MOST of the
+list's parent values (an already-answered candidate breaking a tie), which at
+Vehicle Hire is the make (43 of 45 parents) and never the type question (1 of 45).
+PW-44 carries that shape: a decoy first question offering `other`, a model filed
+under `other`, and the assertion that the stray model never joins a chosen make's
+list.
+
+
+
 ## U6-C1-R3b-4 — the map pin
 
 A pin is OPTIONAL for every category and it is NOT part of the draft's autosave:
