@@ -2477,45 +2477,35 @@ test.describe("POSTING WIZARD", () => {
     categories.push(second.slug);
     await surfaceCategoryUnder(second.id, child.id);
 
-    /** Leaves the wizard and returns, which is all a seller ever does. */
-    let seen = "";
+    /**
+     * Leaves the wizard and returns, which is all a seller ever does. The level
+     * list is CLIENT-fed (the tree read runs after hydration), so a count taken
+     * at hydration would read zero for EVERY category — J7: the rows must be on
+     * screen before anything is asserted about them.
+     */
     const bothRootsCarryIt = async (): Promise<boolean> => {
       await gotoReady(page, "/");
       await gotoReady(page, "/post");
+      await page
+        .locator('[data-testid="post-browse-level"] [data-category]')
+        .first()
+        .waitFor({ state: "attached", timeout: 30_000 });
       const first = page.locator(
         `[data-testid="post-browse-folder"][data-category="${parent.id}"]`,
       );
       const host = page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`);
-      const anyFirst = await page.locator(`[data-category="${parent.id}"]`).count();
-      const anyHost = await page.locator(`[data-category="${second.id}"]`).count();
-      const firstFolder = await first.count();
-      const hostFolder = await host.count();
-      const payload = await page.evaluate(async (ids: string[]) => {
-        const res = await fetch("/api/categories/tree", { cache: "no-store" });
-        const body = (await res.json()) as {
-          version: string;
-          nodes: { id: string }[];
-          pointers: { child_id: string; parent_id: string | null }[];
-        };
-        return {
-          version: body.version,
-          count: body.nodes.length,
-          found: ids.map((id) => body.nodes.some((n) => n.id === id)),
-          edges: body.pointers.filter((p) => ids.includes(p.parent_id ?? "")).length,
-        };
-      }, [parent.id, second.id]);
-      seen = `parent=${parent.id} any=${String(anyFirst)} folder=${String(firstFolder)} · host=${second.id} any=${String(anyHost)} folder=${String(hostFolder)} · payload=${JSON.stringify(payload)}`;
-
-      return firstFolder > 0 && hostFolder > 0;
+      return (await first.count()) > 0 && (await host.count()) > 0;
     };
 
-    const deadline = Date.now() + 45_000;
-    let carried = false;
-    while (!carried && Date.now() < deadline) {
-      carried = await bothRootsCarryIt();
-      if (!carried) await page.waitForTimeout(2_000);
-    }
-    expect(carried, `PW-46: the tree never carried it — ${seen}`).toBe(true);
+    await expect
+      .poll(bothRootsCarryIt, {
+        message: "PW-46: the imported category never reached the wizard's tree",
+        timeout: 60_000,
+        intervals: [1_000, 2_000, 2_000, 5_000],
+      })
+      .toBe(true);
+
+
 
 
 
