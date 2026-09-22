@@ -2490,7 +2490,22 @@ test.describe("POSTING WIZARD", () => {
       const anyHost = await page.locator(`[data-category="${second.id}"]`).count();
       const firstFolder = await first.count();
       const hostFolder = await host.count();
-      seen = `parent=${parent.id} any=${String(anyFirst)} folder=${String(firstFolder)} · host=${second.id} any=${String(anyHost)} folder=${String(hostFolder)}`;
+      const payload = await page.evaluate(async (ids: string[]) => {
+        const res = await fetch("/api/categories/tree", { cache: "no-store" });
+        const body = (await res.json()) as {
+          version: string;
+          nodes: { id: string }[];
+          pointers: { child_id: string; parent_id: string | null }[];
+        };
+        return {
+          version: body.version,
+          count: body.nodes.length,
+          found: ids.map((id) => body.nodes.some((n) => n.id === id)),
+          edges: body.pointers.filter((p) => ids.includes(p.parent_id ?? "")).length,
+        };
+      }, [parent.id, second.id]);
+      seen = `parent=${parent.id} any=${String(anyFirst)} folder=${String(firstFolder)} · host=${second.id} any=${String(anyHost)} folder=${String(hostFolder)} · payload=${JSON.stringify(payload)}`;
+
       return firstFolder > 0 && hostFolder > 0;
     };
 
