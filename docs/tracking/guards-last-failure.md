@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35689807555
-- Commit: `6ba3c4bb4a8f78bb16b7d91926abfa94edad2d0c`
-- Attempt: 2
-- Written (UTC): 2026-09-22T05:38:22.289Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35691977174
+- Commit: `5f37392c04956c0983586a33d619c519e340fb57`
+- Attempt: 1
+- Written (UTC): 2026-09-22T06:19:21.544Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -23,6 +23,8 @@ Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] f
 ### Tail (last 60 lines)
 
 ```text
+[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
+[36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
@@ -32,10 +34,9 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35689807555
-  E2E_HEAD_COMMIT_MESSAGE: Made category tree versioned
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35691977174
+  E2E_HEAD_COMMIT_MESSAGE: Changes
 
-X-Lovable-Edit-ID: edt-117c8b5c-7be3-4f98-80e1-931ec61c2bf3
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -43,18 +44,17 @@ Co-authored-by: tesfayekb <tesfayekb@me.com>
   layout OK — zero artifacts: 0 context file(s), report rendered.
   layout OK — missing directory: 0 context file(s), report rendered.
 Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 150 context file(s) found).
-Flake ledger: appended 24 line(s) to docs/tracking/flake-ledger.md.
-Flake ledger: appended 24 line(s) to docs/tracking/flake-ledger.md.
+Wrote docs/tracking/e2e-last-failure.md (8/8 source(s) with usable results, 109 context file(s) found).
+Flake ledger: appended 13 line(s) to docs/tracking/flake-ledger.md.
+Flake ledger: appended 13 line(s) to docs/tracking/flake-ledger.md.
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-   6ba3c4b..6bb3343  dev        -> origin/dev
-HEAD is now at 6bb3343 ci: update CI status report [skip ci]
-Flake ledger: appended 24 line(s) to docs/tracking/flake-ledger.md.
-[dev 2686894] ci: e2e failure report + flake ledger [skip ci]
- 2 files changed, 5048 insertions(+), 63 deletions(-)
+HEAD is now at 5f37392 Changes
+Flake ledger: appended 13 line(s) to docs/tracking/flake-ledger.md.
+[dev d2343d7] ci: e2e failure report + flake ledger [skip ci]
+ 2 files changed, 738 insertions(+), 3692 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   6bb3343..2686894  HEAD -> dev
+   5f37392..d2343d7  HEAD -> dev
 ##[group]Run echo "smoke=success email=success shards=failure"
 [36;1mecho "smoke=success email=success shards=failure"[0m
 [36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
@@ -70,7 +70,7 @@ smoke=success email=success shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/7f7ae289-3381-47c3-9168-75d21a906441' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/4a85f656-9fc3-44ff-a048-1fe3374450c6' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
