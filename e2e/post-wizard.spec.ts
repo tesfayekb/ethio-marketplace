@@ -13,6 +13,9 @@ import {
 } from "./helpers/locations";
 import { adminClient, createUser } from "./helpers/users";
 import {
+  openMoreDetails,
+  seedCatchAllLeaf,
+  seedWideSet,
   activeCityOf,
   attributesOf,
   bearerOf,
@@ -458,6 +461,9 @@ test.describe("POSTING WIZARD", () => {
     });
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
+    // D36 — the seller's optional details wait behind one expander; a walk that
+    // reads them opens it here, once, so every step-3 test reads the same form.
+    await openMoreDetails(page);
     return listingId;
   }
 
@@ -600,6 +606,9 @@ test.describe("POSTING WIZARD", () => {
       "PW-26: the photos were not flagged for the new category",
     ).toBeVisible();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
+    // D36 — the new category's extras start collapsed; a test reading an optional
+    // detail opens them, as a seller would.
+    await openMoreDetails(page);
 
     // INC-248 — ON SCREEN AS WELL AS IN STATE: the picker the new category still
     // asks shows "Choose", not the option chosen under the previous category.
@@ -2381,7 +2390,26 @@ test.describe("POSTING WIZARD", () => {
     await expect(fuel.locator(`option[value="${set.fuelPetrol}"]`)).toHaveCount(1);
 
     await model.selectOption(set.strictModel);
-    // ONE ANSWER ADMITTED: it is written, said, and the control is closed.
+    /**
+     * D35 — ONE ANSWER ADMITTED, SO IT IS A STRIP. The settled detail reads as one
+     * line (label, value, where it came from) and the picker is not on screen at
+     * all; the seller's tap on Change brings it back, still narrowed and locked.
+     */
+    const strip = page.locator(
+      `[data-testid="post-attr-locked-strip"][data-attr="${set.fuel.attrKey}"]`,
+    );
+    await expect(strip, "PW-35: a settled answer did not read as a strip").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(
+      strip.getByTestId("post-attr-locked-value"),
+      "PW-35: the strip did not name the only allowed fuel",
+    ).toHaveText(`${set.fuelElectric} label`);
+    await expect(fuel, "PW-35: a settled answer still spent an input on the form").toHaveCount(0);
+
+    await page
+      .locator(`[data-testid="post-attr-locked-change"][data-attr="${set.fuel.attrKey}"]`)
+      .click();
     await expect(fuel, "PW-35: the only allowed fuel was not written").toHaveValue(
       set.fuelElectric,
       { timeout: 20_000 },
@@ -2626,6 +2654,8 @@ test.describe("POSTING WIZARD", () => {
     });
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
+    // D36 — this walk does not go through `reachStep3`, so it opens the extras itself.
+    await openMoreDetails(page);
 
     const decoy = page.locator(
       `[data-testid="post-attr-control"][data-attr="${set.decoy.attrKey}"]`,
@@ -3058,5 +3088,160 @@ test.describe("POSTING WIZARD", () => {
         { message: "PW-43: an unasked answer stayed in the draft", timeout: 20_000 },
       )
       .toBe(false);
+  });
+
+  /**
+   * D34 — AN "OTHER" LEAF IS A POSTING TARGET.
+   *
+   * The catch-all is the answer a seller reaches for when no named leaf fits, and
+   * it used to be refused twice: the tree would not let it be chosen and the door
+   * refused the save under it. Both dropped the exclusion in one landing, so this
+   * walks the whole flow on a catch-all leaf and asserts the listing reaches
+   * screening — never live (the owner's door can only ever hand it to review).
+   */
+  test("PW-48 a catch-all leaf can be chosen and its listing lands in review", async ({ page }) => {
+    const user = await seller(page);
+    const { parent, leaf: other } = await seedCatchAllLeaf();
+    branches.push(parent.slug, other.slug);
+
+    await gotoReady(page, "/post");
+    // BROWSED, TOO: the catch-all sits under its host and is pressable there.
+    await page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`).click();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${other.id}"]`),
+      "PW-48: the catch-all leaf was not selectable on its level",
+    ).toBeEnabled({ timeout: 20_000 });
+
+    const listingId = await reachStep7(page, user.id, other);
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+    await page.getByTestId("post-publish").click();
+    await expect(
+      page.getByTestId("post-in-review"),
+      "PW-48: publishing into a catch-all leaf did not land on the in-review screen",
+    ).toBeVisible({ timeout: 20_000 });
+
+    // J4 — DB truth: the door accepted the catch-all category and screened the row.
+    await expect
+      .poll(async () => await statusOf(listingId), {
+        message: "PW-48: the catch-all listing never entered screening",
+        timeout: 20_000,
+      })
+      .toBe("screening");
+  });
+
+  /**
+   * D35 — A PREFILL IS AN INPUT; ONLY A SETTLED ANSWER IS A STRIP.
+   *
+   * The locked half is PW-35's. Here the model's fact PREFILLS the year and leaves
+   * the field open, so the seller keeps a real input with a real choice: no strip,
+   * the value filled in, and the line saying where it came from.
+   */
+  test("PW-49 a prefill-only fact keeps its input while a settled one does not", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const fold = await seedFoldSet(category.id);
+    specs.push(...fold.attrKeys);
+    await reachStep3(page, user.id, category);
+
+    const make = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`,
+    );
+    const model = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`,
+    );
+    const year = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.year.attrKey}"]`,
+    );
+
+    await make.selectOption(fold.makeValues[0]);
+    await expect(model, "PW-49: the model picker never opened under its make").toBeEnabled({
+      timeout: 20_000,
+    });
+    await model.selectOption(fold.modelValues[1]);
+
+    await expect(year, "PW-49: the model's prefilled year never reached its input").toHaveValue(
+      String(fold.modelYearValue),
+      { timeout: 20_000 },
+    );
+    await expect(
+      page.locator(`[data-testid="post-attr-locked-strip"][data-attr="${fold.year.attrKey}"]`),
+      "PW-49: an open prefill was collapsed into a strip",
+    ).toHaveCount(0);
+    await expect(
+      page.locator(`[data-testid="post-attr-from-model"][data-attr="${fold.year.attrKey}"]`),
+      "PW-49: a prefilled answer never said where it came from",
+    ).toBeVisible();
+  });
+
+  /**
+   * D36 — FORM ECONOMY AT 360.
+   *
+   * Fourteen details is what a real catalogue asks of a seller and what a 360-pixel
+   * screen cannot show. Only the door's own required pair stands above the
+   * expander; the twelve extras arrive on one tap, and the tap is remembered for
+   * this category.
+   */
+  test("PW-50 a long form shows the required details first and the extras behind one tap", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360", "mobile-360 only");
+    const user = await seller(page);
+    const category = await leaf();
+    const wide = await seedWideSet(category.id);
+    specs.push(...wide.attrKeys);
+
+    // NOT `reachStep3`: that walk opens the extras, and the collapsed shape is
+    // exactly what this test is about.
+    await gotoReady(page, "/post");
+    await chooseBySearch(page, category.slug, category.id);
+    const [draft] = await draftsOf(user.id);
+    const listingId = String(draft?.id ?? "");
+    expect(listingId, "PW-50: step 1 created no draft").not.toBe("");
+    objects.push({ userId: user.id, listingId });
+    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+    await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
+      timeout: 45_000,
+    });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+
+    const more = page.getByTestId("post-specs-more");
+    await expect(more, "PW-50: a fourteen-row form offered no expander").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(more, "PW-50: the expander started open").toHaveAttribute("data-open", "0");
+    const controls = page.getByTestId("post-attr-control");
+    expect(
+      await controls.count(),
+      "PW-50: more than eight details stood above the expander",
+    ).toBeLessThanOrEqual(8);
+    for (const attrKey of wide.requiredKeys) {
+      await expect(
+        page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`),
+        `PW-50: a required detail (${attrKey}) was hidden behind the expander`,
+      ).toBeVisible();
+    }
+
+    // ONE TAP brings the extras, all of them.
+    await more.click();
+    await expect(page.getByTestId("post-specs-more-panel")).toBeVisible({ timeout: 20_000 });
+    expect(await controls.count(), "PW-50: the expander did not bring every extra detail").toBe(
+      wide.attrKeys.length,
+    );
+
+    // AND IT IS REMEMBERED for this category: a step away and back keeps it open.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(
+      page.getByTestId("post-specs-more"),
+      "PW-50: the expander forgot that the seller had opened it",
+    ).toHaveAttribute("data-open", "1");
   });
 });

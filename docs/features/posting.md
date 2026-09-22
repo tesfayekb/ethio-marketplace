@@ -879,3 +879,56 @@ non-empty Amharic value when the active language is Amharic, otherwise English.
 The posting schema carries `name_am` and `help_text_am`; units currently have no
 Amharic database column, so they deliberately take the English fallback branch.
 PW-42 proves Amharic help and option labels as well as per-field English fallback.
+
+## An "Other" leaf is a posting target (D34)
+
+A catch-all leaf (`is_catchall`, listings allowed, no children) is the answer a
+seller reaches for when no named leaf fits, so it is selectable and postable.
+
+Two places used to refuse it, and both dropped the exclusion in one landing:
+
+- `isPostable` in `src/features/categories/category-tree.ts` is now
+  `isLeaf && allowListings`. `isCatchall` stays, but only for BANDING (D30 puts
+  an `other-` row last on its level) and for the admin filters — never as a
+  posting ban.
+- `validate_listing_draft` (Tier A, the only authority under F3) lost the
+  `OR v_cat.is_catchall` disjunct from its step-1 gate. A FOLDER
+  (`allow_listings` false) and a non-leaf still refuse `categoryNotPostable`.
+
+PW-48 walks the whole flow on a scratch catch-all leaf and asserts the listing
+reaches screening.
+
+## A settled answer is a strip, not an input (D35)
+
+When a chosen option's fact SETS a sibling and that option's `allowed` narrows
+the sibling to that single value, the answer is no longer a question: the
+specifications step renders one line — label, value, "Set by your choice" — and
+spends no input on it. "Change" reveals the control, still narrowed and locked,
+for the seller who wants to see it.
+
+A PREFILL-ONLY fact (the fact writes, `allowed` stays open) keeps its normal
+prefilled input and its "from the model" line: the seller still has a choice to
+make. Stored values and the door's validation are identical in both shapes —
+this is presentation only.
+
+Tests: PW-35 (the settled shape, and Change bringing the locked picker back),
+PW-49 (the prefill-only shape keeps its input and grows no strip).
+
+## Form economy at 360 (D36)
+
+A real catalogue asks fourteen details of a seller; a 360-pixel screen shows
+about eight. The step therefore renders, above the fold, only what the seller
+must answer or what their own choice raised — required rows and conditionals
+(`visible_when`) — and puts every remaining OPTIONAL row behind one
+"More details (n)" expander. The open state is remembered per category for the
+session (`sessionStorage`, never the draft: it is a view preference, not a value
+the door stores).
+
+Two more economies in the same shape: help text shows its FIRST SENTENCE inline
+and the rest behind an `(i)` tap, and a unit renders as a suffix INSIDE the
+number input rather than as another line.
+
+PW-50 (mobile-360 only) seeds a leaf with fourteen linked definitions, two of
+them required, and asserts at most eight inputs stand above the collapsed
+expander, that both required rows are among them, that one tap brings all
+fourteen, and that a step away and back finds the expander still open.
