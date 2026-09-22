@@ -2486,10 +2486,12 @@ test.describe("POSTING WIZARD", () => {
     const bothRootsCarryIt = async (): Promise<boolean> => {
       await gotoReady(page, "/");
       await gotoReady(page, "/post");
-      await page
-        .locator('[data-testid="post-browse-level"] [data-category]')
-        .first()
-        .waitFor({ state: "attached", timeout: 30_000 });
+      await expect
+        .poll(() => page.locator('[data-testid="post-browse-level"] [data-category]').count(), {
+          message: "the level list never rendered a category",
+          timeout: 30_000,
+        })
+        .toBeGreaterThan(0);
       const first = page.locator(
         `[data-testid="post-browse-folder"][data-category="${parent.id}"]`,
       );
@@ -2547,10 +2549,12 @@ test.describe("POSTING WIZARD", () => {
       .poll(
         async () => {
           await gotoReady(page, "/post");
-          await page
-            .locator('[data-testid="post-browse-level"] [data-category]')
-            .first()
-            .waitFor({ state: "attached", timeout: 30_000 });
+          await expect
+            .poll(() => page.locator('[data-testid="post-browse-level"] [data-category]').count(), {
+              message: "the level list never rendered a category",
+              timeout: 30_000,
+            })
+            .toBeGreaterThan(0);
           return await host.count();
         },
         {
