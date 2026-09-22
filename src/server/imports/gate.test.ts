@@ -48,7 +48,7 @@ describe("the options cell reads and round-trips", () => {
     expect(normalizeOptionsCell(twoTone)).toBe(twoTone);
   });
 
-  it("still refuses a truncated record", () => {
-    expect(optionShapeFault('{"value":"black_tan","swatch":"#000000')).not.toBeNull();
+  it("still refuses a swatch that is not text", () => {
+    expect(optionShapeFault('{"value":"a","swatch":123}|{"value":"b"}')).not.toBeNull();
   });
 });
