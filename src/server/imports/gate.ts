@@ -257,7 +257,7 @@ function optionsOf(raw: string): OptionCell[] | null {
     return cells;
   }
   const cells: OptionCell[] = [];
-  for (const part of text.split("|")) {
+  for (const part of splitOptionSegments(text)) {
     const segment = part.trim();
     if (segment === "") continue;
     if (segment.startsWith("{")) {
