@@ -1513,6 +1513,8 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
   const toyota = `${stem}_toyota`;
   const bydModel = `${byd}_seagull`;
   const toyotaModel = `${toyota}_corolla`;
+  const decoyOther = "other";
+  const orphanModel = `${stem}_orphan`;
   const option = (value: string, extra: Record<string, unknown> = {}) => ({
     value,
     label_en: `${value} label`,
@@ -1525,6 +1527,12 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
     .from("attributes")
     .insert([
       {
+        attr_key: `${stem}_kind`,
+        name_en: `${stem} kind`,
+        attr_type: "single_select",
+        options: [option(`${stem}_van`), option(decoyOther)],
+      },
+      {
         attr_key: `${stem}_make`,
         name_en: `${stem} make`,
         attr_type: "single_select",
@@ -1534,7 +1542,11 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
         attr_key: `${stem}_model`,
         name_en: `${stem} model`,
         attr_type: "single_select",
-        options: [option(bydModel, { parent: byd }), option(toyotaModel, { parent: toyota })],
+        options: [
+          option(bydModel, { parent: byd }),
+          option(toyotaModel, { parent: toyota }),
+          option(orphanModel, { parent: decoyOther }),
+        ],
       },
     ])
     .select("id, attr_key, name_en");
@@ -1548,10 +1560,12 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
     if (!row) throw new Error(`[e2e:inc260] the ${suffix} definition is missing`);
     return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
   };
+  const decoy = pick("_kind");
   const make = pick("_make");
   const model = pick("_model");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: decoy.id, is_required: false, display_order: 0 },
     { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
     { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
   ]);
@@ -1562,9 +1576,11 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
   return {
     make,
     model,
+    decoy,
+    decoyOther,
     makeValues: { byd, toyota },
-    modelValues: { byd: bydModel, toyota: toyotaModel },
-    attrKeys: [make.attrKey, model.attrKey],
+    modelValues: { byd: bydModel, toyota: toyotaModel, orphan: orphanModel },
+    attrKeys: [decoy.attrKey, make.attrKey, model.attrKey],
   };
 }
 
