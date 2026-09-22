@@ -191,6 +191,28 @@ judged in full exactly as before: one added key still refuses `badOption` with
 `unknownOptionKey:<key>`. The file's proof walks EVERY live definition through a
 byte-identical re-import and requires zero refusals.
 
+## The attributes file — the option `swatch` cell (D28 / M-SWATCH)
+
+An option record may carry `swatch`: one hex (`#RRGGBB`), two hexes separated by a
+pipe (`#RRGGBB|#RRGGBB`, a two-tone) or `pattern:` plus one of `tabby`, `brindle`,
+`calico`, `tricolour`, `multicolour`, `striped`. It is validated by the SAME option
+shape function as every other key (`attr_option_shape`), which refuses anything
+else by name: `badSwatch:red`, `badSwatch:#GGG`, `badSwatch:pattern:plaid`,
+`badSwatch:empty`, `badSwatch:notString`.
+
+It needs NO new column and no gate change: the cell travels inside the existing
+`options` cell, whose whole record the gate measures for size only (the planner and
+the shape function own meaning, F3/E7), and the export emits each option record
+verbatim — so a swatch round-trips through export, preview, commit and Undo the
+moment it is written.
+
+`swatch` is DIFFED like `facts` (INC-239): `attr_option_norm_v2` carries it, so a
+file whose only change is a swatch plans as `changed` with the diff naming
+`options`, while an ABSENT or BLANK cell stays invisible and a file that never
+mentions it is silent. `pattern:` values are matched case-insensitively and the cell
+is trimmed; `#RRGGBB` is stored as written. The wizard shows the declared swatch and
+falls back to the value's own colour word only when the cell is absent (INC-259).
+
 ## The links file — `allowed_options` and `default_value` (D-spec §12)
 
 The two per-link cells travel in the links file, after the existing cells:
