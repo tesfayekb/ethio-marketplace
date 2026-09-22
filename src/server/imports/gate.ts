@@ -186,6 +186,47 @@ interface OptionCell {
   label: string;
 }
 
+/**
+ * INC-265 — THE RECORD BOUNDARY IS `}|{`, NEVER A BARE PIPE. D28's two-tone
+ * swatch ("#000000|#8B5A2B") and any label carrying a pipe put the separator
+ * INSIDE a JSON string, so `text.split("|")` cut a record in half and the cell
+ * became unreadable ("malformedOptions") for a file the door itself allows.
+ * This is the ONE splitter: it walks the cell, tracks JSON string state and
+ * brace depth, and separates only at a pipe that sits outside every record.
+ * Legacy `value=label` segments still split exactly as before (depth 0).
+ */
+export function splitOptionSegments(text: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (const ch of text) {
+    if (inString) {
+      current += ch;
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      current += ch;
+      continue;
+    }
+    if (ch === "{" || ch === "[") depth += 1;
+    else if (ch === "}" || ch === "]") depth = Math.max(0, depth - 1);
+    else if (ch === "|" && depth === 0) {
+      parts.push(current);
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  parts.push(current);
+  return parts;
+}
+
 function optionsOf(raw: string): OptionCell[] | null {
   const text = raw.trim();
   if (text === "") return [];
