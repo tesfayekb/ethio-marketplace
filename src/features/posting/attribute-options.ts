@@ -118,6 +118,7 @@ function shape(row: Record<string, unknown>): AttrOption {
       boundsRaw !== null && typeof boundsRaw === "object" && !Array.isArray(boundsRaw)
         ? (boundsRaw as Record<string, unknown>)
         : null,
+    swatch: typeof row["swatch"] === "string" ? row["swatch"] : null,
   };
 }
 
