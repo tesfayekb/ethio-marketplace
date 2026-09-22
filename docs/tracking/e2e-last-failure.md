@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 35726608625 passed
+last E2E run 35730200295 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35726608625
-- Commit: `8b958ae50d411694f3e5ddbe54de98326038d6f4`
-- Attempt: 2
-- Written (UTC): 2026-09-22T12:37:22.012Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35730200295
+- Commit: `a3563cd51d12773d2d172762e8c4db9eea3b900a`
+- Attempt: 1
+- Written (UTC): 2026-09-22T13:11:31.496Z
 - Post-test warnings: 0
