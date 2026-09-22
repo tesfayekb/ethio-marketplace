@@ -46,6 +46,13 @@ export interface AttrOption {
    * bound reader. The door's bounds remain the authority (F3).
    */
   bounds: Record<string, unknown> | null;
+  /**
+   * D28 / M-SWATCH — WHAT COLOUR THIS OPTION ACTUALLY IS, said by the catalogue
+   * rather than guessed from the word: one hex, two hexes for a two-tone, or
+   * `pattern:<name>`. Absent, the form falls back to the value's own name
+   * (INC-259). The door validates the cell (`attr_option_shape`).
+   */
+  swatch: string | null;
 }
 
 /**
@@ -111,6 +118,7 @@ function shape(row: Record<string, unknown>): AttrOption {
       boundsRaw !== null && typeof boundsRaw === "object" && !Array.isArray(boundsRaw)
         ? (boundsRaw as Record<string, unknown>)
         : null,
+    swatch: typeof row["swatch"] === "string" ? row["swatch"] : null,
   };
 }
 

@@ -18,7 +18,10 @@
  * option list cannot become a tray of empty circles.
  */
 
-export type ColourSwatch = { kind: "solid"; ink: string } | { kind: "pattern" };
+export type ColourSwatch =
+  | { kind: "solid"; ink: string }
+  | { kind: "duo"; inks: [string, string] }
+  | { kind: "pattern"; pattern: string | null };
 
 const COLOUR_INK: Record<string, string> = {
   black: "#111111",
@@ -71,7 +74,7 @@ export function colourSwatch(value: string): ColourSwatch | null {
   for (const stem of stems(value)) {
     const ink = COLOUR_INK[stem];
     if (ink !== undefined) return { kind: "solid", ink };
-    if (PATTERNED.has(stem)) return { kind: "pattern" };
+    if (PATTERNED.has(stem)) return { kind: "pattern", pattern: stem };
   }
   return null;
 }
@@ -80,4 +83,63 @@ export function colourSwatch(value: string): ColourSwatch | null {
 export function colourInk(value: string): string | null {
   const swatch = colourSwatch(value);
   return swatch?.kind === "solid" ? swatch.ink : null;
+}
+
+/**
+ * D28 / M-SWATCH — THE CATALOGUE MAY SAY THE COLOUR ITSELF.
+ *
+ * An option record carries an optional `swatch` cell in exactly three spellings,
+ * the same three the door validates (`attr_option_shape`):
+ *
+ *   `#RRGGBB`            one ink
+ *   `#RRGGBB|#RRGGBB`    two-tone, shown as a diagonal half and half
+ *   `pattern:<name>`     one of tabby · brindle · calico · tricolour ·
+ *                        multicolour · striped
+ *
+ * A NAME LOOKUP IS THE FALLBACK, NEVER THE OVERRIDE: when the record says what
+ * the colour is, that is what a buyer sees; only an ABSENT cell falls back to the
+ * value's own stem (INC-259). An unreadable cell resolves to nothing here — the
+ * door refuses one on the way in, so this can only be pre-D28 data (F4: nothing
+ * is invented from it).
+ */
+const HEX_RE = /^#[0-9a-f]{6}$/i;
+
+export const SWATCH_PATTERNS = [
+  "tabby",
+  "brindle",
+  "calico",
+  "tricolour",
+  "multicolour",
+  "striped",
+] as const;
+
+export function parseSwatch(raw: string | null | undefined): ColourSwatch | null {
+  if (typeof raw !== "string") return null;
+  const text = raw.trim();
+  if (text === "") return null;
+  if (text.toLowerCase().startsWith("pattern:")) {
+    const name = text.slice("pattern:".length).trim().toLowerCase();
+    return (SWATCH_PATTERNS as readonly string[]).includes(name)
+      ? { kind: "pattern", pattern: name }
+      : null;
+  }
+  const parts = text.split("|").map((part) => part.trim());
+  if (parts.length === 1 && HEX_RE.test(parts[0] ?? "")) {
+    return { kind: "solid", ink: (parts[0] ?? "").toLowerCase() };
+  }
+  if (parts.length === 2 && parts.every((part) => HEX_RE.test(part))) {
+    return {
+      kind: "duo",
+      inks: [(parts[0] ?? "").toLowerCase(), (parts[1] ?? "").toLowerCase()],
+    };
+  }
+  return null;
+}
+
+/** The swatch one OPTION shows: its own declared cell first, then its name. */
+export function optionSwatch(option: {
+  value: string;
+  swatch?: string | null;
+}): ColourSwatch | null {
+  return parseSwatch(option.swatch ?? null) ?? colourSwatch(option.value);
 }

@@ -4,7 +4,7 @@ import { catalogText, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
-import { colourSwatch, isColourKey } from "./colour-swatches";
+import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
 import { Field, controlClass } from "./field";
 import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
@@ -352,7 +352,17 @@ export function StepSpecifications({
   /**
    * THE FOLD MAP: for every child whose options hang under a parent value, the
    * sibling definition that owns those values. Resolved structurally (see the
-   * file header), preferring a sibling asked BEFORE this one.
+   * file header).
+   *
+   * INC-260 (follow-up) — THE OWNER IS THE LIST THAT COVERS THE PARENTS, NOT THE
+   * FIRST LIST TO SHARE ONE VALUE. At Travel › Vehicle Hire the first question
+   * (`hire_vehicle_type`) offers `other`, and `model-cars` files a handful of
+   * models under the parent `other` — so a first-match search named that question
+   * the model's parent (1 of 45 parents covered) instead of `make-cars` (43 of
+   * 45), and every make left the model list empty. The owner is now the candidate
+   * covering the MOST of the child's parent values, so an incidental `other`
+   * cannot outrank a real parent list; ties are broken by the sibling that is
+   * already answered with one of those parents, then by form order.
    */
   const folds = useMemo(() => {
     const out: Record<string, string> = {};
@@ -367,12 +377,22 @@ export function StepSpecifications({
       const candidates = definitions.filter(
         (other) => other.attrKey !== def.attrKey && SELECT_TYPES.includes(other.attrType),
       );
-      const owner = candidates.find((other) => {
+      let owner: AttrDef | null = null;
+      let bestCover = 0;
+      let bestAnswered = false;
+      for (const other of candidates) {
+        const cover = allowedListOf(other).filter((option) => parents.has(option.value)).length;
+        if (cover === 0) continue;
         const own = selectedValue(values[other.attrKey]);
-        if (own !== "" && parents.has(own)) return true;
-        return allowedListOf(other).some((option) => parents.has(option.value));
-      });
-      if (owner !== undefined) out[def.attrKey] = owner.attrKey;
+        const answered = own !== "" && parents.has(own);
+        const better =
+          owner === null || cover > bestCover || (cover === bestCover && answered && !bestAnswered);
+        if (!better) continue;
+        owner = other;
+        bestCover = cover;
+        bestAnswered = answered;
+      }
+      if (owner !== null) out[def.attrKey] = owner.attrKey;
     }
     return out;
   }, [definitions, allowedListOf, values]);
@@ -1014,17 +1034,19 @@ export function StepSpecifications({
         const value = values[def.attrKey];
         const chosen = selectedValue(value);
         const shown = visibleOptionsOf(def);
+        /**
+         * D28 / M-SWATCH — THE RECORD'S OWN SWATCH FIRST. `optionSwatch` reads the
+         * option's declared `swatch` cell (one hex, two for a two-tone, or
+         * `pattern:<name>`) and falls back to the value's name only when the cell
+         * is absent (INC-259). Nothing resolves → no tray at all.
+         */
         const colourOptions =
           def.attrType === "single_select" && isColourKey(def.attrKey)
             ? shown
-                .map((option) => ({ option, swatch: colourSwatch(option.value) }))
+                .map((option) => ({ option, swatch: optionSwatch(option) }))
                 .filter(
-                  (
-                    entry,
-                  ): entry is {
-                    option: AttrOption;
-                    swatch: NonNullable<ReturnType<typeof colourSwatch>>;
-                  } => entry.swatch !== null,
+                  (entry): entry is { option: AttrOption; swatch: ColourSwatch } =>
+                    entry.swatch !== null,
                 )
             : [];
         /**
@@ -1281,6 +1303,10 @@ export function StepSpecifications({
                           write(def.attrKey, option.value, true);
                         }}
                       >
+                        {/* D28 — ONE TILE PER KIND: a single fill, a diagonal half
+                            and half for a two-tone, and a simple striped tile for
+                            a pattern. The inks are the catalogue's own DATA; every
+                            frame around them stays a design token (C3). */}
                         <span
                           aria-hidden="true"
                           data-testid="post-attr-swatch-ink"
@@ -1291,7 +1317,13 @@ export function StepSpecifications({
                               : "")
                           }
                           style={
-                            swatch.kind === "solid" ? { backgroundColor: swatch.ink } : undefined
+                            swatch.kind === "solid"
+                              ? { backgroundColor: swatch.ink }
+                              : swatch.kind === "duo"
+                                ? {
+                                    backgroundImage: `linear-gradient(135deg, ${swatch.inks[0]} 0 50%, ${swatch.inks[1]} 50% 100%)`,
+                                  }
+                                : undefined
                           }
                         />
                       </button>

@@ -792,6 +792,67 @@ export async function seedColourSet(categoryId: string): Promise<ColourSet> {
 }
 
 /**
+ * D28 / M-SWATCH — A SCRATCH COLOUR DETAIL THAT SAYS ITS OWN COLOURS.
+ *
+ * Every value here is DELIBERATELY not a colour word, so nothing can be guessed
+ * from the name: the only thing that can paint these tiles is the option's own
+ * declared `swatch` cell — one hex, two hexes, or `pattern:<name>`. The set is
+ * namespaced per run, worker and project (J1) and deleted by the caller.
+ */
+export interface SwatchSet {
+  colour: ScratchAttr;
+  solid: string;
+  duo: string;
+  patterned: string;
+  bare: string;
+  attrKeys: string[];
+}
+
+export async function seedSwatchSet(categoryId: string): Promise<SwatchSet> {
+  const supabase = adminClient();
+  const stem = `e2e_swatch_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const solid = `${stem}_one`;
+  const duo = `${stem}_two`;
+  const patterned = `${stem}_pat`;
+  const bare = `${stem}_bare`;
+  const option = (value: string, swatch?: string) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...(swatch === undefined ? {} : { swatch }),
+  });
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert({
+      attr_key: `${stem}_colour`,
+      name_en: `${stem} colour`,
+      name_am: `${stem} ቀለም`,
+      attr_type: "single_select",
+      options: [
+        option(solid, "#111111"),
+        option(duo, "#111111|#ffffff"),
+        option(patterned, "pattern:tabby"),
+        option(bare),
+      ],
+    })
+    .select("id, attr_key, name_en")
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:d28] seeding the swatch set failed: ${error?.message ?? "no row"}`);
+  }
+  const colour: ScratchAttr = { id: data.id, attrKey: data.attr_key, nameEn: data.name_en };
+  const { error: linkError } = await supabase.from("category_attribute_links").insert({
+    category_id: categoryId,
+    attribute_id: colour.id,
+    is_required: false,
+    display_order: 1,
+  });
+  if (linkError) throw new Error(`[e2e:d28] linking the swatch set failed: ${linkError.message}`);
+  return { colour, solid, duo, patterned, bare, attrKeys: [colour.attrKey] };
+}
+
+/**
  * D24 — A CONDITIONAL PAIR: a fuel detail, and a charging detail the category
  * asks for ONLY when the fuel is electric. Both rows are scratch (J1/J3), the
  * condition is written on the LINK exactly as the door's checker shapes it.
@@ -1435,7 +1496,16 @@ export interface SurfacedDependentSet {
   make: ScratchAttr;
   model: ScratchAttr;
   makeValues: { byd: string; toyota: string };
-  modelValues: { byd: string; toyota: string };
+  modelValues: { byd: string; toyota: string; orphan: string };
+  /**
+   * INC-260 (live shape) — THE DECOY. The published Vehicle Hire leaf asks a
+   * vehicle-type question FIRST, and that question offers `other`; the car-model
+   * library also files one model under a parent called `other`. The fold owner
+   * must therefore be chosen by how much of the model list a candidate actually
+   * covers, not by the first candidate that shares one value.
+   */
+  decoy: ScratchAttr;
+  decoyOther: string;
   attrKeys: string[];
 }
 
@@ -1446,6 +1516,8 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
   const toyota = `${stem}_toyota`;
   const bydModel = `${byd}_seagull`;
   const toyotaModel = `${toyota}_corolla`;
+  const decoyOther = "other";
+  const orphanModel = `${stem}_orphan`;
   const option = (value: string, extra: Record<string, unknown> = {}) => ({
     value,
     label_en: `${value} label`,
@@ -1458,6 +1530,12 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
     .from("attributes")
     .insert([
       {
+        attr_key: `${stem}_kind`,
+        name_en: `${stem} kind`,
+        attr_type: "single_select",
+        options: [option(`${stem}_van`), option(decoyOther)],
+      },
+      {
         attr_key: `${stem}_make`,
         name_en: `${stem} make`,
         attr_type: "single_select",
@@ -1467,7 +1545,11 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
         attr_key: `${stem}_model`,
         name_en: `${stem} model`,
         attr_type: "single_select",
-        options: [option(bydModel, { parent: byd }), option(toyotaModel, { parent: toyota })],
+        options: [
+          option(bydModel, { parent: byd }),
+          option(toyotaModel, { parent: toyota }),
+          option(orphanModel, { parent: decoyOther }),
+        ],
       },
     ])
     .select("id, attr_key, name_en");
@@ -1481,10 +1563,12 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
     if (!row) throw new Error(`[e2e:inc260] the ${suffix} definition is missing`);
     return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
   };
+  const decoy = pick("_kind");
   const make = pick("_make");
   const model = pick("_model");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    { category_id: categoryId, attribute_id: decoy.id, is_required: false, display_order: 0 },
     { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
     { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
   ]);
@@ -1495,9 +1579,11 @@ export async function seedSurfacedDependentSet(categoryId: string): Promise<Surf
   return {
     make,
     model,
+    decoy,
+    decoyOther,
     makeValues: { byd, toyota },
-    modelValues: { byd: bydModel, toyota: toyotaModel },
-    attrKeys: [make.attrKey, model.attrKey],
+    modelValues: { byd: bydModel, toyota: toyotaModel, orphan: orphanModel },
+    attrKeys: [decoy.attrKey, make.attrKey, model.attrKey],
   };
 }
 
