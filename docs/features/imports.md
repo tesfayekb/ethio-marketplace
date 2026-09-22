@@ -216,7 +216,6 @@ every spelling verdict to the door. AT-63 previews an operator's swatch-only fil
 1 change · 0 refusals, and still refuses an invented key by name and `badSwatch` for
 an illegal spelling.
 
-
 `swatch` is DIFFED like `facts` (INC-239): `attr_option_norm_v2` carries it, so a
 file whose only change is a swatch plans as `changed` with the diff naming
 `options`, while an ABSENT or BLANK cell stays invisible and a file that never

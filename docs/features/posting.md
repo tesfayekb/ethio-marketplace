@@ -93,7 +93,6 @@ both PW-46 and PW-44 wait for the level to RENDER and come back to `/post` until
 the new root carries it — the same remedy a seller has (J7); asserting at
 hydration would read zero for every category.
 
-
 Search-to-leaf over the ONE shared tree reader
 (`src/features/categories/category-tree.ts`, lifted out of the feed so both
 

@@ -2505,11 +2505,6 @@ test.describe("POSTING WIZARD", () => {
       })
       .toBe(true);
 
-
-
-
-
-
     // UNDER ITS OWN PARENT.
     await page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`).click();
     await expect(
