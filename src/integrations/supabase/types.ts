@@ -2576,6 +2576,7 @@ export type Database = {
         }
         Returns: string
       }
+      attr_split_option_cell: { Args: { p_cell: string }; Returns: string[] }
       attr_visible_when_met: {
         Args: { p_attrs: Json; p_prior: Json; p_vw: Json }
         Returns: boolean
