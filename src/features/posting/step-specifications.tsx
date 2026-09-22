@@ -386,9 +386,7 @@ export function StepSpecifications({
         const own = selectedValue(values[other.attrKey]);
         const answered = own !== "" && parents.has(own);
         const better =
-          owner === null ||
-          cover > bestCover ||
-          (cover === bestCover && answered && !bestAnswered);
+          owner === null || cover > bestCover || (cover === bestCover && answered && !bestAnswered);
         if (!better) continue;
         owner = other;
         bestCover = cover;

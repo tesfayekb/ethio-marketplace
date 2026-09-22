@@ -842,9 +842,12 @@ export async function seedSwatchSet(categoryId: string): Promise<SwatchSet> {
     throw new Error(`[e2e:d28] seeding the swatch set failed: ${error?.message ?? "no row"}`);
   }
   const colour: ScratchAttr = { id: data.id, attrKey: data.attr_key, nameEn: data.name_en };
-  const { error: linkError } = await supabase
-    .from("category_attribute_links")
-    .insert({ category_id: categoryId, attribute_id: colour.id, is_required: false, display_order: 1 });
+  const { error: linkError } = await supabase.from("category_attribute_links").insert({
+    category_id: categoryId,
+    attribute_id: colour.id,
+    is_required: false,
+    display_order: 1,
+  });
   if (linkError) throw new Error(`[e2e:d28] linking the swatch set failed: ${linkError.message}`);
   return { colour, solid, duo, patterned, bare, attrKeys: [colour.attrKey] };
 }
