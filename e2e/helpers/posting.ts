@@ -792,6 +792,64 @@ export async function seedColourSet(categoryId: string): Promise<ColourSet> {
 }
 
 /**
+ * D28 / M-SWATCH — A SCRATCH COLOUR DETAIL THAT SAYS ITS OWN COLOURS.
+ *
+ * Every value here is DELIBERATELY not a colour word, so nothing can be guessed
+ * from the name: the only thing that can paint these tiles is the option's own
+ * declared `swatch` cell — one hex, two hexes, or `pattern:<name>`. The set is
+ * namespaced per run, worker and project (J1) and deleted by the caller.
+ */
+export interface SwatchSet {
+  colour: ScratchAttr;
+  solid: string;
+  duo: string;
+  patterned: string;
+  bare: string;
+  attrKeys: string[];
+}
+
+export async function seedSwatchSet(categoryId: string): Promise<SwatchSet> {
+  const supabase = adminClient();
+  const stem = `e2e_swatch_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const solid = `${stem}_one`;
+  const duo = `${stem}_two`;
+  const patterned = `${stem}_pat`;
+  const bare = `${stem}_bare`;
+  const option = (value: string, swatch?: string) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...(swatch === undefined ? {} : { swatch }),
+  });
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert({
+      attr_key: `${stem}_colour`,
+      name_en: `${stem} colour`,
+      name_am: `${stem} ቀለም`,
+      attr_type: "single_select",
+      options: [
+        option(solid, "#111111"),
+        option(duo, "#111111|#ffffff"),
+        option(patterned, "pattern:tabby"),
+        option(bare),
+      ],
+    })
+    .select("id, attr_key, name_en")
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:d28] seeding the swatch set failed: ${error?.message ?? "no row"}`);
+  }
+  const colour: ScratchAttr = { id: data.id, attrKey: data.attr_key, nameEn: data.name_en };
+  const { error: linkError } = await supabase
+    .from("category_attribute_links")
+    .insert({ category_id: categoryId, attribute_id: colour.id, is_required: false, display_order: 1 });
+  if (linkError) throw new Error(`[e2e:d28] linking the swatch set failed: ${linkError.message}`);
+  return { colour, solid, duo, patterned, bare, attrKeys: [colour.attrKey] };
+}
+
+/**
  * D24 — A CONDITIONAL PAIR: a fuel detail, and a charging detail the category
  * asks for ONLY when the fuel is electric. Both rows are scratch (J1/J3), the
  * condition is written on the LINK exactly as the door's checker shapes it.
