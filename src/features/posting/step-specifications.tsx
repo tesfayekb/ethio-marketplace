@@ -164,6 +164,44 @@ function optionBelongsToParent(option: AttrOption, parentValue: string): boolean
   return optionStems(option.value).some((stem) => stem.startsWith(`${parentValue}_`));
 }
 
+/**
+ * D36 — HELP IS ONE SENTENCE UNTIL IT IS ASKED FOR. A curator's guidance can run
+ * to a paragraph, and a paragraph under every field is what makes a 360-pixel
+ * form unreadable. The FIRST sentence stays inline; the rest waits behind the
+ * (i) tap beside the label. Amharic's own full stop (`።`) ends a sentence here
+ * exactly as a full stop does.
+ */
+function firstSentence(text: string): { head: string; rest: string } {
+  const match = /[\s\S]*?[.!?…።](\s|$)/.exec(text);
+  if (match === null) return { head: text.trim(), rest: "" };
+  return { head: match[0].trim(), rest: text.slice(match[0].length).trim() };
+}
+
+/**
+ * D36 — WHERE THE EXPANDER'S OPEN STATE LIVES. On the DEVICE, per category, for
+ * this browsing session — never in the draft: the draft carries the door's own
+ * fields and nothing else (autosave would otherwise send the door a field it
+ * does not judge). A browser that refuses storage simply starts collapsed.
+ */
+const MORE_KEY = "post.specs.more";
+
+function readMoreOpen(categoryId: string): boolean {
+  try {
+    return window.sessionStorage.getItem(`${MORE_KEY}:${categoryId}`) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeMoreOpen(categoryId: string, open: boolean): void {
+  try {
+    if (open) window.sessionStorage.setItem(`${MORE_KEY}:${categoryId}`, "1");
+    else window.sessionStorage.removeItem(`${MORE_KEY}:${categoryId}`);
+  } catch {
+    // A device that refuses storage forgets the expander; nothing else changes.
+  }
+}
+
 export function StepSpecifications({
   categoryId,
   values,
@@ -197,6 +235,12 @@ export function StepSpecifications({
   const [prefills, setPrefills] = useState<Record<string, unknown>>({});
   /** What this screen alone saw wrong — the door's own refusal always wins. */
   const [local, setLocal] = useState<Refusal[]>([]);
+  /** D36 — is the optional block open? Remembered per category on this device. */
+  const [moreOpen, setMoreOpen] = useState(false);
+  /** D35 — the locked details whose input the seller has asked to see. */
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  /** D36 — the details whose full guidance the (i) tap has opened. */
+  const [helpOpen, setHelpOpen] = useState<Record<string, boolean>>({});
 
   /**
    * INC-257 — EVERY PATCH IS BUILT ON THE LATEST ANSWERS, NEVER ON THE PROP.
@@ -245,6 +289,20 @@ export function StepSpecifications({
     return () => {
       cancelled = true;
     };
+  }, [categoryId]);
+
+  /**
+   * D36 / D35 — THE SCREEN'S OWN MEMORY IS PER CATEGORY. The expander reopens
+   * where this device left it for THIS category (and starts collapsed for
+   * another); a revealed locked input and an opened guidance belong to the
+   * definitions that have just been replaced, so both start over. Read in an
+   * effect, never in a state initialiser: the server has no session storage.
+   */
+  useEffect(() => {
+    if (categoryId === null) return;
+    setMoreOpen(readMoreOpen(categoryId));
+    setRevealed({});
+    setHelpOpen({});
   }, [categoryId]);
 
   useEffect(() => {
@@ -980,6 +1038,574 @@ export function StepSpecifications({
       entities,
     );
 
+  /**
+   * D36 — ONE ROW, WHEREVER IT SITS. The same renderer draws a detail in the
+   * first block and inside "More details", so an optional field moved behind the
+   * expander is the SAME control with the same anchors and the same refusal.
+   */
+  const renderDef = (def: AttrDef) => {
+    // U4d/B2 — the shared resolver names a definition, never an inline ternary.
+    const label = nameOf(def);
+    const held = options[def.attrKey] ?? IDLE;
+    const refusal = refusalFor(seen, def.attrKey);
+    const controlId = `post-attr-${def.attrKey}`;
+    const value = values[def.attrKey];
+    const chosen = selectedValue(value);
+    const shown = visibleOptionsOf(def);
+    /**
+     * D28 / M-SWATCH — THE RECORD'S OWN SWATCH FIRST. `optionSwatch` reads the
+     * option's declared `swatch` cell (one hex, two for a two-tone, or
+     * `pattern:<name>`) and falls back to the value's name only when the cell
+     * is absent (INC-259). Nothing resolves → no tray at all.
+     */
+    const colourOptions =
+      def.attrType === "single_select" && isColourKey(def.attrKey)
+        ? shown
+            .map((option) => ({ option, swatch: optionSwatch(option) }))
+            .filter(
+              (entry): entry is { option: AttrOption; swatch: ColourSwatch } =>
+                entry.swatch !== null,
+            )
+        : [];
+    /**
+     * INC-244 — SET BY THE MODEL. The chosen options leave exactly one
+     * admissible answer, so the reconciliation above has already written it and
+     * the picker has nothing to offer: it shows that answer, says where it came
+     * from and takes no taps.
+     */
+    const lockedByModel =
+      def.attrType === "single_select" &&
+      narrowing[def.attrKey] !== undefined &&
+      shown.length === 1;
+    const parentKey = folds[def.attrKey];
+    const parentDef =
+      parentKey === undefined
+        ? null
+        : (schema.attributes.find((entry) => entry.attrKey === parentKey) ?? null);
+    /** A fold with no parent answer yet: closed, and saying what it waits for. */
+    const waiting = parentDef !== null && selectedValue(values[parentKey ?? ""]) === "";
+    // INC-242 — the definition's bounds narrowed by every chosen option.
+    const bound = boundsOf(def);
+    /**
+     * U6-C1-R2 — EVERY FIELD THROUGH THE PRIMITIVE. The asterisk, the word
+     * "Optional", the refusal message and the red border all come from one
+     * place now, so no detail can be presented differently from the rest.
+     * A required answer that is still missing wears the SOFT border from the
+     * start — visible guidance, not a refusal nobody made (F4).
+     */
+    const empty = isEmpty(value);
+    const ctrl = controlClass(refusal !== null, def.isRequired && empty);
+    /**
+     * INC-240 — WHOSE ANSWER IS ON SCREEN. `fromModel` says the model's own
+     * answer still stands; `modelDiffers` says the seller's own answer stands
+     * and the model would say something else — offered, never imposed.
+     */
+    const written = def.attrKey in prefills ? prefills[def.attrKey] : undefined;
+    const fromModel = def.attrKey in prefills && same(value, written);
+    const modelValue = facts.prefill[def.attrKey];
+    const modelDiffers =
+      def.attrKey in prefills &&
+      !fromModel &&
+      !empty &&
+      modelValue !== undefined &&
+      !same(value, modelValue);
+    /**
+     * STEP 2 — A YEAR IS A PICKER, NOT A TYPED NUMBER. A `format = 'year'`
+     * number offers the years the item can plausibly be: from the EFFECTIVE
+     * floor (INC-242 — the definition's minimum narrowed by every chosen
+     * option's bound, else 1900) to next year, newest first. There is no free
+     * text and no negative year to type. The door's bounds remain the
+     * authority (F3) — this control cannot produce a year it would refuse.
+     */
+    const yearMode = def.attrType === "number" && def.format === "year";
+    const yearFloor = bound.min !== null ? Math.trunc(bound.min) : 1900;
+    const nextYear = new Date().getFullYear() + 1;
+    const yearCeiling = Math.trunc(bound.max !== null ? Math.min(bound.max, nextYear) : nextYear);
+    const years = yearMode
+      ? Array.from({ length: Math.max(0, yearCeiling - yearFloor + 1) }, (_, index) =>
+          String(yearCeiling - index),
+        )
+      : [];
+    /** D36 — the guidance, split: one sentence inline, the rest behind (i). */
+    const help = firstSentence(catalogText(def.helpTextEn ?? "", def.helpTextAm, entities.lang));
+    /**
+     * D35 — A LOCKED FACT IS A STRIP, NOT AN INPUT. When the chosen options
+     * both SET this sibling AND narrow it to that single admissible value, the
+     * answer is settled: it reads as one line — label, value, and where it came
+     * from — and the input appears only when the seller taps to change it. A
+     * prefill-only fact (the list still open) keeps its normal prefilled input,
+     * because there the seller still has a real choice to make. The stored
+     * value is the same either way, and the door judges it unchanged (F3).
+     */
+    const lockedStrip = lockedByModel && !empty && revealed[def.attrKey] !== true;
+    const lockedLabel = shown[0] === undefined ? "" : optionLabel(shown[0], entities.lang);
+
+    return (
+      <div
+        key={def.attrKey}
+        className="space-y-1"
+        data-testid="post-spec"
+        data-attr={def.attrKey}
+        data-parent={parentKey ?? ""}
+      >
+        {lockedStrip ? (
+          <div
+            className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-border bg-muted/40 px-3 py-2"
+            data-testid="post-attr-locked-strip"
+            data-attr={def.attrKey}
+          >
+            <span className="text-sm text-muted-foreground">{label}</span>
+            <span
+              className="text-sm font-medium text-foreground"
+              data-testid="post-attr-locked-value"
+            >
+              {lockedLabel}
+            </span>
+            <span className="text-xs text-muted-foreground">{t("post.specs.lockedByChoice")}</span>
+            <button
+              type="button"
+              className="ms-auto min-h-11 text-sm font-medium text-primary underline"
+              data-testid="post-attr-locked-change"
+              data-attr={def.attrKey}
+              onClick={() => setRevealed((prev) => ({ ...prev, [def.attrKey]: true }))}
+            >
+              {t("post.specs.lockedChange")}
+            </button>
+          </div>
+        ) : (
+          <Field
+            id={controlId}
+            label={label}
+            required={def.isRequired}
+            refusal={refusal}
+            refusalTestId="post-attr-refusal"
+            refusalAttr={def.attrKey}
+          >
+            {def.attrType === "text" && (
+              <input
+                id={controlId}
+                data-testid="post-attr-control"
+                data-attr={def.attrKey}
+                className={ctrl}
+                value={typeof value === "string" ? value : ""}
+                maxLength={def.maxLength ?? undefined}
+                onChange={(event) => write(def.attrKey, event.target.value)}
+              />
+            )}
+
+            {def.attrType === "number" && yearMode && (
+              <select
+                id={controlId}
+                data-testid="post-attr-control"
+                data-attr={def.attrKey}
+                data-year="1"
+                className={ctrl}
+                value={typeof value === "number" ? String(value) : ""}
+                onChange={(event) => {
+                  const raw = event.target.value;
+                  const next = raw === "" ? null : Number(raw);
+                  judgeNumber(def, next);
+                  write(def.attrKey, next === null ? undefined : next, true);
+                }}
+              >
+                <option value="">{t("post.specs.choose")}</option>
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {def.attrType === "number" && !yearMode && (
+              /* D36 — THE UNIT IS A SUFFIX, NOT A LINE. It sits inside the input's
+                   end edge (a logical inset, so RTL keeps it beside the digits)
+                   instead of spending a line of a 360-pixel form on "In km". */
+              <div className="relative">
+                <input
+                  id={controlId}
+                  type="number"
+                  inputMode="decimal"
+                  data-testid="post-attr-control"
+                  data-attr={def.attrKey}
+                  className={`${ctrl} ${def.unit === null ? "" : "pe-16"}`}
+                  value={typeof value === "number" ? String(value) : ""}
+                  step={def.decimals === null || def.decimals === 0 ? 1 : 10 ** -def.decimals}
+                  min={bound.min ?? undefined}
+                  max={bound.max ?? undefined}
+                  onChange={(event) => {
+                    const raw = event.target.value;
+                    const parsed = Number(raw);
+                    const next = raw === "" || !Number.isFinite(parsed) ? null : parsed;
+                    judgeNumber(def, next);
+                    write(def.attrKey, next === null ? undefined : next);
+                  }}
+                  onBlur={(event) => {
+                    const parsed = Number(event.target.value);
+                    judgeNumber(def, Number.isFinite(parsed) ? parsed : null);
+                  }}
+                />
+                {def.unit !== null && (
+                  <span
+                    className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-sm text-muted-foreground"
+                    data-testid="post-attr-unit"
+                    data-attr={def.attrKey}
+                  >
+                    {catalogText(def.unit, null, entities.lang)}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {def.attrType === "date" && (
+              <input
+                id={controlId}
+                type="date"
+                data-testid="post-attr-control"
+                data-attr={def.attrKey}
+                className={ctrl}
+                value={typeof value === "string" ? value : ""}
+                onChange={(event) => write(def.attrKey, event.target.value, true)}
+              />
+            )}
+
+            {/*
+             * D27 — THE BOX SAYS WHAT IT IS, AND NOBODY TICKS IT BUT THE SELLER.
+             * The box carries the DETAIL's own name (an attestation the seller
+             * recognises), and what the catalogue knows about the chosen model is
+             * a hint beside it — never a tick already made on their behalf.
+             */}
+            {def.attrType === "boolean" && (
+              <div className="space-y-1">
+                <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                  <input
+                    id={controlId}
+                    type="checkbox"
+                    data-testid="post-attr-control"
+                    data-attr={def.attrKey}
+                    className="h-5 w-5 rounded border-input"
+                    checked={value === true}
+                    onChange={(event) =>
+                      write(def.attrKey, event.target.checked ? true : undefined, true)
+                    }
+                  />
+                  <span>{label}</span>
+                </label>
+                {facts.hints[def.attrKey] === true && (
+                  <p
+                    className="text-xs text-muted-foreground"
+                    data-testid="post-attr-fact-hint"
+                    data-attr={def.attrKey}
+                  >
+                    {fill(t("post.specs.factHint"), { value: label })}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {def.attrType === "single_select" && (
+              <select
+                id={controlId}
+                data-testid="post-attr-control"
+                data-attr={def.attrKey}
+                data-options={held.state}
+                data-waiting={waiting ? "1" : "0"}
+                data-locked={lockedByModel ? "1" : "0"}
+                disabled={waiting || lockedByModel}
+                className={ctrl}
+                value={chosen}
+                onFocus={() => openOptions(def)}
+                onPointerDown={() => openOptions(def)}
+                onChange={(event) => {
+                  const picked = event.target.value;
+                  if (picked === "other") {
+                    write(def.attrKey, { value: "other", text: otherText(value) }, false);
+                    return;
+                  }
+                  write(def.attrKey, picked === "" ? undefined : picked, true);
+                }}
+              >
+                <option value="">{t("post.specs.choose")}</option>
+                {shown.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {optionLabel(option, entities.lang)}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* D26 / INC-259 — THE COLOUR IS SHOWN. The picker above stays (it is
+                  the accessible control and the door's own vocabulary); swatches are
+                  shown only for options that resolve to a colour or pattern, so an
+                  unrelated list never becomes a tray of empty circles. */}
+            {colourOptions.length > 0 && (
+              <div
+                className="flex flex-wrap gap-2"
+                data-testid="post-attr-swatches"
+                data-attr={def.attrKey}
+              >
+                {colourOptions.map(({ option, swatch }) => {
+                  const label = optionLabel(option, entities.lang);
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      data-testid="post-attr-swatch"
+                      data-attr={def.attrKey}
+                      data-value={option.value}
+                      data-swatch={swatch.kind}
+                      aria-pressed={chosen === option.value}
+                      title={label}
+                      aria-label={label}
+                      className={
+                        "flex min-h-11 min-w-11 items-center justify-center rounded-md border p-1 " +
+                        (chosen === option.value
+                          ? "border-primary ring-2 ring-ring"
+                          : "border-input")
+                      }
+                      onClick={() => {
+                        if (option.value === "other") {
+                          write(def.attrKey, { value: "other", text: otherText(value) }, false);
+                          return;
+                        }
+                        write(def.attrKey, option.value, true);
+                      }}
+                    >
+                      {/* D28 — ONE TILE PER KIND: a single fill, a diagonal half
+                            and half for a two-tone, and a simple striped tile for
+                            a pattern. The inks are the catalogue's own DATA; every
+                            frame around them stays a design token (C3). */}
+                      <span
+                        aria-hidden="true"
+                        data-testid="post-attr-swatch-ink"
+                        className={
+                          "block size-7 rounded-full border border-border " +
+                          (swatch.kind === "pattern"
+                            ? "bg-[repeating-linear-gradient(45deg,var(--muted)_0_4px,var(--border)_4px_8px)]"
+                            : "")
+                        }
+                        style={
+                          swatch.kind === "solid"
+                            ? { backgroundColor: swatch.ink }
+                            : swatch.kind === "duo"
+                              ? {
+                                  backgroundImage: `linear-gradient(135deg, ${swatch.inks[0]} 0 50%, ${swatch.inks[1]} 50% 100%)`,
+                                }
+                              : undefined
+                        }
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {def.attrType === "single_select" && chosen === "other" && (
+              <input
+                data-testid="post-attr-other"
+                data-attr={def.attrKey}
+                className={ctrl}
+                value={otherText(value)}
+                maxLength={120}
+                placeholder={t("post.specs.otherPlaceholder")}
+                onChange={(event) =>
+                  write(
+                    def.attrKey,
+                    event.target.value === ""
+                      ? { value: "other" }
+                      : { value: "other", text: event.target.value },
+                  )
+                }
+              />
+            )}
+
+            {def.attrType === "multi_select" && held.state !== "ready" && (
+              <button
+                type="button"
+                data-testid="post-attr-open"
+                data-attr={def.attrKey}
+                data-options={held.state}
+                disabled={waiting}
+                className={`${ctrl} text-start`}
+                onClick={() => openOptions(def)}
+              >
+                {held.state === "loading" ? t("post.specs.optionsLoading") : t("post.specs.choose")}
+              </button>
+            )}
+
+            {def.attrType === "multi_select" && held.state === "ready" && !waiting && (
+              <ul className="space-y-1" data-testid="post-attr-checks" data-attr={def.attrKey}>
+                {shown.map((option) => {
+                  const list = chosenList(value);
+                  return (
+                    <li key={option.value}>
+                      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                        <input
+                          type="checkbox"
+                          data-testid="post-attr-check"
+                          data-value={option.value}
+                          className="h-5 w-5 rounded border-input"
+                          checked={list.includes(option.value)}
+                          onChange={(event) =>
+                            write(
+                              def.attrKey,
+                              event.target.checked
+                                ? [...list, option.value]
+                                : list.filter((entry) => entry !== option.value),
+                              true,
+                            )
+                          }
+                        />
+                        <span>{optionLabel(option, entities.lang)}</span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {/* INC-244 — a locked answer says whose answer it is. */}
+            {lockedByModel && (
+              <p
+                className="text-xs text-muted-foreground"
+                data-testid="post-attr-set-by-model"
+                data-attr={def.attrKey}
+              >
+                {t("post.specs.setByModel")}
+              </p>
+            )}
+
+            {/* THE FOLD, IN WORDS: the child says which answer it waits for, so a
+                  closed control is never a dead end (F4). */}
+            {waiting && parentDef !== null && (
+              <p
+                className="text-xs text-muted-foreground"
+                data-testid="post-attr-parent-first"
+                data-attr={def.attrKey}
+              >
+                {fill(t("post.specs.parentFirst"), { parent: nameOf(parentDef) })}
+              </p>
+            )}
+            {!waiting && parentDef !== null && held.state === "ready" && shown.length === 0 && (
+              <p
+                className="text-xs text-muted-foreground"
+                data-testid="post-attr-no-options"
+                data-attr={def.attrKey}
+              >
+                {t("post.specs.noneForParent")}
+              </p>
+            )}
+
+            {/* D18 — filled in from the chosen model, and said so. */}
+            {fromModel && (
+              <p
+                className="text-xs text-muted-foreground"
+                data-testid="post-attr-from-model"
+                data-attr={def.attrKey}
+              >
+                {t("post.specs.fromModel")}
+              </p>
+            )}
+
+            {/* INC-240 — THE SELLER'S OWN ANSWER STANDS, and the model's newer
+                  one is OFFERED beside it. Nothing is overwritten by a parent
+                  change once a person has typed over it. */}
+            {modelDiffers && (
+              <p
+                className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+                data-testid="post-attr-model-differs"
+                data-attr={def.attrKey}
+              >
+                <span>{t("post.specs.modelDiffers")}</span>
+                <button
+                  type="button"
+                  className="min-h-11 text-start font-medium text-primary underline"
+                  data-testid="post-attr-use-model"
+                  data-attr={def.attrKey}
+                  onClick={() => {
+                    setPrefills((prev) => ({ ...prev, [def.attrKey]: modelValue }));
+                    write(def.attrKey, modelValue, true);
+                  }}
+                >
+                  {t("post.specs.useModelValue")}
+                </button>
+              </p>
+            )}
+
+            {held.state === "failed" && (
+              <p className="text-xs text-destructive" data-testid="post-attr-options-error">
+                {t("post.specs.optionsFailed")}
+              </p>
+            )}
+
+            {/* D36 — THE GUIDANCE IS ONE SENTENCE UNTIL IT IS ASKED FOR. The first
+                  sentence stays inline; the rest opens on the (i) tap beside it.
+                  Advice, never the verdict: the door decides and its refusal lands
+                  below. */}
+            {help.head !== "" && (
+              <p className="text-xs text-muted-foreground" data-testid="post-attr-help">
+                <span>{help.head}</span>
+                {help.rest !== "" && (
+                  <>
+                    {" "}
+                    <button
+                      type="button"
+                      className="font-medium text-primary underline"
+                      data-testid="post-attr-help-more"
+                      data-attr={def.attrKey}
+                      aria-expanded={helpOpen[def.attrKey] === true}
+                      aria-label={t("post.specs.helpMore")}
+                      onClick={() =>
+                        setHelpOpen((prev) => ({
+                          ...prev,
+                          [def.attrKey]: prev[def.attrKey] !== true,
+                        }))
+                      }
+                    >
+                      {t("post.specs.helpMoreMark")}
+                    </button>
+                    {helpOpen[def.attrKey] === true && (
+                      <span data-testid="post-attr-help-rest"> {help.rest}</span>
+                    )}
+                  </>
+                )}
+              </p>
+            )}
+            {def.attrType === "number" && (bound.min !== null || bound.max !== null) && (
+              <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
+                {fill(t("post.specs.boundsHint"), {
+                  min: bound.min ?? t("post.specs.noBound"),
+                  max: bound.max ?? t("post.specs.noBound"),
+                })}
+              </p>
+            )}
+            {def.attrType === "text" && def.maxLength !== null && (
+              <p className="text-xs text-muted-foreground">
+                {fill(t("post.specs.lengthHint"), { max: def.maxLength })}
+              </p>
+            )}
+            {def.attrType === "text" && def.preset !== null && (
+              <p className="text-xs text-muted-foreground">{t("post.specs.presetHint")}</p>
+            )}
+            {def.attrType === "multi_select" && (
+              <p className="text-xs text-muted-foreground">{t("post.specs.multiHint")}</p>
+            )}
+          </Field>
+        )}
+      </div>
+    );
+  };
+
+  /**
+   * D36 — FORM ECONOMY AT 360. What the answers themselves ask for (a conditional
+   * detail) and what the door requires come FIRST; the seller's optional extras
+   * wait behind ONE expander. A refusal can never hide there: the door only
+   * refuses a required or asked-for field, and the summary above Back/Next names
+   * every refused field by label wherever it sits (F4).
+   */
+  const primary = asked.filter((def) => def.isRequired || def.visibleWhen !== null);
+  const extra = asked.filter((def) => !def.isRequired && def.visibleWhen === null);
+
   return (
     <div className="space-y-5" data-testid="post-specs">
       <p className="text-sm text-muted-foreground">{t("post.specs.why")}</p>
@@ -1025,490 +1651,33 @@ export function StepSpecifications({
       )}
 
       {/* D24 — only the details this answer set asks for are on screen. */}
-      {asked.map((def) => {
-        // U4d/B2 — the shared resolver names a definition, never an inline ternary.
-        const label = nameOf(def);
-        const held = options[def.attrKey] ?? IDLE;
-        const refusal = refusalFor(seen, def.attrKey);
-        const controlId = `post-attr-${def.attrKey}`;
-        const value = values[def.attrKey];
-        const chosen = selectedValue(value);
-        const shown = visibleOptionsOf(def);
-        /**
-         * D28 / M-SWATCH — THE RECORD'S OWN SWATCH FIRST. `optionSwatch` reads the
-         * option's declared `swatch` cell (one hex, two for a two-tone, or
-         * `pattern:<name>`) and falls back to the value's name only when the cell
-         * is absent (INC-259). Nothing resolves → no tray at all.
-         */
-        const colourOptions =
-          def.attrType === "single_select" && isColourKey(def.attrKey)
-            ? shown
-                .map((option) => ({ option, swatch: optionSwatch(option) }))
-                .filter(
-                  (entry): entry is { option: AttrOption; swatch: ColourSwatch } =>
-                    entry.swatch !== null,
-                )
-            : [];
-        /**
-         * INC-244 — SET BY THE MODEL. The chosen options leave exactly one
-         * admissible answer, so the reconciliation above has already written it and
-         * the picker has nothing to offer: it shows that answer, says where it came
-         * from and takes no taps.
-         */
-        const lockedByModel =
-          def.attrType === "single_select" &&
-          narrowing[def.attrKey] !== undefined &&
-          shown.length === 1;
-        const parentKey = folds[def.attrKey];
-        const parentDef =
-          parentKey === undefined
-            ? null
-            : (schema.attributes.find((entry) => entry.attrKey === parentKey) ?? null);
-        /** A fold with no parent answer yet: closed, and saying what it waits for. */
-        const waiting = parentDef !== null && selectedValue(values[parentKey ?? ""]) === "";
-        // INC-242 — the definition's bounds narrowed by every chosen option.
-        const bound = boundsOf(def);
-        /**
-         * U6-C1-R2 — EVERY FIELD THROUGH THE PRIMITIVE. The asterisk, the word
-         * "Optional", the refusal message and the red border all come from one
-         * place now, so no detail can be presented differently from the rest.
-         * A required answer that is still missing wears the SOFT border from the
-         * start — visible guidance, not a refusal nobody made (F4).
-         */
-        const empty = isEmpty(value);
-        const ctrl = controlClass(refusal !== null, def.isRequired && empty);
-        /**
-         * INC-240 — WHOSE ANSWER IS ON SCREEN. `fromModel` says the model's own
-         * answer still stands; `modelDiffers` says the seller's own answer stands
-         * and the model would say something else — offered, never imposed.
-         */
-        const written = def.attrKey in prefills ? prefills[def.attrKey] : undefined;
-        const fromModel = def.attrKey in prefills && same(value, written);
-        const modelValue = facts.prefill[def.attrKey];
-        const modelDiffers =
-          def.attrKey in prefills &&
-          !fromModel &&
-          !empty &&
-          modelValue !== undefined &&
-          !same(value, modelValue);
-        /**
-         * STEP 2 — A YEAR IS A PICKER, NOT A TYPED NUMBER. A `format = 'year'`
-         * number offers the years the item can plausibly be: from the EFFECTIVE
-         * floor (INC-242 — the definition's minimum narrowed by every chosen
-         * option's bound, else 1900) to next year, newest first. There is no free
-         * text and no negative year to type. The door's bounds remain the
-         * authority (F3) — this control cannot produce a year it would refuse.
-         */
-        const yearMode = def.attrType === "number" && def.format === "year";
-        const yearFloor = bound.min !== null ? Math.trunc(bound.min) : 1900;
-        const nextYear = new Date().getFullYear() + 1;
-        const yearCeiling = Math.trunc(
-          bound.max !== null ? Math.min(bound.max, nextYear) : nextYear,
-        );
-        const years = yearMode
-          ? Array.from({ length: Math.max(0, yearCeiling - yearFloor + 1) }, (_, index) =>
-              String(yearCeiling - index),
-            )
-          : [];
+      <div className="space-y-5">{primary.map(renderDef)}</div>
 
-        return (
-          <div
-            key={def.attrKey}
-            className="space-y-1"
-            data-testid="post-spec"
-            data-attr={def.attrKey}
-            data-parent={parentKey ?? ""}
+      {extra.length > 0 && (
+        <div className="space-y-3">
+          <button
+            type="button"
+            className="min-h-11 w-full rounded-md border border-input px-3 py-2 text-start text-sm font-medium text-foreground"
+            data-testid="post-specs-more"
+            data-open={moreOpen ? "1" : "0"}
+            aria-expanded={moreOpen}
+            onClick={() => {
+              const next = !moreOpen;
+              setMoreOpen(next);
+              if (categoryId !== null) writeMoreOpen(categoryId, next);
+            }}
           >
-            <Field
-              id={controlId}
-              label={label}
-              required={def.isRequired}
-              refusal={refusal}
-              refusalTestId="post-attr-refusal"
-              refusalAttr={def.attrKey}
-            >
-              {def.attrType === "text" && (
-                <input
-                  id={controlId}
-                  data-testid="post-attr-control"
-                  data-attr={def.attrKey}
-                  className={ctrl}
-                  value={typeof value === "string" ? value : ""}
-                  maxLength={def.maxLength ?? undefined}
-                  onChange={(event) => write(def.attrKey, event.target.value)}
-                />
-              )}
-
-              {def.attrType === "number" && yearMode && (
-                <select
-                  id={controlId}
-                  data-testid="post-attr-control"
-                  data-attr={def.attrKey}
-                  data-year="1"
-                  className={ctrl}
-                  value={typeof value === "number" ? String(value) : ""}
-                  onChange={(event) => {
-                    const raw = event.target.value;
-                    const next = raw === "" ? null : Number(raw);
-                    judgeNumber(def, next);
-                    write(def.attrKey, next === null ? undefined : next, true);
-                  }}
-                >
-                  <option value="">{t("post.specs.choose")}</option>
-                  {years.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {def.attrType === "number" && !yearMode && (
-                <input
-                  id={controlId}
-                  type="number"
-                  inputMode="decimal"
-                  data-testid="post-attr-control"
-                  data-attr={def.attrKey}
-                  className={ctrl}
-                  value={typeof value === "number" ? String(value) : ""}
-                  step={def.decimals === null || def.decimals === 0 ? 1 : 10 ** -def.decimals}
-                  min={bound.min ?? undefined}
-                  max={bound.max ?? undefined}
-                  onChange={(event) => {
-                    const raw = event.target.value;
-                    const parsed = Number(raw);
-                    const next = raw === "" || !Number.isFinite(parsed) ? null : parsed;
-                    judgeNumber(def, next);
-                    write(def.attrKey, next === null ? undefined : next);
-                  }}
-                  onBlur={(event) => {
-                    const parsed = Number(event.target.value);
-                    judgeNumber(def, Number.isFinite(parsed) ? parsed : null);
-                  }}
-                />
-              )}
-
-              {def.attrType === "date" && (
-                <input
-                  id={controlId}
-                  type="date"
-                  data-testid="post-attr-control"
-                  data-attr={def.attrKey}
-                  className={ctrl}
-                  value={typeof value === "string" ? value : ""}
-                  onChange={(event) => write(def.attrKey, event.target.value, true)}
-                />
-              )}
-
-              {/*
-               * D27 — THE BOX SAYS WHAT IT IS, AND NOBODY TICKS IT BUT THE SELLER.
-               * The box carries the DETAIL's own name (an attestation the seller
-               * recognises), and what the catalogue knows about the chosen model is
-               * a hint beside it — never a tick already made on their behalf.
-               */}
-              {def.attrType === "boolean" && (
-                <div className="space-y-1">
-                  <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                    <input
-                      id={controlId}
-                      type="checkbox"
-                      data-testid="post-attr-control"
-                      data-attr={def.attrKey}
-                      className="h-5 w-5 rounded border-input"
-                      checked={value === true}
-                      onChange={(event) =>
-                        write(def.attrKey, event.target.checked ? true : undefined, true)
-                      }
-                    />
-                    <span>{label}</span>
-                  </label>
-                  {facts.hints[def.attrKey] === true && (
-                    <p
-                      className="text-xs text-muted-foreground"
-                      data-testid="post-attr-fact-hint"
-                      data-attr={def.attrKey}
-                    >
-                      {fill(t("post.specs.factHint"), { value: label })}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {def.attrType === "single_select" && (
-                <select
-                  id={controlId}
-                  data-testid="post-attr-control"
-                  data-attr={def.attrKey}
-                  data-options={held.state}
-                  data-waiting={waiting ? "1" : "0"}
-                  data-locked={lockedByModel ? "1" : "0"}
-                  disabled={waiting || lockedByModel}
-                  className={ctrl}
-                  value={chosen}
-                  onFocus={() => openOptions(def)}
-                  onPointerDown={() => openOptions(def)}
-                  onChange={(event) => {
-                    const picked = event.target.value;
-                    if (picked === "other") {
-                      write(def.attrKey, { value: "other", text: otherText(value) }, false);
-                      return;
-                    }
-                    write(def.attrKey, picked === "" ? undefined : picked, true);
-                  }}
-                >
-                  <option value="">{t("post.specs.choose")}</option>
-                  {shown.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {optionLabel(option, entities.lang)}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {/* D26 / INC-259 — THE COLOUR IS SHOWN. The picker above stays (it is
-                  the accessible control and the door's own vocabulary); swatches are
-                  shown only for options that resolve to a colour or pattern, so an
-                  unrelated list never becomes a tray of empty circles. */}
-              {colourOptions.length > 0 && (
-                <div
-                  className="flex flex-wrap gap-2"
-                  data-testid="post-attr-swatches"
-                  data-attr={def.attrKey}
-                >
-                  {colourOptions.map(({ option, swatch }) => {
-                    const label = optionLabel(option, entities.lang);
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        data-testid="post-attr-swatch"
-                        data-attr={def.attrKey}
-                        data-value={option.value}
-                        data-swatch={swatch.kind}
-                        aria-pressed={chosen === option.value}
-                        title={label}
-                        aria-label={label}
-                        className={
-                          "flex min-h-11 min-w-11 items-center justify-center rounded-md border p-1 " +
-                          (chosen === option.value
-                            ? "border-primary ring-2 ring-ring"
-                            : "border-input")
-                        }
-                        onClick={() => {
-                          if (option.value === "other") {
-                            write(def.attrKey, { value: "other", text: otherText(value) }, false);
-                            return;
-                          }
-                          write(def.attrKey, option.value, true);
-                        }}
-                      >
-                        {/* D28 — ONE TILE PER KIND: a single fill, a diagonal half
-                            and half for a two-tone, and a simple striped tile for
-                            a pattern. The inks are the catalogue's own DATA; every
-                            frame around them stays a design token (C3). */}
-                        <span
-                          aria-hidden="true"
-                          data-testid="post-attr-swatch-ink"
-                          className={
-                            "block size-7 rounded-full border border-border " +
-                            (swatch.kind === "pattern"
-                              ? "bg-[repeating-linear-gradient(45deg,var(--muted)_0_4px,var(--border)_4px_8px)]"
-                              : "")
-                          }
-                          style={
-                            swatch.kind === "solid"
-                              ? { backgroundColor: swatch.ink }
-                              : swatch.kind === "duo"
-                                ? {
-                                    backgroundImage: `linear-gradient(135deg, ${swatch.inks[0]} 0 50%, ${swatch.inks[1]} 50% 100%)`,
-                                  }
-                                : undefined
-                          }
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {def.attrType === "single_select" && chosen === "other" && (
-                <input
-                  data-testid="post-attr-other"
-                  data-attr={def.attrKey}
-                  className={ctrl}
-                  value={otherText(value)}
-                  maxLength={120}
-                  placeholder={t("post.specs.otherPlaceholder")}
-                  onChange={(event) =>
-                    write(
-                      def.attrKey,
-                      event.target.value === ""
-                        ? { value: "other" }
-                        : { value: "other", text: event.target.value },
-                    )
-                  }
-                />
-              )}
-
-              {def.attrType === "multi_select" && held.state !== "ready" && (
-                <button
-                  type="button"
-                  data-testid="post-attr-open"
-                  data-attr={def.attrKey}
-                  data-options={held.state}
-                  disabled={waiting}
-                  className={`${ctrl} text-start`}
-                  onClick={() => openOptions(def)}
-                >
-                  {held.state === "loading"
-                    ? t("post.specs.optionsLoading")
-                    : t("post.specs.choose")}
-                </button>
-              )}
-
-              {def.attrType === "multi_select" && held.state === "ready" && !waiting && (
-                <ul className="space-y-1" data-testid="post-attr-checks" data-attr={def.attrKey}>
-                  {shown.map((option) => {
-                    const list = chosenList(value);
-                    return (
-                      <li key={option.value}>
-                        <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                          <input
-                            type="checkbox"
-                            data-testid="post-attr-check"
-                            data-value={option.value}
-                            className="h-5 w-5 rounded border-input"
-                            checked={list.includes(option.value)}
-                            onChange={(event) =>
-                              write(
-                                def.attrKey,
-                                event.target.checked
-                                  ? [...list, option.value]
-                                  : list.filter((entry) => entry !== option.value),
-                                true,
-                              )
-                            }
-                          />
-                          <span>{optionLabel(option, entities.lang)}</span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-
-              {/* INC-244 — a locked answer says whose answer it is. */}
-              {lockedByModel && (
-                <p
-                  className="text-xs text-muted-foreground"
-                  data-testid="post-attr-set-by-model"
-                  data-attr={def.attrKey}
-                >
-                  {t("post.specs.setByModel")}
-                </p>
-              )}
-
-              {/* THE FOLD, IN WORDS: the child says which answer it waits for, so a
-                  closed control is never a dead end (F4). */}
-              {waiting && parentDef !== null && (
-                <p
-                  className="text-xs text-muted-foreground"
-                  data-testid="post-attr-parent-first"
-                  data-attr={def.attrKey}
-                >
-                  {fill(t("post.specs.parentFirst"), { parent: nameOf(parentDef) })}
-                </p>
-              )}
-              {!waiting && parentDef !== null && held.state === "ready" && shown.length === 0 && (
-                <p
-                  className="text-xs text-muted-foreground"
-                  data-testid="post-attr-no-options"
-                  data-attr={def.attrKey}
-                >
-                  {t("post.specs.noneForParent")}
-                </p>
-              )}
-
-              {/* D18 — filled in from the chosen model, and said so. */}
-              {fromModel && (
-                <p
-                  className="text-xs text-muted-foreground"
-                  data-testid="post-attr-from-model"
-                  data-attr={def.attrKey}
-                >
-                  {t("post.specs.fromModel")}
-                </p>
-              )}
-
-              {/* INC-240 — THE SELLER'S OWN ANSWER STANDS, and the model's newer
-                  one is OFFERED beside it. Nothing is overwritten by a parent
-                  change once a person has typed over it. */}
-              {modelDiffers && (
-                <p
-                  className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
-                  data-testid="post-attr-model-differs"
-                  data-attr={def.attrKey}
-                >
-                  <span>{t("post.specs.modelDiffers")}</span>
-                  <button
-                    type="button"
-                    className="min-h-11 text-start font-medium text-primary underline"
-                    data-testid="post-attr-use-model"
-                    data-attr={def.attrKey}
-                    onClick={() => {
-                      setPrefills((prev) => ({ ...prev, [def.attrKey]: modelValue }));
-                      write(def.attrKey, modelValue, true);
-                    }}
-                  >
-                    {t("post.specs.useModelValue")}
-                  </button>
-                </p>
-              )}
-
-              {held.state === "failed" && (
-                <p className="text-xs text-destructive" data-testid="post-attr-options-error">
-                  {t("post.specs.optionsFailed")}
-                </p>
-              )}
-
-              {/* The definition's own guidance, then the DEC-050 hints — advice, never
-                the verdict: the door decides and its refusal lands below. */}
-              {catalogText(def.helpTextEn ?? "", def.helpTextAm, entities.lang) !== "" && (
-                <p className="text-xs text-muted-foreground" data-testid="post-attr-help">
-                  {catalogText(def.helpTextEn ?? "", def.helpTextAm, entities.lang)}
-                </p>
-              )}
-              {def.attrType === "number" && (bound.min !== null || bound.max !== null) && (
-                <p className="text-xs text-muted-foreground" data-testid="post-attr-bounds">
-                  {fill(t("post.specs.boundsHint"), {
-                    min: bound.min ?? t("post.specs.noBound"),
-                    max: bound.max ?? t("post.specs.noBound"),
-                  })}
-                </p>
-              )}
-              {def.attrType === "number" && def.unit !== null && (
-                <p className="text-xs text-muted-foreground">
-                  {fill(t("post.specs.unitHint"), {
-                    unit: catalogText(def.unit, null, entities.lang),
-                  })}
-                </p>
-              )}
-              {def.attrType === "text" && def.maxLength !== null && (
-                <p className="text-xs text-muted-foreground">
-                  {fill(t("post.specs.lengthHint"), { max: def.maxLength })}
-                </p>
-              )}
-              {def.attrType === "text" && def.preset !== null && (
-                <p className="text-xs text-muted-foreground">{t("post.specs.presetHint")}</p>
-              )}
-              {def.attrType === "multi_select" && (
-                <p className="text-xs text-muted-foreground">{t("post.specs.multiHint")}</p>
-              )}
-            </Field>
-          </div>
-        );
-      })}
+            {fill(t(moreOpen ? "post.specs.moreLess" : "post.specs.moreDetails"), {
+              count: extra.length,
+            })}
+          </button>
+          {moreOpen && (
+            <div className="space-y-5" data-testid="post-specs-more-panel">
+              {extra.map(renderDef)}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1737,3 +1737,132 @@ export async function anyCatchAllLevel(): Promise<{ hostId: string; otherId: str
   }
   return null;
 }
+
+/**
+ * D36 — THE EXTRAS ARE BEHIND ONE TAP, so a test that reads an OPTIONAL detail
+ * opens them first. Every existing walk goes through `reachStep3`, which calls
+ * this once the step is on screen; only the D36 test itself asserts the collapsed
+ * shape, and it walks without this helper.
+ */
+export async function openMoreDetails(page: Page): Promise<void> {
+  const more = page.getByTestId("post-specs-more");
+  /**
+   * J7 — THE FORM ANSWERS FIRST. The step's own frame is on screen before its
+   * definitions arrive, so asking for the expander straight away finds nothing and
+   * would leave every extra detail shut for the rest of the walk. The wait is on
+   * the form's OWN verdict — the rows it drew, or the line saying this category
+   * asks nothing — and only then is the expander read.
+   */
+  await expect(
+    page.getByTestId("post-specs").or(page.getByTestId("post-specs-none")),
+    "[e2e:d36] the specifications form never answered",
+  ).toBeVisible({ timeout: 20_000 });
+  if ((await more.count()) === 0) return;
+  if ((await more.getAttribute("data-open")) === "1") return;
+  if ((await more.count()) === 0) return;
+  if ((await more.getAttribute("data-open")) === "1") return;
+  await more.click();
+  await expect(page.getByTestId("post-specs-more-panel")).toBeVisible({ timeout: 20_000 });
+}
+
+/**
+ * D34 — AN "OTHER" LEAF UNDER A FOLDER. A scratch catch-all: `is_catchall` true
+ * (what a real `other-…` row carries) with listings allowed and no children, so
+ * both the tree and the door must treat it as a posting target. The slug stays
+ * `e2e-post-…` — J1 forbids a scratch row wearing a real prefix.
+ */
+export async function seedCatchAllLeaf(): Promise<{
+  parent: { id: string; slug: string };
+  leaf: { id: string; slug: string };
+}> {
+  const supabase = adminClient();
+  const parentSlug = scratchCategorySlug();
+  const leafSlug = scratchCategorySlug();
+
+  const { data: parent, error: parentError } = await supabase
+    .from("categories")
+    .insert({
+      slug: parentSlug,
+      name_en: parentSlug,
+      is_active: true,
+      allow_listings: false,
+      is_catchall: false,
+      display_order: 9400,
+    })
+    .select("id, slug")
+    .single();
+  if (parentError || !parent) {
+    throw new Error(`[e2e:d34] seeding the host failed: ${parentError?.message ?? "no row"}`);
+  }
+
+  const { data: leaf, error: leafError } = await supabase
+    .from("categories")
+    .insert({
+      slug: leafSlug,
+      name_en: leafSlug,
+      is_active: true,
+      allow_listings: true,
+      is_catchall: true,
+      display_order: 9401,
+    })
+    .select("id, slug")
+    .single();
+  if (leafError || !leaf) {
+    throw new Error(
+      `[e2e:d34] seeding the catch-all leaf failed: ${leafError?.message ?? "no row"}`,
+    );
+  }
+
+  const { error: pointerError } = await supabase
+    .from("category_tree_pointers")
+    .insert({ parent_id: parent.id, child_id: leaf.id, display_order: 1 });
+  if (pointerError)
+    throw new Error(`[e2e:d34] linking the catch-all failed: ${pointerError.message}`);
+
+  return { parent, leaf };
+}
+
+/**
+ * D36 — A WIDE LEAF: fourteen linked definitions, two of them required. A form
+ * this long is exactly what a 360-pixel screen cannot show, so it is what proves
+ * the expander: only the required pair may stand above it.
+ */
+export interface WideSet {
+  requiredKeys: string[];
+  optionalKeys: string[];
+  attrKeys: string[];
+}
+
+export async function seedWideSet(categoryId: string): Promise<WideSet> {
+  const supabase = adminClient();
+  const stem = `e2e_wide_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const rows = Array.from({ length: 14 }, (_, index) => ({
+    attr_key: `${stem}_${String(index).padStart(2, "0")}`,
+    name_en: `${stem} ${String(index)}`,
+    attr_type: index % 2 === 0 ? "text" : "number",
+    ...(index % 2 === 0 ? { max_length: 40 } : { min_bound: "0", max_bound: "99", decimals: 0 }),
+  }));
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert(rows)
+    .select("id, attr_key")
+    .order("attr_key", { ascending: true });
+  if (error || !data) {
+    throw new Error(`[e2e:d36] seeding the wide set failed: ${error?.message ?? "no rows"}`);
+  }
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert(
+    data.map((row, index) => ({
+      category_id: categoryId,
+      attribute_id: row.id,
+      // The first two are the door's own; the twelve others are the seller's extras.
+      is_required: index < 2,
+      display_order: index + 1,
+    })),
+  );
+  if (linkError) throw new Error(`[e2e:d36] linking the wide set failed: ${linkError.message}`);
+
+  const attrKeys = data.map((row) => row.attr_key);
+  return { requiredKeys: attrKeys.slice(0, 2), optionalKeys: attrKeys.slice(2), attrKeys };
+}

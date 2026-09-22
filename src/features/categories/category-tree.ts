@@ -284,12 +284,18 @@ export function isLeaf(tree: CategoryTree, id: string): boolean {
 }
 
 /**
- * D11 — a leaf a listing may actually be posted into: no children, listings
- * allowed, not the catch-all. A folder row (`allow_listings` false) is shown by
- * the browser but can never be chosen.
+ * D11 / D34 — a leaf a listing may actually be posted into: no children and
+ * listings allowed. A folder row (`allow_listings` false) is shown by the
+ * browser but can never be chosen.
+ *
+ * D34 — AN "OTHER" LEAF IS A POSTING TARGET. The catch-all row is the answer a
+ * seller reaches for when no named leaf fits; `is_catchall` decides only where
+ * it sits on its level (D30 — last), never whether it may be posted into. The
+ * door agrees: `validate_listing_draft` dropped the same disjunct in the same
+ * landing, so this mirror and the authority say one thing (F3).
  */
 export function isPostable(tree: CategoryTree, node: CategoryNode): boolean {
-  return isLeaf(tree, node.id) && node.allowListings && !node.isCatchall;
+  return isLeaf(tree, node.id) && node.allowListings;
 }
 
 /** Root → … → node, the full path the search hit displays. */

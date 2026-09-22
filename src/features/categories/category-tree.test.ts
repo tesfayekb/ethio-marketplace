@@ -7,7 +7,14 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { buildTree, childrenOf, pathOf, rootsOf, type CategoryNode } from "./category-tree";
+import {
+  buildTree,
+  childrenOf,
+  isPostable,
+  pathOf,
+  rootsOf,
+  type CategoryNode,
+} from "./category-tree";
 
 function node(slug: string, displayOrder: number): CategoryNode {
   return {
@@ -89,5 +96,25 @@ describe("a level's order", () => {
       "food-drink",
       "other-everything",
     ]);
+  });
+});
+
+/**
+ * D34 — AN "OTHER" LEAF IS A POSTING TARGET. It is last on its level and it is
+ * selectable; only a folder (children, or `allow_listings` false) is not.
+ */
+describe("what a seller may post into", () => {
+  it("accepts an other- leaf", () => {
+    expect(isPostable(tree, tree.byId.get("other-babies")!)).toBe(true);
+  });
+
+  it("still refuses a level with children", () => {
+    expect(isPostable(tree, tree.byId.get("food-drink")!)).toBe(false);
+  });
+
+  it("still refuses a folder that forbids listings", () => {
+    const folder = { ...node("keepsakes", 7), allowListings: false };
+    const withFolder = buildTree([...rows, folder], pointers);
+    expect(isPostable(withFolder, folder)).toBe(false);
   });
 });

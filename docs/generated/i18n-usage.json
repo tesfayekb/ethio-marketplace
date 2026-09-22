@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 310,
-  "dynamicCallSites": 205,
+  "dynamicCallSites": 206,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3922,11 +3922,27 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.specs.helpMore": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.helpMoreMark": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.specs.lengthHint": [
       "/post",
       "/post/$listingId"
     ],
     "post.specs.loadFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.lockedByChoice": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.lockedChange": [
       "/post",
       "/post/$listingId"
     ],
@@ -3983,10 +3999,6 @@
       "/post/$listingId"
     ],
     "post.specs.setByModel": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.specs.unitHint": [
       "/post",
       "/post/$listingId"
     ],
