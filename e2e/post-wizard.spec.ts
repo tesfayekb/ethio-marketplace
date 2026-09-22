@@ -2482,11 +2482,27 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
 
+    const decoy = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${set.decoy.attrKey}"]`,
+    );
     const make = page.locator(`[data-testid="post-attr-control"][data-attr="${set.make.attrKey}"]`);
     const model = page.locator(
       `[data-testid="post-attr-control"][data-attr="${set.model.attrKey}"]`,
     );
     await expect(model, "PW-44: the child picker was open before its parent").toBeDisabled();
+
+    /**
+     * THE LIVE SHAPE (INC-260 follow-up). The published leaf asks its vehicle-type
+     * question FIRST and offers `other`, and one model in the library is filed
+     * under a parent called `other` too. Answering that first question must NOT
+     * make it the model's parent: the make covers the model list, the type
+     * question covers one stray value.
+     */
+    await decoy.selectOption(set.decoyOther);
+    await expect(
+      model,
+      "PW-44: a type question that shares one value took ownership of the model list",
+    ).toBeDisabled({ timeout: 20_000 });
 
     await make.selectOption(set.makeValues.byd);
     await expect(model, "PW-44: the model picker did not open under its parent").toBeEnabled({
@@ -2499,6 +2515,10 @@ test.describe("POSTING WIZARD", () => {
     await expect(
       model.locator(`option[value="${set.modelValues.toyota}"]`),
       "PW-44: the other make's model was offered on the surfaced leaf",
+    ).toHaveCount(0);
+    await expect(
+      model.locator(`option[value="${set.modelValues.orphan}"]`),
+      "PW-44: the model filed under `other` leaked into the chosen make's list",
     ).toHaveCount(0);
 
     await model.selectOption(set.modelValues.byd);
