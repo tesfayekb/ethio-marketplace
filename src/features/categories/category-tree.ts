@@ -76,8 +76,28 @@ const EMPTY_TREE: CategoryTree = {
   byId: new Map(),
 };
 
-let cache: CategoryTree | null = null;
+/**
+ * How long a held tree is trusted before the version is re-checked. The route
+ * holds its own answer for the same span, so an import is visible well inside
+ * the sixty seconds the browser is allowed to keep the body (INC-263).
+ */
+const TTL_MS = 15_000;
+
+interface Held {
+  tree: CategoryTree;
+  version: string;
+  at: number;
+}
+
+let cache: Held | null = null;
 let inFlight: Promise<CategoryTree> | null = null;
+
+/** Tests reset the module between cases; nothing in the app calls this. */
+export function forgetCategoryTree(): void {
+  cache = null;
+  inFlight = null;
+}
+
 
 /**
  * INC-246 — EVERY SURFACING IS A BRANCH. A category surfaced under two roots has
