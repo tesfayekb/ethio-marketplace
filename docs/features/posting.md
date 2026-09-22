@@ -88,6 +88,11 @@ re-renders for nothing; a failed revalidation keeps the last good tree rather th
 emptying a screen that had rows (F4). This is deliberately the shape the option
 lists already use (INC-243). PW-46 opens the wizard FIRST, then creates a category
 with a secondary parent, and finds it under both roots without a new tab.
+Because the level list is CLIENT-fed and the version is held for a few seconds,
+both PW-46 and PW-44 wait for the level to RENDER and come back to `/post` until
+the new root carries it — the same remedy a seller has (J7); asserting at
+hydration would read zero for every category.
+
 
 Search-to-leaf over the ONE shared tree reader
 (`src/features/categories/category-tree.ts`, lifted out of the feed so both
