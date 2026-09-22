@@ -2285,6 +2285,75 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * D28 / M-SWATCH — THE CATALOGUE SAYS THE COLOUR.
+   *
+   * None of these option values is a colour word, so a name lookup can paint
+   * nothing: the three tiles can only come from the option's own declared
+   * `swatch` cell — one hex, two hexes for a two-tone, and `pattern:tabby`. An
+   * option with no cell and no colour word resolves to nothing, so the tray
+   * carries three tiles and not four (never an empty circle, INC-259).
+   */
+  test("PW-45 a declared swatch renders one ink, a two-tone and a pattern tile", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const set = await seedSwatchSet(category.id);
+    specs.push(...set.attrKeys);
+    await reachStep3(page, user.id, category);
+
+    const tray = page.locator(
+      `[data-testid="post-attr-swatches"][data-attr="${set.colour.attrKey}"]`,
+    );
+    const swatch = (value: string) =>
+      tray.locator(`[data-testid="post-attr-swatch"][data-value="${value}"]`);
+
+    await expect(tray, "PW-45: the declared swatch tray never rendered").toBeVisible({
+      timeout: 20_000,
+    });
+
+    // ONE HEX — the declared ink, not a theme colour.
+    await expect(swatch(set.solid)).toHaveAttribute("data-swatch", "solid");
+    await expect
+      .poll(
+        async () =>
+          swatch(set.solid)
+            .getByTestId("post-attr-swatch-ink")
+            .evaluate((node) => getComputedStyle(node).backgroundColor),
+        { message: "PW-45: the declared ink was never painted", timeout: 20_000 },
+      )
+      .toBe("rgb(17, 17, 17)");
+
+    // TWO HEXES — a diagonal half and half, so both inks are in the tile.
+    await expect(swatch(set.duo)).toHaveAttribute("data-swatch", "duo");
+    await expect
+      .poll(
+        async () =>
+          swatch(set.duo)
+            .getByTestId("post-attr-swatch-ink")
+            .evaluate((node) => getComputedStyle(node).backgroundImage),
+        { message: "PW-45: the two-tone tile was never painted", timeout: 20_000 },
+      )
+      .toMatch(/rgb\(17, 17, 17\).*rgb\(255, 255, 255\)/);
+
+    // A PATTERN — the patterned tile, by name.
+    await expect(swatch(set.patterned)).toHaveAttribute("data-swatch", "pattern");
+
+    // AND AN OPTION THAT SAYS NOTHING gets no tile at all.
+    await expect(
+      swatch(set.bare),
+      "PW-45: an option with no swatch rendered an empty circle",
+    ).toHaveCount(0);
+
+    // THE TILE STILL ANSWERS the question beside it.
+    await swatch(set.duo).click();
+    await expect(
+      page.locator(`[data-testid="post-attr-control"][data-attr="${set.colour.attrKey}"]`),
+      "PW-45: tapping a declared swatch did not answer the detail",
+    ).toHaveValue(set.duo, { timeout: 20_000 });
+  });
+
+  /**
    * U6-C1-R3b-3d STEP 2 (INC-244) — WHAT THE MODEL RULES OUT.
    *
    * An option's `allowed` names a sibling picker and the only answers it admits.
