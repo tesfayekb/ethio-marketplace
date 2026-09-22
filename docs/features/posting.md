@@ -81,17 +81,27 @@ baby-food under food-drink while the wizard's tree had neither the row nor the
 re-parenting, an hour later. The tree now comes from `/api/categories/tree`, which
 stamps it with `get_category_tree_version()` (an md5 over the categories and their
 pointers: latest change, row count, live count, latest pointer, pointer count) and
-serves that stamp as the ETag, holding its own answer for 15 s and allowing the
-browser 60 s with `stale-while-revalidate`. The reader re-checks after the same 15 s
-and, when the version has not moved, hands back the SAME tree object so nothing
-re-renders for nothing; a failed revalidation keeps the last good tree rather than
-emptying a screen that had rows (F4). This is deliberately the shape the option
-lists already use (INC-243). PW-46 opens the wizard FIRST, then creates a category
-with a secondary parent, and finds it under both roots without a new tab.
-Because the level list is CLIENT-fed and the version is held for a few seconds,
-both PW-46 and PW-44 wait for the level to RENDER and come back to `/post` until
-the new root carries it — the same remedy a seller has (J7); asserting at
-hydration would read zero for every category.
+serves that stamp as the ETag, allowing the browser 60 s with
+`stale-while-revalidate`.
+
+INC-265 — THE HOLD IS THE BODY, NEVER THE STAMP. The first landing also held the
+STAMP for 15 s on each side of the wire: the route answered from its process-wide
+cache without asking the database, and the reader trusted a held tree for the same
+span without asking the route. On one process serving many readers — the built
+node serve the suite runs, and equally a warm worker — a category created a moment
+earlier was therefore absent from the tree for up to fifteen seconds, and this was
+the DRIFT-class red on run 35691977174: 48 post-wizard failures whose category step
+had no list for the scratch category the test had just seeded. The stamp is now
+asked on EVERY request and EVERY mount (a short read-only read, and a 304 on the
+wire); only the BODY — the two tree queries — is reused while the stamp is unmoved,
+which is where the saving always was. An unmoved version hands back the SAME tree
+object so nothing re-renders for nothing (I3), and a failed revalidation keeps the
+last good tree rather than emptying a screen that had rows (F4). PW-46 opens the
+wizard FIRST, creates a category with a secondary parent and finds it under both
+roots after ONE return visit; PW-44 finds a surfaced host root on the FIRST load.
+Both wait for the CLIENT-fed level list to render before counting, because the tree
+read runs after hydration (J7) — but neither polls over repeated visits any more:
+that polling was covering the staleness this fix removed.
 
 Search-to-leaf over the ONE shared tree reader
 (`src/features/categories/category-tree.ts`, lifted out of the feed so both
