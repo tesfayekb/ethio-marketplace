@@ -131,28 +131,40 @@ function buildTree(
   return { nodes: rows, parentOf, childrenOf, byId };
 }
 
-/** The raw read. Exported for tests; app code uses the hook or `loadCategoryTree`. */
-export async function readCategoryTree(): Promise<CategoryTree> {
-  const [{ data: cats, error: catError }, { data: pointers, error: pointerError }] =
-    await Promise.all([
-      supabase
-        .from("categories")
-        .select(
-          "id,name_en,name_am,slug,icon,display_order,allow_listings,is_catchall,image_url,image_thumb_url",
-        )
-        .eq("is_active", true)
-        .order("display_order", { ascending: true }),
-      supabase
-        .from("category_tree_pointers")
-        .select("child_id,parent_id,display_order")
-        .order("display_order", { ascending: true }),
-    ]);
+interface TreePayload {
+  version: string;
+  nodes: {
+    id: string;
+    name_en: string;
+    name_am: string | null;
+    slug: string;
+    icon: string | null;
+    allow_listings: boolean;
+    is_catchall: boolean;
+    image_url: string | null;
+    image_thumb_url: string | null;
+    display_order: number;
+  }[];
+  pointers: { child_id: string; parent_id: string | null }[];
+}
+
+/**
+ * The raw read: one public route, never the browser client, so the tree carries
+ * its own version and an ETag a second mount can answer with a 304 (INC-263).
+ * `cache: "no-cache"` revalidates with the origin rather than serving whatever
+ * the browser still holds — the stale seam this incident was about.
+ */
+export async function readCategoryTree(): Promise<{ tree: CategoryTree; version: string }> {
+  const response = await fetch("/api/categories/tree", {
+    headers: { Accept: "application/json" },
+    cache: "no-cache",
+  });
   // Law F4 — a failed read is a failure, never an empty tree that reads as
   // "there are no categories". The caller renders the error state.
-  if (catError) throw new Error(catError.message);
-  if (pointerError) throw new Error(pointerError.message);
+  if (!response.ok) throw new Error(`category tree read failed (${String(response.status)})`);
+  const payload = (await response.json()) as TreePayload;
 
-  const rows: CategoryNode[] = (cats ?? []).map((row) => ({
+  const rows: CategoryNode[] = payload.nodes.map((row) => ({
     id: row.id,
     nameEn: row.name_en,
     nameAm: row.name_am,
@@ -164,17 +176,24 @@ export async function readCategoryTree(): Promise<CategoryTree> {
     imageThumbUrl: row.image_thumb_url,
     displayOrder: row.display_order,
   }));
-  return buildTree(rows, pointers ?? []);
+  return { tree: buildTree(rows, payload.pointers), version: payload.version };
 }
 
-/** The cached read every consumer shares. */
+/**
+ * The shared read. A held tree younger than `TTL_MS` is the answer; older, the
+ * route is asked again and an UNMOVED version keeps the same tree object, so a
+ * consumer's identity checks do not fire (I3).
+ */
 export function loadCategoryTree(): Promise<CategoryTree> {
-  if (cache !== null) return Promise.resolve(cache);
+  const held = cache;
+  if (held !== null && Date.now() - held.at < TTL_MS) return Promise.resolve(held.tree);
   inFlight ??= readCategoryTree().then(
-    (tree) => {
-      cache = tree;
+    ({ tree, version }) => {
+      const previous = cache;
+      const settled = previous !== null && previous.version === version ? previous.tree : tree;
+      cache = { tree: settled, version, at: Date.now() };
       inFlight = null;
-      return tree;
+      return settled;
     },
     (error: unknown) => {
       inFlight = null;
@@ -183,6 +202,7 @@ export function loadCategoryTree(): Promise<CategoryTree> {
   );
   return inFlight;
 }
+
 
 /** The roots: a category no active pointer names as a child. */
 export function rootsOf(tree: CategoryTree): CategoryNode[] {
