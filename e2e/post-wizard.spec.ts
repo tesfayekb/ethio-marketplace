@@ -2542,8 +2542,31 @@ test.describe("POSTING WIZARD", () => {
     specs.push(...set.attrKeys);
 
     const user = await seller(page);
-    await gotoReady(page, "/post");
-    await page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`).click();
+    /**
+     * INC-263: the tree carries a version the route holds for a few seconds, so a
+     * category surfaced a moment ago can still be absent from the FIRST load.
+     * The seller's own remedy — come back — is what the test does.
+     */
+    const host = page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`);
+    await expect
+      .poll(
+        async () => {
+          await gotoReady(page, "/post");
+          await page
+            .locator('[data-testid="post-browse-level"] [data-category]')
+            .first()
+            .waitFor({ state: "attached", timeout: 30_000 });
+          return await host.count();
+        },
+        {
+          message: "PW-44: the surfaced host root never carried the leaf",
+          timeout: 60_000,
+          intervals: [1_000, 2_000, 2_000, 5_000],
+        },
+      )
+      .toBeGreaterThan(0);
+    await host.click();
+
     await page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`).click();
     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
     const [draft] = await draftsOf(user.id);
