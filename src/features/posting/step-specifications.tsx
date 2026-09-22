@@ -1036,17 +1036,19 @@ export function StepSpecifications({
         const value = values[def.attrKey];
         const chosen = selectedValue(value);
         const shown = visibleOptionsOf(def);
+        /**
+         * D28 / M-SWATCH — THE RECORD'S OWN SWATCH FIRST. `optionSwatch` reads the
+         * option's declared `swatch` cell (one hex, two for a two-tone, or
+         * `pattern:<name>`) and falls back to the value's name only when the cell
+         * is absent (INC-259). Nothing resolves → no tray at all.
+         */
         const colourOptions =
           def.attrType === "single_select" && isColourKey(def.attrKey)
             ? shown
-                .map((option) => ({ option, swatch: colourSwatch(option.value) }))
+                .map((option) => ({ option, swatch: optionSwatch(option) }))
                 .filter(
-                  (
-                    entry,
-                  ): entry is {
-                    option: AttrOption;
-                    swatch: NonNullable<ReturnType<typeof colourSwatch>>;
-                  } => entry.swatch !== null,
+                  (entry): entry is { option: AttrOption; swatch: ColourSwatch } =>
+                    entry.swatch !== null,
                 )
             : [];
         /**
