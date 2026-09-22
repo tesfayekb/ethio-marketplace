@@ -216,6 +216,23 @@ every spelling verdict to the door. AT-63 previews an operator's swatch-only fil
 1 change · 0 refusals, and still refuses an invented key by name and `badSwatch` for
 an illegal spelling.
 
+### The record boundary is `}|{`, never a bare pipe (INC-265)
+
+A two-tone swatch separates its two hexes with a pipe, and the options cell
+separates its RECORDS with a pipe — so every parser that split on a bare pipe cut a
+two-tone record in half, the fragment was not valid JSON, and the import answered
+`malformedOptions` ("The options could not be read") for a cell the door itself
+allows. The same cut hit any label carrying a pipe.
+
+There is now ONE boundary reader, in the gate (`splitOptionSegments`,
+`src/server/imports/gate.ts`) and in SQL (`public.attr_split_option_cell`, read by
+the whole re-declaration of `attr_import_plan`): walk the cell tracking JSON string
+state (backslash escapes) and brace depth, and separate only at a pipe that sits
+OUTSIDE every record. A legacy `value=label` segment still separates exactly as
+before, because it sits at depth 0. The EXPORT is unchanged — it writes whole JSON
+records joined with `|`, which is precisely what this reader separates — so a
+two-tone swatch round-trips byte-identically.
+
 `swatch` is DIFFED like `facts` (INC-239): `attr_option_norm_v2` carries it, so a
 file whose only change is a swatch plans as `changed` with the diff naming
 `options`, while an ABSENT or BLANK cell stays invisible and a file that never
