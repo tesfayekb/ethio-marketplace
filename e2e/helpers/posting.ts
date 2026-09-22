@@ -1493,7 +1493,16 @@ export interface SurfacedDependentSet {
   make: ScratchAttr;
   model: ScratchAttr;
   makeValues: { byd: string; toyota: string };
-  modelValues: { byd: string; toyota: string };
+  modelValues: { byd: string; toyota: string; orphan: string };
+  /**
+   * INC-260 (live shape) — THE DECOY. The published Vehicle Hire leaf asks a
+   * vehicle-type question FIRST, and that question offers `other`; the car-model
+   * library also files one model under a parent called `other`. The fold owner
+   * must therefore be chosen by how much of the model list a candidate actually
+   * covers, not by the first candidate that shares one value.
+   */
+  decoy: ScratchAttr;
+  decoyOther: string;
   attrKeys: string[];
 }
 
