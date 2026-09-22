@@ -34,6 +34,7 @@ import {
   seedConditionalSet,
   seedUnhideFactSet,
   seedColourSet,
+  seedSwatchSet,
   seedSurfacedDependentSet,
   seedFactShiftSet,
   linkSpecToCategory,
