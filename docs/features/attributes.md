@@ -811,6 +811,36 @@ options; a retired option's facts never leave the database.
 sibling fields the seller can then edit, and the seller's own answers are what
 the validator judges. A fact is never an authority over a value.
 
+## Option `swatch` — the colour, said (D28 / M-SWATCH)
+
+The DEC-050 option shape allowlist carries a tenth key, `swatch`: ONE STRING in
+exactly three spellings, and nothing else.
+
+| Spelling            | Meaning                            |
+| ------------------- | ---------------------------------- |
+| `#RRGGBB`           | one ink                            |
+| `#RRGGBB\|#RRGGBB`  | a two-tone (diagonal half and half)|
+| `pattern:<name>`    | `tabby` · `brindle` · `calico` · `tricolour` · `multicolour` · `striped` |
+
+`attr_option_shape` (re-declared WHOLE) refuses everything else BY NAME —
+`badSwatch:notString`, `badSwatch:empty`, `badSwatch:pattern:<name>` and
+`badSwatch:<cell>`, so a colour WORD (`red`) and a short hex (`#GGG`) never land.
+Every other refusal word in that function is byte-unchanged.
+
+`attr_option_norm_v2` (WHOLE) carries `swatch` into the import comparison on the
+`facts` law: an ABSENT or BLANK cell is invisible, so a file that never mentions it
+stays silent, while an added or altered swatch is a `changed` verdict naming
+`options` — never a file that reads as applied and lands nothing (F4).
+`get_attribute_options` (WHOLE) projects `swatch` after `facts` for ACTIVE options.
+
+The import needs no new column: the whole option record travels in the existing
+`options` cell, and the export emits each record verbatim, so a swatch round-trips
+through export → edit → preview → commit → Undo already.
+
+In-file proofs cover the three passing spellings and the six refusals, the diff on
+an added, changed and blank cell, and the public read on a scratch definition built
+and deleted in the same file (INC-222).
+
 ## Per-link option scope and defaults (D-spec §12, M-MAINT-2 Part A)
 
 A `category_attribute_links` row may narrow the definition it points at:
