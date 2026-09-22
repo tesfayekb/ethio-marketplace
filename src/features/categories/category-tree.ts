@@ -22,12 +22,18 @@ import { entityName, type EntityBundle } from "@/i18n";
  * READ ONLY. Nothing here writes, ever. The wizard's writes go through the
  * A2/B1 routes and their doors.
  *
- * PROCESS-LIFETIME CACHE (INC-050, carried over from the feed): the tree is
- * admin-managed reference data that every rail render and every wizard mount
- * needs, so re-reading it per mount cost a visible lag on a slow mobile
- * connection. The first read is shared by every concurrent caller (`inFlight`)
- * and remembered for the page session (`cache`). A failure is NOT cached, so the
- * next mount retries.
+ * VERSION-KEYED, NOT PINNED (INC-263, the INC-243 shape). The first read used to
+ * be remembered for the WHOLE page session with nothing that could expire it, so
+ * a curator's categories import was invisible until the tab was closed — the
+ * console showed baby-food under food-drink while the wizard's tree had neither
+ * the row nor the re-parenting, an hour later. The tree now comes from
+ * `/api/categories/tree`, which carries the tree's OWN version as its ETag; what
+ * is held here carries that version and is re-checked after `TTL_MS`, so a commit
+ * lands inside the same sixty-second window the option lists promise. A read that
+ * finds the version unmoved costs a 304 and keeps the SAME tree object, so no
+ * consumer re-renders for nothing. A failure is NOT cached, and the last good
+ * tree is kept rather than replaced by an empty one (F4).
+
  */
 
 /** One category as both consumers need it. */
