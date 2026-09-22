@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 import { entityName, type EntityBundle } from "@/i18n";
 
-
 /**
  * U6-C1a — THE ONE CATEGORY-TREE READER (law B2).
  *
@@ -97,7 +96,6 @@ export function forgetCategoryTree(): void {
   cache = null;
   inFlight = null;
 }
-
 
 /**
  * INC-246 — EVERY SURFACING IS A BRANCH. A category surfaced under two roots has
@@ -202,7 +200,6 @@ export function loadCategoryTree(): Promise<CategoryTree> {
   );
   return inFlight;
 }
-
 
 /** The roots: a category no active pointer names as a child. */
 export function rootsOf(tree: CategoryTree): CategoryNode[] {
@@ -316,7 +313,6 @@ export function useCategoryTree(): UseCategoryTreeResult {
       cancelled = true;
     };
   }, []);
-
 
   return { tree, isLoading, error };
 }

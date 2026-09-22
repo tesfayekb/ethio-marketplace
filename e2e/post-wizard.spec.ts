@@ -2484,9 +2484,7 @@ test.describe("POSTING WIZARD", () => {
       const first = page.locator(
         `[data-testid="post-browse-folder"][data-category="${parent.id}"]`,
       );
-      const host = page.locator(
-        `[data-testid="post-browse-folder"][data-category="${second.id}"]`,
-      );
+      const host = page.locator(`[data-testid="post-browse-folder"][data-category="${second.id}"]`);
       return (await first.count()) > 0 && (await host.count()) > 0;
     };
 
@@ -2513,8 +2511,6 @@ test.describe("POSTING WIZARD", () => {
       "PW-46: the surfaced leaf is missing under its host root",
     ).toBeVisible({ timeout: 20_000 });
   });
-
-
 
   /**
    * INC-260 — A DEPENDENT LIST ON A SURFACED LEAF STILL FOLLOWS ITS PARENT.
