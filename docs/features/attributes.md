@@ -816,11 +816,11 @@ the validator judges. A fact is never an authority over a value.
 The DEC-050 option shape allowlist carries a tenth key, `swatch`: ONE STRING in
 exactly three spellings, and nothing else.
 
-| Spelling            | Meaning                            |
-| ------------------- | ---------------------------------- |
-| `#RRGGBB`           | one ink                            |
-| `#RRGGBB\|#RRGGBB`  | a two-tone (diagonal half and half)|
-| `pattern:<name>`    | `tabby` · `brindle` · `calico` · `tricolour` · `multicolour` · `striped` |
+| Spelling           | Meaning                                                                  |
+| ------------------ | ------------------------------------------------------------------------ |
+| `#RRGGBB`          | one ink                                                                  |
+| `#RRGGBB\|#RRGGBB` | a two-tone (diagonal half and half)                                      |
+| `pattern:<name>`   | `tabby` · `brindle` · `calico` · `tricolour` · `multicolour` · `striped` |
 
 `attr_option_shape` (re-declared WHOLE) refuses everything else BY NAME —
 `badSwatch:notString`, `badSwatch:empty`, `badSwatch:pattern:<name>` and

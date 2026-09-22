@@ -787,8 +787,6 @@ PW-44 carries that shape: a decoy first question offering `other`, a model filed
 under `other`, and the assertion that the stray model never joins a chosen make's
 list.
 
-
-
 ## U6-C1-R3b-4 — the map pin
 
 A pin is OPTIONAL for every category and it is NOT part of the draft's autosave:
