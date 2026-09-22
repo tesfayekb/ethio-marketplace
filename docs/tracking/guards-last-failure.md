@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35723960793
-- Commit: `bcaa269d0739a7be2ce81d76d90522f752c99031`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35726608625
+- Commit: `8b958ae50d411694f3e5ddbe54de98326038d6f4`
 - Attempt: 1
-- Written (UTC): 2026-09-22T11:54:23.691Z
+- Written (UTC): 2026-09-22T12:22:08.942Z
 
 ## E2E preflight (migration parity, staging) — failure
 
@@ -16,7 +16,6 @@
 ### Tail (last 60 lines)
 
 ```text
-+ @tanstack/react-query@5.101.1
 + @tanstack/react-router@1.170.16
 + @tanstack/react-start@1.168.26
 + @tanstack/router-plugin@1.168.18
@@ -45,7 +44,7 @@
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-517 packages installed [951.00ms]
+517 packages installed [881.00ms]
 ##[group]Run bun scripts/e2e-migration-preflight.ts
 [36;1mbun scripts/e2e-migration-preflight.ts[0m
 shell: /usr/bin/bash -e {0}
@@ -54,16 +53,17 @@ env:
   E2E_SUPABASE_PUBLISHABLE_KEY: ***
   E2E_SUPABASE_SERVICE_ROLE_KEY: ***
 ##[endgroup]
-STAGING BEHIND: apply 20260922120000_a4e1c9d2-7b5f-4c86-9a30-6d2f81ce4b77.sql to ethio-staging before E2E can pass
+STAGING BEHIND: apply 20260922121913_49961c47-9f33-4c61-8757-b243b50db317.sql to ethio-staging before E2E can pass
 [e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
 [e2e:preflight] missing migration file(s):
   - 20260922120000_a4e1c9d2-7b5f-4c86-9a30-6d2f81ce4b77.sql
-STAGING BEHIND: apply 20260922120000_a4e1c9d2-7b5f-4c86-9a30-6d2f81ce4b77.sql to ethio-staging before E2E can pass
+  - 20260922121913_49961c47-9f33-4c61-8757-b243b50db317.sql
+STAGING BEHIND: apply 20260922121913_49961c47-9f33-4c61-8757-b243b50db317.sql to ethio-staging before E2E can pass
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/1175b768-e7b8-45da-82a1-23dd02c3a685' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/b1055e6b-5225-4e31-ad7e-75103b1c9586' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -106,10 +106,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35723960793
-  E2E_HEAD_COMMIT_MESSAGE: Split detail on JSON boundary
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35726608625
+  E2E_HEAD_COMMIT_MESSAGE: Fixed PROOF 3 "swatch-only
 
-X-Lovable-Edit-ID: edt-38645c4f-0bba-46f3-9b74-654cd2d4e27d
+X-Lovable-Edit-ID: edt-0070e171-78b8-4b8a-bcea-08edefca736f
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -123,11 +123,11 @@ context download: 0 context files found.
 Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-HEAD is now at bcaa269 Split detail on JSON boundary
-[dev dc0ee5d] ci: e2e failure report + flake ledger [skip ci]
- 1 file changed, 136 insertions(+), 6 deletions(-)
+HEAD is now at 8b958ae Fixed PROOF 3 "swatch-only
+[dev b763b05] ci: e2e failure report + flake ledger [skip ci]
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   bcaa269..dc0ee5d  HEAD -> dev
+   8b958ae..b763b05  HEAD -> dev
 ##[group]Run echo "smoke=skipped email=skipped shards=skipped"
 [36;1mecho "smoke=skipped email=skipped shards=skipped"[0m
 [36;1mif [ "skipped" != "success" ] || [ "skipped" != "success" ] || [ "skipped" != "success" ]; then[0m
@@ -143,7 +143,7 @@ smoke=skipped email=skipped shards=skipped
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/4de872a5-37b9-4806-8cd8-300d4723bda5' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/77bae6b3-2727-4d19-8b1d-5cf1eca85f66' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
