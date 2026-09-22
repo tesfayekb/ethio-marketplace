@@ -275,16 +275,22 @@ export interface UseCategoryTreeResult {
   error: boolean;
 }
 
-/** The shared hook. Both the feed's rail and the wizard's step 1 mount this. */
+/**
+ * The shared hook. Both the feed's rail and the wizard's step 1 mount this.
+ *
+ * INC-263 — EVERY MOUNT ASKS. The held tree renders at once so nothing flashes,
+ * but the read still runs: that is what makes an import visible without closing
+ * the tab. A revalidation that finds the version unmoved hands back the SAME
+ * object, so this sets state to a value React treats as unchanged.
+ */
 export function useCategoryTree(): UseCategoryTreeResult {
-  const [tree, setTree] = useState<CategoryTree>(cache ?? EMPTY_TREE);
+  const [tree, setTree] = useState<CategoryTree>(cache?.tree ?? EMPTY_TREE);
   const [isLoading, setIsLoading] = useState(cache === null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (cache !== null) return;
     let cancelled = false;
-    setIsLoading(true);
+    if (cache === null) setIsLoading(true);
     setError(false);
 
     void loadCategoryTree().then(
@@ -295,10 +301,13 @@ export function useCategoryTree(): UseCategoryTreeResult {
       },
       () => {
         // CONTAINMENT (INC-031): the surface degrades to a visible error state
-        // rather than throwing through the shell-wrapped root.
+        // rather than throwing through the shell-wrapped root. A held tree is
+        // kept — a failed revalidation never empties a screen that had rows.
         if (cancelled) return;
-        setTree(EMPTY_TREE);
-        setError(true);
+        if (cache === null) {
+          setTree(EMPTY_TREE);
+          setError(true);
+        }
         setIsLoading(false);
       },
     );
@@ -307,6 +316,7 @@ export function useCategoryTree(): UseCategoryTreeResult {
       cancelled = true;
     };
   }, []);
+
 
   return { tree, isLoading, error };
 }
