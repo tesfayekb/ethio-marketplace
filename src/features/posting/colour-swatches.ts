@@ -18,7 +18,10 @@
  * option list cannot become a tray of empty circles.
  */
 
-export type ColourSwatch = { kind: "solid"; ink: string } | { kind: "pattern" };
+export type ColourSwatch =
+  | { kind: "solid"; ink: string }
+  | { kind: "duo"; inks: [string, string] }
+  | { kind: "pattern"; pattern: string | null };
 
 const COLOUR_INK: Record<string, string> = {
   black: "#111111",
