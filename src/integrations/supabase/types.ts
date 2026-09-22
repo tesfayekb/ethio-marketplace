@@ -2722,6 +2722,7 @@ export type Database = {
           validation: Json
         }[]
       }
+      get_category_tree_version: { Args: never; Returns: string }
       get_entity_bundle: { Args: { p_lang: string }; Returns: Json }
       get_location_tree: {
         Args: { p_country_code: string }

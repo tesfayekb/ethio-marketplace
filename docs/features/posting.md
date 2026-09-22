@@ -74,8 +74,24 @@ only. Every pointer row is now a branch; the PATH shown on the chip stays the fi
 pointer's, so a category has one well-defined trail to name. PW-36 surfaces a
 scratch leaf under a scratch root and finds it in both places.
 
+The tree is VERSION-KEYED, not pinned (INC-263). It used to be read once per visit
+straight from the browser into a module cache with no expiry, so a curator's
+categories import was invisible until the tab was closed — the console showed
+baby-food under food-drink while the wizard's tree had neither the row nor the
+re-parenting, an hour later. The tree now comes from `/api/categories/tree`, which
+stamps it with `get_category_tree_version()` (an md5 over the categories and their
+pointers: latest change, row count, live count, latest pointer, pointer count) and
+serves that stamp as the ETag, holding its own answer for 15 s and allowing the
+browser 60 s with `stale-while-revalidate`. The reader re-checks after the same 15 s
+and, when the version has not moved, hands back the SAME tree object so nothing
+re-renders for nothing; a failed revalidation keeps the last good tree rather than
+emptying a screen that had rows (F4). This is deliberately the shape the option
+lists already use (INC-243). PW-46 opens the wizard FIRST, then creates a category
+with a secondary parent, and finds it under both roots without a new tab.
+
 Search-to-leaf over the ONE shared tree reader
 (`src/features/categories/category-tree.ts`, lifted out of the feed so both
+
 consumers read the same rows). Search matches the active language's entity name
 and the English name, and answers with POSTABLE LEAVES ONLY. Folders are
 browsable and never selectable. Choosing a leaf creates the draft immediately —

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-import { supabase } from "@/integrations/supabase/client";
 import { entityName, type EntityBundle } from "@/i18n";
 
 /**
@@ -22,12 +21,18 @@ import { entityName, type EntityBundle } from "@/i18n";
  * READ ONLY. Nothing here writes, ever. The wizard's writes go through the
  * A2/B1 routes and their doors.
  *
- * PROCESS-LIFETIME CACHE (INC-050, carried over from the feed): the tree is
- * admin-managed reference data that every rail render and every wizard mount
- * needs, so re-reading it per mount cost a visible lag on a slow mobile
- * connection. The first read is shared by every concurrent caller (`inFlight`)
- * and remembered for the page session (`cache`). A failure is NOT cached, so the
- * next mount retries.
+ * VERSION-KEYED, NOT PINNED (INC-263, the INC-243 shape). The first read used to
+ * be remembered for the WHOLE page session with nothing that could expire it, so
+ * a curator's categories import was invisible until the tab was closed — the
+ * console showed baby-food under food-drink while the wizard's tree had neither
+ * the row nor the re-parenting, an hour later. The tree now comes from
+ * `/api/categories/tree`, which carries the tree's OWN version as its ETag; what
+ * is held here carries that version and is re-checked after `TTL_MS`, so a commit
+ * lands inside the same sixty-second window the option lists promise. A read that
+ * finds the version unmoved costs a 304 and keeps the SAME tree object, so no
+ * consumer re-renders for nothing. A failure is NOT cached, and the last good
+ * tree is kept rather than replaced by an empty one (F4).
+
  */
 
 /** One category as both consumers need it. */
@@ -70,8 +75,27 @@ const EMPTY_TREE: CategoryTree = {
   byId: new Map(),
 };
 
-let cache: CategoryTree | null = null;
+/**
+ * How long a held tree is trusted before the version is re-checked. The route
+ * holds its own answer for the same span, so an import is visible well inside
+ * the sixty seconds the browser is allowed to keep the body (INC-263).
+ */
+const TTL_MS = 15_000;
+
+interface Held {
+  tree: CategoryTree;
+  version: string;
+  at: number;
+}
+
+let cache: Held | null = null;
 let inFlight: Promise<CategoryTree> | null = null;
+
+/** Tests reset the module between cases; nothing in the app calls this. */
+export function forgetCategoryTree(): void {
+  cache = null;
+  inFlight = null;
+}
 
 /**
  * INC-246 — EVERY SURFACING IS A BRANCH. A category surfaced under two roots has
@@ -105,28 +129,40 @@ function buildTree(
   return { nodes: rows, parentOf, childrenOf, byId };
 }
 
-/** The raw read. Exported for tests; app code uses the hook or `loadCategoryTree`. */
-export async function readCategoryTree(): Promise<CategoryTree> {
-  const [{ data: cats, error: catError }, { data: pointers, error: pointerError }] =
-    await Promise.all([
-      supabase
-        .from("categories")
-        .select(
-          "id,name_en,name_am,slug,icon,display_order,allow_listings,is_catchall,image_url,image_thumb_url",
-        )
-        .eq("is_active", true)
-        .order("display_order", { ascending: true }),
-      supabase
-        .from("category_tree_pointers")
-        .select("child_id,parent_id,display_order")
-        .order("display_order", { ascending: true }),
-    ]);
+interface TreePayload {
+  version: string;
+  nodes: {
+    id: string;
+    name_en: string;
+    name_am: string | null;
+    slug: string;
+    icon: string | null;
+    allow_listings: boolean;
+    is_catchall: boolean;
+    image_url: string | null;
+    image_thumb_url: string | null;
+    display_order: number;
+  }[];
+  pointers: { child_id: string; parent_id: string | null }[];
+}
+
+/**
+ * The raw read: one public route, never the browser client, so the tree carries
+ * its own version and an ETag a second mount can answer with a 304 (INC-263).
+ * `cache: "no-cache"` revalidates with the origin rather than serving whatever
+ * the browser still holds — the stale seam this incident was about.
+ */
+export async function readCategoryTree(): Promise<{ tree: CategoryTree; version: string }> {
+  const response = await fetch("/api/categories/tree", {
+    headers: { Accept: "application/json" },
+    cache: "no-cache",
+  });
   // Law F4 — a failed read is a failure, never an empty tree that reads as
   // "there are no categories". The caller renders the error state.
-  if (catError) throw new Error(catError.message);
-  if (pointerError) throw new Error(pointerError.message);
+  if (!response.ok) throw new Error(`category tree read failed (${String(response.status)})`);
+  const payload = (await response.json()) as TreePayload;
 
-  const rows: CategoryNode[] = (cats ?? []).map((row) => ({
+  const rows: CategoryNode[] = payload.nodes.map((row) => ({
     id: row.id,
     nameEn: row.name_en,
     nameAm: row.name_am,
@@ -138,17 +174,24 @@ export async function readCategoryTree(): Promise<CategoryTree> {
     imageThumbUrl: row.image_thumb_url,
     displayOrder: row.display_order,
   }));
-  return buildTree(rows, pointers ?? []);
+  return { tree: buildTree(rows, payload.pointers), version: payload.version };
 }
 
-/** The cached read every consumer shares. */
+/**
+ * The shared read. A held tree younger than `TTL_MS` is the answer; older, the
+ * route is asked again and an UNMOVED version keeps the same tree object, so a
+ * consumer's identity checks do not fire (I3).
+ */
 export function loadCategoryTree(): Promise<CategoryTree> {
-  if (cache !== null) return Promise.resolve(cache);
+  const held = cache;
+  if (held !== null && Date.now() - held.at < TTL_MS) return Promise.resolve(held.tree);
   inFlight ??= readCategoryTree().then(
-    (tree) => {
-      cache = tree;
+    ({ tree, version }) => {
+      const previous = cache;
+      const settled = previous !== null && previous.version === version ? previous.tree : tree;
+      cache = { tree: settled, version, at: Date.now() };
       inFlight = null;
-      return tree;
+      return settled;
     },
     (error: unknown) => {
       inFlight = null;
@@ -229,16 +272,22 @@ export interface UseCategoryTreeResult {
   error: boolean;
 }
 
-/** The shared hook. Both the feed's rail and the wizard's step 1 mount this. */
+/**
+ * The shared hook. Both the feed's rail and the wizard's step 1 mount this.
+ *
+ * INC-263 — EVERY MOUNT ASKS. The held tree renders at once so nothing flashes,
+ * but the read still runs: that is what makes an import visible without closing
+ * the tab. A revalidation that finds the version unmoved hands back the SAME
+ * object, so this sets state to a value React treats as unchanged.
+ */
 export function useCategoryTree(): UseCategoryTreeResult {
-  const [tree, setTree] = useState<CategoryTree>(cache ?? EMPTY_TREE);
+  const [tree, setTree] = useState<CategoryTree>(cache?.tree ?? EMPTY_TREE);
   const [isLoading, setIsLoading] = useState(cache === null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (cache !== null) return;
     let cancelled = false;
-    setIsLoading(true);
+    if (cache === null) setIsLoading(true);
     setError(false);
 
     void loadCategoryTree().then(
@@ -249,10 +298,13 @@ export function useCategoryTree(): UseCategoryTreeResult {
       },
       () => {
         // CONTAINMENT (INC-031): the surface degrades to a visible error state
-        // rather than throwing through the shell-wrapped root.
+        // rather than throwing through the shell-wrapped root. A held tree is
+        // kept — a failed revalidation never empties a screen that had rows.
         if (cancelled) return;
-        setTree(EMPTY_TREE);
-        setError(true);
+        if (cache === null) {
+          setTree(EMPTY_TREE);
+          setError(true);
+        }
         setIsLoading(false);
       },
     );
