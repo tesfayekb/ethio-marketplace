@@ -1,69 +1,33 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35838379675
-- Commit: `14fdd98bf82836892bfa3be7a0fdcab02d815cca`
-- PLATFORM-ORIGIN? the head commit's subject is `Work in progress` — a Lovable auto-push, so suspect platform-injected code before ours.
-- Attempt: 2
-- Written (UTC): 2026-09-23T08:55:10.161Z
-- Passed: 219 · Skipped: 34 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
-- Post-test errors (DEC-059, non-gating): shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
-- Sources without results: shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35850846689
+- Commit: `58fec4eec35117d51330965794fdf07bd2f06283`
+- Attempt: 1
+- Written (UTC): 2026-09-23T11:04:03.352Z
+- Passed: 993 · Skipped: 78 · Failed: 2
+- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 6
+- Post-test errors (DEC-059, non-gating): shard 3, changed
+- Sources without results: none
 
 ## Flake ledger (DEC-030)
 
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `mobile-360` · source `changed` · post-wizard.spec.ts › POSTING WIZARD › PW-50 the specifications keep display order and hide only the trailing extras — Error: PW-50: the visible details were not in display order
-
-## Post-test errors: shard 1
-
-shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-1
-```
-
-## Post-test errors: shard 2
-
-shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-2
-```
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard.spec.ts › POSTING WIZARD › LY-6 at 360 the open currency list is above the sticky action bar — Error: LY-6: the sticky action bar covers the open currency list
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-18 a real-export round trip is a no-op — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · post-wizard.spec.ts › POSTING WIZARD › PW-49 a prefill-only fact keeps its input while a settled one does not — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `mobile-360` · source `changed` · post-wizard.spec.ts › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it — Error: PW-5: no lazy multi-select control was generated for e2e_post_changed_1_bz0y98_multi
+- FLAKY (passed on retry) · `mobile-360` · source `changed` · post-wizard.spec.ts › POSTING WIZARD › PW-21 a child detail shows only the chosen parent's options and clears on change — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `desktop-1280` · source `changed` · post-wizard.spec.ts › POSTING WIZARD › PW-22 a link's allowed options narrow the picker and its default prefills — Error: expect(locator).toBeVisible() failed
 
 ## Post-test errors: shard 3
 
 shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-3
-```
-
-## Post-test errors: shard 4
-
-shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-4
-```
-
-## Post-test errors: shard 5
-
-shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-5
-```
-
-## Post-test errors: shard 6
-
-shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-6
+[e2e:teardown] deleted 75 user(s) owned by process 35850846689-3
 ```
 
 ## Post-test errors: changed
@@ -71,156 +35,117 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 105 user(s) owned by process 35838379675-changed
+[e2e:teardown] deleted 108 user(s) owned by process 35850846689-changed
 ```
 
-## Server errors: shard 1
+## post-wizard.spec.ts › POSTING WIZARD › PW-50 the specifications keep display order and hide only the trailing extras
 
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+- Source: `shard 3`
+- Project: `mobile-360`
 
-## Client errors: shard 1
+```text
+Error: PW-50: the visible details were not in display order
 
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+expect(received).toEqual(expected) // deep equality
 
-## Server errors: shard 2
+- Expected  - 3
++ Received  + 0
 
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+  Array [
+    "e2e_phone_3_2_0wa07f_brand",
+-   "e2e_phone_3_2_0wa07f_series",
+-   "e2e_phone_3_2_0wa07f_model",
+-   "e2e_phone_3_2_0wa07f_storage",
+  ]
+```
 
-## Client errors: shard 2
+Context:
 
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+```text
+          - listitem [ref=e176]:
+            - generic [ref=e177]: About
+          - listitem [ref=e178]:
+            - generic [ref=e179]: How it works
+      - navigation "Help" [ref=e180]:
+        - heading "Help" [level=2] [ref=e181]
+        - list [ref=e182]:
+          - listitem [ref=e183]:
+            - generic [ref=e184]: Safety
+          - listitem [ref=e185]:
+            - generic [ref=e186]: Contact
+      - navigation "Legal" [ref=e187]:
+        - heading "Legal" [level=2] [ref=e188]
+        - list [ref=e189]:
+          - listitem [ref=e190]:
+            - generic [ref=e191]: Terms
+          - listitem [ref=e192]:
+            - generic [ref=e193]: Privacy
+    - paragraph [ref=e195]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## post-wizard.spec.ts › POSTING WIZARD › PW-50 the specifications keep display order and hide only the trailing extras
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: PW-50: the visible details were not in display order
+
+expect(received).toEqual(expected) // deep equality
+
+- Expected  - 3
++ Received  + 0
+
+  Array [
+    "e2e_phone_changed_5_gncvgt_brand",
+-   "e2e_phone_changed_5_gncvgt_series",
+-   "e2e_phone_changed_5_gncvgt_model",
+-   "e2e_phone_changed_5_gncvgt_storage",
+  ]
+```
+
+Context:
+
+```text
+          - listitem [ref=e176]:
+            - generic [ref=e177]: About
+          - listitem [ref=e178]:
+            - generic [ref=e179]: How it works
+      - navigation "Help" [ref=e180]:
+        - heading "Help" [level=2] [ref=e181]
+        - list [ref=e182]:
+          - listitem [ref=e183]:
+            - generic [ref=e184]: Safety
+          - listitem [ref=e185]:
+            - generic [ref=e186]: Contact
+      - navigation "Legal" [ref=e187]:
+        - heading "Legal" [level=2] [ref=e188]
+        - list [ref=e189]:
+          - listitem [ref=e190]:
+            - generic [ref=e191]: Terms
+          - listitem [ref=e192]:
+            - generic [ref=e193]: Privacy
+    - paragraph [ref=e195]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors: shard 3
 
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+```text
+[WebServer] [ssr-error] /api/listings/draft listing not found ×7
+```
 
 ## Client errors: shard 3
 
 No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
-## Server errors: shard 4
-
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Server errors: shard 5
-
-No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Client errors: shard 5
-
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Server errors: shard 6
-
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## Client errors: shard 6
-
-No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## shard 1: results file with zero tests
-
-shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+## Server errors: changed
 
 ```text
---- error lines (2) ---
-[e2e:setup] EN baseline probe unavailable: TypeError: fetch failed
-TypeError: Cannot read properties of undefined (reading 'DEV')
---- final 10 lines ---
-11 |  * and every instrument compiles out exactly as it did under the DEV gate.
-  12 |  */
-> 13 | export const isE2E: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
-     |                                               ^
-  14 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-1
+[WebServer] [ssr-error] /api/listings/draft listing not found ×22
 ```
 
-## shard 2: results file with zero tests
+## Client errors: changed
 
-shard 2: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
---- error lines (1) ---
-TypeError: Cannot read properties of undefined (reading 'DEV')
---- final 10 lines ---
-11 |  * and every instrument compiles out exactly as it did under the DEV gate.
-  12 |  */
-> 13 | export const isE2E: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
-     |                                               ^
-  14 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-2
-```
-
-## shard 3: results file with zero tests
-
-shard 3: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
---- error lines (1) ---
-TypeError: Cannot read properties of undefined (reading 'DEV')
---- final 10 lines ---
-11 |  * and every instrument compiles out exactly as it did under the DEV gate.
-  12 |  */
-> 13 | export const isE2E: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
-     |                                               ^
-  14 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-3
-```
-
-## shard 4: results file with zero tests
-
-shard 4: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
---- error lines (1) ---
-TypeError: Cannot read properties of undefined (reading 'DEV')
---- final 10 lines ---
-11 |  * and every instrument compiles out exactly as it did under the DEV gate.
-  12 |  */
-> 13 | export const isE2E: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
-     |                                               ^
-  14 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-4
-```
-
-## shard 5: results file with zero tests
-
-shard 5: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
---- error lines (1) ---
-TypeError: Cannot read properties of undefined (reading 'DEV')
---- final 10 lines ---
-11 |  * and every instrument compiles out exactly as it did under the DEV gate.
-  12 |  */
-> 13 | export const isE2E: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
-     |                                               ^
-  14 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-5
-```
-
-## shard 6: results file with zero tests
-
-shard 6: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
-
-```text
---- error lines (1) ---
-TypeError: Cannot read properties of undefined (reading 'DEV')
---- final 10 lines ---
-11 |  * and every instrument compiles out exactly as it did under the DEV gate.
-  12 |  */
-> 13 | export const isE2E: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
-     |                                               ^
-  14 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35838379675-6
-```
+No `[client-error]` lines in the `changed` log (or no log was uploaded).
