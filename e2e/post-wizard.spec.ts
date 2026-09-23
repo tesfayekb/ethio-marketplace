@@ -3206,6 +3206,17 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-specs"), `${tag}: the form never answered`).toBeVisible({
       timeout: 20_000,
     });
+    /**
+     * INC-271 — THE ORDER IS READ ONLY ONCE THE FORM KNOWS ITS OWN SHAPE. A fold,
+     * a fact and a narrowing live in the option ROWS, so what stays on screen and
+     * what waits behind "More details" is settled only when the eagerly-read lists
+     * have arrived. The form says so itself; the test waits for that word instead
+     * of asserting at first paint.
+     */
+    await expect(
+      page.getByTestId("post-specs"),
+      `${tag}: the option lists never settled`,
+    ).toHaveAttribute("data-options", "1", { timeout: 20_000 });
   };
 
   /** The details on screen, in the order the form drew them. */
