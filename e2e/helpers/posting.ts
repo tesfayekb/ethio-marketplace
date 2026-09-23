@@ -1757,7 +1757,24 @@ export async function openMoreDetails(page: Page): Promise<void> {
     page.getByTestId("post-specs").or(page.getByTestId("post-specs-none")),
     "[e2e:d36] the specifications form never answered",
   ).toBeVisible({ timeout: 20_000 });
+  /**
+   * INC-271 — AND THE SHAPE IS SETTLED BEFORE THE EXPANDER IS READ. What waits
+   * behind "More details" is decided by the option ROWS (a fold, a fact, a
+   * narrowing), which land a beat after the first paint on the served build: read
+   * too early, the form has nothing deferred yet, `count()` is 0 and every extra
+   * detail stays shut for the rest of the walk. The form publishes its own verdict
+   * (`data-options`), so the wait is on that word, never a clock.
+   */
+  const form = page.getByTestId("post-specs");
+  if ((await form.count()) > 0) {
+    await expect(form, "[e2e:inc271] the option lists never settled").toHaveAttribute(
+      "data-options",
+      "1",
+      { timeout: 20_000 },
+    );
+  }
   if ((await more.count()) === 0) return;
+
   /**
    * INC-269 — THE FIRST DRAW IS NOT THE LAST. The rows arrive, then the prefill and
    * visibility pass runs and re-draws them, so the button the first read resolved can
