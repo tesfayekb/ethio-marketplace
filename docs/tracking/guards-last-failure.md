@@ -2,81 +2,8 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35831707201
 - Commit: `889d838e281d733c942efac9eff74438aed23a9d`
-- Attempt: 1
-- Written (UTC): 2026-09-23T07:27:23.072Z
-
-## E2E preflight (migration parity, staging) — failure
-
-### Evidence lines
-
-```text
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-+ @tanstack/react-router@1.170.16
-+ @tanstack/react-start@1.168.26
-+ @tanstack/router-plugin@1.168.18
-+ @types/pngjs@6.0.5
-+ class-variance-authority@0.7.1
-+ clsx@2.1.1
-+ cmdk@1.1.1
-+ date-fns@4.1.0
-+ embla-carousel-react@8.6.0
-+ input-otp@1.4.2
-+ jpeg-js@0.4.4
-+ leaflet@1.9.4
-+ lucide-react@0.575.0
-+ pngjs@7.0.0
-+ react@19.2.5
-+ react-day-picker@9.14.0
-+ react-dom@19.2.5
-+ react-hook-form@7.73.1
-+ react-resizable-panels@4.10.0
-+ recharts@2.15.4
-+ sonner@2.0.7
-+ tailwind-merge@3.5.0
-+ tailwindcss@4.2.4
-+ tw-animate-css@1.4.0
-+ vaul@1.1.2
-+ vite-tsconfig-paths@6.1.1
-+ zod@3.25.76
-
-517 packages installed [3.49s]
-##[group]Run bun scripts/e2e-migration-preflight.ts
-[36;1mbun scripts/e2e-migration-preflight.ts[0m
-shell: /usr/bin/bash -e {0}
-env:
-  E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-  E2E_SUPABASE_PUBLISHABLE_KEY: ***
-  E2E_SUPABASE_SERVICE_ROLE_KEY: ***
-##[endgroup]
-STAGING BEHIND: apply 20260923072520_f37f1133-49a7-4e12-8298-e8e0605e0bda.sql to ethio-staging before E2E can pass
-[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
-[e2e:preflight] missing migration file(s):
-  - 20260923070512_caeccd7a-5fa0-4298-afa0-beea1a4d7023.sql
-  - 20260923072520_f37f1133-49a7-4e12-8298-e8e0605e0bda.sql
-STAGING BEHIND: apply 20260923072520_f37f1133-49a7-4e12-8298-e8e0605e0bda.sql to ethio-staging before E2E can pass
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/4c9032a6-15fb-4051-843d-158bc6495087' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
+- Attempt: 2
+- Written (UTC): 2026-09-23T07:58:58.529Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -96,7 +23,6 @@ Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] f
 ### Tail (last 60 lines)
 
 ```text
-[36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
@@ -120,30 +46,31 @@ Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] f
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (3/9 source(s) with usable results, 0 context file(s) found).
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-HEAD is now at 889d838 Updated missing file stamp book
-[dev c88d892] ci: e2e failure report + flake ledger [skip ci]
- 1 file changed, 4 insertions(+), 4 deletions(-)
+   889d838..e5fe052  dev        -> origin/dev
+HEAD is now at e5fe052 ci: update CI status report [skip ci]
+[dev 5af994f] ci: e2e failure report + flake ledger [skip ci]
+ 1 file changed, 126 insertions(+), 47 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   889d838..c88d892  HEAD -> dev
-##[group]Run echo "smoke=skipped email=skipped shards=skipped"
-[36;1mecho "smoke=skipped email=skipped shards=skipped"[0m
-[36;1mif [ "skipped" != "success" ] || [ "skipped" != "success" ] || [ "skipped" != "success" ]; then[0m
+   e5fe052..5af994f  HEAD -> dev
+##[group]Run echo "smoke=success email=success shards=failure"
+[36;1mecho "smoke=success email=success shards=failure"[0m
+[36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=skipped email=skipped shards=skipped
+smoke=success email=success shards=failure
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/56ed142c-664c-4fba-a9f7-14424f31bdc1' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/939f2a72-4f00-400e-b4e4-66cfcb7a3d38' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
