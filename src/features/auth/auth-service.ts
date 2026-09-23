@@ -128,7 +128,11 @@ export async function signUp({ email, password }: Credentials): Promise<AuthResu
  */
 
 /** The persisted token for THIS project, or null. Synchronous, no API call. */
-function storedSession(): { access_token: string; refresh_token: string; expires_at?: number } | null {
+function storedSession(): {
+  access_token: string;
+  refresh_token: string;
+  expires_at?: number;
+} | null {
   if (typeof window === "undefined") return null;
   const ref = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.match(
     /https?:\/\/([^.]+)\./,

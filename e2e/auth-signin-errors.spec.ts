@@ -76,7 +76,9 @@ test("B-4: unconfirmed account cannot sign in", async ({ page }) => {
  * land with a session. Before the fix the stale refresh removed the new session
  * after the redirect, so the first attempt reached the marketplace signed out.
  */
-test("B-5: one sign-in after a 12h-expired prior session lands with a session", async ({ page }) => {
+test("B-5: one sign-in after a 12h-expired prior session lands with a session", async ({
+  page,
+}) => {
   const user = await createUser({ confirmed: true });
   const session = await passwordGrant(user.email, user.password);
 

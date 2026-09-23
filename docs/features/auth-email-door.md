@@ -241,3 +241,45 @@ Supabase enforces its own ~60s minimum between confirmation emails **per address
 (`over_email_send_rate_limit`), independent of the project's hourly email quota. The
 client cooldown is set to 60s to align deliberately with that server limit, so the UI
 never invites a request the server will refuse. No message text or i18n key changed.
+
+### The expired prior session (INC-266, DEC-076, 2026-09-23)
+
+**Reproduction.** A tab is left open ~12 h. The user opens Sign in, types correct
+credentials, is redirected to the marketplace — signed OUT, with no error. A second,
+identical sign-in works.
+
+**Cause (the decisive lines).** Two things run at once.
+
+1. `src/routes/auth.tsx:124` — the mount effect calls `hasSessionRehydrating()`, which used
+   to hand the persisted 12-h-old tokens to `supabase.auth.setSession()`. That starts a
+   refresh of an expired access token whose refresh token GoTrue may already have retired.
+   The request is still in flight while the operator types.
+2. `src/routes/auth.tsx:231` — `handleSubmit` calls `void navigate({ to: afterSignIn })`
+   the instant the password grant resolves. Nothing establishes that the NEW session has
+   been written to storage.
+
+When the stale refresh loses the race it does not merely fail: `auth-js` answers a retired
+refresh token by REMOVING the persisted session — and the session it removes is the
+brand-new one the password grant had just written. Nothing failed from the form's point of
+view, so nothing is reported. The second attempt succeeds because the stale token is gone.
+The same removal arriving on a live tab whose hourly refresh met a retired token is the
+earlier "signed out mid-session while active".
+
+**DEC-076 — the rule.** A deliberate sign-in SUPERSEDES an expired prior session:
+
+- the expired session is EVICTED before the credentials are sent, so no stale refresh is
+  left to race (`evictExpiredSession()` = `signOut({ scope: "local" })` + `clearSessionClocks()`);
+- a LIVE (unexpired) session is never touched — a failed sign-in must not sign anybody out;
+- the door reports success only once the new session is COMMITTED to storage and readable
+  (`awaitSessionCommit()` polls `getSession()` for ≈3 s); a grant that never commits is a
+  failure with `auth.errorGeneric` and one `[ssr-error]` line (F4), never a silent redirect;
+- `hasSessionRehydrating()` REFRESHES an expired token instead of handing it to
+  `setSession()`, and evicts when the refresh is refused.
+
+All four live in `src/features/auth/auth-service.ts` (`storedSession`,
+`storedSessionIsExpired`, `evictExpiredSession`, `awaitSessionCommit`). The session-ref =
+JWT `session_id` rule (INC-223) is untouched; eviction clears that session's clocks with it.
+
+**Proof.** `e2e/auth-signin-errors.spec.ts` B-5: a scratch user's real grant is retired
+server-side (`admin.signOut(access_token, "global")`), planted with `expires_at` twelve
+hours in the past, and ONE sign-in through the real door must land signed in (DEC-041).
