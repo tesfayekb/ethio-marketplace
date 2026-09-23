@@ -1,10 +1,10 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35695342001
-- Commit: `3051176c7bd20fe86d4cb12450efafbbe9256905`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35827347839
+- Commit: `ac2f99d90f8081815f21aee2a491c0bc7cf5206c`
 - Attempt: 1
-- Written (UTC): 2026-09-22T08:01:56.161Z
-- Passed: 783 · Skipped: 47 · Failed: 1
+- Written (UTC): 2026-09-23T08:20:33.182Z
+- Passed: 790 · Skipped: 48 · Failed: 1
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 1
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): nightly, full
@@ -15,7 +15,7 @@
 nightly: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 4 user(s) owned by process 35695342001-nightly
+[e2e:teardown] deleted 4 user(s) owned by process 35827347839-nightly
 ```
 
 ## Post-test errors: full
@@ -23,7 +23,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 full: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 387 user(s) owned by process 35695342001-nightly
+[e2e:teardown] deleted 394 user(s) owned by process 35827347839-nightly
 ```
 
 ## admin-categories-images.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state
@@ -84,7 +84,7 @@ Context:
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft listing not found
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
 
 ## Client errors: full
