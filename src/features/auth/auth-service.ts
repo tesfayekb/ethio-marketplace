@@ -3,6 +3,7 @@ import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/su
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import type { MessageKey } from "@/i18n";
+import { clearSessionClocks } from "@/features/session/session-policy";
 import { safeReturnPath } from "@/lib/return-path";
 
 import type {
@@ -94,13 +95,120 @@ export async function signUp({ email, password }: Credentials): Promise<AuthResu
   return { ok: true };
 }
 
+/**
+ * INC-266 / DEC-076 — THE EXPIRED PRIOR SESSION, AND THE COMMIT BEFORE THE
+ * REDIRECT.
+ *
+ * REPRODUCTION: a tab idle ~12 h, then Sign in with correct credentials →
+ * the marketplace with NO session and NO error; a second identical sign-in
+ * works.
+ *
+ * CAUSE (the two decisive lines).
+ *   1 `src/routes/auth.tsx` mount effect → `hasSessionRehydrating()`: the
+ *     12-h-old persisted token is handed to `setSession`, which starts a
+ *     refresh of an access token that is already expired and whose refresh
+ *     token GoTrue may have retired. That request is IN FLIGHT while the
+ *     operator types their password.
+ *   2 `src/routes/auth.tsx` sign-in handler → `void navigate({ to: afterSignIn })`
+ *     the instant the password grant resolves, with nothing establishing that
+ *     the new session has been written to storage.
+ *   When the stale refresh loses the race it does not merely fail: auth-js
+ *   answers a retired refresh token by REMOVING the persisted session — the
+ *   session it removes is the brand-new one the password grant had just
+ *   written. No error is raised, because nothing failed from the form's point
+ *   of view. The second attempt succeeds because the stale token is gone.
+ *   The same removal, arriving on a live tab whose hourly refresh hit a
+ *   retired token, is the earlier "signed out mid-session while active".
+ *
+ * THE RULE (DEC-076): an expired prior session is EVICTED before the
+ * credentials are sent — a deliberate sign-in supersedes it, so there is no
+ * stale refresh left to race — and the door reports success only once the new
+ * session is COMMITTED to storage and readable. A live (unexpired) session is
+ * never touched: a failed sign-in must not sign anybody out.
+ */
+
+/** The persisted token for THIS project, or null. Synchronous, no API call. */
+function storedSession(): {
+  access_token: string;
+  refresh_token: string;
+  expires_at?: number;
+} | null {
+  if (typeof window === "undefined") return null;
+  const ref = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.match(
+    /https?:\/\/([^.]+)\./,
+  )?.[1];
+  if (!ref) return null;
+  try {
+    const raw = window.localStorage.getItem(`sb-${ref}-auth-token`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      access_token?: unknown;
+      refresh_token?: unknown;
+      expires_at?: unknown;
+    } | null;
+    if (typeof parsed?.access_token !== "string" || typeof parsed.refresh_token !== "string") {
+      return null;
+    }
+    return {
+      access_token: parsed.access_token,
+      refresh_token: parsed.refresh_token,
+      expires_at: typeof parsed.expires_at === "number" ? parsed.expires_at : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Expired = the access token's own `expires_at` is in the past (10s of skew). */
+function storedSessionIsExpired(): boolean {
+  const stored = storedSession();
+  if (stored === null) return false;
+  if (stored.expires_at === undefined) return true;
+  return stored.expires_at * 1000 <= Date.now() + 10_000;
+}
+
+/**
+ * DEC-076 step 1 — drop an expired prior session locally, so no refresh of it
+ * can land after the new one. `scope: "local"` only: this browser's stale
+ * token is the problem, the user's other devices are not.
+ */
+async function evictExpiredSession(): Promise<void> {
+  if (!storedSessionIsExpired()) return;
+  try {
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    /* Best effort: the storage clear below is the part that matters. */
+  }
+  clearSessionClocks();
+}
+
+/**
+ * DEC-076 step 2 — the session is committed when `getSession()` answers with
+ * the access token the grant just issued. Bounded (≈3 s) and polled, because
+ * the write goes through auth-js's storage lock.
+ */
+async function awaitSessionCommit(accessToken: string | undefined): Promise<boolean> {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const session = (await supabase.auth.getSession()).data.session;
+    if (session && (accessToken === undefined || session.access_token === accessToken)) return true;
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+  }
+  return false;
+}
+
 export async function signInWithPassword({ email, password }: Credentials): Promise<AuthResult> {
-  const { error } = await supabase.auth.signInWithPassword({
+  await evictExpiredSession();
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
     options: { captchaToken: getCaptchaToken() },
   });
   if (error) return failure(error);
+  // F4 — a sign-in that cannot be shown to hold a session is NOT a success.
+  if (!(await awaitSessionCommit(data.session?.access_token))) {
+    console.error("[ssr-error] /auth sign-in granted but no session committed");
+    return { ok: false, errorKey: "auth.errorGeneric", emailNotConfirmed: false };
+  }
   return { ok: true };
 }
 
@@ -283,6 +391,25 @@ export async function hasSessionRehydrating(): Promise<boolean> {
 
   const tokens = stored as { access_token?: string; refresh_token?: string } | null;
   if (!tokens?.access_token || !tokens?.refresh_token) return false;
+
+  /**
+   * INC-266 / DEC-076 — AN EXPIRED TOKEN IS REFRESHED HERE, NOT HANDED TO
+   * `setSession` AND LEFT TO A BACKGROUND REFRESH. `setSession` on an expired
+   * access token returns before its refresh resolves, so the failure (and the
+   * session REMOVAL auth-js performs on a retired refresh token) lands later —
+   * on top of whatever session exists by then. The refresh is awaited instead,
+   * and a stale token set is dropped here rather than allowed to race.
+   */
+  if (storedSessionIsExpired()) {
+    const { data, error } = await supabase.auth.refreshSession({
+      refresh_token: tokens.refresh_token,
+    });
+    if (error || !data.session) {
+      await evictExpiredSession();
+      return false;
+    }
+    return true;
+  }
 
   await supabase.auth.setSession({
     access_token: tokens.access_token,
