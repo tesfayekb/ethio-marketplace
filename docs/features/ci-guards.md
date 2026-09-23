@@ -427,6 +427,16 @@ import.meta.env.VITE_E2E === "1"` — so they exist in dev and in the E2E build
   contains none of the window hooks).
   `src/lib/error-page.ts` stays dependency-free and inlines the same condition
   rather than importing the flag module.
+  **INC-270 — the flag's module init must survive a non-Vite loader.** Playwright's
+  own TypeScript loader evaluates app modules in plain Node, where
+  `import.meta.env` does not exist, and a spec that imports app code can reach
+  this module through an ordinary chain
+  (`i18n/provider.tsx → auth-service → session-policy → env-flags`). The bare
+  read threw during test COLLECTION, so every shard produced zero tests while the
+  smoke and changed-specs lanes — which pass an explicit file list — stayed green.
+  The read is therefore guarded with `typeof import.meta.env === "undefined"`;
+  under Vite both branches are still replaced statically, so no built output
+  changes.
 
 - **Pinned build target + build-output verify (INC-085e).** The e2e build's
   server target is PINNED (never environment-detected); the verify step fails the
