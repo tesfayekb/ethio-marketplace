@@ -2,8 +2,8 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35838379675  **PLATFORM-ORIGIN?**
 - Commit: `14fdd98bf82836892bfa3be7a0fdcab02d815cca`
-- Attempt: 1
-- Written (UTC): 2026-09-23T08:50:37.689Z
+- Attempt: 2
+- Written (UTC): 2026-09-23T08:55:26.825Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -23,7 +23,6 @@ Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] f
 ### Tail (last 60 lines)
 
 ```text
-[36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
@@ -49,12 +48,13 @@ Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
 Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-HEAD is now at 14fdd98 Work in progress
+   14fdd98..2c532d5  dev        -> origin/dev
+HEAD is now at 2c532d5 ci: update CI status report [skip ci]
 Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
-[dev a7c9cd4] ci: e2e failure report + flake ledger [skip ci]
- 2 files changed, 28 insertions(+), 19 deletions(-)
+[dev 6f086b7] ci: e2e failure report + flake ledger [skip ci]
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   14fdd98..a7c9cd4  HEAD -> dev
+   2c532d5..6f086b7  HEAD -> dev
 ##[group]Run echo "smoke=success email=success shards=failure"
 [36;1mecho "smoke=success email=success shards=failure"[0m
 [36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
@@ -70,7 +70,7 @@ smoke=success email=success shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/64e4131c-073e-4c90-ad99-4bc24e7d67df' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/3dbb1c33-9151-49e2-bbe2-69bd0b514d1d' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
