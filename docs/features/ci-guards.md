@@ -428,6 +428,13 @@ import.meta.env.VITE_E2E === "1"` — so they exist in dev and in the E2E build
   `src/lib/error-page.ts` stays dependency-free and inlines the same condition
   rather than importing the flag module.
 
+- **Plain-Node collection guard (INC-270).** Playwright's TypeScript loader may
+  evaluate app modules while collecting tests, outside Vite, where
+  `import.meta.env` is absent. `src/lib/env-flags.ts` therefore treats an absent
+  environment object as non-E2E instead of reading `.DEV` and terminating the
+  runner before it discovers any tests. The Vite-built branches remain
+  statically replaceable, so production instrumentation is unchanged.
+
 - **Pinned build target + build-output verify (INC-085e).** The e2e build's
   server target is PINNED (never environment-detected); the verify step fails the
   job at build time with the emitted tree if the shape drifts — a serve step may

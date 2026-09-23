@@ -10,4 +10,7 @@
  * E2E jobs. A normal `bun run build` leaves it empty, so `isE2E` is `false`
  * and every instrument compiles out exactly as it did under the DEV gate.
  */
-export const isE2E: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
+export const isE2E: boolean =
+  typeof import.meta.env === "undefined"
+    ? false
+    : import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
