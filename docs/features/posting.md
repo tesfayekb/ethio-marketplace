@@ -914,38 +914,21 @@ this is presentation only.
 Tests: PW-35 (the settled shape, and Change bringing the locked picker back),
 PW-49 (the prefill-only shape keeps its input and grows no strip).
 
-## Form economy at 360 (D36, corrected by INC-269)
+## Form economy at 360 (D36)
 
 A real catalogue asks fourteen details of a seller; a 360-pixel screen shows
-about eight. The step therefore puts a run of optional rows behind one
+about eight. The step therefore renders, above the fold, only what the seller
+must answer or what their own choice raised — required rows and conditionals
+(`visible_when`) — and puts every remaining OPTIONAL row behind one
 "More details (n)" expander. The open state is remembered per category for the
 session (`sessionStorage`, never the draft: it is a view preference, not a value
 the door stores).
-
-**THE VISIBLE ORDER IS `display_order`, ALWAYS.** The first cut of D36 partitioned
-the rows (required and conditional first, the rest after) and so re-sorted the
-curator's own order: on Smartphones the seller met Brand · Storage · Condition
-with Series, Model and Release year buried, and on Traditional Wear the dependent
-garment list rendered ABOVE the region it hangs on and could never open (INC-269).
-Nothing re-sorts the catalogue now. The expander hides only the TRAILING run of
-rows, walked backwards from the end and stopping at the first row that is any of:
-
-- required, or conditional (`visible_when`);
-- a fold parent, or a dependent (`depends_on`);
-- named by any fold on the leaf — a `facts`, `bounds` or `allowed` target, or the
-  key of any condition (a controller is never hidden: burying the only answer
-  that can bring a dependent back is exactly the Traditional Wear failure);
-- a colour card, or a row the seller's own choice has already locked.
 
 Two more economies in the same shape: help text shows its FIRST SENTENCE inline
 and the rest behind an `(i)` tap, and a unit renders as a suffix INSIDE the
 number input rather than as another line.
 
-PW-50 (mobile-360 only) seeds a Smartphones-shaped leaf — brand → series → model
-(whose fact sets the storage) → storage, then six plain optional rows — and
-asserts the four shape rows stand on screen in `display_order` with the expander
-shut, that the fold still works and the model's fact reaches the storage field,
-that one tap brings all ten in order, and that a step away and back finds the
-expander still open. PW-51 seeds an OPTIONAL parent at order 1 and a dependent at
-order 2 and asserts the parent is never hidden, the dependent renders below it,
-and it can be answered.
+PW-50 (mobile-360 only) seeds a leaf with fourteen linked definitions, two of
+them required, and asserts at most eight inputs stand above the collapsed
+expander, that both required rows are among them, that one tap brings all
+fourteen, and that a step away and back finds the expander still open.

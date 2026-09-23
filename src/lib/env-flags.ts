@@ -10,4 +10,17 @@
  * E2E jobs. A normal `bun run build` leaves it empty, so `isE2E` is `false`
  * and every instrument compiles out exactly as it did under the DEV gate.
  */
-export const isE2E: boolean = import.meta.env.DEV || import.meta.env.VITE_E2E === "1";
+/**
+ * INC-270 — MODULE INIT MUST SURVIVE A NON-VITE LOADER. Playwright's own
+ * TypeScript loader evaluates app modules in plain Node, where
+ * `import.meta.env` does not exist: a spec that imports `src/i18n/provider.tsx`
+ * reaches `auth-service` → `session-policy` → this file, and the bare
+ * `import.meta.env.DEV` read threw "Cannot read properties of undefined
+ * (reading 'DEV')" during test COLLECTION, so every shard produced zero tests.
+ * The guard is the only change: under Vite both branches are still replaced
+ * statically, so the built output (prod and `build:e2e`) is unchanged.
+ */
+export const isE2E: boolean =
+  typeof import.meta.env === "undefined"
+    ? false
+    : import.meta.env.DEV || import.meta.env.VITE_E2E === "1";

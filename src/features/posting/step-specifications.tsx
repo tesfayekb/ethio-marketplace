@@ -1597,58 +1597,14 @@ export function StepSpecifications({
   };
 
   /**
-   * D36 / INC-269 — FORM ECONOMY AT 360, WITHOUT EVER REORDERING THE FORM.
-   *
-   * The first cut of D36 partitioned the rows (required and conditional first,
-   * the rest behind the expander) and so REORDERED the catalogue's own sequence:
-   * on Smartphones the seller met Brand · Storage · Condition and found Series,
-   * Model and Release year hidden; on Traditional Wear the dependent garment list
-   * rendered ABOVE the Region it hangs under and could not open at all.
-   *
-   * THE VISIBLE ORDER IS `display_order`, ALWAYS — the read hands the definitions
-   * in the curator's order and nothing here re-sorts them. The expander hides only
-   * the TRAILING RUN of rows a seller can safely meet later: optional, not a fold
-   * parent, not a dependent (it hangs under another answer), not a detail any fold
-   * on this leaf speaks about (a fact, a bound or an `allowed` narrowing), not
-   * conditional, not a card-style row (a colour tray) and not locked. The first row
-   * that fails any of those tests ends the run, so everything above it — and every
-   * required or locked row — stays on screen in place.
+   * D36 — FORM ECONOMY AT 360. What the answers themselves ask for (a conditional
+   * detail) and what the door requires come FIRST; the seller's optional extras
+   * wait behind ONE expander. A refusal can never hide there: the door only
+   * refuses a required or asked-for field, and the summary above Back/Next names
+   * every refused field by label wherever it sits (F4).
    */
-  const spokenAbout = new Set<string>(dependents);
-  for (const def of definitions) {
-    /**
-     * INC-269 — A CONTROLLER IS NEVER HIDDEN. A condition names the sibling whose
-     * answer decides whether another detail is asked; hiding that sibling (it is
-     * optional and, while its dependent is unmet, the last row on screen) would
-     * bury the only answer that can bring the dependent back. Traditional Wear
-     * failed exactly there.
-     */
-    if (def.visibleWhen !== null) spokenAbout.add(def.visibleWhen.key);
-    if (!SELECT_TYPES.includes(def.attrType)) continue;
-    for (const option of allowedListOf(def)) {
-      for (const key of Object.keys(option.allowed ?? {})) spokenAbout.add(key);
-    }
-  }
-  /** A card-style row (the colour tray) is part of the form's shape, never hidden. */
-  const isCardRow = (def: AttrDef): boolean =>
-    def.attrType === "single_select" && isColourKey(def.attrKey);
-  /** D35 — a settled row reads as a strip; a strip is never behind the expander. */
-  const isLockedRow = (def: AttrDef): boolean =>
-    def.attrType === "single_select" &&
-    narrowing[def.attrKey] !== undefined &&
-    visibleOptionsOf(def).length === 1;
-  const deferrable = (def: AttrDef): boolean =>
-    !def.isRequired &&
-    def.visibleWhen === null &&
-    folds[def.attrKey] === undefined &&
-    !parents.has(def.attrKey) &&
-    !spokenAbout.has(def.attrKey) &&
-    !isCardRow(def) &&
-    !isLockedRow(def);
-  let cut = asked.length;
-  while (cut > 0 && deferrable(asked[cut - 1]!)) cut -= 1;
-  const primary = asked.slice(0, cut);
-  const extra = asked.slice(cut);
+  const primary = asked.filter((def) => def.isRequired || def.visibleWhen !== null);
+  const extra = asked.filter((def) => !def.isRequired && def.visibleWhen === null);
 
   return (
     <div className="space-y-5" data-testid="post-specs">
