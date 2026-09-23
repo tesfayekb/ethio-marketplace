@@ -937,6 +937,17 @@ rows, walked backwards from the end and stopping at the first row that is any of
   that can bring a dependent back is exactly the Traditional Wear failure);
 - a colour card, or a row the seller's own choice has already locked.
 
+**AND THE CUT WAITS FOR WHAT IT READS (INC-271).** Every test in that list except
+`required` and `visible_when` is answered by the option ROWS, which arrive a beat
+after the first paint on the served build. For that beat a fold's child looked
+like a plain trailing optional, so on the served build the whole run — series,
+model and the storage the model's fact sets — went behind the expander and the
+form held only Brand. The trailing cut therefore runs only once every eagerly-read
+list has SETTLED (ready or failed); until then nothing is deferred and the form is
+complete, in display order, from the first frame. The step says so on its own
+container (`data-options="1"`), which is what the tests wait for instead of
+asserting at first paint.
+
 Two more economies in the same shape: help text shows its FIRST SENTENCE inline
 and the rest behind an `(i)` tap, and a unit renders as a suffix INSIDE the
 number input rather than as another line.

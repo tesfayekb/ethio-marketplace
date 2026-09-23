@@ -336,26 +336,34 @@ export function StepSpecifications({
    * taps the child, and a list of a few dozen options costs one cached public
    * read; a big preset (every make and model) stays strictly lazy (DEC-053).
    */
-  useEffect(() => {
-    if (schema === null) return;
+  /**
+   * THE LISTS READ UP FRONT, NAMED ONCE (INC-271). The eager set is derived here
+   * rather than inside the effect, because TWO things need it: the fetch itself,
+   * and the question "is what this form knows about its own folds settled yet?"
+   * — the answer that decides whether the trailing cut may run at all.
+   *
+   * DEC-053 STANDS: a list is still fetched on the tap that opens it. Only two
+   * things are known before a tap, and both need the rows themselves:
+   *   - a FOLD, which exists only between TWO pickers, and
+   *   - a link's `default_value`, which must prefill an empty field.
+   * So a single small picker with no default stays lazy, exactly as before.
+   */
+  const eager = useMemo(() => {
+    if (schema === null) return [] as AttrDef[];
     const selects = schema.attributes.filter((def) => SELECT_TYPES.includes(def.attrType));
-    /**
-     * DEC-053 STANDS: a list is still fetched on the tap that opens it. Only two
-     * things are known before a tap, and both need the rows themselves:
-     *   - a FOLD, which exists only between TWO pickers, and
-     *   - a link's `default_value`, which must prefill an empty field.
-     * So a single small picker with no default stays lazy, exactly as before.
-     */
     const foldsPossible = selects.length > 1;
-    for (const def of selects) {
-      if (def.optionCount === 0 || def.optionCount > EAGER_OPTION_LIMIT) continue;
+    return selects.filter((def) => {
+      if (def.optionCount === 0 || def.optionCount > EAGER_OPTION_LIMIT) return false;
       // D26 — a colour's swatches ARE the control's face, so they cannot wait for
       // a tap on the picker beside them.
       const colour = def.attrType === "single_select" && isColourKey(def.attrKey);
-      if (!colour && !foldsPossible && def.defaultValue === null) continue;
-      openOptions(def);
-    }
-  }, [schema, openOptions]);
+      return colour || foldsPossible || def.defaultValue !== null;
+    });
+  }, [schema]);
+
+  useEffect(() => {
+    for (const def of eager) openOptions(def);
+  }, [eager, openOptions]);
 
   /** A written answer, debounced by the draft; an absent answer drops its key. */
   const write = useCallback(
@@ -1645,13 +1653,31 @@ export function StepSpecifications({
     !spokenAbout.has(def.attrKey) &&
     !isCardRow(def) &&
     !isLockedRow(def);
+  /**
+   * INC-271 — WHAT IS NOT KNOWN YET IS NEVER HIDDEN. Every test above except
+   * `isRequired` and `visibleWhen` is answered by the OPTION ROWS: a fold, a
+   * fact, a bound, an `allowed` narrowing and a colour tray all exist only once
+   * the eager lists have arrived. On the served build they arrive a beat later
+   * than the first paint, so for that beat Series, Model and Storage looked like
+   * plain trailing optionals and the whole run went behind the expander — the
+   * seller (and PW-50) met a form holding only Brand. The cut therefore runs
+   * only once every eagerly-read list has settled (ready or failed); until then
+   * nothing is deferred, so the form is complete and in display order from the
+   * first frame. INC-269's rule is untouched: display order always, only the
+   * trailing seller-side optionals behind "More details", a dependent below its
+   * parent and never hidden.
+   */
+  const optionsSettled = eager.every((def) => {
+    const state = (options[def.attrKey] ?? IDLE).state;
+    return state === "ready" || state === "failed";
+  });
   let cut = asked.length;
-  while (cut > 0 && deferrable(asked[cut - 1]!)) cut -= 1;
+  if (optionsSettled) while (cut > 0 && deferrable(asked[cut - 1]!)) cut -= 1;
   const primary = asked.slice(0, cut);
   const extra = asked.slice(cut);
 
   return (
-    <div className="space-y-5" data-testid="post-specs">
+    <div className="space-y-5" data-testid="post-specs" data-options={optionsSettled ? "1" : "0"}>
       <p className="text-sm text-muted-foreground">{t("post.specs.why")}</p>
 
       {/* D25 — THE RESET SAYS SO, AND IS REVERSIBLE. A parent change re-derives
