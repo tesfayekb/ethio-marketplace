@@ -1,21 +1,29 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35831707201
-- Commit: `889d838e281d733c942efac9eff74438aed23a9d`
-- Attempt: 2
-- Written (UTC): 2026-09-23T07:58:43.028Z
-- Passed: 123 · Skipped: 31 · Failed: 0
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35838379675
+- Commit: `14fdd98bf82836892bfa3be7a0fdcab02d815cca`
+- PLATFORM-ORIGIN? the head commit's subject is `Work in progress` — a Lovable auto-push, so suspect platform-injected code before ours.
+- Attempt: 1
+- Written (UTC): 2026-09-23T08:50:23.820Z
+- Passed: 219 · Skipped: 34 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 1
 - Post-test errors (DEC-059, non-gating): shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
 - Sources without results: shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+
+## Flake ledger (DEC-030)
+
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
+
+- FLAKY (passed on retry) · `mobile-360` · source `changed` · post-wizard.spec.ts › POSTING WIZARD › PW-50 the specifications keep display order and hide only the trailing extras — Error: PW-50: the visible details were not in display order
 
 ## Post-test errors: shard 1
 
 shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-1
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-1
 ```
 
 ## Post-test errors: shard 2
@@ -23,7 +31,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-2
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-2
 ```
 
 ## Post-test errors: shard 3
@@ -31,7 +39,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-3
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-3
 ```
 
 ## Post-test errors: shard 4
@@ -39,7 +47,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-4
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-4
 ```
 
 ## Post-test errors: shard 5
@@ -47,7 +55,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-5
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-5
 ```
 
 ## Post-test errors: shard 6
@@ -55,7 +63,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-6
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-6
 ```
 
 ## Post-test errors: changed
@@ -63,7 +71,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 5 user(s) owned by process 35831707201-changed
+[e2e:teardown] deleted 105 user(s) owned by process 35838379675-changed
 ```
 
 ## Server errors: shard 1
@@ -129,7 +137,7 @@ TypeError: Cannot read properties of undefined (reading 'DEV')
      |                                               ^
   14 |
     at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-1
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-1
 ```
 
 ## shard 2: results file with zero tests
@@ -146,7 +154,7 @@ TypeError: Cannot read properties of undefined (reading 'DEV')
      |                                               ^
   14 |
     at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-2
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-2
 ```
 
 ## shard 3: results file with zero tests
@@ -163,7 +171,7 @@ TypeError: Cannot read properties of undefined (reading 'DEV')
      |                                               ^
   14 |
     at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-3
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-3
 ```
 
 ## shard 4: results file with zero tests
@@ -180,7 +188,7 @@ TypeError: Cannot read properties of undefined (reading 'DEV')
      |                                               ^
   14 |
     at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-4
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-4
 ```
 
 ## shard 5: results file with zero tests
@@ -197,7 +205,7 @@ TypeError: Cannot read properties of undefined (reading 'DEV')
      |                                               ^
   14 |
     at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-5
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-5
 ```
 
 ## shard 6: results file with zero tests
@@ -214,5 +222,5 @@ TypeError: Cannot read properties of undefined (reading 'DEV')
      |                                               ^
   14 |
     at /home/runner/work/ethio-marketplace/ethio-marketplace/src/lib/env-flags.ts:13:47
-[e2e:teardown] deleted 3 user(s) owned by process 35831707201-6
+[e2e:teardown] deleted 3 user(s) owned by process 35838379675-6
 ```
