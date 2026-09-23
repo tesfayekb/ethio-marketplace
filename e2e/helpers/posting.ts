@@ -1758,11 +1758,40 @@ export async function openMoreDetails(page: Page): Promise<void> {
     "[e2e:d36] the specifications form never answered",
   ).toBeVisible({ timeout: 20_000 });
   if ((await more.count()) === 0) return;
-  if ((await more.getAttribute("data-open")) === "1") return;
-  if ((await more.count()) === 0) return;
-  if ((await more.getAttribute("data-open")) === "1") return;
-  await more.click();
-  await expect(page.getByTestId("post-specs-more-panel")).toBeVisible({ timeout: 20_000 });
+  /**
+   * INC-269 — THE FIRST DRAW IS NOT THE LAST. The rows arrive, then the prefill and
+   * visibility pass runs and re-draws them, so the button the first read resolved can
+   * be detached under the tap ("element was detached from the DOM"). The tap is
+   * therefore attempted until the button reports itself open, re-resolving the
+   * element every time; an expander that disappears because the form reconciled to a
+   * shape with no trailing extras is not a failure.
+   */
+  /**
+   * The state is READ WITHOUT WAITING: a locator read blocks until the element is
+   * attached, and the element this loop is recovering from is precisely one that
+   * the re-draw detached. `evaluateAll` answers about whatever is there NOW —
+   * `null` when the form reconciled to a shape with no trailing extras, which is
+   * not a failure.
+   */
+  const openState = async (): Promise<string | null> =>
+    more.evaluateAll((nodes: Element[]) => nodes[0]?.getAttribute("data-open") ?? null);
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const state = await openState();
+    if (state === null) return;
+    if (state === "1") {
+      await expect(page.getByTestId("post-specs-more-panel")).toBeVisible({ timeout: 20_000 });
+      return;
+    }
+    try {
+      await more.click({ timeout: 5_000 });
+    } catch {
+      // The re-draw detached it; the next turn re-resolves the button, waiting on
+      // the form's own state rather than on a clock.
+      await expect(page.getByTestId("post-specs")).toBeVisible({ timeout: 20_000 });
+    }
+  }
+  throw new Error("[e2e:d36] the extras expander never opened");
 }
 
 /**
@@ -1865,4 +1894,208 @@ export async function seedWideSet(categoryId: string): Promise<WideSet> {
 
   const attrKeys = data.map((row) => row.attr_key);
   return { requiredKeys: attrKeys.slice(0, 2), optionalKeys: attrKeys.slice(2), attrKeys };
+}
+
+/**
+ * INC-269 — A SMARTPHONE-SHAPED LEAF. The catalogue's own Smartphones shape is a
+ * three-level fold (brand → series → model) whose model SETS the storage, then a
+ * run of plain seller-side extras. It is the shape D36's first cut reordered: the
+ * required brand and the prefilled storage were pulled to the top and Series,
+ * Model and Release year were buried behind the expander.
+ */
+export interface PhoneSet {
+  /** The leaf's details in the curator's own `display_order`. */
+  orderedKeys: string[];
+  brandKey: string;
+  seriesKey: string;
+  modelKey: string;
+  storageKey: string;
+  /** The trailing optional rows that MAY wait behind the expander. */
+  trailingKeys: string[];
+  brandValues: [string, string];
+  seriesValues: [string, string];
+  modelValues: [string, string];
+  storageValues: [string, string];
+  /** The storage value the chosen model prefills. */
+  modelStorageValue: string;
+  attrKeys: string[];
+}
+
+export async function seedPhoneSet(categoryId: string): Promise<PhoneSet> {
+  const supabase = adminClient();
+  const stem = `e2e_phone_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const brandKey = `${stem}_brand`;
+  const seriesKey = `${stem}_series`;
+  const modelKey = `${stem}_model`;
+  const storageKey = `${stem}_storage`;
+  const brandValues: [string, string] = [`${stem}_br1`, `${stem}_br2`];
+  const seriesValues: [string, string] = [`${stem}_se1`, `${stem}_se2`];
+  const modelValues: [string, string] = [`${stem}_mo1`, `${stem}_mo2`];
+  const storageValues: [string, string] = [`${stem}_st1`, `${stem}_st2`];
+  const option = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...extra,
+  });
+  const trailingKeys = Array.from({ length: 6 }, (_, index) => `${stem}_extra_${String(index)}`);
+
+  const rows = [
+    {
+      attr_key: brandKey,
+      name_en: `${stem} brand`,
+      attr_type: "single_select",
+      options: brandValues.map((value) => option(value)),
+    },
+    {
+      attr_key: seriesKey,
+      name_en: `${stem} series`,
+      attr_type: "single_select",
+      options: [
+        option(seriesValues[0], { parent: brandValues[0] }),
+        option(seriesValues[1], { parent: brandValues[1] }),
+      ],
+    },
+    {
+      attr_key: modelKey,
+      name_en: `${stem} model`,
+      attr_type: "single_select",
+      options: [
+        option(modelValues[0], {
+          parent: seriesValues[0],
+          facts: { [storageKey]: storageValues[0] },
+        }),
+        option(modelValues[1], { parent: seriesValues[1] }),
+      ],
+    },
+    {
+      attr_key: storageKey,
+      name_en: `${stem} storage`,
+      attr_type: "single_select",
+      options: storageValues.map((value) => option(value)),
+    },
+    ...trailingKeys.map((key) => ({
+      attr_key: key,
+      name_en: `${key} name`,
+      attr_type: "text",
+      max_length: 40,
+    })),
+  ];
+
+  const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
+  if (error || !data) {
+    throw new Error(`[e2e:inc269] seeding the phone set failed: ${error?.message ?? "no rows"}`);
+  }
+  const orderedKeys = [brandKey, seriesKey, modelKey, storageKey, ...trailingKeys];
+  const idOf = (key: string): string => {
+    const row = data.find((entry) => entry.attr_key === key);
+    if (!row) throw new Error(`[e2e:inc269] the ${key} definition is missing`);
+    return row.id;
+  };
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert(
+    orderedKeys.map((key, index) => ({
+      category_id: categoryId,
+      attribute_id: idOf(key),
+      // Only the brand is the door's own; everything else is optional, exactly as
+      // the real leaf has it — so the hiding rule cannot lean on `required`.
+      is_required: key === brandKey,
+      display_order: index + 1,
+    })),
+  );
+  if (linkError) throw new Error(`[e2e:inc269] linking the phone set failed: ${linkError.message}`);
+
+  return {
+    orderedKeys,
+    brandKey,
+    seriesKey,
+    modelKey,
+    storageKey,
+    trailingKeys,
+    brandValues,
+    seriesValues,
+    modelValues,
+    storageValues,
+    modelStorageValue: storageValues[0],
+    attrKeys: orderedKeys,
+  };
+}
+
+/**
+ * INC-269 — A TRADITIONAL-WEAR-SHAPED PAIR: an OPTIONAL parent picker (the region)
+ * at `display_order` 1 and a detail that hangs on it (the garment) at 2. The first
+ * cut of D36 put the dependent in the primary block and its parent behind the
+ * expander, so the list rendered ABOVE the answer it waits for and could not open.
+ */
+export interface ConditionalPair {
+  parentKey: string;
+  childKey: string;
+  parentValues: [string, string];
+  childValues: [string, string];
+  attrKeys: string[];
+}
+
+export async function seedConditionalPair(categoryId: string): Promise<ConditionalPair> {
+  const supabase = adminClient();
+  const stem = `e2e_cond_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const parentKey = `${stem}_region`;
+  const childKey = `${stem}_garment`;
+  const parentValues: [string, string] = [`${stem}_rg1`, `${stem}_rg2`];
+  const childValues: [string, string] = [`${stem}_gm1`, `${stem}_gm2`];
+  const option = (value: string) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+  });
+
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: parentKey,
+        name_en: `${stem} region`,
+        attr_type: "single_select",
+        options: parentValues.map(option),
+      },
+      {
+        attr_key: childKey,
+        name_en: `${stem} garment`,
+        attr_type: "single_select",
+        options: childValues.map(option),
+      },
+    ])
+    .select("id, attr_key");
+  if (error || !data) {
+    throw new Error(
+      `[e2e:inc269] seeding the conditional pair failed: ${error?.message ?? "no rows"}`,
+    );
+  }
+  const idOf = (key: string): string => {
+    const row = data.find((entry) => entry.attr_key === key);
+    if (!row) throw new Error(`[e2e:inc269] the ${key} definition is missing`);
+    return row.id;
+  };
+
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    {
+      category_id: categoryId,
+      attribute_id: idOf(parentKey),
+      is_required: false,
+      display_order: 1,
+    },
+    {
+      category_id: categoryId,
+      attribute_id: idOf(childKey),
+      is_required: false,
+      display_order: 2,
+      visible_when: { key: parentKey, in: [parentValues[0], parentValues[1]] },
+    },
+  ]);
+  if (linkError) {
+    throw new Error(`[e2e:inc269] linking the conditional pair failed: ${linkError.message}`);
+  }
+
+  return { parentKey, childKey, parentValues, childValues, attrKeys: [parentKey, childKey] };
 }

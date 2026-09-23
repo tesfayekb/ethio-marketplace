@@ -1,5 +1,7 @@
 import { join } from "node:path";
 
+import type { Page } from "@playwright/test";
+
 import { expect, test } from "./fixtures";
 
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
@@ -15,7 +17,8 @@ import { adminClient, createUser } from "./helpers/users";
 import {
   openMoreDetails,
   seedCatchAllLeaf,
-  seedWideSet,
+  seedPhoneSet,
+  seedConditionalPair,
   activeCityOf,
   attributesOf,
   bearerOf,
@@ -3179,59 +3182,93 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * D36 — FORM ECONOMY AT 360.
-   *
-   * Fourteen details is what a real catalogue asks of a seller and what a 360-pixel
-   * screen cannot show. Only the door's own required pair stands above the
-   * expander; the twelve extras arrive on one tap, and the tap is remembered for
-   * this category.
+   * A WALK TO STEP 3 THAT LEAVES THE EXTRAS SHUT. `reachStep3` opens them, and the
+   * collapsed shape is what INC-269's pair of tests is about.
    */
-  test("PW-50 a long form shows the required details first and the extras behind one tap", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "mobile-360", "mobile-360 only");
-    const user = await seller(page);
-    const category = await leaf();
-    const wide = await seedWideSet(category.id);
-    specs.push(...wide.attrKeys);
-
-    // NOT `reachStep3`: that walk opens the extras, and the collapsed shape is
-    // exactly what this test is about.
+  const reachStep3Collapsed = async (
+    page: Page,
+    userId: string,
+    category: { id: string; slug: string },
+    tag: string,
+  ): Promise<void> => {
     await gotoReady(page, "/post");
     await chooseBySearch(page, category.slug, category.id);
-    const [draft] = await draftsOf(user.id);
+    const [draft] = await draftsOf(userId);
     const listingId = String(draft?.id ?? "");
-    expect(listingId, "PW-50: step 1 created no draft").not.toBe("");
-    objects.push({ userId: user.id, listingId });
+    expect(listingId, `${tag}: step 1 created no draft`).not.toBe("");
+    objects.push({ userId, listingId });
     await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
     await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
       timeout: 45_000,
     });
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(page.getByTestId("post-specs"), `${tag}: the form never answered`).toBeVisible({
+      timeout: 20_000,
+    });
+  };
+
+  /** The details on screen, in the order the form drew them. */
+  const shownKeys = async (page: Page): Promise<string[]> =>
+    page
+      .getByTestId("post-spec")
+      .evaluateAll((nodes: Element[]) => nodes.map((node) => node.getAttribute("data-attr") ?? ""));
+
+  /**
+   * D36 / INC-269 — FORM ECONOMY AT 360 THAT NEVER REORDERS THE FORM.
+   *
+   * A Smartphones-shaped leaf: brand → series → model → storage, then six plain
+   * seller-side extras. The four that carry the shape of the item stay on screen in
+   * `display_order` — brand first although the storage is prefilled and the series
+   * and model are optional — and only the TRAILING run waits behind one tap.
+   */
+  test("PW-50 the specifications keep display order and hide only the trailing extras", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360", "mobile-360 only");
+    const user = await seller(page);
+    const category = await leaf();
+    const phone = await seedPhoneSet(category.id);
+    specs.push(...phone.attrKeys);
+
+    await reachStep3Collapsed(page, user.id, category, "PW-50");
 
     const more = page.getByTestId("post-specs-more");
-    await expect(more, "PW-50: a fourteen-row form offered no expander").toBeVisible({
+    await expect(more, "PW-50: a ten-row form offered no expander").toBeVisible({
       timeout: 20_000,
     });
     await expect(more, "PW-50: the expander started open").toHaveAttribute("data-open", "0");
-    const controls = page.getByTestId("post-attr-control");
-    expect(
-      await controls.count(),
-      "PW-50: more than eight details stood above the expander",
-    ).toBeLessThanOrEqual(8);
-    for (const attrKey of wide.requiredKeys) {
-      await expect(
-        page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`),
-        `PW-50: a required detail (${attrKey}) was hidden behind the expander`,
-      ).toBeVisible();
-    }
 
-    // ONE TAP brings the extras, all of them.
+    // THE ORDER IS THE CURATOR'S, and the head of the form is the fold plus its target.
+    expect(await shownKeys(page), "PW-50: the visible details were not in display order").toEqual([
+      phone.brandKey,
+      phone.seriesKey,
+      phone.modelKey,
+      phone.storageKey,
+    ]);
+
+    // THE FOLD STILL WORKS where it stands, and the model's fact reaches the storage.
+    const control = (key: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
+    await control(phone.brandKey).selectOption(phone.brandValues[0]);
+    await expect(control(phone.seriesKey), "PW-50: the series never opened").toBeEnabled({
+      timeout: 20_000,
+    });
+    await control(phone.seriesKey).selectOption(phone.seriesValues[0]);
+    await expect(control(phone.modelKey), "PW-50: the model never opened").toBeEnabled({
+      timeout: 20_000,
+    });
+    await control(phone.modelKey).selectOption(phone.modelValues[0]);
+    await expect(
+      control(phone.storageKey),
+      "PW-50: the model's storage fact never reached its field",
+    ).toHaveValue(phone.modelStorageValue, { timeout: 20_000 });
+
+    // ONE TAP brings the trailing extras, all of them, still in display order.
     await more.click();
     await expect(page.getByTestId("post-specs-more-panel")).toBeVisible({ timeout: 20_000 });
-    expect(await controls.count(), "PW-50: the expander did not bring every extra detail").toBe(
-      wide.attrKeys.length,
+    expect(await shownKeys(page), "PW-50: the expander did not bring the extras in order").toEqual(
+      phone.orderedKeys,
     );
 
     // AND IT IS REMEMBERED for this category: a step away and back keeps it open.
@@ -3243,5 +3280,43 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-specs-more"),
       "PW-50: the expander forgot that the seller had opened it",
     ).toHaveAttribute("data-open", "1");
+  });
+
+  /**
+   * INC-269 — A DEPENDENT LIST NEVER RENDERS ABOVE ITS PARENT.
+   *
+   * Traditional Wear's shape: an OPTIONAL region at `display_order` 1 and a garment
+   * list that hangs on it at 2. The first cut of D36 put the dependent first and its
+   * parent behind the expander, so the list stood above the answer it waits for and
+   * could not open at all.
+   */
+  test("PW-51 a dependent detail never renders above the answer it hangs on", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const pair = await seedConditionalPair(category.id);
+    specs.push(...pair.attrKeys);
+
+    await reachStep3Collapsed(page, user.id, category, "PW-51");
+
+    const control = (key: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
+    await expect(
+      control(pair.parentKey),
+      "PW-51: the parent answer was hidden behind the expander",
+    ).toBeVisible({ timeout: 20_000 });
+
+    await control(pair.parentKey).selectOption(pair.parentValues[0]);
+    await expect(control(pair.childKey), "PW-51: the dependent never appeared").toBeVisible({
+      timeout: 20_000,
+    });
+    const keys = await shownKeys(page);
+    expect(
+      keys.indexOf(pair.parentKey),
+      "PW-51: the dependent rendered above its parent",
+    ).toBeLessThan(keys.indexOf(pair.childKey));
+    await control(pair.childKey).selectOption(pair.childValues[0]);
+    await expect(control(pair.childKey), "PW-51: the dependent list could not be set").toHaveValue(
+      pair.childValues[0],
+    );
   });
 });
