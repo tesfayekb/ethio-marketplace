@@ -278,3 +278,22 @@ export function isKnownCategoryIcon(name: string | null | undefined): boolean {
 }
 
 export { CATCHALL_ICON_NAME, FALLBACK_ICON_NAME };
+
+/**
+ * D38 — THE PICKER'S GLYPH: the stored name's glyph, or NOTHING. No fallback
+ * box and no gap: an absent name renders nothing silently; an unknown one
+ * renders nothing and is logged ONCE per name (F4 — never silent), so a
+ * curation typo is visible in the console without flooding it.
+ */
+const unknownLogged = new Set<string>();
+export function categoryGlyphOrNull(name: string | null | undefined): LucideIcon | null {
+  const trimmed = (name ?? "").trim();
+  if (trimmed === "") return null;
+  const glyph = CATEGORY_GLYPHS[trimmed as CategoryIconName];
+  if (glyph) return glyph;
+  if (!unknownLogged.has(trimmed)) {
+    unknownLogged.add(trimmed);
+    console.warn(`[category-icon] unknown icon name "${trimmed}" renders no glyph`);
+  }
+  return null;
+}

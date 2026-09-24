@@ -960,3 +960,7 @@ that one tap brings all ten in order, and that a step away and back finds the
 expander still open. PW-51 seeds an OPTIONAL parent at order 1 and a dependent at
 order 2 and asserts the parent is never hidden, the dependent renders below it,
 and it can be answered.
+
+## D38 / D40 — category icons and the menu treatment in the picker
+
+The step-1 picker renders the category's stored lucide name (projected by the tree read as `icon`) before its label through `categoryGlyphOrNull`: absent → no glyph, no gap; unknown → no glyph, logged once per name. Tiles and crumbs use the marketplace rail's hover and selected tokens (`sidebar-accent`), a visible focus ring, ≥44 px targets and logical properties; the chosen leaf carries `aria-current`. PW-52 proves a glyph for a folder with an icon name and none for a leaf without one.

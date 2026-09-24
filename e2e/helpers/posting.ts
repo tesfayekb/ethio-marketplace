@@ -212,7 +212,9 @@ export function completeDraft(params: {
  * selectable, and only the leaf below it can be chosen. Both rows are namespaced
  * scratch and are destroyed pointers-first by `destroyCategoryBranch`.
  */
-export async function seedCategoryBranch(options: { parentImageUrl?: string } = {}) {
+export async function seedCategoryBranch(
+  options: { parentImageUrl?: string; parentIcon?: string } = {},
+) {
   const supabase = adminClient();
   const parentSlug = scratchCategorySlug();
   const leafSlug = scratchCategorySlug();
@@ -230,6 +232,8 @@ export async function seedCategoryBranch(options: { parentImageUrl?: string } = 
       // U6-C1-R2 — the ANCESTOR's illustration: the stand-in a leaf without one
       // of its own must inherit (PW-4).
       ...(options.parentImageUrl === undefined ? {} : { image_url: options.parentImageUrl }),
+      // D38 — the folder may carry a lucide name; the leaf never does (PW-52).
+      ...(options.parentIcon === undefined ? {} : { icon: options.parentIcon }),
     })
     .select("id, slug, image_url")
     .single();

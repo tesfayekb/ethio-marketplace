@@ -231,6 +231,43 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-1")).toBeVisible();
   });
 
+  test("PW-52 a category with an icon name shows its glyph; one without shows none (D38)", async ({
+    page,
+  }) => {
+    const { parent, leaf: child } = await seedCategoryBranch({ parentIcon: "Smartphone" });
+    branches.push(parent.slug, child.slug);
+    await seller(page);
+    await gotoReady(page, "/post");
+
+    const folder = page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`);
+    await expect(folder, "PW-52: the scratch folder is missing").toBeVisible({ timeout: 20_000 });
+    await expect(
+      folder.getByTestId("post-category-icon"),
+      "PW-52: the folder's stored icon did not render",
+    ).toHaveCount(1);
+    const box = await folder.boundingBox();
+    expect(box?.height ?? 0, "PW-52: the tile is below 44 px").toBeGreaterThanOrEqual(44);
+
+    await folder.click();
+    const leafRow = page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`);
+    await expect(leafRow).toBeVisible();
+    await expect(
+      leafRow.getByTestId("post-category-icon"),
+      "PW-52: a category with no icon name rendered a glyph",
+    ).toHaveCount(0);
+    await expect(leafRow.locator("svg"), "PW-52: a fallback glyph took the empty slot").toHaveCount(
+      0,
+    );
+
+    // D40 — keyboard focus is visible on a tile.
+    await leafRow.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await expect(leafRow).toBeFocused();
+    const ring = await leafRow.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(ring, "PW-52: no visible focus ring on a tile").not.toBe("none");
+  });
+
   test("PW-3 a folder is browsable and never selectable; its leaf is (D11)", async ({ page }) => {
     // U6-C1-R2 — the folder carries an illustration and the LEAF has none, so the
     // stand-in on step 2 can only come from the ancestor walk.

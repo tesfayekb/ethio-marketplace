@@ -9,6 +9,7 @@ import {
   type CategoryNode,
   type CategoryTree,
 } from "@/features/categories/category-tree";
+import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { entityName } from "@/i18n/entity";
 import { useI18n } from "@/i18n";
 
@@ -38,12 +39,28 @@ import { useI18n } from "@/i18n";
  * so Back and Next stay on screen at every size (the LAYOUT-1 sticky bar).
  */
 
+/**
+ * D40 — THE MARKETPLACE MENU'S TREATMENT: the rail's sidebar-accent hover, its
+ * sidebar-accent selection, a visible keyboard ring; ≥44 px, logical props only.
+ */
 const rowClass =
   "flex min-h-11 w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-start " +
-  "text-sm text-foreground hover:bg-accent disabled:opacity-60";
+  "text-sm text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
+  "disabled:opacity-60 disabled:hover:bg-transparent";
+const rowSelected = "bg-sidebar-accent font-medium text-sidebar-accent-foreground";
+
+/** D38 — the stored glyph before the name; none (and no gap) when absent/unknown. */
+function NodeGlyph({ icon }: { icon: string | null }) {
+  const Glyph = categoryGlyphOrNull(icon);
+  if (Glyph === null) return null;
+  return <Glyph className="h-4 w-4 shrink-0" aria-hidden="true" data-testid="post-category-icon" />;
+}
 
 const crumbClass =
-  "min-h-11 rounded-md border border-border px-3 py-1 text-xs text-foreground hover:bg-accent";
+  "min-h-11 rounded-md border border-border px-3 py-1 text-xs text-foreground " +
+  "hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function StepCategory({
   tree,
@@ -53,6 +70,7 @@ export function StepCategory({
   invalid = false,
   cursor,
   onCursor,
+  selectedId = null,
 }: {
   tree: CategoryTree;
   isLoading: boolean;
@@ -69,6 +87,8 @@ export function StepCategory({
    */
   cursor: string | null;
   onCursor: (id: string | null) => void;
+  /** D40 — the leaf already chosen wears the menu's selected treatment. */
+  selectedId?: string | null;
 }) {
   const { t, entities } = useI18n();
   const [term, setTerm] = useState("");
@@ -148,10 +168,14 @@ export function StepCategory({
                   type="button"
                   data-testid="post-category-hit"
                   data-category={node.id}
-                  className={`${rowClass} flex-col items-start gap-0`}
+                  aria-current={node.id === selectedId ? "true" : undefined}
+                  className={`${rowClass} ${node.id === selectedId ? rowSelected : ""} flex-col items-start gap-0`}
                   onClick={() => onChoose(node.id)}
                 >
-                  <span className="font-medium">{label(node)}</span>
+                  <span className="flex items-center gap-2 font-medium">
+                    <NodeGlyph icon={node.icon} />
+                    {label(node)}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {pathOf(tree, node.id)
                       .map((step) => label(step))
@@ -210,12 +234,14 @@ export function StepCategory({
                       data-testid={folder ? "post-browse-folder" : "post-browse-leaf"}
                       data-category={node.id}
                       disabled={!folder && !postable}
-                      className={rowClass}
+                      aria-current={node.id === selectedId ? "true" : undefined}
+                      className={`${rowClass} ${node.id === selectedId ? rowSelected : ""}`}
                       onClick={() => {
                         if (folder) onCursor(node.id);
                         else onChoose(node.id);
                       }}
                     >
+                      <NodeGlyph icon={node.icon} />
                       <span className="grow">{label(node)}</span>
                       {folder && (
                         <span className="text-xs text-muted-foreground" aria-hidden="true">

@@ -503,6 +503,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           treeError={treeError}
                           cursor={categoryCursor}
                           onCursor={setCategoryCursor}
+                          selectedId={categoryId}
                           invalid={triedWithoutLeaf && categoryId === null}
                           onChoose={(nextCategoryId) => {
                             // ONE CONTROL, AUTO-ADVANCE: choosing a postable leaf IS the

@@ -3,7 +3,7 @@ import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/app-shell";
-import { categoryGlyph } from "@/components/shell/category-glyphs";
+import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { Logo } from "@/components/brand/logo";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
@@ -300,8 +300,12 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     label: entityName("category", category, entities),
     // C5i PART B.3 — the STORED icon first (the operator's choice, visible on
     // the public rail), then the slug map in src/config/panels.ts, then Tag.
-    // Unknown stored names resolve to Package via categoryGlyph.
-    icon: category.icon ? categoryGlyph(category.icon) : categoryIcon(category.slug),
+    // D38 — an UNKNOWN stored name renders no glyph (logged once), never Package.
+    // A row with NO stored name keeps the slug map: the collapsed rail is
+    // icons-only, so an absent glyph there would be an empty target.
+    icon: category.icon
+      ? (categoryGlyphOrNull(category.icon) ?? undefined)
+      : categoryIcon(category.slug),
 
     active: category.slug === selectedCategorySlug,
     path: "/c/$slug",
