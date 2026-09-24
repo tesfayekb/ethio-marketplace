@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35977807381
-- Commit: `18750ef6bfe1b8a645b095fe941d5a799fd5f80a`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35978404404
+- Commit: `67478fd526dfc26fdc4cd6dea826c233e4afeda8`
 - Attempt: 1
-- Written (UTC): 2026-09-24T08:53:40.790Z
+- Written (UTC): 2026-09-24T08:59:35.537Z
 
 ## Migration linter (with self-test) — failure
 
@@ -23,9 +23,9 @@
 [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
 ##[endgroup]
 ##[group]Fetching the repository
-[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +18750ef6bfe1b8a645b095fe941d5a799fd5f80a:refs/remotes/origin/dev
+[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +67478fd526dfc26fdc4cd6dea826c233e4afeda8:refs/remotes/origin/dev
 From https://github.com/tesfayekb/ethio-marketplace
- * [new ref]         18750ef6bfe1b8a645b095fe941d5a799fd5f80a -> origin/dev
+ * [new ref]         67478fd526dfc26fdc4cd6dea826c233e4afeda8 -> origin/dev
 ##[endgroup]
 ##[group]Determining the checkout info
 ##[endgroup]
@@ -37,7 +37,7 @@ Switched to a new branch 'dev'
 branch 'dev' set up to track 'origin/dev'.
 ##[endgroup]
 [command]/usr/bin/git log -1 --format=%H
-18750ef6bfe1b8a645b095fe941d5a799fd5f80a
+67478fd526dfc26fdc4cd6dea826c233e4afeda8
 ##[group]Run oven-sh/setup-bun@v2
 with:
   bun-version: 1.3.14
@@ -45,9 +45,9 @@ with:
   token: ***
 ##[endgroup]
 Cache hit for: bun-fR4r1tsFeXfPQkusQwkKD2kGnsE=
-Received 33843767 of 33843767 (100.0%), 72.7 MBs/sec
+Received 33843767 of 33843767 (100.0%), 33.6 MBs/sec
 Cache Size: ~32 MB (33843767 B)
-[command]/usr/bin/tar -xf /home/runner/work/_temp/0ce07dff-a784-459a-9145-67256fd84de9/cache.tzst -P -C /home/runner/work/ethio-marketplace/ethio-marketplace --use-compress-program unzstd
+[command]/usr/bin/tar -xf /home/runner/work/_temp/1b8b5db0-234d-4351-8304-6a9e1c392910/cache.tzst -P -C /home/runner/work/ethio-marketplace/ethio-marketplace --use-compress-program unzstd
 Cache restored successfully
 [command]/home/runner/.bun/bin/bun --revision
 1.3.14+0d9b296af
@@ -63,7 +63,7 @@ Migration guard FAILED: 1 file(s) missing RLS/policy/grant:
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/66cdf99f-43ab-4d08-be31-05e3229e0368' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/e1ea4549-e128-485c-a1c7-3eb5ee6969c9' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -118,7 +118,7 @@ Cleaning up orphan processes
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-517 packages installed [837.00ms]
+517 packages installed [769.00ms]
 ##[group]Run bun scripts/e2e-migration-preflight.ts
 [36;1mbun scripts/e2e-migration-preflight.ts[0m
 shell: /usr/bin/bash -e {0}
@@ -136,7 +136,7 @@ STAGING BEHIND: apply 20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/07c05e8d-a38f-48c6-bc6f-1b8a5ab942e9' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/547c30f6-126e-4043-86b3-61d6c8238bb9' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -179,10 +179,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35977807381
-  E2E_HEAD_COMMIT_MESSAGE: Applied D37-1 catalog finder
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35978404404
+  E2E_HEAD_COMMIT_MESSAGE: Rolled back catalog finder
 
-X-Lovable-Edit-ID: edt-588027e7-d6c7-4ac5-bea7-3f4abf4711c2
+X-Lovable-Edit-ID: edt-25ab9e6b-4754-4074-a6c5-a112a60f756e
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -196,11 +196,11 @@ context download: 0 context files found.
 Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-HEAD is now at 18750ef Applied D37-1 catalog finder
-[dev 707c190] ci: e2e failure report + flake ledger [skip ci]
- 1 file changed, 115 insertions(+), 11 deletions(-)
+HEAD is now at 67478fd Rolled back catalog finder
+[dev 6e81ca4] ci: e2e failure report + flake ledger [skip ci]
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   18750ef..707c190  HEAD -> dev
+   67478fd..6e81ca4  HEAD -> dev
 ##[group]Run echo "smoke=skipped email=skipped shards=skipped"
 [36;1mecho "smoke=skipped email=skipped shards=skipped"[0m
 [36;1mif [ "skipped" != "success" ] || [ "skipped" != "success" ] || [ "skipped" != "success" ]; then[0m
@@ -216,7 +216,7 @@ smoke=skipped email=skipped shards=skipped
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/2787b219-0a90-46c7-92dc-d9b207f0a80d' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/5c96d0b6-cde2-4932-a997-cc1604fb57e8' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
