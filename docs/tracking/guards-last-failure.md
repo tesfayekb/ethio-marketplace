@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35979437705
-- Commit: `e3b6947f173931ee8f53a30b3d7f967c20807d09`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35979688870
+- Commit: `f16a4a8652350324504934220af44212b110723f`
 - Attempt: 1
-- Written (UTC): 2026-09-24T09:12:06.324Z
+- Written (UTC): 2026-09-24T09:20:04.899Z
 
 ## Migration linter (with self-test) — failure
 
@@ -16,54 +16,54 @@
 ### Tail (last 60 lines)
 
 ```text
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-[command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-##[endgroup]
-##[group]Fetching the repository
-[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +e3b6947f173931ee8f53a30b3d7f967c20807d09:refs/remotes/origin/dev
-From https://github.com/tesfayekb/ethio-marketplace
- * [new ref]         e3b6947f173931ee8f53a30b3d7f967c20807d09 -> origin/dev
-##[endgroup]
-##[group]Determining the checkout info
-##[endgroup]
-[command]/usr/bin/git sparse-checkout disable
-[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-##[group]Checking out the ref
-[command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
-Switched to a new branch 'dev'
-branch 'dev' set up to track 'origin/dev'.
-##[endgroup]
-[command]/usr/bin/git log -1 --format=%H
-e3b6947f173931ee8f53a30b3d7f967c20807d09
-##[group]Run oven-sh/setup-bun@v2
-with:
-  bun-version: 1.3.14
-  no-cache: false
-  token: ***
-##[endgroup]
-Cache hit for: bun-fR4r1tsFeXfPQkusQwkKD2kGnsE=
-Received 33843767 of 33843767 (100.0%), 96.6 MBs/sec
-Cache Size: ~32 MB (33843767 B)
-[command]/usr/bin/tar -xf /home/runner/work/_temp/41deb2b0-876a-46c9-a5c9-5b85e31cc75c/cache.tzst -P -C /home/runner/work/ethio-marketplace/ethio-marketplace --use-compress-program unzstd
-Cache restored successfully
-[command]/home/runner/.bun/bin/bun --revision
-1.3.14+0d9b296af
-Using a cached version of Bun: 1.3.14+0d9b296af
-##[group]Run SELF_TEST=1 bash scripts/check-migrations.sh
-[36;1mSELF_TEST=1 bash scripts/check-migrations.sh[0m
+  - /home/runner/work/ethio-marketplace/ethio-marketplace/scripts/fixtures/bad-unmarked-migration-example.sql (no INSERT INTO public.migration_marks)
+SELF_TEST mode: self-tests passed; skipping real scan.
+##[group]Run bash scripts/check-migrations.sh
+[36;1mbash scripts/check-migrations.sh[0m
+[36;1mbun run scripts/e2e-migration-preflight.ts --self-test[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
 Self-test OK: bad fixture correctly flagged.
-Migration guard FAILED: 2 file(s) missing RLS/policy/grant:
-  - supabase/migrations/20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql (missing: CREATE POLICY)
-  - supabase/migrations/20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql (missing: CREATE POLICY)
+Policy-less by design (allowlisted): 20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql
+Policy-less by design (allowlisted): 20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql
+Self-test OK: definer-without-revoke sample correctly flagged:
+  - /tmp/tmp.gKiWIkoD9w (SECURITY DEFINER without in-file REVOKE: self_test_definer)
+Self-test OK: allowlisted file skipped and printed:
+Definer guard: allowlisted files (each cites its closer)
+  - 29990101000000_allowlisted-sample.sql (self-test: tool split placed the REVOKE in the next file | closed by deadbeef)
+Self-test OK: unmarked-migration sample correctly flagged:
+  - /home/runner/work/ethio-marketplace/ethio-marketplace/scripts/fixtures/bad-unmarked-migration-example.sql (no INSERT INTO public.migration_marks)
+Definer guard: grandfathered files skipped (pre-20260810000000):
+  - 20260809010922_edef5653-e1b6-40a8-b8a0-920ada89db08.sql (grandfathered)
+  - 20260804174739_0ce87c13-1bf0-4cc8-8d61-8dd8212d961c.sql (grandfathered)
+  - 20260809010130_05add65c-4963-4df2-95bd-b1cc855820c0.sql (grandfathered)
+  - 20260730015333_87dbf472-b8ca-4e8d-b9d9-d48fd13278e8.sql (grandfathered)
+  - 20260809061244_e2830ce7-06c8-4720-af53-4009336c4c86.sql (grandfathered)
+  - 20260803100407_e0cb3ef4-5240-48db-8a73-d6f983137eab.sql (grandfathered)
+  - 20260804133231_85cf6673-6143-4591-ba21-1bf72eb32b9f.sql (grandfathered)
+  - 20260730094625_8d30a5fc-2ce1-4a0a-b4c1-931911a09076.sql (grandfathered)
+  - 20260803075756_47bf56ca-eb85-4c8b-8e62-1f95cb9af2a6.sql (grandfathered)
+Definer guard: allowlisted files (each cites its closer)
+  - 20260908041703_62e6566c-a1c9-4212-a78b-c68e0bf95169.sql (DEC-045a redeclared admin_delete_attribute, admin_unlink_attribute and admin_merge_attributes without restating their REVOKE/GRANT; window closed by the DEC-045a-fix corrective (ACL read-back loop in file) | closed by d9267b5f)
+  - 20260907050122_84bead12-f50a-4e83-b3e5-e7bc34a0ec21.sql (C3-UX-2 redeclared five entity-translation definers without restating their grants; window closed by the C3-UX-2b corrective (read-back in file) | closed by 2dcafad6)
+  - 20260903044526_7e14ce39-76a6-4095-845b-e5d6e83d772c.sql (admin_create_category REVOKE restated in C2e corrective | closed by 63df0b68)
+  - 20260831064939_4a00896e-bc69-4919-bb1e-8181a7e65034.sql (tool split placed the REVOKE in the next file; window closed by paired apply | closed by f18f1883)
+Definer guard OK.
+Self-marking guard FAILED: 9 file(s) do not self-mark into public.migration_marks:
+  - supabase/migrations/20260924084544_34d30f0a-b0e9-449e-b33d-d4bd50d08747.sql (declared mark '20260924021000' precedes its filename stamp '20260924084544')
+  - supabase/migrations/20260924084842_391d5884-a3d5-4669-8d73-f604da2e5002.sql (declared mark '20260924027000' precedes its filename stamp '20260924084842')
+  - supabase/migrations/20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql (declared mark '20260924020000' precedes its filename stamp '20260924084437')
+  - supabase/migrations/20260924084606_531073a7-5fb5-4c80-b98a-3aae0f35c7c1.sql (declared mark '20260924022000' precedes its filename stamp '20260924084606')
+  - supabase/migrations/20260924084745_adeb37e6-5164-49ac-b95c-ae8602bcd8fa.sql (declared mark '20260924026000' precedes its filename stamp '20260924084745')
+  - supabase/migrations/20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql (declared mark '20260924028000' precedes its filename stamp '20260924090042')
+  - supabase/migrations/20260924084639_97e1fedd-eee6-4f72-af8b-e62e25ae8425.sql (declared mark '20260924023000' precedes its filename stamp '20260924084639')
+  - supabase/migrations/20260924084700_6c11435c-c46b-4f2d-8c15-9b5cea7a5573.sql (declared mark '20260924024000' precedes its filename stamp '20260924084700')
+  - supabase/migrations/20260924084727_4b3cc41e-32b7-4537-83e1-9ddbb2585784.sql (declared mark '20260924025000' precedes its filename stamp '20260924084727')
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/2427ade4-7bc1-42e2-954f-a07db75bcfaa' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/2a82a609-a58c-49cd-a37a-ed90e2608ca4' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -105,10 +105,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35979437705
-  E2E_HEAD_COMMIT_MESSAGE: Fixed catalog search build
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35979688870
+  E2E_HEAD_COMMIT_MESSAGE: Added RLS exception list
 
-X-Lovable-Edit-ID: edt-bed46a7a-8cbc-42ed-9e64-6d8acfa45d0d
+X-Lovable-Edit-ID: edt-8b310390-634f-42e2-9e05-04575adf2a4f
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -116,34 +116,34 @@ Co-authored-by: tesfayekb <tesfayekb@me.com>
   layout OK — zero artifacts: 0 context file(s), report rendered.
   layout OK — missing directory: 0 context file(s), report rendered.
 Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-context download: 0 context files found.
-  glob: shard-contexts/**/error-context.md
-  searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (3/9 source(s) with usable results, 1 context file(s) found).
+Flake ledger: appended 8 line(s) to docs/tracking/flake-ledger.md.
+Flake ledger: appended 8 line(s) to docs/tracking/flake-ledger.md.
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-   e3b6947..f16a4a8  dev        -> origin/dev
-HEAD is now at f16a4a8 Added RLS exception list
-[dev 4313da2] ci: e2e failure report + flake ledger [skip ci]
- 1 file changed, 3 insertions(+), 3 deletions(-)
+   f16a4a8..28a4439  dev        -> origin/dev
+HEAD is now at 28a4439 Added explicit finder policies
+Flake ledger: appended 8 line(s) to docs/tracking/flake-ledger.md.
+[dev 2ea4975] ci: e2e failure report + flake ledger [skip ci]
+ 2 files changed, 1208 insertions(+), 30 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   f16a4a8..4313da2  HEAD -> dev
-##[group]Run echo "smoke=cancelled email=success shards=cancelled"
-[36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
-[36;1mif [ "cancelled" != "success" ] || [ "cancelled" != "success" ] || [ "success" != "success" ]; then[0m
+   28a4439..2ea4975  HEAD -> dev
+##[group]Run echo "smoke=cancelled email=success shards=failure"
+[36;1mecho "smoke=cancelled email=success shards=failure"[0m
+[36;1mif [ "cancelled" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=cancelled email=success shards=cancelled
+smoke=cancelled email=success shards=failure
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/953f3423-e760-474c-b5cf-9917eebc8c70' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/2de51bea-57be-4991-b393-d2c1cc410612' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
