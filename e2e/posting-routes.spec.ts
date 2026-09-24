@@ -265,7 +265,9 @@ test.describe("POSTING ROUTES", () => {
     categories.push(leaf.slug);
     const key = `e2e-${rand()}`;
     const headers = { "x-e2e-catalog-find-key": key };
-    const english = await page.request.get(`${CATALOG_FIND}?q=${leaf.english}&lang=en`, { headers });
+    const english = await page.request.get(`${CATALOG_FIND}?q=${leaf.english}&lang=en`, {
+      headers,
+    });
     expect(english.status()).toBe(200);
     const englishBody = (await english.json()) as { results?: Array<{ slug?: string }> };
     expect(Array.isArray(englishBody.results)).toBe(true);
@@ -288,7 +290,9 @@ test.describe("POSTING ROUTES", () => {
       ),
     ).toBe(true);
 
-    const limited = await page.request.get(`${CATALOG_FIND}?q=${leaf.english}&lang=en`, { headers });
+    const limited = await page.request.get(`${CATALOG_FIND}?q=${leaf.english}&lang=en`, {
+      headers,
+    });
     expect(limited.status()).toBe(429);
 
     const short = await page.request.get(`${CATALOG_FIND}?q=a&lang=en`, {
