@@ -1,4 +1,4 @@
-# Policy-less-by-design tables (RLS enabled, no policies, service_role only).
-# <filename> | <reason>
-20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql | D37-1 catalog_find_index/catalog_find_terms: read only through catalog_find() SECURITY DEFINER
-20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql | D37-1 corrective re-land of the same two finder tables (idempotent)
+# Tables whose policies landed in a later corrective migration.
+# <filename> | <reason> | <closer uuid-fragment (must CREATE POLICY ON each table)>
+20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql | D37-1 finder tables; deny-all policies added by the E1 corrective | 37a1e9bc
+20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql | D37-1 idempotent re-land of the finder tables; same E1 corrective | 37a1e9bc
