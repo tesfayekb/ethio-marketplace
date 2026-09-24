@@ -154,6 +154,54 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_find_index: {
+        Row: {
+          attribute_key: string | null
+          catalog_version: string
+          category_id: string
+          kind: string
+          lang: string
+          option_value: string | null
+          term: string
+          term_norm: string
+          weight: number
+        }
+        Insert: {
+          attribute_key?: string | null
+          catalog_version: string
+          category_id: string
+          kind: string
+          lang: string
+          option_value?: string | null
+          term: string
+          term_norm: string
+          weight: number
+        }
+        Update: {
+          attribute_key?: string | null
+          catalog_version?: string
+          category_id?: string
+          kind?: string
+          lang?: string
+          option_value?: string | null
+          term?: string
+          term_norm?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      catalog_find_terms: {
+        Row: {
+          term_norm: string
+        }
+        Insert: {
+          term_norm: string
+        }
+        Update: {
+          term_norm?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           allow_listings: boolean
@@ -2618,8 +2666,30 @@ export type Database = {
       }
       cat_text: { Args: { p_text: string }; Returns: string }
       cat_ts: { Args: { p_text: string }; Returns: string }
+      catalog_find: {
+        Args: { lang: string; lim?: number; q: string }
+        Returns: {
+          icon: string
+          leaf_id: string
+          matches: Json
+          path: string[]
+          score: number
+          slug: string
+        }[]
+      }
+      catalog_find_norm: { Args: { p: string }; Returns: string }
+      catalog_find_path: {
+        Args: { p_id: string; p_lang: string }
+        Returns: string[]
+      }
+      catalog_find_rebuild: { Args: never; Returns: number }
+      catalog_find_version: { Args: never; Returns: string }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
+      consume_catalog_find_rate: {
+        Args: { p_key: string; p_limit?: number }
+        Returns: Json
+      }
       consume_rate_limit: {
         Args: {
           p_action: string

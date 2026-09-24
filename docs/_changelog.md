@@ -1,5 +1,7 @@
 # Changelog (append-only)
 
+- 2026-09-24 — D37-1: catalog finder index, rebuild, RPC and route (`pg_trgm`). apply `391d5884` → expect mark `20260924027000`; publication refresh follow-ups expect marks through `20260924026000`.
+
 2026-09-09 — governance: C3 era gate review imported; C3 era CLOSED (four-lens review at docs/governance/reviews/c3-era-gate.md)
 
 2026-07-29 — docs: documentation foundation created (Phase 0 prompt A)
