@@ -34,6 +34,7 @@ const DRAFT = "/api/listings/draft";
 const PUBLISH = "/api/listings/publish";
 const IDENTITY = "/api/listings/identity";
 const ASSIST = "/api/listings/assist";
+const CATALOG_FIND = "/api/catalog/find";
 
 test.describe("POSTING ROUTES", () => {
   const categories: string[] = [];
@@ -256,5 +257,35 @@ test.describe("POSTING ROUTES", () => {
       const answer = await postRoute(page, path, {}, { token: null });
       expect(answer.status, `${path} answered ${answer.status} without a bearer`).toBe(401);
     }
+  });
+
+  test("PR-9 catalog finder is bounded, multilingual and rate-limited", async ({ page }) => {
+    const key = `e2e-${rand()}`;
+    const headers = { "x-e2e-catalog-find-key": key };
+    const english = await page.request.get(`${CATALOG_FIND}?q=toyota&lang=en`, { headers });
+    expect(english.status()).toBe(200);
+    const englishBody = (await english.json()) as { results?: unknown[] };
+    expect(Array.isArray(englishBody.results)).toBe(true);
+    expect(englishBody.results?.length ?? 0).toBeLessThanOrEqual(8);
+    expect(Buffer.byteLength(JSON.stringify(englishBody))).toBeLessThanOrEqual(2048);
+
+    const amharic = await page.request.get(
+      `${CATALOG_FIND}?q=${encodeURIComponent("ኩል")}&lang=am`,
+      { headers },
+    );
+    expect(amharic.status()).toBe(200);
+    const amharicBody = (await amharic.json()) as { results?: Array<{ path?: string[] }> };
+    expect(amharicBody.results?.length ?? 0).toBeGreaterThan(0);
+    expect(
+      amharicBody.results?.some((row) => row.path?.some((part) => /[\u1200-\u137f]/.test(part))),
+    ).toBe(true);
+
+    const limited = await page.request.get(`${CATALOG_FIND}?q=toyota&lang=en`, { headers });
+    expect(limited.status()).toBe(429);
+
+    const short = await page.request.get(`${CATALOG_FIND}?q=a&lang=en`, {
+      headers: { "x-e2e-catalog-find-key": `${key}-short` },
+    });
+    expect(short.status()).toBe(400);
   });
 });
