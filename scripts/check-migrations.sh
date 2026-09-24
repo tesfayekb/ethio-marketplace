@@ -14,6 +14,17 @@ FIXTURE_DIR="$SCRIPT_DIR/fixtures"
 BAD_FIXTURE="$FIXTURE_DIR/bad-migration-example.sql"
 MIGRATIONS_DIR="supabase/migrations"
 
+RLS_ALLOWLIST_FILE="${RLS_ALLOWLIST_FILE:-$SCRIPT_DIR/migration-guard-rls-allowlist.txt}"
+
+rls_allowlisted() {
+  [ -f "$RLS_ALLOWLIST_FILE" ] || return 1
+  awk -F'|' -v base="$1" '
+    /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
+    { n = $1; gsub(/^[[:space:]]+|[[:space:]]+$/, "", n); if (n == base) f = 1 }
+    END { exit f ? 0 : 1 }
+  ' "$RLS_ALLOWLIST_FILE"
+}
+
 check_file() {
   # Returns 0 = OK, 1 = violation. Prints reason on violation.
   local file="$1"
@@ -23,8 +34,18 @@ check_file() {
   local missing=()
   grep -qiE 'enable[[:space:]]+row[[:space:]]+level[[:space:]]+security' "$file" \
     || missing+=("ENABLE ROW LEVEL SECURITY")
-  grep -qiE 'create[[:space:]]+policy' "$file" \
-    || missing+=("CREATE POLICY")
+  # D37-1: a table read only through a SECURITY DEFINER RPC is deliberately
+  # policy-less (RLS on, no policies = deny all to anon/authenticated). Such a
+  # file is listed in scripts/migration-guard-rls-allowlist.txt
+  # (<filename> | <reason>) and is exempt from the CREATE POLICY rule ONLY —
+  # RLS and GRANT are still required, and the exemption is printed every run.
+  if ! grep -qiE 'create[[:space:]]+policy' "$file"; then
+    if rls_allowlisted "$(basename "$file")"; then
+      echo "Policy-less by design (allowlisted): $(basename "$file")" >&2
+    else
+      missing+=("CREATE POLICY")
+    fi
+  fi
   grep -qiE '(^|[[:space:]])grant[[:space:]]' "$file" \
     || missing+=("GRANT")
   if [ ${#missing[@]} -gt 0 ]; then
