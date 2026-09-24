@@ -260,27 +260,34 @@ test.describe("POSTING ROUTES", () => {
   });
 
   test("PR-9 catalog finder is bounded, multilingual and rate-limited", async ({ page }) => {
+    const leaf = await seedFinderLeaf();
+    categories.push(leaf.slug);
     const key = `e2e-${rand()}`;
     const headers = { "x-e2e-catalog-find-key": key };
-    const english = await page.request.get(`${CATALOG_FIND}?q=toyota&lang=en`, { headers });
+    const english = await page.request.get(`${CATALOG_FIND}?q=${leaf.english}&lang=en`, { headers });
     expect(english.status()).toBe(200);
-    const englishBody = (await english.json()) as { results?: unknown[] };
+    const englishBody = (await english.json()) as { results?: Array<{ slug?: string }> };
     expect(Array.isArray(englishBody.results)).toBe(true);
     expect(englishBody.results?.length ?? 0).toBeLessThanOrEqual(8);
+    expect(englishBody.results?.some((row) => row.slug === leaf.slug)).toBe(true);
     expect(Buffer.byteLength(JSON.stringify(englishBody))).toBeLessThanOrEqual(2048);
 
     const amharic = await page.request.get(
-      `${CATALOG_FIND}?q=${encodeURIComponent("ኩል")}&lang=am`,
+      `${CATALOG_FIND}?q=${encodeURIComponent(leaf.amharic)}&lang=am`,
       { headers },
     );
     expect(amharic.status()).toBe(200);
-    const amharicBody = (await amharic.json()) as { results?: Array<{ path?: string[] }> };
+    const amharicBody = (await amharic.json()) as {
+      results?: Array<{ slug?: string; path?: string[] }>;
+    };
     expect(amharicBody.results?.length ?? 0).toBeGreaterThan(0);
     expect(
-      amharicBody.results?.some((row) => row.path?.some((part) => /[\u1200-\u137f]/.test(part))),
+      amharicBody.results?.some(
+        (row) => row.slug === leaf.slug && (row.path ?? []).some((p) => /[\u1200-\u137f]/.test(p)),
+      ),
     ).toBe(true);
 
-    const limited = await page.request.get(`${CATALOG_FIND}?q=toyota&lang=en`, { headers });
+    const limited = await page.request.get(`${CATALOG_FIND}?q=${leaf.english}&lang=en`, { headers });
     expect(limited.status()).toBe(429);
 
     const short = await page.request.get(`${CATALOG_FIND}?q=a&lang=en`, {
