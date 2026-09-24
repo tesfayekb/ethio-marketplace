@@ -5,7 +5,7 @@
 The catalog finder is the server-side search foundation for later wizard and synonyms-console landings. This landing adds no client UI.
 
 - `pg_trgm` was already enabled; no package or database extension was added.
-- `catalog_find_index` is private behind RLS with no client policy. Public reads use only the bounded `catalog_find` RPC.
+- `catalog_find_index` and `catalog_find_terms` are private: RLS on, with explicit deny-all policies (SELECT, INSERT, UPDATE, DELETE for `anon` and `authenticated`, `USING (false)` / `WITH CHECK (false)`), so clients read zero rows and cannot write; `service_role` bypasses RLS. Public reads use only the bounded `catalog_find` RPC (E1 corrective, mark `20260924091500`).
 - A rebuild indexes published category names and paths, attribute labels, option labels, option aliases and numeric unit forms in each published language. Option terms are attached to every effective listing leaf.
 - Category, category-link and entity-translation publication writes schedule one transaction-deduplicated rebuild. The explicit admin rebuild remains available for repair and other publication paths.
 - `GET /api/catalog/find?q=…&lang=…` accepts 2–64 characters and a 2–3 letter language code. It returns at most eight rows and trims the lowest-ranked rows to stay inside a 2 KB response budget.

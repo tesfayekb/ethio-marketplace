@@ -16,13 +16,33 @@ MIGRATIONS_DIR="supabase/migrations"
 
 RLS_ALLOWLIST_FILE="${RLS_ALLOWLIST_FILE:-$SCRIPT_DIR/migration-guard-rls-allowlist.txt}"
 
-rls_allowlisted() {
-  [ -f "$RLS_ALLOWLIST_FILE" ] || return 1
+rls_closer() {
+  # $1 = basename. Prints the cited closer fragment when allowlisted.
+  [ -f "$RLS_ALLOWLIST_FILE" ] || return 0
   awk -F'|' -v base="$1" '
     /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
-    { n = $1; gsub(/^[[:space:]]+|[[:space:]]+$/, "", n); if (n == base) f = 1 }
-    END { exit f ? 0 : 1 }
+    { n = $1; gsub(/^[[:space:]]+|[[:space:]]+$/, "", n)
+      if (n == base) { c = $3; gsub(/^[[:space:]]+|[[:space:]]+$/, "", c); print c } }
   ' "$RLS_ALLOWLIST_FILE"
+}
+
+rls_closer_ok() {
+  # $1 = flagged file, $2 = closer fragment, $3 = migrations dir.
+  # OK only when the closer file exists and holds CREATE POLICY ... ON <table>
+  # for EVERY table the flagged file creates.
+  local file="$1" frag="$2" dir="$3" closer tbl
+  [ -n "$frag" ] || return 1
+  closer=$(find "$dir" -type f -name "*${frag}*.sql" | head -1)
+  [ -n "$closer" ] || return 1
+  local flat
+  flat=$(tr '\n' ' ' < "$closer")
+  while IFS= read -r tbl; do
+    [ -z "$tbl" ] && continue
+    printf '%s' "$flat" | grep -qiE "create[[:space:]]+policy[^;]*[[:space:]]on[[:space:]]+(public\.)?${tbl}([[:space:]]|$)" \
+      || return 1
+  done < <(grep -oiE 'create[[:space:]]+table[[:space:]]+(if[[:space:]]+not[[:space:]]+exists[[:space:]]+)?(public\.)?[a-z0-9_]+' "$file" \
+    | sed -E 's/.*[[:space:].]([a-zA-Z0-9_]+)$/\1/' | sort -u)
+  return 0
 }
 
 check_file() {
@@ -34,14 +54,17 @@ check_file() {
   local missing=()
   grep -qiE 'enable[[:space:]]+row[[:space:]]+level[[:space:]]+security' "$file" \
     || missing+=("ENABLE ROW LEVEL SECURITY")
-  # D37-1: a table read only through a SECURITY DEFINER RPC is deliberately
-  # policy-less (RLS on, no policies = deny all to anon/authenticated). Such a
-  # file is listed in scripts/migration-guard-rls-allowlist.txt
-  # (<filename> | <reason>) and is exempt from the CREATE POLICY rule ONLY —
-  # RLS and GRANT are still required, and the exemption is printed every run.
+  # Closer-cited exemption (D37-1): a file whose tables gained their policies
+  # in a LATER corrective migration is listed in
+  # scripts/migration-guard-rls-allowlist.txt as
+  #   <filename> | <reason> | <closer uuid-fragment>
+  # and passes the CREATE POLICY rule only if that closer exists and creates a
+  # policy ON every table the file creates. RLS and GRANT are still required.
   if ! grep -qiE 'create[[:space:]]+policy' "$file"; then
-    if rls_allowlisted "$(basename "$file")"; then
-      echo "Policy-less by design (allowlisted): $(basename "$file")" >&2
+    local frag
+    frag="$(rls_closer "$(basename "$file")")"
+    if [ -n "$frag" ] && rls_closer_ok "$file" "$frag" "${RLS_CLOSER_DIR:-$MIGRATIONS_DIR}"; then
+      echo "Policies closed later (allowlisted): $(basename "$file") | closed by $frag" >&2
     else
       missing+=("CREATE POLICY")
     fi
@@ -65,6 +88,35 @@ if check_file "$BAD_FIXTURE" >/dev/null 2>&1; then
   exit 1
 fi
 echo "Self-test OK: bad fixture correctly flagged."
+
+# Self-test: an allowlist line citing a closer WITHOUT the table's policy fails,
+# and one citing a closer WITH it passes.
+RLS_TEST_DIR="$(mktemp -d)"
+cat > "$RLS_TEST_DIR/29990101000000_aaaa1111.sql" <<'SQL'
+CREATE TABLE public.self_test_t (id int);
+ALTER TABLE public.self_test_t ENABLE ROW LEVEL SECURITY;
+GRANT ALL ON public.self_test_t TO service_role;
+SQL
+cat > "$RLS_TEST_DIR/29990101000001_bbbb2222.sql" <<'SQL'
+CREATE POLICY other_p ON public.some_other_table FOR SELECT USING (false);
+SQL
+cat > "$RLS_TEST_DIR/29990101000002_cccc3333.sql" <<'SQL'
+CREATE POLICY self_test_deny ON public.self_test_t FOR SELECT TO anon USING (false);
+SQL
+printf '%s\n' '29990101000000_aaaa1111.sql | self-test | bbbb2222' > "$RLS_TEST_DIR/bad.txt"
+printf '%s\n' '29990101000000_aaaa1111.sql | self-test | cccc3333' > "$RLS_TEST_DIR/good.txt"
+if RLS_ALLOWLIST_FILE="$RLS_TEST_DIR/bad.txt" RLS_CLOSER_DIR="$RLS_TEST_DIR" \
+  check_file "$RLS_TEST_DIR/29990101000000_aaaa1111.sql" >/dev/null 2>&1; then
+  echo "GUARD SELF-TEST FAILED: allowlist citing a closer without the policy passed"
+  rm -rf "$RLS_TEST_DIR"; exit 1
+fi
+if ! RLS_ALLOWLIST_FILE="$RLS_TEST_DIR/good.txt" RLS_CLOSER_DIR="$RLS_TEST_DIR" \
+  check_file "$RLS_TEST_DIR/29990101000000_aaaa1111.sql" >/dev/null 2>&1; then
+  echo "GUARD SELF-TEST FAILED: allowlist citing a valid closer was flagged"
+  rm -rf "$RLS_TEST_DIR"; exit 1
+fi
+rm -rf "$RLS_TEST_DIR"
+echo "Self-test OK: closer-cited exemption fails without the cited policy, passes with it."
 
 # --- Real scan ---
 if [ ! -d "$MIGRATIONS_DIR" ]; then
