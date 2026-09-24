@@ -5,6 +5,7 @@ import {
   CATALOG_FIND_MAX_ROWS,
   clientAddress,
   hashAddress,
+  withinBudget,
 } from "./catalog-find.server";
 
 const capturedRebuild = [
@@ -36,6 +37,20 @@ describe("catalog finder route budgets", () => {
     expect(
       new TextEncoder().encode(JSON.stringify(capturedRebuild)).byteLength,
     ).toBeLessThanOrEqual(CATALOG_FIND_MAX_BYTES);
+  });
+
+  it("trims the lowest-ranked rows until an oversized answer fits the budget", () => {
+    const wide = Array.from({ length: 8 }, (_, i) => ({
+      ...capturedRebuild[0]!,
+      leaf_id: `leaf-${i}`,
+      path: ["Vehicles", "Cars", "Passenger cars and light commercial vehicles".repeat(6)],
+    }));
+    const kept = withinBudget(wide);
+    expect(kept.length).toBeGreaterThanOrEqual(1);
+    expect(kept.length).toBeLessThan(wide.length);
+    expect(new TextEncoder().encode(JSON.stringify(kept)).byteLength).toBeLessThanOrEqual(
+      CATALOG_FIND_MAX_BYTES,
+    );
   });
 
   it("uses the edge address before a forwarded address and hashes it", () => {
