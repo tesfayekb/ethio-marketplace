@@ -233,6 +233,13 @@ before, because it sits at depth 0. The EXPORT is unchanged — it writes whole 
 records joined with `|`, which is precisely what this reader separates — so a
 two-tone swatch round-trips byte-identically.
 
+INC-272 — the SQL reader walks the cell ONCE (`FOREACH` over
+`string_to_array(cell, NULL)`), never `substr(cell, i, 1)`: on multibyte text each
+`substr` rescans from the start, which made a 363-option cell (r21 model-phones,
+155,937 chars) time out in the reader alone. Measured on prod after the fix: the
+reader 0.49–0.80 s, the whole plan for that file 1.18–1.59 s round trip. No
+statement-timeout override is set.
+
 `swatch` is DIFFED like `facts` (INC-239): `attr_option_norm_v2` carries it, so a
 file whose only change is a swatch plans as `changed` with the diff naming
 `options`, while an ABSENT or BLANK cell stays invisible and a file that never
