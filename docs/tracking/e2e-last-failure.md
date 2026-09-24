@@ -1,185 +1,139 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/35990664351
-- Commit: `4bf9f78910bff316afb3d30d22df31858d12270a`
-- Attempt: 2
-- Written (UTC): 2026-09-24T11:44:44.223Z
-- Passed: 1016 · Skipped: 78 · Failed: 2
-- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 2
-- Post-test errors (DEC-059, non-gating): shard 1, shard 4, changed
-- Sources without results: none
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36064995954
+- Commit: `db13e9a5e43cd6daffb8270a66675242937821a4`
+- Attempt: 1
+- Written (UTC): 2026-09-24T22:01:33.852Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): none
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-## Flake ledger (DEC-030)
+## Server errors: smoke
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · admin-translations-data.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one — Error: expect(locator).toBeVisible() failed
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · shell.spec.ts › L4b location picker › LS-6 the nearest curated metro wins by geometry — Error: expect(locator).toHaveText(expected) failed
+## Client errors: smoke
 
-## Post-test errors: shard 1
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+## Server errors: email
 
-```text
-[e2e:teardown] deleted 41 user(s) owned by process 35990664351-1
-```
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
 
-## Post-test errors: shard 4
+## Client errors: email
 
-shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] deleted 36 user(s) owned by process 35990664351-4
-```
-
-## Post-test errors: changed
-
-changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] deleted 118 user(s) owned by process 35990664351-changed
-```
-
-## admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-18 a real-export round trip is a no-op
-
-- Source: `shard 1`
-- Project: `mobile-360`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('category-import-counts')
-Expected: visible
-Timeout: 120000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 120000ms
-  - waiting for getByTestId('category-import-counts')
-
-```
-
-Context:
-
-```text
-  - dialog "Import categories" [ref=e2]:
-    - heading "Import categories" [level=2] [ref=e3]
-    - generic [ref=e4]:
-      - paragraph [ref=e5]: Import categories
-      - paragraph [ref=e6]: Choose the categories file you exported. Nothing is written until you preview it and confirm.
-      - paragraph [ref=e7]: "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied."
-      - generic [ref=e9]:
-        - generic [ref=e10]: Categories file
-        - button "Categories file" [ref=e11]
-        - generic [ref=e12]:
-          - button "Choose Categories file…" [ref=e13] [cursor=pointer]
-          - generic [ref=e14]: categories.csv
-      - button "Preview changes" [ref=e15] [cursor=pointer]
-      - alert [ref=e16]: The import could not be completed.
-      - paragraph [ref=e17]: "Reason: canceling statement due to statement timeout"
-      - button "Discard" [ref=e19] [cursor=pointer]
-    - button "Close" [ref=e20] [cursor=pointer]:
-      - img [ref=e21]
-      - generic [ref=e24]: Close
-```
-```
-
-## admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-18 a real-export round trip is a no-op
-
-- Source: `shard 4`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('category-import-counts')
-Expected: visible
-Timeout: 120000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 120000ms
-  - waiting for getByTestId('category-import-counts')
-
-```
-
-Context:
-
-```text
-  - dialog "Import categories" [ref=e2]:
-    - heading "Import categories" [level=2] [ref=e3]
-    - generic [ref=e4]:
-      - paragraph [ref=e5]: Import categories
-      - paragraph [ref=e6]: Choose the categories file you exported. Nothing is written until you preview it and confirm.
-      - paragraph [ref=e7]: "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied."
-      - generic [ref=e9]:
-        - generic [ref=e10]: Categories file
-        - button "Categories file" [ref=e11]
-        - generic [ref=e12]:
-          - button "Choose Categories file…" [ref=e13] [cursor=pointer]
-          - generic [ref=e14]: categories.csv
-      - button "Preview changes" [ref=e15] [cursor=pointer]
-      - alert [ref=e16]: The import could not be completed.
-      - paragraph [ref=e17]: "Reason: canceling statement due to statement timeout"
-      - button "Discard" [ref=e19] [cursor=pointer]
-    - button "Close" [ref=e20] [cursor=pointer]:
-      - img [ref=e21]
-      - generic [ref=e24]: Close
-```
-```
+No `[client-error]` lines in the `email` log (or no log was uploaded).
 
 ## Server errors: shard 1
 
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed canceling statement due to statement timeout ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-```
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Client errors: shard 1
 
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 POST http://127.0.0.1:4173/api/admin/categories/import ({"error":"server error","message":"canceling statement due to statement timeout"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 POST http://127.0.0.1:4173/api/admin/categories/import ({"error":"server error","message":"canceling statement due to statement timeout"})
-```
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
 ## Server errors: shard 4
 
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed canceling statement due to statement timeout ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-```
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Client errors: shard 4
 
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
+
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 POST http://127.0.0.1:4173/api/admin/categories/import ({"error":"server error","message":"canceling statement due to statement timeout"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 POST http://127.0.0.1:4173/api/admin/categories/import ({"error":"server error","message":"canceling statement due to statement timeout"})
+(no log tail was uploaded for this source)
+```
+
+## email: no results file
+
+email: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
 ```
