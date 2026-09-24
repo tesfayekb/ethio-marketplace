@@ -268,6 +268,39 @@ test.describe("POSTING WIZARD", () => {
     expect(ring, "PW-52: no visible focus ring on a tile").not.toBe("none");
   });
 
+  test("PW-53 Back responds after typing in Find a category (INC-277)", async ({ page }) => {
+    const { parent, leaf: child } = await seedCategoryBranch();
+    branches.push(parent.slug, child.slug);
+    await seller(page);
+    await gotoReady(page, "/post");
+
+    const folder = page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`);
+    await expect(folder).toBeVisible({ timeout: 20_000 });
+    const back = page.getByTestId("post-back");
+
+    // At the roots, a typed term opens Back; Back clears the filter and the level returns.
+    await page.getByTestId("post-category-search").fill(child.slug);
+    await expect(page.getByTestId("post-category-hits")).toBeVisible();
+    await expect(back, "PW-53: Back stayed closed while the filter held a term").toBeEnabled();
+    await back.click();
+    await expect(page.getByTestId("post-category-search")).toHaveValue("");
+    await expect(folder, "PW-53: Back did not bring the level back").toBeVisible();
+    await expect(back).toBeDisabled();
+
+    // Inside a folder, Back first clears the filter, then climbs.
+    await folder.click();
+    await page.getByTestId("post-category-search").fill(child.slug);
+    await back.click();
+    await expect(page.getByTestId("post-category-search")).toHaveValue("");
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`),
+      "PW-53: Back moved an invisible cursor instead of clearing the filter",
+    ).toBeVisible();
+    await back.click();
+    await expect(folder).toBeVisible();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+  });
+
   test("PW-3 a folder is browsable and never selectable; its leaf is (D11)", async ({ page }) => {
     // U6-C1-R2 — the folder carries an illustration and the LEAF has none, so the
     // stand-in on step 2 can only come from the ancestor walk.
