@@ -54,6 +54,18 @@ export async function consumeCatalogFindRate(request: Request): Promise<boolean>
   return (data as { allowed?: unknown } | null)?.allowed === true;
 }
 
+export function withinBudget(rows: CatalogFindRow[]): CatalogFindRow[] {
+  const kept = rows.slice(0, CATALOG_FIND_MAX_ROWS);
+  const encoder = new TextEncoder();
+  while (
+    kept.length > 1 &&
+    encoder.encode(JSON.stringify(kept)).byteLength > CATALOG_FIND_MAX_BYTES
+  ) {
+    kept.pop();
+  }
+  return kept;
+}
+
 export async function catalogFind(query: string, lang: string): Promise<CatalogFindRow[]> {
   const client = publicClient();
   const versionAnswer = await client.rpc("catalog_find_version");
@@ -66,11 +78,7 @@ export async function catalogFind(query: string, lang: string): Promise<CatalogF
 
   const answer = await client.rpc("catalog_find", { q: query, lang, lim: CATALOG_FIND_MAX_ROWS });
   if (answer.error) throw new Error(`catalog finder: ${answer.error.message}`);
-  const rows = answer.data ?? [];
-  const bytes = new TextEncoder().encode(JSON.stringify(rows)).byteLength;
-  if (rows.length > CATALOG_FIND_MAX_ROWS || bytes > CATALOG_FIND_MAX_BYTES) {
-    throw new Error(`catalog finder response exceeds budget: ${rows.length} rows / ${bytes} bytes`);
-  }
+  const rows = withinBudget(answer.data ?? []);
   cache.set(key, { rows, expiresAt: Date.now() + CATALOG_FIND_TTL_MS });
   if (cache.size > 256) cache.delete(cache.keys().next().value ?? "");
   return rows;
