@@ -13,6 +13,7 @@ import {
   postRoute,
   rand,
   reasonsOf,
+  seedFinderLeaf,
   seedPostableCategory,
   statusOf,
 } from "./helpers/posting";
