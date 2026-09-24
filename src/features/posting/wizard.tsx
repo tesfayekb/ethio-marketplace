@@ -103,6 +103,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    * and only then leaves the step.
    */
   const [categoryCursor, setCategoryCursor] = useState<string | null>(null);
+  /** INC-277 — the filter term lives beside the cursor so Back can clear it. */
+  const [categoryTerm, setCategoryTerm] = useState("");
 
   useEffect(() => {
     if (categoryId === null) {
@@ -413,8 +415,17 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                            outline: on the card the old transparent Back read as
                            disabled next to the filled Next. */
                         className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
-                        disabled={draft.step === 1 && categoryCursor === null}
+                        disabled={
+                          draft.step === 1 && categoryCursor === null && categoryTerm.trim() === ""
+                        }
                         onClick={() => {
+                          // INC-277 — while the filter holds a term the tree shows hits,
+                          // not the level: Back first clears the filter (visibly),
+                          // instead of moving a cursor nobody can see or doing nothing.
+                          if (draft.step === 1 && categoryTerm.trim() !== "") {
+                            setCategoryTerm("");
+                            return;
+                          }
                           // STEP 5 — inside the tree, Back climbs one level; at the
                           // roots it leaves the step, as it always did.
                           if (draft.step === 1 && categoryCursor !== null) {
@@ -503,6 +514,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           treeError={treeError}
                           cursor={categoryCursor}
                           onCursor={setCategoryCursor}
+                          term={categoryTerm}
+                          onTerm={setCategoryTerm}
                           selectedId={categoryId}
                           invalid={triedWithoutLeaf && categoryId === null}
                           onChoose={(nextCategoryId) => {

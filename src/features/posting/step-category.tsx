@@ -1,4 +1,3 @@
-import { useState } from "react";
 
 import {
   childrenOf,
@@ -71,6 +70,8 @@ export function StepCategory({
   cursor,
   onCursor,
   selectedId = null,
+  term,
+  onTerm,
 }: {
   tree: CategoryTree;
   isLoading: boolean;
@@ -89,9 +90,12 @@ export function StepCategory({
   onCursor: (id: string | null) => void;
   /** D40 — the leaf already chosen wears the menu's selected treatment. */
   selectedId?: string | null;
+  /** INC-277 — the wizard holds the filter term so its Back can clear it. */
+  term: string;
+  onTerm: (term: string) => void;
 }) {
   const { t, entities } = useI18n();
-  const [term, setTerm] = useState("");
+  const setTerm = onTerm;
 
   const label = (node: CategoryNode) => entityName("category", node, entities);
   const filtering = term.trim() !== "";
