@@ -2683,6 +2683,7 @@ export type Database = {
         Returns: string[]
       }
       catalog_find_rebuild: { Args: never; Returns: number }
+      catalog_find_refresh: { Args: { p_force: boolean }; Returns: number }
       catalog_find_version: { Args: never; Returns: string }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
