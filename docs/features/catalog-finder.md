@@ -8,7 +8,7 @@ The catalog finder is the server-side search foundation for later wizard and syn
 - `catalog_find_index` is private behind RLS with no client policy. Public reads use only the bounded `catalog_find` RPC.
 - A rebuild indexes published category names and paths, attribute labels, option labels, option aliases and numeric unit forms in each published language. Option terms are attached to every effective listing leaf.
 - Category, category-link and entity-translation publication writes schedule one transaction-deduplicated rebuild. The explicit admin rebuild remains available for repair and other publication paths.
-- `GET /api/catalog/find?q=…&lang=…` accepts 2–64 characters and a 2–3 letter language code. It returns at most eight rows and enforces a 2 KB response budget.
+- `GET /api/catalog/find?q=…&lang=…` accepts 2–64 characters and a 2–3 letter language code. It returns at most eight rows and trims the lowest-ranked rows to stay inside a 2 KB response budget.
 - Results cache for 60 seconds by normalized query, language and catalog version. Requests are rate-limited per hashed edge IP through `consume_rate_limit`; the raw address is never stored.
 - Exact aliases rank above prefixes and trigram matches. Language-local hits rank before fallback languages; categories rank before identity-fold options, then other options and synonyms. Active listing count breaks remaining leaf ties.
 
@@ -16,7 +16,7 @@ The current rebuild contains 4,911 leaf-bound rows from 3,730 distinct terms acr
 
 ### Performance contract
 
-The RPC returns no more than eight rows and the route refuses any response over 2 KB. Migration proof profiles the current catalog and confirms the fuzzy candidate pass reads the distinct-term lexicon rather than the larger leaf-bound index.
+The RPC returns no more than eight rows and the route trims the lowest-ranked rows until the response fits the 2 KB budget (INC-273); it never fails a search for size. Migration proof profiles the current catalog and confirms the fuzzy candidate pass reads the distinct-term lexicon rather than the larger leaf-bound index.
 
 ## Forward scan — U7 marketplace filters
 

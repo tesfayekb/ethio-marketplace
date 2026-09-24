@@ -77,6 +77,47 @@ export function reasonsOf(payload: Record<string, unknown>): { field: string; re
   });
 }
 
+/**
+ * D37-1 — a SCRATCH FINDER LEAF: a postable leaf whose English and Amharic names
+ * each carry a namespaced token, indexed by a real rebuild. The finder is then
+ * probed on the seeded tokens only, never on a real catalog row (J2/J3).
+ */
+export async function seedFinderLeaf(): Promise<{
+  id: string;
+  slug: string;
+  english: string;
+  amharic: string;
+}> {
+  const slug = scratchCategorySlug();
+  const stamp = slug.replace(/[^a-z0-9]/g, "").slice(-8);
+  const english = `finder${stamp}`;
+  const amharic = `ኩል${stamp}`;
+  const { data, error } = await adminClient()
+    .from("categories")
+    .insert({
+      slug,
+      name_en: english,
+      name_am: amharic,
+      is_active: true,
+      allow_listings: true,
+      is_catchall: false,
+      display_order: 9000,
+    })
+    .select("id, slug")
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:a2c] seeding the finder leaf failed: ${error?.message ?? "no row"}`);
+  }
+  await rebuildFinderIndex();
+  return { id: data.id, slug: data.slug, english, amharic };
+}
+
+/** Rebuilds the finder index through the real RPC (service role). */
+export async function rebuildFinderIndex(): Promise<void> {
+  const { error } = await adminClient().rpc("catalog_find_rebuild");
+  if (error) throw new Error(`[e2e:a2c] rebuilding the finder index failed: ${error.message}`);
+}
+
 /** A POSTABLE LEAF category: active, listings allowed, no children, not catch-all. */
 export async function seedPostableCategory(
   /**

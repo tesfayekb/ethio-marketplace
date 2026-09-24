@@ -1,5 +1,6 @@
 # Changelog (append-only)
 
+- 2026-09-24 — INC-273: catalog finder base re-landed portably (idempotent objects; the 2 KB budget is trimmed in the route, not asserted against the live catalog inside the migration). apply `ac3b25ed` → expect mark `20260924028000`.
 - 2026-09-24 — D37-1: catalog finder index, rebuild, RPC and route (`pg_trgm`). apply `391d5884` → expect mark `20260924027000`; publication refresh follow-ups expect marks through `20260924026000`.
 
 2026-09-09 — governance: C3 era gate review imported; C3 era CLOSED (four-lens review at docs/governance/reviews/c3-era-gate.md)
