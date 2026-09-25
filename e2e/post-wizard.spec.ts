@@ -2253,7 +2253,7 @@ test.describe("POSTING WIZARD", () => {
    * The door's bounds remain the authority (F3); this proves the control can never
    * reach them.
    */
-  test("PW-25 an inherited year picker is bounded by the model chosen three levels down", async ({
+  test("PW-25 an inherited year picker is bounded by the model chosen three levels down, and relative bounds resolve as the door does (INC-288)", async ({
     page,
   }) => {
     // INC-247 — THE CATALOGUE'S OWN SHAPE: the year is linked at the SECTION and
@@ -2264,7 +2264,11 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const deep = await seedDeepFoldSet({ leafId: child.id, sectionId: parent.id });
     specs.push(...deep.attrKeys);
-    await reachStep3(page, user.id, child);
+    const [ahead, behind] = await seedYearDefs(child.id, [
+      { min: "year-1", max: "year+5" },
+      { min: "year-3", max: "year" },
+    ]);
+    const listingId = await reachStep3(page, user.id, child);
 
     const control = (attrKey: string) =>
       page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
@@ -2328,6 +2332,130 @@ test.describe("POSTING WIZARD", () => {
       page.locator(`[data-testid="post-attr-refusal"][data-attr="${deep.year.attrKey}"]`),
       "PW-25: the model's only year was refused",
     ).toHaveCount(0);
+
+    // INC-288 — RELATIVE BOUNDS, the door's vocabulary (scratch definitions,
+    // reaped by the afterEach through `specs` — J3).
+    const now = new Date().getUTCFullYear();
+    const valuesOf = (attrKey: string) =>
+      control(attrKey)
+        .locator("option")
+        .evaluateAll((nodes) =>
+          nodes.map((node) => (node as HTMLOptionElement).value).filter(Boolean),
+        );
+    const span = (from: number, to: number) =>
+      Array.from({ length: to - from + 1 }, (_, index) => String(to - index));
+    await expect
+      .poll(() => valuesOf(ahead!.attrKey), {
+        message: "PW-25: year-1 … year+5 did not offer seven years, newest first",
+        timeout: 20_000,
+      })
+      .toEqual(span(now - 1, now + 5));
+    await expect
+      .poll(() => valuesOf(behind!.attrKey), {
+        message: "PW-25: year-3 … year did not offer four years, newest first",
+        timeout: 20_000,
+      })
+      .toEqual(span(now - 3, now));
+    await control(ahead!.attrKey).selectOption(String(now + 5));
+    await expect(
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${ahead!.attrKey}"]`),
+      "PW-25: year+5 was refused on the form",
+    ).toHaveCount(0);
+    await expect
+      .poll(async () => (await attributesOf(listingId))[ahead!.attrKey], {
+        message: "PW-25: the door did not accept year+5",
+        timeout: 20_000,
+      })
+      .toBe(now + 5);
+  });
+
+  /**
+   * INC-288 / D45 — scratch year definitions (G27: scratch only, reaped by the
+   * afterEach through `specs`, which survives a body timeout — J3).
+   */
+  async function seedYearDefs(
+    categoryId: string,
+    bounds: { min: string; max: string }[],
+  ): Promise<{ id: string; attrKey: string }[]> {
+    const supabase = adminClient();
+    const stem = `e2e_yr_${Date.now()}_${rand()}`;
+    const rows = bounds.map((bound, index) => ({
+      attr_key: `${stem}_${index}`,
+      name_en: `${stem} year ${index}`,
+      attr_type: "number",
+      min_bound: bound.min,
+      max_bound: bound.max,
+      decimals: 0,
+      format: "year",
+    }));
+    const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:yr] seeding failed: ${error?.message ?? "no rows"}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const ordered = rows.map((row) => {
+      const found = data.find((entry) => entry.attr_key === row.attr_key);
+      if (!found) throw new Error(`[e2e:yr] ${row.attr_key} missing`);
+      return { id: found.id, attrKey: found.attr_key };
+    });
+    const { error: linkError } = await supabase.from("category_attribute_links").insert(
+      ordered.map((def, index) => ({
+        category_id: categoryId,
+        attribute_id: def.id,
+        is_required: false,
+        display_order: 100 + index,
+      })),
+    );
+    if (linkError) throw new Error(`[e2e:yr] linking failed: ${linkError.message}`);
+    return ordered;
+  }
+
+  /** Record a scratch draft as past contact (service client, this row only) and open it. */
+  async function openAtReview(page: Page, listingId: string, userId: string, tag: string) {
+    const { error } = await adminClient()
+      .from("listings")
+      .update({ draft_step: 7 })
+      .eq("id", listingId)
+      .eq("seller_id", userId);
+    if (error) throw new Error(`[e2e:${tag}] seeding draft_step failed: ${error.message}`);
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-8"), `${tag}: the review never opened`).toBeVisible({
+      timeout: 20_000,
+    });
+  }
+
+  test("PW-58 under Amharic a year reads with its Ethiopian years, the same on the picker and the review (D45)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const [def] = await seedYearDefs(category.id, [{ min: "2000", max: "2030" }]);
+    const listingId = await reachStep3(page, user.id, category);
+    const picker = page.locator(`[data-testid="post-attr-control"][data-attr="${def!.attrKey}"]`);
+    const option = (year: number) => picker.locator(`option[value="${year}"]`);
+
+    await expect(option(2027), "PW-58: the English picker is not the bare year").toHaveText(
+      "2027",
+      { timeout: 20_000 },
+    );
+    await switchLanguage(page, "am");
+    await expect(option(2027), "PW-58: 2027 did not read 2019/20 ዓ.ም").toHaveText(
+      "2027 · 2019/20 ዓ.ም",
+      { timeout: 20_000 },
+    );
+    await expect(option(2000), "PW-58: 2000 did not read 1992/93 ዓ.ም").toHaveText(
+      "2000 · 1992/93 ዓ.ም",
+    );
+    await picker.selectOption("2027");
+    await expect
+      .poll(async () => (await attributesOf(listingId))[def!.attrKey], {
+        message: "PW-58: the Gregorian year was not stored",
+        timeout: 20_000,
+      })
+      .toBe(2027);
+    await openAtReview(page, listingId, user.id, "PW-58");
+    await expect(
+      page.getByTestId("post-review-preview").locator(`[data-key="${def!.attrKey}"]`),
+      "PW-58: the Amharic review did not match the picker's label",
+    ).toHaveText("2027 · 2019/20 ዓ.ም", { timeout: 20_000 });
   });
 
   /**
@@ -2610,7 +2738,9 @@ test.describe("POSTING WIZARD", () => {
    * everything leaves the same picker open. The door narrows too; this is the
    * mirror (F3).
    */
-  test("PW-35 a model's allowed set narrows and locks a sibling picker", async ({ page }) => {
+  test("PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44)", async ({
+    page,
+  }) => {
     const user = await seller(page);
     const category = await leaf();
     const set = await seedAllowedSet(category.id);
@@ -2627,49 +2757,21 @@ test.describe("POSTING WIZARD", () => {
 
     await model.selectOption(set.strictModel);
     /**
-     * D35 — ONE ANSWER ADMITTED, SO IT IS A STRIP. The settled detail reads as one
-     * line (label, value, where it came from) and the picker is not on screen at
-     * all; the seller's tap on Change brings it back, still narrowed and locked.
+     * D44 — A SETTLED ANSWER IS STORED, NOT SHOWN. One answer admitted: the row
+     * spends nothing on the form (no control, no strip), and the draft still
+     * carries the only allowed value (J4 — DB truth).
      */
-    const strip = page.locator(
-      `[data-testid="post-attr-locked-strip"][data-attr="${set.fuel.attrKey}"]`,
-    );
-    await expect(strip, "PW-35: a settled answer did not read as a strip").toBeVisible({
-      timeout: 20_000,
-    });
-    await expect(
-      strip.getByTestId("post-attr-locked-value"),
-      "PW-35: the strip did not name the only allowed fuel",
-    ).toHaveText(`${set.fuelElectric} label`);
-    await expect(fuel, "PW-35: a settled answer still spent an input on the form").toHaveCount(0);
-
-    await page
-      .locator(`[data-testid="post-attr-locked-change"][data-attr="${set.fuel.attrKey}"]`)
-      .click();
-    await expect(fuel, "PW-35: the only allowed fuel was not written").toHaveValue(
-      set.fuelElectric,
-      { timeout: 20_000 },
-    );
-    await expect(
-      fuel.locator(`option[value="${set.fuelPetrol}"]`),
-      "PW-35: a fuel the model rules out was still offered",
-    ).toHaveCount(0);
-    await expect(fuel, "PW-35: the narrowed picker was not locked").toHaveAttribute(
-      "data-locked",
-      "1",
-    );
-    await expect(
-      page.locator(`[data-testid="post-attr-set-by-model"][data-attr="${set.fuel.attrKey}"]`),
-      "PW-35: a locked answer never said where it came from",
-    ).toBeVisible();
-
-    // J4 — DB truth: what the narrowing wrote is what the door recorded.
     await expect
       .poll(async () => (await attributesOf(listingId))[set.fuel.attrKey], {
-        message: "PW-35: the narrowed answer never reached the draft",
+        message: "PW-35: the settled answer never reached the draft",
         timeout: 20_000,
       })
       .toBe(set.fuelElectric);
+    const fuelRow = page.locator(`[data-testid="post-spec"][data-attr="${set.fuel.attrKey}"]`);
+    await expect(fuelRow, "PW-35: a settled answer still rendered a row").toHaveCount(0, {
+      timeout: 20_000,
+    });
+    await expect(fuel, "PW-35: a settled answer still spent an input on the form").toHaveCount(0);
 
     // A MODEL THAT RULES NOTHING OUT leaves the picker open again.
     await model.selectOption(set.openModel);
@@ -2678,6 +2780,23 @@ test.describe("POSTING WIZARD", () => {
       "PW-35: the picker stayed narrowed under a model with no allowed set",
     ).toHaveCount(1, { timeout: 20_000 });
     await expect(fuel, "PW-35: the picker stayed locked").toHaveAttribute("data-locked", "0");
+
+    // THE REVIEW STILL SHOWS IT: settle again, then open the draft at review.
+    await model.selectOption(set.strictModel);
+    await expect(fuelRow, "PW-35: the re-settled row still rendered").toHaveCount(0, {
+      timeout: 20_000,
+    });
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.fuel.attrKey], {
+        message: "PW-35: the re-settled answer never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe(set.fuelElectric);
+    await openAtReview(page, listingId, user.id, "PW-35");
+    await expect(
+      page.getByTestId("post-review-preview").locator(`[data-key="${set.fuel.attrKey}"]`),
+      "PW-35: the review never showed the settled answer",
+    ).toHaveText(`${set.fuelElectric} label`, { timeout: 20_000 });
   });
 
   /**
