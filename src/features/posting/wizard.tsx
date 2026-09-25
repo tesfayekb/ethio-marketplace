@@ -318,6 +318,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 <MobileStepStrip
                   step={draft.step}
                   draftStep={draft.draftStep}
+                  photosCount={draft.photos.length}
                   onGoTo={draft.goTo}
                 />
                 <p
@@ -378,7 +379,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                * the answers that did not travel with them (F4: nothing vanishes in
                * silence), and a way to put it away once read.
                */}
-              {(droppedFields.length > 0 || photosNeedRecheck) && !noticeDismissed && (
+              {(droppedFields.length > 0 || (photosNeedRecheck && draft.step === 2)) &&
+                !noticeDismissed && (
                 <div
                   className="space-y-1 rounded-md border border-border bg-muted p-3"
                   data-testid="post-category-changed"
@@ -407,7 +409,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                       </button>
                     </p>
                   )}
-                  {photosNeedRecheck && (
+                  {photosNeedRecheck && draft.step === 2 && (
                     <p
                       className="text-sm text-muted-foreground"
                       data-testid="post-category-photos-recheck"
@@ -783,7 +785,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                     refusals={draft.refusals}
                     step={draft.step}
                     specFields={specFields}
-                    onGoTo={draft.goTo}
+                    photosCount={draft.photos.length}
+                  onGoTo={draft.goTo}
                   />
                 </div>
               </FormLayout>
