@@ -2124,8 +2124,6 @@ export const am: Messages = {
   "post.specs.lockedChange": "ቀይር",
   "post.specs.helpMore": "ስለዚህ ዝርዝር ተጨማሪ",
   "post.specs.helpMoreMark": "(i)",
-  "post.specs.moreDetails": "ተጨማሪ ዝርዝሮች ({count})",
-  "post.specs.moreLess": "ተጨማሪ ዝርዝሮችን ደብቅ ({count})",
   "post.specs.factHint": "ይህ ሞዴል፦ {value}",
   "post.category.allRoots": "ሁሉም ምድቦች",
   "post.category.trailLabel": "የአሁኑ ደረጃ",

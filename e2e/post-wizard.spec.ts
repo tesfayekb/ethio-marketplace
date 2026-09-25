@@ -15,7 +15,6 @@ import {
 } from "./helpers/locations";
 import { adminClient, createUser } from "./helpers/users";
 import {
-  openMoreDetails,
   seedCatchAllLeaf,
   seedPhoneSet,
   seedConditionalPair,
@@ -611,6 +610,25 @@ test.describe("POSTING WIZARD", () => {
    * definitions are SCRATCH (`seedSpecSet`): a real one could change its options
    * under the test, and J3 forbids writing one.
    */
+  /**
+   * D41 / INC-271 — the specifications form answers (rows or "asks nothing") and,
+   * when it has rows, says its option lists have settled. No tap: every row is open.
+   */
+  async function specsSettled(page: import("@playwright/test").Page) {
+    await expect(
+      page.getByTestId("post-specs").or(page.getByTestId("post-specs-none")),
+      "[e2e:d41] the specifications form never answered",
+    ).toBeVisible({ timeout: 20_000 });
+    const form = page.getByTestId("post-specs");
+    if ((await form.count()) > 0) {
+      await expect(form, "[e2e:inc271] the option lists never settled").toHaveAttribute(
+        "data-options",
+        "1",
+        { timeout: 20_000 },
+      );
+    }
+  }
+
   /** D39 — from specifications, Next opens photos; a second Next opens details. */
   async function nextThroughPhotos(page: import("@playwright/test").Page) {
     await page.getByTestId("post-next").click();
@@ -632,9 +650,8 @@ test.describe("POSTING WIZARD", () => {
 
     // D39 — the category lands on specifications directly; no photos leg.
     await expect(page.getByTestId("post-step-3")).toBeVisible();
-    // D36 — the seller's optional details wait behind one expander; a walk that
-    // reads them opens it here, once, so every step-3 test reads the same form.
-    await openMoreDetails(page);
+    // D41 — every row is open; the walk waits only for the form to settle.
+    await specsSettled(page);
     return listingId;
   }
 
@@ -778,9 +795,8 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-step-3"),
       "PW-26: the jump missed specifications",
     ).toBeVisible();
-    // D36 — the new category's extras start collapsed; a test reading an optional
-    // detail opens them, as a seller would.
-    await openMoreDetails(page);
+    // D41 — every row is open; the walk waits only for the form to settle.
+    await specsSettled(page);
 
     // INC-248 — ON SCREEN AS WELL AS IN STATE: the picker the new category still
     // asks shows "Choose", not the option chosen under the previous category.
@@ -973,27 +989,70 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     await reachStep5(page, user.id, category);
 
-    // U6-C1-R3b-1 STEP 3 — the list opens UPWARDS into the bar's space. The proof
-    // is what the FINGER would hit, not what the DOM contains: the element at the
-    // first option's own centre must be that option.
+    // INC-280 — the proof is what the FINGER would hit, read in ONE frame: the
+    // element at the ETB option's own centre must be that option, inside the
+    // viewport, once its box has stopped moving.
     await page.getByTestId("post-price-mode-fixed").click();
-    await page.getByTestId("post-price-currency-search").focus();
-    // J5 — the row is named, never taken by position: ETB is the Ethiopian
-    // market's own currency and the one the list opens on.
-    const first = page
-      .getByTestId("post-price-currency-list")
-      .locator('[data-testid="post-price-currency-option"][data-code="ETB"]');
-    await expect(first, "LY-6: the currency list never opened").toBeVisible();
-    const box = await first.boundingBox();
-    expect(box, "LY-6: the first currency option has no box").not.toBe(null);
-    const hit = await page.evaluate(
-      ({ x, y }) => {
+    const input = page.getByTestId("post-price-currency-search");
+    const list = page.getByTestId("post-price-currency-list");
+    const probe = async (label: string) => {
+      const etb = list.locator('[data-testid="post-price-currency-option"][data-code="ETB"]');
+      await expect(etb, `LY-6 ${label}: the currency list never opened`).toBeVisible();
+      return page.evaluate(async () => {
+        const sel = '[data-testid="post-price-currency-option"][data-code="ETB"]';
+        const frame = () => new Promise<void>((done) => requestAnimationFrame(() => done()));
+        const rectOf = () => document.querySelector(sel)?.getBoundingClientRect() ?? null;
+        let prev = rectOf();
+        for (let i = 0; i < 60; i += 1) {
+          await frame();
+          await frame();
+          const now = rectOf();
+          if (
+            prev !== null &&
+            now !== null &&
+            now.top === prev.top &&
+            now.left === prev.left &&
+            now.height === prev.height
+          )
+            break;
+          prev = now;
+        }
+        const rect = rectOf();
+        const listNode = document.querySelector('[data-testid="post-price-currency-list"]');
+        if (rect === null) return { hit: "", inViewport: false, placement: "" };
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
         const node = document.elementFromPoint(x, y);
-        return node?.closest("[data-testid]")?.getAttribute("data-testid") ?? "";
-      },
-      { x: (box?.x ?? 0) + (box?.width ?? 0) / 2, y: (box?.y ?? 0) + (box?.height ?? 0) / 2 },
+        return {
+          hit: node?.closest("[data-testid]")?.getAttribute("data-testid") ?? "",
+          inViewport: x >= 0 && y >= 0 && x <= window.innerWidth && y <= window.innerHeight,
+          placement: listNode?.getAttribute("data-placement") ?? "",
+        };
+      });
+    };
+
+    // Scenario 1 — the list as the seller first meets it.
+    await input.focus();
+    const first = await probe("open");
+    expect(first.inViewport, "LY-6: the ETB option is outside the viewport").toBe(true);
+    expect(first.hit, "LY-6: the sticky action bar covers the open currency list").toBe(
+      "post-price-currency-option",
     );
-    expect(hit, "LY-6: the sticky action bar covers the open currency list").toBe(
+
+    // Scenario 2 — the input at the bottom edge: the list must flip upward.
+    await input.press("Escape");
+    await input.blur();
+    await expect(list).toHaveCount(0);
+    await input.evaluate((node) => node.scrollIntoView({ block: "end" }));
+    await input.focus();
+    await expect(list, "LY-6: at the bottom edge the list did not open upward").toHaveAttribute(
+      "data-placement",
+      "up",
+    );
+    const edge = await probe("bottom edge");
+    expect(edge.placement).toBe("up");
+    expect(edge.inViewport, "LY-6: the flipped ETB option is outside the viewport").toBe(true);
+    expect(edge.hit, "LY-6: the flipped currency list is covered").toBe(
       "post-price-currency-option",
     );
   });
@@ -2824,8 +2883,8 @@ test.describe("POSTING WIZARD", () => {
     const listingId = String(draft?.id ?? "");
     expect(listingId, "PW-44: choosing the surfaced leaf created no draft").not.toBe("");
     objects.push({ userId: user.id, listingId });
-    // D36 — this walk does not go through `reachStep3`, so it opens the extras itself.
-    await openMoreDetails(page);
+    // D41 — every row is open; the walk waits only for the form to settle.
+    await specsSettled(page);
 
     const decoy = page.locator(
       `[data-testid="post-attr-control"][data-attr="${set.decoy.attrKey}"]`,
@@ -3348,11 +3407,8 @@ test.describe("POSTING WIZARD", () => {
     ).toBeVisible();
   });
 
-  /**
-   * A WALK TO STEP 3 THAT LEAVES THE EXTRAS SHUT. `reachStep3` opens them, and the
-   * collapsed shape is what INC-269's pair of tests is about.
-   */
-  const reachStep3Collapsed = async (
+  /** A walk to step 3 through the category search, waiting for the form to settle. */
+  const walkToSpecs = async (
     page: Page,
     userId: string,
     category: { id: string; slug: string },
@@ -3369,13 +3425,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-specs"), `${tag}: the form never answered`).toBeVisible({
       timeout: 20_000,
     });
-    /**
-     * INC-271 — THE ORDER IS READ ONLY ONCE THE FORM KNOWS ITS OWN SHAPE. A fold,
-     * a fact and a narrowing live in the option ROWS, so what stays on screen and
-     * what waits behind "More details" is settled only when the eagerly-read lists
-     * have arrived. The form says so itself; the test waits for that word instead
-     * of asserting at first paint.
-     */
+    /** INC-271 — the order is read only once the form says its lists have settled. */
     await expect(
       page.getByTestId("post-specs"),
       `${tag}: the option lists never settled`,
@@ -3389,14 +3439,11 @@ test.describe("POSTING WIZARD", () => {
       .evaluateAll((nodes: Element[]) => nodes.map((node) => node.getAttribute("data-attr") ?? ""));
 
   /**
-   * D36 / INC-269 — FORM ECONOMY AT 360 THAT NEVER REORDERS THE FORM.
-   *
-   * A Smartphones-shaped leaf: brand → series → model → storage, then six plain
-   * seller-side extras. The four that carry the shape of the item stay on screen in
-   * `display_order` — brand first although the storage is prefilled and the series
-   * and model are optional — and only the TRAILING run waits behind one tap.
+   * D41 — EVERY ROW OPEN, IN DISPLAY ORDER. A Smartphones-shaped leaf: brand →
+   * series → model → storage, then six plain seller-side extras. All ten are on
+   * screen in `display_order` with no expander at all.
    */
-  test("PW-50 the specifications keep display order and hide only the trailing extras", async ({
+  test("PW-50 the specifications show every row open in display order (D41)", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile-360", "mobile-360 only");
@@ -3405,21 +3452,15 @@ test.describe("POSTING WIZARD", () => {
     const phone = await seedPhoneSet(category.id);
     specs.push(...phone.attrKeys);
 
-    await reachStep3Collapsed(page, user.id, category, "PW-50");
+    await walkToSpecs(page, user.id, category, "PW-50");
 
-    const more = page.getByTestId("post-specs-more");
-    await expect(more, "PW-50: a ten-row form offered no expander").toBeVisible({
-      timeout: 20_000,
-    });
-    await expect(more, "PW-50: the expander started open").toHaveAttribute("data-open", "0");
-
-    // THE ORDER IS THE CURATOR'S, and the head of the form is the fold plus its target.
-    expect(await shownKeys(page), "PW-50: the visible details were not in display order").toEqual([
-      phone.brandKey,
-      phone.seriesKey,
-      phone.modelKey,
-      phone.storageKey,
-    ]);
+    await expect(
+      page.getByTestId("post-specs-more"),
+      "PW-50: an expander still hides rows",
+    ).toHaveCount(0);
+    expect(await shownKeys(page), "PW-50: the details were not all shown in display order").toEqual(
+      phone.orderedKeys,
+    );
 
     // THE FOLD STILL WORKS where it stands, and the model's fact reaches the storage.
     const control = (key: string) =>
@@ -3437,23 +3478,6 @@ test.describe("POSTING WIZARD", () => {
       control(phone.storageKey),
       "PW-50: the model's storage fact never reached its field",
     ).toHaveValue(phone.modelStorageValue, { timeout: 20_000 });
-
-    // ONE TAP brings the trailing extras, all of them, still in display order.
-    await more.click();
-    await expect(page.getByTestId("post-specs-more-panel")).toBeVisible({ timeout: 20_000 });
-    expect(await shownKeys(page), "PW-50: the expander did not bring the extras in order").toEqual(
-      phone.orderedKeys,
-    );
-
-    // AND IT IS REMEMBERED for this category: a step away and back keeps it open.
-    await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-1")).toBeVisible();
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-3")).toBeVisible();
-    await expect(
-      page.getByTestId("post-specs-more"),
-      "PW-50: the expander forgot that the seller had opened it",
-    ).toHaveAttribute("data-open", "1");
   });
 
   /**
@@ -3470,14 +3494,13 @@ test.describe("POSTING WIZARD", () => {
     const pair = await seedConditionalPair(category.id);
     specs.push(...pair.attrKeys);
 
-    await reachStep3Collapsed(page, user.id, category, "PW-51");
+    await walkToSpecs(page, user.id, category, "PW-51");
 
     const control = (key: string) =>
       page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
-    await expect(
-      control(pair.parentKey),
-      "PW-51: the parent answer was hidden behind the expander",
-    ).toBeVisible({ timeout: 20_000 });
+    await expect(control(pair.parentKey), "PW-51: the parent answer was not on screen").toBeVisible(
+      { timeout: 20_000 },
+    );
 
     await control(pair.parentKey).selectOption(pair.parentValues[0]);
     await expect(control(pair.childKey), "PW-51: the dependent never appeared").toBeVisible({

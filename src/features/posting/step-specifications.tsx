@@ -177,31 +177,6 @@ function firstSentence(text: string): { head: string; rest: string } {
   return { head: match[0].trim(), rest: text.slice(match[0].length).trim() };
 }
 
-/**
- * D36 — WHERE THE EXPANDER'S OPEN STATE LIVES. On the DEVICE, per category, for
- * this browsing session — never in the draft: the draft carries the door's own
- * fields and nothing else (autosave would otherwise send the door a field it
- * does not judge). A browser that refuses storage simply starts collapsed.
- */
-const MORE_KEY = "post.specs.more";
-
-function readMoreOpen(categoryId: string): boolean {
-  try {
-    return window.sessionStorage.getItem(`${MORE_KEY}:${categoryId}`) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeMoreOpen(categoryId: string, open: boolean): void {
-  try {
-    if (open) window.sessionStorage.setItem(`${MORE_KEY}:${categoryId}`, "1");
-    else window.sessionStorage.removeItem(`${MORE_KEY}:${categoryId}`);
-  } catch {
-    // A device that refuses storage forgets the expander; nothing else changes.
-  }
-}
-
 export function StepSpecifications({
   categoryId,
   values,
@@ -235,8 +210,6 @@ export function StepSpecifications({
   const [prefills, setPrefills] = useState<Record<string, unknown>>({});
   /** What this screen alone saw wrong — the door's own refusal always wins. */
   const [local, setLocal] = useState<Refusal[]>([]);
-  /** D36 — is the optional block open? Remembered per category on this device. */
-  const [moreOpen, setMoreOpen] = useState(false);
   /** D35 — the locked details whose input the seller has asked to see. */
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   /** D36 — the details whose full guidance the (i) tap has opened. */
@@ -292,15 +265,11 @@ export function StepSpecifications({
   }, [categoryId]);
 
   /**
-   * D36 / D35 — THE SCREEN'S OWN MEMORY IS PER CATEGORY. The expander reopens
-   * where this device left it for THIS category (and starts collapsed for
-   * another); a revealed locked input and an opened guidance belong to the
-   * definitions that have just been replaced, so both start over. Read in an
-   * effect, never in a state initialiser: the server has no session storage.
+   * D35 / D36 — A revealed locked input and an opened guidance belong to the
+   * definitions that have just been replaced, so both start over per category.
    */
   useEffect(() => {
     if (categoryId === null) return;
-    setMoreOpen(readMoreOpen(categoryId));
     setRevealed({});
     setHelpOpen({});
   }, [categoryId]);
@@ -1605,76 +1574,15 @@ export function StepSpecifications({
   };
 
   /**
-   * D36 / INC-269 — FORM ECONOMY AT 360, WITHOUT EVER REORDERING THE FORM.
-   *
-   * The first cut of D36 partitioned the rows (required and conditional first,
-   * the rest behind the expander) and so REORDERED the catalogue's own sequence:
-   * on Smartphones the seller met Brand · Storage · Condition and found Series,
-   * Model and Release year hidden; on Traditional Wear the dependent garment list
-   * rendered ABOVE the Region it hangs under and could not open at all.
-   *
-   * THE VISIBLE ORDER IS `display_order`, ALWAYS — the read hands the definitions
-   * in the curator's order and nothing here re-sorts them. The expander hides only
-   * the TRAILING RUN of rows a seller can safely meet later: optional, not a fold
-   * parent, not a dependent (it hangs under another answer), not a detail any fold
-   * on this leaf speaks about (a fact, a bound or an `allowed` narrowing), not
-   * conditional, not a card-style row (a colour tray) and not locked. The first row
-   * that fails any of those tests ends the run, so everything above it — and every
-   * required or locked row — stays on screen in place.
-   */
-  const spokenAbout = new Set<string>(dependents);
-  for (const def of definitions) {
-    /**
-     * INC-269 — A CONTROLLER IS NEVER HIDDEN. A condition names the sibling whose
-     * answer decides whether another detail is asked; hiding that sibling (it is
-     * optional and, while its dependent is unmet, the last row on screen) would
-     * bury the only answer that can bring the dependent back. Traditional Wear
-     * failed exactly there.
-     */
-    if (def.visibleWhen !== null) spokenAbout.add(def.visibleWhen.key);
-    if (!SELECT_TYPES.includes(def.attrType)) continue;
-    for (const option of allowedListOf(def)) {
-      for (const key of Object.keys(option.allowed ?? {})) spokenAbout.add(key);
-    }
-  }
-  /** A card-style row (the colour tray) is part of the form's shape, never hidden. */
-  const isCardRow = (def: AttrDef): boolean =>
-    def.attrType === "single_select" && isColourKey(def.attrKey);
-  /** D35 — a settled row reads as a strip; a strip is never behind the expander. */
-  const isLockedRow = (def: AttrDef): boolean =>
-    def.attrType === "single_select" &&
-    narrowing[def.attrKey] !== undefined &&
-    visibleOptionsOf(def).length === 1;
-  const deferrable = (def: AttrDef): boolean =>
-    !def.isRequired &&
-    def.visibleWhen === null &&
-    folds[def.attrKey] === undefined &&
-    !parents.has(def.attrKey) &&
-    !spokenAbout.has(def.attrKey) &&
-    !isCardRow(def) &&
-    !isLockedRow(def);
-  /**
-   * INC-271 — WHAT IS NOT KNOWN YET IS NEVER HIDDEN. Every test above except
-   * `isRequired` and `visibleWhen` is answered by the OPTION ROWS: a fold, a
-   * fact, a bound, an `allowed` narrowing and a colour tray all exist only once
-   * the eager lists have arrived. On the served build they arrive a beat later
-   * than the first paint, so for that beat Series, Model and Storage looked like
-   * plain trailing optionals and the whole run went behind the expander — the
-   * seller (and PW-50) met a form holding only Brand. The cut therefore runs
-   * only once every eagerly-read list has settled (ready or failed); until then
-   * nothing is deferred, so the form is complete and in display order from the
-   * first frame. INC-269's rule is untouched: display order always, only the
-   * trailing seller-side optionals behind "More details", a dependent below its
-   * parent and never hidden.
+   * INC-271 — THE FORM SAYS WHEN ITS OPTION LISTS HAVE SETTLED (`data-options`),
+   * so a reader waits on that word rather than a clock. D41 removed the trailing
+   * "More details" cut this once gated: every asked row renders, in display
+   * order (INC-269), from the first frame.
    */
   const optionsSettled = eager.every((def) => {
     const state = (options[def.attrKey] ?? IDLE).state;
     return state === "ready" || state === "failed";
   });
-  let cut = asked.length;
-  if (optionsSettled) while (cut > 0 && deferrable(asked[cut - 1]!)) cut -= 1;
-  const primary = asked.slice(0, cut);
-  const extra = asked.slice(cut);
 
   return (
     <div className="space-y-5" data-testid="post-specs" data-options={optionsSettled ? "1" : "0"}>
@@ -1721,33 +1629,8 @@ export function StepSpecifications({
       )}
 
       {/* D24 — only the details this answer set asks for are on screen. */}
-      <div className="space-y-5">{primary.map(renderDef)}</div>
-
-      {extra.length > 0 && (
-        <div className="space-y-3">
-          <button
-            type="button"
-            className="min-h-11 w-full rounded-md border border-input px-3 py-2 text-start text-sm font-medium text-foreground"
-            data-testid="post-specs-more"
-            data-open={moreOpen ? "1" : "0"}
-            aria-expanded={moreOpen}
-            onClick={() => {
-              const next = !moreOpen;
-              setMoreOpen(next);
-              if (categoryId !== null) writeMoreOpen(categoryId, next);
-            }}
-          >
-            {fill(t(moreOpen ? "post.specs.moreLess" : "post.specs.moreDetails"), {
-              count: extra.length,
-            })}
-          </button>
-          {moreOpen && (
-            <div className="space-y-5" data-testid="post-specs-more-panel">
-              {extra.map(renderDef)}
-            </div>
-          )}
-        </div>
-      )}
+      {/* D41 — every asked row, open, in display order: nothing waits behind a tap. */}
+      <div className="space-y-5">{asked.map(renderDef)}</div>
     </div>
   );
 }
