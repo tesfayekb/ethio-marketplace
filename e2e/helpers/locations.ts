@@ -498,7 +498,10 @@ export async function readLocationById(id: string) {
  * freshly opened scratch market is invisible for up to that long. Seed before
  * navigate (J7) therefore means waiting on the ROUTE, never on a clock.
  *
- * INC-218 — bounded at 20 s and named, for the same reason as the tree wait.
+ * INC-218 — bounded and named, for the same reason as the tree wait. INC-218
+ * step 3: 35 s = the route's 15 s server TTL (a seed is invisible until the
+ * cached entry ages out; 20 repeats measured up to 15.3 s) + a 20 s allowance
+ * for a slow get_open_countries read under a loaded matrix.
  */
 export async function waitForOpenMarket(page: Page, code: string) {
   await expect
@@ -512,13 +515,12 @@ export async function waitForOpenMarket(page: Page, code: string) {
         });
         if (!response.ok()) return [];
         const body = (await response.json()) as { countries?: { code: string }[] };
-        console.log(`[D-probe] ${Date.now()} want=${code} etag=${response.headers()["etag"]} n=${(body.countries ?? []).length} has=${(body.countries ?? []).some((r) => r.code === code)}`);
         return (body.countries ?? []).map((row) => row.code);
       },
       {
-        timeout: 20_000,
+        timeout: 35_000,
         intervals: [1000],
-        message: `the open-market list never carried ${code} within 20 s`,
+        message: `the open-market list never carried ${code} within 35 s (15 s server TTL + 20 s read allowance)`,
       },
     )
     .toContain(code);
