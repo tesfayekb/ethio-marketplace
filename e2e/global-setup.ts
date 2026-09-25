@@ -810,14 +810,21 @@ export default async function globalSetup() {
 
   // DEC-077 — PHOTO STORAGE REAPER (INC-278). Key law (src/server/media/storage.ts):
   // default/<seller_id>/<listing_id>/<photo_id>/<variant>.<ext> in `listing-photos`.
-  // Every storage error throws; nothing outside an e2e seller's prefix is touched.
+  // Every storage error throws; a live non-e2e user's folder is never touched.
+  // DEC-077 part 2 — every list pages by offset until a short page.
   const PHOTO_BUCKET = "listing-photos";
   const photoStorage = supabase.storage.from(PHOTO_BUCKET);
   const listPhotoDir = async (prefix: string): Promise<string[]> => {
-    const { data, error } = await photoStorage.list(prefix, { limit: 1000 });
-    if (error)
-      throw new Error(`[e2e:setup] listing ${PHOTO_BUCKET}/${prefix} failed: ${error.message}`);
-    return (data ?? []).map((entry) => entry.name);
+    const names: string[] = [];
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await photoStorage.list(prefix, { limit: 1000, offset });
+      if (error)
+        throw new Error(`[e2e:setup] listing ${PHOTO_BUCKET}/${prefix} failed: ${error.message}`);
+      const page = data ?? [];
+      names.push(...page.map((entry) => entry.name));
+      if (page.length < 1000) break;
+    }
+    return names;
   };
   const listingObjects = async (prefix: string): Promise<string[]> => {
     const paths: string[] = [];
