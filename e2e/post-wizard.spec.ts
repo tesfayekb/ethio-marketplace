@@ -2008,6 +2008,8 @@ test.describe("POSTING WIZARD", () => {
     await chooseBySearch(page, category.slug, category.id);
     const [draft] = await draftsOf(user.id);
     objects.push({ userId: user.id, listingId: String(draft?.id ?? "") });
+    // D39 — photos follow specifications.
+    await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
 
     const { data, error } = await adminClient()
@@ -2720,18 +2722,12 @@ test.describe("POSTING WIZARD", () => {
     await host.click();
 
     await page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`).click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    // D39 — the surfaced leaf lands on specifications directly.
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
     const [draft] = await draftsOf(user.id);
     const listingId = String(draft?.id ?? "");
     expect(listingId, "PW-44: choosing the surfaced leaf created no draft").not.toBe("");
     objects.push({ userId: user.id, listingId });
-
-    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
-    await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
-      timeout: 45_000,
-    });
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-3")).toBeVisible();
     // D36 — this walk does not go through `reachStep3`, so it opens the extras itself.
     await openMoreDetails(page);
 
