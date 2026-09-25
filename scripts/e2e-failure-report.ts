@@ -1359,6 +1359,9 @@ async function main() {
       process.exit(1);
     }
     const failuresBefore = collect(fixture).failures.length;
+    // DEC-078 — the ledger line must be byte-identical with and without bodies:
+    // captured from the first failed attempt as a failure BEFORE the flip.
+    const firstFailure = collect(fixture).failures[0];
     firstTest.status = "flaky";
     const flakeCollected = collect(flakeJson);
     const flakeReport = render(flakeJson, {
@@ -1390,6 +1393,57 @@ async function main() {
       );
       process.exit(1);
     }
+
+    // DEC-078 — FLAKY BODIES on the same flipped capture: the section exists,
+    // sits after the Flake ledger, quotes the flipped test's first message line,
+    // and the ledger line is byte-identical to the pre-DEC-078 form.
+    const bodyStart = flakeReport.indexOf("## Flaky bodies (DEC-078)");
+    const firstLine = (firstFailure?.message ?? "").split("\n")[0] ?? "";
+    const expectedLedger = `- 2026-09-01 · \`${firstFailure?.project}\` · ${firstFailure?.title} · run self-test · commit \`deadbeef\` · ${firstLine}`;
+    if (
+      !firstFailure ||
+      bodyStart < 0 ||
+      bodyStart < flakeReport.indexOf("## Flake ledger (DEC-030)") ||
+      !flakeReport.slice(bodyStart).includes(firstLine) ||
+      lines[0] !== expectedLedger
+    ) {
+      console.error("SELF-TEST FAILED — DEC-078 flaky body missing, misplaced or ledger changed.");
+      process.exit(1);
+    }
+    // A second flip of 11 tests: 10 bodies, one "body omitted: cap" line.
+    const capJson = JSON.parse(JSON.stringify(fixture)) as PwJson;
+    const capTarget = collect(capJson).flaky.length;
+    const tests = (capJson.suites ?? []).flatMap(function all(su: PwSuite): NonNullable<
+      NonNullable<PwSuite["specs"]>[number]["tests"]
+    > {
+      return [
+        ...(su.specs ?? []).flatMap((sp) => sp.tests ?? []),
+        ...(su.suites ?? []).flatMap(all),
+      ];
+    });
+    const failing = tests.filter((t) => t.status !== "expected" && t.status !== "skipped");
+    const pool = failing.length > 0 ? failing : tests;
+    // The capture carries fewer than 11 reds: the same real tests are replayed
+    // under the one captured suite until 11 flaky entries exist.
+    const capSuite = capJson.suites?.[0];
+    while (capSuite && collect(capJson).flaky.length - capTarget < 11) {
+      const spec = JSON.parse(JSON.stringify(capSuite.specs?.[0] ?? {}));
+      for (const t of spec.tests ?? []) t.status = "flaky";
+      capSuite.specs = [...(capSuite.specs ?? []), spec];
+      if (pool.length === 0) break;
+    }
+    const capReport = render(capJson, { runId: "self-test", runUrl: "", sha: "self-test" });
+    const capFlaky = collect(capJson).flaky.length;
+    const omitted = capReport.split("\n").filter((l) => l.endsWith("body omitted: cap")).length;
+    if (capFlaky < 11 || omitted !== capFlaky - FLAKY_BODY_CAP) {
+      console.error(
+        `SELF-TEST FAILED — DEC-078 cap: ${capFlaky} flaky, ${omitted} omitted (expected ${capFlaky - FLAKY_BODY_CAP}).`,
+      );
+      process.exit(1);
+    }
+    console.log(
+      `DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of ${capFlaky} rendered ${FLAKY_BODY_CAP} bodies + ${omitted} "body omitted: cap".`,
+    );
 
     // DEC-059 — THE POST-TEST BAND, proved on the REAL captured shard-6 log tail
     // of run 34741970648: 75 passed, 10 skipped, 0 failed, and exit code 1 whose
