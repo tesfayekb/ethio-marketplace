@@ -401,10 +401,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // seller is still typing. The server's `draft_step` is that truth, capped
       // at the step below the one on screen.
       // D39: "below" is the previous step of the walk, not `step - 1`.
-      const backupStep = Math.max(
-        0,
-        step === 1 ? 0 : Math.min(draftStepRef.current, prevOf(step)),
-      );
+      const backupStep = Math.max(0, step === 1 ? 0 : Math.min(draftStepRef.current, prevOf(step)));
       pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, backupStep);
       versionRef.current += 1;
       setSaveState("unsaved");

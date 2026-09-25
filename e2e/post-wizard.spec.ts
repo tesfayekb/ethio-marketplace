@@ -23,6 +23,7 @@ import {
   attributesOf,
   bearerOf,
   pinOf,
+  postRoute,
   reasonsOf,
   contactPrefOf,
   coverageOf,
@@ -478,6 +479,95 @@ test.describe("POSTING WIZARD", () => {
     }
   });
 
+  /**
+   * D39 — SPECIFICATIONS BEFORE PHOTOS. The door's numbers do not move (1 category
+   * · 2 photos · 3 specifications · 4 details …); the WALK does. (a) the seller's
+   * path and its "Step N of 8" header; (b) the resume matrix over scratch drafts
+   * seeded through the service client, including the old order's shape.
+   */
+  test("PW-54 the wizard walks category, specifications, photos, details and resumes at the first unfinished step", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const header = page.getByTestId("post-step-header");
+
+    // (a) THE WALK — positions, not door numbers, in the header (J5: digits only).
+    await gotoReady(page, "/post");
+    await chooseBySearch(page, category.slug, category.id);
+    const [walked] = await draftsOf(user.id);
+    const walkedId = String(walked?.id ?? "");
+    expect(walkedId, "PW-54: step 1 created no draft").not.toBe("");
+    objects.push({ userId: user.id, listingId: walkedId });
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(header, "PW-54: specifications are not position 2").toContainText(
+      /\b2\b[^0-9]*\b8\b/,
+    );
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2"), "PW-54: photos did not follow").toBeVisible();
+    await expect(header, "PW-54: photos are not position 3").toContainText(/\b3\b[^0-9]*\b8\b/);
+    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+    await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
+      timeout: 45_000,
+    });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4"), "PW-54: details did not follow").toBeVisible();
+
+    // (b) THE RESUME MATRIX — scratch drafts of this scratch seller only.
+    const token = await bearerOf(page);
+    const seedDraft = async (draftStep: number): Promise<string> => {
+      const answer = await postRoute(
+        page,
+        "/api/listings/draft",
+        { step: 1, categoryId: category.id },
+        { token, country: "ET" },
+      );
+      expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+      const id = String(answer.payload["listing_id"] ?? "");
+      expect(id, "PW-54: the draft route returned no listing").not.toBe("");
+      objects.push({ userId: user.id, listingId: id });
+      const { error } = await adminClient()
+        .from("listings")
+        .update({ draft_step: draftStep })
+        .eq("id", id)
+        .eq("seller_id", user.id);
+      if (error) throw new Error(`[e2e:d39] seeding draft_step failed: ${error.message}`);
+      return id;
+    };
+    const opensAt = async (id: string, testId: string, why: string) => {
+      await gotoReady(page, `/post/${id}`);
+      await expect(page.getByTestId(testId), why).toBeVisible({ timeout: 20_000 });
+    };
+
+    await opensAt(
+      await seedDraft(1),
+      "post-step-3",
+      "PW-54: draft_step 1 must open specifications",
+    );
+
+    const oldShape = await seedDraft(2);
+    const before = await attributesOf(oldShape);
+    await opensAt(
+      oldShape,
+      "post-step-3",
+      "PW-54: an old-order draft_step 2 must open specifications",
+    );
+    await expect(page.getByTestId("post-category-chip-path")).toContainText(category.slug);
+    expect(await attributesOf(oldShape), "PW-54: resuming changed the saved answers").toEqual(
+      before,
+    );
+
+    await opensAt(
+      await seedDraft(3),
+      "post-step-2",
+      "PW-54: draft_step 3 without photos must open photos",
+    );
+    // The walked draft: specifications recorded, one registered photo.
+    expect(await photoRowsOf(walkedId), "PW-54: the walked draft has no photo row").toHaveLength(1);
+    await opensAt(walkedId, "post-step-4", "PW-54: draft_step 3 with a photo must open details");
+    await opensAt(await seedDraft(4), "post-step-5", "PW-54: draft_step 4 must open price");
+  });
+
   test("PW-8 an unreachable save keeps the answers, says so, and retries", async ({ page }) => {
     const user = await seller(page);
     const category = await leaf();
@@ -681,7 +771,10 @@ test.describe("POSTING WIZARD", () => {
     ).toContainText(spec.text.nameEn);
     // D39 — the jump lands on SPECIFICATIONS; the photos notice (none here)
     // belongs to the photos step.
-    await expect(page.getByTestId("post-step-3"), "PW-26: the jump missed specifications").toBeVisible();
+    await expect(
+      page.getByTestId("post-step-3"),
+      "PW-26: the jump missed specifications",
+    ).toBeVisible();
     // D36 — the new category's extras start collapsed; a test reading an optional
     // detail opens them, as a seller would.
     await openMoreDetails(page);

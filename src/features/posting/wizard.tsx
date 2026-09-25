@@ -381,44 +381,44 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                */}
               {(droppedFields.length > 0 || (photosNeedRecheck && draft.step === 2)) &&
                 !noticeDismissed && (
-                <div
-                  className="space-y-1 rounded-md border border-border bg-muted p-3"
-                  data-testid="post-category-changed"
-                >
-                  {droppedFields.length > 0 && (
-                    <p
-                      className="flex flex-wrap items-center gap-2 text-sm text-foreground"
-                      data-testid="post-category-dropped"
-                    >
-                      <span>
-                        {fill(t("post.category.changedCleared"), {
-                          category:
-                            chosenCategory === null
-                              ? ""
-                              : entityName("category", chosenCategory, entities),
-                          fields: droppedFields.join(", "),
-                        })}
-                      </span>
-                      <button
-                        type="button"
-                        className="min-h-11 font-medium text-primary underline"
-                        data-testid="post-category-changed-dismiss"
-                        onClick={() => setNoticeDismissed(true)}
+                  <div
+                    className="space-y-1 rounded-md border border-border bg-muted p-3"
+                    data-testid="post-category-changed"
+                  >
+                    {droppedFields.length > 0 && (
+                      <p
+                        className="flex flex-wrap items-center gap-2 text-sm text-foreground"
+                        data-testid="post-category-dropped"
                       >
-                        {t("post.category.changedDismiss")}
-                      </button>
-                    </p>
-                  )}
-                  {photosNeedRecheck && draft.step === 2 && (
-                    <p
-                      className="text-sm text-muted-foreground"
-                      data-testid="post-category-photos-recheck"
-                    >
-                      {t("post.category.changedPhotos")}
-                    </p>
-                  )}
-                </div>
-              )}
+                        <span>
+                          {fill(t("post.category.changedCleared"), {
+                            category:
+                              chosenCategory === null
+                                ? ""
+                                : entityName("category", chosenCategory, entities),
+                            fields: droppedFields.join(", "),
+                          })}
+                        </span>
+                        <button
+                          type="button"
+                          className="min-h-11 font-medium text-primary underline"
+                          data-testid="post-category-changed-dismiss"
+                          onClick={() => setNoticeDismissed(true)}
+                        >
+                          {t("post.category.changedDismiss")}
+                        </button>
+                      </p>
+                    )}
+                    {photosNeedRecheck && draft.step === 2 && (
+                      <p
+                        className="text-sm text-muted-foreground"
+                        data-testid="post-category-photos-recheck"
+                      >
+                        {t("post.category.changedPhotos")}
+                      </p>
+                    )}
+                  </div>
+                )}
 
               <FormLayout
                 footer={
