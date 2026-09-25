@@ -1413,24 +1413,14 @@ async function main() {
     // A second flip of 11 tests: 10 bodies, one "body omitted: cap" line.
     const capJson = JSON.parse(JSON.stringify(fixture)) as PwJson;
     const capTarget = collect(capJson).flaky.length;
-    const tests = (capJson.suites ?? []).flatMap(function all(su: PwSuite): NonNullable<
-      NonNullable<PwSuite["specs"]>[number]["tests"]
-    > {
-      return [
-        ...(su.specs ?? []).flatMap((sp) => sp.tests ?? []),
-        ...(su.suites ?? []).flatMap(all),
-      ];
-    });
-    const failing = tests.filter((t) => t.status !== "expected" && t.status !== "skipped");
-    const pool = failing.length > 0 ? failing : tests;
-    // The capture carries fewer than 11 reds: the same real tests are replayed
-    // under the one captured suite until 11 flaky entries exist.
+    // The capture carries fewer than 11 reds: its first real spec is replayed
+    // (copied, never authored) under the captured suite until 11 flaky exist.
     const capSuite = capJson.suites?.[0];
     while (capSuite && collect(capJson).flaky.length - capTarget < 11) {
       const spec = JSON.parse(JSON.stringify(capSuite.specs?.[0] ?? {}));
       for (const t of spec.tests ?? []) t.status = "flaky";
+      if ((spec.tests ?? []).length === 0) break;
       capSuite.specs = [...(capSuite.specs ?? []), spec];
-      if (pool.length === 0) break;
     }
     const capReport = render(capJson, { runId: "self-test", runUrl: "", sha: "self-test" });
     const capFlaky = collect(capJson).flaky.length;
