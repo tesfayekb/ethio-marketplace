@@ -337,6 +337,10 @@ export type Flake = {
   /** First (failing) attempt's message, trimmed to one line for the ledger. */
   message: string;
   file: string;
+  /** DEC-078 — the first failed attempt's full 40-line message, as a failure carries it. */
+  body: string;
+  specTitle: string;
+  titlePath: string[];
 };
 
 export function collect(json: PwJson): {
@@ -369,6 +373,9 @@ export function collect(json: PwJson): {
             title,
             message: message.split("\n")[0] ?? "(no error message captured)",
             file: spec.file ?? suiteFile,
+            body: message,
+            specTitle,
+            titlePath: [...path, specTitle],
           });
           continue;
         }
@@ -639,6 +646,48 @@ export function attemptLine(meta: ReportMeta): string {
   return `- Attempt: ${meta.attempt && meta.attempt.trim() !== "" ? meta.attempt.trim() : "1"}`;
 }
 
+/** DEC-078 — at most this many flaky bodies per run; the rest are listed by title. */
+export const FLAKY_BODY_CAP = 10;
+
+/**
+ * DEC-078 — FLAKY BODIES. Every flaky test's FIRST failed attempt, in the same
+ * shape as a failure body (the 40-line message, then the matched error-context
+ * tail or the "context file not found" line), rendered right after the Flake
+ * ledger and BEFORE the green early return, so a run whose only anomaly was a
+ * retry still carries the evidence. Capped; the ledger line stays one line.
+ */
+export function flakyBodiesSection(
+  flaky: (Flake & { source: string })[],
+  contexts: Map<string, string>,
+): string[] {
+  if (flaky.length === 0) return [];
+  const candidates = [...contexts.keys()];
+  const out = ["## Flaky bodies (DEC-078)", ""];
+  flaky.forEach((f, i) => {
+    if (i >= FLAKY_BODY_CAP) {
+      out.push(`- ${f.title} · \`${f.project}\` · source \`${f.source}\` — body omitted: cap`);
+      return;
+    }
+    out.push(
+      `### ${f.title}`,
+      "",
+      `- Source: \`${f.source}\``,
+      `- Project: \`${f.project}\``,
+      "",
+      "```text",
+      f.body,
+      "```",
+      "",
+    );
+    const spec = { file: f.file, titlePath: f.titlePath, project: f.project };
+    const dir = matchContextDir(candidates, spec);
+    if (dir) out.push("Context:", "", "```text", contextTail(contexts.get(dir)!), "```", "");
+    else out.push(`Context: context file not found for \`${contextSlug(spec)}\``, "");
+  });
+  if (flaky.length > FLAKY_BODY_CAP) out.push("");
+  return out;
+}
+
 export function renderSources(
   sources: Source[],
   meta: ReportMeta,
@@ -717,6 +766,7 @@ export function renderSources(
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
     ...flakeSection,
+    ...flakyBodiesSection(flaky, contexts),
   ];
 
   // DEC-059 — THE POST-TEST SECTION. Rendered for every source that carried one,
@@ -1309,6 +1359,9 @@ async function main() {
       process.exit(1);
     }
     const failuresBefore = collect(fixture).failures.length;
+    // DEC-078 — the ledger line must be byte-identical with and without bodies:
+    // captured from the first failed attempt as a failure BEFORE the flip.
+    const firstFailure = collect(fixture).failures[0];
     firstTest.status = "flaky";
     const flakeCollected = collect(flakeJson);
     const flakeReport = render(flakeJson, {
@@ -1340,6 +1393,47 @@ async function main() {
       );
       process.exit(1);
     }
+
+    // DEC-078 — FLAKY BODIES on the same flipped capture: the section exists,
+    // sits after the Flake ledger, quotes the flipped test's first message line,
+    // and the ledger line is byte-identical to the pre-DEC-078 form.
+    const bodyStart = flakeReport.indexOf("## Flaky bodies (DEC-078)");
+    const firstLine = (firstFailure?.message ?? "").split("\n")[0] ?? "";
+    const expectedLedger = `- 2026-09-01 · \`${firstFailure?.project}\` · ${firstFailure?.title} · run self-test · commit \`deadbeef\` · ${firstLine}`;
+    if (
+      !firstFailure ||
+      bodyStart < 0 ||
+      bodyStart < flakeReport.indexOf("## Flake ledger (DEC-030)") ||
+      !flakeReport.slice(bodyStart).includes(firstLine) ||
+      lines[0] !== expectedLedger
+    ) {
+      console.error("SELF-TEST FAILED — DEC-078 flaky body missing, misplaced or ledger changed.");
+      process.exit(1);
+    }
+    // A second flip of 11 tests: 10 bodies, one "body omitted: cap" line.
+    const capJson = JSON.parse(JSON.stringify(fixture)) as PwJson;
+    const capTarget = collect(capJson).flaky.length;
+    // The capture carries fewer than 11 reds: its first real spec is replayed
+    // (copied, never authored) under the captured suite until 11 flaky exist.
+    const capSuite = capJson.suites?.[0];
+    while (capSuite && collect(capJson).flaky.length - capTarget < 11) {
+      const spec = JSON.parse(JSON.stringify(capSuite.specs?.[0] ?? {}));
+      for (const t of spec.tests ?? []) t.status = "flaky";
+      if ((spec.tests ?? []).length === 0) break;
+      capSuite.specs = [...(capSuite.specs ?? []), spec];
+    }
+    const capReport = render(capJson, { runId: "self-test", runUrl: "", sha: "self-test" });
+    const capFlaky = collect(capJson).flaky.length;
+    const omitted = capReport.split("\n").filter((l) => l.endsWith("body omitted: cap")).length;
+    if (capFlaky < 11 || omitted !== capFlaky - FLAKY_BODY_CAP) {
+      console.error(
+        `SELF-TEST FAILED — DEC-078 cap: ${capFlaky} flaky, ${omitted} omitted (expected ${capFlaky - FLAKY_BODY_CAP}).`,
+      );
+      process.exit(1);
+    }
+    console.log(
+      `DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of ${capFlaky} rendered ${FLAKY_BODY_CAP} bodies + ${omitted} "body omitted: cap".`,
+    );
 
     // DEC-059 — THE POST-TEST BAND, proved on the REAL captured shard-6 log tail
     // of run 34741970648: 75 passed, 10 skipped, 0 failed, and exit code 1 whose

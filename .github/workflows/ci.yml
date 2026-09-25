@@ -408,8 +408,11 @@ jobs:
       # U2a / INC-083 rule 2: Playwright writes a page snapshot per failure at
       # test-results/<slug>/error-context.md — the only diagnosable evidence for
       # a timeout. The reporter quotes it, so it must travel out of the job.
+      # DEC-078: uploaded on EVERY outcome — a test that failed then passed on
+      # retry leaves its first attempt's context in a GREEN job; an empty
+      # test-results tree uploads nothing (ignore), never an alarm.
       - name: Upload error contexts
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: e2e-context-smoke
@@ -418,7 +421,7 @@ jobs:
           # the merged reporter reads attempt 1 or nothing at all.
           overwrite: true
           path: test-results/**/error-context.md
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 7
       - name: Upload HTML report on failure
         if: failure()
@@ -562,8 +565,9 @@ jobs:
           path: changed.log
           if-no-files-found: warn
           retention-days: 7
+      # DEC-078: every outcome, so a retry-recovered test's context travels too.
       - name: Upload error contexts
-        if: failure() && steps.changed.outputs.specs != ''
+        if: always() && steps.changed.outputs.specs != ''
         uses: actions/upload-artifact@v6
         with:
           name: e2e-context-changed
@@ -572,7 +576,7 @@ jobs:
           # the merged reporter reads attempt 1 or nothing at all.
           overwrite: true
           path: test-results/**/error-context.md
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 7
 
   e2e-shard:
@@ -682,8 +686,11 @@ jobs:
       # U2a / INC-083 rule 2: Playwright writes a page snapshot per failure at
       # test-results/<slug>/error-context.md — the only diagnosable evidence for
       # a timeout. The reporter quotes it, so it must travel out of the job.
+      # DEC-078: uploaded on EVERY outcome — a test that failed then passed on
+      # retry leaves its first attempt's context in a GREEN job; an empty
+      # test-results tree uploads nothing (ignore), never an alarm.
       - name: Upload error contexts
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: e2e-context-${{ matrix.shard }}
@@ -692,7 +699,7 @@ jobs:
           # the merged reporter reads attempt 1 or nothing at all.
           overwrite: true
           path: test-results/**/error-context.md
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 7
       - name: Upload HTML report on failure
         if: failure()
@@ -783,8 +790,11 @@ jobs:
       # U2a / INC-083 rule 2: Playwright writes a page snapshot per failure at
       # test-results/<slug>/error-context.md — the only diagnosable evidence for
       # a timeout. The reporter quotes it, so it must travel out of the job.
+      # DEC-078: uploaded on EVERY outcome — a test that failed then passed on
+      # retry leaves its first attempt's context in a GREEN job; an empty
+      # test-results tree uploads nothing (ignore), never an alarm.
       - name: Upload error contexts
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: e2e-context-email
@@ -793,7 +803,7 @@ jobs:
           # the merged reporter reads attempt 1 or nothing at all.
           overwrite: true
           path: test-results/**/error-context.md
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 7
       - name: Capture email log tail
         if: failure()
@@ -842,7 +852,8 @@ jobs:
         with:
           pattern: e2e-log-*
           path: shard-logs
-      # Context files only exist for RED jobs; a green run downloads nothing.
+      # DEC-078: context files exist for every job with a failed ATTEMPT — a red
+      # job, or a green job whose test passed on retry; otherwise nothing.
       # LAYOUT (rehearsed in scripts/fixtures): with `pattern` and the default
       # merge-multiple:false, EACH artifact lands in its OWN subdirectory named
       # after the artifact — shard-contexts/e2e-context-smoke/test-results/<slug>/

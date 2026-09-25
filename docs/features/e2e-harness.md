@@ -300,3 +300,7 @@ Rule: the DEC-062 reaper removes every storage object under `default/<seller_id>
 - Proof on every shard-1 run: a 1-byte object at `default/e2e-proof-<runId>/e2e-proof-listing/e2e-proof-photo/card.txt` is uploaded and purged; the count must be exactly 1 and the re-list empty, else setup throws (an unreachable bucket is a failure, not a pass). Logs `[e2e:setup] photo reaper proof: ok`.
 - Supabase provider only; an R2 target is out of the harness.
 - Setup logs `[e2e:setup] photo objects removed: <n> under <m> reaped listing(s); orphan-user folders: <a>; orphan listing folders: <b>; kept (live sellers): <c>; more remain: yes|no`.
+
+## DEC-078 — flaky bodies
+
+A flaky test's first failed attempt is quoted in the merged report, with its error context uploaded even from a green job; see `docs/features/ci-guards.md` (DEC-078).
