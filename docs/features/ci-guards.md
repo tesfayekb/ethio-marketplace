@@ -693,6 +693,12 @@ MECHANICS:
   test leaves the failure list, the ledger section and header line render, one
   ledger line is produced, and an ordinary red renders NO ledger section.
 
+## DEC-078 — flaky bodies: a retry-recovered test carries its first failure (2026-09-25)
+
+Rule (pre-committed): for every FLAKY test the merged report carries the FIRST failed attempt's body in the same shape as a failure — the 40-line message and the matched error-context tail, or the "context file not found" line — in a `## Flaky bodies (DEC-078)` section right after the Flake ledger. At most 10 bodies per run (`FLAKY_BODY_CAP`); the rest are listed by title with `body omitted: cap`. The section renders before the green early return. `Flake.message` stays one line, so the flake-ledger.md line is byte-identical; flaky stays non-gating. The four "Upload error contexts" steps run `if: always()` (the changed lane keeps its `specs != ''` guard) with `if-no-files-found: ignore`, so a green job whose test passed on retry still ships its context. Self-test: the captured-fixture flip asserts the heading, placement, the flipped message's first line and the unchanged ledger line; a flip of 11 asserts the cap line. Kept if the next three runs carrying a flake show one body per FLAKY line and the report stays under 200 KB; otherwise reverted.
+
+Limit: an all-green run is written by `renderGreen` (E2E_GREEN=1), and the ledger-only pass (E2E_FLAKE_ONLY=1) writes no report, so bodies appear only in a run where the merged `renderSources` report is written.
+
 ## DEC-029 — E2E wall-clock: session injection, one build, six shards
 
 Three levers, landed together; each is independently revertible.
