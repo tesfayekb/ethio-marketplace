@@ -25,7 +25,19 @@ import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
 import { readPostingSchema, type PlanCaps } from "./posting-service";
 import { useDraft } from "./use-draft";
-import { IMPLEMENTED_THROUGH, STEPS, TOTAL_STEPS, type CategoryFacts } from "./types";
+import {
+  IMPLEMENTED_THROUGH,
+  SEQUENCE,
+  STEPS,
+  TOTAL_STEPS,
+  nextOf,
+  positionOf,
+  prevOf,
+  type CategoryFacts,
+} from "./types";
+
+/** D39 — the rails walk the seller's order; each entry keeps its door number. */
+const WALK = SEQUENCE.map((step) => STEPS[step - 1]);
 
 /**
  * U6-C1a — THE WIZARD SHELL: ONE SCREEN AT A TIME, AT 360 PIXELS.
@@ -215,7 +227,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           <div className="space-y-4" data-testid="post-desktop-aside">
             <Section>
               <ol className="space-y-2" aria-label={t("post.progress.label")}>
-                {STEPS.map((entry) => (
+                {WALK.map((entry) => (
                   <li
                     key={entry.step}
                     className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-sm"
@@ -223,12 +235,14 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                   >
                     <span
                       className={`grid size-6 place-items-center rounded-full border text-xs ${
-                        entry.step <= draft.step
+                        positionOf(entry.step) <= positionOf(draft.step)
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-border text-muted-foreground"
                       }`}
                     >
-                      {entry.step < draft.step ? "✓" : entry.step}
+                      {positionOf(entry.step) < positionOf(draft.step)
+                        ? "✓"
+                        : positionOf(entry.step)}
                     </span>
                     <span className="truncate text-foreground">{t(entry.nameKey)}</span>
                   </li>
@@ -264,7 +278,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 <h1 className="text-lg font-semibold text-foreground">{t("post.title")}</h1>
                 <p className="text-sm text-muted-foreground" data-testid="post-step-header">
                   {fill(t("post.stepOf"), {
-                    step: draft.step,
+                    step: positionOf(draft.step),
                     total: TOTAL_STEPS,
                     name: t(current.nameKey),
                   })}
@@ -275,12 +289,12 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                   data-testid="post-progress"
                   className="flex gap-1"
                 >
-                  {STEPS.map((entry) => (
+                  {WALK.map((entry) => (
                     <li
                       key={entry.step}
                       aria-current={entry.step === draft.step ? "step" : undefined}
                       className={`h-1 grow rounded-full ${
-                        entry.step <= draft.step ? "bg-primary" : "bg-muted"
+                        positionOf(entry.step) <= positionOf(draft.step) ? "bg-primary" : "bg-muted"
                       }`}
                     >
                       <span className="sr-only">{t(entry.nameKey)}</span>
@@ -304,6 +318,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 <MobileStepStrip
                   step={draft.step}
                   draftStep={draft.draftStep}
+                  photosCount={draft.photos.length}
                   onGoTo={draft.goTo}
                 />
                 <p
@@ -364,45 +379,46 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                * the answers that did not travel with them (F4: nothing vanishes in
                * silence), and a way to put it away once read.
                */}
-              {(droppedFields.length > 0 || photosNeedRecheck) && !noticeDismissed && (
-                <div
-                  className="space-y-1 rounded-md border border-border bg-muted p-3"
-                  data-testid="post-category-changed"
-                >
-                  {droppedFields.length > 0 && (
-                    <p
-                      className="flex flex-wrap items-center gap-2 text-sm text-foreground"
-                      data-testid="post-category-dropped"
-                    >
-                      <span>
-                        {fill(t("post.category.changedCleared"), {
-                          category:
-                            chosenCategory === null
-                              ? ""
-                              : entityName("category", chosenCategory, entities),
-                          fields: droppedFields.join(", "),
-                        })}
-                      </span>
-                      <button
-                        type="button"
-                        className="min-h-11 font-medium text-primary underline"
-                        data-testid="post-category-changed-dismiss"
-                        onClick={() => setNoticeDismissed(true)}
+              {(droppedFields.length > 0 || (photosNeedRecheck && draft.step === 2)) &&
+                !noticeDismissed && (
+                  <div
+                    className="space-y-1 rounded-md border border-border bg-muted p-3"
+                    data-testid="post-category-changed"
+                  >
+                    {droppedFields.length > 0 && (
+                      <p
+                        className="flex flex-wrap items-center gap-2 text-sm text-foreground"
+                        data-testid="post-category-dropped"
                       >
-                        {t("post.category.changedDismiss")}
-                      </button>
-                    </p>
-                  )}
-                  {photosNeedRecheck && (
-                    <p
-                      className="text-sm text-muted-foreground"
-                      data-testid="post-category-photos-recheck"
-                    >
-                      {t("post.category.changedPhotos")}
-                    </p>
-                  )}
-                </div>
-              )}
+                        <span>
+                          {fill(t("post.category.changedCleared"), {
+                            category:
+                              chosenCategory === null
+                                ? ""
+                                : entityName("category", chosenCategory, entities),
+                            fields: droppedFields.join(", "),
+                          })}
+                        </span>
+                        <button
+                          type="button"
+                          className="min-h-11 font-medium text-primary underline"
+                          data-testid="post-category-changed-dismiss"
+                          onClick={() => setNoticeDismissed(true)}
+                        >
+                          {t("post.category.changedDismiss")}
+                        </button>
+                      </p>
+                    )}
+                    {photosNeedRecheck && draft.step === 2 && (
+                      <p
+                        className="text-sm text-muted-foreground"
+                        data-testid="post-category-photos-recheck"
+                      >
+                        {t("post.category.changedPhotos")}
+                      </p>
+                    )}
+                  </div>
+                )}
 
               <FormLayout
                 footer={
@@ -432,7 +448,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             setCategoryCursor(tree.parentOf.get(categoryCursor) ?? null);
                             return;
                           }
-                          draft.goTo(draft.step - 1);
+                          draft.goTo(prevOf(draft.step));
                         }}
                       >
                         {t("post.action.back")}
@@ -477,7 +493,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                                 draft.goTo(TOTAL_STEPS);
                                 return;
                               }
-                              draft.goTo(draft.step + 1);
+                              draft.goTo(nextOf(draft.step));
                             })();
                           }}
                         >
@@ -532,7 +548,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                               setPhotosNeedRecheck(false);
                               draft.change({ categoryId: nextCategoryId }, true);
                               void draft.saveAt(1).then((saved) => {
-                                if (saved) draft.goTo(2);
+                                if (saved) draft.goTo(3);
                               });
                               return;
                             }
@@ -592,7 +608,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                               // schema the remaining answers cannot satisfy and the
                               // orphans are never dropped (see `rewindTo`).
                               const saved = await draft.rewindTo(1);
-                              if (saved) draft.goTo(lost.length > 0 || refolded ? 3 : 2);
+                              // D39 — specifications come next in every branch;
+                              // the photos notice waits for the photos step.
+                              if (saved) draft.goTo(3);
                             })();
                           }}
                         />

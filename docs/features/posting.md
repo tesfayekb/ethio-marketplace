@@ -40,10 +40,22 @@ screen at a draft's own address. The URL is unaffected.
    both funnel through a single in-flight request carrying the LATEST answers, so
    the door can never apply an older payload after a newer one.
 3. **The server owns `draft_step`.** The wizard proposes; the door's answer is
-   what a resume trusts. A resume opens at the step AFTER the recorded one, never
-   past what this landing can honestly render.
+   what a resume trusts. A resume opens at the first unfinished step of the
+   walk, never past what this landing can honestly render.
 4. **A refusal is not a failure.** Refusals render beneath their named field and
    are not retried; only unreachability is.
+
+**The order (D39, 2026-09-24).** The seller walks category → specifications →
+photos → details → price → place → contact → review (`SEQUENCE` in `types.ts`);
+the door's numbers do not move (`draft_step`, `p_step`, `post-step-<n>`: 1
+category · 2 photos · 3 specifications · 4 details · … · 8 review). Next/Back,
+both rails, the phone strip and "Step N of 8" read positions in the walk. One
+predicate decides "finished": photos are finished when one is registered or the
+draft reached details (`draft_step >= 4`), since photos are optional and never
+door-recorded; every other step when `draft_step >= step`. A resume opens at the
+first unfinished step, so an old-order draft at `draft_step 2` reopens on
+specifications with its answers intact. Autosave is capped at the previous step
+of the walk. Acceptance: `PW-54`.
 
 ## Step 1 — ONE control (D11, C1-R1)
 

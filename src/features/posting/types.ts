@@ -20,6 +20,54 @@ export const STEPS = [
 
 export const TOTAL_STEPS = STEPS.length;
 
+/**
+ * D39 — THE ORDER A SELLER WALKS, not the door's numbers. The door keeps
+ * 1 category · 2 photos · 3 specifications · … · 8 review; the seller meets
+ * category → specifications → photos → details → price → place → contact →
+ * review. Every "next", "previous", rail and "Step N of M" reads this list.
+ */
+export const SEQUENCE = [1, 3, 2, 4, 5, 6, 7, 8] as const;
+
+/** The 1-based position a door step holds in the walk. */
+export function positionOf(step: number): number {
+  const index = (SEQUENCE as readonly number[]).indexOf(step);
+  return index === -1 ? 1 : index + 1;
+}
+
+/** The door step at a 1-based position of the walk. */
+export function stepAt(position: number): number {
+  return SEQUENCE[Math.min(Math.max(position, 1), SEQUENCE.length) - 1];
+}
+
+export function nextOf(step: number): number {
+  return stepAt(positionOf(step) + 1);
+}
+
+export function prevOf(step: number): number {
+  return stepAt(positionOf(step) - 1);
+}
+
+export interface StepProgress {
+  draftStep: number;
+  photosCount: number;
+}
+
+/**
+ * ONE PREDICATE for "this step is behind the seller". Photos are optional and
+ * never door-validated, so passing them is not recorded: a draft that went on
+ * to details has passed them. `draftStep >= 2` is the OLD order's fact and is
+ * deliberately not used.
+ */
+export function isStepFinished(step: number, { draftStep, photosCount }: StepProgress): boolean {
+  if (step === 2) return photosCount >= 1 || draftStep >= 4;
+  return draftStep >= step;
+}
+
+/** Where a resumed draft opens: the first unfinished step of the walk. */
+export function firstUnfinished(ctx: StepProgress): number {
+  return SEQUENCE.find((step) => !isStepFinished(step, ctx)) ?? 8;
+}
+
 /** The steps this landing implements; the rest render "opens later" honestly. */
 export const IMPLEMENTED_THROUGH = 8;
 

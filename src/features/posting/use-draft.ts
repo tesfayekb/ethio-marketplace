@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { readDraft, saveDraft, type DraftBody, type DraftPhotoRow } from "./posting-service";
-import { IMPLEMENTED_THROUGH, type Refusal, type SaveState } from "./types";
+import {
+  IMPLEMENTED_THROUGH,
+  firstUnfinished,
+  prevOf,
+  type Refusal,
+  type SaveState,
+} from "./types";
 
 /**
  * U6-C1a — THE DRAFT: AUTOSAVE, RESUME, AND NEVER LOSING A SELLER'S WORK.
@@ -394,7 +400,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // step being edited: a half-filled step must not be judged while the
       // seller is still typing. The server's `draft_step` is that truth, capped
       // at the step below the one on screen.
-      const backupStep = Math.max(0, Math.min(draftStepRef.current, step - 1));
+      // D39: "below" is the previous step of the walk, not `step - 1`.
+      const backupStep = Math.max(0, step === 1 ? 0 : Math.min(draftStepRef.current, prevOf(step)));
       pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, backupStep);
       versionRef.current += 1;
       setSaveState("unsaved");
@@ -488,9 +495,18 @@ export function useDraft(initialListingId: string | null): UseDraft {
                 street: found.draft.streetAddress,
               },
         );
-        // Open where the seller left off: the step AFTER the one the SERVER
-        // recorded, never past what this landing can honestly render.
-        setStep(Math.min(Math.max(found.draft.draftStep, 1) + 1, IMPLEMENTED_THROUGH));
+        // D39 — open at the first UNFINISHED step of the walk (photos count as
+        // passed once one is registered or the draft reached details), never
+        // past what this landing can honestly render.
+        setStep(
+          Math.min(
+            firstUnfinished({
+              draftStep: found.draft.draftStep,
+              photosCount: found.photos.length,
+            }),
+            IMPLEMENTED_THROUGH,
+          ),
+        );
         setLoadError(null);
       } catch {
         if (!cancelled) setLoadError("failed");
