@@ -1,139 +1,58 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
+last E2E run 36128108694 passed
+
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36128108694
 - Commit: `073f4ffd848734af4ac9f1e3803fd5e61ca77c66`
-- Attempt: 1
-- Written (UTC): 2026-09-25T11:18:14.545Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): none
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Attempt: 2
+- Written (UTC): 2026-09-25T11:49:59.220Z
+- Post-test warnings: 0
+- Flaky (passed on retry, DEC-030, non-gating): 1
 
-## Server errors: smoke
+## Flake ledger (DEC-030)
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
 
-## Client errors: smoke
+- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · admin-translations-governance.spec.ts › U4g bulk approval, order and orphans › TR-29 the catalog exports as CSV and a translated CSV imports back — Error: the CSV export was page-scoped: 1932 stable+own rows against a 1931-row expectation
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+## Flaky bodies (DEC-078)
 
-## Server errors: email
+### admin-translations-governance.spec.ts › U4g bulk approval, order and orphans › TR-29 the catalog exports as CSV and a translated CSV imports back
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
-
-## Client errors: email
-
-No `[client-error]` lines in the `email` log (or no log was uploaded).
-
-## Server errors: shard 1
-
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Client errors: shard 1
-
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 3
-
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Server errors: shard 4
-
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Server errors: shard 5
-
-No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Client errors: shard 5
-
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Server errors: shard 6
-
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## Client errors: shard 6
-
-No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
+- Source: `shard 2`
+- Project: `mobile-360`
 
 ```text
-(no log tail was uploaded for this source)
+Error: the CSV export was page-scoped: 1932 stable+own rows against a 1931-row expectation
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: 1931
+Received: 1932
 ```
 
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
+Context:
 
 ```text
-(no log tail was uploaded for this source)
+          - listitem [ref=e506]:
+            - generic [ref=e507]: About
+          - listitem [ref=e508]:
+            - generic [ref=e509]: How it works
+      - navigation "Help" [ref=e510]:
+        - heading "Help" [level=2] [ref=e511]
+        - list [ref=e512]:
+          - listitem [ref=e513]:
+            - generic [ref=e514]: Safety
+          - listitem [ref=e515]:
+            - generic [ref=e516]: Contact
+      - navigation "Legal" [ref=e517]:
+        - heading "Legal" [level=2] [ref=e518]
+        - list [ref=e519]:
+          - listitem [ref=e520]:
+            - generic [ref=e521]: Terms
+          - listitem [ref=e522]:
+            - generic [ref=e523]: Privacy
+    - paragraph [ref=e525]: © 2026 ethio.com — All rights reserved.
 ```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
 ```
