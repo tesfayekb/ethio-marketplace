@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { readDraft, saveDraft, type DraftBody, type DraftPhotoRow } from "./posting-service";
-import { IMPLEMENTED_THROUGH, type Refusal, type SaveState } from "./types";
+import {
+  IMPLEMENTED_THROUGH,
+  firstUnfinished,
+  prevOf,
+  type Refusal,
+  type SaveState,
+} from "./types";
 
 /**
  * U6-C1a — THE DRAFT: AUTOSAVE, RESUME, AND NEVER LOSING A SELLER'S WORK.
