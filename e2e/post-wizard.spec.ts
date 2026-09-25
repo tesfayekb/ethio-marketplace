@@ -357,6 +357,9 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-3")).toBeVisible();
     await expect(page.getByTestId("post-category-chip-path")).toContainText(parent.slug);
     await expect(page.getByTestId("post-category-chip-path")).toContainText(child.slug);
+    // D39 — the stand-in lives on the photos step, which follows specifications.
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
     // The leaf has no picture of its own: the stand-in is the FOLDER's.
     await expect(
       page.getByTestId("post-photos-illustration"),
