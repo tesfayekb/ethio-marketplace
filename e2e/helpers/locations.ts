@@ -512,6 +512,7 @@ export async function waitForOpenMarket(page: Page, code: string) {
         });
         if (!response.ok()) return [];
         const body = (await response.json()) as { countries?: { code: string }[] };
+        console.log(`[D-probe] ${Date.now()} want=${code} etag=${response.headers()["etag"]} n=${(body.countries ?? []).length} has=${(body.countries ?? []).some((r) => r.code === code)}`);
         return (body.countries ?? []).map((row) => row.code);
       },
       {
