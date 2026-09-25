@@ -1,5 +1,6 @@
 # Changelog (append-only)
 
+- 2026-09-25 — D39: the posting wizard walks category → specifications → photos → details → price → place → contact → review; door step numbers unchanged; resume opens at the first unfinished step (photos finished by a registered photo or `draft_step >= 4`); PW-54 proves the walk and the resume matrix. No migration.
 - 2026-09-24 — INC-273: catalog finder base re-landed portably (idempotent objects; the 2 KB budget is trimmed in the route, not asserted against the live catalog inside the migration). apply `ac3b25ed` → expect mark `20260924028000`.
 - 2026-09-24 — D37-1: catalog finder index, rebuild, RPC and route (`pg_trgm`). apply `391d5884` → expect mark `20260924027000`; publication refresh follow-ups expect marks through `20260924026000`.
 
