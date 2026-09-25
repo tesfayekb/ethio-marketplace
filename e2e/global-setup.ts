@@ -855,7 +855,8 @@ export default async function globalSetup() {
     ];
     for (const [what, run] of steps) {
       const { error } = await run();
-      if (error) throw new Error(`[e2e:setup] reaping scratch category ${what} failed: ${error.message}`);
+      if (error)
+        throw new Error(`[e2e:setup] reaping scratch category ${what} failed: ${error.message}`);
     }
   };
   for (let index = 0; index < staleCategoryIds.length; index += 100) {
@@ -898,10 +899,11 @@ export default async function globalSetup() {
   // until a call removes nothing. Orphan-actor rows are opted in here only:
   // adminClient() refuses every URL but staging.
   for (let round = 0; round < 50; round += 1) {
-    const { data: pruned, error: pruneError } = await supabase.rpc(
-      "maintenance_prune_e2e_audit",
-      { p_cutoff: auditCutoff, p_include_orphans: true, p_batch: 20000 },
-    );
+    const { data: pruned, error: pruneError } = await supabase.rpc("maintenance_prune_e2e_audit", {
+      p_cutoff: auditCutoff,
+      p_include_orphans: true,
+      p_batch: 20000,
+    });
     if (pruneError) {
       throw new Error(`[e2e:setup] e2e audit retention failed: ${pruneError.message}`);
     }

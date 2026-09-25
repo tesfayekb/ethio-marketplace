@@ -284,3 +284,8 @@ specification form (`step-specifications.tsx`) and the review
 Amharic, `label_en` beneath it. A test therefore sets `label_am` on the scratch
 option and asserts it; there is no DB tier above the record, so no D3 overlay
 assertion and no entity-translation approval apply.
+
+## INC-276 / INC-274 — scratch categories and audit retention
+
+- The global-setup category reaper covers every `e2e-` slug older than one hour (not only `e2e-cat-`), paged past the 1000-row cap and deleted in id batches of 100. Non-cascading dependents go first: listings in those categories, both ends of `category_tree_pointers`, legacy `category_attributes`, category `entity_translations`; attribute links, exclusions and the rail order cascade. Staging's one-off sweep: 553 hour-old leftovers before, 0 after.
+- Audit retention: after the actor-list door, `maintenance_prune_e2e_audit(cutoff, include_orphans, batch)` (service_role only, ≤ 50,000 rows a call) removes rows older than 24 h whose actor is an e2e user, whose actor no longer exists (opt-in; staging only, since `adminClient()` refuses any other URL), or whose `entity_id` / `meta.slug` / `meta.key` is e2e-namespaced. Setup loops 20k-row calls until one removes nothing.
