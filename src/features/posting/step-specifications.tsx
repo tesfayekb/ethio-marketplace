@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { catalogText, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
+import { resolveBound, yearLabel } from "./attribute-display";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
 import { Field, controlClass } from "./field";
@@ -195,7 +196,7 @@ export function StepSpecifications({
    */
   onFields?: (attrKeys: string[]) => void;
 }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const [schema, setSchema] = useState<PostingSchema | null>(null);
   const [failed, setFailed] = useState(false);
   const [options, setOptions] = useState<Record<string, OptionState>>({});
@@ -210,8 +211,6 @@ export function StepSpecifications({
   const [prefills, setPrefills] = useState<Record<string, unknown>>({});
   /** What this screen alone saw wrong — the door's own refusal always wins. */
   const [local, setLocal] = useState<Refusal[]>([]);
-  /** D35 — the locked details whose input the seller has asked to see. */
-  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   /** D36 — the details whose full guidance the (i) tap has opened. */
   const [helpOpen, setHelpOpen] = useState<Record<string, boolean>>({});
 
@@ -265,12 +264,11 @@ export function StepSpecifications({
   }, [categoryId]);
 
   /**
-   * D35 / D36 — A revealed locked input and an opened guidance belong to the
-   * definitions that have just been replaced, so both start over per category.
+   * D36 — an opened guidance belongs to the definitions that have just been
+   * replaced, so it starts over per category.
    */
   useEffect(() => {
     if (categoryId === null) return;
-    setRevealed({});
     setHelpOpen({});
   }, [categoryId]);
 
@@ -549,11 +547,8 @@ export function StepSpecifications({
    */
   const boundsOf = useCallback(
     (def: AttrDef): { min: number | null; max: number | null; narrowed: boolean } => {
-      const own = (raw: string | null): number | null => {
-        if (raw === null) return null;
-        const parsed = Number(raw);
-        return Number.isFinite(parsed) ? parsed : null;
-      };
+      // INC-288 — the door's vocabulary (`year`, `year±N`, a literal), not Number().
+      const own = (raw: string | null): number | null => resolveBound(raw);
       let min = own(def.minBound);
       let max = own(def.maxBound);
       const fromOptions = facts.bounds[def.attrKey] ?? [];
@@ -1096,8 +1091,9 @@ export function StepSpecifications({
      */
     const yearMode = def.attrType === "number" && def.format === "year";
     const yearFloor = bound.min !== null ? Math.trunc(bound.min) : 1900;
-    const nextYear = new Date().getFullYear() + 1;
-    const yearCeiling = Math.trunc(bound.max !== null ? Math.min(bound.max, nextYear) : nextYear);
+    // INC-288 — a stated ceiling is honoured as stated (no clamp to next year).
+    const nextYear = new Date().getUTCFullYear() + 1;
+    const yearCeiling = Math.trunc(bound.max !== null ? bound.max : nextYear);
     const years = yearMode
       ? Array.from({ length: Math.max(0, yearCeiling - yearFloor + 1) }, (_, index) =>
           String(yearCeiling - index),
@@ -1106,16 +1102,13 @@ export function StepSpecifications({
     /** D36 — the guidance, split: one sentence inline, the rest behind (i). */
     const help = firstSentence(catalogText(def.helpTextEn ?? "", def.helpTextAm, entities.lang));
     /**
-     * D35 — A LOCKED FACT IS A STRIP, NOT AN INPUT. When the chosen options
-     * both SET this sibling AND narrow it to that single admissible value, the
-     * answer is settled: it reads as one line — label, value, and where it came
-     * from — and the input appears only when the seller taps to change it. A
-     * prefill-only fact (the list still open) keeps its normal prefilled input,
-     * because there the seller still has a real choice to make. The stored
-     * value is the same either way, and the door judges it unchanged (F3).
+     * D44 (supersedes D35's strip on the form) — A SETTLED ANSWER IS STORED, NOT
+     * SHOWN. When the chosen options leave exactly one admissible answer and the
+     * reconciliation has written it, the row renders nothing here; the value
+     * still travels in the draft, review and preview still show it, and the door
+     * judges it unchanged (F3). A prefill-only fact keeps its input.
      */
-    const lockedStrip = lockedByModel && !empty && revealed[def.attrKey] !== true;
-    const lockedLabel = shown[0] === undefined ? "" : optionLabel(shown[0], entities.lang);
+    if (lockedByModel && !empty) return null;
 
     return (
       <div
@@ -1125,31 +1118,7 @@ export function StepSpecifications({
         data-attr={def.attrKey}
         data-parent={parentKey ?? ""}
       >
-        {lockedStrip ? (
-          <div
-            className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-border bg-muted/40 px-3 py-2"
-            data-testid="post-attr-locked-strip"
-            data-attr={def.attrKey}
-          >
-            <span className="text-sm text-muted-foreground">{label}</span>
-            <span
-              className="text-sm font-medium text-foreground"
-              data-testid="post-attr-locked-value"
-            >
-              {lockedLabel}
-            </span>
-            <span className="text-xs text-muted-foreground">{t("post.specs.lockedByChoice")}</span>
-            <button
-              type="button"
-              className="ms-auto min-h-11 text-sm font-medium text-primary underline"
-              data-testid="post-attr-locked-change"
-              data-attr={def.attrKey}
-              onClick={() => setRevealed((prev) => ({ ...prev, [def.attrKey]: true }))}
-            >
-              {t("post.specs.lockedChange")}
-            </button>
-          </div>
-        ) : (
+        {
           <Field
             id={controlId}
             label={label}
@@ -1188,7 +1157,7 @@ export function StepSpecifications({
                 <option value="">{t("post.specs.choose")}</option>
                 {years.map((year) => (
                   <option key={year} value={year}>
-                    {year}
+                    {yearLabel(Number(year), language, t("post.specs.yearEcSuffix"))}
                   </option>
                 ))}
               </select>
@@ -1568,7 +1537,7 @@ export function StepSpecifications({
               <p className="text-xs text-muted-foreground">{t("post.specs.multiHint")}</p>
             )}
           </Field>
-        )}
+        }
       </div>
     );
   };

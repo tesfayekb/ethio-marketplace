@@ -539,6 +539,12 @@ markets' currencies with "More…"), and step 1's disabled Next with its caption
   whatever answer carries it, whatever link the bounded field came from and however
   deep the fold; a model with `min = max` pins the picker to that one year.
   `PW-25`.
+- **A definition's own bound speaks the door's vocabulary (INC-288).**
+  `resolveBound` (attribute-display.ts) resolves `min_bound` / `max_bound` as
+  `attr_bound_value` does: a literal is itself, `year` is the current UTC year,
+  `year+N` / `year-N` offset it, anything else is no bound. The year picker runs
+  from the resolved floor (else 1900) to the resolved ceiling (else next year),
+  with no clamp to next year when a later ceiling is stated. PW-25.
 - **A bound lives in `bounds`, not in `facts` (INC-249, R-SW).** DEC-050's option
   record keeps a bound in its OWN `bounds` object, BESIDE `facts` — the published
   site serves BYD Han as `{"facts": {…}, "bounds": {"year": {"min": 2020}}}` — and
@@ -925,6 +931,28 @@ this is presentation only.
 
 Tests: PW-35 (the settled shape, and Change bringing the locked picker back),
 PW-49 (the prefill-only shape keeps its input and grows no strip).
+
+Superseded on the form by D44 (2026-09-25): a settled answer is stored, not
+rendered.
+
+## A settled answer is stored, not rendered (D44, 2026-09-25)
+
+When the chosen options leave exactly one admissible answer for a single-select
+sibling and the reconciliation has written it, the specifications step renders
+nothing for that row — no control, no strip, no "Change". The value still travels
+in the draft, the review and the buyer preview still show it, and the door judges
+it unchanged (F3). The D35 strip, its "Change" reveal and its two keys are retired.
+A prefill-only fact keeps its input (PW-49 unchanged). Test: PW-35.
+
+## Year labels under Amharic (D45, 2026-09-25)
+
+One formatter, `yearLabel(year, lang, suffix)` in `attribute-display.ts`, labels
+every `format = 'year'` value: under Amharic "<GC> · <GC−8>/<GC−7, two digits>
+ዓ.ም" (a Gregorian year spans two Ethiopian years: 1 Jan – 10 Sep is GC−8, 11 Sep
+– 31 Dec is GC−7), so 2027 reads "2027 · 2019/20 ዓ.ም"; elsewhere the bare year.
+The year picker, the review line and the buyer preview all use it; the suffix is
+the key `post.specs.yearEcSuffix`. The stored value is the Gregorian integer.
+Test: PW-58.
 
 ## Every row open (D41, 2026-09-24)
 

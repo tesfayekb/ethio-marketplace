@@ -186,6 +186,7 @@ export function ListingPreview({
                     language,
                     t("post.review.yes"),
                     t("post.review.no"),
+                    t("post.specs.yearEcSuffix"),
                   )}
                 </dd>
               </div>

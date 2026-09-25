@@ -3938,14 +3938,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.specs.lockedByChoice": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.specs.lockedChange": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.specs.modelDiffers": [
       "/post",
       "/post/$listingId"
@@ -4007,6 +3999,10 @@
       "/post/$listingId"
     ],
     "post.specs.why": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.specs.yearEcSuffix": [
       "/post",
       "/post/$listingId"
     ],
