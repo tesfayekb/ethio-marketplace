@@ -797,61 +797,70 @@ export default async function globalSetup() {
   }
   console.log(`[e2e:setup] reaped ${reapedListingCount} stale scratch listing(s)`);
 
-  // DEC-031 — SCRATCH CATEGORIES. C2-UI's console creates real tree rows
-  // (`e2e-cat-%`); an unreaped graveyard would both hide new rows behind
-  // PostgREST's 1000-row cap and pollute the browse tree. Dependents first:
-  // pointers and exclusions reference the category, translations key off it.
-  const { data: staleCategories, error: staleCategoryError } = await supabase
-    .from("categories")
-    .select("id")
-    .like("slug", "e2e-cat-%")
-    .lt("created_at", cutoff);
-  if (staleCategoryError) {
-    throw new Error(
-      `[e2e:setup] listing stale scratch categories failed: ${staleCategoryError.message}`,
-    );
-  }
-  const staleCategoryIds = (staleCategories ?? []).map((row) => row.id);
-  if (staleCategoryIds.length > 0) {
-    const { error: pointerError } = await supabase
-      .from("category_tree_pointers")
-      .delete()
-      .or(
-        `child_id.in.(${staleCategoryIds.join(",")}),parent_id.in.(${staleCategoryIds.join(",")})`,
-      );
-    if (pointerError) {
-      throw new Error(
-        `[e2e:setup] reaping scratch category pointers failed: ${pointerError.message}`,
-      );
-    }
-    const { error: exclusionError } = await supabase
-      .from("category_country_exclusions")
-      .delete()
-      .in("category_id", staleCategoryIds);
-    if (exclusionError) {
-      throw new Error(
-        `[e2e:setup] reaping scratch category exclusions failed: ${exclusionError.message}`,
-      );
-    }
-    const { error: categoryTranslationError } = await supabase
-      .from("entity_translations")
-      .delete()
-      .eq("entity_type", "category")
-      .in("entity_id", staleCategoryIds);
-    if (categoryTranslationError) {
-      throw new Error(
-        `[e2e:setup] reaping scratch category translations failed: ${categoryTranslationError.message}`,
-      );
-    }
-    const { error: categoryDeleteError } = await supabase
+  // DEC-031 — SCRATCH CATEGORIES. C2-UI's console creates real tree rows;
+  // an unreaped graveyard would both hide new rows behind PostgREST's
+  // 1000-row cap and pollute the browse tree.
+  // INC-276 — the reaper matched only `e2e-cat-%`, so every other seeder's
+  // prefix (`e2e-post-`, `e2e-feed-`, `e2e-link-`, `e2e-cfc-`, …) accumulated
+  // (589 on staging). It now covers EVERY `e2e-` slug older than an hour,
+  // paged past the 1000-row cap and deleted in id batches of 100 (a long
+  // `in.(…)` overflows the query string). Dependents without ON DELETE
+  // CASCADE go first: listings in those categories, both pointer ends, legacy
+  // category_attributes, translations. Links, exclusions and the rail order
+  // cascade with the category.
+  const categoryCutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const staleCategoryIds: string[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data: page, error: staleCategoryError } = await supabase
       .from("categories")
-      .delete()
-      .in("id", staleCategoryIds);
-    if (categoryDeleteError) {
+      .select("id")
+      .like("slug", "e2e-%")
+      .lt("created_at", categoryCutoff)
+      .order("id")
+      .range(from, from + 999);
+    if (staleCategoryError) {
       throw new Error(
-        `[e2e:setup] reaping scratch categories failed: ${categoryDeleteError.message}`,
+        `[e2e:setup] listing stale scratch categories failed: ${staleCategoryError.message}`,
       );
     }
+    staleCategoryIds.push(...(page ?? []).map((row) => row.id));
+    if ((page ?? []).length < 1000) break;
+  }
+  const reapCategoryBatch = async (ids: string[]): Promise<void> => {
+    const list = ids.join(",");
+    const steps: Array<[string, () => PromiseLike<{ error: { message: string } | null }>]> = [
+      ["listings", () => supabase.from("listings").delete().in("category_id", ids)],
+      [
+        "pointers",
+        () =>
+          supabase
+            .from("category_tree_pointers")
+            .delete()
+            .or(`child_id.in.(${list}),parent_id.in.(${list})`),
+      ],
+      [
+        "legacy attributes",
+        () => supabase.from("category_attributes").delete().in("category_id", ids),
+      ],
+      [
+        "translations",
+        () =>
+          supabase
+            .from("entity_translations")
+            .delete()
+            .eq("entity_type", "category")
+            .in("entity_id", ids),
+      ],
+      ["categories", () => supabase.from("categories").delete().in("id", ids)],
+    ];
+    for (const [what, run] of steps) {
+      const { error } = await run();
+      if (error)
+        throw new Error(`[e2e:setup] reaping scratch category ${what} failed: ${error.message}`);
+    }
+  };
+  for (let index = 0; index < staleCategoryIds.length; index += 100) {
+    await reapCategoryBatch(staleCategoryIds.slice(index, index + 100));
   }
   console.log(`[e2e:setup] reaped ${staleCategoryIds.length} stale scratch categor(ies)`);
 
@@ -883,6 +892,24 @@ export default async function globalSetup() {
       throw new Error(`[e2e:setup] audit maintenance failed: ${pruneError.message}`);
     }
     prunedAudit += Number(pruned ?? 0);
+  }
+  // INC-274 — the actor-list door above misses rows whose e2e author was
+  // already reaped (3,257 distinct vanished actors on staging) and rows about
+  // e2e-named entities. The bounded e2e door removes both, 20k rows a call,
+  // until a call removes nothing. Orphan-actor rows are opted in here only:
+  // adminClient() refuses every URL but staging.
+  for (let round = 0; round < 50; round += 1) {
+    const { data: pruned, error: pruneError } = await supabase.rpc("maintenance_prune_e2e_audit", {
+      p_cutoff: auditCutoff,
+      p_include_orphans: true,
+      p_batch: 20000,
+    });
+    if (pruneError) {
+      throw new Error(`[e2e:setup] e2e audit retention failed: ${pruneError.message}`);
+    }
+    const count = Number(pruned ?? 0);
+    prunedAudit += count;
+    if (count === 0) break;
   }
 
   const { data: e2eCategories, error: e2eCategoryError } = await supabase
