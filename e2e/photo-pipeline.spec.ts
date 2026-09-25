@@ -24,7 +24,7 @@ import {
   seedPostableCategory,
 } from "./helpers/posting";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { createUser } from "./helpers/users";
+import { adminClient, createUser } from "./helpers/users";
 
 /**
  * U6-B1 — THE PHOTO PIPELINE (PP-1..PP-9), REQ-036's acceptance.
@@ -92,6 +92,15 @@ test.describe("PHOTO PIPELINE", () => {
       `PP: the draft route returned no listing (${JSON.stringify(answer.payload)})`,
     ).not.toBe("");
     objects.push({ userId, listingId });
+    // D39 — photos follow specifications in the walk; the scratch draft is
+    // recorded as past specifications (service client, this scratch row only)
+    // so a visit to its address still opens on the photos step.
+    const { error } = await adminClient()
+      .from("listings")
+      .update({ draft_step: 3 })
+      .eq("id", listingId)
+      .eq("seller_id", userId);
+    if (error) throw new Error(`[e2e:pp] seeding draft_step failed: ${error.message}`);
     return listingId;
   }
 
