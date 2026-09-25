@@ -265,15 +265,11 @@ export function StepSpecifications({
   }, [categoryId]);
 
   /**
-   * D36 / D35 — THE SCREEN'S OWN MEMORY IS PER CATEGORY. The expander reopens
-   * where this device left it for THIS category (and starts collapsed for
-   * another); a revealed locked input and an opened guidance belong to the
-   * definitions that have just been replaced, so both start over. Read in an
-   * effect, never in a state initialiser: the server has no session storage.
+   * D35 / D36 — A revealed locked input and an opened guidance belong to the
+   * definitions that have just been replaced, so both start over per category.
    */
   useEffect(() => {
     if (categoryId === null) return;
-    setMoreOpen(readMoreOpen(categoryId));
     setRevealed({});
     setHelpOpen({});
   }, [categoryId]);
@@ -1578,51 +1574,10 @@ export function StepSpecifications({
   };
 
   /**
-   * D36 / INC-269 — FORM ECONOMY AT 360, WITHOUT EVER REORDERING THE FORM.
-   *
-   * The first cut of D36 partitioned the rows (required and conditional first,
-   * the rest behind the expander) and so REORDERED the catalogue's own sequence:
-   * on Smartphones the seller met Brand · Storage · Condition and found Series,
-   * Model and Release year hidden; on Traditional Wear the dependent garment list
-   * rendered ABOVE the Region it hangs under and could not open at all.
-   *
-   * THE VISIBLE ORDER IS `display_order`, ALWAYS — the read hands the definitions
-   * in the curator's order and nothing here re-sorts them. The expander hides only
-   * the TRAILING RUN of rows a seller can safely meet later: optional, not a fold
-   * parent, not a dependent (it hangs under another answer), not a detail any fold
-   * on this leaf speaks about (a fact, a bound or an `allowed` narrowing), not
-   * conditional, not a card-style row (a colour tray) and not locked. The first row
-   * that fails any of those tests ends the run, so everything above it — and every
-   * required or locked row — stays on screen in place.
-   */
-  const spokenAbout = new Set<string>(dependents);
-  for (const def of definitions) {
-    /**
-     * INC-269 — A CONTROLLER IS NEVER HIDDEN. A condition names the sibling whose
-     * answer decides whether another detail is asked; hiding that sibling (it is
-     * optional and, while its dependent is unmet, the last row on screen) would
-     * bury the only answer that can bring the dependent back. Traditional Wear
-     * failed exactly there.
-     */
-    if (def.visibleWhen !== null) spokenAbout.add(def.visibleWhen.key);
-    if (!SELECT_TYPES.includes(def.attrType)) continue;
-    for (const option of allowedListOf(def)) {
-      for (const key of Object.keys(option.allowed ?? {})) spokenAbout.add(key);
-    }
-  }
-  /**
-   * INC-271 — WHAT IS NOT KNOWN YET IS NEVER HIDDEN. Every test above except
-   * `isRequired` and `visibleWhen` is answered by the OPTION ROWS: a fold, a
-   * fact, a bound, an `allowed` narrowing and a colour tray all exist only once
-   * the eager lists have arrived. On the served build they arrive a beat later
-   * than the first paint, so for that beat Series, Model and Storage looked like
-   * plain trailing optionals and the whole run went behind the expander — the
-   * seller (and PW-50) met a form holding only Brand. The cut therefore runs
-   * only once every eagerly-read list has settled (ready or failed); until then
-   * nothing is deferred, so the form is complete and in display order from the
-   * first frame. INC-269's rule is untouched: display order always, only the
-   * trailing seller-side optionals behind "More details", a dependent below its
-   * parent and never hidden.
+   * INC-271 — THE FORM SAYS WHEN ITS OPTION LISTS HAVE SETTLED (`data-options`),
+   * so a reader waits on that word rather than a clock. D41 removed the trailing
+   * "More details" cut this once gated: every asked row renders, in display
+   * order (INC-269), from the first frame.
    */
   const optionsSettled = eager.every((def) => {
     const state = (options[def.attrKey] ?? IDLE).state;
