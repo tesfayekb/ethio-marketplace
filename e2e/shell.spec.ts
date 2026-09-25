@@ -17,6 +17,7 @@ import {
   destroyLocation,
   readLocationById,
   seedGuessFixture,
+  readServedNodes,
   seedScratchChain,
   seedSingleOptionMarket,
   waitForOpenMarket,
@@ -56,6 +57,20 @@ async function grantRole(userId: string, roleName: string) {
 /** Escape a database-sourced name for use inside a RegExp. */
 function escapeRe(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** The open markets, straight from the public route (no literal names). */
+async function openMarkets(page: Page) {
+  const response = await page.request.get("/api/locations");
+  expect(response.status(), "the open-markets route did not answer 200").toBe(200);
+  const body = (await response.json()) as { countries?: { code: string; name_en: string }[] };
+  return body.countries ?? [];
+}
+
+async function marketName(page: Page, code: string) {
+  const market = (await openMarkets(page)).find((row) => row.code === code);
+  expect(market, `${code} is not an open market`).toBeTruthy();
+  return market!.name_en;
 }
 
 /** Law C2: every real touch target is at least 44px on its short axis. */
@@ -237,27 +252,43 @@ test.describe("app shell", () => {
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(levels.first()).toHaveAttribute("data-testid", "location-level-country");
 
-    const pick = async (testId: string) => {
+    // INC-283 — EVERY PICK BY IDENTITY, never by position (G28): the country is
+    // market ET by its served name, the region the first curated (non-`e2e-`)
+    // served region, the city the first curated served city under that region.
+    const country = await marketName(page, "ET");
+    const nodes = await readServedNodes("ET");
+    const curatedRegion = nodes.find((n) => n.level === "region" && !n.slug.startsWith("e2e-"));
+    const curatedCity = curatedRegion
+      ? nodes.find(
+          (n) =>
+            n.level === "city" && n.parent_id === curatedRegion.id && !n.slug.startsWith("e2e-"),
+        )
+      : undefined;
+    if (!curatedRegion?.name_en || !curatedCity?.name_en) {
+      throw new Error("INC-283: the served ET tree carries no curated region/city");
+    }
+    console.log(`INC-283: picks resolved region=${curatedRegion.slug} city=${curatedCity.slug}`);
+
+    const pick = async (testId: string, name: string) => {
       await page.getByTestId(testId).click();
       const options = page.getByRole("menuitem");
       // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       await expect(options.first()).toHaveText(en["location.anyArea"]);
-      const chosen = (await options.nth(1).textContent())!.trim();
-      await options.nth(1).click();
-      await expect(page.getByTestId(testId)).toHaveText(new RegExp(escapeRe(chosen)));
-      return chosen;
+      await page.getByRole("menuitem", { name, exact: true }).click();
+      await expect(page.getByTestId(testId)).toHaveText(new RegExp(escapeRe(name)));
+      return name;
     };
 
     // Country -> the Region level appears.
-    const country = await pick("location-level-country");
+    await pick("location-level-country", country);
     await expect(page.getByTestId("location-level-region")).toBeVisible();
 
     // Region -> the City level appears.
-    const region = await pick("location-level-region");
+    const region = await pick("location-level-region", curatedRegion.name_en);
     await expect(page.getByTestId("location-level-city")).toBeVisible();
 
     // City IS selectable, and its selection sticks on its own picker.
-    const city = await pick("location-level-city");
+    const city = await pick("location-level-city", curatedCity.name_en);
 
     // No duplicate: each chosen name appears exactly ONCE on its own picker,
     // and no area label is echoed outside the pickers. (A name may legitimately
@@ -1644,26 +1675,12 @@ test.describe("L4b location picker", () => {
     for (const code of codes) await destroyCountry(code);
   });
 
-  /** The open markets, straight from the public route (no literal names). */
-  async function openMarkets(page: Page) {
-    const response = await page.request.get("/api/locations");
-    expect(response.status(), "the open-markets route did not answer 200").toBe(200);
-    const body = (await response.json()) as { countries?: { code: string; name_en: string }[] };
-    return body.countries ?? [];
-  }
-
   async function pick(page: Page, level: string, name: string) {
     await page.getByTestId(`location-level-${level}`).click();
     await page.getByRole("menuitem", { name, exact: true }).click();
     await expect(page.getByTestId(`location-level-${level}`)).toHaveText(
       new RegExp(escapeRe(name)),
     );
-  }
-
-  async function marketName(page: Page, code: string) {
-    const market = (await openMarkets(page)).find((row) => row.code === code);
-    expect(market, `${code} is not an open market`).toBeTruthy();
-    return market!.name_en;
   }
 
   test("LS-1 the cascade reaches a sub-city", async ({ page }) => {

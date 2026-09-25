@@ -243,26 +243,80 @@ test.describe("L2b countries console", () => {
       // A market with no order of its own says it follows the global one.
       await expect(page.getByTestId("country-rail-global")).toBeVisible();
 
-      const ids = await page.getByTestId("country-rail-list").evaluate((root) =>
-        [...root.querySelectorAll("[data-testid]")]
-          .map((node) => node.getAttribute("data-testid") ?? "")
-          .filter((id) => /^country-rail-[0-9a-f-]{36}$/.test(id))
-          .map((id) => id.slice("country-rail-".length)),
-      );
+      // INC-284 — the rail rows as (id, name) pairs; the pair to invert is the
+      // first ADJACENT pair of REFERENCE roots (names not `e2e-`). Their rows are
+      // read, never edited: the order rows belong to the scratch country.
+      const readRows = async () =>
+        await page.getByTestId("country-rail-list").evaluate((root) =>
+          [...root.querySelectorAll("[data-testid]")]
+            .map((node) => ({
+              testid: node.getAttribute("data-testid") ?? "",
+              text: (node.textContent ?? "").trim(),
+            }))
+            .filter((row) => /^country-rail-[0-9a-f-]{36}$/.test(row.testid))
+            .map((row) => ({
+              id: row.testid.slice("country-rail-".length),
+              name: row.text.replace(/^\d+\.\s*/, ""),
+            })),
+        );
+      const referencePair = (rows: { id: string; name: string }[]) => {
+        const isRef = (name: string) => !name.toLowerCase().startsWith("e2e-");
+        for (let i = 0; i + 1 < rows.length; i += 1) {
+          const a = rows[i]!;
+          const b = rows[i + 1]!;
+          if (isRef(a.name) && isRef(b.name)) return [a.id, b.id] as const;
+        }
+        return null;
+      };
+      let pair = referencePair(await readRows());
 
-      if (ids.length > 1) {
-        // Swap the first two, then save: the DB holds the rendered order.
-        await page.getByTestId(`country-rail-down-${ids[0]}`).click();
-        await page.getByTestId("country-rail-save").click();
-        await stepUpIfPrompted(page, secret);
+      if (pair) {
+        const inverted = async (first: string, second: string) => {
+          const stored = await readRootOrder(code);
+          const pos = (id: string) => stored.find((row) => row.category_id === id)?.position;
+          const p1 = pos(first);
+          const p2 = pos(second);
+          return p1 !== undefined && p2 !== undefined && p2 < p1;
+        };
+        const saveSwap = async (first: string) => {
+          await page.getByTestId(`country-rail-down-${first}`).click();
+          await page.getByTestId("country-rail-save").click();
+          await stepUpIfPrompted(page, secret);
+        };
+        const notARoot = page
+          .getByTestId("country-verb-error")
+          .filter({ hasText: en["admin.countries.error.notARoot"] });
+        // Either the stored order inverts, or the door refuses notARoot.
+        const outcome = async (first: string, second: string) => {
+          let result = "pending" as "inverted" | "notARoot" | "pending";
+          await expect
+            .poll(
+              async () => {
+                if (await inverted(first, second)) result = "inverted";
+                else if (await notARoot.isVisible()) result = "notARoot";
+                return result as "inverted" | "notARoot" | "pending";
+              },
+              { timeout: 20000 },
+            )
+            .not.toBe("pending");
+          return result as "inverted" | "notARoot" | "pending";
+        };
 
-        await expect
-          .poll(async () => (await readRootOrder(code)).length, { timeout: 20000 })
-          .toBeGreaterThan(1);
-        const stored = await readRootOrder(code);
-        expect(stored[0]?.position).toBe(1);
-        expect(stored[0]?.category_id).toBe(ids[1]);
-        expect(stored[1]?.category_id).toBe(ids[0]);
+        await saveSwap(pair[0]);
+        if ((await outcome(pair[0], pair[1])) === "notARoot") {
+          console.log("CO-6: retry after notARoot (a sibling's scratch root vanished)");
+          await page.keyboard.press("Escape");
+          await openVerb(page, code, "rail-order", code);
+          await expect(page.getByTestId("country-rail-dialog")).toBeVisible({ timeout: 20000 });
+          pair = referencePair(await readRows());
+          if (!pair) throw new Error("CO-6: no adjacent reference roots after the notARoot retry");
+          await saveSwap(pair[0]);
+          if ((await outcome(pair[0], pair[1])) === "notARoot") {
+            throw new Error("CO-6: the rail save refused notARoot twice");
+          }
+        }
+        // Relative, never absolute: a sibling's scratch root may cascade away.
+        expect(await inverted(pair[0], pair[1])).toBe(true);
         await openVerb(page, code, "rail-order", code);
       } else {
         // Fewer than two ACTIVE ROOTS is a legitimate catalog state: there is

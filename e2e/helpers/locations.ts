@@ -460,6 +460,46 @@ export async function readServedTree(countryCode: string): Promise<{
 }
 
 /**
+ * INC-283 — THE SERVED NODES WITH THEIR IDENTITY, from the same no-store node
+ * fetch as readServedTree, so a test can pick a curated row by id/parent/slug
+ * instead of by menu position. Throws by name when the route does not answer.
+ */
+export async function readServedNodes(countryCode: string): Promise<
+  {
+    id: string;
+    parent_id: string | null;
+    level: string;
+    slug: string;
+    name_en: string | null;
+  }[]
+> {
+  const base = process.env["E2E_BASE_URL"] ?? "http://127.0.0.1:4173";
+  const response = await fetch(`${base}/api/locations/${countryCode}`, {
+    cache: "no-store",
+    headers: { accept: "application/json" },
+  });
+  if (!response.ok) {
+    throw new Error(`INC-283: /api/locations/${countryCode} answered ${response.status}`);
+  }
+  const body = (await response.json()) as {
+    nodes?: {
+      id: string;
+      parent_id: string | null;
+      level: string;
+      slug: string;
+      name_en: string | null;
+    }[];
+  };
+  return (body.nodes ?? []).map((n) => ({
+    id: n.id,
+    parent_id: n.parent_id,
+    level: n.level,
+    slug: n.slug,
+    name_en: n.name_en,
+  }));
+}
+
+/**
  * INC-235 — WAIT FOR THE ROUTE TO SERVE THE MARKET before the where step opens.
  * Bounded at 20 s like every other tree wait (the cache window is 15 s) and the
  * refusal names what the route did return, never a bare timeout.

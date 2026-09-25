@@ -688,6 +688,26 @@ export function flakyBodiesSection(
   return out;
 }
 
+/**
+ * DEC-030 — THE FLAKE LEDGER SECTION, one definition shared by the red report
+ * (renderSources) and the green report (renderGreen, DEC-078 part 2).
+ */
+export function flakeLedgerSection(flaky: (Flake & { source: string })[]): string[] {
+  if (flaky.length === 0) return [];
+  return [
+    "## Flake ledger (DEC-030)",
+    "",
+    "These tests FAILED then PASSED on retry. Retries are evidence, not concealment:",
+    "a test flaky 3× in 7 days gets an INC and root-cause work.",
+    "",
+    ...flaky.map(
+      (f) =>
+        `- FLAKY (passed on retry) · \`${f.project}\` · source \`${f.source}\` · ${f.title} — ${f.message}`,
+    ),
+    "",
+  ];
+}
+
 export function renderSources(
   sources: Source[],
   meta: ReportMeta,
@@ -725,21 +745,7 @@ export function renderSources(
 
   // DEC-030 — the Flake ledger section. Rendered whether or not anything
   // failed: a fully green run that only passed on retry must still say so.
-  const flakeSection =
-    flaky.length === 0
-      ? []
-      : [
-          "## Flake ledger (DEC-030)",
-          "",
-          "These tests FAILED then PASSED on retry. Retries are evidence, not concealment:",
-          "a test flaky 3× in 7 days gets an INC and root-cause work.",
-          "",
-          ...flaky.map(
-            (f) =>
-              `- FLAKY (passed on retry) · \`${f.project}\` · source \`${f.source}\` · ${f.title} — ${f.message}`,
-          ),
-          "",
-        ];
+  const flakeSection = flakeLedgerSection(flaky);
 
   // DEC-059 — sources whose log carried a post-test band, in source order.
   const postTestSources = sources.filter((s) => (s.postTestErrors ?? []).length > 0);
@@ -903,7 +909,12 @@ export function render(json: PwJson, meta: ReportMeta): string {
  * every test and still have failed to reap a fixture; the count keeps that
  * visible without gating on it.
  */
-export function renderGreen(meta: ReportMeta, postTestWarnings = 0): string {
+export function renderGreen(
+  meta: ReportMeta,
+  postTestWarnings = 0,
+  flaky: (Flake & { source: string })[] = [],
+  contexts: Map<string, string> = new Map(),
+): string {
   return [
     "# Last E2E failure (auto-generated — do not edit by hand)",
     "",
@@ -914,7 +925,11 @@ export function renderGreen(meta: ReportMeta, postTestWarnings = 0): string {
     attemptLine(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Post-test warnings: ${postTestWarnings}`,
+    // DEC-078 part 2 — a green run names its flaky count and carries the sections.
+    `- Flaky (passed on retry, DEC-030, non-gating): ${flaky.length}`,
     "",
+    ...flakeLedgerSection(flaky),
+    ...flakyBodiesSection(flaky, contexts),
   ].join("\n");
 }
 
@@ -1435,6 +1450,32 @@ async function main() {
       `DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of ${capFlaky} rendered ${FLAKY_BODY_CAP} bodies + ${omitted} "body omitted: cap".`,
     );
 
+    // DEC-078 part 2 — THE GREEN FORM CARRIES THE SECTIONS, on the same flipped
+    // capture: "passed", the ledger, the bodies and the flipped test's first
+    // message line, in that order; with no flakes, the count is 0 and no heading.
+    const greenMeta: ReportMeta = { runId: "self-test", runUrl: "", sha: "self-test" };
+    const greenFlaky = flakeCollected.flaky.map((f) => ({ ...f, source: SINGLE_SOURCE_LABEL }));
+    const greenFlake = renderGreen(greenMeta, 0, greenFlaky, new Map());
+    const gPassed = greenFlake.indexOf("passed");
+    const gLedger = greenFlake.indexOf("## Flake ledger (DEC-030)");
+    const gBodies = greenFlake.indexOf("## Flaky bodies (DEC-078)");
+    const gLine = gBodies < 0 ? -1 : greenFlake.indexOf(firstLine, gBodies);
+    const greenClean = renderGreen(greenMeta);
+    if (
+      !(gPassed >= 0 && gPassed < gLedger && gLedger < gBodies && gBodies < gLine) ||
+      !greenFlake.includes("- Flaky (passed on retry, DEC-030, non-gating): 1") ||
+      !greenClean.includes("non-gating): 0") ||
+      greenClean.includes("## ")
+    ) {
+      console.error(
+        "SELF-TEST FAILED — DEC-078 part 2 green form did not carry the flake sections.",
+      );
+      process.exit(1);
+    }
+    console.log(
+      "DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no section heading.",
+    );
+
     // DEC-059 — THE POST-TEST BAND, proved on the REAL captured shard-6 log tail
     // of run 34741970648: 75 passed, 10 skipped, 0 failed, and exit code 1 whose
     // only cause was `fetch failed` inside the teardown's `admin.deleteUser`.
@@ -1534,33 +1575,11 @@ async function main() {
   // the flake ledger, and writes neither the evidence file nor the verdict.
   const flakeOnly = process.env["E2E_FLAKE_ONLY"] === "1";
 
-  if (process.env["E2E_GREEN"] === "1" && !flakeOnly) {
-    // DEC-059 — a green run counts its post-test warnings from the same logs the
-    // red path greps, so a cleanup that could not reach Supabase is still named.
-    let postTestWarnings = 0;
-    const greenLogsDir = process.env["E2E_LOGS_DIR"];
-    if (greenLogsDir) {
-      for (const raw of (process.env["E2E_EXPECTED_SOURCES"] ?? "smoke,1,2,3,4,5,6").split(",")) {
-        const id = raw.trim().replace(/\?$/, "");
-        if (!id) continue;
-        const log = await readLog(`${greenLogsDir}/e2e-log-${id}/${id}.log`);
-        postTestWarnings += grepPostTestErrors(log).length;
-      }
-    }
-    await Bun.write(OUT, renderGreen(meta, postTestWarnings));
-    // DEC-028 — a green run still publishes its verdict, so a consumer never
-    // has to treat a missing verdict file as "probably green".
-    const greenVerdict = process.env["E2E_VERDICT_PATH"];
-    if (greenVerdict) await Bun.write(greenVerdict, "gating=0\nquarantined=0\nsilent=0\nflaky=0\n");
-    console.log(
-      `Wrote ${OUT} (green run ${meta.runId}, ${postTestWarnings} post-test warning line(s)).`,
-    );
-    return;
-  }
-
   // SHARDED RUNS: every source (smoke tier + six shards — DEC-029) uploads its own
   // results.json, so the reporter reads them ALL, labels each failure with its
   // source, and quotes the log tail of any source that produced no results.
+  // DEC-078 part 2 — loaded ABOVE the green branch, so a green run reads the
+  // same sources (and the same context index) the red path renders from.
   const dir = process.env["E2E_RESULTS_DIR"];
   const logsDir = process.env["E2E_LOGS_DIR"];
   const contextsDir = process.env["E2E_CONTEXT_DIR"];
@@ -1625,6 +1644,39 @@ async function main() {
   if (contextsDir && !flakeOnly && contexts.size === 0)
     reportEmptySearch(contextsDir, "context download");
 
+  // DEC-030 — every source's flaky tests, labelled by source. One list feeds the
+  // green report, the ledger pass and both verdict writers.
+  const allFlaky = sources.flatMap((s) =>
+    s.json ? collect(s.json).flaky.map((f) => ({ ...f, source: s.label })) : [],
+  );
+
+  if (process.env["E2E_GREEN"] === "1" && !flakeOnly) {
+    // DEC-059 — a green run counts its post-test warnings from the same logs the
+    // red path greps, so a cleanup that could not reach Supabase is still named.
+    let postTestWarnings = 0;
+    if (logsDir) {
+      for (const { id } of expected) {
+        const log = await readLog(`${logsDir}/e2e-log-${id}/${id}.log`);
+        postTestWarnings += grepPostTestErrors(log).length;
+      }
+    }
+    // DEC-078 part 2 — the green report carries the flake ledger and bodies.
+    await Bun.write(OUT, renderGreen(meta, postTestWarnings, allFlaky, contexts));
+    // DEC-028 — a green run still publishes its verdict, so a consumer never
+    // has to treat a missing verdict file as "probably green". The flaky count
+    // is the real one (DEC-078 part 2).
+    const greenVerdict = process.env["E2E_VERDICT_PATH"];
+    if (greenVerdict)
+      await Bun.write(
+        greenVerdict,
+        `gating=0\nquarantined=0\nsilent=0\nflaky=${allFlaky.length}\n`,
+      );
+    console.log(
+      `Wrote ${OUT} (green run ${meta.runId}, ${postTestWarnings} post-test warning line(s), ${allFlaky.length} flaky, ${contexts.size} context file(s) found).`,
+    );
+    return;
+  }
+
   if (!flakeOnly) {
     await Bun.write(OUT, renderSources(sources, meta, contexts));
     console.log(
@@ -1635,9 +1687,6 @@ async function main() {
   // DEC-030 — THE FLAKE LEDGER. Every test that failed then passed on retry
   // gets one appended line in docs/tracking/flake-ledger.md ([skip ci] path),
   // so "it passed eventually" is a tracked event and never a silent one.
-  const allFlaky = sources.flatMap((s) =>
-    s.json ? collect(s.json).flaky.map((f) => ({ ...f, source: s.label })) : [],
-  );
   const ledgerPath = process.env["E2E_FLAKE_LEDGER"] ?? "docs/tracking/flake-ledger.md";
   if (allFlaky.length > 0) {
     const existing = await Bun.file(ledgerPath)
