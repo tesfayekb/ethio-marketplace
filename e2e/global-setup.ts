@@ -848,37 +848,97 @@ export default async function globalSetup() {
     }
     return paths.length;
   };
+  // DEC-077 part 2 — PROOF on every shard-1 run: the delete path must remove a
+  // known object. An unreachable bucket fails the upload, and that throws.
+  const proofPrefix = `default/e2e-proof-${processId()}/e2e-proof-listing`;
+  const { error: proofUploadError } = await photoStorage.upload(
+    `${proofPrefix}/e2e-proof-photo/card.txt`,
+    new Blob(["x"], { type: "text/plain" }),
+    { upsert: true, contentType: "text/plain" },
+  );
+  if (proofUploadError) {
+    throw new Error(`[e2e:setup] photo reaper proof upload failed: ${proofUploadError.message}`);
+  }
+  const proofRemoved = await purgeListingPrefix(proofPrefix);
+  const proofLeft = await listingObjects(proofPrefix);
+  if (proofRemoved !== 1 || proofLeft.length !== 0) {
+    throw new Error(
+      `[e2e:setup] photo reaper proof failed: removed ${proofRemoved} (expected 1), ${proofLeft.length} left`,
+    );
+  }
+  console.log(`[e2e:setup] photo reaper proof: ok`);
+
   const e2eSellerSet = new Set(sellerIds);
   let photoObjectsRemoved = 0;
   for (const row of reapedListings) {
     if (!e2eSellerSet.has(row.seller_id)) continue;
     photoObjectsRemoved += await purgeListingPrefix(`default/${row.seller_id}/${row.id}`);
   }
-  // Backlog: at most 200 e2e sellers per run; folders whose listing is gone.
-  let backlogFolders = 0;
-  for (const sellerId of sellerIds.slice(0, 200)) {
-    const folders = await listPhotoDir(`default/${sellerId}`);
-    if (folders.length === 0) continue;
-    const { data: alive, error: aliveError } = await supabase
-      .from("listings")
-      .select("id")
-      .in(
-        "id",
-        folders.filter((name) => /^[0-9a-f-]{36}$/i.test(name)),
-      );
-    if (aliveError)
-      throw new Error(
-        `[e2e:setup] reading listings for the photo backlog failed: ${aliveError.message}`,
-      );
-    const aliveIds = new Set((alive ?? []).map((row) => row.id));
-    for (const folder of folders) {
-      if (aliveIds.has(folder)) continue;
-      await purgeListingPrefix(`default/${sellerId}/${folder}`);
-      backlogFolders += 1;
+  // Backlog, storage-side (DEC-077 part 2): enumerate the bucket's seller
+  // folders, not the live e2e sellers — a reaped user's listing rows cascade
+  // away (ON DELETE CASCADE from auth.users) while its objects stay behind.
+  //   not a live user      → orphan-user folder: purge every listing folder;
+  //   a live e2e seller    → purge listing folders whose listing is gone;
+  //   a live non-e2e user  → kept, never touched.
+  // Bound: 5,000 objects per run; the next run continues.
+  const BACKLOG_OBJECT_BOUND = 5000;
+  const liveUserIds = new Set<string>();
+  await listE2EUserIds(supabase, liveUserIds);
+  if (liveUserIds.size === 0) {
+    throw new Error("[e2e:setup] photo backlog: listUsers returned no users; refusing to purge");
+  }
+  let backlogObjectsRemoved = 0;
+  let orphanUserFolders = 0;
+  let orphanListingFolders = 0;
+  let keptSellers = 0;
+  let moreRemain = false;
+  const sellerFolders = await listPhotoDir("default");
+  console.log(`[e2e:setup] photo backlog: ${sellerFolders.length} top-level seller folder(s)`);
+  backlog: for (const sellerFolder of sellerFolders) {
+    // The proof folder is already empty; any other e2e-proof residue is ours.
+    const isOrphan = !liveUserIds.has(sellerFolder);
+    if (!isOrphan && !e2eSellerSet.has(sellerFolder)) {
+      keptSellers += 1;
+      continue;
     }
+    const folders = await listPhotoDir(`default/${sellerFolder}`);
+    let targets = folders;
+    if (!isOrphan) {
+      const aliveIds = new Set<string>();
+      const uuidFolders = folders.filter((name) => /^[0-9a-f-]{36}$/i.test(name));
+      for (let index = 0; index < uuidFolders.length; index += 100) {
+        const { data: alive, error: aliveError } = await supabase
+          .from("listings")
+          .select("id")
+          .in("id", uuidFolders.slice(index, index + 100));
+        if (aliveError)
+          throw new Error(
+            `[e2e:setup] reading listings for the photo backlog failed: ${aliveError.message}`,
+          );
+        for (const row of alive ?? []) aliveIds.add(row.id);
+      }
+      targets = folders.filter((folder) => !aliveIds.has(folder));
+    }
+    let purgedHere = 0;
+    for (const folder of targets) {
+      if (backlogObjectsRemoved >= BACKLOG_OBJECT_BOUND) {
+        moreRemain = true;
+        break backlog;
+      }
+      backlogObjectsRemoved += await purgeListingPrefix(`default/${sellerFolder}/${folder}`);
+      purgedHere += 1;
+      if (!isOrphan) orphanListingFolders += 1;
+    }
+    if (isOrphan && purgedHere > 0) orphanUserFolders += 1;
+  }
+  photoObjectsRemoved += backlogObjectsRemoved;
+  if (moreRemain) {
+    console.log(
+      `[e2e:setup] photo backlog bound reached (${BACKLOG_OBJECT_BOUND} objects); more remain for the next run`,
+    );
   }
   console.log(
-    `[e2e:setup] photo objects removed: ${photoObjectsRemoved} under ${reapedListings.length} reaped listing(s); backlog folders removed: ${backlogFolders}`,
+    `[e2e:setup] photo objects removed: ${photoObjectsRemoved} under ${reapedListings.length} reaped listing(s); orphan-user folders: ${orphanUserFolders}; orphan listing folders: ${orphanListingFolders}; kept (live sellers): ${keptSellers}; more remain: ${moreRemain ? "yes" : "no"}`,
   );
 
   // DEC-031 — SCRATCH CATEGORIES. C2-UI's console creates real tree rows;
