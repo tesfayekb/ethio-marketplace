@@ -2268,3 +2268,389 @@ INC-215 — OPEN. Fix at U6-A2 (an action row applies its field edits, or report
 Defect: LS-11 seeded two scratch markets per run and cleaned up in a finally inside the test body, which a timeout abandons; `destroyCountry` discarded database errors, so partial failures left OPEN markets behind silently; the reaper removed only residue older than three hours. 26 open scratch markets sorted ahead of Ethiopia on the Countries roster and 85 scratch places pushed the Places roster past page 1; LT-13 and CO-1..7 asserted real rows by page-1 presence. Evidence: R-LT13 STEP 1 (staging counts and roster orders); runs 35176748289, 35190393232. Class: layered causes (timeout-abandoned finally · silent catch · reaper window) behind a page-position assertion; supervisor slip: the LT-13 brief assumed page-1 presence.
 
 INC-216 — CLOSED 2026-09-17 by R-LT13: destroy closes, deletes child-first and throws by step; the reaper reads every handle; shell fixtures clean up in afterEach; LT-13 and the CO tests locate rows through search and totals through DB truth; residue reaped.
+
+## Reconciliation 2026-09-25 — INC-215 closure; INC-217 → INC-287 (supervisor record S41/S42)
+
+The tracker stopped at INC-216 (2026-09-17). Every number since was registered in the supervisor thread and, where a fix landed, recorded by the executor in docs/_changelog.md and the feature docs; this block restores the ledger from those records. Numbers without a repo record are listed as VOID so they are never reused. Open items keep their status line.
+
+INC-215 — CLOSED 2026-09-17 by M-MAINT: a countries-file row carrying open/close applies its field edits too (planner and commit re-declared whole; the preview counts both). See docs/features/imports.md § INC-215.
+
+## INC-217 — the open-markets read carried no anchor id
+
+Defect: `get_open_countries` returned no `anchor_id`, so the shell picker could not resolve a market's name through the entity bundle and rendered raw `name_en`. Evidence: changelog 2026-09-17 U6-A2-M ("`get_open_countries` gains `anchor_id` (INC-217)") and U6-A2-C ("market names in the shell through the entity bundle"). Class: a public read missing the field its consumer names rows by.
+
+INC-217 — CLOSED 2026-09-17 by U6-A2-M/U6-A2-C.
+
+## INC-218 — LS-11 (second market's tree) over budget, then not reproducible, then the cache window
+
+Defect: LS-11 summed a 40 s open-market poll and two 30 s tree polls past its own three-minute budget, so the test timeout fired before any expect could name a step (closed 2026-09-17 by R-FLAKES: every wait bounded and named); re-opened 2026-09-19 (U6-C1-R3b-2 Part 1: not reproduced in any loaded run; an instrumented refusal names the menu's DOM, the wanted item's count and the browser's own `/api/locations` body); U6-C1-R3a opened a fresh browser context after seeding (the HTTP cache lives per context). Step 3 (2026-09-25): 8 flake-ledger lines 09-19 → 09-25, the instrumented refusal reading "the open-market list never carried QZ within 20 s"; 20 local repeats measured a seeded market appearing after up to 15.3 s — the route's 15 s server TTL (`src/routes/api/locations.ts:28`) plus a loaded read overran the 20 s wait; LS-11's two open-market waits are 35 s (15 s TTL + 20 s read allowance), named in the poll message; LS-12/LS-13 keep 20 s. Class: a test budget written against a route's cache TTL without a load allowance (J5/J7).
+
+INC-218 — OPEN (watch): closes when the flake ledger shows no LS-11 line for seven days after 2026-09-25.
+
+## INC-219 — TR-12 bulk AI fill ran the whole catalog
+
+Defect: the mobile timeout was a full-catalog run (1,685 keys) instead of the three scratch keys, and the bulk-AI bar exposed no run state for the test to wait on. Evidence: changelog 2026-09-17 R-FLAKES. Class: a bulk action without the roster's scope; a control without a readiness state.
+
+INC-219 — CLOSED 2026-09-17 by R-FLAKES (the fill honours the search filter; the bar exposes run state and readiness).
+
+## INC-220 — listing-photos storage policies keyed on the partition segment
+
+Defect: the bucket's owner-read policy keyed the owner on the FIRST path segment (the partition) instead of the segment after it, so the DEC-075 key `default/<user_id>/…` never matched the owner. Evidence: registered 2026-09-17 with U6-B1; fixed 2026-09-17 M-MAINT; docs/features/media-pipeline.md § INC-220. Class: policy path arithmetic off by one segment (Tier A storage policy).
+
+INC-220 — CLOSED 2026-09-17 by M-MAINT.
+
+## INC-221 — Amharic market names looked wrong on the published site
+
+Defect: none — a stale cached UI/entity bundle (300 s max-age) on the operator's browser; the names were correct on a fresh load. Evidence: changelog 2026-09-17 (R-FLAKES line). Class: cache freshness vs. walk timing.
+
+INC-221 — CLOSED 2026-09-17 (no change; walks wait out the bundle window).
+
+## INC-222 — a migration proof anchored on a live catalog definition
+
+Defect: an in-file proof read a real definition, so it could not run on a database where that row is absent and could touch a real row. Rule since: every proof builds and deletes its own scratch definition in the same file. Evidence: docs/features/attributes.md ("the public read on a scratch definition built and deleted in the same file (INC-222)"); second occurrence INC-255. Class: proof anchoring on a real row (J3 for migrations).
+
+INC-222 — CLOSED (the scratch-row proof law; promoted at INC-255).
+
+## INC-223 — session clocks keyed to a previous session
+
+Defect: the idle/absolute clocks read stale stamps from a previous session, so a correct sign-in ended in "Signed out for inactivity"; rider: the session ref is the JWT `session_id` claim so a token refresh never restarts the absolute window. Evidence: changelog 2026-09-19 "INC-223 fixed" and the rider line. Class: local state outliving its session (Tier A auth).
+
+INC-223 — CLOSED 2026-09-19.
+
+## INC-224 — the Google door dropped the sign-in return path
+
+Defect: D20's return path was honoured by the email door only. Evidence: changelog 2026-09-18 U6-C1-R1 ("the Google door honours the return path through its own `redirectTo` query"). Class: a site law applied to one door of three.
+
+INC-224 — CLOSED 2026-09-18 by U6-C1-R1.
+
+INC-225 · INC-226 — VOID (numbers used in the 2026-09-18 → 09-23 thread; no repo record; never reused).
+
+## INC-227 — autosave rate refusals dead-ended the seller
+
+Defect: the draft route's rate dial was sized for humans and hit by an autosave loop; a refusal left the wizard stuck. Evidence: changelog 2026-09-18 U6-C1-R1 ("draft rate dial 600/h, change-only autosave, rate refusals never dead-end"). Class: a rate limit met by the app's own loop.
+
+INC-227 — CLOSED 2026-09-18.
+
+## INC-228 — autosave validated the current step on every save
+
+Defect: the autosave judged the step the seller was still typing; now it saves at the last completed step and only Next validates the current one. Evidence: changelog 2026-09-18 U6-C1-R1. Class: validation attached to the wrong event.
+
+INC-228 — CLOSED 2026-09-18.
+
+## INC-229 — specification fields outside the field primitive
+
+Defect: specification controls lacked the shared field primitive (required borders) and lost their values on Back (no rehydration). Evidence: changelog 2026-09-18 U6-C1-R1. Class: U6-C1-R2 — every field through the primitive.
+
+INC-229 — CLOSED 2026-09-18.
+
+INC-230 — VOID (no repo record).
+
+## INC-231 — a phone field accepted the word "number"
+
+Defect: no client-side rule mirrored the doors; the identity route saved a profile before judging `contact_pref`. Fix: every wizard field validates on blur against a client mirror (`src/features/posting/validate.ts`), the identity route validates through `listing_contact_refusals` BEFORE saving, the refusal summary lists fields by label with cross-step links. Evidence: changelog 2026-09-19 U6-C1-R3a-2. Class: F3 mirror missing (the door was right; the screen was silent).
+
+INC-231 — CLOSED 2026-09-19.
+
+INC-232 · INC-233 — VOID (no repo record).
+
+## INC-234 — the importer's gate lacked the `facts` option key
+
+Defect: the gate kept its own copy of the option-key allowlist and lacked `facts` while `attr_option_shape` had allowed it since 20260917210006, so the console's own export of a fold set was refused. Evidence: `src/server/imports/gate.ts` (the INC-234 comment); docs/features/imports.md (the INC-264 paragraph). Class: two allowlists for one shape — second occurrence INC-264 → the gate spells the door's ten keys and judges shape only.
+
+INC-234 — CLOSED 2026-09-20 (M-FACTS era).
+
+## INC-235 — the where step opened before the tree route served the scratch chain
+
+Defect: under load, `reachStep7` opened the where step before `/api/locations/<market>` served the city, and nothing named the wait. Fix: the helper waits on the route from node (`cache: "no-store"`) and names what it saw. Evidence: changelog 2026-09-19 U6-C1-R3b-2 Part 2a; flake ledger 2026-09-24 (PW-39, run 36064995954 — the named refusal, not a silent timeout). Class: J7 wait-on-the-route.
+
+INC-235 — CLOSED 2026-09-19 (the named refusal stands as instrumentation).
+
+## INC-236 — facts keys refused the definition-key charset
+
+Defect: a facts key with a hyphen was refused although definition keys carry hyphens. Evidence: changelog 2026-09-20 M-MAINT-3b. Class: one charset declared twice.
+
+INC-236 — CLOSED 2026-09-20.
+
+## INC-237 — the where step guessed a market for the seller
+
+Defect: the where step preselected a market the prefill had not resolved. Evidence: changelog 2026-09-20 R-CLEAN (PW-31); docs/features/posting.md § INC-237 (R-CLEAN) — THE MARKET IS NEVER GUESSED FOR THE SELLER. Class: a sentinel default on a geography path (§7 banned pattern).
+
+INC-237 — CLOSED 2026-09-20.
+
+## INC-238 — visible_when sibling keys refused hyphens
+
+Defect: the condition's key charset lacked the hyphen a real sibling key carries. Evidence: changelog 2026-09-20 R-CLEAN (apply `fb8d315a` → mark `20260920100000`). Class: INC-236's charset, second site.
+
+INC-238 — CLOSED 2026-09-20.
+
+## INC-239 — a facts-only change previewed as unchanged
+
+Defect: the attributes file did not diff, write or echo option `facts`. Evidence: changelog 2026-09-20 M-FACTS (apply `7b9dc9eb` → mark `20260920110000`). Class: F4 — an edit silently not applied.
+
+INC-239 — CLOSED 2026-09-20.
+
+## INC-240 — prefilled details did not re-derive on a parent change
+
+Defect: a parent option change left the previous model's prefills in place, and a seller edit could be lost. Evidence: changelog 2026-09-20 U6-C1-R3b-3a (PW-32); D25. Class: derived state not re-derived.
+
+INC-240 — CLOSED 2026-09-20.
+
+## INC-241 — the links gate and the two new cells
+
+Defect (as registered): the links import gate did not know `visible_when` and `display_order`. Census at fix time: the gate never ignored an unknown column — it has answered `unknownColumn` by name since its birth; the two cells were added. Evidence: changelog 2026-09-20 R-GATE. Class: registration corrected by census (recorded, not hidden).
+
+INC-241 — CLOSED 2026-09-20.
+
+## INC-242 — option bounds applied from one option only
+
+Defect: a model's year floor did not bound the picker when the bound came from a later-selected option. Evidence: changelog 2026-09-20 U6-C1-R3b-3c (PW-25). Class: bounds must narrow from every chosen option.
+
+INC-242 — CLOSED 2026-09-20.
+
+## INC-243 — the options cache after a file commit
+
+Defect: the version already bumped on commit (`get_attribute_options_version`); the browser cache was the seam. Fix: `max-age=60, stale-while-revalidate=300` with the version as ETag and a sixty-second client hold. Evidence: changelog 2026-09-21 U6-C1-R3b-3d. Class: cache keyed without its version.
+
+INC-243 — CLOSED 2026-09-21.
+
+## INC-244 — option `allowed` sets did not narrow sibling pickers
+
+Defect: an option's `allowed` narrowing was read by the door but not by the form. Fix: allowed sets narrow and lock sibling pickers; one admissible answer is filled (PW-35). Evidence: changelog 2026-09-21. Class: F3 mirror.
+
+INC-244 — CLOSED 2026-09-21.
+
+## INC-245 — link defaults did not prefill
+
+Defect: a link's `default_value` did not prefill on first render or after a reset (PW-22). Evidence: changelog 2026-09-21 U6-C1-R3b-3d. Class: default applied on one path only.
+
+INC-245 — CLOSED 2026-09-21.
+
+## INC-246 — surfaced categories missing from the wizard tree
+
+Defect: a category surfaced under a second root did not appear in the wizard's tree (PW-36); completed by INC-263 so a surfaced category reaches both roots. Evidence: changelog 2026-09-21 and 2026-09-22. Class: the reader's tree vs. the pointer table.
+
+INC-246 — CLOSED 2026-09-22.
+
+## INC-247 — bounds across three-level folds
+
+Defect: option bounds did not apply to inherited fields across three-level folds (PW-25). Evidence: changelog 2026-09-21 R-YEAR. Class: INC-242's rule, deeper.
+
+INC-247 — CLOSED 2026-09-21.
+
+## INC-248 — a category change left the fold pickers on screen
+
+Defect: after a category change the fold pickers kept their old lists. Evidence: changelog 2026-09-21 R-YEAR. Class: derived state not cleared on its input's change.
+
+INC-248 — CLOSED 2026-09-21.
+
+## INC-249 — the option's own `bounds` object was not read
+
+Defect: the form read a model's bound only from a bound nested inside `facts`; the published catalogue serves `"bounds": {"year": {"min": 2020}}` beside `facts`, so BYD Han and Toyota Corolla offered 1901. Evidence: changelog 2026-09-21 R-SW. Class: one shape read from two places.
+
+INC-249 — CLOSED 2026-09-21.
+
+INC-250 · INC-251 — VOID (no repo record).
+
+INC-252 — RESERVED, not a defect: the curator delivery convention "scopes naming same-batch options ride a second links file (pass 2)" is cited by that number in the cycle-18 change notes; recorded so the number is never reused.
+
+## INC-253 — Amharic catalog text did not render
+
+Defect: Amharic help, labels and units did not render in the wizard, review and preview when present. Evidence: changelog 2026-09-21 R-HELP (PW-42). Class: one language rule declared in three places.
+
+INC-253 — CLOSED 2026-09-21.
+
+## INC-254 — option values could not lead with a digit
+
+Evidence: changelog 2026-09-22 M-SHAPE. Class: a charset stricter than the catalog.
+
+INC-254 — CLOSED 2026-09-22.
+
+## INC-255 — the M-SHAPE planner guard's proofs anchored on a live definition
+
+Defect: the earlier file's proofs read a live catalog definition and could not run where that row is absent; re-declared byte-identically with scratch-row proofs only. Evidence: changelog 2026-09-22 M-SHAPE corrective. Class: INC-222 second occurrence → the migration-proof law (scratch rows only; proofs assert behaviour, never planner choice).
+
+INC-255 — CLOSED 2026-09-22.
+
+INC-256 — VOID (no repo record).
+
+## INC-257 — facts skipped siblings unhidden by the same selection
+
+Evidence: changelog 2026-09-21 "INC-257: facts apply to siblings unhidden by the same selection (PW-43)". Class: visibility judged before the fact was applied.
+
+INC-257 — CLOSED 2026-09-21.
+
+INC-258 — VOID (no repo record).
+
+## INC-259 — colour swatches with parent-prefixed stems and patterns rendered empty trays
+
+Evidence: changelog 2026-09-21 (PW-44). Class: swatch resolution keyed on the bare value only.
+
+INC-259 — CLOSED 2026-09-21.
+
+## INC-260 — a dependent list picked its parent by first match
+
+Defect: Vehicle Hire's "other" vehicle type owned the car-model list; the owner is now the list covering the most of the child's parent values (PW-44/PW-45; docs/features/posting.md § INC-260). Evidence: changelog 2026-09-21. Class: structural resolution by first match.
+
+INC-260 — CLOSED 2026-09-21.
+
+## INC-261 — re-parenting onto an existing secondary parent needs two steps (chat-side registration)
+
+Defect (as registered): a categories row that moves a category under a parent already listed as its secondary parent is refused (duplicate pointer), so curators deliver two steps. Repo anchor to re-ground from: the commit's parent-move-before-secondary-removal in migration 20260917210006 (lines 844–870). Class: importer refusal on a legal single-step intent.
+
+INC-261 — OPEN: re-registration from repo truth pending (the importer census turn).
+
+## INC-262 — importer refusals worked around by curator deltas (chat-side registration)
+
+Defect (as registered): (a) an import targeting a surfaced leaf is filter-scoped unless the category filter is cleared; (b) an inherited row cannot be unlinked at a leaf (unlink at the origin instead); (c) a card rank on a direct row collides with an inherited card at other-* leaves. Class: importer semantics that should be refused by name or accepted.
+
+INC-262 — OPEN: re-registration from repo truth pending.
+
+## INC-263 — the category tree was pinned for the visit
+
+Defect: the wizard's (and the rail's) tree never re-read during a visit; now version-keyed (`get_category_tree_version`, re-checked every 15 s with an ETag), so an import is visible inside the 60 s window and a surfaced category reaches both roots (PW-46). Evidence: changelog 2026-09-22 and its follow-up. Class: cache without a version.
+
+INC-263 — CLOSED 2026-09-22.
+
+## INC-264 — the importer's gate lacked the `swatch` key
+
+Defect: a swatch-only definitions file was refused as an unknown field although the door allowed it. Evidence: changelog 2026-09-22; docs/features/imports.md. Class: INC-234 second occurrence → one allowlist (the door's ten keys), the gate judges shape only.
+
+INC-264 — CLOSED 2026-09-22.
+
+## INC-265 — the tree held its body, never its stamp; the options cell split on a bare pipe
+
+Defect: (a) the public tree route did not ask the version on every request and the reader did not revalidate on mount; (b) the options cell split its records on any pipe, breaking D28's two-tone swatch and piped labels. Fix: one boundary reader on `}|{` in the gate (`splitOptionSegments`) and in SQL (`attr_split_option_cell`). Evidence: changelog 2026-09-22 (two lines). Class: one reader declared twice; cache without a version.
+
+INC-265 — CLOSED 2026-09-22.
+
+## INC-266 — (a) a proof asserting the wrong verdict word; (b) an overnight tab ate the first sign-in
+
+Defect: (a) the INC-265 landing's own proof asserted `update` where the planner says `change`, so `20260922120000` could never apply — restated; (b) an expired prior session raced the new sign-in (DEC-076: evict the expired session before sending credentials; a grant that never commits is an honest failure with one `[ssr-error]` line). Evidence: changelog 2026-09-22 and 2026-09-23; spec-ledger DEC-076. Class: (a) a tool-written file cannot be edited — restate; (b) Tier A auth race.
+
+INC-266 — CLOSED 2026-09-23.
+
+## INC-267 — importer item (chat-side registration; specification lost with the thread)
+
+INC-267 — OPEN: re-registration from repo truth pending (the importer census turn); the number stays reserved.
+
+## INC-268 — the attributes planner re-resolved the same target once per option
+
+Defect: `attr_allowed_check` resolved each target once per option; re-declared whole with a per-call memo. Two ledger repairs followed: the landing omitted its self-marking INSERT (marks-only corrective, allowlist entry), and parity now keys on the DECLARED mark, falling back to the filename stamp (INC-094). Evidence: changelog 2026-09-23 (three lines). Class: planner cost law; DEC-022 declared marks.
+
+INC-268 — CLOSED 2026-09-23.
+
+## INC-269 — the specifications step reordered the catalogue
+
+Defect: D36's partition pulled required and conditional rows ahead of display-order-earlier optional ones. Rule: display order always; a dependent below its parent and never hidden. Evidence: changelog 2026-09-23. Class: presentation overriding the curated order.
+
+INC-269 — CLOSED 2026-09-23 (D41 later removed the expander entirely).
+
+## INC-270 — the full E2E matrix could not be collected outside Vite
+
+Defect: `isE2E` crashed on an absent `import.meta.env` under Playwright's plain-Node loader. Evidence: changelog 2026-09-23. Class: environment assumption in shared code.
+
+INC-270 — CLOSED 2026-09-23.
+
+## INC-271 — the trailing cut ran before the form knew its shape
+
+Defect: folds, facts/bounds/allowed targets and colour trays live in the option ROWS, which land a beat after first paint; the form now publishes `data-options="1"` once its option lists settle. Evidence: changelog 2026-09-23. Class: a decision taken before its inputs arrive.
+
+INC-271 — CLOSED 2026-09-23.
+
+## INC-272 — a 363-option definitions file timed out at Preview
+
+Defect: `attr_split_option_cell` alone dominated the planner on prod (INC-268 follow-up). Evidence: changelog 2026-09-24. Class: planner cost law.
+
+INC-272 — CLOSED 2026-09-24.
+
+## INC-273 — finder rebuild triggers raised `catalog_find_terms_pkey` inside saves
+
+Defect: the D37-1 rebuild triggers ran a concurrent delete+insert inside category/link saves across shards; rebuild decoupled from every write path (lazy under `pg_advisory_xact_lock`) and the base re-landed portably. Evidence: changelog 2026-09-24 (two lines); flake ledger 2026-09-24 09:29 (`f98455b`, the last occurrences before the landing at 11:01). Class: a write-path side effect racing itself.
+
+INC-273 — CLOSED 2026-09-24.
+
+## INC-274 — e2e audit rows grew without bound
+
+Fix: `maintenance_prune_e2e_audit(cutoff, include_orphans, batch)` (service_role only, ≤ 50,000 rows a call) prunes e2e-namespaced and vanished-actor audit rows older than 24 h on staging; apply `22d92338` → mark `20260925010000`. Evidence: changelog 2026-09-25; docs/features/e2e-harness.md. Class: harness hygiene (DEC-062 family).
+
+INC-274 — CLOSED 2026-09-25.
+
+## INC-275 — the categories planner rebuilt the export per row
+
+Defect: `cat_import_plan` called `cat_export_row()` per row (a full export each call); re-declared WHOLE with one tree read per plan; CT-18's timeout. Evidence: changelog 2026-09-24 (apply `ee768e16` → mark `20260924230000`). Class: planner cost law.
+
+INC-275 — CLOSED 2026-09-24.
+
+## INC-276 — hour-old `e2e-` scratch categories were never reaped
+
+Fix: global-setup reaps every hour-old `e2e-` category with its listings, pointers, legacy attributes and translations (staging swept 553 → 0). Evidence: changelog 2026-09-25; e2e-harness.md. Class: DEC-031 reaper scope.
+
+INC-276 — CLOSED 2026-09-25.
+
+## INC-277 — Back froze while "Find a category" held a term
+
+Defect: Back was closed at the roots and moved an unseen cursor inside a folder while the filter held a term. Fix: the wizard owns the filter term; Back clears it first, then climbs, then leaves the step (PW-53). Evidence: changelog 2026-09-24; docs/features/posting.md § INC-277. Class: two owners for one piece of state.
+
+INC-277 — CLOSED 2026-09-24.
+
+## INC-278 — no reaper removed photo storage objects
+
+Defect: a reaped scratch listing (and a reaped e2e user, whose listing rows cascade away) left its `listing-photos` objects behind for ever. Fix: DEC-077 parts 1–2 (setup reaper purges reaped listings' prefixes; storage-side backlog enumeration; per-run delete proof). Evidence: changelog 2026-09-25 (two lines); the two staging setup runs pasted in the report (3 orphan objects removed, then 0). Class: cleanup that never ran against the store it names.
+
+INC-278 — CLOSED 2026-09-25 by DEC-077.
+
+## INC-279 — a curator file overwrote a shared definition it thought it was creating
+
+Defect: the cycle-18 batch-1 Home & Garden definitions file created `delivery_available` as a new key while a Travel definition of that key existed; the import overwrote it (preview 3 added / 10 changed vs the stated 4 / 9). Fix: the batch-1 follow-up file restated the row at final content. Class rule: every new key AND every restated shared row is checked against the UNFILTERED definitions export attached with the batch; unchanged shared rows are omitted from partial files. Second occurrence 2026-09-25 (the Babies file 1 echo rows for `size` and `furniture_material` copied from a pre-follow-up export — dropped by the supervisor before import, no damage). Evidence: the batch-1 import previews and the follow-up previews (all matched). Class: curator baseline staleness.
+
+INC-279 — CLOSED 2026-09-25 (data; no code; class rule in force).
+
+## INC-280 — LY-6: the currency list opened past the 360 viewport
+
+Defect: the list opened downward past the viewport when its input sat just above the sticky action bar, so LY-6 hit-tested outside the screen (8 flake-ledger lines 09-19 → 09-25 before the fix; the supervisor missed the DEC-030 threshold on 09-21 — slip S41). Fix: the list chooses its side on open and resize (`data-placement`); LY-6 probes in one frame with a bottom-edge flip scenario. Evidence: changelog 2026-09-25. Class: a floating control unaware of the viewport edge.
+
+INC-280 — CLOSED 2026-09-25 (no ledger line after commit 55428544).
+
+## INC-281 — PW-37 tapped the map before Leaflet's handler attached
+
+Fix: the map box carries `data-ready` and every tap waits on `mapReady`. Evidence: changelog 2026-09-25. Class: a test acting before the component's readiness.
+
+INC-281 — CLOSED 2026-09-25 (no ledger line after commit 11f94620).
+
+## INC-282 — the feed-gutters test threw a TypeError on a null box
+
+Defect: three `(await …boundingBox())!` reads threw `Cannot read properties of null (reading 'x')` when an element detached after `feed-empty` was visible (6 matrix-lane flake lines 09-19 → 09-25). Fix: `boxOf` waits for visibility and throws `INC-282: <testid> had no box (detached or hidden)`. Cause (executor hypothesis, read from code, not reproduced): `feed.tsx:14–17` builds the feed query from `selectedCategoryId`, null until `useCategories()` resolves (`app-shell.tsx:377–379`), so the empty state can render for the no-category query and be swapped for the spinner when the tree loads or revalidates (INC-263/265). Class: measurement before the element settles; product-side re-mount.
+
+INC-282 — CLOSED 2026-09-25 (test); WATCH (product): a named INC-282 refusal in the ledger reopens it as a feed fix.
+
+## INC-283 — the shell cascade smoke test picked menu items by position
+
+Defect: `options.nth(1)` was a sibling job's scratch market whenever one was open — `seedCountry` writes `display_order: 0` (ET and US are 0 too) and the country menu re-sorts on displayOrder then `nameEn.localeCompare`, so "E2E-Scratch-…" sorts before "Ethiopia"; the scratch market could vanish mid-test (11 smoke-lane flake lines 09-19 → 09-25). Fix: every pick by identity — ET by its served name, the first curated (`non-e2e-`) served region, that region's first curated city (`readServedNodes`); on staging the picks resolve to region `addis-ababa`, city `addis-ababa`. Evidence: changelog 2026-09-25; the executor's E1 census. Class: G28 — a page-position assertion on a shared roster.
+
+INC-283 — CLOSED 2026-09-25.
+
+## INC-284 — CO-6 swapped whatever root sat first
+
+Defect: `useRootCategories` lists every active top-level category with no `e2e-` filter, so the first rail row was usually a sibling test's scratch root (display_order 0); when it was deleted before the save the door refused `notARoot` and the 20 s poll timed out, and when deleted after, its stored row cascaded away and the absolute position checks failed (6 matrix-lane lines, twice on 2026-09-25's last two runs). Fix: the first adjacent pair of REFERENCE roots (rows are read, never edited — the order rows belong to the scratch country), relative positions instead of absolute, one named retry after `notARoot`, a second refusal fails by name. Evidence: changelog 2026-09-25; the executor's E2 census. Class: G28; a test writing a payload that names rows it does not own.
+
+INC-284 — CLOSED 2026-09-25 (the retry path is written and self-consistent but not yet exercised live — WATCH for its console line).
+
+## INC-285 — guess-fixture probe points collided across jobs
+
+Defect: `guessPoint(project, worker)` gave the SAME point to every job running shell.spec.ts at once (smoke, six shards, the changed lane), so two jobs seeded scratch cities at one point and either could be nearest (6 lines 09-19 → 09-24 for LS-6). Fix: one point per job × project × worker on a 10 × 8 grid (origin 5.5°N 49.0°E, step 1.1° — 122.3 km in latitude, 121.8 km in longitude at 5.5°N, twice the 60 km metro window) with a `beforeAll` DB proof that no curated Ethiopian settlement sits within 60 km of any grid point (the earlier "read from the DB" guarantee had been a comment only). Caveat: every local run maps to slot 9, so two LOCAL suites at once still collide — the executor's local LS-6 red of 2026-09-25 (a stray server from a restarted run); CI overlaps are prevented by the workflow's `cancel-in-progress` concurrency group, and the nightly (slot 9) never runs beside a local suite of the executor's. Rule (Knowledge J-law proposal): one local E2E suite at a time. Evidence: changelog 2026-09-25. Class: fixture isolation keyed below the concurrency level.
+
+INC-285 — CLOSED 2026-09-25 (CI); local caveat recorded.
+
+## INC-286 — TR-34 deep-equality flaked after R-TR34
+
+Defect: 4 flake-ledger lines (09-19, 09-21, 09-22 ×2; shards 2 and 5) after R-TR34 (2026-09-19 12:12) made whole-export comparisons strip same-run scratch rows. Evidence: the ledger lines only (no body existed before DEC-078). Class: INC-214 family (whole-roster comparison against concurrent residue).
+
+INC-286 — OPEN: evidence pending the first DEC-078 body; no fix without it (G21).
+
+## INC-287 — TR-24 toBeVisible flaked 4× on 2026-09-24
+
+Defect: four lines across three commits (`a1fe1f1`, `4bf9f78`, `db13e9a`) on shards 2 and 5. Evidence: the ledger lines only. Class: unknown until a body arrives.
+
+INC-287 — OPEN: evidence pending the first DEC-078 body.
+
+Numbering: next free INC-288. Watch list (no INC): CT-18 (3 lines, all before INC-275 landed 2026-09-24 22:00), PW-20 (3 lines 09-19 → 09-22, none since), TR-24/TR-34 as above, LS-11 (INC-218), the nightly's quarantined CI-5 (@global-state, INC-117 class).
