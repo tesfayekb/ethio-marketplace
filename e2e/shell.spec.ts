@@ -24,6 +24,7 @@ import {
 } from "./helpers/locations";
 import { destroyCountry } from "./helpers/countries";
 import { adminClient, createUser } from "./helpers/users";
+import { distanceKm } from "../src/lib/geo-distance";
 
 /** Grants a named role via the service role — the staff fixture (see rbac.spec.ts). */
 async function grantRole(userId: string, roleName: string) {
@@ -1776,22 +1777,71 @@ test.describe("L4b location picker", () => {
   }
 
   /**
-   * A point more than 60 km from EVERY curated Ethiopian metro (the nearest,
-   * Jimma, is ~240 km away — read from the DB, never assumed), so the scratch
-   * city seeded AT it is unambiguously the nearest node and no reference row is
-   * ever the answer (J3/J6).
+   * INC-285 — ONE POINT PER (JOB × PROJECT × WORKER). Every job that runs this
+   * spec at the same time (smoke, each shard, the changed lane, email) used to
+   * get the SAME point for the same project/worker, so two jobs' scratch cities
+   * sat together and either could be the nearest node. The job is now folded
+   * into the slot: rows are the job (10), columns project × worker (8).
+   *
+   * Spacing: 1.1° in both axes. Latitude: 1.1 × 111.2 = 122.3 km. Longitude at
+   * the grid's highest latitude (5.5°N): 1.1 × 111.2 × cos 5.5° = 121.8 km. So
+   * every pair of points is ≥ 120 km apart — twice the 60 km metro window — and
+   * each fixture is the unique settlement inside its own window.
    */
-  const GUESS_ORIGIN = { lat: 5.5, lng: 36.5 };
+  const GUESS_ORIGIN = { lat: 5.5, lng: 49.0 };
+  const GUESS_STEP_DEG = 1.1;
+  const GUESS_JOBS = 10;
+  const GUESS_COLUMNS = 8;
+
+  function jobIndex(shard: string | undefined): number {
+    if (shard === "smoke") return 0;
+    if (shard === "changed") return 7;
+    if (shard === "email") return 8;
+    const n = Number(shard);
+    return Number.isInteger(n) && n >= 1 && n <= 6 ? n : 9;
+  }
+
+  function gridPoint(row: number, column: number) {
+    return {
+      lat: GUESS_ORIGIN.lat - row * GUESS_STEP_DEG,
+      lng: GUESS_ORIGIN.lng + column * GUESS_STEP_DEG,
+    };
+  }
+
+  function guessPoint(project: string, worker: number) {
+    const column = (project === "mobile-360" ? 0 : 1) * 4 + (worker % 4);
+    return gridPoint(jobIndex(process.env["E2E_SHARD"]), column);
+  }
 
   /**
-   * J1/J6 — the twins run in parallel, so each project (and worker) seeds its
-   * city at its OWN point, far enough apart that no run is ever the nearest node
-   * for another run's headers.
+   * No curated (non-scratch) Ethiopian settlement may sit within 60 km of ANY
+   * grid point — read from the DB, never assumed — or a reference row could be
+   * the answer instead of the fixture (J3/J6).
    */
-  function guessPoint(project: string, worker: number) {
-    const slot = (project === "mobile-360" ? 0 : 1) * 4 + (worker % 4);
-    return { lat: GUESS_ORIGIN.lat - slot * 1.5, lng: GUESS_ORIGIN.lng - slot * 1.5 };
-  }
+  test.beforeAll(async () => {
+    const { data, error } = await adminClient()
+      .from("locations")
+      .select("slug, center_lat, center_lng")
+      .eq("country_code", "ET")
+      .in("level", ["city", "sub_city"])
+      .not("center_lat", "is", null)
+      .not("center_lng", "is", null)
+      .not("slug", "like", "e2e-%");
+    if (error) throw new Error(`INC-285: reading curated settlements failed: ${error.message}`);
+    for (let row = 0; row < GUESS_JOBS; row += 1) {
+      for (let column = 0; column < GUESS_COLUMNS; column += 1) {
+        const p = gridPoint(row, column);
+        for (const node of data ?? []) {
+          const km = distanceKm(p.lat, p.lng, node.center_lat!, node.center_lng!);
+          if (km <= 60) {
+            throw new Error(
+              `INC-285: curated ${node.slug} is ${km.toFixed(1)} km from grid point ${row}×${column} (${p.lat}, ${p.lng})`,
+            );
+          }
+        }
+      }
+    }
+  });
 
   test("LS-6 the nearest curated metro wins by geometry", async ({ browser }) => {
     const point = guessPoint(test.info().project.name, test.info().workerIndex);
