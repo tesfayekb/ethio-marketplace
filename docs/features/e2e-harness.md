@@ -295,6 +295,8 @@ assertion and no entity-translation approval apply.
 Rule: the DEC-062 reaper removes every storage object under `default/<seller_id>/<listing_id>/` for each scratch listing it reaps, in the same setup pass, and re-lists the prefix afterwards — a non-empty re-list throws. A bounded backlog sweep removes listing folders under e2e sellers whose listing no longer exists.
 
 - Key law (`src/server/media/storage.ts`): `default/<userId>/<listingId>/<photoId>/<variant>.<ext>` in bucket `listing-photos`.
-- Bound: at most 200 e2e sellers are swept for backlog per run; removals go in batches of 100; any storage error throws.
-- Only prefixes under an e2e seller (`display_name` `e2e+%`) are touched. Supabase provider only; an R2 target is out of the harness.
-- Setup logs `[e2e:setup] photo objects removed: <n> under <m> reaped listing(s); backlog folders removed: <k>`.
+- Enumeration is storage-side (DEC-077 part 2): the backlog pages `list("default", { limit: 1000, offset })` until a short page; each entry is a seller folder. Not a live auth user (the full `listUsers` census) → orphan-user folder, every listing folder purged; a live e2e seller → only folders whose listing is gone; a live non-e2e user → kept, never touched. Reason: a reaped user's listing rows cascade away from `auth.users` while its objects stay, so enumerating live sellers could never find them.
+- Bound: at most 5,000 backlog objects per run (checked before each listing folder), then `more remain: yes` and the next run continues; removals go in batches of 100; any storage error throws.
+- Proof on every shard-1 run: a 1-byte object at `default/e2e-proof-<runId>/e2e-proof-listing/e2e-proof-photo/card.txt` is uploaded and purged; the count must be exactly 1 and the re-list empty, else setup throws (an unreachable bucket is a failure, not a pass). Logs `[e2e:setup] photo reaper proof: ok`.
+- Supabase provider only; an R2 target is out of the harness.
+- Setup logs `[e2e:setup] photo objects removed: <n> under <m> reaped listing(s); orphan-user folders: <a>; orphan listing folders: <b>; kept (live sellers): <c>; more remain: yes|no`.
