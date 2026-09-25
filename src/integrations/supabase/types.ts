@@ -2932,6 +2932,14 @@ export type Database = {
         Args: { p_cutoff: string }
         Returns: number
       }
+      maintenance_prune_e2e_audit: {
+        Args: {
+          p_batch?: number
+          p_cutoff: string
+          p_include_orphans?: boolean
+        }
+        Returns: number
+      }
       mark_sold: { Args: { p_listing_id: string }; Returns: Json }
       merge_attributes_impl: {
         Args: { p_sources: string[]; p_target: string }
