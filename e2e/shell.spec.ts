@@ -341,13 +341,20 @@ test.describe("app shell", () => {
       const container = page.getByTestId("feed-container");
       const emptyState = page.getByTestId("feed-empty");
       await expect(emptyState).toBeVisible({ timeout: 20000 });
-      const mainBox = (await main.boundingBox())!;
-      const box = (await container.boundingBox())!;
+      /** INC-282 — a null box names the state instead of throwing a TypeError. */
+      const boxOf = async (locator: typeof main, name: string) => {
+        await expect(locator).toBeVisible();
+        const b = await locator.boundingBox();
+        if (!b) throw new Error(`INC-282: ${name} had no box (detached or hidden)`);
+        return b;
+      };
+      const mainBox = await boxOf(main, "main#main");
+      const box = await boxOf(container, "feed-container");
       const left = box.x - mainBox.x;
       const right = mainBox.x + mainBox.width - (box.x + box.width);
       expect(Math.abs(left - right), "feed container gutters are unequal").toBeLessThanOrEqual(1);
 
-      const empty = (await emptyState.boundingBox())!;
+      const empty = await boxOf(emptyState, "feed-empty");
       const emptyLeft = empty.x - mainBox.x;
       const emptyRight = mainBox.x + mainBox.width - (empty.x + empty.width);
       expect(Math.abs(emptyLeft - emptyRight), "empty state is off-centre").toBeLessThanOrEqual(1);
