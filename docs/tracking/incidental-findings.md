@@ -2271,7 +2271,7 @@ INC-216 — CLOSED 2026-09-17 by R-LT13: destroy closes, deletes child-first and
 
 ## Reconciliation 2026-09-25 — INC-215 closure; INC-217 → INC-287 (supervisor record S41/S42)
 
-The tracker stopped at INC-216 (2026-09-17). Every number since was registered in the supervisor thread and, where a fix landed, recorded by the executor in docs/_changelog.md and the feature docs; this block restores the ledger from those records. Numbers without a repo record are listed as VOID so they are never reused. Open items keep their status line.
+The tracker stopped at INC-216 (2026-09-17). Every number since was registered in the supervisor thread and, where a fix landed, recorded by the executor in docs/\_changelog.md and the feature docs; this block restores the ledger from those records. Numbers without a repo record are listed as VOID so they are never reused. Open items keep their status line.
 
 INC-215 — CLOSED 2026-09-17 by M-MAINT: a countries-file row carrying open/close applies its field edits too (planner and commit re-declared whole; the preview counts both). See docs/features/imports.md § INC-215.
 
@@ -2501,7 +2501,7 @@ INC-261 — OPEN: re-registration from repo truth pending (the importer census t
 
 ## INC-262 — importer refusals worked around by curator deltas (chat-side registration)
 
-Defect (as registered): (a) an import targeting a surfaced leaf is filter-scoped unless the category filter is cleared; (b) an inherited row cannot be unlinked at a leaf (unlink at the origin instead); (c) a card rank on a direct row collides with an inherited card at other-* leaves. Class: importer semantics that should be refused by name or accepted.
+Defect (as registered): (a) an import targeting a surfaced leaf is filter-scoped unless the category filter is cleared; (b) an inherited row cannot be unlinked at a leaf (unlink at the origin instead); (c) a card rank on a direct row collides with an inherited card at other-\* leaves. Class: importer semantics that should be refused by name or accepted.
 
 INC-262 — OPEN: re-registration from repo truth pending.
 
