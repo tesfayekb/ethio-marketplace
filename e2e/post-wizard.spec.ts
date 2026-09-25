@@ -176,8 +176,8 @@ test.describe("POSTING WIZARD", () => {
     await hit.click();
     if (expectSaved) {
       await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved");
-      // AUTO-ADVANCE: the leaf IS the answer, so step 2 opens with the chip.
-      await expect(page.getByTestId("post-step-2")).toBeVisible();
+      // AUTO-ADVANCE: the leaf IS the answer; D39 — specifications open next.
+      await expect(page.getByTestId("post-step-3")).toBeVisible();
       await expect(page.getByTestId("post-category-chip-path")).toContainText(slug);
     }
   }
@@ -353,7 +353,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(leafRow).toBeVisible();
     await leafRow.click();
     // The leaf advances by itself; the chip names the whole path, parent first.
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
     await expect(page.getByTestId("post-category-chip-path")).toContainText(parent.slug);
     await expect(page.getByTestId("post-category-chip-path")).toContainText(child.slug);
     // The leaf has no picture of its own: the stand-in is the FOLDER's.
@@ -393,6 +393,9 @@ test.describe("POSTING WIZARD", () => {
     expect(listingId, "PW-4: step 1 created no draft to hang photos on").not.toBe("");
     objects.push({ userId: user.id, listingId });
 
+    // D39 — photos come AFTER specifications: the scratch leaf's empty form passes.
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible();
     // U6-C1-R2 — PHOTOS ARE OPTIONAL and the step opens with a STAND-IN: the
     // helper line states the rules once and nothing offers to skip, because Next
@@ -453,11 +456,11 @@ test.describe("POSTING WIZARD", () => {
     const listingId = String(draft?.id ?? "");
     expect(listingId).not.toBe("");
 
-    // A fresh visit to the draft's own address opens AFTER the recorded step and
-    // still knows the category — nothing was carried in the URL.
+    // D39 — a fresh visit opens at the FIRST UNFINISHED step of the walk
+    // (category done → specifications) and still knows the category.
     await gotoReady(page, `/post/${listingId}`);
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
-    await expect(page.getByTestId("post-photos-add")).toBeEnabled();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(page.getByTestId("post-category-chip-path")).toContainText(category.slug);
 
     // Another account is told whose draft it is, not shown an empty form (F4).
     const other = await browser.newContext();
@@ -503,7 +506,7 @@ test.describe("POSTING WIZARD", () => {
     // The choice survived the outage: the seller is still on step 1 (a retry is
     // not a forward move), and Next now carries them on with the chip in place.
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
     await expect(page.getByTestId("post-category-chip-path")).toContainText(category.slug);
   });
 
@@ -515,6 +518,13 @@ test.describe("POSTING WIZARD", () => {
    * definitions are SCRATCH (`seedSpecSet`): a real one could change its options
    * under the test, and J3 forbids writing one.
    */
+  /** D39 — from specifications, Next opens photos; a second Next opens details. */
+  async function nextThroughPhotos(page: import("@playwright/test").Page) {
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+  }
+
   async function reachStep3(
     page: import("@playwright/test").Page,
     userId: string,
@@ -527,12 +537,7 @@ test.describe("POSTING WIZARD", () => {
     expect(listingId, "step 1 created no draft").not.toBe("");
     objects.push({ userId, listingId });
 
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
-    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
-    await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
-      timeout: 45_000,
-    });
-    await page.getByTestId("post-next").click();
+    // D39 — the category lands on specifications directly; no photos leg.
     await expect(page.getByTestId("post-step-3")).toBeVisible();
     // D36 — the seller's optional details wait behind one expander; a walk that
     // reads them opens it here, once, so every step-3 test reads the same form.
@@ -598,14 +603,14 @@ test.describe("POSTING WIZARD", () => {
     ).toBeVisible();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
     // DB TRUTH: a refused step never advances what the server recorded.
-    expect((await draftsOf(user.id))[0]?.draft_step, "PW-5: a refusal advanced the draft").toBe(2);
+    expect((await draftsOf(user.id))[0]?.draft_step, "PW-5: a refusal advanced the draft").toBe(1);
 
     // Answered, the same step is accepted, and the door stores the normalised answers.
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
       .fill("e2e text answer");
     await picker.selectOption(spec.optionValues[0] ?? "");
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => (await attributesOf(listingId))[spec.text.attrKey], {
@@ -652,7 +657,7 @@ test.describe("POSTING WIZARD", () => {
     await pw26Picker.focus();
     await expect(pw26Picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
     await pw26Picker.selectOption(spec.optionValues[0] ?? "");
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => Object.keys(await attributesOf(listingId)).length, {
@@ -674,11 +679,9 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-category-dropped"),
       "PW-26: the dropped detail was not named",
     ).toContainText(spec.text.nameEn);
-    await expect(
-      page.getByTestId("post-category-photos-recheck"),
-      "PW-26: the photos were not flagged for the new category",
-    ).toBeVisible();
-    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    // D39 — the jump lands on SPECIFICATIONS; the photos notice (none here)
+    // belongs to the photos step.
+    await expect(page.getByTestId("post-step-3"), "PW-26: the jump missed specifications").toBeVisible();
     // D36 — the new category's extras start collapsed; a test reading an optional
     // detail opens them, as a seller would.
     await openMoreDetails(page);
@@ -724,7 +727,7 @@ test.describe("POSTING WIZARD", () => {
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
       .fill("e2e assist facts");
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
 
     // Nothing is written until the seller asks; Next now sends and the door
@@ -792,7 +795,7 @@ test.describe("POSTING WIZARD", () => {
     category: { id: string; slug: string },
   ) {
     const listingId = await reachStep3(page, userId, category);
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await page.getByTestId("post-title").fill("e2e c2a listing title");
     await page.getByTestId("post-description").fill("e2e c2a listing description");
@@ -1324,7 +1327,7 @@ test.describe("POSTING WIZARD", () => {
       await checks.locator(`[data-testid="post-attr-check"][data-value="${value}"]`).check();
     }
     mark("specifications answered");
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await page.getByTestId("post-title").fill("e2e labelled title");
     await page.getByTestId("post-description").fill("e2e labelled description");
@@ -1626,11 +1629,11 @@ test.describe("POSTING WIZARD", () => {
       "PW-16: autosave judged a step the seller is still filling in",
     ).toHaveCount(0);
     await expect(page.locator('[data-testid="post-attr-refusal"]')).toHaveCount(0);
-    // DB TRUTH: the recorded step is still the last COMPLETED one (step 2).
+    // DB TRUTH: the recorded step is still the last COMPLETED one (D39: step 1).
     expect(
       (await draftsOf(user.id))[0]?.draft_step,
       "PW-16: autosave advanced the recorded step",
-    ).toBe(2);
+    ).toBe(1);
 
     // Next asks for the verdict, and now the untouched required detail is refused.
     await page.getByTestId("post-next").click();
@@ -1743,9 +1746,11 @@ test.describe("POSTING WIZARD", () => {
     );
     await text.fill("e2e back text");
     await number.fill("7");
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
 
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
     await page.getByTestId("post-back").click();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
     await expect(
@@ -1772,7 +1777,7 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     await reachStep3(page, user.id, category);
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
 
     const phrase = "gray and very strong";
@@ -1937,7 +1942,7 @@ test.describe("POSTING WIZARD", () => {
     );
 
     // J4 — DB truth: the default the screen showed is what the door recorded.
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => (await attributesOf(listingId))[fold.unit.attrKey], {
@@ -1980,7 +1985,7 @@ test.describe("POSTING WIZARD", () => {
     // THE CONDITION FALLS AWAY — the answer goes with it, on screen and in the row.
     await fuel.selectOption(set.fuelValues.petrol);
     await expect(charging).toHaveCount(0);
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
     await expect
       .poll(async () => Object.keys(await attributesOf(listingId)).includes(set.charging.attrKey), {
@@ -2065,7 +2070,7 @@ test.describe("POSTING WIZARD", () => {
     ).toBeVisible({ timeout: 20_000 });
     await expect(dual, "PW-9: a fact ticked the attestation for the seller").not.toBeChecked();
 
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => (await attributesOf(listingId))[fold.year.attrKey], {
@@ -3150,7 +3155,7 @@ test.describe("POSTING WIZARD", () => {
     await type.selectOption(set.typeValues.mat);
     await expect(power, "PW-43: a hidden sibling stayed on screen").toHaveCount(0);
     await expect(volt, "PW-43: a hidden deeper detail stayed on screen").toHaveCount(0);
-    await page.getByTestId("post-next").click();
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
     await expect
       .poll(
@@ -3354,7 +3359,7 @@ test.describe("POSTING WIZARD", () => {
 
     // AND IT IS REMEMBERED for this category: a step away and back keeps it open.
     await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
     await expect(
