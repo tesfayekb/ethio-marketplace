@@ -3268,11 +3268,7 @@ test.describe("POSTING WIZARD", () => {
     const listingId = String(draft?.id ?? "");
     expect(listingId, `${tag}: step 1 created no draft`).not.toBe("");
     objects.push({ userId, listingId });
-    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
-    await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
-      timeout: 45_000,
-    });
-    await page.getByTestId("post-next").click();
+    // D39 — the category lands on specifications directly; no photos leg.
     await expect(page.getByTestId("post-step-3")).toBeVisible();
     await expect(page.getByTestId("post-specs"), `${tag}: the form never answered`).toBeVisible({
       timeout: 20_000,
