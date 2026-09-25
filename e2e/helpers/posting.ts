@@ -1784,76 +1784,16 @@ export async function anyCatchAllLevel(): Promise<{ hostId: string; otherId: str
 }
 
 /**
- * D36 — THE EXTRAS ARE BEHIND ONE TAP, so a test that reads an OPTIONAL detail
- * opens them first. Every existing walk goes through `reachStep3`, which calls
- * this once the step is on screen; only the D36 test itself asserts the collapsed
- * shape, and it walks without this helper.
+ * INC-281 — THE MAP ANSWERS FIRST. Leaflet arrives by dynamic import and its
+ * click handler is attached after the box is already visible; a tap before that
+ * lands on an empty div. The box publishes `data-ready="1"` once the handler is
+ * attached, so every tap waits on that word, never a clock.
  */
-export async function openMoreDetails(page: Page): Promise<void> {
-  const more = page.getByTestId("post-specs-more");
-  /**
-   * J7 — THE FORM ANSWERS FIRST. The step's own frame is on screen before its
-   * definitions arrive, so asking for the expander straight away finds nothing and
-   * would leave every extra detail shut for the rest of the walk. The wait is on
-   * the form's OWN verdict — the rows it drew, or the line saying this category
-   * asks nothing — and only then is the expander read.
-   */
+export async function mapReady(page: Page): Promise<void> {
   await expect(
-    page.getByTestId("post-specs").or(page.getByTestId("post-specs-none")),
-    "[e2e:d36] the specifications form never answered",
+    page.locator('[data-testid="post-pin-map"][data-ready="1"]'),
+    "[e2e:inc281] the map never attached its tap handler",
   ).toBeVisible({ timeout: 20_000 });
-  /**
-   * INC-271 — AND THE SHAPE IS SETTLED BEFORE THE EXPANDER IS READ. What waits
-   * behind "More details" is decided by the option ROWS (a fold, a fact, a
-   * narrowing), which land a beat after the first paint on the served build: read
-   * too early, the form has nothing deferred yet, `count()` is 0 and every extra
-   * detail stays shut for the rest of the walk. The form publishes its own verdict
-   * (`data-options`), so the wait is on that word, never a clock.
-   */
-  const form = page.getByTestId("post-specs");
-  if ((await form.count()) > 0) {
-    await expect(form, "[e2e:inc271] the option lists never settled").toHaveAttribute(
-      "data-options",
-      "1",
-      { timeout: 20_000 },
-    );
-  }
-  if ((await more.count()) === 0) return;
-
-  /**
-   * INC-269 — THE FIRST DRAW IS NOT THE LAST. The rows arrive, then the prefill and
-   * visibility pass runs and re-draws them, so the button the first read resolved can
-   * be detached under the tap ("element was detached from the DOM"). The tap is
-   * therefore attempted until the button reports itself open, re-resolving the
-   * element every time; an expander that disappears because the form reconciled to a
-   * shape with no trailing extras is not a failure.
-   */
-  /**
-   * The state is READ WITHOUT WAITING: a locator read blocks until the element is
-   * attached, and the element this loop is recovering from is precisely one that
-   * the re-draw detached. `evaluateAll` answers about whatever is there NOW —
-   * `null` when the form reconciled to a shape with no trailing extras, which is
-   * not a failure.
-   */
-  const openState = async (): Promise<string | null> =>
-    more.evaluateAll((nodes: Element[]) => nodes[0]?.getAttribute("data-open") ?? null);
-
-  for (let attempt = 0; attempt < 6; attempt += 1) {
-    const state = await openState();
-    if (state === null) return;
-    if (state === "1") {
-      await expect(page.getByTestId("post-specs-more-panel")).toBeVisible({ timeout: 20_000 });
-      return;
-    }
-    try {
-      await more.click({ timeout: 5_000 });
-    } catch {
-      // The re-draw detached it; the next turn re-resolves the button, waiting on
-      // the form's own state rather than on a clock.
-      await expect(page.getByTestId("post-specs")).toBeVisible({ timeout: 20_000 });
-    }
-  }
-  throw new Error("[e2e:d36] the extras expander never opened");
 }
 
 /**

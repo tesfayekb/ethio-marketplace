@@ -52,6 +52,7 @@ import {
   seedPostableCategory,
   seedSpecSet,
   textOf,
+  mapReady,
 } from "./helpers/posting";
 
 /**
@@ -3044,6 +3045,7 @@ test.describe("POSTING WIZARD", () => {
       "data-lat",
       "",
     );
+    await mapReady(page);
     await page.getByTestId("post-pin-map").click({ position: { x: 120, y: 90 } });
     await expect(position, "PW-37: the tap placed no pin").not.toHaveAttribute("data-lat", "", {
       timeout: 20_000,
@@ -3107,6 +3109,7 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     const listingId = await openPinAt6(page, user.id, category, true);
 
+    await mapReady(page);
     await page.getByTestId("post-pin-map").click({ position: { x: 140, y: 110 } });
     await page.getByTestId("post-pin-precision-approx").click();
     await page.getByTestId("post-pin-save").click();
@@ -3141,6 +3144,7 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     const listingId = await openPinAt6(page, user.id, category);
 
+    await mapReady(page);
     await page.getByTestId("post-pin-map").click({ position: { x: 100, y: 80 } });
     await page.getByTestId("post-pin-street").fill("e2e pin to remove");
     await page.getByTestId("post-pin-save").click();

@@ -134,6 +134,8 @@ export function MapPinDropper({
         map.on("click", (event: Leaflet.LeafletMouseEvent) => {
           place(event.latlng.lat, event.latlng.lng, true);
         });
+        // INC-281 — the box reports ready only once a tap can land.
+        box.setAttribute("data-ready", "1");
         if (position !== null) place(position.lat, position.lng, false);
       })
       .catch(() => {
@@ -307,6 +309,7 @@ export function MapPinDropper({
         ref={boxRef}
         className="h-64 w-full overflow-hidden rounded-md border border-border"
         data-testid="post-pin-map"
+        data-ready="0"
       />
       <p className="text-xs text-muted-foreground">{t("post.pin.tapHint")}</p>
 

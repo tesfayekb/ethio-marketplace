@@ -289,3 +289,12 @@ assertion and no entity-translation approval apply.
 
 - The global-setup category reaper covers every `e2e-` slug older than one hour (not only `e2e-cat-`), paged past the 1000-row cap and deleted in id batches of 100. Non-cascading dependents go first: listings in those categories, both ends of `category_tree_pointers`, legacy `category_attributes`, category `entity_translations`; attribute links, exclusions and the rail order cascade. Staging's one-off sweep: 553 hour-old leftovers before, 0 after.
 - Audit retention: after the actor-list door, `maintenance_prune_e2e_audit(cutoff, include_orphans, batch)` (service_role only, ≤ 50,000 rows a call) removes rows older than 24 h whose actor is an e2e user, whose actor no longer exists (opt-in; staging only, since `adminClient()` refuses any other URL), or whose `entity_id` / `meta.slug` / `meta.key` is e2e-namespaced. Setup loops 20k-row calls until one removes nothing.
+
+## DEC-077 — photo storage reaper
+
+Rule: the DEC-062 reaper removes every storage object under `default/<seller_id>/<listing_id>/` for each scratch listing it reaps, in the same setup pass, and re-lists the prefix afterwards — a non-empty re-list throws. A bounded backlog sweep removes listing folders under e2e sellers whose listing no longer exists.
+
+- Key law (`src/server/media/storage.ts`): `default/<userId>/<listingId>/<photoId>/<variant>.<ext>` in bucket `listing-photos`.
+- Bound: at most 200 e2e sellers are swept for backlog per run; removals go in batches of 100; any storage error throws.
+- Only prefixes under an e2e seller (`display_name` `e2e+%`) are touched. Supabase provider only; an R2 target is out of the harness.
+- Setup logs `[e2e:setup] photo objects removed: <n> under <m> reaped listing(s); backlog folders removed: <k>`.
