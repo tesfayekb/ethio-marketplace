@@ -1,69 +1,76 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36124555614
-- Commit: `f56b79c1270125a0d15c891628cb0670dce7d72d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36128108694
+- Commit: `073f4ffd848734af4ac9f1e3803fd5e61ca77c66`
 - Attempt: 1
-- Written (UTC): 2026-09-25T10:49:57.934Z
+- Written (UTC): 2026-09-25T11:18:29.170Z
 
-## Build, typecheck, lint — failure
+## E2E (Playwright, ethio-staging) — failure
 
 ### Evidence lines
 
 ```text
+[36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
+[36;1m    || echo "::warning::DEC-030 flake-ledger re-append failed"[0m
+[36;1m  echo "::warning::E2E failure report push failed after retries"[0m
+[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
+Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
+[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
+##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-+ @tanstack/react-router@1.170.16
-+ @tanstack/react-start@1.168.26
-+ @tanstack/router-plugin@1.168.18
-+ @types/pngjs@6.0.5
-+ class-variance-authority@0.7.1
-+ clsx@2.1.1
-+ cmdk@1.1.1
-+ date-fns@4.1.0
-+ embla-carousel-react@8.6.0
-+ input-otp@1.4.2
-+ jpeg-js@0.4.4
-+ leaflet@1.9.4
-+ lucide-react@0.575.0
-+ pngjs@7.0.0
-+ react@19.2.5
-+ react-day-picker@9.14.0
-+ react-dom@19.2.5
-+ react-hook-form@7.73.1
-+ react-resizable-panels@4.10.0
-+ recharts@2.15.4
-+ sonner@2.0.7
-+ tailwind-merge@3.5.0
-+ tailwindcss@4.2.4
-+ tw-animate-css@1.4.0
-+ vaul@1.1.2
-+ vite-tsconfig-paths@6.1.1
-+ zod@3.25.76
+[36;1mexit 0[0m
+shell: /usr/bin/bash -e {0}
+env:
+  E2E_RESULTS_DIR: shard-results
+  E2E_LOGS_DIR: shard-logs
+  E2E_CONTEXT_DIR: shard-contexts
+  E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
+  E2E_GREEN: 0
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36128108694
+  E2E_HEAD_COMMIT_MESSAGE: Fixed Prettier escaping issues
 
-517 packages installed [7.45s]
-##[group]Run bun run typecheck
-[36;1mbun run typecheck[0m
+X-Lovable-Edit-ID: edt-d5fe50a0-c4bd-4590-befd-8c9d17cb023d
+Co-authored-by: tesfayekb <tesfayekb@me.com>
+##[endgroup]
+  layout OK — per-artifact subdir: 1 context file(s), report rendered.
+  layout OK — merged flat: 1 context file(s), report rendered.
+  layout OK — zero artifacts: 0 context file(s), report rendered.
+  layout OK — missing directory: 0 context file(s), report rendered.
+DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
+DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no section heading.
+Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
+context download: 0 context files found.
+  glob: shard-contexts/**/error-context.md
+  searched: shard-contexts (unreadable or absent)
+Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
+From https://github.com/tesfayekb/ethio-marketplace
+ * branch            dev        -> FETCH_HEAD
+HEAD is now at 073f4ff Fixed Prettier escaping issues
+[dev 76352bb] ci: e2e failure report + flake ledger [skip ci]
+ 1 file changed, 135 insertions(+), 6 deletions(-)
+To https://github.com/tesfayekb/ethio-marketplace
+   073f4ff..76352bb  HEAD -> dev
+##[group]Run echo "smoke=cancelled email=cancelled shards=cancelled"
+[36;1mecho "smoke=cancelled email=cancelled shards=cancelled"[0m
+[36;1mif [ "cancelled" != "success" ] || [ "cancelled" != "success" ] || [ "cancelled" != "success" ]; then[0m
+[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
+[36;1m  exit 1[0m
+[36;1mfi[0m
+[36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-$ tsc --noEmit
-##[group]Run bun run format:check
-[36;1mbun run format:check[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-$ prettier --check "src/**" "e2e/**" "docs/**" "*.{json,js,ts,md}"
-Checking formatting...
-[[33mwarn[39m] docs/tracking/incidental-findings.md
-[[33mwarn[39m] Code style issues found in the above file. Run Prettier with --write to fix.
-error: script "format:check" exited with code 1
+smoke=cancelled email=cancelled shards=cancelled
+##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/9de234ca-1420-45b6-8fa8-4da72558cf1e' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/251e7235-3511-4695-8c20-d7c118e46d4c' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
