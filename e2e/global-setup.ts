@@ -167,13 +167,21 @@ export function adminClient() {
  * maintenance sweep scopes its audit deletes to these ids so a real account's
  * audit trail can never be touched.
  */
-export async function listE2EUserIds(supabase: ReturnType<typeof adminClient>): Promise<string[]> {
+export async function listE2EUserIds(
+  supabase: ReturnType<typeof adminClient>,
+  liveUserIds?: Set<string>,
+): Promise<string[]> {
   const ids: string[] = [];
-  for (let page = 1; page <= 50; page += 1) {
+  // DEC-077 part 2 — the page cap is a runaway guard, not a census bound:
+  // a caller collecting liveUserIds needs EVERY user, so running out of pages
+  // before a short page throws instead of silently truncating the live set.
+  for (let page = 1; ; page += 1) {
+    if (page > 500) throw new Error("[e2e:setup] listUsers exceeded 500 pages (100,000 users)");
     const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
     if (error) throw new Error(`[e2e:setup] listUsers page ${page} failed: ${error.message}`);
     const users = data?.users ?? [];
     for (const user of users) {
+      liveUserIds?.add(user.id);
       if (user.email?.startsWith("e2e+") && user.email.endsWith("@ethio-e2e.invalid")) {
         ids.push(user.id);
       }
