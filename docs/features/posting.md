@@ -926,52 +926,9 @@ this is presentation only.
 Tests: PW-35 (the settled shape, and Change bringing the locked picker back),
 PW-49 (the prefill-only shape keeps its input and grows no strip).
 
-## Form economy at 360 (D36, corrected by INC-269)
+## Every row open (D41, 2026-09-24)
 
-A real catalogue asks fourteen details of a seller; a 360-pixel screen shows
-about eight. The step therefore puts a run of optional rows behind one
-"More details (n)" expander. The open state is remembered per category for the
-session (`sessionStorage`, never the draft: it is a view preference, not a value
-the door stores).
-
-**THE VISIBLE ORDER IS `display_order`, ALWAYS.** The first cut of D36 partitioned
-the rows (required and conditional first, the rest after) and so re-sorted the
-curator's own order: on Smartphones the seller met Brand · Storage · Condition
-with Series, Model and Release year buried, and on Traditional Wear the dependent
-garment list rendered ABOVE the region it hangs on and could never open (INC-269).
-Nothing re-sorts the catalogue now. The expander hides only the TRAILING run of
-rows, walked backwards from the end and stopping at the first row that is any of:
-
-- required, or conditional (`visible_when`);
-- a fold parent, or a dependent (`depends_on`);
-- named by any fold on the leaf — a `facts`, `bounds` or `allowed` target, or the
-  key of any condition (a controller is never hidden: burying the only answer
-  that can bring a dependent back is exactly the Traditional Wear failure);
-- a colour card, or a row the seller's own choice has already locked.
-
-**AND THE CUT WAITS FOR WHAT IT READS (INC-271).** Every test in that list except
-`required` and `visible_when` is answered by the option ROWS, which arrive a beat
-after the first paint on the served build. For that beat a fold's child looked
-like a plain trailing optional, so on the served build the whole run — series,
-model and the storage the model's fact sets — went behind the expander and the
-form held only Brand. The trailing cut therefore runs only once every eagerly-read
-list has SETTLED (ready or failed); until then nothing is deferred and the form is
-complete, in display order, from the first frame. The step says so on its own
-container (`data-options="1"`), which is what the tests wait for instead of
-asserting at first paint.
-
-Two more economies in the same shape: help text shows its FIRST SENTENCE inline
-and the rest behind an `(i)` tap, and a unit renders as a suffix INSIDE the
-number input rather than as another line.
-
-PW-50 (mobile-360 only) seeds a Smartphones-shaped leaf — brand → series → model
-(whose fact sets the storage) → storage, then six plain optional rows — and
-asserts the four shape rows stand on screen in `display_order` with the expander
-shut, that the fold still works and the model's fact reaches the storage field,
-that one tap brings all ten in order, and that a step away and back finds the
-expander still open. PW-51 seeds an OPTIONAL parent at order 1 and a dependent at
-order 2 and asserts the parent is never hidden, the dependent renders below it,
-and it can be answered.
+The specifications step shows every row the category asks, open, in `display_order`, with nothing behind a tap: sellers skipped the D36 "More details" expander, so the operator removed it (D41). The (i) help split (first sentence inline, the rest behind the tap) and D35's locked-fact strips are unchanged. History: D36 first hid a trailing run of optional rows, INC-269 restored display order and narrowed the cut, and INC-271 made the form publish `data-options="1"` once its option lists settle, a marker readers still wait on.
 
 ## D38 / D40 — category icons and the menu treatment in the picker
 

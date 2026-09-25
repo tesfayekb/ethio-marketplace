@@ -210,8 +210,7 @@ export function StepPricing({
       const roomBelow = Math.min(barTop, window.innerHeight) - rect.bottom - 4;
       const roomAbove = rect.top - 4;
       const listHeight = Math.min(256, 44 * rowCount + 2);
-      const next =
-        roomBelow >= listHeight ? "down" : roomAbove > roomBelow ? "up" : "down";
+      const next = roomBelow >= listHeight ? "down" : roomAbove > roomBelow ? "up" : "down";
       setPlacement((prev) => (prev === next ? prev : next));
     };
     place();

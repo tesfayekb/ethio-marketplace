@@ -3498,10 +3498,9 @@ test.describe("POSTING WIZARD", () => {
 
     const control = (key: string) =>
       page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
-    await expect(
-      control(pair.parentKey),
-      "PW-51: the parent answer was not on screen",
-    ).toBeVisible({ timeout: 20_000 });
+    await expect(control(pair.parentKey), "PW-51: the parent answer was not on screen").toBeVisible(
+      { timeout: 20_000 },
+    );
 
     await control(pair.parentKey).selectOption(pair.parentValues[0]);
     await expect(control(pair.childKey), "PW-51: the dependent never appeared").toBeVisible({
