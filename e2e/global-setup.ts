@@ -773,29 +773,98 @@ export default async function globalSetup() {
   // separately, and the seller conviction in batches.
   const sellerIds = (e2eSellers ?? []).map((row) => row.user_id);
   let reapedListingCount = 0;
+  const reapedListings: { id: string; seller_id: string }[] = [];
   const { data: reapedByTitle, error: listingError } = await supabase
     .from("listings")
     .delete()
     .lt("created_at", cutoff)
     .like("title", "e2e-cat-listing-%")
-    .select("id");
+    .select("id, seller_id");
   if (listingError) {
     throw new Error(`[e2e:setup] reaping scratch listings failed: ${listingError.message}`);
   }
   reapedListingCount += (reapedByTitle ?? []).length;
+  reapedListings.push(...(reapedByTitle ?? []));
   for (let index = 0; index < sellerIds.length; index += 100) {
     const { data: reapedBySeller, error: sellerListingError } = await supabase
       .from("listings")
       .delete()
       .lt("created_at", cutoff)
       .in("seller_id", sellerIds.slice(index, index + 100))
-      .select("id");
+      .select("id, seller_id");
     if (sellerListingError) {
       throw new Error(`[e2e:setup] reaping scratch listings failed: ${sellerListingError.message}`);
     }
     reapedListingCount += (reapedBySeller ?? []).length;
+    reapedListings.push(...(reapedBySeller ?? []));
   }
   console.log(`[e2e:setup] reaped ${reapedListingCount} stale scratch listing(s)`);
+
+  // DEC-077 — PHOTO STORAGE REAPER (INC-278). Key law (src/server/media/storage.ts):
+  // default/<seller_id>/<listing_id>/<photo_id>/<variant>.<ext> in `listing-photos`.
+  // Every storage error throws; nothing outside an e2e seller's prefix is touched.
+  const PHOTO_BUCKET = "listing-photos";
+  const photoStorage = supabase.storage.from(PHOTO_BUCKET);
+  const listPhotoDir = async (prefix: string): Promise<string[]> => {
+    const { data, error } = await photoStorage.list(prefix, { limit: 1000 });
+    if (error)
+      throw new Error(`[e2e:setup] listing ${PHOTO_BUCKET}/${prefix} failed: ${error.message}`);
+    return (data ?? []).map((entry) => entry.name);
+  };
+  const listingObjects = async (prefix: string): Promise<string[]> => {
+    const paths: string[] = [];
+    for (const photoDir of await listPhotoDir(prefix)) {
+      for (const file of await listPhotoDir(`${prefix}/${photoDir}`)) {
+        paths.push(`${prefix}/${photoDir}/${file}`);
+      }
+    }
+    return paths;
+  };
+  const purgeListingPrefix = async (prefix: string): Promise<number> => {
+    const paths = await listingObjects(prefix);
+    for (let index = 0; index < paths.length; index += 100) {
+      const { error } = await photoStorage.remove(paths.slice(index, index + 100));
+      if (error)
+        throw new Error(`[e2e:setup] removing photos under ${prefix} failed: ${error.message}`);
+    }
+    const left = await listingObjects(prefix);
+    if (left.length > 0) {
+      throw new Error(`[e2e:setup] ${left.length} photo object(s) survived under ${prefix}`);
+    }
+    return paths.length;
+  };
+  const e2eSellerSet = new Set(sellerIds);
+  let photoObjectsRemoved = 0;
+  for (const row of reapedListings) {
+    if (!e2eSellerSet.has(row.seller_id)) continue;
+    photoObjectsRemoved += await purgeListingPrefix(`default/${row.seller_id}/${row.id}`);
+  }
+  // Backlog: at most 200 e2e sellers per run; folders whose listing is gone.
+  let backlogFolders = 0;
+  for (const sellerId of sellerIds.slice(0, 200)) {
+    const folders = await listPhotoDir(`default/${sellerId}`);
+    if (folders.length === 0) continue;
+    const { data: alive, error: aliveError } = await supabase
+      .from("listings")
+      .select("id")
+      .in(
+        "id",
+        folders.filter((name) => /^[0-9a-f-]{36}$/i.test(name)),
+      );
+    if (aliveError)
+      throw new Error(
+        `[e2e:setup] reading listings for the photo backlog failed: ${aliveError.message}`,
+      );
+    const aliveIds = new Set((alive ?? []).map((row) => row.id));
+    for (const folder of folders) {
+      if (aliveIds.has(folder)) continue;
+      await purgeListingPrefix(`default/${sellerId}/${folder}`);
+      backlogFolders += 1;
+    }
+  }
+  console.log(
+    `[e2e:setup] photo objects removed: ${photoObjectsRemoved} under ${reapedListings.length} reaped listing(s); backlog folders removed: ${backlogFolders}`,
+  );
 
   // DEC-031 — SCRATCH CATEGORIES. C2-UI's console creates real tree rows;
   // an unreaped graveyard would both hide new rows behind PostgREST's
