@@ -42,7 +42,6 @@ screen at a draft's own address. The URL is unaffected.
 3. **The server owns `draft_step`.** The wizard proposes; the door's answer is
    what a resume trusts. A resume opens at the first unfinished step of the
    walk, never past what this landing can honestly render.
-
 4. **A refusal is not a failure.** Refusals render beneath their named field and
    are not retried; only unreachability is.
 
