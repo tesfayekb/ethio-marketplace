@@ -20,6 +20,7 @@ import {
   seedScratchChain,
   seedSingleOptionMarket,
   waitForOpenMarket,
+  OPEN_MARKET_LS11_MS,
   waitForTreeSlug,
 } from "./helpers/locations";
 import { destroyCountry } from "./helpers/countries";
@@ -2023,8 +2024,8 @@ test.describe("L4b location picker", () => {
       // then wait on the ROUTES from the request context — never from a loaded
       // page, which would prime the browser's own 5-minute cache with the stale
       // answer the app then reuses — and only THEN open the page.
-      await waitForOpenMarket(page, first.code);
-      await waitForOpenMarket(page, second.code);
+      await waitForOpenMarket(page, first.code, OPEN_MARKET_LS11_MS);
+      await waitForOpenMarket(page, second.code, OPEN_MARKET_LS11_MS);
       await waitForTreeSlug(page, first.code, first.region.slug);
       await waitForTreeSlug(page, second.code, second.region.slug);
       // U6-C1-R3a — A FRESH BROWSER CONTEXT, NOT A FRESH PAGE. The HTTP cache of
