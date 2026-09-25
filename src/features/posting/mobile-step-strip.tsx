@@ -4,23 +4,28 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 
 import { fill } from "./refusal-text";
-import { STEPS } from "./types";
+import { SEQUENCE, STEPS, isStepFinished, positionOf } from "./types";
+
+/** D39 — the strip walks the seller's order; `data-step` keeps the door number. */
+const WALK = SEQUENCE.map((step) => STEPS[step - 1]);
 
 export function MobileStepStrip({
   step,
   draftStep,
+  photosCount,
   onGoTo,
 }: {
   step: number;
   draftStep: number;
+  photosCount: number;
   onGoTo: (step: number) => void;
 }) {
   const { t } = useI18n();
   const currentRef = useRef<HTMLLIElement | null>(null);
-  const [furthestVisited, setFurthestVisited] = useState(step);
+  const [furthestVisited, setFurthestVisited] = useState(positionOf(step));
 
   useEffect(() => {
-    setFurthestVisited((held) => Math.max(held, step));
+    setFurthestVisited((held) => Math.max(held, positionOf(step)));
     currentRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [step]);
 
@@ -30,13 +35,14 @@ export function MobileStepStrip({
       data-testid="post-step-strip"
       className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden"
     >
-      {STEPS.map((entry) => {
+      {WALK.map((entry) => {
+        const position = positionOf(entry.step);
         const current = entry.step === step;
-        const completed = entry.step <= draftStep;
-        const visited = entry.step <= furthestVisited;
+        const completed = isStepFinished(entry.step, { draftStep, photosCount });
+        const visited = position <= furthestVisited;
         const content = (
           <>
-            <span aria-hidden="true">{completed ? "✓" : entry.step}</span>
+            <span aria-hidden="true">{completed ? "✓" : position}</span>
             <span>{t(entry.nameKey)}</span>
           </>
         );
@@ -57,7 +63,7 @@ export function MobileStepStrip({
                 size="touch"
                 data-testid={`post-step-strip-go-${entry.step}`}
                 className="gap-1.5 rounded-full border border-border px-3 text-xs"
-                aria-label={fill(t("post.progress.stepNumber"), { step: entry.step })}
+                aria-label={fill(t("post.progress.stepNumber"), { step: position })}
                 onClick={() => onGoTo(entry.step)}
               >
                 {content}

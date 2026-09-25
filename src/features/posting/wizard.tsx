@@ -785,8 +785,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                     refusals={draft.refusals}
                     step={draft.step}
                     specFields={specFields}
-                    photosCount={draft.photos.length}
-                  onGoTo={draft.goTo}
+                    onGoTo={draft.goTo}
                   />
                 </div>
               </FormLayout>
