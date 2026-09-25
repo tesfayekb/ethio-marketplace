@@ -337,6 +337,10 @@ export type Flake = {
   /** First (failing) attempt's message, trimmed to one line for the ledger. */
   message: string;
   file: string;
+  /** DEC-078 — the first failed attempt's full 40-line message, as a failure carries it. */
+  body: string;
+  specTitle: string;
+  titlePath: string[];
 };
 
 export function collect(json: PwJson): {
@@ -369,6 +373,9 @@ export function collect(json: PwJson): {
             title,
             message: message.split("\n")[0] ?? "(no error message captured)",
             file: spec.file ?? suiteFile,
+            body: message,
+            specTitle,
+            titlePath: [...path, specTitle],
           });
           continue;
         }
@@ -639,6 +646,48 @@ export function attemptLine(meta: ReportMeta): string {
   return `- Attempt: ${meta.attempt && meta.attempt.trim() !== "" ? meta.attempt.trim() : "1"}`;
 }
 
+/** DEC-078 — at most this many flaky bodies per run; the rest are listed by title. */
+export const FLAKY_BODY_CAP = 10;
+
+/**
+ * DEC-078 — FLAKY BODIES. Every flaky test's FIRST failed attempt, in the same
+ * shape as a failure body (the 40-line message, then the matched error-context
+ * tail or the "context file not found" line), rendered right after the Flake
+ * ledger and BEFORE the green early return, so a run whose only anomaly was a
+ * retry still carries the evidence. Capped; the ledger line stays one line.
+ */
+export function flakyBodiesSection(
+  flaky: (Flake & { source: string })[],
+  contexts: Map<string, string>,
+): string[] {
+  if (flaky.length === 0) return [];
+  const candidates = [...contexts.keys()];
+  const out = ["## Flaky bodies (DEC-078)", ""];
+  flaky.forEach((f, i) => {
+    if (i >= FLAKY_BODY_CAP) {
+      out.push(`- ${f.title} · \`${f.project}\` · source \`${f.source}\` — body omitted: cap`);
+      return;
+    }
+    out.push(
+      `### ${f.title}`,
+      "",
+      `- Source: \`${f.source}\``,
+      `- Project: \`${f.project}\``,
+      "",
+      "```text",
+      f.body,
+      "```",
+      "",
+    );
+    const spec = { file: f.file, titlePath: f.titlePath, project: f.project };
+    const dir = matchContextDir(candidates, spec);
+    if (dir) out.push("Context:", "", "```text", contextTail(contexts.get(dir)!), "```", "");
+    else out.push(`Context: context file not found for \`${contextSlug(spec)}\``, "");
+  });
+  if (flaky.length > FLAKY_BODY_CAP) out.push("");
+  return out;
+}
+
 export function renderSources(
   sources: Source[],
   meta: ReportMeta,
@@ -717,6 +766,7 @@ export function renderSources(
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
     "",
     ...flakeSection,
+    ...flakyBodiesSection(flaky, contexts),
   ];
 
   // DEC-059 — THE POST-TEST SECTION. Rendered for every source that carried one,
