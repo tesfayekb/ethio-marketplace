@@ -91,6 +91,14 @@ export function StepPricing({
   const [open, setOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [highlight, setHighlight] = useState(0);
+  /**
+   * INC-280 — WHERE THE LIST OPENS. Downward by default; upward only when the
+   * room below (the viewport, or the sticky action bar's top when it is sticky)
+   * cannot hold the list and the room above is larger. Decided when the list
+   * opens and on resize while open — never by scrolling or moving focus.
+   */
+  const [placement, setPlacement] = useState<"up" | "down">("down");
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const guessRef = useRef<string | null>(null);
   /** The preselect is resolved ONCE per visit, never re-raced by a re-render. */
   const resolvedRef = useRef(false);
@@ -186,6 +194,31 @@ export function StepPricing({
     shortlist.length > 0 &&
     matches.length < currencies.currencies.length;
 
+  const rowCount = matches.length + (moreHidden ? 1 : 0);
+
+  useEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const input = inputRef.current;
+      if (input === null) return;
+      const rect = input.getBoundingClientRect();
+      const bar = document.querySelector<HTMLElement>('[data-testid="form-layout-actions"]');
+      const barTop =
+        bar !== null && window.getComputedStyle(bar).position === "sticky"
+          ? bar.getBoundingClientRect().top
+          : window.innerHeight;
+      const roomBelow = Math.min(barTop, window.innerHeight) - rect.bottom - 4;
+      const roomAbove = rect.top - 4;
+      const listHeight = Math.min(256, 44 * rowCount + 2);
+      const next =
+        roomBelow >= listHeight ? "down" : roomAbove > roomBelow ? "up" : "down";
+      setPlacement((prev) => (prev === next ? prev : next));
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  }, [open, rowCount]);
+
   const chosen = currencies.currencies.find((row) => row.code === values.priceCurrency) ?? null;
 
   const choose = (code: string) => {
@@ -270,6 +303,7 @@ export function StepPricing({
           >
             <div className="relative">
               <input
+                ref={inputRef}
                 id="post-price-currency-search"
                 data-testid="post-price-currency-search"
                 role="combobox"
@@ -333,8 +367,9 @@ export function StepPricing({
                   id="post-price-currency-list"
                   data-testid="post-price-currency-list"
                   role="listbox"
+                  data-placement={placement}
                   className={
-                    `absolute ${Z_POPOVER} mt-1 max-h-64 w-full overflow-y-auto rounded-md border ` +
+                    `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full mb-1" : "top-full mt-1"} max-h-64 w-full overflow-y-auto rounded-md border ` +
                     "border-border bg-background shadow-md"
                   }
                 >

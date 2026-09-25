@@ -2223,8 +2223,6 @@ export const en = {
   "post.specs.lockedChange": "Change",
   "post.specs.helpMore": "More about this detail",
   "post.specs.helpMoreMark": "(i)",
-  "post.specs.moreDetails": "More details ({count})",
-  "post.specs.moreLess": "Hide extra details ({count})",
   "post.specs.factHint": "This model: {value}",
   "post.category.allRoots": "All categories",
   "post.category.trailLabel": "Where you are",

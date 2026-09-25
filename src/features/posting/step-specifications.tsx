@@ -177,31 +177,6 @@ function firstSentence(text: string): { head: string; rest: string } {
   return { head: match[0].trim(), rest: text.slice(match[0].length).trim() };
 }
 
-/**
- * D36 — WHERE THE EXPANDER'S OPEN STATE LIVES. On the DEVICE, per category, for
- * this browsing session — never in the draft: the draft carries the door's own
- * fields and nothing else (autosave would otherwise send the door a field it
- * does not judge). A browser that refuses storage simply starts collapsed.
- */
-const MORE_KEY = "post.specs.more";
-
-function readMoreOpen(categoryId: string): boolean {
-  try {
-    return window.sessionStorage.getItem(`${MORE_KEY}:${categoryId}`) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeMoreOpen(categoryId: string, open: boolean): void {
-  try {
-    if (open) window.sessionStorage.setItem(`${MORE_KEY}:${categoryId}`, "1");
-    else window.sessionStorage.removeItem(`${MORE_KEY}:${categoryId}`);
-  } catch {
-    // A device that refuses storage forgets the expander; nothing else changes.
-  }
-}
-
 export function StepSpecifications({
   categoryId,
   values,
@@ -235,8 +210,6 @@ export function StepSpecifications({
   const [prefills, setPrefills] = useState<Record<string, unknown>>({});
   /** What this screen alone saw wrong — the door's own refusal always wins. */
   const [local, setLocal] = useState<Refusal[]>([]);
-  /** D36 — is the optional block open? Remembered per category on this device. */
-  const [moreOpen, setMoreOpen] = useState(false);
   /** D35 — the locked details whose input the seller has asked to see. */
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   /** D36 — the details whose full guidance the (i) tap has opened. */
@@ -1637,22 +1610,6 @@ export function StepSpecifications({
       for (const key of Object.keys(option.allowed ?? {})) spokenAbout.add(key);
     }
   }
-  /** A card-style row (the colour tray) is part of the form's shape, never hidden. */
-  const isCardRow = (def: AttrDef): boolean =>
-    def.attrType === "single_select" && isColourKey(def.attrKey);
-  /** D35 — a settled row reads as a strip; a strip is never behind the expander. */
-  const isLockedRow = (def: AttrDef): boolean =>
-    def.attrType === "single_select" &&
-    narrowing[def.attrKey] !== undefined &&
-    visibleOptionsOf(def).length === 1;
-  const deferrable = (def: AttrDef): boolean =>
-    !def.isRequired &&
-    def.visibleWhen === null &&
-    folds[def.attrKey] === undefined &&
-    !parents.has(def.attrKey) &&
-    !spokenAbout.has(def.attrKey) &&
-    !isCardRow(def) &&
-    !isLockedRow(def);
   /**
    * INC-271 — WHAT IS NOT KNOWN YET IS NEVER HIDDEN. Every test above except
    * `isRequired` and `visibleWhen` is answered by the OPTION ROWS: a fold, a
@@ -1671,10 +1628,6 @@ export function StepSpecifications({
     const state = (options[def.attrKey] ?? IDLE).state;
     return state === "ready" || state === "failed";
   });
-  let cut = asked.length;
-  if (optionsSettled) while (cut > 0 && deferrable(asked[cut - 1]!)) cut -= 1;
-  const primary = asked.slice(0, cut);
-  const extra = asked.slice(cut);
 
   return (
     <div className="space-y-5" data-testid="post-specs" data-options={optionsSettled ? "1" : "0"}>
@@ -1721,33 +1674,8 @@ export function StepSpecifications({
       )}
 
       {/* D24 — only the details this answer set asks for are on screen. */}
-      <div className="space-y-5">{primary.map(renderDef)}</div>
-
-      {extra.length > 0 && (
-        <div className="space-y-3">
-          <button
-            type="button"
-            className="min-h-11 w-full rounded-md border border-input px-3 py-2 text-start text-sm font-medium text-foreground"
-            data-testid="post-specs-more"
-            data-open={moreOpen ? "1" : "0"}
-            aria-expanded={moreOpen}
-            onClick={() => {
-              const next = !moreOpen;
-              setMoreOpen(next);
-              if (categoryId !== null) writeMoreOpen(categoryId, next);
-            }}
-          >
-            {fill(t(moreOpen ? "post.specs.moreLess" : "post.specs.moreDetails"), {
-              count: extra.length,
-            })}
-          </button>
-          {moreOpen && (
-            <div className="space-y-5" data-testid="post-specs-more-panel">
-              {extra.map(renderDef)}
-            </div>
-          )}
-        </div>
-      )}
+      {/* D41 — every asked row, open, in display order: nothing waits behind a tap. */}
+      <div className="space-y-5">{asked.map(renderDef)}</div>
     </div>
   );
 }
