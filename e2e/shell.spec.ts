@@ -425,11 +425,15 @@ test.describe("app shell", () => {
     await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached({
       timeout: 20000,
     });
-    await expect(
-      page
-        .getByTestId("feed-empty")
-        .or(page.getByTestId("feed-container").locator("ul > li").first()),
-    ).toBeVisible({ timeout: 20000 });
+    const container = page.getByTestId("feed-container");
+    await expect
+      .poll(
+        async () =>
+          (await page.getByTestId("feed-empty").isVisible()) ||
+          (await container.locator("ul > li").count()) > 0,
+        { timeout: 20000, message: "INC-282: neither the empty state nor a listing rendered" },
+      )
+      .toBe(true);
     expect(errors, "INC-282: the page raised an error").toEqual([]);
   });
   test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
