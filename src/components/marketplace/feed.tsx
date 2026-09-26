@@ -27,7 +27,8 @@ export function Feed() {
     <section
       data-testid="feed-container"
       data-ready={feedInputsReady ? "1" : "0"}
-      className="mx-auto w-full max-w-6xl">
+      className="mx-auto w-full max-w-6xl"
+    >
       <h1 className="text-xl font-semibold text-foreground">
         {t("feed.heading").replace("{location}", t("feed.scopeAll"))}
       </h1>

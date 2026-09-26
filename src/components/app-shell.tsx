@@ -258,7 +258,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       return;
     }
     appliedRef.current = true;
-      setAreaSettled(true);
+    setAreaSettled(true);
     if (savedArea !== null) {
       const path = pathToNode(treeNodes, savedArea.id);
       if (path.length > 0) {
