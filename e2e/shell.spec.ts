@@ -372,7 +372,14 @@ test.describe("app shell", () => {
       const main = page.locator("main#main");
       const container = page.getByTestId("feed-container");
       const emptyState = page.getByTestId("feed-empty");
+      // INC-282 (product) — measure only once the feed's inputs have settled.
+      await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached({
+        timeout: 20000,
+      });
       await expect(emptyState).toBeVisible({ timeout: 20000 });
+      // Pre-committed rule: once shown, the empty state is not swapped out.
+      await page.waitForTimeout(2000);
+      await expect(emptyState).toBeAttached();
       /** INC-282 — a null box names the state instead of throwing a TypeError. */
       const boxOf = async (locator: typeof main, name: string) => {
         await expect(locator).toBeVisible();

@@ -37,6 +37,11 @@ export interface UseFeedOptions {
    * (docs/features/location-scoping.md).
    */
   locationNodeId?: string | null;
+  /**
+   * INC-282 (product) — while false the hook holds isLoading = true and runs
+   * NO query, so the empty state can never paint before its inputs exist.
+   */
+  enabled?: boolean;
 }
 
 type ListingRow = {
@@ -80,6 +85,7 @@ export function useFeed({
   categoryId = null,
   locationScope = "all-active",
   locationNodeId = null,
+  enabled = true,
 }: UseFeedOptions = {}) {
   const [listings, setListings] = useState<FeedListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +95,10 @@ export function useFeed({
   const retry = useCallback(() => setReloadToken((n) => n + 1), []);
 
   useEffect(() => {
+    if (!enabled) {
+      setIsLoading(true);
+      return;
+    }
     let cancelled = false;
     // INC-017 discipline: the busy state engages on initiation, not on response.
     setIsLoading(true);
@@ -140,7 +150,7 @@ export function useFeed({
     return () => {
       cancelled = true;
     };
-  }, [categoryId, locationScope, locationNodeId, reloadToken]);
+  }, [categoryId, locationScope, locationNodeId, reloadToken, enabled]);
 
   return { listings, isLoading, error, retry };
 }

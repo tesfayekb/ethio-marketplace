@@ -11,11 +11,12 @@ import { useI18n } from "@/i18n";
 export function Feed() {
   const { t } = useI18n();
   // U0l: the category comes from the URL via the shell's derived value.
-  const { selectedCategoryId, locationPath } = useShell();
+  const { selectedCategoryId, locationPath, feedInputsReady } = useShell();
   // The two axes travel together: category (applied) x area (accepted, stubbed).
   const { listings, isLoading, error, retry } = useFeed({
     categoryId: selectedCategoryId,
     locationNodeId: locationPath[locationPath.length - 1]?.id ?? null,
+    enabled: feedInputsReady,
   });
 
   return (
@@ -23,7 +24,10 @@ export function Feed() {
     // container carries symmetric auto margins, so the empty-state card sits in
     // the middle of the available space at every width instead of hugging the
     // rail edge.
-    <section data-testid="feed-container" className="mx-auto w-full max-w-6xl">
+    <section
+      data-testid="feed-container"
+      data-ready={feedInputsReady ? "1" : "0"}
+      className="mx-auto w-full max-w-6xl">
       <h1 className="text-xl font-semibold text-foreground">
         {t("feed.heading").replace("{location}", t("feed.scopeAll"))}
       </h1>
