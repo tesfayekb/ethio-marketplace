@@ -100,10 +100,18 @@ export function AiBulkBar({
    */
   const filteredCount = useQuery({
     queryKey: [...ADMIN_TRANSLATIONS_KEY, "ai-filtered-count", scope, lang, search],
-    queryFn: () =>
-      scope === "entity"
-        ? listEntityTranslations({ lang, status: "untranslated", search, limit: 1, offset: 0 })
-        : listTranslations({ lang, status: "untranslated", search, limit: 1, offset: 0 }),
+    queryFn: async (): Promise<{ totalCount: number }> => ({
+      totalCount: (scope === "entity"
+        ? await listEntityTranslations({
+            lang,
+            status: "untranslated",
+            search,
+            limit: 1,
+            offset: 0,
+          })
+        : await listTranslations({ lang, status: "untranslated", search, limit: 1, offset: 0 })
+      ).totalCount,
+    }),
     enabled: filtered,
   });
 
