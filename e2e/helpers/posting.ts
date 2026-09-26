@@ -582,7 +582,13 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
   const dual = pick("_dual");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
-    { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
+    {
+      category_id: categoryId,
+      attribute_id: make.id,
+      is_required: true,
+      card_rank: 1,
+      display_order: 1,
+    },
     { category_id: categoryId, attribute_id: dual.id, is_required: false, display_order: 5 },
     { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
     { category_id: categoryId, attribute_id: year.id, is_required: false, display_order: 3 },
@@ -738,7 +744,13 @@ export async function seedDeepFoldSet(params: {
   const year = pick("_year");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
-    { category_id: params.leafId, attribute_id: brand.id, is_required: false, display_order: 1 },
+    {
+      category_id: params.leafId,
+      attribute_id: brand.id,
+      is_required: true,
+      card_rank: 1,
+      display_order: 1,
+    },
     { category_id: params.leafId, attribute_id: series.id, is_required: false, display_order: 2 },
     { category_id: params.leafId, attribute_id: model.id, is_required: false, display_order: 3 },
     // THE INHERITED FIELD: linked at the section, never at the leaf.
@@ -1264,7 +1276,13 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
   const mileage = pick("_mileage");
 
   const { error: linkError } = await supabase.from("category_attribute_links").insert([
-    { category_id: categoryId, attribute_id: make.id, is_required: false, display_order: 1 },
+    {
+      category_id: categoryId,
+      attribute_id: make.id,
+      is_required: true,
+      card_rank: 1,
+      display_order: 1,
+    },
     { category_id: categoryId, attribute_id: model.id, is_required: false, display_order: 2 },
     { category_id: categoryId, attribute_id: body.id, is_required: false, display_order: 3 },
     { category_id: categoryId, attribute_id: battery.id, is_required: false, display_order: 4 },
