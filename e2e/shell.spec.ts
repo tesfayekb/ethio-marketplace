@@ -419,7 +419,8 @@ test.describe("app shell", () => {
     baseURL,
   }) => {
     // Only the per-market tree fails; the markets list at /api/locations keeps working.
-    await page.route("**/api/locations/??", (route) => route.abort());
+    // a regex: Playwright's glob `?` is a literal question mark, so `??` never matched /api/locations/ET (turn 3b); the markets list at /api/locations stays unmatched.
+    await page.route(/\/api\/locations\/[A-Z]{2}$/, (route) => route.abort());
     // INC-282 — with no saved area the E2E runtime has no country (GE-1) and the gate settles before any tree read, so the test proved nothing; the id never resolves — the read is aborted first.
     await page
       .context()
