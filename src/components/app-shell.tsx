@@ -297,7 +297,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     setPathState([asLocationNode(anchor)]);
     setGuessInUse(false);
-  }, [initialCountry, treeNodes, treeLoadedCountry, savedArea, guessCountry, marketsLoading, geo]);
+  }, [
+    initialCountry,
+    treeNodes,
+    treeLoadedCountry,
+    savedArea,
+    guessCountry,
+    marketsLoading,
+    geo,
+    treeFailed,
+  ]);
 
   /**
    * A market picked in the picker lands on its anchor as soon as ITS OWN tree is
