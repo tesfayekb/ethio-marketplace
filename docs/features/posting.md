@@ -954,6 +954,14 @@ The year picker, the review line and the buyer preview all use it; the suffix is
 the key `post.specs.yearEcSuffix`. The stored value is the Gregorian integer.
 Test: PW-58.
 
+## The identity starts the form over (D46, 2026-09-26)
+
+- `AttrDef.cardRank` carries `get_posting_schema`'s `card_rank` (no migration — the read already served it).
+- The single_select detail with `cardRank === 1` is the leaf's identity. It joins both `parents` and `roots`, so changing it is a D25b root change: every other detail restarts (the seller's own answers included), the new option's facts and the link defaults (INC-245) fill what they fill, and the ten-second Undo offer names the new option.
+- Undo after an identity reset restores the answers as they stood before it — the previous identity and the details it had shown — from the last pass in which no parent moved. Other Undo offers are unchanged (a make change still keeps the new make).
+- A card-2/3 change keeps D25's narrower scope. PW-59 proves both sides on scratch rows.
+- D45 part 2: `attributeDisplayValue`'s `yearSuffix` is required, and the buyer sheet passes `post.specs.yearEcSuffix`; PW-58 reads the label in the sheet too.
+
 ## Every row open (D41, 2026-09-24)
 
 The specifications step shows every row the category asks, open, in `display_order`, with nothing behind a tap: sellers skipped the D36 "More details" expander, so the operator removed it (D41). The (i) help split (first sentence inline, the rest behind the tap) and D35's locked-fact strips are unchanged. History: D36 first hid a trailing run of optional rows, INC-269 restored display order and narrowed the cut, and INC-271 made the form publish `data-options="1"` once its option lists settle, a marker readers still wait on.

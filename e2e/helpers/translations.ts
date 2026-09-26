@@ -121,6 +121,9 @@ export function scratchAxes(tag: string): string {
   return `${processId()}-${shard}-${project}-${worker}-${tag}`;
 }
 
+/** INC-289 — the ui_translations scratch namespace every scratchKey lives under. */
+export const SCRATCH_PREFIX = "e2e.scratch.";
+
 export function scratchKey(tag: string): string {
   // INC-096f — the namespace MUST carry every parallelism axis: run id
   // (processId), shard/job (E2E_SHARD), worker, project, and finally the TEST
@@ -129,7 +132,7 @@ export function scratchKey(tag: string): string {
   // fast lane added a third concurrent job and keys collided across jobs because
   // PROCESS_ID is run-scoped. Last, the per-test tag was missing: every TR test
   // in one worker derived ONE key, so TR-8's writes landed on TR-11's row.
-  return `e2e.scratch.${scratchAxes(tag)}`;
+  return `${SCRATCH_PREFIX}${scratchAxes(tag)}`;
 }
 
 /**

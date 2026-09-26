@@ -2456,6 +2456,156 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-review-preview").locator(`[data-key="${def!.attrKey}"]`),
       "PW-58: the Amharic review did not match the picker's label",
     ).toHaveText("2027 · 2019/20 ዓ.ም", { timeout: 20_000 });
+    // D45 part 2 — the buyer sheet reads the same label (the seventh argument).
+    await page.getByTestId("post-preview-open").click();
+    const sheet = page.getByTestId("post-preview-sheet");
+    await expect(sheet, "PW-58: the buyer preview never opened").toBeVisible();
+    await expect(
+      sheet.locator(`[data-testid="listing-detail-spec"][data-key="${def!.attrKey}"]`),
+      "PW-58: the buyer sheet did not read the Ethiopian years",
+    ).toHaveText("2027 · 2019/20 ዓ.ም", { timeout: 20_000 });
+    await page.getByTestId("post-preview-close").click();
+  });
+
+  /**
+   * D46 (PW-59) — THE IDENTITY STARTS THE FORM OVER. A card-1 select is a root
+   * (D25b): switching it restarts every other detail, the seller's own included,
+   * and Undo takes it all back; a card-2 change keeps D25's narrower scope.
+   * Scratch category and definitions only (G27), reaped by the afterEach (J3).
+   */
+  test("PW-59 a card-1 identity change restarts the form, Undo restores it, a card-2 change does not", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const supabase = adminClient();
+    const stem = `e2e_idn_${Date.now()}_${rand()}`;
+    const option = (value: string) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+    });
+    const a = `${stem}_a`;
+    const b = `${stem}_b`;
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        {
+          attr_key: `${stem}_idn`,
+          name_en: `${stem} idn`,
+          attr_type: "single_select",
+          options: [option(a), option(b)],
+        },
+        { attr_key: `${stem}_n`, name_en: `${stem} n`, attr_type: "number", decimals: 0 },
+        { attr_key: `${stem}_c`, name_en: `${stem} c`, attr_type: "number", decimals: 0 },
+        {
+          attr_key: `${stem}_k`,
+          name_en: `${stem} k`,
+          attr_type: "single_select",
+          options: [option(`${stem}_k1`), option(`${stem}_k2`)],
+        },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:PW-59] seeding failed: ${error?.message}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const id = (suffix: string) => {
+      const found = data.find((row) => row.attr_key === `${stem}_${suffix}`);
+      if (!found) throw new Error(`[e2e:PW-59] ${suffix} missing`);
+      return found;
+    };
+    const idn = id("idn");
+    const n = id("n");
+    const c = id("c");
+    const k = id("k");
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      {
+        category_id: category.id,
+        attribute_id: idn.id,
+        is_required: true,
+        card_rank: 1,
+        display_order: 100,
+      },
+      { category_id: category.id, attribute_id: n.id, is_required: false, display_order: 101 },
+      {
+        category_id: category.id,
+        attribute_id: c.id,
+        is_required: false,
+        display_order: 102,
+        visible_when: { key: idn.attr_key, in: [a] },
+      },
+      {
+        category_id: category.id,
+        attribute_id: k.id,
+        is_required: false,
+        card_rank: 2,
+        display_order: 103,
+      },
+    ]);
+    if (linkError) throw new Error(`[e2e:PW-59] linking failed: ${linkError.message}`);
+
+    const listingId = await reachStep3(page, user.id, category);
+    const control = (attrKey: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+    const stored = () => attributesOf(listingId);
+
+    await control(idn.attr_key).selectOption(a);
+    await control(n.attr_key).fill("5");
+    await control(n.attr_key).blur();
+    await control(c.attr_key).fill("7");
+    await control(c.attr_key).blur();
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[n.attr_key])}|${String(row[c.attr_key])}`;
+        },
+        { message: "PW-59: n and c never landed", timeout: 20_000 },
+      )
+      .toBe("5|7");
+
+    // 1 — A DIFFERENT IDENTITY: every other detail starts over.
+    await control(idn.attr_key).selectOption(b);
+    await expect(control(n.attr_key), "PW-59: n survived the identity change").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${n.attr_key in row}|${c.attr_key in row}`;
+        },
+        { message: "PW-59: the draft kept n or c after the identity change", timeout: 20_000 },
+      )
+      .toBe("false|false");
+    const offer = page.getByTestId("post-specs-reset");
+    await expect(offer, "PW-59: the reset offer did not name B").toContainText(`${b} label`, {
+      timeout: 20_000,
+    });
+
+    // 2 — UNDO TAKES IT ALL BACK.
+    await page.getByTestId("post-specs-reset-undo").click();
+    await expect(control(idn.attr_key), "PW-59: Undo did not restore A").toHaveValue(a, {
+      timeout: 20_000,
+    });
+    await expect(control(n.attr_key)).toHaveValue("5", { timeout: 20_000 });
+    await expect(control(c.attr_key)).toHaveValue("7", { timeout: 20_000 });
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[idn.attr_key])}|${String(row[n.attr_key])}|${String(row[c.attr_key])}`;
+        },
+        { message: "PW-59: Undo did not reach the draft", timeout: 20_000 },
+      )
+      .toBe(`${a}|5|7`);
+
+    // 3 — THE D25 BOUNDARY: a card-2 change is not a root.
+    await control(k.attr_key).selectOption(`${stem}_k2`);
+    await expect
+      .poll(async () => (await stored())[k.attr_key], { timeout: 20_000 })
+      .toBe(`${stem}_k2`);
+    await expect(control(n.attr_key), "PW-59: a card-2 change reset n").toHaveValue("5");
+    expect((await stored())[n.attr_key], "PW-59: a card-2 change dropped n").toBe(5);
   });
 
   /**
