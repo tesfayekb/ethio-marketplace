@@ -617,18 +617,17 @@ export function StepSpecifications({
   }, [definitions, allowedListOf, folds, identityKey]);
 
   /**
-   * D25b — THE ROOT OF THE CASCADE: a picker other pickers hang under which hangs
-   * under nothing itself (the MAKE). Changing it does not adjust a car — it names
-   * a DIFFERENT car, so every detail on the form starts over, the seller's own
-   * answers included. A model change stays D25's narrower reset.
+   * D47 — the root is the leaf's identity (card 1) and nothing else. Changing it
+   * names a DIFFERENT thing, so every detail on the form starts over, the
+   * seller's own answers included (INC-291: the old fold-owner rule wiped
+   * clothing, shoe and hire forms on a size-system or make change). A fold owner
+   * that is not card 1 stays in `parents` and gets D25's narrower reset.
    */
   const roots = useMemo(() => {
     const out = new Set<string>();
-    for (const owner of Object.values(folds)) if (!(owner in folds)) out.add(owner);
-    // D46 — the leaf's identity (card 1) is a root: a different identity names a different thing.
     if (identityKey !== null) out.add(identityKey);
     return out;
-  }, [folds, identityKey]);
+  }, [identityKey]);
 
   /** The parent answers as this screen last saw them, to notice a change at all. */
   const parentsSeen = useRef<Record<string, string> | null>(null);
