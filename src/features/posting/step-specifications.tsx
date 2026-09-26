@@ -588,6 +588,14 @@ export function StepSpecifications({
    * (the make). Their own answers are never reset by this rule — the narrowing
    * below still clears a child that no longer fits.
    */
+  /** D46 — the leaf's identity (card 1) is a root: a different identity names a different thing. */
+  const identityKey = useMemo(
+    () =>
+      definitions.find((def) => def.attrType === "single_select" && def.cardRank === 1)?.attrKey ??
+      null,
+    [definitions],
+  );
+
   const parents = useMemo(() => {
     const out = new Set<string>();
     for (const def of definitions) {
@@ -603,8 +611,10 @@ export function StepSpecifications({
         out.add(def.attrKey);
     }
     for (const owner of Object.values(folds)) out.add(owner);
+    // D46 — the leaf's identity (card 1) is a root: a different identity names a different thing.
+    if (identityKey !== null) out.add(identityKey);
     return out;
-  }, [definitions, allowedListOf, folds]);
+  }, [definitions, allowedListOf, folds, identityKey]);
 
   /**
    * D25b — THE ROOT OF THE CASCADE: a picker other pickers hang under which hangs
@@ -615,8 +625,10 @@ export function StepSpecifications({
   const roots = useMemo(() => {
     const out = new Set<string>();
     for (const owner of Object.values(folds)) if (!(owner in folds)) out.add(owner);
+    // D46 — the leaf's identity (card 1) is a root: a different identity names a different thing.
+    if (identityKey !== null) out.add(identityKey);
     return out;
-  }, [folds]);
+  }, [folds, identityKey]);
 
   /** The parent answers as this screen last saw them, to notice a change at all. */
   const parentsSeen = useRef<Record<string, string> | null>(null);
@@ -627,6 +639,13 @@ export function StepSpecifications({
     model: string;
   } | null>(null);
   const skipReset = useRef(false);
+  /**
+   * D46 — the answers as they stood before a card-1 reset (the identity and every
+   * detail it hid included); Undo puts them back. `settledAnswers` is the last
+   * pass in which no parent moved.
+   */
+  const identityBefore = useRef<Record<string, unknown> | undefined>(undefined);
+  const settledAnswers = useRef<Record<string, unknown>>({});
   /** INC-245 — a reset re-opens the link defaults for the fields it emptied. */
   const defaultsAgain = useRef(false);
 
@@ -682,6 +701,18 @@ export function StepSpecifications({
         ? null
         : (Object.keys(now).find((key) => (before[key] ?? "") !== now[key]) ?? null);
     parentsSeen.current = now;
+    // D46 — the identity's previous answer, so Undo can name the old thing again.
+    if (movedKey === null) {
+      settledAnswers.current = { ...view };
+    } else if (now[movedKey] !== "" && !skipReset.current) {
+      identityBefore.current =
+        movedKey === identityKey && before !== null && before[movedKey] !== ""
+          ? {
+              ...settledAnswers.current,
+              [movedKey]: settledAnswers.current[movedKey] ?? before[movedKey],
+            }
+          : undefined;
+    }
     /**
      * A reset follows a parent the seller MOVED TO SOMETHING. A parent emptied by
      * the narrowing below (its own parent changed, or an Undo put back an answer
@@ -1588,7 +1619,10 @@ export function StepSpecifications({
                 if (same(facts.prefill[key], written)) kept[key] = written;
               }
               setPrefills(kept);
-              onChange(offer.values, true);
+              // D46 — undoing an identity reset restores the identity itself too.
+              const restored = identityBefore.current ?? offer.values;
+              identityBefore.current = undefined;
+              onChange(restored, true);
               setUndoOffer(null);
             }}
           >

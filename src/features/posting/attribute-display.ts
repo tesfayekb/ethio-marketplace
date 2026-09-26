@@ -9,7 +9,7 @@ export function attributeDisplayValue(
   language: string,
   yes: string,
   no: string,
-  yearSuffix = "",
+  yearSuffix: string,
 ): string {
   if (definition.attrType === "boolean") return value === true ? yes : no;
   if (definition.format === "year" && typeof value === "number") {

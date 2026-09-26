@@ -20,6 +20,7 @@ import {
   slug,
   scratchAxes,
   scratchKey,
+  SCRATCH_PREFIX,
   bulkFence,
   approveFence,
   ensureFenceLanguage,
@@ -766,7 +767,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         .from("ui_translations")
         .select("key", { count: "exact", head: true })
         .eq("lang_code", fence)
-        .not("key", "like", "e2e-%");
+        .not("key", "like", `${SCRATCH_PREFIX}%`);
       if (catalogError)
         throw new Error(`[e2e:u4i] TR-29 catalog count failed: ${catalogError.message}`);
       const dataLines = exported
@@ -774,7 +775,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         .filter((line) => line.trim() !== "")
         .slice(1);
       const ownLines = dataLines.filter((line) => line.startsWith(key));
-      const stableLines = dataLines.filter((line) => !line.startsWith("e2e-"));
+      const stableLines = dataLines.filter((line) => !line.startsWith(SCRATCH_PREFIX));
       const expectedRows = (stableCount ?? 0) + 1;
       const exportedRows = stableLines.length + ownLines.length;
       expect(

@@ -332,6 +332,11 @@ export interface AttrDef {
    * is a mirror of the door, never the authority (F3).
    */
   visibleWhen: { key: string; in: string[] } | null;
+  /**
+   * D46 — the link's card rank as `get_posting_schema` serves it (`card_rank`);
+   * rank 1 is the leaf's identity. `null` = not a card.
+   */
+  cardRank: number | null;
 }
 
 /**
@@ -398,6 +403,7 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
       : null,
     defaultValue: row["default_value"] ?? null,
     visibleWhen: shapeCondition(row["visible_when"]),
+    cardRank: int(row, "card_rank"),
   };
 }
 
