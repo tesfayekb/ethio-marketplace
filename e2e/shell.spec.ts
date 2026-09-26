@@ -416,9 +416,14 @@ test.describe("app shell", () => {
 
   test("the feed still loads when the market tree cannot be fetched (INC-282)", async ({
     page,
+    baseURL,
   }) => {
     // Only the per-market tree fails; the markets list at /api/locations keeps working.
     await page.route("**/api/locations/??", (route) => route.abort());
+    // INC-282 — with no saved area the E2E runtime has no country (GE-1) and the gate settles before any tree read, so the test proved nothing; the id never resolves — the read is aborted first.
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${crypto.randomUUID()}`, url: baseURL! }]);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await gotoReady(page, "/");

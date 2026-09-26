@@ -255,11 +255,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       return;
     }
     // INC-282 (F4) — a failed tree settles the gate: the feed runs unscoped.
-    if (treeFailed) {
+/*    if (treeFailed) {
       appliedRef.current = true;
       setAreaSettled(true);
       return;
-    }
+    }*/
     if (treeLoadedCountry !== initialCountry) return;
     // Loaded but empty — nothing to apply, so the gate settles too.
     if (treeNodes.length === 0) {
