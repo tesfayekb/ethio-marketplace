@@ -414,6 +414,23 @@ test.describe("app shell", () => {
     }
   });
 
+
+  test("the feed still loads when the market tree cannot be fetched (INC-282)", async ({
+    page,
+  }) => {
+    // Only the per-market tree fails; the markets list at /api/locations keeps working.
+    await page.route("**/api/locations/??", (route) => route.abort());
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await gotoReady(page, "/");
+    await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached({
+      timeout: 20000,
+    });
+    await expect(
+      page.getByTestId("feed-empty").or(page.getByTestId("listing-card").first()),
+    ).toBeVisible({ timeout: 20000 });
+    expect(errors, "INC-282: the page raised an error").toEqual([]);
+  });
   test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
     // Hold the listings read open so the busy state is observable.
     await page.route("**/rest/v1/listings*", async (route) => {

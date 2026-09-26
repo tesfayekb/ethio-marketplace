@@ -2609,6 +2609,131 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * D47 (PW-60, INC-291) — ONLY THE IDENTITY RESTARTS THE FORM. A fold owner that
+   * is not card 1 (a size system) gets D25's narrow reset: its fold child empties,
+   * the identity and the seller's own number stand. A card-1 change still restarts
+   * everything (PW-59). Scratch category and definitions only (G27), reaped by the
+   * afterEach (J3).
+   */
+  test("PW-60 a non-identity fold owner change clears only its fold child; the identity still restarts", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const supabase = adminClient();
+    const stem = `e2e_sys_${Date.now()}_${rand()}`;
+    const option = (value: string, parent?: string) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      ...(parent === undefined ? {} : { parent }),
+    });
+    const a = `${stem}_a`;
+    const b = `${stem}_b`;
+    const eu = `${stem}_eu`;
+    const us = `${stem}_us`;
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        {
+          attr_key: `${stem}_idn`,
+          name_en: `${stem} idn`,
+          attr_type: "single_select",
+          options: [option(a), option(b)],
+        },
+        {
+          attr_key: `${stem}_sys`,
+          name_en: `${stem} sys`,
+          attr_type: "single_select",
+          options: [option(eu), option(us)],
+        },
+        {
+          attr_key: `${stem}_sz`,
+          name_en: `${stem} sz`,
+          attr_type: "single_select",
+          options: [
+            option(`${stem}_eu40`, eu),
+            option(`${stem}_eu42`, eu),
+            option(`${stem}_us8`, us),
+            option(`${stem}_us9`, us),
+          ],
+        },
+        { attr_key: `${stem}_n`, name_en: `${stem} n`, attr_type: "number", decimals: 0 },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:PW-60] seeding failed: ${error?.message}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const id = (suffix: string) => {
+      const found = data.find((row) => row.attr_key === `${stem}_${suffix}`);
+      if (!found) throw new Error(`[e2e:PW-60] ${suffix} missing`);
+      return found;
+    };
+    const idn = id("idn");
+    const sys = id("sys");
+    const sz = id("sz");
+    const n = id("n");
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      {
+        category_id: category.id,
+        attribute_id: idn.id,
+        is_required: true,
+        card_rank: 1,
+        display_order: 100,
+      },
+      { category_id: category.id, attribute_id: sys.id, is_required: false, display_order: 101 },
+      { category_id: category.id, attribute_id: sz.id, is_required: false, display_order: 102 },
+      { category_id: category.id, attribute_id: n.id, is_required: false, display_order: 103 },
+    ]);
+    if (linkError) throw new Error(`[e2e:PW-60] linking failed: ${linkError.message}`);
+
+    const listingId = await reachStep3(page, user.id, category);
+    const control = (attrKey: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+    const stored = () => attributesOf(listingId);
+
+    await control(idn.attr_key).selectOption(a);
+    await control(sys.attr_key).selectOption(eu);
+    await control(sz.attr_key).selectOption(`${stem}_eu40`);
+    await control(n.attr_key).fill("5");
+    await control(n.attr_key).blur();
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return [idn, sys, sz, n].map((d) => String(row[d.attr_key])).join("|");
+        },
+        { message: "PW-60: the first answers never landed", timeout: 20_000 },
+      )
+      .toBe(`${a}|${eu}|${stem}_eu40|5`);
+
+    // 1 — A FOLD OWNER THAT IS NOT THE IDENTITY: only its fold child empties.
+    await control(sys.attr_key).selectOption(us);
+    await expect(control(sz.attr_key), "PW-60: sz survived the system change").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect(control(n.attr_key), "PW-60: n was wiped by a system change").toHaveValue("5");
+    await expect(control(idn.attr_key), "PW-60: idn was wiped by a system change").toHaveValue(a);
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${sz.attr_key in row}|${String(row[n.attr_key])}|${String(row[idn.attr_key])}|${String(row[sys.attr_key])}`;
+        },
+        { message: "PW-60: the draft after the system change is wrong", timeout: 20_000 },
+      )
+      .toBe(`false|5|${a}|${us}`);
+
+    // 2 — THE IDENTITY STILL RESTARTS EVERYTHING (as PW-59 proves).
+    await control(idn.attr_key).selectOption(b);
+    await expect(control(n.attr_key), "PW-60: n survived the identity change").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("post-specs-reset"), "PW-60: no reset offer").toBeVisible({
+      timeout: 20_000,
+    });
+  });
+
+  /**
    * D25 (PW-32) — A MODEL CHANGE RESETS EVERYTHING THE MODEL SPEAKS ABOUT.
    *
    * R3b-3a let a seller's own edit survive a model change; the walk showed why
