@@ -539,3 +539,7 @@ in this landing — U7 honours it when the public reads are written.
 with `tooManyPhotos:<cap>`; the upload route's own cap is a MIRROR, not the
 authority. Plans are not per-seller yet — `seller_plan` returns `free` for every
 seller and is the single seam to change when they are.
+
+## INC-282 (product) — the feed queries once its inputs exist
+
+The shell publishes `feedInputsReady` through `useShell()`: true once the category list has settled (only when the URL names a `/c/` slug), the open-market read has answered, and the area derivation has locked. `useFeed({ enabled })` holds the spinner and runs no query until then, and `feed-container` carries `data-ready="1"`/`"0"` from the same flag, so the empty state never renders and then detaches. Errors stay visible (F4); a later user axis change may still show the spinner.

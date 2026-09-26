@@ -1005,3 +1005,7 @@ sweep continues. The summary therefore ALWAYS renders at the end of a run — a
 transient failure can never leave it null (F4). A permission or step-up refusal
 raised before the sweep keeps its own error path in `ai-bulk-error`, and TR-12
 waits on either the summary or that error, failing with its text.
+
+## INC-287 — the Data sweep honours the search
+
+The Data tab passes its search to the bulk bar, so the entity sweep's count and its collection both read `admin_list_entity_translations` with the same `p_search` (F4: the number on the button is the work it queues). With a search set the button reads `bulkActionFiltered` and carries `data-scope="filtered"`. TR-24 now sweeps only its own scratch stem and proves a third scratch location outside the filter stays untouched; the TR-24 universe sweep no longer runs in CI.

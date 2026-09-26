@@ -86,8 +86,12 @@ export function AiBulkBar({
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
-  /** The filter only scopes the UI-key sweep; the entity scope is untouched. */
-  const search = scope === "entity" ? "" : filter.trim();
+  /**
+   * INC-287 — the filter scopes BOTH sweeps. The Data tab's search is the
+   * entity run's scope exactly as the roster's search is the UI run's scope, so
+   * a filtered Data view can never start a whole-catalog content sweep.
+   */
+  const search = filter.trim();
   const filtered = search !== "";
 
   /**
@@ -95,8 +99,19 @@ export function AiBulkBar({
    * button's number and the work it queues can never disagree (F4).
    */
   const filteredCount = useQuery({
-    queryKey: [...ADMIN_TRANSLATIONS_KEY, "ai-filtered-count", lang, search],
-    queryFn: () => listTranslations({ lang, status: "untranslated", search, limit: 1, offset: 0 }),
+    queryKey: [...ADMIN_TRANSLATIONS_KEY, "ai-filtered-count", scope, lang, search],
+    queryFn: async (): Promise<{ totalCount: number }> => ({
+      totalCount: (scope === "entity"
+        ? await listEntityTranslations({
+            lang,
+            status: "untranslated",
+            search,
+            limit: 1,
+            offset: 0,
+          })
+        : await listTranslations({ lang, status: "untranslated", search, limit: 1, offset: 0 })
+      ).totalCount,
+    }),
     enabled: filtered,
   });
 
@@ -130,6 +145,7 @@ export function AiBulkBar({
       const page = await listEntityTranslations({
         lang,
         status: "untranslated",
+        search,
         limit: AI_CHUNK_SIZE,
         offset,
       });

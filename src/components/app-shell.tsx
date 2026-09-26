@@ -81,6 +81,8 @@ type ShellValue = {
    */
   selectedCategorySlug: string | null;
   selectedCategoryId: string | null;
+  /** INC-282 (product) — true once the feed's category and area inputs settled. */
+  feedInputsReady: boolean;
   /** The cascading area selection. SEAM: set here, not yet applied to the feed. */
   locationPath: LocationNode[];
   /** Writes the selection AND the saved-area cookie (L4b, law 12). */
@@ -231,6 +233,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const treeCountry = locationCountry ?? initialCountry;
   const { nodes: treeNodes, loadedCountry: treeLoadedCountry } = useCountryTree(treeCountry);
   const appliedRef = useRef(false);
+  /**
+   * INC-282 (product) — the ref above cannot re-render; this flag publishes the
+   * same moment (the derivation LOCKED, markets answered) to the feed gate.
+   */
+  const [areaSettled, setAreaSettled] = useState(false);
   const pendingSaveRef = useRef(false);
 
   useEffect(() => {
@@ -240,15 +247,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (marketsLoading) return;
     if (initialCountry === null) {
       appliedRef.current = true;
+      setAreaSettled(true);
       return;
     }
     if (treeNodes.length === 0 || treeLoadedCountry !== initialCountry) return;
     const anchor = anchorOf(treeNodes);
     if (anchor === null) {
       appliedRef.current = true;
+      setAreaSettled(true);
       return;
     }
     appliedRef.current = true;
+    setAreaSettled(true);
     if (savedArea !== null) {
       const path = pathToNode(treeNodes, savedArea.id);
       if (path.length > 0) {
@@ -374,10 +384,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const selectedCategorySlug = pathname.startsWith("/c/")
     ? decodeURIComponent(pathname.slice(3).split("/")[0] ?? "")
     : null;
-  const { categories } = useCategories();
+  const { categories, isLoading: categoriesLoading } = useCategories();
   const selectedCategoryId = selectedCategorySlug
     ? (categories.find((c) => c.slug === selectedCategorySlug)?.id ?? null)
     : null;
+  /**
+   * INC-282 (product) — THE FEED QUERIES ONCE ITS INPUTS EXIST: the category
+   * id (only when the URL names a /c/ slug) and the area derivation.
+   */
+  const feedInputsReady =
+    (selectedCategorySlug === null || !categoriesLoading) && !marketsLoading && areaSettled;
   const activePanel: PanelId = routePanel ?? panelChoice;
 
   /** Choosing a panel from a route-owned page returns to the feed shell. */
@@ -584,6 +600,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       setActivePanel,
       selectedCategorySlug,
       selectedCategoryId,
+      feedInputsReady,
       locationPath,
       setLocationPath: persistLocationPath,
       locationCountry: treeCountry,
@@ -603,6 +620,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     setActivePanel,
     selectedCategorySlug,
     selectedCategoryId,
+    feedInputsReady,
     locationPath,
     persistLocationPath,
     treeCountry,
