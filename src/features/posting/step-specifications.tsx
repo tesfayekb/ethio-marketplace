@@ -922,6 +922,7 @@ export function StepSpecifications({
     prefills,
     parents,
     roots,
+    identityKey,
     dependents,
     allowedListOf,
     entities.lang,
