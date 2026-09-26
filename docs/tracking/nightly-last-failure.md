@@ -1,10 +1,10 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36103423063
-- Commit: `5b8e839406dbb2b705737589f315bd54ce59131f`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36223976772
+- Commit: `f16c4add460b37637bb8c082b21bb7a8b9717ce4`
 - Attempt: 1
-- Written (UTC): 2026-09-25T07:54:50.910Z
-- Passed: 801 · Skipped: 48 · Failed: 1
+- Written (UTC): 2026-09-26T07:56:10.427Z
+- Passed: 803 · Skipped: 48 · Failed: 1
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 1
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): nightly, full
@@ -15,7 +15,7 @@
 nightly: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 4 user(s) owned by process 36103423063-nightly
+[e2e:teardown] deleted 4 user(s) owned by process 36223976772-nightly
 ```
 
 ## Post-test errors: full
@@ -23,7 +23,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 full: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 403 user(s) owned by process 36103423063-nightly
+[e2e:teardown] deleted 405 user(s) owned by process 36223976772-nightly
 ```
 
 ## admin-categories-images.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state
@@ -65,6 +65,7 @@ Context:
 ## Server errors: full
 
 ```text
+[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import too many previews
 [WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
@@ -83,8 +84,7 @@ Context:
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft null value in column "listing_id" of relation "listing_revisions" violates not-null constraint
-[WebServer] [ssr-error] /api/listings/draft listing not found ×4
+[WebServer] [ssr-error] /api/listings/draft listing not found ×19
 ```
 
 ## Client errors: full
