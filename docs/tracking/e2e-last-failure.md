@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36151799951 passed
+last E2E run 36230326302 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36151799951
-- Commit: `a1c19d1348660afd7e617e9d28ed106400e64b70`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36230326302
+- Commit: `4a8ee66c635a9d06a80bcb3182544378e9876420`
 - Attempt: 1
-- Written (UTC): 2026-09-25T15:26:13.685Z
+- Written (UTC): 2026-09-26T08:57:57.597Z
 - Post-test warnings: 0
 - Flaky (passed on retry, DEC-030, non-gating): 2
 
@@ -14,48 +14,42 @@ last E2E run 36151799951 passed
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-countries.spec.ts › L2b countries console › CO-2 roster: every market renders, the two open ones carry the open tone, search and the status filter narrow — Error: expect(received).toBe(expected) // Object.is equality
+- FLAKY (passed on retry) · `desktop-1280` · source `smoke` · shell.spec.ts › app shell › the feed body is centred with equal left and right gutters — Error: INC-282: feed-empty had no box (detached or hidden)
 - FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · admin-translations-data.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one — Error: expect(locator).toBeVisible() failed
 
 ## Flaky bodies (DEC-078)
 
-### admin-countries.spec.ts › L2b countries console › CO-2 roster: every market renders, the two open ones carry the open tone, search and the status filter narrow
+### shell.spec.ts › app shell › the feed body is centred with equal left and right gutters
 
-- Source: `shard 1`
-- Project: `mobile-360`
+- Source: `smoke`
+- Project: `desktop-1280`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
+Error: INC-282: feed-empty had no box (detached or hidden)
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e490]:
-            - generic [ref=e491]: About
-          - listitem [ref=e492]:
-            - generic [ref=e493]: How it works
-      - navigation "Help" [ref=e494]:
-        - heading "Help" [level=2] [ref=e495]
-        - list [ref=e496]:
-          - listitem [ref=e497]:
-            - generic [ref=e498]: Safety
-          - listitem [ref=e499]:
-            - generic [ref=e500]: Contact
-      - navigation "Legal" [ref=e501]:
-        - heading "Legal" [level=2] [ref=e502]
-        - list [ref=e503]:
-          - listitem [ref=e504]:
-            - generic [ref=e505]: Terms
-          - listitem [ref=e506]:
-            - generic [ref=e507]: Privacy
-    - paragraph [ref=e509]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e282]:
+            - generic [ref=e283]: About
+          - listitem [ref=e284]:
+            - generic [ref=e285]: How it works
+      - navigation "Help" [ref=e286]:
+        - heading "Help" [level=2] [ref=e287]
+        - list [ref=e288]:
+          - listitem [ref=e289]:
+            - generic [ref=e290]: Safety
+          - listitem [ref=e291]:
+            - generic [ref=e292]: Contact
+      - navigation "Legal" [ref=e293]:
+        - heading "Legal" [level=2] [ref=e294]
+        - list [ref=e295]:
+          - listitem [ref=e296]:
+            - generic [ref=e297]: Terms
+          - listitem [ref=e298]:
+            - generic [ref=e299]: Privacy
+    - paragraph [ref=e301]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
