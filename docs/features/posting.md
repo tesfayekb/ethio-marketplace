@@ -962,6 +962,10 @@ Test: PW-58.
 - A card-2/3 change keeps D25's narrower scope. PW-59 proves both sides on scratch rows.
 - D45 part 2: `attributeDisplayValue`'s `yearSuffix` is required, and the buyer sheet passes `post.specs.yearEcSuffix`; PW-58 reads the label in the sheet too.
 
+## Only the identity restarts the form (D47, 2026-09-26)
+
+The whole-form reset root is the leaf's identity (the card-1 select) and nothing else. INC-291: the old D25b rule also made every top fold owner a root, so a size-system change on clothing or shoes, or a make change at Vehicle Hire where make is not card 1, wiped the whole form. A fold owner that is not card 1 stays a D25 parent: its fold child is cleared by the narrowing pass, details its options speak about are re-derived, and the seller's own answers stay. The fold fixtures (seedFoldSet, seedDeepFoldSet, seedFactShiftSet) now link their make/brand as required card 1, the catalog's shape, so PW-32 and the INC-245 test keep their assertions. PW-60 proves a non-identity system change clears only its size and an identity change still restarts everything.
+
 ## Every row open (D41, 2026-09-24)
 
 The specifications step shows every row the category asks, open, in `display_order`, with nothing behind a tap: sellers skipped the D36 "More details" expander, so the operator removed it (D41). The (i) help split (first sentence inline, the rest behind the tap) and D35's locked-fact strips are unchanged. History: D36 first hid a trailing run of optional rows, INC-269 restored display order and narrowed the cut, and INC-271 made the form publish `data-options="1"` once its option lists settle, a marker readers still wait on.

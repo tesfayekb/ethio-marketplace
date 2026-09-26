@@ -456,6 +456,8 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     const supabase = adminClient();
     const one = await createScratchLocation("tr26a");
     const two = await createScratchLocation("tr26b");
+    // INC-287b — outside the tr26 stem: the filtered fill must never reach it.
+    const three = await createScratchLocation("tr27c");
     const rowOf = async (id: string) => {
       const { data, error } = await supabase
         .from("entity_translations")
@@ -477,22 +479,26 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     try {
       const { secret } = await signInAsSuperAdmin(page);
 
-      // 1. FILL — the fence's universe (both scratch locations included) is
-      //    machine-translated through the Data bulk bar.
+      // 1. FILL — INC-287b: the sweep is FILTERED to this test's own stem, so
+      //    it covers `one` and `two` and nothing else in the fence.
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       const fillButton = page.getByTestId("ai-bulk-start");
+      await expect(fillButton).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("data-search").fill(`E2E-Scratch-${scratchAxes("tr26")}`);
+      await expect(fillButton).toHaveAttribute("data-scope", "filtered", { timeout: 20000 });
+      await expect(fillButton).toHaveAttribute("data-count-state", "success", { timeout: 20000 });
       await expect
-        .poll(async () => (await fillButton.innerText()).match(/[0-9]/) !== null, {
+        .poll(async () => (await fillButton.innerText()).replace(/[^0-9]/g, ""), {
           timeout: 20000,
-          message: "the Data bulk bar never reached a ready (numeric) count",
+          message: "the filtered Data bulk bar never counted exactly two untranslated rows",
         })
-        .toBe(true);
+        .toBe("2");
       await fillButton.click();
       await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
       await page.getByTestId("ai-bulk-confirm-run").click();
       await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 180000 });
+      await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 90000 });
       for (const anchor of [one, two]) {
         await expect
           .poll(() => statusOf(anchor.id), {
@@ -501,6 +507,8 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
           })
           .toBe("machine");
       }
+      // DENY CASE — the filtered fill touched nothing outside the filter.
+      expect(await statusOf(three.id)).toBe("missing");
 
       // 2. CHIPS before approval: machine work exists, approved does not yet
       //    include it (the counts come from the same stats RPC as the bar).
@@ -512,7 +520,6 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
           message: "the machine chip never counted the sweep",
         })
         .toBeGreaterThan(0);
-      const approvedBefore = await chipCount("approved");
 
       // 3. APPROVE — the gated writer runs behind the same step-up.
       const approveButton = page.getByTestId("entity-approve-all-start");
@@ -534,16 +541,6 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
           })
           .toBe("approved");
       }
-
-      // 5. THE CHIPS MOVE — approved rises above its pre-approval count.
-      await gotoReady(page, `/admin/translations/${fence}?scope=data`);
-      await expect(page.getByTestId("data-chips")).toBeVisible({ timeout: 20000 });
-      await expect
-        .poll(() => chipCount("approved"), {
-          timeout: 30000,
-          message: `the approved chip never rose above ${approvedBefore}`,
-        })
-        .toBeGreaterThan(approvedBefore);
 
       // 6. PER-KEY TRUTH (J4) — the fence's universe is SHARED, so aggregate
       //    counts over it race with sibling activity (run 33574332982: an
@@ -567,6 +564,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     } finally {
       await reapScratchLocation(one.id);
       await reapScratchLocation(two.id);
+      await reapScratchLocation(three.id);
     }
   });
   /**

@@ -231,7 +231,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const initialCountry = savedArea?.country ?? guessCountry;
   /** The country whose tree the picker reads; the module cache shares the fetch. */
   const treeCountry = locationCountry ?? initialCountry;
-  const { nodes: treeNodes, loadedCountry: treeLoadedCountry } = useCountryTree(treeCountry);
+  const {
+    nodes: treeNodes,
+    loadedCountry: treeLoadedCountry,
+    failed: treeFailed,
+  } = useCountryTree(treeCountry);
   const appliedRef = useRef(false);
   /**
    * INC-282 (product) — the ref above cannot re-render; this flag publishes the
@@ -250,7 +254,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       setAreaSettled(true);
       return;
     }
-    if (treeNodes.length === 0 || treeLoadedCountry !== initialCountry) return;
+    // INC-282 (F4) — a failed tree settles the gate: the feed runs unscoped.
+    if (treeFailed) {
+      appliedRef.current = true;
+      setAreaSettled(true);
+      return;
+    }
+    if (treeLoadedCountry !== initialCountry) return;
+    // Loaded but empty — nothing to apply, so the gate settles too.
+    if (treeNodes.length === 0) {
+      appliedRef.current = true;
+      setAreaSettled(true);
+      return;
+    }
     const anchor = anchorOf(treeNodes);
     if (anchor === null) {
       appliedRef.current = true;
@@ -281,7 +297,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     setPathState([asLocationNode(anchor)]);
     setGuessInUse(false);
-  }, [initialCountry, treeNodes, treeLoadedCountry, savedArea, guessCountry, marketsLoading, geo]);
+  }, [
+    initialCountry,
+    treeNodes,
+    treeLoadedCountry,
+    savedArea,
+    guessCountry,
+    marketsLoading,
+    geo,
+    treeFailed,
+  ]);
 
   /**
    * A market picked in the picker lands on its anchor as soon as ITS OWN tree is
