@@ -284,6 +284,8 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     const supabase = adminClient();
     const one = await createScratchLocation("tr24a");
     const two = await createScratchLocation("tr24b");
+    // INC-287 — outside the tr24 stem: the filtered sweep must never reach it.
+    const three = await createScratchLocation("tr25c");
     const machineStatus = async (id: string) => {
       const { data, error } = await supabase
         .from("entity_translations")
@@ -342,41 +344,32 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       );
       await page.getByTestId("data-search").fill("");
 
-      // BULK — the sweep covers the second scratch location too.
+      // BULK — INC-287: the sweep is FILTERED to this test's own stem, so it
+      // covers the second scratch location and nothing else in the fence.
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       const startButton = page.getByTestId("ai-bulk-start");
       await expect(startButton).toBeVisible({ timeout: 20000 });
-      // U4j-6 (INC-119c) — READINESS ANCHORS ON THIS RUN'S OWN ROW. The old
-      // check was `[data-testid^='entity-status-']`.first(): a J5 violation
-      // that resolved the hidden card twin at 1280 and read "Machine" left by
-      // a prior sweep. The second scratch location is untranslated by
-      // construction, so it proves the universe rendered AND that N ≥ 1.
+      // U4j-6 (INC-119c) — READINESS ANCHORS ON THIS RUN'S OWN ROW.
       await page.getByTestId("data-search").fill(two.name);
       const readyRow = entityRow(page, `location-${two.id}-name`);
       await expect(readyRow).toBeVisible({ timeout: 20000 });
       await expect(readyRow.getByTestId(`entity-status-location-${two.id}-name`)).toHaveText(
         /untranslated/i,
       );
-      // The filter is cleared so the sweep confirmation reads the whole
-      // universe; the row itself may then sit on a later page (J5: no bare
-      // prefix locator is reintroduced to re-find it).
       await page.getByTestId("data-search").fill("");
 
-      // The bar's count is only readable once the stats query is ready; poll
-      // for digits rather than racing a pending "(—)" into a false zero.
+      // U4j-3 — the UNFILTERED count is read BEFORE filtering: the universe's
+      // untranslated count must already be non-zero on a language with no rows.
+      await expect(startButton).toHaveAttribute("data-scope", "all");
       await expect
         .poll(async () => (await startButton.innerText()).match(/[0-9]/) !== null, {
           timeout: 20000,
           message: "the Data bulk bar never reached a ready (numeric) count",
         })
         .toBe(true);
-      // U4j-3 — the bar's work count is the UNIVERSE's untranslated count, so
-      // it must already be non-zero on a language with no rows at all.
       const untranslatedBefore = Number(
         (await startButton.innerText()).replace(/[^0-9]/g, "") || "0",
       );
-      // U4j-4 (INC-119) — a zero here is a SHAPE problem, not a count: dump the
-      // stats query state and the first listed rows so it names itself forever.
       if (untranslatedBefore === 0) {
         throw new Error(
           [
@@ -387,17 +380,33 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
         );
       }
       expect(untranslatedBefore).toBeGreaterThan(0);
+
+      // INC-287 — filter to the stem `one` and `two` share; `three` lies outside.
+      const stem = `E2E-Scratch-${scratchAxes("tr24")}`;
+      await page.getByTestId("data-search").fill(stem);
+      await expect(startButton).toHaveAttribute("data-scope", "filtered", { timeout: 20000 });
+      await expect(startButton).toHaveAttribute("data-count-state", "success", {
+        timeout: 20000,
+      });
+      await expect
+        .poll(async () => (await startButton.innerText()).replace(/[^0-9]/g, ""), {
+          timeout: 20000,
+          message: "the filtered Data bulk bar never counted exactly one untranslated row",
+        })
+        .toBe("1");
       await startButton.click();
       await expect(page.getByTestId("ai-bulk-confirm")).toBeVisible();
       await page.getByTestId("ai-bulk-confirm-run").click();
       await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 150000 });
+      await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 90000 });
       await expect
         .poll(() => machineStatus(two.id), {
           timeout: 30000,
           message: "bulk entity AI never reached the second scratch location",
         })
         .toBe("machine|true|true");
+      // DENY CASE — the filtered sweep touched nothing outside the filter.
+      expect(await machineStatus(three.id)).toBe("missing");
 
       // INC-193 — BOTH OWN ROWS ARE TRANSLATED, and the stats bar is asserted
       // for VISIBILITY ONLY (J4: summaries are never asserted for a value).
@@ -427,6 +436,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     } finally {
       await reapScratchLocation(one.id);
       await reapScratchLocation(two.id);
+      await reapScratchLocation(three.id);
     }
   });
 
