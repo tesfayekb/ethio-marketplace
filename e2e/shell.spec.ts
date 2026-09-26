@@ -414,7 +414,6 @@ test.describe("app shell", () => {
     }
   });
 
-
   test("the feed still loads when the market tree cannot be fetched (INC-282)", async ({
     page,
   }) => {
@@ -427,7 +426,9 @@ test.describe("app shell", () => {
       timeout: 20000,
     });
     await expect(
-      page.getByTestId("feed-empty").or(page.getByTestId("listing-card").first()),
+      page
+        .getByTestId("feed-empty")
+        .or(page.getByTestId("feed-container").locator("ul > li").first()),
     ).toBeVisible({ timeout: 20000 });
     expect(errors, "INC-282: the page raised an error").toEqual([]);
   });
