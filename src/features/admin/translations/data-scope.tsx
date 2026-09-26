@@ -190,6 +190,7 @@ export function DataScope({
             untranslated={langStats?.untranslated ?? 0}
             countState={countState}
             guard={guard}
+            filter={query}
           />
         ) : null}
         {mayApprove ? (
