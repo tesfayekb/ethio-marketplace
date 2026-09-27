@@ -51,6 +51,9 @@ import {
   destroySpecSet,
   seedPostableCategory,
   seedSpecSet,
+  seedBasisSet,
+  priceBpOf,
+  type BasisSet,
   textOf,
   mapReady,
 } from "./helpers/posting";
@@ -979,6 +982,137 @@ test.describe("POSTING WIZARD", () => {
     expect(stored.mode, "PW-10: the mode was not stored").toBe("fixed");
     expect(stored.period, "PW-10: the locked period was not stored").toBe("month");
     expect(stored.currency, "PW-10: no currency was stored for a priced listing").not.toBe(null);
+  });
+
+  /**
+   * D31-C (DEC-079) — A PRICING BASIS DECIDES THE PRICE'S SHAPE. Scratch leaf and
+   * scratch definitions only (G27), reaped by the afterEach (J3).
+   */
+  async function basisLeaf() {
+    const category = await leaf();
+    const basis = await seedBasisSet(category.id);
+    specs.push(basis.basisKey, basis.identityKey);
+    return { category, basis };
+  }
+
+  const specControl = (page: Page, attrKey: string) =>
+    page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+
+  /** Specifications answered (identity + basis), then details, landing on step 5. */
+  async function reachPricingWithBasis(
+    page: Page,
+    userId: string,
+    category: { id: string; slug: string },
+    basis: BasisSet,
+    token: string,
+  ) {
+    const listingId = await reachStep3(page, userId, category);
+    await specControl(page, basis.identityKey).selectOption(basis.identityValue);
+    await specControl(page, basis.basisKey).selectOption(token);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e d31c listing title");
+    await page.getByTestId("post-description").fill("e2e d31c listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    return listingId;
+  }
+
+  /** From step 5 (Next already valid) through place and contact to review. */
+  async function pricingToReview(page: Page) {
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    await chooseOneCity(page);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+  }
+
+  const reviewPrice = (page: Page) =>
+    page.locator('[data-testid="post-review-section"][data-step="5"] [data-testid="post-review-value"]');
+
+  test("PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    const listingId = await reachPricingWithBasis(page, user.id, category, basis, "commission");
+
+    await expect(page.getByTestId("post-price-commission")).toBeVisible();
+    await expect(page.getByTestId("post-price-currency-search")).toHaveCount(0);
+    await expect(page.getByTestId("post-price-amount")).toHaveCount(0);
+    await expect(page.getByTestId("post-price-period")).toHaveCount(0);
+    await page.getByTestId("post-price-commission").fill("12.5");
+    await pricingToReview(page);
+
+    await expect
+      .poll(() => priceBpOf(listingId), { message: "PW-55: the bp never reached the draft" })
+      .toBe(1250);
+    const stored = await pricingOf(listingId);
+    expect(stored.mode, "PW-55: the mode is not commission").toBe("commission");
+    expect(stored.amount, "PW-55: a commission carries an amount").toBe(null);
+    expect(stored.currency, "PW-55: a commission carries a currency").toBe(null);
+
+    await expect(reviewPrice(page)).toHaveText("12.5% commission");
+    await page.getByTestId("post-preview-open").click();
+    await expect(page.getByTestId("listing-detail-price")).toHaveText("12.5% commission");
+    await page.getByTestId("post-preview-close").click();
+
+    await switchLanguage(page, "am");
+    await expect(reviewPrice(page)).toHaveText("12.5% ኮሚሽን");
+  });
+
+  test("PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    await reachPricingWithBasis(page, user.id, category, basis, "hourly");
+
+    const amountLabel = page.locator('label[for="post-price-amount"]');
+    await expect(amountLabel).toContainText(`Price per ${basis.labels["hourly"]}`);
+    await expect(page.getByTestId("post-price-period")).toHaveCount(0);
+    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute("data-period", "hour");
+
+    // Back to specifications (via details and photos), change the basis, return.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await specsSettled(page);
+    await specControl(page, basis.basisKey).selectOption("per_month");
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+
+    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute(
+      "data-period",
+      "month",
+    );
+    await expect(amountLabel).toContainText(`Price per ${basis.labels["per_month"]}`);
+  });
+
+  test("PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    const listingId = await reachPricingWithBasis(page, user.id, category, basis, "per_quintal");
+
+    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute("data-period", "once");
+    await page.getByTestId("post-price-amount").fill("3200");
+    await pricingToReview(page);
+    await expect
+      .poll(async () => (await pricingOf(listingId)).amount, {
+        message: "PW-57: the amount never reached the draft",
+      })
+      .toBe(3200);
+    expect((await pricingOf(listingId)).period, "PW-57: the period is not once").toBe("once");
+    await expect(reviewPrice(page)).toHaveText(new RegExp(`per ${basis.labels["per_quintal"]}$`));
   });
 
   test("LY-6 at 360 the open currency list is above the sticky action bar", async ({
