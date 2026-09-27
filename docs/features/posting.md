@@ -977,3 +977,12 @@ The step-1 picker renders the category's stored lucide name (projected by the tr
 ## INC-277 — Back while the category filter holds a term
 
 The wizard owns the category filter term beside the tree cursor. Back, in order: clears a non-empty filter (the level returns); climbs one level; leaves the step. Back is closed only at the roots with an empty filter. PW-53.
+
+## D31-C — pricing basis in the wizard (DEC-079)
+
+- A leaf with ONE `pricing_type-*` / `unit_of_sale-*` definition lets the seller's answer decide the price shape (`price-basis.ts` mirrors `price_shape_for_basis`; `price-basis.test.ts` pins the mirror to the SQL).
+- Step 5: a derived period is never chosen — `post-price-period` is absent and `post-price-period-fixed` carries `data-period`; the amount label reads "Price per <basis option label>".
+- Commission: `post-price-commission` takes a percent (0.01–100), stored as `listings.price_bp` (basis points); no currency, no amount. Never inferred from a null amount.
+- Refusals `periodFollowsBasis`, `modeFollowsBasis`, `commissionNotOffered`, `priceBasisAmbiguous` show locally on blur and are repeated by the door.
+- `publish_listing` re-checks the stored `price_bp`; `edit_listing` takes and writes `p_price_bp`.
+- Tests: PW-55 (commission), PW-56 (hourly → per_month), PW-57 (per_quintal), PR-10 (the door's refusals by name; a 20000 bp is refused by `listings_price_bp_check`).

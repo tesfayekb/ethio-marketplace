@@ -371,3 +371,7 @@ the prior order).
 ## Planner cost law (INC-275)
 
 A planner reads the live catalog ONCE per plan (for categories: one `cat_export_rows(NULL)`, keyed by slug) and judges every row against in-memory sets. No per-row export, tree walk or version function inside the row loop; the migration read-back refuses a planner definition that calls `cat_export_row(`, `catalog_find_version` or `get_category_tree_version`.
+
+## D31-C note
+
+- Import-side basis rules are unchanged from D31-M (`priceBasisDuplicate`, `periodLockedWithBasis`); D31-C only teaches the posting doors to read the basis.

@@ -543,3 +543,8 @@ seller and is the single seam to change when they are.
 ## INC-282 (product) — the feed queries once its inputs exist
 
 The shell publishes `feedInputsReady` through `useShell()`: true once the category list has settled (only when the URL names a `/c/` slug), the open-market read has answered, and the area derivation has locked. `useFeed({ enabled })` holds the spinner and runs no query until then, and `feed-container` carries `data-ready="1"`/`"0"` from the same flag, so the empty state never renders and then detaches. Errors stay visible (F4); a later user axis change may still show the spinner. A failed or empty market tree also settles the gate (the derivation locks with nothing to apply), so the feed then runs unscoped instead of spinning forever; the shell test aborts the per-market tree read and asserts the feed settles.
+
+## D31-C — commission prices (DEC-079)
+
+- `price_mode = 'commission'` rows carry `price_bp` (1–10000) and a NULL amount/currency. Every price line (card, review, buyer preview, admin impersonation table) judges commission FIRST and renders `price.commission`; "—" is only a true null amount on a non-commission row.
+- The feed selects `price_mode, price_bp`; `impersonated_list_listings` returns both.
