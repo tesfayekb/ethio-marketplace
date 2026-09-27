@@ -3041,6 +3041,7 @@ export type Database = {
           p_listing_id: string
           p_poster_expires_at: string
           p_price_amount: number
+          p_price_bp?: number
           p_price_currency: string
           p_price_mode: string
           p_price_period: string
@@ -3079,6 +3080,7 @@ export type Database = {
           p_description: string
           p_poster_expires_at: string
           p_price_amount: number
+          p_price_bp?: number
           p_price_currency: string
           p_price_mode: string
           p_price_period: string
