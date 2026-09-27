@@ -36,6 +36,9 @@ export interface ImpersonatedListing {
   status: string;
   priceAmount: number | null;
   priceCurrency: string | null;
+  /** DEC-079 — `commission` rows carry basis points and a null amount by law. */
+  priceMode: string;
+  priceBp: number | null;
   createdAt: string;
 }
 
@@ -105,6 +108,8 @@ export async function listImpersonatedListings(
       status: row.status,
       priceAmount: row.price_amount === null ? null : Number(row.price_amount),
       priceCurrency: row.price_currency ?? null,
+      priceMode: row.price_mode,
+      priceBp: row.price_bp ?? null,
       createdAt: row.created_at,
     })),
     totalCount: rows.length > 0 ? Number(rows[0]!.total_count) : 0,

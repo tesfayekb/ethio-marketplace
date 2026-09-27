@@ -4,6 +4,7 @@ import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
+import { formatCommission } from "@/features/posting/price-basis";
 import { useI18n } from "@/i18n";
 
 import { isExpiredSessionError, type ImpersonatedListing } from "./impersonation-service";
@@ -84,7 +85,11 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       width: "w-[18%]",
       cell: (row) => (
         <span className="block tabular-nums text-muted-foreground">
-          {row.priceAmount === null ? "—" : `${row.priceAmount} ${row.priceCurrency ?? ""}`}
+          {row.priceMode === "commission" && row.priceBp !== null
+            ? t("price.commission").replace("{percent}", formatCommission(row.priceBp))
+            : row.priceAmount === null
+              ? "—"
+              : `${row.priceAmount} ${row.priceCurrency ?? ""}`}
         </span>
       ),
     },
