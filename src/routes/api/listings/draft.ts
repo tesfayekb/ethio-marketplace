@@ -126,6 +126,10 @@ async function handlePost(request: Request): Promise<Response> {
   const { data, error } = await supabase.rpc("submit_listing", args);
   if (error) {
     logRouteError(PATH, error.message);
+    // INC-301 — the commission range constraint is a seller's mistake, in words.
+    if (error.message.includes("listings_price_bp_check")) {
+      return routeJson({ ok: false, refusals: [{ field: "price_bp", reason: "commissionRange" }] }, 200);
+    }
     return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
   }
   return routeJson(data, 200);

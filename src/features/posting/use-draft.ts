@@ -133,6 +133,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [step, setStep] = useState(1);
   const [draftStep, setDraftStep] = useState(1);
   const [values, setValues] = useState<DraftValues>(EMPTY_VALUES);
+  const [nextBlockedByTransport, setNextBlockedByTransport] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [refusals, setRefusals] = useState<Refusal[]>([]);
   const [photos, setPhotos] = useState<DraftPhotoRow[]>([]);
@@ -566,6 +567,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       saveAt,
       rewindTo,
       retry,
+      nextBlockedByTransport,
       pauseSeconds,
       photos,
       reloadPhotos,
@@ -586,6 +588,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       saveAt,
       rewindTo,
       retry,
+      nextBlockedByTransport,
       pauseSeconds,
       photos,
       reloadPhotos,
