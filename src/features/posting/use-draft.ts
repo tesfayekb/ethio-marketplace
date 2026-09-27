@@ -41,6 +41,8 @@ export interface DraftValues {
   priceAmount: number | null;
   priceCurrency: string | null;
   pricePeriod: string | null;
+  /** DEC-079 — a commission in basis points; null for every money/free/contact price. */
+  priceBp: number | null;
   /** `YYYY-MM-DD`, or empty for "use the category's normal window". */
   posterExpiresAt: string;
   /** U6-C2a step 6 — the coverage rows; the FIRST is the item's own place. */
@@ -65,6 +67,7 @@ const EMPTY_VALUES: DraftValues = {
   priceAmount: null,
   priceCurrency: null,
   pricePeriod: null,
+  priceBp: null,
   posterExpiresAt: "",
   coverage: [],
   contactPref: { messages: true },
@@ -210,6 +213,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
       priceCurrency:
         valuesRef.current.priceAmount === null ? null : valuesRef.current.priceCurrency,
       pricePeriod: valuesRef.current.pricePeriod,
+      // DEC-079 — the bp travels only with a commission; the door refuses it elsewhere.
+      priceBp: valuesRef.current.priceMode === "commission" ? valuesRef.current.priceBp : null,
       posterExpiresAt:
         valuesRef.current.posterExpiresAt === "" ? null : valuesRef.current.posterExpiresAt,
       coverage: valuesRef.current.coverage.length === 0 ? null : valuesRef.current.coverage,
@@ -475,6 +480,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
           priceAmount: found.draft.priceAmount,
           priceCurrency: found.draft.priceCurrency,
           pricePeriod: found.draft.pricePeriod,
+          priceBp: found.draft.priceBp,
           posterExpiresAt: found.draft.posterExpiresAt ?? "",
           coverage: found.coverage,
           contactPref: found.draft.contactPref,
