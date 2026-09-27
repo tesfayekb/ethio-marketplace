@@ -2951,6 +2951,10 @@ export type Database = {
       next_language_sort: { Args: never; Returns: number }
       plan_caps: { Args: { p_plan: string }; Returns: Json }
       plan_photo_cap: { Args: { p_plan: string }; Returns: number }
+      price_basis_conflict: {
+        Args: { p_attr_key: string; p_category_id: string; p_links: Json }
+        Returns: string
+      }
       price_basis_keys: { Args: { p_category_id: string }; Returns: string[] }
       price_shape_for_basis: {
         Args: { p_value: string }
