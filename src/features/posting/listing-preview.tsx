@@ -2,6 +2,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
+import { formatCommission } from "./price-basis";
 import { fill } from "./refusal-text";
 import { attributeDisplayValue } from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
@@ -50,6 +51,8 @@ export function ListingPreview({
   priceAmount,
   priceCurrency,
   pricePeriod,
+  priceBp = null,
+  basisLabel = null,
   attributes,
   definitions,
   attributeOptions = {},
@@ -64,6 +67,10 @@ export function ListingPreview({
   priceAmount: number | null;
   priceCurrency: string | null;
   pricePeriod: string | null;
+  /** DEC-079 — a commission in basis points; judged before any amount (L6). */
+  priceBp?: number | null;
+  /** DEC-079 — the basis option's label, so a money price reads "per <basis>". */
+  basisLabel?: string | null;
   attributes: Record<string, unknown>;
   definitions: AttrDef[];
   attributeOptions?: Record<string, AttrOption[]>;
@@ -90,13 +97,23 @@ export function ListingPreview({
     );
 
   const priceLine =
-    priceMode === "free"
+    priceMode === "commission"
+      ? priceBp === null
+        ? t("post.review.noPrice")
+        : fill(t("price.commission"), { percent: formatCommission(priceBp, language) })
+      : priceMode === "free"
       ? t("price.free")
       : priceMode === "contact"
         ? t("price.contact")
         : priceAmount === null
           ? t("post.review.noPrice")
-          : fill(t("post.review.priceLine"), {
+          : basisLabel !== null
+            ? fill(t("post.review.pricePer"), {
+                amount: priceAmount.toLocaleString(),
+                currency: priceCurrency ?? "",
+                basis: basisLabel,
+              })
+            : fill(t("post.review.priceLine"), {
               amount: priceAmount.toLocaleString(),
               currency: priceCurrency ?? "",
               period: isPeriod(pricePeriod) ? t(PERIOD_KEYS[pricePeriod]) : "",

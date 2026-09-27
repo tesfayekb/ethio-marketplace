@@ -23,7 +23,9 @@ import { StepReview } from "./step-review";
 import { StepSpecifications } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
-import { readPostingSchema, type PlanCaps } from "./posting-service";
+import { loadAttributeOptions, optionLabel } from "./attribute-options";
+import { basisToken } from "./price-basis";
+import { readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
 import { useDraft } from "./use-draft";
 import {
   IMPLEMENTED_THROUGH,
@@ -88,6 +90,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const [facts, setFacts] = useState<CategoryFacts | null>(null);
   /** D22 — the seller's plan caps, as the posting document reports them. */
   const [planCaps, setPlanCaps] = useState<PlanCaps | null>(null);
+  /** DEC-079 — the leaf's ONE pricing-basis definition, from the same read. */
+  const [basisDef, setBasisDef] = useState<AttrDef | null>(null);
+  const [basisOptions, setBasisOptions] = useState<AttrOption[] | null>(null);
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
   /**
@@ -121,6 +126,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   useEffect(() => {
     if (categoryId === null) {
       setFacts(null);
+      setBasisDef(null);
       return;
     }
     let cancelled = false;
@@ -130,6 +136,10 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       // D22 — the plan travels with the same document; the caps the wizard holds
       // are never read from a second place.
       setPlanCaps(schema?.plan ?? null);
+      const key = schema?.category?.priceBasisKey ?? null;
+      setBasisDef(
+        key === null ? null : (schema?.attributes.find((def) => def.attrKey === key) ?? null),
+      );
     });
     return () => {
       cancelled = true;
