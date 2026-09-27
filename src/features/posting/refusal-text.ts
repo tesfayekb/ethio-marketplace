@@ -29,6 +29,11 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   unknownCurrency: "post.refusal.unknownCurrency",
   unknownPlace: "post.refusal.unknownPlace",
   periodLocked: "post.refusal.periodLocked",
+  // DEC-079 / D31 — the basis law's own vocabulary.
+  periodFollowsBasis: "post.refusal.periodFollowsBasis",
+  modeFollowsBasis: "post.refusal.modeFollowsBasis",
+  commissionNotOffered: "post.refusal.commissionNotOffered",
+  priceBasisAmbiguous: "post.refusal.priceBasisAmbiguous",
   categoryNotPostable: "post.refusal.categoryNotPostable",
   residencyUnknown: "post.refusal.residencyUnknown",
   coverageExceedsPlan: "post.refusal.coverageExceedsPlan",

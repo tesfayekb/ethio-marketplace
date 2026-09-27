@@ -254,6 +254,7 @@ export const en = {
   "price.free": "Free",
   "price.negotiable": "Negotiable",
   "price.contact": "Contact for price",
+  "price.commission": "{percent}% commission",
   "tier.premium": "Premium",
   "tier.featured": "Featured",
 
@@ -1961,6 +1962,10 @@ export const en = {
   "post.refusal.unknownCurrency": "That currency is not in use.",
   "post.refusal.unknownPlace": "That place was not found.",
   "post.refusal.periodLocked": "The price period is fixed for this category.",
+  "post.refusal.periodFollowsBasis": "The price period follows your Pricing Basis.",
+  "post.refusal.modeFollowsBasis": "The price type follows your Pricing Basis.",
+  "post.refusal.commissionNotOffered": "A commission price is not available here.",
+  "post.refusal.priceBasisAmbiguous": "This category's pricing basis is unclear — try again later.",
   "post.refusal.categoryNotPostable":
     "You cannot post into this category. Choose a more precise one.",
   "post.refusal.residencyUnknown":
@@ -2004,6 +2009,11 @@ export const en = {
   "post.price.period.month": "Per month",
   "post.price.period.year": "Per year",
   "post.price.periodFixed": "This category is always priced {period}.",
+  "post.price.mode.commission": "Commission",
+  "post.price.amountPer": "Price per {basis}",
+  "post.price.commissionLabel": "Commission (%)",
+  "post.price.commissionHelp": "Your fee as a percentage of the deal, e.g. 2.5",
+  "post.price.basisFixed": "Priced per {basis} — set by your Pricing Basis",
   "post.price.expiryLabel": "Take it down on (optional)",
   "post.price.expiryHint":
     "Leave it empty to use the normal window. At most {days} days from today.",
@@ -2142,6 +2152,7 @@ export const en = {
   "post.review.noTitle": "No title yet",
   "post.review.noPrice": "No price yet",
   "post.review.priceLine": "{amount} {currency} {period}",
+  "post.review.pricePer": "{amount} {currency} per {basis}",
   "post.review.channels": "{count} ways to reach you",
   "post.review.publish": "Publish",
   "post.review.publishing": "Publishing…",
