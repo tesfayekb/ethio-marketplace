@@ -2653,4 +2653,64 @@ Defect: four lines across three commits (`a1fe1f1`, `4bf9f78`, `db13e9a`) on sha
 
 INC-287 — OPEN: evidence pending the first DEC-078 body.
 
-Numbering: next free INC-288. Watch list (no INC): CT-18 (3 lines, all before INC-275 landed 2026-09-24 22:00), PW-20 (3 lines 09-19 → 09-22, none since), TR-24/TR-34 as above, LS-11 (INC-218), the nightly's quarantined CI-5 (@global-state, INC-117 class).
+## INC-288 — a definition's own bound spoke a different vocabulary than the door (2026-09-25)
+
+Defect: the wizard clamped a stated year ceiling to next year and did not resolve relative bounds (`year`, `year±N`) as `attr_bound_value` does. Evidence: PW-25/PW-35 walk. Fix: the wizard resolves bounds as the door does (landed 09-25 with D44/D45). Class: client mirrors of door vocabulary are pinned by tests to the SQL.
+
+## INC-289 — TR-29 counted the harness's own scratch keys (2026-09-26)
+
+Defect: TR-29 did not exclude `SCRATCH_PREFIX` (`e2e.scratch.`), the namespace scratchKey uses. Evidence: TR-29 red. Fix: exclusion added (09-26). Class: fixtures exclude their own namespace.
+
+## INC-290 — a blank `visible_when` cell cannot clear a condition (2026-09-26)
+
+Defect/law: the links import treats an empty condition cell as "no change" (INC-290 reading of the planner), so clearing a condition is a console act (Show when → Always visible). Evidence: Cycle 18 attempt; console "Always visible" confirmed. Fix: none needed — rule recorded in the curator's Knowledge and the import checklists. Class: present-and-empty semantics differ per column (scope/default clear; condition does not).
+
+## INC-291 — every top fold owner was a form-reset root (2026-09-26)
+
+Defect: the D25b rule made a size-system or a non-card-1 make change wipe the whole specifications form. Evidence: operator walk (clothing, Vehicle Hire). Fix: D47 — only the card-1 identity restarts the form (turn 3, 8d620dfc; PW-60). Class: root sets are named explicitly, never derived from structure.
+
+## INC-292 — a lock aimed outside the target's link scope leaves a dead form (2026-09-26)
+
+Defect: Beverages › Brewing had `allowed.unit_of_sale-food = [per_kg]` while the leaf's unit scope excluded per_kg — the unit list rendered empty and the card could not be answered. Evidence: operator walk; the audit's reachability sweep found 5 such hits in the pending files. Fix: console tick (per_kg into the Beverages scope) and the curator's files corrected before import. Class rule: every facts/allowed value lies inside the target's link scope at every leaf where the option is reachable; the audit sweeps it before every import; dormant locks (target not linked at the leaf) are DEC-057b by design and are not this class.
+
+## INC-293 — two posting homes for vehicle services (2026-09-26 → 27)
+
+Defect: Vehicles › Auto Services (retired earlier, reactivated 09-26 when the audit search showed nothing) and Services › Vehicle Services served the same trade with different option lists. Evidence: operator walk 09-27 ("Towing" in two places). Fix: Cycle 21 — merged list on service_type-vehicle-services; Auto Services retired; browse path Vehicles → Vehicle Services (INC-246 shows it in the posting picker). Class: one posting home per trade; discoverability through browse paths, never through a second leaf. Orphan: service_type-auto-services (delete pass later).
+
+## INC-294 — the help splitter ended a sentence at "e.g." (2026-09-27)
+
+Defect: `firstSentence` broke on any ". " so "… e.g. 89." showed "e.g." behind the (i). Evidence: operator walk (every help with e.g.). Fix: Turn A — abbreviations e.g./i.e./etc./vs./approx./cf. do not end a sentence; unit tests. Class: copy splitters carry an abbreviation list.
+
+## INC-295 — the catalogue finder rebuilt inside an anon request and timed out (2026-09-27)
+
+Defect: `catalog_find` runs `catalog_find_refresh(false)` lazily inside the read; after a catalogue change the rebuild takes 3–4 s against the anon 3 s statement timeout, so the index stayed stale until a manual `catalog_find_rebuild()` (26,377 rows). Evidence: finder results ≠ live after Cycle 19; manual rebuild timing. Fix: queued (Turn C) — rebuild off the request path (service-role schedule or post-import hook), the in-request attempt removed, last failure recorded. Class: index maintenance never rides an anon read.
+
+## INC-296 — attributes created by import showed English names to Amharic sellers (2026-09-27)
+
+Defect: nine attributes created since 09-26 (aggregate_type, battery_ah, decoder_service, electronics_type-other, megapixels, tile_grade, tv_type, wifi_standard, display_tech) had empty Amharic names in the export and in the wizard. Cause: IE-4b by design — an imported label_am is a pending (`edited`) translation; `get_entity_bundle` and the export serve approved rows only, falling back to a column the create path never sets. The import checklists never carried the approval step (S51). Evidence: export 2026-09-27 01:25 (eight empties), export 02:55 (none after approval). Fix: all nine approved in Translations › Data; class rule: every import that creates an attribute ends with that approval; the audit checks the re-export for empty label_am. Product option left open: auto-approve labels imported by an admin holding translations:approve (operator default: keep the gate).
+
+## INC-297 — "Price per Per Kg" (2026-09-27)
+
+Defect: the wizard passed the basis option's label verbatim into templates that already carry "per"/"በ"; every unit/basis label starts with "Per …"/"በ…". Evidence: operator walk (Coffee & Tea, Education, Hotels). Fix: Turn A — basisNoun strips the label's own preposition once, in wizard.tsx; shape-only bases render the plain price line. Class: a label that is already a phrase is never wrapped in another.
+
+## INC-298 — hosting-tier resource limit stalled every server route (2026-09-27)
+
+Defect: Cloudflare Error 1102 on the app's Worker for ≈ 13 minutes (07:30–07:43 UTC; Ray a418db14897dca32 at 07:42:02); the wizard reported "Not saved yet" and retried (correct); the operator's walk stopped. Evidence: the error page; DB activity/locks/logs clean; API log incomplete for the window (S52); executor census of module-scope caches (bounded or small). Root cause: not determinable without the platform's Worker logs (Lovable support, Ray ID given). Fix: none on our side beyond hygiene queued for Turn B (bound the options cache; prune idle rate-limit buckets); standing post-publish health check. Class: hosting-tier; watch for recurrence.
+
+## INC-299 — the assist route read `rate_limits` with the user's client (2026-09-27)
+
+Defect: `src/routes/api/listings/assist.ts:271–277` selects from `rate_limits` (service-role only, policy rate_limits_no_client) after `consumeRate`; the 403 is discarded and `triesLeft` silently becomes null (F4 phantom); every assist call logs `permission denied for table rate_limits`. Evidence: Postgres log 07:46:52 + the 403 in the API log. Fix: queued Turn B — take the count from consumeRate's answer or a definer read. Class: no client-role read of a service-only table.
+
+## INC-300 — client `profiles` reads fire while the session is gone (2026-09-27, low)
+
+Defect: `profiles` is granted to authenticated only; client reads (`use-auth.ts:44–48`, `pricing-data.ts:100`, others) can run in the logout/login moment and log `permission denied for table profiles`. Evidence: three Postgres log lines 07:43–07:44 during the operator's re-login. Fix: queued Turn B — guard on a live session. Class: noise, not a leak.
+
+## INC-301 — a commission of 0 or 150 was refused without words (2026-09-27)
+
+Defect: the only commission checks were the door's `required` and the DB constraint `listings_price_bp_check`, whose raw message reached the client as field `door`; the seller saw a red field and no reason. Evidence: operator walk (Realtor). Fix: Turn A — local range check (commissionRange), field-aware `commissionRequired`, the route maps the constraint to `price_bp/commissionRange`; PW-58. Class: every refusal a seller can trigger has words and a field.
+
+## INC-302 — red run 36312273832: PR-10 asserted the contract Turn A changed (2026-09-27)
+
+Defect: step 3c of Turn A remapped the constraint refusal that PR-10 asserted as field `door`; the prompt's scope and local-suite list omitted posting-routes.spec.ts (S53), so the executor's local run could not catch it and the red reached CI (2 gating failures, both projects). Evidence: e2e-last-failure for 422550b8. Fix: the executor's follow-up 2dda3ab8 ("Fixed PR-10 test expectations"); green run 36313684517. Class: a prompt that changes a route contract lists every spec that asserts it, in scope and in the local suite list.
+
+Numbering: next free INC-303. Watch list (no INC): LS-11 (INC-218; new teardown body "destroying QQ failed at country row" on 09-27), TR-24, i18n-coverage mobile drawer "category labels still in English" (1 flaky line 09-27 — the entity bundle timing; watch), the nightly's quarantine (INC-117).

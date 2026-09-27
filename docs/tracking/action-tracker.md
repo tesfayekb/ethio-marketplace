@@ -15,3 +15,11 @@
 | ACT-U4-6 | 2026-09-02 | ACT-U4-6 (injection un-park per DEC-029) — DONE 2026-09-10: superseded by DEC-041 (pool injection unconditional) and DEC-048 (knob deleted)                                                                                                                                                                                                                                                                        | DONE   |
 | ACT-C3-1 | 2026-09-10 | Re-prove the B-3/C-4 guard proofs under the current harness: `guard-proof.yml` is dispatch-only, last touched 2026-08-03 (before the DEC-018/019 production build and the DEC-036…041 identity pool) and never dispatched since; bring it onto the built-app/pool shape or fold the two proofs into the nightly, dispatch once, record the run. Its `actions/cache@v5` line (DEC-049) is unexercised until then.   | OPEN   |
 | ACT-C3-2 | 2026-09-11 | `bun run e2e:local` verifies the Playwright browser runtime (and its system libraries) before building and fails fast with the install hint — the INC-174 reproduction found the executor sandbox without either and needed a session-only install; DEC-023's local proof is only as reliable as that runtime (G25). — DONE 2026-09-11: scripts/e2e-browser-guard.ts, first step of e2e:local after the port guard | DONE   |
+
+- ACT — Turn B (client): D59 category-change reset with Undo · INC-299 assist count from consumeRate · INC-300 session guard on profiles reads · INC-298 hygiene (bound the attribute-options cache, prune idle rate-limit buckets). E2E per feature.
+- ACT — D62 spec (Negotiable flag): schema (`listings.price_negotiable`), migration of `price_mode = 'negotiable'` rows, door + client + badge + filter; curator removes `negotiable` from basis lists after it ships. DEC-080 on approval.
+- ACT — Turn C (INC-295): finder rebuild off the request path; heartbeat row; last-failure record.
+- ACT — Study C22 step 2: categories file (display_order + secondary_parents) + produce_type help + per_tray off the Livestock scope — supervisor audit, then import.
+- ACT — D53 catalogue-facts collapse and D56 recents/favourites: specs.
+- ACT — Curator orphan pass: service_type-auto-services (unlink at the retired leaf, then delete).
+- ACT — INC-298: Lovable support ticket with the Ray ID (operator).
