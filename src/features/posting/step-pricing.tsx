@@ -127,10 +127,9 @@ export function StepPricing({
   const priceEnabled = facts?.priceEnabled ?? true;
   const commission = values.priceMode === "commission";
   const amountShown = values.priceMode === "fixed" || values.priceMode === "negotiable";
+  // A forced type is the only type; otherwise every type but commission (free stays).
   const modes = PRICE_MODES.filter((mode) =>
-    forcedMode !== null
-      ? mode === forcedMode
-      : mode !== "commission" && (mode !== "negotiable" || true),
+    forcedMode !== null ? mode === forcedMode : mode !== "commission",
   );
 
   /** The period's default comes from the category, written as an ordinary change. */
