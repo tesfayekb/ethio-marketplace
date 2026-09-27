@@ -23,7 +23,9 @@ import { StepReview } from "./step-review";
 import { StepSpecifications } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
-import { readPostingSchema, type PlanCaps } from "./posting-service";
+import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
+import { basisToken } from "./price-basis";
+import { readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
 import { useDraft } from "./use-draft";
 import {
   IMPLEMENTED_THROUGH,
@@ -64,7 +66,7 @@ const navButtonClass =
   "transition-colors disabled:opacity-60";
 
 export function PostingWizard({ listingId }: { listingId: string | null }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const draft = useDraft(listingId);
   const { tree, isLoading: treeLoading, error: treeError } = useCategoryTree();
@@ -88,6 +90,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const [facts, setFacts] = useState<CategoryFacts | null>(null);
   /** D22 — the seller's plan caps, as the posting document reports them. */
   const [planCaps, setPlanCaps] = useState<PlanCaps | null>(null);
+  /** DEC-079 — the leaf's ONE pricing-basis definition, from the same read. */
+  const [basisDef, setBasisDef] = useState<AttrDef | null>(null);
+  const [basisOptions, setBasisOptions] = useState<AttrOption[] | null>(null);
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
   /**
@@ -121,6 +126,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   useEffect(() => {
     if (categoryId === null) {
       setFacts(null);
+      setBasisDef(null);
       return;
     }
     let cancelled = false;
@@ -130,11 +136,39 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       // D22 — the plan travels with the same document; the caps the wizard holds
       // are never read from a second place.
       setPlanCaps(schema?.plan ?? null);
+      const key = schema?.category?.priceBasisKey ?? null;
+      setBasisDef(
+        key === null ? null : (schema?.attributes.find((def) => def.attrKey === key) ?? null),
+      );
     });
     return () => {
       cancelled = true;
     };
   }, [categoryId]);
+
+  /** DEC-079 — the basis option list, loaded ONCE per definition. */
+  useEffect(() => {
+    setBasisOptions(null);
+    if (basisDef === null) return;
+    let cancelled = false;
+    void loadAttributeOptions(basisDef.attributeId).then((options) => {
+      if (!cancelled) setBasisOptions(options);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [basisDef]);
+
+  const basisValue =
+    facts?.priceBasisKey != null ? basisToken(draft.values.attributes[facts.priceBasisKey]) : null;
+  /** The answer's label in the UI language; the token itself while loading. */
+  const basisLabel =
+    basisValue === null
+      ? null
+      : (() => {
+          const found = basisOptions?.find((option) => option.value === basisValue);
+          return found === undefined ? basisValue : optionLabel(found, language);
+        })();
 
   const current = STEPS[draft.step - 1] ?? STEPS[0];
   const chosenCategory =
@@ -260,6 +294,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 priceAmount={draft.values.priceAmount}
                 priceCurrency={draft.values.priceCurrency}
                 pricePeriod={draft.values.pricePeriod}
+                priceBp={draft.values.priceBp}
+                basisLabel={basisLabel}
                 attributes={draft.values.attributes}
                 definitions={[]}
                 attributeOptions={{}}
@@ -663,8 +699,11 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             priceAmount: draft.values.priceAmount,
                             priceCurrency: draft.values.priceCurrency,
                             pricePeriod: draft.values.pricePeriod,
+                            priceBp: draft.values.priceBp,
                             posterExpiresAt: draft.values.posterExpiresAt,
                           }}
+                          basisValue={basisValue}
+                          basisLabel={basisLabel}
                           refusals={draft.refusals}
                           onChange={(patch, immediate) => draft.change(patch, immediate)}
                         />
@@ -699,6 +738,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           refusals={draft.refusals}
                           maxPhotos={planCaps?.maxPhotos ?? null}
                           pin={draft.pin}
+                          basisLabel={basisLabel}
                           onChangeExpiry={(posterExpiresAt) =>
                             draft.change({ posterExpiresAt }, true)
                           }

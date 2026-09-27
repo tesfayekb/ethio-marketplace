@@ -10,6 +10,7 @@ import { ListingPreview } from "./listing-preview";
 import { attributeDisplayValue } from "./attribute-display";
 import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { entityName } from "@/i18n/entity";
+import { formatCommission } from "./price-basis";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import {
   publishListing,
@@ -92,6 +93,7 @@ export function StepReview({
   onGoTo,
   maxPhotos,
   pin = null,
+  basisLabel = null,
 }: {
   listingId: string | null;
   /** The chosen category's full path, in the seller's language. */
@@ -110,6 +112,8 @@ export function StepReview({
   maxPhotos: number | null;
   /** U6-C1-R3b-4 — the saved pin, so the buyer's-eye preview draws what the door holds. */
   pin?: { lat: number; lng: number; precision: string; street: string | null } | null;
+  /** DEC-079 — the basis option's label in the UI language, or null (no basis). */
+  basisLabel?: string | null;
 }) {
   const { t, entities, language } = useI18n();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
@@ -193,11 +197,24 @@ export function StepReview({
     })
     .join(" · ");
   const priceLine =
-    values.priceMode === "free" || values.priceMode === "contact"
-      ? t(PRICE_MODE_KEYS[values.priceMode] ?? "post.price.modeLabel")
-      : [values.priceCurrency ?? "", values.priceAmount === null ? "" : String(values.priceAmount)]
-          .join(" ")
-          .trim();
+    values.priceMode === "commission"
+      ? values.priceBp === null
+        ? ""
+        : fill(t("price.commission"), { percent: formatCommission(values.priceBp, language) })
+      : values.priceMode === "free" || values.priceMode === "contact"
+        ? t(PRICE_MODE_KEYS[values.priceMode] ?? "post.price.modeLabel")
+        : basisLabel !== null && values.priceAmount !== null
+          ? fill(t("post.review.pricePer"), {
+              amount: String(values.priceAmount),
+              currency: values.priceCurrency ?? "",
+              basis: basisLabel,
+            })
+          : [
+              values.priceCurrency ?? "",
+              values.priceAmount === null ? "" : String(values.priceAmount),
+            ]
+              .join(" ")
+              .trim();
   const channelLine = CHANNEL_KEYS.filter((entry) => {
     const row = values.contactPref[entry.key];
     return (
@@ -316,6 +333,8 @@ export function StepReview({
         priceAmount={values.priceAmount}
         priceCurrency={values.priceCurrency}
         pricePeriod={values.pricePeriod}
+        priceBp={values.priceBp}
+        basisLabel={basisLabel}
         attributes={values.attributes}
         definitions={definitions}
         attributeOptions={attributeOptions}
@@ -349,6 +368,8 @@ export function StepReview({
             priceAmount: values.priceAmount,
             priceCurrency: values.priceCurrency,
             pricePeriod: values.pricePeriod,
+            priceBp: values.priceBp,
+            basisLabel,
             attributes: values.attributes,
             definitions,
             attributeOptions,

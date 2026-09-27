@@ -96,6 +96,8 @@ export interface DraftBody {
   priceAmount?: number | null;
   priceCurrency?: string | null;
   pricePeriod?: string | null;
+  /** DEC-079 — a commission in basis points (1250 = 12.5 %); null otherwise. */
+  priceBp?: number | null;
   posterExpiresAt?: string | null;
   coverage?: string[] | null;
   contactPref?: unknown;
@@ -197,6 +199,8 @@ export interface DraftRow {
   priceAmount: number | null;
   priceCurrency: string | null;
   pricePeriod: string | null;
+  /** DEC-079 — the stored commission in basis points, null for every other mode. */
+  priceBp: number | null;
   /** The stored timestamptz, trimmed to the `YYYY-MM-DD` the date field holds. */
   posterExpiresAt: string | null;
   /** U6-C2b — step 7's stored channels, in `listing_contact_refusals` shape. */
@@ -229,7 +233,7 @@ export async function readDraft(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,poster_expires_at,contact_pref,pin_lat,pin_lng,pin_precision,street_address",
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,poster_expires_at,contact_pref,pin_lat,pin_lng,pin_precision,street_address",
     )
     .eq("id", listingId)
     .maybeSingle();
@@ -271,6 +275,7 @@ export async function readDraft(
       priceAmount: data.price_amount === null ? null : Number(data.price_amount),
       priceCurrency: data.price_currency,
       pricePeriod: data.price_period,
+      priceBp: typeof data.price_bp === "number" ? data.price_bp : null,
       posterExpiresAt:
         typeof data.poster_expires_at === "string" ? data.poster_expires_at.slice(0, 10) : null,
       contactPref:
@@ -469,6 +474,7 @@ export async function readPostingSchema(categoryId: string): Promise<PostingSche
             pricePeriodLocked: block["price_period_locked"] === true,
             expiryDays: int(block, "expiry_days"),
             capabilities,
+            priceBasisKey: str(block, "price_basis_key"),
           },
   };
 }

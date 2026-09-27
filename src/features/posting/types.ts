@@ -95,7 +95,7 @@ export const ASSIST_TRIES = 5;
  * screen, the save body and the tests must all use the same spellings — a fifth
  * mode invented in a component would be refused by the door, not by a type.
  */
-export const PRICE_MODES = ["fixed", "negotiable", "free", "contact"] as const;
+export const PRICE_MODES = ["fixed", "negotiable", "free", "contact", "commission"] as const;
 export const PRICE_PERIODS = ["once", "hour", "day", "week", "month", "year"] as const;
 
 export type PriceMode = (typeof PRICE_MODES)[number];
@@ -116,6 +116,11 @@ export interface CategoryFacts {
   expiryDays: number | null;
   /** DEC-052 — `bookable` / `map_pin`; the pin is a named deferral (see docs). */
   capabilities: string[];
+  /**
+   * DEC-079 / D31 — the ONE pricing-basis attribute key the leaf carries
+   * (`pricing_type…` / `unit_of_sale…`), or null when it carries none or two.
+   */
+  priceBasisKey: string | null;
 }
 
 /** One refusal, exactly as a door or route worded it. Never translated here. */

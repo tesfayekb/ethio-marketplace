@@ -3,11 +3,15 @@ import { Eye, ImageOff, MapPin } from "lucide-react";
 import type { FeedListing } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
+import { formatCommission } from "@/features/posting/price-basis";
 
 function priceLabel(
   listing: FeedListing,
   t: (key: Parameters<ReturnType<typeof useI18n>["t"]>[0]) => string,
 ): string {
+  // DEC-079 (L6) — commission is judged FIRST: its amount is null by law.
+  if (listing.priceMode === "commission" && listing.priceBp !== null)
+    return t("price.commission").replace("{percent}", formatCommission(listing.priceBp));
   if (listing.priceMode === "free") return t("price.free");
   if (listing.priceMode === "negotiable" && listing.priceAmount === null)
     return t("price.negotiable");

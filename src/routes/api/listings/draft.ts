@@ -53,6 +53,11 @@ function step(value: unknown): number {
   return Number.isFinite(parsed) && parsed >= 0 && parsed <= 8 ? parsed : 0;
 }
 
+/** DEC-079 — a whole number (basis points), or null; never coerced to 0. */
+function int(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) ? value : null;
+}
+
 function idList(value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;
   const ids = value.filter((entry): entry is string => typeof entry === "string" && entry !== "");
@@ -115,6 +120,7 @@ async function handlePost(request: Request): Promise<Response> {
     p_poster_expires_at: text(body["posterExpiresAt"]),
     p_coverage: idList(body["coverage"]),
     p_contact_pref: json(body["contactPref"]),
+    p_price_bp: int(body["priceBp"]),
   } as unknown as SubmitArgs;
 
   const { data, error } = await supabase.rpc("submit_listing", args);
