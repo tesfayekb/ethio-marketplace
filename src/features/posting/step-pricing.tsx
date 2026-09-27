@@ -18,7 +18,8 @@ import {
 
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { PRICE_MODES, PRICE_PERIODS, type CategoryFacts, type Refusal } from "./types";
-import { checkNumber, mergeRefusals } from "./validate";
+import { formatCommission, percentToBp, priceShapeFor } from "./price-basis";
+import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
 
 /**
  * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
@@ -50,6 +51,7 @@ const MODE_KEYS: Record<string, MessageKey> = {
   negotiable: "post.price.mode.negotiable",
   free: "post.price.mode.free",
   contact: "post.price.mode.contact",
+  commission: "post.price.mode.commission",
 };
 
 const PERIOD_KEYS: Record<string, MessageKey> = {
@@ -67,6 +69,8 @@ export interface PricingValues {
   priceAmount: number | null;
   priceCurrency: string | null;
   pricePeriod: string | null;
+  /** DEC-079 — a commission in basis points; null for every other mode. */
+  priceBp: number | null;
   /** An ISO date (`YYYY-MM-DD`) or the empty string; step 8 owns this field now. */
   posterExpiresAt: string;
 }
@@ -76,12 +80,18 @@ export function StepPricing({
   values,
   refusals,
   onChange,
+  basisValue = null,
+  basisLabel = null,
 }: {
   /** The category block of the posting read; `null` while it is still loading. */
   facts: CategoryFacts | null;
   values: PricingValues;
   refusals: Refusal[];
   onChange: (patch: Partial<PricingValues>, immediate: boolean) => void;
+  /** DEC-079 — the seller's answer to the leaf's ONE pricing basis, or null. */
+  basisValue?: string | null;
+  /** That answer's option label in the UI language (the token while loading). */
+  basisLabel?: string | null;
 }) {
   const { t, language } = useI18n();
   const currencies = useCurrencies();
@@ -103,15 +113,50 @@ export function StepPricing({
   /** The preselect is resolved ONCE per visit, never re-raced by a re-render. */
   const resolvedRef = useRef(false);
 
-  const locked = facts?.pricePeriodLocked ?? false;
+  /**
+   * DEC-079 / D31 — A BASIS ANSWER DECIDES THE SHAPE. With one, the period is
+   * derived (never chosen) and a forced type is the only type; the door refuses
+   * `periodFollowsBasis` / `modeFollowsBasis` by itself (F3). L5: the basis
+   * outranks the category's DEC-067 lock. No basis → DEC-067 exactly as before.
+   */
+  const basisOn = facts?.priceBasisKey != null && basisValue !== null;
+  const shape = basisOn ? priceShapeFor(basisValue) : null;
+  const forcedMode = shape?.forcedMode ?? null;
+  const derivedPeriod = shape === null ? null : (shape.period ?? facts?.defaultPricePeriod ?? "once");
+  const locked = basisOn || (facts?.pricePeriodLocked ?? false);
   const priceEnabled = facts?.priceEnabled ?? true;
+  const commission = values.priceMode === "commission";
   const amountShown = values.priceMode === "fixed" || values.priceMode === "negotiable";
+  const modes = PRICE_MODES.filter((mode) =>
+    forcedMode !== null
+      ? mode === forcedMode
+      : mode !== "commission" && (mode !== "negotiable" || true),
+  );
 
   /** The period's default comes from the category, written as an ordinary change. */
   useEffect(() => {
-    if (facts === null || values.pricePeriod !== null) return;
+    if (facts === null) return;
+    if (derivedPeriod !== null) {
+      if (values.pricePeriod !== derivedPeriod) onChange({ pricePeriod: derivedPeriod }, false);
+      return;
+    }
+    if (values.pricePeriod !== null) return;
     onChange({ pricePeriod: facts.defaultPricePeriod }, false);
-  }, [facts, values.pricePeriod, onChange]);
+  }, [facts, derivedPeriod, values.pricePeriod, onChange]);
+
+  /** A forced type is written as an ordinary change, clearing what it forbids. */
+  useEffect(() => {
+    if (forcedMode !== null && values.priceMode !== forcedMode) {
+      onChange(
+        forcedMode === "negotiable"
+          ? { priceMode: forcedMode, priceBp: null }
+          : { priceMode: forcedMode, priceAmount: null, priceCurrency: null, priceBp: null },
+        false,
+      );
+    } else if (forcedMode === null && values.priceMode === "commission") {
+      onChange({ priceMode: "fixed", priceBp: null }, false);
+    }
+  }, [forcedMode, values.priceMode, onChange]);
 
   /**
    * U6-C1-R3a-2 — THE CURRENCY PRESELECT, IN ORDER:
@@ -152,7 +197,20 @@ export function StepPricing({
    * than on Next. `submit_listing` remains the authority (F3).
    */
   const [local, setLocal] = useState<Refusal[]>([]);
-  const seen = mergeRefusals(refusals, local);
+  const basisLocal = checkPriceBasis({
+    basisKey: facts?.priceBasisKey ?? null,
+    basisValue,
+    priceMode: values.priceMode,
+    pricePeriod: values.pricePeriod,
+    defaultPeriod: facts?.defaultPricePeriod ?? "once",
+    forcedMode,
+    derivedPeriod,
+  });
+  const seen = mergeRefusals(refusals, [...local, ...basisLocal]);
+  const bpRefusal = refusalFor(seen, "price_bp");
+  const [percentText, setPercentText] = useState(
+    values.priceBp === null ? "" : formatCommission(values.priceBp),
+  );
 
   const modeRefusal = refusalFor(seen, "price_mode");
   const amountRefusal = refusalFor(seen, "price_amount");
@@ -246,7 +304,7 @@ export function StepPricing({
           </span>
         </legend>
         <div className="flex flex-wrap gap-2">
-          {PRICE_MODES.map((mode) => (
+          {modes.map((mode) => (
             <button
               key={mode}
               type="button"
@@ -262,8 +320,8 @@ export function StepPricing({
                   // A mode without a price clears the amount: the door refuses an
                   // amount sent with `free`/`contact`, so it must not linger.
                   mode === "free" || mode === "contact"
-                    ? { priceMode: mode, priceAmount: null }
-                    : { priceMode: mode },
+                    ? { priceMode: mode, priceAmount: null, priceBp: null }
+                    : { priceMode: mode, priceBp: null },
                   true,
                 )
               }
@@ -416,7 +474,11 @@ export function StepPricing({
           {/* -------------------------- 3 · the amount ------------------------ */}
           <Field
             id="post-price-amount"
-            label={t("post.price.amountLabel")}
+            label={
+              basisOn && basisLabel !== null
+                ? fill(t("post.price.amountPer"), { basis: basisLabel })
+                : t("post.price.amountLabel")
+            }
             required={true}
             refusal={amountRefusal}
             hint={
@@ -460,6 +522,35 @@ export function StepPricing({
         </>
       )}
 
+      {/* DEC-079 — a commission is a percentage: no currency, no amount. */}
+      {commission && (
+        <Field
+          id="post-price-commission"
+          label={t("post.price.commissionLabel")}
+          required={true}
+          refusal={bpRefusal}
+          hint={<p className="text-xs text-muted-foreground">{t("post.price.commissionHelp")}</p>}
+        >
+          <input
+            id="post-price-commission"
+            data-testid="post-price-commission"
+            type="number"
+            inputMode="decimal"
+            min={0.01}
+            max={100}
+            step={0.01}
+            className={controlClass(bpRefusal !== null)}
+            value={percentText}
+            onChange={(event) => {
+              const raw = event.target.value;
+              setPercentText(raw);
+              const parsed = raw.trim() === "" ? null : Number(raw);
+              onChange({ priceBp: percentToBp(parsed) }, false);
+            }}
+          />
+        </Field>
+      )}
+
       {/* --------------- 4 · the period, ONLY when it is choosable ------------ */}
       {!locked && (
         <Field
@@ -486,7 +577,16 @@ export function StepPricing({
       {/* DEC-067 — a LOCKED period says nothing here: the buyer reads it on the
           card, and a line the seller cannot act on is only noise. The value
           still travels, so the door never has to guess it. */}
-      {locked && (
+      {basisOn && (
+        <span
+          className="sr-only"
+          data-testid="post-price-period-fixed"
+          data-period={derivedPeriod ?? ""}
+        >
+          {fill(t("post.price.basisFixed"), { basis: basisLabel ?? basisValue ?? "" })}
+        </span>
+      )}
+      {locked && !basisOn && (
         <span
           className="sr-only"
           data-testid="post-price-period-fixed"
