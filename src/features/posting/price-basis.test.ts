@@ -19,10 +19,7 @@ function sqlShapeTable(): Record<string, { forcedMode: string | null; period: st
   if (cases.length !== 2) throw new Error(`expected two CASE arms, found ${cases.length}`);
   const arms = (text: string) =>
     new Map(
-      [...text.matchAll(/WHEN '([^']+)' THEN (NULL|'([^']*)')/g)].map((m) => [
-        m[1],
-        m[3] ?? null,
-      ]),
+      [...text.matchAll(/WHEN '([^']+)' THEN (NULL|'([^']*)')/g)].map((m) => [m[1], m[3] ?? null]),
     );
   const modes = arms(cases[0]);
   const periods = arms(cases[1]);

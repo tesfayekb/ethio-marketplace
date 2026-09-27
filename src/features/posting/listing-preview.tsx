@@ -102,22 +102,22 @@ export function ListingPreview({
         ? t("post.review.noPrice")
         : fill(t("price.commission"), { percent: formatCommission(priceBp, language) })
       : priceMode === "free"
-      ? t("price.free")
-      : priceMode === "contact"
-        ? t("price.contact")
-        : priceAmount === null
-          ? t("post.review.noPrice")
-          : basisLabel !== null
-            ? fill(t("post.review.pricePer"), {
-                amount: priceAmount.toLocaleString(),
-                currency: priceCurrency ?? "",
-                basis: basisLabel,
-              })
-            : fill(t("post.review.priceLine"), {
-              amount: priceAmount.toLocaleString(),
-              currency: priceCurrency ?? "",
-              period: isPeriod(pricePeriod) ? t(PERIOD_KEYS[pricePeriod]) : "",
-            }).trim();
+        ? t("price.free")
+        : priceMode === "contact"
+          ? t("price.contact")
+          : priceAmount === null
+            ? t("post.review.noPrice")
+            : basisLabel !== null
+              ? fill(t("post.review.pricePer"), {
+                  amount: priceAmount.toLocaleString(),
+                  currency: priceCurrency ?? "",
+                  basis: basisLabel,
+                })
+              : fill(t("post.review.priceLine"), {
+                  amount: priceAmount.toLocaleString(),
+                  currency: priceCurrency ?? "",
+                  period: isPeriod(pricePeriod) ? t(PERIOD_KEYS[pricePeriod]) : "",
+                }).trim();
 
   const shown = (["phone", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = contactPref[channel];

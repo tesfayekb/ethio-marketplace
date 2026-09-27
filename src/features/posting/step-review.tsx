@@ -209,7 +209,10 @@ export function StepReview({
               currency: values.priceCurrency ?? "",
               basis: basisLabel,
             })
-          : [values.priceCurrency ?? "", values.priceAmount === null ? "" : String(values.priceAmount)]
+          : [
+              values.priceCurrency ?? "",
+              values.priceAmount === null ? "" : String(values.priceAmount),
+            ]
               .join(" ")
               .trim();
   const channelLine = CHANNEL_KEYS.filter((entry) => {

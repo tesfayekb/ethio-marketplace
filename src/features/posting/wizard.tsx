@@ -160,9 +160,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   }, [basisDef]);
 
   const basisValue =
-    facts?.priceBasisKey != null
-      ? basisToken(draft.values.attributes[facts.priceBasisKey])
-      : null;
+    facts?.priceBasisKey != null ? basisToken(draft.values.attributes[facts.priceBasisKey]) : null;
   /** The answer's label in the UI language; the token itself while loading. */
   const basisLabel =
     basisValue === null

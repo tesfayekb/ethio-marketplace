@@ -118,22 +118,22 @@ export function ListingDetail(view: ListingDetailView) {
         ? t("post.review.noPrice")
         : fill(t("price.commission"), { percent: formatCommission(view.priceBp) })
       : view.priceMode === "free"
-      ? t("price.free")
-      : view.priceMode === "contact"
-        ? t("price.contact")
-        : view.priceAmount === null
-          ? t("post.review.noPrice")
-          : view.basisLabel != null
-            ? fill(t("post.review.pricePer"), {
-                amount: view.priceAmount.toLocaleString(),
-                currency: view.priceCurrency ?? "",
-                basis: view.basisLabel,
-              })
-            : fill(t("post.review.priceLine"), {
-              amount: view.priceAmount.toLocaleString(),
-              currency: view.priceCurrency ?? "",
-              period: isPeriod(view.pricePeriod) ? t(PERIOD_KEYS[view.pricePeriod]) : "",
-            }).trim();
+        ? t("price.free")
+        : view.priceMode === "contact"
+          ? t("price.contact")
+          : view.priceAmount === null
+            ? t("post.review.noPrice")
+            : view.basisLabel != null
+              ? fill(t("post.review.pricePer"), {
+                  amount: view.priceAmount.toLocaleString(),
+                  currency: view.priceCurrency ?? "",
+                  basis: view.basisLabel,
+                })
+              : fill(t("post.review.priceLine"), {
+                  amount: view.priceAmount.toLocaleString(),
+                  currency: view.priceCurrency ?? "",
+                  period: isPeriod(view.pricePeriod) ? t(PERIOD_KEYS[view.pricePeriod]) : "",
+                }).trim();
 
   const channels = (["phone", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = view.contactPref[channel];

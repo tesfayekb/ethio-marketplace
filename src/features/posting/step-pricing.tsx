@@ -122,7 +122,8 @@ export function StepPricing({
   const basisOn = facts?.priceBasisKey != null && basisValue !== null;
   const shape = basisOn ? priceShapeFor(basisValue) : null;
   const forcedMode = shape?.forcedMode ?? null;
-  const derivedPeriod = shape === null ? null : (shape.period ?? facts?.defaultPricePeriod ?? "once");
+  const derivedPeriod =
+    shape === null ? null : (shape.period ?? facts?.defaultPricePeriod ?? "once");
   const locked = basisOn || (facts?.pricePeriodLocked ?? false);
   const priceEnabled = facts?.priceEnabled ?? true;
   const commission = values.priceMode === "commission";
