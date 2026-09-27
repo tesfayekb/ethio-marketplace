@@ -4,7 +4,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   basisNoun,
-  formatCommission, percentToBp, PRICE_BASIS_SHAPE, priceShapeFor } from "./price-basis";
+  formatCommission,
+  percentToBp,
+  PRICE_BASIS_SHAPE,
+  priceShapeFor,
+} from "./price-basis";
 
 /**
  * DEC-079 / D31 — SELF-DESCRIPTION CONSISTENCY (governance §11): the client's

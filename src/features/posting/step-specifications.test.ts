@@ -19,9 +19,7 @@ describe("firstSentence (INC-294)", () => {
   });
 
   it("ends on the Amharic full stop", () => {
-    expect(firstSentence("ሜሞሪ (ራም)። በቅንብሮች › ስለ ስልኩ ሥር ወይም በሳጥኑ ላይ ያገኙታል።").head).toBe(
-      "ሜሞሪ (ራም)።",
-    );
+    expect(firstSentence("ሜሞሪ (ራም)። በቅንብሮች › ስለ ስልኩ ሥር ወይም በሳጥኑ ላይ ያገኙታል።").head).toBe("ሜሞሪ (ራም)።");
   });
 
   it("keeps a single sentence whole", () => {
