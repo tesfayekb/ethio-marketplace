@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 312,
+  "scanned": 313,
   "dynamicCallSites": 205,
   "keys": {
     "account.deactivatedBanner": [
@@ -3724,11 +3724,27 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.price.amountPer": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.price.amountPlaceholder": [
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountShown": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.basisFixed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.commissionHelp": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.commissionLabel": [
       "/post",
       "/post/$listingId"
     ],
@@ -3858,6 +3874,10 @@
       "/post/$listingId"
     ],
     "post.review.priceLine": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.pricePer": [
       "/post",
       "/post/$listingId"
     ],
@@ -4231,6 +4251,12 @@
       "/post/$listingId"
     ],
     "post.who.why": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "price.commission": [
+      "/",
+      "/c/$slug",
       "/post",
       "/post/$listingId"
     ],
