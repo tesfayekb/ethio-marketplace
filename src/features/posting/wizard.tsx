@@ -24,7 +24,7 @@ import { StepSpecifications } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
-import { basisToken } from "./price-basis";
+import { basisNoun, basisToken } from "./price-basis";
 import { readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
 import { useDraft } from "./use-draft";
 import {
@@ -167,7 +167,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       ? null
       : (() => {
           const found = basisOptions?.find((option) => option.value === basisValue);
-          return found === undefined ? basisValue : optionLabel(found, language);
+          // INC-297 — the NOUN, derived once here: templates keep their own "per".
+          return found === undefined ? basisValue : basisNoun(optionLabel(found, language));
         })();
 
   const current = STEPS[draft.step - 1] ?? STEPS[0];
@@ -537,6 +538,12 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                         </button>
                       ) : null}
                     </div>
+                    {/* D58 — a Next whose save never reached the door says so HERE. */}
+                    {draft.nextBlockedByTransport && (
+                      <p data-testid="post-next-unreachable" className="text-sm text-destructive">
+                        {t("post.save.unsaved")}
+                      </p>
+                    )}
                     {needsLeaf && (
                       <p className="text-xs text-muted-foreground" data-testid="post-next-blocked">
                         {t("post.category.nextBlocked")}

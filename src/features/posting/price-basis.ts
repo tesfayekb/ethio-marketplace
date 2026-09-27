@@ -76,3 +76,24 @@ export function percentToBp(percent: number | null): number | null {
   if (percent === null || !Number.isFinite(percent)) return null;
   return Math.round(percent * 100);
 }
+
+/**
+ * INC-297 — THE BASIS LABEL ALREADY SAYS "PER". An option label such as
+ * "Per Kg" / "በኪሎ" carries its own preposition, and every template adds one
+ * ("Price per {basis}", "ዋጋ በ{basis}"). The noun is the label with ONE leading
+ * "Per " (any case, any whitespace) or ONE leading "በ" removed; a label with
+ * neither ("Fixed Price (per job)", "Commission (%)") has no noun: `null`.
+ */
+export function basisNoun(label: string): string | null {
+  const trimmed = label.trim();
+  const en = /^per\s+/i.exec(trimmed);
+  if (en !== null) {
+    const noun = trimmed.slice(en[0].length).trim();
+    return noun === "" ? null : noun;
+  }
+  if (trimmed.startsWith("በ")) {
+    const noun = trimmed.slice(1).trim();
+    return noun === "" ? null : noun;
+  }
+  return null;
+}
