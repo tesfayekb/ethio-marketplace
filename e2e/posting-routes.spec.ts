@@ -167,7 +167,8 @@ test.describe("POSTING ROUTES", () => {
       field: "price_mode",
       reason: "commissionNotOffered",
     });
-    // 20000 bp (200 %) — the door's own answer, named: the CHECK is the ceiling.
+    // 20000 bp (200 %) — the CHECK is the ceiling; INC-301 maps its violation to
+    // the seller's own refusal, named (never the raw constraint text).
     const over = await postRoute(
       page,
       DRAFT,
@@ -184,12 +185,11 @@ test.describe("POSTING ROUTES", () => {
     );
     expect(over.status, JSON.stringify(over.payload)).toBe(200);
     expect(over.payload["ok"], JSON.stringify(over.payload)).toBe(false);
-    const door = reasonsOf(over.payload);
-    expect(
-      door.map((entry) => entry.field),
-      JSON.stringify(over.payload),
-    ).toContain("door");
-    expect(JSON.stringify(over.payload)).toContain("listings_price_bp_check");
+    expect(reasonsOf(over.payload), JSON.stringify(over.payload)).toContainEqual({
+      field: "price_bp",
+      reason: "commissionRange",
+    });
+    expect(JSON.stringify(over.payload)).not.toContain("listings_price_bp_check");
   });
 
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
