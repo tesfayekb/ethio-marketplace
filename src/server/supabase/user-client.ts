@@ -142,6 +142,8 @@ export function envDial(name: string, fallback: number): number {
 export interface RateVerdict {
   allowed: boolean;
   resetsAt: string | null;
+  /** INC-299 — the RPC's own count left after this call; null when absent. */
+  remaining: number | null;
 }
 
 /**
@@ -162,9 +164,13 @@ export async function consumeRate(
     p_window: window,
   });
   if (error) throw new Error(`rate limit ${action}: ${error.message}`);
-  const verdict = (data ?? {}) as { allowed?: unknown; resets_at?: unknown };
+  const verdict = (data ?? {}) as { allowed?: unknown; resets_at?: unknown; remaining?: unknown };
   return {
     allowed: verdict.allowed === true,
     resetsAt: typeof verdict.resets_at === "string" ? verdict.resets_at : null,
+    remaining:
+      typeof verdict.remaining === "number" && Number.isFinite(verdict.remaining)
+        ? verdict.remaining
+        : null,
   };
 }

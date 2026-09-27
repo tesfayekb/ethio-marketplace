@@ -26,7 +26,23 @@ import { MobileStepStrip } from "./mobile-step-strip";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { basisNoun, basisToken } from "./price-basis";
 import { readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
-import { useDraft } from "./use-draft";
+import { useDraft, type DraftValues } from "./use-draft";
+
+/** D59 — the fields a category change resets, and Undo restores. */
+type CategoryResetSnapshot = Pick<
+  DraftValues,
+  | "categoryId"
+  | "attributes"
+  | "title"
+  | "description"
+  | "videoUrl"
+  | "priceMode"
+  | "priceAmount"
+  | "priceCurrency"
+  | "pricePeriod"
+  | "priceBp"
+>;
+const RESET_UNDO_MS = 10_000;
 import {
   IMPLEMENTED_THROUGH,
   SEQUENCE,
@@ -106,8 +122,18 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    * touched: a picture can still be right. They are only FLAGGED, because the fit
    * rule runs again at publish (D21) and a seller warned once is not ambushed.
    */
-  const [droppedFields, setDroppedFields] = useState<string[]>([]);
+  /**
+   * D59 — A CATEGORY CHANGE RESETS EVERYTHING THE CATEGORY SHAPES, WITH UNDO.
+   * The snapshot is the draft as it stood before the change; the offer lives for
+   * ten seconds and is shown on the specifications step only.
+   */
+  const [resetOffer, setResetOffer] = useState<CategoryResetSnapshot | null>(null);
   const [photosNeedRecheck, setPhotosNeedRecheck] = useState(false);
+  useEffect(() => {
+    if (resetOffer === null) return;
+    const timer = window.setTimeout(() => setResetOffer(null), RESET_UNDO_MS);
+    return () => window.clearTimeout(timer);
+  }, [resetOffer]);
   /** R-YEAR STEP 5 — the notice is read once and can be put away. */
   const [noticeDismissed, setNoticeDismissed] = useState(false);
   const categoryId = draft.values.categoryId;
@@ -416,26 +442,42 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                * the answers that did not travel with them (F4: nothing vanishes in
                * silence), and a way to put it away once read.
                */}
-              {(droppedFields.length > 0 || (photosNeedRecheck && draft.step === 2)) &&
+              {((resetOffer !== null && draft.step === 3) ||
+                (photosNeedRecheck && draft.step === 2)) &&
                 !noticeDismissed && (
                   <div
                     className="space-y-1 rounded-md border border-border bg-muted p-3"
                     data-testid="post-category-changed"
                   >
-                    {droppedFields.length > 0 && (
+                    {resetOffer !== null && draft.step === 3 && (
                       <p
                         className="flex flex-wrap items-center gap-2 text-sm text-foreground"
                         data-testid="post-category-dropped"
                       >
                         <span>
-                          {fill(t("post.category.changedCleared"), {
+                          {fill(t("post.category.changedReset"), {
                             category:
                               chosenCategory === null
                                 ? ""
                                 : entityName("category", chosenCategory, entities),
-                            fields: droppedFields.join(", "),
                           })}
                         </span>
+                        <button
+                          type="button"
+                          className="min-h-11 font-medium text-primary underline"
+                          data-testid="post-category-reset-undo"
+                          onClick={() => {
+                            const snapshot = resetOffer;
+                            setResetOffer(null);
+                            setPhotosNeedRecheck(false);
+                            draft.change(snapshot, false);
+                            void draft.rewindTo(1).then((saved) => {
+                              if (saved) draft.goTo(3);
+                            });
+                          }}
+                        >
+                          {t("post.specs.resetUndo")}
+                        </button>
                         <button
                           type="button"
                           className="min-h-11 font-medium text-primary underline"
@@ -585,9 +627,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             setTriedWithoutLeaf(false);
                             setNoticeDismissed(false);
                             const previous = draft.values.categoryId;
-                            const answered = Object.keys(draft.values.attributes).length > 0;
-                            if (previous === null || previous === nextCategoryId || !answered) {
-                              setDroppedFields([]);
+                            if (previous === null || previous === nextCategoryId) {
+                              setResetOffer(null);
                               setPhotosNeedRecheck(false);
                               draft.change({ categoryId: nextCategoryId }, true);
                               void draft.saveAt(1).then((saved) => {
@@ -595,64 +636,44 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                               });
                               return;
                             }
-                            // A REAL CHANGE ON A WRITTEN DRAFT: the two schemas are
-                            // read (the old one only to LABEL what is leaving), the
-                            // orphans are dropped, and the specifications step is
-                            // reopened on the answers that remain.
+                            // D59 — A REAL CHANGE: every answer the category shapes is
+                            // reset in ONE change (INC-248's chosen-option drop is
+                            // subsumed), photos, place and contact are left alone, and
+                            // the old values are held for Undo.
+                            const v = draft.values;
+                            setResetOffer({
+                              categoryId: v.categoryId,
+                              attributes: v.attributes,
+                              title: v.title,
+                              description: v.description,
+                              videoUrl: v.videoUrl,
+                              priceMode: v.priceMode,
+                              priceAmount: v.priceAmount,
+                              priceCurrency: v.priceCurrency,
+                              pricePeriod: v.pricePeriod,
+                              priceBp: v.priceBp,
+                            });
+                            setPhotosNeedRecheck(draft.photos.length > 0);
+                            draft.change(
+                              {
+                                categoryId: nextCategoryId,
+                                attributes: {},
+                                title: "",
+                                description: "",
+                                videoUrl: "",
+                                priceMode: "fixed",
+                                priceAmount: null,
+                                priceCurrency: null,
+                                pricePeriod: null,
+                                priceBp: null,
+                              },
+                              false,
+                            );
                             void (async () => {
-                              const [before, after] = await Promise.all([
-                                readPostingSchema(previous),
-                                readPostingSchema(nextCategoryId),
-                              ]);
-                              const allowed = new Set(
-                                (after?.attributes ?? []).map((entry) => entry.attrKey),
-                              );
-                              const kept: Record<string, unknown> = {};
-                              const lost: string[] = [];
-                              let refolded = false;
-                              for (const [key, value] of Object.entries(draft.values.attributes)) {
-                                const afterDef =
-                                  (after?.attributes ?? []).find(
-                                    (entry) => entry.attrKey === key,
-                                  ) ?? null;
-                                /**
-                                 * INC-248 — A CHOSEN OPTION BELONGS TO THE CATEGORY IT WAS
-                                 * CHOSEN IN. A picker with the same key under the new
-                                 * category offers the new category's own list, so carrying
-                                 * the old answer over left the brand, series and model
-                                 * pickers holding values the new list may not even contain
-                                 * — a value the seller could not see and could not clear.
-                                 * Every chosen option is dropped here, so the pickers open
-                                 * on "Choose" both in the draft and on screen. Typed
-                                 * answers a new field still asks for travel as before.
-                                 */
-                                if (
-                                  afterDef !== null &&
-                                  (afterDef.attrType === "single_select" ||
-                                    afterDef.attrType === "multi_select")
-                                ) {
-                                  refolded = true;
-                                  continue;
-                                }
-                                if (afterDef !== null && allowed.has(key)) {
-                                  kept[key] = value;
-                                  continue;
-                                }
-                                const definition = (before?.attributes ?? []).find(
-                                  (entry) => entry.attrKey === key,
-                                );
-                                lost.push(definition?.nameEn ?? key);
-                              }
-                              setDroppedFields(lost);
-                              setPhotosNeedRecheck(draft.photos.length > 0);
-                              draft.change({ categoryId: nextCategoryId, attributes: kept }, false);
                               // REWIND, not `saveAt`: the claim must come DOWN to
-                              // step 1, or the save is judged at step 3 against a
-                              // schema the remaining answers cannot satisfy and the
-                              // orphans are never dropped (see `rewindTo`).
+                              // step 1 (see `rewindTo`).
                               const saved = await draft.rewindTo(1);
-                              // D39 — specifications come next in every branch;
-                              // the photos notice waits for the photos step.
+                              // D39 — specifications come next in every branch.
                               if (saved) draft.goTo(3);
                             })();
                           }}

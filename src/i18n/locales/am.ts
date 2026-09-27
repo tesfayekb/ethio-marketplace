@@ -2130,7 +2130,8 @@ export const am: Messages = {
   "post.action.backToReview": "ወደ ማጠቃለያው ተመለስ",
   "post.progress.stripLabel": "ደረጃዎች",
   "post.progress.stepNumber": "ደረጃ {step}",
-  "post.category.changedCleared": "አንዳንድ መልሶች ለ{category} አይሠሩም፤ ተጠርገዋል፦ {fields}",
+  "post.category.changedReset":
+    "ምድቡ ወደ {category} ተቀይሯል — ዝርዝሮች፣ ርዕስ፣ መግለጫና ዋጋ ተጠርገዋል። ፎቶዎች፣ ቦታና አድራሻ እንደነበሩ ናቸው።",
   "post.category.changedDismiss": "ዝጋ",
   "post.category.changedPhotos": "ከመለጠፍዎ በፊት ፎቶዎችዎን ከአዲሱ ምድብ ጋር ያመሳክሩ።",
   "post.specs.setByModel": "በሞዴሉ የተወሰነ — ሞዴሉ የሚፈቅደው መልስ ይህ ብቻ ነው።",

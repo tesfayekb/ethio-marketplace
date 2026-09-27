@@ -2226,10 +2226,9 @@ export const en = {
   "post.action.backToReview": "Back to review",
   "post.progress.stripLabel": "Steps",
   "post.progress.stepNumber": "Step {step}",
-  // D5 — R-YEAR STEP 5 rewords the cleared-answers notice, so it is a NEW key; the
-  // title and the old sentence are retired with the two-line notice they belonged to.
-  "post.category.changedCleared":
-    "Some answers didn’t apply to {category} and were cleared: {fields}",
+  // D59 — a category change resets the category-shaped answers; changedCleared retired.
+  "post.category.changedReset":
+    "Category changed to {category} — details, title, description and price were cleared. Photos, place and contact stay.",
   "post.category.changedDismiss": "Dismiss",
   "post.category.changedPhotos": "Check your photos against the new category before you publish.",
   "post.specs.setByModel": "Set by the model — this is the only answer it allows.",

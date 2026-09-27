@@ -797,10 +797,11 @@ test.describe("POSTING WIZARD", () => {
     // specifications step is reopened.
     const notice = page.getByTestId("post-category-changed");
     await expect(notice, "PW-26: a category change said nothing").toBeVisible({ timeout: 20_000 });
+    // D59 — the change resets every category-shaped answer and says so in one line.
     await expect(
       page.getByTestId("post-category-dropped"),
-      "PW-26: the dropped detail was not named",
-    ).toContainText(spec.text.nameEn);
+      "PW-26: the reset was not said",
+    ).toContainText("details, title, description and price were cleared");
     // D39 — the jump lands on SPECIFICATIONS; the photos notice (none here)
     // belongs to the photos step.
     await expect(
@@ -1157,6 +1158,123 @@ test.describe("POSTING WIZARD", () => {
     await expect(said).toHaveCount(0);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
+  });
+
+  /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
+  async function answeredThenMoved(page: Page) {
+    const user = await seller(page);
+    const first = await leaf();
+    // Both leaves exist before the catalogue is read (see PW-26).
+    const second = await leaf();
+    const spec = await seedSpecSet(first.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    const listingId = await reachStep3(page, user.id, first);
+    const typed = specControl(page, spec.text.attrKey);
+    await typed.fill("e2e d59 typed detail");
+    const picker = specControl(page, spec.select.attrKey);
+    await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+    await picker.selectOption(spec.optionValues[0] ?? "");
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e d59 title");
+    await page.getByTestId("post-description").fill("e2e d59 description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-price-mode-fixed").click();
+    await page.getByTestId("post-price-amount").fill("4100");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    await expect
+      .poll(async () => (await pricingOf(listingId)).amount, {
+        message: "PW-61: the amount never reached the draft",
+      })
+      .toBe(4100);
+
+    // Back to step 1 (6 → 5 → 4 → 2 → 3 → 1), then leaf B.
+    for (let hop = 0; hop < 5; hop += 1) await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await chooseBySearch(page, second.slug, second.id, false);
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-category-reset-undo"),
+      "PW-61: the reset offered no Undo",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-category-dropped")).toContainText(
+      "details, title, description and price were cleared",
+    );
+    // DB TRUTH (J4): the reset reached the draft — no detail, title, description or amount.
+    await expect
+      .poll(async () => Object.keys(await attributesOf(listingId)).length, {
+        message: "PW-61: a detail survived the reset",
+      })
+      .toBe(0);
+    return { listingId, first, spec, typedValue: "e2e d59 typed detail" };
+  }
+
+  test("PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59)", async ({
+    page,
+  }) => {
+    const { listingId, first, spec, typedValue } = await answeredThenMoved(page);
+
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(page.getByTestId("post-title"), "PW-61: the title survived").toHaveValue("");
+    await expect(
+      page.getByTestId("post-description"),
+      "PW-61: the description survived",
+    ).toHaveValue("");
+    await expect
+      .poll(async () => (await pricingOf(listingId)).amount, {
+        message: "PW-61: the amount survived the reset",
+      })
+      .toBe(null);
+
+    // Back to specifications within the ten seconds, then Undo.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await page.getByTestId("post-category-reset-undo").click();
+
+    await expect(page.getByTestId("post-category-chip-path")).toContainText(first.slug, {
+      timeout: 20_000,
+    });
+    await specsSettled(page);
+    await expect(specControl(page, spec.text.attrKey), "PW-61: Undo lost the detail").toHaveValue(
+      typedValue,
+    );
+    await expect
+      .poll(async () => (await textOf(listingId)).title, {
+        message: "PW-61: Undo did not restore the title",
+      })
+      .toBe("e2e d59 title");
+    expect((await textOf(listingId)).description, "PW-61: Undo lost the description").toBe(
+      "e2e d59 description",
+    );
+    await expect
+      .poll(async () => (await pricingOf(listingId)).amount, {
+        message: "PW-61: Undo did not restore the amount",
+      })
+      .toBe(4100);
+    expect((await attributesOf(listingId))[spec.text.attrKey]).toBe(typedValue);
+  });
+
+  test("PW-61 after ten seconds the Undo is gone and the reset stands (D59)", async ({ page }) => {
+    const { listingId } = await answeredThenMoved(page);
+    await expect(
+      page.getByTestId("post-category-reset-undo"),
+      "PW-61: the Undo outlived ten seconds",
+    ).toHaveCount(0, { timeout: 15_000 });
+    const text = await textOf(listingId);
+    expect(text.title ?? "", "PW-61: the title came back").toBe("");
+    expect((await pricingOf(listingId)).amount, "PW-61: the amount came back").toBe(null);
   });
 
   test("LY-6 at 360 the open currency list is above the sticky action bar", async ({

@@ -3436,15 +3436,15 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.category.changedCleared": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.category.changedDismiss": [
       "/post",
       "/post/$listingId"
     ],
     "post.category.changedPhotos": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.changedReset": [
       "/post",
       "/post/$listingId"
     ],

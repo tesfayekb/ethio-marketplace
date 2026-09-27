@@ -735,16 +735,31 @@ interface Bucket {
   inFlight: boolean;
   /** Preview timestamps per family: one family's budget is not another's. */
   previews: Record<string, number[]>;
+  /** INC-298 — the last time this bucket was asked for. */
+  lastSeen: number;
 }
 
 const buckets = new Map<string, Bucket>();
+/** INC-298 — a bucket idle for longer than this is pruned. */
+export const BUCKET_IDLE_MS = 60 * 60 * 1000;
 
-function bucketFor(userId: string): Bucket {
+export function bucketFor(userId: string, now: number = Date.now()): Bucket {
+  for (const [key, bucket] of buckets) {
+    if (key !== userId && now - bucket.lastSeen > BUCKET_IDLE_MS) buckets.delete(key);
+  }
   const existing = buckets.get(userId);
-  if (existing !== undefined) return existing;
-  const created: Bucket = { inFlight: false, previews: {} };
+  if (existing !== undefined) {
+    existing.lastSeen = now;
+    return existing;
+  }
+  const created: Bucket = { inFlight: false, previews: {}, lastSeen: now };
   buckets.set(userId, created);
   return created;
+}
+
+/** INC-298 — test seam: whether a bucket is currently held. */
+export function hasBucket(userId: string): boolean {
+  return buckets.has(userId);
 }
 
 export function releaseSlot(userId: string): void {

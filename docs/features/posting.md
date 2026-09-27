@@ -993,3 +993,9 @@ The wizard owns the category filter term beside the tree cursor. Back, in order:
 - **INC-294** — `firstSentence` does not end a sentence after e.g / i.e / etc / vs / approx / cf; Amharic `።` is unchanged.
 - **INC-301** — commission mode refuses an empty percentage (`price_bp` · `required` → "Enter your commission percentage.") and a value outside 1–10000 bp (`commissionRange`). The draft route maps the door's `listings_price_bp_check` error to `{ field: "price_bp", reason: "commissionRange" }`; every other door error is unchanged.
 - **D58** — `useDraft.nextBlockedByTransport` is set by a strict (Next) save that ended unreachable and cleared by the next successful save or an edit; the wizard shows the "Not saved yet" caption under the Back/Next row (`post-next-unreachable`).
+
+## D59 — a category change resets the category-shaped answers, with Undo (2026-09-27)
+
+Choosing a different leaf on a draft resets, in one change, every answer the category shapes: all details (typed ones included — INC-248's chosen-option drop is subsumed), title, description, video link and price (mode back to the fresh-draft `fixed`, amount/currency/period/commission cleared). Photos, place and contact are never touched. One sentence (`post.category.changedReset`) with an Undo button (`post-category-reset-undo`, key `post.specs.resetUndo`) shows on the specifications step; the offer lives ten seconds from the change. Undo restores the snapshot (previous category included) in one change, then rewinds to step 1 and reopens specifications. `post.category.changedCleared` is retired.
+
+INC-299 — the assist route's `triesLeft` is the `remaining` count of `consume_rate_limit`'s own answer; the route no longer reads `rate_limits`. INC-298 hygiene: the options cache is capped at 512 entries (least recently checked evicted), and import rate buckets idle over an hour are pruned.

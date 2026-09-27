@@ -269,14 +269,8 @@ async function handlePost(request: Request): Promise<Response> {
       ASSIST_WINDOW,
     );
     if (!budget.allowed) return refusal("assist", "assistBudgetSpent");
-    const { data: spent } = await supabase
-      .from("rate_limits")
-      .select("count")
-      .eq("action", "assist:listing")
-      .eq("key", listingId)
-      .maybeSingle();
-    const used = typeof spent?.count === "number" ? spent.count : null;
-    triesLeft = used === null ? null : Math.max(0, ASSIST_TRIES - used);
+    // INC-299 — the count comes from the rate-limit answer, never a table read.
+    triesLeft = budget.remaining;
   }
 
   const facts = factLines(body["attrs"], body["photoFacts"]);

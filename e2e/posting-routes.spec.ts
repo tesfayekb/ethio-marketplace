@@ -245,10 +245,26 @@ test.describe("POSTING ROUTES", () => {
     const { token } = await seller(page);
     const cat = await category();
 
+    // INC-299 — tries-left comes from the rate-limit answer. A draft gives the
+    // assist call a listing, so the per-listing budget is spent and counted.
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      { step: 1, categoryId: cat.id },
+      { token, country: "ET" },
+    );
+    const listingId = String(draft.payload["listing_id"] ?? "");
+    expect(listingId, "PR-5: the draft door made no listing").not.toBe("");
+
     const answer = await postRoute(
       page,
       ASSIST,
-      { categoryId: cat.id, locale: "en", attrs: { colour: "blue", size: "42" } },
+      {
+        categoryId: cat.id,
+        locale: "en",
+        attrs: { colour: "blue", size: "42" },
+        listingId,
+      },
       { token, country: "ET" },
     );
     expect(answer.status).toBe(200);
@@ -266,6 +282,7 @@ test.describe("POSTING ROUTES", () => {
     expect(title.length).toBeLessThanOrEqual(120);
     expect(description.length).toBeGreaterThan(0);
     expect(description.length).toBeLessThanOrEqual(1200);
+    expect(answer.payload["triesLeft"], "PR-5: the first try did not leave four").toBe(4);
   });
 
   test("PR-6 the options route is ETag'd: a conditional repeat costs a 304", async ({ page }) => {

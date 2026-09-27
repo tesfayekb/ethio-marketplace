@@ -8,7 +8,14 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { normalizeOptionsCell, optionShapeFault, splitOptionSegments } from "./gate";
+import {
+  BUCKET_IDLE_MS,
+  bucketFor,
+  hasBucket,
+  normalizeOptionsCell,
+  optionShapeFault,
+  splitOptionSegments,
+} from "./gate";
 
 const twoTone =
   '{"value":"black_tan","label_en":"Black | Tan","swatch":"#000000|#8B5A2B"}|{"value":"white","label_en":"White","swatch":"#FFFFFF"}';
@@ -50,5 +57,17 @@ describe("the options cell reads and round-trips", () => {
 
   it("still refuses a swatch that is not text", () => {
     expect(optionShapeFault('{"value":"a","swatch":123}|{"value":"b"}')).not.toBeNull();
+  });
+});
+
+describe("INC-298 — idle rate buckets are pruned", () => {
+  it("drops a bucket idle past an hour on the next bucketFor", () => {
+    const start = 1_000_000;
+    bucketFor("inc298-old", start);
+    bucketFor("inc298-fresh", start + BUCKET_IDLE_MS);
+    expect(hasBucket("inc298-old")).toBe(true);
+    bucketFor("inc298-fresh", start + BUCKET_IDLE_MS + 1);
+    expect(hasBucket("inc298-old")).toBe(false);
+    expect(hasBucket("inc298-fresh")).toBe(true);
   });
 });

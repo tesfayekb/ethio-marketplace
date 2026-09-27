@@ -45,6 +45,24 @@ interface CacheEntry {
 }
 
 const cache = new Map<string, CacheEntry>();
+/** INC-298 — the cache is bounded; when full, the least recently checked entry leaves. */
+const CACHE_MAX = 512;
+
+function remember(id: string, entry: CacheEntry): void {
+  cache.delete(id);
+  if (cache.size >= CACHE_MAX) {
+    let oldestId: string | null = null;
+    let oldestAt = Number.POSITIVE_INFINITY;
+    for (const [key, value] of cache) {
+      if (value.checkedAt < oldestAt) {
+        oldestAt = value.checkedAt;
+        oldestId = key;
+      }
+    }
+    if (oldestId !== null) cache.delete(oldestId);
+  }
+  cache.set(id, entry);
+}
 
 function logRouteError(id: string, error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
@@ -106,7 +124,7 @@ async function handleGet(request: Request, id: string): Promise<Response> {
   // second read is paid for.
   if (hit && hit.etag === `"attr-options-${stamp}"`) {
     const entry: CacheEntry = { ...hit, checkedAt: now };
-    cache.set(id, entry);
+    remember(id, entry);
     return respond(request, entry);
   }
 
@@ -121,7 +139,7 @@ async function handleGet(request: Request, id: string): Promise<Response> {
     body: JSON.stringify(data ?? { options: [], version: stamp }),
     checkedAt: now,
   };
-  cache.set(id, entry);
+  remember(id, entry);
   return respond(request, entry);
 }
 
