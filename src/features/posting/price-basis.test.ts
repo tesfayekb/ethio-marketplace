@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { describe, expect, it } from "vitest";
 import { formatCommission, percentToBp, PRICE_BASIS_SHAPE, priceShapeFor } from "./price-basis";
 
 /**
