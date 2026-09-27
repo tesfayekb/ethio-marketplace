@@ -1030,7 +1030,9 @@ test.describe("POSTING WIZARD", () => {
   }
 
   const reviewPrice = (page: Page) =>
-    page.locator('[data-testid="post-review-section"][data-step="5"] [data-testid="post-review-value"]');
+    page.locator(
+      '[data-testid="post-review-section"][data-step="5"] [data-testid="post-review-value"]',
+    );
 
   test("PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages", async ({
     page,
@@ -1073,7 +1075,10 @@ test.describe("POSTING WIZARD", () => {
     const amountLabel = page.locator('label[for="post-price-amount"]');
     await expect(amountLabel).toContainText(`Price per ${basis.labels["hourly"]}`);
     await expect(page.getByTestId("post-price-period")).toHaveCount(0);
-    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute("data-period", "hour");
+    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute(
+      "data-period",
+      "hour",
+    );
 
     // Back to specifications (via details and photos), change the basis, return.
     await page.getByTestId("post-back").click();
@@ -1103,7 +1108,10 @@ test.describe("POSTING WIZARD", () => {
     const { category, basis } = await basisLeaf();
     const listingId = await reachPricingWithBasis(page, user.id, category, basis, "per_quintal");
 
-    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute("data-period", "once");
+    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute(
+      "data-period",
+      "once",
+    );
     await page.getByTestId("post-price-amount").fill("3200");
     await pricingToReview(page);
     await expect

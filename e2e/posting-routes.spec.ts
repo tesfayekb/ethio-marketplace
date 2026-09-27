@@ -15,6 +15,8 @@ import {
   reasonsOf,
   seedFinderLeaf,
   seedPostableCategory,
+  seedBasisSet,
+  destroySpecSet,
   statusOf,
 } from "./helpers/posting";
 
@@ -40,11 +42,14 @@ const CATALOG_FIND = "/api/catalog/find";
 test.describe("POSTING ROUTES", () => {
   const categories: string[] = [];
   const sellers: string[] = [];
+  const specs: string[] = [];
 
   test.afterEach(async () => {
     // J3 — an afterEach hook survives a body timeout; a `finally` inside the body
     // does not, and that is how markets leaked in INC-218.
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
+    // Links first: a category cannot be deleted while a definition link points at it.
+    await destroySpecSet(specs.splice(0));
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
   });
 
@@ -118,6 +123,73 @@ test.describe("POSTING ROUTES", () => {
       reasonsOf(answer.payload).map((entry) => entry.field),
       JSON.stringify(answer.payload),
     ).toContain("price_amount");
+  });
+
+  test("PR-10 a pricing basis is the door's own refusal by name, at status 200 (DEC-079)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const basis = await seedBasisSet(cat.id);
+    specs.push(basis.basisKey, basis.identityKey);
+
+    const ask = async (token_: string, price: Record<string, unknown>) => {
+      const answer = await postRoute(
+        page,
+        DRAFT,
+        {
+          step: 5,
+          categoryId: cat.id,
+          title: `e2e posting ${rand()}`,
+          description: "e2e posting body",
+          attributes: { [basis.identityKey]: basis.identityValue, [basis.basisKey]: token_ },
+          ...price,
+        },
+        { token, country: "ET" },
+      );
+      expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+      expect(answer.payload["ok"], JSON.stringify(answer.payload)).toBe(false);
+      return reasonsOf(answer.payload);
+    };
+
+    expect(
+      await ask("hourly", {
+        priceMode: "fixed",
+        priceAmount: 100,
+        priceCurrency: "ETB",
+        pricePeriod: "once",
+      }),
+    ).toContainEqual({ field: "price_period", reason: "periodFollowsBasis" });
+    expect(
+      await ask("quote", { priceMode: "fixed", priceAmount: 100, priceCurrency: "ETB" }),
+    ).toContainEqual({ field: "price_mode", reason: "modeFollowsBasis" });
+    expect(await ask("hourly", { priceMode: "commission", priceBp: 1000 })).toContainEqual({
+      field: "price_mode",
+      reason: "commissionNotOffered",
+    });
+    // 20000 bp (200 %) — the door's own answer, named: the CHECK is the ceiling.
+    const over = await postRoute(
+      page,
+      DRAFT,
+      {
+        step: 5,
+        categoryId: cat.id,
+        title: `e2e posting ${rand()}`,
+        description: "e2e posting body",
+        attributes: { [basis.identityKey]: basis.identityValue, [basis.basisKey]: "commission" },
+        priceMode: "commission",
+        priceBp: 20000,
+      },
+      { token, country: "ET" },
+    );
+    expect(over.status, JSON.stringify(over.payload)).toBe(200);
+    expect(over.payload["ok"], JSON.stringify(over.payload)).toBe(false);
+    const door = reasonsOf(over.payload);
+    expect(
+      door.map((entry) => entry.field),
+      JSON.stringify(over.payload),
+    ).toContain("door");
+    expect(JSON.stringify(over.payload)).toContain("listings_price_bp_check");
   });
 
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
