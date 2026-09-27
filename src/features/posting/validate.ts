@@ -159,3 +159,46 @@ export function mergeRefusals(door: Refusal[], local: Refusal[]): Refusal[] {
   const named = new Set(door.map((entry) => entry.field));
   return [...door, ...local.filter((entry) => !named.has(entry.field))];
 }
+
+/**
+ * DEC-079 / D31 — THE BASIS LAW, MIRRORED. The same four refusals the door
+ * raises in `validate_listing_draft` step 5, from the leaf's basis key, the
+ * seller's basis answer and the pricing values — so they show on blur before
+ * the door repeats them. `null` key with `ambiguous` means the leaf carries two.
+ */
+export function checkPriceBasis({
+  basisKey,
+  ambiguous = false,
+  basisValue,
+  priceMode,
+  pricePeriod,
+  defaultPeriod,
+  forcedMode,
+  derivedPeriod,
+}: {
+  basisKey: string | null;
+  ambiguous?: boolean;
+  basisValue: string | null;
+  priceMode: string;
+  pricePeriod: string | null;
+  defaultPeriod: string;
+  forcedMode: string | null;
+  derivedPeriod: string | null;
+}): Refusal[] {
+  if (ambiguous) return [refusal("price_mode", "priceBasisAmbiguous")];
+  const out: Refusal[] = [];
+  const hasBasis = basisKey !== null && basisValue !== null;
+  if (hasBasis && forcedMode !== null && priceMode !== forcedMode) {
+    out.push(refusal("price_mode", "modeFollowsBasis", forcedMode));
+  }
+  if (priceMode === "commission" && (!hasBasis || basisValue !== "commission")) {
+    out.push(refusal("price_mode", "commissionNotOffered"));
+  }
+  if (hasBasis) {
+    const derived = derivedPeriod ?? defaultPeriod;
+    if (pricePeriod !== null && pricePeriod !== derived) {
+      out.push(refusal("price_period", "periodFollowsBasis", derived));
+    }
+  }
+  return out;
+}
