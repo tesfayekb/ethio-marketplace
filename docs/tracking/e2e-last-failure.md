@@ -1,68 +1,139 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36293804292 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36293804292
-- Commit: `6f5648db158d0c0b77104bfab8ee9d57847f697d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36296146076
+- Commit: `3955339b1cbd0864fcb9553c5cdcfb88d02b4124`
 - Attempt: 1
-- Written (UTC): 2026-09-27T04:33:51.497Z
-- Post-test warnings: 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Written (UTC): 2026-09-27T05:05:00.157Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): none
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-## Flake ledger (DEC-030)
+## Server errors: smoke
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-- FLAKY (passed on retry) · `desktop-1280` · source `smoke` · shell.spec.ts › U4h device language star › TR-28 hreflang alternates equal the anon publication gate — Error: [INC-113] url: http://127.0.0.1:4173/
+## Client errors: smoke
 
-## Flaky bodies (DEC-078)
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-### shell.spec.ts › U4h device language star › TR-28 hreflang alternates equal the anon publication gate
+## Server errors: email
 
-- Source: `smoke`
-- Project: `desktop-1280`
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+
+## Client errors: email
+
+No `[client-error]` lines in the `email` log (or no log was uploaded).
+
+## Server errors: shard 1
+
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-Error: [INC-113] url: http://127.0.0.1:4173/
-[INC-113] html lang: en
-[INC-113] provider publicLanguages: {"gateReady":true,"degraded":false,"active":"en","star":null,"codes":["en","am"]}
-[INC-113] rendered options: (none) · stars: (none) · menu closed (options are portalled)
-
-expect(received).toEqual(expected) // deep equality
-
-- Expected  - 0
-+ Received  + 1
-
-  Array [
-    "am",
-    "en",
-    "x-default",
-+   "zxb-51de",
-  ]
+(no log tail was uploaded for this source)
 ```
 
-Context:
+## email: no results file
+
+email: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-          - listitem [ref=e216]:
-            - generic [ref=e217]: About
-          - listitem [ref=e218]:
-            - generic [ref=e219]: How it works
-      - navigation "Help" [ref=e220]:
-        - heading "Help" [level=2] [ref=e221]
-        - list [ref=e222]:
-          - listitem [ref=e223]:
-            - generic [ref=e224]: Safety
-          - listitem [ref=e225]:
-            - generic [ref=e226]: Contact
-      - navigation "Legal" [ref=e227]:
-        - heading "Legal" [level=2] [ref=e228]
-        - list [ref=e229]:
-          - listitem [ref=e230]:
-            - generic [ref=e231]: Terms
-          - listitem [ref=e232]:
-            - generic [ref=e233]: Privacy
-    - paragraph [ref=e235]: © 2026 ethio.com — All rights reserved.
+(no log tail was uploaded for this source)
 ```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
 ```
