@@ -66,7 +66,7 @@ const navButtonClass =
   "transition-colors disabled:opacity-60";
 
 export function PostingWizard({ listingId }: { listingId: string | null }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const draft = useDraft(listingId);
   const { tree, isLoading: treeLoading, error: treeError } = useCategoryTree();
