@@ -949,6 +949,7 @@ export type Database = {
           pin_precision: string | null
           poster_expires_at: string | null
           price_amount: number | null
+          price_bp: number | null
           price_currency: string | null
           price_mode: string
           price_period: string
@@ -983,6 +984,7 @@ export type Database = {
           pin_precision?: string | null
           poster_expires_at?: string | null
           price_amount?: number | null
+          price_bp?: number | null
           price_currency?: string | null
           price_mode?: string
           price_period?: string
@@ -1017,6 +1019,7 @@ export type Database = {
           pin_precision?: string | null
           poster_expires_at?: string | null
           price_amount?: number | null
+          price_bp?: number | null
           price_currency?: string | null
           price_mode?: string
           price_period?: string
@@ -2948,6 +2951,14 @@ export type Database = {
       next_language_sort: { Args: never; Returns: number }
       plan_caps: { Args: { p_plan: string }; Returns: Json }
       plan_photo_cap: { Args: { p_plan: string }; Returns: number }
+      price_basis_keys: { Args: { p_category_id: string }; Returns: string[] }
+      price_shape_for_basis: {
+        Args: { p_value: string }
+        Returns: {
+          forced_mode: string
+          period: string
+        }[]
+      }
       promote_to_super_admin: {
         Args: { p_target_user: string }
         Returns: undefined
