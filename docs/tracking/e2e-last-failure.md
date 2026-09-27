@@ -1,54 +1,139 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36283321647 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36283321647
-- Commit: `21a430a3557f825d301d4e9004bf785fbe97eb95`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36286417751
+- Commit: `43e1b2f8eb084896701c953719dee5095ecfcec7`
 - Attempt: 1
-- Written (UTC): 2026-09-27T00:55:45.526Z
-- Post-test warnings: 0
-- Flaky (passed on retry, DEC-030, non-gating): 3
+- Written (UTC): 2026-09-27T01:44:12.716Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): none
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-## Flake ledger (DEC-030)
+## Server errors: smoke
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · admin-translations-data.spec.ts › U4b translations console › TR-14 the Data scope edits and approves a location name — Error: [e2e:u4d] scratch location insert failed: TypeError: fetch failed
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · import-security.spec.ts › IMPORT-GATE locations-locations › IG-1 locations-locations: malformed, foreign, oversized and unreadable files are refused whole — TypeError: fetch failed
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · mfa-stepup.spec.ts › U1f-4 step-up freshness › MF-7 a verification older than the window re-prompts — Error: [e2e:u1f] granting admin failed: TypeError: fetch failed
+## Client errors: smoke
 
-## Flaky bodies (DEC-078)
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-### admin-translations-data.spec.ts › U4b translations console › TR-14 the Data scope edits and approves a location name
+## Server errors: email
 
-- Source: `shard 2`
-- Project: `mobile-360`
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+
+## Client errors: email
+
+No `[client-error]` lines in the `email` log (or no log was uploaded).
+
+## Server errors: shard 1
+
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-Error: [e2e:u4d] scratch location insert failed: TypeError: fetch failed
+(no log tail was uploaded for this source)
 ```
 
-Context: context file not found for `admin-translations-data-U4b-translations-console-TR-14-the-Data-scope-edits-and-approves-a-location-name-mobile-360`
+## email: no results file
 
-### import-security.spec.ts › IMPORT-GATE locations-locations › IG-1 locations-locations: malformed, foreign, oversized and unreadable files are refused whole
-
-- Source: `shard 2`
-- Project: `mobile-360`
+email: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-TypeError: fetch failed
+(no log tail was uploaded for this source)
 ```
 
-Context: context file not found for `import-security-IMPORT-GATE-locations-locations-IG-1-locations-locations-malformed-foreign-oversized-and-unreadable-files-are-refused-whole-mobile-360`
+## shard 1: no results file
 
-### mfa-stepup.spec.ts › U1f-4 step-up freshness › MF-7 a verification older than the window re-prompts
-
-- Source: `shard 2`
-- Project: `mobile-360`
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-Error: [e2e:u1f] granting admin failed: TypeError: fetch failed
+(no log tail was uploaded for this source)
 ```
 
-Context: context file not found for `mfa-stepup-U1f-4-step-up-freshness-MF-7-a-verification-older-than-the-window-re-prompts-mobile-360`
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
