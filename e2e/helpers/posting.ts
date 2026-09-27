@@ -2119,3 +2119,90 @@ export async function seedConditionalPair(categoryId: string): Promise<Condition
 
   return { parentKey, childKey, parentValues, childValues, attrKeys: [parentKey, childKey] };
 }
+
+/**
+ * D31-C (DEC-079) — A SCRATCH PRICING BASIS. A single_select keyed
+ * `pricing_type-e2e_<rand>` (the D31 basis pattern) with six tokens, linked to a
+ * scratch leaf as required card 2 behind a scratch identity select at card 1
+ * (PW-60's shape). Scratch only (G27); the caller reaps both keys with
+ * `destroySpecSet` in its afterEach (J3).
+ */
+export interface BasisSet {
+  basisKey: string;
+  identityKey: string;
+  identityValue: string;
+  /** Token → English label, so a test can name the label it expects. */
+  labels: Record<string, string>;
+  labelsAm: Record<string, string>;
+}
+
+export async function seedBasisSet(categoryId: string): Promise<BasisSet> {
+  const stem = `e2e_${Date.now().toString(36)}${rand()}`;
+  const tokens = ["hourly", "per_month", "quote", "commission", "per_quintal", "fixed"];
+  const labels: Record<string, string> = {};
+  const labelsAm: Record<string, string> = {};
+  for (const token of tokens) {
+    labels[token] = `${token} ${stem}`;
+    labelsAm[token] = `${token} ${stem} ምልክት`;
+  }
+  const basisKey = `pricing_type-${stem}`;
+  const identityKey = `${stem}_idn`;
+  const identityValue = `${stem}_a`;
+  const supabase = adminClient();
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: identityKey,
+        name_en: `${stem} identity`,
+        attr_type: "single_select",
+        options: [{ value: identityValue, label_en: `${stem} a`, label_am: `${stem} ሀ` }],
+      },
+      {
+        attr_key: basisKey,
+        name_en: `${stem} basis`,
+        attr_type: "single_select",
+        options: tokens.map((token) => ({
+          value: token,
+          label_en: labels[token],
+          label_am: labelsAm[token],
+        })),
+      },
+    ])
+    .select("id, attr_key");
+  if (error || !data) throw new Error(`[e2e:d31c] seeding the basis failed: ${error?.message}`);
+  const idOf = (key: string) => {
+    const row = data.find((entry) => entry.attr_key === key);
+    if (!row) throw new Error(`[e2e:d31c] ${key} missing after seed`);
+    return row.id;
+  };
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    {
+      category_id: categoryId,
+      attribute_id: idOf(identityKey),
+      is_required: true,
+      card_rank: 1,
+      display_order: 100,
+    },
+    {
+      category_id: categoryId,
+      attribute_id: idOf(basisKey),
+      is_required: true,
+      card_rank: 2,
+      display_order: 101,
+    },
+  ]);
+  if (linkError) throw new Error(`[e2e:d31c] linking the basis failed: ${linkError.message}`);
+  return { basisKey, identityKey, identityValue, labels, labelsAm };
+}
+
+/** DB truth: the commission basis points the door stored (null when none). */
+export async function priceBpOf(listingId: string): Promise<number | null> {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("price_bp")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:d31c] reading price_bp failed: ${error.message}`);
+  return data?.price_bp ?? null;
+}
