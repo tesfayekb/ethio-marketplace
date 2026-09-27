@@ -4256,6 +4256,7 @@
     ],
     "price.commission": [
       "/",
+      "/admin/impersonation/$sessionId",
       "/c/$slug",
       "/post",
       "/post/$listingId"
