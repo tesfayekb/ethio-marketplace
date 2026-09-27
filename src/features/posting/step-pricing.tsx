@@ -16,7 +16,7 @@ import {
   type CurrencyRow,
 } from "./pricing-data";
 
-import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
+import { draftRefusalKey, fieldAwareRefusal, fill, refusalFor } from "./refusal-text";
 import { PRICE_MODES, PRICE_PERIODS, type CategoryFacts, type Refusal } from "./types";
 import { formatCommission, percentToBp, priceShapeFor } from "./price-basis";
 import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
@@ -205,9 +205,10 @@ export function StepPricing({
     defaultPeriod: facts?.defaultPricePeriod ?? "once",
     forcedMode,
     derivedPeriod,
+    priceBp: values.priceBp,
   });
   const seen = mergeRefusals(refusals, [...local, ...basisLocal]);
-  const bpRefusal = refusalFor(seen, "price_bp");
+  const bpRefusal = fieldAwareRefusal(refusalFor(seen, "price_bp"));
   const [percentText, setPercentText] = useState(
     values.priceBp === null ? "" : formatCommission(values.priceBp),
   );
@@ -583,7 +584,8 @@ export function StepPricing({
           data-testid="post-price-period-fixed"
           data-period={derivedPeriod ?? ""}
         >
-          {fill(t("post.price.basisFixed"), { basis: basisLabel ?? basisValue ?? "" })}
+          {/* INC-297 — a shape-only basis has no noun, so no "per" line. */}
+          {basisLabel !== null && fill(t("post.price.basisFixed"), { basis: basisLabel })}
         </span>
       )}
       {locked && !basisOn && (

@@ -175,6 +175,7 @@ export function checkPriceBasis({
   defaultPeriod,
   forcedMode,
   derivedPeriod,
+  priceBp = null,
 }: {
   basisKey: string | null;
   ambiguous?: boolean;
@@ -184,6 +185,8 @@ export function checkPriceBasis({
   defaultPeriod: string;
   forcedMode: string | null;
   derivedPeriod: string | null;
+  /** INC-301 — the commission in basis points; judged only in commission mode. */
+  priceBp?: number | null;
 }): Refusal[] {
   if (ambiguous) return [refusal("price_mode", "priceBasisAmbiguous")];
   const out: Refusal[] = [];
@@ -193,6 +196,11 @@ export function checkPriceBasis({
   }
   if (priceMode === "commission" && (!hasBasis || basisValue !== "commission")) {
     out.push(refusal("price_mode", "commissionNotOffered"));
+  }
+  if (priceMode === "commission") {
+    // INC-301 — the door's own range (listings_price_bp_check), said in words.
+    if (priceBp === null) out.push(refusal("price_bp", "required"));
+    else if (priceBp < 1 || priceBp > 10000) out.push(refusal("price_bp", "commissionRange"));
   }
   if (hasBasis) {
     const derived = derivedPeriod ?? defaultPeriod;

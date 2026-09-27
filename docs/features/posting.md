@@ -986,3 +986,10 @@ The wizard owns the category filter term beside the tree cursor. Back, in order:
 - Refusals `periodFollowsBasis`, `modeFollowsBasis`, `commissionNotOffered`, `priceBasisAmbiguous` show locally on blur and are repeated by the door.
 - `publish_listing` re-checks the stored `price_bp`; `edit_listing` takes and writes `p_price_bp`.
 - Tests: PW-55 (commission), PW-56 (hourly → per_month), PW-57 (per_quintal), PR-10 (the door's refusals by name; a 20000 bp is refused by `listings_price_bp_check`).
+
+## TURN A — copy and refusal fixes (INC-297, INC-294, INC-301, D58)
+
+- **INC-297** — a basis option label carries its own "per" ("Per Kg", "በኪሎ"). `basisNoun` (price-basis.ts) removes one leading "Per " or "በ"; the wizard derives the noun once and every template keeps its own "per". A label with neither prefix (a shape-only basis such as Quote or Commission) has no noun, so no "per" line is rendered.
+- **INC-294** — `firstSentence` does not end a sentence after e.g / i.e / etc / vs / approx / cf; Amharic `።` is unchanged.
+- **INC-301** — commission mode refuses an empty percentage (`price_bp` · `required` → "Enter your commission percentage.") and a value outside 1–10000 bp (`commissionRange`). The draft route maps the door's `listings_price_bp_check` error to `{ field: "price_bp", reason: "commissionRange" }`; every other door error is unchanged.
+- **D58** — `useDraft.nextBlockedByTransport` is set by a strict (Next) save that ended unreachable and cleared by the next successful save or an edit; the wizard shows the "Not saved yet" caption under the Back/Next row (`post-next-unreachable`).

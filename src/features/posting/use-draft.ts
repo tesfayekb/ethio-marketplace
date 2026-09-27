@@ -113,6 +113,8 @@ export interface UseDraft {
   rewindTo: (step: number) => Promise<boolean>;
   /** Retry by hand what the automatic retry has not yet managed. */
   retry: () => void;
+  /** D58 — a Next whose save ended unreachable; cleared by a later save or an edit. */
+  nextBlockedByTransport: boolean;
   /** INC-227 — seconds until autosave may resume; 0 when it is not paused. */
   pauseSeconds: number;
   photos: DraftPhotoRow[];
@@ -131,6 +133,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [step, setStep] = useState(1);
   const [draftStep, setDraftStep] = useState(1);
   const [values, setValues] = useState<DraftValues>(EMPTY_VALUES);
+  const [nextBlockedByTransport, setNextBlockedByTransport] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [refusals, setRefusals] = useState<Refusal[]>([]);
   const [photos, setPhotos] = useState<DraftPhotoRow[]>([]);
@@ -265,6 +268,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     if (!aliveRef.current) return answer.ok;
 
     if (answer.ok) {
+      setNextBlockedByTransport(false);
       lastSentSerialRef.current = serial;
       if (strict) strictRef.current = null;
       pausedUntilRef.current = null;
@@ -314,6 +318,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // INC-228 — "Not saved yet" belongs to TRANSPORT alone: the answers are
       // still here, nothing was judged, and another pass runs shortly.
       setSaveState("unsaved");
+      if (strict) setNextBlockedByTransport(true);
       if (retryRef.current) clearTimeout(retryRef.current);
       retryRef.current = setTimeout(() => {
         void flushRef.current?.();
@@ -400,6 +405,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
        */
       const next = { ...valuesRef.current, ...patch };
       valuesRef.current = next;
+      setNextBlockedByTransport(false);
       setValues(next);
       // INC-228 — AN AUTOSAVE IS SENT AT THE LAST COMPLETED STEP, never at the
       // step being edited: a half-filled step must not be judged while the
@@ -561,6 +567,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       saveAt,
       rewindTo,
       retry,
+      nextBlockedByTransport,
       pauseSeconds,
       photos,
       reloadPhotos,
@@ -581,6 +588,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       saveAt,
       rewindTo,
       retry,
+      nextBlockedByTransport,
       pauseSeconds,
       photos,
       reloadPhotos,

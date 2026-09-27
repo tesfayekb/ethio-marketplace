@@ -34,6 +34,9 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   modeFollowsBasis: "post.refusal.modeFollowsBasis",
   commissionNotOffered: "post.refusal.commissionNotOffered",
   priceBasisAmbiguous: "post.refusal.priceBasisAmbiguous",
+  // INC-301 — a commission outside 0.01–100 %, and an empty one.
+  commissionRange: "post.refusal.commissionRange",
+  commissionRequired: "post.refusal.commissionRequired",
   categoryNotPostable: "post.refusal.categoryNotPostable",
   residencyUnknown: "post.refusal.residencyUnknown",
   coverageExceedsPlan: "post.refusal.coverageExceedsPlan",
@@ -106,6 +109,18 @@ export function draftRefusalKey(reason: string): MessageKey {
 /** An upload-route refusal, in the seller's language. */
 export function photoRefusalKey(reason: string): MessageKey {
   return PHOTO_REASONS[base(reason)] ?? "post.photo.refusal.unknown";
+}
+
+/**
+ * INC-301 — THE ONE FIELD-AWARE PAIR: an empty commission (`price_bp` ·
+ * `required`) reads "Enter your commission percentage", not the generic line.
+ * Every other field keeps the generic `required`.
+ */
+export function fieldAwareRefusal(refusal: Refusal | null): Refusal | null {
+  if (refusal !== null && refusal.field === "price_bp" && base(refusal.reason) === "required") {
+    return { ...refusal, reason: "commissionRequired" };
+  }
+  return refusal;
 }
 
 /** The first refusal naming a field, so a message can sit under its control. */

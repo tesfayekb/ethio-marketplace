@@ -2,7 +2,13 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
-import { formatCommission, percentToBp, PRICE_BASIS_SHAPE, priceShapeFor } from "./price-basis";
+import {
+  basisNoun,
+  formatCommission,
+  percentToBp,
+  PRICE_BASIS_SHAPE,
+  priceShapeFor,
+} from "./price-basis";
 
 /**
  * DEC-079 / D31 — SELF-DESCRIPTION CONSISTENCY (governance §11): the client's
@@ -56,5 +62,15 @@ describe("price basis", () => {
     expect(percentToBp(12.5)).toBe(1250);
     expect(percentToBp(2.345)).toBe(235);
     expect(percentToBp(null)).toBeNull();
+  });
+
+  it("derives the basis noun from a label that carries its own per (INC-297)", () => {
+    expect(basisNoun("Per Kg")).toBe("Kg");
+    expect(basisNoun("Per m²")).toBe("m²");
+    expect(basisNoun("Per Tray (30 eggs)")).toBe("Tray (30 eggs)");
+    expect(basisNoun("በኪሎ")).toBe("ኪሎ");
+    expect(basisNoun("በትሬይ (30 እንቁላል)")).toBe("ትሬይ (30 እንቁላል)");
+    expect(basisNoun("Fixed Price (per job)")).toBeNull();
+    expect(basisNoun("Commission (%)")).toBeNull();
   });
 });

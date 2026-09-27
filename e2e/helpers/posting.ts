@@ -2141,9 +2141,15 @@ export async function seedBasisSet(categoryId: string): Promise<BasisSet> {
   const tokens = ["hourly", "per_month", "quote", "commission", "per_quintal", "fixed"];
   const labels: Record<string, string> = {};
   const labelsAm: Record<string, string> = {};
+  // INC-297 — unit labels carry their own "per", as the real catalog's do.
+  const perLabels: Record<string, [string, string]> = {
+    hourly: ["Per Hour", "በሰዓት"],
+    per_month: ["Per Month", "በወር"],
+    per_quintal: ["Per Quintal", "በኩንታል"],
+  };
   for (const token of tokens) {
-    labels[token] = `${token} ${stem}`;
-    labelsAm[token] = `${token} ${stem} ምልክት`;
+    labels[token] = perLabels[token]?.[0] ?? `${token} ${stem}`;
+    labelsAm[token] = perLabels[token]?.[1] ?? `${token} ${stem} ምልክት`;
   }
   const basisKey = `pricing_type-${stem}`;
   const identityKey = `${stem}_idn`;

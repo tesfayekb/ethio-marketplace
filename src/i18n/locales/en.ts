@@ -1965,6 +1965,8 @@ export const en = {
   "post.refusal.periodFollowsBasis": "The price period follows your Pricing Basis.",
   "post.refusal.modeFollowsBasis": "The price type follows your Pricing Basis.",
   "post.refusal.commissionNotOffered": "A commission price is not available here.",
+  "post.refusal.commissionRange": "Enter a commission between 0.01% and 100%.",
+  "post.refusal.commissionRequired": "Enter your commission percentage.",
   "post.refusal.priceBasisAmbiguous": "This category's pricing basis is unclear — try again later.",
   "post.refusal.categoryNotPostable":
     "You cannot post into this category. Choose a more precise one.",

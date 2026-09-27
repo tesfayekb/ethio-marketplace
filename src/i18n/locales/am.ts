@@ -1880,6 +1880,8 @@ export const am: Messages = {
   "post.refusal.periodFollowsBasis": "የዋጋው ጊዜ የዋጋ መሠረትዎን ይከተላል።",
   "post.refusal.modeFollowsBasis": "የዋጋው ዓይነት የዋጋ መሠረትዎን ይከተላል።",
   "post.refusal.commissionNotOffered": "የኮሚሽን ዋጋ እዚህ አይገኝም።",
+  "post.refusal.commissionRange": "ኮሚሽኑ ከ0.01% እስከ 100% መሆን አለበት።",
+  "post.refusal.commissionRequired": "የኮሚሽን መቶኛዎን ያስገቡ።",
   "post.refusal.priceBasisAmbiguous": "የዚህ ምድብ የዋጋ መሠረት ግልጽ አይደለም — ቆይተው እንደገና ይሞክሩ።",
   "post.refusal.categoryNotPostable": "በዚህ ምድብ መለጠፍ አይችሉም። የተለየ ይምረጡ።",
   "post.refusal.residencyUnknown": "ከየትኛው አገር እየለጠፉ እንደሆነ ማወቅ አልቻልንም። እባክዎ እንደገና ይሞክሩ።",

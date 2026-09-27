@@ -590,10 +590,18 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-1")).toBeVisible();
     expect(await draftsOf(user.id), "PW-8: an aborted save must write nothing").toEqual([]);
 
+    // D58 — a Next that cannot reach the door says so beside Next.
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await expect(page.getByTestId("post-next-unreachable")).toHaveText(
+      "Not saved yet — we keep trying.",
+    );
+
     await page.unroute("**/api/listings/draft");
     await page.getByTestId("post-save-retry").click();
 
     await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved");
+    await expect(page.getByTestId("post-next-unreachable")).toHaveCount(0);
     await expect
       .poll(async () => (await draftsOf(user.id)).map((row) => row.category_id), {
         message: "PW-8: the retry did not save the draft",
@@ -1073,7 +1081,7 @@ test.describe("POSTING WIZARD", () => {
     await reachPricingWithBasis(page, user.id, category, basis, "hourly");
 
     const amountLabel = page.locator('label[for="post-price-amount"]');
-    await expect(amountLabel).toContainText(`Price per ${basis.labels["hourly"]}`);
+    await expect(amountLabel).toContainText("Price per Hour");
     await expect(page.getByTestId("post-price-period")).toHaveCount(0);
     await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute(
       "data-period",
@@ -1098,7 +1106,7 @@ test.describe("POSTING WIZARD", () => {
       "data-period",
       "month",
     );
-    await expect(amountLabel).toContainText(`Price per ${basis.labels["per_month"]}`);
+    await expect(amountLabel).toContainText("Price per Month");
   });
 
   test("PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal", async ({
@@ -1113,6 +1121,7 @@ test.describe("POSTING WIZARD", () => {
       "once",
     );
     await page.getByTestId("post-price-amount").fill("3200");
+    await expect(page.getByTestId("post-step-5")).not.toContainText(/per Per/i);
     await pricingToReview(page);
     await expect
       .poll(async () => (await pricingOf(listingId)).amount, {
@@ -1120,7 +1129,34 @@ test.describe("POSTING WIZARD", () => {
       })
       .toBe(3200);
     expect((await pricingOf(listingId)).period, "PW-57: the period is not once").toBe("once");
-    await expect(reviewPrice(page)).toHaveText(new RegExp(`per ${basis.labels["per_quintal"]}$`));
+    await expect(reviewPrice(page)).toContainText("per Quintal");
+    await expect(page.getByTestId("post-step-8")).not.toContainText(/per Per/i);
+  });
+
+  test("PW-58 a commission outside 0.01–100 % is refused in words, and a valid one advances (INC-301)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    await reachPricingWithBasis(page, user.id, category, basis, "commission");
+    const box = page.getByTestId("post-price-commission");
+    const said = page.locator('[role="alert"][data-field="post-price-commission"]');
+
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(said).toHaveText("Enter your commission percentage.");
+
+    for (const typed of ["0", "150"]) {
+      await box.fill(typed);
+      await expect(said, `PW-58: ${typed} is not refused in words`).toHaveText(
+        "Enter a commission between 0.01% and 100%.",
+      );
+    }
+
+    await box.fill("2.5");
+    await expect(said).toHaveCount(0);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
   });
 
   test("LY-6 at 360 the open currency list is above the sticky action bar", async ({
