@@ -535,7 +535,8 @@ export function allSsrLines(text: string | null): string[] {
   return text
     .split("\n")
     .filter((line) => line.includes("[ssr-error]"))
-    .map((line) => redact(line.trim()));
+    // A TTY-coloured runner wraps lines in ANSI codes; they are not the message.
+    .map((line) => redact(line.replace(/\u001b\[[0-9;]*m/g, "").trim()));
 }
 
 /**
