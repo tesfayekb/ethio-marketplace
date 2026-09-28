@@ -65,3 +65,6 @@ public/i18n-usage.json
 
 # INC-192: the intentional-deletions manifest is a plain path list (no parser).
 docs/tracking/intentional-deletions.txt
+
+# DEC-083 / INC-326: the ssr-error allowlist is a plain pattern list (no parser).
+docs/tracking/ssr-error-allowlist.txt

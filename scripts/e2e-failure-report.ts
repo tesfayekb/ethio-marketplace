@@ -1838,7 +1838,7 @@ async function main() {
       );
       // (b) every expected log read, none carrying either tag: REAL captured
       // smoke log from the existing fixture tree (no [ssr-error]/[a11y] lines).
-      const quietLog = redact(await Bun.file(LOG_FIXTURE).text());
+      const quietLog = redact(await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text());
       const quiet = [1, 2].map(
         (n): Source => ({
           label: `shard ${n}`,

@@ -394,7 +394,8 @@ jobs:
           retention-days: 7
       # If Playwright never wrote results, the log tail is the only evidence.
       - name: Capture smoke log tail
-        if: failure()
+        # DEC-083/084 — the census and the a11y summary read every source's log on every outcome.
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: e2e-log-smoke
@@ -656,9 +657,10 @@ jobs:
           set -o pipefail
           # DEC-028 — @global-state specs mutate a surface every concurrent
           # project shares; they run in the SERIAL nightly only, never here.
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" --shard=${{ matrix.shard }}/6 2>&1 | tee ${{ matrix.shard }}.log
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard=${{ matrix.shard }}/6 2>&1 | tee ${{ matrix.shard }}.log
       - name: Capture shard log tail
-        if: failure()
+        # DEC-083/084 — the census and the a11y summary read every source's log on every outcome.
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: e2e-log-${{ matrix.shard }}
@@ -806,7 +808,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Capture email log tail
-        if: failure()
+        # DEC-083/084 — the census and the a11y summary read every source's log on every outcome.
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: e2e-log-email
