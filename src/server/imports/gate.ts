@@ -21,6 +21,7 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 
 import { xliffUnits } from "@/features/admin/translations/io-formats";
+import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import type { Database } from "@/integrations/supabase/types";
 import { userClientFromRequest } from "@/server/supabase/user-client";
 import {
@@ -511,6 +512,9 @@ export function checkCell(rule: ColumnRule, value: string): string | null {
       return /^-?\d{1,3}(\.\d{1,8})?$/.test(value) ? null : "badNumber";
     case "preset":
       return presetShapeOk(value) ? null : "badPreset";
+    // INC-316 — CASE-SENSITIVE: the glyph map is, so "enum" (lower-cased) won't do.
+    case "icon":
+      return (CATEGORY_ICON_NAMES as readonly string[]).includes(value) ? null : "unknownIcon";
     case "options": {
       const cells = optionsOf(value);
       // Unreadable here is not refused here: the planner names it (badOptions).

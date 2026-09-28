@@ -99,7 +99,9 @@ export interface ColumnRule {
     | "bound"
     | "preset"
     /** A signed decimal degree — shape only; range is the planner's verdict. */
-    | "decimal";
+    | "decimal"
+    /** INC-316 — a name on CATEGORY_ICON_NAMES, case-sensitive. */
+    | "icon";
   required?: boolean;
   maxLength?: number;
   /** Allowed values for `enum`/`action` columns (lower-cased comparison). */
@@ -333,7 +335,7 @@ export const FAMILIES: Record<string, FamilySpec> = {
           { name: "default_price_period", klass: "editable", type: "text", maxLength: MAX_LABEL },
           { name: "price_period_locked", klass: "editable", type: "bool" },
           { name: "expiry_days", klass: "editable", type: "int", formula: "allow" },
-          { name: "icon", klass: "editable", type: "text", maxLength: MAX_LABEL },
+          { name: "icon", klass: "editable", type: "icon" },
           { name: "visible_from", klass: "editable", type: "date" },
           { name: "visible_until", klass: "editable", type: "date" },
           { name: "excluded_country_codes", klass: "editable", type: "pipe" },
