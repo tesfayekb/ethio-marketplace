@@ -1,0 +1,494 @@
+$ bun run i18n:map-guard && bun run scripts/e2e-port-guard.ts && bun run scripts/e2e-browser-guard.ts && env -u LOVABLE_SANDBOX -u DEV_SERVER__PROJECT_PATH VITE_E2E=1 NITRO_PRESET=node-server VITE_SUPABASE_URL=$E2E_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_KEY=$E2E_SUPABASE_PUBLISHABLE_KEY SUPABASE_URL=$E2E_SUPABASE_URL SUPABASE_PUBLISHABLE_KEY=$E2E_SUPABASE_PUBLISHABLE_KEY vite build && env -u LOVABLE_SANDBOX -u DEV_SERVER__PROJECT_PATH VITE_E2E=1 E2E_SERVE_BUILT=1 E2E_FAKE_TRANSLATE=1 E2E_FAKE_GEOCODE=1 E2E_WORKERS=${E2E_WORKERS:-2} E2E_SHARD=${E2E_SHARD:-local} E2E_LOCAL=1 VITE_SUPABASE_URL=$E2E_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_KEY=$E2E_SUPABASE_PUBLISHABLE_KEY SUPABASE_URL=$E2E_SUPABASE_URL SUPABASE_PUBLISHABLE_KEY=$E2E_SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY=$E2E_SUPABASE_SERVICE_ROLE_KEY playwright test "e2e/a11y.spec.ts" "e2e/import-security.spec.ts" "e2e/posting-routes.spec.ts" "e2e/category-image-routes.spec.ts" -g "A11Y|IG-1 |PR-10|PR-13|PR-14|CI-2 "
+$ bun run scripts/i18n-map-guard.ts
+i18n usage map: 1195 keys across 311 files (205 dynamic call sites)
+[i18n:map-guard] usage maps match the tree.
+[e2e:port-guard] TCP 4173 is free
+[e2e:browser-guard] browser resolved: /opt/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 2270 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/client/assets/leaflet-vh-t_kPv.css                            15.09 kB │ gzip:   6.36 kB
+dist/client/assets/styles-CfvdPGhF.css                             92.78 kB │ gzip:  15.96 kB
+dist/client/assets/routes-UPOVJfGJ.js                               0.38 kB │ gzip:   0.27 kB │ map:     1.10 kB
+dist/client/assets/plus-DDpkMJyZ.js                                 0.44 kB │ gzip:   0.31 kB │ map:     0.82 kB
+dist/client/assets/skeleton--5ZgOfl9.js                             0.48 kB │ gzip:   0.32 kB │ map:     0.52 kB
+dist/client/assets/c._slug-B7-vSH3f.js                              0.61 kB │ gzip:   0.42 kB │ map:     1.30 kB
+dist/client/assets/page-shell-D6qpC7MX.js                           0.74 kB │ gzip:   0.49 kB │ map:     1.33 kB
+dist/client/assets/arrow-up-CVVGkP1K.js                             0.79 kB │ gzip:   0.38 kB │ map:     1.59 kB
+dist/client/assets/page-card-Ckpan6nS.js                            0.81 kB │ gzip:   0.51 kB │ map:     1.28 kB
+dist/client/assets/relative-time-DA9W1tpQ.js                        0.95 kB │ gzip:   0.57 kB │ map:     1.63 kB
+dist/client/assets/admin-context-KDC59hbF.js                        0.96 kB │ gzip:   0.48 kB │ map:     1.81 kB
+dist/client/assets/input-D1KhTpIS.js                                1.01 kB │ gzip:   0.56 kB │ map:     1.12 kB
+dist/client/assets/trash-2-BJGIoTKM.js                              1.04 kB │ gzip:   0.48 kB │ map:     1.98 kB
+dist/client/assets/tip-badge-B2if-7C3.js                            1.12 kB │ gzip:   0.69 kB │ map:     1.55 kB
+dist/client/assets/badge-tgvduAx4.js                                1.14 kB │ gzip:   0.57 kB │ map:     1.60 kB
+dist/client/assets/post-CNT31rbv.js                                 1.23 kB │ gzip:   0.75 kB │ map:     2.26 kB
+dist/client/assets/dev.tall-CJJCRQTR.js                             1.30 kB │ gzip:   0.70 kB │ map:     2.08 kB
+dist/client/assets/chunk-B-1-B7_t.js                                1.40 kB │ gzip:   0.66 kB
+dist/client/assets/post_._listingId-C2eEadI-.js                     1.61 kB │ gzip:   0.90 kB │ map:     2.77 kB
+dist/client/assets/admin.images-BxIOkq6a.js                         1.77 kB │ gzip:   0.82 kB │ map:     2.27 kB
+dist/client/assets/useMatch-BDagyZvu.js                             1.85 kB │ gzip:   0.79 kB │ map:     3.56 kB
+dist/client/assets/button-Du5dI8Gz.js                               1.93 kB │ gzip:   0.89 kB │ map:     2.77 kB
+dist/client/assets/section-CZpnG3Zb.js                              2.21 kB │ gzip:   1.14 kB │ map:     2.78 kB
+dist/client/assets/page-header-BVRuSJRP.js                          2.30 kB │ gzip:   0.88 kB │ map:     3.00 kB
+dist/client/assets/form-section-BfOb3DFX.js                         2.45 kB │ gzip:   0.86 kB │ map:     3.90 kB
+dist/client/assets/redirect-DjDsSc0X.js                             2.49 kB │ gzip:   1.05 kB │ map:     4.43 kB
+dist/client/assets/use-locations-COvn_4e4.js                        2.73 kB │ gzip:   1.08 kB │ map:     4.03 kB
+dist/client/assets/detail-panel-BUB7mfej.js                         2.86 kB │ gzip:   0.84 kB │ map:     4.11 kB
+dist/client/assets/stat-card-DA3Htzio.js                            2.92 kB │ gzip:   0.95 kB │ map:     4.45 kB
+dist/client/assets/use-coverage-MnJhKnHK.js                         3.22 kB │ gzip:   1.42 kB │ map:     6.87 kB
+dist/client/assets/admin-DRws6kUb.js                                3.33 kB │ gzip:   1.49 kB │ map:     5.69 kB
+dist/client/assets/map-preview-cDhortF2.js                          3.34 kB │ gzip:   1.57 kB │ map:     5.04 kB
+dist/client/assets/useRouter-BIXhUJSF.js                            3.49 kB │ gzip:   1.41 kB │ map:     4.94 kB
+dist/client/assets/leaflet-CXkYDYHO.js                              3.69 kB │ gzip:   1.67 kB │ map:     8.24 kB
+dist/client/assets/chart-frame-Cj5gl-Gm.js                          3.95 kB │ gzip:   1.38 kB │ map:     7.00 kB
+dist/client/assets/createLucideIcon-DS_440up.js                     4.24 kB │ gzip:   1.23 kB │ map:     6.92 kB
+dist/client/assets/admin.index-LFtgPeSr.js                          4.51 kB │ gzip:   1.59 kB │ map:     6.11 kB
+dist/client/assets/auth_.callback-CMwauQl5.js                       4.57 kB │ gzip:   1.46 kB │ map:     7.01 kB
+dist/client/assets/locations-toolbar-_FDObxmd.js                    4.77 kB │ gzip:   1.58 kB │ map:     6.96 kB
+dist/client/assets/feed-Cg57pOHb.js                                 5.50 kB │ gzip:   1.89 kB │ map:     7.82 kB
+dist/client/assets/category-image-variants-Bd2RBFkh.js              5.88 kB │ gzip:   2.37 kB │ map:    13.40 kB
+dist/client/assets/use-countries-AHsO9HGV.js                        6.44 kB │ gzip:   2.51 kB │ map:    11.75 kB
+dist/client/assets/react-dom-5jgMU_Ce.js                            6.60 kB │ gzip:   1.97 kB │ map:    12.20 kB
+dist/client/assets/auth_.reset-B010HKfv.js                          6.97 kB │ gzip:   2.08 kB │ map:    10.80 kB
+dist/client/assets/admin.locations-CAc_eZIV.js                      7.43 kB │ gzip:   1.81 kB │ map:     9.67 kB
+dist/client/assets/admin.impersonation_._sessionId-CPOkg9ou.js      7.72 kB │ gzip:   2.41 kB │ map:    11.39 kB
+dist/client/assets/categories-service-rs9TJerQ.js                   7.76 kB │ gzip:   2.68 kB │ map:    15.83 kB
+dist/client/assets/listing-card-DTZM6uOK.js                         8.24 kB │ gzip:   2.92 kB │ map:    14.26 kB
+dist/client/assets/checkbox-B4f-EcDm.js                             8.38 kB │ gzip:   2.52 kB │ map:    15.14 kB
+dist/client/assets/admin.roles-C2lFthQp.js                          8.43 kB │ gzip:   2.21 kB │ map:    12.87 kB
+dist/client/assets/account-BrEKcwXh.js                              8.88 kB │ gzip:   2.08 kB │ map:    13.25 kB
+dist/client/assets/locations-service-BmUoSjtb.js                    8.97 kB │ gzip:   3.46 kB │ map:    18.05 kB
+dist/client/assets/admin.users-Cp_aGhfp.js                          9.89 kB │ gzip:   2.66 kB │ map:    15.68 kB
+dist/client/assets/alert-dialog-RSZSLIRp.js                        10.55 kB │ gzip:   2.60 kB │ map:    21.51 kB
+dist/client/assets/step-up-gate-CgldVRP4.js                        10.93 kB │ gzip:   3.51 kB │ map:    20.08 kB
+dist/client/assets/dev.primitives-DCXgymzo.js                      14.36 kB │ gzip:   3.98 kB │ map:    24.99 kB
+dist/client/assets/data-table-Bi4PVytA.js                          14.64 kB │ gzip:   3.84 kB │ map:    29.97 kB
+dist/client/assets/map-pin-dropper-EWeRiE5R.js                     15.29 kB │ gzip:   4.34 kB │ map:    25.84 kB
+dist/client/assets/admin.audit-BbcsEg6a.js                         15.95 kB │ gzip:   4.43 kB │ map:    25.77 kB
+dist/client/assets/admin.roles_._roleId-BJFLB8n2.js                17.91 kB │ gzip:   4.15 kB │ map:    28.93 kB
+dist/client/assets/import-dialog-D--LP98d.js                       18.64 kB │ gzip:   5.65 kB │ map:    36.61 kB
+dist/client/assets/admin.coverage-C6EqwgAF.js                      19.55 kB │ gzip:   5.13 kB │ map:    31.88 kB
+dist/client/assets/auth-B_0e7TR7.js                                19.64 kB │ gzip:   4.39 kB │ map:    34.93 kB
+dist/client/assets/admin.users_._userId-BgLRSoUA.js                29.71 kB │ gzip:   6.50 kB │ map:    48.47 kB
+dist/client/assets/admin.attributes-C7kK2axL.js                    31.21 kB │ gzip:   8.47 kB │ map:    50.81 kB
+dist/client/assets/use-translations-ALbe7Gk6.js                    33.14 kB │ gzip:   9.85 kB │ map:    73.06 kB
+dist/client/assets/settings-d_TaVG3H.js                            34.19 kB │ gzip:   6.13 kB │ map:    54.97 kB
+dist/client/assets/admin.countries-DIE_a2Rb.js                     36.72 kB │ gzip:   9.21 kB │ map:    58.17 kB
+dist/client/assets/admin.translations-CHla_McC.js                  48.81 kB │ gzip:  11.07 kB │ map:    78.27 kB
+dist/client/assets/query-keys-COW9Wt3p.js                          51.29 kB │ gzip:  12.36 kB │ map:   101.06 kB
+dist/client/assets/admin.places-CZ0SCzqK.js                        52.53 kB │ gzip:  12.37 kB │ map:    87.38 kB
+dist/client/assets/category-dialogs-D8GF2z20.js                    59.38 kB │ gzip:  13.96 kB │ map:   100.64 kB
+dist/client/assets/link-BuzVUj_X.js                                60.15 kB │ gzip:  16.58 kB │ map:   109.98 kB
+dist/client/assets/admin.categories-C8T-xKpd.js                    68.31 kB │ gzip:  16.54 kB │ map:   117.11 kB
+dist/client/assets/admin.translations_._lang-DpbuNTMQ.js           76.50 kB │ gzip:  16.75 kB │ map:   141.25 kB
+dist/client/assets/attribute-dialogs-C5jR2djI.js                   81.25 kB │ gzip:  18.38 kB │ map:   137.78 kB
+dist/client/assets/utils-AkhRkPEF.js                               86.32 kB │ gzip:  15.52 kB │ map:   142.32 kB
+dist/client/assets/am-BFQv4T7r.js                                 168.67 kB │ gzip:  36.65 kB │ map:   215.06 kB
+dist/client/assets/leaflet-src-DsojgsCB.js                        242.48 kB │ gzip:  54.57 kB │ map:   662.42 kB
+dist/client/assets/wizard-DLeLXOvq.js                             300.59 kB │ gzip:  76.55 kB │ map:   524.91 kB
+dist/client/assets/provider-CBwxj_yR.js                           911.74 kB │ gzip: 202.06 kB │ map: 1,440.17 kB
+dist/client/assets/index-6UtURM1E.js                            1,270.35 kB │ gzip: 280.11 kB │ map: 2,469.76 kB
+
+✓ built in 3.58s
+vite v8.0.16 building ssr environment for production...
+[2Ktransforming...✓ 356 modules transformed.
+rendering chunks...
+computing gzip size...
+node_modules/.nitro/vite/services/ssr/assets/leaflet-vh-t_kPv.css                                15.09 kB │ gzip:  6.36 kB
+node_modules/.nitro/vite/services/ssr/assets/styles-CfvdPGhF.css                                 92.78 kB │ gzip: 15.96 kB
+node_modules/.nitro/vite/services/ssr/assets/utils-C_uf36nf.js                                    0.18 kB │ gzip:  0.15 kB
+node_modules/.nitro/vite/services/ssr/assets/empty-plugin-adapters-D9UWiqvJ.js                    0.22 kB │ gzip:  0.16 kB
+node_modules/.nitro/vite/services/ssr/assets/routes-Cu4Gm28s.js                                   0.24 kB │ gzip:  0.19 kB
+node_modules/.nitro/vite/services/ssr/assets/skeleton-D9W9wFsj.js                                 0.33 kB │ gzip:  0.25 kB
+node_modules/.nitro/vite/services/ssr/assets/rolldown-runtime-D7D4PA-g.js                         0.36 kB │ gzip:  0.25 kB
+node_modules/.nitro/vite/services/ssr/assets/c._slug-B_PYIrud.js                                  0.47 kB │ gzip:  0.35 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.roles_._roleId-CtLQ9phR.js                     0.56 kB │ gzip:  0.35 kB
+node_modules/.nitro/vite/services/ssr/assets/page-shell-ZF4KssW1.js                               0.59 kB │ gzip:  0.41 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.users_._userId-DfQKTKwT.js                     0.64 kB │ gzip:  0.39 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.impersonation_._sessionId-Ctyk9PRI.js          0.67 kB │ gzip:  0.41 kB
+node_modules/.nitro/vite/services/ssr/assets/page-card-DdmPP2dS.js                                0.67 kB │ gzip:  0.45 kB
+node_modules/.nitro/vite/services/ssr/assets/admin-context-CdQTWe-s.js                            0.68 kB │ gzip:  0.36 kB
+node_modules/.nitro/vite/services/ssr/assets/input-B8Q2ztVi.js                                    0.75 kB │ gzip:  0.45 kB
+node_modules/.nitro/vite/services/ssr/assets/__23tanstack-start-server-fn-resolver-Dox6qrS7.js    0.78 kB │ gzip:  0.42 kB
+node_modules/.nitro/vite/services/ssr/assets/relative-time-DA9W1tpQ.js                            0.90 kB │ gzip:  0.54 kB
+node_modules/.nitro/vite/services/ssr/assets/query-keys-C6ogqX2M.js                               0.94 kB │ gzip:  0.60 kB
+node_modules/.nitro/vite/services/ssr/assets/tip-badge-pdM_3ghh.js                                0.98 kB │ gzip:  0.61 kB
+node_modules/.nitro/vite/services/ssr/assets/badge-D1Dupn2y.js                                    0.98 kB │ gzip:  0.50 kB
+node_modules/.nitro/vite/services/ssr/assets/checkbox-kt6FvQcE.js                                 1.01 kB │ gzip:  0.51 kB
+node_modules/.nitro/vite/services/ssr/assets/post-BItQXlEt.js                                     1.09 kB │ gzip:  0.68 kB
+node_modules/.nitro/vite/services/ssr/assets/dev.tall-D04Kc9Lj.js                                 1.13 kB │ gzip:  0.64 kB
+node_modules/.nitro/vite/services/ssr/assets/dev.primitives-yWiwDsPv.js                           1.14 kB │ gzip:  0.54 kB
+node_modules/.nitro/vite/services/ssr/assets/start-BFnt9SAm.js                                    1.21 kB │ gzip:  0.61 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-DwTpxsZ9.js                                     1.34 kB │ gzip:  0.67 kB
+node_modules/.nitro/vite/services/ssr/assets/icons-CEAajBa0.js                                    1.37 kB │ gzip:  0.79 kB
+node_modules/.nitro/vite/services/ssr/assets/post_._listingId-B3ccb3ue.js                         1.47 kB │ gzip:  0.84 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.images-D5ApbDfM.js                             1.55 kB │ gzip:  0.76 kB
+node_modules/.nitro/vite/services/ssr/assets/button-Chz8fWeM.js                                   1.71 kB │ gzip:  0.79 kB
+node_modules/.nitro/vite/services/ssr/assets/prompt-CXIT8KMq.js                                   1.82 kB │ gzip:  0.99 kB
+node_modules/.nitro/vite/services/ssr/assets/page-header-DfAjmXDZ.js                              1.99 kB │ gzip:  0.80 kB
+node_modules/.nitro/vite/services/ssr/assets/section-ChW68172.js                                  2.02 kB │ gzip:  1.07 kB
+node_modules/.nitro/vite/services/ssr/assets/form-section-BhUsssQ-.js                             2.09 kB │ gzip:  0.79 kB
+node_modules/.nitro/vite/services/ssr/assets/post_._listingId-B5ctXt4y.js                         2.25 kB │ gzip:  1.14 kB
+node_modules/.nitro/vite/services/ssr/assets/use-auth-Ddqv52yH.js                                 2.30 kB │ gzip:  1.10 kB
+node_modules/.nitro/vite/services/ssr/assets/gate-CIWIho2k.js                                     2.32 kB │ gzip:  1.09 kB
+node_modules/.nitro/vite/services/ssr/assets/detail-panel-D4I3G-IR.js                             2.40 kB │ gzip:  0.78 kB
+node_modules/.nitro/vite/services/ssr/assets/client.server-BDFkinc6.js                            2.49 kB │ gzip:  1.15 kB
+node_modules/.nitro/vite/services/ssr/assets/stat-card-CYiVH6PO.js                                2.49 kB │ gzip:  0.90 kB
+node_modules/.nitro/vite/services/ssr/assets/use-locations-DM424BPI.js                            2.66 kB │ gzip:  1.04 kB
+node_modules/.nitro/vite/services/ssr/assets/category-icon-names-CQ7lCapt.js                      2.88 kB │ gzip:  1.44 kB
+node_modules/.nitro/vite/services/ssr/assets/map-preview-CYx2qBU6.js                              3.05 kB │ gzip:  1.47 kB
+node_modules/.nitro/vite/services/ssr/assets/admin-0RFknHP_.js                                    3.08 kB │ gzip:  1.41 kB
+node_modules/.nitro/vite/services/ssr/assets/use-coverage-CvMqkn7f.js                             3.15 kB │ gzip:  1.38 kB
+node_modules/.nitro/vite/services/ssr/assets/leaflet-nqZo_x5T.js                                  3.26 kB │ gzip:  1.47 kB
+node_modules/.nitro/vite/services/ssr/assets/alert-dialog-BVY9xze-.js                             3.32 kB │ gzip:  0.89 kB
+node_modules/.nitro/vite/services/ssr/assets/sections-Dh75AvUf.js                                 3.39 kB │ gzip:  0.98 kB
+node_modules/.nitro/vite/services/ssr/assets/chart-frame-DFyVY6cf.js                              3.40 kB │ gzip:  1.28 kB
+node_modules/.nitro/vite/services/ssr/assets/guess-CSdRYw6u.js                                    3.43 kB │ gzip:  1.39 kB
+node_modules/.nitro/vite/services/ssr/assets/request-response-BVa7raFp.js                         3.44 kB │ gzip:  1.27 kB
+node_modules/.nitro/vite/services/ssr/assets/sheet-ixCqrHfB.js                                    3.60 kB │ gzip:  1.19 kB
+node_modules/.nitro/vite/services/ssr/assets/locations-toolbar-anghYTiX.js                        3.81 kB │ gzip:  1.28 kB
+node_modules/.nitro/vite/services/ssr/assets/gemini-DWEC1vsm.js                                   3.82 kB │ gzip:  1.77 kB
+node_modules/.nitro/vite/services/ssr/assets/__root-1h38lci5.js                                   3.92 kB │ gzip:  1.98 kB
+node_modules/.nitro/vite/services/ssr/assets/auth_.callback-CcnuDhbk.js                           4.01 kB │ gzip:  1.36 kB
+node_modules/.nitro/vite/services/ssr/assets/createStart-DwZhSttb.js                              4.01 kB │ gzip:  1.24 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.index-KrhJPbNF.js                              4.04 kB │ gzip:  1.53 kB
+node_modules/.nitro/vite/services/ssr/assets/io-formats-CwH5SjAr.js                               4.60 kB │ gzip:  2.19 kB
+node_modules/.nitro/vite/services/ssr/assets/client-DE6EraC2.js                                   4.71 kB │ gzip:  1.84 kB
+node_modules/.nitro/vite/services/ssr/assets/category-glyphs-DYXP4iUF.js                          4.83 kB │ gzip:  2.22 kB
+node_modules/.nitro/vite/services/ssr/assets/feed-y01Mi2AB.js                                     4.87 kB │ gzip:  1.83 kB
+node_modules/.nitro/vite/services/ssr/assets/use-admin-roles-47Ty-uXj.js                          5.14 kB │ gzip:  1.63 kB
+node_modules/.nitro/vite/services/ssr/assets/use-impersonation-DrgxCii2.js                        5.16 kB │ gzip:  1.68 kB
+node_modules/.nitro/vite/services/ssr/assets/category-image-variants-Bd2RBFkh.js                  5.82 kB │ gzip:  2.34 kB
+node_modules/.nitro/vite/services/ssr/assets/dropdown-menu-BtjXROHi.js                            5.83 kB │ gzip:  1.28 kB
+node_modules/.nitro/vite/services/ssr/assets/auth_.reset-FWi7OC9w.js                              6.16 kB │ gzip:  1.97 kB
+node_modules/.nitro/vite/services/ssr/assets/use-countries-DLl5aSZ4.js                            6.37 kB │ gzip:  2.47 kB
+node_modules/.nitro/vite/services/ssr/index.js                                                    6.40 kB │ gzip:  2.60 kB
+node_modules/.nitro/vite/services/ssr/assets/listing-card-BaKqHnnc.js                             6.52 kB │ gzip:  2.39 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.locations-B4WH834L.js                          6.61 kB │ gzip:  1.70 kB
+node_modules/.nitro/vite/services/ssr/assets/mfa-service-C-BHHoJ2.js                              6.80 kB │ gzip:  2.76 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.impersonation_._sessionId-DYZgaApd.js          7.19 kB │ gzip:  2.36 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.roles-B3YXneZg.js                              7.49 kB │ gzip:  2.11 kB
+node_modules/.nitro/vite/services/ssr/assets/categories-service-mdHhck5G.js                       7.71 kB │ gzip:  2.65 kB
+node_modules/.nitro/vite/services/ssr/assets/account-wNSPt5ap.js                                  7.76 kB │ gzip:  2.00 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.users-DnzG1J5w.js                              8.79 kB │ gzip:  2.56 kB
+node_modules/.nitro/vite/services/ssr/assets/locations-service-CRY50nmq.js                        8.91 kB │ gzip:  3.43 kB
+node_modules/.nitro/vite/services/ssr/assets/use-admin-users-bv_J-KPD.js                          9.00 kB │ gzip:  2.97 kB
+node_modules/.nitro/vite/services/ssr/assets/step-up-gate-DKuN2p0h.js                            10.06 kB │ gzip:  3.42 kB
+node_modules/.nitro/vite/services/ssr/assets/esm-B50dUWcE.js                                     10.18 kB │ gzip:  3.07 kB
+node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-LK7Xrd7C.js              11.52 kB │ gzip:  2.08 kB
+node_modules/.nitro/vite/services/ssr/assets/fixture-BNOMLKPp.js                                 12.64 kB │ gzip:  5.03 kB
+node_modules/.nitro/vite/services/ssr/assets/map-pin-dropper-DI3MJ1Uy.js                         12.72 kB │ gzip:  3.79 kB
+node_modules/.nitro/vite/services/ssr/assets/dev.primitives-CME9cW0e.js                          13.00 kB │ gzip:  3.87 kB
+node_modules/.nitro/vite/services/ssr/assets/data-table-DUM6qw2i.js                              13.23 kB │ gzip:  3.71 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.audit-kG06PU_y.js                             14.83 kB │ gzip:  4.34 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.roles_._roleId-L1jF8Sul.js                    15.96 kB │ gzip:  4.03 kB
+node_modules/.nitro/vite/services/ssr/assets/import-dialog-DPj_ap3G.js                           16.60 kB │ gzip:  5.24 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.coverage-S8-FSayG.js                          17.91 kB │ gzip:  4.99 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-CzJjqDiH.js                                    18.05 kB │ gzip:  4.30 kB
+node_modules/.nitro/vite/services/ssr/assets/location-data-CdNorcuh.js                           19.37 kB │ gzip:  6.77 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.users_._userId-DPsvB5it.js                    26.87 kB │ gzip:  6.43 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.attributes-Da_zzYhU.js                        27.39 kB │ gzip:  7.83 kB
+node_modules/.nitro/vite/services/ssr/assets/settings-CqAQ_g7I.js                                31.08 kB │ gzip:  6.04 kB
+node_modules/.nitro/vite/services/ssr/assets/use-translations-CyqEZ1RE.js                        33.12 kB │ gzip:  9.83 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.countries-DaluutiF.js                         33.39 kB │ gzip:  8.86 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.translations-uuDh4MZk.js                      40.99 kB │ gzip:  9.78 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.places-Der-pSGB.js                            48.03 kB │ gzip: 11.99 kB
+node_modules/.nitro/vite/services/ssr/assets/server-tfX145Fn.js                                  50.53 kB │ gzip: 13.07 kB
+node_modules/.nitro/vite/services/ssr/assets/category-dialogs-Bhjp-i7I.js                        54.67 kB │ gzip: 13.47 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.categories-DweAq7Ku.js                        62.19 kB │ gzip: 15.80 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.translations_._lang-C1qqzHOs.js               68.98 kB │ gzip: 15.20 kB
+node_modules/.nitro/vite/services/ssr/assets/attribute-dialogs-BjpTY95L.js                       75.80 kB │ gzip: 17.95 kB
+node_modules/.nitro/vite/services/ssr/assets/app-shell-WzmTNhi6.js                              116.52 kB │ gzip: 34.00 kB
+node_modules/.nitro/vite/services/ssr/assets/am-CG-5FmUm.js                                     168.64 kB │ gzip: 36.62 kB
+node_modules/.nitro/vite/services/ssr/assets/provider-CQSAcxBE.js                               181.83 kB │ gzip: 48.06 kB
+node_modules/.nitro/vite/services/ssr/assets/router-wYZkNv1t.js                                 226.78 kB │ gzip: 60.34 kB
+node_modules/.nitro/vite/services/ssr/assets/wizard-CsNK1d5i.js                                 284.23 kB │ gzip: 75.55 kB
+
+✓ built in 1.63s
+
+[nitro] ◐ Building [Nitro] (preset: node-server, compatibility: 2026-08-27)
+[nitro] ✔ Generated public dist/client
+vite v8.0.16 building nitro environment for production...
+[2Ktransforming...✓ 2153 modules transformed.
+ℹ Tracing dependencies:
+- tslib (2.8.1)
+✔ Traced 1 dependencies (4 files) in 60ms.
+ℹ Ensure your production environment matches the builder OS and architecture (linux-x64) to avoid native module issues.
+rendering chunks...
+computing gzip size...
+dist/server/_ssr/empty-plugin-adapters-D9UWiqvJ.mjs               0.23 kB │ gzip:   0.16 kB
+dist/server/_ssr/utils-C_uf36nf.mjs                               0.29 kB │ gzip:   0.21 kB
+dist/server/_ssr/routes-Cu4Gm28s.mjs                              0.39 kB │ gzip:   0.27 kB
+dist/server/_ssr/rolldown-runtime-D7D4PA-g.mjs                    0.41 kB │ gzip:   0.29 kB
+dist/server/_libs/radix-ui__primitive.mjs                         0.42 kB │ gzip:   0.23 kB
+dist/server/_ssr/skeleton-D9W9wFsj.mjs                            0.49 kB │ gzip:   0.34 kB
+dist/server/_libs/radix-ui__react-direction.mjs                   0.59 kB │ gzip:   0.32 kB
+dist/server/_chunks/ssr-renderer.mjs                              0.60 kB │ gzip:   0.36 kB
+dist/server/_ssr/c._slug-B_PYIrud.mjs                             0.62 kB │ gzip:   0.42 kB
+dist/server/_ssr/admin.roles_._roleId-CtLQ9phR.mjs                0.63 kB │ gzip:   0.40 kB
+dist/server/_libs/radix-ui__react-slot.mjs                        0.67 kB │ gzip:   0.37 kB
+dist/server/_ssr/admin.users_._userId-DfQKTKwT.mjs                0.71 kB │ gzip:   0.44 kB
+dist/server/_ssr/admin.impersonation_._sessionId-Ctyk9PRI.mjs     0.74 kB │ gzip:   0.46 kB
+dist/server/_ssr/page-shell-ZF4KssW1.mjs                          0.75 kB │ gzip:   0.49 kB
+dist/server/_ssr/page-card-DdmPP2dS.mjs                           0.83 kB │ gzip:   0.53 kB
+dist/server/__23tanstack-start-server-fn-resolver-Dox6qrS7.mjs    0.83 kB │ gzip:   0.46 kB
+dist/server/_libs/radix-ui__react-arrow.mjs                       0.93 kB │ gzip:   0.49 kB
+dist/server/_ssr/relative-time-DA9W1tpQ.mjs                       0.95 kB │ gzip:   0.58 kB
+dist/server/_ssr/query-keys-C6ogqX2M.mjs                          0.98 kB │ gzip:   0.64 kB
+dist/server/_ssr/admin-context-CdQTWe-s.mjs                       1.02 kB │ gzip:   0.48 kB
+dist/server/_ssr/input-B8Q2ztVi.mjs                               1.08 kB │ gzip:   0.57 kB
+dist/server/_ssr/tip-badge-pdM_3ghh.mjs                           1.14 kB │ gzip:   0.70 kB
+dist/server/_ssr/start-BFnt9SAm.mjs                               1.20 kB │ gzip:   0.62 kB
+dist/server/_ssr/badge-D1Dupn2y.mjs                               1.20 kB │ gzip:   0.56 kB
+dist/server/_ssr/dev.primitives-yWiwDsPv.mjs                      1.21 kB │ gzip:   0.59 kB
+dist/server/_ssr/post-BItQXlEt.mjs                                1.23 kB │ gzip:   0.76 kB
+dist/server/_runtime.mjs                                          1.26 kB │ gzip:   0.63 kB
+dist/server/_ssr/dev.tall-D04Kc9Lj.mjs                            1.35 kB │ gzip:   0.72 kB
+dist/server/_ssr/icons-CEAajBa0.mjs                               1.40 kB │ gzip:   0.82 kB
+dist/server/_ssr/checkbox-kt6FvQcE.mjs                            1.41 kB │ gzip:   0.62 kB
+dist/server/_ssr/auth-DwTpxsZ9.mjs                                1.41 kB │ gzip:   0.72 kB
+dist/server/_ssr/post_._listingId-B3ccb3ue.mjs                    1.62 kB │ gzip:   0.91 kB
+dist/server/_libs/@radix-ui/react-label+[...].mjs                 1.74 kB │ gzip:   0.74 kB
+dist/server/_ssr/admin.images-D5ApbDfM.mjs                        1.75 kB │ gzip:   0.83 kB
+dist/server/_ssr/prompt-CXIT8KMq.mjs                              1.85 kB │ gzip:   1.02 kB
+dist/server/_ssr/section-ChW68172.mjs                             2.06 kB │ gzip:   1.11 kB
+dist/server/_ssr/button-Chz8fWeM.mjs                              2.08 kB │ gzip:   0.91 kB
+dist/server/_libs/ufo.mjs                                         2.21 kB │ gzip:   0.72 kB
+dist/server/_ssr/page-header-DfAjmXDZ.mjs                         2.25 kB │ gzip:   0.88 kB
+dist/server/_ssr/post_._listingId-B5ctXt4y.mjs                    2.33 kB │ gzip:   1.20 kB
+dist/server/_ssr/gate-CIWIho2k.mjs                                2.36 kB │ gzip:   1.13 kB
+dist/server/_ssr/form-section-BhUsssQ-.mjs                        2.46 kB │ gzip:   0.87 kB
+dist/server/_ssr/use-auth-Ddqv52yH.mjs                            2.53 kB │ gzip:   1.22 kB
+dist/server/_ssr/client.server-BDFkinc6.mjs                       2.53 kB │ gzip:   1.19 kB
+dist/server/_ssr/use-locations-DM424BPI.mjs                       2.72 kB │ gzip:   1.08 kB
+dist/server/_ssr/detail-panel-D4I3G-IR.mjs                        2.91 kB │ gzip:   0.86 kB
+dist/server/_ssr/category-icon-names-CQ7lCapt.mjs                 2.93 kB │ gzip:   1.48 kB
+dist/server/_ssr/stat-card-CYiVH6PO.mjs                           2.98 kB │ gzip:   0.98 kB
+dist/server/_ssr/use-coverage-CvMqkn7f.mjs                        3.14 kB │ gzip:   1.40 kB
+dist/server/_libs/class-variance-authority+clsx.mjs               3.17 kB │ gzip:   1.24 kB
+dist/server/_ssr/leaflet-nqZo_x5T.mjs                             3.32 kB │ gzip:   1.53 kB
+dist/server/_ssr/sections-Dh75AvUf.mjs                            3.42 kB │ gzip:   1.01 kB
+dist/server/_ssr/map-preview-CYx2qBU6.mjs                         3.44 kB │ gzip:   1.60 kB
+dist/server/_ssr/guess-CSdRYw6u.mjs                               3.47 kB │ gzip:   1.42 kB
+dist/server/_ssr/request-response-BVa7raFp.mjs                    3.49 kB │ gzip:   1.30 kB
+dist/server/_ssr/admin-0RFknHP_.mjs                               3.53 kB │ gzip:   1.55 kB
+dist/server/_ssr/alert-dialog-BVY9xze-.mjs                        3.64 kB │ gzip:   1.02 kB
+dist/server/_ssr/createStart-DwZhSttb.mjs                         3.83 kB │ gzip:   1.23 kB
+dist/server/_ssr/gemini-DWEC1vsm.mjs                              3.84 kB │ gzip:   1.80 kB
+dist/server/__root-1h38lci5.mjs                                   3.87 kB │ gzip:   1.97 kB
+dist/server/_ssr/chart-frame-DFyVY6cf.mjs                         4.06 kB │ gzip:   1.40 kB
+dist/server/_ssr/sheet-ixCqrHfB.mjs                               4.09 kB │ gzip:   1.32 kB
+dist/server/_ssr/locations-toolbar-anghYTiX.mjs                   4.27 kB │ gzip:   1.36 kB
+dist/server/_libs/radix-ui__react-switch.mjs                      4.32 kB │ gzip:   1.54 kB
+dist/server/_ssr/admin.index-KrhJPbNF.mjs                         4.45 kB │ gzip:   1.59 kB
+dist/server/_ssr/io-formats-CwH5SjAr.mjs                          4.59 kB │ gzip:   2.22 kB
+dist/server/_ssr/auth_.callback-CcnuDhbk.mjs                      4.68 kB │ gzip:   1.48 kB
+dist/server/_ssr/client-DE6EraC2.mjs                              4.69 kB │ gzip:   1.87 kB
+dist/server/_ssr/use-admin-roles-47Ty-uXj.mjs                     5.13 kB │ gzip:   1.65 kB
+dist/server/_libs/radix-ui__react-collapsible.mjs                 5.14 kB │ gzip:   1.53 kB
+dist/server/_ssr/use-impersonation-DrgxCii2.mjs                   5.35 kB │ gzip:   1.80 kB
+dist/server/_ssr/feed-y01Mi2AB.mjs                                5.50 kB │ gzip:   1.91 kB
+dist/server/_ssr/category-glyphs-DYXP4iUF.mjs                     5.66 kB │ gzip:   2.58 kB
+dist/server/_ssr/category-image-variants-Bd2RBFkh.mjs             5.91 kB │ gzip:   2.40 kB
+dist/server/_ssr/ssr.mjs                                          6.33 kB │ gzip:   2.60 kB
+dist/server/_ssr/use-countries-DLl5aSZ4.mjs                       6.35 kB │ gzip:   2.49 kB
+dist/server/_ssr/dropdown-menu-BtjXROHi.mjs                       6.36 kB │ gzip:   1.45 kB
+dist/server/_libs/@radix-ui/react-collection+[...].mjs            6.64 kB │ gzip:   1.87 kB
+dist/server/_ssr/mfa-service-C-BHHoJ2.mjs                         6.83 kB │ gzip:   2.78 kB
+dist/server/_ssr/listing-card-BaKqHnnc.mjs                        7.04 kB │ gzip:   2.47 kB
+dist/server/_ssr/auth_.reset-FWi7OC9w.mjs                         7.09 kB │ gzip:   2.10 kB
+dist/server/_libs/tanstack__react-query.mjs                       7.36 kB │ gzip:   1.95 kB
+dist/server/_ssr/admin.locations-B4WH834L.mjs                     7.47 kB │ gzip:   1.82 kB
+dist/server/_ssr/categories-service-mdHhck5G.mjs                  7.73 kB │ gzip:   2.67 kB
+dist/server/_ssr/admin.impersonation_._sessionId-DYZgaApd.mjs     7.77 kB │ gzip:   2.43 kB
+dist/server/_ssr/admin.roles-B3YXneZg.mjs                         8.54 kB │ gzip:   2.24 kB
+dist/server/_libs/@radix-ui/react-checkbox+[...].mjs              8.62 kB │ gzip:   2.52 kB
+dist/server/_ssr/locations-service-CRY50nmq.mjs                   8.94 kB │ gzip:   3.45 kB
+dist/server/_ssr/account-wNSPt5ap.mjs                             9.03 kB │ gzip:   2.11 kB
+dist/server/_ssr/use-admin-users-bv_J-KPD.mjs                     9.17 kB │ gzip:   3.07 kB
+dist/server/_ssr/esm-B50dUWcE.mjs                                 9.60 kB │ gzip:   3.06 kB
+dist/server/_ssr/admin.users-DnzG1J5w.mjs                        10.00 kB │ gzip:   2.69 kB
+dist/server/_ssr/step-up-gate-DKuN2p0h.mjs                       10.99 kB │ gzip:   3.52 kB
+dist/server/_tanstack-start-manifest_v-LK7Xrd7C.mjs              11.58 kB │ gzip:   2.11 kB
+dist/server/_libs/tanstack__history.mjs                          12.09 kB │ gzip:   3.48 kB
+dist/server/_libs/supabase__functions-js.mjs                     12.49 kB │ gzip:   3.44 kB
+dist/server/_ssr/fixture-BNOMLKPp.mjs                            12.67 kB │ gzip:   5.06 kB
+dist/server/_ssr/map-pin-dropper-DI3MJ1Uy.mjs                    14.01 kB │ gzip:   3.90 kB
+dist/server/_libs/@radix-ui/react-avatar+[...].mjs               14.12 kB │ gzip:   3.95 kB
+dist/server/_ssr/dev.primitives-CME9cW0e.mjs                     14.48 kB │ gzip:   4.00 kB
+dist/server/_ssr/data-table-DUM6qw2i.mjs                         14.67 kB │ gzip:   3.84 kB
+dist/server/_ssr/admin.audit-kG06PU_y.mjs                        15.95 kB │ gzip:   4.44 kB
+dist/server/_ssr/import-dialog-DPj_ap3G.mjs                      17.87 kB │ gzip:   5.38 kB
+dist/server/_ssr/admin.roles_._roleId-L1jF8Sul.mjs               17.95 kB │ gzip:   4.16 kB
+dist/server/_libs/@radix-ui/react-tooltip+[...].mjs              18.76 kB │ gzip:   4.38 kB
+dist/server/_ssr/admin.coverage-S8-FSayG.mjs                     19.38 kB │ gzip:   5.11 kB
+dist/server/_ssr/location-data-CdNorcuh.mjs                      19.67 kB │ gzip:   6.85 kB
+dist/server/_ssr/auth-CzJjqDiH.mjs                               19.88 kB │ gzip:   4.44 kB
+dist/server/_libs/h3-v2+srvx.mjs                                 21.21 kB │ gzip:   6.00 kB
+dist/server/_libs/@floating-ui/dom+[...].mjs                     25.85 kB │ gzip:   6.56 kB
+dist/server/_libs/@floating-ui/core+[...].mjs                    25.89 kB │ gzip:   6.36 kB
+dist/server/_ssr/admin.attributes-Da_zzYhU.mjs                   29.67 kB │ gzip:   7.98 kB
+dist/server/_ssr/admin.users_._userId-DPsvB5it.mjs               29.90 kB │ gzip:   6.57 kB
+dist/server/_libs/@floating-ui/react-dom+[...].mjs               31.16 kB │ gzip:   7.96 kB
+dist/server/_ssr/use-translations-CyqEZ1RE.mjs                   33.02 kB │ gzip:   9.85 kB
+dist/server/_ssr/settings-CqAQ_g7I.mjs                           34.39 kB │ gzip:   6.17 kB
+dist/server/_ssr/admin.countries-DaluutiF.mjs                    35.93 kB │ gzip:   8.97 kB
+dist/server/_libs/supabase__supabase-js.mjs                      36.30 kB │ gzip:  10.75 kB
+dist/server/_libs/h3+rou3+srvx.mjs                               40.33 kB │ gzip:  10.92 kB
+dist/server/_ssr/admin.translations-uuDh4MZk.mjs                 44.75 kB │ gzip:   9.92 kB
+dist/server/index.mjs                                            49.47 kB │ gzip:  11.58 kB
+dist/server/_ssr/server-tfX145Fn.mjs                             49.56 kB │ gzip:  13.00 kB
+dist/server/_libs/supabase__phoenix.mjs                          50.54 kB │ gzip:  12.76 kB
+dist/server/_ssr/admin.places-Der-pSGB.mjs                       51.76 kB │ gzip:  12.15 kB
+dist/server/_ssr/category-dialogs-Bhjp-i7I.mjs                   58.68 kB │ gzip:  13.66 kB
+dist/server/_libs/@radix-ui/react-dropdown-menu+[...].mjs        61.58 kB │ gzip:  12.19 kB
+dist/server/_libs/tanstack__query-core.mjs                       65.73 kB │ gzip:  13.89 kB
+dist/server/_ssr/admin.categories-DweAq7Ku.mjs                   66.50 kB │ gzip:  16.02 kB
+dist/server/_ssr/admin.translations_._lang-C1qqzHOs.mjs          73.92 kB │ gzip:  15.45 kB
+dist/server/_libs/supabase__realtime-js.mjs                      78.20 kB │ gzip:  20.00 kB
+dist/server/_libs/@tanstack/router-core+[...].mjs                79.22 kB │ gzip:  19.92 kB
+dist/server/_ssr/attribute-dialogs-BjpTY95L.mjs                  80.37 kB │ gzip:  18.11 kB
+dist/server/_libs/@radix-ui/react-alert-dialog+[...].mjs         84.79 kB │ gzip:  19.74 kB
+dist/server/_libs/tailwind-merge.mjs                             85.65 kB │ gzip:  15.21 kB
+dist/server/_libs/lucide-react.mjs                              104.04 kB │ gzip:  20.84 kB
+dist/server/_libs/supabase__postgrest-js.mjs                    105.41 kB │ gzip:  21.66 kB
+dist/server/_libs/@supabase/storage-js+[...].mjs                119.46 kB │ gzip:  22.32 kB
+dist/server/_ssr/app-shell-WzmTNhi6.mjs                         124.34 kB │ gzip:  34.36 kB
+dist/server/_ssr/am-CG-5FmUm.mjs                                168.68 kB │ gzip:  36.65 kB
+dist/server/_ssr/provider-CQSAcxBE.mjs                          182.38 kB │ gzip:  48.14 kB
+dist/server/_ssr/router-wYZkNv1t.mjs                            224.85 kB │ gzip:  60.10 kB
+dist/server/_libs/leaflet.mjs                                   242.42 kB │ gzip:  54.53 kB
+dist/server/_ssr/wizard-CsNK1d5i.mjs                            298.61 kB │ gzip:  75.99 kB
+dist/server/_libs/supabase__auth-js.mjs                         302.30 kB │ gzip:  60.28 kB
+dist/server/_libs/@tanstack/react-router+[...].mjs              660.86 kB │ gzip: 138.26 kB
+
+✓ built in 882ms
+ℹ Generated dist/nitro.json
+
+[nitro] ✔ You can preview this build using npx vite preview
+[WebServer] [0m[2m[35m$[0m [2m[1mbun run scripts/serve-e2e-node.ts --port "4173"[0m
+[WebServer] ➜ Listening on: http://127.0.0.1:4173/
+[e2e:preflight] migration parity OK via public.e2e_migration_ledger() definer RPC (public.migration_marks) (newest: 20260928140742_5d74b795-66be-42ad-a9e3-5b3762b3f5cc.sql).
+[e2e:setup] E2E_SUPABASE_URL = https://jatpuhfdjfzctjipklmk.supabase.co
+[e2e:setup] E2E_SUPABASE_SERVICE_ROLE_KEY present = true (length 41)
+[e2e:setup] target ref is staging (jatpuhfdjfzctjipklmk) = true
+[e2e:setup] PROCESS_ID = localdd5d81-local
+[e2e:setup] created user 35a26aa7-48ad-47ac-bb3e-a1a7999c85ac (e2e+localdd5d81-local-21039-1-bv2en5@ethio-e2e.invalid)
+[e2e:setup] verified user confirmed at 2026-09-28T14:21:23.872851Z
+[e2e:setup] pooled slot 0 verify currentLevel = aal2 (session discarded)
+[e2e:setup] pooled factor 43802d3c-1199-45eb-a7b3-0fa3734e7bef status = verified (1 totp factor)
+[e2e:setup] pooled super admin slot 0: 544eae62-9204-4e42-ac69-0adb8aee4a89 (e2e+localdd5d81-local-21039-2-eyilux@ethio-e2e.invalid, factor 43802d3c-1199-45eb-a7b3-0fa3734e7bef)
+[e2e:setup] pooled slot 1 verify currentLevel = aal2 (session discarded)
+[e2e:setup] pooled factor 660932a4-93be-488c-8657-747c06612164 status = verified (1 totp factor)
+[e2e:setup] pooled super admin slot 1: 3e735ff3-a123-474b-b643-6729676b2286 (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid, factor 660932a4-93be-488c-8657-747c06612164)
+[e2e:setup] identity pool size = 2 (E2E_WORKERS=2)
+[e2e:setup] maintenance skipped (owner: shard 1)
+[e2e:setup] state written; setup complete
+
+Running 22 tests using 2 workers
+
+[a11y] home mobile-360 serious=0 critical=0
+[a11y] auth mobile-360 serious=0 critical=0
+  ✓   2 [mobile-360] › e2e/a11y.spec.ts:52:3 › A11Y SMOKE (DEC-084, non-gating) › A11Y-1 marketplace home and sign-in (2.9s)
+  ✓   1 [mobile-360] › e2e/category-image-routes.spec.ts:119:3 › C5a — category AI foundation routes › CI-2 fake generate returns a PNG payload and writes no storage object (5.9s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+[a11y] wizard-1 mobile-360 serious=1 critical=0
+[a11y-rules] wizard-1 mobile-360 serious:scrollable-region-focusable×1
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions tooManyRows[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions nulByte[0m
+  ✓   4 [mobile-360] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE attributes › IG-1 attributes: malformed, foreign, oversized and unreadable files are refused whole (5.1s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+[a11y] wizard-3 mobile-360 serious=0 critical=0
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories file too large[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories nulByte[0m
+  ✓   5 [mobile-360] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE categories › IG-1 categories: malformed, foreign, oversized and unreadable files are refused whole (3.9s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+[a11y] wizard-5 mobile-360 serious=0 critical=0
+[WebServer] [0m[31m[ssr-error] /api/listings/draft listing not found[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings tooManyRows[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings nulByte[0m
+  ✓   6 [mobile-360] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE translations › IG-1 translations: malformed, foreign, oversized and unreadable files are refused whole (7.0s)
+  ✓   3 [mobile-360] › e2e/a11y.spec.ts:59:3 › A11Y SMOKE (DEC-084, non-gating) › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller (19.9s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries tooManyRows[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries nulByte[0m
+  ✓   7 [mobile-360] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE locations-countries › IG-1 locations-countries: malformed, foreign, oversized and unreadable files are refused whole (5.1s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations file too large[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations nulByte[0m
+  ✓   9 [mobile-360] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE locations-locations › IG-1 locations-locations: malformed, foreign, oversized and unreadable files are refused whole (4.9s)
+[WebServer] [0m[31m[ssr-error] /api/listings/draft new row for relation "listings" violates check constraint "listings_price_bp_check"[0m
+[a11y] home desktop-1280 serious=0 critical=0
+[a11y] auth desktop-1280 serious=0 critical=0
+  ✓  10 [desktop-1280] › e2e/a11y.spec.ts:52:3 › A11Y SMOKE (DEC-084, non-gating) › A11Y-1 marketplace home and sign-in (3.4s)
+  ✓   8 [mobile-360] › e2e/posting-routes.spec.ts:139:3 › POSTING ROUTES › PR-10 a pricing basis is the door's own refusal by name, at status 200 (DEC-079) (14.9s)
+  ✓  12 [mobile-360] › e2e/posting-routes.spec.ts:267:3 › POSTING ROUTES › PR-13 a draft may carry a commission before its percentage (INC-312) (3.7s)
+[a11y] wizard-1 desktop-1280 serious=0 critical=0
+PR-14 answer: {"ok":true,"draft_step":5,"listing_id":"fa8701f4-4c65-4e8b-94e0-ed6a24a3541a","price_currency":"ETB"}
+[a11y] wizard-3 desktop-1280 serious=0 critical=0
+  ✓  13 [mobile-360] › e2e/posting-routes.spec.ts:294:3 › POSTING ROUTES › PR-14 the draft door's answer names the currency it stored (INC-321) (7.0s)
+[a11y] wizard-5 desktop-1280 serious=0 critical=0
+[WebServer] [0m[31m[ssr-error] /api/listings/draft listing not found[0m
+  ✓  11 [desktop-1280] › e2e/a11y.spec.ts:59:3 › A11Y SMOKE (DEC-084, non-gating) › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller (17.1s)
+  ✓  14 [desktop-1280] › e2e/category-image-routes.spec.ts:119:3 › C5a — category AI foundation routes › CI-2 fake generate returns a PNG payload and writes no storage object (4.7s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions tooManyRows[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/attributes/import definitions nulByte[0m
+  ✓  15 [desktop-1280] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE attributes › IG-1 attributes: malformed, foreign, oversized and unreadable files are refused whole (6.0s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+[WebServer] [0m[31m[ssr-error] /api/listings/draft new row for relation "listings" violates check constraint "listings_price_bp_check"[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories file too large[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/categories/import categories nulByte[0m
+  ✓  17 [desktop-1280] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE categories › IG-1 categories: malformed, foreign, oversized and unreadable files are refused whole (3.9s)
+  ✓  16 [desktop-1280] › e2e/posting-routes.spec.ts:139:3 › POSTING ROUTES › PR-10 a pricing basis is the door's own refusal by name, at status 200 (DEC-079) (9.9s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings tooManyRows[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/translations/import strings nulByte[0m
+  ✓  18 [desktop-1280] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE translations › IG-1 translations: malformed, foreign, oversized and unreadable files are refused whole (3.9s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+  ✓  19 [desktop-1280] › e2e/posting-routes.spec.ts:267:3 › POSTING ROUTES › PR-13 a draft may carry a commission before its percentage (INC-312) (6.2s)
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries tooManyRows[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import countries nulByte[0m
+  ✓  20 [desktop-1280] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE locations-countries › IG-1 locations-countries: malformed, foreign, oversized and unreadable files are refused whole (4.8s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+localdd5d81-local-21039-3-qhwjpm@ethio-e2e.invalid)
+PR-14 answer: {"ok":true,"draft_step":5,"listing_id":"d95d06fc-e0bb-4b4b-9bb2-4c90021375d9","price_currency":"ETB"}
+  ✓  21 [desktop-1280] › e2e/posting-routes.spec.ts:294:3 › POSTING ROUTES › PR-14 the draft door's answer names the currency it stored (INC-321) (5.7s)
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations badHeader[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations wrongFile[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations unknownColumn[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations file too large[0m
+[WebServer] [0m[31m[ssr-error] /api/admin/locations/import locations nulByte[0m
+  ✓  22 [desktop-1280] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE locations-locations › IG-1 locations-locations: malformed, foreign, oversized and unreadable files are refused whole (4.4s)
+[e2e:teardown] deleted 3 user(s) owned by process localdd5d81-local
+
+  22 passed (1.5m)
