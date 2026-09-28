@@ -134,6 +134,12 @@ export interface UseDraft {
 export function useDraft(initialListingId: string | null): UseDraft {
   const [listingId, setListingId] = useState<string | null>(initialListingId);
   const [step, setStep] = useState(1);
+  /**
+   * INC-317 — a write that lands after its step has closed (an async prefill, a
+   * late upload answer) is queued at the step ON SCREEN, never at the step that
+   * created the callback.
+   */
+  const stepRef = useRef(1);
   const [draftStep, setDraftStep] = useState(1);
   const [values, setValues] = useState<DraftValues>(EMPTY_VALUES);
   const [nextBlockedByTransport, setNextBlockedByTransport] = useState(false);
@@ -422,7 +428,11 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // seller is still typing. The server's `draft_step` is that truth, capped
       // at the step below the one on screen.
       // D39: "below" is the previous step of the walk, not `step - 1`.
-      const backupStep = Math.max(0, step === 1 ? 0 : Math.min(draftStepRef.current, prevOf(step)));
+      const onScreen = stepRef.current;
+      const backupStep = Math.max(
+        0,
+        onScreen === 1 ? 0 : Math.min(draftStepRef.current, prevOf(onScreen)),
+      );
       pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, backupStep);
       versionRef.current += 1;
       setSaveState("unsaved");
@@ -435,7 +445,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
         void flush();
       }, DEBOUNCE_MS);
     },
-    [flush, step],
+    [flush],
   );
 
   const saveAt = useCallback(
@@ -467,6 +477,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   }, [flush]);
 
   const goTo = useCallback((next: number) => {
+    stepRef.current = next;
     setStep(next);
     setRefusals([]);
   }, []);
@@ -521,15 +532,15 @@ export function useDraft(initialListingId: string | null): UseDraft {
         // D39 — open at the first UNFINISHED step of the walk (photos count as
         // passed once one is registered or the draft reached details), never
         // past what this landing can honestly render.
-        setStep(
-          Math.min(
-            firstUnfinished({
-              draftStep: found.draft.draftStep,
-              photosCount: found.photos.length,
-            }),
-            IMPLEMENTED_THROUGH,
-          ),
+        const opened = Math.min(
+          firstUnfinished({
+            draftStep: found.draft.draftStep,
+            photosCount: found.photos.length,
+          }),
+          IMPLEMENTED_THROUGH,
         );
+        stepRef.current = opened;
+        setStep(opened);
         setLoadError(null);
       } catch {
         if (!cancelled) setLoadError("failed");

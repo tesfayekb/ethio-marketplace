@@ -1484,6 +1484,73 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
   });
 
+  test("PW-72 a currency prefill that lands after Back never queues the price step (INC-317)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    // PW-31's pattern: a fresh seller's chain lands on the guess read, held 3 s
+    // so its answer is guaranteed to arrive after the price step has closed.
+    await page.route("**/api/geo", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 3_000));
+      await route.continue({
+        headers: { ...route.request().headers(), "cf-ipcountry": "ET" },
+      });
+    });
+    await reachStep5(page, user.id, category);
+
+    const sent: { step: number; phase: string }[] = [];
+    let phase = "price";
+    page.on("request", (request) => {
+      if (request.method() !== "POST" || !request.url().includes("/api/listings/draft")) return;
+      const body = request.postDataJSON() as { step?: unknown } | null;
+      if (typeof body?.step === "number") sent.push({ step: body.step, phase });
+    });
+
+    // The held guess answer is the late writer: wait for IT, not for a clock.
+    let sentAt = 0;
+    const lateGuess = page.waitForResponse("**/api/geo", { timeout: 20_000 });
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    phase = "photos";
+    await lateGuess;
+    sentAt = Date.now();
+    // Past the autosave debounce, so a late write would already have been sent.
+    await expect
+      .poll(() => Date.now() - sentAt, { timeout: 6_000, intervals: [500] })
+      .toBeGreaterThan(4_000);
+    phase = "next";
+    const judged = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/listings/draft") && response.request().method() === "POST",
+    );
+    await page.getByTestId("post-next").click();
+    await judged;
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+
+    // (a) details stayed on screen with nothing refused.
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
+    // (b) nothing sent while photos was on screen claimed a step above it.
+    const onPhotos = sent.filter((entry) => entry.phase === "photos").map((entry) => entry.step);
+    console.log(`PW-72 bodies: ${JSON.stringify(sent)}`);
+    expect(
+      Math.max(0, ...onPhotos),
+      `PW-72: a late write queued a closed step: ${JSON.stringify(sent)}`,
+    ).toBeLessThanOrEqual(2);
+
+    // (c) details → price opens, and the fresh chain prefills the currency.
+    await page.getByTestId("post-title").fill("e2e pw72 listing title");
+    await page.getByTestId("post-description").fill("e2e pw72 listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-price-currency")).not.toHaveAttribute("data-code", "", {
+      timeout: 20_000,
+    });
+  });
+
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {
     const user = await seller(page);
