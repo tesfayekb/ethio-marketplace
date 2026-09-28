@@ -305,6 +305,16 @@ export function useDraft(initialListingId: string | null): UseDraft {
         draftStepRef.current = served;
         setDraftStep(served);
       }
+      // INC-321 — the door names the currency it stored (its own home fill
+      // included). A mirror of what the door stored is never a new answer: no
+      // version bump, no pending step, no save-state change, no flush.
+      // Only an empty wizard copy is filled; a seller's own choice stands.
+      const stored = answer.payload["price_currency"];
+      if (typeof stored === "string" && valuesRef.current.priceCurrency === null) {
+        const mirrored = { ...valuesRef.current, priceCurrency: stored };
+        valuesRef.current = mirrored;
+        setValues(mirrored);
+      }
       setRefusals([]);
       // "Saved" unless the seller has typed something newer than what went out —
       // and when they have, ANOTHER PASS IS ARMED HERE. Relying on the debounce
