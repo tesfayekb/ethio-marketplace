@@ -1024,3 +1024,7 @@ A pre-D62-2 client still sends `price_mode: "negotiable"`. `validate_listing_dra
 
 - The refusal summary lists only refusals that name a control. Refusals against the request itself (`door`, `residency`, `id` — `CONTROL_LESS_FIELDS` in `field.tsx`) are left out; their words already render as post-refusal paragraphs.
 - E2E rule: a test-level `page.route` on a path `asEdge` covers must `route.fallback()`, never `route.continue()`, or the edge country header is lost.
+
+### D62-1d — a draft's percentage may be absent (INC-312)
+
+Choosing the commission basis stores `price_mode = 'commission'` before the seller types the percentage; the step-4 autosave used to violate `listings_price_pair_check`. The constraint (mark `20260928090000`) is now `(price_mode = 'commission' AND price_amount IS NULL AND price_currency IS NULL) OR (price_mode <> 'commission' AND price_bp IS NULL AND ((price_amount IS NULL) = (price_currency IS NULL)))`. The step ≥ 5 door still refuses `{ price_bp, required }`, so nothing publishes without it. Proofs: P11–P13 + read-back in the migration; PW-67, PR-13.

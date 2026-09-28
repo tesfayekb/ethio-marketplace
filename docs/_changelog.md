@@ -583,3 +583,4 @@
 - 2026-09-28 — DEC-082 (INC-308): category image variants are cut in the admin's browser; the generate route only calls the provider and returns the image; server raster pipeline retired; CI-2/CI-4b/CI-4 re-anchored.
 - 2026-09-28 — D62-1b (DEC-081 hotfix, INC-309): 'negotiable' is an alias (fixed + flag) at every draft step; unmapped door errors read post.refusal.doorError; PR-12, PW-66.
 - 2026-09-28 — D62-1c: PW-66 falls back so asEdge adds cf-ipcountry (INC-311); refusal summary omits control-less fields door/residency/id (INC-313); INC-312 attributed read-only.
+- 2026-09-28 — D62-1d (INC-312): listings_price_pair_check lets a commission draft carry no price_bp until step 5; PW-67, PR-13.

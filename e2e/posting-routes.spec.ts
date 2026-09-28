@@ -264,6 +264,33 @@ test.describe("POSTING ROUTES", () => {
     expect(data).toEqual({ price_mode: "fixed", price_negotiable: true });
   });
 
+  test("PR-13 a draft may carry a commission before its percentage (INC-312)", async ({ page }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      { step: 1, categoryId: cat.id, priceMode: "commission" },
+      { token, country: "ET" },
+    );
+    expect(draft.status, JSON.stringify(draft.payload)).toBe(200);
+    expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
+    const listingId = String(draft.payload["listing_id"] ?? "");
+    expect(listingId).not.toBe("");
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("price_mode, price_bp, price_amount, price_currency")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:pr-13] reading the draft failed: ${error.message}`);
+    expect(data).toEqual({
+      price_mode: "commission",
+      price_bp: null,
+      price_amount: null,
+      price_currency: null,
+    });
+  });
+
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
     const { token } = await seller(page);
     const cat = await category();
