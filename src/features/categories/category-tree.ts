@@ -66,6 +66,12 @@ export interface CategoryTree {
   /** parent id → its children, in `display_order`. */
   childrenOf: Map<string, CategoryNode[]>;
   byId: Map<string, CategoryNode>;
+  /**
+   * DEC-080 — root id → its ROOT pointer's `display_order` (the parent-NULL
+   * pointer the reorder door writes). A root with no root pointer is absent and
+   * falls back to its own `displayOrder`, explicitly.
+   */
+  rootOrder: Map<string, number>;
 }
 
 const EMPTY_TREE: CategoryTree = {
@@ -73,6 +79,7 @@ const EMPTY_TREE: CategoryTree = {
   parentOf: new Map(),
   childrenOf: new Map(),
   byId: new Map(),
+  rootOrder: new Map(),
 };
 
 /**
@@ -129,17 +136,31 @@ interface Edge {
   node: CategoryNode;
   /** False for the child's PRIMARY pointer, true for every surfacing. */
   surfaced: boolean;
-  /** D33 — the pointer's own order; the guests are sorted by it. */
+  /**
+   * D33 / DEC-080 — the pointer's own order, for EVERY edge: the reorder door
+   * writes the pointer, never the row, so own children and guests alike are
+   * sorted by it. A pointer without an order falls back to the node's own.
+   */
   pointerOrder: number;
 }
 
+/** DEC-080 — catch-all last → guests after own → pointer order → row order. */
 function compareEdges(a: Edge, b: Edge): number {
   const other = Number(isOtherSlug(a.node.slug)) - Number(isOtherSlug(b.node.slug));
   if (other !== 0) return other;
   const guest = Number(a.surfaced) - Number(b.surfaced);
   if (guest !== 0) return guest;
-  if (a.surfaced && a.pointerOrder !== b.pointerOrder) return a.pointerOrder - b.pointerOrder;
+  if (a.pointerOrder !== b.pointerOrder) return a.pointerOrder - b.pointerOrder;
   return a.node.displayOrder - b.node.displayOrder;
+}
+
+/** The pointer shape both the route and the tests hand to `buildTree`. */
+export interface TreePointer {
+  child_id: string;
+  parent_id: string | null;
+  display_order?: number | null;
+  /** DEC-080 — the child's HOME; absent on an older payload. */
+  is_primary?: boolean;
 }
 
 /**
@@ -150,31 +171,49 @@ function compareEdges(a: Edge, b: Edge): number {
  * could only ever remember the last row read and silently dropped the other
  * surfacing.
  *
- * The rows arrive in the order the database ranks pointers (`display_order`,
- * then `created_at`), so the FIRST pointer of a child is its primary home: that
- * is the edge `parentOf` keeps, and therefore the home the wizard's breadcrumb
- * shows (D30).
+ * DEC-080 — THE HOME IS A FLAG. A child's home is its pointer carrying
+ * `is_primary` (one per child, enforced by the database); that is the edge
+ * `parentOf` keeps and the home the breadcrumb shows (D30). A flagged pointer
+ * whose parent is NULL makes the child a root. When no walkable pointer of a
+ * child is flagged (an older payload), the first parent pointer seen is the
+ * home, exactly as before — the rows arrive in `display_order`, `created_at`.
  */
-export function buildTree(
-  rows: CategoryNode[],
-  pointers: { child_id: string; parent_id: string | null; display_order?: number | null }[],
-): CategoryTree {
+export function buildTree(rows: CategoryNode[], pointers: TreePointer[]): CategoryTree {
   const byId = new Map(rows.map((row) => [row.id, row]));
+  const rootOrder = new Map<string, number>();
+  // A pointer to a row the active read did not return (an inactive parent or
+  // child) is not a tree edge anyone may walk.
+  const walkable = pointers.filter(
+    (pointer) =>
+      byId.has(pointer.child_id) && (pointer.parent_id === null || byId.has(pointer.parent_id)),
+  );
+  const home = new Map<string, TreePointer>();
+  for (const pointer of walkable) {
+    if (pointer.is_primary === true) home.set(pointer.child_id, pointer);
+  }
+  for (const pointer of walkable) {
+    if (pointer.parent_id !== null && !home.has(pointer.child_id)) {
+      home.set(pointer.child_id, pointer);
+    }
+  }
   const parentOf = new Map<string, string>();
+  for (const [childId, pointer] of home) {
+    if (pointer.parent_id !== null) parentOf.set(childId, pointer.parent_id);
+  }
   const edgesOf = new Map<string, Edge[]>();
-  for (const pointer of pointers) {
-    if (pointer.parent_id === null) continue;
-    // A pointer to a row the active read did not return (an inactive parent or
-    // child) is not a tree edge anyone may walk.
-    const child = byId.get(pointer.child_id);
-    if (child === undefined || !byId.has(pointer.parent_id)) continue;
-    const primary = !parentOf.has(pointer.child_id);
-    if (primary) parentOf.set(pointer.child_id, pointer.parent_id);
+  for (const pointer of walkable) {
+    const child = byId.get(pointer.child_id)!;
+    if (pointer.parent_id === null) {
+      if (!rootOrder.has(child.id)) {
+        rootOrder.set(child.id, pointer.display_order ?? child.displayOrder);
+      }
+      continue;
+    }
     const siblings = edgesOf.get(pointer.parent_id) ?? [];
     if (!siblings.some((entry) => entry.node.id === child.id)) {
       siblings.push({
         node: child,
-        surfaced: !primary,
+        surfaced: home.get(child.id) !== pointer,
         pointerOrder: pointer.display_order ?? child.displayOrder,
       });
     }
@@ -188,7 +227,7 @@ export function buildTree(
       siblings.map((entry) => entry.node),
     );
   }
-  return { nodes: rows, parentOf, childrenOf, byId };
+  return { nodes: rows, parentOf, childrenOf, byId, rootOrder };
 }
 
 interface TreePayload {
@@ -205,7 +244,12 @@ interface TreePayload {
     image_thumb_url: string | null;
     display_order: number;
   }[];
-  pointers: { child_id: string; parent_id: string | null; display_order: number | null }[];
+  pointers: {
+    child_id: string;
+    parent_id: string | null;
+    display_order: number | null;
+    is_primary: boolean;
+  }[];
 }
 
 /**
@@ -265,11 +309,11 @@ export function loadCategoryTree(): Promise<CategoryTree> {
 export function rootsOf(tree: CategoryTree): CategoryNode[] {
   const roots = tree.nodes.filter((node) => !tree.parentOf.has(node.id));
   // D30 — the rail obeys the same last place for a catch-all root as every
-  // deeper level does. Nothing else is re-ordered: the read already arrives in
-  // `display_order`.
+  // deeper level does. DEC-080 — then the ROOT POINTER's order (what the reorder
+  // door writes); a root without one falls back to its own `displayOrder`.
+  const rank = (node: CategoryNode): number => tree.rootOrder.get(node.id) ?? node.displayOrder;
   return roots.sort(
-    (a, b) =>
-      Number(isOtherSlug(a.slug)) - Number(isOtherSlug(b.slug)) || a.displayOrder - b.displayOrder,
+    (a, b) => Number(isOtherSlug(a.slug)) - Number(isOtherSlug(b.slug)) || rank(a) - rank(b),
   );
 }
 
