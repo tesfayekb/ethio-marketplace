@@ -1856,7 +1856,9 @@ test.describe("C3 attributes console", () => {
       const header = catLines[0]!.split(",").map((cell) => cell.replace(/ \(read-only\)$/, ""));
       const slugAt = header.indexOf("category_slug");
       const parentAt = header.indexOf("parent_slug");
-      const catRow = catLines.map((line) => line.split(",")).find((cells) => cells[slugAt] === slugL);
+      const catRow = catLines
+        .map((line) => line.split(","))
+        .find((cells) => cells[slugAt] === slugL);
       expect(catRow, "AT-64 the scratch leaf is missing from the categories export").toBeTruthy();
       expect(catRow![parentAt], `AT-64 categories parent_slug: ${catRow!.join(",")}`).toBe(slugA);
     } finally {
