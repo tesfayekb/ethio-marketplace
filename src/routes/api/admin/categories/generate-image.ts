@@ -2,6 +2,14 @@
  * C5a PART C.1 — POST /api/admin/categories/generate-image
  * and the A7 operator walk surface GET ?probe=1&categoryId=...
  *
+ * DEC-082 (INC-308) — THE WORKER DOES I/O ONLY. The route gates, validates,
+ * reads the category, builds the house prompt and calls the provider (fake mode
+ * → the captured fixture bytes), then answers the generated image as base64.
+ * It no longer decodes, cuts variants, uploads, persists or prunes: the admin's
+ * browser cuts card/thumb/og and writes them under the admin's own session
+ * (`src/features/admin-categories/category-images-service.ts`). No image
+ * library is loaded on the Worker.
+ *
  * Gate: censused U4c pattern (bearer -> caller-context client -> has_permission),
  * checking `categories:assets`. Provider key is server-env only. Every 5xx is
  * logged as `[ssr-error] <path> <message>` first (I4). Provider 429/402 are
@@ -24,32 +32,36 @@ interface Body {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-interface RunResult {
-  stage: "done";
-  imageUrl: string;
-  thumbUrl: string;
-  ogUrl: string;
-  prompt: string;
-  timings: { genMs: number; processMs: number; totalMs: number };
-  bytes: { card: Uint8Array; thumb: Uint8Array; og: Uint8Array };
+/** The single server stage left: the model call (category read included). */
+class ModelCallError extends Error {
+  readonly status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ModelCallError";
+    this.status = status;
+  }
 }
 
 /** Thrown when the category does not exist, or RLS hides it (PART D). */
-export class CategoryNotFoundError extends Error {
+class CategoryNotFoundError extends Error {
   constructor() {
     super("category not found");
     this.name = "CategoryNotFoundError";
   }
 }
 
-async function run(
+interface Generated {
+  prompt: string;
+  genMs: number;
+  bytes: Uint8Array;
+}
+
+async function generate(
   supabase: SupabaseClient<Database>,
   categoryId: string,
   customPrompt: string | undefined,
-): Promise<RunResult> {
+): Promise<Generated> {
   const { buildPrompt } = await import("@/server/category-images/prompt");
-  const { processGeneratedPng, atStageAsync, StageError } =
-    await import("@/server/category-images/pipeline");
   const { fakeGeneratedPng } = await import("@/server/category-images/fixture");
   const { generateImageBytes, isFakeMode } = await import("@/server/category-images/gemini");
 
@@ -58,7 +70,7 @@ async function run(
     .select("id, name_en")
     .eq("id", categoryId)
     .maybeSingle();
-  if (categoryError) throw new StageError("persist", categoryError.message, 500);
+  if (categoryError) throw new ModelCallError(categoryError.message, 500);
   // PART D — unknown OR RLS-hidden is the SAME honest answer: 404.
   if (!category) throw new CategoryNotFoundError();
 
@@ -85,97 +97,59 @@ async function run(
   const prompt = buildPrompt({ nameEn: category.name_en, parentName, customPrompt });
 
   const genStart = performance.now();
-  const source = await atStageAsync("model-call", async () =>
-    isFakeMode() ? fakeGeneratedPng() : (await generateImageBytes(prompt)).bytes,
-  );
-  const genMs = performance.now() - genStart;
-
-  const output = processGeneratedPng(source, genMs);
-
-  /**
-   * C5e PART B — VERSIONED ASSETS. The object name carries the generation
-   * timestamp (`card-<genTs>.png`), so a regenerate can never be served stale
-   * from a CDN or browser cache: the URL itself changes. Older objects under
-   * the id prefix are removed best-effort AFTER the row points at the new set.
-   */
-  const base = `${categoryId}`;
-  const genTs = Date.now();
-  const names = {
-    card: `card-${genTs}.png`,
-    thumb: `thumb-${genTs}.png`,
-    og: `og-${genTs}.png`,
-  };
-  const uploads: [string, Uint8Array][] = [
-    [`${base}/${names.card}`, output.card],
-    [`${base}/${names.thumb}`, output.thumb],
-    [`${base}/${names.og}`, output.og],
-  ];
-  await atStageAsync("upload", async () => {
-    for (const [path, bytes] of uploads) {
-      const { error } = await supabase.storage
-        .from("category-assets")
-        .upload(path, bytes, { contentType: "image/png", upsert: true });
-      if (error) throw new StageError("upload", `storage upload failed: ${error.message}`, 500);
-    }
-  });
-
-  const publicBase = `${process.env["SUPABASE_URL"] ?? ""}/storage/v1/object/public/category-assets`;
-  const imageUrl = `${publicBase}/${base}/${names.card}`;
-  const thumbUrl = `${publicBase}/${base}/${names.thumb}`;
-  const ogUrl = `${publicBase}/${base}/${names.og}`;
-
-  await atStageAsync("persist", async () => {
-    const { error } = await supabase.rpc("admin_set_category_images", {
-      p_id: categoryId,
-      p_image_url: imageUrl,
-      p_image_thumb_url: thumbUrl,
-      p_og_image_url: ogUrl,
-      // C5c PART C.2 — the column records a CUSTOM prompt only; the uniform
-      // house prompt is code truth, not row truth, so it persists as NULL.
-      p_generation_prompt:
-        (customPrompt ?? "").trim() === "" ? (null as unknown as string) : prompt,
-    });
-    if (error) throw new StageError("persist", error.message, 500);
-  });
-
-  // C5e PART B — PRUNE. Best effort only: the row already points at the new
-  // set, so a failed cleanup is logged (never silent, F4) and never fails the
-  // generation the operator just paid for.
+  let bytes: Uint8Array;
   try {
-    const { data: existing } = await supabase.storage.from("category-assets").list(base);
-    const stale = (existing ?? [])
-      .map((entry) => entry.name)
-      .filter((name) => name !== names.card && name !== names.thumb && name !== names.og)
-      .map((name) => `${base}/${name}`);
-    if (stale.length > 0) await supabase.storage.from("category-assets").remove(stale);
+    bytes = isFakeMode() ? fakeGeneratedPng() : (await generateImageBytes(prompt)).bytes;
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
-    console.error(`[ssr-error] ${PATH} image_prune_failed ${message}`);
+    const status =
+      typeof (error as { status?: unknown })?.status === "number"
+        ? (error as { status: number }).status
+        : 500;
+    throw new ModelCallError(message, status);
   }
-
-  return {
-    stage: "done",
-    imageUrl,
-    thumbUrl,
-    ogUrl,
-    prompt,
-    timings: output.timings,
-    bytes: { card: output.card, thumb: output.thumb, og: output.og },
-  };
+  return { prompt, genMs: Math.round(performance.now() - genStart), bytes };
 }
 
-function toDataUrl(bytes: Uint8Array): string {
+function toBase64(bytes: Uint8Array): string {
   let binary = "";
-  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]!);
-  return `data:image/png;base64,${btoa(binary)}`;
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+/** Magic-byte label for the probe's raw answer — a header read, not a decode. */
+function sniffMime(bytes: Uint8Array): string {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return "image/png";
+  }
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
+  if (bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+    return "image/webp";
+  }
+  return "application/octet-stream";
+}
+
+function noStore(body: unknown, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
+}
+
+/** Maps a failure to its JSON answer; every one carries a stage (F4). */
+function failure(error: unknown, probe: boolean): Response {
+  if (error instanceof CategoryNotFoundError) {
+    return noStore({ error: "category not found" }, 404);
+  }
+  const message = error instanceof Error ? error.message : "unknown error";
+  const status = error instanceof ModelCallError ? error.status : 500;
+  console.error(`[ssr-error] ${PATH} image_generate_failed stage=model-call ${message}`);
+  if (status >= 400 && status < 500) return noStore({ error: message, stage: "model-call" }, status);
+  // ADMIN-GATED PROBE ONLY carries the true message; POST keeps the generic body.
+  return noStore({ error: probe ? message : "server error", stage: "model-call" }, 502);
 }
 
 export const Route = createFileRoute("/api/admin/categories/generate-image")({
@@ -202,37 +176,22 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
         }
 
         try {
-          const result = await run(gate.supabase, categoryId, body.customPrompt);
-          return json(
+          const result = await generate(gate.supabase, categoryId, body.customPrompt);
+          return noStore(
             {
-              stage: result.stage,
-              imageUrl: result.imageUrl,
-              thumbUrl: result.thumbUrl,
-              ogUrl: result.ogUrl,
+              stage: "generated",
               prompt: result.prompt,
-              timings: result.timings,
+              genMs: result.genMs,
+              image: toBase64(result.bytes),
             },
             200,
           );
         } catch (error) {
-          // PART D — honest 404 before any 5xx wrapping.
-          if (error instanceof CategoryNotFoundError) {
-            return json({ error: "category not found" }, 404);
-          }
-          const { StageError } = await import("@/server/category-images/pipeline");
-          const message = error instanceof Error ? error.message : "unknown error";
-          const stage = error instanceof StageError ? error.stage : "unknown";
-          // PART B (F4): stage + true cause reach the log before the generic body.
-          console.error(`[ssr-error] ${PATH} image_generate_failed stage=${stage} ${message}`);
-          if (error instanceof StageError && error.status < 500 && error.status >= 400) {
-            return json({ error: message, stage }, error.status);
-          }
-          // Non-probe POST keeps the GENERIC body.
-          return json({ error: "server error" }, 502);
+          return failure(error, false);
         }
       },
 
-      // A7 WALK SURFACE: the full flow, rendered inline with its timings.
+      // A7 WALK SURFACE: the raw generated image, exactly as the browser gets it.
       GET: async ({ request }) => {
         const { gateCategoriesAssets, json } = await import("@/server/category-images/gate");
         const url = new URL(request.url);
@@ -246,31 +205,16 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
         if (!UUID_RE.test(categoryId)) return json({ error: "invalid categoryId" }, 400);
 
         try {
-          const result = await run(gate.supabase, categoryId, undefined);
-          const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
-<title>category image probe</title>
-<style>body{font:14px system-ui;margin:24px;background:#fafafa}img{background:#fff;border:1px solid #ddd;max-width:100%}pre{background:#fff;border:1px solid #ddd;padding:12px;overflow:auto}</style>
-</head><body>
-<h1>category-assets probe</h1>
-<pre>${escapeHtml(JSON.stringify(result.timings, null, 2))}</pre>
-<pre>${escapeHtml(result.prompt)}</pre>
-<h2>card 512</h2><img alt="card" width="512" src="${toDataUrl(result.bytes.card)}">
-<h2>thumb 128</h2><img alt="thumb" width="128" src="${toDataUrl(result.bytes.thumb)}">
-<h2>og 1200x630</h2><img alt="og" width="600" src="${toDataUrl(result.bytes.og)}">
-</body></html>`;
-          return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+          const result = await generate(gate.supabase, categoryId, undefined);
+          return new Response(result.bytes, {
+            headers: {
+              "Content-Type": sniffMime(result.bytes),
+              "Cache-Control": "no-store",
+              "X-Gen-Ms": String(result.genMs),
+            },
+          });
         } catch (error) {
-          if (error instanceof CategoryNotFoundError) {
-            return json({ error: "category not found" }, 404);
-          }
-          const { StageError } = await import("@/server/category-images/pipeline");
-          const message = error instanceof Error ? error.message : "unknown error";
-          const stage = error instanceof StageError ? error.stage : "unknown";
-          console.error(`[ssr-error] ${PATH} image_generate_failed stage=${stage} ${message}`);
-          // ADMIN-GATED PROBE ONLY: the gate above proved `categories:assets`,
-          // so the true stage and message are admin-eyes-only detail (F4).
-          const status = error instanceof StageError && error.status >= 400 ? error.status : 502;
-          return json({ error: message, stage }, status >= 500 ? 502 : status);
+          return failure(error, true);
         }
       },
     },
