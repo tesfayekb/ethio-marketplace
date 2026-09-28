@@ -15,3 +15,11 @@ roadmap.md
 # pre-existing and therefore declares nothing for this range, so the path is
 # re-declared here, travelling with the deletion as the guard requires.
 roadmap.md
+
+# DEC-082 / INC-308 (2026-09-28): category image variants are cut in the admin's
+# browser; the Worker no longer decodes or encodes images, so the server raster
+# pipeline, its bitmap font and its unit test are retired.
+src/server/category-images/pipeline.ts
+src/server/category-images/raster.ts
+src/server/category-images/raster.test.ts
+src/server/category-images/font.ts

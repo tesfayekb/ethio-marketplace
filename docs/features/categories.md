@@ -265,6 +265,13 @@ The category filter is a subtree picker: every category in depth-first roster or
 
 ## Category imagery (C5b)
 
+**DEC-082 (INC-308) — division of labour.** Bulk "Generate image" died with a hosting-layer 500 (no JSON body): the Worker decoded and re-encoded PNGs in plain JavaScript (130–180 ms CPU per image). The Worker now does I/O only; no image library is loaded on it.
+
+- **Route** `POST /api/admin/categories/generate-image`: gate (`categories:assets`), body checks, category read (unknown → 404), house prompt, provider call (fake mode → captured fixture bytes in `src/server/category-images/fixture.ts`). Answers `{ stage: "generated", prompt, genMs, image: <base64> }` with `Cache-Control: no-store`. Failures are JSON with `stage: "model-call"`. The `GET ?probe=1` walk surface returns the raw generated image.
+- **Browser** (`category-image-variants.ts`): the C5a pipeline ported to canvas with the same constants and order — white→transparent (≥244), content-bounds crop (alpha >16), 512 card at 0.85 fill with three `ethio.com` marks (0.1 opacity, −30°) behind the icon, 128 thumb from the card, 1200×630 OG at 0.88 of the height.
+- **Service** (`category-images-service.ts`): route → variants → three versioned uploads (`card|thumb|og-<ts>.png` under `<categoryId>/`) under the admin's session → `admin_set_category_images` → best-effort prune (logged, never fatal). Stages: `model-call · process · upload · persist · client-timeout`. No service role on this path.
+- Retired: `src/server/category-images/{pipeline,raster,raster.test,font}.ts`. `pngjs`/`jpeg-js` stay in `package.json` only because `scripts/fixtures/photos/make.ts` still imports them.
+
 The Image tab of the category editor is the review surface for AI-generated
 artwork. Generation is not a draft: the gated route writes the three objects
 (card 512, thumbnail 128, social 1200x630) and the category row in one call,

@@ -5,9 +5,10 @@ import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
  * C5b — the client seam for the two FROZEN C5a routes.
  *
  * ROUTE CONTRACT CENSUS (verbatim success shapes, C5a-3 as landed):
- *   POST /api/admin/categories/generate-image
- *     { stage: "done", imageUrl, thumbUrl, ogUrl, prompt,
- *       timings: { genMs, processMs, totalMs } }
+ *   POST /api/admin/categories/generate-image (DEC-082 — provider call only)
+ *     { stage: "generated", prompt, genMs, image: <base64 PNG> }
+ *   generateCategoryImage() below still resolves the C5a GeneratedAssets shape
+ *     { stage: "done", imageUrl, thumbUrl, ogUrl, prompt, timings }.
  *   POST /api/admin/categories/suggest-icon
  *     { icon: "<allowlisted name>", fake: boolean }
  *
@@ -89,23 +90,127 @@ async function post(path: string, body: unknown, timeoutMs?: number): Promise<un
   return parsed;
 }
 
+const BUCKET = "category-assets";
+
+function fromBase64(value: string): Uint8Array {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+/**
+ * DEC-082 (INC-308) — THE DIVISION OF LABOUR. The route only calls the
+ * provider and answers the image; this browser cuts the variants and writes
+ * them under the admin's OWN session (storage policies + the gated definer
+ * RPC decide, never a service role):
+ *   model-call (route) → process (canvas) → upload (3 objects) → persist (RPC)
+ *   → prune (best effort, logged, never fatal).
+ * Every failure is a CategoryImageError carrying its stage (F4).
+ */
 export async function generateCategoryImage(input: {
   categoryId: string;
   customPrompt?: string;
 }): Promise<GeneratedAssets> {
+  const customPrompt =
+    input.customPrompt && input.customPrompt.trim() !== "" ? input.customPrompt.trim() : undefined;
   // C5f PART A — 30s client budget; a hang becomes a stage-labelled failure
   // ("client-timeout") that the bulk loop surfaces and advances past (F4).
-  const payload = await post(
-    "/api/admin/categories/generate-image",
-    {
-      categoryId: input.categoryId,
-      ...(input.customPrompt && input.customPrompt.trim() !== ""
-        ? { customPrompt: input.customPrompt.trim() }
-        : {}),
-    },
-    30_000,
-  );
-  return payload as GeneratedAssets;
+  let payload: { stage?: string; prompt?: string; genMs?: number; image?: string };
+  try {
+    payload = (await post(
+      "/api/admin/categories/generate-image",
+      { categoryId: input.categoryId, ...(customPrompt ? { customPrompt } : {}) },
+      30_000,
+    )) as typeof payload;
+  } catch (error) {
+    if (error instanceof CategoryImageError) {
+      throw new CategoryImageError(error.message, error.status, error.stage ?? "model-call");
+    }
+    throw new CategoryImageError(
+      error instanceof Error ? error.message : "network error",
+      0,
+      "model-call",
+    );
+  }
+  if (typeof payload.image !== "string" || payload.image === "") {
+    throw new CategoryImageError("route returned no image", 502, "model-call");
+  }
+
+  const { makeVariants } = await import("./category-image-variants");
+  const processStart = performance.now();
+  let variants: Awaited<ReturnType<typeof makeVariants>>;
+  try {
+    const bytes = fromBase64(payload.image);
+    variants = await makeVariants(new Blob([bytes as BlobPart]));
+  } catch (error) {
+    throw new CategoryImageError(
+      error instanceof Error ? error.message : "image processing failed",
+      0,
+      "process",
+    );
+  }
+  const processMs = Math.max(1, Math.round(performance.now() - processStart));
+
+  // C5e PART B — VERSIONED names, so a regenerate can never be served stale.
+  const base = input.categoryId;
+  const genTs = Date.now();
+  const names = { card: `card-${genTs}.png`, thumb: `thumb-${genTs}.png`, og: `og-${genTs}.png` };
+  const storage = supabase.storage.from(BUCKET);
+  const uploads: [string, Blob][] = [
+    [`${base}/${names.card}`, variants.card],
+    [`${base}/${names.thumb}`, variants.thumb],
+    [`${base}/${names.og}`, variants.og],
+  ];
+  for (const [path, blob] of uploads) {
+    const { error } = await storage.upload(path, blob, { contentType: "image/png", upsert: true });
+    if (error) {
+      throw new CategoryImageError(`storage upload failed: ${error.message}`, 0, "upload");
+    }
+  }
+  const imageUrl = storage.getPublicUrl(`${base}/${names.card}`).data.publicUrl;
+  const thumbUrl = storage.getPublicUrl(`${base}/${names.thumb}`).data.publicUrl;
+  const ogUrl = storage.getPublicUrl(`${base}/${names.og}`).data.publicUrl;
+
+  const prompt = payload.prompt ?? "";
+  const { error: persistError } = await supabase.rpc("admin_set_category_images", {
+    p_id: input.categoryId,
+    p_image_url: imageUrl,
+    p_image_thumb_url: thumbUrl,
+    p_og_image_url: ogUrl,
+    // C5c PART C.2 — the column records a CUSTOM prompt only (NULL otherwise).
+    p_generation_prompt: customPrompt === undefined ? (null as unknown as string) : prompt,
+  });
+  if (persistError) throw new CategoryImageError(persistError.message, 0, "persist");
+
+  // C5e PART B — PRUNE. Best effort: the row already points at the new set.
+  try {
+    const { data: existing, error: listError } = await storage.list(base);
+    if (listError) throw new Error(listError.message);
+    const keep = new Set([names.card, names.thumb, names.og]);
+    const stale = (existing ?? [])
+      .map((entry) => entry.name)
+      .filter((name) => !keep.has(name))
+      .map((name) => `${base}/${name}`);
+    if (stale.length > 0) {
+      const { error: removeError } = await storage.remove(stale);
+      if (removeError) throw new Error(removeError.message);
+    }
+  } catch (error) {
+    console.error(
+      `[category-images] image_prune_failed ${error instanceof Error ? error.message : "unknown"}`,
+    );
+  }
+
+  const genMs = Math.round(payload.genMs ?? 0);
+  return {
+    stage: "done",
+    imageUrl,
+    thumbUrl,
+    ogUrl,
+    prompt,
+    timings: { genMs, processMs, totalMs: genMs + processMs },
+  };
 }
 
 export async function suggestCategoryIcon(input: {
