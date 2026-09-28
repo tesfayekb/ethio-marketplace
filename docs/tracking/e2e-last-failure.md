@@ -1,101 +1,461 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36391560866 passed
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36398155321
+- Commit: `8e0c2ecf3019e18a8841de36e947362ce724d192`
+- Attempt: 1
+- Written (UTC): 2026-09-28T08:37:57.511Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36391560866
-- Commit: `1f7e086992da0cd7cccef0e4bc45f9cd74c42a77`
-- Attempt: 2
-- Written (UTC): 2026-09-28T07:50:14.539Z
-- Post-test warnings: 0
-- Flaky (passed on retry, DEC-030, non-gating): 2
+## Post-test errors: smoke
 
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away — Error: expect(received).toBe(expected) // Object.is equality
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · post-wizard.spec.ts › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) — Error: expect(locator).toBeVisible() failed
-
-## Flaky bodies (DEC-078)
-
-### admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away
-
-- Source: `shard 1`
-- Project: `mobile-360`
+smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: undefined
+[e2e:teardown] WARNING could not list users for process 36398155321-smoke: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-smoke-2848-1-q1ezhk@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
 ```
 
-Context:
+## Post-test errors: email
+
+email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-          - listitem [ref=e129]:
-            - generic [ref=e130]: About
-          - listitem [ref=e131]:
-            - generic [ref=e132]: How it works
-      - navigation "Help" [ref=e133]:
-        - heading "Help" [level=2] [ref=e134]
-        - list [ref=e135]:
-          - listitem [ref=e136]:
-            - generic [ref=e137]: Safety
-          - listitem [ref=e138]:
-            - generic [ref=e139]: Contact
-      - navigation "Legal" [ref=e140]:
-        - heading "Legal" [level=2] [ref=e141]
-        - list [ref=e142]:
-          - listitem [ref=e143]:
-            - generic [ref=e144]: Terms
-          - listitem [ref=e145]:
-            - generic [ref=e146]: Privacy
-    - paragraph [ref=e148]: © 2026 ethio.com — All rights reserved.
-```
+[e2e:teardown] WARNING could not list users for process 36398155321-email: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-email-3080-1-2tfcul@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
 ```
 
-### post-wizard.spec.ts › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59)
+## Post-test errors: shard 1
 
-- Source: `shard 2`
-- Project: `mobile-360`
+shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-4')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-4')
-
+[e2e:teardown] WARNING could not list users for process 36398155321-1: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-1-3056-1-yciebw@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
 ```
 
-Context:
+## Post-test errors: shard 2
+
+shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-          - listitem [ref=e166]:
-            - generic [ref=e167]: About
-          - listitem [ref=e168]:
-            - generic [ref=e169]: How it works
-      - navigation "Help" [ref=e170]:
-        - heading "Help" [level=2] [ref=e171]
-        - list [ref=e172]:
-          - listitem [ref=e173]:
-            - generic [ref=e174]: Safety
-          - listitem [ref=e175]:
-            - generic [ref=e176]: Contact
-      - navigation "Legal" [ref=e177]:
-        - heading "Legal" [level=2] [ref=e178]
-        - list [ref=e179]:
-          - listitem [ref=e180]:
-            - generic [ref=e181]: Terms
-          - listitem [ref=e182]:
-            - generic [ref=e183]: Privacy
-    - paragraph [ref=e185]: © 2026 ethio.com — All rights reserved.
+[e2e:teardown] WARNING could not list users for process 36398155321-2: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-2-2980-1-z82v0t@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
 ```
+
+## Post-test errors: shard 3
+
+shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] WARNING could not list users for process 36398155321-3: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-3-2971-1-sdvvvh@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+```
+
+## Post-test errors: shard 4
+
+shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] WARNING could not list users for process 36398155321-4: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-4-3083-1-hhfkw8@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+```
+
+## Post-test errors: shard 5
+
+shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] WARNING could not list users for process 36398155321-5: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-5-2867-1-vs8bk1@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+```
+
+## Post-test errors: shard 6
+
+shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] WARNING could not list users for process 36398155321-6: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-6-3019-1-xtyetr@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+```
+
+## Post-test errors: changed
+
+changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] WARNING could not list users for process 36398155321-changed: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-changed-3076-1-bebubw@ethio-e2e.invalid: {} (status 522)
+   at global-setup.ts:417
+  415 |   });
+  416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+```
+
+## Server errors: smoke
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: smoke
+
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+
+## Server errors: email
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: email
+
+No `[client-error]` lines in the `email` log (or no log was uploaded).
+
+## Server errors: shard 1
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Server errors: changed
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## Client errors: changed
+
+No `[client-error]` lines in the `changed` log (or no log was uploaded).
+
+## smoke: results file with zero tests
+
+smoke: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-smoke-2848-1-q1ezhk@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-smoke: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## email: results file with zero tests
+
+email: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-email-3080-1-2tfcul@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-email: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## shard 1: results file with zero tests
+
+shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-1-3056-1-yciebw@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-1: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## shard 2: results file with zero tests
+
+shard 2: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-2-2980-1-z82v0t@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-2: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## shard 3: results file with zero tests
+
+shard 3: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-3-2971-1-sdvvvh@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-3: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## shard 4: results file with zero tests
+
+shard 4: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-4-3083-1-hhfkw8@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-4: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## shard 5: results file with zero tests
+
+shard 5: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-5-2867-1-vs8bk1@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-5: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## shard 6: results file with zero tests
+
+shard 6: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-6-3019-1-xtyetr@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-6: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
+```
+
+## changed: results file with zero tests
+
+changed: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-changed-3076-1-bebubw@ethio-e2e.invalid: {} (status 522)
+--- final 10 lines ---
+416 |   if (error || !data?.user?.id) {
+> 417 |     throw new Error(
+      |           ^
+  418 |       `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
+  419 |         (error?.status ? ` (status ${error.status})` : ""),
+  420 |     );
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:417:11)
+[e2e:teardown] WARNING could not list users for process 36398155321-changed: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
+```
+
+```text
+[WebServer] [ssr-error] /__root gate fetch failed 522
 ```
