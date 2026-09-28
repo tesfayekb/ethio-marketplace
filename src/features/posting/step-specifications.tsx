@@ -715,7 +715,7 @@ export function StepSpecifications({
      * answer, and a second pass here would see the identity's options arrive as
      * a "moved" root and start the whole form over — the basis just chosen with it.
      */
-    if (only !== null) return;
+    if (onlyKey !== null) return;
     const view = latestRef.current;
     const next = { ...view };
     let changed = false;
@@ -945,7 +945,7 @@ export function StepSpecifications({
     if (reconcile.current === stamp) return;
     reconcile.current = stamp;
     emit(next, false);
-  }, [
+  }, [onlyKey, 
     schema,
     definitions,
     folds,
@@ -975,7 +975,7 @@ export function StepSpecifications({
   useEffect(() => {
     if (schema === null || categoryId === null) return;
     // D62-2 — the link defaults belong to step 3; the price step never re-offers them.
-    if (only !== null) return;
+    if (onlyKey !== null) return;
     /**
      * INC-257 — THE PASS IS SPENT PER SET OF ASKED FIELDS, not once per category.
      * A default is only written into a field the seller is asked for, so a field a
@@ -1013,7 +1013,7 @@ export function StepSpecifications({
       changed = true;
     }
     if (changed) emit(next, false);
-  }, [schema, categoryId, definitions, values, emit]);
+  }, [onlyKey, schema, categoryId, definitions, values, emit]);
 
   const seen = useMemo(() => {
     const named = new Set(refusals.map((entry) => entry.field));
