@@ -37,6 +37,8 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   // INC-301 — a commission outside 0.01–100 %, and an empty one.
   commissionRange: "post.refusal.commissionRange",
   commissionRequired: "post.refusal.commissionRequired",
+  // INC-309 — an unmapped door exception, in words; never the raw field name.
+  doorError: "post.refusal.doorError",
   categoryNotPostable: "post.refusal.categoryNotPostable",
   residencyUnknown: "post.refusal.residencyUnknown",
   coverageExceedsPlan: "post.refusal.coverageExceedsPlan",

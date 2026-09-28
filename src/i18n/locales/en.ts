@@ -1977,6 +1977,8 @@ export const en = {
   "post.refusal.messagesRequired": "Buyers must be able to message you.",
   "post.refusal.notYourListing": "This listing belongs to another account.",
   "post.refusal.unknown": "That could not be saved.",
+  "post.refusal.doorError":
+    "We couldn't save this step. Please try again; if it keeps happening, tell us.",
   "post.refusal.badType": "This answer is not in the form this detail expects.",
   "post.refusal.badPreset": "This does not match the format this detail expects.",
   "post.refusal.badDecimals": "Use fewer decimal places.",

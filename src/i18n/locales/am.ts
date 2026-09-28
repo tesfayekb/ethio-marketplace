@@ -1890,6 +1890,7 @@ export const am: Messages = {
   "post.refusal.messagesRequired": "ገዢዎች መልእክት መላክ መቻል አለባቸው።",
   "post.refusal.notYourListing": "ይህ ማስታወቂያ የሌላ መለያ ነው።",
   "post.refusal.unknown": "ያ መቀመጥ አልቻለም።",
+  "post.refusal.doorError": "ይህን ደረጃ ማስቀመጥ አልቻልንም። እባክዎ እንደገና ይሞክሩ፤ ከቀጠለ ያሳውቁን።",
   "post.refusal.badType": "ይህ መልስ ይህ ዝርዝር በሚጠብቀው ቅርጽ አይደለም።",
   "post.refusal.badPreset": "ይህ ይህ ዝርዝር በሚጠብቀው ቅርጸት አይመሳሰልም።",
   "post.refusal.badDecimals": "ያነሱ የአስርዮሽ ቁጥሮችን ይጠቀሙ።",
