@@ -18,8 +18,9 @@ import {
  * C5b PART A — THE IMAGE SURFACE.
  *
  * REVIEW MODEL (ruling logged in /docs/features/categories.md): a generation
- * PERSISTS immediately — the route writes the three objects and the row in one
- * gated call, and this surface is where the result is reviewed and, if wrong,
+ * PERSISTS immediately — the service cuts the three variants in this browser
+ * (DEC-082), writes them and the row under the admin's session, and this
+ * surface is where the result is reviewed and, if wrong,
  * regenerated. There is no draft-asset state yet; it arrives when listings
  * consume category imagery.
  */

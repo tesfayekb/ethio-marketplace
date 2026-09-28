@@ -5,9 +5,10 @@ import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
  * C5b — the client seam for the two FROZEN C5a routes.
  *
  * ROUTE CONTRACT CENSUS (verbatim success shapes, C5a-3 as landed):
- *   POST /api/admin/categories/generate-image
- *     { stage: "done", imageUrl, thumbUrl, ogUrl, prompt,
- *       timings: { genMs, processMs, totalMs } }
+ *   POST /api/admin/categories/generate-image (DEC-082 — provider call only)
+ *     { stage: "generated", prompt, genMs, image: <base64 PNG> }
+ *   generateCategoryImage() below still resolves the C5a GeneratedAssets shape
+ *     { stage: "done", imageUrl, thumbUrl, ogUrl, prompt, timings }.
  *   POST /api/admin/categories/suggest-icon
  *     { icon: "<allowlisted name>", fake: boolean }
  *
