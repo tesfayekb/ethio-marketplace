@@ -50,7 +50,6 @@ async function negotiableOf(listingId: string): Promise<boolean | null> {
   return data?.price_negotiable ?? null;
 }
 
-
 test.describe("POSTING ROUTES", () => {
   const categories: string[] = [];
   const sellers: string[] = [];
