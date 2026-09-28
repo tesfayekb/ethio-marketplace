@@ -1412,11 +1412,13 @@ test.describe("POSTING WIZARD", () => {
     // The retired mode can no longer be STORED (listings_price_mode_check), so
     // the pre-D62-2 client is reproduced at the wire: every draft save carries
     // priceMode "negotiable", exactly what the old bundle sends.
+    // INC-311: a test-level handler on a path asEdge covers must FALL BACK, never
+    // continue — continue() skips asEdge and the cf-ipcountry header is lost.
     await page.route("**/api/listings/draft", async (route) => {
       const request = route.request();
-      if (request.method() !== "POST") return route.continue();
+      if (request.method() !== "POST") return route.fallback();
       const body = JSON.parse(request.postData() ?? "{}") as Record<string, unknown>;
-      await route.continue({ postData: JSON.stringify({ ...body, priceMode: "negotiable" }) });
+      await route.fallback({ postData: JSON.stringify({ ...body, priceMode: "negotiable" }) });
     });
 
     const listingId = await reachStep3(page, user.id, category);
