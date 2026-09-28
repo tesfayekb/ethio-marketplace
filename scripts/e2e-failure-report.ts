@@ -45,6 +45,10 @@ const OUT =
     : "docs/tracking/e2e-last-failure.md");
 const SINGLE_SOURCE_LABEL = process.env["E2E_SOURCE_LABEL"] ?? "all";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
+/** DEC-083 — the quiet list; every entry names the test that provokes it. */
+const SSR_ALLOWLIST = "docs/tracking/ssr-error-allowlist.txt";
+/** DEC-083 — a REAL captured job log (local e2e run) for the census self-test. */
+const CENSUS_FIXTURE = "scripts/fixtures/e2e-ssr-census/job.log.txt";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
 /** INC-084g — the describe-nested shape, captured from a real Playwright run. */
 const DESCRIBE_FIXTURE = "scripts/fixtures/e2e-context-sample-describe";
@@ -449,7 +453,39 @@ export type Source = {
   postTestErrors?: string[];
   /** DEC-083 — every `[ssr-error]` line, uncapped, for the census count only. */
   ssrAll?: string[];
+  /** DEC-084 — every `[a11y]` summary line the a11y smoke printed. */
+  a11yLines?: string[];
 };
+
+/** DEC-084 — `[a11y] <page> <project> serious=<n> critical=<n>`. */
+export function grepA11y(text: string | null): string[] {
+  if (!text) return [];
+  const out: string[] = [];
+  for (const line of text.split("\n")) {
+    const m = /\[a11y\] (\S+) (\S+) serious=(\d+) critical=(\d+)/.exec(line);
+    if (m) out.push(`${m[1]} ${m[2]} serious=${m[3]} critical=${m[4]}`);
+  }
+  return [...new Set(out)];
+}
+
+/** DEC-084 — the one-line accessibility summary, in both forms. */
+export function a11ySection(sources: { a11yLines?: string[] }[]): string[] {
+  const lines = sources.flatMap((s) => s.a11yLines ?? []);
+  let serious = 0;
+  let critical = 0;
+  for (const line of lines) {
+    serious += Number(/serious=(\d+)/.exec(line)?.[1] ?? 0);
+    critical += Number(/critical=(\d+)/.exec(line)?.[1] ?? 0);
+  }
+  return [
+    "## Accessibility (DEC-084, non-gating)",
+    "",
+    lines.length === 0
+      ? "No `[a11y]` lines in any source log (the a11y smoke did not run, or no log was uploaded)."
+      : `${lines.length} page×project check(s): serious=${serious} critical=${critical} — ${lines.join(" · ")}`,
+    "",
+  ];
+}
 
 /**
  * INC-085f — ONE tag-grep for every runtime-error channel. `[ssr-error]` is
@@ -826,6 +862,7 @@ export function renderSources(
   sources: Source[],
   meta: ReportMeta,
   contexts: Map<string, string> = new Map(),
+  ssrAllowlist: string[] = [],
 ): string {
   let passed = 0;
   let skipped = 0;
@@ -887,6 +924,9 @@ export function renderSources(
     "",
     ...flakeSection,
     ...flakyBodiesSection(flaky, contexts),
+    // DEC-083 / DEC-084 — rendered on every red form, failed sources or not.
+    ...ssrCensusSection(ssrCensus(sources, ssrAllowlist)),
+    ...a11ySection(sources),
   ];
 
   // DEC-059 — THE POST-TEST SECTION. Rendered for every source that carried one,
@@ -1028,6 +1068,8 @@ export function renderGreen(
   postTestWarnings = 0,
   flaky: (Flake & { source: string })[] = [],
   contexts: Map<string, string> = new Map(),
+  sources: Source[] = [],
+  ssrAllowlist: string[] = [],
 ): string {
   return [
     "# Last E2E failure (auto-generated — do not edit by hand)",
@@ -1044,6 +1086,9 @@ export function renderGreen(
     "",
     ...flakeLedgerSection(flaky),
     ...flakyBodiesSection(flaky, contexts),
+    // DEC-083 / DEC-084 — the green form carries the same census and summary.
+    ...ssrCensusSection(ssrCensus(sources, ssrAllowlist)),
+    ...a11ySection(sources),
   ].join("\n");
 }
 
@@ -1738,6 +1783,9 @@ async function main() {
         clientErrors: grepClientErrors(log),
         // DEC-059: teardown/exit errors live outside every test; extracted here.
         postTestErrors: grepPostTestErrors(log),
+        // DEC-083 — uncapped, for counting; DEC-084 — the a11y summary lines.
+        ssrAll: allSsrLines(log),
+        a11yLines: grepA11y(log),
       });
     }
   } else {
@@ -1752,6 +1800,14 @@ async function main() {
       clientErrors: [],
     });
   }
+
+  // DEC-083 — the allowlist is read on every run; a missing file is an empty list
+  // (every message then shows as off-list), never a crash.
+  const ssrAllowlist = parseSsrAllowlist(
+    await Bun.file(process.env["E2E_SSR_ALLOWLIST"] ?? SSR_ALLOWLIST)
+      .text()
+      .catch(() => ""),
+  );
 
   const contexts =
     contextsDir && !flakeOnly ? collectContextFiles(contextsDir) : new Map<string, string>();
@@ -1775,7 +1831,7 @@ async function main() {
       }
     }
     // DEC-078 part 2 — the green report carries the flake ledger and bodies.
-    await Bun.write(OUT, renderGreen(meta, postTestWarnings, allFlaky, contexts));
+    await Bun.write(OUT, renderGreen(meta, postTestWarnings, allFlaky, contexts, sources, ssrAllowlist));
     // DEC-028 — a green run still publishes its verdict, so a consumer never
     // has to treat a missing verdict file as "probably green". The flaky count
     // is the real one (DEC-078 part 2).
@@ -1792,7 +1848,7 @@ async function main() {
   }
 
   if (!flakeOnly) {
-    await Bun.write(OUT, renderSources(sources, meta, contexts));
+    await Bun.write(OUT, renderSources(sources, meta, contexts, ssrAllowlist));
     console.log(
       `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
     );
