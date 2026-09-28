@@ -240,6 +240,30 @@ test.describe("POSTING ROUTES", () => {
     expect(await negotiableOf(listingId)).toBe(false);
   });
 
+  test("PR-12 the draft door at step 1 takes 'negotiable' as an alias: fixed + flag (INC-309)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      { step: 1, categoryId: cat.id, priceMode: "negotiable" },
+      { token, country: "ET" },
+    );
+    expect(draft.status, JSON.stringify(draft.payload)).toBe(200);
+    expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
+    const listingId = String(draft.payload["listing_id"] ?? "");
+    expect(listingId).not.toBe("");
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("price_mode, price_negotiable")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:pr-12] reading the draft failed: ${error.message}`);
+    expect(data).toEqual({ price_mode: "fixed", price_negotiable: true });
+  });
+
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
     const { token } = await seller(page);
     const cat = await category();
