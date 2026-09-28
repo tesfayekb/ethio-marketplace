@@ -1052,6 +1052,9 @@ test.describe("POSTING WIZARD", () => {
       timeout: 20_000,
     });
     if (token !== null) await specControl(page, basis.basisKey).selectOption(token);
+    console.log("DBGT", await specControl(page, basis.basisKey).evaluate((e) => e.outerHTML.slice(0, 600)));
+    await page.waitForTimeout(1500);
+    console.log("DBGT2", await specControl(page, basis.basisKey).evaluate((e) => e.outerHTML.slice(0, 600)));
     return listingId;
   }
 
