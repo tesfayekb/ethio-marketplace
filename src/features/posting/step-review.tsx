@@ -11,7 +11,7 @@ import { attributeDisplayValue } from "./attribute-display";
 import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { entityName } from "@/i18n/entity";
 import { formatCommission } from "./price-basis";
-import { NegotiableBadge } from "@/components/marketplace/negotiable-badge";
+import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import {
   publishListing,
@@ -334,7 +334,11 @@ export function StepReview({
                 <dd className="break-words text-sm text-foreground" data-testid="post-review-value">
                   {section.value === "" ? t("post.review.notGiven") : section.value}
                 </dd>
-                {section.negotiable === true && <NegotiableBadge />}
+                {section.negotiable === true && (
+                  <dd>
+                    <NegotiableBadge />
+                  </dd>
+                )}
                 {section.sub !== undefined && section.sub !== "" && (
                   <dd
                     className="break-words text-xs text-muted-foreground"
