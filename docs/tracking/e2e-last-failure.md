@@ -2,8 +2,8 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36398155321
 - Commit: `8e0c2ecf3019e18a8841de36e947362ce724d192`
-- Attempt: 1
-- Written (UTC): 2026-09-28T08:37:57.511Z
+- Attempt: 2
+- Written (UTC): 2026-09-28T08:48:07.471Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -16,7 +16,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-smoke: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-smoke-2848-1-q1ezhk@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-smoke-3081-1-wxd1zw@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -34,7 +34,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-email: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-email-3080-1-2tfcul@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-email-3072-1-rqa72b@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -52,7 +52,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-1: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-1-3056-1-yciebw@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-1-2874-1-jjw1yk@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -70,7 +70,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-2: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-2-2980-1-z82v0t@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-2-2897-1-bnoni5@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -88,7 +88,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-3: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-3-2971-1-sdvvvh@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-3-3089-1-aqltoe@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -106,7 +106,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-4: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-4-3083-1-hhfkw8@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-4-3183-1-0ipsai@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -124,7 +124,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-5: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-5-2867-1-vs8bk1@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-5-2997-1-yfxign@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -142,7 +142,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-6: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-6-3019-1-xtyetr@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-6-3068-1-hgccz0@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -160,7 +160,7 @@ changed: every test's verdict stands — these lines were printed OUTSIDE any te
 
 ```text
 [e2e:teardown] WARNING could not list users for process 36398155321-changed: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-changed-3076-1-bebubw@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-changed-3095-1-lnefoj@ethio-e2e.invalid: {} (status 522)
    at global-setup.ts:417
   415 |   });
   416 |   if (error || !data?.user?.id) {
@@ -268,7 +268,7 @@ smoke: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-smoke-2848-1-q1ezhk@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-smoke-3081-1-wxd1zw@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
@@ -290,7 +290,7 @@ email: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-email-3080-1-2tfcul@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-email-3072-1-rqa72b@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
@@ -312,7 +312,7 @@ shard 1: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-1-3056-1-yciebw@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-1-2874-1-jjw1yk@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
@@ -334,7 +334,7 @@ shard 2: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-2-2980-1-z82v0t@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-2-2897-1-bnoni5@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
@@ -356,7 +356,7 @@ shard 3: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-3-2971-1-sdvvvh@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-3-3089-1-aqltoe@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
@@ -378,7 +378,7 @@ shard 4: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-4-3083-1-hhfkw8@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-4-3183-1-0ipsai@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
@@ -400,7 +400,7 @@ shard 5: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-5-2867-1-vs8bk1@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-5-2997-1-yfxign@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
@@ -422,7 +422,7 @@ shard 6: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-6-3019-1-xtyetr@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-6-3068-1-hgccz0@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
@@ -444,7 +444,7 @@ changed: SOURCE PRODUCED NO TESTS — the runner died before executing (webServe
 
 ```text
 --- error lines (1) ---
-Error: [e2e:setup] admin.createUser failed for e2e+36398155321-changed-3076-1-bebubw@ethio-e2e.invalid: {} (status 522)
+Error: [e2e:setup] admin.createUser failed for e2e+36398155321-changed-3095-1-lnefoj@ethio-e2e.invalid: {} (status 522)
 --- final 10 lines ---
 416 |   if (error || !data?.user?.id) {
 > 417 |     throw new Error(
