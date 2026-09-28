@@ -175,7 +175,12 @@ function toPng(el: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
-function drawWatermarks(ctx: CanvasRenderingContext2D, width: number, height: number, scale: number) {
+function drawWatermarks(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  scale: number,
+) {
   const blocks = glyphBlockCentres(WATERMARK_TEXT, scale, WATERMARK_ANGLE);
   const size = scale + 1;
   const half = size / 2;

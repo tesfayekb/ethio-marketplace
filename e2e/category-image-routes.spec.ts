@@ -213,9 +213,11 @@ test.describe("C5a — category AI foundation routes", () => {
       const { data: objects } = await adminClient()
         .storage.from("category-assets")
         .list(category.id);
-      expect((objects ?? []).map((o) => o.name).sort()).toEqual(
-        [`card-${ts}.png`, `og-${ts}.png`, `thumb-${ts}.png`],
-      );
+      expect((objects ?? []).map((o) => o.name).sort()).toEqual([
+        `card-${ts}.png`,
+        `og-${ts}.png`,
+        `thumb-${ts}.png`,
+      ]);
 
       const { data: accepted, error: acceptError } = await caller.rpc(
         "admin_accept_category_image",

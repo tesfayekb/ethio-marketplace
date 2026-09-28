@@ -147,7 +147,8 @@ function failure(error: unknown, probe: boolean): Response {
   const message = error instanceof Error ? error.message : "unknown error";
   const status = error instanceof ModelCallError ? error.status : 500;
   console.error(`[ssr-error] ${PATH} image_generate_failed stage=model-call ${message}`);
-  if (status >= 400 && status < 500) return noStore({ error: message, stage: "model-call" }, status);
+  if (status >= 400 && status < 500)
+    return noStore({ error: message, stage: "model-call" }, status);
   // ADMIN-GATED PROBE ONLY carries the true message; POST keeps the generic body.
   return noStore({ error: probe ? message : "server error", stage: "model-call" }, 502);
 }

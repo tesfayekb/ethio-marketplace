@@ -75,16 +75,19 @@ import {
 
       // DEC-082 — the browser-cut variants have the C5a geometry: the STORED
       // PNGs are loaded through an Image in the page and measured.
-      const dims = await page.evaluate(async (urls) => {
-        const measure = (src: string) =>
-          new Promise<[number, number]>((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve([img.naturalWidth, img.naturalHeight]);
-            img.onerror = () => reject(new Error(`load failed: ${src}`));
-            img.src = src;
-          });
-        return Promise.all(urls.map(measure));
-      }, [first!.image_url!, first!.image_thumb_url!, first!.og_image_url!]);
+      const dims = await page.evaluate(
+        async (urls) => {
+          const measure = (src: string) =>
+            new Promise<[number, number]>((resolve, reject) => {
+              const img = new Image();
+              img.onload = () => resolve([img.naturalWidth, img.naturalHeight]);
+              img.onerror = () => reject(new Error(`load failed: ${src}`));
+              img.src = src;
+            });
+          return Promise.all(urls.map(measure));
+        },
+        [first!.image_url!, first!.image_thumb_url!, first!.og_image_url!],
+      );
       expect(dims).toEqual([
         [512, 512],
         [128, 128],
