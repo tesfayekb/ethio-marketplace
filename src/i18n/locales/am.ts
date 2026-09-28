@@ -1904,7 +1904,7 @@ export const am: Messages = {
   "post.price.why": "ምን እየጠየቁ እንደሆነ ይናገሩ። ገዢዎች በዋጋ ያጣራሉ፤ ትክክለኛ ዋጋ ብዙ መልስ ያገኛል።",
   "post.price.modeLabel": "ዋጋውን እንዴት ያስቀምጣሉ?",
   "post.price.mode.fixed": "ቁርጥ ዋጋ",
-  "post.price.mode.negotiable": "የሚደራደር",
+  "post.price.negotiableToggle": "ዋጋው የሚደራደር ነው",
   "post.price.mode.free": "ነፃ",
   "post.price.mode.contact": "ለዋጋ ያገኙኝ",
   "post.price.notAllowed": "ይህ ምድብ ያለ ዋጋ ይለጠፋል።",

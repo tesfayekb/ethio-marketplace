@@ -158,9 +158,12 @@ export function ListingPreview({
       <h3 className="text-base font-semibold text-foreground" data-testid="post-review-title">
         {title === "" ? t("post.review.noTitle") : title}
       </h3>
-      <p className="text-sm font-medium text-foreground" data-testid="post-review-price">
-        {priceLine}
-      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm font-medium text-foreground" data-testid="post-review-price">
+          {priceLine}
+        </p>
+        {priceNegotiable && <NegotiableBadge />}
+      </div>
       {places.length > 0 && (
         <p className="text-sm text-muted-foreground" data-testid="post-review-places">
           {places.join(", ")}
