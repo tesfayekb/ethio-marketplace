@@ -1786,6 +1786,90 @@ test.describe("C3 attributes console", () => {
   });
 
   /**
+   * AT-64 (INC-306) — THE LINKS EXPORT NAMES THE SAME HOME AS THE CATEGORIES
+   * EXPORT. A leaf with a flagged home A and a guest pointer under B at a LOWER
+   * display_order: both files must name A (DEC-080 — the home is the flag, read
+   * through cat_primary_parent, never re-derived from order).
+   */
+  test("AT-64 the links export and the categories export agree on a category's home", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const token = rand();
+    const slugA = `e2e-at64-a-${token}`;
+    const slugB = `e2e-at64-b-${token}`;
+    const slugL = `e2e-at64-l-${token}`;
+    const key = `e2e_attr_${rand()}`;
+    try {
+      const { data: cats, error: catError } = await supabase
+        .from("categories")
+        .insert([
+          { slug: slugA, name_en: slugA },
+          { slug: slugB, name_en: slugB },
+          { slug: slugL, name_en: slugL },
+        ])
+        .select("id, slug");
+      if (catError || !cats) throw new Error(`AT-64 category seed failed: ${catError?.message}`);
+      const idOf = (slug: string) => cats.find((row) => row.slug === slug)!.id;
+      // The home pointer is inserted FIRST, so it is the flagged home.
+      const { error: homeError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: idOf(slugA), child_id: idOf(slugL), display_order: 5 });
+      if (homeError) throw new Error(`AT-64 home pointer seed failed: ${homeError.message}`);
+      const { error: guestError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: idOf(slugB), child_id: idOf(slugL), display_order: 0 });
+      if (guestError) throw new Error(`AT-64 guest pointer seed failed: ${guestError.message}`);
+      const { data: attribute, error: attributeError } = await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "text" })
+        .select("id")
+        .single();
+      if (attributeError || !attribute) {
+        throw new Error(`AT-64 attribute seed failed: ${attributeError?.message}`);
+      }
+      const { error: linkError } = await supabase
+        .from("category_attribute_links")
+        .insert({ category_id: idOf(slugL), attribute_id: attribute.id });
+      if (linkError) throw new Error(`AT-64 link seed failed: ${linkError.message}`);
+
+      await gotoReady(page, "/admin/attributes");
+      const headers = { Authorization: `Bearer ${await bearerOf(page)}` };
+
+      const links = await page.request.get("/api/admin/attributes/export?file=links", { headers });
+      expect(links.status()).toBe(200);
+      const linkRow = (await links.text())
+        .split("\r\n")
+        .find((line) => line.includes(`,${slugL},${key},`));
+      expect(linkRow, "AT-64 the scratch link is missing from links.csv").toBeTruthy();
+      expect(linkRow!.split(",")[0], `AT-64 links category_path: ${linkRow}`).toBe(
+        `${slugA} / ${slugL}`,
+      );
+
+      const categories = await page.request.get("/api/admin/categories/export", { headers });
+      expect(categories.status()).toBe(200);
+      const catLines = (await categories.text()).replace(/^\ufeff/, "").split("\r\n");
+      const header = catLines[0]!.split(",").map((cell) => cell.replace(/ \(read-only\)$/, ""));
+      const slugAt = header.indexOf("category_slug");
+      const parentAt = header.indexOf("parent_slug");
+      const catRow = catLines
+        .map((line) => line.split(","))
+        .find((cells) => cells[slugAt] === slugL);
+      expect(catRow, "AT-64 the scratch leaf is missing from the categories export").toBeTruthy();
+      expect(catRow![parentAt], `AT-64 categories parent_slug: ${catRow!.join(",")}`).toBe(slugA);
+    } finally {
+      await destroyAttribute(key);
+      await destroyCategory(slugL);
+      await destroyCategory(slugB);
+      await destroyCategory(slugA);
+    }
+  });
+
+  /**
    * AT-43 (UX-2 PART 6 / IE-8) — THE RENAME DETECTOR. A file that introduces a
    * new key carrying an existing definition's label, type and options while
    * dropping that definition is renaming an IDENTITY, not adding an attribute:
