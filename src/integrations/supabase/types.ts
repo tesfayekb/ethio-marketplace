@@ -501,6 +501,7 @@ export type Database = {
           created_at: string
           display_order: number
           id: string
+          is_primary: boolean
           parent_id: string | null
         }
         Insert: {
@@ -508,6 +509,7 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          is_primary?: boolean
           parent_id?: string | null
         }
         Update: {
@@ -515,6 +517,7 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          is_primary?: boolean
           parent_id?: string | null
         }
         Relationships: [
@@ -2383,6 +2386,10 @@ export type Database = {
       }
       admin_set_location_active: {
         Args: { p_active: boolean; p_id: string }
+        Returns: undefined
+      }
+      admin_set_primary_pointer: {
+        Args: { p_pointer_id: string }
         Returns: undefined
       }
       admin_set_role_permission: {
