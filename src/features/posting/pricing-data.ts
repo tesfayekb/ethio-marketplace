@@ -265,12 +265,15 @@ export function shortlistCurrencies(
     (row) => marketCodes.has(row.code) || row.displayOrder < 900 || row.code === homeCurrency,
   );
   const ordered = orderCurrencies(pool, homeCurrency);
-  const room = Math.max(max, marketCodes.size + (homeCurrency === null ? 0 : 1));
+  const must = (code: string) => marketCodes.has(code) || code === homeCurrency;
+  const mustCount = ordered.filter((row) => must(row.code)).length;
+  let extras = Math.max(max - mustCount, 0);
   const out: string[] = [];
   for (const row of ordered) {
-    const must = marketCodes.has(row.code) || row.code === homeCurrency;
-    if (must || out.length < room - [...marketCodes].filter((c) => !out.includes(c)).length) {
+    if (must(row.code)) out.push(row.code);
+    else if (extras > 0) {
       out.push(row.code);
+      extras -= 1;
     }
   }
   return out;
