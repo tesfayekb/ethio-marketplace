@@ -447,6 +447,8 @@ export type Source = {
    * fixture cleanup could not reach Supabase (INC-189).
    */
   postTestErrors?: string[];
+  /** DEC-083 — every `[ssr-error]` line, uncapped, for the census count only. */
+  ssrAll?: string[];
 };
 
 /**
@@ -485,6 +487,118 @@ export function collapseConsecutive(lines: string[]): string[] {
 /** Every `[ssr-error]` line in a job log. */
 export function grepSsrErrors(text: string | null, limit = 20): string[] {
   return grepTag(text, "[ssr-error]", limit);
+}
+
+/**
+ * DEC-083 — THE SERVER-ERROR CENSUS. Every `[ssr-error]` line of every source,
+ * on every run, green or red. The 20-line cap binds QUOTING only; counting reads
+ * the whole log. Lines are redacted exactly as the quoted ones are.
+ */
+export function allSsrLines(text: string | null): string[] {
+  if (!text) return [];
+  return text
+    .split("\n")
+    .filter((line) => line.includes("[ssr-error]"))
+    .map((line) => redact(line.trim()));
+}
+
+/**
+ * DEC-083 — a message's census key: the text after `[ssr-error]`, minus the
+ * route path prefix, with every UUID, number and quoted value replaced, so one
+ * door refusal counts as one message however many rows provoked it.
+ */
+export function normaliseSsr(line: string): string {
+  const at = line.indexOf("[ssr-error]");
+  let message = (at === -1 ? line : line.slice(at + "[ssr-error]".length)).trim();
+  message = message.replace(/ ×\d+$/, "");
+  message = message.replace(/^\/\S*\s*/, "");
+  message = message.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<uuid>");
+  message = message.replace(/"[^"]*"|'[^']*'|`[^`]*`/g, "<q>");
+  message = message.replace(/\d+(\.\d+)?/g, "<n>");
+  return message.replace(/\s+/g, " ").trim();
+}
+
+/** DEC-083 — the allowlist: one pattern per line; `#` starts a comment. */
+export function parseSsrAllowlist(text: string): string[] {
+  return text
+    .split("\n")
+    .map((line) => line.replace(/#.*$/, "").trim())
+    .filter(Boolean);
+}
+
+export type SsrCensusRow = {
+  message: string;
+  count: number;
+  sources: string[];
+  example: string;
+  quiet: boolean;
+};
+
+/** DEC-083 — count by normalised message, across every source. */
+export function ssrCensus(
+  sources: { label: string; ssrAll?: string[] }[],
+  allowlist: string[],
+): SsrCensusRow[] {
+  const rows = new Map<string, SsrCensusRow>();
+  for (const source of sources) {
+    for (const line of source.ssrAll ?? []) {
+      const message = normaliseSsr(line);
+      const row = rows.get(message) ?? {
+        message,
+        count: 0,
+        sources: [],
+        example: line,
+        quiet: allowlist.some((pattern) => message.includes(pattern)),
+      };
+      row.count += 1;
+      if (!row.sources.includes(source.label)) row.sources.push(source.label);
+      rows.set(message, row);
+    }
+  }
+  return [...rows.values()].sort((a, b) => b.count - a.count || a.message.localeCompare(b.message));
+}
+
+/** DEC-083 — the census section, identical in the red and the green forms. */
+export function ssrCensusSection(rows: SsrCensusRow[]): string[] {
+  const cell = (text: string) => text.replace(/\|/g, "\\|");
+  const loud = rows.filter((row) => !row.quiet);
+  const quiet = rows.filter((row) => row.quiet);
+  const total = rows.reduce((sum, row) => sum + row.count, 0);
+  const out = ["## Server errors — census (DEC-083, non-gating)", ""];
+  if (rows.length === 0) {
+    out.push("No `[ssr-error]` lines in any source log (or no log was uploaded).", "");
+    return out;
+  }
+  out.push(
+    `${total} line(s), ${rows.length} message(s): ${loud.length} off the allowlist, ${quiet.length} allowlisted.`,
+    "",
+    "| Message | Count | Sources |",
+    "| --- | --- | --- |",
+    ...rows.map(
+      (row) => `| \`${cell(row.message)}\` | ${row.count} | ${cell(row.sources.join(", "))} |`,
+    ),
+    "",
+    `Quiet (allowlisted): ${quiet.length === 0 ? "none" : quiet.map((row) => `${row.message} ×${row.count}`).join(" · ")}`,
+    "",
+  );
+  if (loud.length === 0) {
+    out.push("Off the allowlist: none.", "");
+    return out;
+  }
+  out.push("Off the allowlist:", "");
+  for (const row of loud) {
+    out.push(
+      `### ${row.message}`,
+      "",
+      `- Count: ${row.count} · Sources: ${row.sources.join(", ")}`,
+      "",
+      "```text",
+      row.example,
+      "```",
+      "",
+    );
+  }
+  return out;
 }
 
 /** Every `[client-error]` line in a job log (INC-085f). */
