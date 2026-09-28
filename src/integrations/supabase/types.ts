@@ -646,22 +646,28 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          display_order: number
           minor_units: number
           name_en: string
+          symbol: string | null
           updated_at: string
         }
         Insert: {
           code: string
           created_at?: string
+          display_order?: number
           minor_units?: number
           name_en: string
+          symbol?: string | null
           updated_at?: string
         }
         Update: {
           code?: string
           created_at?: string
+          display_order?: number
           minor_units?: number
           name_en?: string
+          symbol?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -955,6 +961,7 @@ export type Database = {
           price_bp: number | null
           price_currency: string | null
           price_mode: string
+          price_negotiable: boolean
           price_period: string
           published_at: string | null
           published_first_at: string | null
@@ -990,6 +997,7 @@ export type Database = {
           price_bp?: number | null
           price_currency?: string | null
           price_mode?: string
+          price_negotiable?: boolean
           price_period?: string
           published_at?: string | null
           published_first_at?: string | null
@@ -1025,6 +1033,7 @@ export type Database = {
           price_bp?: number | null
           price_currency?: string | null
           price_mode?: string
+          price_negotiable?: boolean
           price_period?: string
           published_at?: string | null
           published_first_at?: string | null
@@ -2726,6 +2735,7 @@ export type Database = {
           p_price_bp?: number
           p_price_currency: string
           p_price_mode: string
+          p_price_negotiable?: boolean
           p_price_period: string
           p_title: string
           p_video_url: string
@@ -2880,6 +2890,7 @@ export type Database = {
           price_bp: number
           price_currency: string
           price_mode: string
+          price_negotiable: boolean
           status: string
           title: string
           total_count: number
@@ -3054,6 +3065,7 @@ export type Database = {
           p_price_bp?: number
           p_price_currency: string
           p_price_mode: string
+          p_price_negotiable?: boolean
           p_price_period: string
           p_step: number
           p_title: string
@@ -3078,7 +3090,12 @@ export type Database = {
       }
       user_set_preferred_language: { Args: { p_code: string }; Returns: string }
       validate_listing_attributes: {
-        Args: { p_attrs: Json; p_category_id: string; p_prior?: Json }
+        Args: {
+          p_attrs: Json
+          p_category_id: string
+          p_defer_keys?: string[]
+          p_prior?: Json
+        }
         Returns: Json
       }
       validate_listing_draft: {
@@ -3093,6 +3110,7 @@ export type Database = {
           p_price_bp?: number
           p_price_currency: string
           p_price_mode: string
+          p_price_negotiable?: boolean
           p_price_period: string
           p_prior: Json
           p_step: number
