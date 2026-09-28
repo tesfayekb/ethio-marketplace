@@ -181,22 +181,22 @@ export function StepReview({
    * definitions already on this screen are the whole source.
    */
   const describe = ([key, value]: [string, unknown]): string => {
-      const def = definitions.find((entry) => entry.attrKey === key);
-      if (def === undefined) return `${key}: ${String(value)}`;
-      const name = entityName(
-        "attribute",
-        { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
-        entities,
-      );
-      return `${name}: ${attributeDisplayValue(
-        def,
-        value,
-        attributeOptions[key] ?? [],
-        language,
-        t("post.review.yes"),
-        t("post.review.no"),
-        t("post.specs.yearEcSuffix"),
-      )}`;
+    const def = definitions.find((entry) => entry.attrKey === key);
+    if (def === undefined) return `${key}: ${String(value)}`;
+    const name = entityName(
+      "attribute",
+      { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+      entities,
+    );
+    return `${name}: ${attributeDisplayValue(
+      def,
+      value,
+      attributeOptions[key] ?? [],
+      language,
+      t("post.review.yes"),
+      t("post.review.no"),
+      t("post.specs.yearEcSuffix"),
+    )}`;
   };
   const attrLine = Object.entries(values.attributes)
     .filter(([key]) => key !== basisKey)

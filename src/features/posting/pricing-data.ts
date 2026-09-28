@@ -35,7 +35,10 @@ export interface CurrencyRow {
  * D62-2 — THE ONE CURRENCY ORDER: the seller's home currency first, then the
  * curated display order, then the code. Used for the short list and the full list.
  */
-export function orderCurrencies(rows: readonly CurrencyRow[], homeCurrency: string | null): CurrencyRow[] {
+export function orderCurrencies(
+  rows: readonly CurrencyRow[],
+  homeCurrency: string | null,
+): CurrencyRow[] {
   return [...rows].sort((a, b) => {
     const homeA = homeCurrency !== null && a.code === homeCurrency ? 0 : 1;
     const homeB = homeCurrency !== null && b.code === homeCurrency ? 0 : 1;

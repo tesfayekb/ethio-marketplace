@@ -1316,9 +1316,10 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-description").fill("e2e d62 listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-5")).toBeVisible();
-    await expect(specControl(page, basis.basisKey), "PW-63: no basis on the price step").toBeVisible(
-      { timeout: 20_000 },
-    );
+    await expect(
+      specControl(page, basis.basisKey),
+      "PW-63: no basis on the price step",
+    ).toBeVisible({ timeout: 20_000 });
 
     await page.getByTestId("post-next").click();
     await expect(
@@ -1349,9 +1350,9 @@ test.describe("POSTING WIZARD", () => {
       .poll(() => negotiableOf(listingId), { message: "PW-64: the flag never reached the draft" })
       .toBe(true);
     await expect(
-      page.locator('[data-testid="post-review-section"][data-step="5"]').getByTestId(
-        "price-negotiable-badge",
-      ),
+      page
+        .locator('[data-testid="post-review-section"][data-step="5"]')
+        .getByTestId("price-negotiable-badge"),
       "PW-64: review shows no Negotiable badge",
     ).toBeVisible();
 
