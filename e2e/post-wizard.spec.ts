@@ -1048,6 +1048,10 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-description").fill("e2e c2a listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-price-basis")).toHaveAttribute("data-options", "1", {
+      timeout: 20_000,
+    });
+    if (token !== null) await specControl(page, basis.basisKey).selectOption(token);
     return listingId;
   }
 
@@ -1129,17 +1133,19 @@ test.describe("POSTING WIZARD", () => {
   const specControl = (page: Page, attrKey: string) =>
     page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
 
-  /** Specifications answered (identity + basis), then details, landing on step 5. */
+  /**
+   * Specifications answered (identity), then details, landing on step 5 — where
+   * D62-2 asks the basis, first, through the same control (`token` null = unanswered).
+   */
   async function reachPricingWithBasis(
     page: Page,
     userId: string,
     category: { id: string; slug: string },
     basis: BasisSet,
-    token: string,
+    token: string | null,
   ) {
     const listingId = await reachStep3(page, userId, category);
     await specControl(page, basis.identityKey).selectOption(basis.identityValue);
-    await specControl(page, basis.basisKey).selectOption(token);
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await page.getByTestId("post-title").fill("e2e d31c listing title");
@@ -1211,19 +1217,8 @@ test.describe("POSTING WIZARD", () => {
       "hour",
     );
 
-    // Back to specifications (via details and photos), change the basis, return.
-    await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
-    await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-3")).toBeVisible();
-    await specsSettled(page);
+    // D62-2 — the basis lives on this step now: change it here.
     await specControl(page, basis.basisKey).selectOption("per_month");
-    await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
 
     await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute(
       "data-period",
@@ -1280,6 +1275,132 @@ test.describe("POSTING WIZARD", () => {
     await expect(said).toHaveCount(0);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
+  });
+
+  /** DEC-081 — the stored flag, DB truth (J4). */
+  async function negotiableOf(listingId: string): Promise<boolean | null> {
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("price_negotiable,draft_step")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:d62] reading the flag failed: ${error.message}`);
+    return data?.price_negotiable ?? null;
+  }
+
+  async function draftStepOf(listingId: string): Promise<number | null> {
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("draft_step")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:d62] reading the step failed: ${error.message}`);
+    return data?.draft_step ?? null;
+  }
+
+  test("PW-63 the pricing basis is asked on the price step, refused there when empty, and still shapes the period (D62-2)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    const listingId = await reachStep3(page, user.id, category);
+    await expect(specControl(page, basis.identityKey)).toBeVisible();
+    await expect(
+      specControl(page, basis.basisKey),
+      "PW-63: the basis is still asked on specifications",
+    ).toHaveCount(0);
+    await specControl(page, basis.identityKey).selectOption(basis.identityValue);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e d62 listing title");
+    await page.getByTestId("post-description").fill("e2e d62 listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(specControl(page, basis.basisKey), "PW-63: no basis on the price step").toBeVisible(
+      { timeout: 20_000 },
+    );
+
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${basis.basisKey}"]`),
+      "PW-63: the required basis was not refused under its control",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    expect(await draftStepOf(listingId), "PW-63: the draft moved past pricing").toBeLessThan(6);
+
+    await specControl(page, basis.basisKey).selectOption("hourly");
+    await expect(page.getByTestId("post-price-period-fixed")).toHaveAttribute(
+      "data-period",
+      "hour",
+    );
+  });
+
+  test("PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    const listingId = await reachPricingWithBasis(page, user.id, category, basis, "per_quintal");
+    await expect(page.getByTestId("post-price-mode-negotiable")).toHaveCount(0);
+    await page.getByTestId("post-price-amount").fill("3200");
+    await page.getByTestId("post-price-negotiable").check();
+    await pricingToReview(page);
+    await expect
+      .poll(() => negotiableOf(listingId), { message: "PW-64: the flag never reached the draft" })
+      .toBe(true);
+    await expect(
+      page.locator('[data-testid="post-review-section"][data-step="5"]').getByTestId(
+        "price-negotiable-badge",
+      ),
+      "PW-64: review shows no Negotiable badge",
+    ).toBeVisible();
+
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-price-mode-contact").click();
+    await expect(
+      page.getByTestId("post-price-negotiable"),
+      "PW-64: a contact price still offers the toggle",
+    ).toHaveCount(0);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+    await expect
+      .poll(() => negotiableOf(listingId), { message: "PW-64: contact kept the flag" })
+      .toBe(false);
+  });
+
+  test("PW-65 the currency list opens home first and USD second, with symbols (D62-2)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { data: profile, error } = await adminClient()
+      .from("profiles")
+      .select("home_country_code")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:d62] reading the profile failed: ${error.message}`);
+    expect(profile?.home_country_code, "PW-65: the seller's home is not ET").toBe("ET");
+
+    const category = await leaf();
+    await reachStep3(page, user.id, category);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e d62 currency title");
+    await page.getByTestId("post-description").fill("e2e d62 currency description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+
+    await expect(page.getByTestId("post-price-currency")).toHaveAttribute("data-code", "ETB", {
+      timeout: 20_000,
+    });
+    const search = page.getByTestId("post-price-currency-search");
+    await expect(search, "PW-65: the chosen value shows no symbol").toHaveValue(/^ETB · Br — /);
+    await search.click();
+    const options = page.getByTestId("post-price-currency-option");
+    await expect(options.first()).toHaveAttribute("data-code", "ETB");
+    await expect(options.nth(1), "PW-65: USD is not second").toHaveAttribute("data-code", "USD");
+    await expect(options.first()).toHaveText(/^ETB · Br — /);
+    await expect(options.nth(1)).toHaveText(/^USD · \$ — /);
   });
 
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
