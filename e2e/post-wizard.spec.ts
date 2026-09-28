@@ -1604,7 +1604,6 @@ test.describe("POSTING WIZARD", () => {
     }
   });
 
-
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {
     const user = await seller(page);

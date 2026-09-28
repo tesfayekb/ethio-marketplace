@@ -1038,3 +1038,10 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - The one guard: `use-draft.ts` holds `stepRef`, set beside every `setStep` (`goTo` and the resume path); `change()` computes the backup step from `stepRef.current`, so a late write can never claim a later step.
 - The late prefill write is kept on purpose: it mirrors into the wizard the currency the door itself fills at step 5, until INC-321 reads the door's answer back.
 - PW-72 gates the seller-home read, resets the category, releases the read and asserts no save claims above step 3, then Next opens photos with no refusal.
+
+### INC-321 — the door's answer carries the stored currency (2026-09-28)
+
+- **Why:** at step 5 the door fills a missing currency from the seller's home and stores it, but `submit_listing` answered only `{ok, listing_id, draft_step}`, so the wizard's own copy stayed empty until the async prefill landed. A D59 Undo before that restored an amount with no currency and the step-1 save was refused (`listings_price_pair_check`).
+- **Door:** `submit_listing` (migration `6b0f6ae1`, mark `20260928100000`, whole redeclaration) answers `price_currency` — the value on the stored row, the door's own home fill included; `null` when no price carries one.
+- **Mirror rule:** `use-draft.ts` `pass()` fills `priceCurrency` from the answer only when the wizard's copy is empty. A mirror of what the door stored is never a new answer: no version bump, no pending step, no save-state change, no flush.
+- **Tests:** PW-73 (home read gated throughout; the mirrored code survives a D59 reset + Undo); PR-14 (step-5 fixed without a currency answers a 3-letter code equal to the stored row).
