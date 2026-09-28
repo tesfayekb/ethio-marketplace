@@ -16,10 +16,13 @@
 | ACT-C3-1 | 2026-09-10 | Re-prove the B-3/C-4 guard proofs under the current harness: `guard-proof.yml` is dispatch-only, last touched 2026-08-03 (before the DEC-018/019 production build and the DEC-036…041 identity pool) and never dispatched since; bring it onto the built-app/pool shape or fold the two proofs into the nightly, dispatch once, record the run. Its `actions/cache@v5` line (DEC-049) is unexercised until then.   | OPEN   |
 | ACT-C3-2 | 2026-09-11 | `bun run e2e:local` verifies the Playwright browser runtime (and its system libraries) before building and fails fast with the install hint — the INC-174 reproduction found the executor sandbox without either and needed a session-only install; DEC-023's local proof is only as reliable as that runtime (G25). — DONE 2026-09-11: scripts/e2e-browser-guard.ts, first step of e2e:local after the port guard | DONE   |
 
-- ACT — Turn B (client): D59 category-change reset with Undo · INC-299 assist count from consumeRate · INC-300 session guard on profiles reads · INC-298 hygiene (bound the attribute-options cache, prune idle rate-limit buckets). E2E per feature.
-- ACT — D62 spec (Negotiable flag): schema (`listings.price_negotiable`), migration of `price_mode = 'negotiable'` rows, door + client + badge + filter; curator removes `negotiable` from basis lists after it ships. DEC-080 on approval.
+- ACT — Turn B (client) — DONE 2026-09-27 (1cab61d9): D59 reset with Undo · INC-299 · INC-298 hygiene · INC-300 session guard.
+- ACT — DEC-080 C1 + C1-b — DONE 2026-09-28 (98d2cd2c, a441db3f): explicit home; import/undo ordering by (child, parent); merging move; tree by pointer order; links export through the one reader; four homes repaired; Cycle 22 order re-imported.
+- ACT — D62 spec (Negotiable flag): schema (`listings.price_negotiable`), migration of `price_mode = 'negotiable'` rows, door + client + badge + filter; curator removes `negotiable` from basis lists after it ships. DEC-081 on approval. NEXT.
+- ACT — D63 spec (guest order from the `secondary_parents` cell order) — after D62 unless the operator moves it up.
 - ACT — Turn C (INC-295): finder rebuild off the request path; heartbeat row; last-failure record.
-- ACT — Study C22 step 2: categories file (display_order + secondary_parents) + produce_type help + per_tray off the Livestock scope — supervisor audit, then import.
 - ACT — D53 catalogue-facts collapse and D56 recents/favourites: specs.
-- ACT — Curator orphan pass: service_type-auto-services (unlink at the retired leaf, then delete).
+- ACT — Small follow-ups for the next turn touching each file: PW-26 title rename ("by name" is stale); `&& !inFlight` on the import-bucket prune (gate.ts); `admin_delete_category` refuses a row with children; INC-307 undo captures links.
+- ACT — Console: pointer dialog shows a "Home" badge and a "Make home" action (admin_set_primary_pointer); admin_list_category_pointers exposes is_primary.
+- ACT — Study C22 step 2 — DONE 2026-09-27/28 (files 1–3; INC-303 repair; order re-import). Curator orphan pass — DONE (Cycles 23–24; auto-services deleted).
 - ACT — INC-298: Lovable support ticket with the Ray ID (operator).
