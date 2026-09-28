@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import {
   BUCKET_IDLE_MS,
   bucketFor,
+  checkCell,
   hasBucket,
   normalizeOptionsCell,
   optionShapeFault,
@@ -69,5 +70,18 @@ describe("INC-298 — idle rate buckets are pruned", () => {
     bucketFor("inc298-fresh", start + BUCKET_IDLE_MS + 1);
     expect(hasBucket("inc298-old")).toBe(false);
     expect(hasBucket("inc298-fresh")).toBe(true);
+  });
+});
+
+describe("INC-316 — the icon column is judged against the allowlist", () => {
+  const rule = { name: "icon", klass: "editable", type: "icon" } as const;
+  it("passes a listed name", () => {
+    expect(checkCell(rule, "Warehouse")).toBeNull();
+  });
+  it("refuses a name off the list", () => {
+    expect(checkCell(rule, "NotAnIcon")).toBe("unknownIcon");
+  });
+  it("passes a blank cell (no change)", () => {
+    expect(checkCell(rule, "")).toBeNull();
   });
 });

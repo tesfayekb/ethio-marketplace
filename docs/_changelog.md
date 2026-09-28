@@ -584,3 +584,4 @@
 - 2026-09-28 — D62-1b (DEC-081 hotfix, INC-309): 'negotiable' is an alias (fixed + flag) at every draft step; unmapped door errors read post.refusal.doorError; PR-12, PW-66.
 - 2026-09-28 — D62-1c: PW-66 falls back so asEdge adds cf-ipcountry (INC-311); refusal summary omits control-less fields door/residency/id (INC-313); INC-312 attributed read-only.
 - 2026-09-28 — D62-1d (INC-312): listings_price_pair_check lets a commission draft carry no price_bp until step 5; PW-67, PR-13.
+2026-09-28 — W1: refused Next no longer pins the step claim (INC-315); 21 category icons added + import icon guard (INC-316); image prompt parent is the home pointer (INC-310); stale C5b sentence replaced

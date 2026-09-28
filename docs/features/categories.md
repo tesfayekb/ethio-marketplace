@@ -273,9 +273,10 @@ The category filter is a subtree picker: every category in depth-first roster or
 - Retired: `src/server/category-images/{pipeline,raster,raster.test,font}.ts`. `pngjs`/`jpeg-js` stay in `package.json` only because `scripts/fixtures/photos/make.ts` still imports them.
 
 The Image tab of the category editor is the review surface for AI-generated
-artwork. Generation is not a draft: the gated route writes the three objects
-(card 512, thumbnail 128, social 1200x630) and the category row in one call,
-and the operator reviews the result here and regenerates until it is right. A
+artwork. Generation is not a draft: since DEC-082 the route only returns the
+generated image; the service cuts the three variants (card 512, thumbnail 128,
+social 1200x630) in the browser and writes them and the category row under the
+admin's session, and the operator reviews the result here and regenerates until it is right. A
 The prompt is
 CREATE FLOW (C5g, supersedes C5e's Generate-now step): the create dialog shows
 NO icon machinery — no suggested value, no Change control, no picker. The
@@ -544,3 +545,10 @@ console write the same columns through the same validation.
 - **The public tree** serves `is_primary` on every pointer and sorts roots by their parent-NULL pointer and every level by pointer order (catch-all last, guests after the host's own children); a missing pointer order falls back to the row's `display_order`. `get_category_tree_version` covers every pointer's parent, child, order and flag, so a reorder reaches the marketplace.
 - **Incidents.** INC-303 (the ordering pass ranked a guest by its home rank; four homes flipped on 2026-09-27 and were repaired by slug: bicycles → vehicles, personal-care-services → services, industrial-equipment → commercial-equipment, nursery-furniture → babies-kids); INC-304 (undo could not move a home onto a parent holding a guest pointer — UNIQUE (parent_id, child_id)); INC-305 (the public tree sorted by the row column no reorder writes, and the version ignored pointer order).
 - **Tests.** CT-33 (flag, reorder, promote), C-5 (rail follows root pointers; a swap reaches it), PW-62 (pointer order, guest after own, flagged home in the chip path), category-tree unit tests (DEC-080 i–iv).
+
+## Category icons (INC-316)
+
+- `src/lib/category-icon-names.ts` is the one allowlist; `category-glyphs.ts` carries a glyph for every name (Record type = totality). W1 added 21 names: Armchair, Brush, Church, CircleDot, Cookie, CupSoda, Flame, Gauge, Grid3x3, Leaf, Milk, PaintBucket, Plug, Power, Puzzle, ShieldCheck, Snowflake, SprayCan, Sun, Warehouse, Wifi.
+- The import door judges the `icon` column (type `icon`, case-sensitive): a name off the list is refused `unknownIcon`; a blank cell passes (no change).
+- A new category gets its icon from a file cell naming a listed icon, or blank and then the console's picker / Suggest icon.
+- INC-310: the image prompt's parent is the home pointer (`is_primary` first, then `display_order`).
