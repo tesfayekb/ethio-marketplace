@@ -580,16 +580,15 @@ export function ssrCensus(
   for (const source of sources) {
     for (const line of source.ssrAll ?? []) {
       const message = normaliseSsr(line);
-      const row = rows.get(message) ?? {
-        message,
-        count: 0,
-        sources: [],
-        example: line,
-        quiet: allowlist.some((pattern) => message.includes(pattern)),
-      };
+      // Quietness is judged per LINE, on the key and on the redacted line, so a
+      // pattern may name a quoted value (a constraint) the key replaced. A key
+      // whose lines split is two rows: the quiet part never hides the loud part.
+      const quiet = allowlist.some((pattern) => message.includes(pattern) || line.includes(pattern));
+      const key = `${quiet ? "q" : "l"}\u0000${message}`;
+      const row = rows.get(key) ?? { message, count: 0, sources: [], example: line, quiet };
       row.count += 1;
       if (!row.sources.includes(source.label)) row.sources.push(source.label);
-      rows.set(message, row);
+      rows.set(key, row);
     }
   }
   return [...rows.values()].sort((a, b) => b.count - a.count || a.message.localeCompare(b.message));
@@ -612,7 +611,8 @@ export function ssrCensusSection(rows: SsrCensusRow[]): string[] {
     "| Message | Count | Sources |",
     "| --- | --- | --- |",
     ...rows.map(
-      (row) => `| \`${cell(row.message)}\` | ${row.count} | ${cell(row.sources.join(", "))} |`,
+      (row) =>
+        `| \`${cell(row.message)}\`${row.quiet ? " (quiet)" : ""} | ${row.count} | ${cell(row.sources.join(", "))} |`,
     ),
     "",
     `Quiet (allowlisted): ${quiet.length === 0 ? "none" : quiet.map((row) => `${row.message} ×${row.count}`).join(" · ")}`,
