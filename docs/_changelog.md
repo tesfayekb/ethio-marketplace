@@ -586,3 +586,4 @@
 - 2026-09-28 — D62-1d (INC-312): listings_price_pair_check lets a commission draft carry no price_bp until step 5; PW-67, PR-13.
 - 2026-09-28 — W1: refused Next no longer pins the step claim (INC-315); 21 category icons added + import icon guard (INC-316); image prompt parent is the home pointer (INC-310); stale C5b sentence replaced
 - 2026-09-28 — INC-317: the draft queue computes an autosave claim from the step on screen (`stepRef`), so a late currency prefill after a D59 reset never claims details or price; the late write is kept until INC-321. PW-72. INC-319: no repo source names profiles.id.
+- 2026-09-28 — INC-321: submit_listing answers the stored price_currency (mark 20260928100000); the wizard mirrors it when its copy is empty. PW-73, PR-14.

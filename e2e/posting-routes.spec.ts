@@ -291,6 +291,38 @@ test.describe("POSTING ROUTES", () => {
     });
   });
 
+  test("PR-14 the draft door's answer names the currency it stored (INC-321)", async ({ page }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const answer = await postRoute(
+      page,
+      DRAFT,
+      {
+        step: 5,
+        categoryId: cat.id,
+        title: `e2e posting ${rand()}`,
+        description: "e2e posting body",
+        attributes: {},
+        priceMode: "fixed",
+        priceAmount: 100,
+        pricePeriod: "once",
+      },
+      { token, country: "ET" },
+    );
+    console.log(`PR-14 answer: ${JSON.stringify(answer.payload)}`);
+    expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+    expect(answer.payload["ok"], JSON.stringify(answer.payload)).toBe(true);
+    const code = String(answer.payload["price_currency"] ?? "");
+    expect(code).toMatch(/^[A-Z]{3}$/);
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("price_currency")
+      .eq("id", String(answer.payload["listing_id"] ?? ""))
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:pr-14] reading the draft failed: ${error.message}`);
+    expect(data?.price_currency).toBe(code);
+  });
+
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
     const { token } = await seller(page);
     const cat = await category();

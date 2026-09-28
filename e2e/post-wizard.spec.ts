@@ -1540,6 +1540,70 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
   });
 
+  test("PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    // Both leaves exist before the catalogue is read (see PW-26).
+    const first = await leaf();
+    const second = await leaf();
+    // The seller-home read stays GATED for the whole test: any currency the
+    // wizard shows can only be the door's answer, mirrored.
+    const homeRead = "**/rest/v1/profiles?select=home_country_code*";
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(homeRead, async (route) => {
+      await gate;
+      await route.fallback();
+    });
+    try {
+      const listingId = await reachStep5(page, user.id, first);
+      await page.getByTestId("post-price-mode-fixed").click();
+      await page.getByTestId("post-price-amount").fill("4100");
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible();
+      await page.getByTestId("post-back").click();
+      await expect(page.getByTestId("post-step-5")).toBeVisible();
+      const currency = page.getByTestId("post-price-currency");
+      await expect(currency, "PW-73: the door's currency was not mirrored").not.toHaveAttribute(
+        "data-code",
+        "",
+      );
+      const code = (await currency.getAttribute("data-code")) ?? "";
+      expect(code, "PW-73: no mirrored code").toMatch(/^[A-Z]{3}$/);
+      await expect
+        .poll(async () => await pricingOf(listingId), {
+          message: "PW-73: the draft does not hold the amount with that currency",
+        })
+        .toMatchObject({ amount: 4100, currency: code });
+
+      // Back to step 1 (5 → 4 → 2 → 3 → 1), then leaf B, then Undo.
+      for (let hop = 0; hop < 4; hop += 1) await page.getByTestId("post-back").click();
+      await expect(page.getByTestId("post-step-1")).toBeVisible();
+      await chooseBySearch(page, second.slug, second.id, false);
+      await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+      await page.getByTestId("post-category-reset-undo").click();
+      await expect(page.getByTestId("post-category-chip-path")).toContainText(first.slug, {
+        timeout: 20_000,
+      });
+      await expect
+        .poll(async () => (await pricingOf(listingId)).amount, {
+          message: "PW-73: Undo did not restore the amount",
+        })
+        .toBe(4100);
+      expect((await pricingOf(listingId)).currency, "PW-73: Undo moved the currency").toBe(code);
+      await nextThroughPhotos(page);
+      await expect(page.getByTestId("post-step-4")).toBeVisible();
+      await expect(page.getByTestId("post-title"), "PW-73: Undo lost the title").toHaveValue(
+        "e2e c2a listing title",
+      );
+    } finally {
+      release();
+    }
+  });
+
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {
     const user = await seller(page);
