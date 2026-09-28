@@ -1,0 +1,10 @@
+# Handoff — 2026-09-28 — Turn B, DEC-080 (the home is a flag), catalogue cycles 22–24
+
+- dev HEAD at handoff: a441db3f (C1-b, CI green run 36366774220 attempt 2); main promoted on green.
+- Phase: Phase 2 open; posting wizard (U6) in its refinement rounds; DEC-079 price basis LANDED; DEC-080 explicit home LANDED (marks 20260928010000 and 20260928020000 applied on prod and staging, read back).
+- Catalogue: 162 categories (15 roots; auto-services deleted) · 485 definitions · 1,366 link rows; live audit 0 findings. Base exports for the curator: categories_5, definitions_2, links_1 (2026-09-28). Root order and every sibling order are the Study C22 files' as filed; `parent_slug` is the home, `secondary_parents` the guests; no positional constraint on the curator.
+- Open executor queue (serial): D62 spec (Negotiable flag; DEC-081 on approval) → D62 build → D63 spec (guest order from the cell order) → Turn C (INC-295) → D53/D56 specs. Small follow-ups ride the next turn touching each file (PW-26 rename, `!inFlight`, delete-refuses-children, INC-307 undo links, console Home badge).
+- Open operator items: Lovable support for INC-298 (Ray a418db14897dca32); Turn B render-walk on the published URL (category change → one sentence + Undo, ten seconds); publish + walk after each client turn.
+- Standing rules new this period: the home has one reader (cat_primary_pointer/cat_primary_parent); readers of an order read the pointer column; a door never assumes the absence of a duplicate it can check; a prediction about a door's outcome follows a verbatim read of its ranking/matching clause (G3 addendum 2, proposed v1.13); a prompt maps every incident number it cites.
+- Evidence-reading order unchanged: ci-status.md (two-step SHA) → e2e-last-failure.md → guards-last-failure.md → nightly-last-failure.md → flake ledger whole. A red whose only failures are the E2E preflight ("STAGING BEHIND") and its dependents is the staging-apply step, not a defect.
+- Watch: AT-3 (2 flaky lines in 7 days), LT-13, PW-41, LS-7, CI-4 (one each on 09-28), PW-61's ten-second race.
