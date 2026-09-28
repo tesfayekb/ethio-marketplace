@@ -581,3 +581,4 @@
 - 2026-09-28 — D62-1 (DEC-081, database half): listings.price_negotiable flag replaces the negotiable mode; basis judged at step 5 (p_defer_keys); currencies symbol + display_order; seven doors re-declared; draft route sends priceNegotiable; PR-11.
 - 2026-09-28 — D62-2 (DEC-081, client half): basis asked on the price step; Negotiable toggle + badge (card, review, preview, impersonation); currency symbols and home-first order; PW-63/64/65.
 - 2026-09-28 — DEC-082 (INC-308): category image variants are cut in the admin's browser; the generate route only calls the provider and returns the image; server raster pipeline retired; CI-2/CI-4b/CI-4 re-anchored.
+- 2026-09-28 — D62-1b (DEC-081 hotfix, INC-309): 'negotiable' is an alias (fixed + flag) at every draft step; unmapped door errors read post.refusal.doorError; PR-12, PW-66.
