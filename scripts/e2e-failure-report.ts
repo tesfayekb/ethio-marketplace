@@ -532,11 +532,13 @@ export function grepSsrErrors(text: string | null, limit = 20): string[] {
  */
 export function allSsrLines(text: string | null): string[] {
   if (!text) return [];
-  return text
-    .split("\n")
-    .filter((line) => line.includes("[ssr-error]"))
-    // A TTY-coloured runner wraps lines in ANSI codes; they are not the message.
-    .map((line) => redact(line.replace(/\u001b\[[0-9;]*m/g, "").trim()));
+  return (
+    text
+      .split("\n")
+      .filter((line) => line.includes("[ssr-error]"))
+      // A TTY-coloured runner wraps lines in ANSI codes; they are not the message.
+      .map((line) => redact(line.replace(/\u001b\[[0-9;]*m/g, "").trim()))
+  );
 }
 
 /**
@@ -549,7 +551,10 @@ export function normaliseSsr(line: string): string {
   let message = (at === -1 ? line : line.slice(at + "[ssr-error]".length)).trim();
   message = message.replace(/ ×\d+$/, "");
   message = message.replace(/^\/\S*\s*/, "");
-  message = message.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<uuid>");
+  message = message.replace(
+    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+    "<uuid>",
+  );
   message = message.replace(/"[^"]*"|'[^']*'|`[^`]*`/g, "<q>");
   message = message.replace(/\d+(\.\d+)?/g, "<n>");
   return message.replace(/\s+/g, " ").trim();
@@ -583,7 +588,9 @@ export function ssrCensus(
       // Quietness is judged per LINE, on the key and on the redacted line, so a
       // pattern may name a quoted value (a constraint) the key replaced. A key
       // whose lines split is two rows: the quiet part never hides the loud part.
-      const quiet = allowlist.some((pattern) => message.includes(pattern) || line.includes(pattern));
+      const quiet = allowlist.some(
+        (pattern) => message.includes(pattern) || line.includes(pattern),
+      );
       const key = `${quiet ? "q" : "l"}\u0000${message}`;
       const row = rows.get(key) ?? { message, count: 0, sources: [], example: line, quiet };
       row.count += 1;
@@ -1748,13 +1755,36 @@ async function main() {
         ["27 rows", rows.length === 27],
         ["one off-allowlist row", loud.length === 1],
         ["listing not found ×2 is loud", notFound?.count === 2 && !notFound.quiet],
-        ["path, quotes and ANSI stripped from the key", rows.every((r) => !/^\/|"|\u001b/.test(r.message))],
-        ["a quoted constraint on the allowlist is quiet", rows.some((r) => r.quiet && r.message.includes("check constraint"))],
-        ["green form carries the section", green.includes("## Server errors — census (DEC-083, non-gating)")],
-        ["red form carries the section", red.includes("## Server errors — census (DEC-083, non-gating)")],
-        ["quiet line", green.includes("Quiet (allowlisted): ") && green.includes("strings wrongFile ×2")],
-        ["off-allowlist listing with a verbatim example", green.includes("### listing not found") && green.includes("[ssr-error] /api/listings/draft listing not found")],
-        ["a11y line in both forms", green.includes("## Accessibility (DEC-084, non-gating)") && red.includes("## Accessibility (DEC-084, non-gating)")],
+        [
+          "path, quotes and ANSI stripped from the key",
+          rows.every((r) => !/^\/|"|\u001b/.test(r.message)),
+        ],
+        [
+          "a quoted constraint on the allowlist is quiet",
+          rows.some((r) => r.quiet && r.message.includes("check constraint")),
+        ],
+        [
+          "green form carries the section",
+          green.includes("## Server errors — census (DEC-083, non-gating)"),
+        ],
+        [
+          "red form carries the section",
+          red.includes("## Server errors — census (DEC-083, non-gating)"),
+        ],
+        [
+          "quiet line",
+          green.includes("Quiet (allowlisted): ") && green.includes("strings wrongFile ×2"),
+        ],
+        [
+          "off-allowlist listing with a verbatim example",
+          green.includes("### listing not found") &&
+            green.includes("[ssr-error] /api/listings/draft listing not found"),
+        ],
+        [
+          "a11y line in both forms",
+          green.includes("## Accessibility (DEC-084, non-gating)") &&
+            red.includes("## Accessibility (DEC-084, non-gating)"),
+        ],
         ["a11y counts read", green.includes("10 page×project check(s): serious=1 critical=0")],
       ];
       const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
@@ -1875,7 +1905,10 @@ async function main() {
       }
     }
     // DEC-078 part 2 — the green report carries the flake ledger and bodies.
-    await Bun.write(OUT, renderGreen(meta, postTestWarnings, allFlaky, contexts, sources, ssrAllowlist));
+    await Bun.write(
+      OUT,
+      renderGreen(meta, postTestWarnings, allFlaky, contexts, sources, ssrAllowlist),
+    );
     // DEC-028 — a green run still publishes its verdict, so a consumer never
     // has to treat a missing verdict file as "probably green". The flaky count
     // is the real one (DEC-078 part 2).
