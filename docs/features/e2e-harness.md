@@ -304,3 +304,16 @@ Rule: the DEC-062 reaper removes every storage object under `default/<seller_id>
 ## DEC-078 — flaky bodies
 
 A flaky test's first failed attempt is quoted in the merged report, with its error context uploaded even from a green job; see `docs/features/ci-guards.md` (DEC-078).
+
+## DEC-083 — server-error census
+
+DEC-083 — Server-error census (2026-09-28). Every run, green or red, writes a "Server errors — census" section: [ssr-error] lines from every source, counted by normalised message. Messages on docs/tracking/ssr-error-allowlist.txt are counted but quiet; an allowlist entry must name the test that provokes it, and a message no test can be shown to provoke stays off the list. Gating rule, pre-committed: the census is non-gating for 14 days from 2026-09-28. During that window any SQL-class line on a green run (SQLSTATE classes 22, 23 or 42 — messages containing "violates", "does not exist" or "null value") receives an INC the same day. From 2026-10-12, once five consecutive runs have carried zero off-allowlist SQL-class lines, the merged verdict fails on any new off-allowlist SQL-class line; a message added to the allowlist after that date needs a DEC.
+
+- Implementation (`scripts/e2e-failure-report.ts`): `allSsrLines` reads every line, with no cap (quoting keeps the 20-line cap). `normaliseSsr` strips the path prefix, ANSI codes, UUIDs, numbers and quoted values. `ssrCensus` judges quietness per line, against the key and the redacted line, so a pattern can name a quoted constraint. `ssrCensusSection` renders in `renderSources` and `renderGreen`. Verdicts and promote are unchanged.
+- Self-test fixture: `scripts/fixtures/e2e-ssr-census/job.log.txt`, a real local capture.
+
+## DEC-084 — accessibility pass
+
+DEC-084 — Accessibility pass (2026-09-28). The smoke tier runs axe-core on the marketplace home, /auth, and wizard steps 1, 3 and 5, at mobile-360 and desktop-1280, and the report carries serious and critical counts per page and project. The public listing page and the seller storefront join the roster in the turn that builds each of them; a build prompt for either page that does not add it is incomplete. Gating rule, pre-committed: non-gating until five consecutive runs have carried zero serious and zero critical violations; from the sixth such run, the merged verdict fails on any new serious or critical violation. A violation may be exempted only by a DEC naming the rule id and the page.
+
+- Implementation: `e2e/a11y.spec.ts` (A11Y-1, A11Y-2) is on the smoke tier's file list in `ci.yml`. It prints `[a11y] <page> <project> serious=<n> critical=<n>` and never fails on a violation. The reporter's `grepA11y` and `a11ySection` render one line in both forms. `@axe-core/playwright` is pinned at 4.13.0, and only the test runner imports it.

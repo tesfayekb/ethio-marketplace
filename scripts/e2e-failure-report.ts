@@ -45,6 +45,10 @@ const OUT =
     : "docs/tracking/e2e-last-failure.md");
 const SINGLE_SOURCE_LABEL = process.env["E2E_SOURCE_LABEL"] ?? "all";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
+/** DEC-083 — the quiet list; every entry names the test that provokes it. */
+const SSR_ALLOWLIST = "docs/tracking/ssr-error-allowlist.txt";
+/** DEC-083 — a REAL captured job log (local e2e run) for the census self-test. */
+const CENSUS_FIXTURE = "scripts/fixtures/e2e-ssr-census/job.log.txt";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
 /** INC-084g — the describe-nested shape, captured from a real Playwright run. */
 const DESCRIBE_FIXTURE = "scripts/fixtures/e2e-context-sample-describe";
@@ -447,7 +451,41 @@ export type Source = {
    * fixture cleanup could not reach Supabase (INC-189).
    */
   postTestErrors?: string[];
+  /** DEC-083 — every `[ssr-error]` line, uncapped, for the census count only. */
+  ssrAll?: string[];
+  /** DEC-084 — every `[a11y]` summary line the a11y smoke printed. */
+  a11yLines?: string[];
 };
+
+/** DEC-084 — `[a11y] <page> <project> serious=<n> critical=<n>`. */
+export function grepA11y(text: string | null): string[] {
+  if (!text) return [];
+  const out: string[] = [];
+  for (const line of text.split("\n")) {
+    const m = /\[a11y\] (\S+) (\S+) serious=(\d+) critical=(\d+)/.exec(line);
+    if (m) out.push(`${m[1]} ${m[2]} serious=${m[3]} critical=${m[4]}`);
+  }
+  return [...new Set(out)];
+}
+
+/** DEC-084 — the one-line accessibility summary, in both forms. */
+export function a11ySection(sources: { a11yLines?: string[] }[]): string[] {
+  const lines = sources.flatMap((s) => s.a11yLines ?? []);
+  let serious = 0;
+  let critical = 0;
+  for (const line of lines) {
+    serious += Number(/serious=(\d+)/.exec(line)?.[1] ?? 0);
+    critical += Number(/critical=(\d+)/.exec(line)?.[1] ?? 0);
+  }
+  return [
+    "## Accessibility (DEC-084, non-gating)",
+    "",
+    lines.length === 0
+      ? "No `[a11y]` lines in any source log (the a11y smoke did not run, or no log was uploaded)."
+      : `${lines.length} page×project check(s): serious=${serious} critical=${critical} — ${lines.join(" · ")}`,
+    "",
+  ];
+}
 
 /**
  * INC-085f — ONE tag-grep for every runtime-error channel. `[ssr-error]` is
@@ -485,6 +523,126 @@ export function collapseConsecutive(lines: string[]): string[] {
 /** Every `[ssr-error]` line in a job log. */
 export function grepSsrErrors(text: string | null, limit = 20): string[] {
   return grepTag(text, "[ssr-error]", limit);
+}
+
+/**
+ * DEC-083 — THE SERVER-ERROR CENSUS. Every `[ssr-error]` line of every source,
+ * on every run, green or red. The 20-line cap binds QUOTING only; counting reads
+ * the whole log. Lines are redacted exactly as the quoted ones are.
+ */
+export function allSsrLines(text: string | null): string[] {
+  if (!text) return [];
+  return (
+    text
+      .split("\n")
+      .filter((line) => line.includes("[ssr-error]"))
+      // redact() also strips the ANSI colour codes a TTY runner wraps lines in.
+      .map((line) => redact(line).trim())
+  );
+}
+
+/**
+ * DEC-083 — a message's census key: the text after `[ssr-error]`, minus the
+ * route path prefix, with every UUID, number and quoted value replaced, so one
+ * door refusal counts as one message however many rows provoked it.
+ */
+export function normaliseSsr(line: string): string {
+  const at = line.indexOf("[ssr-error]");
+  let message = (at === -1 ? line : line.slice(at + "[ssr-error]".length)).trim();
+  message = message.replace(/ ×\d+$/, "");
+  message = message.replace(/^\/\S*\s*/, "");
+  message = message.replace(
+    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+    "<uuid>",
+  );
+  message = message.replace(/"[^"]*"|'[^']*'|`[^`]*`/g, "<q>");
+  message = message.replace(/\d+(\.\d+)?/g, "<n>");
+  return message.replace(/\s+/g, " ").trim();
+}
+
+/** DEC-083 — the allowlist: one pattern per line; `#` starts a comment. */
+export function parseSsrAllowlist(text: string): string[] {
+  return text
+    .split("\n")
+    .map((line) => line.replace(/#.*$/, "").trim())
+    .filter(Boolean);
+}
+
+export type SsrCensusRow = {
+  message: string;
+  count: number;
+  sources: string[];
+  example: string;
+  quiet: boolean;
+};
+
+/** DEC-083 — count by normalised message, across every source. */
+export function ssrCensus(
+  sources: { label: string; ssrAll?: string[] }[],
+  allowlist: string[],
+): SsrCensusRow[] {
+  const rows = new Map<string, SsrCensusRow>();
+  for (const source of sources) {
+    for (const line of source.ssrAll ?? []) {
+      const message = normaliseSsr(line);
+      // Quietness is judged per LINE, on the key and on the redacted line, so a
+      // pattern may name a quoted value (a constraint) the key replaced. A key
+      // whose lines split is two rows: the quiet part never hides the loud part.
+      const quiet = allowlist.some(
+        (pattern) => message.includes(pattern) || line.includes(pattern),
+      );
+      const key = `${quiet ? "q" : "l"}\u0000${message}`;
+      const row = rows.get(key) ?? { message, count: 0, sources: [], example: line, quiet };
+      row.count += 1;
+      if (!row.sources.includes(source.label)) row.sources.push(source.label);
+      rows.set(key, row);
+    }
+  }
+  return [...rows.values()].sort((a, b) => b.count - a.count || a.message.localeCompare(b.message));
+}
+
+/** DEC-083 — the census section, identical in the red and the green forms. */
+export function ssrCensusSection(rows: SsrCensusRow[]): string[] {
+  const cell = (text: string) => text.replace(/\|/g, "\\|");
+  const loud = rows.filter((row) => !row.quiet);
+  const quiet = rows.filter((row) => row.quiet);
+  const total = rows.reduce((sum, row) => sum + row.count, 0);
+  const out = ["## Server errors — census (DEC-083, non-gating)", ""];
+  if (rows.length === 0) {
+    out.push("No `[ssr-error]` lines in any source log (or no log was uploaded).", "");
+    return out;
+  }
+  out.push(
+    `${total} line(s), ${rows.length} message(s): ${loud.length} off the allowlist, ${quiet.length} allowlisted.`,
+    "",
+    "| Message | Count | Sources |",
+    "| --- | --- | --- |",
+    ...rows.map(
+      (row) =>
+        `| \`${cell(row.message)}\`${row.quiet ? " (quiet)" : ""} | ${row.count} | ${cell(row.sources.join(", "))} |`,
+    ),
+    "",
+    `Quiet (allowlisted): ${quiet.length === 0 ? "none" : quiet.map((row) => `${row.message} ×${row.count}`).join(" · ")}`,
+    "",
+  );
+  if (loud.length === 0) {
+    out.push("Off the allowlist: none.", "");
+    return out;
+  }
+  out.push("Off the allowlist:", "");
+  for (const row of loud) {
+    out.push(
+      `### ${row.message}`,
+      "",
+      `- Count: ${row.count} · Sources: ${row.sources.join(", ")}`,
+      "",
+      "```text",
+      row.example,
+      "```",
+      "",
+    );
+  }
+  return out;
 }
 
 /** Every `[client-error]` line in a job log (INC-085f). */
@@ -712,6 +870,7 @@ export function renderSources(
   sources: Source[],
   meta: ReportMeta,
   contexts: Map<string, string> = new Map(),
+  ssrAllowlist: string[] = [],
 ): string {
   let passed = 0;
   let skipped = 0;
@@ -773,6 +932,9 @@ export function renderSources(
     "",
     ...flakeSection,
     ...flakyBodiesSection(flaky, contexts),
+    // DEC-083 / DEC-084 — rendered on every red form, failed sources or not.
+    ...ssrCensusSection(ssrCensus(sources, ssrAllowlist)),
+    ...a11ySection(sources),
   ];
 
   // DEC-059 — THE POST-TEST SECTION. Rendered for every source that carried one,
@@ -914,6 +1076,8 @@ export function renderGreen(
   postTestWarnings = 0,
   flaky: (Flake & { source: string })[] = [],
   contexts: Map<string, string> = new Map(),
+  sources: Source[] = [],
+  ssrAllowlist: string[] = [],
 ): string {
   return [
     "# Last E2E failure (auto-generated — do not edit by hand)",
@@ -930,6 +1094,9 @@ export function renderGreen(
     "",
     ...flakeLedgerSection(flaky),
     ...flakyBodiesSection(flaky, contexts),
+    // DEC-083 / DEC-084 — the green form carries the same census and summary.
+    ...ssrCensusSection(ssrCensus(sources, ssrAllowlist)),
+    ...a11ySection(sources),
   ].join("\n");
 }
 
@@ -1465,7 +1632,10 @@ async function main() {
       !(gPassed >= 0 && gPassed < gLedger && gLedger < gBodies && gBodies < gLine) ||
       !greenFlake.includes("- Flaky (passed on retry, DEC-030, non-gating): 1") ||
       !greenClean.includes("non-gating): 0") ||
-      greenClean.includes("## ")
+      // DEC-083/084 — a clean green form now carries the census and a11y
+      // sections; it still carries no FLAKE section.
+      greenClean.includes("## Flake") ||
+      greenClean.includes("## Flaky")
     ) {
       console.error(
         "SELF-TEST FAILED — DEC-078 part 2 green form did not carry the flake sections.",
@@ -1473,7 +1643,7 @@ async function main() {
       process.exit(1);
     }
     console.log(
-      "DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no section heading.",
+      "DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.",
     );
 
     // DEC-059 — THE POST-TEST BAND, proved on the REAL captured shard-6 log tail
@@ -1562,8 +1732,73 @@ async function main() {
       process.exit(1);
     }
 
+    // DEC-083 / DEC-084 — THE CENSUS AND THE A11Y LINE, from a REAL captured
+    // local job log (import-security IG-1, posting-routes PR-10/13/14, a11y).
+    {
+      const log = redact(await Bun.file(CENSUS_FIXTURE).text());
+      const allow = parseSsrAllowlist(await Bun.file(SSR_ALLOWLIST).text());
+      const censusSource: Source = {
+        label: "shard 3",
+        json: null,
+        logTail: null,
+        ssrAll: allSsrLines(log),
+        a11yLines: grepA11y(log),
+      };
+      const rows = ssrCensus([censusSource], allow);
+      const total = rows.reduce((sum, row) => sum + row.count, 0);
+      const loud = rows.filter((row) => !row.quiet);
+      const notFound = rows.find((row) => row.message === "listing not found");
+      const green = renderGreen(meta, 0, [], new Map(), [censusSource], allow);
+      const red = renderSources([censusSource], meta, new Map(), allow);
+      const checks: [string, boolean][] = [
+        ["54 [ssr-error] lines counted (no 20-line cap)", total === 54],
+        ["27 rows", rows.length === 27],
+        ["one off-allowlist row", loud.length === 1],
+        ["listing not found ×2 is loud", notFound?.count === 2 && !notFound.quiet],
+        [
+          "path, quotes and ANSI stripped from the key",
+          rows.every(
+            (r) => !/^\/|"/.test(r.message) && !r.message.includes(String.fromCharCode(27)),
+          ),
+        ],
+        [
+          "a quoted constraint on the allowlist is quiet",
+          rows.some((r) => r.quiet && r.message.includes("check constraint")),
+        ],
+        [
+          "green form carries the section",
+          green.includes("## Server errors — census (DEC-083, non-gating)"),
+        ],
+        [
+          "red form carries the section",
+          red.includes("## Server errors — census (DEC-083, non-gating)"),
+        ],
+        [
+          "quiet line",
+          green.includes("Quiet (allowlisted): ") && green.includes("strings wrongFile ×2"),
+        ],
+        [
+          "off-allowlist listing with a verbatim example",
+          green.includes("### listing not found") &&
+            green.includes("[ssr-error] /api/listings/draft listing not found"),
+        ],
+        [
+          "a11y line in both forms",
+          green.includes("## Accessibility (DEC-084, non-gating)") &&
+            red.includes("## Accessibility (DEC-084, non-gating)"),
+        ],
+        ["a11y counts read", green.includes("10 page×project check(s): serious=1 critical=0")],
+      ];
+      const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
+      if (failed.length > 0) {
+        console.error(`SELF-TEST FAILED — DEC-083/084 census: ${failed.join("; ")}`);
+        console.error(green);
+        process.exit(1);
+      }
+    }
+
     console.log(
-      "Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
 
     return;
@@ -1624,6 +1859,9 @@ async function main() {
         clientErrors: grepClientErrors(log),
         // DEC-059: teardown/exit errors live outside every test; extracted here.
         postTestErrors: grepPostTestErrors(log),
+        // DEC-083 — uncapped, for counting; DEC-084 — the a11y summary lines.
+        ssrAll: allSsrLines(log),
+        a11yLines: grepA11y(log),
       });
     }
   } else {
@@ -1638,6 +1876,14 @@ async function main() {
       clientErrors: [],
     });
   }
+
+  // DEC-083 — the allowlist is read on every run; a missing file is an empty list
+  // (every message then shows as off-list), never a crash.
+  const ssrAllowlist = parseSsrAllowlist(
+    await Bun.file(process.env["E2E_SSR_ALLOWLIST"] ?? SSR_ALLOWLIST)
+      .text()
+      .catch(() => ""),
+  );
 
   const contexts =
     contextsDir && !flakeOnly ? collectContextFiles(contextsDir) : new Map<string, string>();
@@ -1661,7 +1907,10 @@ async function main() {
       }
     }
     // DEC-078 part 2 — the green report carries the flake ledger and bodies.
-    await Bun.write(OUT, renderGreen(meta, postTestWarnings, allFlaky, contexts));
+    await Bun.write(
+      OUT,
+      renderGreen(meta, postTestWarnings, allFlaky, contexts, sources, ssrAllowlist),
+    );
     // DEC-028 — a green run still publishes its verdict, so a consumer never
     // has to treat a missing verdict file as "probably green". The flaky count
     // is the real one (DEC-078 part 2).
@@ -1678,7 +1927,7 @@ async function main() {
   }
 
   if (!flakeOnly) {
-    await Bun.write(OUT, renderSources(sources, meta, contexts));
+    await Bun.write(OUT, renderSources(sources, meta, contexts, ssrAllowlist));
     console.log(
       `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
     );
