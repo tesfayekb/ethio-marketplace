@@ -2,8 +2,8 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36432795298
 - Commit: `6d23c2055baf7a839a79242b8c53fbb400449215`
-- Attempt: 1
-- Written (UTC): 2026-09-28T14:01:37.141Z
+- Attempt: 2
+- Written (UTC): 2026-09-28T14:09:55.629Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
