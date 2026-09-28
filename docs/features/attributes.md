@@ -200,6 +200,7 @@ with a single quote so no spreadsheet executes it. The filename is dated:
 `links.csv` is the EFFECTIVE set: a category's own links plus every link
 inherited from its ancestors, the nearest link winning, with `origin` naming
 the category the link actually lives on (its own slug for a direct link).
+`category_path` and `origin` resolve the home through `cat_primary_parent` (DEC-080; INC-306).
 `options` is the option list joined by `|`; `label_am` is the APPROVED entity
 translation, falling back to `attributes.name_am`.
 
