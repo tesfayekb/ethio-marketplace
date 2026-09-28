@@ -9,6 +9,7 @@ import {
   PRICE_BASIS_SHAPE,
   priceShapeFor,
 } from "./price-basis";
+import { currencyText, orderCurrencies, type CurrencyRow } from "./pricing-data";
 
 /**
  * DEC-079 / D31 — SELF-DESCRIPTION CONSISTENCY (governance §11): the client's
@@ -97,5 +98,43 @@ describe("price basis", () => {
     expect(basisNoun("በትሬይ (30 እንቁላል)")).toBe("ትሬይ (30 እንቁላል)");
     expect(basisNoun("Fixed Price (per job)")).toBeNull();
     expect(basisNoun("Commission (%)")).toBeNull();
+  });
+
+  it("orders currencies home first, then display order, then code (D62-2)", () => {
+    const row = (
+      code: string,
+      displayOrder: number,
+      symbol: string | null = null,
+    ): CurrencyRow => ({
+      code,
+      nameEn: code,
+      symbol,
+      displayOrder,
+    });
+    const rows = [
+      row("ZZZ", 900),
+      row("EUR", 3, "€"),
+      row("AAA", 900),
+      row("ETB", 2, "Br"),
+      row("USD", 1, "$"),
+    ];
+    expect(orderCurrencies(rows, "ETB").map((r) => r.code)).toEqual([
+      "ETB",
+      "USD",
+      "EUR",
+      "AAA",
+      "ZZZ",
+    ]);
+    expect(orderCurrencies(rows, null).map((r) => r.code)).toEqual([
+      "USD",
+      "ETB",
+      "EUR",
+      "AAA",
+      "ZZZ",
+    ]);
+    expect(
+      currencyText({ code: "ETB", nameEn: "Ethiopian Birr", symbol: "Br", displayOrder: 2 }),
+    ).toBe("ETB · Br — Ethiopian Birr");
+    expect(currencyText(row("AAA", 900))).toBe("AAA — AAA");
   });
 });
