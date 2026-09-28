@@ -35,6 +35,7 @@ async function audit(page: Page, name: string): Promise<void> {
     .filter((v) => v.impact === "serious" || v.impact === "critical")
     .map((v) => `${v.impact}:${v.id}×${v.nodes.length}`)
     .join(" ");
+  if (rules) console.log(`[a11y-rules] ${name} ${project} ${rules}`);
   test.info().annotations.push({ type: "a11y", description: `${line}${rules ? ` ${rules}` : ""}` });
 }
 
