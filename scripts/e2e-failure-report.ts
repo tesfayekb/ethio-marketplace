@@ -476,7 +476,8 @@ export function logCoverage(sources: { label: string; logRead?: boolean }[]): {
 
 /** DEC-083/084 R1 — the zero sentence, or the named gaps; never zero for a missing log. */
 function zeroOrGaps(tag: string, cov: ReturnType<typeof logCoverage>, anyLines: boolean): string[] {
-  if (cov.missing.length > 0) return [`${cov.missing.map((m) => `\`${m}\``).join(", ")}: log unavailable.`, ""];
+  if (cov.missing.length > 0)
+    return [`${cov.missing.map((m) => `\`${m}\``).join(", ")}: log unavailable.`, ""];
   if (!anyLines) return [`No \`[${tag}]\` lines in any source (all ${cov.read} logs read).`, ""];
   return [];
 }
