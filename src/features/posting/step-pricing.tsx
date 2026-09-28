@@ -202,6 +202,17 @@ export function StepPricing({
    * The door still judges the currency it is sent (F3); this only opens the
    * screen on the answer the seller most likely means.
    */
+  /**
+   * INC-317 — an answer that arrives after the step closed is dropped; the next
+   * visit resolves the chain again with a fresh ref.
+   */
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   useEffect(() => {
     if (values.priceCurrency !== null) return;
     if (resolvedRef.current) return;
@@ -213,17 +224,20 @@ export function StepPricing({
      */
     void (async () => {
       const last = await readLastListingCurrency();
+      if (!alive.current) return;
       if (last !== null) {
         onChange({ priceCurrency: last }, false);
         return;
       }
       const home = await readSellerHome();
+      if (!alive.current) return;
       if (home.currencyCode !== null) {
         onChange({ priceCurrency: home.currencyCode }, false);
         return;
       }
       const guessed = await readGuessCurrency();
       guessRef.current = guessed;
+      if (!alive.current) return;
       onChange({ priceCurrency: guessed }, false);
     })();
   }, [values.priceCurrency, onChange]);
