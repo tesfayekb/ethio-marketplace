@@ -1722,8 +1722,48 @@ async function main() {
       process.exit(1);
     }
 
+    // DEC-083 / DEC-084 — THE CENSUS AND THE A11Y LINE, from a REAL captured
+    // local job log (import-security IG-1, posting-routes PR-10/13/14, a11y).
+    {
+      const log = redact(await Bun.file(CENSUS_FIXTURE).text());
+      const allow = parseSsrAllowlist(await Bun.file(SSR_ALLOWLIST).text());
+      const censusSource: Source = {
+        label: "shard 3",
+        json: null,
+        logTail: null,
+        ssrAll: allSsrLines(log),
+        a11yLines: grepA11y(log),
+      };
+      const rows = ssrCensus([censusSource], allow);
+      const total = rows.reduce((sum, row) => sum + row.count, 0);
+      const loud = rows.filter((row) => !row.quiet);
+      const notFound = rows.find((row) => row.message === "listing not found");
+      const green = renderGreen(meta, 0, [], new Map(), [censusSource], allow);
+      const red = renderSources([censusSource], meta, new Map(), allow);
+      const checks: [string, boolean][] = [
+        ["54 [ssr-error] lines counted (no 20-line cap)", total === 54],
+        ["27 rows", rows.length === 27],
+        ["one off-allowlist row", loud.length === 1],
+        ["listing not found ×2 is loud", notFound?.count === 2 && !notFound.quiet],
+        ["path, quotes and ANSI stripped from the key", rows.every((r) => !/^\/|"|\u001b/.test(r.message))],
+        ["a quoted constraint on the allowlist is quiet", rows.some((r) => r.quiet && r.message.includes("check constraint"))],
+        ["green form carries the section", green.includes("## Server errors — census (DEC-083, non-gating)")],
+        ["red form carries the section", red.includes("## Server errors — census (DEC-083, non-gating)")],
+        ["quiet line", green.includes("Quiet (allowlisted): ") && green.includes("strings wrongFile ×2")],
+        ["off-allowlist listing with a verbatim example", green.includes("### listing not found") && green.includes("[ssr-error] /api/listings/draft listing not found")],
+        ["a11y line in both forms", green.includes("## Accessibility (DEC-084, non-gating)") && red.includes("## Accessibility (DEC-084, non-gating)")],
+        ["a11y counts read", green.includes("10 page×project check(s): serious=1 critical=0")],
+      ];
+      const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
+      if (failed.length > 0) {
+        console.error(`SELF-TEST FAILED — DEC-083/084 census: ${failed.join("; ")}`);
+        console.error(green);
+        process.exit(1);
+      }
+    }
+
     console.log(
-      "Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
 
     return;
