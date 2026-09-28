@@ -249,20 +249,29 @@ export async function readMarketCurrencies(): Promise<MarketCurrency[]> {
   }
 }
 
-/** The market currencies in rail order, the seller's market first, deduplicated. */
+/**
+ * D62-2 — THE SHORT LIST: every open market's money plus the curated codes
+ * (display order < 900), in `orderCurrencies` order — home first, then USD, ETB,
+ * EUR … An open market's currency is never cut; curated extras fill up to `max`.
+ */
 export function shortlistCurrencies(
   markets: MarketCurrency[],
-  homeCountry: string | null,
+  rows: readonly CurrencyRow[],
+  homeCurrency: string | null,
   max = 15,
 ): string[] {
-  const ordered = [
-    ...markets.filter((row) => homeCountry !== null && row.country === homeCountry),
-    ...markets.filter((row) => homeCountry === null || row.country !== homeCountry),
-  ];
+  const marketCodes = new Set(markets.map((row) => row.currencyCode));
+  const pool = rows.filter(
+    (row) => marketCodes.has(row.code) || row.displayOrder < 900 || row.code === homeCurrency,
+  );
+  const ordered = orderCurrencies(pool, homeCurrency);
+  const room = Math.max(max, marketCodes.size + (homeCurrency === null ? 0 : 1));
   const out: string[] = [];
   for (const row of ordered) {
-    if (!out.includes(row.currencyCode)) out.push(row.currencyCode);
-    if (out.length === max) break;
+    const must = marketCodes.has(row.code) || row.code === homeCurrency;
+    if (must || out.length < room - [...marketCodes].filter((c) => !out.includes(c)).length) {
+      out.push(row.code);
+    }
   }
   return out;
 }
