@@ -590,3 +590,4 @@
 - 2026-09-28 — INC-321 mark healer: ledger row 20260928135721 recorded by corrective 20260928140742 (mark 20260928150000); 6b0f6ae1 allowlisted.
 - 2026-09-28 — DEC-083: the E2E reporter writes a non-gating server-error census (every [ssr-error] line, normalised, counted; allowlist docs/tracking/ssr-error-allowlist.txt, each entry naming its test) in both forms.
 - 2026-09-28 — DEC-084: non-gating axe-core smoke (e2e/a11y.spec.ts: home, /auth, wizard steps 1/3/5, both projects); the reporter carries an Accessibility line. Security-scan census recorded (docs/tracking/security-scan-2026-09-28.md).
+- 2026-09-28 — DEC-083/084 R1 (INC-326): allowlist added to .prettierignore; e2e logs upload on every outcome; a11y runs once (@a11y); census and a11y sections state which logs they read.

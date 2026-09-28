@@ -49,14 +49,14 @@ test.describe("A11Y SMOKE (DEC-084, non-gating)", () => {
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
   });
 
-  test("A11Y-1 marketplace home and sign-in", async ({ page }) => {
+  test("A11Y-1 marketplace home and sign-in @a11y", async ({ page }) => {
     await gotoReady(page, "/");
     await audit(page, "home");
     await gotoReady(page, "/auth");
     await audit(page, "auth");
   });
 
-  test("A11Y-2 wizard steps 1, 3 and 5 for a scratch seller", async ({ page }) => {
+  test("A11Y-2 wizard steps 1, 3 and 5 for a scratch seller @a11y", async ({ page }) => {
     // DEC-068 — the residency fact arrives as the edge sends it (see PW asEdge).
     for (const path of ["**/api/listings/**", "**/api/geo"]) {
       await page.route(path, async (route) => {

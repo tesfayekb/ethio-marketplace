@@ -455,7 +455,32 @@ export type Source = {
   ssrAll?: string[];
   /** DEC-084 — every `[a11y]` summary line the a11y smoke printed. */
   a11yLines?: string[];
+  /** DEC-083/084 R1 — true when this source's log was read; absent = unavailable. */
+  logRead?: boolean;
 };
+
+/** DEC-083/084 R1 (G20) — which expected logs a section read. */
+export function logCoverage(sources: { label: string; logRead?: boolean }[]): {
+  line: string;
+  missing: string[];
+  read: number;
+} {
+  const read = sources.filter((s) => s.logRead === true).map((s) => s.label);
+  const missing = sources.filter((s) => s.logRead !== true).map((s) => s.label);
+  return {
+    line: `Logs read: ${read.length === 0 ? "none" : read.join(", ")} · unavailable: ${missing.length === 0 ? "none" : missing.join(", ")}`,
+    missing,
+    read: read.length,
+  };
+}
+
+/** DEC-083/084 R1 — the zero sentence, or the named gaps; never zero for a missing log. */
+function zeroOrGaps(tag: string, cov: ReturnType<typeof logCoverage>, anyLines: boolean): string[] {
+  if (cov.missing.length > 0)
+    return [`${cov.missing.map((m) => `\`${m}\``).join(", ")}: log unavailable.`, ""];
+  if (!anyLines) return [`No \`[${tag}]\` lines in any source (all ${cov.read} logs read).`, ""];
+  return [];
+}
 
 /** DEC-084 — `[a11y] <page> <project> serious=<n> critical=<n>`. */
 export function grepA11y(text: string | null): string[] {
@@ -469,7 +494,9 @@ export function grepA11y(text: string | null): string[] {
 }
 
 /** DEC-084 — the one-line accessibility summary, in both forms. */
-export function a11ySection(sources: { a11yLines?: string[] }[]): string[] {
+export function a11ySection(
+  sources: { label: string; a11yLines?: string[]; logRead?: boolean }[],
+): string[] {
   const lines = sources.flatMap((s) => s.a11yLines ?? []);
   let serious = 0;
   let critical = 0;
@@ -477,13 +504,19 @@ export function a11ySection(sources: { a11yLines?: string[] }[]): string[] {
     serious += Number(/serious=(\d+)/.exec(line)?.[1] ?? 0);
     critical += Number(/critical=(\d+)/.exec(line)?.[1] ?? 0);
   }
+  const cov = logCoverage(sources);
   return [
     "## Accessibility (DEC-084, non-gating)",
     "",
-    lines.length === 0
-      ? "No `[a11y]` lines in any source log (the a11y smoke did not run, or no log was uploaded)."
-      : `${lines.length} page×project check(s): serious=${serious} critical=${critical} — ${lines.join(" · ")}`,
+    cov.line,
     "",
+    ...zeroOrGaps("a11y", cov, lines.length > 0),
+    ...(lines.length === 0
+      ? []
+      : [
+          `${lines.length} page×project check(s): serious=${serious} critical=${critical} — ${lines.join(" · ")}`,
+          "",
+        ]),
   ];
 }
 
@@ -602,16 +635,18 @@ export function ssrCensus(
 }
 
 /** DEC-083 — the census section, identical in the red and the green forms. */
-export function ssrCensusSection(rows: SsrCensusRow[]): string[] {
+export function ssrCensusSection(
+  rows: SsrCensusRow[],
+  sources: { label: string; logRead?: boolean }[],
+): string[] {
   const cell = (text: string) => text.replace(/\|/g, "\\|");
   const loud = rows.filter((row) => !row.quiet);
   const quiet = rows.filter((row) => row.quiet);
   const total = rows.reduce((sum, row) => sum + row.count, 0);
-  const out = ["## Server errors — census (DEC-083, non-gating)", ""];
-  if (rows.length === 0) {
-    out.push("No `[ssr-error]` lines in any source log (or no log was uploaded).", "");
-    return out;
-  }
+  const cov = logCoverage(sources);
+  const out = ["## Server errors — census (DEC-083, non-gating)", "", cov.line, ""];
+  out.push(...zeroOrGaps("ssr-error", cov, rows.length > 0));
+  if (rows.length === 0) return out;
   out.push(
     `${total} line(s), ${rows.length} message(s): ${loud.length} off the allowlist, ${quiet.length} allowlisted.`,
     "",
@@ -933,7 +968,7 @@ export function renderSources(
     ...flakeSection,
     ...flakyBodiesSection(flaky, contexts),
     // DEC-083 / DEC-084 — rendered on every red form, failed sources or not.
-    ...ssrCensusSection(ssrCensus(sources, ssrAllowlist)),
+    ...ssrCensusSection(ssrCensus(sources, ssrAllowlist), sources),
     ...a11ySection(sources),
   ];
 
@@ -1095,7 +1130,7 @@ export function renderGreen(
     ...flakeLedgerSection(flaky),
     ...flakyBodiesSection(flaky, contexts),
     // DEC-083 / DEC-084 — the green form carries the same census and summary.
-    ...ssrCensusSection(ssrCensus(sources, ssrAllowlist)),
+    ...ssrCensusSection(ssrCensus(sources, ssrAllowlist), sources),
     ...a11ySection(sources),
   ].join("\n");
 }
@@ -1743,6 +1778,7 @@ async function main() {
         logTail: null,
         ssrAll: allSsrLines(log),
         a11yLines: grepA11y(log),
+        logRead: true,
       };
       const rows = ssrCensus([censusSource], allow);
       const total = rows.reduce((sum, row) => sum + row.count, 0);
@@ -1789,7 +1825,45 @@ async function main() {
         ],
         ["a11y counts read", green.includes("10 page×project check(s): serious=1 critical=0")],
       ];
+      // R1 (G20) — coverage: (a) one real log + one expected source without a log.
+      const noLog: Source = { label: "shard 5", json: null, logTail: null, logRead: false };
+      const gapped = renderGreen(meta, 0, [], new Map(), [censusSource, noLog], allow);
+      checks.push(
+        [
+          "R1a census names the missing log",
+          gapped.includes("Logs read: shard 3 · unavailable: shard 5") &&
+            gapped.includes("`shard 5`: log unavailable.") &&
+            !gapped.includes("No `[ssr-error]` lines"),
+        ],
+        ["R1a a11y never states zero with a gap", !gapped.includes("No `[a11y]` lines")],
+      );
+      // (b) every expected log read, none carrying either tag: REAL captured
+      // smoke log from the existing fixture tree (no [ssr-error]/[a11y] lines).
+      const quietLog = redact(await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text());
+      const quiet = [1, 2].map(
+        (n): Source => ({
+          label: `shard ${n}`,
+          json: null,
+          logTail: null,
+          ssrAll: allSsrLines(quietLog),
+          a11yLines: grepA11y(quietLog),
+          logRead: true,
+        }),
+      );
+      const allRead = renderGreen(meta, 0, [], new Map(), quiet, allow);
+      checks.push(
+        [
+          "R1b census: all N logs read",
+          allRead.includes("Logs read: shard 1, shard 2 · unavailable: none") &&
+            allRead.includes("No `[ssr-error]` lines in any source (all 2 logs read)."),
+        ],
+        [
+          "R1b a11y: all N logs read",
+          allRead.includes("No `[a11y]` lines in any source (all 2 logs read)."),
+        ],
+      );
       const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
+      for (const [name, ok] of checks) if (ok && name.startsWith("R1")) console.log(`ok — ${name}`);
       if (failed.length > 0) {
         console.error(`SELF-TEST FAILED — DEC-083/084 census: ${failed.join("; ")}`);
         console.error(green);
@@ -1862,6 +1936,7 @@ async function main() {
         // DEC-083 — uncapped, for counting; DEC-084 — the a11y summary lines.
         ssrAll: allSsrLines(log),
         a11yLines: grepA11y(log),
+        logRead: log !== null,
       });
     }
   } else {
