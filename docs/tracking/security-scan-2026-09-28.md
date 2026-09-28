@@ -2,12 +2,12 @@
 
 Source: the platform's Supabase database linter, run against ethio-prod on 2026-09-28 (165 findings, 4 classes). Example object names come from a read-only catalog query (`pg_proc.prosecdef` + `has_function_privilege`, `pg_extension`). This census fixes nothing and ships no migration.
 
-| Class | Level | Count | First three examples | Remediation |
-| --- | --- | --- | --- | --- |
-| Signed-In Users Can Execute SECURITY DEFINER Function | WARN | 149 | `admin_accept_category_image`, `admin_add_category_pointer`, `admin_approve_all_entity_translations` | https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable |
-| Public Can Execute SECURITY DEFINER Function | WARN | 14 | `catalog_find`, `catalog_find_version`, `get_attribute_options` | https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable |
-| Extension in Public | WARN | 1 | `pg_trgm` | https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public |
-| Leaked Password Protection Disabled | WARN | 1 | Auth setting (no database object) | https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection |
+| Class                                                 | Level | Count | First three examples                                                                                 | Remediation                                                                                                            |
+| ----------------------------------------------------- | ----- | ----- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Signed-In Users Can Execute SECURITY DEFINER Function | WARN  | 149   | `admin_accept_category_image`, `admin_add_category_pointer`, `admin_approve_all_entity_translations` | https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable |
+| Public Can Execute SECURITY DEFINER Function          | WARN  | 14    | `catalog_find`, `catalog_find_version`, `get_attribute_options`                                      | https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable          |
+| Extension in Public                                   | WARN  | 1     | `pg_trgm`                                                                                            | https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public                                |
+| Leaked Password Protection Disabled                   | WARN  | 1     | Auth setting (no database object)                                                                    | https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection               |
 
 Notes (facts only):
 
