@@ -1,130 +1,139 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36362240778 passed
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36366774220
+- Commit: `a441db3f483edb75cae7223c5772d00ea09e7b6d`
+- Attempt: 1
+- Written (UTC): 2026-09-28T01:39:18.013Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): none
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36362240778
-- Commit: `98d2cd2c1a5eb616520ae7300ffd4695da3d1882`
-- Attempt: 2
-- Written (UTC): 2026-09-28T00:56:18.745Z
-- Post-test warnings: 0
-- Flaky (passed on retry, DEC-030, non-gating): 3
+## Server errors: smoke
 
-## Flake ledger (DEC-030)
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+## Client errors: smoke
 
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-locations.spec.ts › L2a locations console › LT-13 all countries: the picker opens on every market, the roster spans them, and the transfer group carries no scope — Error: expect(received).toBe(expected) // Object.is equality
-- FLAKY (passed on retry) · `desktop-1280` · source `changed` · admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-19 a create and a rename commit through the doors and undo — Error: []
-- FLAKY (passed on retry) · `desktop-1280` · source `changed` · post-wizard.spec.ts › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44) — Error: PW-35: the review never opened
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-## Flaky bodies (DEC-078)
+## Server errors: email
 
-### admin-locations.spec.ts › L2a locations console › LT-13 all countries: the picker opens on every market, the roster spans them, and the transfer group carries no scope
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
 
-- Source: `shard 4`
-- Project: `desktop-1280`
+## Client errors: email
 
-```text
-Error: expect(received).toBe(expected) // Object.is equality
+No `[client-error]` lines in the `email` log (or no log was uploaded).
 
-Expected: true
-Received: false
+## Server errors: shard 1
 
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
-```
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
 
-Context:
+## Client errors: shard 1
 
-```text
-          - listitem [ref=e824]:
-            - generic [ref=e825]: About
-          - listitem [ref=e826]:
-            - generic [ref=e827]: How it works
-      - navigation "Help" [ref=e828]:
-        - heading "Help" [level=2] [ref=e829]
-        - list [ref=e830]:
-          - listitem [ref=e831]:
-            - generic [ref=e832]: Safety
-          - listitem [ref=e833]:
-            - generic [ref=e834]: Contact
-      - navigation "Legal" [ref=e835]:
-        - heading "Legal" [level=2] [ref=e836]
-        - list [ref=e837]:
-          - listitem [ref=e838]:
-            - generic [ref=e839]: Terms
-          - listitem [ref=e840]:
-            - generic [ref=e841]: Privacy
-    - paragraph [ref=e843]: © 2026 ethio.com — All rights reserved.
-```
-```
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
-### admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-19 a create and a rename commit through the doors and undo
+## Server errors: shard 2
 
-- Source: `changed`
-- Project: `desktop-1280`
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
 
-```text
-Error: []
+## Client errors: shard 2
 
-expect(received).toMatchObject(expected)
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 
-- Expected  - 1
-+ Received  + 1
+## Server errors: shard 3
 
-  Object {
-    "adds": 1,
--   "changes": 1,
-+   "changes": 2,
-    "refusals": 0,
-  }
-```
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
 
-Context:
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-          - listitem [ref=e1184]:
-            - generic [ref=e1185]: About
-          - listitem [ref=e1186]:
-            - generic [ref=e1187]: How it works
-      - navigation "Help" [ref=e1188]:
-        - heading "Help" [level=2] [ref=e1189]
-        - list [ref=e1190]:
-          - listitem [ref=e1191]:
-            - generic [ref=e1192]: Safety
-          - listitem [ref=e1193]:
-            - generic [ref=e1194]: Contact
-      - navigation "Legal" [ref=e1195]:
-        - heading "Legal" [level=2] [ref=e1196]
-        - list [ref=e1197]:
-          - listitem [ref=e1198]:
-            - generic [ref=e1199]: Terms
-          - listitem [ref=e1200]:
-            - generic [ref=e1201]: Privacy
-    - paragraph [ref=e1203]: © 2026 ethio.com — All rights reserved.
-```
+(no log tail was uploaded for this source)
 ```
 
-### post-wizard.spec.ts › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44)
+## email: no results file
 
-- Source: `changed`
-- Project: `desktop-1280`
+email: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-Error: PW-35: the review never opened
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-35: the review never opened with timeout 20000ms
-  - waiting for getByTestId('post-step-8')
-
+(no log tail was uploaded for this source)
 ```
 
-Context: context file not found for `post-wizard-POSTING-WIZARD-PW-35-a-model-s-single-allowed-answer-is-stored-not-rendered-and-the-review-shows-it-D44-desktop-1280`
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
