@@ -192,6 +192,43 @@ test.describe("POSTING ROUTES", () => {
     expect(JSON.stringify(over.payload)).not.toContain("listings_price_bp_check");
   });
 
+  test("PR-11 negotiable is a flag: stored on a price, forced off on contact (DEC-081)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const base = {
+      step: 5,
+      categoryId: cat.id,
+      title: `e2e posting ${rand()}`,
+      description: "e2e posting body",
+      attributes: {},
+      pricePeriod: "once",
+      priceNegotiable: true,
+    };
+
+    const fixed = await postRoute(
+      page,
+      DRAFT,
+      { ...base, priceMode: "fixed", priceAmount: 100, priceCurrency: "ETB" },
+      { token, country: "ET" },
+    );
+    expect(fixed.status, JSON.stringify(fixed.payload)).toBe(200);
+    expect(fixed.payload["ok"], JSON.stringify(fixed.payload)).toBe(true);
+    const listingId = String(fixed.payload["listing_id"] ?? "");
+    expect(listingId).not.toBe("");
+    expect(await negotiableOf(listingId)).toBe(true);
+
+    const contact = await postRoute(
+      page,
+      DRAFT,
+      { ...base, listingId, priceMode: "contact" },
+      { token, country: "ET" },
+    );
+    expect(contact.payload["ok"], JSON.stringify(contact.payload)).toBe(true);
+    expect(await negotiableOf(listingId)).toBe(false);
+  });
+
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
     const { token } = await seller(page);
     const cat = await category();

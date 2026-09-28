@@ -121,6 +121,8 @@ async function handlePost(request: Request): Promise<Response> {
     p_coverage: idList(body["coverage"]),
     p_contact_pref: json(body["contactPref"]),
     p_price_bp: int(body["priceBp"]),
+    // DEC-081 — Negotiable is a flag; only a literal true sets it.
+    p_price_negotiable: body["priceNegotiable"] === true,
   } as unknown as SubmitArgs;
 
   const { data, error } = await supabase.rpc("submit_listing", args);
