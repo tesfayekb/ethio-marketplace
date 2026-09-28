@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { createUser } from "./helpers/users";
+import { adminClient, createUser } from "./helpers/users";
 import {
   activeCityOf,
   anyAttributeId,
@@ -38,6 +38,17 @@ const PUBLISH = "/api/listings/publish";
 const IDENTITY = "/api/listings/identity";
 const ASSIST = "/api/listings/assist";
 const CATALOG_FIND = "/api/catalog/find";
+
+/** DB truth (J4): the stored DEC-081 flag. */
+async function negotiableOf(listingId: string): Promise<boolean | null> {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("price_negotiable")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:pr-11] reading the flag failed: ${error.message}`);
+  return data?.price_negotiable ?? null;
+}
 
 test.describe("POSTING ROUTES", () => {
   const categories: string[] = [];
@@ -190,6 +201,43 @@ test.describe("POSTING ROUTES", () => {
       reason: "commissionRange",
     });
     expect(JSON.stringify(over.payload)).not.toContain("listings_price_bp_check");
+  });
+
+  test("PR-11 negotiable is a flag: stored on a price, forced off on contact (DEC-081)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const base = {
+      step: 5,
+      categoryId: cat.id,
+      title: `e2e posting ${rand()}`,
+      description: "e2e posting body",
+      attributes: {},
+      pricePeriod: "once",
+      priceNegotiable: true,
+    };
+
+    const fixed = await postRoute(
+      page,
+      DRAFT,
+      { ...base, priceMode: "fixed", priceAmount: 100, priceCurrency: "ETB" },
+      { token, country: "ET" },
+    );
+    expect(fixed.status, JSON.stringify(fixed.payload)).toBe(200);
+    expect(fixed.payload["ok"], JSON.stringify(fixed.payload)).toBe(true);
+    const listingId = String(fixed.payload["listing_id"] ?? "");
+    expect(listingId).not.toBe("");
+    expect(await negotiableOf(listingId)).toBe(true);
+
+    const contact = await postRoute(
+      page,
+      DRAFT,
+      { ...base, listingId, priceMode: "contact" },
+      { token, country: "ET" },
+    );
+    expect(contact.payload["ok"], JSON.stringify(contact.payload)).toBe(true);
+    expect(await negotiableOf(listingId)).toBe(false);
   });
 
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
