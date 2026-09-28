@@ -2,8 +2,8 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36398155321
 - Commit: `8e0c2ecf3019e18a8841de36e947362ce724d192`
-- Attempt: 1
-- Written (UTC): 2026-09-28T08:38:14.633Z
+- Attempt: 2
+- Written (UTC): 2026-09-28T08:48:23.467Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -23,7 +23,6 @@ Self-test OK: DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] f
 ### Tail (last 60 lines)
 
 ```text
-[36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
   E2E_RESULTS_DIR: shard-results
@@ -50,11 +49,12 @@ context download: 0 context files found.
 Wrote docs/tracking/e2e-last-failure.md (0/9 source(s) with usable results, 0 context file(s) found).
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-HEAD is now at 8e0c2ec Hardened prompt fields
-[dev 4d1f4d4] ci: e2e failure report + flake ledger [skip ci]
- 1 file changed, 430 insertions(+), 70 deletions(-)
+   8e0c2ec..a7450aa  dev        -> origin/dev
+HEAD is now at a7450aa ci: update CI status report [skip ci]
+[dev f47766e] ci: e2e failure report + flake ledger [skip ci]
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   8e0c2ec..4d1f4d4  HEAD -> dev
+   a7450aa..f47766e  HEAD -> dev
 ##[group]Run echo "smoke=failure email=failure shards=failure"
 [36;1mecho "smoke=failure email=failure shards=failure"[0m
 [36;1mif [ "failure" != "success" ] || [ "failure" != "success" ] || [ "failure" != "success" ]; then[0m
@@ -70,7 +70,7 @@ smoke=failure email=failure shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/a5aec068-ef2b-4fa6-879e-7399c2fb0b18' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/97733755-2ff3-4a29-bc0a-a0aac7faf964' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
