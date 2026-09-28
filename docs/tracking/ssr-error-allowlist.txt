@@ -1,0 +1,16 @@
+# DEC-083 — server-error census allowlist. One message pattern per line, matched
+# as a substring of the NORMALISED message (path prefix stripped; UUIDs, numbers
+# and quoted values replaced). Every entry names the test(s) that provoke it; a
+# message no test can be shown to provoke stays OFF this list. After 2026-10-12 a
+# new entry needs a DEC.
+# Seeded 2026-09-28 from the 394162bb red run (git 2ca54f67 / a3522277).
+too many previews # IG-3 (import-security.spec.ts — previews are rate limited)
+digest mismatch # IG-3 (import-security.spec.ts — a changed file cannot be committed)
+wrongFile # IG-1 (import-security.spec.ts — foreign file)
+unknownColumn # IG-1, IG-5 (import-security.spec.ts — undeclared column)
+nulByte # IG-1 (import-security.spec.ts — unreadable file)
+file too large # IG-1 (import-security.spec.ts — oversized file)
+badHeader # IG-1 (import-security.spec.ts — malformed file)
+tooManyRows # IG-1 (import-security.spec.ts — oversized file)
+listings_price_bp_check # PR-10 (posting-routes.spec.ts — 20000 bp commission, INC-301)
+no GEMINI_API_KEY — fake mode # CI-2, CI-3 (category-image-routes.spec.ts — GEMINI_FAKE=1)
