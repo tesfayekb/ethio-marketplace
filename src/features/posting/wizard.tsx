@@ -11,7 +11,7 @@ import { entityName } from "@/i18n/entity";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 
-import { RefusalSummary } from "./field";
+import { RefusalSummary, focusFirstRefusal } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { StepCategory } from "./step-category";
 import { StepDetails } from "./step-details";
@@ -135,6 +135,13 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     const timer = window.setTimeout(() => setResetOffer(null), RESET_UNDO_MS);
     return () => window.clearTimeout(timer);
   }, [resetOffer]);
+  /** D70 — a strict refusal moves the seller to the first refused control here. */
+  useEffect(() => {
+    if (draft.refusals.length === 0) return;
+    focusFirstRefusal(draft.refusals, draft.step, specFields);
+    // Keyed on the refusals alone: a new door answer, not a step or field change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.refusals]);
   /** R-YEAR STEP 5 — the notice is read once and can be put away. */
   const [noticeDismissed, setNoticeDismissed] = useState(false);
   const categoryId = draft.values.categoryId;

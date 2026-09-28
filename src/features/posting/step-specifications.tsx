@@ -360,6 +360,33 @@ export function StepSpecifications({
     for (const def of eager) openOptions(def);
   }, [eager, openOptions]);
 
+  /**
+   * INC-320 — DEC-053 AMENDED: AN ANSWERED LIST IS READ UP FRONT SO ITS ANSWER
+   * CAN BE SHOWN. A big list (every model) stays lazy until tapped, but a select
+   * that mounts WITH a stored answer and no matching <option> shows its
+   * placeholder while the draft still holds the value. Such a list is requested
+   * once per key per mount; the effect is keyed on WHICH selects are answered,
+   * never on every value change.
+   */
+  const requestedAnswered = useRef<Set<string>>(new Set());
+  const answeredSelects = useMemo(() => {
+    if (schema === null) return "";
+    return schema.attributes
+      .filter((def) => SELECT_TYPES.includes(def.attrType) && !isEmpty(values[def.attrKey]))
+      .map((def) => def.attrKey)
+      .join("\u0000");
+  }, [schema, values]);
+  useEffect(() => {
+    if (schema === null || answeredSelects === "") return;
+    for (const key of answeredSelects.split("\u0000")) {
+      if (requestedAnswered.current.has(key)) continue;
+      const def = schema.attributes.find((entry) => entry.attrKey === key);
+      if (def === undefined) continue;
+      requestedAnswered.current.add(key);
+      openOptions(def);
+    }
+  }, [answeredSelects, schema, openOptions]);
+
   /** A written answer, debounced by the draft; an absent answer drops its key. */
   const write = useCallback(
     (attrKey: string, value: unknown, immediate = false) => {

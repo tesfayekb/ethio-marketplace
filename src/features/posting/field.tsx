@@ -174,15 +174,30 @@ export function Field({
   );
 }
 
+/**
+ * The control a refusal names, however that step built it, or `null`. The steps
+ * name their controls `post-<field>` (snake case as kebab) and a detail
+ * `post-attr-<key>`, so the door's bare field name is tried in those shapes too.
+ */
+function fieldTarget(field: string): HTMLElement | null {
+  const kebab = field.replace(/_/g, "-");
+  return (
+    document.getElementById(field) ??
+    document.getElementById(`post-${kebab}`) ??
+    document.getElementById(`post-attr-${field}`) ??
+    document.querySelector<HTMLElement>(`[data-testid="post-field"][data-field="${field}"]`)
+  );
+}
+
 /** Move the seller to the control a refusal names, however that step built it. */
-function focusField(field: string): void {
-  const byId = document.getElementById(field);
-  const target =
-    byId ??
-    document.querySelector<HTMLElement>(`[data-testid="post-field"][data-field="${field}"]`);
-  if (target === null) return;
+function focusElement(target: HTMLElement): void {
   target.scrollIntoView({ block: "center" });
   if (typeof (target as HTMLElement & { focus?: () => void }).focus === "function") target.focus();
+}
+
+function focusField(field: string): void {
+  const target = fieldTarget(field);
+  if (target !== null) focusElement(target);
 }
 
 /**
@@ -195,6 +210,27 @@ export const CONTROL_LESS_FIELDS: ReadonlySet<string> = new Set(["door", "reside
 
 export function summaryRefusals(refusals: Refusal[]): Refusal[] {
   return refusals.filter((refusal) => !CONTROL_LESS_FIELDS.has(refusal.field));
+}
+
+/**
+ * D70 — AFTER A STRICT REFUSAL, THE FIRST REFUSED CONTROL OF THIS STEP TAKES
+ * FOCUS. "First" is DOCUMENT order (what the seller sees top to bottom), never
+ * the door's array order; another step's field is left to the summary.
+ */
+export function focusFirstRefusal(
+  refusals: Refusal[],
+  step: number,
+  specFields: readonly string[] = [],
+): void {
+  const targets = summaryRefusals(refusals)
+    .filter((refusal) => stepOfField(refusal.field, specFields) === step)
+    .map((refusal) => fieldTarget(refusal.field))
+    .filter((target): target is HTMLElement => target !== null);
+  if (targets.length === 0) return;
+  const first = targets.reduce((best, next) =>
+    best.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_PRECEDING ? next : best,
+  );
+  focusElement(first);
 }
 
 /**

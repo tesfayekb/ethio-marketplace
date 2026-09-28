@@ -144,13 +144,19 @@ export function StepCategory({
 
       {/* THE ONE CONTROL. Filtered, it is the matching leaves with their paths;
           unfiltered, it is the level the seller stands on. */}
+      {/* D71 — the U6-C1-R2 soft state: while no leaf is chosen and nothing is
+          refused the group wears the soft required border, at every level; full
+          destructive after a refusal; none once a leaf is chosen. */}
       <div
         data-testid="post-category-group"
         data-invalid={invalid ? "1" : "0"}
+        data-empty={selectedId === null ? "1" : "0"}
         className={
           invalid
             ? "rounded-md border border-destructive p-2 ring-1 ring-destructive"
-            : "rounded-md border border-transparent p-2"
+            : selectedId === null
+              ? "rounded-md border border-destructive/40 p-2"
+              : "rounded-md border border-transparent p-2"
         }
       >
         {invalid && (
