@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { createUser } from "./helpers/users";
+import { adminClient, createUser } from "./helpers/users";
 import {
   activeCityOf,
   anyAttributeId,
@@ -38,6 +38,18 @@ const PUBLISH = "/api/listings/publish";
 const IDENTITY = "/api/listings/identity";
 const ASSIST = "/api/listings/assist";
 const CATALOG_FIND = "/api/catalog/find";
+
+/** DB truth (J4): the stored DEC-081 flag. */
+async function negotiableOf(listingId: string): Promise<boolean | null> {
+  const { data, error } = await adminClient()
+    .from("listings")
+    .select("price_negotiable")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:pr-11] reading the flag failed: ${error.message}`);
+  return (data as { price_negotiable?: boolean } | null)?.price_negotiable ?? null;
+}
+
 
 test.describe("POSTING ROUTES", () => {
   const categories: string[] = [];
