@@ -36,6 +36,7 @@ import {
   draftsOf,
   seedAllowedSet,
   seedCategoryBranch,
+  scratchCategorySlug,
   seedSurfacedLevel,
   anyCatchAllLevel,
   surfaceCategoryUnder,
@@ -303,6 +304,84 @@ test.describe("POSTING WIZARD", () => {
     await back.click();
     await expect(folder).toBeVisible();
     await expect(page.getByTestId("post-step-1")).toBeVisible();
+  });
+
+  /**
+   * PW-62 (DEC-080) — POINTER ORDER AND THE FLAGGED HOME REACH THE WIZARD.
+   * Scratch root A holds L1 (pointer 1, row 9301) and L2 (pointer 2, row 9300):
+   * the ROW order disagrees with the pointer order, and the pointer must win.
+   * Scratch root B holds its own L3 (pointer 5) and L1 as a GUEST at pointer 0:
+   * the guest still follows the own child, and L1's home stays A.
+   */
+  test("PW-62 a level follows pointer order, a guest follows the host's own children, and the home is the flagged pointer (DEC-080)", async ({
+    page,
+  }) => {
+    const supabase = adminClient();
+    const slugs = {
+      a: scratchCategorySlug(),
+      b: scratchCategorySlug(),
+      l1: scratchCategorySlug(),
+      l2: scratchCategorySlug(),
+      l3: scratchCategorySlug(),
+    };
+    branches.push(...Object.values(slugs));
+    const { data: rows, error } = await supabase
+      .from("categories")
+      .insert([
+        { slug: slugs.a, name_en: slugs.a, is_active: true, allow_listings: false, is_catchall: false, display_order: 9100 },
+        { slug: slugs.b, name_en: slugs.b, is_active: true, allow_listings: false, is_catchall: false, display_order: 9101 },
+        { slug: slugs.l1, name_en: slugs.l1, is_active: true, allow_listings: true, is_catchall: false, display_order: 9301 },
+        { slug: slugs.l2, name_en: slugs.l2, is_active: true, allow_listings: true, is_catchall: false, display_order: 9300 },
+        { slug: slugs.l3, name_en: slugs.l3, is_active: true, allow_listings: true, is_catchall: false, display_order: 9302 },
+      ])
+      .select("id, slug");
+    if (error || !rows) throw new Error(`[e2e:pw-62] seeding the rows failed: ${error?.message}`);
+    const id = (slug: string) => rows.find((row) => row.slug === slug)!.id;
+    // Inserted one at a time so the home (A) is L1's FIRST pointer (DEC-080 trigger).
+    for (const pointer of [
+      { parent_id: id(slugs.a), child_id: id(slugs.l1), display_order: 1 },
+      { parent_id: id(slugs.a), child_id: id(slugs.l2), display_order: 2 },
+      { parent_id: id(slugs.b), child_id: id(slugs.l3), display_order: 5 },
+      { parent_id: id(slugs.b), child_id: id(slugs.l1), display_order: 0 },
+    ]) {
+      const { error: pointerError } = await supabase.from("category_tree_pointers").insert(pointer);
+      if (pointerError) throw new Error(`[e2e:pw-62] linking failed: ${pointerError.message}`);
+    }
+
+    await seller(page);
+    await gotoReady(page, "/post");
+    const leafIds = async () =>
+      page
+        .locator('[data-testid="post-browse-leaf"]')
+        .evaluateAll((els) => els.map((el) => el.getAttribute("data-category")));
+
+    const folderA = page.locator(`[data-testid="post-browse-folder"][data-category="${id(slugs.a)}"]`);
+    await expect(folderA, "PW-62: scratch root A is missing").toBeVisible({ timeout: 20_000 });
+    await folderA.click();
+    await expect(page.locator(`[data-testid="post-browse-leaf"][data-category="${id(slugs.l2)}"]`)).toBeVisible();
+    const underA = await leafIds();
+    expect(
+      underA.indexOf(id(slugs.l1)),
+      `PW-62: under A, L1 (pointer 1) must precede L2 (pointer 2): ${underA.join(",")}`,
+    ).toBeLessThan(underA.indexOf(id(slugs.l2)));
+
+    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+    const folderB = page.locator(`[data-testid="post-browse-folder"][data-category="${id(slugs.b)}"]`);
+    await folderB.click();
+    await expect(page.locator(`[data-testid="post-browse-leaf"][data-category="${id(slugs.l1)}"]`)).toBeVisible();
+    const underB = await leafIds();
+    expect(
+      underB.indexOf(id(slugs.l3)),
+      `PW-62: under B, the own child L3 must precede the guest L1: ${underB.join(",")}`,
+    ).toBeLessThan(underB.indexOf(id(slugs.l1)));
+    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+
+    await chooseBySearch(page, slugs.l1, id(slugs.l1));
+    await expect(
+      page.getByTestId("post-category-chip-path"),
+      "PW-62: the chip path does not name the flagged home A",
+    ).toContainText(slugs.a);
+    await expect(page.getByTestId("post-category-chip-path")).not.toContainText(slugs.b);
   });
 
   test("PW-3 a folder is browsable and never selectable; its leaf is (D11)", async ({ page }) => {
