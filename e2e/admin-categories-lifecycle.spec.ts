@@ -1825,9 +1825,27 @@ test.describe("C2-HOME categories home flag", () => {
       const { data: rows, error } = await supabase
         .from("categories")
         .insert([
-          { slug: slugA, name_en: slugA, is_active: true, allow_listings: false, display_order: 9200 },
-          { slug: slugB, name_en: slugB, is_active: true, allow_listings: false, display_order: 9201 },
-          { slug: slugL, name_en: slugL, is_active: true, allow_listings: true, display_order: 9202 },
+          {
+            slug: slugA,
+            name_en: slugA,
+            is_active: true,
+            allow_listings: false,
+            display_order: 9200,
+          },
+          {
+            slug: slugB,
+            name_en: slugB,
+            is_active: true,
+            allow_listings: false,
+            display_order: 9201,
+          },
+          {
+            slug: slugL,
+            name_en: slugL,
+            is_active: true,
+            allow_listings: true,
+            display_order: 9202,
+          },
         ])
         .select("id, slug");
       if (error || !rows) throw new Error(`[e2e:ct-33] seeding failed: ${error?.message}`);
@@ -1839,7 +1857,8 @@ test.describe("C2-HOME categories home flag", () => {
           .insert({ parent_id: id(parent), child_id: id(slugL), display_order: order })
           .select("id, is_primary")
           .single();
-        if (pointerError || !data) throw new Error(`[e2e:ct-33] linking failed: ${pointerError?.message}`);
+        if (pointerError || !data)
+          throw new Error(`[e2e:ct-33] linking failed: ${pointerError?.message}`);
         return data;
       };
       const pointerA = await insertPointer(slugA, 5);

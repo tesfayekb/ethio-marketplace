@@ -112,8 +112,20 @@ test.describe("category selection navigates", () => {
       const { data: rows, error } = await supabase
         .from("categories")
         .insert([
-          { slug: first, name_en: first, is_active: true, allow_listings: true, display_order: 9200 },
-          { slug: second, name_en: second, is_active: true, allow_listings: true, display_order: 9199 },
+          {
+            slug: first,
+            name_en: first,
+            is_active: true,
+            allow_listings: true,
+            display_order: 9200,
+          },
+          {
+            slug: second,
+            name_en: second,
+            is_active: true,
+            allow_listings: true,
+            display_order: 9199,
+          },
         ])
         .select("id, slug");
       if (error || !rows) throw new Error(`[e2e:c-5] seeding failed: ${error?.message}`);

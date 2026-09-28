@@ -328,11 +328,46 @@ test.describe("POSTING WIZARD", () => {
     const { data: rows, error } = await supabase
       .from("categories")
       .insert([
-        { slug: slugs.a, name_en: slugs.a, is_active: true, allow_listings: false, is_catchall: false, display_order: 9100 },
-        { slug: slugs.b, name_en: slugs.b, is_active: true, allow_listings: false, is_catchall: false, display_order: 9101 },
-        { slug: slugs.l1, name_en: slugs.l1, is_active: true, allow_listings: true, is_catchall: false, display_order: 9301 },
-        { slug: slugs.l2, name_en: slugs.l2, is_active: true, allow_listings: true, is_catchall: false, display_order: 9300 },
-        { slug: slugs.l3, name_en: slugs.l3, is_active: true, allow_listings: true, is_catchall: false, display_order: 9302 },
+        {
+          slug: slugs.a,
+          name_en: slugs.a,
+          is_active: true,
+          allow_listings: false,
+          is_catchall: false,
+          display_order: 9100,
+        },
+        {
+          slug: slugs.b,
+          name_en: slugs.b,
+          is_active: true,
+          allow_listings: false,
+          is_catchall: false,
+          display_order: 9101,
+        },
+        {
+          slug: slugs.l1,
+          name_en: slugs.l1,
+          is_active: true,
+          allow_listings: true,
+          is_catchall: false,
+          display_order: 9301,
+        },
+        {
+          slug: slugs.l2,
+          name_en: slugs.l2,
+          is_active: true,
+          allow_listings: true,
+          is_catchall: false,
+          display_order: 9300,
+        },
+        {
+          slug: slugs.l3,
+          name_en: slugs.l3,
+          is_active: true,
+          allow_listings: true,
+          is_catchall: false,
+          display_order: 9302,
+        },
       ])
       .select("id, slug");
     if (error || !rows) throw new Error(`[e2e:pw-62] seeding the rows failed: ${error?.message}`);
@@ -355,10 +390,14 @@ test.describe("POSTING WIZARD", () => {
         .locator('[data-testid="post-browse-leaf"]')
         .evaluateAll((els) => els.map((el) => el.getAttribute("data-category")));
 
-    const folderA = page.locator(`[data-testid="post-browse-folder"][data-category="${id(slugs.a)}"]`);
+    const folderA = page.locator(
+      `[data-testid="post-browse-folder"][data-category="${id(slugs.a)}"]`,
+    );
     await expect(folderA, "PW-62: scratch root A is missing").toBeVisible({ timeout: 20_000 });
     await folderA.click();
-    await expect(page.locator(`[data-testid="post-browse-leaf"][data-category="${id(slugs.l2)}"]`)).toBeVisible();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${id(slugs.l2)}"]`),
+    ).toBeVisible();
     const underA = await leafIds();
     expect(
       underA.indexOf(id(slugs.l1)),
@@ -366,9 +405,13 @@ test.describe("POSTING WIZARD", () => {
     ).toBeLessThan(underA.indexOf(id(slugs.l2)));
 
     await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
-    const folderB = page.locator(`[data-testid="post-browse-folder"][data-category="${id(slugs.b)}"]`);
+    const folderB = page.locator(
+      `[data-testid="post-browse-folder"][data-category="${id(slugs.b)}"]`,
+    );
     await folderB.click();
-    await expect(page.locator(`[data-testid="post-browse-leaf"][data-category="${id(slugs.l1)}"]`)).toBeVisible();
+    await expect(
+      page.locator(`[data-testid="post-browse-leaf"][data-category="${id(slugs.l1)}"]`),
+    ).toBeVisible();
     const underB = await leafIds();
     expect(
       underB.indexOf(id(slugs.l3)),
