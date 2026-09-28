@@ -1048,13 +1048,6 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-description").fill("e2e c2a listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-5")).toBeVisible();
-    await expect(page.getByTestId("post-price-basis")).toHaveAttribute("data-options", "1", {
-      timeout: 20_000,
-    });
-    if (token !== null) await specControl(page, basis.basisKey).selectOption(token);
-    console.log("DBGT", await specControl(page, basis.basisKey).evaluate((e) => e.outerHTML.slice(0, 600)));
-    await page.waitForTimeout(1500);
-    console.log("DBGT2", await specControl(page, basis.basisKey).evaluate((e) => e.outerHTML.slice(0, 600)));
     return listingId;
   }
 
@@ -1155,6 +1148,10 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-description").fill("e2e d31c listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-price-basis")).toHaveAttribute("data-options", "1", {
+      timeout: 20_000,
+    });
+    if (token !== null) await specControl(page, basis.basisKey).selectOption(token);
     return listingId;
   }
 

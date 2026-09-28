@@ -411,7 +411,6 @@ export function useDraft(initialListingId: string | null): UseDraft {
        * set from the same object.
        */
       const next = { ...valuesRef.current, ...patch };
-      console.error("DBG change", JSON.stringify(Object.keys(patch)), JSON.stringify(patch.attributes ?? null), new Error().stack?.split("\n").slice(2,6).join(" | "));
       valuesRef.current = next;
       setNextBlockedByTransport(false);
       setValues(next);
