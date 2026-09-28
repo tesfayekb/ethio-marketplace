@@ -945,7 +945,8 @@ export function StepSpecifications({
     if (reconcile.current === stamp) return;
     reconcile.current = stamp;
     emit(next, false);
-  }, [onlyKey, 
+  }, [
+    onlyKey,
     schema,
     definitions,
     folds,

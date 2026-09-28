@@ -1377,7 +1377,7 @@ test.describe("POSTING WIZARD", () => {
     const { data: profile, error } = await adminClient()
       .from("profiles")
       .select("home_country_code")
-      .eq("id", user.id)
+      .eq("user_id", user.id)
       .maybeSingle();
     if (error) throw new Error(`[e2e:d62] reading the profile failed: ${error.message}`);
     expect(profile?.home_country_code, "PW-65: the seller's home is not ET").toBe("ET");
