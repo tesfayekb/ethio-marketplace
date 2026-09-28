@@ -74,12 +74,14 @@ async function generate(
   // PART D — unknown OR RLS-hidden is the SAME honest answer: 404.
   if (!category) throw new CategoryNotFoundError();
 
-  // Primary browse parent (lowest display_order edge) supplies the prompt context.
+  // INC-310 — the home parent (DEC-080: the is_primary pointer) supplies the
+  // prompt context; display_order only breaks a tie.
   const { data: pointer } = await supabase
     .from("category_tree_pointers")
     .select("parent_id, display_order")
     .eq("child_id", categoryId)
     .not("parent_id", "is", null)
+    .order("is_primary", { ascending: false })
     .order("display_order", { ascending: true })
     .limit(1)
     .maybeSingle();

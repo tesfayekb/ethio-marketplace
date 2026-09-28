@@ -349,6 +349,9 @@ export function useDraft(initialListingId: string | null): UseDraft {
     if (strict) {
       setRefusals(answer.refusals);
       strictRef.current = null;
+      // INC-315 — a judged-and-refused claim is answered; nothing stays
+      // queued, so the next Next names its own step.
+      pendingStepRef.current = null;
     }
     setSaveState("idle");
     return false;

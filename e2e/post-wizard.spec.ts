@@ -1458,6 +1458,32 @@ test.describe("POSTING WIZARD", () => {
       .toBe(1250);
   });
 
+  test("PW-68 a Next refused on details does not pin the claim: Back then Next from photos reopens details (INC-315)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await reachStep3(page, user.id, category);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+
+    await page.getByTestId("post-next").click();
+    const summary = page.getByTestId("post-refusal-summary");
+    await expect(summary).toBeVisible();
+    await expect(summary).toContainText("Title");
+
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
+
+    await page.getByTestId("post-title").fill("e2e w1 listing title");
+    await page.getByTestId("post-description").fill("e2e w1 listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+  });
+
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {
     const user = await seller(page);

@@ -1006,6 +1006,8 @@ export const en = {
     "“{category_slug}” (path “{category_path}”) is outside the category you filtered by",
   "admin.categories.import.reason.formula":
     "Cells may not start with = + - @ (row slug “{category_slug}”)",
+  "admin.categories.import.reason.unknownIcon":
+    "The icon “{icon}” is not on the icon list; pick one of the console's icons or leave the cell blank.",
   "admin.categories.import.reason.statusNeedsAction":
     "The active flag differs from the stored status on “{category_slug}” — stored {stored}, this file asks for {requested}: use action = reactivate or retire",
   "admin.categories.import.reason.alreadyRetired":

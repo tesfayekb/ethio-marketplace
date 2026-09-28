@@ -41,6 +41,7 @@ const REASON_KEYS = new Set([
   "badDate",
   "outOfScope",
   "formula",
+  "unknownIcon",
 ]);
 
 const COUNT_FIELDS = [

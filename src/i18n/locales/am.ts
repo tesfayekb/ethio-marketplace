@@ -957,6 +957,8 @@ export const am: Messages = {
     "“{category_slug}” (መንገድ “{category_path}”) ካጣሩት ምድብ ውጭ ነው",
   "admin.categories.import.reason.formula":
     "ሕዋሶች በ = + - @ መጀመር አይችሉም (የመስመሩ slug “{category_slug}”)",
+  "admin.categories.import.reason.unknownIcon":
+    "አዶው “{icon}” በአዶዎች ዝርዝር ላይ የለም፤ ከኮንሶሉ አዶዎች አንዱን ይምረጡ ወይም ሕዋሱን ባዶ ይተዉት።",
   "admin.categories.import.reason.statusNeedsAction":
     "የ“{category_slug}” የገቢርነት ምልክት ከተመዘገበው ሁኔታ ይለያል — የተመዘገበው {stored}፣ ይህ ፋይል የሚጠይቀው {requested} ነው፤ action = reactivate ወይም retire ይጠቀሙ",
   "admin.categories.import.reason.alreadyRetired": "“{category_slug}” አስቀድሞ ተቋርጧል — የሚቀየር ነገር የለም",
