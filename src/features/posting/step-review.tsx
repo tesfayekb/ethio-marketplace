@@ -371,6 +371,7 @@ export function StepReview({
         pricePeriod={values.pricePeriod}
         priceBp={values.priceBp}
         basisLabel={basisLabel}
+        priceNegotiable={values.priceNegotiable}
         attributes={values.attributes}
         definitions={definitions}
         attributeOptions={attributeOptions}
@@ -406,6 +407,7 @@ export function StepReview({
             pricePeriod: values.pricePeriod,
             priceBp: values.priceBp,
             basisLabel,
+            priceNegotiable: values.priceNegotiable,
             attributes: values.attributes,
             definitions,
             attributeOptions,
