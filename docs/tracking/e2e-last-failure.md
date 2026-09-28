@@ -1,42 +1,91 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36379492978 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36379492978
-- Commit: `0bbf9eb767ebcc1d2164df9f62d6c23166a1abe2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36382822067
+- Commit: `0bf759598ac812690af1f57fc82278113f7e3e66`
 - Attempt: 1
-- Written (UTC): 2026-09-28T05:10:36.801Z
-- Post-test warnings: 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Written (UTC): 2026-09-28T05:48:44.410Z
+- Passed: 167 · Skipped: 31 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): none
+- Sources without results: smoke, shard 1, shard 2, shard 4, shard 5
 
-## Flake ledger (DEC-030)
+## Server errors: smoke
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · post-wizard.spec.ts › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44) — Error: PW-35: the review never opened
+## Client errors: smoke
 
-## Flaky bodies (DEC-078)
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-### post-wizard.spec.ts › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44)
+## Server errors: shard 1
 
-- Source: `shard 2`
-- Project: `mobile-360`
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-Error: PW-35: the review never opened
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-35: the review never opened with timeout 20000ms
-  - waiting for getByTestId('post-step-8')
-
+(no log tail was uploaded for this source)
 ```
 
-Context: context file not found for `post-wizard-POSTING-WIZARD-PW-35-a-model-s-single-allowed-answer-is-stored-not-rendered-and-the-review-shows-it-D44-mobile-360`
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
