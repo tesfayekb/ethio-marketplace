@@ -999,3 +999,11 @@ The wizard owns the category filter term beside the tree cursor. Back, in order:
 Choosing a different leaf on a draft resets, in one change, every answer the category shapes: all details (typed ones included — INC-248's chosen-option drop is subsumed), title, description, video link and price (mode back to the fresh-draft `fixed`, amount/currency/period/commission cleared). Photos, place and contact are never touched. One sentence (`post.category.changedReset`) with an Undo button (`post-category-reset-undo`, key `post.specs.resetUndo`) shows on the specifications step; the offer lives ten seconds from the change. Undo restores the snapshot (previous category included) in one change, then rewinds to step 1 and reopens specifications. `post.category.changedCleared` is retired.
 
 INC-299 — the assist route's `triesLeft` is the `remaining` count of `consume_rate_limit`'s own answer; the route no longer reads `rate_limits`. INC-298 hygiene: the options cache is capped at 512 entries (least recently checked evicted), and import rate buckets idle over an hour are pruned.
+
+## DEC-081 — Negotiable is a flag; the basis is judged on the price step (D62-1, 2026-09-28)
+
+- `listings.price_negotiable` (boolean, default false) replaces the retired `negotiable` price mode; `listings_price_mode_check` allows `fixed`, `free`, `contact`, `commission` only. Existing negotiable rows (0 on production) became `fixed` (amount set) or `contact` with the flag.
+- `validate_listing_draft`, `submit_listing`, `edit_listing` take `p_price_negotiable` LAST (default false); `publish_listing` passes the saved flag; the flag is forced false on `free` and `contact`; a basis answer `negotiable` sets it and prices as `fixed`.
+- `validate_listing_attributes` takes `p_defer_keys`; before step 5 the pricing basis keys are deferred, and at step 5 a missing required basis is refused once (`{attr_key, required}`).
+- `currencies.symbol` and `currencies.display_order` (seeded for 28 codes; others show the code, order 900).
+- `impersonated_list_listings` returns `price_negotiable`. Route: `/api/listings/draft` sends `priceNegotiable === true`. Test PR-11. Mark 20260928040000.

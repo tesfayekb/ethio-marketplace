@@ -47,7 +47,7 @@ async function negotiableOf(listingId: string): Promise<boolean | null> {
     .eq("id", listingId)
     .maybeSingle();
   if (error) throw new Error(`[e2e:pr-11] reading the flag failed: ${error.message}`);
-  return (data as { price_negotiable?: boolean } | null)?.price_negotiable ?? null;
+  return data?.price_negotiable ?? null;
 }
 
 
