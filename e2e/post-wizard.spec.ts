@@ -1437,6 +1437,27 @@ test.describe("POSTING WIZARD", () => {
     });
   });
 
+  test("PW-67 a commission basis chosen on step 5 is stored on the draft before the percentage is typed (INC-312)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    const listingId = await reachPricingWithBasis(page, user.id, category, basis, "commission");
+
+    await expect
+      .poll(async () => (await pricingOf(listingId)).mode, {
+        message: "PW-67: the commission mode never reached the draft",
+      })
+      .toBe("commission");
+    expect(await priceBpOf(listingId), "PW-67: a bp was stored before one was typed").toBe(null);
+    await expect(page.getByTestId("post-refusal")).toHaveCount(0);
+
+    await page.getByTestId("post-price-commission").fill("12.5");
+    await expect
+      .poll(() => priceBpOf(listingId), { message: "PW-67: the bp never reached the draft" })
+      .toBe(1250);
+  });
+
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {
     const user = await seller(page);
