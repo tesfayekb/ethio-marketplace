@@ -1,58 +1,139 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36418421258 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36418421258
-- Commit: `de56b6c856fe87a823954f8245278f532554f8d6`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36432795298
+- Commit: `6d23c2055baf7a839a79242b8c53fbb400449215`
 - Attempt: 1
-- Written (UTC): 2026-09-28T12:14:16.963Z
-- Post-test warnings: 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Written (UTC): 2026-09-28T14:01:37.141Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): none
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-## Flake ledger (DEC-030)
+## Server errors: smoke
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-- FLAKY (passed on retry) · `desktop-1280` · source `changed` · post-wizard.spec.ts › POSTING WIZARD › PW-17 the currency is preselected and searchable by name in one control — Error: PW-17: the seller's own market's currency is not first
+## Client errors: smoke
 
-## Flaky bodies (DEC-078)
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-### post-wizard.spec.ts › POSTING WIZARD › PW-17 the currency is preselected and searchable by name in one control
+## Server errors: email
 
-- Source: `changed`
-- Project: `desktop-1280`
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+
+## Client errors: email
+
+No `[client-error]` lines in the `email` log (or no log was uploaded).
+
+## Server errors: shard 1
+
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-Error: PW-17: the seller's own market's currency is not first
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: "ETB"
-Received: "USD"
+(no log tail was uploaded for this source)
 ```
 
-Context:
+## email: no results file
+
+email: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-          - listitem [ref=e509]:
-            - generic [ref=e510]: About
-          - listitem [ref=e511]:
-            - generic [ref=e512]: How it works
-      - navigation "Help" [ref=e513]:
-        - heading "Help" [level=2] [ref=e514]
-        - list [ref=e515]:
-          - listitem [ref=e516]:
-            - generic [ref=e517]: Safety
-          - listitem [ref=e518]:
-            - generic [ref=e519]: Contact
-      - navigation "Legal" [ref=e520]:
-        - heading "Legal" [level=2] [ref=e521]
-        - list [ref=e522]:
-          - listitem [ref=e523]:
-            - generic [ref=e524]: Terms
-          - listitem [ref=e525]:
-            - generic [ref=e526]: Privacy
-    - paragraph [ref=e528]: © 2026 ethio.com — All rights reserved.
+(no log tail was uploaded for this source)
 ```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
 ```
