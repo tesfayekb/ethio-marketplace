@@ -207,7 +207,7 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
 
         try {
           const result = await generate(gate.supabase, categoryId, undefined);
-          return new Response(result.bytes, {
+          return new Response(result.bytes as BodyInit, {
             headers: {
               "Content-Type": sniffMime(result.bytes),
               "Cache-Control": "no-store",
