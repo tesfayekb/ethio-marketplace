@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 
+import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
 import { PageCard } from "@/components/shell/page-card";
@@ -84,12 +85,15 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       priority: "secondary",
       width: "w-[18%]",
       cell: (row) => (
-        <span className="block tabular-nums text-muted-foreground">
-          {row.priceMode === "commission" && row.priceBp !== null
-            ? t("price.commission").replace("{percent}", formatCommission(row.priceBp))
-            : row.priceAmount === null
-              ? "—"
-              : `${row.priceAmount} ${row.priceCurrency ?? ""}`}
+        <span className="flex flex-wrap items-center gap-2 tabular-nums text-muted-foreground">
+          <span>
+            {row.priceMode === "commission" && row.priceBp !== null
+              ? t("price.commission").replace("{percent}", formatCommission(row.priceBp))
+              : row.priceAmount === null
+                ? "—"
+                : `${row.priceAmount} ${row.priceCurrency ?? ""}`}
+          </span>
+          {row.priceNegotiable ? <NegotiableBadge /> : null}
         </span>
       ),
     },

@@ -39,6 +39,8 @@ export interface ImpersonatedListing {
   /** DEC-079 — `commission` rows carry basis points and a null amount by law. */
   priceMode: string;
   priceBp: number | null;
+  /** DEC-081 — the negotiable flag, shown as a badge in the price cell. */
+  priceNegotiable: boolean;
   createdAt: string;
 }
 
@@ -110,6 +112,7 @@ export async function listImpersonatedListings(
       priceCurrency: row.price_currency ?? null,
       priceMode: row.price_mode,
       priceBp: row.price_bp ?? null,
+      priceNegotiable: row.price_negotiable,
       createdAt: row.created_at,
     })),
     totalCount: rows.length > 0 ? Number(rows[0]!.total_count) : 0,
