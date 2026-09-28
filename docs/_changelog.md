@@ -579,3 +579,4 @@
 - 2026-09-28 — TURN C1-b (INC-306): attr_export_payload, attr_link_path and attr_link_origin resolve the home through cat_primary_parent (DEC-080), so the links export names the same parent as the categories export; proofs P7/P8; AT-64.
 - 2026-09-28 — records: S43 (Turn B, DEC-080 C1/C1-b, catalogue cycles 22–24, D63, INC-303–307, S54–S59), action tracker, handoff 2026-09-28
 - 2026-09-28 — D62-1 (DEC-081, database half): listings.price_negotiable flag replaces the negotiable mode; basis judged at step 5 (p_defer_keys); currencies symbol + display_order; seven doors re-declared; draft route sends priceNegotiable; PR-11.
+- 2026-09-28 — D62-2 (DEC-081, client half): basis asked on the price step; Negotiable toggle + badge (card, review, preview, impersonation); currency symbols and home-first order; PW-63/64/65.
