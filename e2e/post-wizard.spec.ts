@@ -1398,9 +1398,9 @@ test.describe("POSTING WIZARD", () => {
     await expect(search, "PW-65: the chosen value shows no symbol").toHaveValue(/^ETB · Br — /);
     await search.click();
     const options = page.getByTestId("post-price-currency-option");
-    await expect(options.first()).toHaveAttribute("data-code", "ETB");
+    await expect(options.nth(0)).toHaveAttribute("data-code", "ETB");
     await expect(options.nth(1), "PW-65: USD is not second").toHaveAttribute("data-code", "USD");
-    await expect(options.first()).toHaveText(/^ETB · Br — /);
+    await expect(options.nth(0)).toHaveText(/^ETB · Br — /);
     await expect(options.nth(1)).toHaveText(/^USD · \$ — /);
   });
 
