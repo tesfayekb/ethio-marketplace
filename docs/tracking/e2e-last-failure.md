@@ -1,65 +1,139 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36316123942 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36316123942
-- Commit: `1cab61d9c22525926f943c589efc3616d2ff7998`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36362240778
+- Commit: `98d2cd2c1a5eb616520ae7300ffd4695da3d1882`
 - Attempt: 1
-- Written (UTC): 2026-09-27T11:51:26.522Z
-- Post-test warnings: 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Written (UTC): 2026-09-28T00:27:08.688Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): none
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-## Flake ledger (DEC-030)
+## Server errors: smoke
 
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
 
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-attributes.spec.ts › C3 attributes console › AT-3 link manager: an attribute is linked to a scratch category and unlinked — Error: expect(locator).toBeVisible() failed
+## Client errors: smoke
 
-## Flaky bodies (DEC-078)
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
 
-### admin-attributes.spec.ts › C3 attributes console › AT-3 link manager: an attribute is linked to a scratch category and unlinked
+## Server errors: email
 
-- Source: `shard 4`
-- Project: `desktop-1280`
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+
+## Client errors: email
+
+No `[client-error]` lines in the `email` log (or no log was uploaded).
+
+## Server errors: shard 1
+
+No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('category-row-e2e-cat-4-1-1z90t1')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('category-row-e2e-cat-4-1-1z90t1')
-
-[dialog-dump findRow(e2e-cat-4-1-1z90t1)] open dialogs: none
-[dialog-dump createViaUi(e2e-cat-4-1-1z90t1) after create] open dialogs: none
+(no log tail was uploaded for this source)
 ```
 
-Context:
+## email: no results file
+
+email: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-          - listitem [ref=e229]:
-            - generic [ref=e230]: About
-          - listitem [ref=e231]:
-            - generic [ref=e232]: How it works
-      - navigation "Help" [ref=e233]:
-        - heading "Help" [level=2] [ref=e234]
-        - list [ref=e235]:
-          - listitem [ref=e236]:
-            - generic [ref=e237]: Safety
-          - listitem [ref=e238]:
-            - generic [ref=e239]: Contact
-      - navigation "Legal" [ref=e240]:
-        - heading "Legal" [level=2] [ref=e241]
-        - list [ref=e242]:
-          - listitem [ref=e243]:
-            - generic [ref=e244]: Terms
-          - listitem [ref=e245]:
-            - generic [ref=e246]: Privacy
-    - paragraph [ref=e248]: © 2026 ethio.com — All rights reserved.
+(no log tail was uploaded for this source)
 ```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
 ```
