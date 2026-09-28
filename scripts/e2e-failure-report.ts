@@ -1625,7 +1625,10 @@ async function main() {
       !(gPassed >= 0 && gPassed < gLedger && gLedger < gBodies && gBodies < gLine) ||
       !greenFlake.includes("- Flaky (passed on retry, DEC-030, non-gating): 1") ||
       !greenClean.includes("non-gating): 0") ||
-      greenClean.includes("## ")
+      // DEC-083/084 — a clean green form now carries the census and a11y
+      // sections; it still carries no FLAKE section.
+      greenClean.includes("## Flake") ||
+      greenClean.includes("## Flaky")
     ) {
       console.error(
         "SELF-TEST FAILED — DEC-078 part 2 green form did not carry the flake sections.",
