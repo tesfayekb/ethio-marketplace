@@ -135,9 +135,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [listingId, setListingId] = useState<string | null>(initialListingId);
   const [step, setStep] = useState(1);
   /**
-   * INC-317 — a write that lands after its step has closed (an async prefill, a
-   * late upload answer) is queued at the step ON SCREEN, never at the step that
-   * created the callback.
+   * INC-317 — a write that lands after its step has closed is queued at the
+   * step ON SCREEN, so it can never claim a later step.
    */
   const stepRef = useRef(1);
   const [draftStep, setDraftStep] = useState(1);
