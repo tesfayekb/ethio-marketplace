@@ -116,7 +116,9 @@ test.describe("C5a — category AI foundation routes", () => {
     expect([401, 403]).toContain(suggest.status());
   });
 
-  test("CI-2 fake generate produces three assets and updates the row", async ({ request }) => {
+  test("CI-2 fake generate returns a PNG payload and writes no storage object", async ({
+    request,
+  }) => {
     const token = await assetsToken();
     const category = await seedCategory();
     try {
@@ -125,40 +127,31 @@ test.describe("C5a — category AI foundation routes", () => {
         data: { categoryId: category.id },
       });
       expect(response.status(), await response.text()).toBe(200);
+      expect(response.headers()["cache-control"]).toBe("no-store");
       const body = (await response.json()) as {
         stage: string;
-        imageUrl: string;
-        thumbUrl: string;
-        ogUrl: string;
         prompt: string;
-        timings: { genMs: number; processMs: number; totalMs: number };
+        genMs: number;
+        image: string;
       };
-
-      expect(body.stage).toBe("done");
-      // C5e PART B — VERSIONED object names: `<id>/card-<genTs>.png`.
-      expect(body.imageUrl).toMatch(new RegExp(`category-assets/${category.id}/card-\\d+\\.png$`));
-      expect(body.thumbUrl).toMatch(new RegExp(`category-assets/${category.id}/thumb-\\d+\\.png$`));
-      expect(body.ogUrl).toMatch(new RegExp(`category-assets/${category.id}/og-\\d+\\.png$`));
+      expect(body.stage).toBe("generated");
       expect(body.prompt).toContain("#1E5A43");
-      // C5e PART A — the pipeline demonstrably processed, fake mode included.
-      expect(body.timings.processMs).toBeGreaterThan(0);
+      expect(typeof body.genMs).toBe("number");
+      // DEC-082 — the payload is a real PNG (signature 89 50 4E 47 0D 0A 1A 0A).
+      const bytes = Buffer.from(body.image, "base64");
+      expect([...bytes.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
-      // DB TRUTH (J4) — read the row back with the service client.
-      const { data: row, error } = await adminClient()
+      // DB/STORAGE TRUTH (J4) — the route wrote nothing: no object, no row change.
+      const { data: objects } = await adminClient()
+        .storage.from("category-assets")
+        .list(category.id);
+      expect(objects ?? []).toHaveLength(0);
+      const { data: row } = await adminClient()
         .from("categories")
-        .select(
-          "image_url, image_thumb_url, og_image_url, image_generation_prompt, image_accepted_at",
-        )
+        .select("image_url, image_thumb_url, og_image_url")
         .eq("id", category.id)
         .single();
-      expect(error).toBeNull();
-      expect(row?.image_url).toBe(body.imageUrl);
-      expect(row?.image_thumb_url).toBe(body.thumbUrl);
-      expect(row?.og_image_url).toBe(body.ogUrl);
-      // C5e PART C — the uniform house prompt is CODE truth: the column is NULL.
-      expect(row?.image_generation_prompt).toBeNull();
-      // C5g PART C — a persist never lands pre-accepted.
-      expect(row?.image_accepted_at).toBeNull();
+      expect(row).toEqual({ image_url: null, image_thumb_url: null, og_image_url: null });
     } finally {
       await cleanup(category.id);
     }
@@ -191,9 +184,39 @@ test.describe("C5a — category AI foundation routes", () => {
         data: { categoryId: category.id },
       });
       expect(gen.status(), await gen.text()).toBe(200);
-      const assets = (await gen.json()) as { imageUrl: string; thumbUrl: string; ogUrl: string };
+      const png = Buffer.from(((await gen.json()) as { image: string }).image, "base64");
 
+      // DEC-082 — the SERVICE path, run as the admin (no service role): three
+      // versioned uploads under the admin's session, then the gated persist.
       const caller = callerClient(token);
+      const ts = Date.now();
+      const storage = caller.storage.from("category-assets");
+      const urls: string[] = [];
+      for (const part of ["card", "thumb", "og"]) {
+        const path = `${category.id}/${part}-${ts}.png`;
+        const { error: upError } = await storage.upload(path, png, {
+          contentType: "image/png",
+          upsert: true,
+        });
+        expect(upError, JSON.stringify(upError)).toBeNull();
+        urls.push(storage.getPublicUrl(path).data.publicUrl);
+      }
+      const assets = { imageUrl: urls[0]!, thumbUrl: urls[1]!, ogUrl: urls[2]! };
+      const { error: setError } = await caller.rpc("admin_set_category_images", {
+        p_id: category.id,
+        p_image_url: assets.imageUrl,
+        p_image_thumb_url: assets.thumbUrl,
+        p_og_image_url: assets.ogUrl,
+        p_generation_prompt: null as unknown as string,
+      });
+      expect(setError, JSON.stringify(setError)).toBeNull();
+      const { data: objects } = await adminClient()
+        .storage.from("category-assets")
+        .list(category.id);
+      expect((objects ?? []).map((o) => o.name).sort()).toEqual(
+        [`card-${ts}.png`, `og-${ts}.png`, `thumb-${ts}.png`],
+      );
+
       const { data: accepted, error: acceptError } = await caller.rpc(
         "admin_accept_category_image",
         { p_id: category.id },
