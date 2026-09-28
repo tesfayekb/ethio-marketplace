@@ -585,4 +585,4 @@
 - 2026-09-28 — D62-1c: PW-66 falls back so asEdge adds cf-ipcountry (INC-311); refusal summary omits control-less fields door/residency/id (INC-313); INC-312 attributed read-only.
 - 2026-09-28 — D62-1d (INC-312): listings_price_pair_check lets a commission draft carry no price_bp until step 5; PW-67, PR-13.
 - 2026-09-28 — W1: refused Next no longer pins the step claim (INC-315); 21 category icons added + import icon guard (INC-316); image prompt parent is the home pointer (INC-310); stale C5b sentence replaced
-- 2026-09-28 — INC-317 (read-only): PW-61 flake traced to a stale-closure Price-step currency preselect raising the queued step claim to 4 after the D59 rewind; no test-side fix, queue fix pending. INC-319: no repo source names profiles.id.
+- 2026-09-28 — INC-317: the draft queue computes an autosave claim from the step on screen (`stepRef`), so a late currency prefill after a D59 reset never claims details or price; the late write is kept until INC-321. PW-72. INC-319: no repo source names profiles.id.

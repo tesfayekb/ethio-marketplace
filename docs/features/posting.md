@@ -1030,3 +1030,11 @@ A pre-D62-2 client still sends `price_mode: "negotiable"`. `validate_listing_dra
 Choosing the commission basis stores `price_mode = 'commission'` before the seller types the percentage; the step-4 autosave used to violate `listings_price_pair_check`. The constraint (mark `20260928090000`) is now `(price_mode = 'commission' AND price_amount IS NULL AND price_currency IS NULL) OR (price_mode <> 'commission' AND price_bp IS NULL AND ((price_amount IS NULL) = (price_currency IS NULL)))`. The step ≥ 5 door still refuses `{ price_bp, required }`, so nothing publishes without it. Proofs: P11–P13 + read-back in the migration; PW-67, PR-13.
 
 - D62 / INC-315 — a strict (Next) save that is refused also drops the pinned step claim (`pendingStepRef`), so Back → Next from photos judges its own step instead of re-judging details (PW-68).
+
+### INC-317 — a late writer is queued at the step on screen (2026-09-28)
+
+- Mechanism: the price step's currency prefill resolves asynchronously and writes through `change()`. That callback closed over the step that created it, so an answer landing after a D59 rewind computed its autosave claim from the closed price step (`prevOf(5) = 4`).
+- The queue kept the higher claim, and the next save went out at step 4 with the reset (empty) title, refused as `title required`; the wizard stayed put (the PW-61 flake).
+- The one guard: `use-draft.ts` holds `stepRef`, set beside every `setStep` (`goTo` and the resume path); `change()` computes the backup step from `stepRef.current`, so a late write can never claim a later step.
+- The late prefill write is kept on purpose: it mirrors into the wizard the currency the door itself fills at step 5, until INC-321 reads the door's answer back.
+- PW-72 gates the seller-home read, resets the category, releases the read and asserts no save claims above step 3, then Next opens photos with no refusal.

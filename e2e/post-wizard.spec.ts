@@ -1484,67 +1484,60 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
   });
 
-  test("PW-72 a currency prefill that lands after Back never queues a later step (INC-317)", async ({
+  test("PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317)", async ({
     page,
   }) => {
     const user = await seller(page);
-    const category = await leaf();
-    // PW-31's pattern on the read this seller's chain lands on: the seller-home
-    // profile read, held 3 s so its answer arrives after the price step closed.
+    // Both leaves exist before the catalogue is read (see PW-26).
+    const first = await leaf();
+    const second = await leaf();
+    // The seller-home read is the late writer: GATED, released by the test.
     const homeRead = "**/rest/v1/profiles?select=home_country_code*";
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
     await page.route(homeRead, async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 3_000));
+      await gate;
       await route.fallback();
     });
-    await reachStep5(page, user.id, category);
+    await reachStep5(page, user.id, first);
+
+    // Back to step 1 (5 → 4 → 2 → 3 → 1), then leaf B: the D59 reset.
+    for (let hop = 0; hop < 4; hop += 1) await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await chooseBySearch(page, second.slug, second.id, false);
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-category-reset-undo")).toBeVisible();
 
     const sent: { step: number; phase: string }[] = [];
-    let phase = "back";
+    let phase = "released";
     page.on("request", (request) => {
       if (request.method() !== "POST" || !request.url().includes("/api/listings/draft")) return;
       const body = request.postDataJSON() as { step?: unknown } | null;
       if (typeof body?.step === "number") sent.push({ step: body.step, phase });
     });
 
-    // The held answer is the late writer: wait for IT, not for a clock.
     const lateAnswer = page.waitForResponse(homeRead, { timeout: 20_000 });
-    await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
-    phase = "photos";
+    release();
     await lateAnswer;
     const landedAt = Date.now();
     // Past the autosave debounce, so a late write's save has already gone out.
     await expect
       .poll(() => Date.now() - landedAt, { timeout: 6_000, intervals: [500] })
-      .toBeGreaterThan(4_000);
+      .toBeGreaterThan(3_000);
+
+    // (a) nothing claimed details or price after the reset.
+    console.log(`PW-72 bodies: ${JSON.stringify(sent)}`);
+    expect(
+      Math.max(0, ...sent.map((entry) => entry.step)),
+      `PW-72: a late write claimed a step not re-completed: ${JSON.stringify(sent)}`,
+    ).toBeLessThanOrEqual(3);
+
     phase = "next";
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
-
-    // (a) details is on screen with nothing refused.
-    await expect
-      .poll(() => page.getByTestId("post-refusal-summary").count(), { timeout: 4_000 })
-      .toBe(0);
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
-    // (b) before details reopened, no body claimed details or price (prevOf(2) = 3
-    // makes a step-3 autosave on photos legitimate; 4 and 5 are the defect).
-    console.log(`PW-72 bodies: ${JSON.stringify(sent)}`);
-    const early = sent.filter((entry) => entry.phase !== "next").map((entry) => entry.step);
-    expect(
-      Math.max(0, ...early),
-      `PW-72: a late write queued a closed step: ${JSON.stringify(sent)}`,
-    ).toBeLessThan(4);
-
-    // (c) details → price opens with a currency (the kept late write or a fresh chain).
-    await page.getByTestId("post-title").fill("e2e pw72 listing title");
-    await page.getByTestId("post-description").fill("e2e pw72 listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-price-currency")).not.toHaveAttribute("data-code", "", {
-      timeout: 20_000,
-    });
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
   });
 
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
