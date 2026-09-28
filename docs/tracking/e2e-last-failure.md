@@ -1,54 +1,42 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36375370211 passed
+last E2E run 36379492978 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36375370211
-- Commit: `6ebe04ea34d28918b7fddfbc421cc64f7439be71`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36379492978
+- Commit: `0bbf9eb767ebcc1d2164df9f62d6c23166a1abe2`
 - Attempt: 1
-- Written (UTC): 2026-09-28T04:07:54.200Z
+- Written (UTC): 2026-09-28T05:10:36.801Z
 - Post-test warnings: 0
-- Flaky (passed on retry, DEC-030, non-gating): 3
+- Flaky (passed on retry, DEC-030, non-gating): 1
 
 ## Flake ledger (DEC-030)
 
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · admin-users.spec.ts › U1 admin users › AU-10 edit: a duplicate alias is refused inline and nothing changes — Error: [e2e:users] admin.createUser failed for e2e+36375370211-2-1-23-i5jenc@ethio-e2e.invalid: fetch failed
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · import-security.spec.ts › IMPORT-GATE categories › IG-1 categories: malformed, foreign, oversized and unreadable files are refused whole — TypeError: fetch failed
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · mfa-stepup.spec.ts › U1f-4 step-up freshness › MF-6 unenrolling the only factor drops the stepped-up state — Error: [e2e:u1f] granting admin failed: TypeError: fetch failed
+- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · post-wizard.spec.ts › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44) — Error: PW-35: the review never opened
 
 ## Flaky bodies (DEC-078)
 
-### admin-users.spec.ts › U1 admin users › AU-10 edit: a duplicate alias is refused inline and nothing changes
+### post-wizard.spec.ts › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44)
 
 - Source: `shard 2`
 - Project: `mobile-360`
 
 ```text
-Error: [e2e:users] admin.createUser failed for e2e+36375370211-2-1-23-i5jenc@ethio-e2e.invalid: fetch failed
+Error: PW-35: the review never opened
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-8')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - PW-35: the review never opened with timeout 20000ms
+  - waiting for getByTestId('post-step-8')
+
 ```
 
-Context: context file not found for `admin-users-U1-admin-users-AU-10-edit-a-duplicate-alias-is-refused-inline-and-nothing-changes-mobile-360`
-
-### import-security.spec.ts › IMPORT-GATE categories › IG-1 categories: malformed, foreign, oversized and unreadable files are refused whole
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-TypeError: fetch failed
-```
-
-Context: context file not found for `import-security-IMPORT-GATE-categories-IG-1-categories-malformed-foreign-oversized-and-unreadable-files-are-refused-whole-mobile-360`
-
-### mfa-stepup.spec.ts › U1f-4 step-up freshness › MF-6 unenrolling the only factor drops the stepped-up state
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Error: [e2e:u1f] granting admin failed: TypeError: fetch failed
-```
-
-Context: context file not found for `mfa-stepup-U1f-4-step-up-freshness-MF-6-unenrolling-the-only-factor-drops-the-stepped-up-state-mobile-360`
+Context: context file not found for `post-wizard-POSTING-WIZARD-PW-35-a-model-s-single-allowed-answer-is-stored-not-rendered-and-the-review-shows-it-D44-mobile-360`
