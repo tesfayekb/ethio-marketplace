@@ -1992,7 +1992,7 @@ export const en = {
     "Say what you are asking for. Buyers filter by price, so an honest number gets more replies.",
   "post.price.modeLabel": "How are you pricing it?",
   "post.price.mode.fixed": "Fixed price",
-  "post.price.mode.negotiable": "Negotiable",
+  "post.price.negotiableToggle": "Price is negotiable",
   "post.price.mode.free": "Free",
   "post.price.mode.contact": "Contact for price",
   "post.price.notAllowed": "This category is posted without a price.",

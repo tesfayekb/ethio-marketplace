@@ -11,6 +11,7 @@ import { attributeDisplayValue } from "./attribute-display";
 import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { entityName } from "@/i18n/entity";
 import { formatCommission } from "./price-basis";
+import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import {
   publishListing,
@@ -94,6 +95,7 @@ export function StepReview({
   maxPhotos,
   pin = null,
   basisLabel = null,
+  basisKey = null,
 }: {
   listingId: string | null;
   /** The chosen category's full path, in the seller's language. */
@@ -114,6 +116,8 @@ export function StepReview({
   pin?: { lat: number; lng: number; precision: string; street: string | null } | null;
   /** DEC-079 — the basis option's label in the UI language, or null (no basis). */
   basisLabel?: string | null;
+  /** D62-2 — the leaf's pricing-basis key: its answer reads under Price, not Specifications. */
+  basisKey?: string | null;
 }) {
   const { t, entities, language } = useI18n();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
@@ -176,26 +180,33 @@ export function StepReview({
    * language. Nothing is fetched for them — the draft and the attribute
    * definitions already on this screen are the whole source.
    */
+  const describe = ([key, value]: [string, unknown]): string => {
+    const def = definitions.find((entry) => entry.attrKey === key);
+    if (def === undefined) return `${key}: ${String(value)}`;
+    const name = entityName(
+      "attribute",
+      { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+      entities,
+    );
+    return `${name}: ${attributeDisplayValue(
+      def,
+      value,
+      attributeOptions[key] ?? [],
+      language,
+      t("post.review.yes"),
+      t("post.review.no"),
+      t("post.specs.yearEcSuffix"),
+    )}`;
+  };
   const attrLine = Object.entries(values.attributes)
-    .map(([key, value]) => {
-      const def = definitions.find((entry) => entry.attrKey === key);
-      if (def === undefined) return `${key}: ${String(value)}`;
-      const name = entityName(
-        "attribute",
-        { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
-        entities,
-      );
-      return `${name}: ${attributeDisplayValue(
-        def,
-        value,
-        attributeOptions[key] ?? [],
-        language,
-        t("post.review.yes"),
-        t("post.review.no"),
-        t("post.specs.yearEcSuffix"),
-      )}`;
-    })
+    .filter(([key]) => key !== basisKey)
+    .map(describe)
     .join(" · ");
+  /** D62-2 — the basis answer, said under Price (the step that now asks it). */
+  const basisLine =
+    basisKey === null || values.attributes[basisKey] === undefined
+      ? ""
+      : describe([basisKey, values.attributes[basisKey]]);
   const priceLine =
     values.priceMode === "commission"
       ? values.priceBp === null
@@ -232,7 +243,13 @@ export function StepReview({
         ? `${identity.businessName} (${identity.alias ?? ""})`.replace(" ()", "")
         : (identity.alias ?? "");
 
-  const sections: { step: number; nameKey: MessageKey; value: string }[] = [
+  const sections: {
+    step: number;
+    nameKey: MessageKey;
+    value: string;
+    sub?: string;
+    negotiable?: boolean;
+  }[] = [
     { step: 1, nameKey: "post.step.category", value: categoryPath },
     {
       step: 2,
@@ -246,7 +263,13 @@ export function StepReview({
     },
     { step: 3, nameKey: "post.step.specifications", value: attrLine },
     { step: 4, nameKey: "post.step.details", value: values.title },
-    { step: 5, nameKey: "post.step.price", value: priceLine },
+    {
+      step: 5,
+      nameKey: "post.step.price",
+      value: priceLine,
+      sub: basisLine,
+      negotiable: values.priceNegotiable,
+    },
     {
       step: 6,
       nameKey: "post.step.place",
@@ -311,6 +334,19 @@ export function StepReview({
                 <dd className="break-words text-sm text-foreground" data-testid="post-review-value">
                   {section.value === "" ? t("post.review.notGiven") : section.value}
                 </dd>
+                {section.negotiable === true && (
+                  <dd>
+                    <NegotiableBadge />
+                  </dd>
+                )}
+                {section.sub !== undefined && section.sub !== "" && (
+                  <dd
+                    className="break-words text-xs text-muted-foreground"
+                    data-testid="post-review-basis"
+                  >
+                    {section.sub}
+                  </dd>
+                )}
               </div>
               <button
                 type="button"
@@ -335,6 +371,7 @@ export function StepReview({
         pricePeriod={values.pricePeriod}
         priceBp={values.priceBp}
         basisLabel={basisLabel}
+        priceNegotiable={values.priceNegotiable}
         attributes={values.attributes}
         definitions={definitions}
         attributeOptions={attributeOptions}
@@ -370,6 +407,7 @@ export function StepReview({
             pricePeriod: values.pricePeriod,
             priceBp: values.priceBp,
             basisLabel,
+            priceNegotiable: values.priceNegotiable,
             attributes: values.attributes,
             definitions,
             attributeOptions,

@@ -1007,3 +1007,11 @@ INC-299 — the assist route's `triesLeft` is the `remaining` count of `consume_
 - `validate_listing_attributes` takes `p_defer_keys`; before step 5 the pricing basis keys are deferred, and at step 5 a missing required basis is refused once (`{attr_key, required}`).
 - `currencies.symbol` and `currencies.display_order` (seeded for 28 codes; others show the code, order 900).
 - `impersonated_list_listings` returns `price_negotiable`. Route: `/api/listings/draft` sends `priceNegotiable === true`. Test PR-11. Mark 20260928040000.
+
+## D62-2 — the price page (DEC-081, client half, 2026-09-28)
+
+- **The basis is asked on the price step.** Step 3 draws the specifications form without the leaf's pricing-basis row (`exclude`); step 5 mounts the same form with `only=[basisKey]`, first on the page, so option loading, the door's refusal under the control and the answer shape are unchanged. The borrowed row runs no reconciliation and no link-default pass — step 3 owns those — so choosing a basis never restarts the other answers. Step 5's general refusal list omits the basis key (it is shown under its control).
+- **Negotiable is a toggle, not a mode.** The modes are fixed · free · contact · commission (· the forced basis modes). "Price is negotiable" (`post.price.negotiableToggle`) shows for fixed and commission; choosing free or contact clears it, and the save sends `priceNegotiable` only for those two modes. A `negotiable` basis token turns the toggle on. `post.price.mode.negotiable` is retired.
+- **The badge.** `NegotiableBadge` (listing-card.tsx, `price-negotiable-badge`) renders beside the price on the feed card, review summary, review preview, preview sheet and the impersonation listings table; the feed reads `price_negotiable`.
+- **Currencies.** Rows carry `symbol` and `display_order`; each reads "CODE · symbol — name". The list and the short list open on the seller's home currency, then `display_order`, then code (ETB, USD, … for an Ethiopian seller). The preselect is saved → last listing → home → edge guess → ETB.
+- **Proofs.** PW-63 (basis on step 5, refused there, shapes the period), PW-64 (flag stored, badge on review, contact clears it), PW-65 (home first, USD second, symbols); PW-55/56/57/58 answer the basis on step 5; unit: `orderCurrencies` / `currencyText`.

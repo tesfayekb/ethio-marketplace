@@ -193,6 +193,8 @@ export function StepSpecifications({
   onChange,
   refusals,
   onFields,
+  only = null,
+  exclude = null,
 }: {
   categoryId: string | null;
   values: Record<string, unknown>;
@@ -204,6 +206,14 @@ export function StepSpecifications({
    * shows every OTHER refusal rather than swallowing it (F4).
    */
   onFields?: (attrKeys: string[]) => void;
+  /**
+   * D62-2 (DEC-081) — WHICH ROWS THIS COPY DRAWS. The pricing basis is asked on
+   * the price step: step 3 passes `exclude=[basisKey]`, step 5 mounts the SAME
+   * form with `only=[basisKey]`, so the control, its option loading and its
+   * refusal are one implementation. Every pass still runs over the whole schema.
+   */
+  only?: readonly string[] | null;
+  exclude?: readonly string[] | null;
 }) {
   const { t, entities, language } = useI18n();
   const [schema, setSchema] = useState<PostingSchema | null>(null);
@@ -222,6 +232,11 @@ export function StepSpecifications({
   const [local, setLocal] = useState<Refusal[]>([]);
   /** D36 — the details whose full guidance the (i) tap has opened. */
   const [helpOpen, setHelpOpen] = useState<Record<string, boolean>>({});
+  /** D62-2 — string identities, so a fresh array prop never re-fires an effect (I3). */
+  const onlyKey = only === null ? null : only.join("\u0000");
+  const excludeKey = exclude === null ? "" : exclude.join("\u0000");
+  const drawn = (attrKey: string): boolean =>
+    (only === null || only.includes(attrKey)) && !(exclude ?? []).includes(attrKey);
 
   /**
    * INC-257 — EVERY PATCH IS BUILT ON THE LATEST ANSWERS, NEVER ON THE PROP.
@@ -288,9 +303,13 @@ export function StepSpecifications({
     onFields(
       schema === null
         ? []
-        : schema.attributes.filter((def) => conditionMet(def, values)).map((def) => def.attrKey),
+        : schema.attributes
+            .filter((def) => conditionMet(def, values) && drawn(def.attrKey))
+            .map((def) => def.attrKey),
     );
-  }, [schema, onFields, values]);
+    // `drawn` reads only `only`/`exclude`, both listed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schema, onFields, values, onlyKey, excludeKey]);
 
   /** One control's list, fetched once, on the tap that opens it (DEC-053). */
   const openOptions = useCallback((def: AttrDef) => {
@@ -690,6 +709,13 @@ export function StepSpecifications({
   const reconcile = useRef("");
   useEffect(() => {
     if (schema === null) return;
+    /**
+     * D62-2 — A BORROWED ROW RECONCILES NOTHING. The price step mounts this form
+     * with `only=[basisKey]`; the step-3 form already reconciled every other
+     * answer, and a second pass here would see the identity's options arrive as
+     * a "moved" root and start the whole form over — the basis just chosen with it.
+     */
+    if (onlyKey !== null) return;
     const view = latestRef.current;
     const next = { ...view };
     let changed = false;
@@ -920,6 +946,7 @@ export function StepSpecifications({
     reconcile.current = stamp;
     emit(next, false);
   }, [
+    onlyKey,
     schema,
     definitions,
     folds,
@@ -948,6 +975,8 @@ export function StepSpecifications({
   const defaulted = useRef<string | null>(null);
   useEffect(() => {
     if (schema === null || categoryId === null) return;
+    // D62-2 — the link defaults belong to step 3; the price step never re-offers them.
+    if (onlyKey !== null) return;
     /**
      * INC-257 — THE PASS IS SPENT PER SET OF ASKED FIELDS, not once per category.
      * A default is only written into a field the seller is asked for, so a field a
@@ -985,7 +1014,7 @@ export function StepSpecifications({
       changed = true;
     }
     if (changed) emit(next, false);
-  }, [schema, categoryId, definitions, values, emit]);
+  }, [onlyKey, schema, categoryId, definitions, values, emit]);
 
   const seen = useMemo(() => {
     const named = new Set(refusals.map((entry) => entry.field));
@@ -1035,7 +1064,11 @@ export function StepSpecifications({
     return <p className="text-sm text-muted-foreground">{t("post.loading")}</p>;
   }
 
-  if (schema.attributes.length === 0) {
+  const drawnRows = asked.filter((def) => drawn(def.attrKey));
+  // D62-2 — the price step's copy draws its one row or nothing at all.
+  if (only !== null && drawnRows.length === 0) return null;
+
+  if (only === null && drawnRows.length === 0) {
     return (
       <p className="text-sm text-muted-foreground" data-testid="post-specs-none">
         {t("post.specs.none")}
@@ -1593,6 +1626,18 @@ export function StepSpecifications({
     return state === "ready" || state === "failed";
   });
 
+  if (only !== null) {
+    return (
+      <div
+        className="space-y-5"
+        data-testid="post-price-basis"
+        data-options={optionsSettled ? "1" : "0"}
+      >
+        {drawnRows.map(renderDef)}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5" data-testid="post-specs" data-options={optionsSettled ? "1" : "0"}>
       <p className="text-sm text-muted-foreground">{t("post.specs.why")}</p>
@@ -1642,7 +1687,7 @@ export function StepSpecifications({
 
       {/* D24 — only the details this answer set asks for are on screen. */}
       {/* D41 — every asked row, open, in display order: nothing waits behind a tap. */}
-      <div className="space-y-5">{asked.map(renderDef)}</div>
+      <div className="space-y-5">{drawnRows.map(renderDef)}</div>
     </div>
   );
 }

@@ -43,6 +43,8 @@ export interface DraftValues {
   pricePeriod: string | null;
   /** DEC-079 — a commission in basis points; null for every money/free/contact price. */
   priceBp: number | null;
+  /** DEC-081 — "Price is negotiable"; a flag on a fixed or commission price. */
+  priceNegotiable: boolean;
   /** `YYYY-MM-DD`, or empty for "use the category's normal window". */
   posterExpiresAt: string;
   /** U6-C2a step 6 — the coverage rows; the FIRST is the item's own place. */
@@ -68,6 +70,7 @@ const EMPTY_VALUES: DraftValues = {
   priceCurrency: null,
   pricePeriod: null,
   priceBp: null,
+  priceNegotiable: false,
   posterExpiresAt: "",
   coverage: [],
   contactPref: { messages: true },
@@ -218,6 +221,10 @@ export function useDraft(initialListingId: string | null): UseDraft {
       pricePeriod: valuesRef.current.pricePeriod,
       // DEC-079 — the bp travels only with a commission; the door refuses it elsewhere.
       priceBp: valuesRef.current.priceMode === "commission" ? valuesRef.current.priceBp : null,
+      // DEC-081 — the flag travels only with a price that has a figure.
+      priceNegotiable:
+        (valuesRef.current.priceMode === "fixed" || valuesRef.current.priceMode === "commission") &&
+        valuesRef.current.priceNegotiable,
       posterExpiresAt:
         valuesRef.current.posterExpiresAt === "" ? null : valuesRef.current.posterExpiresAt,
       coverage: valuesRef.current.coverage.length === 0 ? null : valuesRef.current.coverage,
@@ -487,6 +494,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
           priceCurrency: found.draft.priceCurrency,
           pricePeriod: found.draft.pricePeriod,
           priceBp: found.draft.priceBp,
+          priceNegotiable: found.draft.priceNegotiable,
           posterExpiresAt: found.draft.posterExpiresAt ?? "",
           coverage: found.coverage,
           contactPref: found.draft.contactPref,

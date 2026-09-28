@@ -13,10 +13,24 @@ function priceLabel(
   if (listing.priceMode === "commission" && listing.priceBp !== null)
     return t("price.commission").replace("{percent}", formatCommission(listing.priceBp));
   if (listing.priceMode === "free") return t("price.free");
-  if (listing.priceMode === "negotiable" && listing.priceAmount === null)
-    return t("price.negotiable");
   if (listing.priceAmount === null) return t("price.contact");
   return `${listing.priceCurrency ?? ""} ${listing.priceAmount}`.trim();
+}
+
+/**
+ * DEC-081 (D62-2) — NEGOTIABLE IS A FLAG, SHOWN AS A BADGE beside the price on
+ * every surface that prints one (card, preview, detail, review, impersonation).
+ */
+export function NegotiableBadge() {
+  const { t } = useI18n();
+  return (
+    <span
+      data-testid="price-negotiable-badge"
+      className="inline-flex shrink-0 items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground"
+    >
+      {t("price.negotiable")}
+    </span>
+  );
 }
 
 export function ListingCard({ listing }: { listing: FeedListing }) {
@@ -68,7 +82,10 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           ) : null}
         </div>
 
-        <p className="text-sm font-semibold text-foreground">{priceLabel(listing, t)}</p>
+        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
+          <span>{priceLabel(listing, t)}</span>
+          {listing.priceNegotiable ? <NegotiableBadge /> : null}
+        </p>
 
         {locationName ? (
           <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">

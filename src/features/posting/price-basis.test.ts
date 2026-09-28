@@ -9,6 +9,7 @@ import {
   PRICE_BASIS_SHAPE,
   priceShapeFor,
 } from "./price-basis";
+import { currencyText, orderCurrencies, type CurrencyRow } from "./pricing-data";
 
 /**
  * DEC-079 / D31 — SELF-DESCRIPTION CONSISTENCY (governance §11): the client's
@@ -16,8 +17,15 @@ import {
  */
 function sqlShapeTable(): Record<string, { forcedMode: string | null; period: string | null }> {
   const dir = join(process.cwd(), "supabase", "migrations");
-  const file = readdirSync(dir).find((name) => name.includes("e91792f9"));
-  if (file === undefined) throw new Error("the e91792f9 migration is missing");
+  // D62-2 — the NEWEST declaration is the law (247a3ed0 re-declared it for DEC-081).
+  const file = readdirSync(dir)
+    .filter((name) => name.endsWith(".sql"))
+    .sort()
+    .filter((name) =>
+      readFileSync(join(dir, name), "utf8").includes("FUNCTION public.price_shape_for_basis"),
+    )
+    .pop();
+  if (file === undefined) throw new Error("no migration declares price_shape_for_basis");
   const sql = readFileSync(join(dir, file), "utf8");
   const start = sql.indexOf("FUNCTION public.price_shape_for_basis");
   const body = sql.slice(start, sql.indexOf("$$;", start));
@@ -42,7 +50,25 @@ function sqlShapeTable(): Record<string, { forcedMode: string | null; period: st
 
 describe("price basis", () => {
   it("mirrors price_shape_for_basis exactly", () => {
-    expect(PRICE_BASIS_SHAPE).toEqual(sqlShapeTable());
+    // A flag-only row (DEC-081 negotiable) is the SQL's ELSE arm plus the toggle.
+    const shapes = Object.fromEntries(
+      Object.entries(PRICE_BASIS_SHAPE)
+        .filter(([, shape]) => shape.negotiable !== true)
+        .map(([token, shape]) => [token, { forcedMode: shape.forcedMode, period: shape.period }]),
+    );
+    expect(shapes).toEqual(sqlShapeTable());
+  });
+
+  it("reads negotiable as a flag, not a forced mode (DEC-081)", () => {
+    expect(priceShapeFor("negotiable")).toEqual({
+      forcedMode: null,
+      period: "once",
+      negotiable: true,
+    });
+    expect(sqlShapeTable()["negotiable"]).toBeUndefined();
+    expect(priceShapeFor("hourly")).toEqual({ forcedMode: null, period: "hour" });
+    expect(priceShapeFor("quote")).toEqual({ forcedMode: "contact", period: null });
+    expect(priceShapeFor("commission")).toEqual({ forcedMode: "commission", period: "once" });
   });
 
   it("treats an unknown token as a unit priced once", () => {
@@ -72,5 +98,43 @@ describe("price basis", () => {
     expect(basisNoun("በትሬይ (30 እንቁላል)")).toBe("ትሬይ (30 እንቁላል)");
     expect(basisNoun("Fixed Price (per job)")).toBeNull();
     expect(basisNoun("Commission (%)")).toBeNull();
+  });
+
+  it("orders currencies home first, then display order, then code (D62-2)", () => {
+    const row = (
+      code: string,
+      displayOrder: number,
+      symbol: string | null = null,
+    ): CurrencyRow => ({
+      code,
+      nameEn: code,
+      symbol,
+      displayOrder,
+    });
+    const rows = [
+      row("ZZZ", 900),
+      row("EUR", 3, "€"),
+      row("AAA", 900),
+      row("ETB", 2, "Br"),
+      row("USD", 1, "$"),
+    ];
+    expect(orderCurrencies(rows, "ETB").map((r) => r.code)).toEqual([
+      "ETB",
+      "USD",
+      "EUR",
+      "AAA",
+      "ZZZ",
+    ]);
+    expect(orderCurrencies(rows, null).map((r) => r.code)).toEqual([
+      "USD",
+      "ETB",
+      "EUR",
+      "AAA",
+      "ZZZ",
+    ]);
+    expect(
+      currencyText({ code: "ETB", nameEn: "Ethiopian Birr", symbol: "Br", displayOrder: 2 }),
+    ).toBe("ETB · Br — Ethiopian Birr");
+    expect(currencyText(row("AAA", 900))).toBe("AAA — AAA");
   });
 });

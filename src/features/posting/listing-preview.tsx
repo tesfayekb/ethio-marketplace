@@ -1,4 +1,5 @@
 import { useI18n } from "@/i18n";
+import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { entityName } from "@/i18n/entity";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
@@ -53,6 +54,7 @@ export function ListingPreview({
   pricePeriod,
   priceBp = null,
   basisLabel = null,
+  priceNegotiable = false,
   attributes,
   definitions,
   attributeOptions = {},
@@ -71,6 +73,8 @@ export function ListingPreview({
   priceBp?: number | null;
   /** DEC-079 — the basis option's label, so a money price reads "per <basis>". */
   basisLabel?: string | null;
+  /** DEC-081 — "Price is negotiable", shown as a badge beside the price. */
+  priceNegotiable?: boolean;
   attributes: Record<string, unknown>;
   definitions: AttrDef[];
   attributeOptions?: Record<string, AttrOption[]>;
@@ -154,9 +158,12 @@ export function ListingPreview({
       <h3 className="text-base font-semibold text-foreground" data-testid="post-review-title">
         {title === "" ? t("post.review.noTitle") : title}
       </h3>
-      <p className="text-sm font-medium text-foreground" data-testid="post-review-price">
-        {priceLine}
-      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm font-medium text-foreground" data-testid="post-review-price">
+          {priceLine}
+        </p>
+        {priceNegotiable && <NegotiableBadge />}
+      </div>
       {places.length > 0 && (
         <p className="text-sm text-muted-foreground" data-testid="post-review-places">
           {places.join(", ")}

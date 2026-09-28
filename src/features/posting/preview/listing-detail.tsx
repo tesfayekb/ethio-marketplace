@@ -8,6 +8,7 @@ const MapPreview = lazy(() =>
   import("../map/map-preview").then((mod) => ({ default: mod.MapPreview })),
 );
 
+import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
@@ -72,6 +73,8 @@ export interface ListingDetailView {
   priceBp?: number | null;
   /** DEC-079 — the basis option's label for "per <basis>". */
   basisLabel?: string | null;
+  /** DEC-081 — "Price is negotiable", shown as a badge beside the price. */
+  priceNegotiable?: boolean;
   attributes: Record<string, unknown>;
   definitions: AttrDef[];
   attributeOptions: Record<string, AttrOption[]>;
@@ -198,9 +201,12 @@ export function ListingDetail(view: ListingDetailView) {
       <h2 className="text-lg font-semibold text-foreground" data-testid="listing-detail-title">
         {view.title === "" ? t("post.review.noTitle") : view.title}
       </h2>
-      <p className="text-base font-medium text-foreground" data-testid="listing-detail-price">
-        {priceLine}
-      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-base font-medium text-foreground" data-testid="listing-detail-price">
+          {priceLine}
+        </p>
+        {view.priceNegotiable === true && <NegotiableBadge />}
+      </div>
       {places.length > 0 && (
         <p className="text-sm text-muted-foreground" data-testid="listing-detail-places">
           {places.join(", ")}

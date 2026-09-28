@@ -25,6 +25,33 @@ import { supabase } from "@/integrations/supabase/client";
 export interface CurrencyRow {
   code: string;
   nameEn: string;
+  /** D62-2 (DEC-081) — the sign a buyer reads ("Br", "$"); null when none is curated. */
+  symbol: string | null;
+  /** The curated order (USD 1, ETB 2, …); 900 for every uncurated code. */
+  displayOrder: number;
+}
+
+/**
+ * D62-2 — THE ONE CURRENCY ORDER: the seller's home currency first, then the
+ * curated display order, then the code. Used for the short list and the full list.
+ */
+export function orderCurrencies(
+  rows: readonly CurrencyRow[],
+  homeCurrency: string | null,
+): CurrencyRow[] {
+  return [...rows].sort((a, b) => {
+    const homeA = homeCurrency !== null && a.code === homeCurrency ? 0 : 1;
+    const homeB = homeCurrency !== null && b.code === homeCurrency ? 0 : 1;
+    if (homeA !== homeB) return homeA - homeB;
+    if (a.displayOrder !== b.displayOrder) return a.displayOrder - b.displayOrder;
+    return a.code < b.code ? -1 : a.code > b.code ? 1 : 0;
+  });
+}
+
+/** "CODE · symbol — Name"; the symbol is left out when none is curated. */
+export function currencyText(row: CurrencyRow): string {
+  const head = row.symbol === null || row.symbol === "" ? row.code : `${row.code} · ${row.symbol}`;
+  return `${head} — ${row.nameEn}`;
 }
 
 let currencyCache: CurrencyRow[] | null = null;
@@ -33,10 +60,15 @@ let currencyPromise: Promise<CurrencyRow[]> | null = null;
 async function fetchCurrencies(): Promise<CurrencyRow[]> {
   const { data, error } = await supabase
     .from("currencies")
-    .select("code,name_en")
+    .select("code,name_en,symbol,display_order")
     .order("code", { ascending: true });
   if (error) throw new Error(error.message);
-  const rows = (data ?? []).map((row) => ({ code: row.code, nameEn: row.name_en }));
+  const rows = (data ?? []).map((row) => ({
+    code: row.code,
+    nameEn: row.name_en,
+    symbol: typeof row.symbol === "string" && row.symbol !== "" ? row.symbol : null,
+    displayOrder: row.display_order,
+  }));
   currencyCache = rows;
   return rows;
 }
@@ -220,20 +252,32 @@ export async function readMarketCurrencies(): Promise<MarketCurrency[]> {
   }
 }
 
-/** The market currencies in rail order, the seller's market first, deduplicated. */
+/**
+ * D62-2 — THE SHORT LIST: every open market's money plus the curated codes
+ * (display order < 900), in `orderCurrencies` order — home first, then USD, ETB,
+ * EUR … An open market's currency is never cut; curated extras fill up to `max`.
+ */
 export function shortlistCurrencies(
   markets: MarketCurrency[],
-  homeCountry: string | null,
+  rows: readonly CurrencyRow[],
+  homeCurrency: string | null,
   max = 15,
 ): string[] {
-  const ordered = [
-    ...markets.filter((row) => homeCountry !== null && row.country === homeCountry),
-    ...markets.filter((row) => homeCountry === null || row.country !== homeCountry),
-  ];
+  const marketCodes = new Set(markets.map((row) => row.currencyCode));
+  const pool = rows.filter(
+    (row) => marketCodes.has(row.code) || row.displayOrder < 900 || row.code === homeCurrency,
+  );
+  const ordered = orderCurrencies(pool, homeCurrency);
+  const must = (code: string) => marketCodes.has(code) || code === homeCurrency;
+  const mustCount = ordered.filter((row) => must(row.code)).length;
+  let extras = Math.max(max - mustCount, 0);
   const out: string[] = [];
   for (const row of ordered) {
-    if (!out.includes(row.currencyCode)) out.push(row.currencyCode);
-    if (out.length === max) break;
+    if (must(row.code)) out.push(row.code);
+    else if (extras > 0) {
+      out.push(row.code);
+      extras -= 1;
+    }
   }
   return out;
 }

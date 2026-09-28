@@ -41,6 +41,7 @@ type CategoryResetSnapshot = Pick<
   | "priceCurrency"
   | "pricePeriod"
   | "priceBp"
+  | "priceNegotiable"
 >;
 const RESET_UNDO_MS = 10_000;
 import {
@@ -197,6 +198,10 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           return found === undefined ? basisValue : basisNoun(optionLabel(found, language));
         })();
 
+  /** D62-2 — one stable array (I3): the basis key moved from step 3 to step 5. */
+  const basisKey = facts?.priceBasisKey ?? null;
+  const basisExclude = useMemo(() => (basisKey === null ? null : [basisKey]), [basisKey]);
+
   const current = STEPS[draft.step - 1] ?? STEPS[0];
   const chosenCategory =
     draft.values.categoryId === null ? null : (tree.byId.get(draft.values.categoryId) ?? null);
@@ -323,6 +328,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 pricePeriod={draft.values.pricePeriod}
                 priceBp={draft.values.priceBp}
                 basisLabel={basisLabel}
+                priceNegotiable={draft.values.priceNegotiable}
                 attributes={draft.values.attributes}
                 definitions={[]}
                 attributeOptions={{}}
@@ -652,6 +658,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                               priceCurrency: v.priceCurrency,
                               pricePeriod: v.pricePeriod,
                               priceBp: v.priceBp,
+                              priceNegotiable: v.priceNegotiable,
                             });
                             setPhotosNeedRecheck(draft.photos.length > 0);
                             draft.change(
@@ -666,6 +673,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                                 priceCurrency: null,
                                 pricePeriod: null,
                                 priceBp: null,
+                                priceNegotiable: false,
                               },
                               false,
                             );
@@ -704,6 +712,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             draft.change({ attributes }, immediate)
                           }
                           onFields={onSpecFields}
+                          // D62-2 — the pricing basis is asked on the price step.
+                          exclude={basisExclude}
                         />
                       )}
                       {draft.step === 4 && (
@@ -728,8 +738,22 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             priceCurrency: draft.values.priceCurrency,
                             pricePeriod: draft.values.pricePeriod,
                             priceBp: draft.values.priceBp,
+                            priceNegotiable: draft.values.priceNegotiable,
                             posterExpiresAt: draft.values.posterExpiresAt,
                           }}
+                          basisControl={
+                            basisExclude === null ? null : (
+                              <StepSpecifications
+                                categoryId={draft.values.categoryId}
+                                values={draft.values.attributes}
+                                refusals={draft.refusals}
+                                onChange={(attributes, immediate) =>
+                                  draft.change({ attributes }, immediate)
+                                }
+                                only={basisExclude}
+                              />
+                            )
+                          }
                           basisValue={basisValue}
                           basisLabel={basisLabel}
                           refusals={draft.refusals}
@@ -767,6 +791,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           maxPhotos={planCaps?.maxPhotos ?? null}
                           pin={draft.pin}
                           basisLabel={basisLabel}
+                          basisKey={basisKey}
                           onChangeExpiry={(posterExpiresAt) =>
                             draft.change({ posterExpiresAt }, true)
                           }
@@ -819,6 +844,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             "price_currency",
                             "price_period",
                             "poster_expires_at",
+                            // D62-2 — the basis refusal lands under its own control here.
+                            ...(basisExclude ?? []),
                           ].includes(refusal.field)
                         ),
                     )

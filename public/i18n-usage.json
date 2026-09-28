@@ -3033,6 +3033,7 @@
     ],
     "feed.noPhoto": [
       "/",
+      "/admin/impersonation/$sessionId",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -3043,7 +3044,10 @@
     ],
     "feed.views": [
       "/",
-      "/c/$slug"
+      "/admin/impersonation/$sessionId",
+      "/c/$slug",
+      "/post",
+      "/post/$listingId"
     ],
     "footer.rights": [
       "(every page)",
@@ -3772,6 +3776,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.price.negotiableToggle": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.price.notAllowed": [
       "/post",
       "/post/$listingId"
@@ -4263,19 +4271,24 @@
     ],
     "price.contact": [
       "/",
+      "/admin/impersonation/$sessionId",
       "/c/$slug",
       "/post",
       "/post/$listingId"
     ],
     "price.free": [
       "/",
+      "/admin/impersonation/$sessionId",
       "/c/$slug",
       "/post",
       "/post/$listingId"
     ],
     "price.negotiable": [
       "/",
-      "/c/$slug"
+      "/admin/impersonation/$sessionId",
+      "/c/$slug",
+      "/post",
+      "/post/$listingId"
     ],
     "prim.state.empty": [
       "/admin/audit",
@@ -4648,11 +4661,17 @@
     ],
     "tier.featured": [
       "/",
-      "/c/$slug"
+      "/admin/impersonation/$sessionId",
+      "/c/$slug",
+      "/post",
+      "/post/$listingId"
     ],
     "tier.premium": [
       "/",
-      "/c/$slug"
+      "/admin/impersonation/$sessionId",
+      "/c/$slug",
+      "/post",
+      "/post/$listingId"
     ]
   }
 }
