@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { Z_POPOVER } from "@/components/layout/layers";
 import { useI18n } from "@/i18n";
@@ -7,7 +7,10 @@ import type { MessageKey } from "@/i18n";
 
 import { controlClass, Field } from "./field";
 import {
+  currencyText,
+  orderCurrencies,
   readGuessCurrency,
+  readSellerHome,
   readLastListingCurrency,
   shortlistCurrencies,
   useCurrencies,
@@ -48,7 +51,6 @@ import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
 
 const MODE_KEYS: Record<string, MessageKey> = {
   fixed: "post.price.mode.fixed",
-  negotiable: "post.price.mode.negotiable",
   free: "post.price.mode.free",
   contact: "post.price.mode.contact",
   commission: "post.price.mode.commission",
@@ -71,6 +73,8 @@ export interface PricingValues {
   pricePeriod: string | null;
   /** DEC-079 — a commission in basis points; null for every other mode. */
   priceBp: number | null;
+  /** DEC-081 — the "Price is negotiable" flag; only a fixed or commission price carries it. */
+  priceNegotiable: boolean;
   /** An ISO date (`YYYY-MM-DD`) or the empty string; step 8 owns this field now. */
   posterExpiresAt: string;
 }
@@ -82,6 +86,7 @@ export function StepPricing({
   onChange,
   basisValue = null,
   basisLabel = null,
+  basisControl = null,
 }: {
   /** The category block of the posting read; `null` while it is still loading. */
   facts: CategoryFacts | null;
@@ -92,6 +97,11 @@ export function StepPricing({
   basisValue?: string | null;
   /** That answer's option label in the UI language (the token while loading). */
   basisLabel?: string | null;
+  /**
+   * D62-2 (DEC-081) — the leaf's pricing-basis question, drawn by the SAME
+   * specifications form (`only=[basisKey]`) and rendered FIRST on this step.
+   */
+  basisControl?: ReactNode;
 }) {
   const { t, language } = useI18n();
   const currencies = useCurrencies();
@@ -127,7 +137,9 @@ export function StepPricing({
   const locked = basisOn || (facts?.pricePeriodLocked ?? false);
   const priceEnabled = facts?.priceEnabled ?? true;
   const commission = values.priceMode === "commission";
-  const amountShown = values.priceMode === "fixed" || values.priceMode === "negotiable";
+  const amountShown = values.priceMode === "fixed";
+  /** DEC-081 — the toggle belongs to a price with a figure: fixed or commission. */
+  const toggleShown = amountShown || commission;
   // A forced type is the only type; otherwise every type but commission (free stays).
   const modes = PRICE_MODES.filter((mode) =>
     forcedMode !== null ? mode === forcedMode : mode !== "commission",
@@ -148,9 +160,14 @@ export function StepPricing({
   useEffect(() => {
     if (forcedMode !== null && values.priceMode !== forcedMode) {
       onChange(
-        forcedMode === "negotiable"
-          ? { priceMode: forcedMode, priceBp: null }
-          : { priceMode: forcedMode, priceAmount: null, priceCurrency: null, priceBp: null },
+        {
+          priceMode: forcedMode,
+          priceAmount: null,
+          priceCurrency: null,
+          priceBp: null,
+          // A contact price carries no negotiable flag (the door forces it off too).
+          ...(forcedMode === "contact" ? { priceNegotiable: false } : {}),
+        },
         false,
       );
     } else if (forcedMode === null && values.priceMode === "commission") {
@@ -159,13 +176,28 @@ export function StepPricing({
   }, [forcedMode, values.priceMode, onChange]);
 
   /**
+   * DEC-081 — A NEGOTIABLE BASIS SWITCHES THE TOGGLE ON, once per change of the
+   * basis answer, as an ordinary change the seller may undo. Opening the step on
+   * an already-answered basis writes nothing.
+   */
+  const basisSeen = useRef(basisValue);
+  useEffect(() => {
+    if (basisSeen.current === basisValue) return;
+    basisSeen.current = basisValue;
+    if (shape?.negotiable === true && !values.priceNegotiable) {
+      onChange({ priceNegotiable: true }, false);
+    }
+  }, [basisValue, shape, values.priceNegotiable, onChange]);
+
+  /**
    * U6-C1-R3a-2 — THE CURRENCY PRESELECT, IN ORDER:
    *
    *   1 the currency already SAVED on this draft (nothing overrides the seller),
    *   2 the seller's OWN LAST LISTING's currency — what they used before is what
    *     they mean now, wherever the edge thinks they are today,
-   *   3 the GUESS MARKET's currency (`cf-ipcountry` through `/api/geo`),
-   *   4 `ETB`.
+   *   3 D62-2 — the seller's HOME country's currency (their own profile),
+   *   4 the GUESS MARKET's currency (`cf-ipcountry` through `/api/geo`),
+   *   5 `ETB`.
    *
    * The door still judges the currency it is sent (F3); this only opens the
    * screen on the answer the seller most likely means.
@@ -183,6 +215,11 @@ export function StepPricing({
       const last = await readLastListingCurrency();
       if (last !== null) {
         onChange({ priceCurrency: last }, false);
+        return;
+      }
+      const home = await readSellerHome();
+      if (home.currencyCode !== null) {
+        onChange({ priceCurrency: home.currencyCode }, false);
         return;
       }
       const guessed = await readGuessCurrency();
@@ -224,27 +261,32 @@ export function StepPricing({
    * the full ISO list. A short list is the whole point — 156 rows is a haystack
    * on a 360 px screen.
    */
+  const homeCurrency = home?.currencyCode ?? null;
+  const ordered = useMemo(
+    () => orderCurrencies(currencies.currencies, homeCurrency),
+    [currencies.currencies, homeCurrency],
+  );
   const shortlist = useMemo(
-    () => shortlistCurrencies(markets, home?.countryCode ?? null),
-    [markets, home],
+    () => shortlistCurrencies(markets, currencies.currencies, homeCurrency),
+    [markets, currencies.currencies, homeCurrency],
   );
 
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (needle !== "") {
-      return currencies.currencies
+      return ordered
         .filter(
           (row) =>
             row.code.toLowerCase().includes(needle) || row.nameEn.toLowerCase().includes(needle),
         )
         .slice(0, 40);
     }
-    if (showAll || shortlist.length === 0) return currencies.currencies.slice(0, 40);
+    if (showAll || shortlist.length === 0) return ordered.slice(0, 40);
     const rows = shortlist
       .map((code) => currencies.currencies.find((row) => row.code === code) ?? null)
       .filter((row): row is CurrencyRow => row !== null);
     return rows;
-  }, [currencies.currencies, query, shortlist, showAll]);
+  }, [currencies.currencies, ordered, query, shortlist, showAll]);
 
   /** True while the picker is showing the short list and more remain behind it. */
   const moreHidden =
@@ -296,6 +338,9 @@ export function StepPricing({
     <div className="space-y-5" data-testid="post-pricing">
       <p className="text-sm text-muted-foreground">{t("post.price.why")}</p>
 
+      {/* D62-2 — the pricing basis is asked FIRST: it shapes everything below. */}
+      {basisControl}
+
       {/* ---------------------------- 1 · the mode --------------------------- */}
       <fieldset className="space-y-2">
         <legend className="flex items-center gap-1 text-sm font-medium text-foreground">
@@ -321,7 +366,7 @@ export function StepPricing({
                   // A mode without a price clears the amount: the door refuses an
                   // amount sent with `free`/`contact`, so it must not linger.
                   mode === "free" || mode === "contact"
-                    ? { priceMode: mode, priceAmount: null, priceBp: null }
+                    ? { priceMode: mode, priceAmount: null, priceBp: null, priceNegotiable: false }
                     : { priceMode: mode, priceBp: null },
                   true,
                 )
@@ -374,7 +419,7 @@ export function StepPricing({
                     ? query
                     : chosen === null
                       ? (values.priceCurrency ?? "")
-                      : `${chosen.code} — ${chosen.nameEn}`
+                      : currencyText(chosen)
                 }
                 placeholder={t("post.price.currencySearch")}
                 onFocus={() => setOpen(true)}
@@ -445,7 +490,7 @@ export function StepPricing({
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() => choose(row.code)}
                       >
-                        {`${row.code} — ${row.nameEn}`}
+                        {currencyText(row)}
                       </button>
                     </li>
                   ))}
@@ -550,6 +595,20 @@ export function StepPricing({
             }}
           />
         </Field>
+      )}
+
+      {/* DEC-081 — "Price is negotiable": a flag on a price with a figure, never a type. */}
+      {toggleShown && (
+        <label className="flex min-h-11 items-center gap-3 text-sm text-foreground">
+          <input
+            type="checkbox"
+            data-testid="post-price-negotiable"
+            className="size-5 accent-primary"
+            checked={values.priceNegotiable}
+            onChange={(event) => onChange({ priceNegotiable: event.target.checked }, true)}
+          />
+          <span>{t("post.price.negotiableToggle")}</span>
+        </label>
       )}
 
       {/* --------------- 4 · the period, ONLY when it is choosable ------------ */}
