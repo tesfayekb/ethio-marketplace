@@ -1404,6 +1404,37 @@ test.describe("POSTING WIZARD", () => {
     await expect(options.nth(1)).toHaveText(/^USD · \$ — /);
   });
 
+  test("PW-66 a pre-D62-2 'negotiable' price type saves step 1 and reaches step 3 with no refusal (INC-309)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    // The retired mode can no longer be STORED (listings_price_mode_check), so
+    // the pre-D62-2 client is reproduced at the wire: every draft save carries
+    // priceMode "negotiable", exactly what the old bundle sends.
+    await page.route("**/api/listings/draft", async (route) => {
+      const request = route.request();
+      if (request.method() !== "POST") return route.continue();
+      const body = JSON.parse(request.postData() ?? "{}") as Record<string, unknown>;
+      await route.continue({ postData: JSON.stringify({ ...body, priceMode: "negotiable" }) });
+    });
+
+    const listingId = await reachStep3(page, user.id, category);
+    await expect(page.getByTestId("post-refusal")).toHaveCount(0);
+    await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
+
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("price_mode, price_negotiable")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:pw-66] reading the draft failed: ${error.message}`);
+    expect(data, "PW-66: the alias was not stored as fixed + flag").toEqual({
+      price_mode: "fixed",
+      price_negotiable: true,
+    });
+  });
+
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {
     const user = await seller(page);

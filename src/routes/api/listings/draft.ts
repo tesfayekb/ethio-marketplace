@@ -135,7 +135,20 @@ async function handlePost(request: Request): Promise<Response> {
         200,
       );
     }
-    return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+    // INC-309 — a stored price type the door refuses is a bad value, in words.
+    if (error.message.includes("listings_price_mode_check")) {
+      return routeJson({ ok: false, refusals: [{ field: "price_mode", reason: "badValue" }] }, 200);
+    }
+    // INC-309 — every other door exception carries a reason the wizard can put
+    // into words; the constraint (or message) travels as detail, never as text.
+    const constraint = /constraint "([^"]+)"/.exec(error.message)?.[1];
+    return routeJson(
+      {
+        ok: false,
+        refusals: [{ field: "door", reason: "doorError", detail: constraint ?? error.message }],
+      },
+      200,
+    );
   }
   return routeJson(data, 200);
 }
