@@ -530,6 +530,9 @@ export function grepSsrErrors(text: string | null, limit = 20): string[] {
  * on every run, green or red. The 20-line cap binds QUOTING only; counting reads
  * the whole log. Lines are redacted exactly as the quoted ones are.
  */
+/** ANSI colour codes (ESC [ … m) — built from a char code, never a literal. */
+const ANSI = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
+
 export function allSsrLines(text: string | null): string[] {
   if (!text) return [];
   return (
@@ -537,7 +540,7 @@ export function allSsrLines(text: string | null): string[] {
       .split("\n")
       .filter((line) => line.includes("[ssr-error]"))
       // A TTY-coloured runner wraps lines in ANSI codes; they are not the message.
-      .map((line) => redact(line.replace(/\u001b\[[0-9;]*m/g, "").trim()))
+      .map((line) => redact(line.replace(ANSI, "").trim()))
   );
 }
 
@@ -1757,7 +1760,7 @@ async function main() {
         ["listing not found ×2 is loud", notFound?.count === 2 && !notFound.quiet],
         [
           "path, quotes and ANSI stripped from the key",
-          rows.every((r) => !/^\/|"|\u001b/.test(r.message)),
+          rows.every((r) => !/^\/|"/.test(r.message) && !r.message.includes(String.fromCharCode(27))),
         ],
         [
           "a quoted constraint on the allowlist is quiet",
