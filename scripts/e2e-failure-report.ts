@@ -1636,7 +1636,7 @@ async function main() {
       process.exit(1);
     }
     console.log(
-      "DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no section heading.",
+      "DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.",
     );
 
     // DEC-059 — THE POST-TEST BAND, proved on the REAL captured shard-6 log tail
