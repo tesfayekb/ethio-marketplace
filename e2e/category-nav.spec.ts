@@ -1,7 +1,9 @@
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { scratchSlug, destroyCategory } from "./helpers/categories";
 import { gotoReady, openRailScope } from "./helpers/ui";
+import { adminClient } from "./helpers/users";
 
 /**
  * U0l (INC-073) — CATEGORY SELECTION IS NAVIGATION.
@@ -91,5 +93,103 @@ test.describe("category selection navigates", () => {
     await expect(page.getByTestId("breadcrumb-home")).toBeVisible();
     await expect(page.getByTestId("breadcrumb-auth")).toHaveText(en["auth.signIn"]);
     await expect(page.getByTestId("breadcrumb-category")).toHaveCount(0);
+  });
+
+  /**
+   * C-5 (DEC-080) — THE RAIL FOLLOWS THE ROOT POINTERS. Two scratch roots whose
+   * ROW order (9200 / 9199) is reversed against their parent-NULL pointers
+   * (9100 / 9101): the rail lists them in pointer order. Swapping the two
+   * pointers' order moves the tree version, and a reload flips the rail.
+   * Located by scratch slug, never by position (G28).
+   */
+  test("C-5: the rail follows root pointer order, and a pointer reorder reaches it", async ({
+    page,
+  }) => {
+    const supabase = adminClient();
+    const first = `${scratchSlug()}-r1`;
+    const second = `${scratchSlug()}-r2`;
+    try {
+      const { data: rows, error } = await supabase
+        .from("categories")
+        .insert([
+          {
+            slug: first,
+            name_en: first,
+            is_active: true,
+            allow_listings: true,
+            display_order: 9200,
+          },
+          {
+            slug: second,
+            name_en: second,
+            is_active: true,
+            allow_listings: true,
+            display_order: 9199,
+          },
+        ])
+        .select("id, slug");
+      if (error || !rows) throw new Error(`[e2e:c-5] seeding failed: ${error?.message}`);
+      const id = (slug: string) => rows.find((row) => row.slug === slug)!.id;
+      const { data: pointers, error: pointerError } = await supabase
+        .from("category_tree_pointers")
+        .insert([
+          { parent_id: null, child_id: id(first), display_order: 9100 },
+          { parent_id: null, child_id: id(second), display_order: 9101 },
+        ])
+        .select("id, child_id");
+      if (pointerError || !pointers) {
+        throw new Error(`[e2e:c-5] linking failed: ${pointerError?.message}`);
+      }
+
+      const railOrder = async () => {
+        const scope = await openRailScope(page);
+        const a = scope.getByTestId(`rail-category-${first}`);
+        const b = scope.getByTestId(`rail-category-${second}`);
+        await expect(a, "C-5 the first scratch root is not in the rail").toHaveCount(1, {
+          timeout: 20_000,
+        });
+        await expect(b, "C-5 the second scratch root is not in the rail").toHaveCount(1);
+        const testids = await scope
+          .locator("[data-testid^='rail-category-']")
+          .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
+        return {
+          first: testids.indexOf(`rail-category-${first}`),
+          second: testids.indexOf(`rail-category-${second}`),
+        };
+      };
+
+      await gotoReady(page, "/");
+      const before = await railOrder();
+      expect(before.first, "C-5 the rail did not follow the root pointers").toBeLessThan(
+        before.second,
+      );
+
+      const pointerOf = (slug: string) => pointers.find((row) => row.child_id === id(slug))!.id;
+      for (const [slug, order] of [
+        [first, 9101],
+        [second, 9100],
+      ] as const) {
+        const { error: swapError } = await supabase
+          .from("category_tree_pointers")
+          .update({ display_order: order })
+          .eq("id", pointerOf(slug));
+        if (swapError) throw new Error(`[e2e:c-5] swapping failed: ${swapError.message}`);
+      }
+
+      await expect
+        .poll(
+          async () => {
+            await page.reload();
+            await gotoReady(page, "/");
+            const after = await railOrder();
+            return after.second < after.first;
+          },
+          { timeout: 30_000, message: "C-5 the rail did not flip after the pointer swap" },
+        )
+        .toBe(true);
+    } finally {
+      await destroyCategory(first);
+      await destroyCategory(second);
+    }
   });
 });

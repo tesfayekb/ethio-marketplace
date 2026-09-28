@@ -1806,3 +1806,99 @@ test.describe("CAT-IE categories import/export", () => {
     }
   });
 });
+
+/**
+ * CT-33 (DEC-080) — THE HOME IS A FLAG, NOT THE LOWEST NUMBER.
+ *
+ * A scratch leaf L is linked under scratch roots A (display_order 5, inserted
+ * FIRST — the trigger makes it the home) and B (display_order 0). The home is A
+ * although B's pointer sorts first; renumbering B's pointer below it changes
+ * nothing; deleting A's pointer promotes B's. DB truth through the service
+ * client only — no console, no real rows (G27).
+ */
+test.describe("C2-HOME categories home flag", () => {
+  test("CT-33 the flagged pointer is the home, a reorder never moves it, and deleting it promotes the other", async () => {
+    const supabase = adminClient();
+    const slugs = [`${scratchSlug()}-a`, `${scratchSlug()}-b`, `${scratchSlug()}-l`];
+    const [slugA, slugB, slugL] = slugs;
+    try {
+      const { data: rows, error } = await supabase
+        .from("categories")
+        .insert([
+          {
+            slug: slugA,
+            name_en: slugA,
+            is_active: true,
+            allow_listings: false,
+            display_order: 9200,
+          },
+          {
+            slug: slugB,
+            name_en: slugB,
+            is_active: true,
+            allow_listings: false,
+            display_order: 9201,
+          },
+          {
+            slug: slugL,
+            name_en: slugL,
+            is_active: true,
+            allow_listings: true,
+            display_order: 9202,
+          },
+        ])
+        .select("id, slug");
+      if (error || !rows) throw new Error(`[e2e:ct-33] seeding failed: ${error?.message}`);
+      const id = (slug: string) => rows.find((row) => row.slug === slug)!.id;
+
+      const insertPointer = async (parent: string, order: number) => {
+        const { data, error: pointerError } = await supabase
+          .from("category_tree_pointers")
+          .insert({ parent_id: id(parent), child_id: id(slugL), display_order: order })
+          .select("id, is_primary")
+          .single();
+        if (pointerError || !data)
+          throw new Error(`[e2e:ct-33] linking failed: ${pointerError?.message}`);
+        return data;
+      };
+      const pointerA = await insertPointer(slugA, 5);
+      const pointerB = await insertPointer(slugB, 0);
+      const home = async () => {
+        const { data, error: rpcError } = await supabase.rpc("cat_primary_parent", {
+          p_id: id(slugL),
+        });
+        if (rpcError) throw new Error(`[e2e:ct-33] cat_primary_parent failed: ${rpcError.message}`);
+        return data;
+      };
+      const flagOf = async (pointerId: string) => {
+        const { data } = await supabase
+          .from("category_tree_pointers")
+          .select("is_primary")
+          .eq("id", pointerId)
+          .single();
+        return data?.is_primary;
+      };
+
+      expect(pointerA.is_primary, "CT-33 the first pointer was not made the home").toBe(true);
+      expect(pointerB.is_primary, "CT-33 the second pointer was made a home").toBe(false);
+      expect(await home(), "CT-33 the home is not A").toBe(id(slugA));
+
+      const { error: updateError } = await supabase
+        .from("category_tree_pointers")
+        .update({ display_order: -1 })
+        .eq("id", pointerB.id);
+      if (updateError) throw new Error(`[e2e:ct-33] renumbering failed: ${updateError.message}`);
+      expect(await home(), "CT-33 renumbering B's pointer moved the home").toBe(id(slugA));
+
+      const { error: deleteError } = await supabase
+        .from("category_tree_pointers")
+        .delete()
+        .eq("id", pointerA.id);
+      if (deleteError) throw new Error(`[e2e:ct-33] deleting failed: ${deleteError.message}`);
+      expect(await flagOf(pointerB.id), "CT-33 deleting the home did not promote B").toBe(true);
+      expect(await home(), "CT-33 the home is not B after the delete").toBe(id(slugB));
+    } finally {
+      for (const slug of slugs) await destroyCategory(slug);
+    }
+  });
+});

@@ -151,7 +151,7 @@ async function handleGet(request: Request): Promise<Response> {
     // export's `parent_slug` and `category_path` (D30's breadcrumb).
     supabase
       .from("category_tree_pointers")
-      .select("child_id,parent_id,display_order")
+      .select("child_id,parent_id,display_order,is_primary")
       .order("display_order", { ascending: true })
       .order("created_at", { ascending: true }),
   ]);
