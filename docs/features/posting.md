@@ -1019,3 +1019,8 @@ INC-299 — the assist route's `triesLeft` is the `remaining` count of `consume_
 ### DEC-081 hotfix — "negotiable" is an alias at every step (D62-1b, INC-309)
 
 A pre-D62-2 client still sends `price_mode: "negotiable"`. `validate_listing_draft` resolved it only at step ≥ 5, so a save from steps 1–4 stored the raw mode and `listings_price_mode_check` threw; the route answered `field: "door"` with the raw message and the wizard printed it. Now (mark `20260928060000`) the door resolves the alias at the top of the function: `negotiable` → mode `fixed` with `price_negotiable = true`, at every step. The retired mode stays out of `PRICE_MODES` and the constraint. The draft route maps `listings_price_mode_check` to `{ field: "price_mode", reason: "badValue" }` and every other unmapped door exception to `{ field: "door", reason: "doorError", detail }`, which renders `post.refusal.doorError`. Proofs: P8/P9/P10 in the migration; PR-12, PW-66.
+
+### D62-1c — refusal summary and test handler order (INC-311, INC-313)
+
+- The refusal summary lists only refusals that name a control. Refusals against the request itself (`door`, `residency`, `id` — `CONTROL_LESS_FIELDS` in `field.tsx`) are left out; their words already render as post-refusal paragraphs.
+- E2E rule: a test-level `page.route` on a path `asEdge` covers must `route.fallback()`, never `route.continue()`, or the edge country header is lost.

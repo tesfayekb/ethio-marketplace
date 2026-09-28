@@ -186,6 +186,18 @@ function focusField(field: string): void {
 }
 
 /**
+ * INC-313 — REFUSALS WITH NO CONTROL. The doors answer some refusals against
+ * the request itself (`door`, `residency`, `id`): there is no control to name
+ * or focus, and their words already render as post-refusal paragraphs. The
+ * summary leaves them out rather than showing the raw field word.
+ */
+export const CONTROL_LESS_FIELDS: ReadonlySet<string> = new Set(["door", "residency", "id"]);
+
+export function summaryRefusals(refusals: Refusal[]): Refusal[] {
+  return refusals.filter((refusal) => !CONTROL_LESS_FIELDS.has(refusal.field));
+}
+
+/**
  * THE RED SUMMARY, above Back/Next. It lists the refused fields BY LABEL and each
  * name jumps to its control. It renders only when a refusal actually exists — it
  * is never a pre-emptive warning.
@@ -208,8 +220,9 @@ export function RefusalSummary({
   onGoTo?: (step: number) => void;
 }) {
   const { t } = useI18n();
-  if (refusals.length === 0) return null;
-  const named = refusals.map((refusal) => {
+  const shown = summaryRefusals(refusals);
+  if (shown.length === 0) return null;
+  const named = shown.map((refusal) => {
     const key = FIELD_LABEL_KEYS[refusal.field];
     const owner = stepOfField(refusal.field, specFields);
     const label = key === undefined ? refusal.field : t(key);
