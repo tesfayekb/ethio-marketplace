@@ -525,3 +525,15 @@ as `true`/`false`; the planner refuses an unknown capability as
 and applies valid cells on commit with Undo restoring the previous ones. The
 console editors remain the other way in (C2 lands their cells); the file and the
 console write the same columns through the same validation.
+
+## C2-HOME — the home of a category is an explicit flag (DEC-080)
+
+- **The home is the `is_primary` pointer.** `category_tree_pointers.is_primary` marks exactly one pointer per child as its home; the partial unique index `category_tree_pointers_one_home (child_id) WHERE is_primary` enforces one. The two home readers, `cat_primary_pointer` and `cat_primary_parent`, rank `(NOT is_primary)` first — the flagged pointer wins while its parent is active or NULL; the legacy keys (root first, `display_order`, `created_at`) remain only the fallback. `admin_list_categories`' edge CTE uses the same first key. No other copy of the rule exists.
+- **A first pointer is the home.** The BEFORE INSERT trigger `cat_pointer_default_home` flags a new pointer when its child has no home yet, so fixtures and doors that insert pointers need no flag.
+- **Deleting a home promotes.** The AFTER DELETE trigger `cat_pointer_promote_home` flags the child's next pointer by the legacy order. `admin_remove_category_pointer` audits `was_home`.
+- **Moving onto an existing pointer merges.** `admin_move_category_pointer` onto a parent that already holds the child deletes the moved pointer and, when it was the home, hands the flag to the surviving pointer first (audit `merged`: true|false). No pointer is deleted and re-inserted to "move" it — `created_at` is evidence.
+- **Setting the home.** `admin_set_primary_pointer(p_pointer_id)` — `categories.restructure` + step-up where required; the parent must be NULL or active; audited as `category.pointer_home`.
+- **The file.** A row's `parent_slug` IS its home and `secondary_parents` are its guests. The import's ordering pass (commit and undo) ranks each pointer by the file's order for that (child, parent) pair only, own children first, and never moves a home.
+- **The public tree** serves `is_primary` on every pointer and sorts roots by their parent-NULL pointer and every level by pointer order (catch-all last, guests after the host's own children); a missing pointer order falls back to the row's `display_order`. `get_category_tree_version` covers every pointer's parent, child, order and flag, so a reorder reaches the marketplace.
+- **Incidents.** INC-303 (the ordering pass ranked a guest by its home rank; four homes flipped on 2026-09-27 and were repaired by slug: bicycles → vehicles, personal-care-services → services, industrial-equipment → commercial-equipment, nursery-furniture → babies-kids); INC-304 (undo could not move a home onto a parent holding a guest pointer — UNIQUE (parent_id, child_id)); INC-305 (the public tree sorted by the row column no reorder writes, and the version ignored pointer order).
+- **Tests.** CT-33 (flag, reorder, promote), C-5 (rail follows root pointers; a swap reaches it), PW-62 (pointer order, guest after own, flagged home in the chip path), category-tree unit tests (DEC-080 i–iv).
