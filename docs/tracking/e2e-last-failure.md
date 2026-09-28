@@ -1,139 +1,101 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
+last E2E run 36391560866 passed
+
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36391560866
 - Commit: `1f7e086992da0cd7cccef0e4bc45f9cd74c42a77`
-- Attempt: 1
-- Written (UTC): 2026-09-28T07:25:51.651Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): none
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Attempt: 2
+- Written (UTC): 2026-09-28T07:50:14.539Z
+- Post-test warnings: 0
+- Flaky (passed on retry, DEC-030, non-gating): 2
 
-## Server errors: smoke
+## Flake ledger (DEC-030)
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
 
-## Client errors: smoke
+- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away — Error: expect(received).toBe(expected) // Object.is equality
+- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · post-wizard.spec.ts › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) — Error: expect(locator).toBeVisible() failed
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+## Flaky bodies (DEC-078)
 
-## Server errors: email
+### admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
-
-## Client errors: email
-
-No `[client-error]` lines in the `email` log (or no log was uploaded).
-
-## Server errors: shard 1
-
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Client errors: shard 1
-
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Server errors: shard 2
-
-No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 3
-
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Server errors: shard 4
-
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Server errors: shard 5
-
-No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Client errors: shard 5
-
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Server errors: shard 6
-
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## Client errors: shard 6
-
-No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
+- Source: `shard 1`
+- Project: `mobile-360`
 
 ```text
-(no log tail was uploaded for this source)
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: undefined
 ```
 
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
+Context:
 
 ```text
-(no log tail was uploaded for this source)
+          - listitem [ref=e129]:
+            - generic [ref=e130]: About
+          - listitem [ref=e131]:
+            - generic [ref=e132]: How it works
+      - navigation "Help" [ref=e133]:
+        - heading "Help" [level=2] [ref=e134]
+        - list [ref=e135]:
+          - listitem [ref=e136]:
+            - generic [ref=e137]: Safety
+          - listitem [ref=e138]:
+            - generic [ref=e139]: Contact
+      - navigation "Legal" [ref=e140]:
+        - heading "Legal" [level=2] [ref=e141]
+        - list [ref=e142]:
+          - listitem [ref=e143]:
+            - generic [ref=e144]: Terms
+          - listitem [ref=e145]:
+            - generic [ref=e146]: Privacy
+    - paragraph [ref=e148]: © 2026 ethio.com — All rights reserved.
+```
 ```
 
-## shard 1: no results file
+### post-wizard.spec.ts › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59)
 
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+- Source: `shard 2`
+- Project: `mobile-360`
 
 ```text
-(no log tail was uploaded for this source)
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
 ```
 
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+Context:
 
 ```text
-(no log tail was uploaded for this source)
+          - listitem [ref=e166]:
+            - generic [ref=e167]: About
+          - listitem [ref=e168]:
+            - generic [ref=e169]: How it works
+      - navigation "Help" [ref=e170]:
+        - heading "Help" [level=2] [ref=e171]
+        - list [ref=e172]:
+          - listitem [ref=e173]:
+            - generic [ref=e174]: Safety
+          - listitem [ref=e175]:
+            - generic [ref=e176]: Contact
+      - navigation "Legal" [ref=e177]:
+        - heading "Legal" [level=2] [ref=e178]
+        - list [ref=e179]:
+          - listitem [ref=e180]:
+            - generic [ref=e181]: Terms
+          - listitem [ref=e182]:
+            - generic [ref=e183]: Privacy
+    - paragraph [ref=e185]: © 2026 ethio.com — All rights reserved.
 ```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
-(no log tail was uploaded for this source)
 ```
