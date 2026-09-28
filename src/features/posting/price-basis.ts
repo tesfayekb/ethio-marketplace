@@ -15,12 +15,14 @@ import type { PricePeriod } from "./types";
  * period `once`.
  */
 
-export type ForcedMode = "contact" | "negotiable" | "commission";
+export type ForcedMode = "contact" | "commission";
 
 export interface PriceShape {
   forcedMode: ForcedMode | null;
   /** `null` = the category's own default period (the SQL's NULL arm: quote). */
   period: PricePeriod | null;
+  /** DEC-081 — this basis switches the "Price is negotiable" toggle on (the seller may undo it). */
+  negotiable?: true;
 }
 
 export const PRICE_BASIS_SHAPE: Readonly<Record<string, PriceShape>> = {
@@ -32,7 +34,7 @@ export const PRICE_BASIS_SHAPE: Readonly<Record<string, PriceShape>> = {
   per_month: { forcedMode: null, period: "month" },
   per_year: { forcedMode: null, period: "year" },
   quote: { forcedMode: "contact", period: null },
-  negotiable: { forcedMode: "negotiable", period: "once" },
+  negotiable: { forcedMode: null, period: "once", negotiable: true },
   commission: { forcedMode: "commission", period: "once" },
 };
 

@@ -95,7 +95,8 @@ export const ASSIST_TRIES = 5;
  * screen, the save body and the tests must all use the same spellings — a fifth
  * mode invented in a component would be refused by the door, not by a type.
  */
-export const PRICE_MODES = ["fixed", "negotiable", "free", "contact", "commission"] as const;
+/** DEC-081 (D62) — "negotiable" is no longer a mode; it is the `price_negotiable` flag. */
+export const PRICE_MODES = ["fixed", "free", "contact", "commission"] as const;
 export const PRICE_PERIODS = ["once", "hour", "day", "week", "month", "year"] as const;
 
 export type PriceMode = (typeof PRICE_MODES)[number];
