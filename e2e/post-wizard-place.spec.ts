@@ -32,6 +32,7 @@ import {
   seedSpecSet,
   textOf,
   mapReady,
+  stopPageBeforePurge,
 } from "./helpers/posting";
 
 /**
@@ -75,8 +76,8 @@ test.describe("POSTING WIZARD", () => {
   const walkMarks: string[] = [];
 
   test.afterEach(async ({ page }) => {
-    // INC-323 — stop the page first, so no debounced autosave lands after the purge.
-    await page.goto("about:blank");
+    // INC-323 — stop the page first, and wait out a save in flight, so none lands after the purge.
+    await stopPageBeforePurge(page);
     const ladder = walkMarks.splice(0);
     if (ladder.length > 0) {
       await test
@@ -1342,5 +1343,109 @@ test.describe("POSTING WIZARD", () => {
       await expect(review, `PW-76: the review does not show ${shown}`).toContainText(shown);
     }
     expect(await attributesOf(listingId), "PW-76: the review walk moved an answer").toEqual(pinned);
+  });
+
+  /**
+   * INC-336 — THE DEC-086 MARK ON A BIG LIST. The model list carries 205 options
+   * (> EAGER_OPTION_LIMIT, so it is not read up front). After the brand is
+   * chosen and BEFORE any Next, the model question wears the required mark and
+   * the soft border; a brand with one model does not; the model's `allowed`
+   * still fills and hides its sibling on the big list (G29). Scratch only (G27).
+   */
+  test("PW-78 a big model list shows its required mark once the brand is chosen (INC-336)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const info = test.info();
+    const stem = `e2e_big_${info.project.name.replace(/\W/g, "")}_${info.workerIndex}_${Date.now()}`;
+    const k = (name: string) => `${stem}_${name}`;
+    const option = (value: string, extra: Record<string, unknown> = {}) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      active: true,
+      ...extra,
+    });
+    const supabase = adminClient();
+    const insert = async (rows: Record<string, unknown>[]) => {
+      const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
+      if (error || !data) throw new Error(`PW-78: seeding failed: ${error?.message ?? "no rows"}`);
+      specs.push(...rows.map((row) => String(row["attr_key"])));
+      return data;
+    };
+    const brandRows = await insert([
+      {
+        attr_key: k("brand"),
+        name_en: `${stem} brand`,
+        attr_type: "single_select",
+        options: [option(k("b1")), option(k("b2"))],
+      },
+    ]);
+    const models = [
+      option(k("m1"), { parent: k("b1"), allowed: { [k("finish")]: [k("f1")] } }),
+      option(k("solo"), { parent: k("b2"), facts: { [k("finish")]: k("f2") } }),
+      ...Array.from({ length: 203 }, (_, index) =>
+        option(k(`m${index + 2}`), { parent: k("b1"), facts: { [k("finish")]: k("f2") } }),
+      ),
+    ];
+    const rest = await insert([
+      {
+        attr_key: k("model"),
+        name_en: `${stem} model`,
+        attr_type: "single_select",
+        options: models,
+        depends_on: brandRows[0]!.id,
+      },
+      {
+        attr_key: k("finish"),
+        name_en: `${stem} finish`,
+        attr_type: "single_select",
+        options: [option(k("f1")), option(k("f2"))],
+      },
+    ]);
+    const all = [...brandRows, ...rest];
+    const { error: linkError } = await supabase.from("category_attribute_links").insert(
+      ["brand", "model", "finish"].map((name, index) => ({
+        category_id: category.id,
+        attribute_id: all.find((row) => row.attr_key === k(name))!.id,
+        display_order: index + 1,
+        is_required: name === "brand",
+        ...(name === "brand" ? { card_rank: 1 } : {}),
+      })),
+    );
+    if (linkError) throw new Error(`PW-78: linking failed: ${linkError.message}`);
+
+    await reachStep3(page, user.id, category);
+    const row = (name: string) => page.locator(`[data-testid="post-spec"][data-attr="${k(name)}"]`);
+    const control = (name: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${k(name)}"]`);
+
+    await expect(
+      row("model").getByTestId("post-required-mark"),
+      "PW-78: the model is marked before the brand is answered",
+    ).toHaveCount(0);
+
+    await control("brand").selectOption(k("b1"));
+    await expect(
+      row("model").getByTestId("post-required-mark"),
+      "PW-78: the big model list shows no required mark after the brand",
+    ).toHaveCount(1, { timeout: 20_000 });
+    await expect(control("model"), "PW-78: no soft border on the big model list").toHaveClass(
+      /border-destructive\/40/,
+    );
+    await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
+
+    await control("model").selectOption(k("m1"));
+    await expect(row("finish"), "PW-78: the big list's allowed did not fill-and-hide").toHaveCount(
+      0,
+      { timeout: 20_000 },
+    );
+
+    await control("brand").selectOption(k("b2"));
+    await expect(
+      row("model").getByTestId("post-required-mark"),
+      "PW-78: a brand with one model still marks the model required",
+    ).toHaveCount(0, { timeout: 20_000 });
   });
 });

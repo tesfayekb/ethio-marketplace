@@ -31,6 +31,7 @@ import {
   destroySpecSet,
   seedPostableCategory,
   seedSpecSet,
+  stopPageBeforePurge,
 } from "./helpers/posting";
 
 /**
@@ -79,8 +80,8 @@ test.describe("POSTING WIZARD", () => {
   const walkMarks: string[] = [];
 
   test.afterEach(async ({ page }) => {
-    // INC-323 — stop the page first, so no debounced autosave lands after the purge.
-    await page.goto("about:blank");
+    // INC-323 — stop the page first, and wait out a save in flight, so none lands after the purge.
+    await stopPageBeforePurge(page);
     const ladder = walkMarks.splice(0);
     if (ladder.length > 0) {
       await test

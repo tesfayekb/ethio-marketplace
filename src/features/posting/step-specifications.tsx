@@ -387,6 +387,33 @@ export function StepSpecifications({
     }
   }, [answeredSelects, schema, openOptions]);
 
+  /**
+   * INC-336 — A BIG LIST IS READ ONCE A POSSIBLE PARENT IS ANSWERED. Every
+   * behaviour that reasons over a dependent list (the fold, DEC-086's mark,
+   * DEC-085/INC-244's fill-and-hide, `lockedByModel`, the narrowing) needs its
+   * rows, and the schema does not say which sibling a list hangs under. So a
+   * list above EAGER_OPTION_LIMIT is requested — once per key per mount, the
+   * INC-320 budget — the moment ANOTHER select is answered; with no sibling
+   * answered there is no parent to hang under and nothing is read. The limit
+   * itself is unchanged.
+   */
+  const requestedBig = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (schema === null || answeredSelects === "") return;
+    const answered = new Set(answeredSelects.split("\u0000"));
+    for (const def of schema.attributes) {
+      if (!SELECT_TYPES.includes(def.attrType)) continue;
+      if (def.optionCount <= EAGER_OPTION_LIMIT) continue;
+      if (requestedBig.current.has(def.attrKey)) continue;
+      if (requestedAnswered.current.has(def.attrKey)) continue;
+      const siblingAnswered = [...answered].some((key) => key !== def.attrKey);
+      if (!siblingAnswered) continue;
+      requestedBig.current.add(def.attrKey);
+      requestedAnswered.current.add(def.attrKey);
+      openOptions(def);
+    }
+  }, [answeredSelects, schema, openOptions]);
+
   /** A written answer, debounced by the draft; an absent answer drops its key. */
   const write = useCallback(
     (attrKey: string, value: unknown, immediate = false) => {

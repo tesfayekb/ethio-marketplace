@@ -319,9 +319,9 @@ R1 (INC-326, 2026-09-28): every source (smoke, shards, email) uploads its log on
 
 DEC-084 — Accessibility pass (2026-09-28). The smoke tier runs axe-core on the marketplace home, /auth, and wizard steps 1, 3 and 5, at mobile-360 and desktop-1280, and the report carries serious and critical counts per page and project. The public listing page and the seller storefront join the roster in the turn that builds each of them; a build prompt for either page that does not add it is incomplete. Gating rule, pre-committed: non-gating until five consecutive runs have carried zero serious and zero critical violations; from the sixth such run, the merged verdict fails on any new serious or critical violation. A violation may be exempted only by a DEC naming the rule id and the page.
 
-- Implementation: `e2e/a11y.spec.ts` (A11Y-1, A11Y-2) is on the smoke tier's file list in `ci.yml`. It prints `[a11y] <page> <project> serious=<n> critical=<n>` and never fails on a violation. The reporter's `grepA11y` and `a11ySection` render one line in both forms. `@axe-core/playwright` is pinned at 4.13.0, and only the test runner imports it.
+- Implementation: `e2e/a11y.spec.ts` (A11Y-1, A11Y-2) is on the smoke tier's file list in `ci.yml`. It prints `[a11y] <page> <project> serious=<n> critical=<n>` and then fails on any serious or critical violation (gating flip 2026-09-29, W5: seven consecutive clean CI runs, 611e109 → 4de0e33). The reporter's `grepA11y` and `a11ySection` render one line in both forms. `@axe-core/playwright` is pinned at 4.13.0, and only the test runner imports it.
 
-- INC-323 afterEach rule (2026-09-29): a hook that purges drafts takes `{ page }` and runs `await page.goto("about:blank")` BEFORE any purge, so the page's debounced autosave cannot reach a deleted draft. Applied in post-wizard, a11y, photo-pipeline.
+- INC-323 afterEach rule (2026-09-29): a hook that purges drafts takes `{ page }` and runs `await page.goto("about:blank")` BEFORE any purge, so the page's debounced autosave cannot reach a deleted draft. Applied in post-wizard, a11y, photo-pipeline. W5 (2026-09-29): the step is `stopPageBeforePurge(page)` — wait for network quiet (bounded), then blank — because a save already in flight is still processed server-side after the browser aborts it.
 
 ## DEC-087 — timing census and the file-is-the-shard-unit rule
 
