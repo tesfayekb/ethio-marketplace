@@ -301,6 +301,64 @@ export async function readDraft(
   };
 }
 
+/** W6b-1 R4 — the places of the seller's most recent OTHER listing. */
+export interface LastPlaces {
+  /** The market the item place sits in. */
+  country: string;
+  /** The item place (`listings.location_id`) — a city or a sub-city. */
+  itemId: string;
+  /** Every place it showed in, item place first, in the item place's market only. */
+  placeIds: string[];
+}
+
+/**
+ * W6b-1 R4 — THE LAST POST'S PLACES, for a NEW post's prefill. Filtered by
+ * `seller_id` explicitly (INC-330): RLS also shows every ACTIVE listing, so the
+ * filter — not the policy — keeps another seller's places out. A draft is not a
+ * post yet, so only listings past the draft stage count; `excludeId` keeps the
+ * draft on screen out. Only the place's `country_code` is read from
+ * `locations` (the public read), so the step can open the right market; names
+ * still come from the cached tree. A failure is simply no prefill (`null`).
+ */
+export async function readLastListingPlaces(excludeId: string | null): Promise<LastPlaces | null> {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const userId = session.session?.user.id ?? null;
+    if (userId === null) return null;
+    let query = supabase
+      .from("listings")
+      .select("id,location_id,created_at")
+      .eq("seller_id", userId)
+      .neq("status", "draft")
+      .not("location_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (excludeId !== null) query = query.neq("id", excludeId);
+    const { data: last, error } = await query.maybeSingle();
+    if (error || last === null || last.location_id === null) return null;
+    const { data: rows, error: rowError } = await supabase
+      .from("listing_locations")
+      .select("location_id,created_at,locations(country_code)")
+      .eq("listing_id", last.id)
+      .order("created_at", { ascending: true });
+    if (rowError) return null;
+    const countryOf = (row: { locations: unknown }) => {
+      const place = row.locations as { country_code?: unknown } | null;
+      return typeof place?.country_code === "string" ? place.country_code : null;
+    };
+    const item = (rows ?? []).find((row) => row.location_id === last.location_id);
+    const country = item === undefined ? null : countryOf(item);
+    if (country === null) return null;
+    const others = (rows ?? [])
+      .filter((row) => row.location_id !== last.location_id && countryOf(row) === country)
+      .map((row) => row.location_id);
+    return { country, itemId: last.location_id, placeIds: [last.location_id, ...others] };
+  } catch {
+    return null;
+  }
+}
+
+
 /**
  * U6-C1b — ONE DEFINITION AS THE FORM NEEDS IT.
  *
