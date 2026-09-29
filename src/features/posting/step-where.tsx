@@ -14,7 +14,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
-import { clearPin, savePin } from "./posting-service";
+import { clearPin, readLastListingPlaces, savePin, type LastPlaces } from "./posting-service";
 import { RequiredMark } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { PinValue } from "./map/map-pin-dropper";
@@ -41,14 +41,24 @@ const MapPinDropper = lazy(() =>
  * THE PREFILL, and NEVER persisted (law 10):
  *   0 the draft's OWN saved places (after Back) — the seller's answer outranks
  *     any guess;
- *   1 the SAVED AREA cookie — a place the seller actually picked;
- *   2 the EDGE's guess (`/api/geo`, DEC-068), resolved by `resolveGuess`.
+ *   1 (W6b-1 R4, a NEW post only) the seller's most recent OTHER listing's
+ *     places, its item place ticked (`readLastListingPlaces`, seller-filtered);
+ *   2 the SAVED AREA cookie — a place the seller actually picked;
+ *   3 the EDGE's guess (`/api/geo`, DEC-068), resolved by `resolveGuess`.
  * A prefilled city counts as chosen (W6 R3, as corrected 2026-09-29).
  *
  * W6 R1/R2 (INC-337) — EVERY PLACE IS A CITY. The item's location, and every
  * other place it shows in, is a city or a sub-city; a market or a region alone
  * is only the way to reach one. Until the item's city is chosen its heading
  * carries the required mark and its box the soft red border (D71).
+ *
+ * W6b-1 R1–R3 — THIS STEP IS WHERE THE AD IS SHOWN. Every city box carries one
+ * tick of ONE radio group, "Item or service is here"; the ticked box's place
+ * (its sub-city when chosen, else its city) is sent FIRST, because the door's
+ * item place is `p_coverage[1]`. A city box appears only once its region is
+ * chosen. Remove shows on every city box while the step holds more than one;
+ * removing the ticked one moves the tick to the first remaining box and says so
+ * through a polite live region.
  *
  * W6 R4 — THE NESTED LAYOUT. A country box holds region boxes; a region box
  * holds its city rows. "Add a city" sits inside a region box, "Add a region"
@@ -103,7 +113,8 @@ function boxClass(empty: boolean, refused: boolean): string {
     : empty
       ? "border-destructive/40"
       : "border-input";
-  return `space-y-3 rounded-md border p-3 ${border}`;
+  // W6b-1 R2 — compact padding at 360 px keeps a city box ≥ 280 px wide.
+  return `space-y-3 rounded-md border p-2 sm:p-3 ${border}`;
 }
 
 async function readGuess(): Promise<GuessFacts> {
@@ -173,6 +184,9 @@ function CountryBox({
   room,
   refused,
   market,
+  itemKey,
+  canRemove,
+  onTick,
   onRegion,
   onRow,
   onRemove,
@@ -186,6 +200,11 @@ function CountryBox({
   room: Room;
   refused: boolean;
   market: ReactNode;
+  /** W6b-1 R3 — the key of the ticked city box (one radio group across boxes). */
+  itemKey: string;
+  /** W6b-1 R3 — Remove shows on every city box while the step holds more than one. */
+  canRemove: boolean;
+  onTick: (key: string) => void;
   onRegion: (keys: string[], region: string | null) => void;
   onRow: (key: string, patch: Partial<Row>) => void;
   onRemove: (key: string) => void;
@@ -269,7 +288,22 @@ function CountryBox({
                 )}
               </div>
 
-              {group.rows.map((row) => {
+              {/* W6b-1 R2 — a pending region box can be taken back out whole. */}
+              {group.region === null && regions.length > 0 && canRemove && !hasPrimary && (
+                <button
+                  type="button"
+                  data-testid="post-where-remove"
+                  data-id=""
+                  className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
+                  onClick={() => group.rows.forEach((row) => onRemove(row.key))}
+                >
+                  {t("post.where.removePlace")}
+                </button>
+              )}
+
+              {/* W6b-1 R2 — a city box appears only after its region is chosen. */}
+              {(group.region !== null || regions.length === 0) &&
+                group.rows.map((row) => {
                 const isPrimary = row.key === PRIMARY;
                 const subCities = childrenOf(nodes, row.city, "sub_city");
                 const cityNode = nodes.find((node) => node.id === row.city) ?? null;
@@ -279,17 +313,17 @@ function CountryBox({
                     key={row.key}
                     data-testid="post-where-row"
                     data-key={row.key}
-                    className="space-y-2"
+                    data-item={row.key === itemKey ? "1" : "0"}
+                    className="space-y-2 rounded-md border border-input p-2 sm:p-3"
                   >
                     {cities.length > 0 && (
                       <div className="space-y-1">
                         <label htmlFor={cityId} className="text-sm font-medium text-foreground">
-                          {t(isPrimary ? "post.where.itemLocation" : "post.where.alsoShownIn")}
+                          {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
                         </label>
                         <select
                           id={cityId}
                           data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
-                          aria-label={t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
                           className={fieldClass}
                           value={row.city ?? ""}
                           onChange={(event) =>
@@ -336,7 +370,20 @@ function CountryBox({
                         </select>
                       </div>
                     )}
-                    {!isPrimary && (
+                    {/* W6b-1 R3 — the one tick, a radio group across every box. */}
+                    <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="radio"
+                        name="post-where-item"
+                        data-testid="post-where-item-tick"
+                        data-key={row.key}
+                        className="h-5 w-5 shrink-0 accent-primary"
+                        checked={row.key === itemKey}
+                        onChange={() => onTick(row.key)}
+                      />
+                      <span>{t("post.where.itemHere")}</span>
+                    </label>
+                    {canRemove && (
                       <button
                         type="button"
                         data-testid="post-where-remove"
@@ -349,7 +396,7 @@ function CountryBox({
                     )}
                   </div>
                 );
-              })}
+                })}
 
               {room.city && (group.region !== null || regions.length === 0) && (
                 <button
@@ -482,6 +529,17 @@ export function StepWhere({
   const [prefilled, setPrefilled] = useState(false);
   const [marketUnresolved, setMarketUnresolved] = useState(false);
   const [guess, setGuess] = useState<GuessFacts | null>(null);
+  /** W6b-1 R3 — the ticked city box; it starts on the first. */
+  const [itemKey, setItemKey] = useState<string>(PRIMARY);
+  /** W6b-1 R3 — what the polite live region last announced. */
+  const [announce, setAnnounce] = useState("");
+  /**
+   * W6b-1 R4 — the last post's places: `undefined` while read, `null` for none.
+   * Read only for a NEW post; after Back the draft's own places come first (W6).
+   */
+  const [last, setLast] = useState<LastPlaces | null | undefined>(() =>
+    coverage.length > 0 ? null : undefined,
+  );
   /** The seller has acted on this step; before that, nothing on screen overwrites a saved answer. */
   const touched = useRef(false);
 
@@ -503,12 +561,35 @@ export function StepWhere({
     };
   }, []);
 
-  /** THE MARKET PREFILL (INC-237): the saved area's country, else the edge's — nothing else. */
+  /** W6b-1 R4 — the last post's places are read ONCE, before any prefill settles. */
+  useEffect(() => {
+    if (last !== undefined) return;
+    let cancelled = false;
+    void readLastListingPlaces(listingId).then((found) => {
+      if (!cancelled) setLast(found);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Read once per mount: the draft id arriving later never re-reads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * THE MARKET PREFILL (INC-237): the last post's market (W6b-1 R4), else the
+   * saved area's country, else the edge's — nothing else.
+   */
   const marketSeeded = useRef(false);
   useEffect(() => {
-    if (marketSeeded.current || markets.markets.length === 0 || guess === null) return;
+    if (
+      marketSeeded.current ||
+      markets.markets.length === 0 ||
+      guess === null ||
+      last === undefined
+    )
+      return;
     const saved = readAreaCookie();
-    const wanted = saved?.country ?? guess.country?.toUpperCase() ?? null;
+    const wanted = last?.country ?? saved?.country ?? guess.country?.toUpperCase() ?? null;
     const found =
       wanted === null ? undefined : markets.markets.find((market) => market.code === wanted);
     marketSeeded.current = true;
@@ -523,7 +604,7 @@ export function StepWhere({
     }
     setMarketUnresolved(false);
     if (found.code !== country) setCountry(found.code);
-  }, [markets.markets, guess, country]);
+  }, [markets.markets, guess, country, last]);
 
   /**
    * THE PLACE PREFILL, over the market's cached tree: the draft's own saved
@@ -533,6 +614,7 @@ export function StepWhere({
   const placeSeeded = useRef<string | null>(null);
   useEffect(() => {
     if (country === null || nodes.length === 0 || placeSeeded.current === country) return;
+    if (last === undefined) return;
     placeSeeded.current = country;
     const byId = new Map(nodes.map((node) => [node.id, node]));
     const own = coverage.length > 0 ? (byId.get(coverage[0]!) ?? null) : null;
@@ -543,7 +625,27 @@ export function StepWhere({
         .filter((node): node is TreeNode => node !== null)
         .map((node) => ({ key: newKey(), country, ...chainOf(nodes, node) }));
       setRows([{ key: PRIMARY, country, ...chainOf(nodes, own) }, ...extras]);
+      setItemKey(PRIMARY);
       return;
+    }
+    // W6b-1 R4 — the last post's places, its item place first and ticked.
+    if (last !== null && last.country === country) {
+      const found = last.placeIds
+        .map((id) => byId.get(id) ?? null)
+        .filter((node): node is TreeNode => node !== null)
+        .slice(0, maxCities ?? 1);
+      if (found.length > 0 && found[0]!.id === last.itemId) {
+        setRows(
+          found.map((node, index) => ({
+            key: index === 0 ? PRIMARY : newKey(),
+            country,
+            ...chainOf(nodes, node),
+          })),
+        );
+        setItemKey(PRIMARY);
+        setPrefilled(true);
+        return;
+      }
     }
     const saved = readAreaCookie();
     const savedNode =
@@ -559,17 +661,22 @@ export function StepWhere({
     if (chain.region !== null || chain.city !== null) setPrefilled(true);
     // `coverage` is read once, at seeding, on purpose: later edits are the seller's.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, nodes, guess]);
+  }, [country, nodes, guess, last]);
 
-  /** The places the rows name, in order; the first is the item's own place. */
+  /** W6b-1 R3 — the ticked box; a tick whose box is gone falls to the first. */
+  const itemRow = rows.find((row) => row.key === itemKey) ?? rows[0]!;
+  const tickKey = itemRow.key;
+
+  /** The places the rows name; the TICKED place first (the door's p_coverage[1]). */
   const desired = useMemo(() => {
     const out: string[] = [];
-    for (const row of rows) {
+    const ordered = [itemRow, ...rows.filter((row) => row !== itemRow)];
+    for (const row of ordered) {
       const id = placeOf(row);
       if (id !== null && !out.includes(id)) out.push(id);
     }
     return out;
-  }, [rows]);
+  }, [rows, itemRow]);
 
   /**
    * U6-C1-R2 / D19 — THE ITEM'S PLACE IS ALSO WHERE IT SHOWS: the list is what
@@ -599,8 +706,7 @@ export function StepWhere({
     );
   }, []);
 
-  const primaryRow = rows[0]!;
-  const hasCity = placeOf(primaryRow) !== null;
+  const hasCity = placeOf(itemRow) !== null;
 
   // ---- R5: room at each level, counted over the rows (a pending box counts) ----
   const countryKeyOf = (row: Row) =>
@@ -622,9 +728,42 @@ export function StepWhere({
     if (key === PRIMARY) setPrefilled(false);
     patchRows([key], patch);
   };
+  const onTick = (key: string) => {
+    act();
+    setItemKey(key);
+  };
+  /**
+   * W6b-1 R3 — ANY city box can go while more than one remains. The first box
+   * anchors the item's market box, so when it goes the next box takes its key
+   * (and its market becomes the step's); a removed tick moves to the first
+   * remaining box, announced through the live region.
+   */
   const onRemove = (key: string) => {
     act();
-    setRows((current) => current.filter((row) => row.key !== key || row.key === PRIMARY));
+    setRows((current) => {
+      if (current.length <= 1) return current;
+      const rest = current.filter((row) => row.key !== key);
+      const head = rest[0]!;
+      const wasTicked = key === tickKey;
+      let next = rest;
+      if (key === PRIMARY) {
+        const code = head.country ?? country;
+        next = [{ ...head, key: PRIMARY, country: code }, ...rest.slice(1)];
+        if (code !== country) {
+          placeSeeded.current = code;
+          setCountry(code);
+        }
+        if (itemKey === head.key) setItemKey(PRIMARY);
+      }
+      if (wasTicked) {
+        setItemKey(next[0]!.key);
+        const node = nodes.find((entry) => entry.id === placeOf(next[0]!)) ?? null;
+        setAnnounce(
+          fill(t("post.where.itemMoved"), { name: node === null ? "" : nameOf(node) }),
+        );
+      }
+      return next;
+    });
   };
   const onAddCity = (code: string | null, region: string | null) => {
     act();
@@ -768,7 +907,12 @@ export function StepWhere({
 
   return (
     <div className="space-y-5" data-testid="post-where">
-      <p className="text-sm text-muted-foreground">{t("post.where.why")}</p>
+      <p className="text-sm text-muted-foreground" data-testid="post-where-intro">
+        {t("post.where.showIntro")}
+      </p>
+      <p className="sr-only" aria-live="polite" data-testid="post-where-announce">
+        {announce}
+      </p>
 
       {/* R1 — the place, heading included, is the refusal's scroll target (D70/D2). */}
       <div
@@ -781,7 +925,7 @@ export function StepWhere({
           className="flex items-center gap-1 text-sm font-medium text-foreground"
           data-testid="post-where-heading"
         >
-          <span>{t("post.where.defaultPlaceLabel")}</span>
+          <span>{t("post.where.showHeading")}</span>
           {!hasCity && <RequiredMark />}
         </p>
 
@@ -793,6 +937,9 @@ export function StepWhere({
           room={room}
           refused={coverageRefusal !== null}
           market={primaryMarket}
+          itemKey={tickKey}
+          canRemove={rows.length > 1}
+          onTick={onTick}
           onRegion={onRegion}
           onRow={onRow}
           onRemove={onRemove}
@@ -808,6 +955,9 @@ export function StepWhere({
             taken={takenCountries}
             room={room}
             refused={false}
+            itemKey={tickKey}
+            canRemove={rows.length > 1}
+            onTick={onTick}
             onCountry={onCountry}
             onRegion={onRegion}
             onRow={onRow}
