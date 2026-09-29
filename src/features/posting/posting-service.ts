@@ -358,7 +358,6 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
   }
 }
 
-
 /**
  * U6-C1b — ONE DEFINITION AS THE FORM NEEDS IT.
  *

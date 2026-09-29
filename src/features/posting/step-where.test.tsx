@@ -190,7 +190,9 @@ describe("StepWhere — the nested layout (W6 R4/R5)", () => {
  */
 describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
   const regionBox = (id: string) =>
-    document.querySelector<HTMLElement>(`[data-testid="post-where-region-box"][data-region="${id}"]`)!;
+    document.querySelector<HTMLElement>(
+      `[data-testid="post-where-region-box"][data-region="${id}"]`,
+    )!;
   const ticks = () => screen.getAllByTestId("post-where-item-tick") as HTMLInputElement[];
 
   it("shows a city box only after its region is chosen", async () => {

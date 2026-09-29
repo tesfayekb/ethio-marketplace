@@ -135,7 +135,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const listingId = await openAtStep6(page, user.id, category.id);
 
     await expect(page.getByTestId("post-where-heading"), "PW-83: no heading").toBeVisible();
-    await expect(page.getByTestId("post-where-intro"), "PW-83: the intro never rendered").toBeVisible();
+    await expect(
+      page.getByTestId("post-where-intro"),
+      "PW-83: the intro never rendered",
+    ).toBeVisible();
 
     const region = page.getByTestId("post-where-region");
     await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
@@ -147,7 +150,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
 
     await expect(page.getByTestId("post-where-item-tick"), "PW-83: not one tick").toHaveCount(1);
     await expect(tickOf(page, "primary"), "PW-83: the single city box is not ticked").toBeChecked();
-    await expect(page.getByTestId("post-where-remove"), "PW-83: a lone city offered Remove").toHaveCount(0);
+    await expect(
+      page.getByTestId("post-where-remove"),
+      "PW-83: a lone city offered Remove",
+    ).toHaveCount(0);
 
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 20_000 });
@@ -237,7 +243,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
           expires_at: new Date(now.getTime() + 7 * 86_400_000).toISOString(),
         })
         .eq("id", listingId);
-      if (error) throw new Error(`PW-84: activating the other seller's listing failed: ${error.message}`);
+      if (error)
+        throw new Error(`PW-84: activating the other seller's listing failed: ${error.message}`);
     } finally {
       await stopPageBeforePurge(other);
       await context.close();

@@ -304,98 +304,100 @@ function CountryBox({
               {/* W6b-1 R2 — a city box appears only after its region is chosen. */}
               {(group.region !== null || regions.length === 0) &&
                 group.rows.map((row) => {
-                const isPrimary = row.key === PRIMARY;
-                const subCities = childrenOf(nodes, row.city, "sub_city");
-                const cityNode = nodes.find((node) => node.id === row.city) ?? null;
-                const cityId = isPrimary ? "post-where-city" : `post-where-city-${row.key}`;
-                return (
-                  <div
-                    key={row.key}
-                    data-testid="post-where-row"
-                    data-key={row.key}
-                    data-item={row.key === itemKey ? "1" : "0"}
-                    className="space-y-2 rounded-md border border-input p-2 sm:p-3"
-                  >
-                    {cities.length > 0 && (
-                      <div className="space-y-1">
-                        <label htmlFor={cityId} className="text-sm font-medium text-foreground">
-                          {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
-                        </label>
-                        <select
-                          id={cityId}
-                          data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
-                          className={fieldClass}
-                          value={row.city ?? ""}
-                          onChange={(event) =>
-                            onRow(row.key, { city: event.target.value || null, subCity: null })
-                          }
-                        >
-                          <option value="">{t("post.where.levelNone")}</option>
-                          {cities.map((node) => (
-                            <option key={node.id} value={node.id}>
-                              {nameOf(node)}
+                  const isPrimary = row.key === PRIMARY;
+                  const subCities = childrenOf(nodes, row.city, "sub_city");
+                  const cityNode = nodes.find((node) => node.id === row.city) ?? null;
+                  const cityId = isPrimary ? "post-where-city" : `post-where-city-${row.key}`;
+                  return (
+                    <div
+                      key={row.key}
+                      data-testid="post-where-row"
+                      data-key={row.key}
+                      data-item={row.key === itemKey ? "1" : "0"}
+                      className="space-y-2 rounded-md border border-input p-2 sm:p-3"
+                    >
+                      {cities.length > 0 && (
+                        <div className="space-y-1">
+                          <label htmlFor={cityId} className="text-sm font-medium text-foreground">
+                            {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
+                          </label>
+                          <select
+                            id={cityId}
+                            data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
+                            className={fieldClass}
+                            value={row.city ?? ""}
+                            onChange={(event) =>
+                              onRow(row.key, { city: event.target.value || null, subCity: null })
+                            }
+                          >
+                            <option value="">{t("post.where.levelNone")}</option>
+                            {cities.map((node) => (
+                              <option key={node.id} value={node.id}>
+                                {nameOf(node)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
+                      {cityNode !== null && subCities.length > 0 && (
+                        <div className="space-y-1">
+                          <label
+                            htmlFor={
+                              isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`
+                            }
+                            className="text-sm font-medium text-foreground"
+                          >
+                            {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
+                          </label>
+                          <select
+                            id={isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`}
+                            data-testid={
+                              isPrimary ? "post-where-subcity" : "post-where-row-subcity"
+                            }
+                            className={fieldClass}
+                            value={row.subCity ?? ""}
+                            onChange={(event) =>
+                              onRow(row.key, { subCity: event.target.value || null })
+                            }
+                          >
+                            <option value="" data-testid="post-where-allof">
+                              {fill(t("post.where.allOf"), { name: nameOf(cityNode) })}
                             </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
-                    {cityNode !== null && subCities.length > 0 && (
-                      <div className="space-y-1">
-                        <label
-                          htmlFor={
-                            isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`
-                          }
-                          className="text-sm font-medium text-foreground"
+                            {subCities.map((node) => (
+                              <option key={node.id} value={node.id}>
+                                {nameOf(node)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      {/* W6b-1 R3 — the one tick, a radio group across every box. */}
+                      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                        <input
+                          type="radio"
+                          name="post-where-item"
+                          data-testid="post-where-item-tick"
+                          data-key={row.key}
+                          className="h-5 w-5 shrink-0 accent-primary"
+                          checked={row.key === itemKey}
+                          onChange={() => onTick(row.key)}
+                        />
+                        <span>{t("post.where.itemHere")}</span>
+                      </label>
+                      {canRemove && (
+                        <button
+                          type="button"
+                          data-testid="post-where-remove"
+                          data-id={placeOf(row) ?? ""}
+                          className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
+                          onClick={() => onRemove(row.key)}
                         >
-                          {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
-                        </label>
-                        <select
-                          id={isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`}
-                          data-testid={isPrimary ? "post-where-subcity" : "post-where-row-subcity"}
-                          className={fieldClass}
-                          value={row.subCity ?? ""}
-                          onChange={(event) =>
-                            onRow(row.key, { subCity: event.target.value || null })
-                          }
-                        >
-                          <option value="" data-testid="post-where-allof">
-                            {fill(t("post.where.allOf"), { name: nameOf(cityNode) })}
-                          </option>
-                          {subCities.map((node) => (
-                            <option key={node.id} value={node.id}>
-                              {nameOf(node)}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    {/* W6b-1 R3 — the one tick, a radio group across every box. */}
-                    <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                      <input
-                        type="radio"
-                        name="post-where-item"
-                        data-testid="post-where-item-tick"
-                        data-key={row.key}
-                        className="h-5 w-5 shrink-0 accent-primary"
-                        checked={row.key === itemKey}
-                        onChange={() => onTick(row.key)}
-                      />
-                      <span>{t("post.where.itemHere")}</span>
-                    </label>
-                    {canRemove && (
-                      <button
-                        type="button"
-                        data-testid="post-where-remove"
-                        data-id={placeOf(row) ?? ""}
-                        className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
-                        onClick={() => onRemove(row.key)}
-                      >
-                        {t("post.where.removePlace")}
-                      </button>
-                    )}
-                  </div>
-                );
+                          {t("post.where.removePlace")}
+                        </button>
+                      )}
+                    </div>
+                  );
                 })}
 
               {room.city && (group.region !== null || regions.length === 0) && (
