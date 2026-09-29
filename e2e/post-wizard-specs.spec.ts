@@ -466,6 +466,70 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * W4 D2 — THE REFUSED FIELD ARRIVES WHOLE. After Next, the first refused field
+   * is scrolled so its LABEL sits fully below the sticky header (the container's
+   * scroll margin), then the control takes focus. Run with and without reduced
+   * motion; the check polls until the scroll has settled.
+   */
+  for (const motion of ["no-preference", "reduce"] as const) {
+    test(`PW-77 the first refused field's label lands below the header (D2, ${motion})`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ reducedMotion: motion });
+      const user = await seller(page);
+      const category = await leaf();
+      await reachStep3(page, user.id, category);
+      await nextThroughPhotos(page);
+      await expect(page.getByTestId("post-step-4")).toBeVisible();
+      const title = page.getByTestId("post-title");
+      // The typing autosave (INC-228) is let finish first, as a seller pausing
+      // would: PW-77's subject is where the refused field lands, not the queue.
+      const autosaved = page.waitForResponse(
+        (response) => response.url().includes("/api/listings/draft"),
+        { timeout: 20_000 },
+      );
+      await page.getByTestId("post-description").fill("e2e d2 description");
+      await title.fill("");
+      await autosaved;
+      // As PW-70: the on-blur judgement lands first, so the layout is settled
+      // before Next (a message appearing under the press moves the button).
+      await title.blur();
+      await expect(
+        page.locator('[data-testid="post-field-refusal"][data-field="post-title"]'),
+      ).toBeVisible();
+      await page.evaluate(() =>
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }),
+      );
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-refusal-summary")).toBeVisible({ timeout: 20_000 });
+      await expect(title, "PW-77: the refused title did not take focus").toBeFocused();
+      await expect
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const label = document.querySelector(
+                '[data-testid="post-field"][data-field="post-title"] label',
+              );
+              if (label === null) return "no label";
+              let headerBottom = 0;
+              for (const node of Array.from(document.querySelectorAll("header"))) {
+                const style = getComputedStyle(node);
+                if (style.position !== "sticky" && style.position !== "fixed") continue;
+                const box = node.getBoundingClientRect();
+                if (box.top <= 0 && box.bottom > headerBottom) headerBottom = box.bottom;
+              }
+              const top = label.getBoundingClientRect().top;
+              return top >= headerBottom && top < window.innerHeight
+                ? "below"
+                : `${top}/${headerBottom}`;
+            }),
+          { message: "PW-77: the label is under the header or off screen", timeout: 5_000 },
+        )
+        .toBe("below");
+    });
+  }
+
+  /**
    * INC-329 — THE ROUND-TRIP LAW. Every answer the seller gave on step 3 is still
    * there after Next to the price and Back, and a tap on the model that changes
    * nothing changes nothing. Scratch leaf and scratch definitions only (G27),
@@ -496,7 +560,7 @@ test.describe("POSTING WIZARD", () => {
         option(`${stem}_md${index}`, {
           parent: index % 2 === 0 ? make : k("mk2"),
           bounds: { [k("year")]: { min: 2000 } },
-          facts: { [k("doors")]: 3 },
+          facts: { [k("doors")]: 3, [k("seats")]: 5 },
         }),
       );
       const chosenModel = `${stem}_md0`;
@@ -531,6 +595,16 @@ test.describe("POSTING WIZARD", () => {
         {
           attr_key: k("doors"),
           name_en: `${stem} doors`,
+          attr_type: "number",
+          min_bound: "1",
+          max_bound: "9",
+          decimals: 0,
+        },
+        // INC-331 — a second prefilled fact the seller never touches and no
+        // bound pins (1–9 stays open): it must survive the round trip as-is.
+        {
+          attr_key: k("seats"),
+          name_en: `${stem} seats`,
           attr_type: "number",
           min_bound: "1",
           max_bound: "9",
@@ -637,6 +711,7 @@ test.describe("POSTING WIZARD", () => {
         [k("model")]: chosenModel,
         [k("year")]: 2015,
         [k("doors")]: 3,
+        [k("seats")]: 5,
         [k("kind")]: k("tread"),
         [k("power")]: k("electric"),
         [k("colour")]: k("red"),
@@ -654,6 +729,7 @@ test.describe("POSTING WIZARD", () => {
           ["model", chosenModel],
           ["year", "2015"],
           ["doors", "3"],
+          ["seats", "5"],
           ["kind", k("tread")],
           ["power", k("electric")],
           ["colour", k("red")],
@@ -726,10 +802,26 @@ test.describe("POSTING WIZARD", () => {
     );
     await gotoReady(page, "/post");
     await expect(
-      page.locator('label[for="post-category-search"]').getByTestId("post-required-mark"),
-      "PW-75: the category heading carries no mark",
+      page.getByTestId("post-category-list-heading").getByTestId("post-required-mark"),
+      "PW-75: the category list heading carries no mark",
     ).toBeVisible();
+    // W4 D1 — the optional search is unmarked.
+    await expect(
+      page.locator('label[for="post-category-search"]').getByTestId("post-required-mark"),
+      "PW-75: the optional search carries the mark",
+    ).toHaveCount(0);
     await reachStep3(page, user.id, category);
+    // W4 D1 — once a leaf is chosen, Back finds the list heading unmarked and unbordered.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await expect(
+      page.getByTestId("post-category-list-heading").getByTestId("post-required-mark"),
+      "PW-75: the mark outlived the chosen leaf",
+    ).toHaveCount(0);
+    await expect(page.getByTestId("post-category-group")).toHaveAttribute("data-empty", "0");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    await specsSettled(page);
     await expect(
       page
         .locator(`[data-testid="post-field"][data-field="post-attr-${spec.number.attrKey}"]`)
@@ -1168,19 +1260,20 @@ test.describe("POSTING WIZARD", () => {
       "PW-25: the picker offered years below the model's floor",
     ).toHaveLength(0);
 
-    // CASE 2 — ONE YEAR ONLY (min = max): the picker offers exactly that year.
+    // CASE 2 — ONE YEAR ONLY (min = max). DEC-085 (W4) supersedes the old
+    // "offers exactly that year": the one admissible year IS the answer, so the
+    // form stores it and hides the row (DB truth, J4).
     await answer(deep.model.attrKey, deep.pinModel);
+    await expect(
+      page.locator(`[data-testid="post-spec"][data-attr="${deep.year.attrKey}"]`),
+      "PW-25: a single-year model left the picker asking",
+    ).toHaveCount(0, { timeout: 20_000 });
     await expect
-      .poll(offered, {
-        message: "PW-25: a single-year model did not pin the picker",
+      .poll(async () => (await attributesOf(listingId))[deep.year.attrKey], {
+        message: "PW-25: a single-year model did not store its year",
         timeout: 20_000,
       })
-      .toEqual([deep.pinnedYear]);
-    await year.selectOption(String(deep.pinnedYear));
-    await expect(
-      page.locator(`[data-testid="post-attr-refusal"][data-attr="${deep.year.attrKey}"]`),
-      "PW-25: the model's only year was refused",
-    ).toHaveCount(0);
+      .toBe(deep.pinnedYear);
 
     // INC-288 — RELATIVE BOUNDS, the door's vocabulary (scratch definitions,
     // reaped by the afterEach through `specs` — J3).

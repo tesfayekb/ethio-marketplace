@@ -562,4 +562,85 @@ test.describe("POSTING ROUTES", () => {
     });
     expect(short.status()).toBe(400);
   });
+  /**
+   * DEC-086 — THE MODEL QUESTION IS REQUIRED WHEN IT MATTERS, AT THE ROUTE. A
+   * dependent pick-list whose options carry facts: missing under an answered
+   * parent with two children → refused `{attr_key, required}`; answered (or
+   * 'other') → accepted. Scratch definitions only, reaped by the afterEach (J3).
+   */
+  test("PR-16 a model question that matters is required by the draft route (DEC-086)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const stem = `e2e_pr16_${test.info().workerIndex}_${rand()}`;
+    const option = (value: string, extra: Record<string, unknown> = {}) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      active: true,
+      ...extra,
+    });
+    const admin = adminClient();
+    const brandKey = `${stem}_brand`;
+    const modelKey = `${stem}_model`;
+    const { data: brand, error: brandError } = await admin
+      .from("attributes")
+      .insert({
+        attr_key: brandKey,
+        name_en: `${stem} brand`,
+        attr_type: "single_select",
+        options: [option(`${stem}_b1`), option(`${stem}_b2`)],
+      })
+      .select("id")
+      .single();
+    if (brandError) throw new Error(`[e2e:pr-16] seeding the brand failed: ${brandError.message}`);
+    specs.push(brandKey);
+    const { data: model, error: modelError } = await admin
+      .from("attributes")
+      .insert({
+        attr_key: modelKey,
+        name_en: `${stem} model`,
+        attr_type: "single_select",
+        depends_on: brand.id,
+        options: [
+          option(`${stem}_m1`, { parent: `${stem}_b1`, facts: { [brandKey]: `${stem}_b1` } }),
+          option(`${stem}_m2`, { parent: `${stem}_b1` }),
+          option(`${stem}_m3`, { parent: `${stem}_b2` }),
+        ],
+      })
+      .select("id")
+      .single();
+    if (modelError) throw new Error(`[e2e:pr-16] seeding the model failed: ${modelError.message}`);
+    specs.push(modelKey);
+    const { error: linkError } = await admin.from("category_attribute_links").insert([
+      { category_id: cat.id, attribute_id: brand.id, is_required: false, display_order: 1 },
+      { category_id: cat.id, attribute_id: model.id, is_required: false, display_order: 2 },
+    ]);
+    if (linkError) throw new Error(`[e2e:pr-16] linking failed: ${linkError.message}`);
+
+    const save = (attributes: Record<string, unknown>) =>
+      postRoute(page, DRAFT, { step: 3, categoryId: cat.id, attributes }, { token, country: "ET" });
+    const refusalsOf = (payload: Record<string, unknown>) =>
+      ((payload["refusals"] ?? []) as Array<Record<string, unknown>>).map((row) => ({
+        attr_key: row["attr_key"],
+        reason: row["reason"],
+      }));
+
+    const missing = await save({ [brandKey]: `${stem}_b1` });
+    expect(missing.status, JSON.stringify(missing.payload)).toBe(200);
+    expect(missing.payload["ok"], JSON.stringify(missing.payload)).toBe(false);
+    expect(refusalsOf(missing.payload), JSON.stringify(missing.payload)).toContainEqual({
+      attr_key: modelKey,
+      reason: "required",
+    });
+
+    // One child under the parent: the rule does not apply.
+    const single = await save({ [brandKey]: `${stem}_b2` });
+    expect(single.payload["ok"], JSON.stringify(single.payload)).toBe(true);
+
+    const answered = await save({ [brandKey]: `${stem}_b1`, [modelKey]: `${stem}_m1` });
+    expect(answered.status, JSON.stringify(answered.payload)).toBe(200);
+    expect(answered.payload["ok"], JSON.stringify(answered.payload)).toBe(true);
+  });
 });
